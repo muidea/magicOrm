@@ -140,16 +140,11 @@ func (s *orm) queryRelation(structInfo model.StructInfo, fieldInfo model.FieldIn
 	return
 }
 
-func (s *orm) Query(obj interface{}, filter Filter) (err error) {
+func (s *orm) Query(obj interface{}) (err error) {
 	structInfo, structErr := model.GetObjectStructInfo(obj, s.modelInfoCache)
 	if structErr != nil {
 		err = structErr
 		log.Printf("GetObjectStructInfo failed, err:%s", err.Error())
-		return
-	}
-
-	err = s.batchCreateSchema(structInfo)
-	if err != nil {
 		return
 	}
 

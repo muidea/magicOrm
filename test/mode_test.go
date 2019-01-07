@@ -54,13 +54,13 @@ func TestGroup(t *testing.T) {
 	}
 
 	group4 := &Group{ID: group2.ID, Parent: &Group{}}
-	err = o1.Query(group4, nil)
+	err = o1.Query(group4)
 	if err != nil {
 		t.Errorf("query Group4 failed, err:%s", err.Error())
 	}
 
 	group5 := &Group{ID: group2.ID, Parent: &Group{}}
-	err = o1.Query(group5, nil)
+	err = o1.Query(group5)
 	if err != nil {
 		t.Errorf("query Group5 failed, err:%s", err.Error())
 	}
@@ -125,7 +125,7 @@ func TestUser(t *testing.T) {
 	}
 
 	user2 := &User{ID: user1.ID}
-	err = o1.Query(user2, nil)
+	err = o1.Query(user2)
 	if err != nil {
 		t.Errorf("query user2 failed, err:%s", err.Error())
 	}
@@ -141,7 +141,7 @@ func TestUser(t *testing.T) {
 		t.Errorf("update user1 failed, err:%s", err.Error())
 	}
 
-	err = o1.Query(user2, nil)
+	err = o1.Query(user2)
 	if err != nil {
 		t.Errorf("query user2 failed, err:%s", err.Error())
 	}
@@ -230,7 +230,7 @@ func TestSystem(t *testing.T) {
 	}
 
 	sys2 := &System{ID: sys1.ID, Users: &[]User{}}
-	err = o1.Query(sys2, nil)
+	err = o1.Query(sys2)
 	if err != nil {
 		t.Errorf("query system failed, err:%s", err.Error())
 	}

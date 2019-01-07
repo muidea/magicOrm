@@ -4,12 +4,9 @@ import (
 	"fmt"
 
 	"muidea.com/magicOrm/executor"
+	"muidea.com/magicOrm/filter"
 	"muidea.com/magicOrm/model"
 )
-
-// Filter orm query filter
-type Filter interface {
-}
 
 // Orm orm interfalce
 type Orm interface {
@@ -17,7 +14,7 @@ type Orm interface {
 	Insert(obj interface{}) error
 	Update(obj interface{}) error
 	Delete(obj interface{}) error
-	Query(obj interface{}, filter Filter) error
+	Query(obj interface{}) error
 	Drop(obj interface{}) error
 	Release()
 }
@@ -45,6 +42,11 @@ func Initialize(user, password, address, dbName string) error {
 // Uninitialize Uninitialize orm
 func Uninitialize() {
 
+}
+
+// NewFilter create new filter
+func NewFilter() filter.Filter {
+	return &queryFilter{params: map[string]interface{}{}, modelInfoCache: ormManager.getCache()}
 }
 
 // New create new Orm
