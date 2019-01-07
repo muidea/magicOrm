@@ -7,13 +7,17 @@ import (
 	"muidea.com/magicOrm/model"
 )
 
+// Filter orm query filter
+type Filter interface {
+}
+
 // Orm orm interfalce
 type Orm interface {
 	Create(obj interface{}) error
 	Insert(obj interface{}) error
 	Update(obj interface{}) error
 	Delete(obj interface{}) error
-	Query(obj interface{}, filter ...string) error
+	Query(obj interface{}, filter Filter) error
 	Drop(obj interface{}) error
 	Release()
 }
