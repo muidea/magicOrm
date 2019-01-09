@@ -16,13 +16,13 @@ type StructInfo interface {
 	GetPrimaryField() FieldInfo
 	GetDependField() []FieldInfo
 	Copy() StructInfo
+	Interface() reflect.Value
 	Dump()
 }
 
 // structInfo single struct ret
 type structInfo struct {
-	name    string
-	pkgPath string
+	structType reflect.Type
 
 	fields Fields
 
@@ -30,12 +30,12 @@ type structInfo struct {
 }
 
 func (s *structInfo) GetName() string {
-	return s.name
+	return s.structType.Name()
 }
 
 // GetPkgPath GetPkgPath
 func (s *structInfo) GetPkgPath() string {
-	return s.pkgPath
+	return s.structType.PkgPath()
 }
 
 // GetFields GetFields
@@ -86,14 +86,18 @@ func (s *structInfo) GetDependField() (ret []FieldInfo) {
 }
 
 func (s *structInfo) Copy() StructInfo {
-	info := &structInfo{name: s.name, pkgPath: s.pkgPath, fields: s.fields.Copy(), structInfoCache: s.structInfoCache}
+	info := &structInfo{structType: s.structType, fields: s.fields.Copy(), structInfoCache: s.structInfoCache}
 	return info
+}
+
+func (s *structInfo) Interface() reflect.Value {
+	return reflect.New(s.structType)
 }
 
 // Dump Dump
 func (s *structInfo) Dump() {
 	fmt.Print("structInfo:\n")
-	fmt.Printf("\tname:%s, pkgPath:%s\n", s.name, s.pkgPath)
+	fmt.Printf("\tname:%s, pkgPath:%s\n", s.GetName(), s.GetPkgPath())
 
 	primaryKey := s.fields.GetPrimaryField()
 	if primaryKey != nil {
@@ -148,7 +152,7 @@ func GetStructInfo(structType reflect.Type, cache StructInfoCache) (ret StructIn
 		return
 	}
 
-	structInfo := &structInfo{name: structType.Name(), pkgPath: structType.PkgPath(), fields: make(Fields, 0), structInfoCache: cache}
+	structInfo := &structInfo{structType: structType, fields: make(Fields, 0), structInfoCache: cache}
 
 	fieldNum := structType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {

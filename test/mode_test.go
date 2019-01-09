@@ -256,3 +256,41 @@ func TestSystem(t *testing.T) {
 		t.Errorf("delete user2 failed, err:%s", err.Error())
 	}
 }
+
+func TestBatchQuery(t *testing.T) {
+	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
+	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
+
+	o1, err := orm.New()
+	defer o1.Release()
+	if err != nil {
+		t.Errorf("new Orm failed, err:%s", err.Error())
+	}
+
+	err = o1.Drop(user1)
+	if err != nil {
+		t.Errorf("drop user failed, err:%s", err.Error())
+	}
+
+	err = o1.Create(user1)
+	if err != nil {
+		t.Errorf("create user failed, err:%s", err.Error())
+	}
+
+	err = o1.Insert(user1)
+	if err != nil {
+		t.Errorf("insert user failed, err:%s", err.Error())
+	}
+	err = o1.Insert(user2)
+	if err != nil {
+		t.Errorf("insert user failed, err:%s", err.Error())
+	}
+
+	userList := []User{}
+	err = o1.BatchQuery(&userList, nil)
+	if err != nil {
+		t.Errorf("batch query user failed, err:%s", err.Error())
+	}
+
+	log.Print(userList)
+}

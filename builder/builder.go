@@ -7,13 +7,14 @@ import (
 
 // Builder orm builder
 type Builder interface {
+	GetTableName() string
 	BuildCreateSchema() (string, error)
 	BuildDropSchema() (string, error)
 	BuildInsert() (string, error)
 	BuildUpdate() (string, error)
 	BuildDelete() (string, error)
 	BuildQuery() (string, error)
-	GetTableName() string
+	BuildBatchQuery() (string, error)
 
 	GetRelationTableName(fieldName string, relationInfo model.StructInfo) string
 	BuildCreateRelationSchema(fieldName string, relationInfo model.StructInfo) (string, error)

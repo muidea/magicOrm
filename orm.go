@@ -15,6 +15,7 @@ type Orm interface {
 	Update(obj interface{}) error
 	Delete(obj interface{}) error
 	Query(obj interface{}) error
+	BatchQuery(sliceObj interface{}, filter filter.Filter) error
 	Drop(obj interface{}) error
 	Release()
 }
