@@ -8,6 +8,7 @@ import (
 )
 
 func TestGroup(t *testing.T) {
+	//orm.Initialize("root", "rootkit", "localhost:9696", "testdb")
 	orm.Initialize("root", "rootkit", "localhost:3306", "testdb")
 	defer orm.Uninitialize()
 
