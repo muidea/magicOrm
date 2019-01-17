@@ -31,8 +31,13 @@ func (s *sliceValue) String() (ret string, err error) {
 		}
 
 		if util.IsBasicType(fval) {
-			basicVal := &basicValue{value: val}
+			fValue, fErr := model.NewFieldValue(val)
+			if fErr != nil {
+				err = fErr
+				return
+			}
 
+			basicVal := &basicValue{value: fValue}
 			strVal, strErr := basicVal.String()
 			if strErr != nil {
 				err = strErr
@@ -44,9 +49,14 @@ func (s *sliceValue) String() (ret string, err error) {
 		}
 
 		if util.IsStructType(fval) {
-			structVal := &structValue{value: val, modelInfoCache: s.modelInfoCache}
+			fValue, fErr := model.NewFieldValue(val)
+			if fErr != nil {
+				err = fErr
+				return
+			}
 
-			strVal, strErr := structVal.String()
+			basicVal := &basicValue{value: fValue}
+			strVal, strErr := basicVal.String()
 			if strErr != nil {
 				err = strErr
 				return

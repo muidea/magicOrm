@@ -3,10 +3,12 @@ package orm
 import (
 	"fmt"
 	"log"
+
+	"muidea.com/magicOrm/model"
 )
 
-func equleOpr(name string, value queryValue) (ret string, err error) {
-	val, valErr := value.String()
+func equleOpr(name string, value model.FieldValue) (ret string, err error) {
+	val, valErr := value.GetValueStr()
 	if valErr == nil {
 		ret = fmt.Sprintf("`%s` = %s", name, val)
 		return
@@ -17,8 +19,8 @@ func equleOpr(name string, value queryValue) (ret string, err error) {
 	return
 }
 
-func notEquleOpr(name string, value queryValue) (ret string, err error) {
-	val, valErr := value.String()
+func notEquleOpr(name string, value model.FieldValue) (ret string, err error) {
+	val, valErr := value.GetValueStr()
 	if valErr == nil {
 		ret = fmt.Sprintf("`%s` != %s", name, val)
 		return
@@ -29,8 +31,8 @@ func notEquleOpr(name string, value queryValue) (ret string, err error) {
 	return
 }
 
-func belowOpr(name string, value queryValue) (ret string, err error) {
-	val, valErr := value.String()
+func belowOpr(name string, value model.FieldValue) (ret string, err error) {
+	val, valErr := value.GetValueStr()
 	if valErr == nil {
 		ret = fmt.Sprintf("`%s` < %s", name, val)
 		return
@@ -41,8 +43,8 @@ func belowOpr(name string, value queryValue) (ret string, err error) {
 	return
 }
 
-func aboveOpr(name string, value queryValue) (ret string, err error) {
-	val, valErr := value.String()
+func aboveOpr(name string, value model.FieldValue) (ret string, err error) {
+	val, valErr := value.GetValueStr()
 	if valErr == nil {
 		ret = fmt.Sprintf("`%s` > %s", name, val)
 		return
@@ -53,8 +55,8 @@ func aboveOpr(name string, value queryValue) (ret string, err error) {
 	return
 }
 
-func inOpr(name string, value queryValue) (ret string, err error) {
-	val, valErr := value.String()
+func inOpr(name string, value model.FieldValue) (ret string, err error) {
+	val, valErr := value.GetValueStr()
 	if valErr == nil {
 		ret = fmt.Sprintf("`%s` in (%v)", name, val)
 		return
@@ -65,8 +67,8 @@ func inOpr(name string, value queryValue) (ret string, err error) {
 	return
 }
 
-func notInOpr(name string, value queryValue) (ret string, err error) {
-	val, valErr := value.String()
+func notInOpr(name string, value model.FieldValue) (ret string, err error) {
+	val, valErr := value.GetValueStr()
 	if valErr == nil {
 		ret = fmt.Sprintf("`%s` not in (%v)", name, val)
 		return
