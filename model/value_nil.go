@@ -20,7 +20,7 @@ func (s *nilImpl) SetValue(val reflect.Value) (err error) {
 		s.value.Set(val)
 	}
 
-	fieldValue, fieldErr := newFieldValue(val)
+	fieldValue, fieldErr := NewFieldValue(val)
 	if fieldErr != nil {
 		err = fieldErr
 		return

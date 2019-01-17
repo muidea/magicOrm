@@ -10,7 +10,7 @@ import (
 
 func TestGetValueStr(t *testing.T) {
 	iVal := int(123)
-	fiVal, fiErr := newFieldValue(reflect.ValueOf(&iVal))
+	fiVal, fiErr := NewFieldValue(reflect.ValueOf(&iVal))
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 	} else {
@@ -21,7 +21,7 @@ func TestGetValueStr(t *testing.T) {
 	}
 
 	fVal := 12.34
-	ffVal, ffErr := newFieldValue(reflect.ValueOf(&fVal))
+	ffVal, ffErr := NewFieldValue(reflect.ValueOf(&fVal))
 	if ffErr != nil {
 		t.Errorf("%s", ffErr.Error())
 	} else {
@@ -32,7 +32,7 @@ func TestGetValueStr(t *testing.T) {
 	}
 
 	strVal := "abc"
-	fstrVal, fstrErr := newFieldValue(reflect.ValueOf(&strVal))
+	fstrVal, fstrErr := NewFieldValue(reflect.ValueOf(&strVal))
 	if fstrErr != nil {
 		t.Errorf("%s", fstrErr.Error())
 	} else {
@@ -43,7 +43,7 @@ func TestGetValueStr(t *testing.T) {
 	}
 
 	bVal := true
-	fbVal, fbErr := newFieldValue(reflect.ValueOf(&bVal))
+	fbVal, fbErr := NewFieldValue(reflect.ValueOf(&bVal))
 	if fbErr != nil {
 		t.Errorf("%s", fbErr.Error())
 	} else {
@@ -54,7 +54,7 @@ func TestGetValueStr(t *testing.T) {
 	}
 
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05", "2018-01-02 15:04:05", time.Local)
-	ftimeVal, ftimeErr := newFieldValue(reflect.ValueOf(&now))
+	ftimeVal, ftimeErr := NewFieldValue(reflect.ValueOf(&now))
 	if ftimeErr != nil {
 		t.Errorf("%s", ftimeErr.Error())
 	} else {
@@ -67,7 +67,7 @@ func TestGetValueStr(t *testing.T) {
 	ii := 123
 	var iiVal int
 	iiVal = ii
-	fiVal, fiErr = newFieldValue(reflect.ValueOf(&iiVal))
+	fiVal, fiErr = NewFieldValue(reflect.ValueOf(&iiVal))
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 	} else {
@@ -84,7 +84,7 @@ func TestGetValueStr(t *testing.T) {
 
 func TestSetValue(t *testing.T) {
 	var iVal int
-	fiVal, fiErr := newFieldValue(reflect.ValueOf(&iVal))
+	fiVal, fiErr := NewFieldValue(reflect.ValueOf(&iVal))
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 	} else {
@@ -100,7 +100,7 @@ func TestSetValue(t *testing.T) {
 	}
 
 	var fVal float32
-	ffVal, ffErr := newFieldValue(reflect.ValueOf(&fVal))
+	ffVal, ffErr := NewFieldValue(reflect.ValueOf(&fVal))
 	if ffErr != nil {
 		t.Errorf("%s", ffErr.Error())
 	} else {
@@ -116,7 +116,7 @@ func TestSetValue(t *testing.T) {
 	}
 
 	var strVal string
-	fstrVal, fstrErr := newFieldValue(reflect.ValueOf(&strVal))
+	fstrVal, fstrErr := NewFieldValue(reflect.ValueOf(&strVal))
 	if fstrErr != nil {
 		t.Errorf("%s", fstrErr.Error())
 	} else {
@@ -132,7 +132,7 @@ func TestSetValue(t *testing.T) {
 	}
 
 	var bVal bool
-	fbVal, fbErr := newFieldValue(reflect.ValueOf(&bVal))
+	fbVal, fbErr := NewFieldValue(reflect.ValueOf(&bVal))
 	if fbErr != nil {
 		t.Errorf("%s", fbErr.Error())
 	} else {
@@ -157,7 +157,7 @@ func TestSetValue(t *testing.T) {
 	}
 
 	var now time.Time
-	ftimeVal, ftimeErr := newFieldValue(reflect.ValueOf(&now))
+	ftimeVal, ftimeErr := NewFieldValue(reflect.ValueOf(&now))
 	if ftimeErr != nil {
 		t.Errorf("%s", ftimeErr.Error())
 	} else {
@@ -192,7 +192,7 @@ func TestDepend(t *testing.T) {
 		kk *int
 	}
 	structVal := []*AA{&AA{ii: 12, jj: 23}, &AA{ii: 23, jj: 34}}
-	structSlicefv, structSliceErr := newFieldValue(reflect.ValueOf(&structVal))
+	structSlicefv, structSliceErr := NewFieldValue(reflect.ValueOf(&structVal))
 	if structSliceErr != nil {
 		t.Errorf("%s", structSliceErr.Error())
 	} else {
@@ -203,7 +203,7 @@ func TestDepend(t *testing.T) {
 	}
 
 	strSliceVal := []string{"10", "20", "30"}
-	strSliceValfv, strSliceErr := newFieldValue(reflect.ValueOf(&strSliceVal))
+	strSliceValfv, strSliceErr := NewFieldValue(reflect.ValueOf(&strSliceVal))
 	if strSliceErr != nil {
 		t.Errorf("%s", strSliceErr.Error())
 	} else {
@@ -223,7 +223,7 @@ func TestDepend(t *testing.T) {
 func TestPtr(t *testing.T) {
 	ii := 10
 	var iVal *int
-	fiVal, fiErr := newFieldValue(reflect.ValueOf(&iVal))
+	fiVal, fiErr := NewFieldValue(reflect.ValueOf(&iVal))
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 	} else {
@@ -250,7 +250,7 @@ func TestPtr(t *testing.T) {
 	}
 
 	iVal = &ii
-	fiVal, fiErr = newFieldValue(reflect.ValueOf(&iVal))
+	fiVal, fiErr = NewFieldValue(reflect.ValueOf(&iVal))
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 	} else {

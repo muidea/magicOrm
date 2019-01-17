@@ -68,7 +68,7 @@ func (s *fieldInfo) SetFieldValue(val reflect.Value) (err error) {
 	if s.fieldValue != nil {
 		err = s.fieldValue.SetValue(val)
 	} else {
-		s.fieldValue, err = newFieldValue(val.Addr())
+		s.fieldValue, err = NewFieldValue(val.Addr())
 	}
 
 	return
@@ -194,7 +194,7 @@ func GetFieldInfo(idx int, fieldType reflect.StructField, fieldVal *reflect.Valu
 	}
 
 	if fieldVal != nil {
-		info.fieldValue, err = newFieldValue(fieldVal.Addr())
+		info.fieldValue, err = NewFieldValue(fieldVal.Addr())
 		if err != nil {
 			return
 		}

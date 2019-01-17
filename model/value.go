@@ -15,7 +15,8 @@ type FieldValue interface {
 	Copy() FieldValue
 }
 
-func newFieldValue(val reflect.Value) (ret FieldValue, err error) {
+// NewFieldValue NewFieldValue
+func NewFieldValue(val reflect.Value) (ret FieldValue, err error) {
 	if val.Kind() != reflect.Ptr {
 		err = fmt.Errorf("illegal val, must be a ptr")
 		return
