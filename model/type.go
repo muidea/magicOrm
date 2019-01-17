@@ -18,9 +18,8 @@ type FieldType interface {
 	Copy() FieldType
 }
 
-func newFieldType(sf reflect.StructField) (ret FieldType, err error) {
-	val := sf.Type
-
+// NewFieldType NewFieldType
+func NewFieldType(val reflect.Type) (ret FieldType, err error) {
 	isPtr := false
 	rawVal := val
 	if rawVal.Kind() == reflect.Ptr {

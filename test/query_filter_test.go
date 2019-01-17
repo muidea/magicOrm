@@ -42,7 +42,7 @@ func TestFilterOpr(t *testing.T) {
 		return
 	}
 
-	payward := 12.34
+	payward := float32(12.34)
 	err = filter.Above("Payward", &payward)
 	if err != nil {
 		t.Errorf("Above failed, err:%s", err.Error())

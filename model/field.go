@@ -183,12 +183,12 @@ func GetFieldInfo(idx int, fieldType reflect.StructField, fieldVal *reflect.Valu
 	info.fieldIndex = idx
 	info.fieldName = fieldType.Name
 
-	info.fieldType, err = newFieldType(fieldType)
+	info.fieldType, err = NewFieldType(fieldType.Type)
 	if err != nil {
 		return
 	}
 
-	info.fieldTag, err = newFieldTag(ormStr)
+	info.fieldTag, err = NewFieldTag(ormStr)
 	if err != nil {
 		return
 	}

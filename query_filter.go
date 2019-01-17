@@ -15,6 +15,38 @@ type filterItem struct {
 	value     reflect.Value
 }
 
+func (s *filterItem) Verify(fType model.FieldType) (err error) {
+	valType := s.value.Type()
+	fieldType, fieldErr := model.NewFieldType(valType)
+	if fieldErr != nil {
+		err = fieldErr
+		return
+	}
+	valDType, _ := fieldType.Depend()
+	if valDType != nil {
+		fieldType, fieldErr = model.NewFieldType(valDType)
+		if fieldErr != nil {
+			err = fieldErr
+			return
+		}
+	}
+
+	fdType, _ := fType.Depend()
+	if fdType != nil {
+		fType, err = model.NewFieldType(fdType)
+		if err != nil {
+			return
+		}
+	}
+
+	if fieldType.Value() == fType.Value() {
+		return
+	}
+
+	err = fmt.Errorf("illegal filter value, name:%s, value type:%s", s.name, valType.String())
+	return
+}
+
 // queryFilter queryFilter
 type queryFilter struct {
 	params         map[string]filterItem
@@ -34,7 +66,7 @@ func (s *queryFilter) Equle(key string, val interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = filterItem{name: key, filterFun: equleOpr, value: qv.Addr()}
+	s.params[key] = filterItem{name: key, filterFun: equleOpr, value: qv}
 	return
 }
 
@@ -50,7 +82,7 @@ func (s *queryFilter) NotEqule(key string, val interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = filterItem{name: key, filterFun: notEquleOpr, value: qv.Addr()}
+	s.params[key] = filterItem{name: key, filterFun: notEquleOpr, value: qv}
 	return
 }
 
@@ -66,7 +98,7 @@ func (s *queryFilter) Below(key string, val interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = filterItem{name: key, filterFun: belowOpr, value: qv.Addr()}
+	s.params[key] = filterItem{name: key, filterFun: belowOpr, value: qv}
 	return
 }
 
@@ -82,7 +114,7 @@ func (s *queryFilter) Above(key string, val interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = filterItem{name: key, filterFun: aboveOpr, value: qv.Addr()}
+	s.params[key] = filterItem{name: key, filterFun: aboveOpr, value: qv}
 	return
 }
 
@@ -98,7 +130,7 @@ func (s *queryFilter) In(key string, val []interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = filterItem{name: key, filterFun: inOpr, value: qv.Addr()}
+	s.params[key] = filterItem{name: key, filterFun: inOpr, value: qv}
 	return
 }
 
@@ -114,7 +146,7 @@ func (s *queryFilter) NotIn(key string, val []interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = filterItem{name: key, filterFun: notInOpr, value: qv.Addr()}
+	s.params[key] = filterItem{name: key, filterFun: notInOpr, value: qv}
 	return
 }
 
@@ -140,7 +172,13 @@ func (s *queryFilter) Builder(structInfo model.StructInfo) (ret string, err erro
 			continue
 		}
 
-		fValue, fErr := model.NewFieldValue(filterItem.value)
+		verifyErr := filterItem.Verify(fType)
+		if verifyErr != nil {
+			err = verifyErr
+			return
+		}
+
+		fValue, fErr := model.NewFieldValue(filterItem.value.Addr())
 		if fErr != nil {
 			err = fErr
 			return

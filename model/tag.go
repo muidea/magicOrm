@@ -20,8 +20,8 @@ type tagImpl struct {
 	isAutoIncrement bool
 }
 
-// name[key][auto]
-func newFieldTag(val string) (ret FieldTag, err error) {
+//NewFieldTag name[key][auto]
+func NewFieldTag(val string) (ret FieldTag, err error) {
 	items := strings.Split(val, " ")
 	if len(items) < 1 {
 		err = fmt.Errorf("illegal tagImpl value, value:%s", val)
