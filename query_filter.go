@@ -2,7 +2,6 @@ package orm
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 
 	"muidea.com/magicCommon/foundation/util"
@@ -10,9 +9,16 @@ import (
 	ormutil "muidea.com/magicOrm/util"
 )
 
+type filterItem struct {
+	name      string
+	filterFun func(name string, value queryValue) (string, error)
+	value     reflect.Value
+}
+
 // queryFilter queryFilter
 type queryFilter struct {
-	params         map[string]opr
+	params         map[string]filterItem
+	pageFilter     *util.PageFilter
 	modelInfoCache model.StructInfoCache
 }
 
@@ -48,72 +54,103 @@ func newQueryValue(qv interface{}, cache model.StructInfoCache) (ret queryValue,
 }
 
 func (s *queryFilter) Equle(key string, val interface{}) (err error) {
-	value, valErr := newQueryValue(val, s.modelInfoCache)
-	if valErr != nil {
-		err = valErr
+	qv := reflect.Indirect(reflect.ValueOf(val))
+	qvType, qvErr := ormutil.GetTypeValueEnum(qv.Type())
+	if qvErr != nil {
+		err = qvErr
+		return
+	}
+	if ormutil.IsSliceType(qvType) {
+		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
 		return
 	}
 
-	s.params[key] = &equleOpr{name: key, value: value}
+	s.params[key] = filterItem{name: key, filterFun: equleOpr, value: qv}
 	return
 }
 
 func (s *queryFilter) NotEqule(key string, val interface{}) (err error) {
-	value, valErr := newQueryValue(val, s.modelInfoCache)
-	if valErr != nil {
-		err = valErr
+	qv := reflect.Indirect(reflect.ValueOf(val))
+	qvType, qvErr := ormutil.GetTypeValueEnum(qv.Type())
+	if qvErr != nil {
+		err = qvErr
+		return
+	}
+	if ormutil.IsSliceType(qvType) {
+		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
 		return
 	}
 
-	s.params[key] = &notEquleOpr{name: key, value: value}
+	s.params[key] = filterItem{name: key, filterFun: notEquleOpr, value: qv}
 	return
 }
 
 func (s *queryFilter) Below(key string, val interface{}) (err error) {
-	value, valErr := newQueryValue(val, s.modelInfoCache)
-	if valErr != nil {
-		err = valErr
+	qv := reflect.Indirect(reflect.ValueOf(val))
+	qvType, qvErr := ormutil.GetTypeValueEnum(qv.Type())
+	if qvErr != nil {
+		err = qvErr
+		return
+	}
+	if !ormutil.IsBasicType(qvType) {
+		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
 		return
 	}
 
-	s.params[key] = &belowOpr{name: key, value: value}
+	s.params[key] = filterItem{name: key, filterFun: belowOpr, value: qv}
 	return
 }
 
 func (s *queryFilter) Above(key string, val interface{}) (err error) {
-	value, valErr := newQueryValue(val, s.modelInfoCache)
-	if valErr != nil {
-		err = valErr
+	qv := reflect.Indirect(reflect.ValueOf(val))
+	qvType, qvErr := ormutil.GetTypeValueEnum(qv.Type())
+	if qvErr != nil {
+		err = qvErr
+		return
+	}
+	if !ormutil.IsBasicType(qvType) {
+		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
 		return
 	}
 
-	s.params[key] = &aboveOpr{name: key, value: value}
+	s.params[key] = filterItem{name: key, filterFun: aboveOpr, value: qv}
 	return
 }
 
 func (s *queryFilter) In(key string, val []interface{}) (err error) {
-	value, valErr := newQueryValue(val, s.modelInfoCache)
-	if valErr != nil {
-		err = valErr
+	qv := reflect.Indirect(reflect.ValueOf(val))
+	qvType, qvErr := ormutil.GetTypeValueEnum(qv.Type())
+	if qvErr != nil {
+		err = qvErr
+		return
+	}
+	if !ormutil.IsSliceType(qvType) {
+		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
 		return
 	}
 
-	s.params[key] = &inOpr{name: key, value: value}
+	s.params[key] = filterItem{name: key, filterFun: inOpr, value: qv}
 	return
 }
 
 func (s *queryFilter) NotIn(key string, val []interface{}) (err error) {
-	value, valErr := newQueryValue(val, s.modelInfoCache)
-	if valErr != nil {
-		err = valErr
+	qv := reflect.Indirect(reflect.ValueOf(val))
+	qvType, qvErr := ormutil.GetTypeValueEnum(qv.Type())
+	if qvErr != nil {
+		err = qvErr
+		return
+	}
+	if !ormutil.IsSliceType(qvType) {
+		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
 		return
 	}
 
-	s.params[key] = &notInOpr{name: key, value: value}
+	s.params[key] = filterItem{name: key, filterFun: notInOpr, value: qv}
 	return
 }
 
 func (s *queryFilter) PageFilter(filter *util.PageFilter) {
+	s.pageFilter = filter
 }
 
 func (s *queryFilter) Builder(structInfo model.StructInfo) (ret string, err error) {
@@ -129,11 +166,19 @@ func (s *queryFilter) Builder(structInfo model.StructInfo) (ret string, err erro
 			continue
 		}
 
-		val, ok := s.params[field.GetFieldName()]
+		filterItem, ok := s.params[field.GetFieldName()]
 		if !ok {
 			continue
 		}
-		strVal, strErr := val.String()
+
+		basicValue := &basicValue{value: filterItem.value}
+		strVal, strErr := basicValue.String()
+		if strErr != nil {
+			err = strErr
+			return
+		}
+
+		strVal, strErr = filterItem.filterFun(field.GetFieldName(), basicValue)
 		if strErr != nil {
 			err = strErr
 			return
@@ -149,108 +194,24 @@ func (s *queryFilter) Builder(structInfo model.StructInfo) (ret string, err erro
 	return
 }
 
-type opr interface {
-	String() (string, error)
-}
-
-type equleOpr struct {
-	name  string
-	value queryValue
-}
-
-func (s *equleOpr) String() (ret string, err error) {
-	val, valErr := s.value.String()
-	if valErr == nil {
-		ret = fmt.Sprintf("`%s` = %s", s.name, val)
+func (s *queryFilter) buildRelation(structInfo model.StructInfo) (ret string, err error) {
+	if structInfo == nil {
 		return
 	}
-	err = valErr
 
-	log.Printf("get value string failed, err:%s", err.Error())
-	return
-}
+	fields := structInfo.GetFields()
+	for _, field := range *fields {
+		fType := field.GetFieldType()
+		fDepend, _ := fType.Depend()
+		if fDepend == nil {
+			continue
+		}
 
-type notEquleOpr struct {
-	name  string
-	value queryValue
-}
-
-func (s *notEquleOpr) String() (ret string, err error) {
-	val, valErr := s.value.String()
-	if valErr == nil {
-		ret = fmt.Sprintf("`%s` != %s", s.name, val)
-		return
+		_, ok := s.params[field.GetFieldName()]
+		if !ok {
+			continue
+		}
 	}
-	err = valErr
 
-	log.Printf("get value string failed, err:%s", err.Error())
-	return
-}
-
-type belowOpr struct {
-	name  string
-	value queryValue
-}
-
-func (s *belowOpr) String() (ret string, err error) {
-	val, valErr := s.value.String()
-	if valErr == nil {
-		ret = fmt.Sprintf("`%s` < %s", s.name, val)
-		return
-	}
-	err = valErr
-
-	log.Printf("get value string failed, err:%s", err.Error())
-	return
-}
-
-type aboveOpr struct {
-	name  string
-	value queryValue
-}
-
-func (s *aboveOpr) String() (ret string, err error) {
-	val, valErr := s.value.String()
-	if valErr == nil {
-		ret = fmt.Sprintf("`%s` > %s", s.name, val)
-		return
-	}
-	err = valErr
-
-	log.Printf("get value string failed, err:%s", err.Error())
-	return
-}
-
-type inOpr struct {
-	name  string
-	value queryValue
-}
-
-func (s *inOpr) String() (ret string, err error) {
-	val, valErr := s.value.String()
-	if valErr == nil {
-		ret = fmt.Sprintf("`%s` in (%v)", s.name, val)
-		return
-	}
-	err = valErr
-
-	log.Printf("get value string failed, err:%s", err.Error())
-	return
-}
-
-type notInOpr struct {
-	name  string
-	value queryValue
-}
-
-func (s *notInOpr) String() (ret string, err error) {
-	val, valErr := s.value.String()
-	if valErr == nil {
-		ret = fmt.Sprintf("`%s` not in (%v)", s.name, val)
-		return
-	}
-	err = valErr
-
-	log.Printf("get value string failed, err:%s", err.Error())
 	return
 }

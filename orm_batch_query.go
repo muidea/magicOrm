@@ -13,8 +13,9 @@ import (
 
 func (s *orm) queryBatch(structInfo model.StructInfo, sliceValue reflect.Value, filter filter.Filter) (ret reflect.Value, err error) {
 	builder := builder.NewBuilder(structInfo)
-	sql, err := builder.BuildBatchQuery(filter)
-	if err != nil {
+	sql, sqlErr := builder.BuildBatchQuery(filter)
+	if sqlErr != nil {
+		err = sqlErr
 		return
 	}
 
