@@ -4,6 +4,7 @@ import (
 	"log"
 	"testing"
 
+	"muidea.com/magicCommon/foundation/util"
 	orm "muidea.com/magicOrm"
 )
 
@@ -310,6 +311,10 @@ func TestBatchQuery(t *testing.T) {
 	filter := orm.NewFilter()
 	filter.Equle("Name", &user1.Name)
 	filter.In("Group", &user1.Group)
+
+	pageFilter := &util.PageFilter{PageNum: 0, PageSize: 100}
+	filter.PageFilter(pageFilter)
+
 	err = o1.BatchQuery(&userList, filter)
 	if err != nil {
 		t.Errorf("batch query user failed, err:%s", err.Error())

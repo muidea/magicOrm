@@ -268,5 +268,17 @@ func (s *queryFilter) buildRelation(structInfo model.StructInfo) (ret string, er
 		ret = fmt.Sprintf("`%s` IN (SELECT DISTINCT(`id`) FROM (%s) ids)", fTag.Name(), relationSQL)
 	}
 
+	if s.pageFilter != nil {
+		limitVal := s.pageFilter.PageSize
+		offsetVal := s.pageFilter.PageSize * (s.pageFilter.PageNum - 1)
+		if offsetVal < 0 {
+			offsetVal = 0
+		}
+		if limitVal <= 0 {
+			limitVal = 100
+		}
+		ret = fmt.Sprintf("%s LIMIT %d OFFSET %d", ret, limitVal, offsetVal)
+	}
+
 	return
 }
