@@ -190,7 +190,10 @@ func (s *queryFilter) Builder(structInfo model.StructInfo) (ret string, err erro
 			return
 		}
 
-		fValue, fErr := model.NewFieldValue(filterItem.value.Addr())
+		filterVal := reflect.New(filterItem.value.Type()).Elem()
+		filterVal.Set(filterItem.value)
+
+		fValue, fErr := model.NewFieldValue(filterVal.Addr())
 		if fErr != nil {
 			err = fErr
 			return
@@ -252,7 +255,10 @@ func (s *queryFilter) buildRelation(structInfo model.StructInfo) (ret string, er
 			continue
 		}
 
-		fValue, fErr := model.NewFieldValue(filterItem.value.Addr())
+		filterVal := reflect.New(filterItem.value.Type()).Elem()
+		filterVal.Set(filterItem.value)
+
+		fValue, fErr := model.NewFieldValue(filterVal.Addr())
 		if fErr != nil {
 			err = fErr
 			return
