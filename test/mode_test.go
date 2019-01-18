@@ -311,6 +311,7 @@ func TestBatchQuery(t *testing.T) {
 	filter := orm.NewFilter()
 	filter.Equle("Name", &user1.Name)
 	filter.In("Group", &user1.Group)
+	filter.Like("EMail", &user1.EMail)
 
 	pageFilter := &util.PageFilter{PageNum: 0, PageSize: 100}
 	filter.PageFilter(pageFilter)

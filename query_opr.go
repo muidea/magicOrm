@@ -124,3 +124,19 @@ func notInOpr(name string, value model.FieldValue) (ret string, err error) {
 	log.Printf("get value string failed, err:%s", err.Error())
 	return
 }
+
+func likeOpr(name string, value model.FieldValue) (ret string, err error) {
+	val, valErr := value.GetValueStr()
+	if valErr == nil {
+		val := val[1 : len(val)-1]
+		if val != "" {
+			ret = fmt.Sprintf("`%s` LIKE '%%%s%%'", name, val)
+		}
+
+		return
+	}
+	err = valErr
+
+	log.Printf("get value string failed, err:%s", err.Error())
+	return
+}

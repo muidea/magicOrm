@@ -151,6 +151,17 @@ func (s *queryFilter) NotIn(key string, val interface{}) (err error) {
 	return
 }
 
+func (s *queryFilter) Like(key string, val interface{}) (err error) {
+	qv := reflect.Indirect(reflect.ValueOf(val))
+	if qv.Kind() != reflect.String {
+		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
+		return
+	}
+
+	s.params[key] = filterItem{name: key, filterFun: likeOpr, value: qv}
+	return
+}
+
 func (s *queryFilter) PageFilter(filter *util.PageFilter) {
 	s.pageFilter = filter
 }

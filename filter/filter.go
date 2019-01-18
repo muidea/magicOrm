@@ -13,6 +13,7 @@ type Filter interface {
 	Above(key string, val interface{}) error
 	In(key string, val interface{}) error
 	NotIn(key string, val interface{}) error
+	Like(key string, val interface{}) error
 	PageFilter(filter *util.PageFilter)
 	Builder(structInfo model.StructInfo) (string, error)
 }
