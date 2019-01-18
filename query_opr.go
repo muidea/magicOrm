@@ -3,9 +3,50 @@ package orm
 import (
 	"fmt"
 	"log"
+	"reflect"
+	"strings"
 
 	"muidea.com/magicOrm/model"
 )
+
+func getSliceValStr(val model.FieldValue) (ret string, err error) {
+	value, valueErr := val.GetValue()
+	if valueErr != nil {
+		err = valueErr
+		return
+	}
+
+	if value.Kind() != reflect.Slice {
+		err = fmt.Errorf("illegal value, type:%s", value.Type().String())
+		return
+	}
+
+	valSlice := []string{}
+	pos := value.Len()
+	for idx := 0; idx < pos; {
+		sv := value.Index(idx)
+		if sv.Kind() != reflect.Ptr {
+			sv = sv.Addr()
+		}
+
+		sfieldVal, sfieldErr := model.NewFieldValue(sv)
+		if sfieldErr != nil {
+			err = sfieldErr
+			return
+		}
+
+		strVal, strErr := sfieldVal.GetValueStr()
+		if strErr != nil {
+			err = strErr
+		}
+
+		valSlice = append(valSlice, strVal)
+		idx++
+	}
+
+	ret = strings.Join(valSlice, ",")
+	return
+}
 
 func equleOpr(name string, value model.FieldValue) (ret string, err error) {
 	val, valErr := value.GetValueStr()
@@ -56,9 +97,11 @@ func aboveOpr(name string, value model.FieldValue) (ret string, err error) {
 }
 
 func inOpr(name string, value model.FieldValue) (ret string, err error) {
-	val, valErr := value.GetValueStr()
+	val, valErr := getSliceValStr(value)
 	if valErr == nil {
-		ret = fmt.Sprintf("`%s` in (%v)", name, val)
+		if val != "" {
+			ret = fmt.Sprintf("`%s` in (%v)", name, val)
+		}
 		return
 	}
 	err = valErr
@@ -68,9 +111,12 @@ func inOpr(name string, value model.FieldValue) (ret string, err error) {
 }
 
 func notInOpr(name string, value model.FieldValue) (ret string, err error) {
-	val, valErr := value.GetValueStr()
+	val, valErr := getSliceValStr(value)
 	if valErr == nil {
-		ret = fmt.Sprintf("`%s` not in (%v)", name, val)
+		if val != "" {
+			ret = fmt.Sprintf("`%s` not in (%v)", name, val)
+		}
+
 		return
 	}
 	err = valErr

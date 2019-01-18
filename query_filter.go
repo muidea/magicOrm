@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"muidea.com/magicCommon/foundation/util"
+	"muidea.com/magicOrm/builder"
 	"muidea.com/magicOrm/model"
 	ormutil "muidea.com/magicOrm/util"
 )
@@ -118,7 +119,7 @@ func (s *queryFilter) Above(key string, val interface{}) (err error) {
 	return
 }
 
-func (s *queryFilter) In(key string, val []interface{}) (err error) {
+func (s *queryFilter) In(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	qvType, qvErr := ormutil.GetTypeValueEnum(qv.Type())
 	if qvErr != nil {
@@ -134,7 +135,7 @@ func (s *queryFilter) In(key string, val []interface{}) (err error) {
 	return
 }
 
-func (s *queryFilter) NotIn(key string, val []interface{}) (err error) {
+func (s *queryFilter) NotIn(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	qvType, qvErr := ormutil.GetTypeValueEnum(qv.Type())
 	if qvErr != nil {
@@ -189,12 +190,24 @@ func (s *queryFilter) Builder(structInfo model.StructInfo) (ret string, err erro
 			err = strErr
 			return
 		}
+		if strVal == "" {
+			continue
+		}
 
 		if ret == "" {
 			ret = fmt.Sprintf("%s", strVal)
 		} else {
 			ret = fmt.Sprintf("%s AND %s", ret, strVal)
 		}
+	}
+
+	relationSQL, relationErr := s.buildRelation(structInfo)
+	if relationErr != nil {
+		err = relationErr
+		return
+	}
+	if relationSQL != "" {
+		ret = fmt.Sprintf("%s AND %s", ret, relationSQL)
 	}
 
 	return
@@ -205,6 +218,8 @@ func (s *queryFilter) buildRelation(structInfo model.StructInfo) (ret string, er
 		return
 	}
 
+	relationSQL := ""
+	builder := builder.NewBuilder(structInfo)
 	fields := structInfo.GetFields()
 	for _, field := range *fields {
 		fType := field.GetFieldType()
@@ -213,10 +228,44 @@ func (s *queryFilter) buildRelation(structInfo model.StructInfo) (ret string, er
 			continue
 		}
 
-		_, ok := s.params[field.GetFieldName()]
+		dependInfo, dependErr := model.GetStructInfo(fDepend, s.modelInfoCache)
+		if dependErr != nil {
+			err = dependErr
+			return
+		}
+
+		relationTable := builder.GetRelationTableName(field.GetFieldName(), dependInfo)
+
+		filterItem, ok := s.params[field.GetFieldName()]
 		if !ok {
 			continue
 		}
+
+		fValue, fErr := model.NewFieldValue(filterItem.value.Addr())
+		if fErr != nil {
+			err = fErr
+			return
+		}
+
+		strVal, strErr := filterItem.filterFun("right", fValue)
+		if strErr != nil {
+			err = strErr
+			return
+		}
+		if strVal == "" {
+			continue
+		}
+
+		if relationSQL == "" {
+			relationSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTable, strVal)
+		} else {
+			relationSQL = fmt.Sprintf("%s UNION SELECT DISTINCT(`left`) `id` FROM `%s` WHERE %s", relationSQL, relationTable, strVal)
+		}
+	}
+	if relationSQL != "" {
+		pk := structInfo.GetPrimaryField()
+		fTag := pk.GetFieldTag()
+		ret = fmt.Sprintf("`%s` IN (SELECT DISTINCT(`id`) FROM (%s) ids)", fTag.Name(), relationSQL)
 	}
 
 	return

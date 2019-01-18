@@ -54,5 +54,9 @@ func TestFilterOpr(t *testing.T) {
 		t.Errorf("Builder failed, err:%s", valErr.Error())
 		return
 	}
+	if strVal != "`Name` = 'hello' AND `Age` != 10 AND `Payward` > 12.340000" {
+		t.Errorf("Builder failed, strVal:%s", strVal)
+	}
+
 	log.Print(strVal)
 }

@@ -259,6 +259,8 @@ func TestSystem(t *testing.T) {
 }
 
 func TestBatchQuery(t *testing.T) {
+	group1 := &Group{Name: "testGroup1"}
+
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
@@ -267,6 +269,22 @@ func TestBatchQuery(t *testing.T) {
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 	}
+
+	err = o1.Drop(group1)
+	if err != nil {
+		t.Errorf("drop group failed, err:%s", err.Error())
+	}
+	err = o1.Create(group1)
+	if err != nil {
+		t.Errorf("create group failed, err:%s", err.Error())
+	}
+
+	err = o1.Insert(group1)
+	if err != nil {
+		t.Errorf("insert group failed, err:%s", err.Error())
+	}
+
+	user1.Group = append(user1.Group, group1)
 
 	err = o1.Drop(user1)
 	if err != nil {
@@ -282,13 +300,17 @@ func TestBatchQuery(t *testing.T) {
 	if err != nil {
 		t.Errorf("insert user failed, err:%s", err.Error())
 	}
+
 	err = o1.Insert(user2)
 	if err != nil {
 		t.Errorf("insert user failed, err:%s", err.Error())
 	}
 
 	userList := []User{}
-	err = o1.BatchQuery(&userList, nil)
+	filter := orm.NewFilter()
+	filter.Equle("Name", &user1.Name)
+	filter.In("Group", &user1.Group)
+	err = o1.BatchQuery(&userList, filter)
 	if err != nil {
 		t.Errorf("batch query user failed, err:%s", err.Error())
 	}
