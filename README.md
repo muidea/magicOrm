@@ -2,6 +2,8 @@
 
 Golang对象的orm框架，目前仅支持mySQL数据库。
 
+一个所见即所得的orm框架。
+
 ## 怎么使用
 
 
@@ -33,6 +35,32 @@ Golang对象的orm框架，目前仅支持mySQL数据库。
 	if err != nil {
 		t.Errorf("query user2 failed, err:%s", err.Error())
 	}
+
+## 支持操作
+### insert
+插入单个对象
+### update
+更新指定对象
+### delete
+删除指定对象
+#### query
+查询指定对象
+### batchQuery
+按条件查询对象，支持的查询如下
+
+Equle 等于
+
+NotEqule 不等于
+
+Below 小于
+
+Above 大于
+
+In 在指定集合内
+
+NotIn 在指定集合外
+
+Like 模糊匹配
 
 
 ## 特殊说明
