@@ -14,7 +14,7 @@ type serverConfig struct {
 type manager struct {
 	serverConfig *serverConfig
 
-	moduleInfoCache model.StructInfoCache
+	moduleInfoCache model.Cache
 }
 
 func newManager() *manager {
@@ -29,6 +29,6 @@ func (s *manager) getServerConfig() *serverConfig {
 	return s.serverConfig
 }
 
-func (s *manager) getCache() model.StructInfoCache {
+func (s *manager) getCache() model.Cache {
 	return s.moduleInfoCache
 }

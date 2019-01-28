@@ -15,5 +15,5 @@ type Filter interface {
 	NotIn(key string, val interface{}) error
 	Like(key string, val interface{}) error
 	PageFilter(filter *util.PageFilter)
-	Builder(structInfo model.StructInfo) (string, error)
+	Builder(structInfo model.Model) (string, error)
 }

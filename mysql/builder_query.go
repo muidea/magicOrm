@@ -28,7 +28,7 @@ func (s *Builder) BuildQuery() (ret string, err error) {
 }
 
 // BuildQueryRelation BuildQueryRelation
-func (s *Builder) BuildQueryRelation(fieldName string, relationInfo model.StructInfo) (ret string, err error) {
+func (s *Builder) BuildQueryRelation(fieldName string, relationInfo model.Model) (ret string, err error) {
 	pk := s.structInfo.GetPrimaryField()
 	if pk == nil {
 		err = fmt.Errorf("no define primaryKey")
@@ -47,7 +47,7 @@ func (s *Builder) BuildQueryRelation(fieldName string, relationInfo model.Struct
 	return
 }
 
-func (s *Builder) getFieldQueryNames(info model.StructInfo) string {
+func (s *Builder) getFieldQueryNames(info model.Model) string {
 	str := ""
 	for _, field := range *s.structInfo.GetFields() {
 		fTag := field.GetFieldTag()

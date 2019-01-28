@@ -7,7 +7,7 @@ import (
 	"muidea.com/magicOrm/model"
 )
 
-func (s *orm) updateSingle(structInfo model.StructInfo) (err error) {
+func (s *orm) updateSingle(structInfo model.Model) (err error) {
 	builder := builder.NewBuilder(structInfo)
 	sql, err := builder.BuildUpdate()
 	if err != nil {
@@ -19,7 +19,7 @@ func (s *orm) updateSingle(structInfo model.StructInfo) (err error) {
 	return err
 }
 
-func (s *orm) updateRelation(structInfo model.StructInfo, fieldInfo model.FieldInfo) (err error) {
+func (s *orm) updateRelation(structInfo model.Model, fieldInfo model.FieldInfo) (err error) {
 	err = s.deleteRelation(structInfo, fieldInfo)
 	if err != nil {
 		return

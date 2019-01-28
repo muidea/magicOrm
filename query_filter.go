@@ -52,7 +52,7 @@ func (s *filterItem) Verify(fType model.FieldType) (err error) {
 type queryFilter struct {
 	params         map[string]filterItem
 	pageFilter     *util.PageFilter
-	modelInfoCache model.StructInfoCache
+	modelInfoCache model.Cache
 }
 
 func (s *queryFilter) Equle(key string, val interface{}) (err error) {
@@ -166,7 +166,7 @@ func (s *queryFilter) PageFilter(filter *util.PageFilter) {
 	s.pageFilter = filter
 }
 
-func (s *queryFilter) Builder(structInfo model.StructInfo) (ret string, err error) {
+func (s *queryFilter) Builder(structInfo model.Model) (ret string, err error) {
 	if structInfo == nil {
 		return
 	}
@@ -227,7 +227,7 @@ func (s *queryFilter) Builder(structInfo model.StructInfo) (ret string, err erro
 	return
 }
 
-func (s *queryFilter) buildRelation(structInfo model.StructInfo) (ret string, err error) {
+func (s *queryFilter) buildRelation(structInfo model.Model) (ret string, err error) {
 	if structInfo == nil {
 		return
 	}

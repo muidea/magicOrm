@@ -11,7 +11,7 @@ import (
 	"muidea.com/magicOrm/util"
 )
 
-func (s *orm) queryBatch(structInfo model.StructInfo, sliceValue reflect.Value, filter filter.Filter) (ret reflect.Value, err error) {
+func (s *orm) queryBatch(structInfo model.Model, sliceValue reflect.Value, filter filter.Filter) (ret reflect.Value, err error) {
 	builder := builder.NewBuilder(structInfo)
 	sql, sqlErr := builder.BuildBatchQuery(filter)
 	if sqlErr != nil {

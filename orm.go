@@ -28,7 +28,7 @@ func init() {
 
 type orm struct {
 	executor       executor.Executor
-	modelInfoCache model.StructInfoCache
+	modelInfoCache model.Cache
 }
 
 // Initialize InitOrm

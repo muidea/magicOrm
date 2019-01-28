@@ -11,7 +11,7 @@ import (
 
 type sliceValue struct {
 	value          reflect.Value
-	modelInfoCache model.StructInfoCache
+	modelInfoCache model.Cache
 }
 
 func (s *sliceValue) String() (ret string, err error) {

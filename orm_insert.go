@@ -8,7 +8,7 @@ import (
 	"muidea.com/magicOrm/model"
 )
 
-func (s *orm) insertSingle(structInfo model.StructInfo) (err error) {
+func (s *orm) insertSingle(structInfo model.Model) (err error) {
 	builder := builder.NewBuilder(structInfo)
 	sql, err := builder.BuildInsert()
 	if err != nil {
@@ -24,7 +24,7 @@ func (s *orm) insertSingle(structInfo model.StructInfo) (err error) {
 	return
 }
 
-func (s *orm) insertRelation(structInfo model.StructInfo, fieldInfo model.FieldInfo) (err error) {
+func (s *orm) insertRelation(structInfo model.Model, fieldInfo model.FieldInfo) (err error) {
 	fType := fieldInfo.GetFieldType()
 	_, fDependPtr := fType.Depend()
 

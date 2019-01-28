@@ -17,15 +17,15 @@ type Builder interface {
 	BuildQuery() (string, error)
 	BuildBatchQuery(filter filter.Filter) (string, error)
 
-	GetRelationTableName(fieldName string, relationInfo model.StructInfo) string
-	BuildCreateRelationSchema(fieldName string, relationInfo model.StructInfo) (string, error)
-	BuildDropRelationSchema(fieldName string, relationInfo model.StructInfo) (string, error)
-	BuildInsertRelation(fieldName string, relationInfo model.StructInfo) (string, error)
-	BuildDeleteRelation(fieldName string, relationInfo model.StructInfo) (string, string, error)
-	BuildQueryRelation(fieldName string, relationInfo model.StructInfo) (string, error)
+	GetRelationTableName(fieldName string, relationInfo model.Model) string
+	BuildCreateRelationSchema(fieldName string, relationInfo model.Model) (string, error)
+	BuildDropRelationSchema(fieldName string, relationInfo model.Model) (string, error)
+	BuildInsertRelation(fieldName string, relationInfo model.Model) (string, error)
+	BuildDeleteRelation(fieldName string, relationInfo model.Model) (string, string, error)
+	BuildQueryRelation(fieldName string, relationInfo model.Model) (string, error)
 }
 
 // NewBuilder new builder
-func NewBuilder(structInfo model.StructInfo) Builder {
+func NewBuilder(structInfo model.Model) Builder {
 	return mysql.New(structInfo)
 }

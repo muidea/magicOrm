@@ -2,13 +2,13 @@ package model
 
 import "muidea.com/magicCommon/foundation/cache"
 
-// StructInfoCache StructInfo Cache
-type StructInfoCache interface {
+// Cache Model Cache
+type Cache interface {
 	Reset()
 
-	Put(name string, info StructInfo)
+	Put(name string, info Model)
 
-	Fetch(name string) StructInfo
+	Fetch(name string) Model
 
 	Remove(name string)
 }
@@ -18,7 +18,7 @@ type impl struct {
 }
 
 // NewCache new structInfo cache
-func NewCache() StructInfoCache {
+func NewCache() Cache {
 	return &impl{kvCache: cache.NewKVCache()}
 }
 
@@ -26,17 +26,17 @@ func (s *impl) Reset() {
 	s.kvCache.ClearAll()
 }
 
-func (s *impl) Put(name string, info StructInfo) {
+func (s *impl) Put(name string, info Model) {
 	s.kvCache.Put(name, info, cache.MaxAgeValue)
 }
 
-func (s *impl) Fetch(name string) StructInfo {
+func (s *impl) Fetch(name string) Model {
 	obj, ok := s.kvCache.Fetch(name)
 	if !ok {
 		return nil
 	}
 
-	return obj.(StructInfo)
+	return obj.(Model)
 }
 
 func (s *impl) Remove(name string) {

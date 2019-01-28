@@ -10,7 +10,7 @@ import (
 	"muidea.com/magicOrm/util"
 )
 
-func (s *orm) querySingle(structInfo model.StructInfo) (err error) {
+func (s *orm) querySingle(structInfo model.Model) (err error) {
 	builder := builder.NewBuilder(structInfo)
 	sql, err := builder.BuildQuery()
 	if err != nil {
@@ -59,7 +59,7 @@ func (s *orm) querySingle(structInfo model.StructInfo) (err error) {
 	return
 }
 
-func (s *orm) queryRelation(structInfo model.StructInfo, fieldInfo model.FieldInfo, relationInfo model.StructInfo) (err error) {
+func (s *orm) queryRelation(structInfo model.Model, fieldInfo model.FieldInfo, relationInfo model.Model) (err error) {
 	fValue := fieldInfo.GetFieldValue()
 	if fValue == nil || fValue.IsNil() {
 		return

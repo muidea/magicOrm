@@ -6,8 +6,8 @@ import (
 	"reflect"
 )
 
-// StructInfo StructInfo
-type StructInfo interface {
+// Model Model
+type Model interface {
 	GetName() string
 	GetPkgPath() string
 	GetFields() *Fields
@@ -15,7 +15,7 @@ type StructInfo interface {
 	UpdateFieldValue(name string, val reflect.Value) error
 	GetPrimaryField() FieldInfo
 	GetDependField() []FieldInfo
-	Copy() StructInfo
+	Copy() Model
 	Interface() reflect.Value
 	Dump()
 }
@@ -26,7 +26,7 @@ type structInfo struct {
 
 	fields Fields
 
-	structInfoCache StructInfoCache
+	structInfoCache Cache
 }
 
 func (s *structInfo) GetName() string {
@@ -85,7 +85,7 @@ func (s *structInfo) GetDependField() (ret []FieldInfo) {
 	return
 }
 
-func (s *structInfo) Copy() StructInfo {
+func (s *structInfo) Copy() Model {
 	info := &structInfo{structType: s.structType, fields: s.fields.Copy(), structInfoCache: s.structInfoCache}
 	return info
 }
@@ -109,7 +109,7 @@ func (s *structInfo) Dump() {
 }
 
 // GetObjectStructInfo GetObjectStructInfo
-func GetObjectStructInfo(objPtr interface{}, cache StructInfoCache) (ret StructInfo, err error) {
+func GetObjectStructInfo(objPtr interface{}, cache Cache) (ret Model, err error) {
 	ptrVal := reflect.ValueOf(objPtr)
 
 	if ptrVal.Kind() != reflect.Ptr {
@@ -136,7 +136,7 @@ func GetObjectStructInfo(objPtr interface{}, cache StructInfoCache) (ret StructI
 }
 
 // GetStructInfo GetStructInfo
-func GetStructInfo(structType reflect.Type, cache StructInfoCache) (ret StructInfo, err error) {
+func GetStructInfo(structType reflect.Type, cache Cache) (ret Model, err error) {
 	if structType.Kind() == reflect.Ptr {
 		structType = structType.Elem()
 	}
@@ -181,7 +181,7 @@ func GetStructInfo(structType reflect.Type, cache StructInfoCache) (ret StructIn
 }
 
 // GetStructValue GetStructValue
-func GetStructValue(structVal reflect.Value, cache StructInfoCache) (ret StructInfo, err error) {
+func GetStructValue(structVal reflect.Value, cache Cache) (ret Model, err error) {
 	if structVal.Kind() == reflect.Ptr {
 		if structVal.IsNil() {
 			err = fmt.Errorf("can't get value from nil ptr")

@@ -9,11 +9,11 @@ import (
 
 // Builder Builder
 type Builder struct {
-	structInfo model.StructInfo
+	structInfo model.Model
 }
 
 // New create builder
-func New(structInfo model.StructInfo) *Builder {
+func New(structInfo model.Model) *Builder {
 	//err := verifyStructInfo(structInfo)
 	//if err != nil {
 	//	log.Printf("verify structInfo failed, err:%s", err.Error())
@@ -23,7 +23,7 @@ func New(structInfo model.StructInfo) *Builder {
 	return &Builder{structInfo: structInfo}
 }
 
-func (s *Builder) getTableName(info model.StructInfo) string {
+func (s *Builder) getTableName(info model.Model) string {
 	return strings.Join(strings.Split(info.GetName(), "."), "_")
 }
 
@@ -33,14 +33,14 @@ func (s *Builder) GetTableName() string {
 }
 
 // GetRelationTableName GetRelationTableName
-func (s *Builder) GetRelationTableName(fieldName string, relationInfo model.StructInfo) string {
+func (s *Builder) GetRelationTableName(fieldName string, relationInfo model.Model) string {
 	leftName := s.getTableName(s.structInfo)
 	rightName := s.getTableName(relationInfo)
 
 	return fmt.Sprintf("%s%s2%s", leftName, fieldName, rightName)
 }
 
-func (s *Builder) getStructValue(structInfo model.StructInfo) (ret string, err error) {
+func (s *Builder) getStructValue(structInfo model.Model) (ret string, err error) {
 	structKey := structInfo.GetPrimaryField()
 	if structKey == nil {
 		err = fmt.Errorf("no define primaryKey")
@@ -63,7 +63,7 @@ func (s *Builder) getStructValue(structInfo model.StructInfo) (ret string, err e
 	return
 }
 
-func (s *Builder) getRelationValue(relationInfo model.StructInfo) (leftVal, rightVal string, err error) {
+func (s *Builder) getRelationValue(relationInfo model.Model) (leftVal, rightVal string, err error) {
 	structKey := s.structInfo.GetPrimaryField()
 	relationKey := relationInfo.GetPrimaryField()
 	if structKey == nil || relationKey == nil {
