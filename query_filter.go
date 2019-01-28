@@ -173,13 +173,13 @@ func (s *queryFilter) Builder(modelInfo model.Model) (ret string, err error) {
 
 	fields := modelInfo.GetFields()
 	for _, field := range *fields {
-		fType := field.GetFieldType()
+		fType := field.GetType()
 		fDepend, _ := fType.Depend()
 		if fDepend != nil {
 			continue
 		}
 
-		filterItem, ok := s.params[field.GetFieldName()]
+		filterItem, ok := s.params[field.GetName()]
 		if !ok {
 			continue
 		}
@@ -199,7 +199,7 @@ func (s *queryFilter) Builder(modelInfo model.Model) (ret string, err error) {
 			return
 		}
 
-		strVal, strErr := filterItem.filterFun(field.GetFieldName(), fValue)
+		strVal, strErr := filterItem.filterFun(field.GetName(), fValue)
 		if strErr != nil {
 			err = strErr
 			return
@@ -236,7 +236,7 @@ func (s *queryFilter) buildRelation(modelInfo model.Model) (ret string, err erro
 	builder := builder.NewBuilder(modelInfo)
 	fields := modelInfo.GetFields()
 	for _, field := range *fields {
-		fType := field.GetFieldType()
+		fType := field.GetType()
 		fDepend, _ := fType.Depend()
 		if fDepend == nil {
 			continue
@@ -248,9 +248,9 @@ func (s *queryFilter) buildRelation(modelInfo model.Model) (ret string, err erro
 			return
 		}
 
-		relationTable := builder.GetRelationTableName(field.GetFieldName(), dependInfo)
+		relationTable := builder.GetRelationTableName(field.GetName(), dependInfo)
 
-		filterItem, ok := s.params[field.GetFieldName()]
+		filterItem, ok := s.params[field.GetName()]
 		if !ok {
 			continue
 		}
@@ -281,7 +281,7 @@ func (s *queryFilter) buildRelation(modelInfo model.Model) (ret string, err erro
 	}
 	if relationSQL != "" {
 		pk := modelInfo.GetPrimaryField()
-		fTag := pk.GetFieldTag()
+		fTag := pk.GetTag()
 		ret = fmt.Sprintf("`%s` IN (SELECT DISTINCT(`id`) FROM (%s) ids)", fTag.Name(), relationSQL)
 	}
 

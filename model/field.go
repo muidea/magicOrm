@@ -8,15 +8,15 @@ import (
 	"muidea.com/magicOrm/util"
 )
 
-// FieldInfo FieldInfo
-type FieldInfo interface {
-	GetFieldIndex() int
-	GetFieldName() string
-	GetFieldType() FieldType
-	GetFieldTag() FieldTag
-	GetFieldValue() FieldValue
-	SetFieldValue(val reflect.Value) error
-	Copy() FieldInfo
+// Field Field
+type Field interface {
+	GetIndex() int
+	GetName() string
+	GetType() FieldType
+	GetTag() FieldTag
+	GetValue() FieldValue
+	SetValue(val reflect.Value) error
+	Copy() Field
 	Dump() string
 }
 
@@ -31,34 +31,34 @@ type fieldInfo struct {
 }
 
 // Fields field info collection
-type Fields []FieldInfo
+type Fields []Field
 
-func (s *fieldInfo) GetFieldIndex() int {
+func (s *fieldInfo) GetIndex() int {
 	return s.fieldIndex
 }
 
-// GetFieldName GetFieldName
-func (s *fieldInfo) GetFieldName() string {
+// GetName GetName
+func (s *fieldInfo) GetName() string {
 	return s.fieldName
 }
 
-// GetFieldType GetFieldType
-func (s *fieldInfo) GetFieldType() FieldType {
+// GetType GetType
+func (s *fieldInfo) GetType() FieldType {
 	return s.fieldType
 }
 
-// GetFieldTag GetFieldTag
-func (s *fieldInfo) GetFieldTag() FieldTag {
+// GetTag GetTag
+func (s *fieldInfo) GetTag() FieldTag {
 	return s.fieldTag
 }
 
-// GetFieldValue GetFieldValue
-func (s *fieldInfo) GetFieldValue() FieldValue {
+// GetValue GetValue
+func (s *fieldInfo) GetValue() FieldValue {
 	return s.fieldValue
 }
 
-// SetFieldValue SetFieldValue
-func (s *fieldInfo) SetFieldValue(val reflect.Value) (err error) {
+// SetValue SetValue
+func (s *fieldInfo) SetValue(val reflect.Value) (err error) {
 	if val.Kind() == reflect.Ptr {
 		if val.IsNil() {
 			return
@@ -99,7 +99,7 @@ func (s *fieldInfo) Verify() error {
 	return nil
 }
 
-func (s *fieldInfo) Copy() FieldInfo {
+func (s *fieldInfo) Copy() Field {
 	var fieldValue FieldValue
 	if s.fieldValue != nil {
 		fieldValue = s.fieldValue.Copy()
@@ -127,11 +127,11 @@ func (s *fieldInfo) Dump() string {
 }
 
 // Append Append
-func (s *Fields) Append(fieldInfo FieldInfo) {
+func (s *Fields) Append(fieldInfo Field) {
 	exist := false
-	newField := fieldInfo.GetFieldTag()
+	newField := fieldInfo.GetTag()
 	for _, val := range *s {
-		curField := val.GetFieldTag()
+		curField := val.GetTag()
 		if curField.Name() == newField.Name() {
 			exist = true
 			break
@@ -145,9 +145,9 @@ func (s *Fields) Append(fieldInfo FieldInfo) {
 }
 
 // GetPrimaryField get primarykey field
-func (s *Fields) GetPrimaryField() FieldInfo {
+func (s *Fields) GetPrimaryField() Field {
 	for _, val := range *s {
-		fieldTag := val.GetFieldTag()
+		fieldTag := val.GetTag()
 		if fieldTag.IsPrimaryKey() {
 			return val
 		}
@@ -173,7 +173,7 @@ func (s *Fields) Dump() {
 }
 
 // GetFieldInfo GetFieldInfo
-func GetFieldInfo(idx int, fieldType reflect.StructField, fieldVal *reflect.Value) (ret FieldInfo, err error) {
+func GetFieldInfo(idx int, fieldType reflect.StructField, fieldVal *reflect.Value) (ret Field, err error) {
 	ormStr := fieldType.Tag.Get("orm")
 	if ormStr == "" {
 		return

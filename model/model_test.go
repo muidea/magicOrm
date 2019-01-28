@@ -66,7 +66,7 @@ func TestStructValue(t *testing.T) {
 		t.Errorf("GetPrimaryField faield")
 		return
 	}
-	pk.SetFieldValue(reflect.ValueOf(id))
+	pk.SetValue(reflect.ValueOf(id))
 
 	name := "abcdfrfe"
 	info.UpdateFieldValue("Name", reflect.ValueOf(name))

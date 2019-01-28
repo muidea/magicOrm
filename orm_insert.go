@@ -18,17 +18,17 @@ func (s *orm) insertSingle(modelInfo model.Model) (err error) {
 	id := s.executor.Insert(sql)
 	pk := modelInfo.GetPrimaryField()
 	if pk != nil {
-		pk.SetFieldValue(reflect.ValueOf(id))
+		pk.SetValue(reflect.ValueOf(id))
 	}
 
 	return
 }
 
-func (s *orm) insertRelation(modelInfo model.Model, fieldInfo model.FieldInfo) (err error) {
-	fType := fieldInfo.GetFieldType()
+func (s *orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
+	fType := fieldInfo.GetType()
 	_, fDependPtr := fType.Depend()
 
-	fValue := fieldInfo.GetFieldValue()
+	fValue := fieldInfo.GetValue()
 	if fValue == nil {
 		return
 	}
@@ -55,7 +55,7 @@ func (s *orm) insertRelation(modelInfo model.Model, fieldInfo model.FieldInfo) (
 		}
 
 		builder := builder.NewBuilder(modelInfo)
-		relationSQL, relationErr := builder.BuildInsertRelation(fieldInfo.GetFieldName(), infoVal)
+		relationSQL, relationErr := builder.BuildInsertRelation(fieldInfo.GetName(), infoVal)
 		if relationErr != nil {
 			err = relationErr
 			return err

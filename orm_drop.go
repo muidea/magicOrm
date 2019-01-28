@@ -52,7 +52,7 @@ func (s *orm) Drop(obj interface{}) (err error) {
 
 	fields := modelInfo.GetDependField()
 	for _, val := range fields {
-		fType := val.GetFieldType()
+		fType := val.GetType()
 		fDepend, fDependPtr := fType.Depend()
 		if fDepend == nil {
 			continue
@@ -71,7 +71,7 @@ func (s *orm) Drop(obj interface{}) (err error) {
 			}
 		}
 
-		err = s.dropRelation(modelInfo, val.GetFieldName(), infoVal)
+		err = s.dropRelation(modelInfo, val.GetName(), infoVal)
 		if err != nil {
 			return
 		}

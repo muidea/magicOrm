@@ -47,7 +47,7 @@ func (s *Builder) getStructValue(modelInfo model.Model) (ret string, err error) 
 		return
 	}
 
-	fValue := structKey.GetFieldValue()
+	fValue := structKey.GetValue()
 	if fValue == nil {
 		err = fmt.Errorf("nil primaryKey value")
 		return
@@ -71,12 +71,12 @@ func (s *Builder) getRelationValue(relationInfo model.Model) (leftVal, rightVal 
 		return
 	}
 
-	structVal, structErr := structKey.GetFieldValue().GetValueStr()
+	structVal, structErr := structKey.GetValue().GetValueStr()
 	if structErr != nil {
 		err = structErr
 		return
 	}
-	relationVal, relationErr := relationKey.GetFieldValue().GetValueStr()
+	relationVal, relationErr := relationKey.GetValue().GetValueStr()
 	if relationErr != nil {
 		err = relationErr
 		return

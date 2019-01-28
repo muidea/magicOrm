@@ -11,7 +11,7 @@ import (
 func (s *Builder) BuildCreateSchema() (string, error) {
 	str := ""
 	for _, val := range *s.modelInfo.GetFields() {
-		fType := val.GetFieldType()
+		fType := val.GetType()
 		dependType, _ := fType.Depend()
 		if dependType != nil {
 			continue
@@ -24,7 +24,7 @@ func (s *Builder) BuildCreateSchema() (string, error) {
 		}
 	}
 	if s.modelInfo.GetPrimaryField() != nil {
-		fTag := s.modelInfo.GetPrimaryField().GetFieldTag()
+		fTag := s.modelInfo.GetPrimaryField().GetTag()
 		str = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", str, fTag.Name())
 	}
 

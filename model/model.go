@@ -11,10 +11,10 @@ type Model interface {
 	GetName() string
 	GetPkgPath() string
 	GetFields() *Fields
-	SetFieldValue(idx int, val reflect.Value) error
+	SetValue(idx int, val reflect.Value) error
 	UpdateFieldValue(name string, val reflect.Value) error
-	GetPrimaryField() FieldInfo
-	GetDependField() []FieldInfo
+	GetPrimaryField() Field
+	GetDependField() []Field
 	Copy() Model
 	Interface() reflect.Value
 	Dump()
@@ -43,11 +43,11 @@ func (s *modelInfo) GetFields() *Fields {
 	return &s.fields
 }
 
-// SetFieldValue SetFieldValue
-func (s *modelInfo) SetFieldValue(idx int, val reflect.Value) (err error) {
+// SetValue SetValue
+func (s *modelInfo) SetValue(idx int, val reflect.Value) (err error) {
 	for _, field := range s.fields {
-		if field.GetFieldIndex() == idx {
-			err = field.SetFieldValue(val)
+		if field.GetIndex() == idx {
+			err = field.SetValue(val)
 			return
 		}
 	}
@@ -58,8 +58,8 @@ func (s *modelInfo) SetFieldValue(idx int, val reflect.Value) (err error) {
 // UpdateFieldValue UpdateFieldValue
 func (s *modelInfo) UpdateFieldValue(name string, val reflect.Value) (err error) {
 	for _, field := range s.fields {
-		if field.GetFieldName() == name {
-			err = field.SetFieldValue(val)
+		if field.GetName() == name {
+			err = field.SetValue(val)
 			return
 		}
 	}
@@ -69,13 +69,13 @@ func (s *modelInfo) UpdateFieldValue(name string, val reflect.Value) (err error)
 }
 
 // GetPrimaryField GetPrimaryField
-func (s *modelInfo) GetPrimaryField() FieldInfo {
+func (s *modelInfo) GetPrimaryField() Field {
 	return s.fields.GetPrimaryField()
 }
 
-func (s *modelInfo) GetDependField() (ret []FieldInfo) {
+func (s *modelInfo) GetDependField() (ret []Field) {
 	for _, field := range s.fields {
-		fType := field.GetFieldType()
+		fType := field.GetType()
 		fDepend, _ := fType.Depend()
 		if fDepend != nil {
 			ret = append(ret, field)
@@ -201,9 +201,9 @@ func GetStructValue(structVal reflect.Value, cache Cache) (ret Model, err error)
 	fieldNum := structVal.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		val := structVal.Field(idx)
-		err = info.SetFieldValue(idx, val)
+		err = info.SetValue(idx, val)
 		if err != nil {
-			log.Printf("SetFieldValue failed, err:%s", err.Error())
+			log.Printf("SetValue failed, err:%s", err.Error())
 			return
 		}
 	}
@@ -213,7 +213,7 @@ func GetStructValue(structVal reflect.Value, cache Cache) (ret Model, err error)
 	return
 }
 
-func getStructPrimaryKey(structVal reflect.Value) (ret FieldInfo, err error) {
+func getStructPrimaryKey(structVal reflect.Value) (ret Field, err error) {
 	if structVal.Kind() != reflect.Struct {
 		err = fmt.Errorf("illegal value type, not struct, type:%s", structVal.Type().String())
 		return
@@ -230,7 +230,7 @@ func getStructPrimaryKey(structVal reflect.Value) (ret FieldInfo, err error) {
 			return
 		}
 
-		fTag := fieldInfo.GetFieldTag()
+		fTag := fieldInfo.GetTag()
 		if fTag.IsPrimaryKey() {
 			ret = fieldInfo
 			return

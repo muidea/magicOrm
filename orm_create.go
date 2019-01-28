@@ -50,7 +50,7 @@ func (s *orm) batchCreateSchema(modelInfo model.Model) (err error) {
 
 	fields := modelInfo.GetDependField()
 	for _, val := range fields {
-		fType := val.GetFieldType()
+		fType := val.GetType()
 		fDepend, fDependPtr := fType.Depend()
 		if fDepend == nil {
 			continue
@@ -69,7 +69,7 @@ func (s *orm) batchCreateSchema(modelInfo model.Model) (err error) {
 			}
 		}
 
-		err = s.createRelationSchema(modelInfo, val.GetFieldName(), infoVal)
+		err = s.createRelationSchema(modelInfo, val.GetName(), infoVal)
 		if err != nil {
 			return
 		}

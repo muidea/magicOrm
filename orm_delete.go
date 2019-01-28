@@ -23,8 +23,8 @@ func (s *orm) deleteSingle(modelInfo model.Model) (err error) {
 	return
 }
 
-func (s *orm) deleteRelation(modelInfo model.Model, fieldInfo model.FieldInfo) (err error) {
-	fType := fieldInfo.GetFieldType()
+func (s *orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
+	fType := fieldInfo.GetType()
 	fDepend, fDependPtr := fType.Depend()
 
 	if fDepend == nil {
@@ -38,7 +38,7 @@ func (s *orm) deleteRelation(modelInfo model.Model, fieldInfo model.FieldInfo) (
 	}
 
 	builder := builder.NewBuilder(modelInfo)
-	rightSQL, relationSQL, err := builder.BuildDeleteRelation(fieldInfo.GetFieldName(), infoVal)
+	rightSQL, relationSQL, err := builder.BuildDeleteRelation(fieldInfo.GetName(), infoVal)
 	if err != nil {
 		return err
 	}

@@ -9,8 +9,8 @@ import (
 
 // BuildDelete  BuildDelete
 func (s *Builder) BuildDelete() (ret string, err error) {
-	pkfValue := s.modelInfo.GetPrimaryField().GetFieldValue()
-	pkfTag := s.modelInfo.GetPrimaryField().GetFieldTag()
+	pkfValue := s.modelInfo.GetPrimaryField().GetValue()
+	pkfTag := s.modelInfo.GetPrimaryField().GetTag()
 	pkfStr, pkferr := pkfValue.GetValueStr()
 	if pkferr == nil {
 		ret = fmt.Sprintf("DELETE FROM `%s` WHERE `%s`=%s", s.getTableName(s.modelInfo), pkfTag.Name(), pkfStr)

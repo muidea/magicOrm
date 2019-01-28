@@ -19,7 +19,7 @@ func (s *orm) updateSingle(modelInfo model.Model) (err error) {
 	return err
 }
 
-func (s *orm) updateRelation(modelInfo model.Model, fieldInfo model.FieldInfo) (err error) {
+func (s *orm) updateRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
 	err = s.deleteRelation(modelInfo, fieldInfo)
 	if err != nil {
 		return

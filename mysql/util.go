@@ -7,8 +7,8 @@ import (
 	"muidea.com/magicOrm/util"
 )
 
-func verifyFieldInfo(fieldInfo model.FieldInfo) error {
-	fTag := fieldInfo.GetFieldTag()
+func verifyFieldInfo(fieldInfo model.Field) error {
+	fTag := fieldInfo.GetTag()
 	if IsKeyWord(fTag.Name()) {
 		return fmt.Errorf("illegal fieldTag, is a key word.[%s]", fTag)
 	}
@@ -32,15 +32,15 @@ func verifyStructInfo(modelInfo model.Model) error {
 	return nil
 }
 
-func declareFieldInfo(fieldInfo model.FieldInfo) string {
+func declareFieldInfo(fieldInfo model.Field) string {
 	autoIncrement := ""
-	fTag := fieldInfo.GetFieldTag()
+	fTag := fieldInfo.GetTag()
 	if fTag.IsAutoIncrement() {
 		autoIncrement = "AUTO_INCREMENT"
 	}
 
 	allowNull := "NOT NULL"
-	fType := fieldInfo.GetFieldType()
+	fType := fieldInfo.GetType()
 	if fType.IsPtr() {
 		allowNull = ""
 	}
@@ -49,8 +49,8 @@ func declareFieldInfo(fieldInfo model.FieldInfo) string {
 	return str
 }
 
-func getFieldType(info model.FieldInfo) (ret string) {
-	fType := info.GetFieldType()
+func getFieldType(info model.Field) (ret string) {
+	fType := info.GetType()
 	switch fType.Value() {
 	case util.TypeBooleanField:
 		ret = "TINYINT"

@@ -67,7 +67,7 @@ func (s *structImpl) GetValueStr() (ret string, err error) {
 		return
 	}
 
-	ret, err = pkField.GetFieldValue().GetValueStr()
+	ret, err = pkField.GetValue().GetValueStr()
 	return
 }
 

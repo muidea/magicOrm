@@ -104,8 +104,8 @@ func (s *Item) SetVal(val interface{}) (err error) {
 	return
 }
 
-// GetFieldName GetFieldName
-func (s *Item) GetFieldName() string {
+// GetName GetName
+func (s *Item) GetName() string {
 	items := strings.Split(s.Tag, " ")
 	if len(items) < 1 {
 		return ""

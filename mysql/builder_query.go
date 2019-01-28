@@ -15,8 +15,8 @@ func (s *Builder) BuildQuery() (ret string, err error) {
 		return
 	}
 
-	pkfValue := pk.GetFieldValue()
-	pkfTag := pk.GetFieldTag()
+	pkfValue := pk.GetValue()
+	pkfTag := pk.GetTag()
 	pkfStr, pkferr := pkfValue.GetValueStr()
 	if pkferr == nil {
 		ret = fmt.Sprintf("SELECT %s FROM `%s` WHERE `%s`=%s", s.getFieldQueryNames(s.modelInfo), s.getTableName(s.modelInfo), pkfTag.Name(), pkfStr)
@@ -35,7 +35,7 @@ func (s *Builder) BuildQueryRelation(fieldName string, relationInfo model.Model)
 		return
 	}
 
-	pkfValue := pk.GetFieldValue()
+	pkfValue := pk.GetValue()
 	pkfStr, pkferr := pkfValue.GetValueStr()
 	if pkferr == nil {
 		ret = fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= %s", s.GetRelationTableName(fieldName, relationInfo), pkfStr)
@@ -50,8 +50,8 @@ func (s *Builder) BuildQueryRelation(fieldName string, relationInfo model.Model)
 func (s *Builder) getFieldQueryNames(info model.Model) string {
 	str := ""
 	for _, field := range *s.modelInfo.GetFields() {
-		fTag := field.GetFieldTag()
-		fType := field.GetFieldType()
+		fTag := field.GetTag()
+		fType := field.GetType()
 
 		dependType, _ := fType.Depend()
 		if dependType != nil {

@@ -26,7 +26,7 @@ func (s *orm) querySingle(modelInfo model.Model) (err error) {
 	items := []interface{}{}
 	fields := modelInfo.GetFields()
 	for _, val := range *fields {
-		fType := val.GetFieldType()
+		fType := val.GetType()
 
 		dependType, _ := fType.Depend()
 		if dependType != nil {
@@ -40,7 +40,7 @@ func (s *orm) querySingle(modelInfo model.Model) (err error) {
 
 	idx := 0
 	for _, val := range *fields {
-		fType := val.GetFieldType()
+		fType := val.GetType()
 
 		dependType, _ := fType.Depend()
 		if dependType != nil {
@@ -48,7 +48,7 @@ func (s *orm) querySingle(modelInfo model.Model) (err error) {
 		}
 
 		v := items[idx]
-		err = val.SetFieldValue(reflect.Indirect(reflect.ValueOf(v)))
+		err = val.SetValue(reflect.Indirect(reflect.ValueOf(v)))
 		if err != nil {
 			return err
 		}
@@ -59,20 +59,20 @@ func (s *orm) querySingle(modelInfo model.Model) (err error) {
 	return
 }
 
-func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.FieldInfo, relationInfo model.Model) (err error) {
-	fValue := fieldInfo.GetFieldValue()
+func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field, relationInfo model.Model) (err error) {
+	fValue := fieldInfo.GetValue()
 	if fValue == nil || fValue.IsNil() {
 		return
 	}
 
 	builder := builder.NewBuilder(modelInfo)
-	relationSQL, relationErr := builder.BuildQueryRelation(fieldInfo.GetFieldName(), relationInfo)
+	relationSQL, relationErr := builder.BuildQueryRelation(fieldInfo.GetName(), relationInfo)
 	if relationErr != nil {
 		err = relationErr
 		return err
 	}
 
-	fType := fieldInfo.GetFieldType()
+	fType := fieldInfo.GetType()
 	values := []int{}
 
 	func() {
@@ -95,13 +95,13 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.FieldInfo, re
 				return
 			}
 
-			relationInfo.GetPrimaryField().SetFieldValue(reflect.ValueOf(values[0]))
+			relationInfo.GetPrimaryField().SetValue(reflect.ValueOf(values[0]))
 			err = s.querySingle(relationInfo)
 			if err != nil {
 				return
 			}
 
-			modelInfo.UpdateFieldValue(fieldInfo.GetFieldName(), relationVal)
+			modelInfo.UpdateFieldValue(fieldInfo.GetName(), relationVal)
 		}
 	} else if util.IsSliceType(fType.Value()) {
 		relationVal, _ := fValue.GetValue()
@@ -121,7 +121,7 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.FieldInfo, re
 				return
 			}
 
-			itemInfo.GetPrimaryField().SetFieldValue(reflect.ValueOf(val))
+			itemInfo.GetPrimaryField().SetValue(reflect.ValueOf(val))
 			err = s.querySingle(itemInfo)
 			if err != nil {
 				return
@@ -133,7 +133,7 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.FieldInfo, re
 
 			relationVal = reflect.Append(relationVal, itemVal)
 		}
-		modelInfo.UpdateFieldValue(fieldInfo.GetFieldName(), relationVal)
+		modelInfo.UpdateFieldValue(fieldInfo.GetName(), relationVal)
 	}
 
 	return
@@ -154,7 +154,7 @@ func (s *orm) Query(obj interface{}) (err error) {
 
 	fields := modelInfo.GetDependField()
 	for _, val := range fields {
-		fType := val.GetFieldType()
+		fType := val.GetType()
 		fDepend, _ := fType.Depend()
 
 		if fDepend == nil {

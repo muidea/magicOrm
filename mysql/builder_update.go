@@ -9,9 +9,9 @@ import (
 func (s *Builder) BuildUpdate() (ret string, err error) {
 	str := ""
 	for _, val := range *s.modelInfo.GetFields() {
-		fType := val.GetFieldType()
-		fValue := val.GetFieldValue()
-		fTag := val.GetFieldTag()
+		fType := val.GetType()
+		fValue := val.GetValue()
+		fTag := val.GetTag()
 
 		if fValue == nil {
 			continue
@@ -44,8 +44,8 @@ func (s *Builder) BuildUpdate() (ret string, err error) {
 		return
 	}
 
-	pkfValue := s.modelInfo.GetPrimaryField().GetFieldValue()
-	pkfTag := s.modelInfo.GetPrimaryField().GetFieldTag()
+	pkfValue := s.modelInfo.GetPrimaryField().GetValue()
+	pkfTag := s.modelInfo.GetPrimaryField().GetTag()
 	pkfStr, pkferr := pkfValue.GetValueStr()
 	if pkferr == nil {
 		str = fmt.Sprintf("UPDATE `%s` SET %s WHERE `%s`=%s", s.getTableName(s.modelInfo), str, pkfTag.Name(), pkfStr)
