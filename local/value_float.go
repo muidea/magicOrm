@@ -1,15 +1,24 @@
-package model
+package local
 
 import (
 	"fmt"
 	"reflect"
+
+	"muidea.com/magicOrm/model"
 )
 
 type floatImpl struct {
 	value reflect.Value
 }
 
-func (s *floatImpl) SetValue(val reflect.Value) (err error) {
+func (s *floatImpl) IsNil() bool {
+	if s.value.Kind() == reflect.Ptr {
+		return s.value.IsNil()
+	}
+
+	return false
+}
+func (s *floatImpl) Set(val reflect.Value) (err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't set nil ptr")
 		return
@@ -26,24 +35,16 @@ func (s *floatImpl) SetValue(val reflect.Value) (err error) {
 	return
 }
 
-func (s *floatImpl) IsNil() bool {
-	if s.value.Kind() == reflect.Ptr {
-		return s.value.IsNil()
-	}
-
-	return false
-}
-
-func (s *floatImpl) GetValue() (reflect.Value, error) {
+func (s *floatImpl) Get() (reflect.Value, error) {
 	return s.value, nil
 }
 
-func (s *floatImpl) GetDepend() (ret []reflect.Value, err error) {
+func (s *floatImpl) Depend() (ret []reflect.Value, err error) {
 	// noting todo
 	return
 }
 
-func (s *floatImpl) GetValueStr() (ret string, err error) {
+func (s *floatImpl) ValueStr() (ret string, err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't get nil ptr value")
 		return
@@ -55,6 +56,6 @@ func (s *floatImpl) GetValueStr() (ret string, err error) {
 	return
 }
 
-func (s *floatImpl) Copy() FieldValue {
+func (s *floatImpl) Copy() model.FieldValue {
 	return &floatImpl{value: s.value}
 }

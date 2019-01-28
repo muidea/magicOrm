@@ -1,9 +1,10 @@
-package model
+package local
 
 import (
 	"fmt"
 	"reflect"
 
+	"muidea.com/magicOrm/model"
 	"muidea.com/magicOrm/util"
 )
 
@@ -40,7 +41,7 @@ func (s *typeBasic) Depend() (reflect.Type, bool) {
 	return nil, false
 }
 
-func (s *typeBasic) Copy() FieldType {
+func (s *typeBasic) Copy() model.FieldType {
 	return &typeBasic{
 		typeIsPtr:   s.typeIsPtr,
 		typeName:    s.typeName,
@@ -49,7 +50,7 @@ func (s *typeBasic) Copy() FieldType {
 	}
 }
 
-func getBasicType(val reflect.Type, isPtr bool) (ret FieldType, err error) {
+func getBasicType(val reflect.Type, isPtr bool) (ret model.FieldType, err error) {
 	tVal, tErr := util.GetTypeValueEnum(val)
 	if tErr != nil {
 		err = tErr

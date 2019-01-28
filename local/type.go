@@ -1,25 +1,15 @@
-package model
+package local
 
 import (
 	"fmt"
 	"reflect"
 
+	"muidea.com/magicOrm/model"
 	"muidea.com/magicOrm/util"
 )
 
-// FieldType FieldType
-type FieldType interface {
-	Name() string
-	Value() int
-	IsPtr() bool
-	PkgPath() string
-	String() string
-	Depend() (dependType reflect.Type, isTypePtr bool)
-	Copy() FieldType
-}
-
 // NewFieldType NewFieldType
-func NewFieldType(val reflect.Type) (ret FieldType, err error) {
+func NewFieldType(val reflect.Type) (ret model.FieldType, err error) {
 	isPtr := false
 	rawVal := val
 	if rawVal.Kind() == reflect.Ptr {

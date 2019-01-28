@@ -1,10 +1,12 @@
-package model
+package local
 
 import (
 	"log"
 	"reflect"
 	"testing"
 	"time"
+
+	"muidea.com/magicOrm/model"
 )
 
 // Unit 单元信息
@@ -37,11 +39,11 @@ type Test struct {
 }
 
 func TestStruct(t *testing.T) {
-	cache := NewCache()
+	cache := model.NewCache()
 	now := time.Now()
-	info, err := GetObjectStructInfo(&Unit{T1: Test{ID: 12, Val: 123}, TimeStamp: now}, cache)
+	info, err := GetObjectModel(&Unit{T1: Test{ID: 12, Val: 123}, TimeStamp: now}, cache)
 	if info == nil || err != nil {
-		t.Errorf("GetObjectStructInfo failed, err:%s", err.Error())
+		t.Errorf("GetObjectModel failed, err:%s", err.Error())
 		return
 	}
 
@@ -49,12 +51,12 @@ func TestStruct(t *testing.T) {
 }
 
 func TestStructValue(t *testing.T) {
-	cache := NewCache()
+	cache := model.NewCache()
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05", "2018-01-02 15:04:05", time.Local)
 	unit := &Unit{Name: "AA", T1: Test{Val: 123}, TimeStamp: now}
-	info, err := GetObjectStructInfo(unit, cache)
+	info, err := GetObjectModel(unit, cache)
 	if err != nil {
-		t.Errorf("GetObjectStructInfo failed, err:%s", err.Error())
+		t.Errorf("GetObjectModel failed, err:%s", err.Error())
 		return
 	}
 
@@ -95,17 +97,17 @@ func TestReference(t *testing.T) {
 		EF []*AB `orm:"ef"`
 	}
 
-	cache := NewCache()
-	f32Info, err := GetObjectStructInfo(&Demo{AB: &AB{}}, cache)
+	cache := model.NewCache()
+	f32Info, err := GetObjectModel(&Demo{AB: &AB{}}, cache)
 	if err != nil {
-		t.Errorf("GetObjectStructInfo failed, err:%s", err.Error())
+		t.Errorf("GetObjectModel failed, err:%s", err.Error())
 	}
 
 	f32Info.Dump()
 
-	i64Info, err := GetObjectStructInfo(&CD{}, cache)
+	i64Info, err := GetObjectModel(&CD{}, cache)
 	if err != nil {
-		t.Errorf("GetObjectStructInfo failed, err:%s", err.Error())
+		t.Errorf("GetObjectModel failed, err:%s", err.Error())
 	}
 
 	i64Info.Dump()
@@ -118,19 +120,19 @@ type TT struct {
 }
 
 func TestGetStructValue(t *testing.T) {
-	cache := NewCache()
+	cache := model.NewCache()
 	t1 := &TT{Aa: 12, Bb: 23}
-	t1Info, t1Err := GetObjectStructInfo(t1, cache)
+	t1Info, t1Err := GetObjectModel(t1, cache)
 	if t1Err != nil {
-		t.Errorf("GetObjectStructInfo t1 failed, err:%s", t1Err.Error())
+		t.Errorf("GetObjectModel t1 failed, err:%s", t1Err.Error())
 		return
 	}
 
 	t2 := &TT{Aa: 34, Bb: 45}
 	//reflect.TypeOf(t2)
-	t2Info, t2Err := GetStructValue(reflect.ValueOf(t2), cache)
+	t2Info, t2Err := GetValueModel(reflect.ValueOf(t2), cache)
 	if t1Err != nil {
-		t.Errorf("GetObjectStructInfo t2 failed, err:%s", t2Err.Error())
+		t.Errorf("GetObjectModel t2 failed, err:%s", t2Err.Error())
 		return
 	}
 

@@ -6,11 +6,12 @@ import (
 	"reflect"
 	"strings"
 
+	"muidea.com/magicOrm/local"
 	"muidea.com/magicOrm/model"
 )
 
 func getSliceValStr(val model.FieldValue) (ret string, err error) {
-	value, valueErr := val.GetValue()
+	value, valueErr := val.Get()
 	if valueErr != nil {
 		err = valueErr
 		return
@@ -29,13 +30,13 @@ func getSliceValStr(val model.FieldValue) (ret string, err error) {
 			sv = sv.Addr()
 		}
 
-		sfieldVal, sfieldErr := model.NewFieldValue(sv)
+		sfieldVal, sfieldErr := local.NewFieldValue(sv)
 		if sfieldErr != nil {
 			err = sfieldErr
 			return
 		}
 
-		strVal, strErr := sfieldVal.GetValueStr()
+		strVal, strErr := sfieldVal.ValueStr()
 		if strErr != nil {
 			err = strErr
 		}
@@ -49,7 +50,7 @@ func getSliceValStr(val model.FieldValue) (ret string, err error) {
 }
 
 func equleOpr(name string, value model.FieldValue) (ret string, err error) {
-	val, valErr := value.GetValueStr()
+	val, valErr := value.ValueStr()
 	if valErr == nil {
 		ret = fmt.Sprintf("`%s` = %s", name, val)
 		return
@@ -61,7 +62,7 @@ func equleOpr(name string, value model.FieldValue) (ret string, err error) {
 }
 
 func notEquleOpr(name string, value model.FieldValue) (ret string, err error) {
-	val, valErr := value.GetValueStr()
+	val, valErr := value.ValueStr()
 	if valErr == nil {
 		ret = fmt.Sprintf("`%s` != %s", name, val)
 		return
@@ -73,7 +74,7 @@ func notEquleOpr(name string, value model.FieldValue) (ret string, err error) {
 }
 
 func belowOpr(name string, value model.FieldValue) (ret string, err error) {
-	val, valErr := value.GetValueStr()
+	val, valErr := value.ValueStr()
 	if valErr == nil {
 		ret = fmt.Sprintf("`%s` < %s", name, val)
 		return
@@ -85,7 +86,7 @@ func belowOpr(name string, value model.FieldValue) (ret string, err error) {
 }
 
 func aboveOpr(name string, value model.FieldValue) (ret string, err error) {
-	val, valErr := value.GetValueStr()
+	val, valErr := value.ValueStr()
 	if valErr == nil {
 		ret = fmt.Sprintf("`%s` > %s", name, val)
 		return
@@ -126,7 +127,7 @@ func notInOpr(name string, value model.FieldValue) (ret string, err error) {
 }
 
 func likeOpr(name string, value model.FieldValue) (ret string, err error) {
-	val, valErr := value.GetValueStr()
+	val, valErr := value.ValueStr()
 	if valErr == nil {
 		val := val[1 : len(val)-1]
 		if val != "" {

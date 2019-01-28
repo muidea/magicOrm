@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"muidea.com/magicOrm/local"
 	"muidea.com/magicOrm/model"
 )
 
@@ -33,16 +34,16 @@ func TestBuilderCommon(t *testing.T) {
 	obj := &Unit{ID: 10, Name: "Hello world", Value: 12.3456, TimeStamp: now}
 
 	cache := model.NewCache()
-	info, err := model.GetObjectStructInfo(obj, cache)
+	info, err := local.GetObjectModel(obj, cache)
 	if err != nil {
-		t.Errorf("GetObjectStructInfo failed, err:%s", err.Error())
+		t.Errorf("GetObjectModel failed, err:%s", err.Error())
 		return
 	}
 
 	dependInfos := info.GetDependField()
 
 	if len(dependInfos) != 0 {
-		t.Errorf("GetObjectStructInfo failed,")
+		t.Errorf("GetObjectModel failed,")
 		return
 	}
 	builder := NewBuilder(info)
@@ -103,15 +104,15 @@ func TestBuilderReference(t *testing.T) {
 	ext := &Ext{}
 
 	cache := model.NewCache()
-	info, err := model.GetObjectStructInfo(ext, cache)
+	info, err := local.GetObjectModel(ext, cache)
 	if err != nil {
-		t.Errorf("GetObjectStructInfo failed, err:%s", err.Error())
+		t.Errorf("GetObjectModel failed, err:%s", err.Error())
 		return
 	}
 
 	dependInfos := info.GetDependField()
 	if len(dependInfos) != 1 {
-		t.Errorf("GetObjectStructInfo failed,")
+		t.Errorf("GetObjectModel failed,")
 		return
 	}
 
@@ -174,16 +175,16 @@ func TestBuilderReference2(t *testing.T) {
 	ext := &Ext{Description: &desc}
 
 	cache := model.NewCache()
-	info, err := model.GetObjectStructInfo(ext, cache)
+	info, err := local.GetObjectModel(ext, cache)
 	if err != nil {
-		t.Errorf("GetObjectStructInfo failed, err:%s", err.Error())
+		t.Errorf("GetObjectModel failed, err:%s", err.Error())
 		return
 	}
 
 	dependInfos := info.GetDependField()
 
 	if len(dependInfos) != 1 {
-		t.Errorf("GetObjectStructInfo failed,")
+		t.Errorf("GetObjectModel failed,")
 		return
 	}
 

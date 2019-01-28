@@ -9,6 +9,6 @@ type basicValue struct {
 }
 
 func (s *basicValue) String() (ret string, err error) {
-	ret, err = s.value.GetValueStr()
+	ret, err = s.value.ValueStr()
 	return
 }

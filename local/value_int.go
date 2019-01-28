@@ -1,15 +1,25 @@
-package model
+package local
 
 import (
 	"fmt"
 	"reflect"
+
+	"muidea.com/magicOrm/model"
 )
 
 type intImpl struct {
 	value reflect.Value
 }
 
-func (s *intImpl) SetValue(val reflect.Value) (err error) {
+func (s *intImpl) IsNil() bool {
+	if s.value.Kind() == reflect.Ptr {
+		return s.value.IsNil()
+	}
+
+	return false
+}
+
+func (s *intImpl) Set(val reflect.Value) (err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't set nil ptr")
 		return
@@ -26,24 +36,16 @@ func (s *intImpl) SetValue(val reflect.Value) (err error) {
 	return
 }
 
-func (s *intImpl) IsNil() bool {
-	if s.value.Kind() == reflect.Ptr {
-		return s.value.IsNil()
-	}
-
-	return false
-}
-
-func (s *intImpl) GetValue() (reflect.Value, error) {
+func (s *intImpl) Get() (reflect.Value, error) {
 	return s.value, nil
 }
 
-func (s *intImpl) GetDepend() (ret []reflect.Value, err error) {
+func (s *intImpl) Depend() (ret []reflect.Value, err error) {
 	// noting todo
 	return
 }
 
-func (s *intImpl) GetValueStr() (ret string, err error) {
+func (s *intImpl) ValueStr() (ret string, err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't get nil ptr value")
 		return
@@ -55,7 +57,7 @@ func (s *intImpl) GetValueStr() (ret string, err error) {
 	return
 }
 
-func (s *intImpl) Copy() FieldValue {
+func (s *intImpl) Copy() model.FieldValue {
 	return &intImpl{value: s.value}
 }
 
@@ -63,7 +65,14 @@ type uintImpl struct {
 	value reflect.Value
 }
 
-func (s *uintImpl) SetValue(val reflect.Value) (err error) {
+func (s *uintImpl) IsNil() bool {
+	if s.value.Kind() == reflect.Ptr {
+		return s.value.IsNil()
+	}
+
+	return false
+}
+func (s *uintImpl) Set(val reflect.Value) (err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't set nil ptr")
 		return
@@ -80,24 +89,16 @@ func (s *uintImpl) SetValue(val reflect.Value) (err error) {
 	return
 }
 
-func (s *uintImpl) IsNil() bool {
-	if s.value.Kind() == reflect.Ptr {
-		return s.value.IsNil()
-	}
-
-	return false
-}
-
-func (s *uintImpl) GetValue() (reflect.Value, error) {
+func (s *uintImpl) Get() (reflect.Value, error) {
 	return s.value, nil
 }
 
-func (s *uintImpl) GetDepend() (ret []reflect.Value, err error) {
+func (s *uintImpl) Depend() (ret []reflect.Value, err error) {
 	// noting todo
 	return
 }
 
-func (s *uintImpl) GetValueStr() (ret string, err error) {
+func (s *uintImpl) ValueStr() (ret string, err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't get nil ptr value")
 		return
@@ -109,6 +110,6 @@ func (s *uintImpl) GetValueStr() (ret string, err error) {
 	return
 }
 
-func (s *uintImpl) Copy() FieldValue {
+func (s *uintImpl) Copy() model.FieldValue {
 	return &uintImpl{value: s.value}
 }

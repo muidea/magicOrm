@@ -1,18 +1,11 @@
-package model
+package local
 
 import (
 	"fmt"
 	"strings"
-)
 
-// FieldTag FieldTag
-type FieldTag interface {
-	Name() string
-	IsPrimaryKey() bool
-	IsAutoIncrement() bool
-	String() string
-	Copy() FieldTag
-}
+	"muidea.com/magicOrm/model"
+)
 
 type tagImpl struct {
 	tagName         string
@@ -21,7 +14,7 @@ type tagImpl struct {
 }
 
 //NewFieldTag name[key][auto]
-func NewFieldTag(val string) (ret FieldTag, err error) {
+func NewFieldTag(val string) (ret model.FieldTag, err error) {
 	items := strings.Split(val, " ")
 	if len(items) < 1 {
 		err = fmt.Errorf("illegal tagImpl value, value:%s", val)
@@ -68,7 +61,7 @@ func (s *tagImpl) String() string {
 	return fmt.Sprintf("name=%s key=%v auto=%v", s.tagName, s.isPrimaryKey, s.isAutoIncrement)
 }
 
-func (s *tagImpl) Copy() FieldTag {
+func (s *tagImpl) Copy() model.FieldTag {
 	return &tagImpl{
 		tagName:         s.tagName,
 		isPrimaryKey:    s.isPrimaryKey,

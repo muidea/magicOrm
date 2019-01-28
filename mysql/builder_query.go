@@ -17,7 +17,7 @@ func (s *Builder) BuildQuery() (ret string, err error) {
 
 	pkfValue := pk.GetValue()
 	pkfTag := pk.GetTag()
-	pkfStr, pkferr := pkfValue.GetValueStr()
+	pkfStr, pkferr := pkfValue.ValueStr()
 	if pkferr == nil {
 		ret = fmt.Sprintf("SELECT %s FROM `%s` WHERE `%s`=%s", s.getFieldQueryNames(s.modelInfo), s.getTableName(s.modelInfo), pkfTag.Name(), pkfStr)
 		log.Print(ret)
@@ -36,7 +36,7 @@ func (s *Builder) BuildQueryRelation(fieldName string, relationInfo model.Model)
 	}
 
 	pkfValue := pk.GetValue()
-	pkfStr, pkferr := pkfValue.GetValueStr()
+	pkfStr, pkferr := pkfValue.ValueStr()
 	if pkferr == nil {
 		ret = fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= %s", s.GetRelationTableName(fieldName, relationInfo), pkfStr)
 		log.Print(ret)

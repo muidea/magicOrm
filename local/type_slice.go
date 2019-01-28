@@ -1,9 +1,10 @@
-package model
+package local
 
 import (
 	"fmt"
 	"reflect"
 
+	"muidea.com/magicOrm/model"
 	"muidea.com/magicOrm/util"
 )
 
@@ -45,7 +46,7 @@ func (s *typeSlice) Depend() (reflect.Type, bool) {
 	return s.typeDepend, s.typeDependPtr
 }
 
-func (s *typeSlice) Copy() FieldType {
+func (s *typeSlice) Copy() model.FieldType {
 	return &typeSlice{
 		typeIsPtr:     s.typeIsPtr,
 		typeName:      s.typeName,
@@ -56,7 +57,7 @@ func (s *typeSlice) Copy() FieldType {
 	}
 }
 
-func getSliceType(val reflect.Type, isPtr bool) (ret FieldType, err error) {
+func getSliceType(val reflect.Type, isPtr bool) (ret model.FieldType, err error) {
 	tVal, tErr := util.GetTypeValueEnum(val)
 	if tErr != nil {
 		err = tErr

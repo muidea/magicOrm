@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	orm "muidea.com/magicOrm"
+	"muidea.com/magicOrm/local"
 	"muidea.com/magicOrm/model"
 )
 
@@ -21,9 +22,9 @@ func TestFilterOpr(t *testing.T) {
 	cache := model.NewCache()
 
 	p := &Person{}
-	info, err := model.GetObjectStructInfo(p, cache)
+	info, err := local.GetObjectModel(p, cache)
 	if err != nil {
-		t.Errorf("GetObjectStructInfo failed, err:%s", err.Error())
+		t.Errorf("GetObjectModel failed, err:%s", err.Error())
 		return
 	}
 

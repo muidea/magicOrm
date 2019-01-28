@@ -27,7 +27,7 @@ func (s *Builder) BuildUpdate() (ret string, err error) {
 		}
 
 		if val != s.modelInfo.GetPrimaryField() {
-			fStr, ferr := fValue.GetValueStr()
+			fStr, ferr := fValue.ValueStr()
 			if ferr != nil {
 				err = ferr
 				break
@@ -46,7 +46,7 @@ func (s *Builder) BuildUpdate() (ret string, err error) {
 
 	pkfValue := s.modelInfo.GetPrimaryField().GetValue()
 	pkfTag := s.modelInfo.GetPrimaryField().GetTag()
-	pkfStr, pkferr := pkfValue.GetValueStr()
+	pkfStr, pkferr := pkfValue.ValueStr()
 	if pkferr == nil {
 		str = fmt.Sprintf("UPDATE `%s` SET %s WHERE `%s`=%s", s.getTableName(s.modelInfo), str, pkfTag.Name(), pkfStr)
 		log.Print(str)

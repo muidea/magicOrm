@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"muidea.com/magicOrm/builder"
+	"muidea.com/magicOrm/local"
 	"muidea.com/magicOrm/model"
 	"muidea.com/magicOrm/util"
 )
@@ -89,7 +90,7 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field, relati
 		if len(values) > 0 {
 			fDepend, _ := fType.Depend()
 			relationVal := reflect.New(fDepend)
-			relationInfo, relationErr = model.GetStructValue(relationVal, s.modelInfoCache)
+			relationInfo, relationErr = local.GetValueModel(relationVal, s.modelInfoCache)
 			if relationErr != nil {
 				err = relationErr
 				return
@@ -104,7 +105,7 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field, relati
 			modelInfo.UpdateFieldValue(fieldInfo.GetName(), relationVal)
 		}
 	} else if util.IsSliceType(fType.Value()) {
-		relationVal, _ := fValue.GetValue()
+		relationVal, _ := fValue.Get()
 		relationType := relationVal.Type()
 		if fType.IsPtr() {
 			relationType = relationType.Elem()
@@ -114,9 +115,9 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field, relati
 		for _, val := range values {
 			fDepend, fDependPtr := fType.Depend()
 			itemVal := reflect.New(fDepend)
-			itemInfo, itemErr := model.GetStructValue(itemVal, s.modelInfoCache)
+			itemInfo, itemErr := local.GetValueModel(itemVal, s.modelInfoCache)
 			if itemErr != nil {
-				log.Printf("GetStructValue faield, err:%s", itemErr.Error())
+				log.Printf("GetValueModel faield, err:%s", itemErr.Error())
 				err = itemErr
 				return
 			}
@@ -140,10 +141,10 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field, relati
 }
 
 func (s *orm) Query(obj interface{}) (err error) {
-	modelInfo, structErr := model.GetObjectStructInfo(obj, s.modelInfoCache)
+	modelInfo, structErr := local.GetObjectModel(obj, s.modelInfoCache)
 	if structErr != nil {
 		err = structErr
-		log.Printf("GetObjectStructInfo failed, err:%s", err.Error())
+		log.Printf("GetObjectModel failed, err:%s", err.Error())
 		return
 	}
 
@@ -161,7 +162,7 @@ func (s *orm) Query(obj interface{}) (err error) {
 			continue
 		}
 
-		infoVal, infoErr := model.GetStructInfo(fDepend, s.modelInfoCache)
+		infoVal, infoErr := local.GetTypeModel(fDepend, s.modelInfoCache)
 		if infoErr != nil {
 			err = infoErr
 			return

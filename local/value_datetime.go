@@ -1,16 +1,26 @@
-package model
+package local
 
 import (
 	"fmt"
 	"reflect"
 	"time"
+
+	"muidea.com/magicOrm/model"
 )
 
 type datetimeImpl struct {
 	value reflect.Value
 }
 
-func (s *datetimeImpl) SetValue(val reflect.Value) (err error) {
+func (s *datetimeImpl) IsNil() bool {
+	if s.value.Kind() == reflect.Ptr {
+		return s.value.IsNil()
+	}
+
+	return false
+}
+
+func (s *datetimeImpl) Set(val reflect.Value) (err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't set nil ptr")
 		return
@@ -38,24 +48,16 @@ func (s *datetimeImpl) SetValue(val reflect.Value) (err error) {
 	return
 }
 
-func (s *datetimeImpl) IsNil() bool {
-	if s.value.Kind() == reflect.Ptr {
-		return s.value.IsNil()
-	}
-
-	return false
-}
-
-func (s *datetimeImpl) GetValue() (reflect.Value, error) {
+func (s *datetimeImpl) Get() (reflect.Value, error) {
 	return s.value, nil
 }
 
-func (s *datetimeImpl) GetDepend() (ret []reflect.Value, err error) {
+func (s *datetimeImpl) Depend() (ret []reflect.Value, err error) {
 	// noting todo
 	return
 }
 
-func (s *datetimeImpl) GetValueStr() (ret string, err error) {
+func (s *datetimeImpl) ValueStr() (ret string, err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't get nil ptr value")
 		return
@@ -72,6 +74,6 @@ func (s *datetimeImpl) GetValueStr() (ret string, err error) {
 	return
 }
 
-func (s *datetimeImpl) Copy() FieldValue {
+func (s *datetimeImpl) Copy() model.FieldValue {
 	return &datetimeImpl{value: s.value}
 }

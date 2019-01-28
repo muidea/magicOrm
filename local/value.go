@@ -1,22 +1,14 @@
-package model
+package local
 
 import (
 	"fmt"
 	"reflect"
+
+	"muidea.com/magicOrm/model"
 )
 
-// FieldValue FieldValue
-type FieldValue interface {
-	SetValue(val reflect.Value) error
-	IsNil() bool
-	GetValue() (reflect.Value, error)
-	GetDepend() ([]reflect.Value, error)
-	GetValueStr() (string, error)
-	Copy() FieldValue
-}
-
 // NewFieldValue NewFieldValue
-func NewFieldValue(val reflect.Value) (ret FieldValue, err error) {
+func NewFieldValue(val reflect.Value) (ret model.FieldValue, err error) {
 	if val.Kind() != reflect.Ptr {
 		err = fmt.Errorf("illegal val, must be a ptr")
 		return

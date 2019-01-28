@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"muidea.com/magicOrm/local"
 	"muidea.com/magicOrm/model"
 	"muidea.com/magicOrm/util"
 )
@@ -31,7 +32,7 @@ func (s *sliceValue) String() (ret string, err error) {
 		}
 
 		if util.IsBasicType(fval) {
-			fValue, fErr := model.NewFieldValue(val)
+			fValue, fErr := local.NewFieldValue(val)
 			if fErr != nil {
 				err = fErr
 				return
@@ -49,7 +50,7 @@ func (s *sliceValue) String() (ret string, err error) {
 		}
 
 		if util.IsStructType(fval) {
-			fValue, fErr := model.NewFieldValue(val)
+			fValue, fErr := local.NewFieldValue(val)
 			if fErr != nil {
 				err = fErr
 				return

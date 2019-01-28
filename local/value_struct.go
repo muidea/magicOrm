@@ -1,15 +1,24 @@
-package model
+package local
 
 import (
 	"fmt"
 	"reflect"
+
+	"muidea.com/magicOrm/model"
 )
 
 type structImpl struct {
 	value reflect.Value
 }
 
-func (s *structImpl) SetValue(val reflect.Value) (err error) {
+func (s *structImpl) IsNil() bool {
+	if s.value.Kind() == reflect.Ptr {
+		return s.value.IsNil()
+	}
+
+	return false
+}
+func (s *structImpl) Set(val reflect.Value) (err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't set nil ptr")
 		return
@@ -30,19 +39,11 @@ func (s *structImpl) SetValue(val reflect.Value) (err error) {
 	return
 }
 
-func (s *structImpl) IsNil() bool {
-	if s.value.Kind() == reflect.Ptr {
-		return s.value.IsNil()
-	}
-
-	return false
-}
-
-func (s *structImpl) GetValue() (reflect.Value, error) {
+func (s *structImpl) Get() (reflect.Value, error) {
 	return s.value, nil
 }
 
-func (s *structImpl) GetDepend() (ret []reflect.Value, err error) {
+func (s *structImpl) Depend() (ret []reflect.Value, err error) {
 	if s.value.Kind() == reflect.Ptr {
 		if s.value.IsNil() {
 			return
@@ -54,7 +55,7 @@ func (s *structImpl) GetDepend() (ret []reflect.Value, err error) {
 	return
 }
 
-func (s *structImpl) GetValueStr() (ret string, err error) {
+func (s *structImpl) ValueStr() (ret string, err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't get nil ptr value")
 		return
@@ -67,10 +68,10 @@ func (s *structImpl) GetValueStr() (ret string, err error) {
 		return
 	}
 
-	ret, err = pkField.GetValue().GetValueStr()
+	ret, err = pkField.GetValue().ValueStr()
 	return
 }
 
-func (s *structImpl) Copy() FieldValue {
+func (s *structImpl) Copy() model.FieldValue {
 	return &structImpl{value: s.value}
 }

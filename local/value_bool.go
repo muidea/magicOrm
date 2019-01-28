@@ -1,15 +1,25 @@
-package model
+package local
 
 import (
 	"fmt"
 	"reflect"
+
+	"muidea.com/magicOrm/model"
 )
 
 type boolImpl struct {
 	value reflect.Value
 }
 
-func (s *boolImpl) SetValue(val reflect.Value) (err error) {
+func (s *boolImpl) IsNil() bool {
+	if s.value.Kind() == reflect.Ptr {
+		return s.value.IsNil()
+	}
+
+	return false
+}
+
+func (s *boolImpl) Set(val reflect.Value) (err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't set nil ptr")
 		return
@@ -38,24 +48,16 @@ func (s *boolImpl) SetValue(val reflect.Value) (err error) {
 	return
 }
 
-func (s *boolImpl) IsNil() bool {
-	if s.value.Kind() == reflect.Ptr {
-		return s.value.IsNil()
-	}
-
-	return false
-}
-
-func (s *boolImpl) GetValue() (reflect.Value, error) {
+func (s *boolImpl) Get() (reflect.Value, error) {
 	return s.value, nil
 }
 
-func (s *boolImpl) GetDepend() (ret []reflect.Value, err error) {
+func (s *boolImpl) Depend() (ret []reflect.Value, err error) {
 	// noting todo
 	return
 }
 
-func (s *boolImpl) GetValueStr() (ret string, err error) {
+func (s *boolImpl) ValueStr() (ret string, err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't get nil ptr value")
 		return
@@ -71,6 +73,6 @@ func (s *boolImpl) GetValueStr() (ret string, err error) {
 	return
 }
 
-func (s *boolImpl) Copy() FieldValue {
+func (s *boolImpl) Copy() model.FieldValue {
 	return &boolImpl{value: s.value}
 }

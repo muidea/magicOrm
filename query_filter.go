@@ -6,6 +6,7 @@ import (
 
 	"muidea.com/magicCommon/foundation/util"
 	"muidea.com/magicOrm/builder"
+	"muidea.com/magicOrm/local"
 	"muidea.com/magicOrm/model"
 	ormutil "muidea.com/magicOrm/util"
 )
@@ -18,14 +19,14 @@ type filterItem struct {
 
 func (s *filterItem) Verify(fType model.FieldType) (err error) {
 	valType := s.value.Type()
-	fieldType, fieldErr := model.NewFieldType(valType)
+	fieldType, fieldErr := local.NewFieldType(valType)
 	if fieldErr != nil {
 		err = fieldErr
 		return
 	}
 	valDType, _ := fieldType.Depend()
 	if valDType != nil {
-		fieldType, fieldErr = model.NewFieldType(valDType)
+		fieldType, fieldErr = local.NewFieldType(valDType)
 		if fieldErr != nil {
 			err = fieldErr
 			return
@@ -34,7 +35,7 @@ func (s *filterItem) Verify(fType model.FieldType) (err error) {
 
 	fdType, _ := fType.Depend()
 	if fdType != nil {
-		fType, err = model.NewFieldType(fdType)
+		fType, err = local.NewFieldType(fdType)
 		if err != nil {
 			return
 		}
@@ -193,7 +194,7 @@ func (s *queryFilter) Builder(modelInfo model.Model) (ret string, err error) {
 		filterVal := reflect.New(filterItem.value.Type()).Elem()
 		filterVal.Set(filterItem.value)
 
-		fValue, fErr := model.NewFieldValue(filterVal.Addr())
+		fValue, fErr := local.NewFieldValue(filterVal.Addr())
 		if fErr != nil {
 			err = fErr
 			return
@@ -242,7 +243,7 @@ func (s *queryFilter) buildRelation(modelInfo model.Model) (ret string, err erro
 			continue
 		}
 
-		dependInfo, dependErr := model.GetStructInfo(fDepend, s.modelInfoCache)
+		dependInfo, dependErr := local.GetTypeModel(fDepend, s.modelInfoCache)
 		if dependErr != nil {
 			err = dependErr
 			return
@@ -258,7 +259,7 @@ func (s *queryFilter) buildRelation(modelInfo model.Model) (ret string, err erro
 		filterVal := reflect.New(filterItem.value.Type()).Elem()
 		filterVal.Set(filterItem.value)
 
-		fValue, fErr := model.NewFieldValue(filterVal.Addr())
+		fValue, fErr := local.NewFieldValue(filterVal.Addr())
 		if fErr != nil {
 			err = fErr
 			return

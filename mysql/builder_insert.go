@@ -93,7 +93,7 @@ func (s *Builder) getFieldInsertValues(info model.Model) (ret []string, err erro
 			continue
 		}
 
-		fStr, ferr := fValue.GetValueStr()
+		fStr, ferr := fValue.ValueStr()
 		if ferr == nil {
 			if str == "" {
 				str = fmt.Sprintf("%s", fStr)

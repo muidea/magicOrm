@@ -1,10 +1,11 @@
-package model
+package local
 
 import (
 	"encoding/json"
 	"fmt"
 	"reflect"
 
+	"muidea.com/magicOrm/model"
 	"muidea.com/magicOrm/util"
 )
 
@@ -12,7 +13,15 @@ type sliceImpl struct {
 	value reflect.Value
 }
 
-func (s *sliceImpl) SetValue(val reflect.Value) (err error) {
+func (s *sliceImpl) IsNil() bool {
+	if s.value.Kind() == reflect.Ptr {
+		return s.value.IsNil()
+	}
+
+	return false
+}
+
+func (s *sliceImpl) Set(val reflect.Value) (err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't set nil ptr")
 		return
@@ -34,19 +43,11 @@ func (s *sliceImpl) SetValue(val reflect.Value) (err error) {
 	return
 }
 
-func (s *sliceImpl) IsNil() bool {
-	if s.value.Kind() == reflect.Ptr {
-		return s.value.IsNil()
-	}
-
-	return false
-}
-
-func (s *sliceImpl) GetValue() (reflect.Value, error) {
+func (s *sliceImpl) Get() (reflect.Value, error) {
 	return s.value, nil
 }
 
-func (s *sliceImpl) GetDepend() (ret []reflect.Value, err error) {
+func (s *sliceImpl) Depend() (ret []reflect.Value, err error) {
 	if s.value.Kind() == reflect.Ptr {
 		if s.value.IsNil() {
 			return
@@ -78,7 +79,7 @@ func (s *sliceImpl) GetDepend() (ret []reflect.Value, err error) {
 	return
 }
 
-func (s *sliceImpl) GetValueStr() (ret string, err error) {
+func (s *sliceImpl) ValueStr() (ret string, err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't get nil ptr value")
 		return
@@ -103,7 +104,7 @@ func (s *sliceImpl) GetValueStr() (ret string, err error) {
 		sv = reflect.Indirect(sv)
 		if sv.Kind() == reflect.Struct {
 			datetimeVal := &datetimeImpl{value: sv}
-			datetimeStr, _ := datetimeVal.GetValueStr()
+			datetimeStr, _ := datetimeVal.ValueStr()
 			valSlice = append(valSlice, datetimeStr)
 		} else {
 			valSlice = append(valSlice, sv.Interface())
@@ -120,6 +121,6 @@ func (s *sliceImpl) GetValueStr() (ret string, err error) {
 	return
 }
 
-func (s *sliceImpl) Copy() FieldValue {
+func (s *sliceImpl) Copy() model.FieldValue {
 	return &sliceImpl{value: s.value}
 }

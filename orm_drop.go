@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"muidea.com/magicOrm/builder"
+	"muidea.com/magicOrm/local"
 	"muidea.com/magicOrm/model"
 )
 
@@ -38,10 +39,10 @@ func (s *orm) dropRelation(modelInfo model.Model, fieldName string, relationInfo
 }
 
 func (s *orm) Drop(obj interface{}) (err error) {
-	modelInfo, structErr := model.GetObjectStructInfo(obj, s.modelInfoCache)
+	modelInfo, structErr := local.GetObjectModel(obj, s.modelInfoCache)
 	if structErr != nil {
 		err = structErr
-		log.Printf("GetObjectStructInfo failed, err:%s", err.Error())
+		log.Printf("GetObjectModel failed, err:%s", err.Error())
 		return
 	}
 
@@ -58,7 +59,7 @@ func (s *orm) Drop(obj interface{}) (err error) {
 			continue
 		}
 
-		infoVal, infoErr := model.GetStructInfo(fDepend, s.modelInfoCache)
+		infoVal, infoErr := local.GetTypeModel(fDepend, s.modelInfoCache)
 		if infoErr != nil {
 			err = infoErr
 			return

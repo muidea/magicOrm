@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"muidea.com/magicOrm/builder"
+	"muidea.com/magicOrm/local"
 	"muidea.com/magicOrm/model"
 )
 
@@ -33,16 +34,16 @@ func (s *orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 		return
 	}
 
-	fDependValue, fDependErr := fValue.GetDepend()
+	fDependValue, fDependErr := fValue.Depend()
 	if fDependErr != nil {
 		err = fDependErr
 		return
 	}
 
 	for _, fVal := range fDependValue {
-		infoVal, infoErr := model.GetStructValue(fVal, s.modelInfoCache)
+		infoVal, infoErr := local.GetValueModel(fVal, s.modelInfoCache)
 		if infoErr != nil {
-			log.Printf("GetStructValue faield, err:%s", infoErr.Error())
+			log.Printf("GetValueModel faield, err:%s", infoErr.Error())
 			err = infoErr
 			return
 		}
@@ -68,10 +69,10 @@ func (s *orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 }
 
 func (s *orm) Insert(obj interface{}) (err error) {
-	modelInfo, structErr := model.GetObjectStructInfo(obj, s.modelInfoCache)
+	modelInfo, structErr := local.GetObjectModel(obj, s.modelInfoCache)
 	if structErr != nil {
 		err = structErr
-		log.Printf("GetObjectStructInfo failed, err:%s", err.Error())
+		log.Printf("GetObjectModel failed, err:%s", err.Error())
 		return
 	}
 

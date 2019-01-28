@@ -1,16 +1,22 @@
-package model
+package local
 
 import (
 	"fmt"
 	"reflect"
+
+	"muidea.com/magicOrm/model"
 )
 
 type nilImpl struct {
 	value      reflect.Value
-	fieldValue FieldValue
+	fieldValue model.FieldValue
 }
 
-func (s *nilImpl) SetValue(val reflect.Value) (err error) {
+func (s *nilImpl) IsNil() bool {
+	return s.fieldValue == nil
+}
+
+func (s *nilImpl) Set(val reflect.Value) (err error) {
 	if val.Kind() != reflect.Ptr {
 		err = fmt.Errorf("can't convert %s to %s", val.Type().String(), s.value.Type().String())
 		return
@@ -30,11 +36,7 @@ func (s *nilImpl) SetValue(val reflect.Value) (err error) {
 	return
 }
 
-func (s *nilImpl) IsNil() bool {
-	return s.fieldValue == nil
-}
-
-func (s *nilImpl) GetValue() (ret reflect.Value, err error) {
+func (s *nilImpl) Get() (ret reflect.Value, err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't get nil value")
 		return
@@ -43,26 +45,26 @@ func (s *nilImpl) GetValue() (ret reflect.Value, err error) {
 	return s.value, nil
 }
 
-func (s *nilImpl) GetDepend() (ret []reflect.Value, err error) {
+func (s *nilImpl) Depend() (ret []reflect.Value, err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't get nil depend")
 		return
 	}
 
-	return s.fieldValue.GetDepend()
+	return s.fieldValue.Depend()
 }
 
-func (s *nilImpl) GetValueStr() (ret string, err error) {
+func (s *nilImpl) ValueStr() (ret string, err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't get nil ptr value string")
 		return
 	}
 
-	return s.fieldValue.GetValueStr()
+	return s.fieldValue.ValueStr()
 }
 
-func (s *nilImpl) Copy() FieldValue {
-	var fieldValue FieldValue
+func (s *nilImpl) Copy() model.FieldValue {
+	var fieldValue model.FieldValue
 	if s.fieldValue != nil {
 		fieldValue = s.fieldValue.Copy()
 	}

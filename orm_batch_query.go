@@ -7,6 +7,7 @@ import (
 
 	"muidea.com/magicOrm/builder"
 	"muidea.com/magicOrm/filter"
+	"muidea.com/magicOrm/local"
 	"muidea.com/magicOrm/model"
 	"muidea.com/magicOrm/util"
 )
@@ -22,7 +23,7 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 	s.executor.Query(sql)
 	for s.executor.Next() {
 		newVal := modelInfo.Interface()
-		newStructInfo, newErr := model.GetStructValue(newVal, s.modelInfoCache)
+		newStructInfo, newErr := local.GetValueModel(newVal, s.modelInfoCache)
 		if newErr != nil {
 			err = newErr
 			return
@@ -83,10 +84,10 @@ func (s *orm) BatchQuery(sliceObj interface{}, filter filter.Filter) (err error)
 		return
 	}
 	rawType = rawType.Elem()
-	modelInfo, structErr := model.GetStructInfo(rawType, s.modelInfoCache)
+	modelInfo, structErr := local.GetTypeModel(rawType, s.modelInfoCache)
 	if structErr != nil {
 		err = structErr
-		log.Printf("GetStructInfo failed, err:%s", err.Error())
+		log.Printf("GetTypeModel failed, err:%s", err.Error())
 		return
 	}
 
