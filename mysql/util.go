@@ -16,13 +16,13 @@ func verifyFieldInfo(fieldInfo model.FieldInfo) error {
 	return nil
 }
 
-func verifyStructInfo(structInfo model.Model) error {
-	name := structInfo.GetName()
+func verifyStructInfo(modelInfo model.Model) error {
+	name := modelInfo.GetName()
 	if IsKeyWord(name) {
 		return fmt.Errorf("illegal structName, is a key word.[%s]", name)
 	}
 
-	for _, val := range *structInfo.GetFields() {
+	for _, val := range *modelInfo.GetFields() {
 		err := verifyFieldInfo(val)
 		if err != nil {
 			return err

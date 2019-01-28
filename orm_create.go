@@ -7,8 +7,8 @@ import (
 	"muidea.com/magicOrm/model"
 )
 
-func (s *orm) createSchema(structInfo model.Model) (err error) {
-	builder := builder.NewBuilder(structInfo)
+func (s *orm) createSchema(modelInfo model.Model) (err error) {
+	builder := builder.NewBuilder(modelInfo)
 	tableName := builder.GetTableName()
 
 	if !s.executor.CheckTableExist(tableName) {
@@ -25,8 +25,8 @@ func (s *orm) createSchema(structInfo model.Model) (err error) {
 	return
 }
 
-func (s *orm) createRelationSchema(structInfo model.Model, fieldName string, relationInfo model.Model) (err error) {
-	builder := builder.NewBuilder(structInfo)
+func (s *orm) createRelationSchema(modelInfo model.Model, fieldName string, relationInfo model.Model) (err error) {
+	builder := builder.NewBuilder(modelInfo)
 	tableName := builder.GetRelationTableName(fieldName, relationInfo)
 
 	if !s.executor.CheckTableExist(tableName) {
@@ -42,13 +42,13 @@ func (s *orm) createRelationSchema(structInfo model.Model, fieldName string, rel
 	return
 }
 
-func (s *orm) batchCreateSchema(structInfo model.Model) (err error) {
-	err = s.createSchema(structInfo)
+func (s *orm) batchCreateSchema(modelInfo model.Model) (err error) {
+	err = s.createSchema(modelInfo)
 	if err != nil {
 		return
 	}
 
-	fields := structInfo.GetDependField()
+	fields := modelInfo.GetDependField()
 	for _, val := range fields {
 		fType := val.GetFieldType()
 		fDepend, fDependPtr := fType.Depend()
@@ -69,7 +69,7 @@ func (s *orm) batchCreateSchema(structInfo model.Model) (err error) {
 			}
 		}
 
-		err = s.createRelationSchema(structInfo, val.GetFieldName(), infoVal)
+		err = s.createRelationSchema(modelInfo, val.GetFieldName(), infoVal)
 		if err != nil {
 			return
 		}
@@ -79,14 +79,14 @@ func (s *orm) batchCreateSchema(structInfo model.Model) (err error) {
 }
 
 func (s *orm) Create(obj interface{}) (err error) {
-	structInfo, structErr := model.GetObjectStructInfo(obj, s.modelInfoCache)
+	modelInfo, structErr := model.GetObjectStructInfo(obj, s.modelInfoCache)
 	if structErr != nil {
 		err = structErr
 		log.Printf("GetObjectStructInfo failed, err:%s", err.Error())
 		return
 	}
 
-	err = s.batchCreateSchema(structInfo)
+	err = s.batchCreateSchema(modelInfo)
 	if err != nil {
 		return
 	}

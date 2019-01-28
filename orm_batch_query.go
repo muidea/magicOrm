@@ -11,8 +11,8 @@ import (
 	"muidea.com/magicOrm/util"
 )
 
-func (s *orm) queryBatch(structInfo model.Model, sliceValue reflect.Value, filter filter.Filter) (ret reflect.Value, err error) {
-	builder := builder.NewBuilder(structInfo)
+func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter filter.Filter) (ret reflect.Value, err error) {
+	builder := builder.NewBuilder(modelInfo)
 	sql, sqlErr := builder.BuildBatchQuery(filter)
 	if sqlErr != nil {
 		err = sqlErr
@@ -21,7 +21,7 @@ func (s *orm) queryBatch(structInfo model.Model, sliceValue reflect.Value, filte
 
 	s.executor.Query(sql)
 	for s.executor.Next() {
-		newVal := structInfo.Interface()
+		newVal := modelInfo.Interface()
 		newStructInfo, newErr := model.GetStructValue(newVal, s.modelInfoCache)
 		if newErr != nil {
 			err = newErr
@@ -83,7 +83,7 @@ func (s *orm) BatchQuery(sliceObj interface{}, filter filter.Filter) (err error)
 		return
 	}
 	rawType = rawType.Elem()
-	structInfo, structErr := model.GetStructInfo(rawType, s.modelInfoCache)
+	modelInfo, structErr := model.GetStructInfo(rawType, s.modelInfoCache)
 	if structErr != nil {
 		err = structErr
 		log.Printf("GetStructInfo failed, err:%s", err.Error())
@@ -92,7 +92,7 @@ func (s *orm) BatchQuery(sliceObj interface{}, filter filter.Filter) (err error)
 
 	objValue := reflect.ValueOf(sliceObj)
 	objValue = reflect.Indirect(objValue)
-	queryValues, queryErr := s.queryBatch(structInfo, objValue, filter)
+	queryValues, queryErr := s.queryBatch(modelInfo, objValue, filter)
 	if queryErr != nil {
 		err = queryErr
 		return

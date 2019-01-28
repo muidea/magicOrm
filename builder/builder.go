@@ -26,6 +26,6 @@ type Builder interface {
 }
 
 // NewBuilder new builder
-func NewBuilder(structInfo model.Model) Builder {
-	return mysql.New(structInfo)
+func NewBuilder(modelInfo model.Model) Builder {
+	return mysql.New(modelInfo)
 }

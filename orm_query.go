@@ -10,8 +10,8 @@ import (
 	"muidea.com/magicOrm/util"
 )
 
-func (s *orm) querySingle(structInfo model.Model) (err error) {
-	builder := builder.NewBuilder(structInfo)
+func (s *orm) querySingle(modelInfo model.Model) (err error) {
+	builder := builder.NewBuilder(modelInfo)
 	sql, err := builder.BuildQuery()
 	if err != nil {
 		return err
@@ -24,7 +24,7 @@ func (s *orm) querySingle(structInfo model.Model) (err error) {
 	defer s.executor.Finish()
 
 	items := []interface{}{}
-	fields := structInfo.GetFields()
+	fields := modelInfo.GetFields()
 	for _, val := range *fields {
 		fType := val.GetFieldType()
 
@@ -59,13 +59,13 @@ func (s *orm) querySingle(structInfo model.Model) (err error) {
 	return
 }
 
-func (s *orm) queryRelation(structInfo model.Model, fieldInfo model.FieldInfo, relationInfo model.Model) (err error) {
+func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.FieldInfo, relationInfo model.Model) (err error) {
 	fValue := fieldInfo.GetFieldValue()
 	if fValue == nil || fValue.IsNil() {
 		return
 	}
 
-	builder := builder.NewBuilder(structInfo)
+	builder := builder.NewBuilder(modelInfo)
 	relationSQL, relationErr := builder.BuildQueryRelation(fieldInfo.GetFieldName(), relationInfo)
 	if relationErr != nil {
 		err = relationErr
@@ -101,7 +101,7 @@ func (s *orm) queryRelation(structInfo model.Model, fieldInfo model.FieldInfo, r
 				return
 			}
 
-			structInfo.UpdateFieldValue(fieldInfo.GetFieldName(), relationVal)
+			modelInfo.UpdateFieldValue(fieldInfo.GetFieldName(), relationVal)
 		}
 	} else if util.IsSliceType(fType.Value()) {
 		relationVal, _ := fValue.GetValue()
@@ -133,26 +133,26 @@ func (s *orm) queryRelation(structInfo model.Model, fieldInfo model.FieldInfo, r
 
 			relationVal = reflect.Append(relationVal, itemVal)
 		}
-		structInfo.UpdateFieldValue(fieldInfo.GetFieldName(), relationVal)
+		modelInfo.UpdateFieldValue(fieldInfo.GetFieldName(), relationVal)
 	}
 
 	return
 }
 
 func (s *orm) Query(obj interface{}) (err error) {
-	structInfo, structErr := model.GetObjectStructInfo(obj, s.modelInfoCache)
+	modelInfo, structErr := model.GetObjectStructInfo(obj, s.modelInfoCache)
 	if structErr != nil {
 		err = structErr
 		log.Printf("GetObjectStructInfo failed, err:%s", err.Error())
 		return
 	}
 
-	err = s.querySingle(structInfo)
+	err = s.querySingle(modelInfo)
 	if err != nil {
 		return
 	}
 
-	fields := structInfo.GetDependField()
+	fields := modelInfo.GetDependField()
 	for _, val := range fields {
 		fType := val.GetFieldType()
 		fDepend, _ := fType.Depend()
@@ -166,7 +166,7 @@ func (s *orm) Query(obj interface{}) (err error) {
 			err = infoErr
 			return
 		}
-		err = s.queryRelation(structInfo, val, infoVal)
+		err = s.queryRelation(modelInfo, val, infoVal)
 		if err != nil {
 			return
 		}

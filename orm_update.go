@@ -7,8 +7,8 @@ import (
 	"muidea.com/magicOrm/model"
 )
 
-func (s *orm) updateSingle(structInfo model.Model) (err error) {
-	builder := builder.NewBuilder(structInfo)
+func (s *orm) updateSingle(modelInfo model.Model) (err error) {
+	builder := builder.NewBuilder(modelInfo)
 	sql, err := builder.BuildUpdate()
 	if err != nil {
 		return err
@@ -19,13 +19,13 @@ func (s *orm) updateSingle(structInfo model.Model) (err error) {
 	return err
 }
 
-func (s *orm) updateRelation(structInfo model.Model, fieldInfo model.FieldInfo) (err error) {
-	err = s.deleteRelation(structInfo, fieldInfo)
+func (s *orm) updateRelation(modelInfo model.Model, fieldInfo model.FieldInfo) (err error) {
+	err = s.deleteRelation(modelInfo, fieldInfo)
 	if err != nil {
 		return
 	}
 
-	err = s.insertRelation(structInfo, fieldInfo)
+	err = s.insertRelation(modelInfo, fieldInfo)
 	if err != nil {
 		return
 	}
@@ -34,21 +34,21 @@ func (s *orm) updateRelation(structInfo model.Model, fieldInfo model.FieldInfo) 
 }
 
 func (s *orm) Update(obj interface{}) (err error) {
-	structInfo, structErr := model.GetObjectStructInfo(obj, s.modelInfoCache)
+	modelInfo, structErr := model.GetObjectStructInfo(obj, s.modelInfoCache)
 	if structErr != nil {
 		err = structErr
 		log.Printf("GetObjectStructInfo failed, err:%s", err.Error())
 		return
 	}
 
-	err = s.updateSingle(structInfo)
+	err = s.updateSingle(modelInfo)
 	if err != nil {
 		return
 	}
 
-	fields := structInfo.GetDependField()
+	fields := modelInfo.GetDependField()
 	for _, val := range fields {
-		err = s.updateRelation(structInfo, val)
+		err = s.updateRelation(modelInfo, val)
 		if err != nil {
 			return
 		}

@@ -8,7 +8,7 @@ import (
 // BuildUpdate  BuildUpdate
 func (s *Builder) BuildUpdate() (ret string, err error) {
 	str := ""
-	for _, val := range *s.structInfo.GetFields() {
+	for _, val := range *s.modelInfo.GetFields() {
 		fType := val.GetFieldType()
 		fValue := val.GetFieldValue()
 		fTag := val.GetFieldTag()
@@ -26,7 +26,7 @@ func (s *Builder) BuildUpdate() (ret string, err error) {
 			continue
 		}
 
-		if val != s.structInfo.GetPrimaryField() {
+		if val != s.modelInfo.GetPrimaryField() {
 			fStr, ferr := fValue.GetValueStr()
 			if ferr != nil {
 				err = ferr
@@ -44,11 +44,11 @@ func (s *Builder) BuildUpdate() (ret string, err error) {
 		return
 	}
 
-	pkfValue := s.structInfo.GetPrimaryField().GetFieldValue()
-	pkfTag := s.structInfo.GetPrimaryField().GetFieldTag()
+	pkfValue := s.modelInfo.GetPrimaryField().GetFieldValue()
+	pkfTag := s.modelInfo.GetPrimaryField().GetFieldTag()
 	pkfStr, pkferr := pkfValue.GetValueStr()
 	if pkferr == nil {
-		str = fmt.Sprintf("UPDATE `%s` SET %s WHERE `%s`=%s", s.getTableName(s.structInfo), str, pkfTag.Name(), pkfStr)
+		str = fmt.Sprintf("UPDATE `%s` SET %s WHERE `%s`=%s", s.getTableName(s.modelInfo), str, pkfTag.Name(), pkfStr)
 		log.Print(str)
 	}
 

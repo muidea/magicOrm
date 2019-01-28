@@ -20,8 +20,8 @@ type Model interface {
 	Dump()
 }
 
-// structInfo single struct ret
-type structInfo struct {
+// modelInfo single struct ret
+type modelInfo struct {
 	structType reflect.Type
 
 	fields Fields
@@ -29,22 +29,22 @@ type structInfo struct {
 	structInfoCache Cache
 }
 
-func (s *structInfo) GetName() string {
+func (s *modelInfo) GetName() string {
 	return s.structType.Name()
 }
 
 // GetPkgPath GetPkgPath
-func (s *structInfo) GetPkgPath() string {
+func (s *modelInfo) GetPkgPath() string {
 	return s.structType.PkgPath()
 }
 
 // GetFields GetFields
-func (s *structInfo) GetFields() *Fields {
+func (s *modelInfo) GetFields() *Fields {
 	return &s.fields
 }
 
 // SetFieldValue SetFieldValue
-func (s *structInfo) SetFieldValue(idx int, val reflect.Value) (err error) {
+func (s *modelInfo) SetFieldValue(idx int, val reflect.Value) (err error) {
 	for _, field := range s.fields {
 		if field.GetFieldIndex() == idx {
 			err = field.SetFieldValue(val)
@@ -56,7 +56,7 @@ func (s *structInfo) SetFieldValue(idx int, val reflect.Value) (err error) {
 }
 
 // UpdateFieldValue UpdateFieldValue
-func (s *structInfo) UpdateFieldValue(name string, val reflect.Value) (err error) {
+func (s *modelInfo) UpdateFieldValue(name string, val reflect.Value) (err error) {
 	for _, field := range s.fields {
 		if field.GetFieldName() == name {
 			err = field.SetFieldValue(val)
@@ -69,11 +69,11 @@ func (s *structInfo) UpdateFieldValue(name string, val reflect.Value) (err error
 }
 
 // GetPrimaryField GetPrimaryField
-func (s *structInfo) GetPrimaryField() FieldInfo {
+func (s *modelInfo) GetPrimaryField() FieldInfo {
 	return s.fields.GetPrimaryField()
 }
 
-func (s *structInfo) GetDependField() (ret []FieldInfo) {
+func (s *modelInfo) GetDependField() (ret []FieldInfo) {
 	for _, field := range s.fields {
 		fType := field.GetFieldType()
 		fDepend, _ := fType.Depend()
@@ -85,18 +85,18 @@ func (s *structInfo) GetDependField() (ret []FieldInfo) {
 	return
 }
 
-func (s *structInfo) Copy() Model {
-	info := &structInfo{structType: s.structType, fields: s.fields.Copy(), structInfoCache: s.structInfoCache}
+func (s *modelInfo) Copy() Model {
+	info := &modelInfo{structType: s.structType, fields: s.fields.Copy(), structInfoCache: s.structInfoCache}
 	return info
 }
 
-func (s *structInfo) Interface() reflect.Value {
+func (s *modelInfo) Interface() reflect.Value {
 	return reflect.New(s.structType)
 }
 
 // Dump Dump
-func (s *structInfo) Dump() {
-	fmt.Print("structInfo:\n")
+func (s *modelInfo) Dump() {
+	fmt.Print("modelInfo:\n")
 	fmt.Printf("\tname:%s, pkgPath:%s\n", s.GetName(), s.GetPkgPath())
 
 	primaryKey := s.fields.GetPrimaryField()
@@ -152,7 +152,7 @@ func GetStructInfo(structType reflect.Type, cache Cache) (ret Model, err error) 
 		return
 	}
 
-	structInfo := &structInfo{structType: structType, fields: make(Fields, 0), structInfoCache: cache}
+	modelInfo := &modelInfo{structType: structType, fields: make(Fields, 0), structInfoCache: cache}
 
 	fieldNum := structType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
@@ -165,18 +165,18 @@ func GetStructInfo(structType reflect.Type, cache Cache) (ret Model, err error) 
 		}
 
 		if fieldInfo != nil {
-			structInfo.fields.Append(fieldInfo)
+			modelInfo.fields.Append(fieldInfo)
 		}
 	}
 
-	if len(structInfo.fields) > 0 {
-		cache.Put(structInfo.GetName(), structInfo)
+	if len(modelInfo.fields) > 0 {
+		cache.Put(modelInfo.GetName(), modelInfo)
 
-		ret = structInfo
+		ret = modelInfo
 		return
 	}
 
-	err = fmt.Errorf("no define orm field, struct name:%s", structInfo.GetName())
+	err = fmt.Errorf("no define orm field, struct name:%s", modelInfo.GetName())
 	return
 }
 
@@ -193,7 +193,7 @@ func GetStructValue(structVal reflect.Value, cache Cache) (ret Model, err error)
 
 	info := cache.Fetch(structVal.Type().Name())
 	if info == nil {
-		err = fmt.Errorf("can't get value structInfo, valType:%s", structVal.Type().String())
+		err = fmt.Errorf("can't get value modelInfo, valType:%s", structVal.Type().String())
 		return
 	}
 

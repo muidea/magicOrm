@@ -7,8 +7,8 @@ import (
 	"muidea.com/magicOrm/model"
 )
 
-func (s *orm) dropSingle(structInfo model.Model) (err error) {
-	builder := builder.NewBuilder(structInfo)
+func (s *orm) dropSingle(modelInfo model.Model) (err error) {
+	builder := builder.NewBuilder(modelInfo)
 	tableName := builder.GetTableName()
 	if s.executor.CheckTableExist(tableName) {
 		sql, err := builder.BuildDropSchema()
@@ -22,8 +22,8 @@ func (s *orm) dropSingle(structInfo model.Model) (err error) {
 	return
 }
 
-func (s *orm) dropRelation(structInfo model.Model, fieldName string, relationInfo model.Model) (err error) {
-	builder := builder.NewBuilder(structInfo)
+func (s *orm) dropRelation(modelInfo model.Model, fieldName string, relationInfo model.Model) (err error) {
+	builder := builder.NewBuilder(modelInfo)
 	tableName := builder.GetRelationTableName(fieldName, relationInfo)
 	if s.executor.CheckTableExist(tableName) {
 		sql, err := builder.BuildDropRelationSchema(fieldName, relationInfo)
@@ -38,19 +38,19 @@ func (s *orm) dropRelation(structInfo model.Model, fieldName string, relationInf
 }
 
 func (s *orm) Drop(obj interface{}) (err error) {
-	structInfo, structErr := model.GetObjectStructInfo(obj, s.modelInfoCache)
+	modelInfo, structErr := model.GetObjectStructInfo(obj, s.modelInfoCache)
 	if structErr != nil {
 		err = structErr
 		log.Printf("GetObjectStructInfo failed, err:%s", err.Error())
 		return
 	}
 
-	err = s.dropSingle(structInfo)
+	err = s.dropSingle(modelInfo)
 	if err != nil {
 		return
 	}
 
-	fields := structInfo.GetDependField()
+	fields := modelInfo.GetDependField()
 	for _, val := range fields {
 		fType := val.GetFieldType()
 		fDepend, fDependPtr := fType.Depend()
@@ -71,7 +71,7 @@ func (s *orm) Drop(obj interface{}) (err error) {
 			}
 		}
 
-		err = s.dropRelation(structInfo, val.GetFieldName(), infoVal)
+		err = s.dropRelation(modelInfo, val.GetFieldName(), infoVal)
 		if err != nil {
 			return
 		}

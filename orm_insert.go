@@ -8,15 +8,15 @@ import (
 	"muidea.com/magicOrm/model"
 )
 
-func (s *orm) insertSingle(structInfo model.Model) (err error) {
-	builder := builder.NewBuilder(structInfo)
+func (s *orm) insertSingle(modelInfo model.Model) (err error) {
+	builder := builder.NewBuilder(modelInfo)
 	sql, err := builder.BuildInsert()
 	if err != nil {
 		return err
 	}
 
 	id := s.executor.Insert(sql)
-	pk := structInfo.GetPrimaryField()
+	pk := modelInfo.GetPrimaryField()
 	if pk != nil {
 		pk.SetFieldValue(reflect.ValueOf(id))
 	}
@@ -24,7 +24,7 @@ func (s *orm) insertSingle(structInfo model.Model) (err error) {
 	return
 }
 
-func (s *orm) insertRelation(structInfo model.Model, fieldInfo model.FieldInfo) (err error) {
+func (s *orm) insertRelation(modelInfo model.Model, fieldInfo model.FieldInfo) (err error) {
 	fType := fieldInfo.GetFieldType()
 	_, fDependPtr := fType.Depend()
 
@@ -54,7 +54,7 @@ func (s *orm) insertRelation(structInfo model.Model, fieldInfo model.FieldInfo) 
 			}
 		}
 
-		builder := builder.NewBuilder(structInfo)
+		builder := builder.NewBuilder(modelInfo)
 		relationSQL, relationErr := builder.BuildInsertRelation(fieldInfo.GetFieldName(), infoVal)
 		if relationErr != nil {
 			err = relationErr
@@ -68,22 +68,22 @@ func (s *orm) insertRelation(structInfo model.Model, fieldInfo model.FieldInfo) 
 }
 
 func (s *orm) Insert(obj interface{}) (err error) {
-	structInfo, structErr := model.GetObjectStructInfo(obj, s.modelInfoCache)
+	modelInfo, structErr := model.GetObjectStructInfo(obj, s.modelInfoCache)
 	if structErr != nil {
 		err = structErr
 		log.Printf("GetObjectStructInfo failed, err:%s", err.Error())
 		return
 	}
 
-	err = s.insertSingle(structInfo)
+	err = s.insertSingle(modelInfo)
 	if err != nil {
-		log.Printf("insertSingle failed, name:%s, err:%s", structInfo.GetName(), err.Error())
+		log.Printf("insertSingle failed, name:%s, err:%s", modelInfo.GetName(), err.Error())
 		return
 	}
 
-	fields := structInfo.GetDependField()
+	fields := modelInfo.GetDependField()
 	for _, val := range fields {
-		err = s.insertRelation(structInfo, val)
+		err = s.insertRelation(modelInfo, val)
 		if err != nil {
 			return
 		}

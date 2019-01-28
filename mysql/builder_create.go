@@ -10,7 +10,7 @@ import (
 // BuildCreateSchema  BuildCreateSchema
 func (s *Builder) BuildCreateSchema() (string, error) {
 	str := ""
-	for _, val := range *s.structInfo.GetFields() {
+	for _, val := range *s.modelInfo.GetFields() {
 		fType := val.GetFieldType()
 		dependType, _ := fType.Depend()
 		if dependType != nil {
@@ -23,12 +23,12 @@ func (s *Builder) BuildCreateSchema() (string, error) {
 			str = fmt.Sprintf("%s,\n\t%s", str, declareFieldInfo(val))
 		}
 	}
-	if s.structInfo.GetPrimaryField() != nil {
-		fTag := s.structInfo.GetPrimaryField().GetFieldTag()
+	if s.modelInfo.GetPrimaryField() != nil {
+		fTag := s.modelInfo.GetPrimaryField().GetFieldTag()
 		str = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", str, fTag.Name())
 	}
 
-	str = fmt.Sprintf("CREATE TABLE `%s` (\n%s\n)\n", s.getTableName(s.structInfo), str)
+	str = fmt.Sprintf("CREATE TABLE `%s` (\n%s\n)\n", s.getTableName(s.modelInfo), str)
 	log.Print(str)
 
 	return str, nil

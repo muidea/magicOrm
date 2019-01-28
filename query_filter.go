@@ -166,12 +166,12 @@ func (s *queryFilter) PageFilter(filter *util.PageFilter) {
 	s.pageFilter = filter
 }
 
-func (s *queryFilter) Builder(structInfo model.Model) (ret string, err error) {
-	if structInfo == nil {
+func (s *queryFilter) Builder(modelInfo model.Model) (ret string, err error) {
+	if modelInfo == nil {
 		return
 	}
 
-	fields := structInfo.GetFields()
+	fields := modelInfo.GetFields()
 	for _, field := range *fields {
 		fType := field.GetFieldType()
 		fDepend, _ := fType.Depend()
@@ -215,7 +215,7 @@ func (s *queryFilter) Builder(structInfo model.Model) (ret string, err error) {
 		}
 	}
 
-	relationSQL, relationErr := s.buildRelation(structInfo)
+	relationSQL, relationErr := s.buildRelation(modelInfo)
 	if relationErr != nil {
 		err = relationErr
 		return
@@ -227,14 +227,14 @@ func (s *queryFilter) Builder(structInfo model.Model) (ret string, err error) {
 	return
 }
 
-func (s *queryFilter) buildRelation(structInfo model.Model) (ret string, err error) {
-	if structInfo == nil {
+func (s *queryFilter) buildRelation(modelInfo model.Model) (ret string, err error) {
+	if modelInfo == nil {
 		return
 	}
 
 	relationSQL := ""
-	builder := builder.NewBuilder(structInfo)
-	fields := structInfo.GetFields()
+	builder := builder.NewBuilder(modelInfo)
+	fields := modelInfo.GetFields()
 	for _, field := range *fields {
 		fType := field.GetFieldType()
 		fDepend, _ := fType.Depend()
@@ -280,7 +280,7 @@ func (s *queryFilter) buildRelation(structInfo model.Model) (ret string, err err
 		}
 	}
 	if relationSQL != "" {
-		pk := structInfo.GetPrimaryField()
+		pk := modelInfo.GetPrimaryField()
 		fTag := pk.GetFieldTag()
 		ret = fmt.Sprintf("`%s` IN (SELECT DISTINCT(`id`) FROM (%s) ids)", fTag.Name(), relationSQL)
 	}

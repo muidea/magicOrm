@@ -9,11 +9,11 @@ import (
 
 // BuildDelete  BuildDelete
 func (s *Builder) BuildDelete() (ret string, err error) {
-	pkfValue := s.structInfo.GetPrimaryField().GetFieldValue()
-	pkfTag := s.structInfo.GetPrimaryField().GetFieldTag()
+	pkfValue := s.modelInfo.GetPrimaryField().GetFieldValue()
+	pkfTag := s.modelInfo.GetPrimaryField().GetFieldTag()
 	pkfStr, pkferr := pkfValue.GetValueStr()
 	if pkferr == nil {
-		ret = fmt.Sprintf("DELETE FROM `%s` WHERE `%s`=%s", s.getTableName(s.structInfo), pkfTag.Name(), pkfStr)
+		ret = fmt.Sprintf("DELETE FROM `%s` WHERE `%s`=%s", s.getTableName(s.modelInfo), pkfTag.Name(), pkfStr)
 		log.Print(ret)
 	}
 
@@ -24,7 +24,7 @@ func (s *Builder) BuildDelete() (ret string, err error) {
 
 // BuildDeleteRelation BuildDeleteRelation
 func (s *Builder) BuildDeleteRelation(fieldName string, relationInfo model.Model) (delRight, delRelation string, err error) {
-	leftVal, leftErr := s.getStructValue(s.structInfo)
+	leftVal, leftErr := s.getStructValue(s.modelInfo)
 	if leftErr != nil {
 		err = leftErr
 		return

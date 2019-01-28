@@ -9,18 +9,18 @@ import (
 
 // Builder Builder
 type Builder struct {
-	structInfo model.Model
+	modelInfo model.Model
 }
 
 // New create builder
-func New(structInfo model.Model) *Builder {
-	//err := verifyStructInfo(structInfo)
+func New(modelInfo model.Model) *Builder {
+	//err := verifyStructInfo(modelInfo)
 	//if err != nil {
-	//	log.Printf("verify structInfo failed, err:%s", err.Error())
+	//	log.Printf("verify modelInfo failed, err:%s", err.Error())
 	//	return nil
 	//}
 
-	return &Builder{structInfo: structInfo}
+	return &Builder{modelInfo: modelInfo}
 }
 
 func (s *Builder) getTableName(info model.Model) string {
@@ -29,19 +29,19 @@ func (s *Builder) getTableName(info model.Model) string {
 
 // GetTableName GetTableName
 func (s *Builder) GetTableName() string {
-	return s.getTableName(s.structInfo)
+	return s.getTableName(s.modelInfo)
 }
 
 // GetRelationTableName GetRelationTableName
 func (s *Builder) GetRelationTableName(fieldName string, relationInfo model.Model) string {
-	leftName := s.getTableName(s.structInfo)
+	leftName := s.getTableName(s.modelInfo)
 	rightName := s.getTableName(relationInfo)
 
 	return fmt.Sprintf("%s%s2%s", leftName, fieldName, rightName)
 }
 
-func (s *Builder) getStructValue(structInfo model.Model) (ret string, err error) {
-	structKey := structInfo.GetPrimaryField()
+func (s *Builder) getStructValue(modelInfo model.Model) (ret string, err error) {
+	structKey := modelInfo.GetPrimaryField()
 	if structKey == nil {
 		err = fmt.Errorf("no define primaryKey")
 		return
@@ -64,7 +64,7 @@ func (s *Builder) getStructValue(structInfo model.Model) (ret string, err error)
 }
 
 func (s *Builder) getRelationValue(relationInfo model.Model) (leftVal, rightVal string, err error) {
-	structKey := s.structInfo.GetPrimaryField()
+	structKey := s.modelInfo.GetPrimaryField()
 	relationKey := relationInfo.GetPrimaryField()
 	if structKey == nil || relationKey == nil {
 		err = fmt.Errorf("no define primaryKey")

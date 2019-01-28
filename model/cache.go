@@ -17,7 +17,7 @@ type impl struct {
 	kvCache cache.KVCache
 }
 
-// NewCache new structInfo cache
+// NewCache new modelInfo cache
 func NewCache() Cache {
 	return &impl{kvCache: cache.NewKVCache()}
 }

@@ -8,8 +8,8 @@ import (
 	"muidea.com/magicOrm/model"
 )
 
-func (s *orm) deleteSingle(structInfo model.Model) (err error) {
-	builder := builder.NewBuilder(structInfo)
+func (s *orm) deleteSingle(modelInfo model.Model) (err error) {
+	builder := builder.NewBuilder(modelInfo)
 	sql, err := builder.BuildDelete()
 	if err != nil {
 		return err
@@ -17,13 +17,13 @@ func (s *orm) deleteSingle(structInfo model.Model) (err error) {
 	num := s.executor.Delete(sql)
 	if num != 1 {
 		log.Printf("unexception delete, rowNum:%d", num)
-		err = fmt.Errorf("delete %s failed", structInfo.GetName())
+		err = fmt.Errorf("delete %s failed", modelInfo.GetName())
 	}
 
 	return
 }
 
-func (s *orm) deleteRelation(structInfo model.Model, fieldInfo model.FieldInfo) (err error) {
+func (s *orm) deleteRelation(modelInfo model.Model, fieldInfo model.FieldInfo) (err error) {
 	fType := fieldInfo.GetFieldType()
 	fDepend, fDependPtr := fType.Depend()
 
@@ -37,7 +37,7 @@ func (s *orm) deleteRelation(structInfo model.Model, fieldInfo model.FieldInfo) 
 		return
 	}
 
-	builder := builder.NewBuilder(structInfo)
+	builder := builder.NewBuilder(modelInfo)
 	rightSQL, relationSQL, err := builder.BuildDeleteRelation(fieldInfo.GetFieldName(), infoVal)
 	if err != nil {
 		return err
@@ -53,21 +53,21 @@ func (s *orm) deleteRelation(structInfo model.Model, fieldInfo model.FieldInfo) 
 }
 
 func (s *orm) Delete(obj interface{}) (err error) {
-	structInfo, structErr := model.GetObjectStructInfo(obj, s.modelInfoCache)
+	modelInfo, structErr := model.GetObjectStructInfo(obj, s.modelInfoCache)
 	if structErr != nil {
 		err = structErr
 		log.Printf("GetObjectStructInfo failed, err:%s", err.Error())
 		return
 	}
 
-	err = s.deleteSingle(structInfo)
+	err = s.deleteSingle(modelInfo)
 	if err != nil {
 		return
 	}
 
-	fields := structInfo.GetDependField()
+	fields := modelInfo.GetDependField()
 	for _, val := range fields {
-		err = s.deleteRelation(structInfo, val)
+		err = s.deleteRelation(modelInfo, val)
 		if err != nil {
 			return
 		}

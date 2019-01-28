@@ -10,10 +10,10 @@ import (
 // BuildInsert  BuildInsert
 func (s *Builder) BuildInsert() (ret string, err error) {
 	sql := ""
-	vals, verr := s.getFieldInsertValues(s.structInfo)
+	vals, verr := s.getFieldInsertValues(s.modelInfo)
 	if verr == nil {
 		for _, val := range vals {
-			sql = fmt.Sprintf("%sINSERT INTO `%s` (%s) VALUES (%s);", sql, s.getTableName(s.structInfo), s.getFieldInsertNames(s.structInfo), val)
+			sql = fmt.Sprintf("%sINSERT INTO `%s` (%s) VALUES (%s);", sql, s.getTableName(s.modelInfo), s.getFieldInsertNames(s.modelInfo), val)
 		}
 		log.Print(sql)
 		ret = sql
@@ -39,7 +39,7 @@ func (s *Builder) BuildInsertRelation(fieldName string, relationInfo model.Model
 
 func (s *Builder) getFieldInsertNames(info model.Model) string {
 	str := ""
-	for _, field := range *s.structInfo.GetFields() {
+	for _, field := range *s.modelInfo.GetFields() {
 		fTag := field.GetFieldTag()
 		if fTag.IsAutoIncrement() {
 			continue
