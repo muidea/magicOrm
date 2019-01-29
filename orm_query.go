@@ -90,9 +90,6 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field, relati
 		if len(values) > 0 {
 			fDepend := fType.Depend()
 			fDependType := fDepend.Type()
-			if fDepend.IsPtr() {
-				fDependType = fDependType.Elem()
-			}
 			relationVal := reflect.New(fDependType)
 			relationInfo, relationErr = local.GetValueModel(relationVal, s.modelInfoCache)
 			if relationErr != nil {
@@ -110,17 +107,10 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field, relati
 		}
 	} else if util.IsSliceType(fType.Value()) {
 		relationType := fType.Type()
-		if fType.IsPtr() {
-			relationType = relationType.Elem()
-		}
-
 		relationVal := reflect.New(relationType).Elem()
 		for _, val := range values {
 			fDepend := fType.Depend()
 			fDependType := fDepend.Type()
-			if fDepend.IsPtr() {
-				fDependType = fDependType.Elem()
-			}
 			itemVal := reflect.New(fDependType)
 			itemInfo, itemErr := local.GetValueModel(itemVal, s.modelInfoCache)
 			if itemErr != nil {

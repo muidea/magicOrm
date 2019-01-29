@@ -45,6 +45,10 @@ func (s *typeImpl) String() string {
 }
 
 func (s *typeImpl) Type() reflect.Type {
+	if s.typeImpl.Kind() == reflect.Ptr {
+		return s.typeImpl.Elem()
+	}
+
 	return s.typeImpl
 }
 
