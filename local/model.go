@@ -106,13 +106,6 @@ func GetObjectModel(objPtr interface{}, cache model.Cache) (ret model.Model, err
 	}
 
 	modelVal := reflect.Indirect(ptrVal)
-	modelType := modelVal.Type()
-
-	ret, err = GetTypeModel(modelType, cache)
-	if err != nil {
-		log.Printf("GetTypeModel failed, err:%s", err.Error())
-		return
-	}
 
 	ret, err = GetValueModel(modelVal, cache)
 	if err != nil {
@@ -160,6 +153,19 @@ func GetTypeModel(modelType reflect.Type, cache model.Cache) (ret model.Model, e
 	if len(modelInfo.fields) > 0 {
 		cache.Put(modelInfo.GetName(), modelInfo)
 
+		dependFields := modelInfo.GetDependField()
+		for _, val := range dependFields {
+			fType := val.GetType()
+			fDValue := fType.Depend()
+			if fDValue != nil {
+				_, fDErr := GetTypeModel(fDValue.Type(), cache)
+				if fDErr != nil {
+					err = fDErr
+					return
+				}
+			}
+		}
+
 		ret = modelInfo
 		return
 	}
@@ -181,8 +187,10 @@ func GetValueModel(modelVal reflect.Value, cache model.Cache) (ret model.Model, 
 
 	info := cache.Fetch(modelVal.Type().Name())
 	if info == nil {
-		err = fmt.Errorf("can't get value modelInfo, valType:%s", modelVal.Type().String())
-		return
+		info, err = GetTypeModel(modelVal.Type(), cache)
+		if err != nil {
+			return
+		}
 	}
 
 	info = info.Copy()

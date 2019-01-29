@@ -46,7 +46,7 @@ func (s *Builder) buildFilter(filter model.Filter, cache model.Cache) (ret strin
 		fDepend := fType.Depend()
 		if fDepend != nil {
 			dependInfo := cache.Fetch(fDepend.Name())
-			if dependInfo != nil {
+			if dependInfo == nil {
 				err = fmt.Errorf("illegal depend type, depend type:%s", fDepend.Name())
 				return
 			}

@@ -36,6 +36,7 @@ func NewFieldValue(val reflect.Value) (ret model.FieldValue, err error) {
 		ret = &sliceImpl{value: rawVal}
 	case reflect.Ptr:
 		if rawVal.IsNil() {
+			panic("nilImpl")
 			ret = &nilImpl{value: rawVal}
 			return
 		}
