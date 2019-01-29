@@ -3,7 +3,6 @@ package orm
 import (
 	"fmt"
 	"log"
-	"reflect"
 
 	"muidea.com/magicOrm/builder"
 	"muidea.com/magicOrm/local"
@@ -33,7 +32,7 @@ func (s *orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 		return
 	}
 
-	infoVal, infoErr := local.GetTypeModel(fDepend, s.modelInfoCache)
+	infoVal, infoErr := local.GetTypeModel(fDepend.Type(), s.modelInfoCache)
 	if infoErr != nil {
 		err = infoErr
 		return
@@ -45,7 +44,7 @@ func (s *orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 		return err
 	}
 
-	if fDepend.Kind() != reflect.Ptr {
+	if !fDepend.IsPtr() {
 		s.executor.Delete(rightSQL)
 	}
 

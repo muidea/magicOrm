@@ -26,7 +26,7 @@ func (s *filterItem) Verify(fType model.FieldType) (err error) {
 	}
 	valDType := fieldType.Depend()
 	if valDType != nil {
-		fieldType, fieldErr = local.NewFieldType(valDType)
+		fieldType, fieldErr = local.NewFieldType(valDType.Type())
 		if fieldErr != nil {
 			err = fieldErr
 			return
@@ -35,7 +35,7 @@ func (s *filterItem) Verify(fType model.FieldType) (err error) {
 
 	fdType := fType.Depend()
 	if fdType != nil {
-		fType, err = local.NewFieldType(fdType)
+		fType, err = local.NewFieldType(fdType.Type())
 		if err != nil {
 			return
 		}
@@ -243,7 +243,7 @@ func (s *queryFilter) buildRelation(modelInfo model.Model) (ret string, err erro
 			continue
 		}
 
-		dependInfo, dependErr := local.GetTypeModel(fDepend, s.modelInfoCache)
+		dependInfo, dependErr := local.GetTypeModel(fDepend.Type(), s.modelInfoCache)
 		if dependErr != nil {
 			err = dependErr
 			return

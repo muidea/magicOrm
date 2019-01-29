@@ -44,20 +44,31 @@ func (s *typeImpl) String() string {
 	return fmt.Sprintf("val:%d,name:%s,pkgPath:%s,isPtr:%v", s.Value(), s.Name(), s.PkgPath(), s.IsPtr())
 }
 
-func (s *typeImpl) Depend() reflect.Type {
+func (s *typeImpl) Type() reflect.Type {
+	return s.typeImpl
+}
+
+func (s *typeImpl) Depend() model.FieldType {
 	rawVal := s.typeImpl
 	if rawVal.Kind() == reflect.Ptr {
 		rawVal = rawVal.Elem()
 	}
 	if rawVal.Kind() == reflect.Struct {
 		if rawVal.String() != "time.Time" {
-			return s.typeImpl
+			return &typeImpl{typeImpl: s.typeImpl}
 		}
 	}
+
 	if rawVal.Kind() == reflect.Slice {
 		rawVal = rawVal.Elem()
-		if rawVal.String() != "time.Time" {
-			return rawVal
+		sliceVal := rawVal
+		if sliceVal.Kind() == reflect.Ptr {
+			sliceVal = sliceVal.Elem()
+		}
+		if sliceVal.Kind() == reflect.Struct {
+			if sliceVal.String() != "time.Time" {
+				return &typeImpl{typeImpl: rawVal}
+			}
 		}
 	}
 
@@ -104,38 +115,3 @@ func NewFieldType(val reflect.Type) (ret model.FieldType, err error) {
 	ret = &typeImpl{typeImpl: val}
 	return
 }
-
-// NewFieldType NewFieldType
-/*
-func NewFieldType(val reflect.Type) (ret model.FieldType, err error) {
-	isPtr := false
-	rawVal := val
-	if rawVal.Kind() == reflect.Ptr {
-		rawVal = rawVal.Elem()
-		isPtr = true
-	}
-
-	tVal, tErr := util.GetTypeValueEnum(rawVal)
-	if tErr != nil {
-		err = tErr
-		return
-	}
-	if util.IsBasicType(tVal) {
-		ret, err = getBasicType(rawVal, isPtr)
-		return
-	}
-
-	if util.IsStructType(tVal) {
-		ret, err = getStructType(rawVal, isPtr)
-		return
-	}
-
-	if util.IsSliceType(tVal) {
-		ret, err = getSliceType(rawVal, isPtr)
-		return
-	}
-
-	err = fmt.Errorf("illegal fieldType, type:%s", val.String())
-	return
-}
-*/

@@ -89,7 +89,11 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field, relati
 	if util.IsStructType(fType.Value()) {
 		if len(values) > 0 {
 			fDepend := fType.Depend()
-			relationVal := reflect.New(fDepend)
+			fDependType := fDepend.Type()
+			if fDepend.IsPtr() {
+				fDependType = fDependType.Elem()
+			}
+			relationVal := reflect.New(fDependType)
 			relationInfo, relationErr = local.GetValueModel(relationVal, s.modelInfoCache)
 			if relationErr != nil {
 				err = relationErr
@@ -105,16 +109,19 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field, relati
 			modelInfo.UpdateFieldValue(fieldInfo.GetName(), relationVal)
 		}
 	} else if util.IsSliceType(fType.Value()) {
-		relationVal, _ := fValue.Get()
-		relationType := relationVal.Type()
+		relationType := fType.Type()
 		if fType.IsPtr() {
 			relationType = relationType.Elem()
 		}
 
-		relationVal = reflect.New(relationType).Elem()
+		relationVal := reflect.New(relationType).Elem()
 		for _, val := range values {
 			fDepend := fType.Depend()
-			itemVal := reflect.New(fDepend)
+			fDependType := fDepend.Type()
+			if fDepend.IsPtr() {
+				fDependType = fDependType.Elem()
+			}
+			itemVal := reflect.New(fDependType)
 			itemInfo, itemErr := local.GetValueModel(itemVal, s.modelInfoCache)
 			if itemErr != nil {
 				log.Printf("GetValueModel faield, err:%s", itemErr.Error())
@@ -128,7 +135,7 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field, relati
 				return
 			}
 
-			if fDepend.Kind() != reflect.Ptr {
+			if !fDepend.IsPtr() {
 				itemVal = reflect.Indirect(itemVal)
 			}
 
@@ -162,7 +169,7 @@ func (s *orm) Query(obj interface{}) (err error) {
 			continue
 		}
 
-		infoVal, infoErr := local.GetTypeModel(fDepend, s.modelInfoCache)
+		infoVal, infoErr := local.GetTypeModel(fDepend.Type(), s.modelInfoCache)
 		if infoErr != nil {
 			err = infoErr
 			return

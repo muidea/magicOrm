@@ -2,7 +2,6 @@ package orm
 
 import (
 	"log"
-	"reflect"
 
 	"muidea.com/magicOrm/builder"
 	"muidea.com/magicOrm/local"
@@ -60,13 +59,13 @@ func (s *orm) Drop(obj interface{}) (err error) {
 			continue
 		}
 
-		infoVal, infoErr := local.GetTypeModel(fDepend, s.modelInfoCache)
+		infoVal, infoErr := local.GetTypeModel(fDepend.Type(), s.modelInfoCache)
 		if infoErr != nil {
 			err = infoErr
 			return
 		}
 
-		if fDepend.Kind() != reflect.Ptr {
+		if !fDepend.IsPtr() {
 			err = s.dropSingle(infoVal)
 			if err != nil {
 				return
