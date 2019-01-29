@@ -170,7 +170,6 @@ func GetTypeModel(modelType reflect.Type, cache model.Cache) (ret model.Model, e
 
 // GetValueModel GetValueModel
 func GetValueModel(modelVal reflect.Value, cache model.Cache) (ret model.Model, err error) {
-	log.Print(modelVal.Type().String())
 	if modelVal.Kind() == reflect.Ptr {
 		if modelVal.IsNil() {
 			err = fmt.Errorf("can't get value from nil ptr")
@@ -179,7 +178,6 @@ func GetValueModel(modelVal reflect.Value, cache model.Cache) (ret model.Model, 
 
 		modelVal = reflect.Indirect(modelVal)
 	}
-	log.Print(modelVal.Type().String())
 
 	info := cache.Fetch(modelVal.Type().Name())
 	if info == nil {
