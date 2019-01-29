@@ -64,7 +64,7 @@ func (s *modelInfo) GetPrimaryField() model.Field {
 func (s *modelInfo) GetDependField() (ret []model.Field) {
 	for _, field := range s.fields {
 		fType := field.GetType()
-		fDepend, _ := fType.Depend()
+		fDepend := fType.Depend()
 		if fDepend != nil {
 			ret = append(ret, field)
 		}

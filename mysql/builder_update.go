@@ -21,7 +21,7 @@ func (s *Builder) BuildUpdate() (ret string, err error) {
 			continue
 		}
 
-		dependType, _ := fType.Depend()
+		dependType := fType.Depend()
 		if dependType != nil {
 			continue
 		}

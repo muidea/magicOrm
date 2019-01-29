@@ -53,7 +53,7 @@ func (s *Builder) getFieldQueryNames(info model.Model) string {
 		fTag := field.GetTag()
 		fType := field.GetType()
 
-		dependType, _ := fType.Depend()
+		dependType := fType.Depend()
 		if dependType != nil {
 			continue
 		}

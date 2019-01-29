@@ -2,6 +2,7 @@ package orm
 
 import (
 	"log"
+	"reflect"
 
 	"muidea.com/magicOrm/builder"
 	"muidea.com/magicOrm/local"
@@ -52,7 +53,7 @@ func (s *orm) batchCreateSchema(modelInfo model.Model) (err error) {
 	fields := modelInfo.GetDependField()
 	for _, val := range fields {
 		fType := val.GetType()
-		fDepend, fDependPtr := fType.Depend()
+		fDepend := fType.Depend()
 		if fDepend == nil {
 			continue
 		}
@@ -63,7 +64,7 @@ func (s *orm) batchCreateSchema(modelInfo model.Model) (err error) {
 			return
 		}
 
-		if !fDependPtr {
+		if fDepend.Kind() != reflect.Ptr {
 			err = s.createSchema(infoVal)
 			if err != nil {
 				return

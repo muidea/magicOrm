@@ -12,7 +12,7 @@ func (s *Builder) BuildCreateSchema() (string, error) {
 	str := ""
 	for _, val := range *s.modelInfo.GetFields() {
 		fType := val.GetType()
-		dependType, _ := fType.Depend()
+		dependType := fType.Depend()
 		if dependType != nil {
 			continue
 		}

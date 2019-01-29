@@ -34,7 +34,7 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 		for _, val := range *fields {
 			fType := val.GetType()
 
-			dependType, _ := fType.Depend()
+			dependType := fType.Depend()
 			if dependType != nil {
 				continue
 			}
@@ -48,7 +48,7 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 		for _, val := range *fields {
 			fType := val.GetType()
 
-			dependType, _ := fType.Depend()
+			dependType := fType.Depend()
 			if dependType != nil {
 				continue
 			}

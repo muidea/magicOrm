@@ -9,12 +9,11 @@ import (
 )
 
 type typeSlice struct {
-	typeValue     int
-	typeName      string
-	typePkgPath   string
-	typeIsPtr     bool
-	typeDepend    reflect.Type
-	typeDependPtr bool
+	typeValue   int
+	typeName    string
+	typePkgPath string
+	typeIsPtr   bool
+	typeDepend  reflect.Type
 }
 
 func (s *typeSlice) Name() string {
@@ -36,24 +35,23 @@ func (s *typeSlice) PkgPath() string {
 func (s *typeSlice) String() string {
 	ret := fmt.Sprintf("val:%d,name:%s,pkgPath:%s,isPtr:%v", s.typeValue, s.typeName, s.typePkgPath, s.typeIsPtr)
 	if s.typeDepend != nil {
-		ret = fmt.Sprintf("%s,depend:[%s], dependPtr:[%v]", ret, s.typeDepend, s.typeDependPtr)
+		ret = fmt.Sprintf("%s,depend:[%s]", ret, s.typeDepend)
 	}
 
 	return ret
 }
 
-func (s *typeSlice) Depend() (reflect.Type, bool) {
-	return s.typeDepend, s.typeDependPtr
+func (s *typeSlice) Depend() reflect.Type {
+	return s.typeDepend
 }
 
 func (s *typeSlice) Copy() model.FieldType {
 	return &typeSlice{
-		typeIsPtr:     s.typeIsPtr,
-		typeName:      s.typeName,
-		typePkgPath:   s.typePkgPath,
-		typeValue:     s.typeValue,
-		typeDepend:    s.typeDepend,
-		typeDependPtr: s.typeDependPtr,
+		typeIsPtr:   s.typeIsPtr,
+		typeName:    s.typeName,
+		typePkgPath: s.typePkgPath,
+		typeValue:   s.typeValue,
+		typeDepend:  s.typeDepend,
 	}
 }
 
@@ -65,34 +63,30 @@ func getSliceType(val reflect.Type, isPtr bool) (ret model.FieldType, err error)
 	}
 
 	var typeDepend reflect.Type
-	typeDependPtr := false
-	if util.IsSliceType(tVal) {
-		sliceVal := val.Elem()
-		sliceRawVal := sliceVal
-		if sliceRawVal.Kind() == reflect.Ptr {
-			sliceRawVal = sliceRawVal.Elem()
-			typeDependPtr = true
-		}
+	if !util.IsSliceType(tVal) {
+		err = fmt.Errorf("illegal slice type, type:%s", val.String())
+		return
+	}
+	sliceVal := val.Elem()
+	sliceRawVal := sliceVal
+	if sliceRawVal.Kind() == reflect.Ptr {
+		sliceRawVal = sliceRawVal.Elem()
+	}
 
-		tSliceVal, tSliceErr := util.GetTypeValueEnum(sliceRawVal)
-		if tSliceErr != nil {
-			err = tSliceErr
-			return
-		}
-		if util.IsSliceType(tSliceVal) {
-			err = fmt.Errorf("illegal slice depend type, type:[%s]", sliceRawVal.String())
-			return
-		}
-
-		if util.IsStructType(tSliceVal) {
-			typeDepend = sliceRawVal
-		}
-
-		ret = &typeSlice{typeValue: tVal, typeName: val.String(), typePkgPath: val.PkgPath(), typeIsPtr: isPtr, typeDepend: typeDepend, typeDependPtr: typeDependPtr}
+	tSliceVal, tSliceErr := util.GetTypeValueEnum(sliceRawVal)
+	if tSliceErr != nil {
+		err = tSliceErr
+		return
+	}
+	if util.IsSliceType(tSliceVal) {
+		err = fmt.Errorf("illegal slice depend type, type:[%s]", sliceRawVal.String())
 		return
 	}
 
-	err = fmt.Errorf("illegal slice type, type:%s", val.String())
+	if util.IsStructType(tSliceVal) {
+		typeDepend = sliceVal
+	}
 
+	ret = &typeSlice{typeValue: tVal, typeName: val.String(), typePkgPath: val.PkgPath(), typeIsPtr: isPtr, typeDepend: typeDepend}
 	return
 }

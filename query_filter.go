@@ -24,7 +24,7 @@ func (s *filterItem) Verify(fType model.FieldType) (err error) {
 		err = fieldErr
 		return
 	}
-	valDType, _ := fieldType.Depend()
+	valDType := fieldType.Depend()
 	if valDType != nil {
 		fieldType, fieldErr = local.NewFieldType(valDType)
 		if fieldErr != nil {
@@ -33,7 +33,7 @@ func (s *filterItem) Verify(fType model.FieldType) (err error) {
 		}
 	}
 
-	fdType, _ := fType.Depend()
+	fdType := fType.Depend()
 	if fdType != nil {
 		fType, err = local.NewFieldType(fdType)
 		if err != nil {
@@ -175,7 +175,7 @@ func (s *queryFilter) Builder(modelInfo model.Model) (ret string, err error) {
 	fields := modelInfo.GetFields()
 	for _, field := range *fields {
 		fType := field.GetType()
-		fDepend, _ := fType.Depend()
+		fDepend := fType.Depend()
 		if fDepend != nil {
 			continue
 		}
@@ -238,7 +238,7 @@ func (s *queryFilter) buildRelation(modelInfo model.Model) (ret string, err erro
 	fields := modelInfo.GetFields()
 	for _, field := range *fields {
 		fType := field.GetType()
-		fDepend, _ := fType.Depend()
+		fDepend := fType.Depend()
 		if fDepend == nil {
 			continue
 		}

@@ -9,12 +9,11 @@ import (
 )
 
 type typeStruct struct {
-	typeValue     int
-	typeName      string
-	typePkgPath   string
-	typeIsPtr     bool
-	typeDepend    reflect.Type
-	typeDependPtr bool
+	typeValue   int
+	typeName    string
+	typePkgPath string
+	typeIsPtr   bool
+	typeDepend  reflect.Type
 }
 
 func (s *typeStruct) Name() string {
@@ -36,24 +35,23 @@ func (s *typeStruct) PkgPath() string {
 func (s *typeStruct) String() string {
 	ret := fmt.Sprintf("val:%d,name:%s,pkgPath:%s,isPtr:%v", s.typeValue, s.typeName, s.typePkgPath, s.typeIsPtr)
 	if s.typeDepend != nil {
-		ret = fmt.Sprintf("%s,depend:[%s],typeDependPtr:[%v]", ret, s.typeDepend, s.typeDependPtr)
+		ret = fmt.Sprintf("%s,depend:[%s]", ret, s.typeDepend)
 	}
 
 	return ret
 }
 
-func (s *typeStruct) Depend() (reflect.Type, bool) {
-	return s.typeDepend, s.typeDependPtr
+func (s *typeStruct) Depend() reflect.Type {
+	return s.typeDepend
 }
 
 func (s *typeStruct) Copy() model.FieldType {
 	return &typeSlice{
-		typeIsPtr:     s.typeIsPtr,
-		typeName:      s.typeName,
-		typePkgPath:   s.typePkgPath,
-		typeValue:     s.typeValue,
-		typeDepend:    s.typeDepend,
-		typeDependPtr: s.typeDependPtr,
+		typeIsPtr:   s.typeIsPtr,
+		typeName:    s.typeName,
+		typePkgPath: s.typePkgPath,
+		typeValue:   s.typeValue,
+		typeDepend:  s.typeDepend,
 	}
 }
 
@@ -65,7 +63,7 @@ func getStructType(val reflect.Type, isPtr bool) (ret model.FieldType, err error
 	}
 
 	if util.IsStructType(tVal) {
-		ret = &typeStruct{typeValue: tVal, typeName: val.String(), typePkgPath: val.PkgPath(), typeIsPtr: isPtr, typeDepend: val, typeDependPtr: isPtr}
+		ret = &typeStruct{typeValue: tVal, typeName: val.String(), typePkgPath: val.PkgPath(), typeIsPtr: isPtr, typeDepend: val}
 		return
 	}
 

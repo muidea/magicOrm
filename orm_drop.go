@@ -2,6 +2,7 @@ package orm
 
 import (
 	"log"
+	"reflect"
 
 	"muidea.com/magicOrm/builder"
 	"muidea.com/magicOrm/local"
@@ -54,7 +55,7 @@ func (s *orm) Drop(obj interface{}) (err error) {
 	fields := modelInfo.GetDependField()
 	for _, val := range fields {
 		fType := val.GetType()
-		fDepend, fDependPtr := fType.Depend()
+		fDepend := fType.Depend()
 		if fDepend == nil {
 			continue
 		}
@@ -65,7 +66,7 @@ func (s *orm) Drop(obj interface{}) (err error) {
 			return
 		}
 
-		if !fDependPtr {
+		if fDepend.Kind() != reflect.Ptr {
 			err = s.dropSingle(infoVal)
 			if err != nil {
 				return

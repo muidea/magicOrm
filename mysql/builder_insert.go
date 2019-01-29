@@ -55,7 +55,7 @@ func (s *Builder) getFieldInsertNames(info model.Model) string {
 			continue
 		}
 
-		dependType, _ := fType.Depend()
+		dependType := fType.Depend()
 		if dependType != nil {
 			continue
 		}
@@ -88,7 +88,7 @@ func (s *Builder) getFieldInsertValues(info model.Model) (ret []string, err erro
 			continue
 		}
 
-		dependType, _ := fType.Depend()
+		dependType := fType.Depend()
 		if dependType != nil {
 			continue
 		}

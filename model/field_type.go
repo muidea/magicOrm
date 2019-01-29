@@ -9,6 +9,6 @@ type FieldType interface {
 	IsPtr() bool
 	PkgPath() string
 	String() string
-	Depend() (dependType reflect.Type, isTypePtr bool)
+	Depend() reflect.Type
 	Copy() FieldType
 }
