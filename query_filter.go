@@ -8,11 +8,11 @@ import (
 	"muidea.com/magicOrm/builder"
 	"muidea.com/magicOrm/local"
 	"muidea.com/magicOrm/model"
+	"muidea.com/magicOrm/mysql"
 	ormutil "muidea.com/magicOrm/util"
 )
 
 type filterItem struct {
-	name      string
 	filterFun func(name string, value model.FieldValue) (string, error)
 	value     reflect.Value
 }
@@ -45,13 +45,33 @@ func (s *filterItem) Verify(fType model.FieldType) (err error) {
 		return
 	}
 
-	err = fmt.Errorf("illegal filter value, name:%s, value type:%s", s.name, valType.String())
+	err = fmt.Errorf("illegal filter value, value type:%s", valType.String())
+	return
+}
+
+func (s *filterItem) FilterStr(name string) (ret string, err error) {
+	filterVal := reflect.New(s.value.Type()).Elem()
+	filterVal.Set(s.value)
+
+	fValue, fErr := local.NewFieldValue(filterVal.Addr())
+	if fErr != nil {
+		err = fErr
+		return
+	}
+
+	strVal, strErr := s.filterFun(name, fValue)
+	if strErr != nil {
+		err = strErr
+		return
+	}
+
+	ret = strVal
 	return
 }
 
 // queryFilter queryFilter
 type queryFilter struct {
-	params         map[string]filterItem
+	params         map[string]model.FilterItem
 	pageFilter     *util.PageFilter
 	modelInfoCache model.Cache
 }
@@ -68,7 +88,7 @@ func (s *queryFilter) Equle(key string, val interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = filterItem{name: key, filterFun: equleOpr, value: qv}
+	s.params[key] = &filterItem{filterFun: mysql.EquleOpr, value: qv}
 	return
 }
 
@@ -84,7 +104,7 @@ func (s *queryFilter) NotEqule(key string, val interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = filterItem{name: key, filterFun: notEquleOpr, value: qv}
+	s.params[key] = &filterItem{filterFun: mysql.NotEquleOpr, value: qv}
 	return
 }
 
@@ -100,7 +120,7 @@ func (s *queryFilter) Below(key string, val interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = filterItem{name: key, filterFun: belowOpr, value: qv}
+	s.params[key] = &filterItem{filterFun: mysql.BelowOpr, value: qv}
 	return
 }
 
@@ -116,7 +136,7 @@ func (s *queryFilter) Above(key string, val interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = filterItem{name: key, filterFun: aboveOpr, value: qv}
+	s.params[key] = &filterItem{filterFun: mysql.AboveOpr, value: qv}
 	return
 }
 
@@ -132,7 +152,7 @@ func (s *queryFilter) In(key string, val interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = filterItem{name: key, filterFun: inOpr, value: qv}
+	s.params[key] = &filterItem{filterFun: mysql.InOpr, value: qv}
 	return
 }
 
@@ -148,7 +168,7 @@ func (s *queryFilter) NotIn(key string, val interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = filterItem{name: key, filterFun: notInOpr, value: qv}
+	s.params[key] = &filterItem{filterFun: mysql.NotInOpr, value: qv}
 	return
 }
 
@@ -159,7 +179,7 @@ func (s *queryFilter) Like(key string, val interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = filterItem{name: key, filterFun: likeOpr, value: qv}
+	s.params[key] = &filterItem{filterFun: mysql.LikeOpr, value: qv}
 	return
 }
 
@@ -191,16 +211,7 @@ func (s *queryFilter) Builder(modelInfo model.Model) (ret string, err error) {
 			return
 		}
 
-		filterVal := reflect.New(filterItem.value.Type()).Elem()
-		filterVal.Set(filterItem.value)
-
-		fValue, fErr := local.NewFieldValue(filterVal.Addr())
-		if fErr != nil {
-			err = fErr
-			return
-		}
-
-		strVal, strErr := filterItem.filterFun(field.GetName(), fValue)
+		strVal, strErr := filterItem.FilterStr(field.GetName())
 		if strErr != nil {
 			err = strErr
 			return
@@ -256,16 +267,7 @@ func (s *queryFilter) buildRelation(modelInfo model.Model) (ret string, err erro
 			continue
 		}
 
-		filterVal := reflect.New(filterItem.value.Type()).Elem()
-		filterVal.Set(filterItem.value)
-
-		fValue, fErr := local.NewFieldValue(filterVal.Addr())
-		if fErr != nil {
-			err = fErr
-			return
-		}
-
-		strVal, strErr := filterItem.filterFun("right", fValue)
+		strVal, strErr := filterItem.FilterStr("right")
 		if strErr != nil {
 			err = strErr
 			return

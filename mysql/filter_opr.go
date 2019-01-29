@@ -1,4 +1,4 @@
-package orm
+package mysql
 
 import (
 	"fmt"
@@ -49,7 +49,8 @@ func getSliceValStr(val model.FieldValue) (ret string, err error) {
 	return
 }
 
-func equleOpr(name string, value model.FieldValue) (ret string, err error) {
+// EquleOpr EquleOpr
+func EquleOpr(name string, value model.FieldValue) (ret string, err error) {
 	val, valErr := value.ValueStr()
 	if valErr == nil {
 		ret = fmt.Sprintf("`%s` = %s", name, val)
@@ -61,7 +62,8 @@ func equleOpr(name string, value model.FieldValue) (ret string, err error) {
 	return
 }
 
-func notEquleOpr(name string, value model.FieldValue) (ret string, err error) {
+// NotEquleOpr NotEquleOpr
+func NotEquleOpr(name string, value model.FieldValue) (ret string, err error) {
 	val, valErr := value.ValueStr()
 	if valErr == nil {
 		ret = fmt.Sprintf("`%s` != %s", name, val)
@@ -73,7 +75,8 @@ func notEquleOpr(name string, value model.FieldValue) (ret string, err error) {
 	return
 }
 
-func belowOpr(name string, value model.FieldValue) (ret string, err error) {
+// BelowOpr BelowOpr
+func BelowOpr(name string, value model.FieldValue) (ret string, err error) {
 	val, valErr := value.ValueStr()
 	if valErr == nil {
 		ret = fmt.Sprintf("`%s` < %s", name, val)
@@ -85,7 +88,8 @@ func belowOpr(name string, value model.FieldValue) (ret string, err error) {
 	return
 }
 
-func aboveOpr(name string, value model.FieldValue) (ret string, err error) {
+// AboveOpr AboveOpr
+func AboveOpr(name string, value model.FieldValue) (ret string, err error) {
 	val, valErr := value.ValueStr()
 	if valErr == nil {
 		ret = fmt.Sprintf("`%s` > %s", name, val)
@@ -97,7 +101,8 @@ func aboveOpr(name string, value model.FieldValue) (ret string, err error) {
 	return
 }
 
-func inOpr(name string, value model.FieldValue) (ret string, err error) {
+// InOpr InOpr
+func InOpr(name string, value model.FieldValue) (ret string, err error) {
 	val, valErr := getSliceValStr(value)
 	if valErr == nil {
 		if val != "" {
@@ -111,7 +116,8 @@ func inOpr(name string, value model.FieldValue) (ret string, err error) {
 	return
 }
 
-func notInOpr(name string, value model.FieldValue) (ret string, err error) {
+// NotInOpr NotInOpr
+func NotInOpr(name string, value model.FieldValue) (ret string, err error) {
 	val, valErr := getSliceValStr(value)
 	if valErr == nil {
 		if val != "" {
@@ -126,7 +132,8 @@ func notInOpr(name string, value model.FieldValue) (ret string, err error) {
 	return
 }
 
-func likeOpr(name string, value model.FieldValue) (ret string, err error) {
+// LikeOpr LikeOpr
+func LikeOpr(name string, value model.FieldValue) (ret string, err error) {
 	val, valErr := value.ValueStr()
 	if valErr == nil {
 		val := val[1 : len(val)-1]

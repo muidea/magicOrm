@@ -47,7 +47,7 @@ func Uninitialize() {
 
 // NewFilter create new filter
 func NewFilter() filter.Filter {
-	return &queryFilter{params: map[string]filterItem{}, modelInfoCache: ormManager.getCache()}
+	return &queryFilter{params: map[string]model.FilterItem{}, modelInfoCache: ormManager.getCache()}
 }
 
 // New create new Orm
