@@ -28,3 +28,38 @@ type Builder interface {
 func NewBuilder(modelInfo model.Model) Builder {
 	return mysql.New(modelInfo)
 }
+
+// EquleOpr EquleOpr
+func EquleOpr(name string, val string) string {
+	return mysql.EquleOpr(name, val)
+}
+
+// NotEquleOpr NotEquleOpr
+func NotEquleOpr(name string, val string) string {
+	return mysql.NotEquleOpr(name, val)
+}
+
+// BelowOpr BelowOpr
+func BelowOpr(name string, val string) string {
+	return mysql.BelowOpr(name, val)
+}
+
+// AboveOpr AboveOpr
+func AboveOpr(name string, val string) string {
+	return mysql.AboveOpr(name, val)
+}
+
+// InOpr InOpr
+func InOpr(name string, val string) string {
+	return mysql.InOpr(name, val)
+}
+
+// NotInOpr NotInOpr
+func NotInOpr(name string, val string) string {
+	return mysql.NotInOpr(name, val)
+}
+
+// LikeOpr LikeOpr
+func LikeOpr(name string, val string) string {
+	return mysql.LikeOpr(name, val)
+}

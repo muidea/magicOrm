@@ -69,3 +69,21 @@ func NewFieldValue(val reflect.Value) (ret model.FieldValue, err error) {
 
 	return
 }
+
+// GetModelValueStr GetModelValueStr
+func GetModelValueStr(val reflect.Value) (ret string, err error) {
+	val = reflect.Indirect(val)
+	if val.Kind() != reflect.Struct {
+		err = fmt.Errorf("illegal model type, type:%s", val.Type().String())
+		return
+	}
+
+	pkField, pkErr := getStructPrimaryKey(val)
+	if pkErr != nil {
+		err = pkErr
+		return
+	}
+
+	ret, err = pkField.GetValue().ValueStr()
+	return
+}
