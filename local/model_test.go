@@ -38,7 +38,7 @@ type Test struct {
 	Base2 BT   `orm:"b2"`
 }
 
-func TestStruct(t *testing.T) {
+func TestModel(t *testing.T) {
 	cache := model.NewCache()
 	now := time.Now()
 	info, err := GetObjectModel(&Unit{T1: Test{ID: 12, Val: 123}, TimeStamp: now}, cache)
@@ -50,7 +50,7 @@ func TestStruct(t *testing.T) {
 	info.Dump()
 }
 
-func TestStructValue(t *testing.T) {
+func TestModelValue(t *testing.T) {
 	cache := model.NewCache()
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05", "2018-01-02 15:04:05", time.Local)
 	unit := &Unit{Name: "AA", T1: Test{Val: 123}, TimeStamp: now}
@@ -119,7 +119,7 @@ type TT struct {
 	Tt *TT `orm:"tt"`
 }
 
-func TestGetStructValue(t *testing.T) {
+func TestGetModelValue(t *testing.T) {
 	cache := model.NewCache()
 	t1 := &TT{Aa: 12, Bb: 23}
 	t1Info, t1Err := GetObjectModel(t1, cache)
