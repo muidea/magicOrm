@@ -10,7 +10,7 @@ import (
 
 // modelInfo single struct ret
 type modelInfo struct {
-	structType reflect.Type
+	modelType reflect.Type
 
 	fields model.Fields
 
@@ -18,12 +18,12 @@ type modelInfo struct {
 }
 
 func (s *modelInfo) GetName() string {
-	return s.structType.Name()
+	return s.modelType.Name()
 }
 
 // GetPkgPath GetPkgPath
 func (s *modelInfo) GetPkgPath() string {
-	return s.structType.PkgPath()
+	return s.modelType.PkgPath()
 }
 
 // GetFields GetFields
@@ -74,12 +74,12 @@ func (s *modelInfo) GetDependField() (ret []model.Field) {
 }
 
 func (s *modelInfo) Copy() model.Model {
-	info := &modelInfo{structType: s.structType, fields: s.fields.Copy(), modelCache: s.modelCache}
+	info := &modelInfo{modelType: s.modelType, fields: s.fields.Copy(), modelCache: s.modelCache}
 	return info
 }
 
 func (s *modelInfo) Interface() reflect.Value {
-	return reflect.New(s.structType)
+	return reflect.New(s.modelType)
 }
 
 // Dump Dump
@@ -105,16 +105,16 @@ func GetObjectModel(objPtr interface{}, cache model.Cache) (ret model.Model, err
 		return
 	}
 
-	structVal := reflect.Indirect(ptrVal)
-	structType := structVal.Type()
+	modelVal := reflect.Indirect(ptrVal)
+	modelType := modelVal.Type()
 
-	ret, err = GetTypeModel(structType, cache)
+	ret, err = GetTypeModel(modelType, cache)
 	if err != nil {
 		log.Printf("GetTypeModel failed, err:%s", err.Error())
 		return
 	}
 
-	ret, err = GetValueModel(structVal, cache)
+	ret, err = GetValueModel(modelVal, cache)
 	if err != nil {
 		log.Printf("GetValueModel failed, err:%s", err.Error())
 		return
@@ -124,27 +124,27 @@ func GetObjectModel(objPtr interface{}, cache model.Cache) (ret model.Model, err
 }
 
 // GetTypeModel GetTypeModel
-func GetTypeModel(structType reflect.Type, cache model.Cache) (ret model.Model, err error) {
-	if structType.Kind() == reflect.Ptr {
-		structType = structType.Elem()
+func GetTypeModel(modelType reflect.Type, cache model.Cache) (ret model.Model, err error) {
+	if modelType.Kind() == reflect.Ptr {
+		modelType = modelType.Elem()
 	}
 
-	if structType.Kind() != reflect.Struct {
-		err = fmt.Errorf("illegal structType, type:%s", structType.String())
+	if modelType.Kind() != reflect.Struct {
+		err = fmt.Errorf("illegal modelType, type:%s", modelType.String())
 		return
 	}
 
-	info := cache.Fetch(structType.Name())
+	info := cache.Fetch(modelType.Name())
 	if info != nil {
 		ret = info
 		return
 	}
 
-	modelInfo := &modelInfo{structType: structType, fields: make(model.Fields, 0), modelCache: cache}
+	modelInfo := &modelInfo{modelType: modelType, fields: make(model.Fields, 0), modelCache: cache}
 
-	fieldNum := structType.NumField()
+	fieldNum := modelType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		fieldType := structType.Field(idx)
+		fieldType := modelType.Field(idx)
 		fieldInfo, fieldErr := GetFieldInfo(idx, fieldType, nil)
 		if fieldErr != nil {
 			err = fieldErr
@@ -169,26 +169,28 @@ func GetTypeModel(structType reflect.Type, cache model.Cache) (ret model.Model, 
 }
 
 // GetValueModel GetValueModel
-func GetValueModel(structVal reflect.Value, cache model.Cache) (ret model.Model, err error) {
-	if structVal.Kind() == reflect.Ptr {
-		if structVal.IsNil() {
+func GetValueModel(modelVal reflect.Value, cache model.Cache) (ret model.Model, err error) {
+	log.Print(modelVal.Type().String())
+	if modelVal.Kind() == reflect.Ptr {
+		if modelVal.IsNil() {
 			err = fmt.Errorf("can't get value from nil ptr")
 			return
 		}
 
-		structVal = reflect.Indirect(structVal)
+		modelVal = reflect.Indirect(modelVal)
 	}
+	log.Print(modelVal.Type().String())
 
-	info := cache.Fetch(structVal.Type().Name())
+	info := cache.Fetch(modelVal.Type().Name())
 	if info == nil {
-		err = fmt.Errorf("can't get value modelInfo, valType:%s", structVal.Type().String())
+		err = fmt.Errorf("can't get value modelInfo, valType:%s", modelVal.Type().String())
 		return
 	}
 
 	info = info.Copy()
-	fieldNum := structVal.NumField()
+	fieldNum := modelVal.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		val := structVal.Field(idx)
+		val := modelVal.Field(idx)
 		err = info.SetFieldValue(idx, val)
 		if err != nil {
 			log.Printf("SetFieldValue failed, err:%s", err.Error())
@@ -201,17 +203,17 @@ func GetValueModel(structVal reflect.Value, cache model.Cache) (ret model.Model,
 	return
 }
 
-func getStructPrimaryKey(structVal reflect.Value) (ret model.Field, err error) {
-	if structVal.Kind() != reflect.Struct {
-		err = fmt.Errorf("illegal value type, not struct, type:%s", structVal.Type().String())
+func getStructPrimaryKey(modelVal reflect.Value) (ret model.Field, err error) {
+	if modelVal.Kind() != reflect.Struct {
+		err = fmt.Errorf("illegal value type, not struct, type:%s", modelVal.Type().String())
 		return
 	}
 
-	structType := structVal.Type()
-	fieldNum := structType.NumField()
+	modelType := modelVal.Type()
+	fieldNum := modelType.NumField()
 	for idx := 0; idx < fieldNum; {
-		fieldType := structType.Field(idx)
-		fieldVal := structVal.Field(idx)
+		fieldType := modelType.Field(idx)
+		fieldVal := modelVal.Field(idx)
 		fieldInfo, fieldErr := GetFieldInfo(idx, fieldType, &fieldVal)
 		if fieldErr != nil {
 			err = fieldErr
@@ -227,6 +229,6 @@ func getStructPrimaryKey(structVal reflect.Value) (ret model.Field, err error) {
 		idx++
 	}
 
-	err = fmt.Errorf("no found primary key. type:%s", structVal.Type().String())
+	err = fmt.Errorf("no found primary key. type:%s", modelVal.Type().String())
 	return
 }

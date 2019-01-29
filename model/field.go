@@ -33,7 +33,7 @@ func (s *Fields) Append(fieldInfo Field) {
 		}
 	}
 	if exist {
-		log.Fatalf("duplicate field tag,[%s]", fieldInfo.Dump())
+		log.Printf("duplicate field tag,[%s]", fieldInfo.Dump())
 		return
 	}
 
