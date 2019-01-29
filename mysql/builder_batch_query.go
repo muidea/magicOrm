@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	"muidea.com/magicOrm/local"
 	"muidea.com/magicOrm/model"
 )
 
@@ -46,9 +45,9 @@ func (s *Builder) buildFilter(filter model.Filter, cache model.Cache) (ret strin
 
 		fDepend := fType.Depend()
 		if fDepend != nil {
-			dependInfo, dependErr := local.GetTypeModel(fDepend.Type(), cache)
-			if dependErr != nil {
-				err = dependErr
+			dependInfo := cache.Fetch(fDepend.Name())
+			if dependInfo != nil {
+				err = fmt.Errorf("illegal depend type, depend type:%s", fDepend.Name())
 				return
 			}
 
