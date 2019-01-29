@@ -1,7 +1,6 @@
 package builder
 
 import (
-	"muidea.com/magicOrm/filter"
 	"muidea.com/magicOrm/model"
 	"muidea.com/magicOrm/mysql"
 )
@@ -15,7 +14,7 @@ type Builder interface {
 	BuildUpdate() (string, error)
 	BuildDelete() (string, error)
 	BuildQuery() (string, error)
-	BuildBatchQuery(filter filter.Filter) (string, error)
+	BuildBatchQuery(filter model.Filter, cache model.Cache) (string, error)
 
 	GetRelationTableName(fieldName string, relationInfo model.Model) string
 	BuildCreateRelationSchema(fieldName string, relationInfo model.Model) (string, error)

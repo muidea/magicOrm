@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"muidea.com/magicCommon/foundation/util"
-	"muidea.com/magicOrm/builder"
 	"muidea.com/magicOrm/local"
 	"muidea.com/magicOrm/model"
 	"muidea.com/magicOrm/mysql"
@@ -71,9 +70,8 @@ func (s *filterItem) FilterStr(name string) (ret string, err error) {
 
 // queryFilter queryFilter
 type queryFilter struct {
-	params         map[string]model.FilterItem
-	pageFilter     *util.PageFilter
-	modelInfoCache model.Cache
+	params     map[string]model.FilterItem
+	pageFilter *util.PageFilter
 }
 
 func (s *queryFilter) Equle(key string, val interface{}) (err error) {
@@ -187,117 +185,23 @@ func (s *queryFilter) PageFilter(filter *util.PageFilter) {
 	s.pageFilter = filter
 }
 
-func (s *queryFilter) Builder(modelInfo model.Model) (ret string, err error) {
-	if modelInfo == nil {
-		return
-	}
-
-	fields := modelInfo.GetFields()
-	for _, field := range *fields {
-		fType := field.GetType()
-		fDepend := fType.Depend()
-		if fDepend != nil {
-			continue
-		}
-
-		filterItem, ok := s.params[field.GetName()]
-		if !ok {
-			continue
-		}
-
-		verifyErr := filterItem.Verify(fType)
-		if verifyErr != nil {
-			err = verifyErr
-			return
-		}
-
-		strVal, strErr := filterItem.FilterStr(field.GetName())
-		if strErr != nil {
-			err = strErr
-			return
-		}
-		if strVal == "" {
-			continue
-		}
-
-		if ret == "" {
-			ret = fmt.Sprintf("%s", strVal)
-		} else {
-			ret = fmt.Sprintf("%s AND %s", ret, strVal)
-		}
-	}
-
-	relationSQL, relationErr := s.buildRelation(modelInfo)
-	if relationErr != nil {
-		err = relationErr
-		return
-	}
-	if relationSQL != "" {
-		ret = fmt.Sprintf("%s AND %s", ret, relationSQL)
-	}
-
-	return
+func (s *queryFilter) Items() map[string]model.FilterItem {
+	return s.params
 }
 
-func (s *queryFilter) buildRelation(modelInfo model.Model) (ret string, err error) {
-	if modelInfo == nil {
+func (s *queryFilter) Pagination() (limit, offset int, paging bool) {
+	paging = false
+	if s.pageFilter == nil {
 		return
 	}
 
-	relationSQL := ""
-	builder := builder.NewBuilder(modelInfo)
-	fields := modelInfo.GetFields()
-	for _, field := range *fields {
-		fType := field.GetType()
-		fDepend := fType.Depend()
-		if fDepend == nil {
-			continue
-		}
-
-		dependInfo, dependErr := local.GetTypeModel(fDepend.Type(), s.modelInfoCache)
-		if dependErr != nil {
-			err = dependErr
-			return
-		}
-
-		relationTable := builder.GetRelationTableName(field.GetName(), dependInfo)
-
-		filterItem, ok := s.params[field.GetName()]
-		if !ok {
-			continue
-		}
-
-		strVal, strErr := filterItem.FilterStr("right")
-		if strErr != nil {
-			err = strErr
-			return
-		}
-		if strVal == "" {
-			continue
-		}
-
-		if relationSQL == "" {
-			relationSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTable, strVal)
-		} else {
-			relationSQL = fmt.Sprintf("%s UNION SELECT DISTINCT(`left`) `id` FROM `%s` WHERE %s", relationSQL, relationTable, strVal)
-		}
+	limit = s.pageFilter.PageSize
+	offset = s.pageFilter.PageSize * (s.pageFilter.PageNum - 1)
+	if offset < 0 {
+		offset = 0
 	}
-	if relationSQL != "" {
-		pk := modelInfo.GetPrimaryField()
-		fTag := pk.GetTag()
-		ret = fmt.Sprintf("`%s` IN (SELECT DISTINCT(`id`) FROM (%s) ids)", fTag.Name(), relationSQL)
-	}
-
-	if s.pageFilter != nil {
-		limitVal := s.pageFilter.PageSize
-		offsetVal := s.pageFilter.PageSize * (s.pageFilter.PageNum - 1)
-		if offsetVal < 0 {
-			offsetVal = 0
-		}
-		if limitVal <= 0 {
-			limitVal = 100
-		}
-		ret = fmt.Sprintf("%s LIMIT %d OFFSET %d", ret, limitVal, offsetVal)
+	if limit <= 0 {
+		limit = 100
 	}
 
 	return

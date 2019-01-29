@@ -6,15 +6,14 @@ import (
 	"reflect"
 
 	"muidea.com/magicOrm/builder"
-	"muidea.com/magicOrm/filter"
 	"muidea.com/magicOrm/local"
 	"muidea.com/magicOrm/model"
 	"muidea.com/magicOrm/util"
 )
 
-func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter filter.Filter) (ret reflect.Value, err error) {
+func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter model.Filter) (ret reflect.Value, err error) {
 	builder := builder.NewBuilder(modelInfo)
-	sql, sqlErr := builder.BuildBatchQuery(filter)
+	sql, sqlErr := builder.BuildBatchQuery(filter, s.modelInfoCache)
 	if sqlErr != nil {
 		err = sqlErr
 		return
@@ -72,7 +71,7 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 	return
 }
 
-func (s *orm) BatchQuery(sliceObj interface{}, filter filter.Filter) (err error) {
+func (s *orm) BatchQuery(sliceObj interface{}, filter model.Filter) (err error) {
 	objType := reflect.TypeOf(sliceObj)
 	if objType.Kind() != reflect.Ptr {
 		err = fmt.Errorf("illegal obj type. must be a slice ptr")

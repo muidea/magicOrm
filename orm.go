@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"muidea.com/magicOrm/executor"
-	"muidea.com/magicOrm/filter"
 	"muidea.com/magicOrm/model"
 )
 
@@ -15,7 +14,7 @@ type Orm interface {
 	Update(obj interface{}) error
 	Delete(obj interface{}) error
 	Query(obj interface{}) error
-	BatchQuery(sliceObj interface{}, filter filter.Filter) error
+	BatchQuery(sliceObj interface{}, filter model.Filter) error
 	Drop(obj interface{}) error
 	Release()
 }
@@ -46,8 +45,8 @@ func Uninitialize() {
 }
 
 // NewFilter create new filter
-func NewFilter() filter.Filter {
-	return &queryFilter{params: map[string]model.FilterItem{}, modelInfoCache: ormManager.getCache()}
+func NewFilter() model.Filter {
+	return &queryFilter{params: map[string]model.FilterItem{}}
 }
 
 // New create new Orm
