@@ -20,6 +20,7 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 	}
 
 	s.executor.Query(sql)
+	defer s.executor.Finish()
 	for s.executor.Next() {
 		newVal := modelInfo.Interface()
 		newStructInfo, newErr := local.GetValueModel(newVal, s.modelInfoCache)
@@ -63,8 +64,6 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 
 		sliceValue = reflect.Append(sliceValue, newVal.Elem())
 	}
-
-	defer s.executor.Finish()
 
 	ret = sliceValue
 
