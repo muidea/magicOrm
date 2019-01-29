@@ -6,7 +6,6 @@ import (
 	"reflect"
 
 	"muidea.com/magicOrm/builder"
-	"muidea.com/magicOrm/local"
 	"muidea.com/magicOrm/model"
 	"muidea.com/magicOrm/util"
 )
@@ -91,7 +90,7 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field, relati
 			fDepend := fType.Depend()
 			fDependType := fDepend.Type()
 			relationVal := reflect.New(fDependType)
-			relationInfo, relationErr = local.GetValueModel(relationVal, s.modelInfoCache)
+			relationInfo, relationErr = s.modelProvider.GetValueModel(relationVal)
 			if relationErr != nil {
 				err = relationErr
 				return
@@ -112,7 +111,7 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field, relati
 			fDepend := fType.Depend()
 			fDependType := fDepend.Type()
 			itemVal := reflect.New(fDependType)
-			itemInfo, itemErr := local.GetValueModel(itemVal, s.modelInfoCache)
+			itemInfo, itemErr := s.modelProvider.GetValueModel(itemVal)
 			if itemErr != nil {
 				log.Printf("GetValueModel faield, err:%s", itemErr.Error())
 				err = itemErr
@@ -138,7 +137,7 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field, relati
 }
 
 func (s *orm) Query(obj interface{}) (err error) {
-	modelInfo, structErr := local.GetObjectModel(obj, s.modelInfoCache)
+	modelInfo, structErr := s.modelProvider.GetObjectModel(obj)
 	if structErr != nil {
 		err = structErr
 		log.Printf("GetObjectModel failed, err:%s", err.Error())
@@ -159,7 +158,7 @@ func (s *orm) Query(obj interface{}) (err error) {
 			continue
 		}
 
-		infoVal, infoErr := local.GetTypeModel(fDepend.Type(), s.modelInfoCache)
+		infoVal, infoErr := s.modelProvider.GetTypeModel(fDepend.Type())
 		if infoErr != nil {
 			err = infoErr
 			return

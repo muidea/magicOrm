@@ -2,6 +2,7 @@ package orm
 
 import (
 	"muidea.com/magicOrm/model"
+	"muidea.com/magicOrm/provider"
 )
 
 type serverConfig struct {
@@ -14,11 +15,14 @@ type serverConfig struct {
 type manager struct {
 	serverConfig *serverConfig
 
-	moduleInfoCache model.Cache
+	modelInfoCache model.Cache
+
+	modelProvider provider.Provider
 }
 
 func newManager() *manager {
-	return &manager{moduleInfoCache: model.NewCache()}
+	cache := model.NewCache()
+	return &manager{modelInfoCache: cache, modelProvider: provider.New(cache)}
 }
 
 func (s *manager) updateServerConfig(cfg *serverConfig) {
@@ -30,5 +34,9 @@ func (s *manager) getServerConfig() *serverConfig {
 }
 
 func (s *manager) getCache() model.Cache {
-	return s.moduleInfoCache
+	return s.modelInfoCache
+}
+
+func (s *manager) getProvider() provider.Provider {
+	return s.modelProvider
 }

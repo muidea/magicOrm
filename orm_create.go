@@ -4,7 +4,6 @@ import (
 	"log"
 
 	"muidea.com/magicOrm/builder"
-	"muidea.com/magicOrm/local"
 	"muidea.com/magicOrm/model"
 )
 
@@ -57,7 +56,7 @@ func (s *orm) batchCreateSchema(modelInfo model.Model) (err error) {
 			continue
 		}
 
-		infoVal, infoErr := local.GetTypeModel(fDepend.Type(), s.modelInfoCache)
+		infoVal, infoErr := s.modelProvider.GetTypeModel(fDepend.Type())
 		if infoErr != nil {
 			err = infoErr
 			return
@@ -80,7 +79,7 @@ func (s *orm) batchCreateSchema(modelInfo model.Model) (err error) {
 }
 
 func (s *orm) Create(obj interface{}) (err error) {
-	modelInfo, structErr := local.GetObjectModel(obj, s.modelInfoCache)
+	modelInfo, structErr := s.modelProvider.GetObjectModel(obj)
 	if structErr != nil {
 		err = structErr
 		log.Printf("GetObjectModel failed, err:%s", err.Error())

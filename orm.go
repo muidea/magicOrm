@@ -5,6 +5,7 @@ import (
 
 	"muidea.com/magicOrm/executor"
 	"muidea.com/magicOrm/model"
+	"muidea.com/magicOrm/provider"
 )
 
 // Orm orm interfalce
@@ -27,6 +28,7 @@ func init() {
 
 type orm struct {
 	executor       executor.Executor
+	modelProvider  provider.Provider
 	modelInfoCache model.Cache
 }
 
@@ -46,7 +48,7 @@ func Uninitialize() {
 
 // NewFilter create new filter
 func NewFilter() model.Filter {
-	return &queryFilter{params: map[string]model.FilterItem{}}
+	return &queryFilter{params: map[string]model.FilterItem{}, modelProvider: ormManager.getProvider()}
 }
 
 // New create new Orm
@@ -61,7 +63,7 @@ func New() (Orm, error) {
 		return nil, err
 	}
 
-	return &orm{executor: executor, modelInfoCache: ormManager.getCache()}, nil
+	return &orm{executor: executor, modelInfoCache: ormManager.getCache(), modelProvider: ormManager.getProvider()}, nil
 }
 
 func (s *orm) Release() {

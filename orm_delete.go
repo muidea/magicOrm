@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"muidea.com/magicOrm/builder"
-	"muidea.com/magicOrm/local"
 	"muidea.com/magicOrm/model"
 )
 
@@ -32,7 +31,7 @@ func (s *orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 		return
 	}
 
-	infoVal, infoErr := local.GetTypeModel(fDepend.Type(), s.modelInfoCache)
+	infoVal, infoErr := s.modelProvider.GetTypeModel(fDepend.Type())
 	if infoErr != nil {
 		err = infoErr
 		return
@@ -54,7 +53,7 @@ func (s *orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 }
 
 func (s *orm) Delete(obj interface{}) (err error) {
-	modelInfo, structErr := local.GetObjectModel(obj, s.modelInfoCache)
+	modelInfo, structErr := s.modelProvider.GetObjectModel(obj)
 	if structErr != nil {
 		err = structErr
 		log.Printf("GetObjectModel failed, err:%s", err.Error())
