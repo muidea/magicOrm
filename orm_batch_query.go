@@ -11,8 +11,8 @@ import (
 )
 
 func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter model.Filter) (ret reflect.Value, err error) {
-	builder := builder.NewBuilder(modelInfo)
-	sql, sqlErr := builder.BuildBatchQuery(filter, s.modelInfoCache)
+	builder := builder.NewBuilder(modelInfo, s.modelProvider)
+	sql, sqlErr := builder.BuildBatchQuery(filter)
 	if sqlErr != nil {
 		err = sqlErr
 		return

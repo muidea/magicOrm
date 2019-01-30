@@ -8,7 +8,7 @@ import (
 )
 
 func (s *orm) createSchema(modelInfo model.Model) (err error) {
-	builder := builder.NewBuilder(modelInfo)
+	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	tableName := builder.GetTableName()
 
 	if !s.executor.CheckTableExist(tableName) {
@@ -26,7 +26,7 @@ func (s *orm) createSchema(modelInfo model.Model) (err error) {
 }
 
 func (s *orm) createRelationSchema(modelInfo model.Model, fieldName string, relationInfo model.Model) (err error) {
-	builder := builder.NewBuilder(modelInfo)
+	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	tableName := builder.GetRelationTableName(fieldName, relationInfo)
 
 	if !s.executor.CheckTableExist(tableName) {

@@ -27,9 +27,8 @@ func init() {
 }
 
 type orm struct {
-	executor       executor.Executor
-	modelProvider  provider.Provider
-	modelInfoCache model.Cache
+	executor      executor.Executor
+	modelProvider provider.Provider
 }
 
 // Initialize InitOrm
@@ -63,7 +62,7 @@ func New() (Orm, error) {
 		return nil, err
 	}
 
-	return &orm{executor: executor, modelInfoCache: ormManager.getCache(), modelProvider: ormManager.getProvider()}, nil
+	return &orm{executor: executor, modelProvider: ormManager.getProvider()}, nil
 }
 
 func (s *orm) Release() {

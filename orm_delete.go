@@ -9,7 +9,7 @@ import (
 )
 
 func (s *orm) deleteSingle(modelInfo model.Model) (err error) {
-	builder := builder.NewBuilder(modelInfo)
+	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	sql, err := builder.BuildDelete()
 	if err != nil {
 		return err
@@ -37,7 +37,7 @@ func (s *orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 		return
 	}
 
-	builder := builder.NewBuilder(modelInfo)
+	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	rightSQL, relationSQL, err := builder.BuildDeleteRelation(fieldInfo.GetName(), infoVal)
 	if err != nil {
 		return err

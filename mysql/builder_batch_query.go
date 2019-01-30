@@ -8,10 +8,10 @@ import (
 )
 
 // BuildBatchQuery BuildBatchQuery
-func (s *Builder) BuildBatchQuery(filter model.Filter, cache model.Cache) (ret string, err error) {
+func (s *Builder) BuildBatchQuery(filter model.Filter) (ret string, err error) {
 	ret = fmt.Sprintf("SELECT %s FROM `%s`", s.getFieldQueryNames(s.modelInfo), s.getTableName(s.modelInfo))
 	if filter != nil {
-		filterSQL, filterErr := s.buildFilter(filter, cache)
+		filterSQL, filterErr := s.buildFilter(filter)
 		if filterErr != nil {
 			err = filterErr
 			return
@@ -25,7 +25,7 @@ func (s *Builder) BuildBatchQuery(filter model.Filter, cache model.Cache) (ret s
 	return
 }
 
-func (s *Builder) buildFilter(filter model.Filter, cache model.Cache) (ret string, err error) {
+func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 	filterSQL := ""
 	relationFilterSQL := ""
 	params := filter.Items()
@@ -45,9 +45,9 @@ func (s *Builder) buildFilter(filter model.Filter, cache model.Cache) (ret strin
 
 		fDepend := fType.Depend()
 		if fDepend != nil {
-			dependInfo := cache.Fetch(fDepend.Name())
-			if dependInfo == nil {
-				err = fmt.Errorf("illegal depend type, depend type:%s", fDepend.Name())
+			dependInfo, dependErr := s.modelProvider.GetTypeModel(fDepend.Type())
+			if dependErr != nil {
+				err = dependErr
 				return
 			}
 

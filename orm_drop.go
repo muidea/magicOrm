@@ -8,7 +8,7 @@ import (
 )
 
 func (s *orm) dropSingle(modelInfo model.Model) (err error) {
-	builder := builder.NewBuilder(modelInfo)
+	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	tableName := builder.GetTableName()
 	if s.executor.CheckTableExist(tableName) {
 		sql, err := builder.BuildDropSchema()
@@ -23,7 +23,7 @@ func (s *orm) dropSingle(modelInfo model.Model) (err error) {
 }
 
 func (s *orm) dropRelation(modelInfo model.Model, fieldName string, relationInfo model.Model) (err error) {
-	builder := builder.NewBuilder(modelInfo)
+	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	tableName := builder.GetRelationTableName(fieldName, relationInfo)
 	if s.executor.CheckTableExist(tableName) {
 		sql, err := builder.BuildDropRelationSchema(fieldName, relationInfo)

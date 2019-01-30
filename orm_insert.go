@@ -9,7 +9,7 @@ import (
 )
 
 func (s *orm) insertSingle(modelInfo model.Model) (err error) {
-	builder := builder.NewBuilder(modelInfo)
+	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	sql, err := builder.BuildInsert()
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func (s *orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 			}
 		}
 
-		builder := builder.NewBuilder(modelInfo)
+		builder := builder.NewBuilder(modelInfo, s.modelProvider)
 		relationSQL, relationErr := builder.BuildInsertRelation(fieldInfo.GetName(), infoVal)
 		if relationErr != nil {
 			err = relationErr

@@ -5,22 +5,18 @@ import (
 	"strings"
 
 	"muidea.com/magicOrm/model"
+	"muidea.com/magicOrm/provider"
 )
 
 // Builder Builder
 type Builder struct {
-	modelInfo model.Model
+	modelInfo     model.Model
+	modelProvider provider.Provider
 }
 
 // New create builder
-func New(modelInfo model.Model) *Builder {
-	//err := verifyStructInfo(modelInfo)
-	//if err != nil {
-	//	log.Printf("verify modelInfo failed, err:%s", err.Error())
-	//	return nil
-	//}
-
-	return &Builder{modelInfo: modelInfo}
+func New(modelInfo model.Model, modelProvider provider.Provider) *Builder {
+	return &Builder{modelInfo: modelInfo, modelProvider: modelProvider}
 }
 
 func (s *Builder) getTableName(info model.Model) string {

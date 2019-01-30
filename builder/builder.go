@@ -3,6 +3,7 @@ package builder
 import (
 	"muidea.com/magicOrm/model"
 	"muidea.com/magicOrm/mysql"
+	"muidea.com/magicOrm/provider"
 )
 
 // Builder orm builder
@@ -14,7 +15,7 @@ type Builder interface {
 	BuildUpdate() (string, error)
 	BuildDelete() (string, error)
 	BuildQuery() (string, error)
-	BuildBatchQuery(filter model.Filter, cache model.Cache) (string, error)
+	BuildBatchQuery(filter model.Filter) (string, error)
 
 	GetRelationTableName(fieldName string, relationInfo model.Model) string
 	BuildCreateRelationSchema(fieldName string, relationInfo model.Model) (string, error)
@@ -25,8 +26,8 @@ type Builder interface {
 }
 
 // NewBuilder new builder
-func NewBuilder(modelInfo model.Model) Builder {
-	return mysql.New(modelInfo)
+func NewBuilder(modelInfo model.Model, modelProvider provider.Provider) Builder {
+	return mysql.New(modelInfo, modelProvider)
 }
 
 // EquleOpr EquleOpr

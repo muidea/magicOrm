@@ -11,7 +11,7 @@ import (
 )
 
 func (s *orm) querySingle(modelInfo model.Model) (err error) {
-	builder := builder.NewBuilder(modelInfo)
+	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	sql, err := builder.BuildQuery()
 	if err != nil {
 		return err
@@ -65,7 +65,7 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field, relati
 		return
 	}
 
-	builder := builder.NewBuilder(modelInfo)
+	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	relationSQL, relationErr := builder.BuildQueryRelation(fieldInfo.GetName(), relationInfo)
 	if relationErr != nil {
 		err = relationErr

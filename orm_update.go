@@ -8,7 +8,7 @@ import (
 )
 
 func (s *orm) updateSingle(modelInfo model.Model) (err error) {
-	builder := builder.NewBuilder(modelInfo)
+	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	sql, err := builder.BuildUpdate()
 	if err != nil {
 		return err
