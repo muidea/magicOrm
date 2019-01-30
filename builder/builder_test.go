@@ -4,8 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"muidea.com/magicOrm/local"
-	"muidea.com/magicOrm/model"
+	"muidea.com/magicOrm/provider"
 )
 
 // Unit 单元信息
@@ -33,8 +32,8 @@ func TestBuilderCommon(t *testing.T) {
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
 	obj := &Unit{ID: 10, Name: "Hello world", Value: 12.3456, TimeStamp: now}
 
-	cache := model.NewCache()
-	info, err := local.GetObjectModel(obj, cache)
+	provider := provider.New()
+	info, err := provider.GetObjectModel(obj)
 	if err != nil {
 		t.Errorf("GetObjectModel failed, err:%s", err.Error())
 		return
@@ -46,7 +45,7 @@ func TestBuilderCommon(t *testing.T) {
 		t.Errorf("GetObjectModel failed,")
 		return
 	}
-	builder := NewBuilder(info)
+	builder := NewBuilder(info, provider)
 	if builder == nil {
 		t.Error("new Builder failed")
 	}
@@ -103,8 +102,8 @@ func TestBuilderCommon(t *testing.T) {
 func TestBuilderReference(t *testing.T) {
 	ext := &Ext{}
 
-	cache := model.NewCache()
-	info, err := local.GetObjectModel(ext, cache)
+	provider := provider.New()
+	info, err := provider.GetObjectModel(ext)
 	if err != nil {
 		t.Errorf("GetObjectModel failed, err:%s", err.Error())
 		return
@@ -116,7 +115,7 @@ func TestBuilderReference(t *testing.T) {
 		return
 	}
 
-	builder := NewBuilder(info)
+	builder := NewBuilder(info, provider)
 	if builder == nil {
 		t.Error("new Builder failed")
 	}
@@ -174,8 +173,8 @@ func TestBuilderReference2(t *testing.T) {
 	desc := "Desc"
 	ext := &Ext{Description: &desc}
 
-	cache := model.NewCache()
-	info, err := local.GetObjectModel(ext, cache)
+	provider := provider.New()
+	info, err := provider.GetObjectModel(ext)
 	if err != nil {
 		t.Errorf("GetObjectModel failed, err:%s", err.Error())
 		return
@@ -188,7 +187,7 @@ func TestBuilderReference2(t *testing.T) {
 		return
 	}
 
-	builder := NewBuilder(info)
+	builder := NewBuilder(info, provider)
 	if builder == nil {
 		t.Error("new Builder failed")
 	}
