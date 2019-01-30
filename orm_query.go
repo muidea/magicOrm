@@ -107,7 +107,10 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field, relati
 				return
 			}
 
-			modelInfo.UpdateFieldValue(fieldInfo.GetName(), relationVal)
+			err = modelInfo.UpdateFieldValue(fieldInfo.GetName(), relationVal)
+			if err != nil {
+				return
+			}
 		}
 	} else if util.IsSliceType(fType.Value()) {
 		relationType := fType.Type()
@@ -135,7 +138,10 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field, relati
 
 			relationVal = reflect.Append(relationVal, itemVal)
 		}
-		modelInfo.UpdateFieldValue(fieldInfo.GetName(), relationVal)
+		err = modelInfo.UpdateFieldValue(fieldInfo.GetName(), relationVal)
+		if err != nil {
+			return
+		}
 	}
 
 	return
@@ -163,12 +169,12 @@ func (s *orm) Query(obj interface{}) (err error) {
 			continue
 		}
 
-		infoVal, infoErr := s.modelProvider.GetTypeModel(fDepend.Type())
-		if infoErr != nil {
-			err = infoErr
+		relationInfo, relationErr := s.modelProvider.GetTypeModel(fDepend.Type())
+		if relationErr != nil {
+			err = relationErr
 			return
 		}
-		err = s.queryRelation(modelInfo, item, infoVal)
+		err = s.queryRelation(modelInfo, item, relationInfo)
 		if err != nil {
 			return
 		}

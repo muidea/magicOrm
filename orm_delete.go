@@ -31,16 +31,17 @@ func (s *orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 		return
 	}
 
-	infoVal, infoErr := s.modelProvider.GetTypeModel(fDepend.Type())
-	if infoErr != nil {
-		err = infoErr
+	relationInfo, relationErr := s.modelProvider.GetTypeModel(fDepend.Type())
+	if relationErr != nil {
+		err = relationErr
 		return
 	}
 
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
-	rightSQL, relationSQL, err := builder.BuildDeleteRelation(fieldInfo.GetName(), infoVal)
-	if err != nil {
-		return err
+	rightSQL, relationSQL, relationErr := builder.BuildDeleteRelation(fieldInfo.GetName(), relationInfo)
+	if relationErr != nil {
+		err = relationErr
+		return
 	}
 
 	if !fDepend.IsPtr() {
@@ -66,8 +67,8 @@ func (s *orm) Delete(obj interface{}) (err error) {
 	}
 
 	fields := modelInfo.GetDependField()
-	for _, val := range fields {
-		err = s.deleteRelation(modelInfo, val)
+	for _, field := range fields {
+		err = s.deleteRelation(modelInfo, field)
 		if err != nil {
 			return
 		}

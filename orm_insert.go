@@ -18,7 +18,7 @@ func (s *orm) insertSingle(modelInfo model.Model) (err error) {
 	id := s.executor.Insert(sql)
 	pk := modelInfo.GetPrimaryField()
 	if pk != nil {
-		pk.SetValue(reflect.ValueOf(id))
+		err = pk.SetValue(reflect.ValueOf(id))
 	}
 
 	return
@@ -40,22 +40,22 @@ func (s *orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 	}
 
 	for _, fVal := range fDependValue {
-		infoVal, infoErr := s.modelProvider.GetValueModel(fVal)
-		if infoErr != nil {
-			log.Printf("GetValueModel faield, err:%s", infoErr.Error())
-			err = infoErr
+		relationInfo, relationErr := s.modelProvider.GetValueModel(fVal)
+		if relationErr != nil {
+			log.Printf("GetValueModel faield, err:%s", relationErr.Error())
+			err = relationErr
 			return
 		}
 
 		if !fDepend.IsPtr() {
-			err = s.insertSingle(infoVal)
+			err = s.insertSingle(relationInfo)
 			if err != nil {
 				return
 			}
 		}
 
 		builder := builder.NewBuilder(modelInfo, s.modelProvider)
-		relationSQL, relationErr := builder.BuildInsertRelation(fieldInfo.GetName(), infoVal)
+		relationSQL, relationErr := builder.BuildInsertRelation(fieldInfo.GetName(), relationInfo)
 		if relationErr != nil {
 			err = relationErr
 			return err
@@ -82,8 +82,8 @@ func (s *orm) Insert(obj interface{}) (err error) {
 	}
 
 	fields := modelInfo.GetDependField()
-	for _, val := range fields {
-		err = s.insertRelation(modelInfo, val)
+	for _, field := range fields {
+		err = s.insertRelation(modelInfo, field)
 		if err != nil {
 			return
 		}

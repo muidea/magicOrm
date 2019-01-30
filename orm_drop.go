@@ -51,27 +51,27 @@ func (s *orm) Drop(obj interface{}) (err error) {
 	}
 
 	fields := modelInfo.GetDependField()
-	for _, val := range fields {
-		fType := val.GetType()
+	for _, field := range fields {
+		fType := field.GetType()
 		fDepend := fType.Depend()
 		if fDepend == nil {
 			continue
 		}
 
-		infoVal, infoErr := s.modelProvider.GetTypeModel(fDepend.Type())
-		if infoErr != nil {
-			err = infoErr
+		relationInfo, relationErr := s.modelProvider.GetTypeModel(fDepend.Type())
+		if relationErr != nil {
+			err = relationErr
 			return
 		}
 
 		if !fDepend.IsPtr() {
-			err = s.dropSingle(infoVal)
+			err = s.dropSingle(relationInfo)
 			if err != nil {
 				return
 			}
 		}
 
-		err = s.dropRelation(modelInfo, val.GetName(), infoVal)
+		err = s.dropRelation(modelInfo, field.GetName(), relationInfo)
 		if err != nil {
 			return
 		}

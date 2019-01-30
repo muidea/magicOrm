@@ -47,8 +47,8 @@ func (s *orm) Update(obj interface{}) (err error) {
 	}
 
 	fields := modelInfo.GetDependField()
-	for _, val := range fields {
-		err = s.updateRelation(modelInfo, val)
+	for _, field := range fields {
+		err = s.updateRelation(modelInfo, field)
 		if err != nil {
 			return
 		}
