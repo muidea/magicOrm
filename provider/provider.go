@@ -18,8 +18,8 @@ type Provider interface {
 	GetValueStr(val reflect.Value) (ret string, err error)
 }
 
-// New model provider
-func New() Provider {
+// NewProvider model provider
+func NewProvider() Provider {
 	cache := model.NewCache()
 	return local.New(cache)
 }

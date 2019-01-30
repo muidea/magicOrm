@@ -16,7 +16,7 @@ func verifyFieldInfo(fieldInfo model.Field) error {
 	return nil
 }
 
-func verifyStructInfo(modelInfo model.Model) error {
+func verifyModelInfo(modelInfo model.Model) error {
 	name := modelInfo.GetName()
 	if IsKeyWord(name) {
 		return fmt.Errorf("illegal structName, is a key word.[%s]", name)

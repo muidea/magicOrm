@@ -18,7 +18,7 @@ type manager struct {
 }
 
 func newManager() *manager {
-	return &manager{modelProvider: provider.New()}
+	return &manager{modelProvider: provider.NewProvider()}
 }
 
 func (s *manager) updateServerConfig(cfg *serverConfig) {

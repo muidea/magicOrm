@@ -1,8 +1,8 @@
 package builder
 
 import (
+	"muidea.com/magicOrm/database/mysql"
 	"muidea.com/magicOrm/model"
-	"muidea.com/magicOrm/mysql"
 	"muidea.com/magicOrm/provider"
 )
 

@@ -1,6 +1,6 @@
 package executor
 
-import "muidea.com/magicOrm/mysql"
+import "muidea.com/magicOrm/database/mysql"
 
 // Executor 数据库访问对象
 type Executor interface {
