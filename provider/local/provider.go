@@ -53,6 +53,11 @@ func (s *Provider) GetValueStr(value reflect.Value) (ret string, err error) {
 	return
 }
 
+// Reset Reset
+func (s *Provider) Reset() {
+	s.modelCache.Reset()
+}
+
 func getBasicValStr(value reflect.Value) (ret string, err error) {
 	switch value.Kind() {
 	case reflect.Slice, reflect.Struct:

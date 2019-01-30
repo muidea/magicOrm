@@ -11,24 +11,24 @@ type serverConfig struct {
 	dbName   string
 }
 
-type manager struct {
+type ormConfig struct {
 	serverConfig *serverConfig
 
 	modelProvider provider.Provider
 }
 
-func newManager() *manager {
-	return &manager{modelProvider: provider.NewProvider()}
+func newConfig() *ormConfig {
+	return &ormConfig{modelProvider: provider.NewProvider()}
 }
 
-func (s *manager) updateServerConfig(cfg *serverConfig) {
+func (s *ormConfig) updateServerConfig(cfg *serverConfig) {
 	s.serverConfig = cfg
 }
 
-func (s *manager) getServerConfig() *serverConfig {
+func (s *ormConfig) getServerConfig() *serverConfig {
 	return s.serverConfig
 }
 
-func (s *manager) getProvider() provider.Provider {
+func (s *ormConfig) getProvider() provider.Provider {
 	return s.modelProvider
 }

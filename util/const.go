@@ -7,22 +7,39 @@ import (
 
 // Define the Type enum
 const (
+	// bool
 	TypeBooleanField = 1 << iota
+	// string
 	TypeStringField
+	// time.Time
 	TypeDateTimeField
+	// int8
 	TypeBitField
+	// int16
 	TypeSmallIntegerField
+	// int32
 	TypeInteger32Field
+	// int
 	TypeIntegerField
+	// int64
 	TypeBigIntegerField
+	// uint8
 	TypePositiveBitField
+	// uint16
 	TypePositiveSmallIntegerField
+	// uint32
 	TypePositiveInteger32Field
+	// uint
 	TypePositiveIntegerField
+	// uint64
 	TypePositiveBigIntegerField
+	// float32
 	TypeFloatField
+	// float64
 	TypeDoubleField
+	// struct
 	TypeStructField
+	// slice
 	TypeSliceField
 )
 
@@ -42,15 +59,15 @@ func IsSliceType(typeValue int) bool {
 }
 
 // GetBasicTypeInitValue GetBasicTypeInitValue
-func GetBasicTypeInitValue(typeValue int) (ret interface{}) {
+func GetBasicTypeInitValue(typeValue int) (ret interface{}, err error) {
 	switch typeValue {
 	case TypeBooleanField,
 		TypeBitField, TypeSmallIntegerField, TypeIntegerField, TypeInteger32Field, TypeBigIntegerField:
-		val := 0
+		val := int64(0)
 		ret = &val
 		break
 	case TypePositiveBitField, TypePositiveSmallIntegerField, TypePositiveIntegerField, TypePositiveInteger32Field, TypePositiveBigIntegerField:
-		val := uint(0)
+		val := uint64(0)
 		ret = &val
 		break
 	case TypeStringField, TypeDateTimeField:
@@ -58,7 +75,7 @@ func GetBasicTypeInitValue(typeValue int) (ret interface{}) {
 		ret = &val
 		break
 	case TypeFloatField, TypeDoubleField:
-		val := 0.00
+		val := float64(0.00)
 		ret = &val
 		break
 	case TypeStructField:
@@ -68,52 +85,52 @@ func GetBasicTypeInitValue(typeValue int) (ret interface{}) {
 		val := ""
 		ret = &val
 	default:
-		msg := fmt.Sprintf("no support fileType, %d", typeValue)
-		panic(msg)
+		err = fmt.Errorf("no support fileType, %d", typeValue)
 	}
+
 	return
 }
 
 // GetTypeValueEnum return field type as type constant from reflect.Value
-func GetTypeValueEnum(val reflect.Type) (ft int, err error) {
+func GetTypeValueEnum(val reflect.Type) (ret int, err error) {
 	switch val.Kind() {
 	case reflect.Int8:
-		ft = TypeBitField
+		ret = TypeBitField
 	case reflect.Uint8:
-		ft = TypePositiveBitField
+		ret = TypePositiveBitField
 	case reflect.Int16:
-		ft = TypeSmallIntegerField
+		ret = TypeSmallIntegerField
 	case reflect.Uint16:
-		ft = TypePositiveSmallIntegerField
+		ret = TypePositiveSmallIntegerField
 	case reflect.Int32:
-		ft = TypeInteger32Field
+		ret = TypeInteger32Field
 	case reflect.Uint32:
-		ft = TypePositiveInteger32Field
+		ret = TypePositiveInteger32Field
 	case reflect.Int64:
-		ft = TypeBigIntegerField
+		ret = TypeBigIntegerField
 	case reflect.Uint64:
-		ft = TypePositiveBigIntegerField
+		ret = TypePositiveBigIntegerField
 	case reflect.Int:
-		ft = TypeIntegerField
+		ret = TypeIntegerField
 	case reflect.Uint:
-		ft = TypePositiveIntegerField
+		ret = TypePositiveIntegerField
 	case reflect.Float32:
-		ft = TypeFloatField
+		ret = TypeFloatField
 	case reflect.Float64:
-		ft = TypeDoubleField
+		ret = TypeDoubleField
 	case reflect.Bool:
-		ft = TypeBooleanField
+		ret = TypeBooleanField
 	case reflect.String:
-		ft = TypeStringField
+		ret = TypeStringField
 	case reflect.Struct:
 		switch val.String() {
 		case "time.Time":
-			ft = TypeDateTimeField
+			ret = TypeDateTimeField
 		default:
-			ft = TypeStructField
+			ret = TypeStructField
 		}
 	case reflect.Slice:
-		ft = TypeSliceField
+		ret = TypeSliceField
 	default:
 		err = fmt.Errorf("unsupport field type:[%v], may be miss setting tag", val.String())
 	}

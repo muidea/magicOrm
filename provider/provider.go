@@ -16,6 +16,8 @@ type Provider interface {
 	GetValueModel(modelVal reflect.Value) (ret model.Model, err error)
 
 	GetValueStr(val reflect.Value) (ret string, err error)
+
+	Reset()
 }
 
 // NewProvider model provider

@@ -20,10 +20,10 @@ type Orm interface {
 	Release()
 }
 
-var ormManager *manager
+var _config *ormConfig
 
 func init() {
-	ormManager = newManager()
+	_config = newConfig()
 }
 
 type orm struct {
@@ -35,7 +35,7 @@ type orm struct {
 func Initialize(user, password, address, dbName string) error {
 	cfg := &serverConfig{user: user, password: password, address: address, dbName: dbName}
 
-	ormManager.updateServerConfig(cfg)
+	_config.updateServerConfig(cfg)
 
 	return nil
 }
@@ -47,12 +47,12 @@ func Uninitialize() {
 
 // NewFilter create new filter
 func NewFilter() model.Filter {
-	return &queryFilter{params: map[string]model.FilterItem{}, modelProvider: ormManager.getProvider()}
+	return &queryFilter{params: map[string]model.FilterItem{}, modelProvider: _config.getProvider()}
 }
 
 // New create new Orm
 func New() (Orm, error) {
-	cfg := ormManager.getServerConfig()
+	cfg := _config.getServerConfig()
 	if cfg == nil {
 		return nil, fmt.Errorf("not define databaes server config")
 	}
@@ -62,7 +62,7 @@ func New() (Orm, error) {
 		return nil, err
 	}
 
-	return &orm{executor: executor, modelProvider: ormManager.getProvider()}, nil
+	return &orm{executor: executor, modelProvider: _config.getProvider()}, nil
 }
 
 func (s *orm) Release() {

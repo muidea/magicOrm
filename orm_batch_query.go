@@ -30,22 +30,26 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 
 		items := []interface{}{}
 		fields := newStructInfo.GetFields()
-		for _, val := range *fields {
-			fType := val.GetType()
+		for _, field := range *fields {
+			fType := field.GetType()
 
 			dependType := fType.Depend()
 			if dependType != nil {
 				continue
 			}
 
-			v := util.GetBasicTypeInitValue(fType.Value())
-			items = append(items, v)
+			fieldVal, fieldErr := util.GetBasicTypeInitValue(fType.Value())
+			if fieldErr != nil {
+				err = fieldErr
+				return
+			}
+			items = append(items, fieldVal)
 		}
 		s.executor.GetField(items...)
 
 		idx := 0
-		for _, val := range *fields {
-			fType := val.GetType()
+		for _, field := range *fields {
+			fType := field.GetType()
 
 			dependType := fType.Depend()
 			if dependType != nil {
@@ -53,7 +57,7 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 			}
 
 			v := items[idx]
-			err = val.SetValue(reflect.Indirect(reflect.ValueOf(v)))
+			err = field.SetValue(reflect.Indirect(reflect.ValueOf(v)))
 			if err != nil {
 				return
 			}

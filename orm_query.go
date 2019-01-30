@@ -25,22 +25,27 @@ func (s *orm) querySingle(modelInfo model.Model) (err error) {
 
 	items := []interface{}{}
 	fields := modelInfo.GetFields()
-	for _, val := range *fields {
-		fType := val.GetType()
+	for _, item := range *fields {
+		fType := item.GetType()
 
 		dependType := fType.Depend()
 		if dependType != nil {
 			continue
 		}
 
-		v := util.GetBasicTypeInitValue(fType.Value())
-		items = append(items, v)
+		itemVal, itemErr := util.GetBasicTypeInitValue(fType.Value())
+		if itemErr != nil {
+			err = itemErr
+			return
+		}
+
+		items = append(items, itemVal)
 	}
 	s.executor.GetField(items...)
 
 	idx := 0
-	for _, val := range *fields {
-		fType := val.GetType()
+	for _, item := range *fields {
+		fType := item.GetType()
 
 		dependType := fType.Depend()
 		if dependType != nil {
@@ -48,7 +53,7 @@ func (s *orm) querySingle(modelInfo model.Model) (err error) {
 		}
 
 		v := items[idx]
-		err = val.SetValue(reflect.Indirect(reflect.ValueOf(v)))
+		err = item.SetValue(reflect.Indirect(reflect.ValueOf(v)))
 		if err != nil {
 			return err
 		}
@@ -107,7 +112,7 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field, relati
 	} else if util.IsSliceType(fType.Value()) {
 		relationType := fType.Type()
 		relationVal := reflect.New(relationType).Elem()
-		for _, val := range values {
+		for _, item := range values {
 			fDepend := fType.Depend()
 			fDependType := fDepend.Type()
 			itemVal := reflect.New(fDependType)
@@ -118,7 +123,7 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field, relati
 				return
 			}
 
-			itemInfo.GetPrimaryField().SetValue(reflect.ValueOf(val))
+			itemInfo.GetPrimaryField().SetValue(reflect.ValueOf(item))
 			err = s.querySingle(itemInfo)
 			if err != nil {
 				return
@@ -150,8 +155,8 @@ func (s *orm) Query(obj interface{}) (err error) {
 	}
 
 	fields := modelInfo.GetDependField()
-	for _, val := range fields {
-		fType := val.GetType()
+	for _, item := range fields {
+		fType := item.GetType()
 		fDepend := fType.Depend()
 
 		if fDepend == nil {
@@ -163,7 +168,7 @@ func (s *orm) Query(obj interface{}) (err error) {
 			err = infoErr
 			return
 		}
-		err = s.queryRelation(modelInfo, val, infoVal)
+		err = s.queryRelation(modelInfo, item, infoVal)
 		if err != nil {
 			return
 		}
