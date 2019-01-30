@@ -22,14 +22,14 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 	defer s.executor.Finish()
 	for s.executor.Next() {
 		newVal := modelInfo.Interface()
-		newStructInfo, newErr := s.modelProvider.GetValueModel(newVal)
+		newModelInfo, newErr := s.modelProvider.GetValueModel(newVal)
 		if newErr != nil {
 			err = newErr
 			return
 		}
 
 		items := []interface{}{}
-		fields := newStructInfo.GetFields()
+		fields := newModelInfo.GetFields()
 		for _, field := range *fields {
 			fType := field.GetType()
 
@@ -85,9 +85,9 @@ func (s *orm) BatchQuery(sliceObj interface{}, filter model.Filter) (err error) 
 		return
 	}
 	rawType = rawType.Elem()
-	modelInfo, structErr := s.modelProvider.GetTypeModel(rawType)
-	if structErr != nil {
-		err = structErr
+	modelInfo, modelErr := s.modelProvider.GetTypeModel(rawType)
+	if modelErr != nil {
+		err = modelErr
 		log.Printf("GetTypeModel failed, err:%s", err.Error())
 		return
 	}

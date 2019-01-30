@@ -56,20 +56,20 @@ func (s *orm) batchCreateSchema(modelInfo model.Model) (err error) {
 			continue
 		}
 
-		infoVal, infoErr := s.modelProvider.GetTypeModel(fDepend.Type())
-		if infoErr != nil {
-			err = infoErr
+		relationInfo, relationErr := s.modelProvider.GetTypeModel(fDepend.Type())
+		if relationErr != nil {
+			err = relationErr
 			return
 		}
 
 		if !fDepend.IsPtr() {
-			err = s.createSchema(infoVal)
+			err = s.createSchema(relationInfo)
 			if err != nil {
 				return
 			}
 		}
 
-		err = s.createRelationSchema(modelInfo, val.GetName(), infoVal)
+		err = s.createRelationSchema(modelInfo, val.GetName(), relationInfo)
 		if err != nil {
 			return
 		}
@@ -79,16 +79,13 @@ func (s *orm) batchCreateSchema(modelInfo model.Model) (err error) {
 }
 
 func (s *orm) Create(obj interface{}) (err error) {
-	modelInfo, structErr := s.modelProvider.GetObjectModel(obj)
-	if structErr != nil {
-		err = structErr
+	modelInfo, modelErr := s.modelProvider.GetObjectModel(obj)
+	if modelErr != nil {
+		err = modelErr
 		log.Printf("GetObjectModel failed, err:%s", err.Error())
 		return
 	}
 
 	err = s.batchCreateSchema(modelInfo)
-	if err != nil {
-		return
-	}
 	return
 }

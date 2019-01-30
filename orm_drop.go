@@ -38,9 +38,9 @@ func (s *orm) dropRelation(modelInfo model.Model, fieldName string, relationInfo
 }
 
 func (s *orm) Drop(obj interface{}) (err error) {
-	modelInfo, structErr := s.modelProvider.GetObjectModel(obj)
-	if structErr != nil {
-		err = structErr
+	modelInfo, modelErr := s.modelProvider.GetObjectModel(obj)
+	if modelErr != nil {
+		err = modelErr
 		log.Printf("GetObjectModel failed, err:%s", err.Error())
 		return
 	}

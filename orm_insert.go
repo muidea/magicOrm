@@ -68,9 +68,9 @@ func (s *orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 }
 
 func (s *orm) Insert(obj interface{}) (err error) {
-	modelInfo, structErr := s.modelProvider.GetObjectModel(obj)
-	if structErr != nil {
-		err = structErr
+	modelInfo, modelErr := s.modelProvider.GetObjectModel(obj)
+	if modelErr != nil {
+		err = modelErr
 		log.Printf("GetObjectModel failed, err:%s", err.Error())
 		return
 	}
