@@ -70,7 +70,7 @@ func TestBuilderCommon(t *testing.T) {
 	if err != nil {
 		t.Errorf("build insert failed, err:%s", err.Error())
 	}
-	if str != "INSERT INTO `Unit` (`name`,`value`,`ts`) VALUES ('Hello world',12.345600,'2018-01-02 15:04:05');" {
+	if str != "INSERT INTO `Unit` (`name`,`value`,`ts`) VALUES ('Hello world',12.345600,'2018-01-02 15:04:05')" {
 		t.Error("build insert failed")
 	}
 
@@ -140,7 +140,7 @@ func TestBuilderReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build insert failed, err:%s", err.Error())
 	}
-	if str != "INSERT INTO `Ext` (`name`) VALUES ('');" {
+	if str != "INSERT INTO `Ext` (`name`) VALUES ('')" {
 		t.Error("build insert failed")
 	}
 
@@ -212,7 +212,7 @@ func TestBuilderReference2(t *testing.T) {
 	if err != nil {
 		t.Errorf("build insert failed, err:%s", err.Error())
 	}
-	if str != "INSERT INTO `Ext` (`name`,`description`) VALUES ('','Desc');" {
+	if str != "INSERT INTO `Ext` (`name`,`description`) VALUES ('','Desc')" {
 		t.Error("build insert failed")
 	}
 

@@ -10,11 +10,9 @@ import (
 // BuildInsert  BuildInsert
 func (s *Builder) BuildInsert() (ret string, err error) {
 	sql := ""
-	vals, verr := s.getFieldInsertValues(s.modelInfo)
+	val, verr := s.getFieldInsertValues(s.modelInfo)
 	if verr == nil {
-		for _, val := range vals {
-			sql = fmt.Sprintf("%sINSERT INTO `%s` (%s) VALUES (%s);", sql, s.getTableName(s.modelInfo), s.getFieldInsertNames(s.modelInfo), val)
-		}
+		sql = fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.getTableName(s.modelInfo), s.getFieldInsertNames(s.modelInfo), val)
 		log.Print(sql)
 		ret = sql
 	}
@@ -70,7 +68,7 @@ func (s *Builder) getFieldInsertNames(info model.Model) string {
 	return str
 }
 
-func (s *Builder) getFieldInsertValues(info model.Model) (ret []string, err error) {
+func (s *Builder) getFieldInsertValues(info model.Model) (ret string, err error) {
 	str := ""
 	for _, field := range *info.GetFields() {
 		fTag := field.GetTag()
@@ -106,7 +104,7 @@ func (s *Builder) getFieldInsertValues(info model.Model) (ret []string, err erro
 		}
 	}
 
-	ret = append(ret, str)
+	ret = str
 
 	return
 }
