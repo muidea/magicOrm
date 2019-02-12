@@ -12,8 +12,8 @@ type ItemTag struct {
 	Tag string `json:"tag"`
 }
 
-// Name Name
-func (s *ItemTag) Name() (ret string) {
+// GetName Name
+func (s *ItemTag) GetName() (ret string) {
 	items := strings.Split(s.Tag, " ")
 	ret = items[0]
 
@@ -71,7 +71,7 @@ func (s *ItemTag) IsAutoIncrement() (ret bool) {
 }
 
 func (s *ItemTag) String() (ret string) {
-	return fmt.Sprintf("name=%s key=%v auto=%v", s.Name(), s.IsPrimaryKey(), s.IsAutoIncrement())
+	return fmt.Sprintf("name=%s key=%v auto=%v", s.GetName(), s.IsPrimaryKey(), s.IsAutoIncrement())
 }
 
 // Copy Copy

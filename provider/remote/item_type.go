@@ -14,31 +14,31 @@ type ItemType struct {
 	Depend    *Info  `json:"depend"`
 }
 
-func (s *ItemType) Name() (ret string) {
+func (s *ItemType) GetName() (ret string) {
 	return
 }
 
-func (s *ItemType) Value() (ret int) {
+func (s *ItemType) GetValue() (ret int) {
 	return
 }
 
-func (s *ItemType) IsPtr() (ret bool) {
+func (s *ItemType) GetPkgPath() (ret string) {
 	return
 }
 
-func (s *ItemType) PkgPath() (ret string) {
+func (s *ItemType) GetType() (ret reflect.Type) {
+	return
+}
+
+func (s *ItemType) GetDepend() (ret model.FieldType) {
+	return
+}
+
+func (s *ItemType) IsPtrType() (ret bool) {
 	return
 }
 
 func (s *ItemType) String() (ret string) {
-	return
-}
-
-func (s *ItemType) Type() (ret reflect.Type) {
-	return
-}
-
-func (s *ItemType) Depend() (ret model.FieldType) {
 	return
 }
 
