@@ -84,6 +84,6 @@ func GetModelValueStr(val reflect.Value) (ret string, err error) {
 		return
 	}
 
-	ret, err = pkField.GetValue().ValueStr()
+	ret, err = pkField.GetValue().GetValueStr()
 	return
 }

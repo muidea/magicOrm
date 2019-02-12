@@ -17,9 +17,9 @@ func (s *Builder) BuildQuery() (ret string, err error) {
 
 	pkfValue := pk.GetValue()
 	pkfTag := pk.GetTag()
-	pkfStr, pkferr := pkfValue.ValueStr()
+	pkfStr, pkferr := pkfValue.GetValueStr()
 	if pkferr == nil {
-		ret = fmt.Sprintf("SELECT %s FROM `%s` WHERE `%s`=%s", s.getFieldQueryNames(s.modelInfo), s.getTableName(s.modelInfo), pkfTag.Name(), pkfStr)
+		ret = fmt.Sprintf("SELECT %s FROM `%s` WHERE `%s`=%s", s.getFieldQueryNames(s.modelInfo), s.getTableName(s.modelInfo), pkfTag.GetName(), pkfStr)
 		log.Print(ret)
 	}
 	err = pkferr
@@ -36,7 +36,7 @@ func (s *Builder) BuildQueryRelation(fieldName string, relationInfo model.Model)
 	}
 
 	pkfValue := pk.GetValue()
-	pkfStr, pkferr := pkfValue.ValueStr()
+	pkfStr, pkferr := pkfValue.GetValueStr()
 	if pkferr == nil {
 		ret = fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= %s", s.GetRelationTableName(fieldName, relationInfo), pkfStr)
 		log.Print(ret)
@@ -49,19 +49,19 @@ func (s *Builder) BuildQueryRelation(fieldName string, relationInfo model.Model)
 
 func (s *Builder) getFieldQueryNames(info model.Model) string {
 	str := ""
-	for _, field := range *s.modelInfo.GetFields() {
+	for _, field := range s.modelInfo.GetFields() {
 		fTag := field.GetTag()
 		fType := field.GetType()
 
-		dependType := fType.Depend()
+		dependType := fType.GetDepend()
 		if dependType != nil {
 			continue
 		}
 
 		if str == "" {
-			str = fmt.Sprintf("`%s`", fTag.Name())
+			str = fmt.Sprintf("`%s`", fTag.GetName())
 		} else {
-			str = fmt.Sprintf("%s,`%s`", str, fTag.Name())
+			str = fmt.Sprintf("%s,`%s`", str, fTag.GetName())
 		}
 	}
 

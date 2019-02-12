@@ -61,12 +61,12 @@ func (s *fieldInfo) SetValue(val reflect.Value) (err error) {
 
 // Verify Verify
 func (s *fieldInfo) Verify() error {
-	if s.fieldTag.Name() == "" {
+	if s.fieldTag.GetName() == "" {
 		return fmt.Errorf("no define field tag")
 	}
 
 	if s.fieldTag.IsAutoIncrement() {
-		switch s.fieldType.Value() {
+		switch s.fieldType.GetValue() {
 		case util.TypeBooleanField, util.TypeStringField, util.TypeDateTimeField, util.TypeFloatField, util.TypeDoubleField, util.TypeStructField, util.TypeSliceField:
 			return fmt.Errorf("illegal auto_increment field type, type:%s", s.fieldType)
 		default:
@@ -74,7 +74,7 @@ func (s *fieldInfo) Verify() error {
 	}
 
 	if s.fieldTag.IsPrimaryKey() {
-		switch s.fieldType.Value() {
+		switch s.fieldType.GetValue() {
 		case util.TypeStructField, util.TypeSliceField:
 			return fmt.Errorf("illegal primary key field type, type:%s", s.fieldType)
 		default:
@@ -103,7 +103,7 @@ func (s *fieldInfo) Copy() model.Field {
 func (s *fieldInfo) Dump() string {
 	str := fmt.Sprintf("index:[%d],name:[%s],type:[%s],tag:[%s]", s.fieldIndex, s.fieldName, s.fieldType, s.fieldTag)
 	if s.fieldValue != nil {
-		valStr, _ := s.fieldValue.ValueStr()
+		valStr, _ := s.fieldValue.GetValueStr()
 
 		str = fmt.Sprintf("%s,value:[%s]", str, valStr)
 	}

@@ -47,7 +47,7 @@ func (s *sliceImpl) Get() (reflect.Value, error) {
 	return s.value, nil
 }
 
-func (s *sliceImpl) Depend() (ret []reflect.Value, err error) {
+func (s *sliceImpl) GetDepend() (ret []reflect.Value, err error) {
 	if s.value.Kind() == reflect.Ptr {
 		if s.value.IsNil() {
 			return
@@ -79,7 +79,7 @@ func (s *sliceImpl) Depend() (ret []reflect.Value, err error) {
 	return
 }
 
-func (s *sliceImpl) ValueStr() (ret string, err error) {
+func (s *sliceImpl) GetValueStr() (ret string, err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't get nil ptr value")
 		return
@@ -104,7 +104,7 @@ func (s *sliceImpl) ValueStr() (ret string, err error) {
 		sv = reflect.Indirect(sv)
 		if sv.Kind() == reflect.Struct {
 			datetimeVal := &datetimeImpl{value: sv}
-			datetimeStr, _ := datetimeVal.ValueStr()
+			datetimeStr, _ := datetimeVal.GetValueStr()
 			valSlice = append(valSlice, datetimeStr)
 		} else {
 			valSlice = append(valSlice, sv.Interface())

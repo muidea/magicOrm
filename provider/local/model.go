@@ -27,8 +27,8 @@ func (s *modelInfo) GetPkgPath() string {
 }
 
 // GetFields GetFields
-func (s *modelInfo) GetFields() *model.Fields {
-	return &s.fields
+func (s *modelInfo) GetFields() model.Fields {
+	return s.fields
 }
 
 // SetFieldValue SetFieldValue
@@ -64,7 +64,7 @@ func (s *modelInfo) GetPrimaryField() model.Field {
 func (s *modelInfo) GetDependField() (ret []model.Field) {
 	for _, field := range s.fields {
 		fType := field.GetType()
-		fDepend := fType.Depend()
+		fDepend := fType.GetDepend()
 		if fDepend != nil {
 			ret = append(ret, field)
 		}
@@ -156,9 +156,9 @@ func GetTypeModel(modelType reflect.Type, cache model.Cache) (ret model.Model, e
 		dependFields := modelInfo.GetDependField()
 		for _, val := range dependFields {
 			fType := val.GetType()
-			fDValue := fType.Depend()
+			fDValue := fType.GetDepend()
 			if fDValue != nil {
-				_, fDErr := GetTypeModel(fDValue.Type(), cache)
+				_, fDErr := GetTypeModel(fDValue.GetType(), cache)
 				if fDErr != nil {
 					err = fDErr
 					return

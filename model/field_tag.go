@@ -2,7 +2,7 @@ package model
 
 // FieldTag FieldTag
 type FieldTag interface {
-	Name() string
+	GetName() string
 	IsPrimaryKey() bool
 	IsAutoIncrement() bool
 	String() string

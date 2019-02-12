@@ -53,18 +53,18 @@ func (s *orm) Drop(obj interface{}) (err error) {
 	fields := modelInfo.GetDependField()
 	for _, field := range fields {
 		fType := field.GetType()
-		fDepend := fType.Depend()
+		fDepend := fType.GetDepend()
 		if fDepend == nil {
 			continue
 		}
 
-		relationInfo, relationErr := s.modelProvider.GetTypeModel(fDepend.Type())
+		relationInfo, relationErr := s.modelProvider.GetTypeModel(fDepend.GetType())
 		if relationErr != nil {
 			err = relationErr
 			return
 		}
 
-		if !fDepend.IsPtr() {
+		if !fDepend.IsPtrType() {
 			err = s.dropSingle(relationInfo)
 			if err != nil {
 				return

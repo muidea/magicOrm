@@ -30,15 +30,15 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 
 		items := []interface{}{}
 		fields := newModelInfo.GetFields()
-		for _, field := range *fields {
+		for _, field := range fields {
 			fType := field.GetType()
 
-			dependType := fType.Depend()
+			dependType := fType.GetDepend()
 			if dependType != nil {
 				continue
 			}
 
-			fieldVal, fieldErr := util.GetBasicTypeInitValue(fType.Value())
+			fieldVal, fieldErr := util.GetBasicTypeInitValue(fType.GetValue())
 			if fieldErr != nil {
 				err = fieldErr
 				return
@@ -48,10 +48,10 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 		s.executor.GetField(items...)
 
 		idx := 0
-		for _, field := range *fields {
+		for _, field := range fields {
 			fType := field.GetType()
 
-			dependType := fType.Depend()
+			dependType := fType.GetDepend()
 			if dependType != nil {
 				continue
 			}

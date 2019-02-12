@@ -1,4 +1,4 @@
-package object
+package remote
 
 import (
 	"fmt"
@@ -6,17 +6,58 @@ import (
 	"strings"
 	"time"
 
+	"muidea.com/magicOrm/model"
 	"muidea.com/magicOrm/util"
 )
 
 // Item Item
 type Item struct {
-	Name       string `json:"name"`
-	Tag        string `json:"tag"`
-	Type       int    `json:"type"`
-	IsPtr      bool   `json:"isPtr"`
-	DependInfo *Info  `json:"dependInfo"`
-	value      interface{}
+	Index int    `json:"index"`
+	Name  string `json:"name"`
+
+	Tag   ItemTag  `json:"tag"`
+	Type  ItemType `json:"type"`
+	value interface{}
+}
+
+// GetIndex GetIndex
+func (s *Item) GetIndex() (ret int) {
+	return s.Index
+}
+
+// GetName GetName
+func (s *Item) GetName() string {
+	return s.Name
+}
+
+// GetType GetType
+func (s *Item) GetType() (ret model.FieldType) {
+	return
+}
+
+// GetTag GetTag
+func (s *Item) GetTag() (ret model.FieldTag) {
+	return
+}
+
+// GetValue GetValue
+func (s *Item) GetValue() (ret model.FieldValue) {
+	return
+}
+
+// SetValue SetValue
+func (s *Item) SetValue(val reflect.Value) (err error) {
+	return
+}
+
+// Copy Copy
+func (s *Item) Copy() (ret model.Field) {
+	return
+}
+
+// Dump Dump
+func (s *Item) Dump() (ret string) {
+	return
 }
 
 // GetVal get value
@@ -30,7 +71,7 @@ func (s *Item) SetVal(val interface{}) (err error) {
 	rawVal = reflect.Indirect(rawVal)
 	switch rawVal.Kind() {
 	case reflect.Bool:
-		switch s.Type {
+		switch s.Type.Value {
 		case util.TypeBooleanField:
 			s.value = rawVal.Interface().(bool)
 		default:
@@ -38,7 +79,7 @@ func (s *Item) SetVal(val interface{}) (err error) {
 			return
 		}
 	case reflect.Float64:
-		switch s.Type {
+		switch s.Type.Value {
 		case util.TypeBitField:
 			s.value = int8(rawVal.Interface().(float64))
 		case util.TypePositiveBitField:
@@ -68,7 +109,7 @@ func (s *Item) SetVal(val interface{}) (err error) {
 			return
 		}
 	case reflect.String:
-		switch s.Type {
+		switch s.Type.Value {
 		case util.TypeStringField:
 			s.value = rawVal.Interface().(string)
 		case util.TypeDateTimeField:
@@ -83,7 +124,7 @@ func (s *Item) SetVal(val interface{}) (err error) {
 			return
 		}
 	case reflect.Map:
-		switch s.Type {
+		switch s.Type.Value {
 		case util.TypeStructField:
 			s.value = val
 		default:
@@ -91,7 +132,7 @@ func (s *Item) SetVal(val interface{}) (err error) {
 			return
 		}
 	case reflect.Slice:
-		switch s.Type {
+		switch s.Type.Value {
 		case util.TypeSliceField:
 			s.value = val
 		default:
@@ -104,19 +145,9 @@ func (s *Item) SetVal(val interface{}) (err error) {
 	return
 }
 
-// GetName GetName
-func (s *Item) GetName() string {
-	items := strings.Split(s.Tag, " ")
-	if len(items) < 1 {
-		return ""
-	}
-
-	return items[0]
-}
-
 // GetDepend GetDepend
 func (s *Item) GetDepend() *Info {
-	return s.DependInfo
+	return s.Type.Depend
 }
 
 // IsPrimary is primary key

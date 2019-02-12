@@ -12,14 +12,14 @@ type typeImpl struct {
 	typeImpl reflect.Type
 }
 
-func (s *typeImpl) Name() string {
+func (s *typeImpl) GetName() string {
 	if s.typeImpl.Kind() == reflect.Ptr {
 		return s.typeImpl.Elem().Name()
 	}
 	return s.typeImpl.Name()
 }
 
-func (s *typeImpl) Value() (ret int) {
+func (s *typeImpl) GetValue() (ret int) {
 	if s.typeImpl.Kind() == reflect.Ptr {
 		ret, _ = util.GetTypeValueEnum(s.typeImpl.Elem())
 		return
@@ -29,22 +29,14 @@ func (s *typeImpl) Value() (ret int) {
 	return
 }
 
-func (s *typeImpl) IsPtr() bool {
-	return s.typeImpl.Kind() == reflect.Ptr
-}
-
-func (s *typeImpl) PkgPath() string {
+func (s *typeImpl) GetPkgPath() string {
 	if s.typeImpl.Kind() == reflect.Ptr {
 		return s.typeImpl.Elem().PkgPath()
 	}
 	return s.typeImpl.PkgPath()
 }
 
-func (s *typeImpl) String() string {
-	return fmt.Sprintf("val:%d,name:%s,pkgPath:%s,isPtr:%v", s.Value(), s.Name(), s.PkgPath(), s.IsPtr())
-}
-
-func (s *typeImpl) Type() reflect.Type {
+func (s *typeImpl) GetType() reflect.Type {
 	if s.typeImpl.Kind() == reflect.Ptr {
 		return s.typeImpl.Elem()
 	}
@@ -52,7 +44,7 @@ func (s *typeImpl) Type() reflect.Type {
 	return s.typeImpl
 }
 
-func (s *typeImpl) Depend() model.FieldType {
+func (s *typeImpl) GetDepend() model.FieldType {
 	rawVal := s.typeImpl
 	if rawVal.Kind() == reflect.Ptr {
 		rawVal = rawVal.Elem()
@@ -77,6 +69,14 @@ func (s *typeImpl) Depend() model.FieldType {
 	}
 
 	return nil
+}
+
+func (s *typeImpl) IsPtrType() bool {
+	return s.typeImpl.Kind() == reflect.Ptr
+}
+
+func (s *typeImpl) String() string {
+	return fmt.Sprintf("val:%d,name:%s,pkgPath:%s,isPtr:%v", s.GetValue(), s.GetName(), s.GetPkgPath(), s.IsPtrType())
 }
 
 func (s *typeImpl) Copy() model.FieldType {

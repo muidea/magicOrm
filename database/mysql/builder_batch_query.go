@@ -30,7 +30,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 	relationFilterSQL := ""
 	params := filter.Items()
 	fields := s.modelInfo.GetFields()
-	for _, field := range *fields {
+	for _, field := range fields {
 		filterItem, ok := params[field.GetName()]
 		if !ok {
 			continue
@@ -43,9 +43,9 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 			return
 		}
 
-		fDepend := fType.Depend()
+		fDepend := fType.GetDepend()
 		if fDepend != nil {
-			dependInfo, dependErr := s.modelProvider.GetTypeModel(fDepend.Type())
+			dependInfo, dependErr := s.modelProvider.GetTypeModel(fDepend.GetType())
 			if dependErr != nil {
 				err = dependErr
 				return
@@ -90,7 +90,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 	if relationFilterSQL != "" {
 		pk := s.modelInfo.GetPrimaryField()
 		fTag := pk.GetTag()
-		relationFilterSQL = fmt.Sprintf("`%s` IN (SELECT DISTINCT(`id`) FROM (%s) ids)", fTag.Name(), relationFilterSQL)
+		relationFilterSQL = fmt.Sprintf("`%s` IN (SELECT DISTINCT(`id`) FROM (%s) ids)", fTag.GetName(), relationFilterSQL)
 
 		ret = fmt.Sprintf("%s AND %s", filterSQL, relationFilterSQL)
 	}

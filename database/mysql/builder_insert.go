@@ -37,7 +37,7 @@ func (s *Builder) BuildInsertRelation(fieldName string, relationInfo model.Model
 
 func (s *Builder) getFieldInsertNames(info model.Model) string {
 	str := ""
-	for _, field := range *s.modelInfo.GetFields() {
+	for _, field := range s.modelInfo.GetFields() {
 		fTag := field.GetTag()
 		if fTag.IsAutoIncrement() {
 			continue
@@ -49,19 +49,19 @@ func (s *Builder) getFieldInsertNames(info model.Model) string {
 			continue
 		}
 
-		if fType.IsPtr() && fValue.IsNil() {
+		if fType.IsPtrType() && fValue.IsNil() {
 			continue
 		}
 
-		dependType := fType.Depend()
+		dependType := fType.GetDepend()
 		if dependType != nil {
 			continue
 		}
 
 		if str == "" {
-			str = fmt.Sprintf("`%s`", fTag.Name())
+			str = fmt.Sprintf("`%s`", fTag.GetName())
 		} else {
-			str = fmt.Sprintf("%s,`%s`", str, fTag.Name())
+			str = fmt.Sprintf("%s,`%s`", str, fTag.GetName())
 		}
 	}
 
@@ -70,7 +70,7 @@ func (s *Builder) getFieldInsertNames(info model.Model) string {
 
 func (s *Builder) getFieldInsertValues(info model.Model) (ret string, err error) {
 	str := ""
-	for _, field := range *info.GetFields() {
+	for _, field := range info.GetFields() {
 		fTag := field.GetTag()
 		if fTag.IsAutoIncrement() {
 			continue
@@ -82,16 +82,16 @@ func (s *Builder) getFieldInsertValues(info model.Model) (ret string, err error)
 			continue
 		}
 
-		if fType.IsPtr() && fValue.IsNil() {
+		if fType.IsPtrType() && fValue.IsNil() {
 			continue
 		}
 
-		dependType := fType.Depend()
+		dependType := fType.GetDepend()
 		if dependType != nil {
 			continue
 		}
 
-		fStr, ferr := fValue.ValueStr()
+		fStr, ferr := fValue.GetValueStr()
 		if ferr == nil {
 			if str == "" {
 				str = fmt.Sprintf("%s", fStr)

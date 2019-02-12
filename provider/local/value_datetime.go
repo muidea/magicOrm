@@ -52,12 +52,12 @@ func (s *datetimeImpl) Get() (reflect.Value, error) {
 	return s.value, nil
 }
 
-func (s *datetimeImpl) Depend() (ret []reflect.Value, err error) {
+func (s *datetimeImpl) GetDepend() (ret []reflect.Value, err error) {
 	// noting todo
 	return
 }
 
-func (s *datetimeImpl) ValueStr() (ret string, err error) {
+func (s *datetimeImpl) GetValueStr() (ret string, err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't get nil ptr value")
 		return

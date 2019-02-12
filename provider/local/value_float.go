@@ -39,12 +39,12 @@ func (s *floatImpl) Get() (reflect.Value, error) {
 	return s.value, nil
 }
 
-func (s *floatImpl) Depend() (ret []reflect.Value, err error) {
+func (s *floatImpl) GetDepend() (ret []reflect.Value, err error) {
 	// noting todo
 	return
 }
 
-func (s *floatImpl) ValueStr() (ret string, err error) {
+func (s *floatImpl) GetValueStr() (ret string, err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't get nil ptr value")
 		return

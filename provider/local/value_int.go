@@ -40,12 +40,12 @@ func (s *intImpl) Get() (reflect.Value, error) {
 	return s.value, nil
 }
 
-func (s *intImpl) Depend() (ret []reflect.Value, err error) {
+func (s *intImpl) GetDepend() (ret []reflect.Value, err error) {
 	// noting todo
 	return
 }
 
-func (s *intImpl) ValueStr() (ret string, err error) {
+func (s *intImpl) GetValueStr() (ret string, err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't get nil ptr value")
 		return
@@ -93,12 +93,12 @@ func (s *uintImpl) Get() (reflect.Value, error) {
 	return s.value, nil
 }
 
-func (s *uintImpl) Depend() (ret []reflect.Value, err error) {
+func (s *uintImpl) GetDepend() (ret []reflect.Value, err error) {
 	// noting todo
 	return
 }
 
-func (s *uintImpl) ValueStr() (ret string, err error) {
+func (s *uintImpl) GetValueStr() (ret string, err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't get nil ptr value")
 		return

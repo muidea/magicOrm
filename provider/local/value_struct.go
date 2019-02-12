@@ -43,7 +43,7 @@ func (s *structImpl) Get() (reflect.Value, error) {
 	return s.value, nil
 }
 
-func (s *structImpl) Depend() (ret []reflect.Value, err error) {
+func (s *structImpl) GetDepend() (ret []reflect.Value, err error) {
 	if s.value.Kind() == reflect.Ptr {
 		if s.value.IsNil() {
 			return
@@ -55,7 +55,7 @@ func (s *structImpl) Depend() (ret []reflect.Value, err error) {
 	return
 }
 
-func (s *structImpl) ValueStr() (ret string, err error) {
+func (s *structImpl) GetValueStr() (ret string, err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't get nil ptr value")
 		return
@@ -68,7 +68,7 @@ func (s *structImpl) ValueStr() (ret string, err error) {
 		return
 	}
 
-	ret, err = pkField.GetValue().ValueStr()
+	ret, err = pkField.GetValue().GetValueStr()
 	return
 }
 

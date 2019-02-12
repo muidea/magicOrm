@@ -26,14 +26,14 @@ func (s *orm) insertSingle(modelInfo model.Model) (err error) {
 
 func (s *orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
 	fType := fieldInfo.GetType()
-	fDepend := fType.Depend()
+	fDepend := fType.GetDepend()
 
 	fValue := fieldInfo.GetValue()
 	if fValue == nil {
 		return
 	}
 
-	fDependValue, fDependErr := fValue.Depend()
+	fDependValue, fDependErr := fValue.GetDepend()
 	if fDependErr != nil {
 		err = fDependErr
 		return
@@ -47,7 +47,7 @@ func (s *orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 			return
 		}
 
-		if !fDepend.IsPtr() {
+		if !fDepend.IsPtrType() {
 			err = s.insertSingle(relationInfo)
 			if err != nil {
 				return

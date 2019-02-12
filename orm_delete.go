@@ -25,13 +25,13 @@ func (s *orm) deleteSingle(modelInfo model.Model) (err error) {
 
 func (s *orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
 	fType := fieldInfo.GetType()
-	fDepend := fType.Depend()
+	fDepend := fType.GetDepend()
 
 	if fDepend == nil {
 		return
 	}
 
-	relationInfo, relationErr := s.modelProvider.GetTypeModel(fDepend.Type())
+	relationInfo, relationErr := s.modelProvider.GetTypeModel(fDepend.GetType())
 	if relationErr != nil {
 		err = relationErr
 		return
@@ -44,7 +44,7 @@ func (s *orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 		return
 	}
 
-	if !fDepend.IsPtr() {
+	if !fDepend.IsPtrType() {
 		s.executor.Delete(rightSQL)
 	}
 

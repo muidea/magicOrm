@@ -52,12 +52,12 @@ func (s *boolImpl) Get() (reflect.Value, error) {
 	return s.value, nil
 }
 
-func (s *boolImpl) Depend() (ret []reflect.Value, err error) {
+func (s *boolImpl) GetDepend() (ret []reflect.Value, err error) {
 	// noting todo
 	return
 }
 
-func (s *boolImpl) ValueStr() (ret string, err error) {
+func (s *boolImpl) GetValueStr() (ret string, err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't get nil ptr value")
 		return

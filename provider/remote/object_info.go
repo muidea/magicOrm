@@ -1,9 +1,10 @@
-package object
+package remote
 
 import (
 	"fmt"
 	"reflect"
 
+	"muidea.com/magicOrm/model"
 	"muidea.com/magicOrm/util"
 )
 
@@ -13,6 +14,95 @@ type Info struct {
 	PkgPath string  `json:"pkgPath"`
 	IsPtr   bool    `json:"isPtr"`
 	Items   []*Item `json:"items"`
+}
+
+// GetName GetName
+func (s *Info) GetName() (ret string) {
+	ret = s.Name
+	return
+}
+
+// GetPkgPath GetPkgPath
+func (s *Info) GetPkgPath() (ret string) {
+	ret = s.PkgPath
+	return
+}
+
+// GetFields GetFields
+func (s *Info) GetFields() (ret model.Fields) {
+	for _, val := range s.Items {
+		ret = append(ret, val)
+	}
+
+	return
+}
+
+// SetFieldValue SetFieldValue
+func (s *Info) SetFieldValue(idx int, val reflect.Value) (err error) {
+	for _, item := range s.Items {
+		if item.Index == idx {
+			err = item.SetValue(val)
+			return
+		}
+	}
+
+	return
+}
+
+// UpdateFieldValue UpdateFieldValue
+func (s *Info) UpdateFieldValue(name string, val reflect.Value) (err error) {
+	for _, item := range s.Items {
+		if item.Name == name {
+			err = item.SetValue(val)
+			return
+		}
+	}
+
+	return
+}
+
+// GetPrimaryField GetPrimaryField
+func (s *Info) GetPrimaryField() (ret model.Field) {
+	for _, v := range s.Items {
+		if v.IsPrimary() {
+			ret = v
+			return
+		}
+	}
+
+	return
+}
+
+// GetDependField GetDependField
+func (s *Info) GetDependField() (ret []model.Field) {
+	for _, v := range s.Items {
+		if v.DependInfo != nil {
+			ret = append(ret, v)
+		}
+	}
+
+	return
+}
+
+// Copy Copy
+func (s *Info) Copy() (ret model.Model) {
+	info := &Info{Name: s.Name, PkgPath: s.PkgPath, IsPtr: s.IsPtr, Items: []*Item{}}
+	for _, val := range s.Items {
+		info.Items = append(info.Items, &Item{Index: val.Index, Name: val.Name, Tag: val.Tag, Type: val.Type, IsPtr: val.IsPtr, DependInfo: val.DependInfo, value: val.value})
+	}
+
+	ret = info
+	return
+}
+
+// Interface Interface
+func (s *Info) Interface() (ret reflect.Value) {
+	return
+}
+
+// Dump Dump
+func (s *Info) Dump() {
+
 }
 
 // GetInfo GetInfo
@@ -62,7 +152,7 @@ func Type2Info(objType reflect.Type) (info Info, err error) {
 			return
 		}
 
-		fItem := &Item{Name: sf.Name, Tag: sf.Tag.Get("orm"), Type: ftVal, IsPtr: fPtr}
+		fItem := &Item{Index: idx, Name: sf.Name, Tag: sf.Tag.Get("orm"), Type: ftVal, IsPtr: fPtr}
 		if util.IsStructType(ftVal) {
 			modelInfo, structErr := Type2Info(fType)
 			if structErr != nil {

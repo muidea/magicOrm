@@ -26,7 +26,7 @@ func (s *filterItem) Verify(fType model.FieldType) (err error) {
 		valType = valType.Elem()
 	}
 
-	fieldType := fType.Type()
+	fieldType := fType.GetType()
 	if fieldType.Kind() == reflect.Ptr {
 		fieldType = fieldType.Elem()
 	}

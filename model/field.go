@@ -27,7 +27,7 @@ func (s *Fields) Append(fieldInfo Field) {
 	newField := fieldInfo.GetTag()
 	for _, val := range *s {
 		curField := val.GetTag()
-		if curField.Name() == newField.Name() {
+		if curField.GetName() == newField.GetName() {
 			exist = true
 			break
 		}

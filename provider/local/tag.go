@@ -45,7 +45,7 @@ func NewFieldTag(val string) (ret model.FieldTag, err error) {
 	return
 }
 
-func (s *tagImpl) Name() string {
+func (s *tagImpl) GetName() string {
 	return s.tagName
 }
 

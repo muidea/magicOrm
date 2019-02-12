@@ -9,7 +9,7 @@ import (
 
 func verifyFieldInfo(fieldInfo model.Field) error {
 	fTag := fieldInfo.GetTag()
-	if IsKeyWord(fTag.Name()) {
+	if IsKeyWord(fTag.GetName()) {
 		return fmt.Errorf("illegal fieldTag, is a key word.[%s]", fTag)
 	}
 
@@ -22,7 +22,7 @@ func verifyModelInfo(modelInfo model.Model) error {
 		return fmt.Errorf("illegal structName, is a key word.[%s]", name)
 	}
 
-	for _, val := range *modelInfo.GetFields() {
+	for _, val := range modelInfo.GetFields() {
 		err := verifyFieldInfo(val)
 		if err != nil {
 			return err
@@ -41,17 +41,17 @@ func declareFieldInfo(fieldInfo model.Field) string {
 
 	allowNull := "NOT NULL"
 	fType := fieldInfo.GetType()
-	if fType.IsPtr() {
+	if fType.IsPtrType() {
 		allowNull = ""
 	}
 
-	str := fmt.Sprintf("`%s` %s %s %s", fTag.Name(), getFieldType(fieldInfo), allowNull, autoIncrement)
+	str := fmt.Sprintf("`%s` %s %s %s", fTag.GetName(), getFieldType(fieldInfo), allowNull, autoIncrement)
 	return str
 }
 
 func getFieldType(info model.Field) (ret string) {
 	fType := info.GetType()
-	switch fType.Value() {
+	switch fType.GetValue() {
 	case util.TypeBooleanField:
 		ret = "TINYINT"
 		break
@@ -100,7 +100,7 @@ func getFieldType(info model.Field) (ret string) {
 	case util.TypeSliceField:
 		ret = "TEXT"
 	default:
-		msg := fmt.Sprintf("no support fileType, %d", fType.Value())
+		msg := fmt.Sprintf("no support fileType, %d", fType.GetValue())
 		panic(msg)
 	}
 

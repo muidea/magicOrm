@@ -45,22 +45,22 @@ func (s *nilImpl) Get() (ret reflect.Value, err error) {
 	return s.value, nil
 }
 
-func (s *nilImpl) Depend() (ret []reflect.Value, err error) {
+func (s *nilImpl) GetDepend() (ret []reflect.Value, err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't get nil depend")
 		return
 	}
 
-	return s.fieldValue.Depend()
+	return s.fieldValue.GetDepend()
 }
 
-func (s *nilImpl) ValueStr() (ret string, err error) {
+func (s *nilImpl) GetValueStr() (ret string, err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't get nil ptr value string")
 		return
 	}
 
-	return s.fieldValue.ValueStr()
+	return s.fieldValue.GetValueStr()
 }
 
 func (s *nilImpl) Copy() model.FieldValue {

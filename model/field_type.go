@@ -4,12 +4,12 @@ import "reflect"
 
 // FieldType FieldType
 type FieldType interface {
-	Name() string
-	Value() int
-	IsPtr() bool
-	PkgPath() string
+	GetName() string
+	GetValue() int
+	GetPkgPath() string
+	GetType() reflect.Type
+	GetDepend() FieldType
+	IsPtrType() bool
 	String() string
-	Type() reflect.Type
-	Depend() FieldType
 	Copy() FieldType
 }

@@ -10,9 +10,9 @@ import (
 // BuildCreateSchema  BuildCreateSchema
 func (s *Builder) BuildCreateSchema() (string, error) {
 	str := ""
-	for _, val := range *s.modelInfo.GetFields() {
+	for _, val := range s.modelInfo.GetFields() {
 		fType := val.GetType()
-		dependType := fType.Depend()
+		dependType := fType.GetDepend()
 		if dependType != nil {
 			continue
 		}
@@ -25,7 +25,7 @@ func (s *Builder) BuildCreateSchema() (string, error) {
 	}
 	if s.modelInfo.GetPrimaryField() != nil {
 		fTag := s.modelInfo.GetPrimaryField().GetTag()
-		str = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", str, fTag.Name())
+		str = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", str, fTag.GetName())
 	}
 
 	str = fmt.Sprintf("CREATE TABLE `%s` (\n%s\n)\n", s.getTableName(s.modelInfo), str)

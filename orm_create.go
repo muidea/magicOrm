@@ -51,18 +51,18 @@ func (s *orm) batchCreateSchema(modelInfo model.Model) (err error) {
 	fields := modelInfo.GetDependField()
 	for _, field := range fields {
 		fType := field.GetType()
-		fDepend := fType.Depend()
+		fDepend := fType.GetDepend()
 		if fDepend == nil {
 			continue
 		}
 
-		relationInfo, relationErr := s.modelProvider.GetTypeModel(fDepend.Type())
+		relationInfo, relationErr := s.modelProvider.GetTypeModel(fDepend.GetType())
 		if relationErr != nil {
 			err = relationErr
 			return
 		}
 
-		if !fDepend.IsPtr() {
+		if !fDepend.IsPtrType() {
 			err = s.createSchema(relationInfo)
 			if err != nil {
 				return
