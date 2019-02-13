@@ -8,9 +8,7 @@ import (
 )
 
 type tagImpl struct {
-	tagName         string
-	isPrimaryKey    bool
-	isAutoIncrement bool
+	tag string
 }
 
 //NewFieldTag name[key][auto]
@@ -21,50 +19,73 @@ func NewFieldTag(val string) (ret model.FieldTag, err error) {
 		return
 	}
 
-	tagName := items[0]
+	ret = &tagImpl{tag: val}
+	return
+}
+
+// GetName Name
+func (s *tagImpl) GetName() (ret string) {
+	items := strings.Split(s.tag, " ")
+	ret = items[0]
+
+	return
+}
+
+// IsPrimaryKey IsPrimaryKey
+func (s *tagImpl) IsPrimaryKey() (ret bool) {
+	items := strings.Split(s.tag, " ")
+	if len(items) <= 1 {
+		return false
+	}
+
 	isPrimaryKey := false
-	isAutoIncrement := false
 	if len(items) >= 2 {
 		switch items[1] {
 		case "key":
 			isPrimaryKey = true
-		case "auto":
-			isAutoIncrement = true
 		}
 	}
 	if len(items) >= 3 {
 		switch items[2] {
 		case "key":
 			isPrimaryKey = true
+		}
+	}
+
+	ret = isPrimaryKey
+	return
+}
+
+// IsAutoIncrement IsAutoIncrement
+func (s *tagImpl) IsAutoIncrement() (ret bool) {
+	items := strings.Split(s.tag, " ")
+	if len(items) <= 1 {
+		return false
+	}
+
+	isAutoIncrement := false
+	if len(items) >= 2 {
+		switch items[1] {
+		case "auto":
+			isAutoIncrement = true
+		}
+	}
+	if len(items) >= 3 {
+		switch items[2] {
 		case "auto":
 			isAutoIncrement = true
 		}
 	}
 
-	ret = &tagImpl{tagName: tagName, isPrimaryKey: isPrimaryKey, isAutoIncrement: isAutoIncrement}
+	ret = isAutoIncrement
 	return
 }
 
-func (s *tagImpl) GetName() string {
-	return s.tagName
+func (s *tagImpl) String() (ret string) {
+	return fmt.Sprintf("name=%s key=%v auto=%v", s.GetName(), s.IsPrimaryKey(), s.IsAutoIncrement())
 }
 
-func (s *tagImpl) IsPrimaryKey() bool {
-	return s.isPrimaryKey
-}
-
-func (s *tagImpl) IsAutoIncrement() bool {
-	return s.isAutoIncrement
-}
-
-func (s *tagImpl) String() string {
-	return fmt.Sprintf("name=%s key=%v auto=%v", s.tagName, s.isPrimaryKey, s.isAutoIncrement)
-}
-
-func (s *tagImpl) Copy() model.FieldTag {
-	return &tagImpl{
-		tagName:         s.tagName,
-		isPrimaryKey:    s.isPrimaryKey,
-		isAutoIncrement: s.isAutoIncrement,
-	}
+// Copy Copy
+func (s *tagImpl) Copy() (ret model.FieldTag) {
+	return &tagImpl{tag: s.tag}
 }
