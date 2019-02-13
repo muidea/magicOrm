@@ -79,7 +79,7 @@ func getStructValStr(value reflect.Value) (ret string, err error) {
 			ret = value.Interface().(time.Time).Format("2006-01-02 15:04:05")
 			ret = fmt.Sprintf("'%s'", ret)
 		} else {
-			ret, err = GetModelValueStr(value)
+			//ret, err = GetModelValueStr(value)
 		}
 	default:
 		err = fmt.Errorf("illegal struct type, type:%s", value.Type().String())

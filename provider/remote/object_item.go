@@ -3,7 +3,6 @@ package remote
 import (
 	"fmt"
 	"reflect"
-	"strings"
 	"time"
 
 	"muidea.com/magicOrm/model"
@@ -17,7 +16,7 @@ type Item struct {
 
 	Tag   ItemTag  `json:"tag"`
 	Type  ItemType `json:"type"`
-	value interface{}
+	value ItemValue
 }
 
 // GetIndex GetIndex
@@ -32,21 +31,25 @@ func (s *Item) GetName() string {
 
 // GetType GetType
 func (s *Item) GetType() (ret model.FieldType) {
+	ret = &s.Type
 	return
 }
 
 // GetTag GetTag
 func (s *Item) GetTag() (ret model.FieldTag) {
+	ret = &s.Tag
 	return
 }
 
 // GetValue GetValue
 func (s *Item) GetValue() (ret model.FieldValue) {
+	ret = &s.value
 	return
 }
 
 // SetValue SetValue
 func (s *Item) SetValue(val reflect.Value) (err error) {
+	err = s.value.Set(val)
 	return
 }
 
@@ -62,7 +65,7 @@ func (s *Item) Dump() (ret string) {
 
 // GetVal get value
 func (s *Item) GetVal() interface{} {
-	return s.value
+	return s.value.Value
 }
 
 // SetVal set value
@@ -73,70 +76,70 @@ func (s *Item) SetVal(val interface{}) (err error) {
 	case reflect.Bool:
 		switch s.Type.Value {
 		case util.TypeBooleanField:
-			s.value = rawVal.Interface().(bool)
+			s.value.Value = rawVal.Interface().(bool)
 		default:
-			err = fmt.Errorf("illegal value type. item type:%d, value type:%s", s.Type, rawVal.Type().String())
+			err = fmt.Errorf("illegal value type. item type:%d, value type:%s", s.Type.Value, rawVal.Type().String())
 			return
 		}
 	case reflect.Float64:
 		switch s.Type.Value {
 		case util.TypeBitField:
-			s.value = int8(rawVal.Interface().(float64))
+			s.value.Value = int8(rawVal.Interface().(float64))
 		case util.TypePositiveBitField:
-			s.value = uint8(rawVal.Interface().(float64))
+			s.value.Value = uint8(rawVal.Interface().(float64))
 		case util.TypeSmallIntegerField:
-			s.value = int16(rawVal.Interface().(float64))
+			s.value.Value = int16(rawVal.Interface().(float64))
 		case util.TypePositiveSmallIntegerField:
-			s.value = uint16(rawVal.Interface().(float64))
+			s.value.Value = uint16(rawVal.Interface().(float64))
 		case util.TypeInteger32Field:
-			s.value = int32(rawVal.Interface().(float64))
+			s.value.Value = int32(rawVal.Interface().(float64))
 		case util.TypePositiveInteger32Field:
-			s.value = uint32(rawVal.Interface().(float64))
+			s.value.Value = uint32(rawVal.Interface().(float64))
 		case util.TypeBigIntegerField:
-			s.value = int64(rawVal.Interface().(float64))
+			s.value.Value = int64(rawVal.Interface().(float64))
 		case util.TypePositiveBigIntegerField:
-			s.value = uint64(rawVal.Interface().(float64))
+			s.value.Value = uint64(rawVal.Interface().(float64))
 		case util.TypeIntegerField:
-			s.value = int(rawVal.Interface().(float64))
+			s.value.Value = int(rawVal.Interface().(float64))
 		case util.TypePositiveIntegerField:
-			s.value = uint(rawVal.Interface().(float64))
+			s.value.Value = uint(rawVal.Interface().(float64))
 		case util.TypeFloatField:
-			s.value = float32(rawVal.Interface().(float64))
+			s.value.Value = float32(rawVal.Interface().(float64))
 		case util.TypeDoubleField:
-			s.value = rawVal.Interface().(float64)
+			s.value.Value = rawVal.Interface().(float64)
 		default:
-			err = fmt.Errorf("illegal value type. item type:%d, value type:%s", s.Type, rawVal.Type().String())
+			err = fmt.Errorf("illegal value type. item type:%d, value type:%s", s.Type.Value, rawVal.Type().String())
 			return
 		}
 	case reflect.String:
 		switch s.Type.Value {
 		case util.TypeStringField:
-			s.value = rawVal.Interface().(string)
+			s.value.Value = rawVal.Interface().(string)
 		case util.TypeDateTimeField:
 			ts, tsErr := time.ParseInLocation(time.RFC3339, val.(string), time.Local)
 			if tsErr != nil {
 				err = tsErr
 				return
 			}
-			s.value = ts
+			s.value.Value = ts
 		default:
-			err = fmt.Errorf("illegal value type. item type:%d, value type:%s", s.Type, rawVal.Type().String())
+			err = fmt.Errorf("illegal value type. item type:%d, value type:%s", s.Type.Value, rawVal.Type().String())
 			return
 		}
 	case reflect.Map:
 		switch s.Type.Value {
 		case util.TypeStructField:
-			s.value = val
+			s.value.Value = val
 		default:
-			err = fmt.Errorf("illegal value type. item type:%d, value type:%s", s.Type, rawVal.Type().String())
+			err = fmt.Errorf("illegal value type. item type:%d, value type:%s", s.Type.Value, rawVal.Type().String())
 			return
 		}
 	case reflect.Slice:
 		switch s.Type.Value {
 		case util.TypeSliceField:
-			s.value = val
+			s.value.Value = val
 		default:
-			err = fmt.Errorf("illegal value type. item type:%d, value type:%s", s.Type, rawVal.Type().String())
+			err = fmt.Errorf("illegal value type. item type:%d, value type:%s", s.Type.Value, rawVal.Type().String())
 			return
 		}
 	default:
@@ -152,46 +155,5 @@ func (s *Item) GetDepend() *Info {
 
 // IsPrimary is primary key
 func (s *Item) IsPrimary() bool {
-	items := strings.Split(s.Tag, " ")
-	if len(items) < 1 {
-		return false
-	}
-
-	isPrimaryKey := false
-	if len(items) >= 2 {
-		switch items[1] {
-		case "key":
-			isPrimaryKey = true
-		}
-	}
-	if len(items) >= 3 {
-		switch items[2] {
-		case "key":
-			isPrimaryKey = true
-		}
-	}
-	return isPrimaryKey
-}
-
-// IsAutoIncrement is autoincrement
-func (s *Item) IsAutoIncrement() bool {
-	items := strings.Split(s.Tag, " ")
-	if len(items) < 1 {
-		return false
-	}
-
-	isAutoIncrement := false
-	if len(items) >= 2 {
-		switch items[1] {
-		case "auto":
-			isAutoIncrement = true
-		}
-	}
-	if len(items) >= 3 {
-		switch items[2] {
-		case "auto":
-			isAutoIncrement = true
-		}
-	}
-	return isAutoIncrement
+	return s.Tag.IsPrimaryKey()
 }

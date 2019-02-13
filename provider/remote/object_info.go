@@ -76,7 +76,7 @@ func (s *Info) GetPrimaryField() (ret model.Field) {
 // GetDependField GetDependField
 func (s *Info) GetDependField() (ret []model.Field) {
 	for _, v := range s.Items {
-		if v.DependInfo != nil {
+		if v.Type.GetDepend() != nil {
 			ret = append(ret, v)
 		}
 	}
@@ -88,7 +88,7 @@ func (s *Info) GetDependField() (ret []model.Field) {
 func (s *Info) Copy() (ret model.Model) {
 	info := &Info{Name: s.Name, PkgPath: s.PkgPath, IsPtr: s.IsPtr, Items: []*Item{}}
 	for _, val := range s.Items {
-		info.Items = append(info.Items, &Item{Index: val.Index, Name: val.Name, Tag: val.Tag, Type: val.Type, IsPtr: val.IsPtr, DependInfo: val.DependInfo, value: val.value})
+		info.Items = append(info.Items, &Item{Index: val.Index, Name: val.Name, Tag: val.Tag, Type: val.Type, value: val.value})
 	}
 
 	ret = info
@@ -106,7 +106,7 @@ func (s *Info) Dump() {
 }
 
 // GetInfo GetInfo
-func GetInfo(obj interface{}) (info Info, err error) {
+func GetInfo(obj interface{}) (info *Info, err error) {
 	objVal := reflect.ValueOf(obj)
 	if objVal.Kind() == reflect.Ptr {
 		objVal = reflect.Indirect(objVal)
@@ -118,7 +118,7 @@ func GetInfo(obj interface{}) (info Info, err error) {
 }
 
 // Type2Info Type2Info
-func Type2Info(objType reflect.Type) (info Info, err error) {
+func Type2Info(objType reflect.Type) (info *Info, err error) {
 	objPtr := false
 	if objType.Kind() == reflect.Ptr {
 		objPtr = true
@@ -130,6 +130,7 @@ func Type2Info(objType reflect.Type) (info Info, err error) {
 		return
 	}
 
+	info = &Info{}
 	info.Name = objType.Name()
 	info.PkgPath = objType.PkgPath()
 	info.IsPtr = objPtr
@@ -137,8 +138,8 @@ func Type2Info(objType reflect.Type) (info Info, err error) {
 
 	fieldNum := objType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		sf := objType.Field(idx)
-		fType := sf.Type
+		field := objType.Field(idx)
+		fType := field.Type
 
 		fPtr := false
 		if fType.Kind() == reflect.Ptr {
@@ -152,7 +153,7 @@ func Type2Info(objType reflect.Type) (info Info, err error) {
 			return
 		}
 
-		fItem := &Item{Index: idx, Name: sf.Name, Tag: sf.Tag.Get("orm"), Type: ftVal, IsPtr: fPtr}
+		itemType := ItemType{Name: fType.Name(), Value: ftVal, PkgPath: fType.PkgPath(), IsPtr: fPtr}
 		if util.IsStructType(ftVal) {
 			modelInfo, structErr := Type2Info(fType)
 			if structErr != nil {
@@ -160,7 +161,7 @@ func Type2Info(objType reflect.Type) (info Info, err error) {
 				return
 			}
 
-			fItem.DependInfo = &modelInfo
+			itemType.Depend = modelInfo
 		}
 
 		if util.IsSliceType(ftVal) {
@@ -187,9 +188,11 @@ func Type2Info(objType reflect.Type) (info Info, err error) {
 					return
 				}
 				sliceItem.IsPtr = slicePtr
-				fItem.DependInfo = &sliceItem
+				itemType.Depend = sliceItem
 			}
 		}
+
+		fItem := &Item{Index: idx, Name: field.Name, Tag: ItemTag{Tag: field.Tag.Get("orm")}, Type: itemType}
 
 		info.Items = append(info.Items, fItem)
 	}

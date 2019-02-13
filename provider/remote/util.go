@@ -2,7 +2,6 @@ package remote
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 	"time"
 
@@ -11,8 +10,8 @@ import (
 )
 
 // GetValueModel GetValueModel
-func GetValueModel(val Value, info model.Model) (err error) {
-	if val.PkgPath != info.GetPkgPath() || val.TypeName != info.GetName() {
+func GetValueModel(val Value, modelInfo model.Model) (err error) {
+	if val.PkgPath != modelInfo.GetPkgPath() || val.TypeName != modelInfo.GetName() {
 		err = fmt.Errorf("illegal value for modelInfo")
 		return
 	}
@@ -22,15 +21,13 @@ func GetValueModel(val Value, info model.Model) (err error) {
 			continue
 		}
 
-		log.Printf("key:%v,val:%v", k, v)
-
-		err = info.UpdateFieldValue(k, reflect.ValueOf(v))
+		err = modelInfo.UpdateFieldValue(k, reflect.ValueOf(v))
 		if err != nil {
 			return
 		}
 	}
 
-	info.Dump()
+	modelInfo.Dump()
 
 	return
 }
@@ -39,7 +36,7 @@ func GetValueModel(val Value, info model.Model) (err error) {
 func GetItemValStr(item *Item, val interface{}) (ret string, err error) {
 	rawVal := reflect.ValueOf(val)
 	rawVal = reflect.Indirect(rawVal)
-	switch item.Type {
+	switch item.Type.GetValue() {
 	case util.TypeBitField:
 		ret = fmt.Sprintf("%d", val.(int8))
 	case util.TypePositiveBitField:
@@ -79,13 +76,13 @@ func GetItemValStr(item *Item, val interface{}) (ret string, err error) {
 	case util.TypeSliceField:
 		//ret = fmt.Sprintf("%d", rawVal.Interface().(int8))
 	default:
-		err = fmt.Errorf("unsupport value type. type:%d", item.Type)
+		err = fmt.Errorf("unsupport value type. type:%d", item.Type.Value)
 	}
 	return
 }
 
 // GetInfoValueStr GetInfoValueStr
-func GetInfoValueStr(info Info, val interface{}) (ret string, err error) {
+func GetInfoValueStr(model Info, val interface{}) (ret string, err error) {
 	//rawVal := reflect.ValueOf(val)
 	//rawVal = reflect.Indirect(rawVal)
 

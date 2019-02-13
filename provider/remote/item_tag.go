@@ -23,7 +23,7 @@ func (s *ItemTag) GetName() (ret string) {
 // IsPrimaryKey IsPrimaryKey
 func (s *ItemTag) IsPrimaryKey() (ret bool) {
 	items := strings.Split(s.Tag, " ")
-	if len(items) < 1 {
+	if len(items) <= 1 {
 		return false
 	}
 
@@ -48,7 +48,7 @@ func (s *ItemTag) IsPrimaryKey() (ret bool) {
 // IsAutoIncrement IsAutoIncrement
 func (s *ItemTag) IsAutoIncrement() (ret bool) {
 	items := strings.Split(s.Tag, " ")
-	if len(items) < 1 {
+	if len(items) <= 1 {
 		return false
 	}
 
@@ -77,4 +77,17 @@ func (s *ItemTag) String() (ret string) {
 // Copy Copy
 func (s *ItemTag) Copy() (ret model.FieldTag) {
 	return &ItemTag{Tag: s.Tag}
+}
+
+// GetItemTag Verify Item Tag
+func GetItemTag(tag string) (ret *ItemTag, err error) {
+	items := strings.Split(tag, "")
+	if len(items) < 1 {
+		err = fmt.Errorf("illegal tag value")
+		return
+	}
+
+	ret = &ItemTag{Tag: tag}
+
+	return
 }
