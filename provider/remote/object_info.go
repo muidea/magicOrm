@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"muidea.com/magicOrm/model"
-	"muidea.com/magicOrm/util"
 )
 
 // Info Info
@@ -140,59 +139,21 @@ func Type2Info(objType reflect.Type) (info *Info, err error) {
 	for idx := 0; idx < fieldNum; idx++ {
 		field := objType.Field(idx)
 		fType := field.Type
+		fTag := field.Tag.Get("orm")
 
-		fPtr := false
-		if fType.Kind() == reflect.Ptr {
-			fType = fType.Elem()
-			fPtr = true
-		}
-
-		ftVal, ftErr := util.GetTypeValueEnum(fType)
-		if ftErr != nil {
-			err = ftErr
+		itemTag, itemErr := GetItemTag(fTag)
+		if itemErr != nil {
+			err = itemErr
 			return
 		}
 
-		itemType := ItemType{Name: fType.Name(), Value: ftVal, PkgPath: fType.PkgPath(), IsPtr: fPtr}
-		if util.IsStructType(ftVal) {
-			modelInfo, structErr := Type2Info(fType)
-			if structErr != nil {
-				err = structErr
-				return
-			}
-
-			itemType.Depend = modelInfo
+		itemType, itemErr := GetItemType(fType)
+		if itemErr != nil {
+			err = itemErr
+			return
 		}
 
-		if util.IsSliceType(ftVal) {
-			slicePtr := false
-			fType = fType.Elem()
-			if fType.Kind() == reflect.Ptr {
-				fType = fType.Elem()
-				slicePtr = true
-			}
-			ftVal, ftErr = util.GetTypeValueEnum(fType)
-			if ftErr != nil {
-				err = ftErr
-				return
-			}
-			if util.IsSliceType(ftVal) {
-				err = fmt.Errorf("illegal slice type, type:%s", fType.String())
-				return
-			}
-
-			if util.IsStructType(ftVal) {
-				sliceItem, sliceErr := Type2Info(fType)
-				if sliceErr != nil {
-					err = sliceErr
-					return
-				}
-				sliceItem.IsPtr = slicePtr
-				itemType.Depend = sliceItem
-			}
-		}
-
-		fItem := &Item{Index: idx, Name: field.Name, Tag: ItemTag{Tag: field.Tag.Get("orm")}, Type: itemType}
+		fItem := &Item{Index: idx, Name: field.Name, Tag: *itemTag, Type: *itemType, value: ItemValue{}}
 
 		info.Items = append(info.Items, fItem)
 	}

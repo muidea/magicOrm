@@ -19,14 +19,25 @@ func New(cache model.Cache) *Provider {
 	return &Provider{modelCache: cache}
 }
 
-// GetInfoModel GetInfoModel
-func (s *Provider) GetInfoModel(obj interface{}) (ret model.Model, err error) {
-	info, err := GetInfo(obj)
+// GetObjectModel GetObjectModel
+func (s *Provider) GetObjectModel(objPtr interface{}) (ret model.Model, err error) {
+	info, err := GetInfo(objPtr)
 	if err != nil {
 		return
 	}
 
-	return &info, nil
+	ret = info
+	return
+}
+
+// GetTypeModel GetTypeModel
+func (s *Provider) GetTypeModel(modelType reflect.Type) (ret model.Model, err error) {
+	return
+}
+
+// GetValueModel GetValueModel
+func (s *Provider) GetValueModel(modelVal reflect.Value) (ret model.Model, err error) {
+	return
 }
 
 // GetValueStr GetValueStr
