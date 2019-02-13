@@ -8,7 +8,7 @@ import (
 )
 
 type tagImpl struct {
-	tag string
+	tagImpl string
 }
 
 //NewFieldTag name[key][auto]
@@ -19,13 +19,13 @@ func NewFieldTag(val string) (ret model.FieldTag, err error) {
 		return
 	}
 
-	ret = &tagImpl{tag: val}
+	ret = &tagImpl{tagImpl: val}
 	return
 }
 
 // GetName Name
 func (s *tagImpl) GetName() (ret string) {
-	items := strings.Split(s.tag, " ")
+	items := strings.Split(s.tagImpl, " ")
 	ret = items[0]
 
 	return
@@ -33,7 +33,7 @@ func (s *tagImpl) GetName() (ret string) {
 
 // IsPrimaryKey IsPrimaryKey
 func (s *tagImpl) IsPrimaryKey() (ret bool) {
-	items := strings.Split(s.tag, " ")
+	items := strings.Split(s.tagImpl, " ")
 	if len(items) <= 1 {
 		return false
 	}
@@ -58,7 +58,7 @@ func (s *tagImpl) IsPrimaryKey() (ret bool) {
 
 // IsAutoIncrement IsAutoIncrement
 func (s *tagImpl) IsAutoIncrement() (ret bool) {
-	items := strings.Split(s.tag, " ")
+	items := strings.Split(s.tagImpl, " ")
 	if len(items) <= 1 {
 		return false
 	}
@@ -87,5 +87,5 @@ func (s *tagImpl) String() (ret string) {
 
 // Copy Copy
 func (s *tagImpl) Copy() (ret model.FieldTag) {
-	return &tagImpl{tag: s.tag}
+	return &tagImpl{tagImpl: s.tagImpl}
 }
