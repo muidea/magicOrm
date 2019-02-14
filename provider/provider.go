@@ -9,7 +9,7 @@ import (
 
 // Provider model provider
 type Provider interface {
-	GetObjectModel(objPtr interface{}) (ret model.Model, err error)
+	GetObjectModel(obj interface{}) (ret model.Model, err error)
 
 	GetTypeModel(modelType reflect.Type) (ret model.Model, err error)
 
