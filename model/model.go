@@ -11,6 +11,7 @@ type Model interface {
 	UpdateFieldValue(name string, val reflect.Value) error
 	GetPrimaryField() Field
 	GetDependField() []Field
+	IsPtr() bool
 	Copy() Model
 	Interface() reflect.Value
 	Dump()

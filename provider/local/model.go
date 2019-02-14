@@ -14,6 +14,8 @@ type modelInfo struct {
 
 	fields model.Fields
 
+	isModelPtr bool
+
 	modelCache Cache
 }
 
@@ -73,8 +75,12 @@ func (s *modelInfo) GetDependField() (ret []model.Field) {
 	return
 }
 
+func (s *modelInfo) IsPtr() bool {
+	return s.isModelPtr
+}
+
 func (s *modelInfo) Copy() model.Model {
-	info := &modelInfo{modelType: s.modelType, fields: s.fields.Copy(), modelCache: s.modelCache}
+	info := &modelInfo{modelType: s.modelType, fields: s.fields.Copy(), isModelPtr: s.isModelPtr, modelCache: s.modelCache}
 	return info
 }
 
@@ -118,8 +124,10 @@ func GetObjectModel(objPtr interface{}, cache Cache) (ret model.Model, err error
 
 // GetTypeModel GetTypeModel
 func GetTypeModel(modelType reflect.Type, cache Cache) (ret model.Model, err error) {
+	isPtr := false
 	if modelType.Kind() == reflect.Ptr {
 		modelType = modelType.Elem()
+		isPtr = true
 	}
 
 	if modelType.Kind() != reflect.Struct {
@@ -133,7 +141,7 @@ func GetTypeModel(modelType reflect.Type, cache Cache) (ret model.Model, err err
 		return
 	}
 
-	modelInfo := &modelInfo{modelType: modelType, fields: make(model.Fields, 0), modelCache: cache}
+	modelInfo := &modelInfo{modelType: modelType, fields: make(model.Fields, 0), isModelPtr: isPtr, modelCache: cache}
 
 	fieldNum := modelType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
@@ -176,6 +184,7 @@ func GetTypeModel(modelType reflect.Type, cache Cache) (ret model.Model, err err
 
 // GetValueModel GetValueModel
 func GetValueModel(modelVal reflect.Value, cache Cache) (ret model.Model, err error) {
+	rawVal := modelVal
 	if modelVal.Kind() == reflect.Ptr {
 		if modelVal.IsNil() {
 			err = fmt.Errorf("can't get value from nil ptr")
@@ -187,7 +196,7 @@ func GetValueModel(modelVal reflect.Value, cache Cache) (ret model.Model, err er
 
 	info := cache.Fetch(modelVal.Type().Name())
 	if info == nil {
-		info, err = GetTypeModel(modelVal.Type(), cache)
+		info, err = GetTypeModel(rawVal.Type(), cache)
 		if err != nil {
 			return
 		}
