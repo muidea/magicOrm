@@ -55,7 +55,8 @@ func TestSimpleObjInfo(t *testing.T) {
 	desc := "obj_desc"
 	obj := SimpleObj{Name: "obj", Desc: &desc, Age: 240}
 
-	info, err := GetObject(obj)
+	cache := NewCache()
+	info, err := GetObject(obj, cache)
 	if err != nil {
 		t.Errorf("GetObject failed, err:%s", err.Error())
 		return
@@ -83,7 +84,8 @@ func TestExtObjInfo(t *testing.T) {
 	obj := SimpleObj{Name: "obj", Desc: &desc}
 	ext := &ExtObj{Name: "extObj", Obj: obj}
 
-	info, err := GetObject(ext)
+	cache := NewCache()
+	info, err := GetObject(ext, cache)
 	if err != nil {
 		t.Errorf("GetObject failed, err:%s", err.Error())
 		return
