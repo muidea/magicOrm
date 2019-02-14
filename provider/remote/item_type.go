@@ -124,7 +124,7 @@ func (s *ItemType) Copy() (ret model.FieldType) {
 }
 
 // GetItemType GetItemType
-func GetItemType(itemType reflect.Type) (ret *ItemType, err error) {
+func GetItemType(itemType reflect.Type, cache Cache) (ret *ItemType, err error) {
 	isPtr := false
 	if itemType.Kind() == reflect.Ptr {
 		isPtr = true
@@ -138,14 +138,18 @@ func GetItemType(itemType reflect.Type) (ret *ItemType, err error) {
 	}
 
 	ret = &ItemType{Name: itemType.Name(), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
+	if isPtr {
+		return
+	}
+
 	if util.IsStructType(typeVal) {
-		modelInfo, structErr := Type2Object(itemType)
+		structObj, structErr := Type2Object(itemType, cache)
 		if structErr != nil {
 			err = structErr
 			return
 		}
 
-		ret.Depend = modelInfo
+		ret.Depend = structObj
 		return
 	}
 
@@ -167,13 +171,13 @@ func GetItemType(itemType reflect.Type) (ret *ItemType, err error) {
 		}
 
 		if util.IsStructType(typeVal) {
-			sliceItem, sliceErr := Type2Object(sliceType)
+			sliceObj, sliceErr := Type2Object(sliceType, cache)
 			if sliceErr != nil {
 				err = sliceErr
 				return
 			}
-			sliceItem.IsPtr = slicePtr
-			ret.Depend = sliceItem
+			sliceObj.IsPtr = slicePtr
+			ret.Depend = sliceObj
 		}
 
 		return

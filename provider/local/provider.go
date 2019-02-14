@@ -11,12 +11,12 @@ import (
 
 // Provider local provider
 type Provider struct {
-	modelCache model.Cache
+	modelCache Cache
 }
 
 // New create local provider
-func New(cache model.Cache) *Provider {
-	return &Provider{modelCache: cache}
+func New() *Provider {
+	return &Provider{modelCache: NewCache()}
 }
 
 // GetObjectModel GetObjectModel

@@ -22,6 +22,5 @@ type Provider interface {
 
 // NewProvider model provider
 func NewProvider() Provider {
-	cache := model.NewCache()
-	return local.New(cache)
+	return local.New()
 }

@@ -105,19 +105,19 @@ func (s *Object) Dump() {
 }
 
 // GetObject GetObject
-func GetObject(obj interface{}) (ret *Object, err error) {
+func GetObject(obj interface{}, cache Cache) (ret *Object, err error) {
 	objVal := reflect.ValueOf(obj)
 	if objVal.Kind() == reflect.Ptr {
 		objVal = reflect.Indirect(objVal)
 	}
 
 	objType := objVal.Type()
-	ret, err = Type2Object(objType)
+	ret, err = Type2Object(objType, cache)
 	return
 }
 
 // Type2Object Type2Object
-func Type2Object(objType reflect.Type) (ret *Object, err error) {
+func Type2Object(objType reflect.Type, cache Cache) (ret *Object, err error) {
 	objPtr := false
 	if objType.Kind() == reflect.Ptr {
 		objPtr = true
@@ -126,6 +126,11 @@ func Type2Object(objType reflect.Type) (ret *Object, err error) {
 
 	if objType.Kind() != reflect.Struct {
 		err = fmt.Errorf("illegal obj type, must be a struct obj, type:%s", objType.String())
+		return
+	}
+
+	ret = cache.Fetch(objType.Name())
+	if ret != nil {
 		return
 	}
 
@@ -147,7 +152,7 @@ func Type2Object(objType reflect.Type) (ret *Object, err error) {
 			return
 		}
 
-		itemType, itemErr := GetItemType(fType)
+		itemType, itemErr := GetItemType(fType, cache)
 		if itemErr != nil {
 			err = itemErr
 			return

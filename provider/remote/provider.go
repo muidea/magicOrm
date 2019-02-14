@@ -11,17 +11,17 @@ import (
 
 // Provider remote provider
 type Provider struct {
-	modelCache model.Cache
+	modelCache Cache
 }
 
 // New create remote provider
-func New(cache model.Cache) *Provider {
-	return &Provider{modelCache: cache}
+func New() *Provider {
+	return &Provider{modelCache: NewCache()}
 }
 
 // GetObjectModel GetObjectModel
 func (s *Provider) GetObjectModel(objPtr interface{}) (ret model.Model, err error) {
-	obj, err := GetObject(objPtr)
+	obj, err := GetObject(objPtr, s.modelCache)
 	if err != nil {
 		return
 	}

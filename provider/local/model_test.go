@@ -5,8 +5,6 @@ import (
 	"reflect"
 	"testing"
 	"time"
-
-	"muidea.com/magicOrm/model"
 )
 
 // Unit 单元信息
@@ -39,7 +37,7 @@ type Test struct {
 }
 
 func TestModel(t *testing.T) {
-	cache := model.NewCache()
+	cache := NewCache()
 	now := time.Now()
 	info, err := GetObjectModel(&Unit{T1: Test{ID: 12, Val: 123}, TimeStamp: now}, cache)
 	if info == nil || err != nil {
@@ -51,7 +49,7 @@ func TestModel(t *testing.T) {
 }
 
 func TestModelValue(t *testing.T) {
-	cache := model.NewCache()
+	cache := NewCache()
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05", "2018-01-02 15:04:05", time.Local)
 	unit := &Unit{Name: "AA", T1: Test{Val: 123}, TimeStamp: now}
 	info, err := GetObjectModel(unit, cache)
@@ -97,7 +95,7 @@ func TestReference(t *testing.T) {
 		EF []*AB `orm:"ef"`
 	}
 
-	cache := model.NewCache()
+	cache := NewCache()
 	f32Info, err := GetObjectModel(&Demo{AB: &AB{}}, cache)
 	if err != nil {
 		t.Errorf("GetObjectModel failed, err:%s", err.Error())
@@ -120,7 +118,7 @@ type TT struct {
 }
 
 func TestGetModelValue(t *testing.T) {
-	cache := model.NewCache()
+	cache := NewCache()
 	t1 := &TT{Aa: 12, Bb: 23}
 	t1Info, t1Err := GetObjectModel(t1, cache)
 	if t1Err != nil {

@@ -14,7 +14,7 @@ type modelInfo struct {
 
 	fields model.Fields
 
-	modelCache model.Cache
+	modelCache Cache
 }
 
 func (s *modelInfo) GetName() string {
@@ -97,7 +97,7 @@ func (s *modelInfo) Dump() {
 }
 
 // GetObjectModel GetObjectModel
-func GetObjectModel(objPtr interface{}, cache model.Cache) (ret model.Model, err error) {
+func GetObjectModel(objPtr interface{}, cache Cache) (ret model.Model, err error) {
 	ptrVal := reflect.ValueOf(objPtr)
 
 	if ptrVal.Kind() != reflect.Ptr {
@@ -117,7 +117,7 @@ func GetObjectModel(objPtr interface{}, cache model.Cache) (ret model.Model, err
 }
 
 // GetTypeModel GetTypeModel
-func GetTypeModel(modelType reflect.Type, cache model.Cache) (ret model.Model, err error) {
+func GetTypeModel(modelType reflect.Type, cache Cache) (ret model.Model, err error) {
 	if modelType.Kind() == reflect.Ptr {
 		modelType = modelType.Elem()
 	}
@@ -175,7 +175,7 @@ func GetTypeModel(modelType reflect.Type, cache model.Cache) (ret model.Model, e
 }
 
 // GetValueModel GetValueModel
-func GetValueModel(modelVal reflect.Value, cache model.Cache) (ret model.Model, err error) {
+func GetValueModel(modelVal reflect.Value, cache Cache) (ret model.Model, err error) {
 	if modelVal.Kind() == reflect.Ptr {
 		if modelVal.IsNil() {
 			err = fmt.Errorf("can't get value from nil ptr")
