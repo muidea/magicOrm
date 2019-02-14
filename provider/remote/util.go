@@ -82,7 +82,7 @@ func GetItemValStr(item *Item, val interface{}) (ret string, err error) {
 }
 
 // GetInfoValueStr GetInfoValueStr
-func GetInfoValueStr(model Info, val interface{}) (ret string, err error) {
+func GetInfoValueStr(model Object, val interface{}) (ret string, err error) {
 	//rawVal := reflect.ValueOf(val)
 	//rawVal = reflect.Indirect(rawVal)
 

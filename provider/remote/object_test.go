@@ -69,7 +69,7 @@ func TestSimpleObjInfo(t *testing.T) {
 	}
 	log.Print(string(data))
 
-	info2 := Info{}
+	info2 := Object{}
 	err = json.Unmarshal(data, &info2)
 	if err != nil {
 		t.Errorf("marshal info failed, err:%s", err.Error())
@@ -97,7 +97,7 @@ func TestExtObjInfo(t *testing.T) {
 	}
 	log.Print(string(data))
 
-	eInfo := Info{}
+	eInfo := Object{}
 	json.Unmarshal(data, &eInfo)
 	if err != nil {
 		t.Errorf("unmarshal ext failed, err:%s", err.Error())

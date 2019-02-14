@@ -12,11 +12,11 @@ import (
 
 // ItemType ItemType
 type ItemType struct {
-	Name    string `json:"name"`
-	Value   int    `json:"value"`
-	PkgPath string `json:"pkgPath"`
-	IsPtr   bool   `json:"isPtr"`
-	Depend  *Info  `json:"depend"`
+	Name    string  `json:"name"`
+	Value   int     `json:"value"`
+	PkgPath string  `json:"pkgPath"`
+	IsPtr   bool    `json:"isPtr"`
+	Depend  *Object `json:"depend"`
 }
 
 // GetName GetName

@@ -149,7 +149,7 @@ func (s *Item) SetVal(val interface{}) (err error) {
 }
 
 // GetDepend GetDepend
-func (s *Item) GetDepend() *Info {
+func (s *Item) GetDepend() *Object {
 	return s.Type.Depend
 }
 
