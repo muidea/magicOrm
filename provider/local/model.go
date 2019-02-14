@@ -158,7 +158,7 @@ func GetTypeModel(modelType reflect.Type, cache Cache) (ret model.Model, err err
 			fType := val.GetType()
 			fDValue := fType.GetDepend()
 			if fDValue != nil {
-				_, fDErr := GetTypeModel(fDValue.GetType(), cache)
+				_, fDErr := GetTypeModel(fDValue, cache)
 				if fDErr != nil {
 					err = fDErr
 					return

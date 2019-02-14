@@ -47,7 +47,7 @@ func (s *orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 			return
 		}
 
-		if !fDepend.IsPtrType() {
+		if fDepend.Kind() != reflect.Ptr {
 			err = s.insertSingle(relationInfo)
 			if err != nil {
 				return

@@ -2,6 +2,7 @@ package orm
 
 import (
 	"log"
+	"reflect"
 
 	"muidea.com/magicOrm/builder"
 	"muidea.com/magicOrm/model"
@@ -56,13 +57,13 @@ func (s *orm) batchCreateSchema(modelInfo model.Model) (err error) {
 			continue
 		}
 
-		relationInfo, relationErr := s.modelProvider.GetTypeModel(fDepend.GetType())
+		relationInfo, relationErr := s.modelProvider.GetTypeModel(fDepend)
 		if relationErr != nil {
 			err = relationErr
 			return
 		}
 
-		if !fDepend.IsPtrType() {
+		if fDepend.Kind() != reflect.Ptr {
 			err = s.createSchema(relationInfo)
 			if err != nil {
 				return

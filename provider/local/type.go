@@ -44,31 +44,33 @@ func (s *typeImpl) GetType() reflect.Type {
 	return s.typeImpl
 }
 
-func (s *typeImpl) GetDepend() model.FieldType {
+func (s *typeImpl) GetDepend() (ret reflect.Type) {
 	rawVal := s.typeImpl
 	if rawVal.Kind() == reflect.Ptr {
 		rawVal = rawVal.Elem()
 	}
 	if rawVal.Kind() == reflect.Struct {
 		if rawVal.String() != "time.Time" {
-			return &typeImpl{typeImpl: s.typeImpl}
+			ret = s.typeImpl
+			return
 		}
 	}
 
 	if rawVal.Kind() == reflect.Slice {
-		rawVal = rawVal.Elem()
-		sliceVal := rawVal
-		if sliceVal.Kind() == reflect.Ptr {
-			sliceVal = sliceVal.Elem()
+		sliceVal := rawVal.Elem()
+		rawVal = sliceVal
+		if rawVal.Kind() == reflect.Ptr {
+			rawVal = rawVal.Elem()
 		}
-		if sliceVal.Kind() == reflect.Struct {
-			if sliceVal.String() != "time.Time" {
-				return &typeImpl{typeImpl: rawVal}
+		if rawVal.Kind() == reflect.Struct {
+			if rawVal.String() != "time.Time" {
+				ret = sliceVal
+				return
 			}
 		}
 	}
 
-	return nil
+	return
 }
 
 func (s *typeImpl) IsPtrType() bool {

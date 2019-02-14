@@ -8,7 +8,7 @@ type FieldType interface {
 	GetValue() int
 	GetPkgPath() string
 	GetType() reflect.Type
-	GetDepend() FieldType
+	GetDepend() reflect.Type
 	IsPtrType() bool
 	String() string
 	Copy() FieldType
