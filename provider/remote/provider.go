@@ -21,7 +21,7 @@ func New(cache model.Cache) *Provider {
 
 // GetObjectModel GetObjectModel
 func (s *Provider) GetObjectModel(objPtr interface{}) (ret model.Model, err error) {
-	info, err := GetInfo(objPtr)
+	info, err := GetObject(objPtr)
 	if err != nil {
 		return
 	}

@@ -104,8 +104,8 @@ func (s *Object) Dump() {
 
 }
 
-// GetInfo GetInfo
-func GetInfo(obj interface{}) (info *Object, err error) {
+// GetObject GetObject
+func GetObject(obj interface{}) (info *Object, err error) {
 	objVal := reflect.ValueOf(obj)
 	if objVal.Kind() == reflect.Ptr {
 		objVal = reflect.Indirect(objVal)
@@ -158,44 +158,5 @@ func Type2Info(objType reflect.Type) (info *Object, err error) {
 		info.Items = append(info.Items, fItem)
 	}
 
-	return
-}
-
-// AssignValue Assign Value
-func (s *Object) AssignValue(val *Value) (err error) {
-	if s.Name != val.TypeName || s.PkgPath != val.PkgPath {
-		err = fmt.Errorf("illegal info value")
-		return
-	}
-
-	for _, v := range s.Items {
-		itemVal, ok := val.Items[v.Name]
-		if !ok {
-			continue
-		}
-		if itemVal == nil {
-			continue
-		}
-
-		valErr := v.SetVal(itemVal)
-		if valErr != nil {
-			err = valErr
-			return
-		}
-	}
-
-	return
-}
-
-// GetPrimaryItem GetPrimaryItem
-func (s *Object) GetPrimaryItem() (ret *Item, err error) {
-	for _, v := range s.Items {
-		if v.IsPrimary() {
-			ret = v
-			return
-		}
-	}
-
-	err = fmt.Errorf("no defined primary item")
 	return
 }
