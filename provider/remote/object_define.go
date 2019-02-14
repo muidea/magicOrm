@@ -85,12 +85,12 @@ func (s *Object) GetDependField() (ret []model.Field) {
 
 // Copy Copy
 func (s *Object) Copy() (ret model.Model) {
-	info := &Object{Name: s.Name, PkgPath: s.PkgPath, IsPtr: s.IsPtr, Items: []*Item{}}
+	obj := &Object{Name: s.Name, PkgPath: s.PkgPath, IsPtr: s.IsPtr, Items: []*Item{}}
 	for _, val := range s.Items {
-		info.Items = append(info.Items, &Item{Index: val.Index, Name: val.Name, Tag: val.Tag, Type: val.Type, value: val.value})
+		obj.Items = append(obj.Items, &Item{Index: val.Index, Name: val.Name, Tag: val.Tag, Type: val.Type, value: val.value})
 	}
 
-	ret = info
+	ret = obj
 	return
 }
 
@@ -105,19 +105,19 @@ func (s *Object) Dump() {
 }
 
 // GetObject GetObject
-func GetObject(obj interface{}) (info *Object, err error) {
+func GetObject(obj interface{}) (ret *Object, err error) {
 	objVal := reflect.ValueOf(obj)
 	if objVal.Kind() == reflect.Ptr {
 		objVal = reflect.Indirect(objVal)
 	}
 
 	objType := objVal.Type()
-	info, err = Type2Info(objType)
+	ret, err = Type2Object(objType)
 	return
 }
 
-// Type2Info Type2Info
-func Type2Info(objType reflect.Type) (info *Object, err error) {
+// Type2Object Type2Object
+func Type2Object(objType reflect.Type) (ret *Object, err error) {
 	objPtr := false
 	if objType.Kind() == reflect.Ptr {
 		objPtr = true
@@ -129,11 +129,11 @@ func Type2Info(objType reflect.Type) (info *Object, err error) {
 		return
 	}
 
-	info = &Object{}
-	info.Name = objType.Name()
-	info.PkgPath = objType.PkgPath()
-	info.IsPtr = objPtr
-	info.Items = []*Item{}
+	ret = &Object{}
+	ret.Name = objType.Name()
+	ret.PkgPath = objType.PkgPath()
+	ret.IsPtr = objPtr
+	ret.Items = []*Item{}
 
 	fieldNum := objType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
@@ -155,7 +155,7 @@ func Type2Info(objType reflect.Type) (info *Object, err error) {
 
 		fItem := &Item{Index: idx, Name: field.Name, Tag: *itemTag, Type: *itemType, value: ItemValue{}}
 
-		info.Items = append(info.Items, fItem)
+		ret.Items = append(ret.Items, fItem)
 	}
 
 	return

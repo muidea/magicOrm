@@ -139,7 +139,7 @@ func GetItemType(itemType reflect.Type) (ret *ItemType, err error) {
 
 	ret = &ItemType{Name: itemType.Name(), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
 	if util.IsStructType(typeVal) {
-		modelInfo, structErr := Type2Info(itemType)
+		modelInfo, structErr := Type2Object(itemType)
 		if structErr != nil {
 			err = structErr
 			return
@@ -167,7 +167,7 @@ func GetItemType(itemType reflect.Type) (ret *ItemType, err error) {
 		}
 
 		if util.IsStructType(typeVal) {
-			sliceItem, sliceErr := Type2Info(sliceType)
+			sliceItem, sliceErr := Type2Object(sliceType)
 			if sliceErr != nil {
 				err = sliceErr
 				return
