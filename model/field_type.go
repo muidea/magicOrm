@@ -8,7 +8,7 @@ type FieldType interface {
 	GetValue() int
 	GetPkgPath() string
 	GetType() reflect.Type
-	GetDepend() reflect.Type
+	GetDepend() (Model, error)
 	IsPtrType() bool
 	String() string
 	Copy() FieldType

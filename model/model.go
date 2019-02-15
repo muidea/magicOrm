@@ -10,7 +10,7 @@ type Model interface {
 	SetFieldValue(idx int, val reflect.Value) error
 	UpdateFieldValue(name string, val reflect.Value) error
 	GetPrimaryField() Field
-	GetDependField() []Field
+	GetDependField() ([]Field, error)
 	IsPtr() bool
 	Copy() Model
 	Interface() reflect.Value

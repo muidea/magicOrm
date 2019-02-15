@@ -14,6 +14,8 @@ type Field interface {
 	GetTag() FieldTag
 	GetValue() FieldValue
 	SetValue(val reflect.Value) error
+	GetDepend() (Model, error)
+	IsPrimary() bool
 	Copy() Field
 	Dump() string
 }
@@ -43,8 +45,7 @@ func (s *Fields) Append(fieldInfo Field) {
 // GetPrimaryField get primarykey field
 func (s *Fields) GetPrimaryField() Field {
 	for _, val := range *s {
-		fieldTag := val.GetTag()
-		if fieldTag.IsPrimaryKey() {
+		if val.IsPrimary() {
 			return val
 		}
 	}
