@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"log"
 	"reflect"
 )
@@ -17,7 +16,6 @@ type Field interface {
 	GetDepend() (Model, error)
 	IsPrimary() bool
 	Copy() Field
-	Dump() string
 }
 
 // Fields field info collection
@@ -35,7 +33,7 @@ func (s *Fields) Append(fieldInfo Field) {
 		}
 	}
 	if exist {
-		log.Printf("duplicate field tag,[%s]", fieldInfo.Dump())
+		log.Printf("duplicate field tag,[%s]", newField.GetName())
 		return
 	}
 
@@ -60,11 +58,4 @@ func (s *Fields) Copy() Fields {
 		ret = append(ret, val.Copy())
 	}
 	return ret
-}
-
-// Dump Dump
-func (s *Fields) Dump() {
-	for _, v := range *s {
-		fmt.Printf("\t%s\n", v.Dump())
-	}
 }
