@@ -15,7 +15,7 @@ type Field interface {
 	SetValue(val reflect.Value) error
 	GetDepend() (Model, error)
 	IsPrimary() bool
-	Copy() Field
+	Dump() string
 }
 
 // Fields field info collection
@@ -49,13 +49,4 @@ func (s *Fields) GetPrimaryField() Field {
 	}
 
 	return nil
-}
-
-// Copy Copy
-func (s *Fields) Copy() Fields {
-	ret := make(Fields, 0)
-	for _, val := range *s {
-		ret = append(ret, val.Copy())
-	}
-	return ret
 }

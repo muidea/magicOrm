@@ -9,5 +9,5 @@ type FieldValue interface {
 	Get() (reflect.Value, error)
 	GetDepend() ([]reflect.Value, error)
 	GetValueStr() (string, error)
-	Copy() FieldValue
+	Dump() string
 }

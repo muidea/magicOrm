@@ -5,5 +5,5 @@ type FieldTag interface {
 	GetName() string
 	IsPrimaryKey() bool
 	IsAutoIncrement() bool
-	Copy() FieldTag
+	Dump() string
 }

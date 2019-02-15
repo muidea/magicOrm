@@ -10,5 +10,5 @@ type FieldType interface {
 	GetType() reflect.Type
 	GetDepend() (Model, error)
 	IsPtrType() bool
-	Copy() FieldType
+	Dump() string
 }

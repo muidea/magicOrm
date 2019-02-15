@@ -14,4 +14,5 @@ type Model interface {
 	IsPtr() bool
 	Copy() Model
 	Interface() reflect.Value
+	Dump() string
 }
