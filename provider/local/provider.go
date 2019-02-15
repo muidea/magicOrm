@@ -26,7 +26,7 @@ func (s *Provider) GetObjectModel(objPtr interface{}) (ret model.Model, err erro
 
 // GetTypeModel GetTypeModel
 func (s *Provider) GetTypeModel(modelType reflect.Type) (ret model.Model, err error) {
-	return GetTypeModel(modelType, s.modelCache)
+	return getTypeModel(modelType, s.modelCache)
 }
 
 // GetValueModel GetValueModel

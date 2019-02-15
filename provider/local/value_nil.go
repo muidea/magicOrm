@@ -10,6 +10,7 @@ import (
 type nilImpl struct {
 	value      reflect.Value
 	fieldValue model.FieldValue
+	modelCache Cache
 }
 
 func (s *nilImpl) IsNil() bool {
@@ -26,7 +27,7 @@ func (s *nilImpl) Set(val reflect.Value) (err error) {
 		s.value.Set(val)
 	}
 
-	fieldValue, fieldErr := NewFieldValue(val)
+	fieldValue, fieldErr := NewFieldValue(val, s.modelCache)
 	if fieldErr != nil {
 		err = fieldErr
 		return
@@ -68,5 +69,5 @@ func (s *nilImpl) Copy() model.FieldValue {
 	if s.fieldValue != nil {
 		fieldValue = s.fieldValue.Copy()
 	}
-	return &nilImpl{value: s.value, fieldValue: fieldValue}
+	return &nilImpl{value: s.value, fieldValue: fieldValue, modelCache: s.modelCache}
 }

@@ -7,8 +7,45 @@ import (
 	"muidea.com/magicOrm/model"
 )
 
+type valueImpl struct {
+	valueImpl reflect.Value
+}
+
+func newFieldValue(val reflect.Value) (ret *valueImpl, err error) {
+	ret = &valueImpl{valueImpl: val}
+	return
+}
+
+func (s *valueImpl) IsNil() (ret bool) {
+	return
+}
+
+func (s *valueImpl) Set(val reflect.Value) (err error) {
+	return
+}
+
+func (s *valueImpl) Get() (ret reflect.Value, err error) {
+	return
+}
+
+func (s *valueImpl) GetDepend() (ret []reflect.Value, err error) {
+	return
+}
+
+func (s *valueImpl) GetValueStr() (ret string, err error) {
+	return
+}
+
+func (s *valueImpl) Copy() (ret *valueImpl) {
+	return
+}
+
+func (s *valueImpl) Dump() (ret string) {
+	return
+}
+
 // NewFieldValue NewFieldValue
-func NewFieldValue(val reflect.Value) (ret model.FieldValue, err error) {
+func NewFieldValue(val reflect.Value, cache Cache) (ret model.FieldValue, err error) {
 	if val.Kind() != reflect.Ptr {
 		err = fmt.Errorf("illegal val, must be a ptr")
 		return
@@ -30,13 +67,13 @@ func NewFieldValue(val reflect.Value) (ret model.FieldValue, err error) {
 		if rawVal.Type().String() == "time.Time" {
 			ret = &datetimeImpl{value: rawVal}
 		} else {
-			ret = &structImpl{value: rawVal}
+			ret = &structImpl{value: rawVal, modelCache: cache}
 		}
 	case reflect.Slice:
 		ret = &sliceImpl{value: rawVal}
 	case reflect.Ptr:
 		if rawVal.IsNil() {
-			ret = &nilImpl{value: rawVal}
+			ret = &nilImpl{value: rawVal, modelCache: cache}
 			return
 		}
 		rawRawVal := reflect.Indirect(rawVal)
@@ -55,7 +92,7 @@ func NewFieldValue(val reflect.Value) (ret model.FieldValue, err error) {
 			if rawVal.Type().String() == "time.Time" {
 				ret = &datetimeImpl{value: rawVal}
 			} else {
-				ret = &structImpl{value: rawVal}
+				ret = &structImpl{value: rawVal, modelCache: cache}
 			}
 		case reflect.Slice:
 			ret = &sliceImpl{value: rawVal}

@@ -8,7 +8,8 @@ import (
 )
 
 type structImpl struct {
-	value reflect.Value
+	value      reflect.Value
+	modelCache Cache
 }
 
 func (s *structImpl) IsNil() bool {
@@ -18,6 +19,7 @@ func (s *structImpl) IsNil() bool {
 
 	return false
 }
+
 func (s *structImpl) Set(val reflect.Value) (err error) {
 	if s.IsNil() {
 		err = fmt.Errorf("can't set nil ptr")
@@ -73,5 +75,5 @@ func (s *structImpl) GetValueStr() (ret string, err error) {
 }
 
 func (s *structImpl) Copy() model.FieldValue {
-	return &structImpl{value: s.value}
+	return &structImpl{value: s.value, modelCache: s.modelCache}
 }

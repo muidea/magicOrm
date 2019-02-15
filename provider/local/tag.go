@@ -3,16 +3,14 @@ package local
 import (
 	"fmt"
 	"strings"
-
-	"muidea.com/magicOrm/model"
 )
 
 type tagImpl struct {
 	tagImpl string
 }
 
-//NewFieldTag name[key][auto]
-func NewFieldTag(val string) (ret model.FieldTag, err error) {
+//newFieldTag name[key][auto]
+func newFieldTag(val string) (ret *tagImpl, err error) {
 	items := strings.Split(val, " ")
 	if len(items) < 1 {
 		err = fmt.Errorf("illegal tagImpl value, value:%s", val)
@@ -81,11 +79,12 @@ func (s *tagImpl) IsAutoIncrement() (ret bool) {
 	return
 }
 
-func (s *tagImpl) String() (ret string) {
-	return fmt.Sprintf("name=%s key=%v auto=%v", s.GetName(), s.IsPrimaryKey(), s.IsAutoIncrement())
+// Copy Copy
+func (s *tagImpl) Copy() (ret *tagImpl) {
+	ret = &tagImpl{tagImpl: s.tagImpl}
+	return
 }
 
-// Copy Copy
-func (s *tagImpl) Copy() (ret model.FieldTag) {
-	return &tagImpl{tagImpl: s.tagImpl}
+func (s *tagImpl) Dump() (ret string) {
+	return fmt.Sprintf("name=%s key=%v auto=%v", s.GetName(), s.IsPrimaryKey(), s.IsAutoIncrement())
 }

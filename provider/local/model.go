@@ -8,33 +8,41 @@ import (
 	"muidea.com/magicOrm/model"
 )
 
-// modelInfo single struct ret
-type modelInfo struct {
+// modelImpl single model
+type modelImpl struct {
 	modelType reflect.Type
 
-	fields model.Fields
-
-	isModelPtr bool
-
-	modelCache Cache
+	fields []*fieldImpl
 }
 
-func (s *modelInfo) GetName() string {
+func (s *modelImpl) GetName() string {
+	if s.modelType.Kind() == reflect.Ptr {
+		return s.modelType.Elem().Name()
+	}
+
 	return s.modelType.Name()
 }
 
 // GetPkgPath GetPkgPath
-func (s *modelInfo) GetPkgPath() string {
+func (s *modelImpl) GetPkgPath() string {
+	if s.modelType.Kind() == reflect.Ptr {
+		return s.modelType.Elem().PkgPath()
+	}
+
 	return s.modelType.PkgPath()
 }
 
 // GetFields GetFields
-func (s *modelInfo) GetFields() model.Fields {
-	return s.fields
+func (s *modelImpl) GetFields() (ret model.Fields) {
+	for _, field := range s.fields {
+		ret = append(ret, field)
+	}
+
+	return
 }
 
 // SetFieldValue SetFieldValue
-func (s *modelInfo) SetFieldValue(idx int, val reflect.Value) (err error) {
+func (s *modelImpl) SetFieldValue(idx int, val reflect.Value) (err error) {
 	for _, field := range s.fields {
 		if field.GetIndex() == idx {
 			err = field.SetValue(val)
@@ -46,7 +54,7 @@ func (s *modelInfo) SetFieldValue(idx int, val reflect.Value) (err error) {
 }
 
 // UpdateFieldValue UpdateFieldValue
-func (s *modelInfo) UpdateFieldValue(name string, val reflect.Value) (err error) {
+func (s *modelImpl) UpdateFieldValue(name string, val reflect.Value) (err error) {
 	for _, field := range s.fields {
 		if field.GetName() == name {
 			err = field.SetValue(val)
@@ -59,14 +67,26 @@ func (s *modelInfo) UpdateFieldValue(name string, val reflect.Value) (err error)
 }
 
 // GetPrimaryField GetPrimaryField
-func (s *modelInfo) GetPrimaryField() model.Field {
-	return s.fields.GetPrimaryField()
+func (s *modelImpl) GetPrimaryField() (ret model.Field) {
+	for _, field := range s.fields {
+		if field.IsPrimary() {
+			ret = field
+			return
+		}
+	}
+
+	return
 }
 
-func (s *modelInfo) GetDependField() (ret []model.Field) {
+func (s *modelImpl) GetDependField() (ret []model.Field, err error) {
 	for _, field := range s.fields {
 		fType := field.GetType()
-		fDepend := fType.GetDepend()
+		fDepend, fErr := fType.GetDepend()
+		if fErr != nil {
+			err = fErr
+			return
+		}
+
 		if fDepend != nil {
 			ret = append(ret, field)
 		}
@@ -75,31 +95,42 @@ func (s *modelInfo) GetDependField() (ret []model.Field) {
 	return
 }
 
-func (s *modelInfo) IsPtr() bool {
-	return s.isModelPtr
+func (s *modelImpl) IsPtr() bool {
+	return s.modelType.Kind() == reflect.Ptr
 }
 
-func (s *modelInfo) Copy() model.Model {
-	info := &modelInfo{modelType: s.modelType, fields: s.fields.Copy(), isModelPtr: s.isModelPtr, modelCache: s.modelCache}
+func (s *modelImpl) Copy() model.Model {
+	info := &modelImpl{modelType: s.modelType, fields: []*fieldImpl{}}
+	for _, field := range s.fields {
+		info.fields = append(info.fields, field.Copy())
+	}
+
 	return info
 }
 
-func (s *modelInfo) Interface() reflect.Value {
+func (s *modelImpl) Interface() reflect.Value {
+	if s.modelType.Kind() == reflect.Ptr {
+		return reflect.New(s.modelType.Elem())
+	}
+
 	return reflect.New(s.modelType)
 }
 
 // Dump Dump
-func (s *modelInfo) Dump() {
-	fmt.Print("modelInfo:\n")
-	fmt.Printf("\tname:%s, pkgPath:%s\n", s.GetName(), s.GetPkgPath())
+func (s *modelImpl) Dump() (ret string) {
+	ret = fmt.Sprintf("modelImpl:\n")
+	ret = fmt.Sprintf("%s\tname:%s, pkgPath:%s\n", ret, s.GetName(), s.GetPkgPath())
 
-	primaryKey := s.fields.GetPrimaryField()
+	primaryKey := s.GetPrimaryField()
 	if primaryKey != nil {
-		fmt.Printf("primaryKey:\n")
-		fmt.Printf("\t%s\n", primaryKey.Dump())
+		ret = fmt.Sprintf("%sprimaryKey:\n", ret)
+		ret = fmt.Sprintf("%s\t%s\n", ret, primaryKey.Dump())
 	}
-	fmt.Print("fields:\n")
-	s.fields.Dump()
+	ret = fmt.Sprint("%sfields:\n", ret)
+	for _, field := range s.fields {
+		ret = fmt.Sprintf("%s%s\n", ret, field.Dump())
+	}
+	return
 }
 
 // GetObjectModel GetObjectModel
@@ -122,31 +153,29 @@ func GetObjectModel(objPtr interface{}, cache Cache) (ret model.Model, err error
 	return
 }
 
-// GetTypeModel GetTypeModel
-func GetTypeModel(modelType reflect.Type, cache Cache) (ret model.Model, err error) {
-	isPtr := false
+func getTypeModel(modelType reflect.Type, cache Cache) (ret model.Model, err error) {
+	rawType := modelType
 	if modelType.Kind() == reflect.Ptr {
-		modelType = modelType.Elem()
-		isPtr = true
+		rawType = rawType.Elem()
 	}
 
-	if modelType.Kind() != reflect.Struct {
-		err = fmt.Errorf("illegal modelType, type:%s", modelType.String())
+	if rawType.Kind() != reflect.Struct {
+		err = fmt.Errorf("illegal modelType, type:%s", rawType.String())
 		return
 	}
 
-	info := cache.Fetch(modelType.Name())
+	info := cache.Fetch(rawType.Name())
 	if info != nil {
 		ret = info
 		return
 	}
 
-	modelInfo := &modelInfo{modelType: modelType, fields: make(model.Fields, 0), isModelPtr: isPtr, modelCache: cache}
+	modelImpl := &modelImpl{modelType: modelType, fields: make([]*fieldImpl, 0)}
 
-	fieldNum := modelType.NumField()
+	fieldNum := rawType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		fieldType := modelType.Field(idx)
-		fieldInfo, fieldErr := GetFieldInfo(idx, fieldType, nil)
+		fieldType := rawType.Field(idx)
+		fieldInfo, fieldErr := getFieldInfo(idx, fieldType, nil)
 		if fieldErr != nil {
 			err = fieldErr
 			log.Printf("getFieldInfo failed, name:%s, err:%s", fieldType.Name, err.Error())
@@ -154,31 +183,17 @@ func GetTypeModel(modelType reflect.Type, cache Cache) (ret model.Model, err err
 		}
 
 		if fieldInfo != nil {
-			modelInfo.fields.Append(fieldInfo)
+			modelImpl.fields = append(modelImpl.fields, fieldInfo)
 		}
 	}
 
-	if len(modelInfo.fields) > 0 {
-		cache.Put(modelInfo.GetName(), modelInfo)
-
-		dependFields := modelInfo.GetDependField()
-		for _, val := range dependFields {
-			fType := val.GetType()
-			fDValue := fType.GetDepend()
-			if fDValue != nil {
-				_, fDErr := GetTypeModel(fDValue, cache)
-				if fDErr != nil {
-					err = fDErr
-					return
-				}
-			}
-		}
-
-		ret = modelInfo
+	if len(modelImpl.fields) > 0 {
+		cache.Put(modelImpl.GetName(), modelImpl)
+		ret = modelImpl
 		return
 	}
 
-	err = fmt.Errorf("no define orm field, struct name:%s", modelInfo.GetName())
+	err = fmt.Errorf("no define orm field, struct name:%s", modelImpl.GetName())
 	return
 }
 
@@ -196,7 +211,7 @@ func GetValueModel(modelVal reflect.Value, cache Cache) (ret model.Model, err er
 
 	info := cache.Fetch(modelVal.Type().Name())
 	if info == nil {
-		info, err = GetTypeModel(rawVal.Type(), cache)
+		info, err = getTypeModel(rawVal.Type(), cache)
 		if err != nil {
 			return
 		}
@@ -229,7 +244,7 @@ func getStructPrimaryKey(modelVal reflect.Value) (ret model.Field, err error) {
 	for idx := 0; idx < fieldNum; {
 		fieldType := modelType.Field(idx)
 		fieldVal := modelVal.Field(idx)
-		fieldInfo, fieldErr := GetFieldInfo(idx, fieldType, &fieldVal)
+		fieldInfo, fieldErr := getFieldInfo(idx, fieldType, &fieldVal)
 		if fieldErr != nil {
 			err = fieldErr
 			return
