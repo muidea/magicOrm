@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"muidea.com/magicOrm/model"
 	"muidea.com/magicOrm/util"
 )
 
@@ -14,6 +13,15 @@ type typeImpl struct {
 
 // newFieldType newFieldType
 func newFieldType(val reflect.Type) (ret *typeImpl, err error) {
+	rawType := val
+	if rawType.Kind() == reflect.Ptr {
+		rawType = rawType.Elem()
+	}
+	_, err = util.GetTypeValueEnum(rawType)
+	if err != nil {
+		return
+	}
+
 	ret = &typeImpl{typeImpl: val}
 	return
 }
@@ -50,10 +58,6 @@ func (s *typeImpl) GetType() reflect.Type {
 	}
 
 	return s.typeImpl
-}
-
-func (s *typeImpl) GetDepend() (ret model.Model, err error) {
-	return
 }
 
 func (s *typeImpl) IsPtrType() bool {

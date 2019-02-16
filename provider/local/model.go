@@ -45,7 +45,8 @@ func (s *modelImpl) GetFields() (ret model.Fields) {
 func (s *modelImpl) SetFieldValue(idx int, val reflect.Value) (err error) {
 	for _, field := range s.fields {
 		if field.GetIndex() == idx {
-			err = field.SetValue(val)
+			fv := field.GetValue()
+			err = fv.Set(val)
 			return
 		}
 	}
@@ -57,7 +58,8 @@ func (s *modelImpl) SetFieldValue(idx int, val reflect.Value) (err error) {
 func (s *modelImpl) UpdateFieldValue(name string, val reflect.Value) (err error) {
 	for _, field := range s.fields {
 		if field.GetName() == name {
-			err = field.SetValue(val)
+			fv := field.GetValue()
+			err = fv.Set(val)
 			return
 		}
 	}
@@ -72,23 +74,6 @@ func (s *modelImpl) GetPrimaryField() (ret model.Field) {
 		if field.IsPrimary() {
 			ret = field
 			return
-		}
-	}
-
-	return
-}
-
-func (s *modelImpl) GetDependField() (ret []model.Field, err error) {
-	for _, field := range s.fields {
-		fType := field.GetType()
-		fDepend, fErr := fType.GetDepend()
-		if fErr != nil {
-			err = fErr
-			return
-		}
-
-		if fDepend != nil {
-			ret = append(ret, field)
 		}
 	}
 
@@ -175,7 +160,7 @@ func getTypeModel(modelType reflect.Type, cache Cache) (ret model.Model, err err
 	fieldNum := rawType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		fieldType := rawType.Field(idx)
-		fieldInfo, fieldErr := getFieldInfo(idx, fieldType, nil)
+		fieldInfo, fieldErr := getFieldInfo(idx, fieldType)
 		if fieldErr != nil {
 			err = fieldErr
 			log.Printf("getFieldInfo failed, name:%s, err:%s", fieldType.Name, err.Error())
@@ -230,35 +215,5 @@ func GetValueModel(modelVal reflect.Value, cache Cache) (ret model.Model, err er
 
 	ret = info
 
-	return
-}
-
-func getStructPrimaryKey(modelVal reflect.Value) (ret model.Field, err error) {
-	if modelVal.Kind() != reflect.Struct {
-		err = fmt.Errorf("illegal value type, not struct, type:%s", modelVal.Type().String())
-		return
-	}
-
-	modelType := modelVal.Type()
-	fieldNum := modelType.NumField()
-	for idx := 0; idx < fieldNum; {
-		fieldType := modelType.Field(idx)
-		fieldVal := modelVal.Field(idx)
-		fieldInfo, fieldErr := getFieldInfo(idx, fieldType, &fieldVal)
-		if fieldErr != nil {
-			err = fieldErr
-			return
-		}
-
-		fTag := fieldInfo.GetTag()
-		if fTag.IsPrimaryKey() {
-			ret = fieldInfo
-			return
-		}
-
-		idx++
-	}
-
-	err = fmt.Errorf("no found primary key. type:%s", modelVal.Type().String())
 	return
 }

@@ -6,7 +6,7 @@ import "reflect"
 type FieldValue interface {
 	IsNil() bool
 	Set(val reflect.Value) error
-	Get() (reflect.Value, error)
+	Get() reflect.Value
 	Str() (string, error)
 	Dump() string
 }
