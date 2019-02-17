@@ -23,7 +23,7 @@ func (s *Provider) GetObjectModel(objPtr interface{}) (ret model.Model, err erro
 
 // GetTypeModel GetTypeModel
 func (s *Provider) GetTypeModel(modelType reflect.Type) (ret model.Model, err error) {
-	return getTypeModel(modelType, s.modelCache)
+	return GetTypeModel(modelType, s.modelCache)
 }
 
 // GetValueModel GetValueModel
@@ -32,8 +32,8 @@ func (s *Provider) GetValueModel(modelVal reflect.Value) (ret model.Model, err e
 }
 
 // GetValueStr GetValueStr
-func (s *Provider) GetValueStr(value reflect.Value) (ret string, err error) {
-	return
+func (s *Provider) GetValueStr(vType model.Type, vVal model.Value) (ret string, err error) {
+	return GetValueStr(vType, vVal, s.modelCache)
 }
 
 // Reset Reset

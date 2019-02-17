@@ -52,7 +52,7 @@ func (s *valueImpl) Copy() (ret *valueImpl) {
 }
 
 // GetValueStr get value str
-func GetValueStr(vType model.Type, vVal model.Value) (ret string, err error) {
+func GetValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, err error) {
 	rawType := vType.GetType()
 	if rawType.Kind() == reflect.Ptr {
 		rawType = rawType.Elem()

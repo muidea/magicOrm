@@ -6,7 +6,6 @@ import (
 	"reflect"
 
 	"muidea.com/magicOrm/model"
-	"muidea.com/magicOrm/util"
 )
 
 // modelImpl single model
@@ -139,7 +138,7 @@ func GetObjectModel(objPtr interface{}, cache Cache) (ret model.Model, err error
 	return
 }
 
-func getTypeModel(modelType reflect.Type, cache Cache) (ret model.Model, err error) {
+func GetTypeModel(modelType reflect.Type, cache Cache) (ret model.Model, err error) {
 	rawType := modelType
 	if modelType.Kind() == reflect.Ptr {
 		rawType = rawType.Elem()
@@ -183,41 +182,6 @@ func getTypeModel(modelType reflect.Type, cache Cache) (ret model.Model, err err
 	}
 
 	cache.Put(modelImpl.GetName(), modelImpl)
-	for _, val := range modelImpl.fields {
-		ft := val.GetType()
-		if util.IsBasicType(ft.GetValue()) {
-			continue
-		}
-
-		if util.IsStructType(ft.GetValue()) {
-			_, err = getTypeModel(ft.GetType(), cache)
-			if err != nil {
-				cache.Remove(modelImpl.GetName())
-				return
-			}
-			continue
-		}
-
-		if !util.IsSliceType(ft.GetValue()) {
-			continue
-		}
-
-		sliceType, sliceErr := newType(ft.GetType().Elem())
-		if sliceErr != nil {
-			err = sliceErr
-			return
-		}
-
-		if !util.IsStructType(sliceType.GetValue()) {
-			continue
-		}
-
-		_, err = getTypeModel(sliceType.GetType(), cache)
-		if err != nil {
-			cache.Remove(modelImpl.GetName())
-			return
-		}
-	}
 
 	ret = modelImpl
 	return
@@ -235,26 +199,26 @@ func GetValueModel(modelVal reflect.Value, cache Cache) (ret model.Model, err er
 		modelVal = reflect.Indirect(modelVal)
 	}
 
-	info := cache.Fetch(modelVal.Type().String())
-	if info == nil {
-		info, err = getTypeModel(rawVal.Type(), cache)
+	modelInfo := cache.Fetch(modelVal.Type().Name())
+	if modelInfo == nil {
+		modelInfo, err = GetTypeModel(rawVal.Type(), cache)
 		if err != nil {
 			return
 		}
 	}
 
-	info = info.Copy()
+	modelInfo = modelInfo.Copy()
 	fieldNum := modelVal.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		val := modelVal.Field(idx)
-		err = info.SetFieldValue(idx, val)
+		err = modelInfo.SetFieldValue(idx, val)
 		if err != nil {
 			log.Printf("SetFieldValue failed, err:%s", err.Error())
 			return
 		}
 	}
 
-	ret = info
+	ret = modelInfo
 
 	return
 }
