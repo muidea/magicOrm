@@ -39,20 +39,20 @@ type Test struct {
 func TestModel(t *testing.T) {
 	cache := NewCache()
 	now := time.Now()
-	info, err := GetObjectModel(&Unit{T1: Test{ID: 12, Val: 123}, TimeStamp: now}, cache)
-	if info == nil || err != nil {
+	modelInfo, err := GetObjectModel(&Unit{T1: Test{ID: 12, Val: 123}, TimeStamp: now}, cache)
+	if modelInfo == nil || err != nil {
 		t.Errorf("GetObjectModel failed, err:%s", err.Error())
 		return
 	}
 
-	info.Dump()
+	modelInfo.Dump()
 }
 
 func TestModelValue(t *testing.T) {
 	cache := NewCache()
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05", "2018-01-02 15:04:05", time.Local)
 	unit := &Unit{Name: "AA", T1: Test{Val: 123}, TimeStamp: now}
-	info, err := GetObjectModel(unit, cache)
+	modelInfo, err := GetObjectModel(unit, cache)
 	if err != nil {
 		t.Errorf("GetObjectModel failed, err:%s", err.Error())
 		return
@@ -60,20 +60,21 @@ func TestModelValue(t *testing.T) {
 
 	log.Print(*unit)
 
-	id := 123320
-	pk := info.GetPrimaryField()
+	id := int64(123320)
+	pk := modelInfo.GetPrimaryField()
 	if pk == nil {
 		t.Errorf("GetPrimaryField faield")
 		return
 	}
-	pk.SetValue(reflect.ValueOf(id))
+	fv := pk.GetValue()
+	fv.Set(reflect.ValueOf(id))
 
 	name := "abcdfrfe"
-	info.UpdateFieldValue("Name", reflect.ValueOf(name))
+	modelInfo.UpdateFieldValue("Name", reflect.ValueOf(name))
 
 	now = time.Now()
 	tsVal := reflect.ValueOf(now)
-	info.UpdateFieldValue("TimeStamp", tsVal)
+	modelInfo.UpdateFieldValue("TimeStamp", tsVal)
 
 	log.Print(*unit)
 }

@@ -5,7 +5,7 @@ import "reflect"
 // FieldType FieldType
 type FieldType interface {
 	GetName() string
-	GetValue() (int, error)
+	GetValue() int
 	GetPkgPath() string
 	GetType() reflect.Type
 	IsPtrType() bool

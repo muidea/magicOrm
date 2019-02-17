@@ -52,15 +52,11 @@ func (s *fieldImpl) Verify() error {
 		return fmt.Errorf("no define field tag")
 	}
 
-	val, err := s.fieldType.GetValue()
-	if err != nil {
-		return err
-	}
-
+	val := s.fieldType.GetValue()
 	if s.fieldTag.IsAutoIncrement() {
 		switch val {
 		case util.TypeBooleanField, util.TypeStringField, util.TypeDateTimeField, util.TypeFloatField, util.TypeDoubleField, util.TypeStructField, util.TypeSliceField:
-			return fmt.Errorf("illegal auto_increment field type, type:%s", s.fieldType)
+			return fmt.Errorf("illegal auto_increment field type, type:%s", s.fieldType.Dump())
 		default:
 		}
 	}
@@ -68,7 +64,7 @@ func (s *fieldImpl) Verify() error {
 	if s.fieldTag.IsPrimaryKey() {
 		switch val {
 		case util.TypeStructField, util.TypeSliceField:
-			return fmt.Errorf("illegal primary key field type, type:%s", s.fieldType)
+			return fmt.Errorf("illegal primary key field type, type:%s", s.fieldType.Dump())
 		default:
 		}
 	}
@@ -88,10 +84,7 @@ func (s *fieldImpl) Copy() *fieldImpl {
 
 // Dump Dump
 func (s *fieldImpl) Dump() string {
-	str := fmt.Sprintf("index:[%d],name:[%s],type:[%s],tag:[%s]", s.fieldIndex, s.fieldName, s.fieldType, s.fieldTag)
-
-	valStr, _ := s.fieldValue.Str()
-	str = fmt.Sprintf("%s,value:[%s]", str, valStr)
+	str := fmt.Sprintf("index:[%d],name:[%s],type:[%s],tag:[%s],value:[%s]", s.fieldIndex, s.fieldName, s.fieldType.Dump(), s.fieldTag.Dump(), s.fieldValue.Dump())
 
 	return str
 }
@@ -107,17 +100,17 @@ func getFieldInfo(idx int, fieldType reflect.StructField) (ret *fieldImpl, err e
 		return
 	}
 
-	info := &fieldImpl{}
-	info.fieldIndex = idx
-	info.fieldName = fieldType.Name
-	info.fieldType = *typeImpl
-	info.fieldTag = *tagImpl
+	field := &fieldImpl{}
+	field.fieldIndex = idx
+	field.fieldName = fieldType.Name
+	field.fieldType = *typeImpl
+	field.fieldTag = *tagImpl
 
-	err = info.Verify()
+	err = field.Verify()
 	if err != nil {
 		return
 	}
 
-	ret = info
+	ret = field
 	return
 }

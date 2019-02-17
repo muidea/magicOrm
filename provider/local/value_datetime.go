@@ -9,6 +9,11 @@ import (
 //GetDateTimeValueStr get datetime value str
 func GetDateTimeValueStr(val reflect.Value) (ret string, err error) {
 	rawVal := reflect.Indirect(val)
+	if rawVal.Kind() != reflect.Struct {
+		err = fmt.Errorf("illegal datetime value type. type kind:%v", rawVal.Kind())
+		return
+	}
+
 	ts, ok := rawVal.Interface().(time.Time)
 	if ok {
 		ret = fmt.Sprintf("'%s'", ts.Format("2006-01-02 15:04:05"))

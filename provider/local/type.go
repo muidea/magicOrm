@@ -34,13 +34,13 @@ func (s *typeImpl) GetName() string {
 	return s.typeImpl.Name()
 }
 
-func (s *typeImpl) GetValue() (ret int, err error) {
+func (s *typeImpl) GetValue() (ret int) {
 	if s.typeImpl.Kind() == reflect.Ptr {
-		ret, err = util.GetTypeValueEnum(s.typeImpl.Elem())
+		ret, _ = util.GetTypeValueEnum(s.typeImpl.Elem())
 		return
 	}
 
-	ret, err = util.GetTypeValueEnum(s.typeImpl)
+	ret, _ = util.GetTypeValueEnum(s.typeImpl)
 	return
 }
 
@@ -72,6 +72,6 @@ func (s *typeImpl) Copy() (ret *typeImpl) {
 }
 
 func (s *typeImpl) Dump() string {
-	val, _ := s.GetValue()
+	val := s.GetValue()
 	return fmt.Sprintf("val:%d,name:%s,pkgPath:%s,isPtr:%v", val, s.GetName(), s.GetPkgPath(), s.IsPtrType())
 }

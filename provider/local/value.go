@@ -15,21 +15,21 @@ func newFieldValue(val reflect.Value) (ret *valueImpl, err error) {
 }
 
 func (s *valueImpl) IsNil() (ret bool) {
-	if s.valueImpl.Kind() == reflect.Ptr {
-		ret = s.valueImpl.IsNil()
-	} else {
-		ret = false
-	}
+	ret = s.valueImpl.Kind() == reflect.Invalid
 
 	return
 }
 
 func (s *valueImpl) Set(val reflect.Value) (err error) {
-	valueType := s.valueImpl.Type().String()
-	currentType := val.Type().String()
+	if s.valueImpl.Kind() == reflect.Invalid {
+		s.valueImpl = val
+		return
+	}
 
-	if valueType != currentType {
-		err = fmt.Errorf("illegal value type, value type:%s, current type:%s", valueType, currentType)
+	valTypeName := val.Type().String()
+	expectTypeName := s.valueImpl.Type().String()
+	if expectTypeName != valTypeName {
+		err = fmt.Errorf("illegal value type, type:%s, expect:%s", expectTypeName, valTypeName)
 		return
 	}
 
@@ -58,8 +58,10 @@ func (s *valueImpl) Str() (ret string, err error) {
 		ret, err = GetStringValueStr(rawVal)
 	case reflect.Slice:
 		ret, err = GetSliceValueStr(rawVal)
-	default:
+	case reflect.Struct:
 		ret, err = GetDateTimeValueStr(rawVal)
+	default:
+		err = fmt.Errorf("illegal value kind, kind:%v", rawVal.Kind())
 	}
 	return
 }
