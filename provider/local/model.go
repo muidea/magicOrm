@@ -52,6 +52,7 @@ func (s *modelImpl) SetFieldValue(idx int, val reflect.Value) (err error) {
 		}
 	}
 
+	err = fmt.Errorf("out of index, index:%d", idx)
 	return
 }
 

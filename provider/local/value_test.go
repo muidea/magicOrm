@@ -8,150 +8,208 @@ import (
 
 func TestGetValueStr(t *testing.T) {
 	iVal := int(123)
+	fiType, fiErr := newType(reflect.TypeOf(&iVal))
+	if fiErr != nil {
+		t.Errorf("%s", fiErr.Error())
+		return
+	}
 	fiVal, fiErr := newValue(reflect.ValueOf(&iVal))
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
-	} else {
-		ret, _ := fiVal.Str()
-		if ret != "123" {
-			t.Errorf("GetValueStr failed, iVal:%d", iVal)
-		}
+		return
+	}
+	ret, _ := GetValueStr(fiType, fiVal)
+	if ret != "123" {
+		t.Errorf("GetValueStr failed, iVal:%d", iVal)
+		return
 	}
 
 	fVal := 12.34
+	ffType, ffErr := newType(reflect.TypeOf(&fVal))
+	if ffErr != nil {
+		t.Errorf("%s", ffErr.Error())
+		return
+	}
 	ffVal, ffErr := newValue(reflect.ValueOf(&fVal))
 	if ffErr != nil {
 		t.Errorf("%s", ffErr.Error())
-	} else {
-		ret, _ := ffVal.Str()
-		if ret != "12.340000" {
-			t.Errorf("GetValueStr failed, fVal:%f", fVal)
-		}
+		return
+	}
+	ret, _ = GetValueStr(ffType, ffVal)
+	if ret != "12.340000" {
+		t.Errorf("GetValueStr failed, fVal:%f", fVal)
 	}
 
 	strVal := "abc"
+	fstrType, fstrErr := newType(reflect.TypeOf(&strVal))
+	if fstrErr != nil {
+		t.Errorf("%s", fstrErr.Error())
+		return
+	}
+
 	fstrVal, fstrErr := newValue(reflect.ValueOf(&strVal))
 	if fstrErr != nil {
 		t.Errorf("%s", fstrErr.Error())
-	} else {
-		ret, _ := fstrVal.Str()
-		if ret != "'abc'" {
-			t.Errorf("GetValueStr failed, ret:%s, strVal:%s", ret, strVal)
-		}
+		return
+	}
+	ret, _ = GetValueStr(fstrType, fstrVal)
+	if ret != "'abc'" {
+		t.Errorf("GetValueStr failed, ret:%s, strVal:%s", ret, strVal)
+		return
 	}
 
 	bVal := true
+	fbType, fbErr := newType(reflect.TypeOf(&bVal))
+	if fbErr != nil {
+		t.Errorf("%s", fbErr.Error())
+		return
+	}
+
 	fbVal, fbErr := newValue(reflect.ValueOf(&bVal))
 	if fbErr != nil {
 		t.Errorf("%s", fbErr.Error())
-	} else {
-		ret, _ := fbVal.Str()
-		if ret != "1" {
-			t.Errorf("GetValueStr failed, ret:%s, bVal:%v", ret, bVal)
-		}
+		return
+	}
+	ret, _ = GetValueStr(fbType, fbVal)
+	if ret != "1" {
+		t.Errorf("GetValueStr failed, ret:%s, bVal:%v", ret, bVal)
+		return
 	}
 
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05", "2018-01-02 15:04:05", time.Local)
+	ftimeType, ftimeErr := newType(reflect.TypeOf(&now))
+	if ftimeErr != nil {
+		t.Errorf("%s", ftimeErr.Error())
+		return
+	}
 	ftimeVal, ftimeErr := newValue(reflect.ValueOf(&now))
 	if ftimeErr != nil {
 		t.Errorf("%s", ftimeErr.Error())
-	} else {
-		ret, _ := ftimeVal.Str()
-		if ret != "'2018-01-02 15:04:05'" {
-			t.Errorf("GetValueStr failed, ret:%s, ftimeVal:%v", ret, now)
-		}
+		return
+	}
+	ret, _ = GetValueStr(ftimeType, ftimeVal)
+	if ret != "'2018-01-02 15:04:05'" {
+		t.Errorf("GetValueStr failed, ret:%s, ftimeVal:%v", ret, now)
 	}
 
 	ii := 123
 	var iiVal int
 	iiVal = ii
+	fiType, fiErr = newType(reflect.TypeOf(&iiVal))
+	if fiErr != nil {
+		t.Errorf("%s", fiErr.Error())
+		return
+	}
 	fiVal, fiErr = newValue(reflect.ValueOf(&iiVal))
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
-	} else {
-		ret, err := fiVal.Str()
-		if err != nil {
-			t.Errorf("GetValueStr failed, err:%s", err.Error())
-		} else {
-			if ret != "123" {
-				t.Errorf("GetValueStr failed, iVal:%d", iVal)
-			}
-		}
+		return
+	}
+	ret, _ = GetValueStr(fiType, fiVal)
+	if ret != "123" {
+		t.Errorf("GetValueStr failed, iVal:%d", iVal)
 	}
 }
 
 func TestSetValue(t *testing.T) {
 	var iVal int
+	fiType, fiErr := newType(reflect.TypeOf(&iVal).Elem())
+	if fiErr != nil {
+		t.Errorf("%s", fiErr.Error())
+		return
+	}
 	fiVal, fiErr := newValue(reflect.ValueOf(&iVal).Elem())
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
-	} else {
-		intVal := 123
-		fiVal.Set(reflect.ValueOf(intVal))
-		ret, _ := fiVal.Str()
-		if ret != "123" {
-			t.Errorf("GetValueStr failed, iVal:%d", iVal)
-		}
-		if iVal != 123 {
-			t.Errorf("Set failed, iVal:%d", iVal)
-		}
+		return
+	}
+	intVal := 123
+	fiVal.Set(reflect.ValueOf(intVal))
+	ret, _ := GetValueStr(fiType, fiVal)
+	if ret != "123" {
+		t.Errorf("GetValueStr failed, iVal:%d", iVal)
+		return
+	}
+	if iVal != 123 {
+		t.Errorf("Set failed, iVal:%d", iVal)
 	}
 
 	var fVal float32
+	ffType, ffErr := newType(reflect.TypeOf(&fVal).Elem())
+	if ffErr != nil {
+		t.Errorf("%s", ffErr.Error())
+		return
+	}
 	ffVal, ffErr := newValue(reflect.ValueOf(&fVal).Elem())
 	if ffErr != nil {
 		t.Errorf("%s", ffErr.Error())
-	} else {
-		fltVal := float32(12.34)
-		ffVal.Set(reflect.ValueOf(fltVal))
-		ret, _ := ffVal.Str()
-		if ret != "12.340000" {
-			t.Errorf("GetValueStr failed, fVal:%f", fVal)
-		}
-		if fVal != 12.34 {
-			t.Errorf("Set failed, fVal:%f", fVal)
-		}
+		return
+	}
+	fltVal := float32(12.34)
+	ffVal.Set(reflect.ValueOf(fltVal))
+	ret, _ = GetValueStr(ffType, ffVal)
+	if ret != "12.340000" {
+		t.Errorf("GetValueStr failed, fVal:%f", fVal)
+		return
+	}
+	if fVal != 12.34 {
+		t.Errorf("Set failed, fVal:%f", fVal)
 	}
 
 	var strVal string
+	fstrType, fstrErr := newType(reflect.TypeOf(&strVal).Elem())
+	if fstrErr != nil {
+		t.Errorf("%s", fstrErr.Error())
+		return
+	}
 	fstrVal, fstrErr := newValue(reflect.ValueOf(&strVal).Elem())
 	if fstrErr != nil {
 		t.Errorf("%s", fstrErr.Error())
-	} else {
-		stringVal := "abc"
-		fstrVal.Set(reflect.ValueOf(stringVal))
-		ret, _ := fstrVal.Str()
-		if ret != "'abc'" {
-			t.Errorf("GetValueStr failed, ret:%s, strVal:%s", ret, strVal)
-		}
-		if strVal != "abc" {
-			t.Errorf("Set failed, strVal:%s", strVal)
-		}
+		return
+	}
+
+	stringVal := "abc"
+	fstrVal.Set(reflect.ValueOf(stringVal))
+	ret, _ = GetValueStr(fstrType, fstrVal)
+	if ret != "'abc'" {
+		t.Errorf("GetValueStr failed, ret:%s, strVal:%s", ret, strVal)
+		return
+	}
+	if strVal != "abc" {
+		t.Errorf("Set failed, strVal:%s", strVal)
+		return
 	}
 
 	var bVal bool
+	fbType, fbErr := newType(reflect.TypeOf(&bVal).Elem())
+	if fbErr != nil {
+		t.Errorf("%s", fbErr.Error())
+		return
+	}
 	fbVal, fbErr := newValue(reflect.ValueOf(&bVal).Elem())
 	if fbErr != nil {
 		t.Errorf("%s", fbErr.Error())
-	} else {
-		boolVal := true
-		fbVal.Set(reflect.ValueOf(boolVal))
-		ret, _ := fbVal.Str()
-		if ret != "1" {
-			t.Errorf("GetValueStr failed, ret:%s, bVal:%v", ret, bVal)
-		}
-		if !bVal {
-			t.Errorf("Set failed, bVal:%v", bVal)
-		}
-		bIntVal := false
-		fbVal.Set(reflect.ValueOf(bIntVal))
-		ret, _ = fbVal.Str()
-		if ret != "0" {
-			t.Errorf("GetValueStr failed, ret:%s, bVal:%v", ret, bVal)
-		}
-		if bVal {
-			t.Errorf("Set failed, bVal:%v", bVal)
-		}
+		return
+	}
+	boolVal := true
+	fbVal.Set(reflect.ValueOf(boolVal))
+	ret, _ = GetValueStr(fbType, fbVal)
+	if ret != "1" {
+		t.Errorf("GetValueStr failed, ret:%s, bVal:%v", ret, bVal)
+		return
+	}
+	if !bVal {
+		t.Errorf("Set failed, bVal:%v", bVal)
+		return
+	}
+	bIntVal := false
+	fbVal.Set(reflect.ValueOf(bIntVal))
+	ret, _ = GetValueStr(fbType, fbVal)
+	if ret != "0" {
+		t.Errorf("GetValueStr failed, ret:%s, bVal:%v", ret, bVal)
+	}
+	if bVal {
+		t.Errorf("Set failed, bVal:%v", bVal)
 	}
 }
 
@@ -161,23 +219,19 @@ func TestPtr(t *testing.T) {
 	var iVal *int
 
 	iVal = &jj
+	fiType, fiErr := newType(reflect.TypeOf(&iVal).Elem())
+	if fiErr != nil {
+		t.Errorf("%s", fiErr.Error())
+		return
+	}
 	fiVal, fiErr := newValue(reflect.ValueOf(&iVal).Elem())
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 		return
 	}
-	ret, err := fiVal.Str()
-	if err != nil {
-		t.Errorf("GetValueStr exception, err:%s", err.Error())
-		return
-	}
 
 	fiVal.Set(reflect.ValueOf(&ii))
-	ret, err = fiVal.Str()
-	if err != nil {
-		t.Errorf("GetValueStr failed, err:%s", err.Error())
-		return
-	}
+	ret, _ := GetValueStr(fiType, fiVal)
 	if ret != "10" {
 		t.Errorf("GetValueStr exception, iVal:%d, ret:%s", *iVal, ret)
 		return
@@ -189,35 +243,32 @@ func TestPtr(t *testing.T) {
 	}
 
 	iVal = &ii
+	fiType, fiErr = newType(reflect.TypeOf(iVal).Elem())
+	if fiErr != nil {
+		t.Errorf("%s", fiErr.Error())
+		return
+	}
 	fiVal, fiErr = newValue(reflect.ValueOf(iVal).Elem())
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
-	} else {
-		ret, err := fiVal.Str()
-		if err != nil {
-			t.Errorf("GetValueStr failed, err:%s", err.Error())
-		} else {
-			if ret != "10" {
-				t.Errorf("GetValueStr failed, ret:%s, iVal:%d", ret, iVal)
-			}
-			if *iVal != 10 {
-				t.Errorf("Set failed, iVal:%d", iVal)
-			}
-		}
-
-		intVal := 123
-		fiVal.Set(reflect.ValueOf(intVal))
-		ret, err = fiVal.Str()
-		if err != nil {
-			t.Errorf("GetValueStr failed, err:%s", err.Error())
-		} else {
-			if ret != "123" {
-				t.Errorf("GetValueStr failed, ret:%s, iVal:%d", ret, iVal)
-			}
-			if *iVal != 123 {
-				t.Errorf("Set failed, iVal:%d", iVal)
-			}
-
-		}
+		return
 	}
+	ret, _ = GetValueStr(fiType, fiVal)
+	if ret != "10" {
+		t.Errorf("GetValueStr failed, ret:%s, iVal:%d", ret, iVal)
+	}
+	if *iVal != 10 {
+		t.Errorf("Set failed, iVal:%d", iVal)
+	}
+
+	intVal := 123
+	fiVal.Set(reflect.ValueOf(intVal))
+	ret, _ = GetValueStr(fiType, fiVal)
+	if ret != "123" {
+		t.Errorf("GetValueStr failed, ret:%s, iVal:%d", ret, iVal)
+	}
+	if *iVal != 123 {
+		t.Errorf("Set failed, iVal:%d", iVal)
+	}
+
 }

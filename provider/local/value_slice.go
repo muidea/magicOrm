@@ -6,8 +6,8 @@ import (
 	"reflect"
 )
 
-// GetSliceValueStr get slice value str
-func GetSliceValueStr(val reflect.Value) (ret string, err error) {
+// getSliceValueStr get slice value str
+func getSliceValueStr(val reflect.Value) (ret string, err error) {
 	valSlice := []interface{}{}
 
 	rawVal := reflect.Indirect(val)
@@ -23,7 +23,7 @@ func GetSliceValueStr(val reflect.Value) (ret string, err error) {
 			reflect.String:
 			valSlice = append(valSlice, sv.Interface())
 		case reflect.Struct:
-			datetimeStr, datetimeErr := GetDateTimeValueStr(sv)
+			datetimeStr, datetimeErr := getDateTimeValueStr(sv)
 			if datetimeErr != nil {
 				err = datetimeErr
 				return

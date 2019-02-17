@@ -4,8 +4,8 @@ import (
 	"reflect"
 )
 
-// GetBoolValueStr get bool value str
-func GetBoolValueStr(val reflect.Value) (ret string, err error) {
+// getBoolValueStr get bool value str
+func getBoolValueStr(val reflect.Value) (ret string, err error) {
 	rawVal := reflect.Indirect(val)
 	if rawVal.Bool() {
 		ret = "1"

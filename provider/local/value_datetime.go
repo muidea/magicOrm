@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-//GetDateTimeValueStr get datetime value str
-func GetDateTimeValueStr(val reflect.Value) (ret string, err error) {
+//getDateTimeValueStr get datetime value str
+func getDateTimeValueStr(val reflect.Value) (ret string, err error) {
 	rawVal := reflect.Indirect(val)
 	if rawVal.Kind() != reflect.Struct {
 		err = fmt.Errorf("illegal datetime value type. type kind:%v", rawVal.Kind())

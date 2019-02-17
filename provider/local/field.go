@@ -84,7 +84,8 @@ func (s *fieldImpl) Copy() *fieldImpl {
 
 // Dump Dump
 func (s *fieldImpl) Dump() string {
-	str := fmt.Sprintf("index:[%d],name:[%s],type:[%s],tag:[%s],value:[%s]", s.fieldIndex, s.fieldName, s.fieldType.Dump(), s.fieldTag.Dump(), s.fieldValue.Dump())
+	str, _ := GetValueStr(&s.fieldType, &s.fieldValue)
+	str = fmt.Sprintf("index:[%d],name:[%s],type:[%s],tag:[%s],value:[%s]", s.fieldIndex, s.fieldName, s.fieldType.Dump(), s.fieldTag.Dump(), str)
 
 	return str
 }
