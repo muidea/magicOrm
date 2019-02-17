@@ -18,22 +18,22 @@ func New() *Provider {
 
 // GetObjectModel GetObjectModel
 func (s *Provider) GetObjectModel(objPtr interface{}) (ret model.Model, err error) {
-	return GetObjectModel(objPtr, s.modelCache)
+	return getObjectModel(objPtr, s.modelCache)
 }
 
 // GetTypeModel GetTypeModel
 func (s *Provider) GetTypeModel(modelType reflect.Type) (ret model.Model, err error) {
-	return GetTypeModel(modelType, s.modelCache)
+	return getTypeModel(modelType, s.modelCache)
 }
 
 // GetValueModel GetValueModel
 func (s *Provider) GetValueModel(modelVal reflect.Value) (ret model.Model, err error) {
-	return GetValueModel(modelVal, s.modelCache)
+	return getValueModel(modelVal, s.modelCache)
 }
 
 // GetValueStr GetValueStr
 func (s *Provider) GetValueStr(vType model.Type, vVal model.Value) (ret string, err error) {
-	return GetValueStr(vType, vVal, s.modelCache)
+	return getValueStr(vType, vVal, s.modelCache)
 }
 
 // Reset Reset

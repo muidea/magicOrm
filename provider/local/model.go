@@ -85,15 +85,6 @@ func (s *modelImpl) IsPtr() bool {
 	return s.modelType.Kind() == reflect.Ptr
 }
 
-func (s *modelImpl) Copy() model.Model {
-	modelInfo := &modelImpl{modelType: s.modelType, fields: []*fieldImpl{}}
-	for _, field := range s.fields {
-		modelInfo.fields = append(modelInfo.fields, field.Copy())
-	}
-
-	return modelInfo
-}
-
 func (s *modelImpl) Interface() reflect.Value {
 	rawType := s.modelType
 	if rawType.Kind() == reflect.Ptr {
@@ -103,14 +94,23 @@ func (s *modelImpl) Interface() reflect.Value {
 	return reflect.New(rawType).Elem()
 }
 
+func (s *modelImpl) Copy() *modelImpl {
+	modelInfo := &modelImpl{modelType: s.modelType, fields: []*fieldImpl{}}
+	for _, field := range s.fields {
+		modelInfo.fields = append(modelInfo.fields, field.Copy())
+	}
+
+	return modelInfo
+}
+
 // Dump Dump
-func (s *modelImpl) Dump() (ret string) {
+func (s *modelImpl) Dump(cache Cache) (ret string) {
 	ret = fmt.Sprintf("\nmodelImpl:\n")
 	ret = fmt.Sprintf("%s\tname:%s, pkgPath:%s\n", ret, s.GetName(), s.GetPkgPath())
 
 	ret = fmt.Sprintf("%sfields:\n", ret)
 	for _, field := range s.fields {
-		ret = fmt.Sprintf("%s\t%s\n", ret, field.Dump(nil))
+		ret = fmt.Sprintf("%s\t%s\n", ret, field.Dump(cache))
 	}
 
 	log.Print(ret)
@@ -118,8 +118,8 @@ func (s *modelImpl) Dump() (ret string) {
 	return
 }
 
-// GetObjectModel GetObjectModel
-func GetObjectModel(objPtr interface{}, cache Cache) (ret model.Model, err error) {
+// getObjectModel GetObjectModel
+func getObjectModel(objPtr interface{}, cache Cache) (ret *modelImpl, err error) {
 	ptrVal := reflect.ValueOf(objPtr)
 
 	if ptrVal.Kind() != reflect.Ptr {
@@ -129,16 +129,17 @@ func GetObjectModel(objPtr interface{}, cache Cache) (ret model.Model, err error
 
 	modelVal := reflect.Indirect(ptrVal)
 
-	ret, err = GetValueModel(modelVal, cache)
+	ret, err = getValueModel(modelVal, cache)
 	if err != nil {
-		log.Printf("GetValueModel failed, err:%s", err.Error())
+		log.Printf("getValueModel failed, err:%s", err.Error())
 		return
 	}
 
 	return
 }
 
-func GetTypeModel(modelType reflect.Type, cache Cache) (ret model.Model, err error) {
+// getTypeModel getTypeModel
+func getTypeModel(modelType reflect.Type, cache Cache) (ret *modelImpl, err error) {
 	rawType := modelType
 	if modelType.Kind() == reflect.Ptr {
 		rawType = rawType.Elem()
@@ -187,8 +188,8 @@ func GetTypeModel(modelType reflect.Type, cache Cache) (ret model.Model, err err
 	return
 }
 
-// GetValueModel GetValueModel
-func GetValueModel(modelVal reflect.Value, cache Cache) (ret model.Model, err error) {
+// getValueModel getValueModel
+func getValueModel(modelVal reflect.Value, cache Cache) (ret *modelImpl, err error) {
 	rawVal := modelVal
 	if modelVal.Kind() == reflect.Ptr {
 		if modelVal.IsNil() {
@@ -201,7 +202,7 @@ func GetValueModel(modelVal reflect.Value, cache Cache) (ret model.Model, err er
 
 	modelInfo := cache.Fetch(modelVal.Type().Name())
 	if modelInfo == nil {
-		modelInfo, err = GetTypeModel(rawVal.Type(), cache)
+		modelInfo, err = getTypeModel(rawVal.Type(), cache)
 		if err != nil {
 			return
 		}
@@ -220,5 +221,33 @@ func GetValueModel(modelVal reflect.Value, cache Cache) (ret model.Model, err er
 
 	ret = modelInfo
 
+	return
+}
+
+// getValueStr get value str
+func getValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, err error) {
+	rawType := vType.GetType()
+	if rawType.Kind() == reflect.Ptr {
+		rawType = rawType.Elem()
+	}
+
+	switch rawType.Kind() {
+	case reflect.Bool:
+		ret, err = getBoolValueStr(vVal.Get())
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int:
+		ret, err = getIntValueStr(vVal.Get())
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint:
+		ret, err = getUintValueStr(vVal.Get())
+	case reflect.Float32, reflect.Float64:
+		ret, err = getFloatValueStr(vVal.Get())
+	case reflect.String:
+		ret, err = getStringValueStr(vVal.Get())
+	case reflect.Slice:
+		ret, err = getSliceValueStr(vVal.Get())
+	case reflect.Struct:
+		ret, err = getDateTimeValueStr(vVal.Get())
+	default:
+		err = fmt.Errorf("illegal value kind, kind:%v", rawType.Kind())
+	}
 	return
 }

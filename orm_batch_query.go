@@ -79,6 +79,7 @@ func (s *orm) BatchQuery(sliceObj interface{}, filter model.Filter) (err error) 
 		err = fmt.Errorf("illegal obj type. must be a slice ptr")
 		return
 	}
+
 	rawType := objType.Elem()
 	if rawType.Kind() != reflect.Slice {
 		err = fmt.Errorf("illegal obj type. must be a slice ptr")

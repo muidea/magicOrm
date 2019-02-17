@@ -2,16 +2,15 @@ package local
 
 import (
 	"muidea.com/magicCommon/foundation/cache"
-	"muidea.com/magicOrm/model"
 )
 
 // Cache Model Cache
 type Cache interface {
 	Reset()
 
-	Put(name string, info model.Model)
+	Put(name string, info *modelImpl)
 
-	Fetch(name string) model.Model
+	Fetch(name string) *modelImpl
 
 	Remove(name string)
 }
@@ -29,17 +28,17 @@ func (s *impl) Reset() {
 	s.kvCache.ClearAll()
 }
 
-func (s *impl) Put(name string, info model.Model) {
+func (s *impl) Put(name string, info *modelImpl) {
 	s.kvCache.Put(name, info, cache.MaxAgeValue)
 }
 
-func (s *impl) Fetch(name string) model.Model {
+func (s *impl) Fetch(name string) *modelImpl {
 	obj, ok := s.kvCache.Fetch(name)
 	if !ok {
 		return nil
 	}
 
-	return obj.(model.Model)
+	return obj.(*modelImpl)
 }
 
 func (s *impl) Remove(name string) {
