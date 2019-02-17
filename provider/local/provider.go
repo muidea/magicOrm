@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	"muidea.com/magicOrm/model"
+	"muidea.com/magicOrm/util"
 )
 
 // Provider local provider
@@ -23,6 +24,28 @@ func (s *Provider) GetObjectModel(objPtr interface{}) (ret model.Model, err erro
 
 // GetTypeModel GetTypeModel
 func (s *Provider) GetTypeModel(modelType reflect.Type) (ret model.Model, err error) {
+	typeImpl, typeErr := newType(modelType)
+	if typeErr != nil {
+		err = typeErr
+		return
+	}
+
+	if util.IsBasicType(typeImpl.GetValue()) {
+		return
+	}
+
+	if util.IsSliceType(typeImpl.GetValue()) {
+		typeImpl, typeErr = newType(typeImpl.GetType().Elem())
+		if typeErr != nil {
+			err = typeErr
+			return
+		}
+
+		if util.IsBasicType(typeImpl.GetValue()) {
+			return
+		}
+	}
+
 	return getTypeModel(modelType, s.modelCache)
 }
 
