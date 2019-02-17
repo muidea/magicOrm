@@ -108,11 +108,6 @@ func (s *modelImpl) Dump() (ret string) {
 	ret = fmt.Sprintf("\nmodelImpl:\n")
 	ret = fmt.Sprintf("%s\tname:%s, pkgPath:%s\n", ret, s.GetName(), s.GetPkgPath())
 
-	primaryKey := s.GetPrimaryField()
-	if primaryKey != nil {
-		ret = fmt.Sprintf("%spk:\n", ret)
-		ret = fmt.Sprintf("%s\t%s\n", ret, primaryKey.Dump())
-	}
 	ret = fmt.Sprintf("%sfields:\n", ret)
 	for _, field := range s.fields {
 		ret = fmt.Sprintf("%s\t%s\n", ret, field.Dump())
@@ -199,14 +194,24 @@ func getTypeModel(modelType reflect.Type, cache Cache) (ret model.Model, err err
 				cache.Remove(modelImpl.GetName())
 				return
 			}
+			continue
 		}
 
 		if !util.IsSliceType(ft.GetValue()) {
 			continue
 		}
 
-		ftVal := ft.GetType().Elem()
-		_, err = getTypeModel(ftVal, cache)
+		sliceType, sliceErr := newType(ft.GetType().Elem())
+		if sliceErr != nil {
+			err = sliceErr
+			return
+		}
+
+		if !util.IsStructType(sliceType.GetValue()) {
+			continue
+		}
+
+		_, err = getTypeModel(sliceType.GetType(), cache)
 		if err != nil {
 			cache.Remove(modelImpl.GetName())
 			return

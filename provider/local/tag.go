@@ -9,8 +9,8 @@ type tagImpl struct {
 	tagImpl string
 }
 
-//newFieldTag name[key][auto]
-func newFieldTag(val string) (ret *tagImpl, err error) {
+//newTag name[key][auto]
+func newTag(val string) (ret *tagImpl, err error) {
 	items := strings.Split(val, " ")
 	if len(items) < 1 {
 		err = fmt.Errorf("illegal tagImpl value, value:%s", val)

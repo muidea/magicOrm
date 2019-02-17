@@ -8,7 +8,7 @@ import (
 
 func TestGetValueStr(t *testing.T) {
 	iVal := int(123)
-	fiVal, fiErr := newFieldValue(reflect.ValueOf(&iVal))
+	fiVal, fiErr := newValue(reflect.ValueOf(&iVal))
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 	} else {
@@ -19,7 +19,7 @@ func TestGetValueStr(t *testing.T) {
 	}
 
 	fVal := 12.34
-	ffVal, ffErr := newFieldValue(reflect.ValueOf(&fVal))
+	ffVal, ffErr := newValue(reflect.ValueOf(&fVal))
 	if ffErr != nil {
 		t.Errorf("%s", ffErr.Error())
 	} else {
@@ -30,7 +30,7 @@ func TestGetValueStr(t *testing.T) {
 	}
 
 	strVal := "abc"
-	fstrVal, fstrErr := newFieldValue(reflect.ValueOf(&strVal))
+	fstrVal, fstrErr := newValue(reflect.ValueOf(&strVal))
 	if fstrErr != nil {
 		t.Errorf("%s", fstrErr.Error())
 	} else {
@@ -41,7 +41,7 @@ func TestGetValueStr(t *testing.T) {
 	}
 
 	bVal := true
-	fbVal, fbErr := newFieldValue(reflect.ValueOf(&bVal))
+	fbVal, fbErr := newValue(reflect.ValueOf(&bVal))
 	if fbErr != nil {
 		t.Errorf("%s", fbErr.Error())
 	} else {
@@ -52,7 +52,7 @@ func TestGetValueStr(t *testing.T) {
 	}
 
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05", "2018-01-02 15:04:05", time.Local)
-	ftimeVal, ftimeErr := newFieldValue(reflect.ValueOf(&now))
+	ftimeVal, ftimeErr := newValue(reflect.ValueOf(&now))
 	if ftimeErr != nil {
 		t.Errorf("%s", ftimeErr.Error())
 	} else {
@@ -65,7 +65,7 @@ func TestGetValueStr(t *testing.T) {
 	ii := 123
 	var iiVal int
 	iiVal = ii
-	fiVal, fiErr = newFieldValue(reflect.ValueOf(&iiVal))
+	fiVal, fiErr = newValue(reflect.ValueOf(&iiVal))
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 	} else {
@@ -82,7 +82,7 @@ func TestGetValueStr(t *testing.T) {
 
 func TestSetValue(t *testing.T) {
 	var iVal int
-	fiVal, fiErr := newFieldValue(reflect.ValueOf(&iVal).Elem())
+	fiVal, fiErr := newValue(reflect.ValueOf(&iVal).Elem())
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 	} else {
@@ -98,7 +98,7 @@ func TestSetValue(t *testing.T) {
 	}
 
 	var fVal float32
-	ffVal, ffErr := newFieldValue(reflect.ValueOf(&fVal).Elem())
+	ffVal, ffErr := newValue(reflect.ValueOf(&fVal).Elem())
 	if ffErr != nil {
 		t.Errorf("%s", ffErr.Error())
 	} else {
@@ -114,7 +114,7 @@ func TestSetValue(t *testing.T) {
 	}
 
 	var strVal string
-	fstrVal, fstrErr := newFieldValue(reflect.ValueOf(&strVal).Elem())
+	fstrVal, fstrErr := newValue(reflect.ValueOf(&strVal).Elem())
 	if fstrErr != nil {
 		t.Errorf("%s", fstrErr.Error())
 	} else {
@@ -130,7 +130,7 @@ func TestSetValue(t *testing.T) {
 	}
 
 	var bVal bool
-	fbVal, fbErr := newFieldValue(reflect.ValueOf(&bVal).Elem())
+	fbVal, fbErr := newValue(reflect.ValueOf(&bVal).Elem())
 	if fbErr != nil {
 		t.Errorf("%s", fbErr.Error())
 	} else {
@@ -161,7 +161,7 @@ func TestPtr(t *testing.T) {
 	var iVal *int
 
 	iVal = &jj
-	fiVal, fiErr := newFieldValue(reflect.ValueOf(&iVal).Elem())
+	fiVal, fiErr := newValue(reflect.ValueOf(&iVal).Elem())
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 		return
@@ -189,7 +189,7 @@ func TestPtr(t *testing.T) {
 	}
 
 	iVal = &ii
-	fiVal, fiErr = newFieldValue(reflect.ValueOf(iVal).Elem())
+	fiVal, fiErr = newValue(reflect.ValueOf(iVal).Elem())
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 	} else {

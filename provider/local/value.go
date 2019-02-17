@@ -9,7 +9,7 @@ type valueImpl struct {
 	valueImpl reflect.Value
 }
 
-func newFieldValue(val reflect.Value) (ret *valueImpl, err error) {
+func newValue(val reflect.Value) (ret *valueImpl, err error) {
 	ret = &valueImpl{valueImpl: val}
 	return
 }

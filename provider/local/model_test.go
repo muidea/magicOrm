@@ -100,6 +100,7 @@ func TestReference(t *testing.T) {
 	f32Info, err := GetObjectModel(&Demo{AB: &AB{}}, cache)
 	if err != nil {
 		t.Errorf("GetObjectModel failed, err:%s", err.Error())
+		return
 	}
 
 	f32Info.Dump()

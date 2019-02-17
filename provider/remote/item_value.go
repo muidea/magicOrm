@@ -37,6 +37,6 @@ func (s *ItemValue) GetValueStr() (ret string, err error) {
 }
 
 // Copy Copy
-func (s *ItemValue) Copy() (ret model.FieldValue) {
+func (s *ItemValue) Copy() (ret model.Value) {
 	return
 }

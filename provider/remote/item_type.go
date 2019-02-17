@@ -99,7 +99,7 @@ func (s *ItemType) GetType() (ret reflect.Type) {
 }
 
 // GetDepend GetDepend
-func (s *ItemType) GetDepend() (ret model.FieldType) {
+func (s *ItemType) GetDepend() (ret model.Type) {
 	if s.Depend != nil {
 		ret = &ItemType{Name: s.Depend.Name, Value: util.TypeStructField, IsPtr: s.Depend.IsPtr, PkgPath: s.Depend.PkgPath}
 	}
@@ -118,7 +118,7 @@ func (s *ItemType) String() (ret string) {
 }
 
 // Copy Copy
-func (s *ItemType) Copy() (ret model.FieldType) {
+func (s *ItemType) Copy() (ret model.Type) {
 	ret = &ItemType{Name: s.Name, Value: s.Value, PkgPath: s.PkgPath, IsPtr: s.IsPtr, Depend: s.Depend}
 	return
 }

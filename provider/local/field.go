@@ -28,17 +28,17 @@ func (s *fieldImpl) GetName() string {
 }
 
 // GetType GetType
-func (s *fieldImpl) GetType() model.FieldType {
+func (s *fieldImpl) GetType() model.Type {
 	return &s.fieldType
 }
 
 // GetTag GetTag
-func (s *fieldImpl) GetTag() model.FieldTag {
+func (s *fieldImpl) GetTag() model.Tag {
 	return &s.fieldTag
 }
 
 // GetValue GetValue
-func (s *fieldImpl) GetValue() model.FieldValue {
+func (s *fieldImpl) GetValue() model.Value {
 	return &s.fieldValue
 }
 
@@ -90,12 +90,12 @@ func (s *fieldImpl) Dump() string {
 }
 
 func getFieldInfo(idx int, fieldType reflect.StructField) (ret *fieldImpl, err error) {
-	typeImpl, err := newFieldType(fieldType.Type)
+	typeImpl, err := newType(fieldType.Type)
 	if err != nil {
 		return
 	}
 
-	tagImpl, err := newFieldTag(fieldType.Tag.Get("orm"))
+	tagImpl, err := newTag(fieldType.Tag.Get("orm"))
 	if err != nil {
 		return
 	}

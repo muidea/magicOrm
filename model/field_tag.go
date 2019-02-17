@@ -1,9 +1,8 @@
 package model
 
-// FieldTag FieldTag
-type FieldTag interface {
+// Tag Tag
+type Tag interface {
 	GetName() string
 	IsPrimaryKey() bool
 	IsAutoIncrement() bool
-	Dump() string
 }

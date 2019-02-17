@@ -8,11 +8,10 @@ import (
 type Field interface {
 	GetIndex() int
 	GetName() string
-	GetType() FieldType
-	GetTag() FieldTag
-	GetValue() FieldValue
+	GetType() Type
+	GetTag() Tag
+	GetValue() Value
 	IsPrimary() bool
-	Dump() string
 }
 
 // Fields field info collection

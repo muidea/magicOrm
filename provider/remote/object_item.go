@@ -27,19 +27,19 @@ func (s *Item) GetName() string {
 }
 
 // GetType GetType
-func (s *Item) GetType() (ret model.FieldType) {
+func (s *Item) GetType() (ret model.Type) {
 	ret = &s.Type
 	return
 }
 
 // GetTag GetTag
-func (s *Item) GetTag() (ret model.FieldTag) {
+func (s *Item) GetTag() (ret model.Tag) {
 	ret = &s.Tag
 	return
 }
 
 // GetValue GetValue
-func (s *Item) GetValue() (ret model.FieldValue) {
+func (s *Item) GetValue() (ret model.Value) {
 	ret = &s.value
 	return
 }

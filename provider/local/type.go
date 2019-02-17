@@ -11,8 +11,8 @@ type typeImpl struct {
 	typeImpl reflect.Type
 }
 
-// newFieldType newFieldType
-func newFieldType(val reflect.Type) (ret *typeImpl, err error) {
+// newType newType
+func newType(val reflect.Type) (ret *typeImpl, err error) {
 	rawType := val
 	if rawType.Kind() == reflect.Ptr {
 		rawType = rawType.Elem()

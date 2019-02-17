@@ -75,7 +75,7 @@ func (s *ItemTag) String() (ret string) {
 }
 
 // Copy Copy
-func (s *ItemTag) Copy() (ret model.FieldTag) {
+func (s *ItemTag) Copy() (ret model.Tag) {
 	return &ItemTag{Tag: s.Tag}
 }
 

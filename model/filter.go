@@ -6,7 +6,7 @@ import (
 
 // FilterItem FilterItem
 type FilterItem interface {
-	Verify(fType FieldType) (err error)
+	Verify(fType Type) (err error)
 	FilterStr(name string) (string, error)
 }
 

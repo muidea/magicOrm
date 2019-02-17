@@ -17,7 +17,7 @@ type filterItem struct {
 	modelProvider provider.Provider
 }
 
-func (s *filterItem) Verify(fType model.FieldType) (err error) {
+func (s *filterItem) Verify(fType model.Type) (err error) {
 	valType := s.value.Type()
 	if valType.Kind() == reflect.Ptr {
 		valType = valType.Elem()
