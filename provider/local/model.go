@@ -110,7 +110,7 @@ func (s *modelImpl) Dump() (ret string) {
 
 	ret = fmt.Sprintf("%sfields:\n", ret)
 	for _, field := range s.fields {
-		ret = fmt.Sprintf("%s\t%s\n", ret, field.Dump())
+		ret = fmt.Sprintf("%s\t%s\n", ret, field.Dump(nil))
 	}
 
 	log.Print(ret)
