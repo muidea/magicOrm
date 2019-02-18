@@ -28,8 +28,12 @@ func (s *orm) querySingle(modelInfo model.Model) (err error) {
 	for _, item := range fields {
 		fType := item.GetType()
 
-		dependType := fType.GetDepend()
-		if dependType != nil {
+		dependModel, dependErr := s.modelProvider.GetTypeModel(fType.GetType())
+		if dependErr != nil {
+			err = dependErr
+			return
+		}
+		if dependModel != nil {
 			continue
 		}
 
@@ -46,14 +50,19 @@ func (s *orm) querySingle(modelInfo model.Model) (err error) {
 	idx := 0
 	for _, item := range fields {
 		fType := item.GetType()
+		fValue := item.GetValue()
 
-		dependType := fType.GetDepend()
-		if dependType != nil {
+		dependModel, dependErr := s.modelProvider.GetTypeModel(fType.GetType())
+		if dependErr != nil {
+			err = dependErr
+			return
+		}
+		if dependModel != nil {
 			continue
 		}
 
 		v := items[idx]
-		err = item.SetValue(reflect.Indirect(reflect.ValueOf(v)))
+		err = fValue.Set(reflect.Indirect(reflect.ValueOf(v)))
 		if err != nil {
 			return err
 		}
@@ -92,6 +101,15 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field, relati
 
 	if util.IsStructType(fType.GetValue()) {
 		if len(values) > 0 {
+
+			dependModel, dependErr := s.modelProvider.GetTypeModel(fType.GetType())
+			if dependErr != nil {
+				err = dependErr
+				return
+			}
+			if dependModel != nil {
+				continue
+			}
 			fDepend := fType.GetDepend()
 			fDependType := fDepend
 			if fDependType.Kind() == reflect.Ptr {
@@ -169,16 +187,14 @@ func (s *orm) Query(obj interface{}) (err error) {
 	fields := modelInfo.GetDependField()
 	for _, item := range fields {
 		fType := item.GetType()
-		fDepend := fType.GetDepend()
 
-		if fDepend == nil {
-			continue
-		}
-
-		relationInfo, relationErr := s.modelProvider.GetTypeModel(fDepend)
+		relationInfo, relationErr := s.modelProvider.GetTypeModel(fType.GetType())
 		if relationErr != nil {
 			err = relationErr
 			return
+		}
+		if relationInfo != nil {
+			continue
 		}
 		err = s.queryRelation(modelInfo, item, relationInfo)
 		if err != nil {

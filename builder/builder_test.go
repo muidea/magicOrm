@@ -39,12 +39,6 @@ func TestBuilderCommon(t *testing.T) {
 		return
 	}
 
-	dependInfos := info.GetDependField()
-
-	if len(dependInfos) != 0 {
-		t.Errorf("GetObjectModel failed,")
-		return
-	}
 	builder := NewBuilder(info, provider)
 	if builder == nil {
 		t.Error("new Builder failed")
@@ -106,12 +100,6 @@ func TestBuilderReference(t *testing.T) {
 	info, err := provider.GetObjectModel(ext)
 	if err != nil {
 		t.Errorf("GetObjectModel failed, err:%s", err.Error())
-		return
-	}
-
-	dependInfos := info.GetDependField()
-	if len(dependInfos) != 1 {
-		t.Errorf("GetObjectModel failed,")
 		return
 	}
 
@@ -177,13 +165,6 @@ func TestBuilderReference2(t *testing.T) {
 	info, err := provider.GetObjectModel(ext)
 	if err != nil {
 		t.Errorf("GetObjectModel failed, err:%s", err.Error())
-		return
-	}
-
-	dependInfos := info.GetDependField()
-
-	if len(dependInfos) != 1 {
-		t.Errorf("GetObjectModel failed,")
 		return
 	}
 

@@ -22,6 +22,7 @@ func (s *Builder) BuildBatchQuery(filter model.Filter) (ret string, err error) {
 			err = filterErr
 			return
 		}
+
 		if filterSQL != "" {
 			ret = fmt.Sprintf("%s WHERE %s", ret, filterSQL)
 		}
@@ -56,8 +57,6 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 		}
 
 		if dependModel != nil {
-			relationTable := s.GetRelationTableName(field.GetName(), dependModel)
-
 			strVal, strErr := filterItem.FilterStr("right")
 			if strErr != nil {
 				err = strErr
@@ -67,6 +66,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 				continue
 			}
 
+			relationTable := s.GetRelationTableName(field.GetName(), dependModel)
 			if relationFilterSQL == "" {
 				relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTable, strVal)
 			} else {
@@ -93,8 +93,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 	}
 
 	if relationFilterSQL != "" {
-		pk := s.modelInfo.GetPrimaryField()
-		fTag := pk.GetTag()
+		fTag := s.modelInfo.GetPrimaryField().GetTag()
 		relationFilterSQL = fmt.Sprintf("`%s` IN (SELECT DISTINCT(`id`) FROM (%s) ids)", fTag.GetName(), relationFilterSQL)
 
 		ret = fmt.Sprintf("%s AND %s", filterSQL, relationFilterSQL)
