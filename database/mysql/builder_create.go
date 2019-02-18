@@ -8,12 +8,17 @@ import (
 )
 
 // BuildCreateSchema  BuildCreateSchema
-func (s *Builder) BuildCreateSchema() (string, error) {
+func (s *Builder) BuildCreateSchema() (ret string, err error) {
 	str := ""
 	for _, val := range s.modelInfo.GetFields() {
 		fType := val.GetType()
-		dependType := fType.GetDepend()
-		if dependType != nil {
+		dependModel, dependErr := s.modelProvider.GetTypeModel(fType.GetType())
+		if dependErr != nil {
+			err = dependErr
+			return
+		}
+
+		if dependModel != nil {
 			continue
 		}
 
@@ -31,7 +36,9 @@ func (s *Builder) BuildCreateSchema() (string, error) {
 	str = fmt.Sprintf("CREATE TABLE `%s` (\n%s\n)\n", s.getTableName(s.modelInfo), str)
 	log.Print(str)
 
-	return str, nil
+	ret = str
+
+	return
 }
 
 // BuildCreateRelationSchema BuildCreateRelationSchema

@@ -9,52 +9,52 @@ import (
 
 // BuildQuery BuildQuery
 func (s *Builder) BuildQuery() (ret string, err error) {
-	pk := s.modelInfo.GetPrimaryField()
-	if pk == nil {
-		err = fmt.Errorf("no define primaryKey")
+	pkfTag := s.modelInfo.GetPrimaryField().GetTag()
+	pkfVal, pkfErr := s.getStructValue(s.modelInfo)
+	if pkfErr != nil {
+		err = pkfErr
 		return
 	}
 
-	pkfValue := pk.GetValue()
-	pkfTag := pk.GetTag()
-	pkfStr, pkferr := pkfValue.GetValueStr()
-	if pkferr == nil {
-		ret = fmt.Sprintf("SELECT %s FROM `%s` WHERE `%s`=%s", s.getFieldQueryNames(s.modelInfo), s.getTableName(s.modelInfo), pkfTag.GetName(), pkfStr)
-		log.Print(ret)
+	namesVal, nameErr := s.getFieldQueryNames(s.modelInfo)
+	if nameErr != nil {
+		err = nameErr
+		return
 	}
-	err = pkferr
+
+	ret = fmt.Sprintf("SELECT %s FROM `%s` WHERE `%s`=%s", namesVal, s.getTableName(s.modelInfo), pkfTag.GetName(), pkfVal)
+	log.Print(ret)
 
 	return
 }
 
 // BuildQueryRelation BuildQueryRelation
 func (s *Builder) BuildQueryRelation(fieldName string, relationInfo model.Model) (ret string, err error) {
-	pk := s.modelInfo.GetPrimaryField()
-	if pk == nil {
-		err = fmt.Errorf("no define primaryKey")
+	pkfVal, pkfErr := s.getStructValue(s.modelInfo)
+	if pkfErr != nil {
+		err = pkfErr
 		return
 	}
 
-	pkfValue := pk.GetValue()
-	pkfStr, pkferr := pkfValue.GetValueStr()
-	if pkferr == nil {
-		ret = fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= %s", s.GetRelationTableName(fieldName, relationInfo), pkfStr)
-		log.Print(ret)
-	}
-
-	err = pkferr
+	ret = fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= %s", s.GetRelationTableName(fieldName, relationInfo), pkfVal)
+	log.Print(ret)
 
 	return
 }
 
-func (s *Builder) getFieldQueryNames(info model.Model) string {
+func (s *Builder) getFieldQueryNames(info model.Model) (ret string, err error) {
 	str := ""
 	for _, field := range s.modelInfo.GetFields() {
 		fTag := field.GetTag()
 		fType := field.GetType()
 
-		dependType := fType.GetDepend()
-		if dependType != nil {
+		dependModel, dependErr := s.modelProvider.GetTypeModel(fType.GetType())
+		if dependErr != nil {
+			err = dependErr
+			return
+		}
+
+		if dependModel != nil {
 			continue
 		}
 
@@ -65,5 +65,7 @@ func (s *Builder) getFieldQueryNames(info model.Model) string {
 		}
 	}
 
-	return str
+	ret = str
+
+	return
 }

@@ -43,36 +43,25 @@ func (s *Builder) getStructValue(modelInfo model.Model) (ret string, err error) 
 		return
 	}
 
+	fType := structKey.GetType()
 	fValue := structKey.GetValue()
-	if fValue == nil {
-		err = fmt.Errorf("nil primaryKey value")
+	fStr, ferr := s.modelProvider.GetValueStr(fType, fValue)
+	if ferr != nil {
+		err = ferr
 		return
 	}
 
-	structVal, structErr := fValue.GetValueStr()
-	if structErr != nil {
-		err = structErr
-		return
-	}
-
-	ret = structVal
+	ret = fStr
 	return
 }
 
 func (s *Builder) getRelationValue(relationInfo model.Model) (leftVal, rightVal string, err error) {
-	structKey := s.modelInfo.GetPrimaryField()
-	relationKey := relationInfo.GetPrimaryField()
-	if structKey == nil || relationKey == nil {
-		err = fmt.Errorf("no define primaryKey")
-		return
-	}
-
-	structVal, structErr := structKey.GetValue().GetValueStr()
+	structVal, structErr := s.getStructValue(s.modelInfo)
 	if structErr != nil {
 		err = structErr
 		return
 	}
-	relationVal, relationErr := relationKey.GetValue().GetValueStr()
+	relationVal, relationErr := s.getStructValue(relationInfo)
 	if relationErr != nil {
 		err = relationErr
 		return

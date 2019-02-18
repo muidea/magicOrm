@@ -35,7 +35,8 @@ func (s *Provider) GetTypeModel(modelType reflect.Type) (ret model.Model, err er
 	}
 
 	if util.IsSliceType(typeImpl.GetValue()) {
-		typeImpl, typeErr = newType(typeImpl.GetType().Elem())
+		rawType := typeImpl.GetType().Elem()
+		typeImpl, typeErr = newType(rawType)
 		if typeErr != nil {
 			err = typeErr
 			return
@@ -44,6 +45,8 @@ func (s *Provider) GetTypeModel(modelType reflect.Type) (ret model.Model, err er
 		if util.IsBasicType(typeImpl.GetValue()) {
 			return
 		}
+
+		return getTypeModel(rawType, s.modelCache)
 	}
 
 	return getTypeModel(modelType, s.modelCache)

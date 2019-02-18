@@ -11,12 +11,20 @@ import (
 func (s *Builder) BuildInsert() (ret string, err error) {
 	sql := ""
 	val, verr := s.getFieldInsertValues(s.modelInfo)
-	if verr == nil {
-		sql = fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.getTableName(s.modelInfo), s.getFieldInsertNames(s.modelInfo), val)
-		log.Print(sql)
-		ret = sql
+	if verr != nil {
+		err = verr
+		return
 	}
-	err = verr
+
+	fieldNames, fieldErr := s.getFieldInsertNames(s.modelInfo)
+	if fieldErr != nil {
+		err = fieldErr
+		return
+	}
+
+	sql = fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.getTableName(s.modelInfo), fieldNames, val)
+	log.Print(sql)
+	ret = sql
 
 	return
 }
@@ -35,7 +43,7 @@ func (s *Builder) BuildInsertRelation(fieldName string, relationInfo model.Model
 	return
 }
 
-func (s *Builder) getFieldInsertNames(info model.Model) string {
+func (s *Builder) getFieldInsertNames(info model.Model) (ret string, err error) {
 	str := ""
 	for _, field := range s.modelInfo.GetFields() {
 		fTag := field.GetTag()
@@ -53,8 +61,12 @@ func (s *Builder) getFieldInsertNames(info model.Model) string {
 			continue
 		}
 
-		dependType := fType.GetDepend()
-		if dependType != nil {
+		dependModel, dependErr := s.modelProvider.GetTypeModel(fType.GetType())
+		if dependErr != nil {
+			err = dependErr
+			return
+		}
+		if dependModel != nil {
 			continue
 		}
 
@@ -65,7 +77,8 @@ func (s *Builder) getFieldInsertNames(info model.Model) string {
 		}
 	}
 
-	return str
+	ret = str
+	return
 }
 
 func (s *Builder) getFieldInsertValues(info model.Model) (ret string, err error) {
@@ -86,12 +99,16 @@ func (s *Builder) getFieldInsertValues(info model.Model) (ret string, err error)
 			continue
 		}
 
-		dependType := fType.GetDepend()
-		if dependType != nil {
+		dependModel, dependErr := s.modelProvider.GetTypeModel(fType.GetType())
+		if dependErr != nil {
+			err = dependErr
+			return
+		}
+		if dependModel != nil {
 			continue
 		}
 
-		fStr, ferr := fValue.GetValueStr()
+		fStr, ferr := s.modelProvider.GetValueStr(fType, fValue)
 		if ferr == nil {
 			if str == "" {
 				str = fmt.Sprintf("%s", fStr)

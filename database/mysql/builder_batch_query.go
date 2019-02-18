@@ -9,7 +9,13 @@ import (
 
 // BuildBatchQuery BuildBatchQuery
 func (s *Builder) BuildBatchQuery(filter model.Filter) (ret string, err error) {
-	ret = fmt.Sprintf("SELECT %s FROM `%s`", s.getFieldQueryNames(s.modelInfo), s.getTableName(s.modelInfo))
+	namesVal, nameErr := s.getFieldQueryNames(s.modelInfo)
+	if nameErr != nil {
+		err = nameErr
+		return
+	}
+
+	ret = fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.getTableName(s.modelInfo))
 	if filter != nil {
 		filterSQL, filterErr := s.buildFilter(filter)
 		if filterErr != nil {
@@ -43,15 +49,14 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 			return
 		}
 
-		fDepend := fType.GetDepend()
-		if fDepend != nil {
-			dependInfo, dependErr := s.modelProvider.GetTypeModel(fDepend)
-			if dependErr != nil {
-				err = dependErr
-				return
-			}
+		dependModel, dependErr := s.modelProvider.GetTypeModel(fType.GetType())
+		if dependErr != nil {
+			err = dependErr
+			return
+		}
 
-			relationTable := s.GetRelationTableName(field.GetName(), dependInfo)
+		if dependModel != nil {
+			relationTable := s.GetRelationTableName(field.GetName(), dependModel)
 
 			strVal, strErr := filterItem.FilterStr("right")
 			if strErr != nil {
