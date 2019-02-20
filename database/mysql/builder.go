@@ -45,9 +45,9 @@ func (s *Builder) getStructValue(modelInfo model.Model) (ret string, err error) 
 
 	fType := structKey.GetType()
 	fValue := structKey.GetValue()
-	fStr, ferr := s.modelProvider.GetValueStr(fType, fValue)
-	if ferr != nil {
-		err = ferr
+	fStr, fErr := s.modelProvider.GetValueStr(fType, fValue)
+	if fErr != nil {
+		err = fErr
 		return
 	}
 

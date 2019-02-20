@@ -10,9 +10,9 @@ import (
 // BuildInsert  BuildInsert
 func (s *Builder) BuildInsert() (ret string, err error) {
 	sql := ""
-	val, verr := s.getFieldInsertValues(s.modelInfo)
-	if verr != nil {
-		err = verr
+	fieldValues, fieldErr := s.getFieldInsertValues(s.modelInfo)
+	if fieldErr != nil {
+		err = fieldErr
 		return
 	}
 
@@ -22,7 +22,7 @@ func (s *Builder) BuildInsert() (ret string, err error) {
 		return
 	}
 
-	sql = fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.getTableName(s.modelInfo), fieldNames, val)
+	sql = fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.getTableName(s.modelInfo), fieldNames, fieldValues)
 	log.Print(sql)
 	ret = sql
 
@@ -31,9 +31,9 @@ func (s *Builder) BuildInsert() (ret string, err error) {
 
 // BuildInsertRelation BuildInsertRelation
 func (s *Builder) BuildInsertRelation(fieldName string, relationInfo model.Model) (ret string, err error) {
-	leftVal, rightVal, errVal := s.getRelationValue(relationInfo)
-	if errVal != nil {
-		err = errVal
+	leftVal, rightVal, valErr := s.getRelationValue(relationInfo)
+	if valErr != nil {
+		err = valErr
 		return
 	}
 

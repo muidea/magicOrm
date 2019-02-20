@@ -9,13 +9,13 @@ import (
 
 // BuildDelete  BuildDelete
 func (s *Builder) BuildDelete() (ret string, err error) {
-	pkfTag := s.modelInfo.GetPrimaryField().GetTag()
 	pkfVal, pkfErr := s.getStructValue(s.modelInfo)
 	if pkfErr != nil {
 		err = pkfErr
 		return
 	}
 
+	pkfTag := s.modelInfo.GetPrimaryField().GetTag()
 	ret = fmt.Sprintf("DELETE FROM `%s` WHERE `%s`=%s", s.getTableName(s.modelInfo), pkfTag.GetName(), pkfVal)
 	log.Print(ret)
 

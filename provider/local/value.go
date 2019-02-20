@@ -15,12 +15,20 @@ func newValue(val reflect.Value) (ret *valueImpl, err error) {
 }
 
 func (s *valueImpl) IsNil() (ret bool) {
+	if s.valueImpl.Kind() == reflect.Ptr {
+		return s.valueImpl.IsNil()
+	}
+
 	ret = s.valueImpl.Kind() == reflect.Invalid
 
 	return
 }
 
 func (s *valueImpl) Set(val reflect.Value) (err error) {
+	if val.Kind() == reflect.Invalid {
+		return
+	}
+
 	if s.valueImpl.Kind() == reflect.Invalid {
 		s.valueImpl = val
 		return

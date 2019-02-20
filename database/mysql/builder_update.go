@@ -11,8 +11,6 @@ func (s *Builder) BuildUpdate() (ret string, err error) {
 	for _, val := range s.modelInfo.GetFields() {
 		fType := val.GetType()
 		fValue := val.GetValue()
-		fTag := val.GetTag()
-
 		if fValue == nil {
 			continue
 		}
@@ -34,18 +32,16 @@ func (s *Builder) BuildUpdate() (ret string, err error) {
 			fStr, ferr := s.modelProvider.GetValueStr(fType, fValue)
 			if ferr != nil {
 				err = ferr
-				break
+				return
 			}
+
+			fTag := val.GetTag()
 			if str == "" {
 				str = fmt.Sprintf("`%s`=%s", fTag.GetName(), fStr)
 			} else {
 				str = fmt.Sprintf("%s,`%s`=%s", str, fTag.GetName(), fStr)
 			}
 		}
-	}
-
-	if err != nil {
-		return
 	}
 
 	pkfVal, pkfErr := s.getStructValue(s.modelInfo)
