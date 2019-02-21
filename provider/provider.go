@@ -17,6 +17,8 @@ type Provider interface {
 
 	GetValueStr(vType model.Type, vVal model.Value) (ret string, err error)
 
+	GetSliceModelValueStr(vType model.Model, vVal model.Value) (ret []string, err error)
+
 	Reset()
 }
 

@@ -1,6 +1,7 @@
 package local
 
 import (
+	"fmt"
 	"reflect"
 
 	"muidea.com/magicOrm/model"
@@ -60,6 +61,34 @@ func (s *Provider) GetValueModel(modelVal reflect.Value) (ret model.Model, err e
 // GetValueStr GetValueStr
 func (s *Provider) GetValueStr(vType model.Type, vVal model.Value) (ret string, err error) {
 	return getValueStr(vType, vVal, s.modelCache)
+}
+
+// GetSliceModelValueStr GetSliceModelValueStr
+func (s *Provider) GetSliceModelValueStr(vType model.Model, vVal model.Value) (ret []string, err error) {
+	val := reflect.Indirect(vVal.Get())
+	if val.Kind() != reflect.Slice {
+		err = fmt.Errorf("illegal slice model value, type:%s", val.Type().String())
+		return
+	}
+
+	for idx := 0; idx < val.Len(); idx++ {
+		item := reflect.Indirect(val.Index(idx))
+		itemType := item.Type()
+		if itemType.Name() != vType.GetName() || itemType.PkgPath() != vType.GetPkgPath() {
+			err = fmt.Errorf("illegal slice model value, type:%s", val.Type().String())
+			return
+		}
+
+		val, valErr := getStructValueStr(item, s.modelCache)
+		if valErr != nil {
+			err = valErr
+			return
+		}
+
+		ret = append(ret, val)
+	}
+
+	return
 }
 
 // Reset Reset
