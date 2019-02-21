@@ -216,12 +216,27 @@ func getValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, e
 	case reflect.Float32, reflect.Float64:
 		ret, err = getFloatValueStr(vVal.Get())
 	case reflect.String:
-		ret, err = getStringValueStr(vVal.Get())
+		strRet, strErr := getStringValueStr(vVal.Get())
+		if strErr != nil {
+			err = strErr
+			return
+		}
+		ret = fmt.Sprintf("'%s'", strRet)
 	case reflect.Slice:
-		ret, err = getSliceValueStr(vVal.Get(), cache)
+		strRet, strErr := getSliceValueStr(vVal.Get(), cache)
+		if strErr != nil {
+			err = strErr
+			return
+		}
+		ret = fmt.Sprintf("'%s'", strRet)
 	case reflect.Struct:
 		if rawType.String() == "time.Time" {
-			ret, err = getDateTimeValueStr(vVal.Get())
+			strRet, strErr := getDateTimeValueStr(vVal.Get())
+			if strErr != nil {
+				err = strErr
+				return
+			}
+			ret = fmt.Sprintf("'%s'", strRet)
 		} else {
 			ret, err = getStructValueStr(vVal.Get(), cache)
 		}
