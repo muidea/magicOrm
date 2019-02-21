@@ -7,7 +7,7 @@ import (
 )
 
 // getSliceValueStr get slice value str
-func getSliceValueStr(val reflect.Value) (ret string, err error) {
+func getSliceValueStr(val reflect.Value, cache Cache) (ret string, err error) {
 	valSlice := []interface{}{}
 
 	rawVal := reflect.Indirect(val)
@@ -23,13 +23,17 @@ func getSliceValueStr(val reflect.Value) (ret string, err error) {
 			reflect.String:
 			valSlice = append(valSlice, sv.Interface())
 		case reflect.Struct:
-			datetimeStr, datetimeErr := getDateTimeValueStr(sv)
-			if datetimeErr != nil {
-				err = datetimeErr
-				return
-			}
+			if sv.Type().String() == "time.Time" {
+				datetimeStr, datetimeErr := getDateTimeValueStr(sv)
+				if datetimeErr != nil {
+					err = datetimeErr
+					return
+				}
 
-			valSlice = append(valSlice, datetimeStr)
+				valSlice = append(valSlice, datetimeStr)
+			} else {
+				err = fmt.Errorf("no support slice element type, [%s]", sv.Type().String())
+			}
 		default:
 			err = fmt.Errorf("no support slice element type, [%s]", sv.Type().String())
 		}

@@ -218,7 +218,7 @@ func getValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, e
 	case reflect.String:
 		ret, err = getStringValueStr(vVal.Get())
 	case reflect.Slice:
-		ret, err = getSliceValueStr(vVal.Get())
+		ret, err = getSliceValueStr(vVal.Get(), cache)
 	case reflect.Struct:
 		if rawType.String() == "time.Time" {
 			ret, err = getDateTimeValueStr(vVal.Get())
