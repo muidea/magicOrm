@@ -51,22 +51,12 @@ func (s *Builder) getFieldInsertNames(info model.Model) (ret string, err error) 
 			continue
 		}
 
-		fType := field.GetType()
-		fValue := field.GetValue()
-		if fValue == nil {
-			continue
-		}
-
-		if fType.IsPtrType() && fValue.IsNil() {
-			continue
-		}
-
-		dependModel, dependErr := s.modelProvider.GetTypeModel(fType.GetType())
-		if dependErr != nil {
-			err = dependErr
+		_, isNil, fErr := s.getFieldValue(field)
+		if fErr != nil {
+			err = fErr
 			return
 		}
-		if dependModel != nil {
+		if isNil {
 			continue
 		}
 
@@ -89,35 +79,19 @@ func (s *Builder) getFieldInsertValues(info model.Model) (ret string, err error)
 			continue
 		}
 
-		fType := field.GetType()
-		fValue := field.GetValue()
-		if fValue == nil {
-			continue
-		}
-
-		if fType.IsPtrType() && fValue.IsNil() {
-			continue
-		}
-
-		dependModel, dependErr := s.modelProvider.GetTypeModel(fType.GetType())
-		if dependErr != nil {
-			err = dependErr
+		fStr, isNil, fErr := s.getFieldValue(field)
+		if fErr != nil {
+			err = fErr
 			return
 		}
-		if dependModel != nil {
+		if isNil {
 			continue
 		}
 
-		fStr, ferr := s.modelProvider.GetValueStr(fType, fValue)
-		if ferr == nil {
-			if str == "" {
-				str = fmt.Sprintf("%s", fStr)
-			} else {
-				str = fmt.Sprintf("%s,%s", str, fStr)
-			}
+		if str == "" {
+			str = fmt.Sprintf("%s", fStr)
 		} else {
-			err = ferr
-			break
+			str = fmt.Sprintf("%s,%s", str, fStr)
 		}
 	}
 

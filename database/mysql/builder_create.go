@@ -28,6 +28,7 @@ func (s *Builder) BuildCreateSchema() (ret string, err error) {
 			str = fmt.Sprintf("%s,\n\t%s", str, declareFieldInfo(val))
 		}
 	}
+
 	if s.modelInfo.GetPrimaryField() != nil {
 		fTag := s.modelInfo.GetPrimaryField().GetTag()
 		str = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", str, fTag.GetName())

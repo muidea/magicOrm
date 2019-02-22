@@ -37,14 +37,45 @@ func (s *Builder) GetRelationTableName(fieldName string, relationInfo model.Mode
 }
 
 func (s *Builder) getStructValue(modelInfo model.Model) (ret string, err error) {
-	structKey := modelInfo.GetPrimaryField()
-	if structKey == nil {
+	pkField := modelInfo.GetPrimaryField()
+	if pkField == nil {
 		err = fmt.Errorf("no define primaryKey")
 		return
 	}
 
-	fType := structKey.GetType()
-	fValue := structKey.GetValue()
+	fStr, isNil, fErr := s.getFieldValue(pkField)
+	if fErr != nil {
+		err = fErr
+		return
+	}
+	if isNil {
+		err = fmt.Errorf("illegal primarykey value")
+		return
+	}
+
+	ret = fStr
+	return
+}
+
+func (s *Builder) getFieldValue(field model.Field) (ret string, isNil bool, err error) {
+	fType := field.GetType()
+	fValue := field.GetValue()
+
+	if fType.IsPtrType() && fValue.IsNil() {
+		isNil = true
+		return
+	}
+
+	dependModel, dependErr := s.modelProvider.GetTypeModel(fType.GetType())
+	if dependErr != nil {
+		err = dependErr
+		return
+	}
+	if dependModel != nil {
+		isNil = true
+		return
+	}
+
 	fStr, fErr := s.modelProvider.GetValueStr(fType, fValue)
 	if fErr != nil {
 		err = fErr
@@ -52,6 +83,7 @@ func (s *Builder) getStructValue(modelInfo model.Model) (ret string, err error) 
 	}
 
 	ret = fStr
+
 	return
 }
 
