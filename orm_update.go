@@ -20,6 +20,16 @@ func (s *orm) updateSingle(modelInfo model.Model) (err error) {
 }
 
 func (s *orm) updateRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
+	fType := fieldInfo.GetType()
+	fDependModel, fDependErr := s.modelProvider.GetTypeModel(fType.GetType())
+	if fDependErr != nil {
+		err = fDependErr
+		return
+	}
+	if fDependModel == nil {
+		return
+	}
+
 	err = s.deleteRelation(modelInfo, fieldInfo)
 	if err != nil {
 		return
@@ -46,8 +56,7 @@ func (s *orm) Update(obj interface{}) (err error) {
 		return
 	}
 
-	fields := modelInfo.GetDependField()
-	for _, field := range fields {
+	for _, field := range modelInfo.GetFields() {
 		err = s.updateRelation(modelInfo, field)
 		if err != nil {
 			return

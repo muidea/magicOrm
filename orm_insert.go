@@ -18,7 +18,8 @@ func (s *orm) insertSingle(modelInfo model.Model) (err error) {
 	id := s.executor.Insert(sql)
 	pk := modelInfo.GetPrimaryField()
 	if pk != nil {
-		err = pk.SetValue(reflect.ValueOf(id))
+		pkv := pk.GetValue()
+		err = pkv.Set(reflect.ValueOf(id))
 	}
 
 	return
@@ -26,14 +27,16 @@ func (s *orm) insertSingle(modelInfo model.Model) (err error) {
 
 func (s *orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
 	fType := fieldInfo.GetType()
-	fDepend := fType.GetDepend()
-
-	fValue := fieldInfo.GetValue()
-	if fValue == nil {
+	fDependModel, fDependErr := s.modelProvider.GetTypeModel(fType.GetType())
+	if fDependErr != nil {
+		err = fDependErr
+		return
+	}
+	if fDependModel == nil {
 		return
 	}
 
-	fDependValue, fDependErr := fValue.GetDepend()
+	fDependValue, fDependErr := s.modelProvider.GetModelDependValue(fDependModel, fieldInfo.GetValue())
 	if fDependErr != nil {
 		err = fDependErr
 		return
@@ -47,7 +50,7 @@ func (s *orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 			return
 		}
 
-		if fDepend.Kind() != reflect.Ptr {
+		if !fType.IsPtrType() {
 			err = s.insertSingle(relationInfo)
 			if err != nil {
 				return
@@ -81,8 +84,7 @@ func (s *orm) Insert(obj interface{}) (err error) {
 		return
 	}
 
-	fields := modelInfo.GetDependField()
-	for _, field := range fields {
+	for _, field := range modelInfo.GetFields() {
 		err = s.insertRelation(modelInfo, field)
 		if err != nil {
 			return
