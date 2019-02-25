@@ -59,33 +59,34 @@ func (s *Provider) GetValueModel(modelVal reflect.Value) (ret model.Model, err e
 }
 
 // GetValueStr GetValueStr
-func (s *Provider) GetValueStr(vType model.Type, vVal model.Value) (ret string, err error) {
-	return getValueStr(vType, vVal, s.modelCache)
+func (s *Provider) GetValueStr(vType model.Type, vValue model.Value) (ret string, err error) {
+	return getValueStr(vType, vValue, s.modelCache)
 }
 
-// GetSliceModelValueStr GetSliceModelValueStr
-func (s *Provider) GetSliceModelValueStr(vType model.Model, vVal model.Value) (ret []string, err error) {
-	val := reflect.Indirect(vVal.Get())
-	if val.Kind() != reflect.Slice {
-		err = fmt.Errorf("illegal slice model value, type:%s", val.Type().String())
-		return
-	}
+// GetModelDependValue GetModelDependValue
+func (s *Provider) GetModelDependValue(vModel model.Model, vValue model.Value) (ret []reflect.Value, err error) {
+	val := reflect.Indirect(vValue.Get())
+	if val.Kind() == reflect.Slice {
+		for idx := 0; idx < val.Len(); idx++ {
+			item := reflect.Indirect(val.Index(idx))
+			itemType := item.Type()
+			if itemType.Name() != vModel.GetName() || itemType.PkgPath() != vModel.GetPkgPath() {
+				err = fmt.Errorf("illegal slice model value, type:%s", val.Type().String())
+				return
+			}
 
-	for idx := 0; idx < val.Len(); idx++ {
-		item := reflect.Indirect(val.Index(idx))
-		itemType := item.Type()
-		if itemType.Name() != vType.GetName() || itemType.PkgPath() != vType.GetPkgPath() {
-			err = fmt.Errorf("illegal slice model value, type:%s", val.Type().String())
-			return
+			ret = append(ret, item)
 		}
-
-		val, valErr := getStructValueStr(item, s.modelCache)
-		if valErr != nil {
-			err = valErr
+	} else if val.Kind() == reflect.Struct {
+		valType := val.Type()
+		if valType.Name() != vModel.GetName() || valType.PkgPath() != vModel.GetPkgPath() {
+			err = fmt.Errorf("illegal struct model value, type:%s", val.Type().String())
 			return
 		}
 
 		ret = append(ret, val)
+	} else {
+		err = fmt.Errorf("illegal value type, type:%s", val.Type().String())
 	}
 
 	return
