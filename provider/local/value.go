@@ -3,6 +3,8 @@ package local
 import (
 	"fmt"
 	"reflect"
+
+	"muidea.com/magicOrm/util"
 )
 
 type valueImpl struct {
@@ -10,6 +12,12 @@ type valueImpl struct {
 }
 
 func newValue(val reflect.Value) (ret *valueImpl, err error) {
+	val = reflect.Indirect(val)
+	_, err = util.GetTypeValueEnum(val.Type())
+	if err != nil {
+		return
+	}
+
 	ret = &valueImpl{valueImpl: val}
 	return
 }
@@ -37,7 +45,7 @@ func (s *valueImpl) Set(val reflect.Value) (err error) {
 	valTypeName := val.Type().String()
 	expectTypeName := s.valueImpl.Type().String()
 	if expectTypeName != valTypeName {
-		err = fmt.Errorf("illegal value type, type:%s, expect:%s", expectTypeName, valTypeName)
+		err = fmt.Errorf("illegal value type, type:%s, expect:%s", valTypeName, expectTypeName)
 		return
 	}
 

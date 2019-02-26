@@ -2,6 +2,7 @@ package model
 
 import (
 	"log"
+	"reflect"
 )
 
 // Field Field
@@ -12,6 +13,7 @@ type Field interface {
 	GetTag() Tag
 	GetValue() Value
 	IsPrimary() bool
+	UpdateValue(val reflect.Value) error
 }
 
 // Fields field info collection

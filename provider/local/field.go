@@ -3,6 +3,7 @@ package local
 import (
 	"fmt"
 	"reflect"
+	"time"
 
 	"muidea.com/magicOrm/model"
 	"muidea.com/magicOrm/util"
@@ -44,6 +45,81 @@ func (s *fieldImpl) GetValue() model.Value {
 
 func (s *fieldImpl) IsPrimary() bool {
 	return s.fieldTag.IsPrimaryKey()
+}
+
+func (s *fieldImpl) UpdateValue(val reflect.Value) (err error) {
+	val = reflect.Indirect(val)
+	valType, valErr := util.GetTypeValueEnum(val.Type())
+	if valErr != nil {
+		err = valErr
+		return
+	}
+
+	switch s.fieldType.GetValue() {
+	case util.TypeBooleanField:
+		switch valType {
+		case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
+			bVal := val.Int() > 0
+			s.fieldValue.Set(reflect.ValueOf(bVal))
+		case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
+			bVal := val.Uint() > 0
+			s.fieldValue.Set(reflect.ValueOf(bVal))
+		case util.TypeBooleanField:
+			s.fieldValue.Set(val)
+		default:
+			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", valType, s.fieldType.GetValue())
+		}
+	case util.TypeStringField:
+		switch valType {
+		case util.TypeStringField:
+			s.fieldValue.Set(val)
+		default:
+			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", valType, s.fieldType.GetValue())
+		}
+	case util.TypeDateTimeField:
+		switch valType {
+		case util.TypeStringField:
+			tmVal, tmErr := time.ParseInLocation("2016-01-02 15:04:05", val.String(), time.Local)
+			if tmErr != nil {
+				err = tmErr
+			} else {
+				s.fieldValue.Set(reflect.ValueOf(tmVal))
+			}
+		case util.TypeDateTimeField:
+			s.fieldValue.Set(val)
+		default:
+			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", valType, s.fieldType.GetValue())
+		}
+	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
+		switch valType {
+		case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
+			s.fieldValue.Set(val)
+		default:
+			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", valType, s.fieldType.GetValue())
+		}
+	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
+		switch valType {
+		case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
+			s.fieldValue.Set(val)
+		default:
+			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", valType, s.fieldType.GetValue())
+		}
+	case util.TypeFloatField, util.TypeDoubleField:
+		switch valType {
+		case util.TypeFloatField, util.TypeDoubleField:
+			s.fieldValue.Set(val)
+		default:
+			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", valType, s.fieldType.GetValue())
+		}
+	case util.TypeStructField, util.TypeSliceField:
+		if val.Type().String() == s.fieldType.GetType().String() {
+			s.fieldValue.Set(val)
+		} else {
+			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", valType, s.fieldType.GetValue())
+		}
+	}
+
+	return
 }
 
 // Verify Verify

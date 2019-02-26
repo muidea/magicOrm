@@ -12,14 +12,18 @@ func (s *orm) insertSingle(modelInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	sql, err := builder.BuildInsert()
 	if err != nil {
+		log.Printf("BuildInsert failed, err:%s", err.Error())
 		return err
 	}
 
 	id := s.executor.Insert(sql)
 	pk := modelInfo.GetPrimaryField()
 	if pk != nil {
-		pkv := pk.GetValue()
-		err = pkv.Set(reflect.ValueOf(id))
+		err = pk.UpdateValue(reflect.ValueOf(id))
+		if err != nil {
+			log.Printf("UpdateValue failed, err:%s", err.Error())
+			return err
+		}
 	}
 
 	return
@@ -87,6 +91,7 @@ func (s *orm) Insert(obj interface{}) (err error) {
 	for _, field := range modelInfo.GetFields() {
 		err = s.insertRelation(modelInfo, field)
 		if err != nil {
+			log.Printf("insertSingle failed, name:%s, field:%s, err:%s", modelInfo.GetName(), field.GetName(), err.Error())
 			return
 		}
 	}
