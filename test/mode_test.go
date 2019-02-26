@@ -274,6 +274,7 @@ func TestSystem(t *testing.T) {
 		return
 	}
 
+	log.Print(*sys1)
 	log.Print(*sys2)
 	log.Print(*(sys2.Users))
 

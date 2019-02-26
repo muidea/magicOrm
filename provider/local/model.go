@@ -11,24 +11,16 @@ import (
 // modelImpl single model
 type modelImpl struct {
 	modelType reflect.Type
-
-	fields []*fieldImpl
+	isTypePtr bool
+	fields    []*fieldImpl
 }
 
 func (s *modelImpl) GetName() string {
-	if s.modelType.Kind() == reflect.Ptr {
-		return s.modelType.Elem().Name()
-	}
-
 	return s.modelType.Name()
 }
 
 // GetPkgPath GetPkgPath
 func (s *modelImpl) GetPkgPath() string {
-	if s.modelType.Kind() == reflect.Ptr {
-		return s.modelType.Elem().PkgPath()
-	}
-
 	return s.modelType.PkgPath()
 }
 
@@ -82,17 +74,12 @@ func (s *modelImpl) GetPrimaryField() (ret model.Field) {
 }
 
 func (s *modelImpl) IsPtrModel() bool {
-	return s.modelType.Kind() == reflect.Ptr
+	return s.isTypePtr
 }
 
 func (s *modelImpl) Interface() reflect.Value {
-	rawType := s.modelType
-	if s.modelType.Kind() == reflect.Ptr {
-		rawType = rawType.Elem()
-	}
-
-	retVal := reflect.New(rawType)
-	if !s.IsPtrModel() {
+	retVal := reflect.New(s.modelType)
+	if !s.isTypePtr {
 		retVal = retVal.Elem()
 	}
 
@@ -100,7 +87,7 @@ func (s *modelImpl) Interface() reflect.Value {
 }
 
 func (s *modelImpl) Copy() *modelImpl {
-	modelInfo := &modelImpl{modelType: s.modelType, fields: []*fieldImpl{}}
+	modelInfo := &modelImpl{modelType: s.modelType, isTypePtr: s.isTypePtr, fields: []*fieldImpl{}}
 	for _, field := range s.fields {
 		modelInfo.fields = append(modelInfo.fields, field.Copy())
 	}
@@ -139,27 +126,35 @@ func getObjectModel(modelObj interface{}, cache Cache) (ret *modelImpl, err erro
 // getTypeModel getTypeModel
 func getTypeModel(modelType reflect.Type, cache Cache) (ret *modelImpl, err error) {
 	rawType := modelType
+	isPtr := false
 	if rawType.Kind() == reflect.Ptr {
 		rawType = rawType.Elem()
+		isPtr = true
 	}
 
 	if rawType.Kind() != reflect.Struct {
 		err = fmt.Errorf("illegal modelType, type:%s", rawType.String())
 		return
 	}
+
 	if rawType.String() == "time.Time" {
 		err = fmt.Errorf("illegal modelType, type:%s", rawType.String())
 		return
 	}
-
 	modelInfo := cache.Fetch(rawType.Name())
 	if modelInfo != nil {
-		ret = modelInfo
+		preType := modelInfo.modelType
+		if preType.PkgPath() != rawType.PkgPath() {
+			err = fmt.Errorf("duplicate model info,name:%s", rawType.Name())
+			return
+		}
+
+		ret = modelInfo.Copy()
+		ret.isTypePtr = isPtr
 		return
 	}
 
-	modelImpl := &modelImpl{modelType: modelType, fields: make([]*fieldImpl, 0)}
-
+	modelImpl := &modelImpl{modelType: rawType, fields: make([]*fieldImpl, 0)}
 	fieldNum := rawType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		fieldType := rawType.Field(idx)
@@ -183,6 +178,8 @@ func getTypeModel(modelType reflect.Type, cache Cache) (ret *modelImpl, err erro
 	cache.Put(modelImpl.GetName(), modelImpl)
 
 	ret = modelImpl
+	ret.isTypePtr = isPtr
+
 	return
 }
 
@@ -204,7 +201,6 @@ func getValueModel(modelVal reflect.Value, cache Cache) (ret *modelImpl, err err
 		return
 	}
 
-	modelInfo = modelInfo.Copy()
 	fieldNum := rawVal.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		fieldVal := rawVal.Field(idx)

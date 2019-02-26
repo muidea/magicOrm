@@ -20,7 +20,15 @@ func New() *Provider {
 
 // GetObjectModel GetObjectModel
 func (s *Provider) GetObjectModel(objPtr interface{}) (ret model.Model, err error) {
-	return getObjectModel(objPtr, s.modelCache)
+	modelVal := reflect.ValueOf(objPtr)
+	modelImpl, modelErr := getValueModel(modelVal, s.modelCache)
+	if modelErr != nil {
+		err = modelErr
+		return
+	}
+
+	ret = modelImpl
+	return
 }
 
 // GetTypeModel GetTypeModel
@@ -47,10 +55,24 @@ func (s *Provider) GetTypeModel(modelType reflect.Type) (ret model.Model, err er
 			return
 		}
 
-		return getTypeModel(rawType, s.modelCache)
+		modelImpl, modelErr := getTypeModel(rawType, s.modelCache)
+		if modelErr != nil {
+			err = modelErr
+			return
+		}
+
+		ret = modelImpl
+		return
 	}
 
-	return getTypeModel(modelType, s.modelCache)
+	modelImpl, modelErr := getTypeModel(modelType, s.modelCache)
+	if modelErr != nil {
+		err = modelErr
+		return
+	}
+
+	ret = modelImpl
+	return
 }
 
 // GetValueModel GetValueModel
