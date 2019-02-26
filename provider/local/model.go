@@ -16,11 +16,19 @@ type modelImpl struct {
 }
 
 func (s *modelImpl) GetName() string {
+	if s.modelType.Kind() == reflect.Ptr {
+		return s.modelType.Elem().Name()
+	}
+
 	return s.modelType.Name()
 }
 
 // GetPkgPath GetPkgPath
 func (s *modelImpl) GetPkgPath() string {
+	if s.modelType.Kind() == reflect.Ptr {
+		return s.modelType.Elem().PkgPath()
+	}
+
 	return s.modelType.PkgPath()
 }
 
@@ -73,8 +81,22 @@ func (s *modelImpl) GetPrimaryField() (ret model.Field) {
 	return
 }
 
+func (s *modelImpl) IsPtrModel() bool {
+	return s.modelType.Kind() == reflect.Ptr
+}
+
 func (s *modelImpl) Interface() reflect.Value {
-	return reflect.New(s.modelType).Elem()
+	rawType := s.modelType
+	if s.modelType.Kind() == reflect.Ptr {
+		rawType = rawType.Elem()
+	}
+
+	retVal := reflect.New(rawType)
+	if !s.IsPtrModel() {
+		retVal = retVal.Elem()
+	}
+
+	return retVal
 }
 
 func (s *modelImpl) Copy() *modelImpl {
@@ -116,21 +138,21 @@ func getObjectModel(modelObj interface{}, cache Cache) (ret *modelImpl, err erro
 
 // getTypeModel getTypeModel
 func getTypeModel(modelType reflect.Type, cache Cache) (ret *modelImpl, err error) {
-	if modelType.Kind() == reflect.Ptr {
-		err = fmt.Errorf("illegal model type")
+	rawType := modelType
+	if rawType.Kind() == reflect.Ptr {
+		rawType = rawType.Elem()
+	}
+
+	if rawType.Kind() != reflect.Struct {
+		err = fmt.Errorf("illegal modelType, type:%s", rawType.String())
+		return
+	}
+	if rawType.String() == "time.Time" {
+		err = fmt.Errorf("illegal modelType, type:%s", rawType.String())
 		return
 	}
 
-	if modelType.Kind() != reflect.Struct {
-		err = fmt.Errorf("illegal modelType, type:%s", modelType.String())
-		return
-	}
-	if modelType.String() == "time.Time" {
-		err = fmt.Errorf("illegal modelType, type:%s", modelType.String())
-		return
-	}
-
-	modelInfo := cache.Fetch(modelType.Name())
+	modelInfo := cache.Fetch(rawType.Name())
 	if modelInfo != nil {
 		ret = modelInfo
 		return
@@ -138,9 +160,9 @@ func getTypeModel(modelType reflect.Type, cache Cache) (ret *modelImpl, err erro
 
 	modelImpl := &modelImpl{modelType: modelType, fields: make([]*fieldImpl, 0)}
 
-	fieldNum := modelType.NumField()
+	fieldNum := rawType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		fieldType := modelType.Field(idx)
+		fieldType := rawType.Field(idx)
 		fieldInfo, fieldErr := getFieldInfo(idx, fieldType)
 		if fieldErr != nil {
 			err = fieldErr
@@ -166,27 +188,26 @@ func getTypeModel(modelType reflect.Type, cache Cache) (ret *modelImpl, err erro
 
 // getValueModel getValueModel
 func getValueModel(modelVal reflect.Value, cache Cache) (ret *modelImpl, err error) {
-	if modelVal.Kind() == reflect.Ptr {
-		if modelVal.IsNil() {
+	rawVal := modelVal
+	if rawVal.Kind() == reflect.Ptr {
+		if rawVal.IsNil() {
 			err = fmt.Errorf("can't get value model from nil ptr")
 			return
 		}
 
-		modelVal = reflect.Indirect(modelVal)
+		rawVal = reflect.Indirect(rawVal)
 	}
 
-	modelInfo := cache.Fetch(modelVal.Type().Name())
-	if modelInfo == nil {
-		modelInfo, err = getTypeModel(modelVal.Type(), cache)
-		if err != nil {
-			return
-		}
+	modelInfo, modelErr := getTypeModel(modelVal.Type(), cache)
+	if modelErr != nil {
+		err = modelErr
+		return
 	}
 
 	modelInfo = modelInfo.Copy()
-	fieldNum := modelVal.NumField()
+	fieldNum := rawVal.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		fieldVal := modelVal.Field(idx)
+		fieldVal := rawVal.Field(idx)
 		err = modelInfo.SetFieldValue(idx, fieldVal)
 		if err != nil {
 			log.Printf("SetFieldValue failed, err:%s", err.Error())

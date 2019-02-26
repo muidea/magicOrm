@@ -9,4 +9,6 @@ type Type interface {
 	GetPkgPath() string
 	GetType() reflect.Type
 	IsPtrType() bool
+	Interface() reflect.Value
+	Elem() Type
 }

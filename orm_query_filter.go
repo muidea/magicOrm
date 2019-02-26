@@ -2,6 +2,7 @@ package orm
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 	"strings"
 
@@ -118,6 +119,16 @@ func (s *filterItem) FilterStr(name string, fType model.Type) (ret string, err e
 	err = s.verify(fType)
 	if err != nil {
 		return
+	}
+
+	log.Printf("name:%s, type:%s", name, fType.GetType().String())
+	fModel, fErr := s.modelProvider.GetTypeModel(fType.GetType())
+	if fErr != nil {
+		err = fErr
+		return
+	}
+	if fModel != nil {
+		fType = fType.Elem()
 	}
 
 	filterStr := ""

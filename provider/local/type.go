@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"muidea.com/magicOrm/model"
 	"muidea.com/magicOrm/util"
 )
 
@@ -62,6 +63,25 @@ func (s *typeImpl) GetType() reflect.Type {
 
 func (s *typeImpl) IsPtrType() bool {
 	return s.typeImpl.Kind() == reflect.Ptr
+}
+
+func (s *typeImpl) Interface() reflect.Value {
+	rawType := s.GetType()
+	val := reflect.New(rawType)
+	if !s.IsPtrType() {
+		val = val.Elem()
+	}
+
+	return val
+}
+
+func (s *typeImpl) Elem() model.Type {
+	tVal := s.GetType()
+	if tVal.Kind() == reflect.Slice {
+		return &typeImpl{typeImpl: tVal.Elem()}
+	}
+
+	return nil
 }
 
 func (s *typeImpl) Copy() (ret *typeImpl) {

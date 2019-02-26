@@ -47,10 +47,10 @@ func (s *Provider) GetTypeModel(modelType reflect.Type) (ret model.Model, err er
 			return
 		}
 
-		return getTypeModel(typeImpl.GetType(), s.modelCache)
+		return getTypeModel(rawType, s.modelCache)
 	}
 
-	return getTypeModel(typeImpl.GetType(), s.modelCache)
+	return getTypeModel(modelType, s.modelCache)
 }
 
 // GetValueModel GetValueModel
@@ -65,6 +65,10 @@ func (s *Provider) GetValueStr(vType model.Type, vValue model.Value) (ret string
 
 // GetModelDependValue GetModelDependValue
 func (s *Provider) GetModelDependValue(vModel model.Model, vValue model.Value) (ret []reflect.Value, err error) {
+	if vValue.IsNil() {
+		return
+	}
+
 	val := reflect.Indirect(vValue.Get())
 	if val.Kind() == reflect.Slice {
 		for idx := 0; idx < val.Len(); idx++ {

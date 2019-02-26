@@ -72,12 +72,12 @@ func (s *orm) querySingle(modelInfo model.Model) (err error) {
 
 func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
 	fType := fieldInfo.GetType()
-	fDependModel, fDependErr := s.modelProvider.GetTypeModel(fType.GetType())
-	if fDependErr != nil {
-		err = fDependErr
+	fieldModel, fieldErr := s.modelProvider.GetTypeModel(fType.GetType())
+	if fieldErr != nil {
+		err = fieldErr
 		return
 	}
-	if fDependModel == nil {
+	if fieldModel == nil {
 		return
 	}
 
@@ -87,19 +87,18 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (err e
 	}
 
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
-	relationSQL, relationErr := builder.BuildQueryRelation(fieldInfo.GetName(), fDependModel)
+	relationSQL, relationErr := builder.BuildQueryRelation(fieldInfo.GetName(), fieldModel)
 	if relationErr != nil {
 		err = relationErr
 		return err
 	}
 
-	values := []int{}
-
+	values := []int64{}
 	func() {
 		s.executor.Query(relationSQL)
 		defer s.executor.Finish()
 		for s.executor.Next() {
-			v := 0
+			v := int64(0)
 			s.executor.GetField(&v)
 			values = append(values, v)
 		}
@@ -107,7 +106,7 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (err e
 
 	if util.IsStructType(fType.GetValue()) {
 		if len(values) > 0 {
-			relationVal := reflect.New(fType.GetType())
+			relationVal := fieldModel.Interface()
 			relationInfo, relationErr := s.modelProvider.GetValueModel(relationVal)
 			if relationErr != nil {
 				err = relationErr
@@ -128,14 +127,9 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (err e
 			}
 		}
 	} else if util.IsSliceType(fType.GetValue()) {
-		relationType := fType.GetType()
-		relationVal := reflect.New(relationType).Elem()
+		relationVal := fType.Interface()
 		for _, item := range values {
-			itemType := relationType.Elem()
-			if itemType.Kind() == reflect.Ptr {
-				itemType = itemType.Elem()
-			}
-			itemVal := reflect.New(itemType).Elem()
+			itemVal := fieldModel.Interface()
 			itemInfo, itemErr := s.modelProvider.GetValueModel(itemVal)
 			if itemErr != nil {
 				log.Printf("GetValueModel faield, err:%s", itemErr.Error())

@@ -3,12 +3,15 @@ package local
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"reflect"
 )
 
 // getSliceValueStr get slice value str
 func getSliceValueStr(val reflect.Value, cache Cache) (ret string, err error) {
 	valSlice := []interface{}{}
+
+	log.Print(val.Type().String())
 
 	rawVal := reflect.Indirect(val)
 	pos := rawVal.Len()

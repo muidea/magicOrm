@@ -54,8 +54,6 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 		idx := 0
 		for _, field := range fields {
 			fType := field.GetType()
-			fValue := field.GetValue()
-
 			dependModel, dependErr := s.modelProvider.GetTypeModel(fType.GetType())
 			if dependErr != nil {
 				err = dependErr
@@ -66,7 +64,7 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 			}
 
 			v := items[idx]
-			err = fValue.Set(reflect.Indirect(reflect.ValueOf(v)))
+			err = field.UpdateValue(reflect.Indirect(reflect.ValueOf(v)))
 			if err != nil {
 				return
 			}
@@ -83,26 +81,19 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 }
 
 func (s *orm) BatchQuery(sliceObj interface{}, filter model.Filter) (err error) {
-	objType := reflect.TypeOf(sliceObj)
-	if objType.Kind() != reflect.Ptr {
+	objValue := reflect.ValueOf(sliceObj)
+	if objValue.Kind() != reflect.Ptr {
 		err = fmt.Errorf("illegal obj type. must be a slice ptr")
 		return
 	}
 
-	rawType := objType.Elem()
-	if rawType.Kind() != reflect.Slice {
-		err = fmt.Errorf("illegal obj type. must be a slice ptr")
-		return
-	}
-	rawType = rawType.Elem()
-	modelInfo, modelErr := s.modelProvider.GetTypeModel(rawType)
+	modelInfo, modelErr := s.modelProvider.GetTypeModel(objValue.Type())
 	if modelErr != nil {
 		err = modelErr
 		log.Printf("GetTypeModel failed, err:%s", err.Error())
 		return
 	}
 
-	objValue := reflect.ValueOf(sliceObj)
 	objValue = reflect.Indirect(objValue)
 	queryValues, queryErr := s.queryBatch(modelInfo, objValue, filter)
 	if queryErr != nil {
