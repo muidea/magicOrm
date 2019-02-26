@@ -44,12 +44,6 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 		}
 
 		fType := field.GetType()
-		verifyErr := filterItem.Verify(fType)
-		if verifyErr != nil {
-			err = verifyErr
-			return
-		}
-
 		dependModel, dependErr := s.modelProvider.GetTypeModel(fType.GetType())
 		if dependErr != nil {
 			err = dependErr
@@ -57,7 +51,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 		}
 
 		if dependModel != nil {
-			strVal, strErr := filterItem.FilterStr("right")
+			strVal, strErr := filterItem.FilterStr("right", fType)
 			if strErr != nil {
 				err = strErr
 				return
@@ -76,7 +70,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 			continue
 		}
 
-		strVal, strErr := filterItem.FilterStr(field.GetName())
+		strVal, strErr := filterItem.FilterStr(field.GetName(), fType)
 		if strErr != nil {
 			err = strErr
 			return

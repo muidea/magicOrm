@@ -6,8 +6,7 @@ import (
 
 // FilterItem FilterItem
 type FilterItem interface {
-	Verify(fType Type) (err error)
-	FilterStr(name string) (string, error)
+	FilterStr(name string, fType Type) (string, error)
 }
 
 // Filter orm query filter

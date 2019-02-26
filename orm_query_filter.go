@@ -3,6 +3,7 @@ package orm
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"muidea.com/magicCommon/foundation/util"
 	"muidea.com/magicOrm/builder"
@@ -11,13 +12,85 @@ import (
 	ormutil "muidea.com/magicOrm/util"
 )
 
+type filterValue struct {
+	filterValue reflect.Value
+}
+
+func newFilterValue(val reflect.Value) (ret model.Value, err error) {
+	if val.Kind() == reflect.Invalid {
+		err = fmt.Errorf("illegal filter value")
+		return
+	}
+
+	if val.Kind() == reflect.Ptr {
+		if val.IsNil() {
+			err = fmt.Errorf("nil filter value")
+			return
+		}
+	}
+
+	qv := reflect.Indirect(reflect.ValueOf(val))
+	_, qvErr := ormutil.GetTypeValueEnum(qv.Type())
+	if qvErr != nil {
+		err = qvErr
+		return
+	}
+
+	ret = &filterValue{filterValue: val}
+	return
+}
+
+func (s *filterValue) IsNil() (ret bool) {
+	if s.filterValue.Kind() == reflect.Invalid {
+		return true
+	}
+
+	if s.filterValue.Kind() == reflect.Ptr {
+		return s.filterValue.IsNil()
+	}
+
+	return false
+}
+
+func (s *filterValue) Set(val reflect.Value) (err error) {
+	if val.Kind() == reflect.Invalid {
+		return
+	}
+	if val.Kind() == reflect.Ptr {
+		if val.IsNil() {
+			return
+		}
+	}
+
+	if s.filterValue.Kind() == reflect.Invalid {
+		s.filterValue = val
+		return
+	}
+
+	valTypeName := val.Type().String()
+	expectTypeName := s.filterValue.Type().String()
+	if expectTypeName != valTypeName {
+		err = fmt.Errorf("illegal value type, type:%s, expect:%s", expectTypeName, valTypeName)
+		return
+	}
+
+	s.filterValue.Set(val)
+	return
+}
+
+func (s *filterValue) Get() (ret reflect.Value) {
+	ret = s.filterValue
+
+	return
+}
+
 type filterItem struct {
 	filterFun     func(name, value string) string
 	value         reflect.Value
 	modelProvider provider.Provider
 }
 
-func (s *filterItem) Verify(fType model.Type) (err error) {
+func (s *filterItem) verify(fType model.Type) (err error) {
 	valType := s.value.Type()
 	if valType.Kind() == reflect.Ptr {
 		valType = valType.Elem()
@@ -41,14 +114,49 @@ func (s *filterItem) Verify(fType model.Type) (err error) {
 	return
 }
 
-func (s *filterItem) FilterStr(name string) (ret string, err error) {
-	fValue, fErr := s.modelProvider.GetValueStr(s.value)
-	if fErr != nil {
-		err = fErr
+func (s *filterItem) FilterStr(name string, fType model.Type) (ret string, err error) {
+	err = s.verify(fType)
+	if err != nil {
 		return
 	}
 
-	ret = s.filterFun(name, fValue)
+	filterStr := ""
+	if s.value.Kind() != reflect.Slice {
+		filterVal, filterErr := newFilterValue(s.value)
+		if filterErr != nil {
+			err = filterErr
+			return
+		}
+
+		fVal, fErr := s.modelProvider.GetValueStr(fType, filterVal)
+		if fErr != nil {
+			err = fErr
+			return
+		}
+
+		filterStr = fVal
+	} else {
+		itemArray := []string{}
+		for idx := 0; idx < s.value.Len(); idx++ {
+			itemVal, itemErr := newFilterValue(s.value.Index(idx))
+			if itemErr != nil {
+				err = itemErr
+				return
+			}
+
+			itemStr, itemErr := s.modelProvider.GetValueStr(fType, itemVal)
+			if itemErr != nil {
+				err = itemErr
+				return
+			}
+
+			itemArray = append(itemArray, itemStr)
+		}
+
+		filterStr = strings.Join(itemArray, ",")
+	}
+
+	ret = s.filterFun(name, filterStr)
 	return
 }
 
