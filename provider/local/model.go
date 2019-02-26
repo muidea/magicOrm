@@ -186,8 +186,8 @@ func getValueModel(modelVal reflect.Value, cache Cache) (ret *modelImpl, err err
 	modelInfo = modelInfo.Copy()
 	fieldNum := modelVal.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		val := modelVal.Field(idx)
-		err = modelInfo.SetFieldValue(idx, val)
+		fieldVal := modelVal.Field(idx)
+		err = modelInfo.SetFieldValue(idx, fieldVal)
 		if err != nil {
 			log.Printf("SetFieldValue failed, err:%s", err.Error())
 			return
