@@ -59,8 +59,7 @@ func (s *orm) querySingle(modelInfo model.Model) (err error) {
 		}
 
 		v := items[idx]
-		fValue := item.GetValue()
-		err = fValue.Set(reflect.Indirect(reflect.ValueOf(v)))
+		err = item.UpdateValue(reflect.Indirect(reflect.ValueOf(v)))
 		if err != nil {
 			return err
 		}

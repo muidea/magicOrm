@@ -2,6 +2,7 @@ package local
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 
 	"muidea.com/magicOrm/util"
@@ -34,6 +35,7 @@ func (s *valueImpl) IsNil() (ret bool) {
 
 func (s *valueImpl) Set(val reflect.Value) (err error) {
 	if val.Kind() == reflect.Invalid {
+		log.Print("invalid value")
 		return
 	}
 

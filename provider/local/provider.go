@@ -47,10 +47,10 @@ func (s *Provider) GetTypeModel(modelType reflect.Type) (ret model.Model, err er
 			return
 		}
 
-		return getTypeModel(rawType, s.modelCache)
+		return getTypeModel(typeImpl.GetType(), s.modelCache)
 	}
 
-	return getTypeModel(modelType, s.modelCache)
+	return getTypeModel(typeImpl.GetType(), s.modelCache)
 }
 
 // GetValueModel GetValueModel
