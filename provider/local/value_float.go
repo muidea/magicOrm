@@ -5,8 +5,8 @@ import (
 	"reflect"
 )
 
-// getFloatValueStr get float value str
-func getFloatValueStr(val reflect.Value) (ret string, err error) {
+// encodeFloatValue get float value str
+func encodeFloatValue(val reflect.Value) (ret string, err error) {
 	rawVal := reflect.Indirect(val)
 	ret = fmt.Sprintf("%f", rawVal.Float())
 

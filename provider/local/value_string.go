@@ -5,8 +5,8 @@ import (
 	"reflect"
 )
 
-// getStringValueStr get string value str
-func getStringValueStr(val reflect.Value) (ret string, err error) {
+// encodeStringValue get string value str
+func encodeStringValue(val reflect.Value) (ret string, err error) {
 	rawVal := reflect.Indirect(val)
 	ret = fmt.Sprintf("%s", rawVal.String())
 

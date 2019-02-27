@@ -27,7 +27,7 @@ func getSliceValueStr(val reflect.Value, cache Cache) (ret string, err error) {
 			valSlice = append(valSlice, sv.Interface())
 		case reflect.Struct:
 			if sv.Type().String() == "time.Time" {
-				datetimeStr, datetimeErr := getDateTimeValueStr(sv)
+				datetimeStr, datetimeErr := encodeDateTimeValue(sv)
 				if datetimeErr != nil {
 					err = datetimeErr
 					return

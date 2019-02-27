@@ -151,6 +151,7 @@ func TestUser(t *testing.T) {
 		return
 	}
 
+	log.Print(*user1)
 	log.Print(*user2)
 	if !user2.Equle(user1) {
 		t.Errorf("query user2 failed")
@@ -275,8 +276,9 @@ func TestSystem(t *testing.T) {
 	}
 
 	log.Print(*sys1)
+	log.Print(sys1.Tags)
 	log.Print(*sys2)
-	log.Print(*(sys2.Users))
+	log.Print(sys2.Tags)
 
 	if !sys1.Equle(sys2) {
 		t.Error("query sys2 faield")

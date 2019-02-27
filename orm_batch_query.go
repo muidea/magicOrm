@@ -72,7 +72,7 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 			idx++
 		}
 
-		sliceValue = reflect.Append(sliceValue, newVal.Elem())
+		sliceValue = reflect.Append(sliceValue, newVal)
 	}
 
 	ret = sliceValue

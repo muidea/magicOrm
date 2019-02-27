@@ -37,8 +37,7 @@ func (s *modelImpl) GetFields() (ret model.Fields) {
 func (s *modelImpl) SetFieldValue(idx int, val reflect.Value) (err error) {
 	for _, field := range s.fields {
 		if field.GetIndex() == idx {
-			fv := field.GetValue()
-			err = fv.Set(val)
+			err = field.SetValue(val)
 			return
 		}
 	}
@@ -51,8 +50,7 @@ func (s *modelImpl) SetFieldValue(idx int, val reflect.Value) (err error) {
 func (s *modelImpl) UpdateFieldValue(name string, val reflect.Value) (err error) {
 	for _, field := range s.fields {
 		if field.GetName() == name {
-			fv := field.GetValue()
-			err = fv.Set(val)
+			err = field.UpdateValue(val)
 			return
 		}
 	}
@@ -225,15 +223,15 @@ func getValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, e
 
 	switch rawType.Kind() {
 	case reflect.Bool:
-		ret, err = getBoolValueStr(vVal.Get())
+		ret, err = encodeBoolValue(vVal.Get())
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int:
-		ret, err = getIntValueStr(vVal.Get())
+		ret, err = encodeIntValue(vVal.Get())
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint:
-		ret, err = getUintValueStr(vVal.Get())
+		ret, err = encodeUintValue(vVal.Get())
 	case reflect.Float32, reflect.Float64:
-		ret, err = getFloatValueStr(vVal.Get())
+		ret, err = encodeFloatValue(vVal.Get())
 	case reflect.String:
-		strRet, strErr := getStringValueStr(vVal.Get())
+		strRet, strErr := encodeStringValue(vVal.Get())
 		if strErr != nil {
 			err = strErr
 			return
@@ -248,14 +246,14 @@ func getValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, e
 		ret = fmt.Sprintf("'%s'", strRet)
 	case reflect.Struct:
 		if rawType.String() == "time.Time" {
-			strRet, strErr := getDateTimeValueStr(vVal.Get())
+			strRet, strErr := encodeDateTimeValue(vVal.Get())
 			if strErr != nil {
 				err = strErr
 				return
 			}
 			ret = fmt.Sprintf("'%s'", strRet)
 		} else {
-			ret, err = getStructValueStr(vVal.Get(), cache)
+			ret, err = encodeStructValue(vVal.Get(), cache)
 		}
 	default:
 		err = fmt.Errorf("illegal value kind, kind:%v", rawType.Kind())

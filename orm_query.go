@@ -63,7 +63,6 @@ func (s *orm) querySingle(modelInfo model.Model) (err error) {
 		if err != nil {
 			return err
 		}
-
 		idx++
 	}
 

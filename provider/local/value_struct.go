@@ -5,8 +5,8 @@ import (
 	"reflect"
 )
 
-// getStructValueStr get struct value str
-func getStructValueStr(val reflect.Value, cache Cache) (ret string, err error) {
+// encodeStructValue get struct value str
+func encodeStructValue(val reflect.Value, cache Cache) (ret string, err error) {
 	rawVal := reflect.Indirect(val)
 	modelImpl, modelErr := getValueModel(rawVal, cache)
 	if modelErr != nil {
