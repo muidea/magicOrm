@@ -1,9 +1,7 @@
 package local
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
 	"reflect"
 	"time"
 
@@ -62,7 +60,7 @@ func (s *fieldImpl) UpdateValue(val reflect.Value) (err error) {
 		return
 	}
 
-	fieldVal := reflect.New(s.fieldType.GetType()).Elem()
+	fieldVal := reflect.Indirect(s.fieldType.Interface())
 	switch s.fieldType.GetValue() {
 	case util.TypeBooleanField:
 		switch valType {
@@ -128,22 +126,12 @@ func (s *fieldImpl) UpdateValue(val reflect.Value) (err error) {
 	case util.TypeSliceField:
 		switch valType {
 		case util.TypeStringField:
-			log.Print(s.fieldType.GetType().String())
-			log.Printf("#####%v", val.Interface())
-			getSliceFromString(val, &s.fieldType)
-			obj := fieldVal.Interface()
-			log.Print(reflect.TypeOf(obj).String())
-			err = json.Unmarshal([]byte(val.String()), &obj)
-			if err == nil {
-				objVal := reflect.ValueOf(obj)
-				for idx := 0; idx < objVal.Len(); idx++ {
-					v := objVal.Index(idx)
-					log.Printf("val:%v type:%s", v.Interface(), v.Type().String())
-				}
-
-				log.Print(fieldVal.Type().String())
-				log.Print(reflect.TypeOf(obj).String())
+			sliceVal, sliceErr := decodeSliceValue(val.String(), &s.fieldType)
+			if sliceErr != nil {
+				err = sliceErr
+				return
 			}
+			fieldVal.Set(sliceVal)
 		case util.TypeSliceField:
 			if val.Type().String() == s.fieldType.GetType().String() {
 				fieldVal.Set(val)
@@ -161,56 +149,6 @@ func (s *fieldImpl) UpdateValue(val reflect.Value) (err error) {
 		}
 
 		err = s.fieldValue.Update(fieldVal)
-	}
-
-	return
-}
-
-func getSliceFromString(fVal reflect.Value, fType model.Type) (ret reflect.Value, err error) {
-	if fVal.Kind() != reflect.String {
-		err = fmt.Errorf("illegal value type, type:%s, expect string", fVal.Type().String())
-		return
-	}
-	if fType.GetType().Kind() != reflect.Slice {
-		err = fmt.Errorf("illegal result type, type:%s, expect slice", fVal.Type().String())
-		return
-	}
-
-	array := []interface{}{}
-	err = json.Unmarshal([]byte(fVal.String()), &array)
-	if err != nil {
-		return
-	}
-
-	ret = reflect.Indirect(fType.Interface())
-
-	itemType := fType.Elem()
-	for idx := 0; idx < len(array); idx++ {
-		val := array[idx]
-		log.Print(reflect.TypeOf(val))
-
-		if itemType.GetValue() == util.TypeDateTimeField {
-			strVal, ok := val.(string)
-			if !ok {
-				err = fmt.Errorf("illegal slice value")
-				return
-			}
-
-			tmVal, tmErr := time.ParseInLocation("2006-01-02 15:04:05", strVal, time.Local)
-			if tmErr != nil {
-				err = tmErr
-				return
-			}
-			ret = reflect.Append(ret, reflect.ValueOf(tmVal))
-			continue
-		}
-
-		ret = reflect.Append(ret, reflect.ValueOf(val))
-	}
-
-	log.Print(ret.Interface())
-	if fType.IsPtrType() {
-		ret = ret.Addr()
 	}
 
 	return

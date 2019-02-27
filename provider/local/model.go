@@ -216,6 +216,10 @@ func getValueModel(modelVal reflect.Value, cache Cache) (ret *modelImpl, err err
 
 // getValueStr get value str
 func getValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, err error) {
+	if vVal.IsNil() {
+		return
+	}
+
 	rawType := vType.GetType()
 	if rawType.Kind() == reflect.Ptr {
 		rawType = rawType.Elem()
@@ -238,7 +242,7 @@ func getValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, e
 		}
 		ret = fmt.Sprintf("'%s'", strRet)
 	case reflect.Slice:
-		strRet, strErr := getSliceValueStr(vVal.Get(), cache)
+		strRet, strErr := encodeSliceValue(vVal.Get())
 		if strErr != nil {
 			err = strErr
 			return

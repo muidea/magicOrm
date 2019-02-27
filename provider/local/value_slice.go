@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+
+	"muidea.com/magicOrm/model"
 )
 
-// getSliceValueStr get slice value str
-func getSliceValueStr(val reflect.Value, cache Cache) (ret string, err error) {
-	valSlice := []interface{}{}
-
-	log.Print(val.Type().String())
+// encodeSliceValue get slice value str
+func encodeSliceValue(val reflect.Value) (ret string, err error) {
+	valSlice := []string{}
 
 	rawVal := reflect.Indirect(val)
 	pos := rawVal.Len()
@@ -19,21 +19,49 @@ func getSliceValueStr(val reflect.Value, cache Cache) (ret string, err error) {
 		sv := rawVal.Index(idx)
 		sv = reflect.Indirect(sv)
 		switch sv.Kind() {
-		case reflect.Bool,
-			reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
-			reflect.Float32, reflect.Float64,
-			reflect.String:
-			valSlice = append(valSlice, sv.Interface())
+		case reflect.Bool:
+			strVal, strErr := encodeBoolValue(sv)
+			if strErr != nil {
+				err = strErr
+				return
+			}
+			valSlice = append(valSlice, strVal)
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			strVal, strErr := encodeIntValue(sv)
+			if strErr != nil {
+				err = strErr
+				return
+			}
+			valSlice = append(valSlice, strVal)
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			strVal, strErr := encodeUintValue(sv)
+			if strErr != nil {
+				err = strErr
+				return
+			}
+			valSlice = append(valSlice, strVal)
+		case reflect.Float32, reflect.Float64:
+			strVal, strErr := encodeFloatValue(sv)
+			if strErr != nil {
+				err = strErr
+				return
+			}
+			valSlice = append(valSlice, strVal)
+		case reflect.String:
+			strVal, strErr := encodeStringValue(sv)
+			if strErr != nil {
+				err = strErr
+				return
+			}
+			valSlice = append(valSlice, strVal)
 		case reflect.Struct:
 			if sv.Type().String() == "time.Time" {
-				datetimeStr, datetimeErr := encodeDateTimeValue(sv)
-				if datetimeErr != nil {
-					err = datetimeErr
+				strVal, strErr := encodeDateTimeValue(sv)
+				if strErr != nil {
+					err = strErr
 					return
 				}
-
-				valSlice = append(valSlice, datetimeStr)
+				valSlice = append(valSlice, strVal)
 			} else {
 				err = fmt.Errorf("no support slice element type, [%s]", sv.Type().String())
 			}
@@ -49,6 +77,83 @@ func getSliceValueStr(val reflect.Value, cache Cache) (ret string, err error) {
 		err = dataErr
 	}
 	ret = fmt.Sprintf("%s", string(data))
+
+	return
+}
+
+func decodeSliceValue(val string, vType model.Type) (ret reflect.Value, err error) {
+	log.Print(val)
+
+	if vType.GetType().Kind() != reflect.Slice {
+		err = fmt.Errorf("illegal value type")
+		return
+	}
+
+	array := []string{}
+	err = json.Unmarshal([]byte(val), &array)
+	if err != nil {
+		return
+	}
+
+	ret = reflect.Indirect(vType.Interface())
+	iType := vType.Elem()
+	for idx := 0; idx < len(array); idx++ {
+		val := array[idx]
+		switch iType.GetType().Kind() {
+		case reflect.Bool:
+			itemVal, itemErr := decodeBoolValue(val, iType)
+			if itemErr != nil {
+				err = itemErr
+				return
+			}
+			ret = reflect.Append(ret, itemVal)
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			itemVal, itemErr := decodeIntValue(val, iType)
+			if itemErr != nil {
+				err = itemErr
+				return
+			}
+			ret = reflect.Append(ret, itemVal)
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			itemVal, itemErr := decodeUintValue(val, iType)
+			if itemErr != nil {
+				err = itemErr
+				return
+			}
+			ret = reflect.Append(ret, itemVal)
+		case reflect.Float32, reflect.Float64:
+			itemVal, itemErr := decodeFloatValue(val, iType)
+			if itemErr != nil {
+				err = itemErr
+				return
+			}
+			ret = reflect.Append(ret, itemVal)
+		case reflect.String:
+			itemVal, itemErr := decodeStringValue(val, iType)
+			if itemErr != nil {
+				err = itemErr
+				return
+			}
+			ret = reflect.Append(ret, itemVal)
+		case reflect.Struct:
+			if iType.GetType().String() == "time.Time" {
+				itemVal, itemErr := decodeDateTimeValue(val, iType)
+				if itemErr != nil {
+					err = itemErr
+					return
+				}
+				ret = reflect.Append(ret, itemVal)
+			} else {
+				err = fmt.Errorf("illegal value type, type:%s, expect time.Time", iType.GetType().String())
+			}
+		default:
+			err = fmt.Errorf("illegal value type, unexpect type:%s", iType.GetType().String())
+		}
+	}
+
+	if vType.IsPtrType() {
+		ret = ret.Addr()
+	}
 
 	return
 }
