@@ -41,7 +41,7 @@ func (s *orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 		return
 	}
 
-	if !fType.IsPtrType() {
+	if !relationInfo.IsPtrModel() {
 		s.executor.Delete(rightSQL)
 	}
 
