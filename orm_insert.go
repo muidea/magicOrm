@@ -31,7 +31,7 @@ func (s *orm) insertSingle(modelInfo model.Model) (err error) {
 
 func (s *orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
 	fType := fieldInfo.GetType()
-	fDependModel, fDependErr := s.modelProvider.GetTypeModel(fType.GetType())
+	fDependModel, fDependErr := s.modelProvider.GetTypeModel(fType)
 	if fDependErr != nil {
 		err = fDependErr
 		return

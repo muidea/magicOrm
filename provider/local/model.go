@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"muidea.com/magicOrm/model"
+	"muidea.com/magicOrm/util"
 )
 
 // modelImpl single model
@@ -121,25 +122,58 @@ func getObjectModel(modelObj interface{}, cache Cache) (ret *modelImpl, err erro
 	return
 }
 
+// getValueModel getValueModel
+func getValueModel(modelVal reflect.Value, cache Cache) (ret *modelImpl, err error) {
+	rawVal := modelVal
+	if rawVal.Kind() == reflect.Ptr {
+		if rawVal.IsNil() {
+			err = fmt.Errorf("can't get value model from nil ptr")
+			return
+		}
+
+		rawVal = reflect.Indirect(rawVal)
+	}
+
+	vType, vErr := newType(rawVal.Type())
+	if vErr != nil {
+		err = vErr
+		log.Printf("newType failed, err:%s", err.Error())
+		return
+	}
+
+	modelInfo, modelErr := getTypeModel(vType, cache)
+	if modelErr != nil {
+		err = modelErr
+		log.Printf("getTypeModel failed, err:%s", err.Error())
+		return
+	}
+
+	fieldNum := rawVal.NumField()
+	for idx := 0; idx < fieldNum; idx++ {
+		fieldVal := rawVal.Field(idx)
+		err = modelInfo.SetFieldValue(idx, fieldVal)
+		if err != nil {
+			log.Printf("SetFieldValue failed, err:%s", err.Error())
+			return
+		}
+	}
+
+	ret = modelInfo
+
+	return
+}
+
 // getTypeModel getTypeModel
-func getTypeModel(modelType reflect.Type, cache Cache) (ret *modelImpl, err error) {
-	rawType := modelType
-	isPtr := false
-	if rawType.Kind() == reflect.Ptr {
-		rawType = rawType.Elem()
-		isPtr = true
-	}
+func getTypeModel(vType model.Type, cache Cache) (ret *modelImpl, err error) {
+	rawType := vType.GetType()
+	isPtr := vType.IsPtrType()
 
-	if rawType.Kind() != reflect.Struct {
-		err = fmt.Errorf("illegal modelType, type:%s", rawType.String())
+	if !util.IsStructType(vType.GetValue()) {
+		err = fmt.Errorf("illegal vType, type:%s", rawType.String())
 		return
 	}
 
-	if rawType.String() == "time.Time" {
-		err = fmt.Errorf("illegal modelType, type:%s", rawType.String())
-		return
-	}
-	modelInfo := cache.Fetch(rawType.Name())
+	modelInfo := cache.Fetch(vType.GetName())
 	if modelInfo != nil {
 		preType := modelInfo.modelType
 		if preType.PkgPath() != rawType.PkgPath() {
@@ -152,7 +186,7 @@ func getTypeModel(modelType reflect.Type, cache Cache) (ret *modelImpl, err erro
 		return
 	}
 
-	modelImpl := &modelImpl{modelType: rawType, fields: make([]*fieldImpl, 0)}
+	modelImpl := &modelImpl{modelType: vType.GetType(), fields: make([]*fieldImpl, 0)}
 	fieldNum := rawType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		fieldType := rawType.Field(idx)
@@ -177,39 +211,6 @@ func getTypeModel(modelType reflect.Type, cache Cache) (ret *modelImpl, err erro
 
 	ret = modelImpl
 	ret.isTypePtr = isPtr
-
-	return
-}
-
-// getValueModel getValueModel
-func getValueModel(modelVal reflect.Value, cache Cache) (ret *modelImpl, err error) {
-	rawVal := modelVal
-	if rawVal.Kind() == reflect.Ptr {
-		if rawVal.IsNil() {
-			err = fmt.Errorf("can't get value model from nil ptr")
-			return
-		}
-
-		rawVal = reflect.Indirect(rawVal)
-	}
-
-	modelInfo, modelErr := getTypeModel(modelVal.Type(), cache)
-	if modelErr != nil {
-		err = modelErr
-		return
-	}
-
-	fieldNum := rawVal.NumField()
-	for idx := 0; idx < fieldNum; idx++ {
-		fieldVal := rawVal.Field(idx)
-		err = modelInfo.SetFieldValue(idx, fieldVal)
-		if err != nil {
-			log.Printf("SetFieldValue failed, err:%s", err.Error())
-			return
-		}
-	}
-
-	ret = modelInfo
 
 	return
 }

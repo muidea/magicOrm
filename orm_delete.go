@@ -25,7 +25,7 @@ func (s *orm) deleteSingle(modelInfo model.Model) (err error) {
 
 func (s *orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
 	fType := fieldInfo.GetType()
-	relationInfo, relationErr := s.modelProvider.GetTypeModel(fType.GetType())
+	relationInfo, relationErr := s.modelProvider.GetTypeModel(fType)
 	if relationErr != nil {
 		err = relationErr
 		return
@@ -40,6 +40,8 @@ func (s *orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 		err = relationErr
 		return
 	}
+	log.Printf("rightSQL:%s", rightSQL)
+	log.Printf("relationSQL:%s", relationSQL)
 
 	if !relationInfo.IsPtrModel() {
 		s.executor.Delete(rightSQL)

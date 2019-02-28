@@ -46,7 +46,7 @@ func (s *Builder) getFieldQueryNames(info model.Model) (ret string, err error) {
 	str := ""
 	for _, field := range s.modelInfo.GetFields() {
 		fType := field.GetType()
-		dependModel, dependErr := s.modelProvider.GetTypeModel(fType.GetType())
+		dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
 		if dependErr != nil {
 			err = dependErr
 			return

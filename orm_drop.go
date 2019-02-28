@@ -52,7 +52,7 @@ func (s *orm) Drop(obj interface{}) (err error) {
 
 	for _, field := range modelInfo.GetFields() {
 		fType := field.GetType()
-		relationInfo, relationErr := s.modelProvider.GetTypeModel(fType.GetType())
+		relationInfo, relationErr := s.modelProvider.GetTypeModel(fType)
 		if relationErr != nil {
 			err = relationErr
 			return

@@ -42,12 +42,15 @@ func TestGroup(t *testing.T) {
 		return
 	}
 
+	log.Print(*group1)
+
 	group2.Parent = group1
 	err = o1.Insert(group2)
 	if err != nil {
 		t.Errorf("insert Group2 failed, err:%s", err.Error())
 		return
 	}
+	log.Print(*group1)
 
 	group3.Parent = group1
 	err = o1.Insert(group3)
@@ -55,6 +58,7 @@ func TestGroup(t *testing.T) {
 		t.Errorf("insert Group3 failed, err:%s", err.Error())
 		return
 	}
+	log.Print(*group1)
 
 	err = o1.Delete(group3)
 	if err != nil {
@@ -75,10 +79,16 @@ func TestGroup(t *testing.T) {
 		t.Errorf("query Group5 failed, err:%s", err.Error())
 		return
 	}
+	log.Print(*group2)
+	log.Print(*(group2.Parent))
+	log.Print(*group5)
+	log.Print(*(group5.Parent))
 
-	if !group2.Equle(group5) {
+	if !group5.Equle(group2) {
 		t.Errorf("query Group5 failed")
 	}
+
+	panic("aaa")
 }
 
 func TestUser(t *testing.T) {

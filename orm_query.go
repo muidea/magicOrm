@@ -27,7 +27,7 @@ func (s *orm) querySingle(modelInfo model.Model) (err error) {
 	fields := modelInfo.GetFields()
 	for _, item := range fields {
 		fType := item.GetType()
-		dependModel, dependErr := s.modelProvider.GetTypeModel(fType.GetType())
+		dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
 		if dependErr != nil {
 			err = dependErr
 			return
@@ -49,7 +49,7 @@ func (s *orm) querySingle(modelInfo model.Model) (err error) {
 	idx := 0
 	for _, item := range fields {
 		fType := item.GetType()
-		dependModel, dependErr := s.modelProvider.GetTypeModel(fType.GetType())
+		dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
 		if dependErr != nil {
 			err = dependErr
 			return
@@ -71,7 +71,7 @@ func (s *orm) querySingle(modelInfo model.Model) (err error) {
 
 func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
 	fType := fieldInfo.GetType()
-	fieldModel, fieldErr := s.modelProvider.GetTypeModel(fType.GetType())
+	fieldModel, fieldErr := s.modelProvider.GetTypeModel(fType)
 	if fieldErr != nil {
 		err = fieldErr
 		log.Printf("GetTypeModel failed, type:%s, err:%s", fType.GetType().String(), err.Error())
@@ -134,12 +134,7 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (err e
 			}
 		}
 	} else if util.IsSliceType(fType.GetValue()) {
-		relationVal := fType.Interface()
-		rawVal := relationVal
-		if fType.IsPtrType() {
-			rawVal = rawVal.Elem()
-		}
-
+		relationVal := reflect.Indirect(fType.Interface())
 		for _, item := range values {
 			itemVal := fieldModel.Interface()
 			itemInfo, itemErr := s.modelProvider.GetValueModel(itemVal)
@@ -162,7 +157,7 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (err e
 				return
 			}
 
-			rawVal = reflect.Append(rawVal, itemVal)
+			relationVal = reflect.Append(relationVal, itemVal)
 		}
 
 		err = modelInfo.UpdateFieldValue(fieldInfo.GetName(), relationVal)

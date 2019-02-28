@@ -124,7 +124,7 @@ func TestSetValue(t *testing.T) {
 		return
 	}
 	intVal := 123
-	fiVal.Set(reflect.ValueOf(intVal))
+	fiVal.Update(reflect.ValueOf(intVal))
 	ret, _ := getValueStr(fiType, fiVal, nil)
 	if ret != "123" {
 		t.Errorf("getValueStr failed, iVal:%d", iVal)
@@ -146,7 +146,7 @@ func TestSetValue(t *testing.T) {
 		return
 	}
 	fltVal := float32(12.34)
-	ffVal.Set(reflect.ValueOf(fltVal))
+	ffVal.Update(reflect.ValueOf(fltVal))
 	ret, _ = getValueStr(ffType, ffVal, nil)
 	if ret != "12.340000" {
 		t.Errorf("getValueStr failed, fVal:%f", fVal)
@@ -169,7 +169,7 @@ func TestSetValue(t *testing.T) {
 	}
 
 	stringVal := "abc"
-	fstrVal.Set(reflect.ValueOf(stringVal))
+	fstrVal.Update(reflect.ValueOf(stringVal))
 	ret, _ = getValueStr(fstrType, fstrVal, nil)
 	if ret != "'abc'" {
 		t.Errorf("getValueStr failed, ret:%s, strVal:%s", ret, strVal)
@@ -192,7 +192,7 @@ func TestSetValue(t *testing.T) {
 		return
 	}
 	boolVal := true
-	fbVal.Set(reflect.ValueOf(boolVal))
+	fbVal.Update(reflect.ValueOf(boolVal))
 	ret, _ = getValueStr(fbType, fbVal, nil)
 	if ret != "1" {
 		t.Errorf("getValueStr failed, ret:%s, bVal:%v", ret, bVal)
@@ -203,7 +203,7 @@ func TestSetValue(t *testing.T) {
 		return
 	}
 	bIntVal := false
-	fbVal.Set(reflect.ValueOf(bIntVal))
+	fbVal.Update(reflect.ValueOf(bIntVal))
 	ret, _ = getValueStr(fbType, fbVal, nil)
 	if ret != "0" {
 		t.Errorf("getValueStr failed, ret:%s, bVal:%v", ret, bVal)
@@ -230,8 +230,17 @@ func TestPtr(t *testing.T) {
 		return
 	}
 
-	fiVal.Set(reflect.ValueOf(&ii))
-	ret, _ := getValueStr(fiType, fiVal, nil)
+	err := fiVal.Update(reflect.ValueOf(&ii).Elem())
+	if err != nil {
+		t.Errorf("%s", err.Error())
+		return
+	}
+
+	ret, err := getValueStr(fiType, fiVal, nil)
+	if err != nil {
+		t.Errorf("%s", err.Error())
+		return
+	}
 	if ret != "10" {
 		t.Errorf("getValueStr exception, iVal:%d, ret:%s", *iVal, ret)
 		return
@@ -262,7 +271,7 @@ func TestPtr(t *testing.T) {
 	}
 
 	intVal := 123
-	fiVal.Set(reflect.ValueOf(intVal))
+	fiVal.Update(reflect.ValueOf(intVal))
 	ret, _ = getValueStr(fiType, fiVal, nil)
 	if ret != "123" {
 		t.Errorf("getValueStr failed, ret:%s, iVal:%d", ret, iVal)

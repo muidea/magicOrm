@@ -32,8 +32,7 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 		fields := newModelInfo.GetFields()
 		for _, field := range fields {
 			fType := field.GetType()
-
-			dependModel, dependErr := s.modelProvider.GetTypeModel(fType.GetType())
+			dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
 			if dependErr != nil {
 				err = dependErr
 				return
@@ -54,7 +53,7 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 		idx := 0
 		for _, field := range fields {
 			fType := field.GetType()
-			dependModel, dependErr := s.modelProvider.GetTypeModel(fType.GetType())
+			dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
 			if dependErr != nil {
 				err = dependErr
 				return
@@ -87,7 +86,7 @@ func (s *orm) BatchQuery(sliceObj interface{}, filter model.Filter) (err error) 
 		return
 	}
 
-	modelInfo, modelErr := s.modelProvider.GetTypeModel(objValue.Type())
+	modelInfo, modelErr := s.modelProvider.GetObjectModel(objValue)
 	if modelErr != nil {
 		err = modelErr
 		log.Printf("GetTypeModel failed, err:%s", err.Error())

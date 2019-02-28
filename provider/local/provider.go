@@ -2,6 +2,7 @@ package local
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 
 	"muidea.com/magicOrm/model"
@@ -32,26 +33,14 @@ func (s *Provider) GetObjectModel(objPtr interface{}) (ret model.Model, err erro
 }
 
 // GetTypeModel GetTypeModel
-func (s *Provider) GetTypeModel(modelType reflect.Type) (ret model.Model, err error) {
-	typeImpl, typeErr := newType(modelType)
-	if typeErr != nil {
-		err = typeErr
+func (s *Provider) GetTypeModel(vType model.Type) (ret model.Model, err error) {
+	if util.IsBasicType(vType.GetValue()) {
 		return
 	}
 
-	if util.IsBasicType(typeImpl.GetValue()) {
-		return
-	}
-
-	if util.IsSliceType(typeImpl.GetValue()) {
-		rawType := typeImpl.GetType().Elem()
-		typeImpl, typeErr = newType(rawType)
-		if typeErr != nil {
-			err = typeErr
-			return
-		}
-
-		if util.IsBasicType(typeImpl.GetValue()) {
+	if util.IsSliceType(vType.GetValue()) {
+		rawType := vType.Elem()
+		if util.IsBasicType(rawType.GetValue()) {
 			return
 		}
 
@@ -65,7 +54,7 @@ func (s *Provider) GetTypeModel(modelType reflect.Type) (ret model.Model, err er
 		return
 	}
 
-	modelImpl, modelErr := getTypeModel(modelType, s.modelCache)
+	modelImpl, modelErr := getTypeModel(vType, s.modelCache)
 	if modelErr != nil {
 		err = modelErr
 		return
@@ -110,7 +99,10 @@ func (s *Provider) GetModelDependValue(vModel model.Model, vValue model.Value) (
 			return
 		}
 
-		ret = append(ret, val)
+		log.Printf("isModelPtr:%v", vModel.IsPtrModel())
+		log.Printf("isValuePtr:%v", vValue.Get().Type().String())
+
+		ret = append(ret, vValue.Get())
 	} else {
 		err = fmt.Errorf("illegal value type, type:%s", val.Type().String())
 	}

@@ -11,9 +11,9 @@ import (
 type Provider interface {
 	GetObjectModel(obj interface{}) (ret model.Model, err error)
 
-	GetTypeModel(modelType reflect.Type) (ret model.Model, err error)
+	GetValueModel(val reflect.Value) (ret model.Model, err error)
 
-	GetValueModel(modelVal reflect.Value) (ret model.Model, err error)
+	GetTypeModel(vType model.Type) (ret model.Model, err error)
 
 	GetValueStr(vType model.Type, vVal model.Value) (ret string, err error)
 

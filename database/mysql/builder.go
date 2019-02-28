@@ -66,7 +66,7 @@ func (s *Builder) getFieldValue(field model.Field) (ret string, isNil bool, err 
 		return
 	}
 
-	dependModel, dependErr := s.modelProvider.GetTypeModel(fType.GetType())
+	dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
 	if dependErr != nil {
 		err = dependErr
 		return

@@ -122,7 +122,7 @@ func (s *filterItem) FilterStr(name string, fType model.Type) (ret string, err e
 	}
 
 	log.Printf("name:%s, type:%s", name, fType.GetType().String())
-	fModel, fErr := s.modelProvider.GetTypeModel(fType.GetType())
+	fModel, fErr := s.modelProvider.GetTypeModel(fType)
 	if fErr != nil {
 		err = fErr
 		return

@@ -44,7 +44,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 		}
 
 		fType := field.GetType()
-		dependModel, dependErr := s.modelProvider.GetTypeModel(fType.GetType())
+		dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
 		if dependErr != nil {
 			err = dependErr
 			return
