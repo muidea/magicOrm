@@ -87,8 +87,6 @@ func TestGroup(t *testing.T) {
 	if !group5.Equle(group2) {
 		t.Errorf("query Group5 failed")
 	}
-
-	panic("aaa")
 }
 
 func TestUser(t *testing.T) {

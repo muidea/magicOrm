@@ -40,8 +40,6 @@ func (s *orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 		err = relationErr
 		return
 	}
-	log.Printf("rightSQL:%s", rightSQL)
-	log.Printf("relationSQL:%s", relationSQL)
 
 	if !relationInfo.IsPtrModel() {
 		s.executor.Delete(rightSQL)

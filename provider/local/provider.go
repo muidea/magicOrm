@@ -22,9 +22,11 @@ func New() *Provider {
 // GetObjectModel GetObjectModel
 func (s *Provider) GetObjectModel(objPtr interface{}) (ret model.Model, err error) {
 	modelVal := reflect.ValueOf(objPtr)
+
 	modelImpl, modelErr := getValueModel(modelVal, s.modelCache)
 	if modelErr != nil {
 		err = modelErr
+		log.Printf("getValueModel failed, err:%s", err.Error())
 		return
 	}
 
@@ -98,9 +100,6 @@ func (s *Provider) GetModelDependValue(vModel model.Model, vValue model.Value) (
 			err = fmt.Errorf("illegal struct model value, type:%s", val.Type().String())
 			return
 		}
-
-		log.Printf("isModelPtr:%v", vModel.IsPtrModel())
-		log.Printf("isValuePtr:%v", vValue.Get().Type().String())
 
 		ret = append(ret, vValue.Get())
 	} else {

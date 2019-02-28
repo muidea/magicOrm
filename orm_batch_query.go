@@ -15,6 +15,7 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 	sql, sqlErr := builder.BuildBatchQuery(filter)
 	if sqlErr != nil {
 		err = sqlErr
+		log.Printf("BuildBatchQuery failed, err:%s", err.Error())
 		return
 	}
 
@@ -25,6 +26,7 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 		newModelInfo, newErr := s.modelProvider.GetValueModel(newVal)
 		if newErr != nil {
 			err = newErr
+			log.Printf("GetValueModel failed, err:%s", err.Error())
 			return
 		}
 
@@ -35,6 +37,7 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 			dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
 			if dependErr != nil {
 				err = dependErr
+				log.Printf("GetTypeModel failed, err:%s", err.Error())
 				return
 			}
 			if dependModel != nil {
@@ -44,6 +47,7 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 			fieldVal, fieldErr := util.GetBasicTypeInitValue(fType.GetValue())
 			if fieldErr != nil {
 				err = fieldErr
+				log.Printf("GetBasicTypeInitValue failed, err:%s", err.Error())
 				return
 			}
 			items = append(items, fieldVal)
@@ -56,6 +60,7 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 			dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
 			if dependErr != nil {
 				err = dependErr
+				log.Printf("GetTypeModel failed, err:%s", err.Error())
 				return
 			}
 			if dependModel != nil {
@@ -65,6 +70,7 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 			v := items[idx]
 			err = field.UpdateValue(reflect.Indirect(reflect.ValueOf(v)))
 			if err != nil {
+				log.Printf("UpdateValue failed, err:%s", err.Error())
 				return
 			}
 
@@ -86,7 +92,7 @@ func (s *orm) BatchQuery(sliceObj interface{}, filter model.Filter) (err error) 
 		return
 	}
 
-	modelInfo, modelErr := s.modelProvider.GetObjectModel(objValue)
+	modelInfo, modelErr := s.modelProvider.GetValueModel(objValue)
 	if modelErr != nil {
 		err = modelErr
 		log.Printf("GetTypeModel failed, err:%s", err.Error())
@@ -97,6 +103,7 @@ func (s *orm) BatchQuery(sliceObj interface{}, filter model.Filter) (err error) 
 	queryValues, queryErr := s.queryBatch(modelInfo, objValue, filter)
 	if queryErr != nil {
 		err = queryErr
+		log.Printf("queryBatch failed, err:%s", err.Error())
 		return
 	}
 

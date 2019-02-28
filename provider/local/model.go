@@ -124,27 +124,37 @@ func getObjectModel(modelObj interface{}, cache Cache) (ret *modelImpl, err erro
 
 // getValueModel getValueModel
 func getValueModel(modelVal reflect.Value, cache Cache) (ret *modelImpl, err error) {
-	rawVal := modelVal
-	if rawVal.Kind() == reflect.Ptr {
-		if rawVal.IsNil() {
-			err = fmt.Errorf("can't get value model from nil ptr")
-			return
-		}
 
-		rawVal = reflect.Indirect(rawVal)
-	}
-
-	vType, vErr := newType(rawVal.Type())
+	var vType model.Type
+	vType, vErr := newType(modelVal.Type())
 	if vErr != nil {
 		err = vErr
 		log.Printf("newType failed, err:%s", err.Error())
 		return
 	}
 
+	if util.IsSliceType(vType.GetValue()) {
+		vType = vType.Elem()
+	}
+
 	modelInfo, modelErr := getTypeModel(vType, cache)
 	if modelErr != nil {
 		err = modelErr
 		log.Printf("getTypeModel failed, err:%s", err.Error())
+		return
+	}
+
+	rawVal := modelVal
+	if rawVal.Kind() == reflect.Ptr {
+		if rawVal.IsNil() {
+			return
+		}
+
+		rawVal = reflect.Indirect(rawVal)
+	}
+
+	if rawVal.Kind() != reflect.Struct {
+		ret = modelInfo
 		return
 	}
 
@@ -193,7 +203,7 @@ func getTypeModel(vType model.Type, cache Cache) (ret *modelImpl, err error) {
 		fieldInfo, fieldErr := getFieldInfo(idx, fieldType)
 		if fieldErr != nil {
 			err = fieldErr
-			log.Printf("getFieldInfo failed, name:%s, err:%s", fieldType.Name, err.Error())
+			log.Printf("getFieldInfo failed, idx:%d, name:%s, err:%s", idx, fieldType.Name, err.Error())
 			return
 		}
 
