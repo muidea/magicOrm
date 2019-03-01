@@ -23,31 +23,16 @@ func (s *orm) querySingle(modelInfo model.Model) (err error) {
 	}
 	defer s.executor.Finish()
 
-	items := []interface{}{}
-	fields := modelInfo.GetFields()
-	for _, item := range fields {
-		fType := item.GetType()
-		dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
-		if dependErr != nil {
-			err = dependErr
-			return
-		}
-		if dependModel != nil {
-			continue
-		}
-
-		itemVal, itemErr := util.GetBasicTypeInitValue(fType.GetValue())
-		if itemErr != nil {
-			err = itemErr
-			return
-		}
-
-		items = append(items, itemVal)
+	items, itemErr := s.getItems(modelInfo)
+	if itemErr != nil {
+		err = itemErr
+		return
 	}
+
 	s.executor.GetField(items...)
 
 	idx := 0
-	for _, item := range fields {
+	for _, item := range modelInfo.GetFields() {
 		fType := item.GetType()
 		dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
 		if dependErr != nil {
