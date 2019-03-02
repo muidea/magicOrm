@@ -7,8 +7,9 @@ import (
 
 	"muidea.com/magicOrm/builder"
 	"muidea.com/magicOrm/model"
-	"muidea.com/magicOrm/util"
 )
+
+type items []interface{}
 
 func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter model.Filter) (ret reflect.Value, err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
@@ -19,9 +20,23 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 		return
 	}
 
+	modelItems, modelErr := s.getItems(modelInfo)
+	if modelErr != nil {
+		err = modelErr
+		return
+	}
+
+	queryList := []items{}
 	s.executor.Query(sql)
 	defer s.executor.Finish()
 	for s.executor.Next() {
+		newItems := modelItems[:]
+		s.executor.GetField(newItems...)
+
+		queryList = append(queryList, newItems)
+	}
+
+	for idx := 0; idx < len(queryList); idx++ {
 		newVal := modelInfo.Interface()
 		newModelInfo, newErr := s.modelProvider.GetValueModel(newVal)
 		if newErr != nil {
@@ -29,9 +44,8 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 			log.Printf("GetValueModel failed, err:%s", err.Error())
 			return
 		}
-
-		items := []interface{}{}
 		fields := newModelInfo.GetFields()
+		offset := 0
 		for _, field := range fields {
 			fType := field.GetType()
 			dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
@@ -44,37 +58,14 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 				continue
 			}
 
-			fieldVal, fieldErr := util.GetBasicTypeInitValue(fType.GetValue())
-			if fieldErr != nil {
-				err = fieldErr
-				log.Printf("GetBasicTypeInitValue failed, err:%s", err.Error())
-				return
-			}
-			items = append(items, fieldVal)
-		}
-		s.executor.GetField(items...)
-
-		idx := 0
-		for _, field := range fields {
-			fType := field.GetType()
-			dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
-			if dependErr != nil {
-				err = dependErr
-				log.Printf("GetTypeModel failed, err:%s", err.Error())
-				return
-			}
-			if dependModel != nil {
-				continue
-			}
-
-			v := items[idx]
+			v := queryList[idx][offset]
 			err = field.UpdateValue(reflect.Indirect(reflect.ValueOf(v)))
 			if err != nil {
 				log.Printf("UpdateValue failed, err:%s", err.Error())
 				return
 			}
 
-			idx++
+			offset++
 		}
 
 		sliceValue = reflect.Append(sliceValue, newVal)
