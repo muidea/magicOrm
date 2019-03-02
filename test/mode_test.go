@@ -377,7 +377,8 @@ func TestBatchQuery(t *testing.T) {
 	pageFilter := &util.PageFilter{PageNum: 0, PageSize: 100}
 	filter.PageFilter(pageFilter)
 
-	err = o1.BatchQuery(&userList, filter)
+	//err = o1.BatchQuery(&userList, filter)
+	err = o1.BatchQuery(&userList, nil)
 	if err != nil {
 		t.Errorf("batch query user failed, err:%s", err.Error())
 	}

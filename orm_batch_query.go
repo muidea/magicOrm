@@ -20,20 +20,19 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 		return
 	}
 
-	modelItems, modelErr := s.getItems(modelInfo)
-	if modelErr != nil {
-		err = modelErr
-		return
-	}
-
 	queryList := []items{}
 	s.executor.Query(sql)
 	defer s.executor.Finish()
 	for s.executor.Next() {
-		newItems := modelItems[:]
-		s.executor.GetField(newItems...)
+		modelItems, modelErr := s.getItems(modelInfo)
+		if modelErr != nil {
+			err = modelErr
+			return
+		}
 
-		queryList = append(queryList, newItems)
+		s.executor.GetField(modelItems...)
+
+		queryList = append(queryList, modelItems)
 	}
 
 	for idx := 0; idx < len(queryList); idx++ {

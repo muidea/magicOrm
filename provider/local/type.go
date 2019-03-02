@@ -88,6 +88,7 @@ func (s *typeImpl) Copy() (ret *typeImpl) {
 	ret = &typeImpl{
 		typeImpl: s.typeImpl,
 	}
+
 	return
 }
 
