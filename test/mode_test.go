@@ -314,6 +314,7 @@ func TestSystem(t *testing.T) {
 
 func TestBatchQuery(t *testing.T) {
 	group1 := &Group{Name: "testGroup1"}
+	group2 := &Group{Name: "testGroup2"}
 
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
@@ -342,7 +343,14 @@ func TestBatchQuery(t *testing.T) {
 		return
 	}
 
+	err = o1.Insert(group2)
+	if err != nil {
+		t.Errorf("insert group failed, err:%s", err.Error())
+		return
+	}
+
 	user1.Group = append(user1.Group, group1)
+	user1.Group = append(user1.Group, group2)
 
 	err = o1.Drop(user1)
 	if err != nil {
@@ -384,4 +392,10 @@ func TestBatchQuery(t *testing.T) {
 	}
 
 	log.Print(userList)
+	if len(userList) > 0 {
+		if len(userList[0].Group) > 0 {
+			log.Print(userList[0].Group[0])
+			log.Print(userList[0].Group[1])
+		}
+	}
 }

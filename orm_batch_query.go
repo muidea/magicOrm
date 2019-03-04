@@ -54,6 +54,10 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 				return
 			}
 			if dependModel != nil {
+				err = s.queryRelation(newModelInfo, field)
+				if err != nil {
+					return
+				}
 				continue
 			}
 
