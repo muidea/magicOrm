@@ -85,18 +85,28 @@ func (s *Provider) GetModelDependValue(vModel model.Model, vValue model.Value) (
 	val := reflect.Indirect(vValue.Get())
 	if val.Kind() == reflect.Slice {
 		for idx := 0; idx < val.Len(); idx++ {
-			item := reflect.Indirect(val.Index(idx))
-			itemType := item.Type()
-			if itemType.Name() != vModel.GetName() || itemType.PkgPath() != vModel.GetPkgPath() {
+			sliceItem := val.Index(idx)
+			rawType, rawErr := newType(sliceItem.Type())
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+
+			if rawType.GetName() != vModel.GetName() || rawType.GetPkgPath() != vModel.GetPkgPath() {
 				err = fmt.Errorf("illegal slice model value, type:%s", val.Type().String())
 				return
 			}
 
-			ret = append(ret, item)
+			ret = append(ret, sliceItem)
 		}
 	} else if val.Kind() == reflect.Struct {
-		valType := val.Type()
-		if valType.Name() != vModel.GetName() || valType.PkgPath() != vModel.GetPkgPath() {
+		rawType, rawErr := newType(val.Type())
+		if rawErr != nil {
+			err = rawErr
+			return
+		}
+
+		if rawType.GetName() != vModel.GetName() || rawType.GetPkgPath() != vModel.GetPkgPath() {
 			err = fmt.Errorf("illegal struct model value, type:%s", val.Type().String())
 			return
 		}

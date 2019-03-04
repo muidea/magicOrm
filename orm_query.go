@@ -19,7 +19,7 @@ func (s *orm) querySingle(modelInfo model.Model) (err error) {
 
 	s.executor.Query(sql)
 	if !s.executor.Next() {
-		return fmt.Errorf("no found object")
+		return fmt.Errorf("query %s failed, no found object", modelInfo.GetName())
 	}
 	defer s.executor.Finish()
 

@@ -61,7 +61,7 @@ func (s *orm) Drop(obj interface{}) (err error) {
 			continue
 		}
 
-		if !fType.IsPtrType() {
+		if !relationInfo.IsPtrModel() {
 			err = s.dropSingle(relationInfo)
 			if err != nil {
 				return

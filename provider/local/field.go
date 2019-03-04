@@ -197,6 +197,7 @@ func (s *fieldImpl) Dump(cache Cache) string {
 
 	return str
 }
+
 func getFieldInfo(idx int, fieldType reflect.StructField) (ret *fieldImpl, err error) {
 	typeImpl, err := newType(fieldType.Type)
 	if err != nil {
