@@ -54,16 +54,17 @@ func (s *fieldImpl) SetValue(val reflect.Value) (err error) {
 
 func (s *fieldImpl) UpdateValue(val reflect.Value) (err error) {
 	val = reflect.Indirect(val)
-	valType, valErr := util.GetTypeValueEnum(val.Type())
+	valType, valErr := newType(val.Type())
 	if valErr != nil {
 		err = valErr
 		return
 	}
 
+	typeVal := valType.GetValue()
 	fieldVal := reflect.Indirect(s.fieldType.Interface())
 	switch s.fieldType.GetValue() {
 	case util.TypeBooleanField:
-		switch valType {
+		switch typeVal {
 		case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
 			bVal := val.Int() > 0
 			fieldVal.SetBool(bVal)
@@ -73,17 +74,17 @@ func (s *fieldImpl) UpdateValue(val reflect.Value) (err error) {
 		case util.TypeBooleanField:
 			fieldVal.Set(val)
 		default:
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", valType, s.fieldType.GetValue())
+			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.fieldType.GetValue())
 		}
 	case util.TypeStringField:
-		switch valType {
+		switch typeVal {
 		case util.TypeStringField:
 			fieldVal.SetString(val.String())
 		default:
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", valType, s.fieldType.GetValue())
+			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.fieldType.GetValue())
 		}
 	case util.TypeDateTimeField:
-		switch valType {
+		switch typeVal {
 		case util.TypeStringField:
 			tmVal, tmErr := time.ParseInLocation("2006-01-02 15:04:05", val.String(), time.Local)
 			if tmErr != nil {
@@ -94,37 +95,37 @@ func (s *fieldImpl) UpdateValue(val reflect.Value) (err error) {
 		case util.TypeDateTimeField:
 			fieldVal.Set(val)
 		default:
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", valType, s.fieldType.GetValue())
+			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.fieldType.GetValue())
 		}
 	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
-		switch valType {
+		switch typeVal {
 		case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
 			fieldVal.SetInt(val.Int())
 		default:
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", valType, s.fieldType.GetValue())
+			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.fieldType.GetValue())
 		}
 	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
-		switch valType {
+		switch typeVal {
 		case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
 			fieldVal.SetUint(val.Uint())
 		default:
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", valType, s.fieldType.GetValue())
+			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.fieldType.GetValue())
 		}
 	case util.TypeFloatField, util.TypeDoubleField:
-		switch valType {
+		switch typeVal {
 		case util.TypeFloatField, util.TypeDoubleField:
 			fieldVal.SetFloat(val.Float())
 		default:
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", valType, s.fieldType.GetValue())
+			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.fieldType.GetValue())
 		}
 	case util.TypeStructField:
 		if val.Type().String() == s.fieldType.GetType().String() {
 			fieldVal.Set(val)
 		} else {
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", valType, s.fieldType.GetValue())
+			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.fieldType.GetValue())
 		}
 	case util.TypeSliceField:
-		switch valType {
+		switch typeVal {
 		case util.TypeStringField:
 			sliceVal, sliceErr := decodeSliceValue(val.String(), &s.fieldType)
 			if sliceErr != nil {
@@ -139,7 +140,7 @@ func (s *fieldImpl) UpdateValue(val reflect.Value) (err error) {
 				err = fmt.Errorf("illegal value type,current type:%s, expect type:%s", val.Type().String(), s.fieldType.GetType().String())
 			}
 		default:
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", valType, s.fieldType.GetValue())
+			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.fieldType.GetValue())
 		}
 	}
 
@@ -154,8 +155,8 @@ func (s *fieldImpl) UpdateValue(val reflect.Value) (err error) {
 	return
 }
 
-// Verify Verify
-func (s *fieldImpl) Verify() error {
+// verify verify
+func (s *fieldImpl) verify() error {
 	if s.fieldTag.GetName() == "" {
 		return fmt.Errorf("no define field tag")
 	}
@@ -215,7 +216,7 @@ func getFieldInfo(idx int, fieldType reflect.StructField) (ret *fieldImpl, err e
 	field.fieldType = *typeImpl
 	field.fieldTag = *tagImpl
 
-	err = field.Verify()
+	err = field.verify()
 	if err != nil {
 		return
 	}
