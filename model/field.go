@@ -13,6 +13,7 @@ type Field interface {
 	GetTag() Tag
 	GetValue() Value
 	IsPrimary() bool
+	SetValue(val reflect.Value) error
 	UpdateValue(val reflect.Value) error
 }
 

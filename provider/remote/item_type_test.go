@@ -12,7 +12,7 @@ func TestType(t *testing.T) {
 
 	cache := NewCache()
 
-	itemType, itemErr := GetItemType(reflect.TypeOf(ii), cache)
+	itemType, itemErr := GetType(reflect.TypeOf(ii), cache)
 	if itemErr != nil {
 		t.Errorf("illegal type")
 		return

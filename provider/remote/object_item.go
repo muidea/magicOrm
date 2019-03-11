@@ -44,9 +44,18 @@ func (s *Item) GetValue() (ret model.Value) {
 	return
 }
 
+// IsPrimary IsPrimary
+func (s *Item) IsPrimary() bool {
+	return s.Tag.IsPrimaryKey()
+}
+
 // SetValue SetValue
 func (s *Item) SetValue(val reflect.Value) (err error) {
-	err = s.value.Set(val)
+	return
+}
+
+// UpdateValue UpdateValue
+func (s *Item) UpdateValue(val reflect.Value) (err error) {
 	return
 }
 
@@ -58,9 +67,4 @@ func (s *Item) Copy() (ret model.Field) {
 // Dump Dump
 func (s *Item) Dump() (ret string) {
 	return
-}
-
-// IsPrimary IsPrimary
-func (s *Item) IsPrimary() bool {
-	return s.Tag.IsPrimaryKey()
 }

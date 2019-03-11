@@ -12,11 +12,11 @@ import (
 
 // ItemType ItemType
 type ItemType struct {
-	Name    string  `json:"name"`
-	Value   int     `json:"value"`
-	PkgPath string  `json:"pkgPath"`
-	IsPtr   bool    `json:"isPtr"`
-	Depend  *Object `json:"depend"`
+	Name    string    `json:"name"`
+	Value   int       `json:"value"`
+	PkgPath string    `json:"pkgPath"`
+	IsPtr   bool      `json:"isPtr"`
+	Depend  *ItemType `json:"depend"`
 }
 
 // GetName GetName
@@ -98,19 +98,30 @@ func (s *ItemType) GetType() (ret reflect.Type) {
 	return
 }
 
-// GetDepend GetDepend
-func (s *ItemType) GetDepend() (ret model.Type) {
-	if s.Depend != nil {
-		ret = &ItemType{Name: s.Depend.Name, Value: util.TypeStructField, IsPtr: s.Depend.IsPtr, PkgPath: s.Depend.PkgPath}
-	}
-
-	return
-}
-
 // IsPtrType IsPtrType
 func (s *ItemType) IsPtrType() (ret bool) {
 	ret = s.IsPtr
 	return
+}
+
+// Interface Interface
+func (s *ItemType) Interface() reflect.Value {
+	rawType := s.GetType()
+	val := reflect.New(rawType)
+	if !s.IsPtrType() {
+		val = val.Elem()
+	}
+
+	return val
+}
+
+// Elem GetDepend
+func (s *ItemType) Elem() model.Type {
+	if s.Depend != nil {
+		return s.Depend
+	}
+
+	return nil
 }
 
 func (s *ItemType) String() (ret string) {
@@ -118,13 +129,13 @@ func (s *ItemType) String() (ret string) {
 }
 
 // Copy Copy
-func (s *ItemType) Copy() (ret model.Type) {
+func (s *ItemType) Copy() (ret *ItemType) {
 	ret = &ItemType{Name: s.Name, Value: s.Value, PkgPath: s.PkgPath, IsPtr: s.IsPtr, Depend: s.Depend}
 	return
 }
 
-// GetItemType GetItemType
-func GetItemType(itemType reflect.Type, cache Cache) (ret *ItemType, err error) {
+// GetType GetType
+func GetType(itemType reflect.Type, cache Cache) (ret *ItemType, err error) {
 	isPtr := false
 	if itemType.Kind() == reflect.Ptr {
 		isPtr = true
@@ -143,43 +154,46 @@ func GetItemType(itemType reflect.Type, cache Cache) (ret *ItemType, err error) 
 	}
 
 	if util.IsStructType(typeVal) {
-		structObj, structErr := Type2Object(itemType, cache)
-		if structErr != nil {
-			err = structErr
-			return
-		}
+		/*
+			structObj, structErr := Type2Object(itemType, cache)
+			if structErr != nil {
+				err = structErr
+				return
+			}
 
-		ret.Depend = structObj
+			ret.Depend = structObj
+		*/
 		return
 	}
 
 	if util.IsSliceType(typeVal) {
-		slicePtr := false
-		sliceType := itemType.Elem()
-		if sliceType.Kind() == reflect.Ptr {
-			sliceType = sliceType.Elem()
-			slicePtr = true
-		}
-		typeVal, typeErr = util.GetTypeValueEnum(sliceType)
-		if typeErr != nil {
-			err = typeErr
-			return
-		}
-		if util.IsSliceType(typeVal) {
-			err = fmt.Errorf("illegal slice type, type:%s", sliceType.String())
-			return
-		}
-
-		if util.IsStructType(typeVal) {
-			sliceObj, sliceErr := Type2Object(sliceType, cache)
-			if sliceErr != nil {
-				err = sliceErr
+		/*
+			slicePtr := false
+			sliceType := itemType.Elem()
+			if sliceType.Kind() == reflect.Ptr {
+				sliceType = sliceType.Elem()
+				slicePtr = true
+			}
+			typeVal, typeErr = util.GetTypeValueEnum(sliceType)
+			if typeErr != nil {
+				err = typeErr
 				return
 			}
-			sliceObj.IsPtr = slicePtr
-			ret.Depend = sliceObj
-		}
+			if util.IsSliceType(typeVal) {
+				err = fmt.Errorf("illegal slice type, type:%s", sliceType.String())
+				return
+			}
 
+			if util.IsStructType(typeVal) {
+				sliceObj, sliceErr := Type2Object(sliceType, cache)
+				if sliceErr != nil {
+					err = sliceErr
+					return
+				}
+				sliceObj.IsPtr = slicePtr
+				ret.Depend = sliceObj
+			}
+		*/
 		return
 	}
 

@@ -52,7 +52,7 @@ func (s *Object) SetFieldValue(idx int, val reflect.Value) (err error) {
 func (s *Object) UpdateFieldValue(name string, val reflect.Value) (err error) {
 	for _, item := range s.Items {
 		if item.Name == name {
-			err = item.SetValue(val)
+			err = item.UpdateValue(val)
 			return
 		}
 	}
@@ -72,30 +72,24 @@ func (s *Object) GetPrimaryField() (ret model.Field) {
 	return
 }
 
-// GetDependField GetDependField
-func (s *Object) GetDependField() (ret []model.Field) {
-	for _, v := range s.Items {
-		if v.Type.GetDepend() != nil {
-			ret = append(ret, v)
-		}
-	}
+// IsPtrModel IsPtrModel
+func (s *Object) IsPtrModel() (ret bool) {
+	return
+}
 
+// Interface Interface
+func (s *Object) Interface() (ret reflect.Value) {
 	return
 }
 
 // Copy Copy
-func (s *Object) Copy() (ret model.Model) {
+func (s *Object) Copy() (ret *Object) {
 	obj := &Object{Name: s.Name, PkgPath: s.PkgPath, IsPtr: s.IsPtr, Items: []*Item{}}
 	for _, val := range s.Items {
 		obj.Items = append(obj.Items, &Item{Index: val.Index, Name: val.Name, Tag: val.Tag, Type: val.Type, value: val.value})
 	}
 
 	ret = obj
-	return
-}
-
-// Interface Interface
-func (s *Object) Interface() (ret reflect.Value) {
 	return
 }
 
@@ -146,13 +140,13 @@ func Type2Object(objType reflect.Type, cache Cache) (ret *Object, err error) {
 		fType := field.Type
 		fTag := field.Tag.Get("orm")
 
-		itemTag, itemErr := GetItemTag(fTag)
+		itemTag, itemErr := GetTag(fTag)
 		if itemErr != nil {
 			err = itemErr
 			return
 		}
 
-		itemType, itemErr := GetItemType(fType, cache)
+		itemType, itemErr := GetType(fType, cache)
 		if itemErr != nil {
 			err = itemErr
 			return

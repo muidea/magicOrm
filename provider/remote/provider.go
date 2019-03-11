@@ -30,13 +30,13 @@ func (s *Provider) GetObjectModel(objPtr interface{}) (ret model.Model, err erro
 	return
 }
 
-// GetTypeModel GetTypeModel
-func (s *Provider) GetTypeModel(modelType reflect.Type) (ret model.Model, err error) {
+// GetValueModel GetValueModel
+func (s *Provider) GetValueModel(modelVal reflect.Value) (ret model.Model, err error) {
 	return
 }
 
-// GetValueModel GetValueModel
-func (s *Provider) GetValueModel(modelVal reflect.Value) (ret model.Model, err error) {
+// GetTypeModel GetTypeModel
+func (s *Provider) GetTypeModel(modelType reflect.Type) (ret model.Model, err error) {
 	return
 }
 
@@ -56,6 +56,11 @@ func (s *Provider) GetValueStr(value reflect.Value) (ret string, err error) {
 	}
 
 	ret = fValue
+	return
+}
+
+// GetModelDependValue GetModelDependValue
+func (s *Provider) GetModelDependValue(vModel model.Model, vVal model.Value) (ret []reflect.Value, err error) {
 	return
 }
 

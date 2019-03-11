@@ -3,8 +3,6 @@ package remote
 import (
 	"fmt"
 	"strings"
-
-	"muidea.com/magicOrm/model"
 )
 
 // ItemTag ItemTag
@@ -75,12 +73,12 @@ func (s *ItemTag) String() (ret string) {
 }
 
 // Copy Copy
-func (s *ItemTag) Copy() (ret model.Tag) {
+func (s *ItemTag) Copy() (ret *ItemTag) {
 	return &ItemTag{Tag: s.Tag}
 }
 
-// GetItemTag Verify Item Tag
-func GetItemTag(tag string) (ret *ItemTag, err error) {
+// GetTag get Item Tag
+func GetTag(tag string) (ret *ItemTag, err error) {
 	items := strings.Split(tag, "")
 	if len(items) < 1 {
 		err = fmt.Errorf("illegal tag value")

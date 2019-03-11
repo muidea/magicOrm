@@ -27,8 +27,6 @@ func GetValueModel(val Value, modelInfo model.Model) (err error) {
 		}
 	}
 
-	modelInfo.Dump()
-
 	return
 }
 
