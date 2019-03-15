@@ -74,6 +74,7 @@ func (s *Object) GetPrimaryField() (ret model.Field) {
 
 // IsPtrModel IsPtrModel
 func (s *Object) IsPtrModel() (ret bool) {
+	ret = s.IsPtr
 	return
 }
 
