@@ -158,5 +158,7 @@ func type2Object(objType reflect.Type, cache Cache) (ret *Object, err error) {
 		ret.Items = append(ret.Items, fItem)
 	}
 
+	cache.Put(ret.GetName(), ret)
+
 	return
 }

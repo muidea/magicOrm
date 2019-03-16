@@ -10,7 +10,7 @@ import (
 )
 
 // GetValueModel GetValueModel
-func GetValueModel(val Value, modelInfo model.Model) (err error) {
+func GetValueModel(val ObjectValue, modelInfo model.Model) (err error) {
 	if val.PkgPath != modelInfo.GetPkgPath() || val.TypeName != modelInfo.GetName() {
 		err = fmt.Errorf("illegal value for modelInfo")
 		return

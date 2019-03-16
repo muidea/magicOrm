@@ -6,15 +6,15 @@ import (
 	"reflect"
 )
 
-// Value Value
-type Value struct {
+// ObjectValue Object Value
+type ObjectValue struct {
 	TypeName string                 `json:"typeName"`
 	PkgPath  string                 `json:"pkgPath"`
 	Items    map[string]interface{} `json:"items"`
 }
 
 // Decode decode value
-func (s *Value) Decode(data []byte) (err error) {
+func (s *ObjectValue) Decode(data []byte) (err error) {
 	err = json.Unmarshal(data, s)
 	return
 }
