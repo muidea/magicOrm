@@ -12,7 +12,7 @@ func TestTag(t *testing.T) {
 
 	tag = "test"
 	itemTag, err := GetTag(tag)
-	if err == nil {
+	if err != nil {
 		t.Errorf("illegal tag value")
 		return
 	}
@@ -31,7 +31,7 @@ func TestTag(t *testing.T) {
 
 	tag = "test auto key"
 	itemTag, err = GetTag(tag)
-	if err == nil {
+	if err != nil {
 		t.Errorf("illegal tag value")
 		return
 	}

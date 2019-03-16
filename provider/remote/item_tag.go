@@ -7,12 +7,12 @@ import (
 
 // ItemTag ItemTag
 type ItemTag struct {
-	Tag string `json:"tag"`
+	Value string `json:"value"`
 }
 
 // GetName Name
 func (s *ItemTag) GetName() (ret string) {
-	items := strings.Split(s.Tag, " ")
+	items := strings.Split(s.Value, " ")
 	ret = items[0]
 
 	return
@@ -20,7 +20,7 @@ func (s *ItemTag) GetName() (ret string) {
 
 // IsPrimaryKey IsPrimaryKey
 func (s *ItemTag) IsPrimaryKey() (ret bool) {
-	items := strings.Split(s.Tag, " ")
+	items := strings.Split(s.Value, " ")
 	if len(items) <= 1 {
 		return false
 	}
@@ -45,7 +45,7 @@ func (s *ItemTag) IsPrimaryKey() (ret bool) {
 
 // IsAutoIncrement IsAutoIncrement
 func (s *ItemTag) IsAutoIncrement() (ret bool) {
-	items := strings.Split(s.Tag, " ")
+	items := strings.Split(s.Value, " ")
 	if len(items) <= 1 {
 		return false
 	}
@@ -74,10 +74,10 @@ func (s *ItemTag) String() (ret string) {
 
 // Copy Copy
 func (s *ItemTag) Copy() (ret *ItemTag) {
-	return &ItemTag{Tag: s.Tag}
+	return &ItemTag{Value: s.Value}
 }
 
-// GetTag get Item Tag
+// GetTag get Item Value
 func GetTag(tag string) (ret *ItemTag, err error) {
 	items := strings.Split(tag, "")
 	if len(items) < 1 {
@@ -85,7 +85,7 @@ func GetTag(tag string) (ret *ItemTag, err error) {
 		return
 	}
 
-	ret = &ItemTag{Tag: tag}
+	ret = &ItemTag{Value: tag}
 
 	return
 }

@@ -77,6 +77,13 @@ func TestSimpleObjInfo(t *testing.T) {
 		return
 	}
 	log.Print(info2)
+
+	data, err = json.Marshal(info2)
+	if err != nil {
+		t.Errorf("marshal info2 failed, err:%s", err.Error())
+		return
+	}
+	log.Print(string(data))
 }
 
 func TestExtObjInfo(t *testing.T) {
@@ -106,4 +113,11 @@ func TestExtObjInfo(t *testing.T) {
 		return
 	}
 	log.Print(eInfo)
+
+	data, err = json.Marshal(eInfo)
+	if err != nil {
+		t.Errorf("marshal eInfo failed, err:%s", err.Error())
+		return
+	}
+	log.Print(string(data))
 }
