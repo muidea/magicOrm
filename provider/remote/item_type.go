@@ -154,46 +154,31 @@ func GetType(itemType reflect.Type, cache Cache) (ret *ItemType, err error) {
 	}
 
 	if util.IsStructType(typeVal) {
-		/*
-			structObj, structErr := Type2Object(itemType, cache)
-			if structErr != nil {
-				err = structErr
-				return
-			}
-
-			ret.Depend = structObj
-		*/
+		ret.Depend = &ItemType{Name: itemType.Name(), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
 		return
 	}
 
 	if util.IsSliceType(typeVal) {
-		/*
-			slicePtr := false
-			sliceType := itemType.Elem()
-			if sliceType.Kind() == reflect.Ptr {
-				sliceType = sliceType.Elem()
-				slicePtr = true
-			}
-			typeVal, typeErr = util.GetTypeValueEnum(sliceType)
-			if typeErr != nil {
-				err = typeErr
-				return
-			}
-			if util.IsSliceType(typeVal) {
-				err = fmt.Errorf("illegal slice type, type:%s", sliceType.String())
-				return
-			}
+		slicePtr := false
+		sliceType := itemType.Elem()
+		if sliceType.Kind() == reflect.Ptr {
+			sliceType = sliceType.Elem()
+			slicePtr = true
+		}
+		typeVal, typeErr = util.GetTypeValueEnum(sliceType)
+		if typeErr != nil {
+			err = typeErr
+			return
+		}
+		if util.IsSliceType(typeVal) {
+			err = fmt.Errorf("illegal slice type, type:%s", sliceType.String())
+			return
+		}
 
-			if util.IsStructType(typeVal) {
-				sliceObj, sliceErr := Type2Object(sliceType, cache)
-				if sliceErr != nil {
-					err = sliceErr
-					return
-				}
-				sliceObj.IsPtr = slicePtr
-				ret.Depend = sliceObj
-			}
-		*/
+		if util.IsStructType(typeVal) {
+			ret.Depend = &ItemType{Name: sliceType.Name(), Value: typeVal, PkgPath: sliceType.PkgPath(), IsPtr: slicePtr}
+		}
+
 		return
 	}
 

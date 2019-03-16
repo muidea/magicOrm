@@ -107,12 +107,12 @@ func GetObject(obj interface{}, cache Cache) (ret *Object, err error) {
 	}
 
 	objType := objVal.Type()
-	ret, err = Type2Object(objType, cache)
+	ret, err = type2Object(objType, cache)
 	return
 }
 
-// Type2Object Type2Object
-func Type2Object(objType reflect.Type, cache Cache) (ret *Object, err error) {
+// type2Object type2Object
+func type2Object(objType reflect.Type, cache Cache) (ret *Object, err error) {
 	objPtr := false
 	if objType.Kind() == reflect.Ptr {
 		objPtr = true
