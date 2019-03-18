@@ -13,6 +13,40 @@ type ObjectValue struct {
 	Items    map[string]interface{} `json:"items"`
 }
 
+// GetName get object name
+func (s *ObjectValue) GetName() string {
+	return s.TypeName
+}
+
+// GetPkgPath get pkgpath
+func (s *ObjectValue) GetPkgPath() string {
+	return s.PkgPath
+}
+
+// GetObjectValue get object value
+func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
+	ret = &ObjectValue{Items: map[string]interface{}{}}
+	objValue := reflect.Indirect(reflect.ValueOf(obj))
+
+	objType := objValue.Type()
+	ret.TypeName = objType.Name()
+	ret.PkgPath = objType.PkgPath()
+
+	fieldNum := objValue.NumField()
+	for idx := 0; idx < fieldNum; idx++ {
+		fieldType := objType.Field(idx)
+		fieldValue := objValue.Field(idx)
+
+		if fieldType.Type.Kind() == reflect.Struct {
+
+			continue
+		}
+		ret.Items[fieldType.Name] = fieldValue.Interface()
+	}
+
+	return
+}
+
 // Decode decode value
 func (s *ObjectValue) Decode(data []byte) (err error) {
 	err = json.Unmarshal(data, s)
