@@ -2,8 +2,11 @@ package remote
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"reflect"
+
+	"muidea.com/magicOrm/util"
 )
 
 // ObjectValue Object Value
@@ -35,12 +38,61 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 	fieldNum := objValue.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		fieldType := objType.Field(idx)
+		typeVal := fieldType.Type
+		if typeVal.Kind() == reflect.Ptr {
+			typeVal = typeVal.Elem()
+		}
+		_, tErr := util.GetTypeValueEnum(typeVal)
+		if tErr != nil {
+			err = tErr
+			return
+		}
+
 		fieldValue := objValue.Field(idx)
+		if typeVal.Kind() == reflect.Struct {
+			fVal, fErr := GetObjectValue(fieldValue.Interface())
+			if fErr != nil {
+				err = fErr
+				return
+			}
 
-		if fieldType.Type.Kind() == reflect.Struct {
-
+			ret.Items[fieldType.Name] = fVal
 			continue
 		}
+
+		if typeVal.Kind() == reflect.Slice {
+			sliceVal := []interface{}{}
+			for idx := 0; idx < fieldValue.Len(); idx++ {
+				itemVal := reflect.Indirect(fieldValue.Index(idx))
+				tVal, tErr := util.GetTypeValueEnum(itemVal.Type())
+				if tErr != nil {
+					err = tErr
+					return
+				}
+
+				if util.IsBasicType(tVal) {
+					sliceVal = append(sliceVal, itemVal.Interface())
+					continue
+				}
+
+				if util.IsStructType(tVal) {
+					fVal, fErr := GetObjectValue(itemVal)
+					if fErr != nil {
+						err = fErr
+						return
+					}
+					sliceVal = append(sliceVal, fVal)
+					continue
+				}
+
+				err = fmt.Errorf("illegal slice item value")
+				return
+			}
+
+			ret.Items[fieldType.Name] = sliceVal
+			continue
+		}
+
 		ret.Items[fieldType.Name] = fieldValue.Interface()
 	}
 

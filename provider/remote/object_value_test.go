@@ -26,3 +26,25 @@ func TestSimpleObjValue(t *testing.T) {
 
 	log.Print(string(data))
 }
+
+func TestExtObjValue(t *testing.T) {
+	desc := "obj_desc"
+	obj := SimpleObj{Name: "obj", Desc: &desc}
+	ext := &ExtObj{Name: "extObj", Obj: obj}
+
+	objVal, objErr := GetObjectValue(ext)
+	if objErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+
+	data, err := json.Marshal(&objVal)
+	if err != nil {
+		t.Errorf("marshal obj failed, err:%s", err.Error())
+		return
+	}
+
+	log.Print(objVal)
+
+	log.Print(string(data))
+}
