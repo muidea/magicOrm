@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"muidea.com/magicOrm/model"
+	"github.com/muidea/magicOrm/model"
 )
 
 // encodeBoolValue get bool value str

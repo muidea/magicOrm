@@ -1,7 +1,7 @@
 package local
 
 import (
-	"muidea.com/magicCommon/foundation/cache"
+	"github.com/muidea/magicCommon/foundation/cache"
 )
 
 // Cache Model Cache

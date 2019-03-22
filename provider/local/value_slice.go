@@ -6,7 +6,7 @@ import (
 	"log"
 	"reflect"
 
-	"muidea.com/magicOrm/model"
+	"github.com/muidea/magicOrm/model"
 )
 
 // encodeSliceValue get slice value str

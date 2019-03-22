@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"muidea.com/magicOrm/util"
+	"github.com/muidea/magicOrm/util"
 )
 
 func TestType(t *testing.T) {

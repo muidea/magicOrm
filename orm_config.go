@@ -1,7 +1,7 @@
 package orm
 
 import (
-	"muidea.com/magicOrm/provider"
+	"github.com/muidea/magicOrm/provider"
 )
 
 type serverConfig struct {

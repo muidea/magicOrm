@@ -3,8 +3,8 @@ package mysql
 import (
 	"fmt"
 
-	"muidea.com/magicOrm/model"
-	"muidea.com/magicOrm/util"
+	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/util"
 )
 
 func verifyFieldInfo(fieldInfo model.Field) error {

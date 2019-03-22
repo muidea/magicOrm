@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strconv"
 
-	"muidea.com/magicOrm/model"
+	"github.com/muidea/magicOrm/model"
 )
 
 // encodeFloatValue get float value str

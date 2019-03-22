@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"muidea.com/magicOrm/model"
-	"muidea.com/magicOrm/provider"
+	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider"
 )
 
 // Builder Builder

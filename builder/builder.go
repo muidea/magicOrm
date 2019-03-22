@@ -1,9 +1,9 @@
 package builder
 
 import (
-	"muidea.com/magicOrm/database/mysql"
-	"muidea.com/magicOrm/model"
-	"muidea.com/magicOrm/provider"
+	"github.com/muidea/magicOrm/database/mysql"
+	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider"
 )
 
 // Builder orm builder

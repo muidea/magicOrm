@@ -6,11 +6,11 @@ import (
 	"reflect"
 	"strings"
 
-	"muidea.com/magicCommon/foundation/util"
-	"muidea.com/magicOrm/builder"
-	"muidea.com/magicOrm/model"
-	"muidea.com/magicOrm/provider"
-	ormutil "muidea.com/magicOrm/util"
+	"github.com/muidea/magicCommon/foundation/util"
+	"github.com/muidea/magicOrm/builder"
+	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider"
+	ormutil "github.com/muidea/magicOrm/util"
 )
 
 type filterValue struct {

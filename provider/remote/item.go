@@ -3,7 +3,7 @@ package remote
 import (
 	"reflect"
 
-	"muidea.com/magicOrm/model"
+	"github.com/muidea/magicOrm/model"
 )
 
 // Item Item

@@ -5,8 +5,8 @@ import (
 	"log"
 	"reflect"
 
-	"muidea.com/magicOrm/builder"
-	"muidea.com/magicOrm/model"
+	"github.com/muidea/magicOrm/builder"
+	"github.com/muidea/magicOrm/model"
 )
 
 type items []interface{}

@@ -4,8 +4,8 @@ import (
 	"log"
 	"reflect"
 
-	"muidea.com/magicOrm/builder"
-	"muidea.com/magicOrm/model"
+	"github.com/muidea/magicOrm/builder"
+	"github.com/muidea/magicOrm/model"
 )
 
 func (s *orm) insertSingle(modelInfo model.Model) (err error) {

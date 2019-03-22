@@ -4,8 +4,8 @@ import (
 	"log"
 	"testing"
 
-	"muidea.com/magicCommon/foundation/util"
-	orm "muidea.com/magicOrm"
+	"github.com/muidea/magicCommon/foundation/util"
+	orm "github.com/muidea/magicOrm"
 )
 
 func TestGroup(t *testing.T) {

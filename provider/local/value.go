@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"muidea.com/magicOrm/util"
+	"github.com/muidea/magicOrm/util"
 )
 
 type valueImpl struct {

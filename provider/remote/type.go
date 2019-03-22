@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"time"
 
-	"muidea.com/magicOrm/model"
-	"muidea.com/magicOrm/util"
+	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/util"
 )
 
 // ItemType ItemType

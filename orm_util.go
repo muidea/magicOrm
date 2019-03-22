@@ -1,8 +1,8 @@
 package orm
 
 import (
-	"muidea.com/magicOrm/model"
-	"muidea.com/magicOrm/util"
+	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/util"
 )
 
 func (s *orm) getItems(modelInfo model.Model) (ret []interface{}, err error) {

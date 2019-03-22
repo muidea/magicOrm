@@ -3,9 +3,9 @@ package orm
 import (
 	"fmt"
 
-	"muidea.com/magicOrm/executor"
-	"muidea.com/magicOrm/model"
-	"muidea.com/magicOrm/provider"
+	"github.com/muidea/magicOrm/executor"
+	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider"
 )
 
 // Orm orm interfalce

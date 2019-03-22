@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"time"
 
-	"muidea.com/magicOrm/model"
+	"github.com/muidea/magicOrm/model"
 )
 
 //encodeDateTimeValue get datetime value str

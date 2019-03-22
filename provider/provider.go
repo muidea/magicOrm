@@ -3,8 +3,8 @@ package provider
 import (
 	"reflect"
 
-	"muidea.com/magicOrm/model"
-	"muidea.com/magicOrm/provider/local"
+	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider/local"
 )
 
 // Provider model provider

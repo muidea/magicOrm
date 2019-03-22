@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"muidea.com/magicOrm/model"
+	"github.com/muidea/magicOrm/model"
 )
 
 // BuildCreateSchema  BuildCreateSchema

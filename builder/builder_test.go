@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"muidea.com/magicOrm/provider"
+	"github.com/muidea/magicOrm/provider"
 )
 
 // Unit 单元信息

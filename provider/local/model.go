@@ -5,8 +5,8 @@ import (
 	"log"
 	"reflect"
 
-	"muidea.com/magicOrm/model"
-	"muidea.com/magicOrm/util"
+	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/util"
 )
 
 // modelImpl single model

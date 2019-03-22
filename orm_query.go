@@ -5,9 +5,9 @@ import (
 	"log"
 	"reflect"
 
-	"muidea.com/magicOrm/builder"
-	"muidea.com/magicOrm/model"
-	"muidea.com/magicOrm/util"
+	"github.com/muidea/magicOrm/builder"
+	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/util"
 )
 
 func (s *orm) querySingle(modelInfo model.Model) (err error) {
