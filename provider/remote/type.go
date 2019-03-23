@@ -86,7 +86,7 @@ func (s *ItemType) GetType() (ret reflect.Type) {
 		var val float64
 		ret = reflect.TypeOf(val)
 	case util.TypeStructField:
-		var val map[string]interface{}
+		var val ObjectValue
 		ret = reflect.TypeOf(val)
 	case util.TypeSliceField:
 		var val []interface{}

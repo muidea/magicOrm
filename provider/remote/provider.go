@@ -67,18 +67,18 @@ func (s *Provider) GetValueModel(val reflect.Value) (ret model.Model, err error)
 	objInterface := reflect.Indirect(val).Interface()
 	objVal, objOK := objInterface.(ObjectValue)
 	if !objOK {
-		err = fmt.Errorf("illegal value")
+		err = fmt.Errorf("illegal model value")
 		return
 	}
 
 	objPtr := s.modelCache.Fetch(objVal.GetName())
 	if objPtr == nil {
-		err = fmt.Errorf("illegal value, no found model")
+		err = fmt.Errorf("illegal model value, no found model")
 		return
 	}
 
 	if objPtr.GetPkgPath() != objVal.GetPkgPath() {
-		err = fmt.Errorf("illegal value, pkgPath isn't match")
+		err = fmt.Errorf("illegal model value, pkgPath isn't match")
 		return
 	}
 
