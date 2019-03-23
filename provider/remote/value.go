@@ -39,8 +39,7 @@ func (s *ItemValue) Get() (ret reflect.Value) {
 	return
 }
 
-// Update Update
-func (s *ItemValue) Update(val reflect.Value) (err error) {
+func (s *ItemValue) update(val reflect.Value) (err error) {
 	if s.value.Kind() == reflect.Invalid {
 		err = fmt.Errorf("invalid current value")
 		return
