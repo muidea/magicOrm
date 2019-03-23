@@ -62,3 +62,10 @@ func (s *ItemValue) Get() (ret reflect.Value) {
 
 	return
 }
+
+// Copy Copy
+func (s *ItemValue) Copy() (ret *ItemValue) {
+	ret = &ItemValue{value: s.value}
+
+	return
+}
