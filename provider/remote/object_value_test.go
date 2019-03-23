@@ -16,15 +16,23 @@ func TestSimpleObjValue(t *testing.T) {
 		return
 	}
 
-	data, err := json.Marshal(&objVal)
+	data, err := json.Marshal(objVal)
 	if err != nil {
 		t.Errorf("marshal obj failed, err:%s", err.Error())
 		return
 	}
 
-	log.Print(objVal)
+	log.Print(*objVal)
 
 	log.Print(string(data))
+
+	val := &ObjectValue{}
+	err = json.Unmarshal(data, val)
+	if err != nil {
+		t.Errorf("marshal obj failed, err:%s", err.Error())
+		return
+	}
+	log.Print(*val)
 }
 
 func TestExtObjValue(t *testing.T) {

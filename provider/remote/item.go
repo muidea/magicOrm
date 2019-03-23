@@ -1,6 +1,7 @@
 package remote
 
 import (
+	"log"
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
@@ -51,6 +52,8 @@ func (s *Item) IsPrimary() bool {
 
 // SetValue SetValue
 func (s *Item) SetValue(val reflect.Value) (err error) {
+	log.Print(val.Type().String())
+
 	return
 }
 

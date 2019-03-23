@@ -82,6 +82,21 @@ func (s *Provider) GetValueModel(val reflect.Value) (ret model.Model, err error)
 		return
 	}
 
+	for idx := range objPtr.Items {
+		item := objPtr.Items[idx]
+
+		val, ok := objVal.Items[item.GetName()]
+		if !ok {
+			continue
+		}
+
+		err = item.SetValue(reflect.ValueOf(val))
+		if err != nil {
+			return
+		}
+	}
+	ret = objPtr
+
 	return
 }
 
