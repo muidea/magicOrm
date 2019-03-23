@@ -231,7 +231,7 @@ func (s *Item) UpdateValue(val reflect.Value) (err error) {
 			fieldVal = fieldVal.Addr()
 		}
 
-		err = s.value.update(fieldVal)
+		err = s.value.Update(fieldVal)
 	}
 
 	return
