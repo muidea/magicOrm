@@ -84,7 +84,6 @@ func (s *Provider) GetValueModel(val reflect.Value) (ret model.Model, err error)
 
 	for idx := range objPtr.Items {
 		item := objPtr.Items[idx]
-
 		val, ok := objVal.Items[item.GetName()]
 		if !ok {
 			continue

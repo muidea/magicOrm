@@ -80,7 +80,12 @@ func (s *Object) IsPtrModel() (ret bool) {
 
 // Interface Interface
 func (s *Object) Interface() (ret reflect.Value) {
-	return
+	val := ObjectValue{}
+	if s.IsPtr {
+		return reflect.ValueOf(&val)
+	}
+
+	return reflect.ValueOf(val)
 }
 
 // Copy Copy

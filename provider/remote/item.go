@@ -119,8 +119,7 @@ func (s *Item) SetValue(val reflect.Value) (err error) {
 	case util.TypeSliceField:
 		switch typeVal {
 		case util.TypeSliceField:
-			if val.Type().String() == s.Type.GetType().String() {
-			} else {
+			if val.Type().String() != s.Type.GetType().String() {
 				err = fmt.Errorf("illegal value type,current type:%s, expect type:%s", val.Type().String(), s.Type.GetType().String())
 			}
 		default:
