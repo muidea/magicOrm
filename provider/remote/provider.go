@@ -117,7 +117,7 @@ func (s *Provider) GetTypeModel(vType model.Type) (ret model.Model, err error) {
 
 // GetValueStr GetValueStr
 func (s *Provider) GetValueStr(vType model.Type, vVal model.Value) (ret string, err error) {
-	return
+	return getValueStr(vType, vVal, s.modelCache)
 }
 
 // GetModelDependValue GetModelDependValue
