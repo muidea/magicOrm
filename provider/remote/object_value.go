@@ -48,13 +48,23 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 
 		fieldValue := objValue.Field(idx)
 		if typeVal.Kind() == reflect.Struct {
-			fVal, fErr := GetObjectValue(fieldValue.Interface())
-			if fErr != nil {
-				err = fErr
-				return
-			}
+			if typeVal.String() != "time.Time" {
+				dtVal, dtErr := encodeDateTimeValue(fieldValue)
+				if dtErr != nil {
+					err = dtErr
+					return
+				}
 
-			ret.Items[fieldType.Name] = fVal
+				ret.Items[fieldType.Name] = dtVal
+			} else {
+				fVal, fErr := GetObjectValue(fieldValue.Interface())
+				if fErr != nil {
+					err = fErr
+					return
+				}
+
+				ret.Items[fieldType.Name] = fVal
+			}
 			continue
 		}
 
