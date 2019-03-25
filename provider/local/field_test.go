@@ -4,12 +4,14 @@ import (
 	"log"
 	"reflect"
 	"testing"
+
+	"github.com/muidea/magicOrm/provider/helper"
 )
 
 func TestIntSlice(t *testing.T) {
 	data := []int64{112, 223}
 
-	strVal, strErr := EncodeSliceValue(reflect.ValueOf(data))
+	strVal, strErr := helper.EncodeSliceValue(reflect.ValueOf(data))
 	if strErr != nil {
 		t.Errorf("marshal failed, err:%s", strErr.Error())
 		return
@@ -21,7 +23,7 @@ func TestIntSlice(t *testing.T) {
 		return
 	}
 
-	ret, err := DecodeSliceValue(strVal, fType)
+	ret, err := helper.DecodeSliceValue(strVal, fType)
 	if err != nil {
 		t.Errorf("DecodeSliceValue failed, err:%s", err.Error())
 		return
@@ -33,7 +35,7 @@ func TestIntSlice(t *testing.T) {
 func TestStrSlice(t *testing.T) {
 	data := []string{"aab", "ccd"}
 
-	strVal, strErr := EncodeSliceValue(reflect.ValueOf(data))
+	strVal, strErr := helper.EncodeSliceValue(reflect.ValueOf(data))
 	if strErr != nil {
 		t.Errorf("marshal failed, err:%s", strErr.Error())
 		return
@@ -45,7 +47,7 @@ func TestStrSlice(t *testing.T) {
 		return
 	}
 
-	ret, err := DecodeSliceValue(strVal, fType)
+	ret, err := helper.DecodeSliceValue(strVal, fType)
 	if err != nil {
 		t.Errorf("DecodeSliceValue failed, err:%s", err.Error())
 		return
