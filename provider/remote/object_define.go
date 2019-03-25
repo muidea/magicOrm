@@ -105,19 +105,19 @@ func (s *Object) Dump() {
 }
 
 // GetObject GetObject
-func GetObject(obj interface{}, cache Cache) (ret *Object, err error) {
+func GetObject(obj interface{}) (ret *Object, err error) {
 	objVal := reflect.ValueOf(obj)
 	if objVal.Kind() == reflect.Ptr {
 		objVal = reflect.Indirect(objVal)
 	}
 
 	objType := objVal.Type()
-	ret, err = type2Object(objType, cache)
+	ret, err = type2Object(objType)
 	return
 }
 
 // type2Object type2Object
-func type2Object(objType reflect.Type, cache Cache) (ret *Object, err error) {
+func type2Object(objType reflect.Type) (ret *Object, err error) {
 	objPtr := false
 	if objType.Kind() == reflect.Ptr {
 		objPtr = true
@@ -126,16 +126,6 @@ func type2Object(objType reflect.Type, cache Cache) (ret *Object, err error) {
 
 	if objType.Kind() != reflect.Struct {
 		err = fmt.Errorf("illegal obj type, must be a struct obj, type:%s", objType.String())
-		return
-	}
-
-	ret = cache.Fetch(objType.Name())
-	if ret != nil {
-		if ret.GetPkgPath() != objType.PkgPath() {
-			ret = nil
-			err = fmt.Errorf("illegal obj type, miss match pkgPath, type:%s", objType.String())
-		}
-
 		return
 	}
 
@@ -157,7 +147,7 @@ func type2Object(objType reflect.Type, cache Cache) (ret *Object, err error) {
 			return
 		}
 
-		itemType, itemErr := GetType(fType, cache)
+		itemType, itemErr := GetType(fType)
 		if itemErr != nil {
 			err = itemErr
 			return
@@ -167,8 +157,6 @@ func type2Object(objType reflect.Type, cache Cache) (ret *Object, err error) {
 
 		ret.Items = append(ret.Items, fItem)
 	}
-
-	cache.Put(ret.GetName(), ret)
 
 	return
 }

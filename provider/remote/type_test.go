@@ -9,10 +9,7 @@ import (
 
 func TestType(t *testing.T) {
 	var ii int
-
-	cache := NewCache()
-
-	itemType, itemErr := GetType(reflect.TypeOf(ii), cache)
+	itemType, itemErr := GetType(reflect.TypeOf(ii))
 	if itemErr != nil {
 		t.Errorf("illegal type")
 		return

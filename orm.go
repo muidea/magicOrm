@@ -23,7 +23,6 @@ type Orm interface {
 var _config *ormConfig
 
 func init() {
-	_config = newConfig()
 }
 
 type orm struct {
@@ -32,8 +31,10 @@ type orm struct {
 }
 
 // Initialize InitOrm
-func Initialize(user, password, address, dbName string) error {
+func Initialize(user, password, address, dbName string, localProvider bool) error {
 	cfg := &serverConfig{user: user, password: password, address: address, dbName: dbName}
+
+	_config = newConfig(localProvider)
 
 	_config.updateServerConfig(cfg)
 

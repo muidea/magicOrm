@@ -5,31 +5,18 @@ import (
 	"time"
 
 	orm "github.com/muidea/magicOrm"
+	"github.com/muidea/magicOrm/provider/remote"
 )
 
-// Unit 单元信息
-type UnitTest struct {
-	//ID 唯一标示单元
-	ID  int    `json:"id" orm:"id key auto"`
-	I8  int8   `orm:"i8"`
-	I16 int16  `orm:"i16"`
-	I32 int32  `orm:"i32"`
-	I64 uint64 `orm:"i64"`
-	// Name 名称
-	Name      string    `json:"name" orm:"name"`
-	Value     float32   `json:"value" orm:"value"`
-	F64       float64   `orm:"f64"`
-	TimeStamp time.Time `json:"timeStamp" orm:"ts"`
-	Flag      bool      `orm:"flag"`
-}
+func TestRemoteExecutor(t *testing.T) {
 
-func TestExecutor(t *testing.T) {
-
-	orm.Initialize("root", "rootkit", "localhost:3306", "testdb")
+	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", false)
 	defer orm.Uninitialize()
 
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
-	obj := &UnitTest{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
+	obj := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
+
+	remote.GetObject()
 
 	o1, err := orm.New()
 	defer o1.Release()
@@ -57,7 +44,7 @@ func TestExecutor(t *testing.T) {
 		return
 	}
 
-	obj2 := &UnitTest{ID: obj.ID, Name: "", Value: 0.0}
+	obj2 := &Unit{ID: obj.ID, Name: "", Value: 0.0}
 	err = o1.Query(obj2)
 	if err != nil {
 		t.Errorf("query obj failed, err:%s", err.Error())
@@ -75,24 +62,13 @@ func TestExecutor(t *testing.T) {
 
 }
 
-type Ext struct {
-	ID   int       `orm:"id key auto"`
-	Unit *UnitTest `orm:"unit"`
-}
-
-type Ext2 struct {
-	ID    int      `orm:"id key auto"`
-	Unit  UnitTest `orm:"unit"`
-	Unit2 UnitTest `orm:"unit2"`
-}
-
-func TestDepends(t *testing.T) {
-	orm.Initialize("root", "rootkit", "localhost:3306", "testdb")
+func TestRemoteDepends(t *testing.T) {
+	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", true)
 	defer orm.Uninitialize()
 
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
-	obj := &UnitTest{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
-	ext := &Ext{Unit: obj}
+	obj := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
+	ext := &ExtUnit{Unit: obj}
 
 	o1, err := orm.New()
 	defer o1.Release()
@@ -125,7 +101,8 @@ func TestDepends(t *testing.T) {
 		return
 	}
 
-	ext2 := &Ext2{Unit: *obj}
+	ext2 := &ExtUnitList{Unit: *obj, UnitList: []Unit{}}
+	ext2.UnitList = append(ext2.UnitList, *obj)
 	err = o1.Drop(ext2)
 	if err != nil {
 		t.Errorf("drop ext2 failed, err:%s", err.Error())

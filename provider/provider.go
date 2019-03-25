@@ -5,6 +5,7 @@ import (
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/local"
+	"github.com/muidea/magicOrm/provider/remote"
 )
 
 // Provider model provider
@@ -22,7 +23,12 @@ type Provider interface {
 	Reset()
 }
 
-// NewProvider model provider
-func NewProvider() Provider {
+// NewLocalProvider model provider
+func NewLocalProvider() Provider {
 	return local.New()
+}
+
+// NewRemoteProvider model provider
+func NewRemoteProvider() Provider {
+	return remote.New()
 }

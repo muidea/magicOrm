@@ -135,7 +135,7 @@ func (s *ItemType) Copy() (ret *ItemType) {
 }
 
 // GetType GetType
-func GetType(itemType reflect.Type, cache Cache) (ret *ItemType, err error) {
+func GetType(itemType reflect.Type) (ret *ItemType, err error) {
 	isPtr := false
 	if itemType.Kind() == reflect.Ptr {
 		isPtr = true

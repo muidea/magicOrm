@@ -8,9 +8,9 @@ import (
 	orm "github.com/muidea/magicOrm"
 )
 
-func TestGroup(t *testing.T) {
+func TestRemoteGroup(t *testing.T) {
 	//orm.Initialize("root", "rootkit", "localhost:9696", "testdb")
-	orm.Initialize("root", "rootkit", "localhost:3306", "testdb")
+	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", true)
 	defer orm.Uninitialize()
 
 	group1 := &Group{Name: "testGroup1"}
@@ -89,7 +89,7 @@ func TestGroup(t *testing.T) {
 	}
 }
 
-func TestUser(t *testing.T) {
+func TestRemoteUser(t *testing.T) {
 	group1 := &Group{Name: "testGroup1"}
 	group2 := &Group{Name: "testGroup2"}
 	group3 := &Group{Name: "testGroup3"}
@@ -211,7 +211,7 @@ func TestUser(t *testing.T) {
 
 }
 
-func TestSystem(t *testing.T) {
+func TestRemoteSystem(t *testing.T) {
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
@@ -312,7 +312,7 @@ func TestSystem(t *testing.T) {
 	}
 }
 
-func TestBatchQuery(t *testing.T) {
+func TestRemoteBatchQuery(t *testing.T) {
 	group1 := &Group{Name: "testGroup1"}
 	group2 := &Group{Name: "testGroup2"}
 

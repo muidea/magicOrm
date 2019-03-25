@@ -13,7 +13,7 @@ func TestSimpleObjProvider(t *testing.T) {
 
 	provider := New()
 
-	objInfo, objErr := GetObject(obj, provider.modelCache)
+	objInfo, objErr := GetObject(obj)
 	if objErr != nil {
 		log.Printf("GetObject failed, err:%s", objErr.Error())
 		return

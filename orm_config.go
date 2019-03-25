@@ -17,8 +17,12 @@ type ormConfig struct {
 	modelProvider provider.Provider
 }
 
-func newConfig() *ormConfig {
-	return &ormConfig{modelProvider: provider.NewProvider()}
+func newConfig(localProvider bool) *ormConfig {
+	if localProvider {
+		return &ormConfig{modelProvider: provider.NewLocalProvider()}
+	}
+
+	return &ormConfig{modelProvider: provider.NewRemoteProvider()}
 }
 
 func (s *ormConfig) updateServerConfig(cfg *serverConfig) {
