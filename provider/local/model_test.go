@@ -81,16 +81,16 @@ func TestModelValue(t *testing.T) {
 
 func TestReference(t *testing.T) {
 	type AB struct {
-		F32 float32 `orm:"f32"`
+		F32 float32 `orm:"f32 key"`
 	}
 
 	type CD struct {
 		AB  AB  `orm:"ab"`
-		I64 int `orm:"i64"`
+		I64 int `orm:"i64 key"`
 	}
 
 	type Demo struct {
-		II int   `orm:"ii"`
+		II int   `orm:"ii key"`
 		AB *AB   `orm:"ab"`
 		CD []int `orm:"cd"`
 		EF []*AB `orm:"ef"`
