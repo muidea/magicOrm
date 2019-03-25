@@ -14,9 +14,13 @@ func TestRemoteExecutor(t *testing.T) {
 	defer orm.Uninitialize()
 
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
-	obj := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
+	val := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
 
-	remote.GetObject()
+	objDef, objErr := remote.GetObject(val)
+	if objErr != nil {
+		t.Errorf("GetObject failed, err:%s", objErr.Error())
+		return
+	}
 
 	o1, err := orm.New()
 	defer o1.Release()
@@ -24,38 +28,62 @@ func TestRemoteExecutor(t *testing.T) {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
-	err = o1.Create(obj)
+
+	err = o1.Drop(objDef)
+	if err != nil {
+		t.Errorf("drop ext failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Create(objDef)
 	if err != nil {
 		t.Errorf("create obj failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(obj)
+	objVal, objErr := remote.GetObjectValue(val)
+	if objErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+
+	err = o1.Insert(objVal)
 	if err != nil {
 		t.Errorf("insert obj failed, err:%s", err.Error())
 		return
 	}
 
-	obj.Name = "abababa"
-	obj.Value = 100.000
-	err = o1.Update(obj)
+	val.Name = "abababa"
+	val.Value = 100.000
+	objVal, objErr = remote.GetObjectValue(val)
+	if objErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+	err = o1.Update(objVal)
 	if err != nil {
 		t.Errorf("update obj failed, err:%s", err.Error())
 		return
 	}
 
-	obj2 := &Unit{ID: obj.ID, Name: "", Value: 0.0}
-	err = o1.Query(obj2)
+	val2 := &Unit{ID: val.ID, Name: "", Value: 0.0}
+	objVal2, objErr := remote.GetObjectValue(val2)
+	if objErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+
+	err = o1.Query(objVal2)
 	if err != nil {
 		t.Errorf("query obj failed, err:%s", err.Error())
 		return
 	}
-	if obj.Name != obj2.Name || obj.Value != obj2.Value {
-		t.Errorf("query obj failed, obj:%v, obj2:%v", obj, obj2)
+	if val.Name != val2.Name || val.Value != val2.Value {
+		t.Errorf("query obj failed, obj:%v, obj2:%v", val, val2)
 		return
 	}
 
-	err = o1.Delete(obj)
+	err = o1.Delete(objVal2)
 	if err != nil {
 		t.Errorf("query obj failed, err:%s", err.Error())
 	}
@@ -67,9 +95,14 @@ func TestRemoteDepends(t *testing.T) {
 	defer orm.Uninitialize()
 
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
-	obj := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
-	ext := &ExtUnit{Unit: obj}
+	val := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
+	extVal := &ExtUnit{Unit: val}
 
+	extObjDef, objErr := remote.GetObject(extVal)
+	if objErr != nil {
+		t.Errorf("GetObject failed, err:%s", objErr.Error())
+		return
+	}
 	o1, err := orm.New()
 	defer o1.Release()
 	if err != nil {
@@ -77,51 +110,62 @@ func TestRemoteDepends(t *testing.T) {
 		return
 	}
 
-	err = o1.Drop(ext)
+	err = o1.Drop(extObjDef)
 	if err != nil {
 		t.Errorf("drop ext failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(ext)
+	err = o1.Create(extObjDef)
 	if err != nil {
 		t.Errorf("create ext failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(ext)
+	extObjVal, objErr := remote.GetObjectValue(extVal)
+	if objErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+
+	err = o1.Insert(extObjVal)
 	if err != nil {
 		t.Errorf("insert ext failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(obj)
-	if err != nil {
-		t.Errorf("insert ext failed, err:%s", err.Error())
+	extVal2 := &ExtUnitList{Unit: *val, UnitList: []Unit{}}
+	extVal2.UnitList = append(extVal2.UnitList, *val)
+
+	ext2ObjDef, objErr := remote.GetObject(extVal2)
+	if objErr != nil {
+		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
 	}
-
-	ext2 := &ExtUnitList{Unit: *obj, UnitList: []Unit{}}
-	ext2.UnitList = append(ext2.UnitList, *obj)
-	err = o1.Drop(ext2)
+	err = o1.Drop(ext2ObjDef)
 	if err != nil {
 		t.Errorf("drop ext2 failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(ext2)
+	ext2ObjVal, objErr := remote.GetObjectValue(extVal2)
+	if objErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+	err = o1.Create(ext2ObjVal)
 	if err != nil {
 		t.Errorf("create ext2 failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(ext2)
+	err = o1.Insert(ext2ObjVal)
 	if err != nil {
 		t.Errorf("insert ext2 failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Delete(ext2)
+	err = o1.Delete(ext2ObjVal)
 	if err != nil {
 		t.Errorf("delete ext2 failed, err:%s", err.Error())
 	}
