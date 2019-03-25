@@ -80,7 +80,7 @@ func (s *Object) IsPtrModel() (ret bool) {
 
 // Interface Interface
 func (s *Object) Interface() (ret reflect.Value) {
-	val := ObjectValue{}
+	val := ObjectValue{TypeName: s.Name, PkgPath: s.PkgPath, Items: map[string]interface{}{}}
 	if s.IsPtr {
 		return reflect.ValueOf(&val)
 	}
@@ -131,6 +131,11 @@ func type2Object(objType reflect.Type, cache Cache) (ret *Object, err error) {
 
 	ret = cache.Fetch(objType.Name())
 	if ret != nil {
+		if ret.GetPkgPath() != objType.PkgPath() {
+			ret = nil
+			err = fmt.Errorf("illegal obj type, miss match pkgPath, type:%s", objType.String())
+		}
+
 		return
 	}
 

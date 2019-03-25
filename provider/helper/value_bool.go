@@ -1,4 +1,4 @@
-package local
+package helper
 
 import (
 	"fmt"
@@ -7,8 +7,8 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-// encodeBoolValue get bool value str
-func encodeBoolValue(val reflect.Value) (ret string, err error) {
+// EncodeBoolValue get bool value str
+func EncodeBoolValue(val reflect.Value) (ret string, err error) {
 	rawVal := reflect.Indirect(val)
 	if rawVal.Bool() {
 		ret = "1"
@@ -19,7 +19,7 @@ func encodeBoolValue(val reflect.Value) (ret string, err error) {
 	return
 }
 
-func decodeBoolValue(val string, vType model.Type) (ret reflect.Value, err error) {
+func DecodeBoolValue(val string, vType model.Type) (ret reflect.Value, err error) {
 	if vType.GetType().Kind() != reflect.Bool {
 		err = fmt.Errorf("illegal value type")
 		return

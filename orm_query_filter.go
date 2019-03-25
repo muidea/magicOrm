@@ -79,6 +79,32 @@ func (s *filterValue) Set(val reflect.Value) (err error) {
 	return
 }
 
+func (s *filterValue) Update(val reflect.Value) (err error) {
+	if val.Kind() == reflect.Invalid {
+		return
+	}
+	if val.Kind() == reflect.Ptr {
+		if val.IsNil() {
+			return
+		}
+	}
+
+	if s.filterValue.Kind() == reflect.Invalid {
+		s.filterValue = val
+		return
+	}
+
+	valTypeName := val.Type().String()
+	expectTypeName := s.filterValue.Type().String()
+	if expectTypeName != valTypeName {
+		err = fmt.Errorf("illegal value type, type:%s, expect:%s", expectTypeName, valTypeName)
+		return
+	}
+
+	s.filterValue.Set(val)
+	return
+}
+
 func (s *filterValue) Get() (ret reflect.Value) {
 	ret = s.filterValue
 

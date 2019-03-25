@@ -1,4 +1,4 @@
-package local
+package helper
 
 import (
 	"fmt"
@@ -8,15 +8,16 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-//encodeIntValue get int value str
-func encodeIntValue(val reflect.Value) (ret string, err error) {
+//EncodeIntValue get int value str
+func EncodeIntValue(val reflect.Value) (ret string, err error) {
 	rawVal := reflect.Indirect(val)
 	ret = fmt.Sprintf("%d", rawVal.Int())
 
 	return
 }
 
-func decodeIntValue(val string, vType model.Type) (ret reflect.Value, err error) {
+// DecodeIntValue decode int from string
+func DecodeIntValue(val string, vType model.Type) (ret reflect.Value, err error) {
 	ret = reflect.Indirect(vType.Interface())
 	switch vType.GetType().Kind() {
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int:
@@ -40,15 +41,16 @@ func decodeIntValue(val string, vType model.Type) (ret reflect.Value, err error)
 	return
 }
 
-//encodeUintValue get uint value str
-func encodeUintValue(val reflect.Value) (ret string, err error) {
+//EncodeUintValue get uint value str
+func EncodeUintValue(val reflect.Value) (ret string, err error) {
 	rawVal := reflect.Indirect(val)
 	ret = fmt.Sprintf("%d", rawVal.Uint())
 
 	return
 }
 
-func decodeUintValue(val string, vType model.Type) (ret reflect.Value, err error) {
+// DecodeUintValue decode uint from string
+func DecodeUintValue(val string, vType model.Type) (ret reflect.Value, err error) {
 	ret = reflect.Indirect(vType.Interface())
 	switch vType.GetType().Kind() {
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint:

@@ -9,7 +9,7 @@ import (
 func TestIntSlice(t *testing.T) {
 	data := []int64{112, 223}
 
-	strVal, strErr := encodeSliceValue(reflect.ValueOf(data))
+	strVal, strErr := EncodeSliceValue(reflect.ValueOf(data))
 	if strErr != nil {
 		t.Errorf("marshal failed, err:%s", strErr.Error())
 		return
@@ -21,9 +21,9 @@ func TestIntSlice(t *testing.T) {
 		return
 	}
 
-	ret, err := decodeSliceValue(strVal, fType)
+	ret, err := DecodeSliceValue(strVal, fType)
 	if err != nil {
-		t.Errorf("decodeSliceValue failed, err:%s", err.Error())
+		t.Errorf("DecodeSliceValue failed, err:%s", err.Error())
 		return
 	}
 
@@ -33,7 +33,7 @@ func TestIntSlice(t *testing.T) {
 func TestStrSlice(t *testing.T) {
 	data := []string{"aab", "ccd"}
 
-	strVal, strErr := encodeSliceValue(reflect.ValueOf(data))
+	strVal, strErr := EncodeSliceValue(reflect.ValueOf(data))
 	if strErr != nil {
 		t.Errorf("marshal failed, err:%s", strErr.Error())
 		return
@@ -45,9 +45,9 @@ func TestStrSlice(t *testing.T) {
 		return
 	}
 
-	ret, err := decodeSliceValue(strVal, fType)
+	ret, err := DecodeSliceValue(strVal, fType)
 	if err != nil {
-		t.Errorf("decodeSliceValue failed, err:%s", err.Error())
+		t.Errorf("DecodeSliceValue failed, err:%s", err.Error())
 		return
 	}
 

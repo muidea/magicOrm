@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/util"
 )
 
@@ -127,7 +128,7 @@ func (s *fieldImpl) UpdateValue(val reflect.Value) (err error) {
 	case util.TypeSliceField:
 		switch typeVal {
 		case util.TypeStringField:
-			sliceVal, sliceErr := decodeSliceValue(val.String(), &s.fieldType)
+			sliceVal, sliceErr := helper.DecodeSliceValue(val.String(), &s.fieldType)
 			if sliceErr != nil {
 				err = sliceErr
 				return

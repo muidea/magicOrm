@@ -8,8 +8,8 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-//encodeDateTimeValue get datetime value str
-func encodeDateTimeValue(val reflect.Value) (ret string, err error) {
+//EncodeDateTimeValue get datetime value str
+func EncodeDateTimeValue(val reflect.Value) (ret string, err error) {
 	rawVal := reflect.Indirect(val)
 	if rawVal.Kind() != reflect.Struct {
 		err = fmt.Errorf("illegal datetime value type. type kind:%v", rawVal.Kind())
@@ -26,7 +26,7 @@ func encodeDateTimeValue(val reflect.Value) (ret string, err error) {
 	return
 }
 
-func decodeDateTimeValue(val string, vType model.Type) (ret reflect.Value, err error) {
+func DecodeDateTimeValue(val string, vType model.Type) (ret reflect.Value, err error) {
 	if vType.GetType().String() != "time.Time" {
 		err = fmt.Errorf("illegal value type")
 		return

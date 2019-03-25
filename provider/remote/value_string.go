@@ -7,15 +7,15 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-// encodeStringValue get string value str
-func encodeStringValue(val reflect.Value) (ret string, err error) {
+// EncodeStringValue get string value str
+func EncodeStringValue(val reflect.Value) (ret string, err error) {
 	rawVal := reflect.Indirect(val)
 	ret = fmt.Sprintf("%s", rawVal.String())
 
 	return
 }
 
-func decodeStringValue(val string, vType model.Type) (ret reflect.Value, err error) {
+func DecodeStringValue(val string, vType model.Type) (ret reflect.Value, err error) {
 	if vType.GetType().Kind() != reflect.String {
 		err = fmt.Errorf("illegal value type")
 		return

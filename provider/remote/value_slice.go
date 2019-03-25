@@ -9,8 +9,8 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-// encodeSliceValue get slice value str
-func encodeSliceValue(val reflect.Value) (ret string, err error) {
+// EncodeSliceValue get slice value str
+func EncodeSliceValue(val reflect.Value) (ret string, err error) {
 	valSlice := []string{}
 
 	rawVal := reflect.Indirect(val)
@@ -20,23 +20,24 @@ func encodeSliceValue(val reflect.Value) (ret string, err error) {
 		sv = reflect.Indirect(sv)
 		switch sv.Kind() {
 		case reflect.Bool:
-			strVal, strErr := encodeBoolValue(sv)
+			strVal, strErr := EncodeBoolValue(sv)
 			if strErr != nil {
 				err = strErr
 				return
+				
 			}
 			valSlice = append(valSlice, strVal)
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
 			reflect.Float32, reflect.Float64:
-			strVal, strErr := encodeFloatValue(sv)
+			strVal, strErr := EncodeFloatValue(sv)
 			if strErr != nil {
 				err = strErr
 				return
 			}
 			valSlice = append(valSlice, strVal)
 		case reflect.String:
-			strVal, strErr := encodeStringValue(sv)
+			strVal, strErr := EncodeStringValue(sv)
 			if strErr != nil {
 				err = strErr
 				return
@@ -44,7 +45,7 @@ func encodeSliceValue(val reflect.Value) (ret string, err error) {
 			valSlice = append(valSlice, strVal)
 		case reflect.Struct:
 			if sv.Type().String() == "time.Time" {
-				strVal, strErr := encodeDateTimeValue(sv)
+				strVal, strErr := EncodeDateTimeValue(sv)
 				if strErr != nil {
 					err = strErr
 					return
@@ -69,7 +70,7 @@ func encodeSliceValue(val reflect.Value) (ret string, err error) {
 	return
 }
 
-func decodeSliceValue(val string, vType model.Type) (ret reflect.Value, err error) {
+func DecodeSliceValue(val string, vType model.Type) (ret reflect.Value, err error) {
 	log.Print(val)
 
 	if vType.GetType().Kind() != reflect.Slice {
@@ -89,7 +90,7 @@ func decodeSliceValue(val string, vType model.Type) (ret reflect.Value, err erro
 		val := array[idx]
 		switch iType.GetType().Kind() {
 		case reflect.Bool:
-			itemVal, itemErr := decodeBoolValue(val, iType)
+			itemVal, itemErr := DecodeBoolValue(val, iType)
 			if itemErr != nil {
 				err = itemErr
 				return
@@ -98,14 +99,14 @@ func decodeSliceValue(val string, vType model.Type) (ret reflect.Value, err erro
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
 			reflect.Float32, reflect.Float64:
-			itemVal, itemErr := decodeFloatValue(val, iType)
+			itemVal, itemErr := DecodeFloatValue(val, iType)
 			if itemErr != nil {
 				err = itemErr
 				return
 			}
 			ret = reflect.Append(ret, itemVal)
 		case reflect.String:
-			itemVal, itemErr := decodeStringValue(val, iType)
+			itemVal, itemErr := DecodeStringValue(val, iType)
 			if itemErr != nil {
 				err = itemErr
 				return
@@ -113,7 +114,7 @@ func decodeSliceValue(val string, vType model.Type) (ret reflect.Value, err erro
 			ret = reflect.Append(ret, itemVal)
 		case reflect.Struct:
 			if iType.GetType().String() == "time.Time" {
-				itemVal, itemErr := decodeDateTimeValue(val, iType)
+				itemVal, itemErr := DecodeDateTimeValue(val, iType)
 				if itemErr != nil {
 					err = itemErr
 					return

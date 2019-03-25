@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/util"
 )
 
@@ -246,22 +247,22 @@ func getValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, e
 	rawType := vType.GetType()
 	switch rawType.Kind() {
 	case reflect.Bool:
-		ret, err = encodeBoolValue(vVal.Get())
+		ret, err = helper.EncodeBoolValue(vVal.Get())
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int:
-		ret, err = encodeIntValue(vVal.Get())
+		ret, err = helper.EncodeIntValue(vVal.Get())
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint:
-		ret, err = encodeUintValue(vVal.Get())
+		ret, err = helper.EncodeUintValue(vVal.Get())
 	case reflect.Float32, reflect.Float64:
-		ret, err = encodeFloatValue(vVal.Get())
+		ret, err = helper.EncodeFloatValue(vVal.Get())
 	case reflect.String:
-		strRet, strErr := encodeStringValue(vVal.Get())
+		strRet, strErr := helper.EncodeStringValue(vVal.Get())
 		if strErr != nil {
 			err = strErr
 			return
 		}
 		ret = fmt.Sprintf("'%s'", strRet)
 	case reflect.Slice:
-		strRet, strErr := encodeSliceValue(vVal.Get())
+		strRet, strErr := helper.EncodeSliceValue(vVal.Get())
 		if strErr != nil {
 			err = strErr
 			return
@@ -269,7 +270,7 @@ func getValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, e
 		ret = fmt.Sprintf("'%s'", strRet)
 	case reflect.Struct:
 		if rawType.String() == "time.Time" {
-			strRet, strErr := encodeDateTimeValue(vVal.Get())
+			strRet, strErr := helper.EncodeDateTimeValue(vVal.Get())
 			if strErr != nil {
 				err = strErr
 				return

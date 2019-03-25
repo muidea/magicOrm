@@ -1,4 +1,4 @@
-package local
+package helper
 
 import (
 	"fmt"
@@ -8,15 +8,16 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-// encodeFloatValue get float value str
-func encodeFloatValue(val reflect.Value) (ret string, err error) {
+// EncodeFloatValue get float value str
+func EncodeFloatValue(val reflect.Value) (ret string, err error) {
 	rawVal := reflect.Indirect(val)
 	ret = fmt.Sprintf("%f", rawVal.Float())
 
 	return
 }
 
-func decodeFloatValue(val string, vType model.Type) (ret reflect.Value, err error) {
+// DecodeFloatValue decode float from string
+func DecodeFloatValue(val string, vType model.Type) (ret reflect.Value, err error) {
 	ret = reflect.Indirect(vType.Interface())
 	switch vType.GetType().Kind() {
 	case reflect.Float32:

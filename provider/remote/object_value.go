@@ -50,7 +50,7 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 		fieldValue := objValue.Field(idx)
 		if typeVal.Kind() == reflect.Struct {
 			if typeVal.String() != "time.Time" {
-				dtVal, dtErr := encodeDateTimeValue(fieldValue)
+				dtVal, dtErr := EncodeDateTimeValue(fieldValue)
 				if dtErr != nil {
 					err = dtErr
 					return
@@ -73,29 +73,41 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 			sliceVal := []interface{}{}
 			for idx := 0; idx < fieldValue.Len(); idx++ {
 				itemVal := reflect.Indirect(fieldValue.Index(idx))
-				tVal, tErr := util.GetTypeValueEnum(itemVal.Type())
+				itemType := itemVal.Type()
+				_, tErr := util.GetTypeValueEnum(itemType)
 				if tErr != nil {
 					err = tErr
 					return
 				}
 
-				if util.IsBasicType(tVal) {
-					sliceVal = append(sliceVal, itemVal.Interface())
-					continue
+				if itemType.Kind() == reflect.Slice {
+					err = fmt.Errorf("illegal slice item value")
+					return
 				}
 
-				if util.IsStructType(tVal) {
-					fVal, fErr := GetObjectValue(itemVal)
-					if fErr != nil {
-						err = fErr
-						return
+				if itemType.Kind() == reflect.Struct {
+					if itemType.String() == "time.Time" {
+						dtVal, dtErr := EncodeDateTimeValue(itemVal)
+						if dtErr != nil {
+							err = dtErr
+							return
+						}
+
+						sliceVal = append(sliceVal, dtVal)
+					} else {
+						fVal, fErr := GetObjectValue(itemVal)
+						if fErr != nil {
+							err = fErr
+							return
+						}
+
+						sliceVal = append(sliceVal, fVal)
 					}
-					sliceVal = append(sliceVal, fVal)
+
 					continue
 				}
 
-				err = fmt.Errorf("illegal slice item value")
-				return
+				sliceVal = append(sliceVal, itemVal.Interface())
 			}
 
 			ret.Items[fieldType.Name] = sliceVal
@@ -117,20 +129,20 @@ func getValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, e
 	rawType := vType.GetType()
 	switch rawType.Kind() {
 	case reflect.Bool:
-		ret, err = encodeBoolValue(vVal.Get())
+		ret, err = EncodeBoolValue(vVal.Get())
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int,
 		reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint,
 		reflect.Float32, reflect.Float64:
-		ret, err = encodeFloatValue(vVal.Get())
+		ret, err = EncodeFloatValue(vVal.Get())
 	case reflect.String:
-		strRet, strErr := encodeStringValue(vVal.Get())
+		strRet, strErr := EncodeStringValue(vVal.Get())
 		if strErr != nil {
 			err = strErr
 			return
 		}
 		ret = fmt.Sprintf("'%s'", strRet)
 	case reflect.Slice:
-		strRet, strErr := encodeSliceValue(vVal.Get())
+		strRet, strErr := EncodeSliceValue(vVal.Get())
 		if strErr != nil {
 			err = strErr
 			return
@@ -138,7 +150,7 @@ func getValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, e
 		ret = fmt.Sprintf("'%s'", strRet)
 	case reflect.Struct:
 		if rawType.String() == "time.Time" {
-			strRet, strErr := encodeDateTimeValue(vVal.Get())
+			strRet, strErr := EncodeStringValue(vVal.Get())
 			if strErr != nil {
 				err = strErr
 				return
