@@ -121,7 +121,45 @@ func (s *Provider) GetValueStr(vType model.Type, vVal model.Value) (ret string, 
 }
 
 // GetModelDependValue GetModelDependValue
-func (s *Provider) GetModelDependValue(vModel model.Model, vVal model.Value) (ret []reflect.Value, err error) {
+func (s *Provider) GetModelDependValue(vModel model.Model, vValue model.Value) (ret []reflect.Value, err error) {
+	if vValue.IsNil() {
+		return
+	}
+
+	val := reflect.Indirect(vValue.Get())
+	if val.Kind() == reflect.Slice {
+		for idx := 0; idx < val.Len(); idx++ {
+			sliceItem := val.Index(idx)
+			itemModel, itemErr := s.GetValueModel(sliceItem)
+			if itemErr != nil {
+				err = itemErr
+				return
+			}
+
+			if itemModel.GetName() != vModel.GetName() || itemModel.GetPkgPath() != vModel.GetPkgPath() {
+				err = fmt.Errorf("illegal slice model value, type:%s", val.Type().String())
+				return
+			}
+
+			ret = append(ret, sliceItem)
+		}
+	} else if val.Kind() == reflect.Struct {
+		itemModel, itemErr := s.GetValueModel(val)
+		if itemErr != nil {
+			err = itemErr
+			return
+		}
+
+		if itemModel.GetName() != vModel.GetName() || itemModel.GetPkgPath() != vModel.GetPkgPath() {
+			err = fmt.Errorf("illegal struct model value, type:%s", val.Type().String())
+			return
+		}
+
+		ret = append(ret, vValue.Get())
+	} else {
+		err = fmt.Errorf("illegal value type, type:%s", val.Type().String())
+	}
+
 	return
 }
 

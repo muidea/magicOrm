@@ -277,11 +277,31 @@ func getValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, e
 			}
 			ret = fmt.Sprintf("'%s'", strRet)
 		} else {
-			ret, err = encodeStructValue(vVal.Get(), cache)
+			ret, err = getStructValue(vVal.Get(), cache)
 		}
 	default:
 		err = fmt.Errorf("illegal value kind, kind:%v", rawType.Kind())
 	}
+
+	return
+}
+
+// getStructValue get struct value str
+func getStructValue(val reflect.Value, cache Cache) (ret string, err error) {
+	rawVal := reflect.Indirect(val)
+	modelImpl, modelErr := getValueModel(rawVal, cache)
+	if modelErr != nil {
+		err = modelErr
+		return
+	}
+
+	pk := modelImpl.GetPrimaryField()
+	if pk == nil {
+		err = fmt.Errorf("no define primary field")
+		return
+	}
+
+	ret, err = getValueStr(pk.GetType(), pk.GetValue(), cache)
 
 	return
 }

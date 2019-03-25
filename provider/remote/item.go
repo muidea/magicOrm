@@ -64,7 +64,7 @@ func (s *Item) SetValue(val reflect.Value) (err error) {
 	switch s.Type.GetValue() {
 	case util.TypeBooleanField:
 		switch typeVal {
-		case util.TypeDoubleField, util.TypeBooleanField:
+		case util.TypeBooleanField:
 		default:
 			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.Type.GetValue())
 		}
