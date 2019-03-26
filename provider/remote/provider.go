@@ -38,7 +38,7 @@ func (s *Provider) GetObjectModel(obj interface{}) (ret model.Model, err error) 
 			s.modelCache.Put(objPtr.GetName(), objPtr)
 		}
 
-		ret = objPtr
+		ret = objPtr.Copy()
 		return
 	}
 
@@ -82,6 +82,7 @@ func (s *Provider) GetValueModel(val reflect.Value) (ret model.Model, err error)
 		return
 	}
 
+	objPtr = objPtr.Copy()
 	for idx := range objPtr.Items {
 		item := objPtr.Items[idx]
 		val, ok := objVal.Items[item.GetName()]
@@ -111,7 +112,8 @@ func (s *Provider) GetTypeModel(vType model.Type) (ret model.Model, err error) {
 		return
 	}
 
-	ret = objPtr
+	ret = objPtr.Copy()
+
 	return
 }
 
