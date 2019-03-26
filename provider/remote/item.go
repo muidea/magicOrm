@@ -139,14 +139,14 @@ func (s *Item) UpdateValue(val reflect.Value) (err error) {
 		case util.TypeBooleanField:
 			fieldVal.Set(val)
 		default:
-			err = fmt.Errorf("illegal value type,current type:%s, expect type:%s", val.Type().String(), s.Type.GetType().String())
+			err = fmt.Errorf("UpdateValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
 		}
 	case util.TypeStringField:
 		switch typeVal {
 		case util.TypeStringField:
 			fieldVal.SetString(val.String())
 		default:
-			err = fmt.Errorf("illegal value type,current type:%s, expect type:%s", val.Type().String(), s.Type.GetType().String())
+			err = fmt.Errorf("UpdateValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
 		}
 	case util.TypeDateTimeField:
 		switch typeVal {
@@ -158,22 +158,24 @@ func (s *Item) UpdateValue(val reflect.Value) (err error) {
 				fieldVal.SetString(val.String())
 			}
 		default:
-			err = fmt.Errorf("illegal value type,current type:%s, expect type:%s", val.Type().String(), s.Type.GetType().String())
+			err = fmt.Errorf("UpdateValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
 		}
 	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField,
 		util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField,
 		util.TypeFloatField, util.TypeDoubleField:
 		switch typeVal {
-		case util.TypeFloatField, util.TypeDoubleField:
+		case util.TypeDoubleField:
 			fieldVal.SetFloat(val.Float())
+		case util.TypeBigIntegerField:
+			fieldVal.SetFloat(float64(val.Int()))
 		default:
-			err = fmt.Errorf("illegal value type,current type:%s, expect type:%s", val.Type().String(), s.Type.GetType().String())
+			err = fmt.Errorf("UpdateValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
 		}
 	case util.TypeStructField:
 		if val.Type().String() == s.Type.GetType().String() {
 			fieldVal.Set(val)
 		} else {
-			err = fmt.Errorf("illegal value type,current type:%s, expect type:%s", val.Type().String(), s.Type.GetType().String())
+			err = fmt.Errorf("UpdateValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
 		}
 	case util.TypeSliceField:
 		switch typeVal {
@@ -188,10 +190,10 @@ func (s *Item) UpdateValue(val reflect.Value) (err error) {
 			if val.Type().String() == s.Type.GetType().String() {
 				fieldVal.Set(val)
 			} else {
-				err = fmt.Errorf("illegal value type,current type:%s, expect type:%s", val.Type().String(), s.Type.GetType().String())
+				err = fmt.Errorf("UpdateValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
 			}
 		default:
-			err = fmt.Errorf("illegal value type,current type:%s, expect type:%s", val.Type().String(), s.Type.GetType().String())
+			err = fmt.Errorf("UpdateValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
 		}
 	}
 
@@ -208,7 +210,7 @@ func (s *Item) UpdateValue(val reflect.Value) (err error) {
 
 // Copy Copy
 func (s *Item) Copy() (ret model.Field) {
-	return &Item{Index: s.Index, Name: s.Name, Tag: *(s.Tag.Copy()), Type: *(s.Type.Copy()), value: *(s.value.Copy())}
+	return &Item{Index: s.Index, Name: s.Name, Tag: *(s.Tag.Copy()), Type: *(s.Type.Copy())}
 }
 
 // Dump Dump

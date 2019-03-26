@@ -127,43 +127,40 @@ func getValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, e
 		return
 	}
 
-	rawType := vType.GetType()
-	switch rawType.Kind() {
-	case reflect.Bool:
+	switch vType.GetValue() {
+	case util.TypeBooleanField:
 		ret, err = helper.EncodeBoolValue(vVal.Get())
-	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int:
+	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
 		ret, err = helper.EncodeIntValue(vVal.Get())
-	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint:
+	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
 		ret, err = helper.EncodeUintValue(vVal.Get())
-	case reflect.Float32, reflect.Float64:
+	case util.TypeFloatField, util.TypeDoubleField:
 		ret, err = helper.EncodeFloatValue(vVal.Get())
-	case reflect.String:
+	case util.TypeStringField:
 		strRet, strErr := helper.EncodeStringValue(vVal.Get())
 		if strErr != nil {
 			err = strErr
 			return
 		}
 		ret = fmt.Sprintf("'%s'", strRet)
-	case reflect.Slice:
+	case util.TypeSliceField:
 		strRet, strErr := helper.EncodeSliceValue(vVal.Get())
 		if strErr != nil {
 			err = strErr
 			return
 		}
 		ret = fmt.Sprintf("'%s'", strRet)
-	case reflect.Struct:
-		if rawType.String() == "time.Time" {
-			strRet, strErr := helper.EncodeStringValue(vVal.Get())
-			if strErr != nil {
-				err = strErr
-				return
-			}
-			ret = fmt.Sprintf("'%s'", strRet)
-		} else {
-			//ret, err = encodeStructValue(vVal.Get(), cache)
+	case util.TypeDateTimeField:
+		strRet, strErr := helper.EncodeStringValue(vVal.Get())
+		if strErr != nil {
+			err = strErr
+			return
 		}
+		ret = fmt.Sprintf("'%s'", strRet)
+	case util.TypeStructField:
+		//ret, err = encodeStructValue(vVal.Get(), cache)
 	default:
-		err = fmt.Errorf("illegal value kind, kind:%v", rawType.Kind())
+		err = fmt.Errorf("illegal value type, type:%v", vType.GetValue())
 	}
 
 	return
