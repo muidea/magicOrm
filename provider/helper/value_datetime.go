@@ -27,7 +27,7 @@ func EncodeDateTimeValue(val reflect.Value) (ret string, err error) {
 			ret = rawVal.String()
 		}
 	default:
-		err = fmt.Errorf("illegal value type, type:%s", rawVal.Type().String())
+		err = fmt.Errorf("illegal value, type:%s", rawVal.Type().String())
 	}
 
 	return
@@ -35,10 +35,7 @@ func EncodeDateTimeValue(val reflect.Value) (ret string, err error) {
 
 // DecodeDateTimeValue decode datetime from string
 func DecodeDateTimeValue(val string, vType model.Type) (ret reflect.Value, err error) {
-	if vType.GetType().String() != "time.Time" {
-		err = fmt.Errorf("illegal value type")
-		return
-	}
+	ret = reflect.Indirect(vType.Interface())
 
 	tmVal, tmErr := time.ParseInLocation("2006-01-02 15:04:05", val, time.Local)
 	if tmErr != nil {
@@ -46,8 +43,20 @@ func DecodeDateTimeValue(val string, vType model.Type) (ret reflect.Value, err e
 		return
 	}
 
-	ret = reflect.Indirect(vType.Interface())
-	ret.Set(reflect.ValueOf(tmVal))
+	switch vType.GetType().Kind() {
+	case reflect.Struct:
+		if vType.GetType().String() != "time.Time" {
+			err = fmt.Errorf("unsupport value type, type:%s", vType.GetType().String())
+			return
+		}
+
+		ret.Set(reflect.ValueOf(tmVal))
+	case reflect.String:
+		ret.SetString(val)
+	default:
+		err = fmt.Errorf("unsupport value type, type:%s", vType.GetType().String())
+	}
+
 	if err != nil {
 		if vType.IsPtrType() {
 			ret = ret.Addr()

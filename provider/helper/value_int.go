@@ -12,14 +12,12 @@ import (
 func EncodeIntValue(val reflect.Value) (ret string, err error) {
 	rawVal := reflect.Indirect(val)
 	switch rawVal.Kind() {
-	case reflect.Float32, reflect.Float64:
+	case reflect.Float64:
 		ret = fmt.Sprintf("%d", int64(rawVal.Float()))
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		ret = fmt.Sprintf("%d", rawVal.Int())
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		ret = fmt.Sprintf("%d", int64(rawVal.Uint()))
 	default:
-		err = fmt.Errorf("illegal value type, type:%s", rawVal.Type().String())
+		err = fmt.Errorf("illegal value, type:%s", rawVal.Type().String())
 	}
 
 	return
@@ -36,8 +34,15 @@ func DecodeIntValue(val string, vType model.Type) (ret reflect.Value, err error)
 			return
 		}
 		ret.SetInt(intVal)
+	case reflect.Float64:
+		fVal, fErr := strconv.ParseFloat(val, 64)
+		if fErr != nil {
+			err = fErr
+			return
+		}
+		ret.SetFloat(fVal)
 	default:
-		err = fmt.Errorf("illegal value type")
+		err = fmt.Errorf("unsupport value type, type:%s", vType.GetType().String())
 		return
 	}
 
@@ -54,14 +59,12 @@ func DecodeIntValue(val string, vType model.Type) (ret reflect.Value, err error)
 func EncodeUintValue(val reflect.Value) (ret string, err error) {
 	rawVal := reflect.Indirect(val)
 	switch rawVal.Kind() {
-	case reflect.Float32, reflect.Float64:
+	case reflect.Float64:
 		ret = fmt.Sprintf("%d", uint64(rawVal.Float()))
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		ret = fmt.Sprintf("%d", uint64(rawVal.Int()))
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		ret = fmt.Sprintf("%d", rawVal.Uint())
 	default:
-		err = fmt.Errorf("illegal value type, type:%s", rawVal.Type().String())
+		err = fmt.Errorf("illegal value, type:%s", rawVal.Type().String())
 	}
 
 	return
@@ -78,8 +81,15 @@ func DecodeUintValue(val string, vType model.Type) (ret reflect.Value, err error
 			return
 		}
 		ret.SetUint(uintVal)
+	case reflect.Float64:
+		fVal, fErr := strconv.ParseFloat(val, 64)
+		if fErr != nil {
+			err = fErr
+			return
+		}
+		ret.SetFloat(fVal)
 	default:
-		err = fmt.Errorf("illegal value type")
+		err = fmt.Errorf("unsupport value type, type:%s", vType.GetType().String())
 		return
 	}
 

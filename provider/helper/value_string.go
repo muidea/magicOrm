@@ -15,7 +15,7 @@ func EncodeStringValue(val reflect.Value) (ret string, err error) {
 	case reflect.String:
 		ret = fmt.Sprintf("%s", rawVal.String())
 	default:
-		err = fmt.Errorf("illegal value type, type:%s", rawVal.Type().String())
+		err = fmt.Errorf("illegal value, type:%s", rawVal.Type().String())
 	}
 
 	return
@@ -24,7 +24,7 @@ func EncodeStringValue(val reflect.Value) (ret string, err error) {
 //DecodeStringValue decode string from string
 func DecodeStringValue(val string, vType model.Type) (ret reflect.Value, err error) {
 	if vType.GetType().Kind() != reflect.String {
-		err = fmt.Errorf("illegal value type")
+		err = fmt.Errorf("unsupport value type, type:%s", vType.GetType().String())
 		return
 	}
 

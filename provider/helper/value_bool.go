@@ -18,7 +18,7 @@ func EncodeBoolValue(val reflect.Value) (ret string, err error) {
 			ret = "0"
 		}
 	default:
-		err = fmt.Errorf("illegal value type, type:%s", rawVal.Type().String())
+		err = fmt.Errorf("illegal value, type:%s", rawVal.Type().String())
 	}
 
 	return
@@ -27,7 +27,7 @@ func EncodeBoolValue(val reflect.Value) (ret string, err error) {
 // DecodeBoolValue decode bool from string
 func DecodeBoolValue(val string, vType model.Type) (ret reflect.Value, err error) {
 	if vType.GetType().Kind() != reflect.Bool {
-		err = fmt.Errorf("illegal value type")
+		err = fmt.Errorf("unsupport value type, type:%s", vType.GetType().String())
 		return
 	}
 
