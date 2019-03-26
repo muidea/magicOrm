@@ -3,6 +3,7 @@ package orm
 import (
 	"fmt"
 	"log"
+	"reflect"
 
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
@@ -51,10 +52,11 @@ func (s *orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 }
 
 func (s *orm) Delete(obj interface{}) (err error) {
-	modelInfo, modelErr := s.modelProvider.GetObjectModel(obj)
+	objVal := reflect.ValueOf(obj)
+	modelInfo, modelErr := s.modelProvider.GetValueModel(objVal)
 	if modelErr != nil {
 		err = modelErr
-		log.Printf("GetObjectModel failed, err:%s", err.Error())
+		log.Printf("GetValueModel failed, err:%s", err.Error())
 		return
 	}
 

@@ -63,68 +63,55 @@ func (s *Item) SetValue(val reflect.Value) (err error) {
 
 	switch s.Type.GetValue() {
 	case util.TypeBooleanField:
-		switch typeVal {
-		case util.TypeBooleanField:
-		default:
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.Type.GetValue())
+		if typeVal != util.TypeBooleanField {
+			err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%d, expect type:%d", s.Name, typeVal, s.Type.GetValue())
 		}
 	case util.TypeStringField:
-		switch typeVal {
-		case util.TypeStringField:
-		default:
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.Type.GetValue())
+		if typeVal != util.TypeStringField {
+			err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%d, expect type:%d", s.Name, typeVal, s.Type.GetValue())
 		}
 	case util.TypeDateTimeField:
-		switch typeVal {
-		case util.TypeStringField:
+		if typeVal == util.TypeStringField {
 			_, tmErr := time.ParseInLocation("2006-01-02 15:04:05", val.String(), time.Local)
 			if tmErr != nil {
 				err = tmErr
 			}
-		default:
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.Type.GetValue())
+		} else {
+			err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%d, expect type:%d", s.Name, typeVal, s.Type.GetValue())
 		}
 	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
-		switch typeVal {
-		case util.TypeDoubleField:
-		default:
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.Type.GetValue())
+		if typeVal != util.TypeDoubleField {
+			err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%d, expect type:%d", s.Name, typeVal, s.Type.GetValue())
 		}
 	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
-		switch typeVal {
-		case util.TypeDoubleField:
-		default:
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.Type.GetValue())
+		if typeVal != util.TypeDoubleField {
+			err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%d, expect type:%d", s.Name, typeVal, s.Type.GetValue())
 		}
 	case util.TypeFloatField, util.TypeDoubleField:
-		switch typeVal {
-		case util.TypeDoubleField:
-		default:
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.Type.GetValue())
+		if typeVal != util.TypeDoubleField {
+			err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%d, expect type:%d", s.Name, typeVal, s.Type.GetValue())
 		}
 	case util.TypeStructField:
-		switch typeVal {
-		case util.TypeStructField:
+		if typeVal == util.TypeStructField {
 			objVal, objOK := val.Interface().(ObjectValue)
 			if !objOK {
-				err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.Type.GetValue())
+				err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%d, expect type:%d", s.Name, typeVal, s.Type.GetValue())
 			} else {
 				if objVal.GetName() != s.Type.GetName() || objVal.GetPkgPath() != objVal.GetPkgPath() {
-					err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.Type.GetValue())
+					err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%d, expect type:%d", s.Name, typeVal, s.Type.GetValue())
 				}
 			}
-		default:
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.Type.GetValue())
+		} else {
+			err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%d, expect type:%d", s.Name, typeVal, s.Type.GetValue())
 		}
 	case util.TypeSliceField:
 		// TODO slice element miss match
-		switch typeVal {
-		case util.TypeSliceField:
+		if typeVal == util.TypeSliceField {
 			if val.Type().String() != s.Type.GetType().String() {
-				err = fmt.Errorf("illegal value type,current type:%s, expect type:%s", val.Type().String(), s.Type.GetType().String())
+				err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
 			}
-		default:
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.Type.GetValue())
+		} else {
+			err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%d, expect type:%d", s.Name, typeVal, s.Type.GetValue())
 		}
 	}
 

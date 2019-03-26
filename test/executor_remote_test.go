@@ -1,12 +1,32 @@
 package test
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
 	orm "github.com/muidea/magicOrm"
 	"github.com/muidea/magicOrm/provider/remote"
 )
+
+func getObjectValue(val interface{}) (ret *remote.ObjectValue, err error) {
+	objVal, objErr := remote.GetObjectValue(val)
+	if objErr != nil {
+		err = objErr
+		return
+	}
+
+	data, dataErr := json.Marshal(objVal)
+	if dataErr != nil {
+		err = dataErr
+		return
+	}
+
+	ret = &remote.ObjectValue{}
+	err = json.Unmarshal(data, ret)
+
+	return
+}
 
 func TestRemoteExecutor(t *testing.T) {
 
@@ -41,7 +61,7 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	objVal, objErr := remote.GetObjectValue(val)
+	objVal, objErr := getObjectValue(val)
 	if objErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
@@ -55,7 +75,7 @@ func TestRemoteExecutor(t *testing.T) {
 
 	val.Name = "abababa"
 	val.Value = 100.000
-	objVal, objErr = remote.GetObjectValue(val)
+	objVal, objErr = getObjectValue(val)
 	if objErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
@@ -67,7 +87,7 @@ func TestRemoteExecutor(t *testing.T) {
 	}
 
 	val2 := &Unit{ID: val.ID, Name: "", Value: 0.0}
-	objVal2, objErr := remote.GetObjectValue(val2)
+	objVal2, objErr := getObjectValue(val2)
 	if objErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
@@ -122,7 +142,7 @@ func TestRemoteDepends(t *testing.T) {
 		return
 	}
 
-	extObjVal, objErr := remote.GetObjectValue(extVal)
+	extObjVal, objErr := getObjectValue(extVal)
 	if objErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
@@ -148,7 +168,7 @@ func TestRemoteDepends(t *testing.T) {
 		return
 	}
 
-	ext2ObjVal, objErr := remote.GetObjectValue(extVal2)
+	ext2ObjVal, objErr := getObjectValue(extVal2)
 	if objErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return

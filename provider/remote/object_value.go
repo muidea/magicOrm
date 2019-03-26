@@ -50,7 +50,7 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 
 		fieldValue := objValue.Field(idx)
 		if typeVal.Kind() == reflect.Struct {
-			if typeVal.String() != "time.Time" {
+			if typeVal.String() == "time.Time" {
 				dtVal, dtErr := helper.EncodeDateTimeValue(fieldValue)
 				if dtErr != nil {
 					err = dtErr
