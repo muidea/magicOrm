@@ -62,35 +62,41 @@ func (s *Provider) GetObjectModel(obj interface{}) (ret model.Model, err error) 
 	return
 }
 
+var _objVal ObjectValue
+var _referenceType = reflect.TypeOf(_objVal)
+
 // GetValueModel GetValueModel
 func (s *Provider) GetValueModel(val reflect.Value) (ret model.Model, err error) {
-	objInterface := reflect.Indirect(val).Interface()
-	objVal, objOK := objInterface.(ObjectValue)
-	if !objOK {
+	val = reflect.Indirect(val)
+	if val.Type().String() != _referenceType.String() {
 		err = fmt.Errorf("illegal model value")
 		return
 	}
 
-	objPtr := s.modelCache.Fetch(objVal.GetName())
+	nameVal := val.FieldByName("TypeName")
+	pkgVal := val.FieldByName("PkgPath")
+	itemsVal := val.FieldByName("Items")
+
+	objPtr := s.modelCache.Fetch(nameVal.String())
 	if objPtr == nil {
-		err = fmt.Errorf("illegal model value, no found model, name:%s", objVal.GetName())
+		err = fmt.Errorf("illegal model value, no found model, name:%s", nameVal.String())
 		return
 	}
 
-	if objPtr.GetPkgPath() != objVal.GetPkgPath() {
-		err = fmt.Errorf("illegal model value, miss match pkgPath, name:%s,pkgPath:%s", objVal.GetName(), objVal.GetPkgPath())
+	if objPtr.GetPkgPath() != pkgVal.String() {
+		err = fmt.Errorf("illegal model value, miss match pkgPath, name:%s,pkgPath:%s", nameVal.String(), pkgVal.String())
 		return
 	}
 
 	objPtr = objPtr.Copy()
 	for idx := range objPtr.Items {
 		item := objPtr.Items[idx]
-		val, ok := objVal.Items[item.GetName()]
-		if !ok {
+		val := itemsVal.MapIndex(reflect.ValueOf(item.GetName()))
+		if !val.IsValid() {
 			continue
 		}
 
-		err = item.SetValue(reflect.ValueOf(val))
+		err = item.SetValue(val)
 		if err != nil {
 			return
 		}
