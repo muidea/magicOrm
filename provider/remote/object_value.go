@@ -131,9 +131,11 @@ func getValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, e
 	switch rawType.Kind() {
 	case reflect.Bool:
 		ret, err = helper.EncodeBoolValue(vVal.Get())
-	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int,
-		reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint,
-		reflect.Float32, reflect.Float64:
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int:
+		ret, err = helper.EncodeIntValue(vVal.Get())
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint:
+		ret, err = helper.EncodeUintValue(vVal.Get())
+	case reflect.Float32, reflect.Float64:
 		ret, err = helper.EncodeFloatValue(vVal.Get())
 	case reflect.String:
 		strRet, strErr := helper.EncodeStringValue(vVal.Get())

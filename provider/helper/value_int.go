@@ -11,7 +11,16 @@ import (
 //EncodeIntValue get int value str
 func EncodeIntValue(val reflect.Value) (ret string, err error) {
 	rawVal := reflect.Indirect(val)
-	ret = fmt.Sprintf("%d", rawVal.Int())
+	switch rawVal.Kind() {
+	case reflect.Float32, reflect.Float64:
+		ret = fmt.Sprintf("%d", int64(rawVal.Float()))
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		ret = fmt.Sprintf("%d", rawVal.Int())
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		ret = fmt.Sprintf("%d", int64(rawVal.Uint()))
+	default:
+		err = fmt.Errorf("illegal value type, type:%s", rawVal.Type().String())
+	}
 
 	return
 }
@@ -44,7 +53,16 @@ func DecodeIntValue(val string, vType model.Type) (ret reflect.Value, err error)
 //EncodeUintValue get uint value str
 func EncodeUintValue(val reflect.Value) (ret string, err error) {
 	rawVal := reflect.Indirect(val)
-	ret = fmt.Sprintf("%d", rawVal.Uint())
+	switch rawVal.Kind() {
+	case reflect.Float32, reflect.Float64:
+		ret = fmt.Sprintf("%d", uint64(rawVal.Float()))
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		ret = fmt.Sprintf("%d", uint64(rawVal.Int()))
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		ret = fmt.Sprintf("%d", rawVal.Uint())
+	default:
+		err = fmt.Errorf("illegal value type, type:%s", rawVal.Type().String())
+	}
 
 	return
 }

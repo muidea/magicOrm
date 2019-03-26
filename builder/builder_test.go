@@ -32,7 +32,7 @@ func TestBuilderCommon(t *testing.T) {
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
 	obj := &Unit{ID: 10, Name: "Hello world", Value: 12.3456, TimeStamp: now}
 
-	provider := provider.NewProvider()
+	provider := provider.NewLocalProvider()
 	info, err := provider.GetObjectModel(obj)
 	if err != nil {
 		t.Errorf("GetObjectModel failed, err:%s", err.Error())
@@ -96,7 +96,7 @@ func TestBuilderCommon(t *testing.T) {
 func TestBuilderReference(t *testing.T) {
 	ext := &Ext{}
 
-	provider := provider.NewProvider()
+	provider := provider.NewLocalProvider()
 	info, err := provider.GetObjectModel(ext)
 	if err != nil {
 		t.Errorf("GetObjectModel failed, err:%s", err.Error())
@@ -161,7 +161,7 @@ func TestBuilderReference2(t *testing.T) {
 	desc := "Desc"
 	ext := &Ext{Description: &desc}
 
-	provider := provider.NewProvider()
+	provider := provider.NewLocalProvider()
 	info, err := provider.GetObjectModel(ext)
 	if err != nil {
 		t.Errorf("GetObjectModel failed, err:%s", err.Error())

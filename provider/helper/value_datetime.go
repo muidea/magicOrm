@@ -11,16 +11,23 @@ import (
 //EncodeDateTimeValue get datetime value str
 func EncodeDateTimeValue(val reflect.Value) (ret string, err error) {
 	rawVal := reflect.Indirect(val)
-	if rawVal.Kind() != reflect.Struct {
-		err = fmt.Errorf("illegal datetime value type. type kind:%v", rawVal.Kind())
-		return
-	}
-
-	ts, ok := rawVal.Interface().(time.Time)
-	if ok {
-		ret = fmt.Sprintf("%s", ts.Format("2006-01-02 15:04:05"))
-	} else {
-		err = fmt.Errorf("no support get string value from struct, [%s]", rawVal.Type().String())
+	switch rawVal.Kind() {
+	case reflect.Struct:
+		ts, ok := rawVal.Interface().(time.Time)
+		if ok {
+			ret = fmt.Sprintf("%s", ts.Format("2006-01-02 15:04:05"))
+		} else {
+			err = fmt.Errorf("no support get string value from struct, [%s]", rawVal.Type().String())
+		}
+	case reflect.String:
+		_, tmErr := time.ParseInLocation("2006-01-02 15:04:05", rawVal.String(), time.Local)
+		if tmErr != nil {
+			err = tmErr
+		} else {
+			ret = rawVal.String()
+		}
+	default:
+		err = fmt.Errorf("illegal value type, type:%s", rawVal.Type().String())
 	}
 
 	return

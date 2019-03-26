@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"reflect"
-	"time"
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
@@ -47,42 +46,11 @@ func (s *ItemType) GetType() (ret reflect.Type) {
 		var val string
 		ret = reflect.TypeOf(val)
 	case util.TypeDateTimeField:
-		var val time.Time
+		var val string
 		ret = reflect.TypeOf(val)
-	case util.TypeBitField:
-		var val int8
-		ret = reflect.TypeOf(val)
-	case util.TypeSmallIntegerField:
-		var val int16
-		ret = reflect.TypeOf(val)
-	case util.TypeInteger32Field:
-		var val int32
-		ret = reflect.TypeOf(val)
-	case util.TypeIntegerField:
-		var val int
-		ret = reflect.TypeOf(val)
-	case util.TypeBigIntegerField:
-		var val int64
-		ret = reflect.TypeOf(val)
-	case util.TypePositiveBitField:
-		var val uint8
-		ret = reflect.TypeOf(val)
-	case util.TypePositiveSmallIntegerField:
-		var val uint16
-		ret = reflect.TypeOf(val)
-	case util.TypePositiveInteger32Field:
-		var val uint32
-		ret = reflect.TypeOf(val)
-	case util.TypePositiveIntegerField:
-		var val uint
-		ret = reflect.TypeOf(val)
-	case util.TypePositiveBigIntegerField:
-		var val uint64
-		ret = reflect.TypeOf(val)
-	case util.TypeFloatField:
-		var val float32
-		ret = reflect.TypeOf(val)
-	case util.TypeDoubleField:
+	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField,
+		util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField,
+		util.TypeFloatField, util.TypeDoubleField:
 		var val float64
 		ret = reflect.TypeOf(val)
 	case util.TypeStructField:

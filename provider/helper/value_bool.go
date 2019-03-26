@@ -10,15 +10,21 @@ import (
 // EncodeBoolValue get bool value str
 func EncodeBoolValue(val reflect.Value) (ret string, err error) {
 	rawVal := reflect.Indirect(val)
-	if rawVal.Bool() {
-		ret = "1"
-	} else {
-		ret = "0"
+	switch rawVal.Kind() {
+	case reflect.Bool:
+		if rawVal.Bool() {
+			ret = "1"
+		} else {
+			ret = "0"
+		}
+	default:
+		err = fmt.Errorf("illegal value type, type:%s", rawVal.Type().String())
 	}
 
 	return
 }
 
+// DecodeBoolValue decode bool from string
 func DecodeBoolValue(val string, vType model.Type) (ret reflect.Value, err error) {
 	if vType.GetType().Kind() != reflect.Bool {
 		err = fmt.Errorf("illegal value type")

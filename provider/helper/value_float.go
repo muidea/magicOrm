@@ -11,7 +11,16 @@ import (
 // EncodeFloatValue get float value str
 func EncodeFloatValue(val reflect.Value) (ret string, err error) {
 	rawVal := reflect.Indirect(val)
-	ret = fmt.Sprintf("%f", rawVal.Float())
+	switch rawVal.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		ret = fmt.Sprintf("%f", float64(rawVal.Int()))
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		ret = fmt.Sprintf("%f", float64(rawVal.Uint()))
+	case reflect.Float32, reflect.Float64:
+		ret = fmt.Sprintf("%f", rawVal.Float())
+	default:
+		err = fmt.Errorf("illegal value type, type:%s", rawVal.Type().String())
+	}
 
 	return
 }

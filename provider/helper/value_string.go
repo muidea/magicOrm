@@ -10,7 +10,13 @@ import (
 // EncodeStringValue get string value str
 func EncodeStringValue(val reflect.Value) (ret string, err error) {
 	rawVal := reflect.Indirect(val)
-	ret = fmt.Sprintf("%s", rawVal.String())
+
+	switch rawVal.Kind() {
+	case reflect.String:
+		ret = fmt.Sprintf("%s", rawVal.String())
+	default:
+		err = fmt.Errorf("illegal value type, type:%s", rawVal.Type().String())
+	}
 
 	return
 }
