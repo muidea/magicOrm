@@ -55,71 +55,7 @@ func (s *Item) IsPrimary() bool {
 
 // SetValue SetValue
 func (s *Item) SetValue(val reflect.Value) (err error) {
-	val = reflect.Indirect(val)
-	typeVal, typeErr := util.GetTypeValueEnum(val.Type())
-	if typeErr != nil {
-		err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%s, err:%s", s.Name, val.Type().String(), typeErr.Error())
-		return
-	}
-
-	switch s.Type.GetValue() {
-	case util.TypeBooleanField:
-		if typeVal != util.TypeBooleanField {
-			err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
-		}
-	case util.TypeStringField:
-		if typeVal != util.TypeStringField {
-			err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
-		}
-	case util.TypeDateTimeField:
-		if typeVal == util.TypeStringField {
-			_, tmErr := time.ParseInLocation("2006-01-02 15:04:05", val.String(), time.Local)
-			if tmErr != nil {
-				err = tmErr
-			}
-		} else {
-			err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
-		}
-	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
-		if typeVal != util.TypeDoubleField {
-			err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
-		}
-	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
-		if typeVal != util.TypeDoubleField {
-			err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
-		}
-	case util.TypeFloatField, util.TypeDoubleField:
-		if typeVal != util.TypeDoubleField {
-			err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
-		}
-	case util.TypeStructField:
-		if typeVal == util.TypeStructField {
-			objVal, objOK := val.Interface().(ObjectValue)
-			if !objOK {
-				err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
-			} else {
-				if objVal.GetName() != s.Type.GetName() || objVal.GetPkgPath() != objVal.GetPkgPath() {
-					err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
-				}
-			}
-		} else {
-			err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
-		}
-	case util.TypeSliceField:
-		// TODO slice element miss match
-		if typeVal == util.TypeSliceField {
-			if val.Type().String() != s.Type.GetType().String() {
-				err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
-			}
-		} else {
-			err = fmt.Errorf("SetValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
-		}
-	}
-
-	if err == nil {
-		err = s.value.Set(val)
-	}
-
+	err = s.value.Set(val)
 	return
 }
 

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/muidea/magicOrm/model"
 )
@@ -12,11 +13,10 @@ import (
 func EncodeSliceValue(val reflect.Value) (ret string, err error) {
 	valSlice := []string{}
 
-	rawVal := reflect.Indirect(val)
-	pos := rawVal.Len()
+	val = reflect.Indirect(val)
+	pos := val.Len()
 	for idx := 0; idx < pos; {
-		sv := rawVal.Index(idx)
-		sv = reflect.Indirect(sv)
+		sv := reflect.Indirect(val.Index(idx))
 		switch sv.Kind() {
 		case reflect.Bool:
 			strVal, strErr := EncodeBoolValue(sv)
@@ -63,6 +63,63 @@ func EncodeSliceValue(val reflect.Value) (ret string, err error) {
 				valSlice = append(valSlice, strVal)
 			} else {
 				err = fmt.Errorf("no support slice element type, [%s]", sv.Type().String())
+			}
+		case reflect.Interface:
+			sVal := sv.Interface()
+			for {
+				_, bOK := sVal.(bool)
+				if bOK {
+					strVal, strErr := EncodeBoolValue(sv)
+					if strErr != nil {
+						err = strErr
+						return
+					}
+					valSlice = append(valSlice, strVal)
+					break
+				}
+				_, intOK := sVal.(int64)
+				if intOK {
+					strVal, strErr := EncodeIntValue(sv)
+					if strErr != nil {
+						err = strErr
+						return
+					}
+					valSlice = append(valSlice, strVal)
+					break
+				}
+				_, fltOK := sVal.(float64)
+				if fltOK {
+					strVal, strErr := EncodeFloatValue(sv)
+					if strErr != nil {
+						err = strErr
+						return
+					}
+					valSlice = append(valSlice, strVal)
+					break
+				}
+				_, dtOK := sVal.(time.Time)
+				if dtOK {
+					strVal, strErr := EncodeDateTimeValue(sv)
+					if strErr != nil {
+						err = strErr
+						return
+					}
+					valSlice = append(valSlice, strVal)
+					break
+				}
+				_, strOK := sVal.(string)
+				if strOK {
+					strVal, strErr := EncodeStringValue(sv)
+					if strErr != nil {
+						err = strErr
+						return
+					}
+					valSlice = append(valSlice, strVal)
+					break
+				}
+
+				err = fmt.Errorf("no support slice element val, [%v]", sVal)
+				break
 			}
 		default:
 			err = fmt.Errorf("no support slice element type, [%s]", sv.Type().String())

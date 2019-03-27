@@ -44,13 +44,6 @@ func (s *ItemValue) Update(val reflect.Value) (err error) {
 		return
 	}
 
-	valTypeName := val.Type().String()
-	expectTypeName := s.value.Type().String()
-	if expectTypeName != valTypeName {
-		err = fmt.Errorf("illegal value type, type:%s, expect:%s", valTypeName, expectTypeName)
-		return
-	}
-
 	s.value.Set(val)
 
 	return

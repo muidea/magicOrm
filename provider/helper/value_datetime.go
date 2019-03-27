@@ -10,24 +10,41 @@ import (
 
 //EncodeDateTimeValue get datetime value str
 func EncodeDateTimeValue(val reflect.Value) (ret string, err error) {
-	rawVal := reflect.Indirect(val)
-	switch rawVal.Kind() {
+	val = reflect.Indirect(val)
+	switch val.Kind() {
 	case reflect.Struct:
-		ts, ok := rawVal.Interface().(time.Time)
+		ts, ok := val.Interface().(time.Time)
 		if ok {
 			ret = fmt.Sprintf("%s", ts.Format("2006-01-02 15:04:05"))
 		} else {
-			err = fmt.Errorf("no support get string value from struct, [%s]", rawVal.Type().String())
+			err = fmt.Errorf("no support get datetime value from struct, [%s]", val.Type().String())
 		}
 	case reflect.String:
-		_, tmErr := time.ParseInLocation("2006-01-02 15:04:05", rawVal.String(), time.Local)
+		_, tmErr := time.ParseInLocation("2006-01-02 15:04:05", val.String(), time.Local)
 		if tmErr != nil {
-			err = tmErr
+			err = fmt.Errorf("illegal datetime value, val:%v", val.Interface())
 		} else {
-			ret = rawVal.String()
+			ret = val.String()
+		}
+	case reflect.Interface:
+		dtVal, dtOK := val.Interface().(time.Time)
+		if dtOK {
+			ret = fmt.Sprintf("%s", dtVal.Format("2006-01-02 15:04:05"))
+		} else {
+			strVal, strOK := val.Interface().(string)
+			if strOK {
+				_, tmErr := time.ParseInLocation("2006-01-02 15:04:05", strVal, time.Local)
+				if tmErr != nil {
+					err = fmt.Errorf("illegal datetime value, val:%v", strVal)
+				} else {
+					ret = val.String()
+				}
+			} else {
+				err = fmt.Errorf("illegal datetime value, val:%v", val.Interface())
+			}
 		}
 	default:
-		err = fmt.Errorf("illegal value, type:%s", rawVal.Type().String())
+		err = fmt.Errorf("illegal value, type:%s", val.Type().String())
 	}
 
 	return

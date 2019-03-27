@@ -10,14 +10,26 @@ import (
 
 //EncodeIntValue get int value str
 func EncodeIntValue(val reflect.Value) (ret string, err error) {
-	rawVal := reflect.Indirect(val)
-	switch rawVal.Kind() {
+	val = reflect.Indirect(val)
+	switch val.Kind() {
 	case reflect.Float64:
-		ret = fmt.Sprintf("%d", int64(rawVal.Float()))
+		ret = fmt.Sprintf("%d", int64(val.Float()))
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		ret = fmt.Sprintf("%d", rawVal.Int())
+		ret = fmt.Sprintf("%d", val.Int())
+	case reflect.Interface:
+		fltVal, fltOK := val.Interface().(float64)
+		if fltOK {
+			ret = fmt.Sprintf("%d", int64(fltVal))
+		} else {
+			intVal, intOK := val.Interface().(int64)
+			if intOK {
+				ret = fmt.Sprintf("%d", intVal)
+			} else {
+				err = fmt.Errorf("illegal int value, val:%v", val.Interface())
+			}
+		}
 	default:
-		err = fmt.Errorf("illegal value, type:%s", rawVal.Type().String())
+		err = fmt.Errorf("illegal int value, type:%s", val.Type().String())
 	}
 
 	return
@@ -35,12 +47,12 @@ func DecodeIntValue(val string, vType model.Type) (ret reflect.Value, err error)
 		}
 		ret.SetInt(intVal)
 	case reflect.Float64:
-		fVal, fErr := strconv.ParseFloat(val, 64)
-		if fErr != nil {
-			err = fErr
+		fltVal, fltErr := strconv.ParseFloat(val, 64)
+		if fltErr != nil {
+			err = fltErr
 			return
 		}
-		ret.SetFloat(fVal)
+		ret.SetFloat(fltVal)
 	default:
 		err = fmt.Errorf("unsupport value type, type:%s", vType.GetType().String())
 		return
@@ -57,14 +69,26 @@ func DecodeIntValue(val string, vType model.Type) (ret reflect.Value, err error)
 
 //EncodeUintValue get uint value str
 func EncodeUintValue(val reflect.Value) (ret string, err error) {
-	rawVal := reflect.Indirect(val)
-	switch rawVal.Kind() {
+	val = reflect.Indirect(val)
+	switch val.Kind() {
 	case reflect.Float64:
-		ret = fmt.Sprintf("%d", uint64(rawVal.Float()))
+		ret = fmt.Sprintf("%d", uint64(val.Float()))
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		ret = fmt.Sprintf("%d", rawVal.Uint())
+		ret = fmt.Sprintf("%d", val.Uint())
+	case reflect.Interface:
+		fltVal, fltOK := val.Interface().(float64)
+		if fltOK {
+			ret = fmt.Sprintf("%d", uint64(fltVal))
+		} else {
+			uintVal, uintOK := val.Interface().(uint64)
+			if uintOK {
+				ret = fmt.Sprintf("%d", uintVal)
+			} else {
+				err = fmt.Errorf("illegal uint value, val:%v", val.Interface())
+			}
+		}
 	default:
-		err = fmt.Errorf("illegal value, type:%s", rawVal.Type().String())
+		err = fmt.Errorf("illegal uint value, type:%s", val.Type().String())
 	}
 
 	return
@@ -82,12 +106,12 @@ func DecodeUintValue(val string, vType model.Type) (ret reflect.Value, err error
 		}
 		ret.SetUint(uintVal)
 	case reflect.Float64:
-		fVal, fErr := strconv.ParseFloat(val, 64)
-		if fErr != nil {
-			err = fErr
+		fltVal, fltErr := strconv.ParseFloat(val, 64)
+		if fltErr != nil {
+			err = fltErr
 			return
 		}
-		ret.SetFloat(fVal)
+		ret.SetFloat(fltVal)
 	default:
 		err = fmt.Errorf("unsupport value type, type:%s", vType.GetType().String())
 		return
