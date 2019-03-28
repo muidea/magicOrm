@@ -15,9 +15,9 @@ type Item struct {
 	Index int    `json:"index"`
 	Name  string `json:"name"`
 
-	Tag   ItemTag  `json:"tag"`
-	Type  ItemType `json:"type"`
-	value ItemValue
+	Tag   TagImpl  `json:"tag"`
+	Type  TypeImpl `json:"type"`
+	value ValueImpl
 }
 
 // GetIndex GetIndex

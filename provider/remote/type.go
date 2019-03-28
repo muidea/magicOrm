@@ -9,35 +9,35 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
-// ItemType ItemType
-type ItemType struct {
+// TypeImpl TypeImpl
+type TypeImpl struct {
 	Name    string    `json:"name"`
 	Value   int       `json:"value"`
 	PkgPath string    `json:"pkgPath"`
 	IsPtr   bool      `json:"isPtr"`
-	Depend  *ItemType `json:"depend"`
+	Depend  *TypeImpl `json:"depend"`
 }
 
 // GetName GetName
-func (s *ItemType) GetName() (ret string) {
+func (s *TypeImpl) GetName() (ret string) {
 	ret = s.Name
 	return
 }
 
 // GetValue GetValue
-func (s *ItemType) GetValue() (ret int) {
+func (s *TypeImpl) GetValue() (ret int) {
 	ret = s.Value
 	return
 }
 
 // GetPkgPath GetPkgPath
-func (s *ItemType) GetPkgPath() (ret string) {
+func (s *TypeImpl) GetPkgPath() (ret string) {
 	ret = s.PkgPath
 	return
 }
 
 // GetType GetType
-func (s *ItemType) GetType() (ret reflect.Type) {
+func (s *TypeImpl) GetType() (ret reflect.Type) {
 	switch s.Value {
 	case util.TypeBooleanField:
 		var val bool
@@ -67,13 +67,13 @@ func (s *ItemType) GetType() (ret reflect.Type) {
 }
 
 // IsPtrType IsPtrType
-func (s *ItemType) IsPtrType() (ret bool) {
+func (s *TypeImpl) IsPtrType() (ret bool) {
 	ret = s.IsPtr
 	return
 }
 
 // Interface Interface
-func (s *ItemType) Interface() reflect.Value {
+func (s *TypeImpl) Interface() reflect.Value {
 	rawType := s.GetType()
 	val := reflect.New(rawType)
 	if !s.IsPtrType() {
@@ -84,7 +84,7 @@ func (s *ItemType) Interface() reflect.Value {
 }
 
 // Elem GetDepend
-func (s *ItemType) Elem() model.Type {
+func (s *TypeImpl) Elem() model.Type {
 	if s.Depend != nil {
 		return s.Depend
 	}
@@ -92,18 +92,18 @@ func (s *ItemType) Elem() model.Type {
 	return nil
 }
 
-func (s *ItemType) String() (ret string) {
+func (s *TypeImpl) String() (ret string) {
 	return fmt.Sprintf("val:%d,name:%s,pkgPath:%s,isPtr:%v", s.GetValue(), s.GetName(), s.GetPkgPath(), s.IsPtrType())
 }
 
 // Copy Copy
-func (s *ItemType) Copy() (ret *ItemType) {
-	ret = &ItemType{Name: s.Name, Value: s.Value, PkgPath: s.PkgPath, IsPtr: s.IsPtr, Depend: s.Depend}
+func (s *TypeImpl) Copy() (ret *TypeImpl) {
+	ret = &TypeImpl{Name: s.Name, Value: s.Value, PkgPath: s.PkgPath, IsPtr: s.IsPtr, Depend: s.Depend}
 	return
 }
 
 // GetType GetType
-func GetType(itemType reflect.Type) (ret *ItemType, err error) {
+func GetType(itemType reflect.Type) (ret *TypeImpl, err error) {
 	isPtr := false
 	if itemType.Kind() == reflect.Ptr {
 		isPtr = true
@@ -116,13 +116,13 @@ func GetType(itemType reflect.Type) (ret *ItemType, err error) {
 		return
 	}
 
-	ret = &ItemType{Name: itemType.Name(), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
+	ret = &TypeImpl{Name: itemType.Name(), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
 	if isPtr {
 		return
 	}
 
 	if util.IsStructType(typeVal) {
-		ret.Depend = &ItemType{Name: itemType.Name(), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
+		ret.Depend = &TypeImpl{Name: itemType.Name(), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
 		return
 	}
 
@@ -144,7 +144,7 @@ func GetType(itemType reflect.Type) (ret *ItemType, err error) {
 		}
 
 		if util.IsStructType(typeVal) {
-			ret.Depend = &ItemType{Name: sliceType.Name(), Value: typeVal, PkgPath: sliceType.PkgPath(), IsPtr: slicePtr}
+			ret.Depend = &TypeImpl{Name: sliceType.Name(), Value: typeVal, PkgPath: sliceType.PkgPath(), IsPtr: slicePtr}
 		}
 
 		return

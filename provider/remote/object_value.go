@@ -9,11 +9,17 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
+// ItemValue item value
+type ItemValue struct {
+	Name  string      `json:"name"`
+	Value interface{} `json:"value"`
+}
+
 // ObjectValue Object Value
 type ObjectValue struct {
-	TypeName string                 `json:"typeName"`
-	PkgPath  string                 `json:"pkgPath"`
-	Items    map[string]interface{} `json:"items"`
+	TypeName string      `json:"typeName"`
+	PkgPath  string      `json:"pkgPath"`
+	Items    []ItemValue `json:"items"`
 }
 
 // GetName get object name
@@ -28,7 +34,7 @@ func (s *ObjectValue) GetPkgPath() string {
 
 // GetObjectValue get object value
 func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
-	ret = &ObjectValue{Items: map[string]interface{}{}}
+	ret = &ObjectValue{Items: []ItemValue{}}
 	objValue := reflect.Indirect(reflect.ValueOf(obj))
 
 	objType := objValue.Type()
@@ -57,7 +63,8 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 					return
 				}
 
-				ret.Items[fieldType.Name] = dtVal
+				item := ItemValue{Name: fieldType.Name, Value: dtVal}
+				ret.Items = append(ret.Items, item)
 			} else {
 				fVal, fErr := GetObjectValue(fieldValue.Interface())
 				if fErr != nil {
@@ -65,7 +72,8 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 					return
 				}
 
-				ret.Items[fieldType.Name] = fVal
+				item := ItemValue{Name: fieldType.Name, Value: fVal}
+				ret.Items = append(ret.Items, item)
 			}
 			continue
 		}
@@ -111,11 +119,13 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 				sliceVal = append(sliceVal, itemVal.Interface())
 			}
 
-			ret.Items[fieldType.Name] = sliceVal
+			item := ItemValue{Name: fieldType.Name, Value: sliceVal}
+			ret.Items = append(ret.Items, item)
 			continue
 		}
 
-		ret.Items[fieldType.Name] = fieldValue.Interface()
+		item := ItemValue{Name: fieldType.Name, Value: fieldValue.Interface()}
+		ret.Items = append(ret.Items, item)
 	}
 
 	return

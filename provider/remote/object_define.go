@@ -80,7 +80,7 @@ func (s *Object) IsPtrModel() (ret bool) {
 
 // Interface Interface
 func (s *Object) Interface() (ret reflect.Value) {
-	val := ObjectValue{TypeName: s.Name, PkgPath: s.PkgPath, Items: map[string]interface{}{}}
+	val := ObjectValue{TypeName: s.Name, PkgPath: s.PkgPath, Items: []ItemValue{}}
 	if s.IsPtr {
 		return reflect.ValueOf(&val)
 	}

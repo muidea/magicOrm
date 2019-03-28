@@ -5,13 +5,13 @@ import (
 	"strings"
 )
 
-// ItemTag ItemTag
-type ItemTag struct {
+// TagImpl TagImpl
+type TagImpl struct {
 	Value string `json:"value"`
 }
 
 // GetName Name
-func (s *ItemTag) GetName() (ret string) {
+func (s *TagImpl) GetName() (ret string) {
 	items := strings.Split(s.Value, " ")
 	ret = items[0]
 
@@ -19,7 +19,7 @@ func (s *ItemTag) GetName() (ret string) {
 }
 
 // IsPrimaryKey IsPrimaryKey
-func (s *ItemTag) IsPrimaryKey() (ret bool) {
+func (s *TagImpl) IsPrimaryKey() (ret bool) {
 	items := strings.Split(s.Value, " ")
 	if len(items) <= 1 {
 		return false
@@ -44,7 +44,7 @@ func (s *ItemTag) IsPrimaryKey() (ret bool) {
 }
 
 // IsAutoIncrement IsAutoIncrement
-func (s *ItemTag) IsAutoIncrement() (ret bool) {
+func (s *TagImpl) IsAutoIncrement() (ret bool) {
 	items := strings.Split(s.Value, " ")
 	if len(items) <= 1 {
 		return false
@@ -68,24 +68,24 @@ func (s *ItemTag) IsAutoIncrement() (ret bool) {
 	return
 }
 
-func (s *ItemTag) String() (ret string) {
+func (s *TagImpl) String() (ret string) {
 	return fmt.Sprintf("name=%s key=%v auto=%v", s.GetName(), s.IsPrimaryKey(), s.IsAutoIncrement())
 }
 
 // Copy Copy
-func (s *ItemTag) Copy() (ret *ItemTag) {
-	return &ItemTag{Value: s.Value}
+func (s *TagImpl) Copy() (ret *TagImpl) {
+	return &TagImpl{Value: s.Value}
 }
 
 // GetTag get Item Value
-func GetTag(tag string) (ret *ItemTag, err error) {
+func GetTag(tag string) (ret *TagImpl, err error) {
 	items := strings.Split(tag, "")
 	if len(items) < 1 {
 		err = fmt.Errorf("illegal tag value")
 		return
 	}
 
-	ret = &ItemTag{Value: tag}
+	ret = &TagImpl{Value: tag}
 
 	return
 }

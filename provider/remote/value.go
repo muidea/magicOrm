@@ -5,13 +5,13 @@ import (
 	"reflect"
 )
 
-// ItemValue ItemValue
-type ItemValue struct {
+// ValueImpl ValueImpl
+type ValueImpl struct {
 	value reflect.Value
 }
 
 // IsNil IsNil
-func (s *ItemValue) IsNil() (ret bool) {
+func (s *ValueImpl) IsNil() (ret bool) {
 	if s.value.Kind() == reflect.Ptr {
 		return s.value.IsNil()
 	}
@@ -22,7 +22,7 @@ func (s *ItemValue) IsNil() (ret bool) {
 }
 
 // Set Set
-func (s *ItemValue) Set(val reflect.Value) (err error) {
+func (s *ValueImpl) Set(val reflect.Value) (err error) {
 	if val.Kind() == reflect.Invalid {
 		err = fmt.Errorf("invalid set value")
 		return
@@ -33,7 +33,7 @@ func (s *ItemValue) Set(val reflect.Value) (err error) {
 }
 
 // Update Update
-func (s *ItemValue) Update(val reflect.Value) (err error) {
+func (s *ValueImpl) Update(val reflect.Value) (err error) {
 	if s.value.Kind() == reflect.Invalid {
 		err = fmt.Errorf("invalid current value")
 		return
@@ -50,15 +50,15 @@ func (s *ItemValue) Update(val reflect.Value) (err error) {
 }
 
 // Get Get
-func (s *ItemValue) Get() (ret reflect.Value) {
+func (s *ValueImpl) Get() (ret reflect.Value) {
 	ret = s.value
 
 	return
 }
 
 // Copy Copy
-func (s *ItemValue) Copy() (ret *ItemValue) {
-	ret = &ItemValue{value: s.value}
+func (s *ValueImpl) Copy() (ret *ValueImpl) {
+	ret = &ValueImpl{value: s.value}
 
 	return
 }

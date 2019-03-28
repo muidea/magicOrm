@@ -3,6 +3,7 @@ package remote
 import (
 	"encoding/json"
 	"log"
+	"reflect"
 	"testing"
 )
 
@@ -32,6 +33,18 @@ func TestSimpleObjValue(t *testing.T) {
 		t.Errorf("marshal obj failed, err:%s", err.Error())
 		return
 	}
+	log.Print(*val)
+
+	objValue := reflect.Indirect(reflect.ValueOf(val))
+	log.Printf("objValue canSet:%v", objValue.CanSet())
+	itemsVal := objValue.FieldByName("Items")
+	log.Printf("itemsVal canSet:%v", itemsVal.CanSet())
+
+	nameVal := itemsVal.Index(0).FieldByName("Value")
+	nameVal.Set(reflect.ValueOf("aabbccdd"))
+
+	log.Print(itemsVal.Interface())
+
 	log.Print(*val)
 }
 

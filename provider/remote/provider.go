@@ -88,30 +88,22 @@ func (s *Provider) GetValueModel(val reflect.Value) (ret model.Model, err error)
 		return
 	}
 
-	itemsMap := map[string]interface{}{}
-	itemsMapVal := reflect.ValueOf(&itemsMap).Elem()
 	objPtr = objPtr.Copy()
 	for idx := range objPtr.Items {
 		item := objPtr.Items[idx]
-		rawVal := itemsVal.MapIndex(reflect.ValueOf(item.GetName()))
-		if !rawVal.IsValid() {
-			continue
-		}
-
-		itemVal := reflect.New(rawVal.Type()).Elem()
-		itemVal.Set(rawVal)
-
-		err = item.SetValue(itemVal)
-		if err != nil {
+		itemVal := itemsVal.Index(idx)
+		itemName := itemVal.FieldByName("Name").String()
+		if item.GetName() != itemName {
+			err = fmt.Errorf("illegal item value, name miss match, item name:%s, value name:%s", item.GetName(), itemName)
 			return
 		}
 
-		itemsMapVal.SetMapIndex(reflect.ValueOf(item.GetName()), itemVal)
-
-		rawVal = itemsMapVal.MapIndex(reflect.ValueOf(item.GetName()))
+		itemValue := itemVal.FieldByName("Value")
+		err = item.SetValue(itemValue)
+		if err != nil {
+			return
+		}
 	}
-
-	itemsVal.Set(itemsMapVal)
 
 	ret = objPtr
 
