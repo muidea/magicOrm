@@ -48,9 +48,13 @@ func (s *TypeImpl) GetType() (ret reflect.Type) {
 	case util.TypeDateTimeField:
 		var val string
 		ret = reflect.TypeOf(val)
-	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField,
-		util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField,
-		util.TypeFloatField, util.TypeDoubleField:
+	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
+		var val int64
+		ret = reflect.TypeOf(val)
+	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
+		var val uint64
+		ret = reflect.TypeOf(val)
+	case util.TypeFloatField, util.TypeDoubleField:
 		var val float64
 		ret = reflect.TypeOf(val)
 	case util.TypeStructField:

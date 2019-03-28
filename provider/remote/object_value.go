@@ -32,6 +32,83 @@ func (s *ObjectValue) GetPkgPath() string {
 	return s.PkgPath
 }
 
+func getItemValue(fieldType *TypeImpl, fieldValue reflect.Value) (ret *ItemValue, err error) {
+	switch fieldType.GetValue() {
+	case util.TypeBooleanField,
+		util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField,
+		util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField,
+		util.TypeFloatField, util.TypeDoubleField,
+		util.TypeStringField:
+		ret = &ItemValue{Name: fieldType.Name, Value: fieldValue.Interface()}
+	case util.TypeDateTimeField:
+		dtVal, dtErr := helper.EncodeDateTimeValue(fieldValue)
+		if dtErr != nil {
+			err = dtErr
+			return
+		}
+		ret = &ItemValue{Name: fieldType.Name, Value: dtVal}
+	case util.TypeStructField:
+		objVal, objErr := GetObjectValue(fieldValue.Interface())
+		if objErr != nil {
+			err = objErr
+			return
+		}
+		ret = &ItemValue{Name: fieldType.Name, Value: objVal}
+	default:
+		err = fmt.Errorf("illegal struct item value")
+	}
+
+	return
+}
+
+func getSliceItemValue(fieldType, itemType *TypeImpl, fieldValue reflect.Value) (ret *ItemValue, err error) {
+	switch fieldType.GetValue() {
+	case util.TypeSliceField:
+		sliceVal := []interface{}{}
+		for idx := 0; idx < fieldValue.Len(); idx++ {
+			itemVal := reflect.Indirect(fieldValue.Index(idx))
+			switch itemType.GetValue() {
+			case util.TypeBooleanField,
+				util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField,
+				util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField,
+				util.TypeFloatField, util.TypeDoubleField,
+				util.TypeStringField:
+				sliceVal = append(sliceVal, itemVal.Interface())
+			case util.TypeDateTimeField:
+				dtVal, dtErr := helper.EncodeDateTimeValue(itemVal)
+				if dtErr != nil {
+					err = dtErr
+					return
+				}
+
+				sliceVal = append(sliceVal, dtVal)
+			case util.TypeStructField:
+				fVal, fErr := GetObjectValue(itemVal)
+				if fErr != nil {
+					err = fErr
+					return
+				}
+
+				sliceVal = append(sliceVal, fVal)
+			case util.TypeSliceField:
+				err = fmt.Errorf("illegal slice item value")
+			default:
+				err = fmt.Errorf("illegal struct item value")
+			}
+
+			if err != nil {
+				return
+			}
+		}
+
+		ret = &ItemValue{Name: fieldType.Name, Value: sliceVal}
+	default:
+		err = fmt.Errorf("illegal struct item value")
+	}
+
+	return
+}
+
 // GetObjectValue get object value
 func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 	ret = &ObjectValue{Items: []ItemValue{}}
@@ -43,89 +120,81 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 
 	fieldNum := objValue.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		fieldType := objType.Field(idx)
-		typeVal := fieldType.Type
-		if typeVal.Kind() == reflect.Ptr {
-			typeVal = typeVal.Elem()
-		}
-		_, tErr := util.GetTypeValueEnum(typeVal)
-		if tErr != nil {
-			err = tErr
+		fieldType, fieldErr := GetType(objType.Field(idx).Type)
+		if fieldErr != nil {
+			err = fieldErr
 			return
 		}
 
-		fieldValue := objValue.Field(idx)
-		if typeVal.Kind() == reflect.Struct {
-			if typeVal.String() == "time.Time" {
-				dtVal, dtErr := helper.EncodeDateTimeValue(fieldValue)
-				if dtErr != nil {
-					err = dtErr
-					return
-				}
-
-				item := ItemValue{Name: fieldType.Name, Value: dtVal}
-				ret.Items = append(ret.Items, item)
-			} else {
-				fVal, fErr := GetObjectValue(fieldValue.Interface())
-				if fErr != nil {
-					err = fErr
-					return
-				}
-
-				item := ItemValue{Name: fieldType.Name, Value: fVal}
-				ret.Items = append(ret.Items, item)
+		fieldValue := reflect.Indirect(objValue.Field(idx))
+		if fieldType.GetValue() != util.TypeSliceField {
+			val, valErr := getItemValue(fieldType, fieldValue)
+			if valErr != nil {
+				err = valErr
+				return
 			}
-			continue
+			ret.Items = append(ret.Items, *val)
+		} else {
+			itemType, itemErr := GetType(objType.Field(idx).Type.Elem())
+			if itemErr != nil {
+				err = itemErr
+				return
+			}
+			val, valErr := getSliceItemValue(fieldType, itemType, fieldValue)
+			if valErr != nil {
+				err = valErr
+				return
+			}
+			ret.Items = append(ret.Items, *val)
+		}
+	}
+
+	return
+}
+
+func convertValue(itemVal *ItemValue, fieldType *TypeImpl) (ret reflect.Value, err error) {
+	return
+}
+
+func convertSliceValue(itemVal *ItemValue, fieldType *TypeImpl) (ret reflect.Value, err error) {
+	return
+}
+
+// UpdateObject update object value
+func UpdateObject(obj interface{}, objectVal *ObjectValue) (err error) {
+	objValue := reflect.Indirect(reflect.ValueOf(obj))
+
+	objType := objValue.Type()
+	if objType.Name() != objectVal.GetName() || objType.PkgPath() != objectVal.GetPkgPath() {
+		err = fmt.Errorf("illegal object value")
+		return
+	}
+
+	fieldNum := objValue.NumField()
+	for idx := 0; idx < fieldNum; idx++ {
+		fieldType, fieldErr := GetType(objType.Field(idx).Type)
+		if fieldErr != nil {
+			err = fieldErr
+			return
 		}
 
-		if typeVal.Kind() == reflect.Slice {
-			sliceVal := []interface{}{}
-			for idx := 0; idx < fieldValue.Len(); idx++ {
-				itemVal := reflect.Indirect(fieldValue.Index(idx))
-				itemType := itemVal.Type()
-				_, tErr := util.GetTypeValueEnum(itemType)
-				if tErr != nil {
-					err = tErr
-					return
-				}
-
-				if itemType.Kind() == reflect.Slice {
-					err = fmt.Errorf("illegal slice item value")
-					return
-				}
-
-				if itemType.Kind() == reflect.Struct {
-					if itemType.String() == "time.Time" {
-						dtVal, dtErr := helper.EncodeDateTimeValue(itemVal)
-						if dtErr != nil {
-							err = dtErr
-							return
-						}
-
-						sliceVal = append(sliceVal, dtVal)
-					} else {
-						fVal, fErr := GetObjectValue(itemVal)
-						if fErr != nil {
-							err = fErr
-							return
-						}
-
-						sliceVal = append(sliceVal, fVal)
-					}
-
-					continue
-				}
-
-				sliceVal = append(sliceVal, itemVal.Interface())
+		fieldValue := reflect.Indirect(objValue.Field(idx))
+		itemValue := objectVal.Items[idx]
+		if fieldType.GetValue() != util.TypeSliceField {
+			val, valErr := convertValue(&itemValue, fieldType)
+			if valErr != nil {
+				err = valErr
+				return
 			}
-
-			item := ItemValue{Name: fieldType.Name, Value: sliceVal}
-			ret.Items = append(ret.Items, item)
-			continue
+			fieldValue.Set(val)
+		} else {
+			val, valErr := convertSliceValue(&itemValue, fieldType)
+			if valErr != nil {
+				err = valErr
+				return
+			}
+			fieldValue.Set(val)
 		}
-
-		item := ItemValue{Name: fieldType.Name, Value: fieldValue.Interface()}
-		ret.Items = append(ret.Items, item)
 	}
 
 	return
