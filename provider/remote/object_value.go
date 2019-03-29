@@ -32,28 +32,28 @@ func (s *ObjectValue) GetPkgPath() string {
 	return s.PkgPath
 }
 
-func getItemValue(fieldType *TypeImpl, fieldValue reflect.Value) (ret *ItemValue, err error) {
+func getItemValue(fieldName string, fieldType *TypeImpl, fieldValue reflect.Value) (ret *ItemValue, err error) {
 	switch fieldType.GetValue() {
 	case util.TypeBooleanField,
 		util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField,
 		util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField,
 		util.TypeFloatField, util.TypeDoubleField,
 		util.TypeStringField:
-		ret = &ItemValue{Name: fieldType.Name, Value: fieldValue.Interface()}
+		ret = &ItemValue{Name: fieldName, Value: fieldValue.Interface()}
 	case util.TypeDateTimeField:
 		dtVal, dtErr := helper.EncodeDateTimeValue(fieldValue)
 		if dtErr != nil {
 			err = dtErr
 			return
 		}
-		ret = &ItemValue{Name: fieldType.Name, Value: dtVal}
+		ret = &ItemValue{Name: fieldName, Value: dtVal}
 	case util.TypeStructField:
 		objVal, objErr := GetObjectValue(fieldValue.Interface())
 		if objErr != nil {
 			err = objErr
 			return
 		}
-		ret = &ItemValue{Name: fieldType.Name, Value: objVal}
+		ret = &ItemValue{Name: fieldName, Value: objVal}
 	default:
 		err = fmt.Errorf("illegal item value")
 	}
@@ -61,7 +61,7 @@ func getItemValue(fieldType *TypeImpl, fieldValue reflect.Value) (ret *ItemValue
 	return
 }
 
-func getSliceItemValue(fieldType, itemType *TypeImpl, fieldValue reflect.Value) (ret *ItemValue, err error) {
+func getSliceItemValue(fieldName string, fieldType, itemType *TypeImpl, fieldValue reflect.Value) (ret *ItemValue, err error) {
 	switch fieldType.GetValue() {
 	case util.TypeSliceField:
 		sliceVal := []interface{}{}
@@ -101,7 +101,7 @@ func getSliceItemValue(fieldType, itemType *TypeImpl, fieldValue reflect.Value) 
 			}
 		}
 
-		ret = &ItemValue{Name: fieldType.Name, Value: sliceVal}
+		ret = &ItemValue{Name: fieldName, Value: sliceVal}
 	default:
 		err = fmt.Errorf("illegal slice item value")
 	}
@@ -120,7 +120,8 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 
 	fieldNum := objValue.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		fieldType, fieldErr := GetType(objType.Field(idx).Type)
+		field := objType.Field(idx)
+		fieldType, fieldErr := GetType(field.Type)
 		if fieldErr != nil {
 			err = fieldErr
 			return
@@ -128,19 +129,19 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 
 		fieldValue := reflect.Indirect(objValue.Field(idx))
 		if fieldType.GetValue() != util.TypeSliceField {
-			val, valErr := getItemValue(fieldType, fieldValue)
+			val, valErr := getItemValue(field.Name, fieldType, fieldValue)
 			if valErr != nil {
 				err = valErr
 				return
 			}
 			ret.Items = append(ret.Items, *val)
 		} else {
-			itemType, itemErr := GetType(objType.Field(idx).Type.Elem())
+			itemType, itemErr := GetType(field.Type.Elem())
 			if itemErr != nil {
 				err = itemErr
 				return
 			}
-			val, valErr := getSliceItemValue(fieldType, itemType, fieldValue)
+			val, valErr := getSliceItemValue(field.Name, fieldType, itemType, fieldValue)
 			if valErr != nil {
 				err = valErr
 				return
@@ -248,7 +249,7 @@ func convertSliceValue(sliceObj interface{}, val *reflect.Value) (err error) {
 }
 
 // UpdateObject update object value
-func UpdateObject(obj interface{}, objectVal *ObjectValue) (err error) {
+func UpdateObject(objectVal *ObjectValue, obj interface{}) (err error) {
 	objValue := reflect.Indirect(reflect.ValueOf(obj))
 
 	objType := objValue.Type()

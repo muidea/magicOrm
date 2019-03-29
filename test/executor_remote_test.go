@@ -76,6 +76,12 @@ func TestRemoteExecutor(t *testing.T) {
 
 	log.Print(*objVal)
 
+	err = remote.UpdateObject(objVal, val)
+	if err != nil {
+		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		return
+	}
+
 	val.Name = "abababa"
 	val.Value = 100.000
 	objVal, objErr = getObjectValue(val)
