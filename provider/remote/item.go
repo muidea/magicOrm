@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/util"
 )
 
@@ -62,51 +61,25 @@ func (s *Item) SetValue(val reflect.Value) (err error) {
 // UpdateValue UpdateValue
 func (s *Item) UpdateValue(val reflect.Value) (err error) {
 	val = reflect.Indirect(val)
-	typeVal, typeErr := util.GetTypeValueEnum(val.Type())
-	if typeErr != nil {
-		err = fmt.Errorf("UpdateValue failed, fieldName:%s,illegal value type,current type:%s, err:%s", s.Name, val.Type().String(), typeErr.Error())
-		return
-	}
-
 	fieldVal := reflect.Indirect(s.Type.Interface())
 	switch s.Type.GetValue() {
 	case util.TypeBooleanField:
-		switch typeVal {
-		case util.TypeBooleanField:
-			fieldVal.Set(val)
-		default:
-			err = fmt.Errorf("UpdateValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
-		}
+		fieldVal.Set(val)
 	case util.TypeStringField:
-		switch typeVal {
-		case util.TypeStringField:
-			fieldVal.SetString(val.String())
-		default:
-			err = fmt.Errorf("UpdateValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
-		}
+		fieldVal.SetString(val.String())
 	case util.TypeDateTimeField:
-		switch typeVal {
-		case util.TypeStringField:
-			_, tmErr := time.ParseInLocation("2006-01-02 15:04:05", val.String(), time.Local)
-			if tmErr != nil {
-				err = tmErr
-			} else {
-				fieldVal.SetString(val.String())
-			}
-		default:
-			err = fmt.Errorf("UpdateValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
+		_, tmErr := time.ParseInLocation("2006-01-02 15:04:05", val.String(), time.Local)
+		if tmErr != nil {
+			err = tmErr
+		} else {
+			fieldVal.SetString(val.String())
 		}
-	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField,
-		util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField,
-		util.TypeFloatField, util.TypeDoubleField:
-		switch typeVal {
-		case util.TypeDoubleField:
-			fieldVal.SetFloat(val.Float())
-		case util.TypeBigIntegerField:
-			fieldVal.SetFloat(float64(val.Int()))
-		default:
-			err = fmt.Errorf("UpdateValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
-		}
+	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
+		fieldVal.SetInt(val.Int())
+	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
+		fieldVal.SetUint(val.Uint())
+	case util.TypeFloatField, util.TypeDoubleField:
+		fieldVal.SetFloat(val.Float())
 	case util.TypeStructField:
 		if val.Type().String() == s.Type.GetType().String() {
 			fieldVal.Set(val)
@@ -114,21 +87,9 @@ func (s *Item) UpdateValue(val reflect.Value) (err error) {
 			err = fmt.Errorf("UpdateValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
 		}
 	case util.TypeSliceField:
-		switch typeVal {
-		case util.TypeStringField:
-			sliceVal, sliceErr := helper.DecodeSliceValue(val.String(), &s.Type)
-			if sliceErr != nil {
-				err = sliceErr
-				return
-			}
-			fieldVal.Set(sliceVal)
-		case util.TypeSliceField:
-			if val.Type().String() == s.Type.GetType().String() {
-				fieldVal.Set(val)
-			} else {
-				err = fmt.Errorf("UpdateValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
-			}
-		default:
+		if val.Type().String() == s.Type.GetType().String() {
+			fieldVal.Set(val)
+		} else {
 			err = fmt.Errorf("UpdateValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
 		}
 	}

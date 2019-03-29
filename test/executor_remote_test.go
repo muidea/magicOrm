@@ -35,7 +35,7 @@ func TestRemoteExecutor(t *testing.T) {
 	defer orm.Uninitialize()
 
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
-	val := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
+	val := &Unit{ID: 10, I8: 1, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
 
 	objDef, objErr := remote.GetObject(val)
 	if objErr != nil {
@@ -82,6 +82,7 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
+	val.I8 = int8(124)
 	val.Name = "abababa"
 	val.Value = 100.000
 	objVal, objErr = getObjectValue(val)

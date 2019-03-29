@@ -2,6 +2,7 @@ package remote
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
@@ -153,8 +154,8 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 	return
 }
 
-func convertStructValue(structObj interface{}, val *reflect.Value) (err error) {
-	objVal, objOK := structObj.(ObjectValue)
+func convertStructValue(structObj reflect.Value, val *reflect.Value) (err error) {
+	objVal, objOK := structObj.Interface().(ObjectValue)
 	if !objOK {
 		err = fmt.Errorf("illegal struct value")
 		return
@@ -170,7 +171,7 @@ func convertStructValue(structObj interface{}, val *reflect.Value) (err error) {
 		}
 
 		fieldValue := reflect.Indirect(val.Field(idx))
-		itemValue := objVal.Items[idx].Value
+		itemValue := reflect.ValueOf(objVal.Items[idx].Value)
 		dependType := fieldType.Elem()
 		if dependType == nil {
 			if fieldType.GetValue() != util.TypeSliceField {
@@ -206,7 +207,7 @@ func convertStructValue(structObj interface{}, val *reflect.Value) (err error) {
 	return
 }
 
-func convertSliceValue(sliceObj interface{}, val *reflect.Value) (err error) {
+func convertSliceValue(sliceObj reflect.Value, val *reflect.Value) (err error) {
 	vType := val.Type().Elem()
 	itemType, itemErr := GetType(vType)
 	if itemErr != nil {
@@ -219,8 +220,8 @@ func convertSliceValue(sliceObj interface{}, val *reflect.Value) (err error) {
 		return
 	}
 
-	sliceVal := sliceObj.([]interface{})
-	for _, v := range sliceVal {
+	for idx := 0; idx < sliceObj.Len(); idx++ {
+		v := sliceObj.Index(idx)
 		iv := reflect.New(vType).Elem()
 
 		dependType := itemType.Elem()
@@ -260,40 +261,46 @@ func UpdateObject(objectVal *ObjectValue, obj interface{}) (err error) {
 
 	fieldNum := objValue.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		fieldType, fieldErr := GetType(objType.Field(idx).Type)
-		if fieldErr != nil {
-			err = fieldErr
+		field := objType.Field(idx)
+		typeImpl, typeErr := GetType(field.Type)
+		if typeErr != nil {
+			err = typeErr
+			log.Printf("Get field typeImpl failed, name:%s, err:%s", field.Name, typeErr.Error())
 			return
 		}
 
 		fieldValue := reflect.Indirect(objValue.Field(idx))
-		itemValue := objectVal.Items[idx].Value
-		dependType := fieldType.Elem()
+		itemValue := reflect.ValueOf(objectVal.Items[idx].Value)
+		dependType := typeImpl.Elem()
 		if dependType == nil {
-			if fieldType.GetValue() != util.TypeSliceField {
+			if typeImpl.GetValue() != util.TypeSliceField {
 				valErr := helper.ConvertValue(itemValue, &fieldValue)
 				if valErr != nil {
 					err = valErr
+					log.Printf("convert field value failed, name:%s, err:%s", field.Name, valErr.Error())
 					return
 				}
 			} else {
 				valErr := helper.ConvertSliceValue(itemValue, &fieldValue)
 				if valErr != nil {
 					err = valErr
+					log.Printf("convert field value failed, name:%s, err:%s", field.Name, valErr.Error())
 					return
 				}
 			}
 		} else {
-			if fieldType.GetValue() != util.TypeSliceField {
+			if typeImpl.GetValue() != util.TypeSliceField {
 				valErr := convertStructValue(itemValue, &fieldValue)
 				if valErr != nil {
 					err = valErr
+					log.Printf("convert field value failed, name:%s, err:%s", field.Name, valErr.Error())
 					return
 				}
 			} else {
 				valErr := convertSliceValue(itemValue, &fieldValue)
 				if valErr != nil {
 					err = valErr
+					log.Printf("convert field value failed, name:%s, err:%s", field.Name, valErr.Error())
 					return
 				}
 			}
