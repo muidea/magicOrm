@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"time"
@@ -90,6 +91,16 @@ func ConvertValue(rawVal reflect.Value, dstVal *reflect.Value) (err error) {
 // ConvertSliceValue convert interface{} slice to reflect.Value
 func ConvertSliceValue(rawVal reflect.Value, dstVal *reflect.Value) (err error) {
 	vType := dstVal.Type().Elem()
+	if rawVal.Kind() == reflect.String {
+		array := []string{}
+		err = json.Unmarshal([]byte(rawVal.String()), &array)
+		if err != nil {
+			return
+		}
+
+		rawVal = reflect.ValueOf(array)
+	}
+
 	for idx := 0; idx < rawVal.Len(); idx++ {
 		v := rawVal.Index(idx)
 		iv := reflect.New(vType).Elem()

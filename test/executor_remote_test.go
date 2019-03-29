@@ -108,6 +108,13 @@ func TestRemoteExecutor(t *testing.T) {
 		t.Errorf("query obj failed, err:%s", err.Error())
 		return
 	}
+
+	err = remote.UpdateObject(objVal2, val2)
+	if err != nil {
+		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		return
+	}
+
 	if val.Name != val2.Name || val.Value != val2.Value {
 		t.Errorf("query obj failed, obj:%v, obj2:%v", val, val2)
 		return

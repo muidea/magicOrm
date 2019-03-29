@@ -1,12 +1,10 @@
 package remote
 
 import (
-	"fmt"
 	"reflect"
-	"time"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
+	"github.com/muidea/magicOrm/provider/helper"
 )
 
 // Item Item
@@ -62,45 +60,17 @@ func (s *Item) SetValue(val reflect.Value) (err error) {
 func (s *Item) UpdateValue(val reflect.Value) (err error) {
 	val = reflect.Indirect(val)
 	fieldVal := reflect.Indirect(s.Type.Interface())
-	switch s.Type.GetValue() {
-	case util.TypeBooleanField:
-		fieldVal.Set(val)
-	case util.TypeStringField:
-		fieldVal.SetString(val.String())
-	case util.TypeDateTimeField:
-		_, tmErr := time.ParseInLocation("2006-01-02 15:04:05", val.String(), time.Local)
-		if tmErr != nil {
-			err = tmErr
-		} else {
-			fieldVal.SetString(val.String())
-		}
-	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
-		fieldVal.SetInt(val.Int())
-	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
-		fieldVal.SetUint(val.Uint())
-	case util.TypeFloatField, util.TypeDoubleField:
-		fieldVal.SetFloat(val.Float())
-	case util.TypeStructField:
-		if val.Type().String() == s.Type.GetType().String() {
-			fieldVal.Set(val)
-		} else {
-			err = fmt.Errorf("UpdateValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
-		}
-	case util.TypeSliceField:
-		if val.Type().String() == s.Type.GetType().String() {
-			fieldVal.Set(val)
-		} else {
-			err = fmt.Errorf("UpdateValue failed, fieldName:%s,illegal value type,current type:%s, expect type:%s", s.Name, val.Type().String(), s.Type.GetType().String())
-		}
+	valErr := helper.ConvertValue(val, &fieldVal)
+	if valErr != nil {
+		err = valErr
+		return
 	}
 
-	if err == nil {
-		if s.Type.IsPtrType() {
-			fieldVal = fieldVal.Addr()
-		}
-
-		err = s.value.Update(fieldVal)
+	if s.Type.IsPtrType() {
+		fieldVal = fieldVal.Addr()
 	}
+
+	err = s.value.Update(fieldVal)
 
 	return
 }
