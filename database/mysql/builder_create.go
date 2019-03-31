@@ -22,10 +22,16 @@ func (s *Builder) BuildCreateSchema() (ret string, err error) {
 			continue
 		}
 
+		infoVal, infoErr := declareFieldInfo(val)
+		if infoErr != nil {
+			err = infoErr
+			return
+		}
+
 		if str == "" {
-			str = fmt.Sprintf("\t%s", declareFieldInfo(val))
+			str = fmt.Sprintf("\t%s", infoVal)
 		} else {
-			str = fmt.Sprintf("%s,\n\t%s", str, declareFieldInfo(val))
+			str = fmt.Sprintf("%s,\n\t%s", str, infoVal)
 		}
 	}
 

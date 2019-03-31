@@ -32,7 +32,7 @@ func verifyModelInfo(modelInfo model.Model) error {
 	return nil
 }
 
-func declareFieldInfo(fieldInfo model.Field) string {
+func declareFieldInfo(fieldInfo model.Field) (ret string, err error) {
 	autoIncrement := ""
 	fTag := fieldInfo.GetTag()
 	if fTag.IsAutoIncrement() {
@@ -45,11 +45,17 @@ func declareFieldInfo(fieldInfo model.Field) string {
 		allowNull = ""
 	}
 
-	str := fmt.Sprintf("`%s` %s %s %s", fTag.GetName(), getFieldType(fieldInfo), allowNull, autoIncrement)
-	return str
+	infoVal, infoErr := getFieldType(fieldInfo)
+	if infoErr != nil {
+		err = infoErr
+		return
+	}
+
+	ret = fmt.Sprintf("`%s` %s %s %s", fTag.GetName(), infoVal, allowNull, autoIncrement)
+	return
 }
 
-func getFieldType(info model.Field) (ret string) {
+func getFieldType(info model.Field) (ret string, err error) {
 	fType := info.GetType()
 	switch fType.GetValue() {
 	case util.TypeBooleanField:
@@ -100,8 +106,7 @@ func getFieldType(info model.Field) (ret string) {
 	case util.TypeSliceField:
 		ret = "TEXT"
 	default:
-		msg := fmt.Sprintf("no support fileType, %d", fType.GetValue())
-		panic(msg)
+		err = fmt.Errorf("no support fileType, name:%s, type:%d", info.GetName(), fType.GetValue())
 	}
 
 	return

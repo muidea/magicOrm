@@ -128,7 +128,7 @@ func TestRemoteExecutor(t *testing.T) {
 }
 
 func TestRemoteDepends(t *testing.T) {
-	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", true)
+	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", false)
 	defer orm.Uninitialize()
 
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
