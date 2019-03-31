@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/util"
 )
 
 //EncodeDateTimeValue get datetime value str
@@ -52,27 +53,16 @@ func EncodeDateTimeValue(val reflect.Value) (ret string, err error) {
 
 // DecodeDateTimeValue decode datetime from string
 func DecodeDateTimeValue(val string, vType model.Type) (ret reflect.Value, err error) {
-	ret = reflect.Indirect(vType.Interface())
-
-	tmVal, tmErr := time.ParseInLocation("2006-01-02 15:04:05", val, time.Local)
-	if tmErr != nil {
-		err = tmErr
+	tVal := vType.GetValue()
+	switch tVal {
+	case util.TypeDateTimeField:
+	default:
+		err = fmt.Errorf("illegal dateTime value type")
 		return
 	}
 
-	switch vType.GetType().Kind() {
-	case reflect.Struct:
-		if vType.GetType().String() != "time.Time" {
-			err = fmt.Errorf("unsupport value type, type:%s", vType.GetType().String())
-			return
-		}
-
-		ret.Set(reflect.ValueOf(tmVal))
-	case reflect.String:
-		ret.SetString(val)
-	default:
-		err = fmt.Errorf("unsupport value type, type:%s", vType.GetType().String())
-	}
+	ret = reflect.Indirect(vType.Interface())
+	err = ConvertValue(reflect.ValueOf(val), &ret)
 
 	if err != nil {
 		if vType.IsPtrType() {

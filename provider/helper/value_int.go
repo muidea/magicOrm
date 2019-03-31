@@ -3,9 +3,9 @@ package helper
 import (
 	"fmt"
 	"reflect"
-	"strconv"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/util"
 )
 
 //EncodeIntValue get int value str
@@ -37,26 +37,16 @@ func EncodeIntValue(val reflect.Value) (ret string, err error) {
 
 // DecodeIntValue decode int from string
 func DecodeIntValue(val string, vType model.Type) (ret reflect.Value, err error) {
-	ret = reflect.Indirect(vType.Interface())
-	switch vType.GetType().Kind() {
-	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int:
-		intVal, intErr := strconv.ParseInt(val, 10, 64)
-		if intErr != nil {
-			err = intErr
-			return
-		}
-		ret.SetInt(intVal)
-	case reflect.Float64:
-		fltVal, fltErr := strconv.ParseFloat(val, 64)
-		if fltErr != nil {
-			err = fltErr
-			return
-		}
-		ret.SetFloat(fltVal)
+	tVal := vType.GetValue()
+	switch tVal {
+	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
 	default:
-		err = fmt.Errorf("unsupport value type, type:%s", vType.GetType().String())
+		err = fmt.Errorf("illegal int value type")
 		return
 	}
+
+	ret = reflect.Indirect(vType.Interface())
+	err = ConvertValue(reflect.ValueOf(val), &ret)
 
 	if err != nil {
 		if vType.IsPtrType() {
@@ -96,26 +86,16 @@ func EncodeUintValue(val reflect.Value) (ret string, err error) {
 
 // DecodeUintValue decode uint from string
 func DecodeUintValue(val string, vType model.Type) (ret reflect.Value, err error) {
-	ret = reflect.Indirect(vType.Interface())
-	switch vType.GetType().Kind() {
-	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint:
-		uintVal, uintErr := strconv.ParseUint(val, 10, 64)
-		if uintErr != nil {
-			err = uintErr
-			return
-		}
-		ret.SetUint(uintVal)
-	case reflect.Float64:
-		fltVal, fltErr := strconv.ParseFloat(val, 64)
-		if fltErr != nil {
-			err = fltErr
-			return
-		}
-		ret.SetFloat(fltVal)
+	tVal := vType.GetValue()
+	switch tVal {
+	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
 	default:
-		err = fmt.Errorf("unsupport value type, type:%s", vType.GetType().String())
+		err = fmt.Errorf("illegal uint value type")
 		return
 	}
+
+	ret = reflect.Indirect(vType.Interface())
+	err = ConvertValue(reflect.ValueOf(val), &ret)
 
 	if err != nil {
 		if vType.IsPtrType() {

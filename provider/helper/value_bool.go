@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/util"
 )
 
 // EncodeBoolValue get bool value str
@@ -37,19 +38,16 @@ func EncodeBoolValue(val reflect.Value) (ret string, err error) {
 
 // DecodeBoolValue decode bool from string
 func DecodeBoolValue(val string, vType model.Type) (ret reflect.Value, err error) {
-	if vType.GetType().Kind() != reflect.Bool {
-		err = fmt.Errorf("unsupport value type, type:%s", vType.GetType().String())
+	tVal := vType.GetValue()
+	switch tVal {
+	case util.TypeBooleanField:
+	default:
+		err = fmt.Errorf("illegal bool value type")
 		return
 	}
 
 	ret = reflect.Indirect(vType.Interface())
-	if val == "1" {
-		ret.SetBool(true)
-	} else if val == "0" {
-		ret.SetBool(false)
-	} else {
-		err = fmt.Errorf("illegal bool value")
-	}
+	err = ConvertValue(reflect.ValueOf(val), &ret)
 
 	if err != nil {
 		if vType.IsPtrType() {

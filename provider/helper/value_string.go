@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/util"
 )
 
 // EncodeStringValue get string value str
@@ -25,13 +26,16 @@ func EncodeStringValue(val reflect.Value) (ret string, err error) {
 
 //DecodeStringValue decode string from string
 func DecodeStringValue(val string, vType model.Type) (ret reflect.Value, err error) {
-	if vType.GetType().Kind() != reflect.String {
-		err = fmt.Errorf("unsupport value type, type:%s", vType.GetType().String())
+	tVal := vType.GetValue()
+	switch tVal {
+	case util.TypeStringField:
+	default:
+		err = fmt.Errorf("illegal string value type")
 		return
 	}
 
 	ret = reflect.Indirect(vType.Interface())
-	ret.SetString(val)
+	err = ConvertValue(reflect.ValueOf(val), &ret)
 
 	if err != nil {
 		if vType.IsPtrType() {
