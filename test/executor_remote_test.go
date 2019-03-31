@@ -135,6 +135,12 @@ func TestRemoteDepends(t *testing.T) {
 	val := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
 	extVal := &ExtUnit{Unit: val}
 
+	objDef, objErr := remote.GetObject(val)
+	if objErr != nil {
+		t.Errorf("GetObject failed, err:%s", objErr.Error())
+		return
+	}
+
 	extObjDef, objErr := remote.GetObject(extVal)
 	if objErr != nil {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
@@ -144,6 +150,18 @@ func TestRemoteDepends(t *testing.T) {
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Drop(objDef)
+	if err != nil {
+		t.Errorf("drop unit failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Create(objDef)
+	if err != nil {
+		t.Errorf("create unit failed, err:%s", err.Error())
 		return
 	}
 

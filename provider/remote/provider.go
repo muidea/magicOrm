@@ -2,6 +2,7 @@ package remote
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
@@ -64,9 +65,6 @@ func (s *Provider) GetObjectModel(obj interface{}) (ret model.Model, err error) 
 	return
 }
 
-var _objVal ObjectValue
-var _referenceType = reflect.TypeOf(_objVal)
-
 // GetValueModel GetValueModel
 func (s *Provider) GetValueModel(val reflect.Value) (ret model.Model, err error) {
 	objImpl, objErr := getValueModel(val, s.modelCache)
@@ -106,6 +104,7 @@ func (s *Provider) GetModelDependValue(vModel model.Model, vValue model.Value) (
 	}
 
 	val := reflect.Indirect(vValue.Get())
+	log.Printf("vModel name:%s, vValue type:%s, val:%v", vModel.GetName(), val.Type().String(), val.Interface())
 	if val.Kind() == reflect.Slice {
 		for idx := 0; idx < val.Len(); idx++ {
 			sliceItem := val.Index(idx)
@@ -122,7 +121,14 @@ func (s *Provider) GetModelDependValue(vModel model.Model, vValue model.Value) (
 
 			ret = append(ret, sliceItem)
 		}
-	} else if val.Kind() == reflect.Struct {
+	} else {
+		objVal, objOK := val.Interface().(ObjectValue)
+		if !objOK {
+			err = fmt.Errorf("illegal model value")
+			return
+		}
+
+		val = reflect.ValueOf(objVal)
 		itemModel, itemErr := s.GetValueModel(val)
 		if itemErr != nil {
 			err = itemErr
@@ -134,9 +140,7 @@ func (s *Provider) GetModelDependValue(vModel model.Model, vValue model.Value) (
 			return
 		}
 
-		ret = append(ret, vValue.Get())
-	} else {
-		err = fmt.Errorf("illegal value type, type:%s", val.Type().String())
+		ret = append(ret, val)
 	}
 
 	return
@@ -146,6 +150,9 @@ func (s *Provider) GetModelDependValue(vModel model.Model, vValue model.Value) (
 func (s *Provider) Reset() {
 	s.modelCache.Reset()
 }
+
+var _objVal ObjectValue
+var _referenceType = reflect.TypeOf(_objVal)
 
 func getValueModel(val reflect.Value, cache Cache) (ret *Object, err error) {
 	val = reflect.Indirect(val)

@@ -43,6 +43,7 @@ func (s *orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 	fDependValue, fDependErr := s.modelProvider.GetModelDependValue(fDependModel, fieldInfo.GetValue())
 	if fDependErr != nil {
 		err = fDependErr
+		log.Printf("GetModelDependValue failed, fieldName:%s", fieldInfo.GetName())
 		return
 	}
 
@@ -92,7 +93,7 @@ func (s *orm) Insert(obj interface{}) (err error) {
 	for _, field := range modelInfo.GetFields() {
 		err = s.insertRelation(modelInfo, field)
 		if err != nil {
-			log.Printf("insertSingle failed, name:%s, field:%s, err:%s", modelInfo.GetName(), field.GetName(), err.Error())
+			log.Printf("insertRelation failed, name:%s, field:%s, err:%s", modelInfo.GetName(), field.GetName(), err.Error())
 			return
 		}
 	}
