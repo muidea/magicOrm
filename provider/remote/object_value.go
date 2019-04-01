@@ -82,13 +82,13 @@ func getSliceItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.
 
 			sliceVal = append(sliceVal, dtVal)
 		case util.TypeStructField:
-			fVal, fErr := GetObjectValue(itemVal)
-			if fErr != nil {
-				err = fErr
+			objVal, objErr := GetObjectValue(itemVal.Interface())
+			if objErr != nil {
+				err = objErr
 				return
 			}
 
-			sliceVal = append(sliceVal, fVal)
+			sliceVal = append(sliceVal, objVal)
 		case util.TypeSliceField:
 			err = fmt.Errorf("illegal slice item type")
 		default:
@@ -343,24 +343,30 @@ func decodeObjectValue(objVal map[string]interface{}) (ret *ObjectValue, err err
 	return
 }
 
-func decodeSliceValue(sliceVal []interface{}) (ret []ItemValue, err error) {
-	ret = []ItemValue{}
+func decodeSliceValue(sliceVal []interface{}) (ret []interface{}, err error) {
 	for _, val := range sliceVal {
 		itemVal, itemOK := val.(map[string]interface{})
-		if !itemOK {
-			err = fmt.Errorf("illegal slice value")
+		if itemOK {
+			item, itemErr := decodeObjectValue(itemVal)
+			if itemErr != nil {
+				err = itemErr
+				log.Printf("decodeObjectValue failed, itemVal:%v", itemVal)
+				return
+			}
+
+			ret = append(ret, *item)
+			continue
+		}
+
+		_, sliceOK := val.([]interface{})
+		if sliceOK {
+			err = fmt.Errorf("illegal slice item value")
 			return
 		}
 
-		item, itemErr := decodeItemValue(itemVal)
-		if itemErr != nil {
-			err = itemErr
-			log.Printf("decodeItemValue failed, itemVal:%v", itemVal)
-			return
-		}
-
-		ret = append(ret, *item)
+		ret = append(ret, val)
 	}
+
 	return
 }
 
