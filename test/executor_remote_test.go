@@ -1,7 +1,6 @@
 package test
 
 import (
-	"log"
 	"testing"
 	"time"
 
@@ -26,9 +25,6 @@ func getObjectValue(val interface{}) (ret *remote.ObjectValue, err error) {
 	if err != nil {
 		return
 	}
-
-	log.Print(*objVal)
-	log.Print(*ret)
 
 	return
 }
@@ -77,8 +73,6 @@ func TestRemoteExecutor(t *testing.T) {
 		t.Errorf("insert obj failed, err:%s", err.Error())
 		return
 	}
-
-	log.Print(*objVal)
 
 	err = remote.UpdateObject(objVal, val)
 	if err != nil {
