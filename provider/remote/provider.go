@@ -2,7 +2,6 @@ package remote
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
@@ -26,7 +25,7 @@ func (s *Provider) GetObjectModel(obj interface{}) (ret model.Model, err error) 
 	if objType.Kind() == reflect.Ptr {
 		objPtr, objOk := obj.(*Object)
 		if !objOk {
-			err = fmt.Errorf("illegal obj type")
+			err = fmt.Errorf("illegal obj type, obj type:%s", objType.String())
 			return
 		}
 
@@ -103,45 +102,53 @@ func (s *Provider) GetModelDependValue(vModel model.Model, vValue model.Value) (
 		return
 	}
 
-	val := reflect.Indirect(vValue.Get())
-	log.Printf("vModel name:%s, vValue type:%s, val:%v", vModel.GetName(), val.Type().String(), val.Interface())
-	if val.Kind() == reflect.Slice {
-		for idx := 0; idx < val.Len(); idx++ {
-			sliceItem := val.Index(idx)
-			itemModel, itemErr := s.GetValueModel(sliceItem)
+	val := reflect.Indirect(vValue.Get()).Interface()
+	sliceVal, sliceOK := val.([]interface{})
+	if sliceOK {
+		for idx := 0; idx < len(sliceVal); idx++ {
+			itemVal, itemOK := sliceVal[idx].(ObjectValue)
+			if !itemOK {
+				err = fmt.Errorf("illegal slice value")
+				return
+			}
+
+			vVal := reflect.ValueOf(itemVal)
+			itemModel, itemErr := s.GetValueModel(vVal)
 			if itemErr != nil {
 				err = itemErr
 				return
 			}
 
 			if itemModel.GetName() != vModel.GetName() || itemModel.GetPkgPath() != vModel.GetPkgPath() {
-				err = fmt.Errorf("illegal slice model value, type:%s", val.Type().String())
+				err = fmt.Errorf("illegal slice model value, item type name:%s, expect type:%s", itemModel.GetName(), vModel.GetName())
 				return
 			}
 
-			ret = append(ret, sliceItem)
-		}
-	} else {
-		objVal, objOK := val.Interface().(ObjectValue)
-		if !objOK {
-			err = fmt.Errorf("illegal model value")
-			return
+			ret = append(ret, vVal)
 		}
 
-		val = reflect.ValueOf(objVal)
-		itemModel, itemErr := s.GetValueModel(val)
-		if itemErr != nil {
-			err = itemErr
-			return
-		}
-
-		if itemModel.GetName() != vModel.GetName() || itemModel.GetPkgPath() != vModel.GetPkgPath() {
-			err = fmt.Errorf("illegal struct model value, type:%s", val.Type().String())
-			return
-		}
-
-		ret = append(ret, val)
+		return
 	}
+
+	objVal, objOK := val.(ObjectValue)
+	if !objOK {
+		err = fmt.Errorf("illegal model value")
+		return
+	}
+
+	vVal := reflect.ValueOf(objVal)
+	itemModel, itemErr := s.GetValueModel(vVal)
+	if itemErr != nil {
+		err = itemErr
+		return
+	}
+
+	if itemModel.GetName() != vModel.GetName() || itemModel.GetPkgPath() != vModel.GetPkgPath() {
+		err = fmt.Errorf("illegal struct value, item type name:%s, expect type:%s", itemModel.GetName(), vModel.GetName())
+		return
+	}
+
+	ret = append(ret, vVal)
 
 	return
 }
@@ -198,6 +205,11 @@ func getValueModel(val reflect.Value, cache Cache) (ret *Object, err error) {
 }
 
 func getTypeMode(vType model.Type, cache Cache) (ret *Object, err error) {
+	depend := vType.Elem()
+	if depend != nil {
+		vType = depend
+	}
+
 	objPtr := cache.Fetch(vType.GetName())
 	if objPtr == nil {
 		return

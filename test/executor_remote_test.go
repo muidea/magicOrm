@@ -212,7 +212,7 @@ func TestRemoteDepends(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Create(ext2ObjVal)
+	err = o1.Create(ext2ObjDef)
 	if err != nil {
 		t.Errorf("create ext2 failed, err:%s", err.Error())
 		return
