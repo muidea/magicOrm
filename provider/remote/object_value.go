@@ -1,6 +1,7 @@
 package remote
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"reflect"
@@ -32,8 +33,8 @@ func (s *ObjectValue) GetPkgPath() string {
 	return s.PkgPath
 }
 
-func getItemValue(fieldName string, fieldType *TypeImpl, fieldValue reflect.Value) (ret *ItemValue, err error) {
-	switch fieldType.GetValue() {
+func getItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.Value) (ret *ItemValue, err error) {
+	switch itemType.GetValue() {
 	case util.TypeBooleanField,
 		util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField,
 		util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField,
@@ -148,23 +149,23 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 	return
 }
 
-func convertStructValue(structObj reflect.Value, val *reflect.Value) (err error) {
+func convertStructValue(structObj reflect.Value, structVal *reflect.Value) (err error) {
 	objVal, objOK := structObj.Interface().(ObjectValue)
 	if !objOK {
-		err = fmt.Errorf("illegal struct value")
+		err = fmt.Errorf("illegal struct value, value type:%s", structObj.Type().String())
 		return
 	}
 
-	valType := val.Type()
-	fieldNum := val.NumField()
+	structType := structVal.Type()
+	fieldNum := structVal.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		fieldType, fieldErr := GetType(valType.Field(idx).Type)
+		fieldType, fieldErr := GetType(structType.Field(idx).Type)
 		if fieldErr != nil {
 			err = fieldErr
 			return
 		}
 
-		fieldValue := reflect.Indirect(val.Field(idx))
+		fieldValue := reflect.Indirect(structVal.Field(idx))
 		itemValue := reflect.ValueOf(objVal.Items[idx].Value)
 		dependType := fieldType.Elem()
 		if dependType == nil {
@@ -201,8 +202,8 @@ func convertStructValue(structObj reflect.Value, val *reflect.Value) (err error)
 	return
 }
 
-func convertSliceValue(sliceObj reflect.Value, val *reflect.Value) (err error) {
-	vType := val.Type().Elem()
+func convertSliceValue(sliceObj reflect.Value, sliceVal *reflect.Value) (err error) {
+	vType := sliceVal.Type().Elem()
 	itemType, itemErr := GetType(vType)
 	if itemErr != nil {
 		err = itemErr
@@ -215,18 +216,18 @@ func convertSliceValue(sliceObj reflect.Value, val *reflect.Value) (err error) {
 	}
 
 	for idx := 0; idx < sliceObj.Len(); idx++ {
-		v := sliceObj.Index(idx)
-		iv := reflect.New(vType).Elem()
+		itemObj := sliceObj.Index(idx)
+		itemVal := reflect.New(vType).Elem()
 
 		dependType := itemType.Elem()
 		if dependType != nil {
-			valErr := convertStructValue(v, &iv)
+			valErr := convertStructValue(itemObj, &itemVal)
 			if valErr != nil {
 				err = valErr
 				return
 			}
 		} else {
-			valErr := helper.ConvertValue(v, &iv)
+			valErr := helper.ConvertValue(itemObj, &itemVal)
 			if valErr != nil {
 				err = valErr
 				return
@@ -234,16 +235,16 @@ func convertSliceValue(sliceObj reflect.Value, val *reflect.Value) (err error) {
 		}
 
 		if itemType.IsPtrType() {
-			iv = iv.Addr()
+			itemVal = itemVal.Addr()
 		}
 
-		*val = reflect.Append(*val, iv)
+		*sliceVal = reflect.Append(*sliceVal, itemVal)
 	}
 
 	return
 }
 
-// UpdateObject update object value
+// UpdateObject update object value -> obj
 func UpdateObject(objectVal *ObjectValue, obj interface{}) (err error) {
 	objValue := reflect.Indirect(reflect.ValueOf(obj))
 
@@ -300,6 +301,134 @@ func UpdateObject(objectVal *ObjectValue, obj interface{}) (err error) {
 			}
 		}
 	}
+
+	return
+}
+
+// EncodeObjectValue encode objectValue
+func EncodeObjectValue(objVal *ObjectValue) (ret []byte, err error) {
+	ret, err = json.Marshal(objVal)
+	return
+}
+
+func decodeObjectValue(objVal map[string]interface{}) (ret *ObjectValue, err error) {
+	nameVal, nameOK := objVal["typeName"]
+	pkgPathVal, pkgPathOK := objVal["pkgPath"]
+	itemsVal, itemsOK := objVal["items"]
+	if !nameOK || !pkgPathOK || !itemsOK {
+		err = fmt.Errorf("illegal ObjectValue")
+		return
+	}
+
+	ret = &ObjectValue{TypeName: nameVal.(string), PkgPath: pkgPathVal.(string), Items: []ItemValue{}}
+
+	for _, val := range itemsVal.([]interface{}) {
+		item, itemOK := val.(map[string]interface{})
+		if !itemOK {
+			err = fmt.Errorf("illegal object field item value")
+			ret = nil
+			return
+		}
+
+		itemVal, itemErr := decodeItemValue(item)
+		if itemErr != nil {
+			err = itemErr
+			ret = nil
+			return
+		}
+
+		ret.Items = append(ret.Items, *itemVal)
+	}
+
+	return
+}
+
+func decodeSliceValue(sliceVal []interface{}) (ret []ItemValue, err error) {
+	ret = []ItemValue{}
+	for _, val := range sliceVal {
+		itemVal, itemOK := val.(map[string]interface{})
+		if !itemOK {
+			err = fmt.Errorf("illegal slice value")
+			return
+		}
+
+		item, itemErr := decodeItemValue(itemVal)
+		if itemErr != nil {
+			err = itemErr
+			log.Printf("decodeItemValue failed, itemVal:%v", itemVal)
+			return
+		}
+
+		ret = append(ret, *item)
+	}
+	return
+}
+
+func decodeItemValue(itemVal map[string]interface{}) (ret *ItemValue, err error) {
+	nameVal, nameOK := itemVal["name"]
+	valVal, valOK := itemVal["value"]
+	if !nameOK || !valOK {
+		err = fmt.Errorf("illegal item value")
+	}
+
+	ret = &ItemValue{Name: nameVal.(string), Value: valVal}
+	ret, err = decodeItem(ret)
+	return
+}
+
+func decodeItem(val *ItemValue) (ret *ItemValue, err error) {
+	objVal, objOK := val.Value.(map[string]interface{})
+	if objOK {
+		ret = &ItemValue{Name: val.Name}
+
+		oVal, oErr := decodeObjectValue(objVal)
+		if oErr != nil {
+			err = oErr
+			return
+		}
+
+		ret.Value = *oVal
+		return
+	}
+
+	sliceVal, sliceOK := val.Value.([]interface{})
+	if sliceOK {
+		ret = &ItemValue{Name: val.Name}
+		sVal, sErr := decodeSliceValue(sliceVal)
+		if sErr != nil {
+			err = sErr
+			return
+		}
+
+		ret.Value = sVal
+		return
+	}
+
+	ret = val
+	return
+}
+
+// DecodeObjectValue decode objectValue
+func DecodeObjectValue(data []byte) (ret *ObjectValue, err error) {
+	val := &ObjectValue{}
+	err = json.Unmarshal(data, val)
+	if err != nil {
+		return
+	}
+
+	for idx := range val.Items {
+		cur := &val.Items[idx]
+
+		item, itemErr := decodeItem(cur)
+		if itemErr != nil {
+			err = itemErr
+			return
+		}
+
+		cur.Value = item.Value
+	}
+
+	ret = val
 
 	return
 }

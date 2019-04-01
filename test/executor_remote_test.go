@@ -1,7 +1,6 @@
 package test
 
 import (
-	"encoding/json"
 	"log"
 	"testing"
 	"time"
@@ -17,14 +16,19 @@ func getObjectValue(val interface{}) (ret *remote.ObjectValue, err error) {
 		return
 	}
 
-	data, dataErr := json.Marshal(objVal)
+	data, dataErr := remote.EncodeObjectValue(objVal)
 	if dataErr != nil {
 		err = dataErr
 		return
 	}
 
-	ret = &remote.ObjectValue{}
-	err = json.Unmarshal(data, ret)
+	ret, err = remote.DecodeObjectValue(data)
+	if err != nil {
+		return
+	}
+
+	log.Print(*objVal)
+	log.Print(*ret)
 
 	return
 }

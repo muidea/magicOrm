@@ -151,13 +151,13 @@ func (s *Provider) Reset() {
 	s.modelCache.Reset()
 }
 
-var _objVal ObjectValue
-var _referenceType = reflect.TypeOf(_objVal)
+var _referenceVal ObjectValue
+var _referenceType = reflect.TypeOf(_referenceVal)
 
 func getValueModel(val reflect.Value, cache Cache) (ret *Object, err error) {
 	val = reflect.Indirect(val)
 	if val.Type().String() != _referenceType.String() {
-		err = fmt.Errorf("illegal model value")
+		err = fmt.Errorf("illegal model value, value type:%s", val.Type().String())
 		return
 	}
 
@@ -209,6 +209,8 @@ func getTypeMode(vType model.Type, cache Cache) (ret *Object, err error) {
 	}
 
 	ret = objPtr.Copy()
+	ret.IsPtr = vType.IsPtrType()
+
 	return
 }
 
