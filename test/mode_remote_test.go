@@ -89,6 +89,11 @@ func TestRemoteGroup(t *testing.T) {
 		t.Errorf("insert Group2 failed, err:%s", err.Error())
 		return
 	}
+	err = remote.UpdateObject(group2Val, group2)
+	if err != nil {
+		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		return
+	}
 
 	group3.Parent = group1
 	group3Val, objErr := getObjectValue(group3)
@@ -151,6 +156,9 @@ func TestRemoteUser(t *testing.T) {
 	group1 := &Group{Name: "testGroup1"}
 	group2 := &Group{Name: "testGroup2"}
 	group3 := &Group{Name: "testGroup3"}
+
+	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", true)
+	defer orm.Uninitialize()
 
 	o1, err := orm.New()
 	defer o1.Release()
@@ -266,6 +274,9 @@ func TestRemoteUser(t *testing.T) {
 }
 
 func TestRemoteSystem(t *testing.T) {
+	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", true)
+	defer orm.Uninitialize()
+
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
@@ -360,6 +371,9 @@ func TestRemoteSystem(t *testing.T) {
 }
 
 func TestRemoteBatchQuery(t *testing.T) {
+	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", true)
+	defer orm.Uninitialize()
+
 	group1 := &Group{Name: "testGroup1"}
 	group2 := &Group{Name: "testGroup2"}
 

@@ -81,6 +81,9 @@ func TestLocalGroup(t *testing.T) {
 }
 
 func TestLocalUser(t *testing.T) {
+	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", true)
+	defer orm.Uninitialize()
+
 	group1 := &Group{Name: "testGroup1"}
 	group2 := &Group{Name: "testGroup2"}
 	group3 := &Group{Name: "testGroup3"}
@@ -199,6 +202,9 @@ func TestLocalUser(t *testing.T) {
 }
 
 func TestLoalSystem(t *testing.T) {
+	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", true)
+	defer orm.Uninitialize()
+
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
@@ -293,6 +299,9 @@ func TestLoalSystem(t *testing.T) {
 }
 
 func TestLocalBatchQuery(t *testing.T) {
+	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", true)
+	defer orm.Uninitialize()
+
 	group1 := &Group{Name: "testGroup1"}
 	group2 := &Group{Name: "testGroup2"}
 

@@ -43,7 +43,7 @@ func Initialize(user, password, address, dbName string, localProvider bool) erro
 
 // Uninitialize Uninitialize orm
 func Uninitialize() {
-
+	_config = nil
 }
 
 // NewFilter create new filter
