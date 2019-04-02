@@ -5,16 +5,29 @@ import (
 
 	"github.com/muidea/magicCommon/foundation/util"
 	orm "github.com/muidea/magicOrm"
+	"github.com/muidea/magicOrm/provider/remote"
 )
 
 func TestRemoteGroup(t *testing.T) {
 	//orm.Initialize("root", "rootkit", "localhost:9696", "testdb")
-	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", true)
+	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", false)
 	defer orm.Uninitialize()
 
+	user1 := &User{}
+	userDef, objErr := remote.GetObject(user1)
+	if objErr != nil {
+		t.Errorf("GetObject failed, err:%s", objErr.Error())
+		return
+	}
 	group1 := &Group{Name: "testGroup1"}
 	group2 := &Group{Name: "testGroup2"}
 	group3 := &Group{Name: "testGroup3"}
+
+	groupDef, objErr := remote.GetObject(group1)
+	if objErr != nil {
+		t.Errorf("GetObject failed, err:%s", objErr.Error())
+		return
+	}
 
 	o1, err := orm.New()
 	defer o1.Release()
@@ -23,58 +36,112 @@ func TestRemoteGroup(t *testing.T) {
 		return
 	}
 
-	err = o1.Drop(group1)
+	err = o1.Drop(userDef)
+	if err != nil {
+		t.Errorf("drop user failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Create(userDef)
+	if err != nil {
+		t.Errorf("create user failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Drop(groupDef)
 	if err != nil {
 		t.Errorf("drop group failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(group1)
+	err = o1.Create(groupDef)
 	if err != nil {
 		t.Errorf("create group failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(group1)
+	group1Val, objErr := getObjectValue(group1)
+	if objErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+
+	err = o1.Insert(group1Val)
 	if err != nil {
 		t.Errorf("insert Group1 failed, err:%s", err.Error())
 		return
 	}
 
+	err = remote.UpdateObject(group1Val, group1)
+	if err != nil {
+		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		return
+	}
+
 	group2.Parent = group1
-	err = o1.Insert(group2)
+	group2Val, objErr := getObjectValue(group2)
+	if objErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+	err = o1.Insert(group2Val)
 	if err != nil {
 		t.Errorf("insert Group2 failed, err:%s", err.Error())
 		return
 	}
 
 	group3.Parent = group1
-	err = o1.Insert(group3)
+	group3Val, objErr := getObjectValue(group3)
+	if objErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+	err = o1.Insert(group3Val)
 	if err != nil {
 		t.Errorf("insert Group3 failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Delete(group3)
+	err = remote.UpdateObject(group3Val, group3)
+	if err != nil {
+		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		return
+	}
+	err = o1.Delete(group3Val)
 	if err != nil {
 		t.Errorf("delete Group3 failed, err:%s", err.Error())
 		return
 	}
 
 	group4 := &Group{ID: group2.ID, Parent: &Group{}}
-	err = o1.Query(group4)
+	group4Val, objErr := getObjectValue(group4)
+	if objErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+	err = o1.Query(group4Val)
 	if err != nil {
 		t.Errorf("query Group4 failed, err:%s", err.Error())
 		return
 	}
 
 	group5 := &Group{ID: group2.ID, Parent: &Group{}}
-	err = o1.Query(group5)
+	group5Val, objErr := getObjectValue(group5)
+	if objErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+	err = o1.Query(group5Val)
 	if err != nil {
 		t.Errorf("query Group5 failed, err:%s", err.Error())
 		return
 	}
 
+	err = remote.UpdateObject(group5Val, group5)
+	if err != nil {
+		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		return
+	}
 	if !group5.Equle(group2) {
 		t.Errorf("query Group5 failed")
 	}

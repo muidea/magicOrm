@@ -130,7 +130,7 @@ func type2Object(objType reflect.Type) (ret *Object, err error) {
 	}
 
 	ret = &Object{}
-	ret.Name = objType.Name()
+	ret.Name = objType.String()
 	ret.PkgPath = objType.PkgPath()
 	ret.IsPtr = objPtr
 	ret.Items = []*Item{}

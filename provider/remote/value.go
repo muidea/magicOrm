@@ -12,11 +12,8 @@ type ValueImpl struct {
 
 // IsNil IsNil
 func (s *ValueImpl) IsNil() (ret bool) {
-	if s.value.Kind() == reflect.Ptr {
-		return s.value.IsNil()
-	}
-
-	ret = s.value.Kind() == reflect.Invalid
+	val := reflect.Indirect(s.value)
+	ret = val.IsNil()
 
 	return
 }

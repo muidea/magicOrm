@@ -43,7 +43,7 @@ func (s *orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 	fDependValue, fDependErr := s.modelProvider.GetModelDependValue(fDependModel, fieldInfo.GetValue())
 	if fDependErr != nil {
 		err = fDependErr
-		log.Printf("GetModelDependValue failed, fieldName:%s", fieldInfo.GetName())
+		log.Printf("GetModelDependValue failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
 		return
 	}
 
