@@ -23,12 +23,7 @@ func newValue(val reflect.Value) (ret *valueImpl, err error) {
 }
 
 func (s *valueImpl) IsNil() (ret bool) {
-	if s.valueImpl.Kind() == reflect.Ptr {
-		return s.valueImpl.IsNil()
-	}
-
-	ret = s.valueImpl.Kind() == reflect.Invalid
-
+	ret = util.IsNil(s.valueImpl)
 	return
 }
 

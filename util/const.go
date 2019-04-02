@@ -156,3 +156,25 @@ func GetSliceRawTypeEnum(sliceType reflect.Type) (ret int, err error) {
 
 	return
 }
+
+// IsNil check value if nil
+func IsNil(val reflect.Value) (ret bool) {
+	if val.Kind() == reflect.Ptr {
+		ret = val.IsNil()
+		return
+	}
+
+	val = reflect.Indirect(val)
+	switch val.Kind() {
+	case reflect.Interface:
+		ret = val.IsNil()
+	case reflect.Slice, reflect.Map:
+		ret = false
+	case reflect.Invalid:
+		ret = true
+	default:
+		ret = false
+	}
+
+	return
+}

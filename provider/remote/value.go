@@ -3,6 +3,8 @@ package remote
 import (
 	"fmt"
 	"reflect"
+
+	"github.com/muidea/magicOrm/util"
 )
 
 // ValueImpl ValueImpl
@@ -12,8 +14,7 @@ type ValueImpl struct {
 
 // IsNil IsNil
 func (s *ValueImpl) IsNil() (ret bool) {
-	val := reflect.Indirect(s.value)
-	ret = val.IsNil()
+	ret = util.IsNil(s.value)
 
 	return
 }
