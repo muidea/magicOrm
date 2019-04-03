@@ -1,6 +1,7 @@
 package test
 
 import (
+	"log"
 	"testing"
 
 	"github.com/muidea/magicCommon/foundation/util"
@@ -376,6 +377,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 
 	group1 := &Group{Name: "testGroup1"}
 	group2 := &Group{Name: "testGroup2"}
+	group3 := &Group{Name: "testGroup3"}
 
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
@@ -410,6 +412,12 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
+	err = o1.Insert(group3)
+	if err != nil {
+		t.Errorf("insert group failed, err:%s", err.Error())
+		return
+	}
+
 	user1.Group = append(user1.Group, group1)
 	user1.Group = append(user1.Group, group2)
 
@@ -431,6 +439,8 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
+	user2.Group = append(user2.Group, group1)
+	user2.Group = append(user2.Group, group3)
 	err = o1.Insert(user2)
 	if err != nil {
 		t.Errorf("insert user failed, err:%s", err.Error())
@@ -466,4 +476,11 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("filter query user failed")
 		return
 	}
+
+	gs := []*Group{group1}
+	filter2 := orm.NewFilter()
+	filter2.In("Group", gs)
+	userList = []User{}
+	err = o1.BatchQuery(&userList, filter2)
+	log.Print(userList)
 }

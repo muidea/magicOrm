@@ -32,35 +32,63 @@ func NewBuilder(modelInfo model.Model, modelProvider provider.Provider) Builder 
 
 // EquleOpr EquleOpr
 func EquleOpr(name string, val string) string {
+	if val == "" {
+		return ""
+	}
+
 	return mysql.EquleOpr(name, val)
 }
 
 // NotEquleOpr NotEquleOpr
 func NotEquleOpr(name string, val string) string {
+	if val == "" {
+		return ""
+	}
+
 	return mysql.NotEquleOpr(name, val)
 }
 
 // BelowOpr BelowOpr
 func BelowOpr(name string, val string) string {
+	if val == "" {
+		return ""
+	}
+
 	return mysql.BelowOpr(name, val)
 }
 
 // AboveOpr AboveOpr
 func AboveOpr(name string, val string) string {
+	if val == "" {
+		return ""
+	}
+
 	return mysql.AboveOpr(name, val)
 }
 
 // InOpr InOpr
 func InOpr(name string, val string) string {
+	if val == "" {
+		return ""
+	}
+
 	return mysql.InOpr(name, val)
 }
 
 // NotInOpr NotInOpr
 func NotInOpr(name string, val string) string {
+	if val == "" {
+		return ""
+	}
+
 	return mysql.NotInOpr(name, val)
 }
 
 // LikeOpr LikeOpr
 func LikeOpr(name string, val string) string {
+	if val == "" {
+		return ""
+	}
+
 	return mysql.LikeOpr(name, val)
 }

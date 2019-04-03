@@ -277,8 +277,10 @@ func (s *queryFilter) In(key string, val interface{}) (err error) {
 		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
 		return
 	}
+	if qv.Len() > 0 {
+		s.params[key] = &filterItem{filterFun: builder.InOpr, value: qv, modelProvider: s.modelProvider}
+	}
 
-	s.params[key] = &filterItem{filterFun: builder.InOpr, value: qv, modelProvider: s.modelProvider}
 	return
 }
 

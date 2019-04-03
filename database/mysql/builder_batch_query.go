@@ -90,7 +90,11 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 		fTag := s.modelInfo.GetPrimaryField().GetTag()
 		relationFilterSQL = fmt.Sprintf("`%s` IN (SELECT DISTINCT(`id`) FROM (%s) ids)", fTag.GetName(), relationFilterSQL)
 
-		ret = fmt.Sprintf("%s AND %s", filterSQL, relationFilterSQL)
+		if filterSQL == "" {
+			ret = fmt.Sprintf("%s", relationFilterSQL)
+		} else {
+			ret = fmt.Sprintf("%s AND %s", filterSQL, relationFilterSQL)
+		}
 	}
 
 	limit, offset, paging := filter.Pagination()
