@@ -11,11 +11,11 @@ import (
 
 // TypeImpl TypeImpl
 type TypeImpl struct {
-	Name    string    `json:"name"`
-	Value   int       `json:"value"`
-	PkgPath string    `json:"pkgPath"`
-	IsPtr   bool      `json:"isPtr"`
-	Depend  *TypeImpl `json:"depend"`
+	Name       string    `json:"name"`
+	Value      int       `json:"value"`
+	PkgPath    string    `json:"pkgPath"`
+	IsPtr      bool      `json:"isPtr"`
+	DependType *TypeImpl `json:"depend"`
 }
 
 // GetName GetName
@@ -61,7 +61,7 @@ func (s *TypeImpl) GetType() (ret reflect.Type) {
 		var val ObjectValue
 		ret = reflect.TypeOf(val)
 	case util.TypeSliceField:
-		if s.Depend == nil {
+		if s.DependType == nil {
 			var val []interface{}
 			ret = reflect.TypeOf(val)
 		} else {
@@ -92,10 +92,19 @@ func (s *TypeImpl) Interface() reflect.Value {
 	return val
 }
 
-// Elem GetDepend
+// Depend get depend type
+func (s *TypeImpl) Depend() model.Type {
+	if s.DependType != nil {
+		return s.DependType
+	}
+
+	return nil
+}
+
+// Elem get slice element type
 func (s *TypeImpl) Elem() model.Type {
-	if s.Depend != nil {
-		return s.Depend
+	if s.Value == util.TypeSliceField {
+		return s.DependType
 	}
 
 	return nil
@@ -107,7 +116,7 @@ func (s *TypeImpl) String() (ret string) {
 
 // Copy Copy
 func (s *TypeImpl) Copy() (ret *TypeImpl) {
-	ret = &TypeImpl{Name: s.Name, Value: s.Value, PkgPath: s.PkgPath, IsPtr: s.IsPtr, Depend: s.Depend}
+	ret = &TypeImpl{Name: s.Name, Value: s.Value, PkgPath: s.PkgPath, IsPtr: s.IsPtr, DependType: s.DependType}
 	return
 }
 
@@ -128,7 +137,7 @@ func GetType(itemType reflect.Type) (ret *TypeImpl, err error) {
 	ret = &TypeImpl{Name: itemType.String(), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
 
 	if util.IsStructType(typeVal) {
-		ret.Depend = &TypeImpl{Name: itemType.String(), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
+		ret.DependType = &TypeImpl{Name: itemType.String(), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
 		return
 	}
 
@@ -150,7 +159,7 @@ func GetType(itemType reflect.Type) (ret *TypeImpl, err error) {
 		}
 
 		if util.IsStructType(typeVal) {
-			ret.Depend = &TypeImpl{Name: sliceType.String(), Value: typeVal, PkgPath: sliceType.PkgPath(), IsPtr: slicePtr}
+			ret.DependType = &TypeImpl{Name: sliceType.String(), Value: typeVal, PkgPath: sliceType.PkgPath(), IsPtr: slicePtr}
 		}
 
 		return

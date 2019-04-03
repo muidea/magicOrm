@@ -75,6 +75,20 @@ func (s *typeImpl) Interface() reflect.Value {
 	return val
 }
 
+func (s *typeImpl) Depend() (ret model.Type) {
+	tVal := s.GetValue()
+	switch tVal {
+	case util.TypeSliceField:
+		ret = s.Elem()
+	case util.TypeStructField:
+		ret = s.Copy()
+	default:
+		ret = nil
+	}
+
+	return
+}
+
 func (s *typeImpl) Elem() model.Type {
 	tVal := s.GetType()
 	if tVal.Kind() == reflect.Slice {

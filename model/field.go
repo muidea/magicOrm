@@ -7,13 +7,21 @@ import (
 
 // Field Field
 type Field interface {
+	// Index
 	GetIndex() int
+	// Name
 	GetName() string
+	// Type
 	GetType() Type
+	// Tag
 	GetTag() Tag
+	// Value
 	GetValue() Value
+	// 是否主键
 	IsPrimary() bool
+	// 设置值
 	SetValue(val reflect.Value) error
+	// 更新值
 	UpdateValue(val reflect.Value) error
 }
 

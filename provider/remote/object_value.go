@@ -291,7 +291,7 @@ func UpdateObject(objectVal *ObjectValue, obj interface{}) (err error) {
 		fieldValue := reflect.Indirect(objValue.Field(idx))
 		itemValue := reflect.ValueOf(objectVal.Items[idx].Value)
 
-		dependType := typeImpl.Elem()
+		dependType := typeImpl.Depend()
 		if dependType == nil {
 			if typeImpl.GetValue() != util.TypeSliceField {
 				valErr := helper.ConvertValue(itemValue, &fieldValue)
