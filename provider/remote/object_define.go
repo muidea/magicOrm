@@ -105,11 +105,6 @@ func (s *Object) Copy() (ret *Object) {
 	return
 }
 
-// Dump Dump
-func (s *Object) Dump() {
-
-}
-
 // GetObject GetObject
 func GetObject(obj interface{}) (ret *Object, err error) {
 	objType := reflect.ValueOf(obj).Type()
