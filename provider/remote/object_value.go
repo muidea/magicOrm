@@ -34,7 +34,7 @@ func (s *ObjectValue) GetPkgPath() string {
 }
 
 func getItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.Value) (ret *ItemValue, err error) {
-	if !fieldValue.IsValid() {
+	if util.IsNil(fieldValue) {
 		ret = &ItemValue{Name: fieldName}
 		return
 	}
@@ -69,45 +69,48 @@ func getItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.Value
 
 func getSliceItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.Value) (ret *ItemValue, err error) {
 	sliceVal := []interface{}{}
-	if fieldValue.IsValid() {
-		for idx := 0; idx < fieldValue.Len(); idx++ {
-			itemVal := reflect.Indirect(fieldValue.Index(idx))
-			switch itemType.GetValue() {
-			case util.TypeBooleanField,
-				util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField,
-				util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField,
-				util.TypeFloatField, util.TypeDoubleField,
-				util.TypeStringField:
-				sliceVal = append(sliceVal, itemVal.Interface())
-			case util.TypeDateTimeField:
-				dtVal, dtErr := helper.EncodeDateTimeValue(itemVal)
-				if dtErr != nil {
-					err = dtErr
-					return
-				}
+	ret = &ItemValue{Name: fieldName}
+	if util.IsNil(fieldValue) {
+		return
+	}
 
-				sliceVal = append(sliceVal, dtVal)
-			case util.TypeStructField:
-				objVal, objErr := GetObjectValue(itemVal.Interface())
-				if objErr != nil {
-					err = objErr
-					return
-				}
-
-				sliceVal = append(sliceVal, objVal)
-			case util.TypeSliceField:
-				err = fmt.Errorf("illegal slice item type")
-			default:
-				err = fmt.Errorf("illegal slice item type")
-			}
-
-			if err != nil {
+	for idx := 0; idx < fieldValue.Len(); idx++ {
+		itemVal := reflect.Indirect(fieldValue.Index(idx))
+		switch itemType.GetValue() {
+		case util.TypeBooleanField,
+			util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField,
+			util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField,
+			util.TypeFloatField, util.TypeDoubleField,
+			util.TypeStringField:
+			sliceVal = append(sliceVal, itemVal.Interface())
+		case util.TypeDateTimeField:
+			dtVal, dtErr := helper.EncodeDateTimeValue(itemVal)
+			if dtErr != nil {
+				err = dtErr
 				return
 			}
+
+			sliceVal = append(sliceVal, dtVal)
+		case util.TypeStructField:
+			objVal, objErr := GetObjectValue(itemVal.Interface())
+			if objErr != nil {
+				err = objErr
+				return
+			}
+
+			sliceVal = append(sliceVal, objVal)
+		case util.TypeSliceField:
+			err = fmt.Errorf("illegal slice item type")
+		default:
+			err = fmt.Errorf("illegal slice item type")
+		}
+
+		if err != nil {
+			return
 		}
 	}
 
-	ret = &ItemValue{Name: fieldName, Value: sliceVal}
+	ret.Value = sliceVal
 
 	return
 }
@@ -157,7 +160,7 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 }
 
 func convertStructValue(structObj reflect.Value, structVal *reflect.Value) (err error) {
-	if !structObj.IsValid() {
+	if util.IsNil(structObj) || util.IsNil(*structVal) {
 		return
 	}
 
@@ -214,7 +217,7 @@ func convertStructValue(structObj reflect.Value, structVal *reflect.Value) (err 
 }
 
 func convertSliceValue(sliceObj reflect.Value, sliceVal *reflect.Value) (err error) {
-	if !sliceVal.IsValid() {
+	if util.IsNil(sliceObj) || util.IsNil(*sliceVal) {
 		return
 	}
 

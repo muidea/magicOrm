@@ -5,10 +5,16 @@ import (
 	"fmt"
 	"reflect"
 	"time"
+
+	"github.com/muidea/magicOrm/util"
 )
 
 // ConvertValue convert interface{} to reflect.Value
 func ConvertValue(rawVal reflect.Value, dstVal *reflect.Value) (err error) {
+	if util.IsNil(rawVal) {
+		return
+	}
+
 	vType := dstVal.Type()
 	switch vType.Kind() {
 	case reflect.Bool:
@@ -131,6 +137,10 @@ func ConvertValue(rawVal reflect.Value, dstVal *reflect.Value) (err error) {
 
 // ConvertSliceValue convert interface{} slice to reflect.Value
 func ConvertSliceValue(rawVal reflect.Value, dstVal *reflect.Value) (err error) {
+	if util.IsNil(rawVal) {
+		return
+	}
+
 	if rawVal.Kind() == reflect.String {
 		array := []string{}
 		err = json.Unmarshal([]byte(rawVal.String()), &array)
