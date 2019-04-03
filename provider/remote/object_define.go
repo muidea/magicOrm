@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/util"
 )
 
 // Object Object
@@ -92,7 +93,7 @@ func (s *Object) Interface() (ret reflect.Value) {
 func (s *Object) Copy() (ret *Object) {
 	obj := &Object{Name: s.Name, PkgPath: s.PkgPath, IsPtr: s.IsPtr, Items: []*Item{}}
 	for _, val := range s.Items {
-		obj.Items = append(obj.Items, &Item{Index: val.Index, Name: val.Name, Tag: val.Tag, Type: val.Type})
+		obj.Items = append(obj.Items, &Item{Index: val.Index, Name: val.Name, Tag: *val.Tag.Copy(), Type: *val.Type.Copy()})
 	}
 
 	ret = obj
@@ -106,12 +107,7 @@ func (s *Object) Dump() {
 
 // GetObject GetObject
 func GetObject(obj interface{}) (ret *Object, err error) {
-	objVal := reflect.ValueOf(obj)
-	if objVal.Kind() == reflect.Ptr {
-		objVal = reflect.Indirect(objVal)
-	}
-
-	objType := objVal.Type()
+	objType := reflect.ValueOf(obj).Type()
 	ret, err = type2Object(objType)
 	return
 }
@@ -124,7 +120,12 @@ func type2Object(objType reflect.Type) (ret *Object, err error) {
 		objType = objType.Elem()
 	}
 
-	if objType.Kind() != reflect.Struct {
+	typeImpl, typeErr := GetType(objType)
+	if typeErr != nil {
+		err = fmt.Errorf("illegal obj type, must be a struct obj, type:%s", objType.String())
+		return
+	}
+	if typeImpl.GetValue() != util.TypeStructField {
 		err = fmt.Errorf("illegal obj type, must be a struct obj, type:%s", objType.String())
 		return
 	}
