@@ -446,9 +446,24 @@ func TestRemoteBatchQuery(t *testing.T) {
 	pageFilter := &util.PageFilter{PageNum: 0, PageSize: 100}
 	filter.PageFilter(pageFilter)
 
-	//err = o1.BatchQuery(&userList, filter)
 	err = o1.BatchQuery(&userList, nil)
 	if err != nil {
 		t.Errorf("batch query user failed, err:%s", err.Error())
+		return
+	}
+	if len(userList) != 2 {
+		t.Errorf("batch query user failed")
+		return
+	}
+
+	userList = []User{}
+	err = o1.BatchQuery(&userList, filter)
+	if len(userList) != 1 {
+		t.Errorf("filter query user failed")
+		return
+	}
+	if userList[0].Name != user1.Name || len(userList[0].Group) != len(user1.Group) {
+		t.Errorf("filter query user failed")
+		return
 	}
 }
