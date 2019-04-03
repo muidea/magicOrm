@@ -1,6 +1,7 @@
 package remote
 
 import (
+	"log"
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
@@ -59,19 +60,25 @@ func (s *Item) SetValue(val reflect.Value) (err error) {
 // UpdateValue UpdateValue
 func (s *Item) UpdateValue(val reflect.Value) (err error) {
 	val = reflect.Indirect(val)
-	fieldVal := reflect.Indirect(s.Type.Interface())
-	valErr := helper.ConvertValue(val, &fieldVal)
-	if valErr != nil {
-		err = valErr
+	if s.Type.Depend() == nil {
+		fieldVal := reflect.Indirect(s.Type.Interface())
+		valErr := helper.ConvertValue(val, &fieldVal)
+		if valErr != nil {
+			err = valErr
+			log.Printf("helper.ConvertValue failed, err:%s", err.Error())
+			return
+		}
+
+		if s.Type.IsPtrType() {
+			fieldVal = fieldVal.Addr()
+		}
+
+		err = s.value.Update(fieldVal)
+
 		return
 	}
 
-	if s.Type.IsPtrType() {
-		fieldVal = fieldVal.Addr()
-	}
-
-	err = s.value.Update(fieldVal)
-
+	err = s.value.Update(val)
 	return
 }
 
@@ -82,5 +89,12 @@ func (s *Item) Copy() (ret model.Field) {
 
 // Dump Dump
 func (s *Item) Dump() (ret string) {
+	return
+}
+
+// Interface interface value
+func (s *Item) Interface() (ret *ItemValue) {
+	ret = &ItemValue{Name: s.Name, Value: s.Type.Interface()}
+
 	return
 }

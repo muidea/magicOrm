@@ -93,6 +93,7 @@ func (s *Provider) GetTypeModel(vType model.Type) (ret model.Model, err error) {
 	if typeImpl != nil {
 		ret = typeImpl
 	}
+
 	return
 }
 
@@ -119,7 +120,7 @@ func (s *Provider) GetModelDependValue(vModel model.Model, vValue model.Value) (
 			}
 
 			vVal := reflect.ValueOf(itemVal)
-			itemModel, itemErr := s.GetValueModel(vVal)
+			itemModel, itemErr := getValueModel(vVal, s.modelCache)
 			if itemErr != nil {
 				err = itemErr
 				return
@@ -143,7 +144,7 @@ func (s *Provider) GetModelDependValue(vModel model.Model, vValue model.Value) (
 	}
 
 	vVal := reflect.ValueOf(objVal)
-	itemModel, itemErr := s.GetValueModel(vVal)
+	itemModel, itemErr := getValueModel(vVal, s.modelCache)
 	if itemErr != nil {
 		err = itemErr
 		return
@@ -189,20 +190,23 @@ func getValueModel(val reflect.Value, cache Cache) (ret *Object, err error) {
 		return
 	}
 
-	objPtr = objPtr.Copy()
-	for idx := range objPtr.Items {
-		item := objPtr.Items[idx]
-		itemVal := itemsVal.Index(idx)
-		itemName := itemVal.FieldByName("Name").String()
-		if item.GetName() != itemName {
-			err = fmt.Errorf("illegal item value, name miss match, item name:%s, value name:%s", item.GetName(), itemName)
-			return
-		}
+	if itemsVal.Len() > 0 {
+		offset := 0
+		objPtr = objPtr.Copy()
+		for idx := range objPtr.Items {
+			item := objPtr.Items[idx]
+			itemVal := itemsVal.Index(offset)
+			itemName := itemVal.FieldByName("Name").String()
+			if item.GetName() != itemName {
+				continue
+			}
 
-		itemValue := itemVal.FieldByName("Value")
-		err = item.SetValue(itemValue)
-		if err != nil {
-			return
+			offset++
+			itemValue := itemVal.FieldByName("Value")
+			err = item.SetValue(itemValue)
+			if err != nil {
+				return
+			}
 		}
 	}
 

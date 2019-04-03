@@ -103,6 +103,7 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (err e
 			pkField := relationInfo.GetPrimaryField()
 			err = pkField.UpdateValue(reflect.ValueOf(values[0]))
 			if err != nil {
+				log.Printf("UpdateFieldValue pkField failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
 				return
 			}
 
