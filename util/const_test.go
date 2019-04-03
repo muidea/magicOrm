@@ -7,6 +7,12 @@ import (
 )
 
 func TestNilValue(t *testing.T) {
+	var val reflect.Value
+	if !IsNil(val) {
+		t.Errorf("Check val is nil failed")
+		return
+	}
+
 	var iVal int
 	log.Printf("IsNil(reflect.ValueOf(iVal)), val:%v", iVal)
 	if IsNil(reflect.ValueOf(iVal)) {

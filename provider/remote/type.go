@@ -103,15 +103,11 @@ func (s *TypeImpl) Depend() model.Type {
 
 // Elem get slice element type
 func (s *TypeImpl) Elem() model.Type {
-	if s.Value == util.TypeSliceField {
+	if s.Value == util.TypeSliceField && s.DependType != nil {
 		return s.DependType
 	}
 
 	return nil
-}
-
-func (s *TypeImpl) String() (ret string) {
-	return fmt.Sprintf("val:%d,name:%s,pkgPath:%s,isPtr:%v", s.GetValue(), s.GetName(), s.GetPkgPath(), s.IsPtrType())
 }
 
 // Copy Copy

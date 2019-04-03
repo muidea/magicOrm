@@ -2,7 +2,6 @@ package orm
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
 
@@ -147,7 +146,6 @@ func (s *filterItem) FilterStr(name string, fType model.Type) (ret string, err e
 		return
 	}
 
-	log.Printf("name:%s, type:%s", name, fType.GetType().String())
 	fModel, fErr := s.modelProvider.GetTypeModel(fType)
 	if fErr != nil {
 		err = fErr

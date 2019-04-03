@@ -74,7 +74,6 @@ func (s *Item) UpdateValue(val reflect.Value) (err error) {
 		}
 
 		err = s.value.Update(fieldVal)
-
 		return
 	}
 
@@ -84,12 +83,7 @@ func (s *Item) UpdateValue(val reflect.Value) (err error) {
 
 // Copy Copy
 func (s *Item) Copy() (ret model.Field) {
-	return &Item{Index: s.Index, Name: s.Name, Tag: *(s.Tag.Copy()), Type: *(s.Type.Copy())}
-}
-
-// Dump Dump
-func (s *Item) Dump() (ret string) {
-	return
+	return &Item{Index: s.Index, Name: s.Name, Tag: s.Tag, Type: s.Type}
 }
 
 // Interface interface value

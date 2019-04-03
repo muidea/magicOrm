@@ -98,7 +98,7 @@ func (s *Object) Interface() (ret reflect.Value) {
 func (s *Object) Copy() (ret *Object) {
 	obj := &Object{Name: s.Name, PkgPath: s.PkgPath, IsPtr: s.IsPtr, Items: []*Item{}}
 	for _, val := range s.Items {
-		obj.Items = append(obj.Items, &Item{Index: val.Index, Name: val.Name, Tag: *val.Tag.Copy(), Type: *val.Type.Copy()})
+		obj.Items = append(obj.Items, &Item{Index: val.Index, Name: val.Name, Tag: val.Tag, Type: val.Type})
 	}
 
 	ret = obj

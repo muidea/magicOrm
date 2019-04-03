@@ -21,7 +21,7 @@ func (s *ValueImpl) IsNil() (ret bool) {
 
 // Set Set
 func (s *ValueImpl) Set(val reflect.Value) (err error) {
-	if val.Kind() == reflect.Invalid {
+	if util.IsNil(val) {
 		err = fmt.Errorf("invalid set value")
 		return
 	}
@@ -32,12 +32,12 @@ func (s *ValueImpl) Set(val reflect.Value) (err error) {
 
 // Update Update
 func (s *ValueImpl) Update(val reflect.Value) (err error) {
-	if s.value.Kind() == reflect.Invalid {
+	if util.IsNil(s.value) {
 		err = fmt.Errorf("invalid current value")
 		return
 	}
 
-	if val.Kind() == reflect.Invalid {
+	if util.IsNil(val) {
 		err = fmt.Errorf("invalid update value")
 		return
 	}

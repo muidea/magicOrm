@@ -203,9 +203,11 @@ func getValueModel(val reflect.Value, cache Cache) (ret *Object, err error) {
 
 			offset++
 			itemValue := itemVal.FieldByName("Value")
-			err = item.SetValue(itemValue)
-			if err != nil {
-				return
+			if !util.IsNil(itemValue) {
+				err = item.SetValue(itemValue)
+				if err != nil {
+					return
+				}
 			}
 		}
 	}

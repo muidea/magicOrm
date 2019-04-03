@@ -68,20 +68,11 @@ func (s *TagImpl) IsAutoIncrement() (ret bool) {
 	return
 }
 
-func (s *TagImpl) String() (ret string) {
-	return fmt.Sprintf("name=%s key=%v auto=%v", s.GetName(), s.IsPrimaryKey(), s.IsAutoIncrement())
-}
-
-// Copy Copy
-func (s *TagImpl) Copy() (ret *TagImpl) {
-	return &TagImpl{Value: s.Value}
-}
-
 // GetTag get Item Value
 func GetTag(tag string) (ret *TagImpl, err error) {
 	items := strings.Split(tag, "")
 	if len(items) < 1 {
-		err = fmt.Errorf("illegal tag value")
+		err = fmt.Errorf("illegal tag value, val:%s", tag)
 		return
 	}
 
