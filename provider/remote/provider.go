@@ -78,14 +78,11 @@ func (s *Provider) GetValueModel(val reflect.Value) (ret model.Model, err error)
 
 // GetTypeModel GetTypeModel
 func (s *Provider) GetTypeModel(vType model.Type) (ret model.Model, err error) {
-	if util.IsBasicType(vType.GetValue()) {
+	depend := vType.Depend()
+	if depend == nil {
 		return
 	}
-
-	depend := vType.Depend()
-	if depend != nil {
-		vType = depend
-	}
+	vType = depend
 
 	typeImpl, typeErr := getTypeMode(vType, s.modelCache)
 	if typeErr != nil {
