@@ -66,8 +66,8 @@ func (s *typeImpl) IsPtrType() bool {
 }
 
 func (s *typeImpl) Interface() reflect.Value {
-	rawType := s.GetType()
-	val := reflect.New(rawType)
+	tType := s.GetType()
+	val := reflect.New(tType)
 	if !s.IsPtrType() {
 		val = val.Elem()
 	}
@@ -79,7 +79,12 @@ func (s *typeImpl) Depend() (ret model.Type) {
 	tVal := s.GetValue()
 	switch tVal {
 	case util.TypeSliceField:
-		ret = s.Elem()
+		eType := s.Elem()
+		if eType.GetValue() == util.TypeStructField {
+			ret = eType
+		} else {
+			ret = nil
+		}
 	case util.TypeStructField:
 		ret = s.Copy()
 	default:
@@ -90,9 +95,9 @@ func (s *typeImpl) Depend() (ret model.Type) {
 }
 
 func (s *typeImpl) Elem() model.Type {
-	tVal := s.GetType()
-	if tVal.Kind() == reflect.Slice {
-		return &typeImpl{typeImpl: tVal.Elem()}
+	tType := s.GetType()
+	if tType.Kind() == reflect.Slice {
+		return &typeImpl{typeImpl: tType.Elem()}
 	}
 
 	return nil

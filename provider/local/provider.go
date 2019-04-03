@@ -40,20 +40,9 @@ func (s *Provider) GetTypeModel(vType model.Type) (ret model.Model, err error) {
 		return
 	}
 
-	if util.IsSliceType(vType.GetValue()) {
-		rawType := vType.Elem()
-		if util.IsBasicType(rawType.GetValue()) {
-			return
-		}
-
-		modelImpl, modelErr := getTypeModel(rawType, s.modelCache)
-		if modelErr != nil {
-			err = modelErr
-			return
-		}
-
-		ret = modelImpl
-		return
+	depend := vType.Depend()
+	if depend != nil {
+		vType = depend
 	}
 
 	modelImpl, modelErr := getTypeModel(vType, s.modelCache)

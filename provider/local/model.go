@@ -178,11 +178,6 @@ func getTypeModel(vType model.Type, cache Cache) (ret *modelImpl, err error) {
 	rawType := vType.GetType()
 	isPtr := vType.IsPtrType()
 
-	if !util.IsStructType(vType.GetValue()) {
-		err = fmt.Errorf("illegal vType, type:%s", rawType.String())
-		return
-	}
-
 	modelInfo := cache.Fetch(vType.GetName())
 	if modelInfo != nil {
 		preType := modelInfo.modelType

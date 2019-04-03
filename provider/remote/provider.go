@@ -78,6 +78,15 @@ func (s *Provider) GetValueModel(val reflect.Value) (ret model.Model, err error)
 
 // GetTypeModel GetTypeModel
 func (s *Provider) GetTypeModel(vType model.Type) (ret model.Model, err error) {
+	if util.IsBasicType(vType.GetValue()) {
+		return
+	}
+
+	depend := vType.Depend()
+	if depend != nil {
+		vType = depend
+	}
+
 	typeImpl, typeErr := getTypeMode(vType, s.modelCache)
 	if typeErr != nil {
 		err = typeErr
@@ -205,10 +214,7 @@ func getValueModel(val reflect.Value, cache Cache) (ret *Object, err error) {
 }
 
 func getTypeMode(vType model.Type, cache Cache) (ret *Object, err error) {
-	depend := vType.Elem()
-	if depend != nil {
-		vType = depend
-	}
+	isPtr := vType.IsPtrType()
 
 	objPtr := cache.Fetch(vType.GetName())
 	if objPtr == nil {
@@ -221,7 +227,7 @@ func getTypeMode(vType model.Type, cache Cache) (ret *Object, err error) {
 	}
 
 	ret = objPtr.Copy()
-	ret.IsPtr = vType.IsPtrType()
+	ret.IsPtr = isPtr
 
 	return
 }
