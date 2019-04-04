@@ -98,14 +98,14 @@ func TestLocalUser(t *testing.T) {
 		return
 	}
 
+	objList := []interface{}{&Group{}, &User{}}
+	registerMode(o1, objList)
+
 	err = o1.Drop(group1)
 	if err != nil {
 		t.Errorf("drop group failed, err:%s", err.Error())
 		return
 	}
-
-	objList := []interface{}{&Group{}, &User{}}
-	registerMode(o1, objList)
 
 	err = o1.Create(group1)
 	if err != nil {
