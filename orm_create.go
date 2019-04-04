@@ -50,6 +50,10 @@ func (s *orm) batchCreateSchema(modelInfo model.Model) (err error) {
 
 	for _, field := range modelInfo.GetFields() {
 		fType := field.GetType()
+		if fType.Depend() == nil {
+			continue
+		}
+
 		relationInfo, relationErr := s.modelProvider.GetTypeModel(fType)
 		if relationErr != nil {
 			err = relationErr

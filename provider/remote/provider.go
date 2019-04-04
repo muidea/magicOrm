@@ -19,6 +19,86 @@ func New() *Provider {
 	return &Provider{modelCache: NewCache()}
 }
 
+// RegisterObjectModel RegisterObjectModel
+func (s *Provider) RegisterObjectModel(obj interface{}) (err error) {
+	objType := reflect.TypeOf(obj)
+	if objType.Kind() == reflect.Ptr {
+		objPtr, objOk := obj.(*Object)
+		if !objOk {
+			err = fmt.Errorf("illegal obj, isn't Object ptr")
+			return
+		}
+
+		preObj := s.modelCache.Fetch(objPtr.GetName())
+		if preObj != nil {
+			if objPtr.GetPkgPath() != preObj.GetPkgPath() {
+				err = fmt.Errorf("illegal object, pkgPath isn't match")
+				return
+			}
+		} else {
+			s.modelCache.Put(objPtr.GetName(), objPtr)
+		}
+
+		return
+	}
+
+	objVal, objOk := obj.(Object)
+	if !objOk {
+		err = fmt.Errorf("illegal obj, isn't Object")
+		return
+	}
+
+	preObj := s.modelCache.Fetch(objVal.GetName())
+	if preObj != nil {
+		if objVal.GetPkgPath() != preObj.GetPkgPath() {
+			err = fmt.Errorf("illegal object, pkgPath isn't match")
+			return
+		}
+	} else {
+		s.modelCache.Put(objVal.GetName(), &objVal)
+	}
+
+	return
+}
+
+// UnregisterModel register model
+func (s *Provider) UnregisterModel(obj interface{}) {
+	objType := reflect.TypeOf(obj)
+	if objType.Kind() == reflect.Ptr {
+		objPtr, objOk := obj.(*Object)
+		if !objOk {
+			return
+		}
+
+		preObj := s.modelCache.Fetch(objPtr.GetName())
+		if preObj != nil {
+			if objPtr.GetPkgPath() != preObj.GetPkgPath() {
+				return
+			}
+
+			s.modelCache.Remove(preObj.GetName())
+		}
+
+		return
+	}
+
+	objVal, objOk := obj.(Object)
+	if !objOk {
+		return
+	}
+
+	preObj := s.modelCache.Fetch(objVal.GetName())
+	if preObj != nil {
+		if objVal.GetPkgPath() != preObj.GetPkgPath() {
+			return
+		}
+
+		s.modelCache.Remove(preObj.GetName())
+	}
+
+	return
+}
+
 // GetObjectModel GetObjectModel
 func (s *Provider) GetObjectModel(obj interface{}) (ret model.Model, err error) {
 	objType := reflect.TypeOf(obj)
@@ -35,18 +115,21 @@ func (s *Provider) GetObjectModel(obj interface{}) (ret model.Model, err error) 
 				err = fmt.Errorf("illegal object, pkgPath isn't match")
 				return
 			}
-
 		} else {
-			s.modelCache.Put(objPtr.GetName(), objPtr)
+			err = fmt.Errorf("can't find obj model, objName:%s, objPkgPath:%s", objPtr.GetName(), objPtr.GetPkgPath())
+			return
 		}
 
-		ret = objPtr.Copy()
+		objModel := preObj.Copy()
+		objModel.IsPtr = true
+		ret = objModel
+
 		return
 	}
 
 	objVal, objOk := obj.(Object)
 	if !objOk {
-		err = fmt.Errorf("illegal obj type")
+		err = fmt.Errorf("illegal obj type, obj type:%s", objType.String())
 		return
 	}
 
@@ -57,10 +140,14 @@ func (s *Provider) GetObjectModel(obj interface{}) (ret model.Model, err error) 
 			return
 		}
 	} else {
-		s.modelCache.Put(objVal.GetName(), &objVal)
+		err = fmt.Errorf("can't find obj model, objName:%s, objPkgPath:%s", objVal.GetName(), objVal.GetPkgPath())
+		return
 	}
 
-	ret = &objVal
+	objModel := preObj.Copy()
+	objModel.IsPtr = false
+	ret = objModel
+
 	return
 }
 

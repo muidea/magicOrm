@@ -10,6 +10,8 @@ import (
 
 // Orm orm interfalce
 type Orm interface {
+	RegisterModel(obj interface{}) error
+	UnregisterModel(obj interface{})
 	Create(obj interface{}) error
 	Insert(obj interface{}) error
 	Update(obj interface{}) error
@@ -64,6 +66,14 @@ func New() (Orm, error) {
 	}
 
 	return &orm{executor: executor, modelProvider: _config.getProvider()}, nil
+}
+
+func (s *orm) RegisterModel(obj interface{}) error {
+	return s.modelProvider.RegisterObjectModel(obj)
+}
+
+func (s *orm) UnregisterModel(obj interface{}) {
+	s.modelProvider.UnregisterModel(obj)
 }
 
 func (s *orm) Release() {

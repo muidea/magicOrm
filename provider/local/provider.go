@@ -18,6 +18,66 @@ func New() *Provider {
 	return &Provider{modelCache: NewCache()}
 }
 
+// RegisterObjectModel RegisterObjectModel
+func (s *Provider) RegisterObjectModel(obj interface{}) (err error) {
+	objType := reflect.TypeOf(obj)
+	if objType.Kind() == reflect.Ptr {
+		objType = objType.Elem()
+	}
+
+	hasPrimaryKey := false
+	modelImpl := &modelImpl{modelType: objType, fields: make([]*fieldImpl, 0)}
+	fieldNum := objType.NumField()
+	for idx := 0; idx < fieldNum; idx++ {
+		fieldType := objType.Field(idx)
+		fieldInfo, fieldErr := getFieldInfo(idx, fieldType)
+		if fieldErr != nil {
+			err = fieldErr
+			log.Printf("getFieldInfo failed, field idx:%d, field name:%s, struct name:%s, err:%s", idx, fieldType.Name, modelImpl.GetName(), err.Error())
+			return
+		}
+
+		if fieldInfo.IsPrimary() {
+			if hasPrimaryKey {
+				err = fmt.Errorf("duplicate primary key field, struct name:%s", modelImpl.GetName())
+				return
+			}
+
+			hasPrimaryKey = true
+		}
+
+		if fieldInfo != nil {
+			modelImpl.fields = append(modelImpl.fields, fieldInfo)
+		}
+	}
+
+	if len(modelImpl.fields) == 0 {
+		err = fmt.Errorf("no define orm field, struct name:%s", modelImpl.GetName())
+		return
+	}
+	if !hasPrimaryKey {
+		err = fmt.Errorf("no define primary key field, struct name:%s", modelImpl.GetName())
+		return
+	}
+
+	s.modelCache.Put(modelImpl.GetName(), modelImpl)
+	return
+}
+
+// UnregisterModel register model
+func (s *Provider) UnregisterModel(obj interface{}) {
+	objType := reflect.TypeOf(obj)
+	typeImpl, typeErr := newType(objType)
+	if typeErr == nil {
+		cur := s.modelCache.Fetch(typeImpl.GetName())
+		if cur.GetPkgPath() == typeImpl.GetPkgPath() {
+			s.modelCache.Remove(typeImpl.GetName())
+		}
+	}
+
+	return
+}
+
 // GetObjectModel GetObjectModel
 func (s *Provider) GetObjectModel(objPtr interface{}) (ret model.Model, err error) {
 	modelVal := reflect.ValueOf(objPtr)

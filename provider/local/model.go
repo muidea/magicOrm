@@ -191,44 +191,7 @@ func getTypeModel(vType model.Type, cache Cache) (ret *modelImpl, err error) {
 		return
 	}
 
-	hasPrimaryKey := false
-	modelImpl := &modelImpl{modelType: vType.GetType(), fields: make([]*fieldImpl, 0)}
-	fieldNum := rawType.NumField()
-	for idx := 0; idx < fieldNum; idx++ {
-		fieldType := rawType.Field(idx)
-		fieldInfo, fieldErr := getFieldInfo(idx, fieldType)
-		if fieldErr != nil {
-			err = fieldErr
-			log.Printf("getFieldInfo failed, field idx:%d, field name:%s, struct name:%s, err:%s", idx, fieldType.Name, modelImpl.GetName(), err.Error())
-			return
-		}
-
-		if fieldInfo.IsPrimary() {
-			if hasPrimaryKey {
-				err = fmt.Errorf("duplicate primary key field, struct name:%s", modelImpl.GetName())
-				return
-			}
-
-			hasPrimaryKey = true
-		}
-
-		if fieldInfo != nil {
-			modelImpl.fields = append(modelImpl.fields, fieldInfo)
-		}
-	}
-
-	if len(modelImpl.fields) == 0 {
-		err = fmt.Errorf("no define orm field, struct name:%s", modelImpl.GetName())
-		return
-	}
-	if !hasPrimaryKey {
-		err = fmt.Errorf("no define primary key field, struct name:%s", modelImpl.GetName())
-	}
-
-	cache.Put(modelImpl.GetName(), modelImpl)
-
-	ret = modelImpl
-	ret.isTypePtr = isPtr
+	err = fmt.Errorf("can't find type model, typeName:%s", vType.GetName())
 
 	return
 }
