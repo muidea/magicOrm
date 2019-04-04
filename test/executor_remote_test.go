@@ -50,6 +50,9 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
+	objList := []interface{}{objDef}
+	registerMode(o1, objList)
+
 	err = o1.Drop(objDef)
 	if err != nil {
 		t.Errorf("drop ext failed, err:%s", err.Error())
@@ -144,12 +147,23 @@ func TestRemoteDepends(t *testing.T) {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
 	}
+
+	extVal2 := &ExtUnitList{Unit: *val, UnitList: []Unit{}}
+	ext2ObjDef, objErr := remote.GetObject(extVal2)
+	if objErr != nil {
+		t.Errorf("GetObject failed, err:%s", objErr.Error())
+		return
+	}
+
 	o1, err := orm.New()
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
+
+	objList := []interface{}{objDef, extObjDef, ext2ObjDef}
+	registerMode(o1, objList)
 
 	err = o1.Drop(objDef)
 	if err != nil {
@@ -187,14 +201,8 @@ func TestRemoteDepends(t *testing.T) {
 		return
 	}
 
-	extVal2 := &ExtUnitList{Unit: *val, UnitList: []Unit{}}
 	extVal2.UnitList = append(extVal2.UnitList, *val)
 
-	ext2ObjDef, objErr := remote.GetObject(extVal2)
-	if objErr != nil {
-		t.Errorf("GetObject failed, err:%s", objErr.Error())
-		return
-	}
 	err = o1.Drop(ext2ObjDef)
 	if err != nil {
 		t.Errorf("drop ext2 failed, err:%s", err.Error())

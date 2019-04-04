@@ -7,6 +7,12 @@ import (
 	orm "github.com/muidea/magicOrm"
 )
 
+func registerMode(orm orm.Orm, objList []interface{}) {
+	for _, val := range objList {
+		orm.RegisterModel(val)
+	}
+}
+
 func TestLocalExecutor(t *testing.T) {
 
 	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", true)
@@ -21,6 +27,10 @@ func TestLocalExecutor(t *testing.T) {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
+
+	objList := []interface{}{&Unit{}}
+	registerMode(o1, objList)
+
 	err = o1.Create(obj)
 	if err != nil {
 		t.Errorf("create obj failed, err:%s", err.Error())
@@ -73,6 +83,9 @@ func TestLocalDepends(t *testing.T) {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
+
+	objList := []interface{}{&Unit{}, &ExtUnit{}, &ExtUnitList{}}
+	registerMode(o1, objList)
 
 	err = o1.Drop(ext)
 	if err != nil {

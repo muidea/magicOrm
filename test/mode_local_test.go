@@ -23,6 +23,9 @@ func TestLocalGroup(t *testing.T) {
 		return
 	}
 
+	objList := []interface{}{&Group{}, &User{}}
+	registerMode(o1, objList)
+
 	err = o1.Drop(group1)
 	if err != nil {
 		t.Errorf("drop group failed, err:%s", err.Error())
@@ -100,6 +103,9 @@ func TestLocalUser(t *testing.T) {
 		t.Errorf("drop group failed, err:%s", err.Error())
 		return
 	}
+
+	objList := []interface{}{&Group{}, &User{}}
+	registerMode(o1, objList)
 
 	err = o1.Create(group1)
 	if err != nil {
@@ -215,6 +221,9 @@ func TestLoalSystem(t *testing.T) {
 		return
 	}
 
+	objList := []interface{}{&Group{}, &User{}, &System{}}
+	registerMode(o1, objList)
+
 	err = o1.Drop(user1)
 	if err != nil {
 		t.Errorf("drop user failed, err:%s", err.Error())
@@ -314,6 +323,9 @@ func TestLocalBatchQuery(t *testing.T) {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
+
+	objList := []interface{}{&Group{}, &User{}}
+	registerMode(o1, objList)
 
 	err = o1.Drop(group1)
 	if err != nil {
