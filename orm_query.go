@@ -122,7 +122,7 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (err e
 	} else if util.IsSliceType(fType.GetValue()) {
 		relationVal := reflect.Indirect(fType.Interface())
 		for _, item := range values {
-			itemVal := fieldModel.Interface()
+			itemVal := reflect.Indirect(fieldModel.Interface())
 			itemInfo, itemErr := s.modelProvider.GetValueModel(itemVal)
 			if itemErr != nil {
 				log.Printf("GetValueModel faield, err:%s", itemErr.Error())
@@ -141,6 +141,10 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (err e
 			if err != nil {
 				log.Printf("querySingle for slice failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
 				return
+			}
+
+			if fieldModel.IsPtrModel() {
+				itemVal = itemVal.Addr()
 			}
 
 			relationVal = reflect.Append(relationVal, itemVal)

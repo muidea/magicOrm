@@ -222,7 +222,8 @@ func convertSliceValue(sliceObj reflect.Value, sliceVal *reflect.Value) (err err
 		return
 	}
 
-	itemType, itemErr := GetType(sliceVal.Type().Elem())
+	vType := sliceVal.Type().Elem()
+	itemType, itemErr := GetType(vType)
 	if itemErr != nil {
 		err = itemErr
 		return
@@ -235,7 +236,10 @@ func convertSliceValue(sliceObj reflect.Value, sliceVal *reflect.Value) (err err
 
 	for idx := 0; idx < sliceObj.Len(); idx++ {
 		itemObj := sliceObj.Index(idx)
-		itemVal := reflect.New(itemType.GetType()).Elem()
+		if vType.Kind() == reflect.Ptr {
+			vType = vType.Elem()
+		}
+		itemVal := reflect.New(vType).Elem()
 
 		dependType := itemType.Depend()
 		if dependType != nil {
