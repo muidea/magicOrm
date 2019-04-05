@@ -142,7 +142,7 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 			}
 			ret.Items = append(ret.Items, *val)
 		} else {
-			itemType, itemErr := GetType(fieldType.Type.Elem())
+			itemType, itemErr = GetType(itemType.GetType().Elem())
 			if itemErr != nil {
 				err = itemErr
 				return
