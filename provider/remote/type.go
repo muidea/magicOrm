@@ -65,8 +65,13 @@ func (s *TypeImpl) GetType() (ret reflect.Type) {
 			var val []interface{}
 			ret = reflect.TypeOf(val)
 		} else {
-			var val []ObjectValue
-			ret = reflect.TypeOf(val)
+			if s.DependType.IsPtrType() {
+				var val []*ObjectValue
+				ret = reflect.TypeOf(val)
+			} else {
+				var val []ObjectValue
+				ret = reflect.TypeOf(val)
+			}
 		}
 	default:
 		log.Fatalf("unexpect item type, name:%s, type:%d", s.Name, s.Value)
