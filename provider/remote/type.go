@@ -36,9 +36,77 @@ func (s *TypeImpl) GetPkgPath() (ret string) {
 	return
 }
 
+func (s *TypeImpl) getSliceType() (ret reflect.Type) {
+	vType := s.DependType
+	switch vType.GetValue() {
+	case util.TypeBooleanField:
+		if vType.IsPtrType() {
+			var val []*bool
+			ret = reflect.TypeOf(val)
+		} else {
+			var val []bool
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypeStringField:
+		if vType.IsPtrType() {
+			var val []*string
+			ret = reflect.TypeOf(val)
+		} else {
+			var val []string
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypeDateTimeField:
+		if vType.IsPtrType() {
+			var val []*string
+			ret = reflect.TypeOf(val)
+		} else {
+			var val []string
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
+		if vType.IsPtrType() {
+			var val []*int64
+			ret = reflect.TypeOf(val)
+		} else {
+			var val []int64
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
+		if vType.IsPtrType() {
+			var val []*uint64
+			ret = reflect.TypeOf(val)
+		} else {
+			var val []uint64
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypeFloatField, util.TypeDoubleField:
+		if vType.IsPtrType() {
+			var val []*float64
+			ret = reflect.TypeOf(val)
+		} else {
+			var val []float64
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypeStructField:
+		if vType.IsPtrType() {
+			var val []*ObjectValue
+			ret = reflect.TypeOf(val)
+		} else {
+			var val []ObjectValue
+			ret = reflect.TypeOf(val)
+		}
+
+	default:
+		log.Fatalf("unexpect slice item type, name:%s, pkgPath:%s, type:%d", vType.GetName(), vType.GetPkgPath(), vType.GetValue())
+	}
+
+	return
+}
+
 // GetType GetType
 func (s *TypeImpl) GetType() (ret reflect.Type) {
-	switch s.Value {
+	vType := s
+	switch vType.GetValue() {
 	case util.TypeBooleanField:
 		var val bool
 		ret = reflect.TypeOf(val)
@@ -61,18 +129,7 @@ func (s *TypeImpl) GetType() (ret reflect.Type) {
 		var val ObjectValue
 		ret = reflect.TypeOf(val)
 	case util.TypeSliceField:
-		if s.DependType == nil {
-			var val []interface{}
-			ret = reflect.TypeOf(val)
-		} else {
-			if s.DependType.IsPtrType() {
-				var val []*ObjectValue
-				ret = reflect.TypeOf(val)
-			} else {
-				var val []ObjectValue
-				ret = reflect.TypeOf(val)
-			}
-		}
+		ret = s.getSliceType()
 	default:
 		log.Fatalf("unexpect item type, name:%s, type:%d", s.Name, s.Value)
 	}
@@ -159,10 +216,7 @@ func GetType(itemType reflect.Type) (ret *TypeImpl, err error) {
 			return
 		}
 
-		if util.IsStructType(typeVal) {
-			ret.DependType = &TypeImpl{Name: sliceType.String(), Value: typeVal, PkgPath: sliceType.PkgPath(), IsPtr: slicePtr}
-		}
-
+		ret.DependType = &TypeImpl{Name: sliceType.String(), Value: typeVal, PkgPath: sliceType.PkgPath(), IsPtr: slicePtr}
 		return
 	}
 

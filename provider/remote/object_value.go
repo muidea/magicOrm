@@ -130,6 +130,7 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 		itemType, itemErr := GetType(fieldType.Type)
 		if itemErr != nil {
 			err = itemErr
+			log.Printf("GetType faield, type%s, err:%s", fieldType.Type.String(), err.Error())
 			return
 		}
 
@@ -138,6 +139,7 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 			val, valErr := getItemValue(fieldType.Name, itemType, fieldValue)
 			if valErr != nil {
 				err = valErr
+				log.Printf("getItemValue faield, type%s, err:%s", fieldType.Type.String(), err.Error())
 				return
 			}
 			ret.Items = append(ret.Items, *val)
@@ -145,11 +147,13 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 			itemType, itemErr = GetType(itemType.GetType().Elem())
 			if itemErr != nil {
 				err = itemErr
+				log.Printf("GetType faield, err:%s", err.Error())
 				return
 			}
 			val, valErr := getSliceItemValue(fieldType.Name, itemType, fieldValue)
 			if valErr != nil {
 				err = valErr
+				log.Printf("getSliceItemValue faield, type%s, err:%s", fieldType.Type.String(), err.Error())
 				return
 			}
 			ret.Items = append(ret.Items, *val)
