@@ -5,6 +5,7 @@ import (
 
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/util"
 )
 
 func (s *orm) createSchema(modelInfo model.Model) (err error) {
@@ -50,7 +51,12 @@ func (s *orm) batchCreateSchema(modelInfo model.Model) (err error) {
 
 	for _, field := range modelInfo.GetFields() {
 		fType := field.GetType()
-		if fType.Depend() == nil {
+		depend := fType.Depend()
+		if depend == nil {
+			continue
+		}
+
+		if util.IsBasicType(depend.GetValue()) {
 			continue
 		}
 

@@ -79,12 +79,7 @@ func (s *typeImpl) Depend() (ret model.Type) {
 	tVal := s.GetValue()
 	switch tVal {
 	case util.TypeSliceField:
-		eType := s.Elem()
-		if eType.GetValue() == util.TypeStructField {
-			ret = eType
-		} else {
-			ret = nil
-		}
+		ret = s.Elem()
 	case util.TypeStructField:
 		ret = s.Copy()
 	default:

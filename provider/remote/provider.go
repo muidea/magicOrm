@@ -169,6 +169,9 @@ func (s *Provider) GetTypeModel(vType model.Type) (ret model.Model, err error) {
 	if depend == nil {
 		return
 	}
+	if util.IsBasicType(depend.GetValue()) {
+		return
+	}
 	vType = depend
 
 	typeImpl, typeErr := getTypeMode(vType, s.modelCache)

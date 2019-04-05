@@ -187,7 +187,7 @@ func convertStructValue(structObj reflect.Value, structVal *reflect.Value) (err 
 		itemValue := reflect.ValueOf(objVal.Items[idx].Value)
 
 		dependType := itemType.Depend()
-		if dependType == nil {
+		if dependType == nil || util.IsBasicType(dependType.GetValue()) {
 			if itemType.GetValue() != util.TypeSliceField {
 				valErr := helper.ConvertValue(itemValue, &fieldValue)
 				if valErr != nil {
@@ -246,7 +246,7 @@ func convertSliceValue(sliceObj reflect.Value, sliceVal *reflect.Value) (err err
 		itemVal := reflect.New(vType).Elem()
 
 		dependType := itemType.Depend()
-		if dependType != nil {
+		if dependType != nil && !util.IsBasicType(dependType.GetValue()) {
 			valErr := convertStructValue(itemObj, &itemVal)
 			if valErr != nil {
 				err = valErr
@@ -298,7 +298,7 @@ func UpdateObject(objectValue *ObjectValue, obj interface{}) (err error) {
 		itemValue := reflect.ValueOf(objectValue.Items[idx].Value)
 
 		dependType := itemType.Depend()
-		if dependType == nil {
+		if dependType == nil || util.IsBasicType(dependType.GetValue()) {
 			if itemType.GetValue() != util.TypeSliceField {
 				valErr := helper.ConvertValue(itemValue, &fieldValue)
 				if valErr != nil {

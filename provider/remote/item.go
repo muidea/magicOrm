@@ -6,6 +6,7 @@ import (
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/helper"
+	"github.com/muidea/magicOrm/util"
 )
 
 // Item Item
@@ -60,7 +61,8 @@ func (s *Item) SetValue(val reflect.Value) (err error) {
 // UpdateValue UpdateValue
 func (s *Item) UpdateValue(val reflect.Value) (err error) {
 	val = reflect.Indirect(val)
-	if s.Type.Depend() == nil {
+	depend := s.Type.Depend()
+	if depend == nil || util.IsBasicType(depend.GetValue()) {
 		fieldVal := reflect.Indirect(s.Type.Interface())
 		valErr := helper.ConvertValue(val, &fieldVal)
 		if valErr != nil {

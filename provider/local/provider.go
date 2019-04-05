@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/util"
 )
 
 // Provider local provider
@@ -97,6 +98,9 @@ func (s *Provider) GetObjectModel(objPtr interface{}) (ret model.Model, err erro
 func (s *Provider) GetTypeModel(vType model.Type) (ret model.Model, err error) {
 	depend := vType.Depend()
 	if depend == nil {
+		return
+	}
+	if util.IsBasicType(depend.GetValue()) {
 		return
 	}
 	vType = depend

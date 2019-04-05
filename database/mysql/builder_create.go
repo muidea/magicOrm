@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/util"
 )
 
 // BuildCreateSchema  BuildCreateSchema
@@ -12,7 +13,8 @@ func (s *Builder) BuildCreateSchema() (ret string, err error) {
 	str := ""
 	for _, val := range s.modelInfo.GetFields() {
 		fType := val.GetType()
-		if fType.Depend() != nil {
+		depend := fType.Depend()
+		if depend != nil && !util.IsBasicType(depend.GetValue()) {
 			continue
 		}
 
