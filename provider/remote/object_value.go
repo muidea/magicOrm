@@ -168,6 +168,7 @@ func convertStructValue(structObj reflect.Value, structVal *reflect.Value) (err 
 		return
 	}
 
+	structObj = reflect.Indirect(structObj)
 	objVal, objOK := structObj.Interface().(ObjectValue)
 	if !objOK {
 		err = fmt.Errorf("illegal struct value, value type:%s", structObj.Type().String())
@@ -303,14 +304,14 @@ func UpdateObject(objectValue *ObjectValue, obj interface{}) (err error) {
 				valErr := helper.ConvertValue(itemValue, &fieldValue)
 				if valErr != nil {
 					err = valErr
-					log.Printf("convert field value failed, name:%s, err:%s", itemType.GetName(), valErr.Error())
+					log.Printf("convert basic field value failed, name:%s, err:%s", itemType.GetName(), valErr.Error())
 					return
 				}
 			} else {
 				valErr := helper.ConvertSliceValue(itemValue, &fieldValue)
 				if valErr != nil {
 					err = valErr
-					log.Printf("convert field value failed, name:%s, err:%s", itemType.GetName(), valErr.Error())
+					log.Printf("convert basic slice field value failed, name:%s, err:%s", itemType.GetName(), valErr.Error())
 					return
 				}
 			}
@@ -319,14 +320,14 @@ func UpdateObject(objectValue *ObjectValue, obj interface{}) (err error) {
 				valErr := convertStructValue(itemValue, &fieldValue)
 				if valErr != nil {
 					err = valErr
-					log.Printf("convert field value failed, name:%s, err:%s", itemType.GetName(), valErr.Error())
+					log.Printf("convert struct field value failed, name:%s, err:%s", itemType.GetName(), valErr.Error())
 					return
 				}
 			} else {
 				valErr := convertSliceValue(itemValue, &fieldValue)
 				if valErr != nil {
 					err = valErr
-					log.Printf("convert field value failed, name:%s, err:%s", itemType.GetName(), valErr.Error())
+					log.Printf("convert struct slice field value failed, name:%s, err:%s", itemType.GetName(), valErr.Error())
 					return
 				}
 			}
