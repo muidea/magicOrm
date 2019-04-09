@@ -15,118 +15,120 @@ func EncodeSliceValue(val reflect.Value) (ret string, err error) {
 	valSlice := []string{}
 
 	val = reflect.Indirect(val)
-	pos := val.Len()
-	for idx := 0; idx < pos; {
-		sv := reflect.Indirect(val.Index(idx))
-		switch sv.Kind() {
-		case reflect.Bool:
-			strVal, strErr := EncodeBoolValue(sv)
-			if strErr != nil {
-				err = strErr
-				return
-			}
-			valSlice = append(valSlice, strVal)
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			strVal, strErr := EncodeIntValue(sv)
-			if strErr != nil {
-				err = strErr
-				return
-			}
-			valSlice = append(valSlice, strVal)
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			strVal, strErr := EncodeUintValue(sv)
-			if strErr != nil {
-				err = strErr
-				return
-			}
-			valSlice = append(valSlice, strVal)
-		case reflect.Float32, reflect.Float64:
-			strVal, strErr := EncodeFloatValue(sv)
-			if strErr != nil {
-				err = strErr
-				return
-			}
-			valSlice = append(valSlice, strVal)
-		case reflect.String:
-			strVal, strErr := EncodeStringValue(sv)
-			if strErr != nil {
-				err = strErr
-				return
-			}
-			valSlice = append(valSlice, strVal)
-		case reflect.Struct:
-			if sv.Type().String() == "time.Time" {
-				strVal, strErr := EncodeDateTimeValue(sv)
+	if !util.IsNil(val) {
+		pos := val.Len()
+		for idx := 0; idx < pos; {
+			sv := reflect.Indirect(val.Index(idx))
+			switch sv.Kind() {
+			case reflect.Bool:
+				strVal, strErr := EncodeBoolValue(sv)
 				if strErr != nil {
 					err = strErr
 					return
 				}
 				valSlice = append(valSlice, strVal)
-			} else {
-				err = fmt.Errorf("no support slice element type, [%s]", sv.Type().String())
-			}
-		case reflect.Interface:
-			sVal := sv.Interface()
-			for {
-				_, bOK := sVal.(bool)
-				if bOK {
-					strVal, strErr := EncodeBoolValue(sv)
-					if strErr != nil {
-						err = strErr
-						return
-					}
-					valSlice = append(valSlice, strVal)
-					break
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				strVal, strErr := EncodeIntValue(sv)
+				if strErr != nil {
+					err = strErr
+					return
 				}
-				_, intOK := sVal.(int64)
-				if intOK {
-					strVal, strErr := EncodeIntValue(sv)
-					if strErr != nil {
-						err = strErr
-						return
-					}
-					valSlice = append(valSlice, strVal)
-					break
+				valSlice = append(valSlice, strVal)
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+				strVal, strErr := EncodeUintValue(sv)
+				if strErr != nil {
+					err = strErr
+					return
 				}
-				_, fltOK := sVal.(float64)
-				if fltOK {
-					strVal, strErr := EncodeFloatValue(sv)
-					if strErr != nil {
-						err = strErr
-						return
-					}
-					valSlice = append(valSlice, strVal)
-					break
+				valSlice = append(valSlice, strVal)
+			case reflect.Float32, reflect.Float64:
+				strVal, strErr := EncodeFloatValue(sv)
+				if strErr != nil {
+					err = strErr
+					return
 				}
-				_, dtOK := sVal.(time.Time)
-				if dtOK {
+				valSlice = append(valSlice, strVal)
+			case reflect.String:
+				strVal, strErr := EncodeStringValue(sv)
+				if strErr != nil {
+					err = strErr
+					return
+				}
+				valSlice = append(valSlice, strVal)
+			case reflect.Struct:
+				if sv.Type().String() == "time.Time" {
 					strVal, strErr := EncodeDateTimeValue(sv)
 					if strErr != nil {
 						err = strErr
 						return
 					}
 					valSlice = append(valSlice, strVal)
-					break
+				} else {
+					err = fmt.Errorf("no support slice element type, [%s]", sv.Type().String())
 				}
-				_, strOK := sVal.(string)
-				if strOK {
-					strVal, strErr := EncodeStringValue(sv)
-					if strErr != nil {
-						err = strErr
-						return
+			case reflect.Interface:
+				sVal := sv.Interface()
+				for {
+					_, bOK := sVal.(bool)
+					if bOK {
+						strVal, strErr := EncodeBoolValue(sv)
+						if strErr != nil {
+							err = strErr
+							return
+						}
+						valSlice = append(valSlice, strVal)
+						break
 					}
-					valSlice = append(valSlice, strVal)
+					_, intOK := sVal.(int64)
+					if intOK {
+						strVal, strErr := EncodeIntValue(sv)
+						if strErr != nil {
+							err = strErr
+							return
+						}
+						valSlice = append(valSlice, strVal)
+						break
+					}
+					_, fltOK := sVal.(float64)
+					if fltOK {
+						strVal, strErr := EncodeFloatValue(sv)
+						if strErr != nil {
+							err = strErr
+							return
+						}
+						valSlice = append(valSlice, strVal)
+						break
+					}
+					_, dtOK := sVal.(time.Time)
+					if dtOK {
+						strVal, strErr := EncodeDateTimeValue(sv)
+						if strErr != nil {
+							err = strErr
+							return
+						}
+						valSlice = append(valSlice, strVal)
+						break
+					}
+					_, strOK := sVal.(string)
+					if strOK {
+						strVal, strErr := EncodeStringValue(sv)
+						if strErr != nil {
+							err = strErr
+							return
+						}
+						valSlice = append(valSlice, strVal)
+						break
+					}
+
+					err = fmt.Errorf("no support slice element val, [%v]", sVal)
 					break
 				}
-
-				err = fmt.Errorf("no support slice element val, [%v]", sVal)
-				break
+			default:
+				err = fmt.Errorf("no support slice element type, [%s]", sv.Type().String())
 			}
-		default:
-			err = fmt.Errorf("no support slice element type, [%s]", sv.Type().String())
-		}
 
-		idx++
+			idx++
+		}
 	}
 
 	data, dataErr := json.Marshal(valSlice)

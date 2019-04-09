@@ -227,8 +227,8 @@ func convertSliceValue(sliceObj reflect.Value, sliceVal *reflect.Value) (err err
 		return
 	}
 
-	vType := sliceVal.Type().Elem()
-	itemType, itemErr := GetType(vType)
+	rawType := sliceVal.Type().Elem()
+	itemType, itemErr := GetType(rawType)
 	if itemErr != nil {
 		err = itemErr
 		return
@@ -239,12 +239,13 @@ func convertSliceValue(sliceObj reflect.Value, sliceVal *reflect.Value) (err err
 		return
 	}
 
+	if itemType.IsPtrType() {
+		rawType = rawType.Elem()
+	}
+
 	for idx := 0; idx < sliceObj.Len(); idx++ {
 		itemObj := sliceObj.Index(idx)
-		if vType.Kind() == reflect.Ptr {
-			vType = vType.Elem()
-		}
-		itemVal := reflect.New(vType).Elem()
+		itemVal := reflect.New(rawType).Elem()
 
 		dependType := itemType.Depend()
 		if dependType != nil && !util.IsBasicType(dependType.GetValue()) {
@@ -330,9 +331,16 @@ func UpdateObject(objectValue *ObjectValue, obj interface{}) (err error) {
 					log.Printf("convert struct slice field value failed, name:%s, err:%s", itemType.GetName(), valErr.Error())
 					return
 				}
+
+				if !util.IsNil(fieldValue) {
+					log.Print(fieldValue.Interface())
+				}
 			}
 		}
 	}
+
+	log.Print(objValue.Interface())
+	log.Print(obj)
 
 	return
 }

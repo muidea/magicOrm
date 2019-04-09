@@ -10,12 +10,8 @@ func (s *orm) getItems(modelInfo model.Model) (ret []interface{}, err error) {
 	fields := modelInfo.GetFields()
 	for _, item := range fields {
 		fType := item.GetType()
-		dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
-		if dependErr != nil {
-			err = dependErr
-			return
-		}
-		if dependModel != nil {
+		depend := fType.Depend()
+		if depend != nil && !util.IsBasicType(depend.GetValue()) {
 			continue
 		}
 

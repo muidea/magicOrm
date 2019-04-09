@@ -34,12 +34,8 @@ func (s *orm) querySingle(modelInfo model.Model) (err error) {
 	idx := 0
 	for _, item := range modelInfo.GetFields() {
 		fType := item.GetType()
-		dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
-		if dependErr != nil {
-			err = dependErr
-			return
-		}
-		if dependModel != nil {
+		depend := fType.Depend()
+		if depend != nil && !util.IsBasicType(depend.GetValue()) {
 			continue
 		}
 
