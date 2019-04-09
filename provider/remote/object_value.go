@@ -243,6 +243,7 @@ func convertSliceValue(sliceObj reflect.Value, sliceVal *reflect.Value) (err err
 		rawType = rawType.Elem()
 	}
 
+	itemSlice := reflect.MakeSlice(sliceVal.Type(), 0, 0)
 	for idx := 0; idx < sliceObj.Len(); idx++ {
 		itemObj := sliceObj.Index(idx)
 		itemVal := reflect.New(rawType).Elem()
@@ -266,8 +267,10 @@ func convertSliceValue(sliceObj reflect.Value, sliceVal *reflect.Value) (err err
 			itemVal = itemVal.Addr()
 		}
 
-		*sliceVal = reflect.Append(*sliceVal, itemVal)
+		itemSlice = reflect.Append(itemSlice, itemVal)
 	}
+
+	sliceVal.Set(itemSlice)
 
 	return
 }
@@ -331,16 +334,9 @@ func UpdateObject(objectValue *ObjectValue, obj interface{}) (err error) {
 					log.Printf("convert struct slice field value failed, name:%s, err:%s", itemType.GetName(), valErr.Error())
 					return
 				}
-
-				if !util.IsNil(fieldValue) {
-					log.Print(fieldValue.Interface())
-				}
 			}
 		}
 	}
-
-	log.Print(objValue.Interface())
-	log.Print(obj)
 
 	return
 }
