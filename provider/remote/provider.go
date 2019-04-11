@@ -166,10 +166,7 @@ func (s *Provider) GetValueModel(val reflect.Value) (ret model.Model, err error)
 // GetTypeModel GetTypeModel
 func (s *Provider) GetTypeModel(vType model.Type) (ret model.Model, err error) {
 	depend := vType.Depend()
-	if depend == nil {
-		return
-	}
-	if util.IsBasicType(depend.GetValue()) {
+	if depend == nil || util.IsBasicType(depend.GetValue()) {
 		return
 	}
 	vType = depend
@@ -199,18 +196,15 @@ func (s *Provider) GetModelDependValue(vModel model.Model, vValue model.Value) (
 		return
 	}
 
-	val := reflect.Indirect(vValue.Get()).Interface()
-	sliceVal, sliceOK := val.([]interface{})
-	if sliceOK {
-		for idx := 0; idx < len(sliceVal); idx++ {
-			itemVal, itemOK := sliceVal[idx].(ObjectValue)
-			if !itemOK {
-				err = fmt.Errorf("illegal slice value")
-				return
-			}
-
-			vVal := reflect.ValueOf(itemVal)
-			itemModel, itemErr := getValueModel(vVal, s.modelCache)
+	val := vValue.Get()
+	if val.Kind() == reflect.Interface {
+		val = val.Elem()
+	}
+	val = reflect.Indirect(val)
+	if val.Kind() == reflect.Slice {
+		for idx := 0; idx < val.Len(); idx++ {
+			sliceVal := val.Index(idx)
+			itemModel, itemErr := getValueModel(sliceVal, s.modelCache)
 			if itemErr != nil {
 				err = itemErr
 				return
@@ -221,20 +215,13 @@ func (s *Provider) GetModelDependValue(vModel model.Model, vValue model.Value) (
 				return
 			}
 
-			ret = append(ret, vVal)
+			ret = append(ret, sliceVal)
 		}
 
 		return
 	}
 
-	objVal, objOK := val.(ObjectValue)
-	if !objOK {
-		err = fmt.Errorf("illegal model value")
-		return
-	}
-
-	vVal := reflect.ValueOf(objVal)
-	itemModel, itemErr := getValueModel(vVal, s.modelCache)
+	itemModel, itemErr := getValueModel(val, s.modelCache)
 	if itemErr != nil {
 		err = itemErr
 		return
@@ -245,7 +232,7 @@ func (s *Provider) GetModelDependValue(vModel model.Model, vValue model.Value) (
 		return
 	}
 
-	ret = append(ret, vVal)
+	ret = append(ret, val)
 
 	return
 }
@@ -259,6 +246,10 @@ var _referenceVal ObjectValue
 var _referenceType = reflect.TypeOf(_referenceVal)
 
 func getValueModel(val reflect.Value, cache Cache) (ret *Object, err error) {
+	if val.Kind() == reflect.Interface {
+		val = val.Elem()
+	}
+
 	val = reflect.Indirect(val)
 	if val.Type().String() != _referenceType.String() {
 		err = fmt.Errorf("illegal model value, value type:%s", val.Type().String())

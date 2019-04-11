@@ -104,7 +104,11 @@ func getSliceItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.
 				return
 			}
 
-			sliceVal = append(sliceVal, objVal)
+			if itemType.IsPtrType() {
+				sliceVal = append(sliceVal, objVal)
+			} else {
+				sliceVal = append(sliceVal, *objVal)
+			}
 		case util.TypeSliceField:
 			err = fmt.Errorf("illegal slice item type, type:%s", itemType.GetName())
 		default:
@@ -261,10 +265,7 @@ func convertSliceValue(sliceObj reflect.Value, sliceVal *reflect.Value) (err err
 		sliceObj = sliceObj.Elem()
 	}
 
-	if sliceObj.Kind() == reflect.Ptr {
-		sliceObj = sliceObj.Elem()
-	}
-
+	sliceObj = reflect.Indirect(sliceObj)
 	itemSlice := reflect.MakeSlice(sliceVal.Type(), 0, 0)
 	for idx := 0; idx < sliceObj.Len(); idx++ {
 		itemObj := sliceObj.Index(idx)
@@ -372,13 +373,14 @@ func EncodeObjectValue(objVal *ObjectValue) (ret []byte, err error) {
 func decodeObjectValue(objVal map[string]interface{}) (ret *ObjectValue, err error) {
 	nameVal, nameOK := objVal["typeName"]
 	pkgPathVal, pkgPathOK := objVal["pkgPath"]
+	isPtrVal, isPtrOK := objVal["isPtr"]
 	itemsVal, itemsOK := objVal["items"]
-	if !nameOK || !pkgPathOK || !itemsOK {
+	if !nameOK || !pkgPathOK || !itemsOK || !isPtrOK {
 		err = fmt.Errorf("illegal ObjectValue")
 		return
 	}
 
-	ret = &ObjectValue{TypeName: nameVal.(string), PkgPath: pkgPathVal.(string), Items: []ItemValue{}}
+	ret = &ObjectValue{TypeName: nameVal.(string), PkgPath: pkgPathVal.(string), IsPtrFlag: isPtrVal.(bool), Items: []ItemValue{}}
 
 	for _, val := range itemsVal.([]interface{}) {
 		item, itemOK := val.(map[string]interface{})
