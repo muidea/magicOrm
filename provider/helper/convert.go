@@ -148,6 +148,10 @@ func ConvertSliceValue(rawVal reflect.Value, dstVal *reflect.Value) (err error) 
 		return
 	}
 
+	if rawVal.Kind() == reflect.Interface {
+		rawVal = rawVal.Elem()
+	}
+
 	if rawVal.Kind() == reflect.String {
 		array := []string{}
 		err = json.Unmarshal([]byte(rawVal.String()), &array)
@@ -164,6 +168,7 @@ func ConvertSliceValue(rawVal reflect.Value, dstVal *reflect.Value) (err error) 
 		return
 	}
 
+	itemSlice := reflect.MakeSlice(dstVal.Type(), 0, 0)
 	vType := dstVal.Type().Elem()
 	for idx := 0; idx < rawVal.Len(); idx++ {
 		v := rawVal.Index(idx)
@@ -174,8 +179,10 @@ func ConvertSliceValue(rawVal reflect.Value, dstVal *reflect.Value) (err error) 
 			return
 		}
 
-		*dstVal = reflect.Append(*dstVal, iv)
+		itemSlice = reflect.Append(itemSlice, iv)
 	}
+
+	dstVal.Set(itemSlice)
 
 	return
 }
