@@ -163,6 +163,11 @@ func (s *Provider) GetValueModel(val reflect.Value) (ret model.Model, err error)
 	return
 }
 
+// GetSliceValueModel GetSliceValueModel
+func (s *Provider) GetSliceValueModel(modelVal reflect.Value) (ret model.Model, err error) {
+	return
+}
+
 // GetTypeModel GetTypeModel
 func (s *Provider) GetTypeModel(vType model.Type) (ret model.Model, err error) {
 	depend := vType.Depend()

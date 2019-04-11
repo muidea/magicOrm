@@ -120,6 +120,11 @@ func (s *Provider) GetValueModel(modelVal reflect.Value) (ret model.Model, err e
 	return getValueModel(modelVal, s.modelCache)
 }
 
+// GetSliceValueModel GetSliceValueModel
+func (s *Provider) GetSliceValueModel(modelVal reflect.Value) (ret model.Model, err error) {
+	return getSliceValueModel(modelVal, s.modelCache)
+}
+
 // GetValueStr GetValueStr
 func (s *Provider) GetValueStr(vType model.Type, vValue model.Value) (ret string, err error) {
 	return getValueStr(vType, vValue, s.modelCache)

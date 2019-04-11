@@ -540,7 +540,7 @@ func TestRemoteSystem(t *testing.T) {
 }
 
 func TestRemoteBatchQuery(t *testing.T) {
-	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", true)
+	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", false)
 	defer orm.Uninitialize()
 
 	user0 := &User{}
@@ -690,7 +690,8 @@ func TestRemoteBatchQuery(t *testing.T) {
 	pageFilter := &util.PageFilter{PageNum: 0, PageSize: 100}
 	filter.PageFilter(pageFilter)
 
-	err = o1.BatchQuery(&userList, nil)
+	userListVal := []remote.ObjectValue{}
+	err = o1.BatchQuery(&userListVal, nil)
 	if err != nil {
 		t.Errorf("batch query user failed, err:%s", err.Error())
 		return
@@ -701,7 +702,8 @@ func TestRemoteBatchQuery(t *testing.T) {
 	}
 
 	userList = []User{}
-	err = o1.BatchQuery(&userList, filter)
+	userListVal = []remote.ObjectValue{}
+	err = o1.BatchQuery(&userListVal, filter)
 	if len(userList) != 1 {
 		t.Errorf("filter query user failed")
 		return
@@ -715,6 +717,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 	filter2 := orm.NewFilter()
 	filter2.In("Group", gs)
 	userList = []User{}
-	err = o1.BatchQuery(&userList, filter2)
+	userListVal = []remote.ObjectValue{}
+	err = o1.BatchQuery(&userListVal, filter2)
 	log.Print(userList)
 }

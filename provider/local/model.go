@@ -134,7 +134,8 @@ func getValueModel(modelVal reflect.Value, cache Cache) (ret *modelImpl, err err
 	}
 
 	if util.IsSliceType(vType.GetValue()) {
-		vType = vType.Elem()
+		err = fmt.Errorf("illegal value, type:%s", modelVal.Type().String())
+		return
 	}
 
 	modelInfo, modelErr := getTypeModel(vType, cache)
@@ -166,6 +167,39 @@ func getValueModel(modelVal reflect.Value, cache Cache) (ret *modelImpl, err err
 			log.Printf("SetFieldValue failed, err:%s", err.Error())
 			return
 		}
+	}
+
+	ret = modelInfo
+
+	return
+}
+
+// getSliceValueModel getSliceValueModel
+func getSliceValueModel(modelVal reflect.Value, cache Cache) (ret *modelImpl, err error) {
+	var vType model.Type
+	vType, vErr := newType(modelVal.Type())
+	if vErr != nil {
+		err = vErr
+		log.Printf("newType failed, err:%s", err.Error())
+		return
+	}
+
+	if !util.IsSliceType(vType.GetValue()) {
+		err = fmt.Errorf("illegal slice value")
+		return
+	}
+
+	vType = vType.Elem()
+	if !util.IsStructType(vType.GetValue()) {
+		err = fmt.Errorf("illegal slice item value")
+		return
+	}
+
+	modelInfo, modelErr := getTypeModel(vType, cache)
+	if modelErr != nil {
+		err = modelErr
+		log.Printf("getTypeModel failed, err:%s", err.Error())
+		return
 	}
 
 	ret = modelInfo

@@ -86,7 +86,7 @@ func (s *orm) BatchQuery(sliceObj interface{}, filter model.Filter) (err error) 
 		return
 	}
 
-	modelInfo, modelErr := s.modelProvider.GetValueModel(objValue)
+	modelInfo, modelErr := s.modelProvider.GetSliceValueModel(objValue)
 	if modelErr != nil {
 		err = modelErr
 		log.Printf("GetTypeModel failed, err:%s", err.Error())

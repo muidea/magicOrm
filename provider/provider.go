@@ -18,6 +18,8 @@ type Provider interface {
 
 	GetValueModel(val reflect.Value) (ret model.Model, err error)
 
+	GetSliceValueModel(val reflect.Value) (ret model.Model, err error)
+
 	GetTypeModel(vType model.Type) (ret model.Model, err error)
 
 	GetValueStr(vType model.Type, vVal model.Value) (ret string, err error)
