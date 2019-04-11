@@ -65,7 +65,11 @@ func getItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.Value
 			err = objErr
 			return
 		}
-		ret = &ItemValue{Name: fieldName, Value: objVal}
+		if itemType.IsPtrType() {
+			ret = &ItemValue{Name: fieldName, Value: objVal}
+		} else {
+			ret = &ItemValue{Name: fieldName, Value: *objVal}
+		}
 	default:
 		err = fmt.Errorf("illegal item type, type:%s", itemType.GetName())
 	}
@@ -80,8 +84,9 @@ func getSliceItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.
 		return
 	}
 
+	fieldValue = reflect.Indirect(fieldValue)
 	for idx := 0; idx < fieldValue.Len(); idx++ {
-		itemVal := reflect.Indirect(fieldValue.Index(idx))
+		itemVal := fieldValue.Index(idx)
 		switch itemType.GetValue() {
 		case util.TypeBooleanField,
 			util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField,
@@ -143,7 +148,7 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 			return
 		}
 
-		fieldValue := reflect.Indirect(objValue.Field(idx))
+		fieldValue := objValue.Field(idx)
 		if itemType.GetValue() != util.TypeSliceField {
 			val, valErr := getItemValue(fieldType.Name, itemType, fieldValue)
 			if valErr != nil {
@@ -414,7 +419,12 @@ func decodeSliceValue(sliceVal []interface{}) (ret []interface{}, err error) {
 				return
 			}
 
-			ret = append(ret, *item)
+			if item.IsPtrFlag {
+				ret = append(ret, item)
+			} else {
+				ret = append(ret, *item)
+			}
+
 			continue
 		}
 
@@ -453,7 +463,11 @@ func decodeItem(val *ItemValue) (ret *ItemValue, err error) {
 			return
 		}
 
-		ret.Value = *oVal
+		if oVal.IsPtrFlag {
+			ret.Value = oVal
+		} else {
+			ret.Value = *oVal
+		}
 		return
 	}
 
