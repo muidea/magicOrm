@@ -267,6 +267,7 @@ func getValueModel(val reflect.Value, cache Cache) (ret *Object, err error) {
 
 	nameVal := val.FieldByName("TypeName")
 	pkgVal := val.FieldByName("PkgPath")
+	isPtr := val.FieldByName("IsPtr")
 	itemsVal := val.FieldByName("Items")
 
 	objPtr := cache.Fetch(nameVal.String())
@@ -303,6 +304,8 @@ func getValueModel(val reflect.Value, cache Cache) (ret *Object, err error) {
 	}
 
 	ret = objPtr
+	ret.IsPtr = isPtr.Bool()
+
 	return
 }
 

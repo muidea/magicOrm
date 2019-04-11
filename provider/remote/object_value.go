@@ -20,6 +20,7 @@ type ItemValue struct {
 type ObjectValue struct {
 	TypeName string      `json:"typeName"`
 	PkgPath  string      `json:"pkgPath"`
+	IsPtr    bool        `json:"isPtr"`
 	Items    []ItemValue `json:"items"`
 }
 
@@ -31,6 +32,11 @@ func (s *ObjectValue) GetName() string {
 // GetPkgPath get pkgpath
 func (s *ObjectValue) GetPkgPath() string {
 	return s.PkgPath
+}
+
+// IsPtrValue isPtrValue
+func (s *ObjectValue) IsPtrValue() bool {
+	return s.IsPtr
 }
 
 func getItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.Value) (ret *ItemValue, err error) {
@@ -117,10 +123,12 @@ func getSliceItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.
 
 // GetObjectValue get object value
 func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
-	ret = &ObjectValue{Items: []ItemValue{}}
-	objValue := reflect.Indirect(reflect.ValueOf(obj))
+	objValue := reflect.ValueOf(obj)
 
+	ret = &ObjectValue{Items: []ItemValue{}, IsPtr: objValue.Kind() == reflect.Ptr}
+	objValue = reflect.Indirect(objValue)
 	objType := objValue.Type()
+
 	ret.TypeName = objType.String()
 	ret.PkgPath = objType.PkgPath()
 
@@ -168,6 +176,10 @@ func convertStructValue(structObj reflect.Value, structVal *reflect.Value) (err 
 		return
 	}
 
+	if structObj.Kind() == reflect.Interface {
+		structObj = structObj.Elem()
+	}
+
 	structObj = reflect.Indirect(structObj)
 	objVal, objOK := structObj.Interface().(ObjectValue)
 	if !objOK {
@@ -177,7 +189,12 @@ func convertStructValue(structObj reflect.Value, structVal *reflect.Value) (err 
 
 	structType := structVal.Type()
 	fieldNum := structVal.NumField()
+	items := objVal.Items
 	for idx := 0; idx < fieldNum; idx++ {
+		if items[idx].Value == nil {
+			continue
+		}
+
 		itemType, itemErr := GetType(structType.Field(idx).Type)
 		if itemErr != nil {
 			err = itemErr
@@ -185,7 +202,7 @@ func convertStructValue(structObj reflect.Value, structVal *reflect.Value) (err 
 		}
 
 		fieldValue := reflect.Indirect(structVal.Field(idx))
-		itemValue := reflect.ValueOf(objVal.Items[idx].Value)
+		itemValue := reflect.ValueOf(items[idx].Value)
 
 		dependType := itemType.Depend()
 		if dependType == nil || util.IsBasicType(dependType.GetValue()) {
@@ -241,6 +258,14 @@ func convertSliceValue(sliceObj reflect.Value, sliceVal *reflect.Value) (err err
 
 	if itemType.IsPtrType() {
 		rawType = rawType.Elem()
+	}
+
+	if sliceObj.Kind() == reflect.Interface {
+		sliceObj = sliceObj.Elem()
+	}
+
+	if sliceObj.Kind() == reflect.Ptr {
+		sliceObj = sliceObj.Elem()
 	}
 
 	itemSlice := reflect.MakeSlice(sliceVal.Type(), 0, 0)

@@ -90,7 +90,7 @@ func (s *Item) Copy() (ret model.Field) {
 
 // Interface interface value
 func (s *Item) Interface() (ret *ItemValue) {
-	ret = &ItemValue{Name: s.Name, Value: s.Type.Interface()}
+	ret = &ItemValue{Name: s.Name, Value: s.Type.Interface().Interface()}
 
 	return
 }

@@ -15,6 +15,13 @@ func ConvertValue(rawVal reflect.Value, dstVal *reflect.Value) (err error) {
 		return
 	}
 
+	if rawVal.Kind() == reflect.Interface {
+		rawVal = rawVal.Elem()
+	}
+	if rawVal.Kind() == reflect.Ptr {
+		rawVal = rawVal.Elem()
+	}
+
 	vType := dstVal.Type()
 	switch vType.Kind() {
 	case reflect.Bool:
@@ -85,7 +92,7 @@ func ConvertValue(rawVal reflect.Value, dstVal *reflect.Value) (err error) {
 				strVal := fmt.Sprintf("%s", rawVal.Interface().(time.Time).Format("2006-01-02 15:04:05"))
 				dstVal.SetString(strVal)
 			} else {
-				err = fmt.Errorf("illegal string value, rawVal:%v", rawVal.Interface())
+				err = fmt.Errorf("illegal struct value, rawVal:%v", rawVal.Interface())
 			}
 		case reflect.String:
 			dstVal.SetString(rawVal.String())
@@ -109,7 +116,7 @@ func ConvertValue(rawVal reflect.Value, dstVal *reflect.Value) (err error) {
 			}
 			dstVal.SetString(string(data))
 		default:
-			err = fmt.Errorf("illegal string value, rawVal:%v", rawVal.Interface())
+			err = fmt.Errorf("illegal string value, rawVal type:%s, rawVal:%v", rawVal.Type().String(), rawVal.Interface())
 		}
 	case reflect.Struct:
 		switch rawVal.Kind() {
