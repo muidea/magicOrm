@@ -58,7 +58,11 @@ func getItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.Value
 			err = dtErr
 			return
 		}
-		ret = &ItemValue{Name: fieldName, Value: dtVal}
+		if itemType.IsPtrType() {
+			ret = &ItemValue{Name: fieldName, Value: &dtVal}
+		} else {
+			ret = &ItemValue{Name: fieldName, Value: dtVal}
+		}
 	case util.TypeStructField:
 		objVal, objErr := GetObjectValue(fieldValue.Interface())
 		if objErr != nil {
@@ -84,10 +88,17 @@ func getSliceItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.
 		return
 	}
 
+	subItemType, subItemErr := GetType(itemType.GetType().Elem())
+	if subItemErr != nil {
+		err = subItemErr
+		log.Printf("Get subItem Type faield, err:%s", err.Error())
+		return
+	}
+
 	fieldValue = reflect.Indirect(fieldValue)
 	for idx := 0; idx < fieldValue.Len(); idx++ {
 		itemVal := fieldValue.Index(idx)
-		switch itemType.GetValue() {
+		switch subItemType.GetValue() {
 		case util.TypeBooleanField,
 			util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField,
 			util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField,
@@ -100,8 +111,11 @@ func getSliceItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.
 				err = dtErr
 				return
 			}
-
-			sliceVal = append(sliceVal, dtVal)
+			if subItemType.IsPtrType() {
+				sliceVal = append(sliceVal, &dtVal)
+			} else {
+				sliceVal = append(sliceVal, dtVal)
+			}
 		case util.TypeStructField:
 			objVal, objErr := GetObjectValue(itemVal.Interface())
 			if objErr != nil {
@@ -109,15 +123,15 @@ func getSliceItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.
 				return
 			}
 
-			if itemType.IsPtrType() {
+			if subItemType.IsPtrType() {
 				sliceVal = append(sliceVal, objVal)
 			} else {
 				sliceVal = append(sliceVal, *objVal)
 			}
 		case util.TypeSliceField:
-			err = fmt.Errorf("illegal slice item type, type:%s", itemType.GetName())
+			err = fmt.Errorf("illegal slice item type, type:%s", subItemType.GetName())
 		default:
-			err = fmt.Errorf("illegal slice item type, type:%s", itemType.GetName())
+			err = fmt.Errorf("illegal slice item type, type:%s", subItemType.GetName())
 		}
 
 		if err != nil {
@@ -125,7 +139,11 @@ func getSliceItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.
 		}
 	}
 
-	ret.Value = sliceVal
+	if itemType.IsPtrType() {
+		ret.Value = &sliceVal
+	} else {
+		ret.Value = sliceVal
+	}
 
 	return
 }
@@ -158,12 +176,6 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 			}
 			ret.Items = append(ret.Items, *val)
 		} else {
-			itemType, itemErr = GetType(itemType.GetType().Elem())
-			if itemErr != nil {
-				err = itemErr
-				log.Printf("GetType faield, err:%s", err.Error())
-				return
-			}
 			val, valErr := getSliceItemValue(fieldType.Name, itemType, fieldValue)
 			if valErr != nil {
 				err = valErr
