@@ -267,7 +267,7 @@ func getValueModel(val reflect.Value, cache Cache) (ret *Object, err error) {
 
 	nameVal := val.FieldByName("TypeName")
 	pkgVal := val.FieldByName("PkgPath")
-	isPtr := val.FieldByName("IsPtr")
+	isPtr := val.FieldByName("IsPtrFlag")
 	itemsVal := val.FieldByName("Items")
 
 	objPtr := cache.Fetch(nameVal.String())

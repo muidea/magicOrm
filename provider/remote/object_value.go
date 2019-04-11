@@ -18,10 +18,10 @@ type ItemValue struct {
 
 // ObjectValue Object Value
 type ObjectValue struct {
-	TypeName string      `json:"typeName"`
-	PkgPath  string      `json:"pkgPath"`
-	IsPtr    bool        `json:"isPtr"`
-	Items    []ItemValue `json:"items"`
+	TypeName  string      `json:"typeName"`
+	PkgPath   string      `json:"pkgPath"`
+	IsPtrFlag bool        `json:"isPtr"`
+	Items     []ItemValue `json:"items"`
 }
 
 // GetName get object name
@@ -36,7 +36,7 @@ func (s *ObjectValue) GetPkgPath() string {
 
 // IsPtrValue isPtrValue
 func (s *ObjectValue) IsPtrValue() bool {
-	return s.IsPtr
+	return s.IsPtrFlag
 }
 
 func getItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.Value) (ret *ItemValue, err error) {
@@ -124,14 +124,11 @@ func getSliceItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.
 // GetObjectValue get object value
 func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 	objValue := reflect.ValueOf(obj)
-
-	ret = &ObjectValue{Items: []ItemValue{}, IsPtr: objValue.Kind() == reflect.Ptr}
+	isPtr := objValue.Kind() == reflect.Ptr
 	objValue = reflect.Indirect(objValue)
 	objType := objValue.Type()
 
-	ret.TypeName = objType.String()
-	ret.PkgPath = objType.PkgPath()
-
+	ret = &ObjectValue{TypeName: objType.String(), PkgPath: objType.PkgPath(), IsPtrFlag: isPtr, Items: []ItemValue{}}
 	fieldNum := objValue.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		fieldType := objType.Field(idx)

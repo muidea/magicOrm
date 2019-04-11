@@ -126,8 +126,13 @@ func (s *TypeImpl) GetType() (ret reflect.Type) {
 		var val float64
 		ret = reflect.TypeOf(val)
 	case util.TypeStructField:
-		var val ObjectValue
-		ret = reflect.TypeOf(val)
+		if vType.IsPtrType() {
+			var val *ObjectValue
+			ret = reflect.TypeOf(val)
+		} else {
+			var val ObjectValue
+			ret = reflect.TypeOf(val)
+		}
 	case util.TypeSliceField:
 		ret = s.getSliceType()
 	default:
