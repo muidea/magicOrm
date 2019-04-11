@@ -24,6 +24,13 @@ type ObjectValue struct {
 	Items     []ItemValue `json:"items"`
 }
 
+// SliceObjectValue slice object value
+type SliceObjectValue struct {
+	TypeName  string `json:"typeName"`
+	PkgPath   string `json:"pkgPath"`
+	IsPtrFlag bool   `json:"isPtr"`
+}
+
 // GetName get object name
 func (s *ObjectValue) GetName() string {
 	return s.TypeName
@@ -36,6 +43,21 @@ func (s *ObjectValue) GetPkgPath() string {
 
 // IsPtrValue isPtrValue
 func (s *ObjectValue) IsPtrValue() bool {
+	return s.IsPtrFlag
+}
+
+// GetName get object name
+func (s *SliceObjectValue) GetName() string {
+	return s.TypeName
+}
+
+// GetPkgPath get pkgpath
+func (s *SliceObjectValue) GetPkgPath() string {
+	return s.PkgPath
+}
+
+// IsPtrValue isPtrValue
+func (s *SliceObjectValue) IsPtrValue() bool {
 	return s.IsPtrFlag
 }
 
@@ -185,6 +207,29 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 			ret.Items = append(ret.Items, *val)
 		}
 	}
+
+	return
+}
+
+// GetSliceObjectValue get slice object value
+func GetSliceObjectValue(obj interface{}) (ret *SliceObjectValue, err error) {
+	objType := reflect.TypeOf(obj)
+	typeImpl, typeErr := GetType(objType)
+	if typeErr != nil {
+		err = fmt.Errorf("get slice object type failed, err:%s", err.Error())
+		return
+	}
+	if !util.IsSliceType(typeImpl.GetValue()) {
+		err = fmt.Errorf("illegal slice object value")
+		return
+	}
+	subType := typeImpl.Elem()
+	if !util.IsStructType(subType.GetValue()) {
+		err = fmt.Errorf("illegal slice item type")
+		return
+	}
+
+	ret = &SliceObjectValue{TypeName: subType.GetName(), PkgPath: subType.GetPkgPath(), IsPtrFlag: subType.IsPtrType()}
 
 	return
 }

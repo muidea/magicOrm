@@ -165,6 +165,13 @@ func (s *Provider) GetValueModel(val reflect.Value) (ret model.Model, err error)
 
 // GetSliceValueModel GetSliceValueModel
 func (s *Provider) GetSliceValueModel(modelVal reflect.Value) (ret model.Model, err error) {
+	objImpl, objErr := getSliceValueModel(modelVal, s.modelCache)
+	if objErr != nil {
+		err = objErr
+		return
+	}
+
+	ret = objImpl
 	return
 }
 
@@ -297,6 +304,41 @@ func getValueModel(val reflect.Value, cache Cache) (ret *Object, err error) {
 				}
 			}
 		}
+	}
+
+	ret = objPtr
+	ret.IsPtr = isPtr.Bool()
+
+	return
+}
+
+var _referenceSliceVal SliceObjectValue
+var _referenceSliceType = reflect.TypeOf(_referenceSliceVal)
+
+func getSliceValueModel(val reflect.Value, cache Cache) (ret *Object, err error) {
+	if val.Kind() == reflect.Interface {
+		val = val.Elem()
+	}
+
+	val = reflect.Indirect(val)
+	if val.Type().String() != _referenceSliceType.String() {
+		err = fmt.Errorf("illegal slice value, value type:%s", val.Type().String())
+		return
+	}
+
+	nameVal := val.FieldByName("TypeName")
+	pkgVal := val.FieldByName("PkgPath")
+	isPtr := val.FieldByName("IsPtrFlag")
+
+	objPtr := cache.Fetch(nameVal.String())
+	if objPtr == nil {
+		err = fmt.Errorf("illegal model value, no found model, name:%s", nameVal.String())
+		return
+	}
+
+	if objPtr.GetPkgPath() != pkgVal.String() {
+		err = fmt.Errorf("illegal model value, miss match pkgPath, name:%s,pkgPath:%s", nameVal.String(), pkgVal.String())
+		return
 	}
 
 	ret = objPtr

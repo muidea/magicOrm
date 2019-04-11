@@ -690,8 +690,12 @@ func TestRemoteBatchQuery(t *testing.T) {
 	pageFilter := &util.PageFilter{PageNum: 0, PageSize: 100}
 	filter.PageFilter(pageFilter)
 
-	userListVal := []remote.ObjectValue{}
-	err = o1.BatchQuery(&userListVal, nil)
+	userListVal, objErr := remote.GetSliceObjectValue(userList)
+	if objErr != nil {
+		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+	err = o1.BatchQuery(userListVal, nil)
 	if err != nil {
 		t.Errorf("batch query user failed, err:%s", err.Error())
 		return
@@ -702,7 +706,11 @@ func TestRemoteBatchQuery(t *testing.T) {
 	}
 
 	userList = []User{}
-	userListVal = []remote.ObjectValue{}
+	userListVal, objErr = remote.GetSliceObjectValue(userList)
+	if objErr != nil {
+		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
+		return
+	}
 	err = o1.BatchQuery(&userListVal, filter)
 	if len(userList) != 1 {
 		t.Errorf("filter query user failed")
@@ -717,7 +725,11 @@ func TestRemoteBatchQuery(t *testing.T) {
 	filter2 := orm.NewFilter()
 	filter2.In("Group", gs)
 	userList = []User{}
-	userListVal = []remote.ObjectValue{}
+	userListVal, objErr = remote.GetSliceObjectValue(userList)
+	if objErr != nil {
+		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
+		return
+	}
 	err = o1.BatchQuery(&userListVal, filter2)
 	log.Print(userList)
 }
