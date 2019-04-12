@@ -19,18 +19,18 @@ func New() *Provider {
 	return &Provider{modelCache: NewCache()}
 }
 
-// RegisterObjectModel RegisterObjectModel
-func (s *Provider) RegisterObjectModel(obj interface{}) (err error) {
-	objType := reflect.TypeOf(obj)
-	if objType.Kind() == reflect.Ptr {
-		objType = objType.Elem()
+// RegisterModel RegisterObjectModel
+func (s *Provider) RegisterModel(entity interface{}) (err error) {
+	entityType := reflect.TypeOf(entity)
+	if entityType.Kind() == reflect.Ptr {
+		entityType = entityType.Elem()
 	}
 
 	hasPrimaryKey := false
-	modelImpl := &modelImpl{modelType: objType, fields: make([]*fieldImpl, 0)}
-	fieldNum := objType.NumField()
+	modelImpl := &modelImpl{modelType: entityType, fields: make([]*fieldImpl, 0)}
+	fieldNum := entityType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		fieldType := objType.Field(idx)
+		fieldType := entityType.Field(idx)
 		fieldInfo, fieldErr := getFieldInfo(idx, fieldType)
 		if fieldErr != nil {
 			err = fieldErr
@@ -66,9 +66,9 @@ func (s *Provider) RegisterObjectModel(obj interface{}) (err error) {
 }
 
 // UnregisterModel register model
-func (s *Provider) UnregisterModel(obj interface{}) {
-	objType := reflect.TypeOf(obj)
-	typeImpl, typeErr := newType(objType)
+func (s *Provider) UnregisterModel(entity interface{}) {
+	entityType := reflect.TypeOf(entity)
+	typeImpl, typeErr := newType(entityType)
 	if typeErr == nil {
 		cur := s.modelCache.Fetch(typeImpl.GetName())
 		if cur.GetPkgPath() == typeImpl.GetPkgPath() {
@@ -79,8 +79,8 @@ func (s *Provider) UnregisterModel(obj interface{}) {
 	return
 }
 
-// GetObjectModel GetObjectModel
-func (s *Provider) GetObjectModel(objPtr interface{}) (ret model.Model, err error) {
+// GetEntityModel GetEntityModel
+func (s *Provider) GetEntityModel(objPtr interface{}) (ret model.Model, err error) {
 	modelVal := reflect.ValueOf(objPtr)
 
 	modelImpl, modelErr := getValueModel(modelVal, s.modelCache)

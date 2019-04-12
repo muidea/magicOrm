@@ -110,19 +110,6 @@ func (s *modelImpl) Dump(cache Cache) (ret string) {
 	return
 }
 
-// getObjectModel GetObjectModel
-func getObjectModel(modelObj interface{}, cache Cache) (ret *modelImpl, err error) {
-	modelVal := reflect.ValueOf(modelObj)
-
-	ret, err = getValueModel(modelVal, cache)
-	if err != nil {
-		log.Printf("getValueModel failed, err:%s", err.Error())
-		return
-	}
-
-	return
-}
-
 // getValueModel getValueModel
 func getValueModel(modelVal reflect.Value, cache Cache) (ret *modelImpl, err error) {
 	var vType model.Type
