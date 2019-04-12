@@ -611,7 +611,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("insert group failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateObject(group1Val, group1)
+	err = remote.UpdateObject(group2Val, group2)
 	if err != nil {
 		t.Errorf("UpdateObject failed, err:%s", err.Error())
 		return
@@ -626,7 +626,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("insert group failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateObject(group3Val, group1)
+	err = remote.UpdateObject(group3Val, group3)
 	if err != nil {
 		t.Errorf("UpdateObject failed, err:%s", err.Error())
 		return
