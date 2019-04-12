@@ -152,8 +152,8 @@ func (s *Provider) GetObjectModel(obj interface{}) (ret model.Model, err error) 
 }
 
 // GetValueModel GetValueModel
-func (s *Provider) GetValueModel(val reflect.Value) (ret model.Model, err error) {
-	objImpl, objErr := getValueModel(val, s.modelCache)
+func (s *Provider) GetValueModel(modelVal reflect.Value) (ret model.Model, err error) {
+	objImpl, objErr := getValueModel(modelVal, s.modelCache)
 	if objErr != nil {
 		err = objErr
 		return
@@ -164,14 +164,15 @@ func (s *Provider) GetValueModel(val reflect.Value) (ret model.Model, err error)
 }
 
 // GetSliceValueModel GetSliceValueModel
-func (s *Provider) GetSliceValueModel(modelVal reflect.Value) (ret model.Model, err error) {
-	objImpl, objErr := getSliceValueModel(modelVal, s.modelCache)
+func (s *Provider) GetSliceValueModel(sliceVal reflect.Value) (retModel model.Model, retVal reflect.Value, retErr error) {
+	objImpl, objVal, objErr := getSliceValueModel(sliceVal, s.modelCache)
 	if objErr != nil {
-		err = objErr
+		retErr = objErr
 		return
 	}
 
-	ret = objImpl
+	retModel = objImpl
+	retVal = objVal
 	return
 }
 
@@ -315,14 +316,14 @@ func getValueModel(val reflect.Value, cache Cache) (ret *Object, err error) {
 var _referenceSliceVal SliceObjectValue
 var _referenceSliceType = reflect.TypeOf(_referenceSliceVal)
 
-func getSliceValueModel(val reflect.Value, cache Cache) (ret *Object, err error) {
+func getSliceValueModel(val reflect.Value, cache Cache) (retObj *Object, retVal reflect.Value, retErr error) {
 	if val.Kind() == reflect.Interface {
 		val = val.Elem()
 	}
 
 	val = reflect.Indirect(val)
 	if val.Type().String() != _referenceSliceType.String() {
-		err = fmt.Errorf("illegal slice value, value type:%s", val.Type().String())
+		retErr = fmt.Errorf("illegal slice value, value type:%s", val.Type().String())
 		return
 	}
 
@@ -332,17 +333,19 @@ func getSliceValueModel(val reflect.Value, cache Cache) (ret *Object, err error)
 
 	objPtr := cache.Fetch(nameVal.String())
 	if objPtr == nil {
-		err = fmt.Errorf("illegal model value, no found model, name:%s", nameVal.String())
+		retErr = fmt.Errorf("illegal model value, no found model, name:%s", nameVal.String())
 		return
 	}
 
 	if objPtr.GetPkgPath() != pkgVal.String() {
-		err = fmt.Errorf("illegal model value, miss match pkgPath, name:%s,pkgPath:%s", nameVal.String(), pkgVal.String())
+		retErr = fmt.Errorf("illegal model value, miss match pkgPath, name:%s,pkgPath:%s", nameVal.String(), pkgVal.String())
 		return
 	}
 
-	ret = objPtr
-	ret.IsPtr = isPtr.Bool()
+	retObj = objPtr
+	retObj.IsPtr = isPtr.Bool()
+
+	retVal = reflect.ValueOf([]interface{}{})
 
 	return
 }

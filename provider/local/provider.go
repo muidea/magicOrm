@@ -121,8 +121,8 @@ func (s *Provider) GetValueModel(modelVal reflect.Value) (ret model.Model, err e
 }
 
 // GetSliceValueModel GetSliceValueModel
-func (s *Provider) GetSliceValueModel(modelVal reflect.Value) (ret model.Model, err error) {
-	return getSliceValueModel(modelVal, s.modelCache)
+func (s *Provider) GetSliceValueModel(sliceVal reflect.Value) (retModel model.Model, retVal reflect.Value, retErr error) {
+	return getSliceValueModel(sliceVal, s.modelCache)
 }
 
 // GetValueStr GetValueStr

@@ -695,11 +695,14 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.BatchQuery(userListVal, nil)
-	if err != nil {
+	retVal, retErr := o1.BatchQuery(userListVal, nil)
+	if retErr != nil {
+		err = retErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
 		return
 	}
+	log.Print(retVal)
+	
 	if len(userList) != 2 {
 		t.Errorf("batch query user failed")
 		return
@@ -711,7 +714,14 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.BatchQuery(&userListVal, filter)
+
+	retVal, retErr = o1.BatchQuery(&userListVal, filter)
+	if retErr != nil {
+		err = retErr
+		t.Errorf("batch query user failed, err:%s", err.Error())
+		return
+	}
+	log.Print(retVal)
 	if len(userList) != 1 {
 		t.Errorf("filter query user failed")
 		return
@@ -730,6 +740,12 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.BatchQuery(&userListVal, filter2)
+	retVal, retErr = o1.BatchQuery(&userListVal, filter2)
+	if retErr != nil {
+		err = retErr
+		t.Errorf("batch query user failed, err:%s", err.Error())
+		return
+	}
+	log.Print(retVal)
 	log.Print(userList)
 }

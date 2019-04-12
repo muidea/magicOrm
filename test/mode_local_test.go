@@ -1,6 +1,7 @@
 package test
 
 import (
+	"log"
 	"testing"
 
 	"github.com/muidea/magicCommon/foundation/util"
@@ -387,8 +388,12 @@ func TestLocalBatchQuery(t *testing.T) {
 	filter.PageFilter(pageFilter)
 
 	//err = o1.BatchQuery(&userList, filter)
-	err = o1.BatchQuery(&userList, nil)
-	if err != nil {
+	retVal, retErr := o1.BatchQuery(&userList, nil)
+	if retErr != nil {
+		err = retErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
+		return
 	}
+
+	log.Print(retVal)
 }
