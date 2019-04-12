@@ -30,12 +30,12 @@ type Ext struct {
 
 func TestBuilderCommon(t *testing.T) {
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
-	obj := &Unit{ID: 10, Name: "Hello world", Value: 12.3456, TimeStamp: now}
+	unit := &Unit{ID: 10, Name: "Hello world", Value: 12.3456, TimeStamp: now}
 
 	provider := provider.NewLocalProvider()
-	info, err := provider.GetObjectModel(obj)
+	info, err := provider.GetEntityModel(unit)
 	if err != nil {
-		t.Errorf("GetObjectModel failed, err:%s", err.Error())
+		t.Errorf("GetEntityModel failed, err:%s", err.Error())
 		return
 	}
 
@@ -97,9 +97,9 @@ func TestBuilderReference(t *testing.T) {
 	ext := &Ext{}
 
 	provider := provider.NewLocalProvider()
-	info, err := provider.GetObjectModel(ext)
+	info, err := provider.GetEntityModel(ext)
 	if err != nil {
-		t.Errorf("GetObjectModel failed, err:%s", err.Error())
+		t.Errorf("GetEntityModel failed, err:%s", err.Error())
 		return
 	}
 
@@ -162,9 +162,9 @@ func TestBuilderReference2(t *testing.T) {
 	ext := &Ext{Description: &desc}
 
 	provider := provider.NewLocalProvider()
-	info, err := provider.GetObjectModel(ext)
+	info, err := provider.GetEntityModel(ext)
 	if err != nil {
-		t.Errorf("GetObjectModel failed, err:%s", err.Error())
+		t.Errorf("GetEntityModel failed, err:%s", err.Error())
 		return
 	}
 

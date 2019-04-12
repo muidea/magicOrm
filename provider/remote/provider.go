@@ -19,13 +19,13 @@ func New() *Provider {
 	return &Provider{modelCache: NewCache()}
 }
 
-// RegisterObjectModel RegisterObjectModel
-func (s *Provider) RegisterObjectModel(obj interface{}) (err error) {
-	objType := reflect.TypeOf(obj)
-	if objType.Kind() == reflect.Ptr {
-		objPtr, objOk := obj.(*Object)
+// RegisterModel RegisterModel
+func (s *Provider) RegisterModel(objEntity interface{}) (err error) {
+	objEntityType := reflect.TypeOf(objEntity)
+	if objEntityType.Kind() == reflect.Ptr {
+		objPtr, objOk := objEntity.(*Object)
 		if !objOk {
-			err = fmt.Errorf("illegal obj, isn't Object ptr")
+			err = fmt.Errorf("illegal objEntity, isn't Object ptr")
 			return
 		}
 
@@ -42,9 +42,9 @@ func (s *Provider) RegisterObjectModel(obj interface{}) (err error) {
 		return
 	}
 
-	objVal, objOk := obj.(Object)
+	objVal, objOk := objEntity.(Object)
 	if !objOk {
-		err = fmt.Errorf("illegal obj, isn't Object")
+		err = fmt.Errorf("illegal objEntity, isn't Object")
 		return
 	}
 
@@ -62,10 +62,10 @@ func (s *Provider) RegisterObjectModel(obj interface{}) (err error) {
 }
 
 // UnregisterModel register model
-func (s *Provider) UnregisterModel(obj interface{}) {
-	objType := reflect.TypeOf(obj)
-	if objType.Kind() == reflect.Ptr {
-		objPtr, objOk := obj.(*Object)
+func (s *Provider) UnregisterModel(objEntity interface{}) {
+	objEntityType := reflect.TypeOf(objEntity)
+	if objEntityType.Kind() == reflect.Ptr {
+		objPtr, objOk := objEntity.(*Object)
 		if !objOk {
 			return
 		}
@@ -82,7 +82,7 @@ func (s *Provider) UnregisterModel(obj interface{}) {
 		return
 	}
 
-	objVal, objOk := obj.(Object)
+	objVal, objOk := objEntity.(Object)
 	if !objOk {
 		return
 	}
@@ -99,13 +99,13 @@ func (s *Provider) UnregisterModel(obj interface{}) {
 	return
 }
 
-// GetObjectModel GetObjectModel
-func (s *Provider) GetObjectModel(obj interface{}) (ret model.Model, err error) {
-	objType := reflect.TypeOf(obj)
-	if objType.Kind() == reflect.Ptr {
-		objPtr, objOk := obj.(*Object)
+// GetEntityModel GetEntityModel
+func (s *Provider) GetEntityModel(objEntity interface{}) (ret model.Model, err error) {
+	objEntityType := reflect.TypeOf(objEntity)
+	if objEntityType.Kind() == reflect.Ptr {
+		objPtr, objOk := objEntity.(*Object)
 		if !objOk {
-			err = fmt.Errorf("illegal obj type, obj type:%s", objType.String())
+			err = fmt.Errorf("illegal objEntity type, objEntity type:%s", objEntityType.String())
 			return
 		}
 
@@ -116,7 +116,7 @@ func (s *Provider) GetObjectModel(obj interface{}) (ret model.Model, err error) 
 				return
 			}
 		} else {
-			err = fmt.Errorf("can't find obj model, objName:%s, objPkgPath:%s", objPtr.GetName(), objPtr.GetPkgPath())
+			err = fmt.Errorf("can't find objEntity model, objName:%s, objPkgPath:%s", objPtr.GetName(), objPtr.GetPkgPath())
 			return
 		}
 
@@ -127,9 +127,9 @@ func (s *Provider) GetObjectModel(obj interface{}) (ret model.Model, err error) 
 		return
 	}
 
-	objVal, objOk := obj.(Object)
+	objVal, objOk := objEntity.(Object)
 	if !objOk {
-		err = fmt.Errorf("illegal obj type, obj type:%s", objType.String())
+		err = fmt.Errorf("illegal objEntity type, objEntity type:%s", objEntityType.String())
 		return
 	}
 
@@ -140,7 +140,7 @@ func (s *Provider) GetObjectModel(obj interface{}) (ret model.Model, err error) 
 			return
 		}
 	} else {
-		err = fmt.Errorf("can't find obj model, objName:%s, objPkgPath:%s", objVal.GetName(), objVal.GetPkgPath())
+		err = fmt.Errorf("can't find objEntity model, objName:%s, objPkgPath:%s", objVal.GetName(), objVal.GetPkgPath())
 		return
 	}
 

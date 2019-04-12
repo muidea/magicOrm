@@ -106,39 +106,39 @@ func (s *Object) Copy() (ret *Object) {
 }
 
 // GetObject GetObject
-func GetObject(obj interface{}) (ret *Object, err error) {
-	objType := reflect.ValueOf(obj).Type()
-	ret, err = type2Object(objType)
+func GetObject(entity interface{}) (ret *Object, err error) {
+	entityType := reflect.ValueOf(entity).Type()
+	ret, err = type2Object(entityType)
 	return
 }
 
 // type2Object type2Object
-func type2Object(objType reflect.Type) (ret *Object, err error) {
+func type2Object(entityType reflect.Type) (ret *Object, err error) {
 	objPtr := false
-	if objType.Kind() == reflect.Ptr {
+	if entityType.Kind() == reflect.Ptr {
 		objPtr = true
-		objType = objType.Elem()
+		entityType = entityType.Elem()
 	}
 
-	typeImpl, typeErr := GetType(objType)
+	typeImpl, typeErr := GetType(entityType)
 	if typeErr != nil {
-		err = fmt.Errorf("illegal obj type, must be a struct obj, type:%s", objType.String())
+		err = fmt.Errorf("illegal obj type, must be a struct obj, type:%s", entityType.String())
 		return
 	}
 	if typeImpl.GetValue() != util.TypeStructField {
-		err = fmt.Errorf("illegal obj type, must be a struct obj, type:%s", objType.String())
+		err = fmt.Errorf("illegal obj type, must be a struct obj, type:%s", entityType.String())
 		return
 	}
 
 	ret = &Object{}
-	ret.Name = objType.String()
-	ret.PkgPath = objType.PkgPath()
+	ret.Name = entityType.String()
+	ret.PkgPath = entityType.PkgPath()
 	ret.IsPtr = objPtr
 	ret.Items = []*Item{}
 
-	fieldNum := objType.NumField()
+	fieldNum := entityType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		field := objType.Field(idx)
+		field := entityType.Field(idx)
 		fType := field.Type
 		fTag := field.Tag.Get("orm")
 

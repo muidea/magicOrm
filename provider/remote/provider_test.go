@@ -34,7 +34,7 @@ func TestSimpleObjProvider(t *testing.T) {
 
 	objVal, objErr := GetObjectValue(obj)
 	if objErr != nil {
-		log.Printf("GetObjectModel failed, err:%s", objErr.Error())
+		log.Printf("GetEntityModel failed, err:%s", objErr.Error())
 		return
 	}
 	data, dataErr = json.Marshal(objVal)
@@ -50,12 +50,12 @@ func TestSimpleObjProvider(t *testing.T) {
 		return
 	}
 
-	infoModel, objErr := provider.GetObjectModel(localInfo)
+	infoModel, objErr := provider.GetEntityModel(localInfo)
 	if objErr != nil {
-		log.Printf("GetObjectModel failed, err:%s", objErr.Error())
+		log.Printf("GetEntityModel failed, err:%s", objErr.Error())
 		return
 	}
-	log.Printf("GetObjectModel name:%s,pkgPath:%s", infoModel.GetName(), infoModel.GetPkgPath())
+	log.Printf("GetEntityModel name:%s,pkgPath:%s", infoModel.GetName(), infoModel.GetPkgPath())
 
 	valModel, objErr := provider.GetValueModel(reflect.ValueOf(localVal))
 	if objErr != nil {

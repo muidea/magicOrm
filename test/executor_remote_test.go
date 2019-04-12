@@ -77,9 +77,9 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	err = remote.UpdateObject(objVal, val)
+	err = remote.UpdateEntity(objVal, val)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
@@ -110,9 +110,9 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	err = remote.UpdateObject(objVal2, val2)
+	err = remote.UpdateEntity(objVal2, val2)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 

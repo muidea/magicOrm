@@ -76,9 +76,9 @@ func TestRemoteGroup(t *testing.T) {
 		return
 	}
 
-	err = remote.UpdateObject(group1Val, group1)
+	err = remote.UpdateEntity(group1Val, group1)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
@@ -93,9 +93,9 @@ func TestRemoteGroup(t *testing.T) {
 		t.Errorf("insert Group2 failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateObject(group2Val, group2)
+	err = remote.UpdateEntity(group2Val, group2)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
@@ -111,9 +111,9 @@ func TestRemoteGroup(t *testing.T) {
 		return
 	}
 
-	err = remote.UpdateObject(group3Val, group3)
+	err = remote.UpdateEntity(group3Val, group3)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 	err = o1.Delete(group3Val)
@@ -146,9 +146,9 @@ func TestRemoteGroup(t *testing.T) {
 		return
 	}
 
-	err = remote.UpdateObject(group5Val, group5)
+	err = remote.UpdateEntity(group5Val, group5)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 	if !group5.Equle(group2) {
@@ -222,9 +222,9 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("insert Group1 failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateObject(group1Val, group1)
+	err = remote.UpdateEntity(group1Val, group1)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
@@ -238,9 +238,9 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("insert Group2 failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateObject(group2Val, group2)
+	err = remote.UpdateEntity(group2Val, group2)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
@@ -254,9 +254,9 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("insert group3 failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateObject(group3Val, group3)
+	err = remote.UpdateEntity(group3Val, group3)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
@@ -274,9 +274,9 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("insert user1 failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateObject(user1Val, user1)
+	err = remote.UpdateEntity(user1Val, user1)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
@@ -292,9 +292,9 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("query user2 failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateObject(user2Val, user2)
+	err = remote.UpdateEntity(user2Val, user2)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
@@ -314,9 +314,9 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("update user1 failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateObject(user1Val, user1)
+	err = remote.UpdateEntity(user1Val, user1)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 	user2Val, objErr = getObjectValue(user2)
@@ -330,9 +330,9 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("query user2 failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateObject(user2Val, user2)
+	err = remote.UpdateEntity(user2Val, user2)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
@@ -434,9 +434,9 @@ func TestRemoteSystem(t *testing.T) {
 		t.Errorf("insert user failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateObject(user1Val, user1)
+	err = remote.UpdateEntity(user1Val, user1)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 	user2Val, objErr := getObjectValue(user2)
@@ -449,9 +449,9 @@ func TestRemoteSystem(t *testing.T) {
 		t.Errorf("insert user failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateObject(user2Val, user2)
+	err = remote.UpdateEntity(user2Val, user2)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
@@ -475,9 +475,9 @@ func TestRemoteSystem(t *testing.T) {
 		t.Errorf("insert system failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateObject(sys1Val, sys1)
+	err = remote.UpdateEntity(sys1Val, sys1)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
@@ -494,9 +494,9 @@ func TestRemoteSystem(t *testing.T) {
 		t.Errorf("update system failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateObject(sys1Val, sys1)
+	err = remote.UpdateEntity(sys1Val, sys1)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
@@ -511,9 +511,9 @@ func TestRemoteSystem(t *testing.T) {
 		t.Errorf("query system failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateObject(sys2Val, sys2)
+	err = remote.UpdateEntity(sys2Val, sys2)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
@@ -595,9 +595,9 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("insert group failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateObject(group1Val, group1)
+	err = remote.UpdateEntity(group1Val, group1)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
@@ -611,9 +611,9 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("insert group failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateObject(group2Val, group2)
+	err = remote.UpdateEntity(group2Val, group2)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 	group3Val, objErr := getObjectValue(group3)
@@ -626,9 +626,9 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("insert group failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateObject(group3Val, group3)
+	err = remote.UpdateEntity(group3Val, group3)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
@@ -657,9 +657,9 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("insert user failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateObject(user1Val, user1)
+	err = remote.UpdateEntity(user1Val, user1)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
@@ -675,9 +675,9 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("insert user failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateObject(user2Val, user2)
+	err = remote.UpdateEntity(user2Val, user2)
 	if err != nil {
-		t.Errorf("UpdateObject failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
@@ -702,7 +702,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 	log.Print(retVal)
-	
+
 	if len(userList) != 2 {
 		t.Errorf("batch query user failed")
 		return

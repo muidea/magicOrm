@@ -171,16 +171,16 @@ func getSliceItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.
 }
 
 // GetObjectValue get object value
-func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
-	objValue := reflect.ValueOf(obj)
-	isPtr := objValue.Kind() == reflect.Ptr
-	objValue = reflect.Indirect(objValue)
-	objType := objValue.Type()
+func GetObjectValue(entity interface{}) (ret *ObjectValue, err error) {
+	entityValue := reflect.ValueOf(entity)
+	isPtr := entityValue.Kind() == reflect.Ptr
+	entityValue = reflect.Indirect(entityValue)
+	entityType := entityValue.Type()
 
-	ret = &ObjectValue{TypeName: objType.String(), PkgPath: objType.PkgPath(), IsPtrFlag: isPtr, Items: []ItemValue{}}
-	fieldNum := objValue.NumField()
+	ret = &ObjectValue{TypeName: entityType.String(), PkgPath: entityType.PkgPath(), IsPtrFlag: isPtr, Items: []ItemValue{}}
+	fieldNum := entityValue.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		fieldType := objType.Field(idx)
+		fieldType := entityType.Field(idx)
 		itemType, itemErr := GetType(fieldType.Type)
 		if itemErr != nil {
 			err = itemErr
@@ -188,7 +188,7 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 			return
 		}
 
-		fieldValue := objValue.Field(idx)
+		fieldValue := entityValue.Field(idx)
 		if itemType.GetValue() != util.TypeSliceField {
 			val, valErr := getItemValue(fieldType.Name, itemType, fieldValue)
 			if valErr != nil {
@@ -212,9 +212,9 @@ func GetObjectValue(obj interface{}) (ret *ObjectValue, err error) {
 }
 
 // GetSliceObjectValue get slice object value
-func GetSliceObjectValue(obj interface{}) (ret *SliceObjectValue, err error) {
-	objType := reflect.TypeOf(obj)
-	typeImpl, typeErr := GetType(objType)
+func GetSliceObjectValue(sliceEntity interface{}) (ret *SliceObjectValue, err error) {
+	entityType := reflect.TypeOf(sliceEntity)
+	typeImpl, typeErr := GetType(entityType)
 	if typeErr != nil {
 		err = fmt.Errorf("get slice object type failed, err:%s", err.Error())
 		return
@@ -360,31 +360,31 @@ func convertSliceValue(sliceObj reflect.Value, sliceVal *reflect.Value) (err err
 	return
 }
 
-// UpdateObject update object value -> obj
-func UpdateObject(objectValue *ObjectValue, obj interface{}) (err error) {
-	objValue := reflect.Indirect(reflect.ValueOf(obj))
-	objType := objValue.Type()
+// UpdateEntity update object value -> entity
+func UpdateEntity(objectValue *ObjectValue, entity interface{}) (err error) {
+	entityValue := reflect.Indirect(reflect.ValueOf(entity))
+	entityType := entityValue.Type()
 
-	itemType, itemErr := GetType(objType)
+	itemType, itemErr := GetType(entityType)
 	if itemErr != nil {
 		err = itemErr
 		return
 	}
 
 	if itemType.GetName() != objectValue.GetName() || itemType.GetPkgPath() != objectValue.GetPkgPath() {
-		err = fmt.Errorf("illegal object value, objectValue name:%s, objType name:%s", objectValue.GetName(), itemType.GetName())
+		err = fmt.Errorf("illegal object value, objectValue name:%s, entityType name:%s", objectValue.GetName(), itemType.GetName())
 		return
 	}
 
-	fieldNum := objValue.NumField()
+	fieldNum := entityValue.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		itemType, itemErr := GetType(objType.Field(idx).Type)
+		itemType, itemErr := GetType(entityType.Field(idx).Type)
 		if itemErr != nil {
 			err = itemErr
 			return
 		}
 
-		fieldValue := reflect.Indirect(objValue.Field(idx))
+		fieldValue := reflect.Indirect(entityValue.Field(idx))
 		itemValue := reflect.ValueOf(objectValue.Items[idx].Value)
 
 		dependType := itemType.Depend()
