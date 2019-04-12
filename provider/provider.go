@@ -10,11 +10,11 @@ import (
 
 // Provider model provider
 type Provider interface {
-	RegisterObjectModel(obj interface{}) (err error)
+	RegisterModel(entity interface{}) (err error)
 
-	UnregisterModel(obj interface{})
+	UnregisterModel(entity interface{})
 
-	GetObjectModel(obj interface{}) (ret model.Model, err error)
+	GetEntityModel(entity interface{}) (ret model.Model, err error)
 
 	GetValueModel(val reflect.Value) (ret model.Model, err error)
 

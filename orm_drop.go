@@ -37,11 +37,11 @@ func (s *orm) dropRelation(modelInfo model.Model, fieldName string, relationInfo
 	return
 }
 
-func (s *orm) Drop(obj interface{}) (err error) {
-	modelInfo, modelErr := s.modelProvider.GetObjectModel(obj)
+func (s *orm) Drop(entity interface{}) (err error) {
+	modelInfo, modelErr := s.modelProvider.GetEntityModel(entity)
 	if modelErr != nil {
 		err = modelErr
-		log.Printf("GetObjectModel failed, err:%s", err.Error())
+		log.Printf("GetEntityModel failed, err:%s", err.Error())
 		return
 	}
 

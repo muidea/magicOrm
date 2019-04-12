@@ -156,9 +156,9 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (err e
 	return
 }
 
-func (s *orm) Query(obj interface{}) (err error) {
-	objVal := reflect.ValueOf(obj)
-	modelInfo, modelErr := s.modelProvider.GetValueModel(objVal)
+func (s *orm) Query(entity interface{}) (err error) {
+	entityVal := reflect.ValueOf(entity)
+	modelInfo, modelErr := s.modelProvider.GetValueModel(entityVal)
 	if modelErr != nil {
 		err = modelErr
 		log.Printf("GetValueModel failed, err:%s", err.Error())

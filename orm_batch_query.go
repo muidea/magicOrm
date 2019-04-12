@@ -79,14 +79,14 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 	return
 }
 
-func (s *orm) BatchQuery(sliceInfo interface{}, filter model.Filter) (ret interface{}, err error) {
-	infoValue := reflect.ValueOf(sliceInfo)
-	if infoValue.Kind() != reflect.Ptr {
+func (s *orm) BatchQuery(sliceEntity interface{}, filter model.Filter) (ret interface{}, err error) {
+	sliceEntityVal := reflect.ValueOf(sliceEntity)
+	if sliceEntityVal.Kind() != reflect.Ptr {
 		err = fmt.Errorf("illegal obj type. must be a slice ptr")
 		return
 	}
 
-	sliceModel, sliceVal, modelErr := s.modelProvider.GetSliceValueModel(infoValue)
+	sliceModel, sliceVal, modelErr := s.modelProvider.GetSliceValueModel(sliceEntityVal)
 	if modelErr != nil {
 		err = modelErr
 		log.Printf("GetTypeModel failed, err:%s", err.Error())

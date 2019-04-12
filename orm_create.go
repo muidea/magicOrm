@@ -85,11 +85,11 @@ func (s *orm) batchCreateSchema(modelInfo model.Model) (err error) {
 	return
 }
 
-func (s *orm) Create(obj interface{}) (err error) {
-	modelInfo, modelErr := s.modelProvider.GetObjectModel(obj)
+func (s *orm) Create(entity interface{}) (err error) {
+	modelInfo, modelErr := s.modelProvider.GetEntityModel(entity)
 	if modelErr != nil {
 		err = modelErr
-		log.Printf("GetObjectModel failed, err:%s", err.Error())
+		log.Printf("GetEntityModel failed, err:%s", err.Error())
 		return
 	}
 

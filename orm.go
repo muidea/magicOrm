@@ -10,15 +10,15 @@ import (
 
 // Orm orm interfalce
 type Orm interface {
-	RegisterModel(obj interface{}) error
-	UnregisterModel(obj interface{})
-	Create(obj interface{}) error
-	Insert(obj interface{}) error
-	Update(obj interface{}) error
-	Delete(obj interface{}) error
-	Query(obj interface{}) error
-	BatchQuery(sliceInfo interface{}, filter model.Filter) (interface{}, error)
-	Drop(obj interface{}) error
+	RegisterModel(entity interface{}) error
+	UnregisterModel(entity interface{})
+	Create(entity interface{}) error
+	Drop(entity interface{}) error
+	Insert(entity interface{}) error
+	Update(entity interface{}) error
+	Delete(entity interface{}) error
+	Query(entity interface{}) error
+	BatchQuery(sliceEntity interface{}, filter model.Filter) (interface{}, error)
 	Release()
 }
 
@@ -68,12 +68,12 @@ func New() (Orm, error) {
 	return &orm{executor: executor, modelProvider: _config.getProvider()}, nil
 }
 
-func (s *orm) RegisterModel(obj interface{}) error {
-	return s.modelProvider.RegisterObjectModel(obj)
+func (s *orm) RegisterModel(entity interface{}) error {
+	return s.modelProvider.RegisterModel(entity)
 }
 
-func (s *orm) UnregisterModel(obj interface{}) {
-	s.modelProvider.UnregisterModel(obj)
+func (s *orm) UnregisterModel(entity interface{}) {
+	s.modelProvider.UnregisterModel(entity)
 }
 
 func (s *orm) Release() {
