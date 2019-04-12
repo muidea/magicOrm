@@ -9,7 +9,7 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-type items []interface{}
+type resultItems []interface{}
 
 func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter model.Filter) (ret reflect.Value, err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
@@ -20,7 +20,7 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 		return
 	}
 
-	queryList := []items{}
+	queryList := []resultItems{}
 	s.executor.Query(sql)
 	defer s.executor.Finish()
 	for s.executor.Next() {
@@ -79,8 +79,8 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 	return
 }
 
-func (s *orm) BatchQuery(sliceObj interface{}, filter model.Filter) (err error) {
-	objValue := reflect.ValueOf(sliceObj)
+func (s *orm) BatchQuery(sliceVal interface{}, filter model.Filter) (err error) {
+	objValue := reflect.ValueOf(sliceVal)
 	if objValue.Kind() != reflect.Ptr {
 		err = fmt.Errorf("illegal obj type. must be a slice ptr")
 		return
