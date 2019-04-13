@@ -20,7 +20,9 @@ func New(modelInfo model.Model, modelProvider provider.Provider) *Builder {
 }
 
 func (s *Builder) getTableName(info model.Model) string {
-	return strings.Join(strings.Split(info.GetName(), "."), "_")
+	//return strings.Join(strings.Split(info.GetName(), "."), "_")
+	items := strings.Split(info.GetName(), ".")
+	return items[len(items)-1]
 }
 
 // GetTableName GetTableName
