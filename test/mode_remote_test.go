@@ -681,10 +681,11 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
+	uGroup1 := []*remote.ObjectValue{group1Val, group2Val}
 	userList := &[]User{}
 	filter := orm.NewFilter()
 	filter.Equle("Name", &user1.Name)
-	filter.In("Group", user1.Group)
+	filter.In("Group", uGroup1)
 	filter.Like("EMail", user1.EMail)
 
 	pageFilter := &util.PageFilter{PageNum: 0, PageSize: 100}
@@ -745,7 +746,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	gs := []*Group{group1}
+	gs := []*remote.ObjectValue{group1Val}
 	filter2 := orm.NewFilter()
 	filter2.In("Group", gs)
 	userList = &[]User{}
