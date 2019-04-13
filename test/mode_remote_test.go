@@ -681,7 +681,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	userList := []User{}
+	userList := &[]User{}
 	filter := orm.NewFilter()
 	filter.Equle("Name", &user1.Name)
 	filter.In("Group", user1.Group)
@@ -703,30 +703,44 @@ func TestRemoteBatchQuery(t *testing.T) {
 	}
 	log.Print(retVal)
 
-	if len(userList) != 2 {
+	retErr = remote.UpdateSliceEntity(retVal, userList)
+	if retErr != nil {
+		err = retErr
+		t.Errorf("UpdateSliceEntity failed, err:%s", err.Error())
+		return
+	}
+
+	log.Print(userList)
+	if len(*userList) != 2 {
 		t.Errorf("batch query user failed")
 		return
 	}
 
-	userList = []User{}
+	userList = &[]User{}
 	userListVal, objErr = remote.GetSliceObjectValue(userList)
 	if objErr != nil {
 		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
 		return
 	}
 
-	retVal, retErr = o1.BatchQuery(&userListVal, filter)
+	retVal, retErr = o1.BatchQuery(userListVal, filter)
 	if retErr != nil {
 		err = retErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
 		return
 	}
 	log.Print(retVal)
-	if len(userList) != 1 {
+	retErr = remote.UpdateSliceEntity(retVal, userList)
+	if retErr != nil {
+		err = retErr
+		t.Errorf("UpdateSliceEntity failed, err:%s", err.Error())
+		return
+	}
+	if len(*userList) != 1 {
 		t.Errorf("filter query user failed")
 		return
 	}
-	if userList[0].Name != user1.Name || len(userList[0].Group) != len(user1.Group) {
+	if (*userList)[0].Name != user1.Name || len((*userList)[0].Group) != len(user1.Group) {
 		t.Errorf("filter query user failed")
 		return
 	}
@@ -734,18 +748,24 @@ func TestRemoteBatchQuery(t *testing.T) {
 	gs := []*Group{group1}
 	filter2 := orm.NewFilter()
 	filter2.In("Group", gs)
-	userList = []User{}
+	userList = &[]User{}
 	userListVal, objErr = remote.GetSliceObjectValue(userList)
 	if objErr != nil {
 		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	retVal, retErr = o1.BatchQuery(&userListVal, filter2)
+	retVal, retErr = o1.BatchQuery(userListVal, filter2)
 	if retErr != nil {
 		err = retErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
 		return
 	}
 	log.Print(retVal)
-	log.Print(userList)
+	retErr = remote.UpdateSliceEntity(retVal, userList)
+	if retErr != nil {
+		err = retErr
+		t.Errorf("UpdateSliceEntity failed, err:%s", err.Error())
+		return
+	}
+	log.Print(*userList)
 }

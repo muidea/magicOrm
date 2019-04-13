@@ -362,9 +362,13 @@ func convertSliceValue(sliceObj reflect.Value, sliceVal *reflect.Value) (err err
 
 // UpdateEntity update object value -> entity
 func UpdateEntity(objectValue *ObjectValue, entity interface{}) (err error) {
-	entityValue := reflect.Indirect(reflect.ValueOf(entity))
-	entityType := entityValue.Type()
+	entityValue := reflect.ValueOf(entity)
+	return updateEntity(objectValue, entityValue)
+}
 
+func updateEntity(objectValue *ObjectValue, entityValue reflect.Value) (err error) {
+	entityValue = reflect.Indirect(entityValue)
+	entityType := entityValue.Type()
 	itemType, itemErr := GetType(entityType)
 	if itemErr != nil {
 		err = itemErr
@@ -422,6 +426,57 @@ func UpdateEntity(objectValue *ObjectValue, entity interface{}) (err error) {
 			}
 		}
 	}
+
+	return
+}
+
+// UpdateSliceEntity update object value list -> entitySlice
+func UpdateSliceEntity(objectValueSlice interface{}, entitySlice interface{}) (err error) {
+	objectValueSliceVal := reflect.ValueOf(objectValueSlice)
+	objectValueSliceVal = reflect.Indirect(objectValueSliceVal)
+
+	entitySliceVal := reflect.Indirect(reflect.ValueOf(entitySlice))
+	if objectValueSliceVal.Kind() != reflect.Slice || entitySliceVal.Kind() != reflect.Slice {
+		err = fmt.Errorf("illegal objectValueSlice")
+		return
+	}
+
+	sliceType := entitySliceVal.Type()
+	itemType := sliceType.Elem()
+	entityType, entityErr := GetType(itemType)
+	if entityErr != nil || !util.IsStructType(entityType.GetValue()) {
+		err = fmt.Errorf("illegal entity slice value")
+		return
+	}
+
+	sliceVal := reflect.MakeSlice(sliceType, 0, 0)
+	for idx := 0; idx < objectValueSliceVal.Len(); idx++ {
+		objVal := reflect.Indirect(objectValueSliceVal.Index(idx))
+		if objVal.Kind() == reflect.Interface {
+			objVal = objVal.Elem()
+		}
+		objVal = reflect.Indirect(objVal)
+		objEntityVal, objEntityOK := objVal.Interface().(ObjectValue)
+		if !objEntityOK {
+			err = fmt.Errorf("illegal object slice value")
+			return
+		}
+
+		entityVal := reflect.New(itemType)
+		if !entityType.IsPtrType() {
+			entityVal = reflect.Indirect(entityVal)
+		}
+
+		err = updateEntity(&objEntityVal, entityVal)
+		if err != nil {
+			err = fmt.Errorf("updateEntity failed, err:%s", err.Error())
+			return
+		}
+
+		sliceVal = reflect.Append(sliceVal, entityVal)
+	}
+
+	entitySliceVal.Set(sliceVal)
 
 	return
 }

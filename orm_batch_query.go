@@ -56,6 +56,7 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 			if dependModel != nil {
 				err = s.queryRelation(newModelInfo, field)
 				if err != nil {
+					log.Printf("queryRelation failed, err:%s", err.Error())
 					return
 				}
 				continue
