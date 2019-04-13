@@ -330,6 +330,7 @@ func getSliceValueModel(val reflect.Value, cache Cache) (retObj *Object, retVal 
 	nameVal := val.FieldByName("TypeName")
 	pkgVal := val.FieldByName("PkgPath")
 	isPtr := val.FieldByName("IsPtrFlag")
+	values := val.FieldByName("Values")
 
 	objPtr := cache.Fetch(nameVal.String())
 	if objPtr == nil {
@@ -345,7 +346,7 @@ func getSliceValueModel(val reflect.Value, cache Cache) (retObj *Object, retVal 
 	retObj = objPtr
 	retObj.IsPtr = isPtr.Bool()
 
-	retVal = reflect.ValueOf([]interface{}{})
+	retVal = values
 
 	return
 }

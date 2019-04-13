@@ -18,7 +18,7 @@ type Orm interface {
 	Update(entity interface{}) error
 	Delete(entity interface{}) error
 	Query(entity interface{}) error
-	BatchQuery(sliceEntity interface{}, filter model.Filter) (interface{}, error)
+	BatchQuery(sliceEntity interface{}, filter model.Filter) error
 	Release()
 }
 

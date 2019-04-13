@@ -26,9 +26,10 @@ type ObjectValue struct {
 
 // SliceObjectValue slice object value
 type SliceObjectValue struct {
-	TypeName  string `json:"typeName"`
-	PkgPath   string `json:"pkgPath"`
-	IsPtrFlag bool   `json:"isPtr"`
+	TypeName  string        `json:"typeName"`
+	PkgPath   string        `json:"pkgPath"`
+	IsPtrFlag bool          `json:"isPtr"`
+	Values    []ObjectValue `json:"values"`
 }
 
 // GetName get object name
@@ -229,7 +230,7 @@ func GetSliceObjectValue(sliceEntity interface{}) (ret *SliceObjectValue, err er
 		return
 	}
 
-	ret = &SliceObjectValue{TypeName: subType.GetName(), PkgPath: subType.GetPkgPath(), IsPtrFlag: subType.IsPtrType()}
+	ret = &SliceObjectValue{TypeName: subType.GetName(), PkgPath: subType.GetPkgPath(), IsPtrFlag: subType.IsPtrType(), Values: []ObjectValue{}}
 
 	return
 }
@@ -431,12 +432,9 @@ func updateEntity(objectValue *ObjectValue, entityValue reflect.Value) (err erro
 }
 
 // UpdateSliceEntity update object value list -> entitySlice
-func UpdateSliceEntity(objectValueSlice interface{}, entitySlice interface{}) (err error) {
-	objectValueSliceVal := reflect.ValueOf(objectValueSlice)
-	objectValueSliceVal = reflect.Indirect(objectValueSliceVal)
-
+func UpdateSliceEntity(sliceObjectValue *SliceObjectValue, entitySlice interface{}) (err error) {
 	entitySliceVal := reflect.Indirect(reflect.ValueOf(entitySlice))
-	if objectValueSliceVal.Kind() != reflect.Slice || entitySliceVal.Kind() != reflect.Slice {
+	if entitySliceVal.Kind() != reflect.Slice {
 		err = fmt.Errorf("illegal objectValueSlice")
 		return
 	}
@@ -449,19 +447,14 @@ func UpdateSliceEntity(objectValueSlice interface{}, entitySlice interface{}) (e
 		return
 	}
 
-	sliceVal := reflect.MakeSlice(sliceType, 0, 0)
-	for idx := 0; idx < objectValueSliceVal.Len(); idx++ {
-		objVal := reflect.Indirect(objectValueSliceVal.Index(idx))
-		if objVal.Kind() == reflect.Interface {
-			objVal = objVal.Elem()
-		}
-		objVal = reflect.Indirect(objVal)
-		objEntityVal, objEntityOK := objVal.Interface().(ObjectValue)
-		if !objEntityOK {
-			err = fmt.Errorf("illegal object slice value")
-			return
-		}
+	if entityType.GetName() != sliceObjectValue.GetName() || entityType.GetPkgPath() != sliceObjectValue.GetPkgPath() {
+		err = fmt.Errorf("illegal object value, objectValue name:%s, entityType name:%s", sliceObjectValue.GetName(), entityType.GetName())
+		return
+	}
 
+	sliceVal := reflect.MakeSlice(sliceType, 0, 0)
+	for idx := 0; idx < len(sliceObjectValue.Values); idx++ {
+		objEntityVal := sliceObjectValue.Values[idx]
 		entityVal := reflect.New(itemType)
 		if !entityType.IsPtrType() {
 			entityVal = reflect.Indirect(entityVal)
@@ -483,6 +476,12 @@ func UpdateSliceEntity(objectValueSlice interface{}, entitySlice interface{}) (e
 
 // EncodeObjectValue encode objectValue
 func EncodeObjectValue(objVal *ObjectValue) (ret []byte, err error) {
+	ret, err = json.Marshal(objVal)
+	return
+}
+
+// EncodeSliceObjectValue encode slice objectValue
+func EncodeSliceObjectValue(objVal *SliceObjectValue) (ret []byte, err error) {
 	ret, err = json.Marshal(objVal)
 	return
 }
@@ -622,5 +621,17 @@ func DecodeObjectValue(data []byte) (ret *ObjectValue, err error) {
 
 	ret = val
 
+	return
+}
+
+// DecodeSliceObjectValue decode objectValue
+func DecodeSliceObjectValue(data []byte) (ret *SliceObjectValue, err error) {
+	val := &SliceObjectValue{}
+	err = json.Unmarshal(data, val)
+	if err != nil {
+		return
+	}
+
+	ret = val
 	return
 }

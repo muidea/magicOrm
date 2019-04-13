@@ -8,6 +8,27 @@ import (
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
+func getSliceObjectValue(val interface{}) (ret *remote.SliceObjectValue, err error) {
+	objVal, objErr := remote.GetSliceObjectValue(val)
+	if objErr != nil {
+		err = objErr
+		return
+	}
+
+	data, dataErr := remote.EncodeSliceObjectValue(objVal)
+	if dataErr != nil {
+		err = dataErr
+		return
+	}
+
+	ret, err = remote.DecodeSliceObjectValue(data)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 func TestRemoteGroup(t *testing.T) {
 	//orm.Initialize("root", "rootkit", "localhost:9696", "testdb")
 	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", false)
@@ -690,19 +711,19 @@ func TestRemoteBatchQuery(t *testing.T) {
 	pageFilter := &util.PageFilter{PageNum: 0, PageSize: 100}
 	filter.PageFilter(pageFilter)
 
-	userListVal, objErr := remote.GetSliceObjectValue(userList)
+	userListVal, objErr := getSliceObjectValue(userList)
 	if objErr != nil {
 		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	retVal, retErr := o1.BatchQuery(userListVal, nil)
+	retErr := o1.BatchQuery(userListVal, nil)
 	if retErr != nil {
 		err = retErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
 		return
 	}
 
-	retErr = remote.UpdateSliceEntity(retVal, userList)
+	retErr = remote.UpdateSliceEntity(userListVal, userList)
 	if retErr != nil {
 		err = retErr
 		t.Errorf("UpdateSliceEntity failed, err:%s", err.Error())
@@ -715,19 +736,19 @@ func TestRemoteBatchQuery(t *testing.T) {
 	}
 
 	userList = &[]User{}
-	userListVal, objErr = remote.GetSliceObjectValue(userList)
+	userListVal, objErr = getSliceObjectValue(userList)
 	if objErr != nil {
 		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
 		return
 	}
 
-	retVal, retErr = o1.BatchQuery(userListVal, filter)
+	retErr = o1.BatchQuery(userListVal, filter)
 	if retErr != nil {
 		err = retErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
 		return
 	}
-	retErr = remote.UpdateSliceEntity(retVal, userList)
+	retErr = remote.UpdateSliceEntity(userListVal, userList)
 	if retErr != nil {
 		err = retErr
 		t.Errorf("UpdateSliceEntity failed, err:%s", err.Error())
@@ -746,18 +767,18 @@ func TestRemoteBatchQuery(t *testing.T) {
 	filter2 := orm.NewFilter()
 	filter2.In("Group", gs)
 	userList = &[]User{}
-	userListVal, objErr = remote.GetSliceObjectValue(userList)
+	userListVal, objErr = getSliceObjectValue(userList)
 	if objErr != nil {
 		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	retVal, retErr = o1.BatchQuery(userListVal, filter2)
+	retErr = o1.BatchQuery(userListVal, filter2)
 	if retErr != nil {
 		err = retErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
 		return
 	}
-	retErr = remote.UpdateSliceEntity(retVal, userList)
+	retErr = remote.UpdateSliceEntity(userListVal, userList)
 	if retErr != nil {
 		err = retErr
 		t.Errorf("UpdateSliceEntity failed, err:%s", err.Error())

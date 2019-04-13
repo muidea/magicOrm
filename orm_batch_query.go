@@ -11,7 +11,7 @@ import (
 
 type resultItems []interface{}
 
-func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter model.Filter) (ret reflect.Value, err error) {
+func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter model.Filter) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	sql, sqlErr := builder.BuildBatchQuery(filter)
 	if sqlErr != nil {
@@ -35,6 +35,7 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 		queryList = append(queryList, modelItems)
 	}
 
+	resultSlice := reflect.MakeSlice(sliceValue.Type(), 0, 0)
 	for idx := 0; idx < len(queryList); idx++ {
 		newVal := modelInfo.Interface()
 		newModelInfo, newErr := s.modelProvider.GetValueModel(newVal)
@@ -72,15 +73,15 @@ func (s *orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 			offset++
 		}
 
-		sliceValue = reflect.Append(sliceValue, newVal)
+		resultSlice = reflect.Append(resultSlice, newVal)
 	}
 
-	ret = sliceValue
+	sliceValue.Set(resultSlice)
 
 	return
 }
 
-func (s *orm) BatchQuery(sliceEntity interface{}, filter model.Filter) (ret interface{}, err error) {
+func (s *orm) BatchQuery(sliceEntity interface{}, filter model.Filter) (err error) {
 	sliceEntityVal := reflect.ValueOf(sliceEntity)
 	if sliceEntityVal.Kind() != reflect.Ptr {
 		err = fmt.Errorf("illegal obj type. must be a slice ptr")
@@ -94,14 +95,12 @@ func (s *orm) BatchQuery(sliceEntity interface{}, filter model.Filter) (ret inte
 		return
 	}
 
-	queryValues, queryErr := s.queryBatch(sliceModel, sliceVal, filter)
+	queryErr := s.queryBatch(sliceModel, sliceVal, filter)
 	if queryErr != nil {
 		err = queryErr
 		log.Printf("queryBatch failed, err:%s", err.Error())
 		return
 	}
-
-	ret = queryValues.Interface()
 
 	return
 }

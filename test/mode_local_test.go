@@ -387,18 +387,13 @@ func TestLocalBatchQuery(t *testing.T) {
 	filter.PageFilter(pageFilter)
 
 	//err = o1.BatchQuery(&userList, filter)
-	retVal, retErr := o1.BatchQuery(&userList, nil)
+	retErr := o1.BatchQuery(&userList, nil)
 	if retErr != nil {
 		err = retErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
 		return
 	}
 
-	userList, ok := retVal.([]User)
-	if !ok {
-		t.Errorf("batch query user failed")
-		return
-	}
 	if len(userList) != 2 {
 		t.Errorf("filter query user failed")
 		return
