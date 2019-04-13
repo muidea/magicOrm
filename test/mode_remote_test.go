@@ -1,7 +1,6 @@
 package test
 
 import (
-	"log"
 	"testing"
 
 	"github.com/muidea/magicCommon/foundation/util"
@@ -702,7 +701,6 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("batch query user failed, err:%s", err.Error())
 		return
 	}
-	log.Print(retVal)
 
 	retErr = remote.UpdateSliceEntity(retVal, userList)
 	if retErr != nil {
@@ -711,7 +709,6 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	log.Print(userList)
 	if len(*userList) != 2 {
 		t.Errorf("batch query user failed")
 		return
@@ -730,7 +727,6 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("batch query user failed, err:%s", err.Error())
 		return
 	}
-	log.Print(retVal)
 	retErr = remote.UpdateSliceEntity(retVal, userList)
 	if retErr != nil {
 		err = retErr
@@ -761,12 +757,14 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("batch query user failed, err:%s", err.Error())
 		return
 	}
-	log.Print(retVal)
 	retErr = remote.UpdateSliceEntity(retVal, userList)
 	if retErr != nil {
 		err = retErr
 		t.Errorf("UpdateSliceEntity failed, err:%s", err.Error())
 		return
 	}
-	log.Print(*userList)
+	if len(*userList) != 2 {
+		t.Errorf("filter query user failed")
+		return
+	}
 }
