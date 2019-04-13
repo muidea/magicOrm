@@ -234,37 +234,37 @@ func GetSliceObjectValue(sliceEntity interface{}) (ret *SliceObjectValue, err er
 	return
 }
 
-func convertStructValue(structObj reflect.Value, structVal *reflect.Value) (err error) {
-	if util.IsNil(structObj) || util.IsNil(*structVal) {
+func convertStructValue(objectValue reflect.Value, entityValue *reflect.Value) (err error) {
+	if util.IsNil(objectValue) || util.IsNil(*entityValue) {
 		return
 	}
 
-	if structObj.Kind() == reflect.Interface {
-		structObj = structObj.Elem()
+	if objectValue.Kind() == reflect.Interface {
+		objectValue = objectValue.Elem()
 	}
 
-	structObj = reflect.Indirect(structObj)
-	objVal, objOK := structObj.Interface().(ObjectValue)
+	objectValue = reflect.Indirect(objectValue)
+	objVal, objOK := objectValue.Interface().(ObjectValue)
 	if !objOK {
-		err = fmt.Errorf("illegal struct value, value type:%s", structObj.Type().String())
+		err = fmt.Errorf("illegal struct value, value type:%s", objectValue.Type().String())
 		return
 	}
 
-	structType := structVal.Type()
-	fieldNum := structVal.NumField()
+	entityType := entityValue.Type()
+	fieldNum := entityValue.NumField()
 	items := objVal.Items
 	for idx := 0; idx < fieldNum; idx++ {
 		if items[idx].Value == nil {
 			continue
 		}
 
-		itemType, itemErr := GetType(structType.Field(idx).Type)
+		itemType, itemErr := GetType(entityType.Field(idx).Type)
 		if itemErr != nil {
 			err = itemErr
 			return
 		}
 
-		fieldValue := reflect.Indirect(structVal.Field(idx))
+		fieldValue := reflect.Indirect(entityValue.Field(idx))
 		itemValue := reflect.ValueOf(items[idx].Value)
 
 		dependType := itemType.Depend()
@@ -437,7 +437,7 @@ func decodeObjectValue(objVal map[string]interface{}) (ret *ObjectValue, err err
 	pkgPathVal, pkgPathOK := objVal["pkgPath"]
 	isPtrVal, isPtrOK := objVal["isPtr"]
 	itemsVal, itemsOK := objVal["items"]
-	if !nameOK || !pkgPathOK || !itemsOK || !isPtrOK {
+	if !nameOK || !pkgPathOK || !isPtrOK || !itemsOK {
 		err = fmt.Errorf("illegal ObjectValue")
 		return
 	}

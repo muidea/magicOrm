@@ -152,8 +152,8 @@ func (s *Provider) GetEntityModel(objEntity interface{}) (ret model.Model, err e
 }
 
 // GetValueModel GetValueModel
-func (s *Provider) GetValueModel(modelVal reflect.Value) (ret model.Model, err error) {
-	objImpl, objErr := getValueModel(modelVal, s.modelCache)
+func (s *Provider) GetValueModel(objVal reflect.Value) (ret model.Model, err error) {
+	objImpl, objErr := getValueModel(objVal, s.modelCache)
 	if objErr != nil {
 		err = objErr
 		return
@@ -164,8 +164,8 @@ func (s *Provider) GetValueModel(modelVal reflect.Value) (ret model.Model, err e
 }
 
 // GetSliceValueModel GetSliceValueModel
-func (s *Provider) GetSliceValueModel(sliceVal reflect.Value) (retModel model.Model, retVal reflect.Value, retErr error) {
-	objImpl, objVal, objErr := getSliceValueModel(sliceVal, s.modelCache)
+func (s *Provider) GetSliceValueModel(sliceObjVal reflect.Value) (retModel model.Model, retVal reflect.Value, retErr error) {
+	objImpl, objVal, objErr := getSliceValueModel(sliceObjVal, s.modelCache)
 	if objErr != nil {
 		retErr = objErr
 		return
