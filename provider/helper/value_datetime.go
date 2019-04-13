@@ -12,6 +12,10 @@ import (
 //EncodeDateTimeValue get datetime value str
 func EncodeDateTimeValue(val reflect.Value) (ret string, err error) {
 	val = reflect.Indirect(val)
+	if val.Kind() == reflect.Interface {
+		val = val.Elem()
+	}
+
 	switch val.Kind() {
 	case reflect.Struct:
 		ts, ok := val.Interface().(time.Time)
@@ -26,23 +30,6 @@ func EncodeDateTimeValue(val reflect.Value) (ret string, err error) {
 			err = fmt.Errorf("illegal datetime value, val:%v", val.Interface())
 		} else {
 			ret = val.String()
-		}
-	case reflect.Interface:
-		dtVal, dtOK := val.Interface().(time.Time)
-		if dtOK {
-			ret = fmt.Sprintf("%s", dtVal.Format("2006-01-02 15:04:05"))
-		} else {
-			strVal, strOK := val.Interface().(string)
-			if strOK {
-				_, tmErr := time.ParseInLocation("2006-01-02 15:04:05", strVal, time.Local)
-				if tmErr != nil {
-					err = fmt.Errorf("illegal datetime value, val:%v", strVal)
-				} else {
-					ret = val.String()
-				}
-			} else {
-				err = fmt.Errorf("illegal datetime value, val:%v", val.Interface())
-			}
 		}
 	default:
 		err = fmt.Errorf("illegal value, type:%s", val.Type().String())

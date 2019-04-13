@@ -11,12 +11,13 @@ import (
 // EncodeStringValue get string value str
 func EncodeStringValue(val reflect.Value) (ret string, err error) {
 	val = reflect.Indirect(val)
+	if val.Kind() == reflect.Interface {
+		val = val.Elem()
+	}
 
 	switch val.Kind() {
 	case reflect.String:
 		ret = fmt.Sprintf("%s", val.String())
-	case reflect.Interface:
-		ret = fmt.Sprintf("%v", val.Interface())
 	default:
 		err = fmt.Errorf("illegal value, type:%s", val.Type().String())
 	}

@@ -14,10 +14,8 @@ import (
 func EncodeSliceValue(val reflect.Value) (ret string, err error) {
 	valSlice := []string{}
 
+	val = reflect.Indirect(val)
 	if val.Kind() == reflect.Interface {
-		val = val.Elem()
-	}
-	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
 	}
 

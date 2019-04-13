@@ -10,98 +10,96 @@ import (
 )
 
 // ConvertValue convert interface{} to reflect.Value
-func ConvertValue(rawVal reflect.Value, dstVal *reflect.Value) (err error) {
-	if util.IsNil(rawVal) {
+func ConvertValue(fromVal reflect.Value, toVal *reflect.Value) (err error) {
+	if util.IsNil(fromVal) {
 		return
 	}
 
-	if rawVal.Kind() == reflect.Interface {
-		rawVal = rawVal.Elem()
-	}
-	if rawVal.Kind() == reflect.Ptr {
-		rawVal = rawVal.Elem()
+	if fromVal.Kind() == reflect.Interface {
+		fromVal = fromVal.Elem()
 	}
 
-	vType := dstVal.Type()
+	fromVal = reflect.Indirect(fromVal)
+	vType := toVal.Type()
 	switch vType.Kind() {
 	case reflect.Bool:
-		switch rawVal.Kind() {
+		switch fromVal.Kind() {
 		case reflect.Bool:
-			dstVal.SetBool(rawVal.Bool())
+			toVal.SetBool(fromVal.Bool())
 		case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int:
-			dstVal.SetBool(rawVal.Int() != 0)
+			toVal.SetBool(fromVal.Int() != 0)
 		case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint:
-			dstVal.SetBool(rawVal.Uint() != 0)
+			toVal.SetBool(fromVal.Uint() != 0)
 		case reflect.Float32, reflect.Float64:
-			dstVal.SetBool(rawVal.Float() != 0)
+			toVal.SetBool(fromVal.Float() != 0)
 		default:
-			err = fmt.Errorf("illegal bool value, rawVal:%v", rawVal.Interface())
+			err = fmt.Errorf("illegal bool value, fromVal:%v", fromVal.Interface())
 		}
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int:
-		switch rawVal.Kind() {
+		switch fromVal.Kind() {
 		case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int:
-			dstVal.SetInt(rawVal.Int())
+			toVal.SetInt(fromVal.Int())
 		case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint:
-			dstVal.SetInt(int64(rawVal.Uint()))
+			toVal.SetInt(int64(fromVal.Uint()))
 		case reflect.Float32, reflect.Float64:
-			dstVal.SetInt(int64(rawVal.Float()))
+			toVal.SetInt(int64(fromVal.Float()))
 		default:
-			err = fmt.Errorf("illegal int value, rawVal:%v", rawVal.Interface())
+			err = fmt.Errorf("illegal int value, fromVal:%v", fromVal.Interface())
 		}
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint:
-		switch rawVal.Kind() {
+		switch fromVal.Kind() {
 		case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int:
-			dstVal.SetUint(uint64(rawVal.Int()))
+			toVal.SetUint(uint64(fromVal.Int()))
 		case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint:
-			dstVal.SetUint(rawVal.Uint())
+			toVal.SetUint(fromVal.Uint())
 		case reflect.Float32, reflect.Float64:
-			dstVal.SetUint(uint64(rawVal.Float()))
+			toVal.SetUint(uint64(fromVal.Float()))
 		default:
-			err = fmt.Errorf("illegal uint value, rawVal:%v", rawVal.Interface())
+			err = fmt.Errorf("illegal uint value, fromVal:%v", fromVal.Interface())
 		}
 	case reflect.Float32, reflect.Float64:
-		switch rawVal.Kind() {
+		switch fromVal.Kind() {
 		case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int:
-			dstVal.SetFloat(float64(rawVal.Int()))
+			toVal.SetFloat(float64(fromVal.Int()))
 		case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint:
-			dstVal.SetFloat(float64(rawVal.Uint()))
+			toVal.SetFloat(float64(fromVal.Uint()))
 		case reflect.Float32, reflect.Float64:
-			dstVal.SetFloat(rawVal.Float())
+			toVal.SetFloat(fromVal.Float())
 		default:
-			err = fmt.Errorf("illegal float value, rawVal:%v", rawVal.Interface())
+			err = fmt.Errorf("illegal float value, fromVal:%v", fromVal.Interface())
 		}
 	case reflect.String:
-		switch rawVal.Kind() {
+		switch fromVal.Kind() {
 		case reflect.Bool:
-			if rawVal.Bool() {
-				dstVal.SetString("1")
+			if fromVal.Bool() {
+				toVal.SetString("1")
 			} else {
-				dstVal.SetString("0")
+				toVal.SetString("0")
 			}
 		case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int:
-			strVal := fmt.Sprintf("%d", rawVal.Int())
-			dstVal.SetString(strVal)
+			strVal := fmt.Sprintf("%d", fromVal.Int())
+			toVal.SetString(strVal)
 		case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint:
-			strVal := fmt.Sprintf("%d", rawVal.Uint())
-			dstVal.SetString(strVal)
+			strVal := fmt.Sprintf("%d", fromVal.Uint())
+			toVal.SetString(strVal)
 		case reflect.Float32, reflect.Float64:
-			strVal := fmt.Sprintf("%f", rawVal.Float())
-			dstVal.SetString(strVal)
+			strVal := fmt.Sprintf("%f", fromVal.Float())
+			toVal.SetString(strVal)
 		case reflect.Struct:
-			if rawVal.Type().String() == "time.Time" {
-				strVal := fmt.Sprintf("%s", rawVal.Interface().(time.Time).Format("2006-01-02 15:04:05"))
-				dstVal.SetString(strVal)
+			if fromVal.Type().String() == "time.Time" {
+				strVal := fmt.Sprintf("%s", fromVal.Interface().(time.Time).Format("2006-01-02 15:04:05"))
+				toVal.SetString(strVal)
 			} else {
-				err = fmt.Errorf("illegal struct value, rawVal:%v", rawVal.Interface())
+				err = fmt.Errorf("illegal struct value, fromVal:%v", fromVal.Interface())
 			}
 		case reflect.String:
-			dstVal.SetString(rawVal.String())
+			toVal.SetString(fromVal.String())
 		case reflect.Slice:
 			array := []string{}
-			for idx := 0; idx < rawVal.Len(); idx++ {
+			for idx := 0; idx < fromVal.Len(); idx++ {
 				str := ""
 				val := reflect.ValueOf(str)
-				valErr := ConvertValue(rawVal.Index(idx), &val)
+				valErr := ConvertValue(fromVal.Index(idx), &val)
 				if valErr != nil {
 					err = fmt.Errorf("convert to string failed, err:%s", valErr.Error())
 					return
@@ -114,64 +112,65 @@ func ConvertValue(rawVal reflect.Value, dstVal *reflect.Value) (err error) {
 				err = fmt.Errorf("marshal slice to string failed, err:%s", dataErr.Error())
 				return
 			}
-			dstVal.SetString(string(data))
+			toVal.SetString(string(data))
 		default:
-			err = fmt.Errorf("illegal string value, rawVal type:%s, rawVal:%v", rawVal.Type().String(), rawVal.Interface())
+			err = fmt.Errorf("illegal string value, fromVal type:%s, fromVal:%v", fromVal.Type().String(), fromVal.Interface())
 		}
 	case reflect.Struct:
-		switch rawVal.Kind() {
+		switch fromVal.Kind() {
 		case reflect.String:
-			dtVal, dtErr := time.ParseInLocation("2006-01-02 15:04:05", rawVal.String(), time.Local)
+			dtVal, dtErr := time.ParseInLocation("2006-01-02 15:04:05", fromVal.String(), time.Local)
 			if dtErr != nil {
 				err = fmt.Errorf("illegal datetime value, err:%s", dtErr.Error())
 			} else {
-				dstVal.Set(reflect.ValueOf(dtVal))
+				toVal.Set(reflect.ValueOf(dtVal))
 			}
 		default:
-			err = fmt.Errorf("illegal datetime value, rawVal:%v", rawVal.Interface())
+			err = fmt.Errorf("illegal datetime value, fromVal:%v", fromVal.Interface())
 		}
 	case reflect.Slice:
-		sliceErr := ConvertSliceValue(rawVal, dstVal)
+		sliceErr := ConvertSliceValue(fromVal, toVal)
 		if sliceErr != nil {
 			err = sliceErr
 		}
 	default:
-		err = fmt.Errorf("illegal field type, rawVal:%v", rawVal.Interface())
+		err = fmt.Errorf("illegal field type, fromVal:%v", fromVal.Interface())
 	}
 
 	return
 }
 
 // ConvertSliceValue convert interface{} slice to reflect.Value
-func ConvertSliceValue(rawVal reflect.Value, dstVal *reflect.Value) (err error) {
-	if util.IsNil(rawVal) {
+func ConvertSliceValue(fromVal reflect.Value, toVal *reflect.Value) (err error) {
+	if util.IsNil(fromVal) {
 		return
 	}
 
-	if rawVal.Kind() == reflect.Interface {
-		rawVal = rawVal.Elem()
+	if fromVal.Kind() == reflect.Interface {
+		fromVal = fromVal.Elem()
 	}
 
-	if rawVal.Kind() == reflect.String {
+	fromVal = reflect.Indirect(fromVal)
+	if fromVal.Kind() == reflect.String {
 		array := []string{}
-		err = json.Unmarshal([]byte(rawVal.String()), &array)
+		err = json.Unmarshal([]byte(fromVal.String()), &array)
 		if err != nil {
 			err = fmt.Errorf("unmarshal to slice failed,err:%s", err.Error())
 			return
 		}
 
-		rawVal = reflect.ValueOf(array)
+		fromVal = reflect.ValueOf(array)
 	}
 
-	if rawVal.Kind() != reflect.Slice || dstVal.Kind() != reflect.Slice {
-		err = fmt.Errorf("illegal field type, val:%v", rawVal.Interface())
+	if fromVal.Kind() != reflect.Slice || toVal.Kind() != reflect.Slice {
+		err = fmt.Errorf("illegal field type, val:%v", fromVal.Interface())
 		return
 	}
 
-	itemSlice := reflect.MakeSlice(dstVal.Type(), 0, 0)
-	vType := dstVal.Type().Elem()
-	for idx := 0; idx < rawVal.Len(); idx++ {
-		v := rawVal.Index(idx)
+	itemSlice := reflect.MakeSlice(toVal.Type(), 0, 0)
+	vType := toVal.Type().Elem()
+	for idx := 0; idx < fromVal.Len(); idx++ {
+		v := fromVal.Index(idx)
 		iv := reflect.New(vType).Elem()
 		vErr := ConvertValue(v, &iv)
 		if vErr != nil {
@@ -182,7 +181,7 @@ func ConvertSliceValue(rawVal reflect.Value, dstVal *reflect.Value) (err error) 
 		itemSlice = reflect.Append(itemSlice, iv)
 	}
 
-	dstVal.Set(itemSlice)
+	toVal.Set(itemSlice)
 
 	return
 }

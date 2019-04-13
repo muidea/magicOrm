@@ -11,23 +11,16 @@ import (
 // EncodeBoolValue get bool value str
 func EncodeBoolValue(val reflect.Value) (ret string, err error) {
 	val = reflect.Indirect(val)
+	if val.Kind() == reflect.Interface {
+		val = val.Elem()
+	}
+
 	switch val.Kind() {
 	case reflect.Bool:
 		if val.Bool() {
 			ret = "1"
 		} else {
 			ret = "0"
-		}
-	case reflect.Interface:
-		bVal, bOK := val.Interface().(bool)
-		if !bOK {
-			err = fmt.Errorf("illegal bool value, val:%v", val.Interface())
-		} else {
-			if bVal {
-				ret = "1"
-			} else {
-				ret = "0"
-			}
 		}
 	default:
 		err = fmt.Errorf("illegal value, type:%s", val.Type().String())
