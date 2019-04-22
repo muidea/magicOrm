@@ -356,6 +356,7 @@ func getTypeMode(vType model.Type, cache Cache) (ret *Object, err error) {
 
 	objPtr := cache.Fetch(vType.GetName())
 	if objPtr == nil {
+		err = fmt.Errorf("no found type model, name:%s", vType.GetName())
 		return
 	}
 
