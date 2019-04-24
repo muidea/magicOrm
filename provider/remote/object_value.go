@@ -231,6 +231,7 @@ func GetSliceObjectValue(sliceEntity interface{}) (ret *SliceObjectValue, err er
 	}
 
 	ret = &SliceObjectValue{TypeName: subType.GetName(), PkgPath: subType.GetPkgPath(), IsPtrFlag: subType.IsPtrType(), Values: []ObjectValue{}}
+	entityValue = reflect.Indirect(entityValue)
 	for idx := 0; idx < entityValue.Len(); idx++ {
 		val := entityValue.Index(idx)
 
