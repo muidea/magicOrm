@@ -214,8 +214,8 @@ func GetObjectValue(entity interface{}) (ret *ObjectValue, err error) {
 
 // GetSliceObjectValue get slice object value
 func GetSliceObjectValue(sliceEntity interface{}) (ret *SliceObjectValue, err error) {
-	entityType := reflect.TypeOf(sliceEntity)
-	typeImpl, typeErr := GetType(entityType)
+	entityValue := reflect.ValueOf(sliceEntity)
+	typeImpl, typeErr := GetType(entityValue.Type())
 	if typeErr != nil {
 		err = fmt.Errorf("get slice object type failed, err:%s", err.Error())
 		return
@@ -231,6 +231,17 @@ func GetSliceObjectValue(sliceEntity interface{}) (ret *SliceObjectValue, err er
 	}
 
 	ret = &SliceObjectValue{TypeName: subType.GetName(), PkgPath: subType.GetPkgPath(), IsPtrFlag: subType.IsPtrType(), Values: []ObjectValue{}}
+	for idx := 0; idx < entityValue.Len(); idx++ {
+		val := entityValue.Index(idx)
+
+		objVal, objErr := GetObjectValue(val.Interface())
+		if objErr != nil {
+			err = objErr
+			return
+		}
+
+		ret.Values = append(ret.Values, *objVal)
+	}
 
 	return
 }
