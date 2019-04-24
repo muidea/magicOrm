@@ -4,13 +4,13 @@ import (
 	"fmt"
 )
 
-// EquleOpr EquleOpr
-func EquleOpr(name string, val string) string {
+// EqualOpr EqualOpr
+func EqualOpr(name string, val string) string {
 	return fmt.Sprintf("`%s` = %s", name, val)
 }
 
-// NotEquleOpr NotEquleOpr
-func NotEquleOpr(name string, val string) string {
+// NotEqualOpr NotEqualOpr
+func NotEqualOpr(name string, val string) string {
 	return fmt.Sprintf("`%s` != %s", name, val)
 }
 

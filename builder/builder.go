@@ -30,22 +30,22 @@ func NewBuilder(modelInfo model.Model, modelProvider provider.Provider) Builder 
 	return mysql.New(modelInfo, modelProvider)
 }
 
-// EquleOpr EquleOpr
-func EquleOpr(name string, val string) string {
+// EqualOpr EqualOpr
+func EqualOpr(name string, val string) string {
 	if val == "" {
 		return ""
 	}
 
-	return mysql.EquleOpr(name, val)
+	return mysql.EqualOpr(name, val)
 }
 
-// NotEquleOpr NotEquleOpr
-func NotEquleOpr(name string, val string) string {
+// NotEqualOpr NotEqualOpr
+func NotEqualOpr(name string, val string) string {
 	if val == "" {
 		return ""
 	}
 
-	return mysql.NotEquleOpr(name, val)
+	return mysql.NotEqualOpr(name, val)
 }
 
 // BelowOpr BelowOpr

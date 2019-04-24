@@ -78,7 +78,7 @@ func TestLocalGroup(t *testing.T) {
 		return
 	}
 
-	if !group5.Equle(group2) {
+	if !group5.Equal(group2) {
 		t.Errorf("query Group5 failed")
 	}
 }
@@ -159,7 +159,7 @@ func TestLocalUser(t *testing.T) {
 		return
 	}
 
-	if !user2.Equle(user1) {
+	if !user2.Equal(user1) {
 		t.Errorf("query user2 failed")
 		return
 	}
@@ -180,7 +180,7 @@ func TestLocalUser(t *testing.T) {
 		t.Errorf("query user2 failed")
 		return
 	}
-	if !user2.Equle(user1) {
+	if !user2.Equal(user1) {
 		t.Errorf("query user2 failed")
 		return
 	}
@@ -285,7 +285,7 @@ func TestLoalSystem(t *testing.T) {
 		return
 	}
 
-	if !sys1.Equle(sys2) {
+	if !sys1.Equal(sys2) {
 		t.Error("query sys2 faield")
 		return
 	}
@@ -379,12 +379,12 @@ func TestLocalBatchQuery(t *testing.T) {
 
 	userList := []User{}
 	filter := orm.NewFilter()
-	filter.Equle("Name", &user1.Name)
+	filter.Equal("Name", &user1.Name)
 	filter.In("Group", user1.Group)
 	filter.Like("EMail", user1.EMail)
 
 	pageFilter := &util.PageFilter{PageNum: 0, PageSize: 100}
-	filter.PageFilter(pageFilter)
+	filter.Page(pageFilter)
 
 	//err = o1.BatchQuery(&userList, filter)
 	retErr := o1.BatchQuery(&userList, nil)

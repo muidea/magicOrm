@@ -48,9 +48,9 @@ Golang对象的orm框架，目前仅支持mySQL数据库。
 ### batchQuery
 按条件查询对象，支持的查询如下
 
-Equle 等于
+Equal 等于
 
-NotEqule 不等于
+NotEqual 不等于
 
 Below 小于
 

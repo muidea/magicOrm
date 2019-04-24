@@ -171,7 +171,7 @@ func TestRemoteGroup(t *testing.T) {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
-	if !group5.Equle(group2) {
+	if !group5.Equal(group2) {
 		t.Errorf("query Group5 failed")
 	}
 }
@@ -318,7 +318,7 @@ func TestRemoteUser(t *testing.T) {
 		return
 	}
 
-	if !user2.Equle(user1) {
+	if !user2.Equal(user1) {
 		t.Errorf("query user2 failed")
 		return
 	}
@@ -360,7 +360,7 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("query user2 failed")
 		return
 	}
-	if !user2.Equle(user1) {
+	if !user2.Equal(user1) {
 		t.Errorf("query user2 failed")
 		return
 	}
@@ -537,7 +537,7 @@ func TestRemoteSystem(t *testing.T) {
 		return
 	}
 
-	if !sys1.Equle(sys2) {
+	if !sys1.Equal(sys2) {
 		t.Error("query sys2 faield")
 		return
 	}
@@ -704,12 +704,12 @@ func TestRemoteBatchQuery(t *testing.T) {
 	uGroup1 := []*remote.ObjectValue{group1Val, group2Val}
 	userList := &[]User{}
 	filter := orm.NewFilter()
-	filter.Equle("Name", &user1.Name)
+	filter.Equal("Name", &user1.Name)
 	filter.In("Group", uGroup1)
 	filter.Like("EMail", user1.EMail)
 
 	pageFilter := &util.PageFilter{PageNum: 0, PageSize: 100}
-	filter.PageFilter(pageFilter)
+	filter.Page(pageFilter)
 
 	userListVal, objErr := getSliceObjectValue(userList)
 	if objErr != nil {

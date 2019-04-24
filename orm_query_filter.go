@@ -202,7 +202,7 @@ type queryFilter struct {
 	modelProvider provider.Provider
 }
 
-func (s *queryFilter) Equle(key string, val interface{}) (err error) {
+func (s *queryFilter) Equal(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	qvType, qvErr := ormutil.GetTypeValueEnum(qv.Type())
 	if qvErr != nil {
@@ -214,11 +214,11 @@ func (s *queryFilter) Equle(key string, val interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = &filterItem{filterFun: builder.EquleOpr, value: qv, modelProvider: s.modelProvider}
+	s.params[key] = &filterItem{filterFun: builder.EqualOpr, value: qv, modelProvider: s.modelProvider}
 	return
 }
 
-func (s *queryFilter) NotEqule(key string, val interface{}) (err error) {
+func (s *queryFilter) NotEqual(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	qvType, qvErr := ormutil.GetTypeValueEnum(qv.Type())
 	if qvErr != nil {
@@ -230,7 +230,7 @@ func (s *queryFilter) NotEqule(key string, val interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = &filterItem{filterFun: builder.NotEquleOpr, value: qv, modelProvider: s.modelProvider}
+	s.params[key] = &filterItem{filterFun: builder.NotEqualOpr, value: qv, modelProvider: s.modelProvider}
 	return
 }
 
@@ -296,7 +296,9 @@ func (s *queryFilter) NotIn(key string, val interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = &filterItem{filterFun: builder.NotInOpr, value: qv, modelProvider: s.modelProvider}
+	if qv.Len() > 0 {
+		s.params[key] = &filterItem{filterFun: builder.NotInOpr, value: qv, modelProvider: s.modelProvider}
+	}
 	return
 }
 
@@ -311,7 +313,7 @@ func (s *queryFilter) Like(key string, val interface{}) (err error) {
 	return
 }
 
-func (s *queryFilter) PageFilter(filter *util.PageFilter) {
+func (s *queryFilter) Page(filter *util.PageFilter) {
 	s.pageFilter = filter
 }
 

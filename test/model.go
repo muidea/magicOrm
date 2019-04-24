@@ -24,8 +24,8 @@ type System struct {
 	Tags  []string `orm:"tags"`
 }
 
-// Equle Equle
-func (s *Group) Equle(r *Group) bool {
+// Equal Equal
+func (s *Group) Equal(r *Group) bool {
 	if s.ID != r.ID {
 		return false
 	}
@@ -49,7 +49,7 @@ func (s *Group) Equle(r *Group) bool {
 		for idx := 0; idx < len(*(s.Users)); idx++ {
 			l := (*(s.Users))[idx]
 			r := (*(r.Users))[idx]
-			if !l.Equle(r) {
+			if !l.Equal(r) {
 				return false
 			}
 		}
@@ -62,7 +62,7 @@ func (s *Group) Equle(r *Group) bool {
 		return false
 	}
 	if s.Parent != nil && r.Parent != nil {
-		if !s.Parent.Equle(r.Parent) {
+		if !s.Parent.Equal(r.Parent) {
 			return false
 		}
 	}
@@ -70,8 +70,8 @@ func (s *Group) Equle(r *Group) bool {
 	return true
 }
 
-// Equle check user Equle
-func (s *User) Equle(r *User) bool {
+// Equal check user Equal
+func (s *User) Equal(r *User) bool {
 	if s.ID != r.ID {
 		return false
 	}
@@ -88,7 +88,7 @@ func (s *User) Equle(r *User) bool {
 	for idx := 0; idx < len(s.Group); idx++ {
 		l := s.Group[idx]
 		r := r.Group[idx]
-		if !l.Equle(r) {
+		if !l.Equal(r) {
 			return false
 		}
 	}
@@ -96,8 +96,8 @@ func (s *User) Equle(r *User) bool {
 	return true
 }
 
-// Equle Equle
-func (s *System) Equle(r *System) bool {
+// Equal Equal
+func (s *System) Equal(r *System) bool {
 	if s.ID != r.ID {
 		return false
 	}
@@ -121,7 +121,7 @@ func (s *System) Equle(r *System) bool {
 		for idx := 0; idx < len(*(s.Users)); idx++ {
 			l := (*(s.Users))[idx]
 			r := (*(r.Users))[idx]
-			if !l.Equle(&r) {
+			if !l.Equal(&r) {
 				return false
 			}
 		}
