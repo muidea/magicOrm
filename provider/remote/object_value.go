@@ -32,6 +32,14 @@ type SliceObjectValue struct {
 	Values    []ObjectValue `json:"values"`
 }
 
+// SliceObjectPtrValue slice object ptr value
+type SliceObjectPtrValue struct {
+	TypeName  string         `json:"typeName"`
+	PkgPath   string         `json:"pkgPath"`
+	IsPtrFlag bool           `json:"isPtr"`
+	Values    []*ObjectValue `json:"values"`
+}
+
 // GetName get object name
 func (s *ObjectValue) GetName() string {
 	return s.TypeName
@@ -59,6 +67,21 @@ func (s *SliceObjectValue) GetPkgPath() string {
 
 // IsPtrValue isPtrValue
 func (s *SliceObjectValue) IsPtrValue() bool {
+	return s.IsPtrFlag
+}
+
+// GetName get object name
+func (s *SliceObjectPtrValue) GetName() string {
+	return s.TypeName
+}
+
+// GetPkgPath get pkgpath
+func (s *SliceObjectPtrValue) GetPkgPath() string {
+	return s.PkgPath
+}
+
+// IsPtrValue isPtrValue
+func (s *SliceObjectPtrValue) IsPtrValue() bool {
 	return s.IsPtrFlag
 }
 
@@ -242,6 +265,41 @@ func GetSliceObjectValue(sliceEntity interface{}) (ret *SliceObjectValue, err er
 		}
 
 		ret.Values = append(ret.Values, *objVal)
+	}
+
+	return
+}
+
+// GetSliceObjectPtrValue get slice object ptr value
+func GetSliceObjectPtrValue(sliceEntity interface{}) (ret *SliceObjectPtrValue, err error) {
+	entityValue := reflect.ValueOf(sliceEntity)
+	typeImpl, typeErr := GetType(entityValue.Type())
+	if typeErr != nil {
+		err = fmt.Errorf("get slice object type failed, err:%s", err.Error())
+		return
+	}
+	if !util.IsSliceType(typeImpl.GetValue()) {
+		err = fmt.Errorf("illegal slice object value")
+		return
+	}
+	subType := typeImpl.Elem()
+	if !util.IsStructType(subType.GetValue()) {
+		err = fmt.Errorf("illegal slice item type")
+		return
+	}
+
+	ret = &SliceObjectPtrValue{TypeName: subType.GetName(), PkgPath: subType.GetPkgPath(), IsPtrFlag: subType.IsPtrType(), Values: []*ObjectValue{}}
+	entityValue = reflect.Indirect(entityValue)
+	for idx := 0; idx < entityValue.Len(); idx++ {
+		val := entityValue.Index(idx)
+
+		objVal, objErr := GetObjectValue(val.Interface())
+		if objErr != nil {
+			err = objErr
+			return
+		}
+
+		ret.Values = append(ret.Values, objVal)
 	}
 
 	return
@@ -486,6 +544,49 @@ func UpdateSliceEntity(sliceObjectValue *SliceObjectValue, entitySlice interface
 	return
 }
 
+// UpdateSlicePtrEntity update object value list -> ptrEntitySlice
+func UpdateSlicePtrEntity(sliceObjectValue *SliceObjectPtrValue, entitySlice interface{}) (err error) {
+	entitySliceVal := reflect.Indirect(reflect.ValueOf(entitySlice))
+	if entitySliceVal.Kind() != reflect.Slice {
+		err = fmt.Errorf("illegal objectValueSlice")
+		return
+	}
+
+	sliceType := entitySliceVal.Type()
+	itemType := sliceType.Elem()
+	entityType, entityErr := GetType(itemType)
+	if entityErr != nil || !util.IsStructType(entityType.GetValue()) {
+		err = fmt.Errorf("illegal entity slice value")
+		return
+	}
+
+	if entityType.GetName() != sliceObjectValue.GetName() || entityType.GetPkgPath() != sliceObjectValue.GetPkgPath() {
+		err = fmt.Errorf("illegal object value, objectValue name:%s, entityType name:%s", sliceObjectValue.GetName(), entityType.GetName())
+		return
+	}
+
+	sliceVal := reflect.MakeSlice(sliceType, 0, 0)
+	for idx := 0; idx < len(sliceObjectValue.Values); idx++ {
+		objEntityVal := sliceObjectValue.Values[idx]
+		entityVal := reflect.New(itemType)
+		if !entityType.IsPtrType() {
+			entityVal = reflect.Indirect(entityVal)
+		}
+
+		err = updateEntity(objEntityVal, entityVal)
+		if err != nil {
+			err = fmt.Errorf("updateEntity failed, err:%s", err.Error())
+			return
+		}
+
+		sliceVal = reflect.Append(sliceVal, entityVal)
+	}
+
+	entitySliceVal.Set(sliceVal)
+
+	return
+}
+
 // EncodeObjectValue encode objectValue
 func EncodeObjectValue(objVal *ObjectValue) (ret []byte, err error) {
 	ret, err = json.Marshal(objVal)
@@ -494,6 +595,12 @@ func EncodeObjectValue(objVal *ObjectValue) (ret []byte, err error) {
 
 // EncodeSliceObjectValue encode slice objectValue
 func EncodeSliceObjectValue(objVal *SliceObjectValue) (ret []byte, err error) {
+	ret, err = json.Marshal(objVal)
+	return
+}
+
+// EncodeSliceObjectPtrValue encode slice objectPtrValue
+func EncodeSliceObjectPtrValue(objVal *SliceObjectPtrValue) (ret []byte, err error) {
 	ret, err = json.Marshal(objVal)
 	return
 }
@@ -639,6 +746,18 @@ func DecodeObjectValue(data []byte) (ret *ObjectValue, err error) {
 // DecodeSliceObjectValue decode objectValue
 func DecodeSliceObjectValue(data []byte) (ret *SliceObjectValue, err error) {
 	val := &SliceObjectValue{}
+	err = json.Unmarshal(data, val)
+	if err != nil {
+		return
+	}
+
+	ret = val
+	return
+}
+
+// DecodeSliceObjectPtrValue decode objectValue
+func DecodeSliceObjectPtrValue(data []byte) (ret *SliceObjectPtrValue, err error) {
+	val := &SliceObjectPtrValue{}
 	err = json.Unmarshal(data, val)
 	if err != nil {
 		return

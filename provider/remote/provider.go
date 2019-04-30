@@ -313,24 +313,26 @@ func getValueModel(val reflect.Value, cache Cache) (ret *Object, err error) {
 	return
 }
 
-var _referenceSliceVal SliceObjectValue
-var _referenceSliceType = reflect.TypeOf(_referenceSliceVal)
-
 func getSliceValueModel(val reflect.Value, cache Cache) (retObj *Object, retVal reflect.Value, retErr error) {
 	if val.Kind() == reflect.Interface {
 		val = val.Elem()
 	}
 
 	val = reflect.Indirect(val)
-	if val.Type().String() != _referenceSliceType.String() {
+	if val.Kind() != reflect.Struct {
 		retErr = fmt.Errorf("illegal slice value, value type:%s", val.Type().String())
 		return
 	}
 
+	val = reflect.Indirect(val)
 	nameVal := val.FieldByName("TypeName")
 	pkgVal := val.FieldByName("PkgPath")
 	isPtr := val.FieldByName("IsPtrFlag")
 	values := val.FieldByName("Values")
+	if !nameVal.IsValid() || !pkgVal.IsValid() || !isPtr.IsValid() || !values.IsValid() {
+		retErr = fmt.Errorf("illegal slice value, value type:%s", val.Type().String())
+		return
+	}
 
 	objPtr := cache.Fetch(nameVal.String())
 	if objPtr == nil {
