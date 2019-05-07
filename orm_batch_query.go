@@ -95,6 +95,7 @@ func (s *orm) BatchQuery(sliceEntity interface{}, filter model.Filter) (err erro
 		return
 	}
 
+	log.Print(filter)
 	queryErr := s.queryBatch(sliceModel, sliceVal, filter)
 	if queryErr != nil {
 		err = queryErr
