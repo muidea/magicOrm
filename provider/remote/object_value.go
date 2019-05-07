@@ -242,7 +242,7 @@ func GetSliceObjectValue(sliceEntity interface{}) (ret *SliceObjectValue, err er
 	if typeErr != nil {
 		err = fmt.Errorf("get slice object type failed, err:%s", err.Error())
 		return
-	}
+	}	
 	if !util.IsSliceType(typeImpl.GetValue()) {
 		err = fmt.Errorf("illegal slice object value")
 		return
@@ -250,6 +250,10 @@ func GetSliceObjectValue(sliceEntity interface{}) (ret *SliceObjectValue, err er
 	subType := typeImpl.Elem()
 	if !util.IsStructType(subType.GetValue()) {
 		err = fmt.Errorf("illegal slice item type")
+		return
+	}
+	if subType.IsPtrType() {
+		err = fmt.Errorf("illegal slice item type, type:%s", entityValue.Type().String())
 		return
 	}
 
