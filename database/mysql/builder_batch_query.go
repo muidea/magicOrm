@@ -71,6 +71,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 		}
 
 		strVal, strErr := filterItem.FilterStr(field.GetName(), fType)
+
 		if strErr != nil {
 			err = strErr
 			return
@@ -94,6 +95,10 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 			ret = fmt.Sprintf("%s", relationFilterSQL)
 		} else {
 			ret = fmt.Sprintf("%s AND %s", filterSQL, relationFilterSQL)
+		}
+	} else {
+		if filterSQL != "" {
+			ret = fmt.Sprintf("%s", filterSQL)
 		}
 	}
 
