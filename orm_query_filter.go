@@ -116,6 +116,19 @@ type filterItem struct {
 	modelProvider provider.Provider
 }
 
+func isNumber(vKind reflect.Kind) (ret bool) {
+	switch vKind {
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int,
+		reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint,
+		reflect.Float32, reflect.Float64:
+		ret = true
+	default:
+		ret = false
+	}
+
+	return
+}
+
 func (s *filterItem) verify(fType model.Type) (err error) {
 	valType := s.value.Type()
 	if valType.Kind() == reflect.Ptr {
@@ -133,10 +146,15 @@ func (s *filterItem) verify(fType model.Type) (err error) {
 		fieldType = fieldType.Elem()
 	}
 
-	if valType.Kind() != fieldType.Kind() {
-		err = fmt.Errorf("illegal filter value, value type:%s, field type:%s", valType.String(), fieldType.String())
+	if valType.Kind() == fieldType.Kind() {
+		return
 	}
 
+	if isNumber(valType.Kind()) && isNumber(fieldType.Kind()) {
+		return
+	}
+
+	err = fmt.Errorf("illegal filter value, value type:%s, field type:%s", valType.String(), fieldType.String())
 	return
 }
 
