@@ -59,7 +59,7 @@ func (s *Executor) Release() {
 
 }
 
-// BeginTransaction BeginTransaction
+// BeginTransaction Begin Transaction
 func (s *Executor) BeginTransaction() {
 	if s.rowsHandle != nil {
 		s.rowsHandle.Close()
@@ -75,8 +75,8 @@ func (s *Executor) BeginTransaction() {
 	//log.Print("BeginTransaction")
 }
 
-// Commit Commit
-func (s *Executor) Commit() {
+// CommitTransaction Commit Transaction
+func (s *Executor) CommitTransaction() {
 	if s.dbTx == nil {
 		panic("dbTx is nil")
 	}
@@ -92,8 +92,8 @@ func (s *Executor) Commit() {
 	//log.Print("Commit")
 }
 
-// Rollback Rollback
-func (s *Executor) Rollback() {
+// RollbackTransaction Rollback Transaction
+func (s *Executor) RollbackTransaction() {
 	if s.dbTx == nil {
 		panic("dbTx is nil")
 	}

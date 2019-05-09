@@ -19,6 +19,9 @@ type Orm interface {
 	Delete(entity interface{}) error
 	Query(entity interface{}) error
 	BatchQuery(sliceEntity interface{}, filter model.Filter) error
+	BeginTransaction()
+	CommitTransaction()
+	RollbackTransaction()
 	Release()
 }
 
@@ -74,6 +77,24 @@ func (s *orm) RegisterModel(entity interface{}) error {
 
 func (s *orm) UnregisterModel(entity interface{}) {
 	s.modelProvider.UnregisterModel(entity)
+}
+
+func (s *orm) BeginTransaction() {
+	if s.executor != nil {
+		s.executor.BeginTransaction()
+	}
+}
+
+func (s *orm) CommitTransaction() {
+	if s.executor != nil {
+		s.executor.CommitTransaction()
+	}
+}
+
+func (s *orm) RollbackTransaction() {
+	if s.executor != nil {
+		s.executor.RollbackTransaction()
+	}
 }
 
 func (s *orm) Release() {

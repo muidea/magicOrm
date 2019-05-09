@@ -6,8 +6,8 @@ import "github.com/muidea/magicOrm/database/mysql"
 type Executor interface {
 	Release()
 	BeginTransaction()
-	Commit()
-	Rollback()
+	CommitTransaction()
+	RollbackTransaction()
 	Query(sql string)
 	Next() bool
 	Finish()
