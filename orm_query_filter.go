@@ -131,6 +131,9 @@ func isNumber(vKind reflect.Kind) (ret bool) {
 
 func (s *filterItem) verify(fType model.Type) (err error) {
 	valType := s.value.Type()
+	if valType.Kind() == reflect.Interface {
+		valType = valType.Elem()
+	}
 	if valType.Kind() == reflect.Ptr {
 		valType = valType.Elem()
 	}
@@ -139,6 +142,9 @@ func (s *filterItem) verify(fType model.Type) (err error) {
 	}
 
 	fieldType := fType.GetType()
+	if fieldType.Kind() == reflect.Interface {
+		fieldType = fieldType.Elem()
+	}
 	if fieldType.Kind() == reflect.Ptr {
 		fieldType = fieldType.Elem()
 	}
@@ -159,10 +165,10 @@ func (s *filterItem) verify(fType model.Type) (err error) {
 }
 
 func (s *filterItem) FilterStr(name string, fType model.Type) (ret string, err error) {
-	err = s.verify(fType)
-	if err != nil {
-		return
-	}
+	//err = s.verify(fType)
+	//if err != nil {
+	//	return
+	//}
 
 	fModel, fErr := s.modelProvider.GetTypeModel(fType)
 	if fErr != nil {
