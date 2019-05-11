@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/muidea/magicOrm/model"
 )
@@ -23,7 +22,7 @@ func (s *Builder) BuildInsert() (ret string, err error) {
 	}
 
 	sql = fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.getTableName(s.modelInfo), fieldNames, fieldValues)
-	log.Print(sql)
+	//log.Print(sql)
 	ret = sql
 
 	return
@@ -38,7 +37,7 @@ func (s *Builder) BuildInsertRelation(fieldName string, relationInfo model.Model
 	}
 
 	ret = fmt.Sprintf("INSERT INTO `%s` (`left`, `right`) VALUES (%s,%s);", s.GetRelationTableName(fieldName, relationInfo), leftVal, rightVal)
-	log.Print(ret)
+	//log.Print(ret)
 
 	return
 }

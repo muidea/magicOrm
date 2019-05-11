@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/muidea/magicOrm/model"
 )
@@ -23,7 +22,7 @@ func (s *Builder) BuildQuery() (ret string, err error) {
 
 	pkfTag := s.modelInfo.GetPrimaryField().GetTag()
 	ret = fmt.Sprintf("SELECT %s FROM `%s` WHERE `%s`=%s", namesVal, s.getTableName(s.modelInfo), pkfTag.GetName(), pkfStr)
-	log.Print(ret)
+	//log.Print(ret)
 
 	return
 }
@@ -37,7 +36,7 @@ func (s *Builder) BuildQueryRelation(fieldName string, relationInfo model.Model)
 	}
 
 	ret = fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= %s", s.GetRelationTableName(fieldName, relationInfo), pkfStr)
-	log.Print(ret)
+	//log.Print(ret)
 
 	return
 }

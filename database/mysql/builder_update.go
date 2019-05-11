@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"fmt"
-	"log"
 )
 
 // BuildUpdate  BuildUpdate
@@ -38,7 +37,7 @@ func (s *Builder) BuildUpdate() (ret string, err error) {
 
 	pkfTag := s.modelInfo.GetPrimaryField().GetTag()
 	str = fmt.Sprintf("UPDATE `%s` SET %s WHERE `%s`=%s", s.getTableName(s.modelInfo), str, pkfTag.GetName(), pkfStr)
-	log.Print(str)
+	//log.Print(str)
 	ret = str
 
 	return

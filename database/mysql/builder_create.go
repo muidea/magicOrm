@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
@@ -37,7 +36,7 @@ func (s *Builder) BuildCreateSchema() (ret string, err error) {
 	}
 
 	str = fmt.Sprintf("CREATE TABLE `%s` (\n%s\n)\n", s.getTableName(s.modelInfo), str)
-	log.Print(str)
+	//log.Print(str)
 
 	ret = str
 
@@ -48,7 +47,7 @@ func (s *Builder) BuildCreateSchema() (ret string, err error) {
 func (s *Builder) BuildCreateRelationSchema(fieldName string, relationInfo model.Model) (string, error) {
 	str := "\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`left` INT NOT NULL,\n\t`right` INT NOT NULL,\n\tPRIMARY KEY (`id`)"
 	str = fmt.Sprintf("CREATE TABLE `%s` (\n%s\n)\n", s.GetRelationTableName(fieldName, relationInfo), str)
-	log.Print(str)
+	//log.Print(str)
 
 	return str, nil
 }

@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/muidea/magicOrm/model"
 )
@@ -17,7 +16,7 @@ func (s *Builder) BuildDelete() (ret string, err error) {
 
 	pkfTag := s.modelInfo.GetPrimaryField().GetTag()
 	ret = fmt.Sprintf("DELETE FROM `%s` WHERE `%s`=%s", s.getTableName(s.modelInfo), pkfTag.GetName(), pkfVal)
-	log.Print(ret)
+	//log.Print(ret)
 
 	return
 }
@@ -31,10 +30,10 @@ func (s *Builder) BuildDeleteRelation(fieldName string, relationInfo model.Model
 	}
 
 	delRight = fmt.Sprintf("DELETE FROM `%s` WHERE `id` in (SELECT `right` FROM `%s` WHERE `left`=%s)", s.getTableName(relationInfo), s.GetRelationTableName(fieldName, relationInfo), leftVal)
-	log.Print(delRight)
+	//log.Print(delRight)
 
 	delRelation = fmt.Sprintf("DELETE FROM `%s` WHERE `left`=%s", s.GetRelationTableName(fieldName, relationInfo), leftVal)
-	log.Print(delRelation)
+	//log.Print(delRelation)
 
 	return
 }

@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/muidea/magicOrm/model"
 )
@@ -28,7 +27,7 @@ func (s *Builder) BuildBatchQuery(filter model.Filter) (ret string, err error) {
 		}
 	}
 
-	log.Print(ret)
+	//log.Print(ret)
 	return
 }
 
