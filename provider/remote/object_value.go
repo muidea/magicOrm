@@ -242,7 +242,7 @@ func GetSliceObjectValue(sliceEntity interface{}) (ret *SliceObjectValue, err er
 	if typeErr != nil {
 		err = fmt.Errorf("get slice object type failed, err:%s", err.Error())
 		return
-	}	
+	}
 	if !util.IsSliceType(typeImpl.GetValue()) {
 		err = fmt.Errorf("illegal slice object value")
 		return
@@ -591,25 +591,26 @@ func UpdateSlicePtrEntity(sliceObjectValue *SliceObjectPtrValue, entitySlice int
 	return
 }
 
-// EncodeObjectValue encode objectValue
+// EncodeObjectValue encode objectValue to []byte
 func EncodeObjectValue(objVal *ObjectValue) (ret []byte, err error) {
 	ret, err = json.Marshal(objVal)
 	return
 }
 
-// EncodeSliceObjectValue encode slice objectValue
+// EncodeSliceObjectValue encode slice objectValue to []byte
 func EncodeSliceObjectValue(objVal *SliceObjectValue) (ret []byte, err error) {
 	ret, err = json.Marshal(objVal)
 	return
 }
 
-// EncodeSliceObjectPtrValue encode slice objectPtrValue
+// EncodeSliceObjectPtrValue encode slice objectPtrValue to []byte
 func EncodeSliceObjectPtrValue(objVal *SliceObjectPtrValue) (ret []byte, err error) {
 	ret, err = json.Marshal(objVal)
 	return
 }
 
-func decodeObjectValue(objVal map[string]interface{}) (ret *ObjectValue, err error) {
+// DecodeObjectValueFromMap decode object value from map
+func DecodeObjectValueFromMap(objVal map[string]interface{}) (ret *ObjectValue, err error) {
 	nameVal, nameOK := objVal["typeName"]
 	pkgPathVal, pkgPathOK := objVal["pkgPath"]
 	isPtrVal, isPtrOK := objVal["isPtr"]
@@ -646,10 +647,10 @@ func decodeSliceValue(sliceVal []interface{}) (ret []interface{}, err error) {
 	for _, val := range sliceVal {
 		itemVal, itemOK := val.(map[string]interface{})
 		if itemOK {
-			item, itemErr := decodeObjectValue(itemVal)
+			item, itemErr := DecodeObjectValueFromMap(itemVal)
 			if itemErr != nil {
 				err = itemErr
-				log.Printf("decodeObjectValue failed, itemVal:%v", itemVal)
+				log.Printf("DecodeObjectValueFromMap failed, itemVal:%v", itemVal)
 				return
 			}
 
@@ -682,16 +683,16 @@ func decodeItemValue(itemVal map[string]interface{}) (ret *ItemValue, err error)
 	}
 
 	ret = &ItemValue{Name: nameVal.(string), Value: valVal}
-	ret, err = decodeItem(ret)
+	ret, err = convertItem(ret)
 	return
 }
 
-func decodeItem(val *ItemValue) (ret *ItemValue, err error) {
+func convertItem(val *ItemValue) (ret *ItemValue, err error) {
 	objVal, objOK := val.Value.(map[string]interface{})
 	if objOK {
 		ret = &ItemValue{Name: val.Name}
 
-		oVal, oErr := decodeObjectValue(objVal)
+		oVal, oErr := DecodeObjectValueFromMap(objVal)
 		if oErr != nil {
 			err = oErr
 			return
@@ -733,7 +734,7 @@ func DecodeObjectValue(data []byte) (ret *ObjectValue, err error) {
 	for idx := range val.Items {
 		cur := &val.Items[idx]
 
-		item, itemErr := decodeItem(cur)
+		item, itemErr := convertItem(cur)
 		if itemErr != nil {
 			err = itemErr
 			return
@@ -747,26 +748,101 @@ func DecodeObjectValue(data []byte) (ret *ObjectValue, err error) {
 	return
 }
 
+// ConvertObjectValue convert object value
+func ConvertObjectValue(objVal *ObjectValue) (ret *ObjectValue, err error) {
+	for idx := range objVal.Items {
+		cur := &objVal.Items[idx]
+
+		item, itemErr := convertItem(cur)
+		if itemErr != nil {
+			err = itemErr
+			return
+		}
+
+		cur.Value = item.Value
+	}
+
+	ret = objVal
+
+	return
+}
+
 // DecodeSliceObjectValue decode objectValue
 func DecodeSliceObjectValue(data []byte) (ret *SliceObjectValue, err error) {
-	val := &SliceObjectValue{}
-	err = json.Unmarshal(data, val)
+	sliceVal := &SliceObjectValue{}
+	err = json.Unmarshal(data, sliceVal)
 	if err != nil {
 		return
 	}
 
-	ret = val
+	for idx := range sliceVal.Values {
+		cur := &sliceVal.Values[idx]
+		val, valErr := ConvertObjectValue(cur)
+		if valErr != nil {
+			err = valErr
+			return
+		}
+
+		sliceVal.Values[idx] = *val
+	}
+
+	ret = sliceVal
 	return
 }
 
 // DecodeSliceObjectPtrValue decode objectValue
 func DecodeSliceObjectPtrValue(data []byte) (ret *SliceObjectPtrValue, err error) {
-	val := &SliceObjectPtrValue{}
-	err = json.Unmarshal(data, val)
+	sliceVal := &SliceObjectPtrValue{}
+	err = json.Unmarshal(data, sliceVal)
 	if err != nil {
 		return
 	}
 
-	ret = val
+	for idx := range sliceVal.Values {
+		cur := sliceVal.Values[idx]
+		val, valErr := ConvertObjectValue(cur)
+		if valErr != nil {
+			err = valErr
+			return
+		}
+
+		sliceVal.Values[idx] = val
+	}
+
+	ret = sliceVal
+	return
+}
+
+// ConvertSliceObjectValue convert slice object value
+func ConvertSliceObjectValue(sliceVal *SliceObjectValue) (ret *SliceObjectValue, err error) {
+	for idx := range sliceVal.Values {
+		cur := &sliceVal.Values[idx]
+		val, valErr := ConvertObjectValue(cur)
+		if valErr != nil {
+			err = valErr
+			return
+		}
+
+		sliceVal.Values[idx] = *val
+	}
+
+	ret = sliceVal
+	return
+}
+
+// ConvertSliceObjectPtrValue convert slice object ptr value
+func ConvertSliceObjectPtrValue(sliceVal *SliceObjectPtrValue) (ret *SliceObjectPtrValue, err error) {
+	for idx := range sliceVal.Values {
+		cur := sliceVal.Values[idx]
+		val, valErr := ConvertObjectValue(cur)
+		if valErr != nil {
+			err = valErr
+			return
+		}
+
+		sliceVal.Values[idx] = val
+	}
+
+	ret = sliceVal
 	return
 }
