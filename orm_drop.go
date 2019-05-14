@@ -45,33 +45,43 @@ func (s *orm) Drop(entity interface{}) (err error) {
 		return
 	}
 
-	err = s.dropSingle(modelInfo)
-	if err != nil {
-		return
-	}
-
-	for _, field := range modelInfo.GetFields() {
-		fType := field.GetType()
-		relationInfo, relationErr := s.modelProvider.GetTypeModel(fType)
-		if relationErr != nil {
-			err = relationErr
-			return
-		}
-		if relationInfo == nil {
-			continue
+	s.executor.BeginTransaction()
+	for {
+		err = s.dropSingle(modelInfo)
+		if err != nil {
+			break
 		}
 
-		if !relationInfo.IsPtrModel() {
-			err = s.dropSingle(relationInfo)
+		for _, field := range modelInfo.GetFields() {
+			fType := field.GetType()
+			relationInfo, relationErr := s.modelProvider.GetTypeModel(fType)
+			if relationErr != nil {
+				err = relationErr
+				break
+			}
+			if relationInfo == nil {
+				continue
+			}
+
+			if !relationInfo.IsPtrModel() {
+				err = s.dropSingle(relationInfo)
+				if err != nil {
+					break
+				}
+			}
+
+			err = s.dropRelation(modelInfo, field.GetName(), relationInfo)
 			if err != nil {
-				return
+				break
 			}
 		}
+		break
+	}
 
-		err = s.dropRelation(modelInfo, field.GetName(), relationInfo)
-		if err != nil {
-			return
-		}
+	if err == nil {
+		s.executor.CommitTransaction()
+	} else {
+		s.executor.RollbackTransaction()
 	}
 
 	return

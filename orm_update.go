@@ -53,16 +53,27 @@ func (s *orm) Update(entity interface{}) (err error) {
 		return
 	}
 
-	err = s.updateSingle(modelInfo)
-	if err != nil {
-		return
+	s.executor.BeginTransaction()
+	for {
+		err = s.updateSingle(modelInfo)
+		if err != nil {
+			break
+		}
+
+		for _, field := range modelInfo.GetFields() {
+			err = s.updateRelation(modelInfo, field)
+			if err != nil {
+				break
+			}
+		}
+
+		break
 	}
 
-	for _, field := range modelInfo.GetFields() {
-		err = s.updateRelation(modelInfo, field)
-		if err != nil {
-			return
-		}
+	if err == nil {
+		s.executor.CommitTransaction()
+	} else {
+		s.executor.RollbackTransaction()
 	}
 
 	return

@@ -93,6 +93,12 @@ func (s *orm) Create(entity interface{}) (err error) {
 		return
 	}
 
+	s.executor.BeginTransaction()
 	err = s.batchCreateSchema(modelInfo)
+	if err == nil {
+		s.executor.CommitTransaction()
+	} else {
+		s.executor.RollbackTransaction()
+	}
 	return
 }

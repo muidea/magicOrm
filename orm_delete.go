@@ -60,16 +60,27 @@ func (s *orm) Delete(entity interface{}) (err error) {
 		return
 	}
 
-	err = s.deleteSingle(modelInfo)
-	if err != nil {
-		return
+	s.executor.BeginTransaction()
+	for {
+		err = s.deleteSingle(modelInfo)
+		if err != nil {
+			break
+		}
+
+		for _, field := range modelInfo.GetFields() {
+			err = s.deleteRelation(modelInfo, field)
+			if err != nil {
+				break
+			}
+		}
+
+		break
 	}
 
-	for _, field := range modelInfo.GetFields() {
-		err = s.deleteRelation(modelInfo, field)
-		if err != nil {
-			return
-		}
+	if err == nil {
+		s.executor.CommitTransaction()
+	} else {
+		s.executor.RollbackTransaction()
 	}
 
 	return

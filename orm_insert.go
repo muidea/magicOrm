@@ -84,18 +84,29 @@ func (s *orm) Insert(entity interface{}) (err error) {
 		return
 	}
 
-	err = s.insertSingle(modelInfo)
-	if err != nil {
-		log.Printf("insertSingle failed, name:%s, err:%s", modelInfo.GetName(), err.Error())
-		return
+	s.executor.BeginTransaction()
+	for {
+		err = s.insertSingle(modelInfo)
+		if err != nil {
+			log.Printf("insertSingle failed, name:%s, err:%s", modelInfo.GetName(), err.Error())
+			break
+		}
+
+		for _, field := range modelInfo.GetFields() {
+			err = s.insertRelation(modelInfo, field)
+			if err != nil {
+				log.Printf("insertRelation failed, name:%s, field:%s, err:%s", modelInfo.GetName(), field.GetName(), err.Error())
+				break
+			}
+		}
+
+		break
 	}
 
-	for _, field := range modelInfo.GetFields() {
-		err = s.insertRelation(modelInfo, field)
-		if err != nil {
-			log.Printf("insertRelation failed, name:%s, field:%s, err:%s", modelInfo.GetName(), field.GetName(), err.Error())
-			return
-		}
+	if err == nil {
+		s.executor.CommitTransaction()
+	} else {
+		s.executor.RollbackTransaction()
 	}
 
 	return

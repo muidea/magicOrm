@@ -61,51 +61,53 @@ func (s *Executor) Release() {
 
 // BeginTransaction Begin Transaction
 func (s *Executor) BeginTransaction() {
-	if s.rowsHandle != nil {
-		s.rowsHandle.Close()
-	}
-	s.rowsHandle = nil
+	if s.dbTx == nil {
+		if s.rowsHandle != nil {
+			s.rowsHandle.Close()
+		}
+		s.rowsHandle = nil
 
-	tx, err := s.dbHandle.Begin()
-	if err != nil {
-		panic("begin transaction exception, err:" + err.Error())
+		tx, err := s.dbHandle.Begin()
+		if err != nil {
+			panic("begin transaction exception, err:" + err.Error())
+		}
+
+		s.dbTx = tx
 	}
 
-	s.dbTx = tx
 	//log.Print("BeginTransaction")
 }
 
 // CommitTransaction Commit Transaction
 func (s *Executor) CommitTransaction() {
-	if s.dbTx == nil {
-		panic("dbTx is nil")
-	}
+	if s.dbTx != nil {
+		err := s.dbTx.Commit()
+		if err != nil {
+			s.dbTx = nil
 
-	err := s.dbTx.Commit()
-	if err != nil {
+			panic("commit transaction exception, err:" + err.Error())
+		}
+
 		s.dbTx = nil
-
-		panic("commit transaction exception, err:" + err.Error())
 	}
 
-	s.dbTx = nil
 	//log.Print("Commit")
 }
 
 // RollbackTransaction Rollback Transaction
 func (s *Executor) RollbackTransaction() {
-	if s.dbTx == nil {
-		panic("dbTx is nil")
-	}
+	if s.dbTx != nil {
 
-	err := s.dbTx.Rollback()
-	if err != nil {
+		err := s.dbTx.Rollback()
+		if err != nil {
+			s.dbTx = nil
+
+			panic("rollback transaction exception, err:" + err.Error())
+		}
+
 		s.dbTx = nil
-
-		panic("rollback transaction exception, err:" + err.Error())
 	}
 
-	s.dbTx = nil
 	//log.Print("Rollback")
 }
 
@@ -127,7 +129,6 @@ func (s *Executor) Query(sql string) {
 		}
 		s.rowsHandle = rows
 	} else {
-
 		if s.rowsHandle != nil {
 			s.rowsHandle.Close()
 			s.rowsHandle = nil
