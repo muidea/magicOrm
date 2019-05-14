@@ -512,6 +512,10 @@ func UpdateSliceEntity(sliceObjectValue *SliceObjectValue, entitySlice interface
 		err = fmt.Errorf("illegal objectValueSlice")
 		return
 	}
+	if !entitySliceVal.CanSet() {
+		err = fmt.Errorf("illegal entitySlice value, can't be set")
+		return
+	}
 
 	sliceType := entitySliceVal.Type()
 	itemType := sliceType.Elem()
@@ -553,6 +557,11 @@ func UpdateSlicePtrEntity(sliceObjectValue *SliceObjectPtrValue, entitySlice int
 	entitySliceVal := reflect.Indirect(reflect.ValueOf(entitySlice))
 	if entitySliceVal.Kind() != reflect.Slice {
 		err = fmt.Errorf("illegal objectValueSlice")
+		return
+	}
+
+	if !entitySliceVal.CanSet() {
+		err = fmt.Errorf("illegal entitySlice value, can't be set")
 		return
 	}
 
