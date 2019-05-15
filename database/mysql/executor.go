@@ -293,7 +293,7 @@ func (s *Executor) Delete(sql string) int64 {
 }
 
 // Execute Execute
-func (s *Executor) Execute(sql string) {
+func (s *Executor) Execute(sql string) int64 {
 	if s.rowsHandle != nil {
 		s.rowsHandle.Close()
 	}
@@ -309,12 +309,12 @@ func (s *Executor) Execute(sql string) {
 			panic("exec exception, err:" + err.Error() + ", sql:" + sql)
 		}
 
-		_, err = result.RowsAffected()
+		num, err := result.RowsAffected()
 		if err != nil {
 			panic("rows affected exception, err:" + err.Error())
 		}
 
-		return
+		return num
 	}
 
 	result, err := s.dbTx.Exec(sql)
@@ -322,10 +322,12 @@ func (s *Executor) Execute(sql string) {
 		panic("exec exception, err:" + err.Error() + ", sql:" + sql)
 	}
 
-	_, err = result.RowsAffected()
+	num, err := result.RowsAffected()
 	if err != nil {
 		panic("rows affected exception, err:" + err.Error())
 	}
+
+	return num
 }
 
 // CheckTableExist CheckTableExist

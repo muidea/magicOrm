@@ -12,10 +12,11 @@ type Executor interface {
 	Next() bool
 	Finish()
 	GetField(value ...interface{})
+	// return auto increment id
 	Insert(sql string) int64
 	Delete(sql string) int64
 	Update(sql string) int64
-	Execute(sql string)
+	Execute(sql string) int64
 	CheckTableExist(tableName string) bool
 }
 
