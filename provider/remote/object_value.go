@@ -520,7 +520,7 @@ func UpdateSliceEntity(sliceObjectValue *SliceObjectValue, entitySlice interface
 	sliceType := entitySliceVal.Type()
 	itemType := sliceType.Elem()
 	entityType, entityErr := GetType(itemType)
-	if entityErr != nil || !util.IsStructType(entityType.GetValue()) {
+	if entityErr != nil || !util.IsStructType(entityType.GetValue()) || entityType.IsPtrType() {
 		err = fmt.Errorf("illegal entity slice value")
 		return
 	}
@@ -533,10 +533,7 @@ func UpdateSliceEntity(sliceObjectValue *SliceObjectValue, entitySlice interface
 	sliceVal := reflect.MakeSlice(sliceType, 0, 0)
 	for idx := 0; idx < len(sliceObjectValue.Values); idx++ {
 		objEntityVal := sliceObjectValue.Values[idx]
-		entityVal := reflect.New(itemType)
-		if !entityType.IsPtrType() {
-			entityVal = reflect.Indirect(entityVal)
-		}
+		entityVal := reflect.New(itemType).Elem()
 
 		err = updateEntity(&objEntityVal, entityVal)
 		if err != nil {
@@ -568,7 +565,7 @@ func UpdateSlicePtrEntity(sliceObjectValue *SliceObjectPtrValue, entitySlice int
 	sliceType := entitySliceVal.Type()
 	itemType := sliceType.Elem()
 	entityType, entityErr := GetType(itemType)
-	if entityErr != nil || !util.IsStructType(entityType.GetValue()) {
+	if entityErr != nil || !util.IsStructType(entityType.GetValue()) || !entityType.IsPtrType() {
 		err = fmt.Errorf("illegal entity slice value")
 		return
 	}
@@ -578,13 +575,11 @@ func UpdateSlicePtrEntity(sliceObjectValue *SliceObjectPtrValue, entitySlice int
 		return
 	}
 
+	itemType = itemType.Elem()
 	sliceVal := reflect.MakeSlice(sliceType, 0, 0)
 	for idx := 0; idx < len(sliceObjectValue.Values); idx++ {
 		objEntityVal := sliceObjectValue.Values[idx]
 		entityVal := reflect.New(itemType)
-		if !entityType.IsPtrType() {
-			entityVal = reflect.Indirect(entityVal)
-		}
 
 		err = updateEntity(objEntityVal, entityVal)
 		if err != nil {

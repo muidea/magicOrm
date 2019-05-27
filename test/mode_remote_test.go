@@ -29,6 +29,27 @@ func getSliceObjectValue(val interface{}) (ret *remote.SliceObjectValue, err err
 	return
 }
 
+func getSliceObjectPtrValue(val interface{}) (ret *remote.SliceObjectPtrValue, err error) {
+	objVal, objErr := remote.GetSliceObjectPtrValue(val)
+	if objErr != nil {
+		err = objErr
+		return
+	}
+
+	data, dataErr := remote.EncodeSliceObjectPtrValue(objVal)
+	if dataErr != nil {
+		err = dataErr
+		return
+	}
+
+	ret, err = remote.DecodeSliceObjectPtrValue(data)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 func TestRemoteGroup(t *testing.T) {
 	//orm.Initialize("root", "rootkit", "localhost:9696", "testdb")
 	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", false)
@@ -782,6 +803,237 @@ func TestRemoteBatchQuery(t *testing.T) {
 	if retErr != nil {
 		err = retErr
 		t.Errorf("UpdateSliceEntity failed, err:%s", err.Error())
+		return
+	}
+	if len(*userList) != 2 {
+		t.Errorf("filter query user failed")
+		return
+	}
+}
+
+func TestRemoteBatchQueryPtr(t *testing.T) {
+	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", false)
+	defer orm.Uninitialize()
+
+	user0 := &User{}
+	userDef, objErr := remote.GetObject(user0)
+	if objErr != nil {
+		t.Errorf("GetObject failed, err:%s", objErr.Error())
+		return
+	}
+
+	group0 := &Group{}
+	groupDef, objErr := remote.GetObject(group0)
+	if objErr != nil {
+		t.Errorf("GetObject failed, err:%s", objErr.Error())
+		return
+	}
+
+	group1 := &Group{Name: "testGroup1"}
+	group2 := &Group{Name: "testGroup2"}
+	group3 := &Group{Name: "testGroup3"}
+
+	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
+	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
+
+	o1, err := orm.New()
+	defer o1.Release()
+	if err != nil {
+		t.Errorf("new Orm failed, err:%s", err.Error())
+		return
+	}
+
+	objList := []interface{}{groupDef, userDef}
+	registerMode(o1, objList)
+
+	err = o1.Drop(groupDef)
+	if err != nil {
+		t.Errorf("drop group failed, err:%s", err.Error())
+		return
+	}
+	err = o1.Create(groupDef)
+	if err != nil {
+		t.Errorf("create group failed, err:%s", err.Error())
+		return
+	}
+
+	group1Val, objErr := getObjectValue(group1)
+	if objErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+	err = o1.Insert(group1Val)
+	if err != nil {
+		t.Errorf("insert group failed, err:%s", err.Error())
+		return
+	}
+	err = remote.UpdateEntity(group1Val, group1)
+	if err != nil {
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
+		return
+	}
+
+	group2Val, objErr := getObjectValue(group2)
+	if objErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+	err = o1.Insert(group2Val)
+	if err != nil {
+		t.Errorf("insert group failed, err:%s", err.Error())
+		return
+	}
+	err = remote.UpdateEntity(group2Val, group2)
+	if err != nil {
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
+		return
+	}
+	group3Val, objErr := getObjectValue(group3)
+	if objErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+	err = o1.Insert(group3Val)
+	if err != nil {
+		t.Errorf("insert group failed, err:%s", err.Error())
+		return
+	}
+	err = remote.UpdateEntity(group3Val, group3)
+	if err != nil {
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
+		return
+	}
+
+	user1.Group = append(user1.Group, group1)
+	user1.Group = append(user1.Group, group2)
+
+	err = o1.Drop(userDef)
+	if err != nil {
+		t.Errorf("drop user failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Create(userDef)
+	if err != nil {
+		t.Errorf("create user failed, err:%s", err.Error())
+		return
+	}
+
+	user1Val, objErr := getObjectValue(user1)
+	if objErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+	err = o1.Insert(user1Val)
+	if err != nil {
+		t.Errorf("insert user failed, err:%s", err.Error())
+		return
+	}
+	err = remote.UpdateEntity(user1Val, user1)
+	if err != nil {
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
+		return
+	}
+
+	user2.Group = append(user2.Group, group1)
+	user2.Group = append(user2.Group, group3)
+	user2Val, objErr := getObjectValue(user2)
+	if objErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+	err = o1.Insert(user2Val)
+	if err != nil {
+		t.Errorf("insert user failed, err:%s", err.Error())
+		return
+	}
+	err = remote.UpdateEntity(user2Val, user2)
+	if err != nil {
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
+		return
+	}
+
+	uGroup1 := []*remote.ObjectValue{group1Val, group2Val}
+	userList := &[]*User{}
+	filter := orm.NewFilter()
+	filter.Equal("Name", &user1.Name)
+	filter.In("Group", uGroup1)
+	filter.Like("EMail", user1.EMail)
+
+	pageFilter := &util.PageFilter{PageNum: 0, PageSize: 100}
+	filter.Page(pageFilter)
+
+	userListVal, objErr := getSliceObjectPtrValue(userList)
+	if objErr != nil {
+		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+	retErr := o1.BatchQuery(userListVal, nil)
+	if retErr != nil {
+		err = retErr
+		t.Errorf("batch query user failed, err:%s", err.Error())
+		return
+	}
+
+	retErr = remote.UpdateSlicePtrEntity(userListVal, userList)
+	if retErr != nil {
+		err = retErr
+		t.Errorf("UpdateSlicePtrEntity failed, err:%s", err.Error())
+		return
+	}
+
+	if len(*userList) != 2 {
+		t.Errorf("batch query user failed")
+		return
+	}
+
+	userList = &[]*User{}
+	userListVal, objErr = getSliceObjectPtrValue(userList)
+	if objErr != nil {
+		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+
+	retErr = o1.BatchQuery(userListVal, filter)
+	if retErr != nil {
+		err = retErr
+		t.Errorf("batch query user failed, err:%s", err.Error())
+		return
+	}
+	retErr = remote.UpdateSlicePtrEntity(userListVal, userList)
+	if retErr != nil {
+		err = retErr
+		t.Errorf("UpdateSliceEntity failed, err:%s", err.Error())
+		return
+	}
+	if len(*userList) != 1 {
+		t.Errorf("filter query user failed")
+		return
+	}
+	if (*userList)[0].Name != user1.Name || len((*userList)[0].Group) != len(user1.Group) {
+		t.Errorf("filter query user failed")
+		return
+	}
+
+	gs := []*remote.ObjectValue{group1Val}
+	filter2 := orm.NewFilter()
+	filter2.In("Group", gs)
+	userList = &[]*User{}
+	userListVal, objErr = getSliceObjectPtrValue(userList)
+	if objErr != nil {
+		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+	retErr = o1.BatchQuery(userListVal, filter2)
+	if retErr != nil {
+		err = retErr
+		t.Errorf("batch query user failed, err:%s", err.Error())
+		return
+	}
+	retErr = remote.UpdateSlicePtrEntity(userListVal, userList)
+	if retErr != nil {
+		err = retErr
+		t.Errorf("UpdateSlicePtrEntity failed, err:%s", err.Error())
 		return
 	}
 	if len(*userList) != 2 {
