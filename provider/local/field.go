@@ -51,7 +51,10 @@ func (s *fieldImpl) IsPrimary() bool {
 
 func (s *fieldImpl) IsAssigned() (ret bool) {
 	ret = false
-
+	if s.fieldValue.IsNil() {
+		return
+	}
+	
 	originVal := reflect.Indirect(s.fieldType.Interface())
 	currentVal := reflect.Indirect(s.fieldValue.Get())
 	switch s.fieldType.GetValue() {

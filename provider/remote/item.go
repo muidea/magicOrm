@@ -54,8 +54,12 @@ func (s *Item) IsPrimary() bool {
 
 // IsAssigned IsAssigned
 func (s *Item) IsAssigned() (ret bool) {
-	ret = true
+	ret = false
+	if s.value.IsNil() {
+		return
+	}
 
+	ret = true
 	return
 }
 
