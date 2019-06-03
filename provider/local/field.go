@@ -2,6 +2,7 @@ package local
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"time"
 
@@ -46,6 +47,30 @@ func (s *fieldImpl) GetValue() model.Value {
 
 func (s *fieldImpl) IsPrimary() bool {
 	return s.fieldTag.IsPrimaryKey()
+}
+
+func (s *fieldImpl) IsAssigned() (ret bool) {
+	ret = false
+
+	originVal := reflect.Indirect(s.fieldType.Interface())
+	currentVal := reflect.Indirect(s.fieldValue.Get())
+	switch s.fieldType.GetValue() {
+	case util.TypeBooleanField:
+		ret = originVal.Bool() != currentVal.Bool()
+	case util.TypeStringField:
+		ret = originVal.String() != currentVal.String()
+	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
+		ret = originVal.Int() != currentVal.Int()
+	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
+		ret = originVal.Uint() != currentVal.Uint()
+	case util.TypeFloatField, util.TypeDoubleField:
+		ret = math.Abs(originVal.Float()-currentVal.Float()) > 0.0001
+	case util.TypeDateTimeField:
+		ret = originVal.Interface().(time.Time).Sub(currentVal.Interface().(time.Time)) != 0
+	case util.TypeStructField:
+	}
+
+	return
 }
 
 func (s *fieldImpl) SetValue(val reflect.Value) (err error) {

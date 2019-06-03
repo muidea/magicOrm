@@ -52,6 +52,13 @@ func (s *Item) IsPrimary() bool {
 	return s.Tag.IsPrimaryKey()
 }
 
+// IsAssigned IsAssigned
+func (s *Item) IsAssigned() (ret bool) {
+	ret = true
+
+	return
+}
+
 // SetValue SetValue
 func (s *Item) SetValue(val reflect.Value) (err error) {
 	err = s.value.Set(val)

@@ -16,7 +16,7 @@ func (s *Builder) BuildBatchQuery(filter model.Filter) (ret string, err error) {
 
 	ret = fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.getTableName(s.modelInfo))
 	if filter != nil {
-		filterSQL, filterErr := s.buildFilter(filter)
+		filterSQL, filterErr := s.buildBatchFilter(filter)
 		if filterErr != nil {
 			err = filterErr
 			return
@@ -31,7 +31,7 @@ func (s *Builder) BuildBatchQuery(filter model.Filter) (ret string, err error) {
 	return
 }
 
-func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
+func (s *Builder) buildBatchFilter(filter model.Filter) (ret string, err error) {
 	filterSQL := ""
 	relationFilterSQL := ""
 	params := filter.Items()

@@ -14,16 +14,52 @@ func (s *Builder) BuildQuery() (ret string, err error) {
 		return
 	}
 
-	pkfStr, pkfErr := s.getStructValue(s.modelInfo)
-	if pkfErr != nil {
-		err = pkfErr
+	filterStr, filterErr := s.buildFilter(s.modelInfo)
+	if filterErr != nil {
+		err = filterErr
 		return
 	}
 
-	pkfTag := s.modelInfo.GetPrimaryField().GetTag()
-	ret = fmt.Sprintf("SELECT %s FROM `%s` WHERE `%s`=%s", namesVal, s.getTableName(s.modelInfo), pkfTag.GetName(), pkfStr)
+	ret = fmt.Sprintf("SELECT %s FROM `%s` WHERE %s", namesVal, s.getTableName(s.modelInfo), filterStr)
 	//log.Print(ret)
 
+	return
+}
+
+func (s *Builder) buildFilter(modelInfo model.Model) (ret string, err error) {
+	filterSQL := ""
+	for _, field := range modelInfo.GetFields() {
+		if !field.IsAssigned() {
+			continue
+		}
+
+		fType := field.GetType()
+		fValue := field.GetValue()
+		dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
+		if dependErr != nil {
+			err = dependErr
+			return
+		}
+
+		if dependModel != nil {
+			continue
+		}
+
+		fStr, fErr := s.modelProvider.GetValueStr(fType, fValue)
+		if fErr != nil {
+			err = fErr
+			return
+		}
+
+		fTag := field.GetTag()
+		if filterSQL == "" {
+			filterSQL = fmt.Sprintf("`%s`=%s", fTag.GetName(), fStr)
+		} else {
+			filterSQL = fmt.Sprintf("%s and `%s`=%s", filterSQL, fTag.GetName(), fStr)
+		}
+	}
+
+	ret = filterSQL
 	return
 }
 

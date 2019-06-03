@@ -51,7 +51,7 @@ func TestLocalExecutor(t *testing.T) {
 		return
 	}
 
-	obj2 := &Unit{ID: obj.ID, Name: "", Value: 0.0}
+	obj2 := &Unit{ID: obj.ID}
 	err = o1.Query(obj2)
 	if err != nil {
 		t.Errorf("query obj failed, err:%s", err.Error())
