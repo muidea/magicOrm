@@ -71,7 +71,7 @@ func TestLocalGroup(t *testing.T) {
 		return
 	}
 
-	group5 := &Group{ID: group2.ID, Name: group2.Name, Parent: &Group{ID: 1}}
+	group5 := &Group{Parent: &Group{ID: 1}}
 	err = o1.Query(group5)
 	if err != nil {
 		t.Errorf("query Group5 failed, err:%s", err.Error())

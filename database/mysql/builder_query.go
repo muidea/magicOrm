@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/muidea/magicOrm/model"
 )
@@ -23,7 +24,7 @@ func (s *Builder) BuildQuery() (ret string, err error) {
 	tableName := s.getTableName(s.modelInfo)
 
 	ret = fmt.Sprintf("SELECT %s FROM `%s` WHERE %s", namesVal, tableName, filterStr)
-	//log.Print(ret)
+	log.Print(ret)
 
 	return
 }
@@ -72,7 +73,11 @@ func (s *Builder) buildFilter(modelInfo model.Model) (ret string, err error) {
 	}
 
 	if relationSQL != "" {
-		filterSQL = fmt.Sprintf("%s AND %s", filterSQL, relationSQL)
+		if filterSQL != "" {
+			filterSQL = fmt.Sprintf("%s AND %s", filterSQL, relationSQL)
+		} else {
+			filterSQL = fmt.Sprintf("%s", relationSQL)
+		}
 	}
 
 	ret = filterSQL
