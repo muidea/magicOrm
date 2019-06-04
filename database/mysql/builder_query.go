@@ -52,11 +52,12 @@ func (s *Builder) buildFilter(modelInfo model.Model) (ret string, err error) {
 		}
 
 		if dependModel != nil {
+			pkTag := pkField.GetTag()
 			relationTable := s.GetRelationTableName(field.GetName(), dependModel)
 			if relationSQL == "" {
-				relationSQL = fmt.Sprintf("`%s`=(SELECT `left` FROM `%s` WHERE `right`=%s)", pkField.GetName(), relationTable, fStr)
+				relationSQL = fmt.Sprintf("`%s`=(SELECT `left` FROM `%s` WHERE `right`=%s)", pkTag.GetName(), relationTable, fStr)
 			} else {
-				relationSQL = fmt.Sprintf("%s AND `%s`=(SELECT `left` FROM `%s` WHERE `right`=%s)", relationSQL, pkField.GetName(), relationTable, fStr)
+				relationSQL = fmt.Sprintf("%s AND `%s`=(SELECT `left` FROM `%s` WHERE `right`=%s)", relationSQL, pkTag.GetName(), relationTable, fStr)
 			}
 
 			continue

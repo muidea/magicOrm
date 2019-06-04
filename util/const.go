@@ -2,7 +2,9 @@ package util
 
 import (
 	"fmt"
+	"math"
 	"reflect"
+	"time"
 )
 
 // Define the Type enum
@@ -174,6 +176,101 @@ func IsNil(val reflect.Value) (ret bool) {
 		ret = true
 	default:
 		ret = false
+	}
+
+	return
+}
+
+//IsSame check if same
+func IsSame(firstVal, secondVal reflect.Value) (ret bool, err error) {
+	ret = firstVal.Type().String() == secondVal.Type().String()
+	if !ret {
+		return
+	}
+
+	firstVal = reflect.Indirect(firstVal)
+	secondVal = reflect.Indirect(secondVal)
+	typeVal, typeErr := GetTypeValueEnum(firstVal.Type())
+	if typeErr != nil {
+		ret = false
+		err = typeErr
+		return
+	}
+	if typeVal != TypeStructField {
+		ret = false
+		err = fmt.Errorf("illegal value, type:%s", firstVal.Type().String())
+		return
+	}
+
+	numField := firstVal.NumField()
+	for idx := 0; idx < numField; idx++ {
+		firstField := firstVal.Field(idx)
+		secondField := secondVal.Field(idx)
+		ret, err = IsSameVal(firstField, secondField)
+		if !ret || err != nil {
+			ret = false
+			return
+		}
+	}
+
+	return
+}
+
+// IsSameVal is same value
+func IsSameVal(firstVal, secondVal reflect.Value) (ret bool, err error) {
+	ret = firstVal.Type().String() == secondVal.Type().String()
+	if !ret {
+		return
+	}
+	typeVal, typeErr := GetTypeValueEnum(firstVal.Type())
+	if typeErr != nil {
+		err = typeErr
+		ret = false
+		return
+	}
+
+	if IsStructType(typeVal) {
+		ret, err = IsSame(firstVal, secondVal)
+		return
+	}
+
+	firstVal = reflect.Indirect(firstVal)
+	secondVal = reflect.Indirect(secondVal)
+	if IsBasicType(typeVal) {
+		switch typeVal {
+		case TypeBooleanField:
+			ret = firstVal.Bool() == secondVal.Bool()
+		case TypeStringField:
+			ret = firstVal.String() == secondVal.String()
+		case TypeBitField, TypeSmallIntegerField, TypeInteger32Field, TypeIntegerField, TypeBigIntegerField:
+			ret = firstVal.Int() == secondVal.Int()
+		case TypePositiveBitField, TypePositiveSmallIntegerField, TypePositiveInteger32Field, TypePositiveIntegerField, TypePositiveBigIntegerField:
+			ret = firstVal.Uint() == secondVal.Uint()
+		case TypeFloatField, TypeDoubleField:
+			ret = math.Abs(firstVal.Float()-secondVal.Float()) <= 0.0001
+		case TypeDateTimeField:
+			ret = firstVal.Interface().(time.Time).Sub(secondVal.Interface().(time.Time)) == 0
+		default:
+			ret = false
+			err = fmt.Errorf("illegal value, is a struct value")
+		}
+
+		return
+	}
+
+	ret = firstVal.Len() == secondVal.Len()
+	if !ret {
+		return
+	}
+
+	for idx := 0; idx < firstVal.Len(); idx++ {
+		firstItem := firstVal.Index(idx)
+		secondItem := secondVal.Index(idx)
+		ret, err = IsSameVal(firstItem, secondItem)
+		if !ret || err != nil {
+			ret = false
+			return
+		}
 	}
 
 	return

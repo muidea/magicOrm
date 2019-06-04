@@ -2,7 +2,7 @@ package local
 
 import (
 	"fmt"
-	"math"
+	"log"
 	"reflect"
 	"time"
 
@@ -54,24 +54,17 @@ func (s *fieldImpl) IsAssigned() (ret bool) {
 	if s.fieldValue.IsNil() {
 		return
 	}
-	
+
 	originVal := reflect.Indirect(s.fieldType.Interface())
 	currentVal := reflect.Indirect(s.fieldValue.Get())
-	switch s.fieldType.GetValue() {
-	case util.TypeBooleanField:
-		ret = originVal.Bool() != currentVal.Bool()
-	case util.TypeStringField:
-		ret = originVal.String() != currentVal.String()
-	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
-		ret = originVal.Int() != currentVal.Int()
-	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
-		ret = originVal.Uint() != currentVal.Uint()
-	case util.TypeFloatField, util.TypeDoubleField:
-		ret = math.Abs(originVal.Float()-currentVal.Float()) > 0.0001
-	case util.TypeDateTimeField:
-		ret = originVal.Interface().(time.Time).Sub(currentVal.Interface().(time.Time)) != 0
-	case util.TypeStructField:
+	sameVal, sameErr := util.IsSameVal(originVal, currentVal)
+	if sameErr != nil {
+		log.Printf("compare value failed, err:%s", sameErr.Error())
+		ret = false
+		return
 	}
+	// 值不相等，则可以认为有赋值过
+	ret = !sameVal
 
 	return
 }
