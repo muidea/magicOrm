@@ -20,6 +20,7 @@ func EncodeSliceValue(val reflect.Value) (ret string, err error) {
 	}
 
 	if !util.IsNil(val) {
+		val = reflect.Indirect(val)
 		pos := val.Len()
 		for idx := 0; idx < pos; {
 			sv := reflect.Indirect(val.Index(idx))

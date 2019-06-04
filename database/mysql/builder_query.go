@@ -20,7 +20,9 @@ func (s *Builder) BuildQuery() (ret string, err error) {
 		return
 	}
 
-	ret = fmt.Sprintf("SELECT %s FROM `%s` WHERE %s", namesVal, s.getTableName(s.modelInfo), filterStr)
+	tableName := s.getTableName(s.modelInfo)
+
+	ret = fmt.Sprintf("SELECT %s FROM `%s` WHERE %s", namesVal, tableName, filterStr)
 	//log.Print(ret)
 
 	return
@@ -28,6 +30,8 @@ func (s *Builder) BuildQuery() (ret string, err error) {
 
 func (s *Builder) buildFilter(modelInfo model.Model) (ret string, err error) {
 	filterSQL := ""
+	relationSQL := ""
+	pkField := modelInfo.GetPrimaryField()
 	for _, field := range modelInfo.GetFields() {
 		if !field.IsAssigned() {
 			continue
@@ -35,6 +39,12 @@ func (s *Builder) buildFilter(modelInfo model.Model) (ret string, err error) {
 
 		fType := field.GetType()
 		fValue := field.GetValue()
+		fStr, fErr := s.modelProvider.GetValueStr(fType, fValue)
+		if fErr != nil {
+			err = fErr
+			return
+		}
+
 		dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
 		if dependErr != nil {
 			err = dependErr
@@ -42,21 +52,26 @@ func (s *Builder) buildFilter(modelInfo model.Model) (ret string, err error) {
 		}
 
 		if dependModel != nil {
-			continue
-		}
+			relationTable := s.GetRelationTableName(field.GetName(), dependModel)
+			if relationSQL == "" {
+				relationSQL = fmt.Sprintf("`%s`=(SELECT `left` FROM `%s` WHERE `right`=%s)", pkField.GetName(), relationTable, fStr)
+			} else {
+				relationSQL = fmt.Sprintf("%s AND `%s`=(SELECT `left` FROM `%s` WHERE `right`=%s)", relationSQL, pkField.GetName(), relationTable, fStr)
+			}
 
-		fStr, fErr := s.modelProvider.GetValueStr(fType, fValue)
-		if fErr != nil {
-			err = fErr
-			return
+			continue
 		}
 
 		fTag := field.GetTag()
 		if filterSQL == "" {
 			filterSQL = fmt.Sprintf("`%s`=%s", fTag.GetName(), fStr)
 		} else {
-			filterSQL = fmt.Sprintf("%s and `%s`=%s", filterSQL, fTag.GetName(), fStr)
+			filterSQL = fmt.Sprintf("%s AND `%s`=%s", filterSQL, fTag.GetName(), fStr)
 		}
+	}
+
+	if relationSQL != "" {
+		filterSQL = fmt.Sprintf("%s AND %s", filterSQL, relationSQL)
 	}
 
 	ret = filterSQL
