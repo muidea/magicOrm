@@ -59,7 +59,28 @@ func (s *Item) IsAssigned() (ret bool) {
 		return
 	}
 
-	ret = true
+	// 非空指针，则表示已经赋值
+	if s.Type.IsPtrType() {
+		ret = true
+		return
+	}
+
+	currentVal := reflect.Indirect(s.value.Get())
+	if currentVal.Kind() == reflect.Interface {
+		currentVal = currentVal.Elem()
+	}
+	currentVal = reflect.Indirect(currentVal)
+	originVal := reflect.New(currentVal.Type()).Elem()
+
+	sameVal, sameErr := util.IsSameVal(originVal, currentVal)
+	if sameErr != nil {
+		log.Printf("compare value failed, err:%s", sameErr.Error())
+		ret = false
+		return
+	}
+	// 值不相等，则可以认为有赋值过
+	ret = !sameVal
+
 	return
 }
 

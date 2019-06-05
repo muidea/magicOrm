@@ -54,9 +54,13 @@ func (s *fieldImpl) IsAssigned() (ret bool) {
 	if s.fieldValue.IsNil() {
 		return
 	}
-
-	originVal := reflect.Indirect(s.fieldType.Interface())
+	if s.fieldType.IsPtrType() {
+		ret = true
+		return
+	}
 	currentVal := reflect.Indirect(s.fieldValue.Get())
+	originVal := reflect.New(currentVal.Type()).Elem()
+
 	sameVal, sameErr := util.IsSameVal(originVal, currentVal)
 	if sameErr != nil {
 		log.Printf("compare value failed, err:%s", sameErr.Error())
