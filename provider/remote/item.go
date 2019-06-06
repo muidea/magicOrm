@@ -71,7 +71,6 @@ func (s *Item) IsAssigned() (ret bool) {
 	}
 	currentVal = reflect.Indirect(currentVal)
 	originVal := reflect.New(currentVal.Type()).Elem()
-
 	sameVal, sameErr := util.IsSameVal(originVal, currentVal)
 	if sameErr != nil {
 		log.Printf("compare value failed, err:%s", sameErr.Error())

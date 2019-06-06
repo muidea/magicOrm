@@ -14,6 +14,7 @@ func (s *orm) querySingle(modelInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	sql, err := builder.BuildQuery()
 	if err != nil {
+		log.Printf("build query failed, err:%s", err.Error())
 		return err
 	}
 

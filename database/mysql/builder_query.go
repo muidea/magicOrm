@@ -18,6 +18,7 @@ func (s *Builder) BuildQuery() (ret string, err error) {
 	filterStr, filterErr := s.buildFilter(s.modelInfo)
 	if filterErr != nil {
 		err = filterErr
+		log.Printf("buildFilter failed, err:%s", err.Error())
 		return
 	}
 
