@@ -21,6 +21,9 @@ func EncodeDateTimeValue(val reflect.Value) (ret string, err error) {
 		ts, ok := val.Interface().(time.Time)
 		if ok {
 			ret = fmt.Sprintf("%s", ts.Format("2006-01-02 15:04:05"))
+			if ret == "0001-01-01 00:00:00" {
+				ret = ""
+			}
 		} else {
 			err = fmt.Errorf("no support get datetime value from struct, [%s]", val.Type().String())
 		}
@@ -48,6 +51,9 @@ func DecodeDateTimeValue(val string, vType model.Type) (ret reflect.Value, err e
 		return
 	}
 
+	if val == "" {
+		val = "0001-01-01 00:00:00"
+	}
 	ret = reflect.Indirect(vType.Interface())
 	err = ConvertValue(reflect.ValueOf(val), &ret)
 
