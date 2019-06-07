@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"strings"
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/helper"
@@ -242,12 +243,17 @@ func getValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, e
 		}
 		ret = fmt.Sprintf("'%s'", strRet)
 	case reflect.Slice:
-		strRet, strErr := helper.EncodeSliceValue(vVal.Get())
-		if strErr != nil {
-			err = strErr
-			return
+		eleType := vType.Elem()
+		if eleType == nil || util.IsBasicType(eleType.GetValue()) {
+			strRet, strErr := helper.EncodeSliceValue(vVal.Get())
+			if strErr != nil {
+				err = strErr
+				return
+			}
+			ret = fmt.Sprintf("'%s'", strRet)
+		} else {
+			ret, err = getSliceStructValue(vVal.Get(), cache)
 		}
-		ret = fmt.Sprintf("'%s'", strRet)
 	case reflect.Struct:
 		if rawType.String() == "time.Time" {
 			strRet, strErr := helper.EncodeDateTimeValue(vVal.Get())
@@ -263,6 +269,31 @@ func getValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, e
 		err = fmt.Errorf("illegal value kind, kind:%v", rawType.Kind())
 	}
 
+	return
+}
+
+func getSliceStructValue(val reflect.Value, cache Cache) (ret string, err error) {
+	val = reflect.Indirect(val)
+	if val.Kind() != reflect.Slice {
+		err = fmt.Errorf("illegal slice value")
+		return
+	}
+
+	sliceVal := []string{}
+	for idx := 0; idx < val.Len(); idx++ {
+		v := val.Index(idx)
+
+		strVal, strErr := getStructValue(v, cache)
+		if strErr != nil {
+			err = strErr
+			log.Printf("getStructValue failed, err:%s", err.Error())
+			return
+		}
+
+		sliceVal = append(sliceVal, strVal)
+	}
+
+	ret = strings.Join(sliceVal, ",")
 	return
 }
 

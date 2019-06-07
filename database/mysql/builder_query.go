@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/util"
 )
 
 // BuildQuery BuildQuery
@@ -56,10 +57,20 @@ func (s *Builder) buildFilter(modelInfo model.Model) (ret string, err error) {
 		if dependModel != nil {
 			pkTag := pkField.GetTag()
 			relationTable := s.GetRelationTableName(field.GetName(), dependModel)
-			if relationSQL == "" {
-				relationSQL = fmt.Sprintf("`%s`=(SELECT `left` FROM `%s` WHERE `right`=%s)", pkTag.GetName(), relationTable, fStr)
+			if util.IsSliceType(fType.GetValue()) {
+				if fStr != "" {
+					if relationSQL == "" {
+						relationSQL = fmt.Sprintf("`%s`in (SELECT `left` FROM `%s` WHERE `right` in (%s))", pkTag.GetName(), relationTable, fStr)
+					} else {
+						relationSQL = fmt.Sprintf("%s AND `%s`=(SELECT `left` FROM `%s` WHERE `right` in (%s))", relationSQL, pkTag.GetName(), relationTable, fStr)
+					}
+				}
 			} else {
-				relationSQL = fmt.Sprintf("%s AND `%s`=(SELECT `left` FROM `%s` WHERE `right`=%s)", relationSQL, pkTag.GetName(), relationTable, fStr)
+				if relationSQL == "" {
+					relationSQL = fmt.Sprintf("`%s`=(SELECT `left` FROM `%s` WHERE `right`=%s)", pkTag.GetName(), relationTable, fStr)
+				} else {
+					relationSQL = fmt.Sprintf("%s AND `%s`=(SELECT `left` FROM `%s` WHERE `right`=%s)", relationSQL, pkTag.GetName(), relationTable, fStr)
+				}
 			}
 
 			continue
