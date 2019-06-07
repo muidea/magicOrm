@@ -188,6 +188,17 @@ func IsSame(firstVal, secondVal reflect.Value) (ret bool, err error) {
 		return
 	}
 
+	firstIsNil := IsNil(firstVal)
+	secondIsNul := IsNil(secondVal)
+	if firstIsNil != secondIsNul {
+		ret = false
+		return
+	}
+	if firstIsNil {
+		ret = true
+		return
+	}
+
 	firstVal = reflect.Indirect(firstVal)
 	secondVal = reflect.Indirect(secondVal)
 	typeVal, typeErr := GetTypeValueEnum(firstVal.Type())
@@ -222,6 +233,19 @@ func IsSameVal(firstVal, secondVal reflect.Value) (ret bool, err error) {
 	if !ret {
 		return
 	}
+
+	firstIsNil := IsNil(firstVal)
+	secondIsNul := IsNil(secondVal)
+	if firstIsNil != secondIsNul {
+		ret = false
+		return
+	}
+	if firstIsNil {
+		ret = true
+		return
+	}
+	firstVal = reflect.Indirect(firstVal)
+	secondVal = reflect.Indirect(secondVal)
 	typeVal, typeErr := GetTypeValueEnum(firstVal.Type())
 	if typeErr != nil {
 		err = typeErr

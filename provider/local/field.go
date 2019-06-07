@@ -54,11 +54,12 @@ func (s *fieldImpl) IsAssigned() (ret bool) {
 	if s.fieldValue.IsNil() {
 		return
 	}
+	currentVal := s.fieldValue.Get()
 	if s.fieldType.IsPtrType() {
-		ret = true
-		return
+		currentVal = reflect.Indirect(currentVal)
 	}
-	currentVal := reflect.Indirect(s.fieldValue.Get())
+
+	currentVal = reflect.Indirect(currentVal)
 	originVal := reflect.New(currentVal.Type()).Elem()
 	sameVal, sameErr := util.IsSameVal(originVal, currentVal)
 	if sameErr != nil {
