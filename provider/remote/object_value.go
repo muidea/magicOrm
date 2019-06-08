@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"reflect"
 
 	"github.com/muidea/magicOrm/provider/helper"
@@ -53,6 +54,83 @@ func (s *ObjectValue) GetPkgPath() string {
 // IsPtrValue isPtrValue
 func (s *ObjectValue) IsPtrValue() bool {
 	return s.IsPtrFlag
+}
+
+// IsAssigned is assigned value
+func (s *ObjectValue) IsAssigned() (ret bool) {
+	for _, val := range s.Items {
+		if val.Value == nil {
+			continue
+		}
+
+		strVal, strOK := val.Value.(string)
+		if strOK {
+			ret = strVal != ""
+			if ret {
+				return
+			}
+
+			continue
+		}
+
+		fltVal, fltOK := val.Value.(float64)
+		if fltOK {
+			ret = math.Abs(fltVal-0.00000) > 0.00001
+			if ret {
+				return
+			}
+
+			continue
+		}
+
+		objVal, objOK := val.Value.(ObjectValue)
+		if objOK {
+			ret = objVal.IsAssigned()
+			if ret {
+				return
+			}
+		}
+
+		sliceObjVal, sliceObjOK := val.Value.([]ObjectValue)
+		if sliceObjOK {
+			ret = len(sliceObjVal) > 0
+			if ret {
+				return
+			}
+		}
+		sliceObjPtrVal, sliceObjPtrOK := val.Value.([]*ObjectValue)
+		if sliceObjPtrOK {
+			ret = len(sliceObjPtrVal) > 0
+			if ret {
+				return
+			}
+		}
+
+		ptrObjVal, ptrObjOK := val.Value.(*ObjectValue)
+		if ptrObjOK {
+			ret = ptrObjVal.IsAssigned()
+			if ret {
+				return
+			}
+		}
+
+		ptrSliceObjVal, ptrSliceObjOK := val.Value.(*[]ObjectValue)
+		if ptrSliceObjOK {
+			ret = len(*ptrSliceObjVal) > 0
+			if ret {
+				return
+			}
+		}
+		ptrSliceObjPtrVal, ptrSliceObjPtrOK := val.Value.(*[]*ObjectValue)
+		if ptrSliceObjPtrOK {
+			ret = len(*ptrSliceObjPtrVal) > 0
+			if ret {
+				return
+			}
+		}
+	}
+
+	return
 }
 
 // GetName get object name

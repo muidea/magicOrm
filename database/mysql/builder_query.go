@@ -26,7 +26,7 @@ func (s *Builder) BuildQuery() (ret string, err error) {
 	tableName := s.getTableName(s.modelInfo)
 
 	ret = fmt.Sprintf("SELECT %s FROM `%s` WHERE %s", namesVal, tableName, filterStr)
-	log.Print(ret)
+	//log.Print(ret)
 
 	return
 }

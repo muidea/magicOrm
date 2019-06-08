@@ -2,7 +2,9 @@ package remote
 
 import (
 	"fmt"
+	"log"
 	"reflect"
+	"strings"
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/helper"
@@ -397,12 +399,17 @@ func getValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, e
 		}
 		ret = fmt.Sprintf("'%s'", strRet)
 	case util.TypeSliceField:
-		strRet, strErr := helper.EncodeSliceValue(vVal.Get())
-		if strErr != nil {
-			err = strErr
-			return
+		eleType := vType.Elem()
+		if eleType == nil || util.IsBasicType(eleType.GetValue()) {
+			strRet, strErr := helper.EncodeSliceValue(vVal.Get())
+			if strErr != nil {
+				err = strErr
+				return
+			}
+			ret = fmt.Sprintf("'%s'", strRet)
+		} else {
+			ret, err = getSliceModelValue(vVal.Get(), cache)
 		}
-		ret = fmt.Sprintf("'%s'", strRet)
 	case util.TypeDateTimeField:
 		strRet, strErr := helper.EncodeStringValue(vVal.Get())
 		if strErr != nil {
@@ -411,21 +418,59 @@ func getValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, e
 		}
 		ret = fmt.Sprintf("'%s'", strRet)
 	case util.TypeStructField:
-		valModel, valErr := getValueModel(vVal.Get(), cache)
-		if valErr != nil {
-			err = valErr
-			return
-		}
-
-		pkField := valModel.GetPrimaryField()
-		if pkField == nil {
-			err = fmt.Errorf("illegal model struct")
-			return
-		}
-		ret, err = getValueStr(pkField.GetType(), pkField.GetValue(), cache)
+		ret, err = getModelValue(vVal.Get(), cache)
 	default:
 		err = fmt.Errorf("illegal value type, type:%v", vType.GetValue())
 	}
 
+	return
+}
+
+func getModelValue(val reflect.Value, cache Cache) (ret string, err error) {
+	if val.Kind() == reflect.Interface {
+		val = val.Elem()
+	}
+
+	valModel, valErr := getValueModel(val, cache)
+	if valErr != nil {
+		err = valErr
+		return
+	}
+
+	pkField := valModel.GetPrimaryField()
+	if pkField == nil {
+		err = fmt.Errorf("illegal model struct")
+		return
+	}
+	ret, err = getValueStr(pkField.GetType(), pkField.GetValue(), cache)
+	return
+}
+
+func getSliceModelValue(val reflect.Value, cache Cache) (ret string, err error) {
+	if val.Kind() == reflect.Interface {
+		val = val.Elem()
+	}
+
+	val = reflect.Indirect(val)
+	if val.Kind() != reflect.Slice {
+		err = fmt.Errorf("illegal slice value")
+		return
+	}
+
+	sliceVal := []string{}
+	for idx := 0; idx < val.Len(); idx++ {
+		v := val.Index(idx)
+
+		strVal, strErr := getModelValue(v, cache)
+		if strErr != nil {
+			err = strErr
+			log.Printf("getModelValue failed, err:%s", err.Error())
+			return
+		}
+
+		sliceVal = append(sliceVal, strVal)
+	}
+
+	ret = strings.Join(sliceVal, ",")
 	return
 }

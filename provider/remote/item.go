@@ -59,26 +59,43 @@ func (s *Item) IsAssigned() (ret bool) {
 		return
 	}
 
-	// 非空指针，则表示已经赋值
-	if s.Type.IsPtrType() {
-		ret = true
-		return
-	}
-
-	currentVal := reflect.Indirect(s.value.Get())
+	currentVal := s.value.Get()
 	if currentVal.Kind() == reflect.Interface {
 		currentVal = currentVal.Elem()
 	}
-	currentVal = reflect.Indirect(currentVal)
-	originVal := reflect.New(currentVal.Type()).Elem()
-	sameVal, sameErr := util.IsSameVal(originVal, currentVal)
-	if sameErr != nil {
-		log.Printf("compare value failed, err:%s", sameErr.Error())
-		ret = false
+	// 非空指针，则表示已经赋值
+	if s.Type.IsPtrType() {
+		currentVal = reflect.Indirect(currentVal)
+	}
+	if util.IsNil(currentVal) {
 		return
 	}
-	// 值不相等，则可以认为有赋值过
-	ret = !sameVal
+	if util.IsBasicType(s.Type.GetValue()) {
+		originVal := reflect.New(currentVal.Type()).Elem()
+		sameVal, sameErr := util.IsSameVal(originVal, currentVal)
+		if sameErr != nil {
+			log.Printf("compare value failed, err:%s", sameErr.Error())
+			ret = false
+			return
+		}
+		// 值不相等，则可以认为有赋值过
+		ret = !sameVal
+	} else if util.IsStructType(s.Type.GetValue()) {
+		curObj, curOK := currentVal.Interface().(ObjectValue)
+		if !curOK {
+			log.Fatalf("illegal item value. val:%v", currentVal.Interface())
+			ret = false
+		} else {
+			ret = curObj.IsAssigned()
+		}
+	} else if util.IsSliceType(s.Type.GetValue()) {
+		if currentVal.Len() > 0 {
+			ret = true
+			return
+		}
+	} else {
+		log.Fatalf("illegal item type value, type:%s, value:%d", s.Type.GetName(), s.Type.GetValue())
+	}
 
 	return
 }

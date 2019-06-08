@@ -20,7 +20,6 @@ func getObjectValue(val interface{}) (ret *remote.ObjectValue, err error) {
 		err = dataErr
 		return
 	}
-
 	ret, err = remote.DecodeObjectValue(data)
 	if err != nil {
 		return
