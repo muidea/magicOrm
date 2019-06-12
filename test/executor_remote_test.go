@@ -52,13 +52,13 @@ func TestRemoteExecutor(t *testing.T) {
 	objList := []interface{}{objDef}
 	registerMode(o1, objList)
 
-	err = o1.Drop(objDef)
+	err = o1.Drop(objDef, "default")
 	if err != nil {
 		t.Errorf("drop ext failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(objDef)
+	err = o1.Create(objDef, "default")
 	if err != nil {
 		t.Errorf("create obj failed, err:%s", err.Error())
 		return
@@ -70,7 +70,7 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	err = o1.Insert(objVal)
+	err = o1.Insert(objVal, "default")
 	if err != nil {
 		t.Errorf("insert obj failed, err:%s", err.Error())
 		return
@@ -90,7 +90,7 @@ func TestRemoteExecutor(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Update(objVal)
+	err = o1.Update(objVal, "default")
 	if err != nil {
 		t.Errorf("update obj failed, err:%s", err.Error())
 		return
@@ -103,7 +103,7 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	err = o1.Query(objVal2)
+	err = o1.Query(objVal2, "default")
 	if err != nil {
 		t.Errorf("query obj failed, err:%s", err.Error())
 		return
@@ -120,7 +120,7 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	err = o1.Delete(objVal2)
+	err = o1.Delete(objVal2, "default")
 	if err != nil {
 		t.Errorf("query obj failed, err:%s", err.Error())
 	}
@@ -164,25 +164,25 @@ func TestRemoteDepends(t *testing.T) {
 	objList := []interface{}{objDef, extObjDef, ext2ObjDef}
 	registerMode(o1, objList)
 
-	err = o1.Drop(objDef)
+	err = o1.Drop(objDef, "default")
 	if err != nil {
 		t.Errorf("drop unit failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(objDef)
+	err = o1.Create(objDef, "default")
 	if err != nil {
 		t.Errorf("create unit failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Drop(extObjDef)
+	err = o1.Drop(extObjDef, "default")
 	if err != nil {
 		t.Errorf("drop ext failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(extObjDef)
+	err = o1.Create(extObjDef, "default")
 	if err != nil {
 		t.Errorf("create ext failed, err:%s", err.Error())
 		return
@@ -194,7 +194,7 @@ func TestRemoteDepends(t *testing.T) {
 		return
 	}
 
-	err = o1.Insert(extObjVal)
+	err = o1.Insert(extObjVal, "default")
 	if err != nil {
 		t.Errorf("insert ext failed, err:%s", err.Error())
 		return
@@ -202,7 +202,7 @@ func TestRemoteDepends(t *testing.T) {
 
 	extVal2.UnitList = append(extVal2.UnitList, *val)
 
-	err = o1.Drop(ext2ObjDef)
+	err = o1.Drop(ext2ObjDef, "default")
 	if err != nil {
 		t.Errorf("drop ext2 failed, err:%s", err.Error())
 		return
@@ -213,19 +213,19 @@ func TestRemoteDepends(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Create(ext2ObjDef)
+	err = o1.Create(ext2ObjDef, "default")
 	if err != nil {
 		t.Errorf("create ext2 failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(ext2ObjVal)
+	err = o1.Insert(ext2ObjVal, "default")
 	if err != nil {
 		t.Errorf("insert ext2 failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Delete(ext2ObjVal)
+	err = o1.Delete(ext2ObjVal, "default")
 	if err != nil {
 		t.Errorf("delete ext2 failed, err:%s", err.Error())
 	}

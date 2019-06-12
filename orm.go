@@ -5,20 +5,21 @@ import (
 
 	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
+	ormImpl "github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
 )
 
 // Orm orm interfalce
 type Orm interface {
-	RegisterModel(entity interface{}) error
-	UnregisterModel(entity interface{})
-	Create(entity interface{}) error
-	Drop(entity interface{}) error
-	Insert(entity interface{}) error
-	Update(entity interface{}) error
-	Delete(entity interface{}) error
-	Query(entity interface{}) error
-	BatchQuery(sliceEntity interface{}, filter model.Filter) error
+	RegisterModel(entity interface{}, owner string) error
+	UnregisterModel(entity interface{}, owner string)
+	Create(entity interface{}, owner string) error
+	Drop(entity interface{}, owner string) error
+	Insert(entity interface{}, owner string) error
+	Update(entity interface{}, owner string) error
+	Delete(entity interface{}, owner string) error
+	Query(entity interface{}, owner string) error
+	BatchQuery(sliceEntity interface{}, filter model.Filter, owner string) error
 	BeginTransaction()
 	CommitTransaction()
 	RollbackTransaction()
@@ -33,6 +34,7 @@ func init() {
 type orm struct {
 	executor      executor.Executor
 	modelProvider provider.Provider
+	ormImpl       *ormImpl.Orm
 }
 
 // Initialize InitOrm
@@ -53,7 +55,8 @@ func Uninitialize() {
 
 // NewFilter create new filter
 func NewFilter() model.Filter {
-	return &queryFilter{params: map[string]model.FilterItem{}, modelProvider: _config.getProvider()}
+	modelProvider := _config.getProvider()
+	return ormImpl.NewFilter(modelProvider)
 }
 
 // New create new Orm
@@ -68,15 +71,57 @@ func New() (Orm, error) {
 		return nil, err
 	}
 
-	return &orm{executor: executor, modelProvider: _config.getProvider()}, nil
+	modelProvider := _config.getProvider()
+	ormImpl := ormImpl.New(executor, modelProvider)
+	return &orm{executor: executor, modelProvider: modelProvider, ormImpl: ormImpl}, nil
 }
 
-func (s *orm) RegisterModel(entity interface{}) error {
+func (s *orm) RegisterModel(entity interface{}, owner string) error {
 	return s.modelProvider.RegisterModel(entity)
 }
 
-func (s *orm) UnregisterModel(entity interface{}) {
+func (s *orm) UnregisterModel(entity interface{}, owner string) {
 	s.modelProvider.UnregisterModel(entity)
+}
+
+func (s *orm) Create(entity interface{}, owner string) (err error) {
+	err = s.ormImpl.Create(entity)
+
+	return
+}
+
+func (s *orm) Drop(entity interface{}, owner string) (err error) {
+	err = s.ormImpl.Drop(entity)
+	return
+}
+
+func (s *orm) Insert(entity interface{}, owner string) (err error) {
+	err = s.ormImpl.Insert(entity)
+	return
+}
+
+func (s *orm) Query(entity interface{}, owner string) (err error) {
+
+	err = s.ormImpl.Query(entity)
+	return
+}
+
+func (s *orm) Delete(entity interface{}, owner string) (err error) {
+	err = s.ormImpl.Delete(entity)
+
+	return
+}
+
+func (s *orm) Update(entity interface{}, owner string) (err error) {
+	err = s.ormImpl.Update(entity)
+
+	return
+}
+
+func (s *orm) BatchQuery(sliceEntity interface{}, filter model.Filter, owner string) (err error) {
+
+	err = s.ormImpl.BatchQuery(sliceEntity, filter)
+	return
 }
 
 func (s *orm) BeginTransaction() {

@@ -9,7 +9,7 @@ import (
 
 func registerMode(orm orm.Orm, objList []interface{}) {
 	for _, val := range objList {
-		orm.RegisterModel(val)
+		orm.RegisterModel(val, "default")
 	}
 }
 
@@ -31,13 +31,13 @@ func TestLocalExecutor(t *testing.T) {
 	objList := []interface{}{&Unit{}}
 	registerMode(o1, objList)
 
-	err = o1.Create(obj)
+	err = o1.Create(obj, "default")
 	if err != nil {
 		t.Errorf("create obj failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(obj)
+	err = o1.Insert(obj, "default")
 	if err != nil {
 		t.Errorf("insert obj failed, err:%s", err.Error())
 		return
@@ -45,14 +45,14 @@ func TestLocalExecutor(t *testing.T) {
 
 	obj.Name = "abababa"
 	obj.Value = 100.000
-	err = o1.Update(obj)
+	err = o1.Update(obj, "default")
 	if err != nil {
 		t.Errorf("update obj failed, err:%s", err.Error())
 		return
 	}
 
 	obj2 := &Unit{ID: obj.ID}
-	err = o1.Query(obj2)
+	err = o1.Query(obj2, "default")
 	if err != nil {
 		t.Errorf("query obj failed, err:%s", err.Error())
 		return
@@ -62,7 +62,7 @@ func TestLocalExecutor(t *testing.T) {
 		return
 	}
 
-	err = o1.Delete(obj)
+	err = o1.Delete(obj, "default")
 	if err != nil {
 		t.Errorf("query obj failed, err:%s", err.Error())
 	}
@@ -87,25 +87,25 @@ func TestLocalDepends(t *testing.T) {
 	objList := []interface{}{&Unit{}, &ExtUnit{}, &ExtUnitList{}}
 	registerMode(o1, objList)
 
-	err = o1.Drop(ext)
+	err = o1.Drop(ext, "default")
 	if err != nil {
 		t.Errorf("drop ext failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(ext)
+	err = o1.Create(ext, "default")
 	if err != nil {
 		t.Errorf("create ext failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(ext)
+	err = o1.Insert(ext, "default")
 	if err != nil {
 		t.Errorf("insert ext failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(obj)
+	err = o1.Insert(obj, "default")
 	if err != nil {
 		t.Errorf("insert ext failed, err:%s", err.Error())
 		return
@@ -113,25 +113,25 @@ func TestLocalDepends(t *testing.T) {
 
 	ext2 := &ExtUnitList{Unit: *obj, UnitList: []Unit{}}
 	ext2.UnitList = append(ext2.UnitList, *obj)
-	err = o1.Drop(ext2)
+	err = o1.Drop(ext2, "default")
 	if err != nil {
 		t.Errorf("drop ext2 failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(ext2)
+	err = o1.Create(ext2, "default")
 	if err != nil {
 		t.Errorf("create ext2 failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(ext2)
+	err = o1.Insert(ext2, "default")
 	if err != nil {
 		t.Errorf("insert ext2 failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Delete(ext2)
+	err = o1.Delete(ext2, "default")
 	if err != nil {
 		t.Errorf("delete ext2 failed, err:%s", err.Error())
 	}

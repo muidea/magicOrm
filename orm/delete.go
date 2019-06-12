@@ -9,7 +9,7 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *orm) deleteSingle(modelInfo model.Model) (err error) {
+func (s *Orm) deleteSingle(modelInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	sql, err := builder.BuildDelete()
 	if err != nil {
@@ -24,7 +24,7 @@ func (s *orm) deleteSingle(modelInfo model.Model) (err error) {
 	return
 }
 
-func (s *orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
+func (s *Orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
 	fType := fieldInfo.GetType()
 	relationInfo, relationErr := s.modelProvider.GetTypeModel(fType)
 	if relationErr != nil {
@@ -51,7 +51,8 @@ func (s *orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 	return
 }
 
-func (s *orm) Delete(entity interface{}) (err error) {
+// Delete delete
+func (s *Orm) Delete(entity interface{}) (err error) {
 	entityVal := reflect.ValueOf(entity)
 	modelInfo, modelErr := s.modelProvider.GetValueModel(entityVal)
 	if modelErr != nil {

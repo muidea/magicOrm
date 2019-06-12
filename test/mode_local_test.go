@@ -26,60 +26,60 @@ func TestLocalGroup(t *testing.T) {
 	objList := []interface{}{&Group{}, &User{}}
 	registerMode(o1, objList)
 
-	err = o1.Drop(group1)
+	err = o1.Drop(group1, "default")
 	if err != nil {
 		t.Errorf("drop group failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(group1)
+	err = o1.Create(group1, "default")
 	if err != nil {
 		t.Errorf("create group failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(group1)
+	err = o1.Insert(group1, "default")
 	if err != nil {
 		t.Errorf("insert Group1 failed, err:%s", err.Error())
 		return
 	}
 
 	group2.Parent = group1
-	err = o1.Insert(group2)
+	err = o1.Insert(group2, "default")
 	if err != nil {
 		t.Errorf("insert Group2 failed, err:%s", err.Error())
 		return
 	}
 
 	group3.Parent = group1
-	err = o1.Insert(group3)
+	err = o1.Insert(group3, "default")
 	if err != nil {
 		t.Errorf("insert Group3 failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Delete(group3)
+	err = o1.Delete(group3, "default")
 	if err != nil {
 		t.Errorf("delete Group3 failed, err:%s", err.Error())
 		return
 	}
 
 	group4 := &Group{ID: group2.ID, Name: group2.Name}
-	err = o1.Query(group4)
+	err = o1.Query(group4, "default")
 	if err != nil {
 		t.Errorf("query Group4 failed, err:%s", err.Error())
 		return
 	}
 
 	group42 := &Group{ID: group2.ID, Name: group2.Name, Parent: &Group{}}
-	err = o1.Query(group42)
+	err = o1.Query(group42, "default")
 	if err != nil {
 		t.Errorf("query Group42 failed, err:%s", err.Error())
 		return
 	}
 
 	group5 := &Group{Parent: &Group{ID: 1}}
-	err = o1.Query(group5)
+	err = o1.Query(group5, "default")
 	if err != nil {
 		t.Errorf("query Group5 failed, err:%s", err.Error())
 		return
@@ -108,44 +108,44 @@ func TestLocalUser(t *testing.T) {
 	objList := []interface{}{&Group{}, &User{}}
 	registerMode(o1, objList)
 
-	err = o1.Drop(group1)
+	err = o1.Drop(group1, "default")
 	if err != nil {
 		t.Errorf("drop group failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(group1)
+	err = o1.Create(group1, "default")
 	if err != nil {
 		t.Errorf("create group failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(group1)
+	err = o1.Insert(group1, "default")
 	if err != nil {
 		t.Errorf("insert Group1 failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(group2)
+	err = o1.Insert(group2, "default")
 	if err != nil {
 		t.Errorf("insert Group2 failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(group3)
+	err = o1.Insert(group3, "default")
 	if err != nil {
 		t.Errorf("insert group3 failed, err:%s", err.Error())
 		return
 	}
 
 	user1 := &User{Name: "demo", EMail: "123@demo.com", Group: []*Group{}}
-	err = o1.Drop(user1)
+	err = o1.Drop(user1, "default")
 	if err != nil {
 		t.Errorf("drop user failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(user1)
+	err = o1.Create(user1, "default")
 	if err != nil {
 		t.Errorf("create user failed, err:%s", err.Error())
 		return
@@ -153,14 +153,14 @@ func TestLocalUser(t *testing.T) {
 
 	user1.Group = append(user1.Group, group1)
 	user1.Group = append(user1.Group, group2)
-	err = o1.Insert(user1)
+	err = o1.Insert(user1, "default")
 	if err != nil {
 		t.Errorf("insert user1 failed, err:%s", err.Error())
 		return
 	}
 
 	user2 := &User{ID: user1.ID}
-	err = o1.Query(user2)
+	err = o1.Query(user2, "default")
 	if err != nil {
 		t.Errorf("query user2 failed, err:%s", err.Error())
 		return
@@ -172,13 +172,13 @@ func TestLocalUser(t *testing.T) {
 	}
 
 	user1.Group = append(user1.Group, group3)
-	err = o1.Update(user1)
+	err = o1.Update(user1, "default")
 	if err != nil {
 		t.Errorf("update user1 failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Query(user2)
+	err = o1.Query(user2, "default")
 	if err != nil {
 		t.Errorf("query user2 failed, err:%s", err.Error())
 		return
@@ -192,22 +192,22 @@ func TestLocalUser(t *testing.T) {
 		return
 	}
 
-	err = o1.Delete(group1)
+	err = o1.Delete(group1, "default")
 	if err != nil {
 		t.Errorf("delete group1 failed, err:%s", err.Error())
 		return
 	}
-	err = o1.Delete(group2)
+	err = o1.Delete(group2, "default")
 	if err != nil {
 		t.Errorf("delete group2 failed, err:%s", err.Error())
 		return
 	}
-	err = o1.Delete(group3)
+	err = o1.Delete(group3, "default")
 	if err != nil {
 		t.Errorf("delete group3 failed, err:%s", err.Error())
 		return
 	}
-	err = o1.Delete(user2)
+	err = o1.Delete(user2, "default")
 	if err != nil {
 		t.Errorf("delete user2 failed, err:%s", err.Error())
 	}
@@ -231,31 +231,31 @@ func TestLoalSystem(t *testing.T) {
 	objList := []interface{}{&Group{}, &User{}, &System{}}
 	registerMode(o1, objList)
 
-	err = o1.Drop(user1)
+	err = o1.Drop(user1, "default")
 	if err != nil {
 		t.Errorf("drop user failed, err:%s", err.Error())
 		return
 	}
 
 	sys1 := &System{Name: "sys1", Tags: []string{"aab", "ccd"}}
-	err = o1.Drop(sys1)
+	err = o1.Drop(sys1, "default")
 	if err != nil {
 		t.Errorf("drop system failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(user1)
+	err = o1.Create(user1, "default")
 	if err != nil {
 		t.Errorf("create user failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(user1)
+	err = o1.Insert(user1, "default")
 	if err != nil {
 		t.Errorf("insert user failed, err:%s", err.Error())
 		return
 	}
-	err = o1.Insert(user2)
+	err = o1.Insert(user2, "default")
 	if err != nil {
 		t.Errorf("insert user failed, err:%s", err.Error())
 		return
@@ -264,13 +264,13 @@ func TestLoalSystem(t *testing.T) {
 	users := []User{*user1, *user2}
 	sys1.Users = &users
 
-	err = o1.Create(sys1)
+	err = o1.Create(sys1, "default")
 	if err != nil {
 		t.Errorf("create system failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(sys1)
+	err = o1.Insert(sys1, "default")
 	if err != nil {
 		t.Errorf("insert system failed, err:%s", err.Error())
 		return
@@ -279,14 +279,14 @@ func TestLoalSystem(t *testing.T) {
 	users = append(users, *user1)
 	users = append(users, *user2)
 	sys1.Users = &users
-	err = o1.Update(sys1)
+	err = o1.Update(sys1, "default")
 	if err != nil {
 		t.Errorf("update system failed, err:%s", err.Error())
 		return
 	}
 
 	sys2 := &System{ID: sys1.ID, Users: &[]User{}}
-	err = o1.Query(sys2)
+	err = o1.Query(sys2, "default")
 	if err != nil {
 		t.Errorf("query system failed, err:%s", err.Error())
 		return
@@ -297,18 +297,18 @@ func TestLoalSystem(t *testing.T) {
 		return
 	}
 
-	err = o1.Delete(sys2)
+	err = o1.Delete(sys2, "default")
 	if err != nil {
 		t.Errorf("delete system failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Delete(user1)
+	err = o1.Delete(user1, "default")
 	if err != nil {
 		t.Errorf("delete user1 failed, err:%s", err.Error())
 		return
 	}
-	err = o1.Delete(user2)
+	err = o1.Delete(user2, "default")
 	if err != nil {
 		t.Errorf("delete user2 failed, err:%s", err.Error())
 	}
@@ -334,24 +334,24 @@ func TestLocalBatchQuery(t *testing.T) {
 	objList := []interface{}{&Group{}, &User{}}
 	registerMode(o1, objList)
 
-	err = o1.Drop(group1)
+	err = o1.Drop(group1, "default")
 	if err != nil {
 		t.Errorf("drop group failed, err:%s", err.Error())
 		return
 	}
-	err = o1.Create(group1)
+	err = o1.Create(group1, "default")
 	if err != nil {
 		t.Errorf("create group failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(group1)
+	err = o1.Insert(group1, "default")
 	if err != nil {
 		t.Errorf("insert group failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(group2)
+	err = o1.Insert(group2, "default")
 	if err != nil {
 		t.Errorf("insert group failed, err:%s", err.Error())
 		return
@@ -360,25 +360,25 @@ func TestLocalBatchQuery(t *testing.T) {
 	user1.Group = append(user1.Group, group1)
 	user1.Group = append(user1.Group, group2)
 
-	err = o1.Drop(user1)
+	err = o1.Drop(user1, "default")
 	if err != nil {
 		t.Errorf("drop user failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(user1)
+	err = o1.Create(user1, "default")
 	if err != nil {
 		t.Errorf("create user failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(user1)
+	err = o1.Insert(user1, "default")
 	if err != nil {
 		t.Errorf("insert user failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(user2)
+	err = o1.Insert(user2, "default")
 	if err != nil {
 		t.Errorf("insert user failed, err:%s", err.Error())
 		return
@@ -394,7 +394,7 @@ func TestLocalBatchQuery(t *testing.T) {
 	filter.Page(pageFilter)
 
 	//err = o1.BatchQuery(&userList, filter)
-	retErr := o1.BatchQuery(&userList, nil)
+	retErr := o1.BatchQuery(&userList, nil, "default")
 	if retErr != nil {
 		err = retErr
 		t.Errorf("batch query user failed, err:%s", err.Error())

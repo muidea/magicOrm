@@ -7,7 +7,7 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *orm) dropSingle(modelInfo model.Model) (err error) {
+func (s *Orm) dropSingle(modelInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	tableName := builder.GetTableName()
 	if s.executor.CheckTableExist(tableName) {
@@ -22,7 +22,7 @@ func (s *orm) dropSingle(modelInfo model.Model) (err error) {
 	return
 }
 
-func (s *orm) dropRelation(modelInfo model.Model, fieldName string, relationInfo model.Model) (err error) {
+func (s *Orm) dropRelation(modelInfo model.Model, fieldName string, relationInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	tableName := builder.GetRelationTableName(fieldName, relationInfo)
 	if s.executor.CheckTableExist(tableName) {
@@ -37,7 +37,8 @@ func (s *orm) dropRelation(modelInfo model.Model, fieldName string, relationInfo
 	return
 }
 
-func (s *orm) Drop(entity interface{}) (err error) {
+// Drop drop
+func (s *Orm) Drop(entity interface{}) (err error) {
 	modelInfo, modelErr := s.modelProvider.GetEntityModel(entity)
 	if modelErr != nil {
 		err = modelErr

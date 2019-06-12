@@ -10,7 +10,7 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
-func (s *orm) querySingle(modelInfo model.Model) (err error) {
+func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	sql, err := builder.BuildQuery()
 	if err != nil {
@@ -52,7 +52,7 @@ func (s *orm) querySingle(modelInfo model.Model) (err error) {
 	return
 }
 
-func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
+func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
 	fType := fieldInfo.GetType()
 	fieldModel, fieldErr := s.modelProvider.GetTypeModel(fType)
 	if fieldErr != nil {
@@ -158,7 +158,8 @@ func (s *orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (err e
 	return
 }
 
-func (s *orm) Query(entity interface{}) (err error) {
+// Query query
+func (s *Orm) Query(entity interface{}) (err error) {
 	entityVal := reflect.ValueOf(entity)
 	modelInfo, modelErr := s.modelProvider.GetValueModel(entityVal)
 	if modelErr != nil {

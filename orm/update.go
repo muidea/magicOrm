@@ -8,7 +8,7 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *orm) updateSingle(modelInfo model.Model) (err error) {
+func (s *Orm) updateSingle(modelInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	sql, err := builder.BuildUpdate()
 	if err != nil {
@@ -20,7 +20,7 @@ func (s *orm) updateSingle(modelInfo model.Model) (err error) {
 	return err
 }
 
-func (s *orm) updateRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
+func (s *Orm) updateRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
 	fType := fieldInfo.GetType()
 	fDependModel, fDependErr := s.modelProvider.GetTypeModel(fType)
 	if fDependErr != nil {
@@ -44,7 +44,8 @@ func (s *orm) updateRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 	return
 }
 
-func (s *orm) Update(entity interface{}) (err error) {
+// Update update
+func (s *Orm) Update(entity interface{}) (err error) {
 	entityVal := reflect.ValueOf(entity)
 	modelInfo, modelErr := s.modelProvider.GetValueModel(entityVal)
 	if modelErr != nil {

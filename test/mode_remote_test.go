@@ -81,25 +81,25 @@ func TestRemoteGroup(t *testing.T) {
 	objList := []interface{}{groupDef, userDef}
 	registerMode(o1, objList)
 
-	err = o1.Drop(userDef)
+	err = o1.Drop(userDef, "default")
 	if err != nil {
 		t.Errorf("drop user failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(userDef)
+	err = o1.Create(userDef, "default")
 	if err != nil {
 		t.Errorf("create user failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Drop(groupDef)
+	err = o1.Drop(groupDef, "default")
 	if err != nil {
 		t.Errorf("drop group failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(groupDef)
+	err = o1.Create(groupDef, "default")
 	if err != nil {
 		t.Errorf("create group failed, err:%s", err.Error())
 		return
@@ -111,7 +111,7 @@ func TestRemoteGroup(t *testing.T) {
 		return
 	}
 
-	err = o1.Insert(group1Val)
+	err = o1.Insert(group1Val, "default")
 	if err != nil {
 		t.Errorf("insert Group1 failed, err:%s", err.Error())
 		return
@@ -129,7 +129,7 @@ func TestRemoteGroup(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(group2Val)
+	err = o1.Insert(group2Val, "default")
 	if err != nil {
 		t.Errorf("insert Group2 failed, err:%s", err.Error())
 		return
@@ -146,7 +146,7 @@ func TestRemoteGroup(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(group3Val)
+	err = o1.Insert(group3Val, "default")
 	if err != nil {
 		t.Errorf("insert Group3 failed, err:%s", err.Error())
 		return
@@ -157,7 +157,7 @@ func TestRemoteGroup(t *testing.T) {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
-	err = o1.Delete(group3Val)
+	err = o1.Delete(group3Val, "default")
 	if err != nil {
 		t.Errorf("delete Group3 failed, err:%s", err.Error())
 		return
@@ -169,7 +169,7 @@ func TestRemoteGroup(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Query(group4Val)
+	err = o1.Query(group4Val, "default")
 	if err != nil {
 		t.Errorf("query Group4 failed, err:%s", err.Error())
 		return
@@ -181,7 +181,7 @@ func TestRemoteGroup(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Query(group5Val)
+	err = o1.Query(group5Val, "default")
 	if err != nil {
 		t.Errorf("query Group5 failed, err:%s", err.Error())
 		return
@@ -228,25 +228,25 @@ func TestRemoteUser(t *testing.T) {
 	objList := []interface{}{groupDef, userDef}
 	registerMode(o1, objList)
 
-	err = o1.Drop(userDef)
+	err = o1.Drop(userDef, "default")
 	if err != nil {
 		t.Errorf("drop group failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(userDef)
+	err = o1.Create(userDef, "default")
 	if err != nil {
 		t.Errorf("create group failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Drop(groupDef)
+	err = o1.Drop(groupDef, "default")
 	if err != nil {
 		t.Errorf("drop group failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(groupDef)
+	err = o1.Create(groupDef, "default")
 	if err != nil {
 		t.Errorf("create group failed, err:%s", err.Error())
 		return
@@ -258,7 +258,7 @@ func TestRemoteUser(t *testing.T) {
 		return
 	}
 
-	err = o1.Insert(group1Val)
+	err = o1.Insert(group1Val, "default")
 	if err != nil {
 		t.Errorf("insert Group1 failed, err:%s", err.Error())
 		return
@@ -274,7 +274,7 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(group2Val)
+	err = o1.Insert(group2Val, "default")
 	if err != nil {
 		t.Errorf("insert Group2 failed, err:%s", err.Error())
 		return
@@ -290,7 +290,7 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(group3Val)
+	err = o1.Insert(group3Val, "default")
 	if err != nil {
 		t.Errorf("insert group3 failed, err:%s", err.Error())
 		return
@@ -310,7 +310,7 @@ func TestRemoteUser(t *testing.T) {
 		return
 	}
 
-	err = o1.Insert(user1Val)
+	err = o1.Insert(user1Val, "default")
 	if err != nil {
 		t.Errorf("insert user1 failed, err:%s", err.Error())
 		return
@@ -328,7 +328,7 @@ func TestRemoteUser(t *testing.T) {
 		return
 	}
 
-	err = o1.Query(user2Val)
+	err = o1.Query(user2Val, "default")
 	if err != nil {
 		t.Errorf("query user2 failed, err:%s", err.Error())
 		return
@@ -350,7 +350,7 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Update(user1Val)
+	err = o1.Update(user1Val, "default")
 	if err != nil {
 		t.Errorf("update user1 failed, err:%s", err.Error())
 		return
@@ -366,7 +366,7 @@ func TestRemoteUser(t *testing.T) {
 		return
 	}
 
-	err = o1.Query(user2Val)
+	err = o1.Query(user2Val, "default")
 	if err != nil {
 		t.Errorf("query user2 failed, err:%s", err.Error())
 		return
@@ -386,22 +386,22 @@ func TestRemoteUser(t *testing.T) {
 		return
 	}
 
-	err = o1.Delete(group1Val)
+	err = o1.Delete(group1Val, "default")
 	if err != nil {
 		t.Errorf("delete group1 failed, err:%s", err.Error())
 		return
 	}
-	err = o1.Delete(group2Val)
+	err = o1.Delete(group2Val, "default")
 	if err != nil {
 		t.Errorf("delete group2 failed, err:%s", err.Error())
 		return
 	}
-	err = o1.Delete(group3Val)
+	err = o1.Delete(group3Val, "default")
 	if err != nil {
 		t.Errorf("delete group3 failed, err:%s", err.Error())
 		return
 	}
-	err = o1.Delete(user2Val)
+	err = o1.Delete(user2Val, "default")
 	if err != nil {
 		t.Errorf("delete user2 failed, err:%s", err.Error())
 	}
@@ -446,19 +446,19 @@ func TestRemoteSystem(t *testing.T) {
 	objList := []interface{}{groupDef, userDef, sysDef}
 	registerMode(o1, objList)
 
-	err = o1.Drop(userDef)
+	err = o1.Drop(userDef, "default")
 	if err != nil {
 		t.Errorf("drop user failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Drop(sysDef)
+	err = o1.Drop(sysDef, "default")
 	if err != nil {
 		t.Errorf("drop system failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(userDef)
+	err = o1.Create(userDef, "default")
 	if err != nil {
 		t.Errorf("create user failed, err:%s", err.Error())
 		return
@@ -470,7 +470,7 @@ func TestRemoteSystem(t *testing.T) {
 		return
 	}
 
-	err = o1.Insert(user1Val)
+	err = o1.Insert(user1Val, "default")
 	if err != nil {
 		t.Errorf("insert user failed, err:%s", err.Error())
 		return
@@ -485,7 +485,7 @@ func TestRemoteSystem(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(user2Val)
+	err = o1.Insert(user2Val, "default")
 	if err != nil {
 		t.Errorf("insert user failed, err:%s", err.Error())
 		return
@@ -500,7 +500,7 @@ func TestRemoteSystem(t *testing.T) {
 	sys1 := &System{Name: "sys1", Tags: []string{"aab", "ccd"}}
 	sys1.Users = &users
 
-	err = o1.Create(sysDef)
+	err = o1.Create(sysDef, "default")
 	if err != nil {
 		t.Errorf("create system failed, err:%s", err.Error())
 		return
@@ -511,7 +511,7 @@ func TestRemoteSystem(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(sys1Val)
+	err = o1.Insert(sys1Val, "default")
 	if err != nil {
 		t.Errorf("insert system failed, err:%s", err.Error())
 		return
@@ -530,7 +530,7 @@ func TestRemoteSystem(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Update(sys1Val)
+	err = o1.Update(sys1Val, "default")
 	if err != nil {
 		t.Errorf("update system failed, err:%s", err.Error())
 		return
@@ -547,7 +547,7 @@ func TestRemoteSystem(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Query(sys2Val)
+	err = o1.Query(sys2Val, "default")
 	if err != nil {
 		t.Errorf("query system failed, err:%s", err.Error())
 		return
@@ -563,18 +563,18 @@ func TestRemoteSystem(t *testing.T) {
 		return
 	}
 
-	err = o1.Delete(sys2Val)
+	err = o1.Delete(sys2Val, "default")
 	if err != nil {
 		t.Errorf("delete system failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Delete(user1Val)
+	err = o1.Delete(user1Val, "default")
 	if err != nil {
 		t.Errorf("delete user1 failed, err:%s", err.Error())
 		return
 	}
-	err = o1.Delete(user2Val)
+	err = o1.Delete(user2Val, "default")
 	if err != nil {
 		t.Errorf("delete user2 failed, err:%s", err.Error())
 	}
@@ -615,12 +615,12 @@ func TestRemoteBatchQuery(t *testing.T) {
 	objList := []interface{}{groupDef, userDef}
 	registerMode(o1, objList)
 
-	err = o1.Drop(groupDef)
+	err = o1.Drop(groupDef, "default")
 	if err != nil {
 		t.Errorf("drop group failed, err:%s", err.Error())
 		return
 	}
-	err = o1.Create(groupDef)
+	err = o1.Create(groupDef, "default")
 	if err != nil {
 		t.Errorf("create group failed, err:%s", err.Error())
 		return
@@ -631,7 +631,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(group1Val)
+	err = o1.Insert(group1Val, "default")
 	if err != nil {
 		t.Errorf("insert group failed, err:%s", err.Error())
 		return
@@ -647,7 +647,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(group2Val)
+	err = o1.Insert(group2Val, "default")
 	if err != nil {
 		t.Errorf("insert group failed, err:%s", err.Error())
 		return
@@ -662,7 +662,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(group3Val)
+	err = o1.Insert(group3Val, "default")
 	if err != nil {
 		t.Errorf("insert group failed, err:%s", err.Error())
 		return
@@ -676,13 +676,13 @@ func TestRemoteBatchQuery(t *testing.T) {
 	user1.Group = append(user1.Group, group1)
 	user1.Group = append(user1.Group, group2)
 
-	err = o1.Drop(userDef)
+	err = o1.Drop(userDef, "default")
 	if err != nil {
 		t.Errorf("drop user failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(userDef)
+	err = o1.Create(userDef, "default")
 	if err != nil {
 		t.Errorf("create user failed, err:%s", err.Error())
 		return
@@ -693,7 +693,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(user1Val)
+	err = o1.Insert(user1Val, "default")
 	if err != nil {
 		t.Errorf("insert user failed, err:%s", err.Error())
 		return
@@ -711,7 +711,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(user2Val)
+	err = o1.Insert(user2Val, "default")
 	if err != nil {
 		t.Errorf("insert user failed, err:%s", err.Error())
 		return
@@ -737,7 +737,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	retErr := o1.BatchQuery(userListVal, nil)
+	retErr := o1.BatchQuery(userListVal, nil, "default")
 	if retErr != nil {
 		err = retErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
@@ -763,7 +763,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	retErr = o1.BatchQuery(userListVal, filter)
+	retErr = o1.BatchQuery(userListVal, filter, "default")
 	if retErr != nil {
 		err = retErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
@@ -793,7 +793,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	retErr = o1.BatchQuery(userListVal, filter2)
+	retErr = o1.BatchQuery(userListVal, filter2, "default")
 	if retErr != nil {
 		err = retErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
@@ -846,12 +846,12 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	objList := []interface{}{groupDef, userDef}
 	registerMode(o1, objList)
 
-	err = o1.Drop(groupDef)
+	err = o1.Drop(groupDef, "default")
 	if err != nil {
 		t.Errorf("drop group failed, err:%s", err.Error())
 		return
 	}
-	err = o1.Create(groupDef)
+	err = o1.Create(groupDef, "default")
 	if err != nil {
 		t.Errorf("create group failed, err:%s", err.Error())
 		return
@@ -862,7 +862,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(group1Val)
+	err = o1.Insert(group1Val, "default")
 	if err != nil {
 		t.Errorf("insert group failed, err:%s", err.Error())
 		return
@@ -878,7 +878,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(group2Val)
+	err = o1.Insert(group2Val, "default")
 	if err != nil {
 		t.Errorf("insert group failed, err:%s", err.Error())
 		return
@@ -893,7 +893,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(group3Val)
+	err = o1.Insert(group3Val, "default")
 	if err != nil {
 		t.Errorf("insert group failed, err:%s", err.Error())
 		return
@@ -907,13 +907,13 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	user1.Group = append(user1.Group, group1)
 	user1.Group = append(user1.Group, group2)
 
-	err = o1.Drop(userDef)
+	err = o1.Drop(userDef, "default")
 	if err != nil {
 		t.Errorf("drop user failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(userDef)
+	err = o1.Create(userDef, "default")
 	if err != nil {
 		t.Errorf("create user failed, err:%s", err.Error())
 		return
@@ -924,7 +924,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(user1Val)
+	err = o1.Insert(user1Val, "default")
 	if err != nil {
 		t.Errorf("insert user failed, err:%s", err.Error())
 		return
@@ -942,7 +942,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(user2Val)
+	err = o1.Insert(user2Val, "default")
 	if err != nil {
 		t.Errorf("insert user failed, err:%s", err.Error())
 		return
@@ -968,7 +968,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	retErr := o1.BatchQuery(userListVal, nil)
+	retErr := o1.BatchQuery(userListVal, nil, "default")
 	if retErr != nil {
 		err = retErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
@@ -994,7 +994,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
-	retErr = o1.BatchQuery(userListVal, filter)
+	retErr = o1.BatchQuery(userListVal, filter, "default")
 	if retErr != nil {
 		err = retErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
@@ -1024,7 +1024,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	retErr = o1.BatchQuery(userListVal, filter2)
+	retErr = o1.BatchQuery(userListVal, filter2, "default")
 	if retErr != nil {
 		err = retErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
