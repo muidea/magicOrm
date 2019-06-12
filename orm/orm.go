@@ -23,12 +23,12 @@ func New(executor executor.Executor, modelProvider provider.Provider) *Orm {
 }
 
 // RegisterModel register model
-func (s *Orm) RegisterModel(entity interface{}, owner string) error {
+func (s *Orm) RegisterModel(entity interface{}) error {
 	return s.modelProvider.RegisterModel(entity)
 }
 
 // UnregisterModel unregister model
-func (s *Orm) UnregisterModel(entity interface{}, owner string) {
+func (s *Orm) UnregisterModel(entity interface{}) {
 	s.modelProvider.UnregisterModel(entity)
 }
 
@@ -51,4 +51,9 @@ func (s *Orm) RollbackTransaction() {
 	if s.executor != nil {
 		s.executor.RollbackTransaction()
 	}
+}
+
+// NewQueryFilter new query filter
+func (s *Orm) NewQueryFilter() model.Filter {
+	return NewFilter(s.modelProvider)
 }
