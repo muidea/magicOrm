@@ -23,7 +23,11 @@ func (s *Builder) BuildQuery() (ret string, err error) {
 		return
 	}
 
-	ret = fmt.Sprintf("SELECT %s FROM `%s` WHERE %s", namesVal, s.GetHostTableName(s.modelInfo), filterStr)
+	if filterStr != "" {
+		ret = fmt.Sprintf("SELECT %s FROM `%s` WHERE %s", namesVal, s.GetHostTableName(s.modelInfo), filterStr)
+	} else {
+		ret = fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.GetHostTableName(s.modelInfo))
+	}
 	//log.Print(ret)
 
 	return
