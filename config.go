@@ -1,8 +1,6 @@
 package orm
 
 import (
-	"sync"
-
 	"github.com/muidea/magicOrm/provider"
 )
 
@@ -19,7 +17,6 @@ type ormConfig struct {
 	localProviderFlag bool
 
 	ownermodelProviderMap map[string]provider.Provider
-	modelProviderLock     sync.RWMutex
 }
 
 func newConfig(localProvider bool) *ormConfig {
@@ -35,8 +32,6 @@ func (s *ormConfig) getServerConfig() *serverConfig {
 }
 
 func (s *ormConfig) getProvider(owner string) provider.Provider {
-	s.modelProviderLock.Lock()
-	defer s.modelProviderLock.Unlock()
 
 	curProvider, ok := s.ownermodelProviderMap[owner]
 	if ok {

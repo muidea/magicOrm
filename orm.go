@@ -2,6 +2,9 @@ package orm
 
 import (
 	"fmt"
+	"sync"
+
+	"github.com/muidea/magicOrm/provider"
 
 	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
@@ -33,6 +36,7 @@ func init() {
 type orm struct {
 	executor        executor.Executor
 	ownerOrmImplMap map[string]*ormImpl.Orm
+	ownerOrmLock    sync.RWMutex
 }
 
 // Initialize InitOrm
@@ -73,103 +77,180 @@ func New() (Orm, error) {
 }
 
 func (s *orm) RegisterModel(entity interface{}, owner string) error {
-	curProvider := _config.getProvider(owner)
+	var curProvider provider.Provider
+	func() {
+		s.ownerOrmLock.Lock()
+		defer s.ownerOrmLock.Unlock()
+
+		curProvider = _config.getProvider(owner)
+	}()
+
 	return curProvider.RegisterModel(entity)
 }
 
 func (s *orm) UnregisterModel(entity interface{}, owner string) {
-	curProvider := _config.getProvider(owner)
+	var curProvider provider.Provider
+	func() {
+		s.ownerOrmLock.Lock()
+		defer s.ownerOrmLock.Unlock()
+
+		curProvider = _config.getProvider(owner)
+	}()
+
 	curProvider.UnregisterModel(entity)
 }
 
 func (s *orm) Create(entity interface{}, owner string) (err error) {
-	curOrm, ok := s.ownerOrmImplMap[owner]
-	if !ok {
-		curProvider := _config.getProvider(owner)
-		curOrm = ormImpl.New(s.executor, curProvider)
+	var ormPtr *ormImpl.Orm
 
-		s.ownerOrmImplMap[owner] = curOrm
-	}
+	func() {
+		s.ownerOrmLock.Lock()
+		defer s.ownerOrmLock.Unlock()
 
-	err = curOrm.Create(entity)
+		curOrm, ok := s.ownerOrmImplMap[owner]
+		if !ok {
+			curProvider := _config.getProvider(owner)
+			curOrm = ormImpl.New(s.executor, curProvider)
+
+			s.ownerOrmImplMap[owner] = curOrm
+		}
+
+		ormPtr = curOrm
+	}()
+
+	err = ormPtr.Create(entity)
 	return
 }
 
 func (s *orm) Drop(entity interface{}, owner string) (err error) {
-	curOrm, ok := s.ownerOrmImplMap[owner]
-	if !ok {
-		curProvider := _config.getProvider(owner)
-		curOrm = ormImpl.New(s.executor, curProvider)
+	var ormPtr *ormImpl.Orm
 
-		s.ownerOrmImplMap[owner] = curOrm
-	}
+	func() {
+		s.ownerOrmLock.Lock()
+		defer s.ownerOrmLock.Unlock()
 
-	err = curOrm.Drop(entity)
+		curOrm, ok := s.ownerOrmImplMap[owner]
+		if !ok {
+			curProvider := _config.getProvider(owner)
+			curOrm = ormImpl.New(s.executor, curProvider)
+
+			s.ownerOrmImplMap[owner] = curOrm
+		}
+
+		ormPtr = curOrm
+	}()
+
+	err = ormPtr.Drop(entity)
 	return
 }
 
 func (s *orm) Insert(entity interface{}, owner string) (err error) {
-	curOrm, ok := s.ownerOrmImplMap[owner]
-	if !ok {
-		curProvider := _config.getProvider(owner)
-		curOrm = ormImpl.New(s.executor, curProvider)
+	var ormPtr *ormImpl.Orm
 
-		s.ownerOrmImplMap[owner] = curOrm
-	}
+	func() {
+		s.ownerOrmLock.Lock()
+		defer s.ownerOrmLock.Unlock()
 
-	err = curOrm.Insert(entity)
+		curOrm, ok := s.ownerOrmImplMap[owner]
+		if !ok {
+			curProvider := _config.getProvider(owner)
+			curOrm = ormImpl.New(s.executor, curProvider)
+
+			s.ownerOrmImplMap[owner] = curOrm
+		}
+
+		ormPtr = curOrm
+	}()
+
+	err = ormPtr.Insert(entity)
 	return
 }
 
 func (s *orm) Query(entity interface{}, owner string) (err error) {
-	curOrm, ok := s.ownerOrmImplMap[owner]
-	if !ok {
-		curProvider := _config.getProvider(owner)
-		curOrm = ormImpl.New(s.executor, curProvider)
+	var ormPtr *ormImpl.Orm
 
-		s.ownerOrmImplMap[owner] = curOrm
-	}
+	func() {
+		s.ownerOrmLock.Lock()
+		defer s.ownerOrmLock.Unlock()
 
-	err = curOrm.Query(entity)
+		curOrm, ok := s.ownerOrmImplMap[owner]
+		if !ok {
+			curProvider := _config.getProvider(owner)
+			curOrm = ormImpl.New(s.executor, curProvider)
+
+			s.ownerOrmImplMap[owner] = curOrm
+		}
+
+		ormPtr = curOrm
+	}()
+
+	err = ormPtr.Query(entity)
 	return
 }
 
 func (s *orm) Delete(entity interface{}, owner string) (err error) {
-	curOrm, ok := s.ownerOrmImplMap[owner]
-	if !ok {
-		curProvider := _config.getProvider(owner)
-		curOrm = ormImpl.New(s.executor, curProvider)
+	var ormPtr *ormImpl.Orm
 
-		s.ownerOrmImplMap[owner] = curOrm
-	}
+	func() {
+		s.ownerOrmLock.Lock()
+		defer s.ownerOrmLock.Unlock()
 
-	err = curOrm.Delete(entity)
+		curOrm, ok := s.ownerOrmImplMap[owner]
+		if !ok {
+			curProvider := _config.getProvider(owner)
+			curOrm = ormImpl.New(s.executor, curProvider)
+
+			s.ownerOrmImplMap[owner] = curOrm
+		}
+
+		ormPtr = curOrm
+	}()
+
+	err = ormPtr.Delete(entity)
 	return
 }
 
 func (s *orm) Update(entity interface{}, owner string) (err error) {
-	curOrm, ok := s.ownerOrmImplMap[owner]
-	if !ok {
-		curProvider := _config.getProvider(owner)
-		curOrm = ormImpl.New(s.executor, curProvider)
+	var ormPtr *ormImpl.Orm
 
-		s.ownerOrmImplMap[owner] = curOrm
-	}
+	func() {
+		s.ownerOrmLock.Lock()
+		defer s.ownerOrmLock.Unlock()
 
-	err = curOrm.Update(entity)
+		curOrm, ok := s.ownerOrmImplMap[owner]
+		if !ok {
+			curProvider := _config.getProvider(owner)
+			curOrm = ormImpl.New(s.executor, curProvider)
+
+			s.ownerOrmImplMap[owner] = curOrm
+		}
+
+		ormPtr = curOrm
+	}()
+
+	err = ormPtr.Update(entity)
 	return
 }
 
 func (s *orm) BatchQuery(sliceEntity interface{}, filter model.Filter, owner string) (err error) {
-	curOrm, ok := s.ownerOrmImplMap[owner]
-	if !ok {
-		curProvider := _config.getProvider(owner)
-		curOrm = ormImpl.New(s.executor, curProvider)
+	var ormPtr *ormImpl.Orm
 
-		s.ownerOrmImplMap[owner] = curOrm
-	}
+	func() {
+		s.ownerOrmLock.Lock()
+		defer s.ownerOrmLock.Unlock()
 
-	err = curOrm.BatchQuery(sliceEntity, filter)
+		curOrm, ok := s.ownerOrmImplMap[owner]
+		if !ok {
+			curProvider := _config.getProvider(owner)
+			curOrm = ormImpl.New(s.executor, curProvider)
+
+			s.ownerOrmImplMap[owner] = curOrm
+		}
+
+		ormPtr = curOrm
+	}()
+
+	err = ormPtr.BatchQuery(sliceEntity, filter)
 	return
 }
 
