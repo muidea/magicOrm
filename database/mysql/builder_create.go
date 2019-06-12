@@ -35,7 +35,7 @@ func (s *Builder) BuildCreateSchema() (ret string, err error) {
 		str = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", str, fTag.GetName())
 	}
 
-	str = fmt.Sprintf("CREATE TABLE `%s` (\n%s\n)\n", s.getTableName(s.modelInfo), str)
+	str = fmt.Sprintf("CREATE TABLE `%s` (\n%s\n)\n", s.GetHostTableName(s.modelInfo), str)
 	//log.Print(str)
 
 	ret = str

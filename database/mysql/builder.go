@@ -27,7 +27,13 @@ func (s *Builder) getTableName(info model.Model) string {
 
 // GetTableName GetTableName
 func (s *Builder) GetTableName() string {
-	return s.getTableName(s.modelInfo)
+	return s.GetHostTableName(s.modelInfo)
+}
+
+// GetHostTableName GetHostTableName
+func (s *Builder) GetHostTableName(info model.Model) string {
+	tableName := s.getTableName(info)
+	return fmt.Sprintf("%s_%s", s.modelProvider.Owner(), tableName)
 }
 
 // GetRelationTableName GetRelationTableName
@@ -35,7 +41,7 @@ func (s *Builder) GetRelationTableName(fieldName string, relationInfo model.Mode
 	leftName := s.getTableName(s.modelInfo)
 	rightName := s.getTableName(relationInfo)
 
-	return fmt.Sprintf("%s%s2%s", leftName, fieldName, rightName)
+	return fmt.Sprintf("%s_%s%s2%s", s.modelProvider.Owner(), leftName, fieldName, rightName)
 }
 
 func (s *Builder) getStructValue(modelInfo model.Model) (ret string, err error) {

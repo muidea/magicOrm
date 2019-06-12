@@ -21,7 +21,7 @@ func (s *Builder) BuildInsert() (ret string, err error) {
 		return
 	}
 
-	sql = fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.getTableName(s.modelInfo), fieldNames, fieldValues)
+	sql = fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.GetHostTableName(s.modelInfo), fieldNames, fieldValues)
 	//log.Print(sql)
 	ret = sql
 

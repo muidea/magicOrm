@@ -15,7 +15,7 @@ func (s *Builder) BuildDelete() (ret string, err error) {
 	}
 
 	pkfTag := s.modelInfo.GetPrimaryField().GetTag()
-	ret = fmt.Sprintf("DELETE FROM `%s` WHERE `%s`=%s", s.getTableName(s.modelInfo), pkfTag.GetName(), pkfVal)
+	ret = fmt.Sprintf("DELETE FROM `%s` WHERE `%s`=%s", s.GetHostTableName(s.modelInfo), pkfTag.GetName(), pkfVal)
 	//log.Print(ret)
 
 	return
@@ -29,7 +29,7 @@ func (s *Builder) BuildDeleteRelation(fieldName string, relationInfo model.Model
 		return
 	}
 
-	delRight = fmt.Sprintf("DELETE FROM `%s` WHERE `id` in (SELECT `right` FROM `%s` WHERE `left`=%s)", s.getTableName(relationInfo), s.GetRelationTableName(fieldName, relationInfo), leftVal)
+	delRight = fmt.Sprintf("DELETE FROM `%s` WHERE `id` in (SELECT `right` FROM `%s` WHERE `left`=%s)", s.GetHostTableName(relationInfo), s.GetRelationTableName(fieldName, relationInfo), leftVal)
 	//log.Print(delRight)
 
 	delRelation = fmt.Sprintf("DELETE FROM `%s` WHERE `left`=%s", s.GetRelationTableName(fieldName, relationInfo), leftVal)

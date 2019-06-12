@@ -14,7 +14,7 @@ func (s *Builder) BuildBatchQuery(filter model.Filter) (ret string, err error) {
 		return
 	}
 
-	ret = fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.getTableName(s.modelInfo))
+	ret = fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.GetHostTableName(s.modelInfo))
 	if filter != nil {
 		filterSQL, filterErr := s.buildBatchFilter(filter)
 		if filterErr != nil {

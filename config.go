@@ -39,9 +39,9 @@ func (s *ormConfig) getProvider(owner string) provider.Provider {
 	}
 
 	if s.localProviderFlag {
-		curProvider = provider.NewLocalProvider()
+		curProvider = provider.NewLocalProvider(owner)
 	} else {
-		curProvider = provider.NewRemoteProvider()
+		curProvider = provider.NewRemoteProvider(owner)
 	}
 	s.ownermodelProviderMap[owner] = curProvider
 

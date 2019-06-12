@@ -13,12 +13,13 @@ import (
 
 // Provider remote provider
 type Provider struct {
+	owner      string
 	modelCache Cache
 }
 
 // New create remote provider
-func New() *Provider {
-	return &Provider{modelCache: NewCache()}
+func New(owner string) *Provider {
+	return &Provider{owner: owner, modelCache: NewCache()}
 }
 
 // RegisterModel RegisterModel
@@ -250,6 +251,11 @@ func (s *Provider) GetModelDependValue(vModel model.Model, vValue model.Value) (
 	ret = append(ret, val)
 
 	return
+}
+
+// Owner owner
+func (s *Provider) Owner() string {
+	return s.owner
 }
 
 // Reset Reset

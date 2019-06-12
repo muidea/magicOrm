@@ -26,15 +26,17 @@ type Provider interface {
 
 	GetModelDependValue(vModel model.Model, vVal model.Value) (ret []reflect.Value, err error)
 
+	Owner() string
+
 	Reset()
 }
 
 // NewLocalProvider model provider
-func NewLocalProvider() Provider {
-	return local.New()
+func NewLocalProvider(owner string) Provider {
+	return local.New(owner)
 }
 
 // NewRemoteProvider model provider
-func NewRemoteProvider() Provider {
-	return remote.New()
+func NewRemoteProvider(owner string) Provider {
+	return remote.New(owner)
 }

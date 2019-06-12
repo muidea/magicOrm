@@ -11,7 +11,7 @@ func TestSimpleObjProvider(t *testing.T) {
 	desc := "obj_desc"
 	obj := SimpleObj{Name: "obj", Desc: &desc, Age: 240, Add: []int{12, 34, 45}}
 
-	provider := New()
+	provider := New("default")
 
 	objInfo, objErr := GetObject(obj)
 	if objErr != nil {
