@@ -724,7 +724,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 
 	uGroup1 := []*remote.ObjectValue{group1Val, group2Val}
 	userList := &[]User{}
-	filter := orm.NewFilter()
+	filter := orm.NewFilter("default")
 	filter.Equal("Name", &user1.Name)
 	filter.In("Group", uGroup1)
 	filter.Like("EMail", user1.EMail)
@@ -785,7 +785,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 	}
 
 	gs := []*remote.ObjectValue{group1Val}
-	filter2 := orm.NewFilter()
+	filter2 := orm.NewFilter("default")
 	filter2.In("Group", gs)
 	userList = &[]User{}
 	userListVal, objErr = getSliceObjectValue(userList)
@@ -955,7 +955,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 
 	uGroup1 := []*remote.ObjectValue{group1Val, group2Val}
 	userList := &[]*User{}
-	filter := orm.NewFilter()
+	filter := orm.NewFilter("default")
 	filter.Equal("Name", &user1.Name)
 	filter.In("Group", uGroup1)
 	filter.Like("EMail", user1.EMail)
@@ -1016,7 +1016,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	}
 
 	gs := []*remote.ObjectValue{group1Val}
-	filter2 := orm.NewFilter()
+	filter2 := orm.NewFilter("default")
 	filter2.In("Group", gs)
 	userList = &[]*User{}
 	userListVal, objErr = getSliceObjectPtrValue(userList)

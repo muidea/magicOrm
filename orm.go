@@ -6,7 +6,6 @@ import (
 	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
 	ormImpl "github.com/muidea/magicOrm/orm"
-	"github.com/muidea/magicOrm/provider"
 )
 
 // Orm orm interfalce
@@ -32,9 +31,8 @@ func init() {
 }
 
 type orm struct {
-	executor      executor.Executor
-	modelProvider provider.Provider
-	ormImpl       *ormImpl.Orm
+	executor        executor.Executor
+	ownerOrmImplMap map[string]*ormImpl.Orm
 }
 
 // Initialize InitOrm
@@ -54,8 +52,8 @@ func Uninitialize() {
 }
 
 // NewFilter create new filter
-func NewFilter() model.Filter {
-	modelProvider := _config.getProvider()
+func NewFilter(owner string) model.Filter {
+	modelProvider := _config.getProvider(owner)
 	return ormImpl.NewFilter(modelProvider)
 }
 
@@ -71,56 +69,107 @@ func New() (Orm, error) {
 		return nil, err
 	}
 
-	modelProvider := _config.getProvider()
-	ormImpl := ormImpl.New(executor, modelProvider)
-	return &orm{executor: executor, modelProvider: modelProvider, ormImpl: ormImpl}, nil
+	return &orm{executor: executor, ownerOrmImplMap: map[string]*ormImpl.Orm{}}, nil
 }
 
 func (s *orm) RegisterModel(entity interface{}, owner string) error {
-	return s.modelProvider.RegisterModel(entity)
+	curProvider := _config.getProvider(owner)
+	return curProvider.RegisterModel(entity)
 }
 
 func (s *orm) UnregisterModel(entity interface{}, owner string) {
-	s.modelProvider.UnregisterModel(entity)
+	curProvider := _config.getProvider(owner)
+	curProvider.UnregisterModel(entity)
 }
 
 func (s *orm) Create(entity interface{}, owner string) (err error) {
-	err = s.ormImpl.Create(entity)
+	curOrm, ok := s.ownerOrmImplMap[owner]
+	if !ok {
+		curProvider := _config.getProvider(owner)
+		curOrm = ormImpl.New(s.executor, curProvider)
 
+		s.ownerOrmImplMap[owner] = curOrm
+	}
+
+	err = curOrm.Create(entity)
 	return
 }
 
 func (s *orm) Drop(entity interface{}, owner string) (err error) {
-	err = s.ormImpl.Drop(entity)
+	curOrm, ok := s.ownerOrmImplMap[owner]
+	if !ok {
+		curProvider := _config.getProvider(owner)
+		curOrm = ormImpl.New(s.executor, curProvider)
+
+		s.ownerOrmImplMap[owner] = curOrm
+	}
+
+	err = curOrm.Drop(entity)
 	return
 }
 
 func (s *orm) Insert(entity interface{}, owner string) (err error) {
-	err = s.ormImpl.Insert(entity)
+	curOrm, ok := s.ownerOrmImplMap[owner]
+	if !ok {
+		curProvider := _config.getProvider(owner)
+		curOrm = ormImpl.New(s.executor, curProvider)
+
+		s.ownerOrmImplMap[owner] = curOrm
+	}
+
+	err = curOrm.Insert(entity)
 	return
 }
 
 func (s *orm) Query(entity interface{}, owner string) (err error) {
+	curOrm, ok := s.ownerOrmImplMap[owner]
+	if !ok {
+		curProvider := _config.getProvider(owner)
+		curOrm = ormImpl.New(s.executor, curProvider)
 
-	err = s.ormImpl.Query(entity)
+		s.ownerOrmImplMap[owner] = curOrm
+	}
+
+	err = curOrm.Query(entity)
 	return
 }
 
 func (s *orm) Delete(entity interface{}, owner string) (err error) {
-	err = s.ormImpl.Delete(entity)
+	curOrm, ok := s.ownerOrmImplMap[owner]
+	if !ok {
+		curProvider := _config.getProvider(owner)
+		curOrm = ormImpl.New(s.executor, curProvider)
 
+		s.ownerOrmImplMap[owner] = curOrm
+	}
+
+	err = curOrm.Delete(entity)
 	return
 }
 
 func (s *orm) Update(entity interface{}, owner string) (err error) {
-	err = s.ormImpl.Update(entity)
+	curOrm, ok := s.ownerOrmImplMap[owner]
+	if !ok {
+		curProvider := _config.getProvider(owner)
+		curOrm = ormImpl.New(s.executor, curProvider)
 
+		s.ownerOrmImplMap[owner] = curOrm
+	}
+
+	err = curOrm.Update(entity)
 	return
 }
 
 func (s *orm) BatchQuery(sliceEntity interface{}, filter model.Filter, owner string) (err error) {
+	curOrm, ok := s.ownerOrmImplMap[owner]
+	if !ok {
+		curProvider := _config.getProvider(owner)
+		curOrm = ormImpl.New(s.executor, curProvider)
 
-	err = s.ormImpl.BatchQuery(sliceEntity, filter)
+		s.ownerOrmImplMap[owner] = curOrm
+	}
+
+	err = curOrm.BatchQuery(sliceEntity, filter)
 	return
 }
 
