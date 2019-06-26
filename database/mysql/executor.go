@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"sync/atomic"
 
 	_ "github.com/go-sql-driver/mysql" //引入Mysql驱动
 )
@@ -11,6 +12,7 @@ import (
 // Executor Executor
 type Executor struct {
 	dbHandle   *sql.DB
+	dbTxCount  int32
 	dbTx       *sql.Tx
 	rowsHandle *sql.Rows
 	dbName     string
@@ -61,7 +63,8 @@ func (s *Executor) Release() {
 
 // BeginTransaction Begin Transaction
 func (s *Executor) BeginTransaction() {
-	if s.dbTx == nil {
+	atomic.AddInt32(&s.dbTxCount, 1)
+	if s.dbTx == nil && s.dbTxCount == 1 {
 		if s.rowsHandle != nil {
 			s.rowsHandle.Close()
 		}
@@ -73,14 +76,14 @@ func (s *Executor) BeginTransaction() {
 		}
 
 		s.dbTx = tx
+		//log.Print("BeginTransaction")
 	}
-
-	//log.Print("BeginTransaction")
 }
 
 // CommitTransaction Commit Transaction
 func (s *Executor) CommitTransaction() {
-	if s.dbTx != nil {
+	atomic.AddInt32(&s.dbTxCount, -1)
+	if s.dbTx != nil && s.dbTxCount == 0 {
 		err := s.dbTx.Commit()
 		if err != nil {
 			s.dbTx = nil
@@ -89,15 +92,14 @@ func (s *Executor) CommitTransaction() {
 		}
 
 		s.dbTx = nil
+		//log.Print("Commit")
 	}
-
-	//log.Print("Commit")
 }
 
 // RollbackTransaction Rollback Transaction
 func (s *Executor) RollbackTransaction() {
-	if s.dbTx != nil {
-
+	atomic.AddInt32(&s.dbTxCount, -1)
+	if s.dbTx != nil && s.dbTxCount == 0 {
 		err := s.dbTx.Rollback()
 		if err != nil {
 			s.dbTx = nil
@@ -106,9 +108,8 @@ func (s *Executor) RollbackTransaction() {
 		}
 
 		s.dbTx = nil
+		//log.Print("Rollback")
 	}
-
-	//log.Print("Rollback")
 }
 
 // Query Query
