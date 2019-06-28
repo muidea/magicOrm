@@ -765,11 +765,12 @@ func decodeItemValue(itemVal map[string]interface{}) (ret *ItemValue, err error)
 	}
 
 	ret = &ItemValue{Name: nameVal.(string), Value: valVal}
-	ret, err = convertItem(ret)
+	ret, err = ConvertItem(ret)
 	return
 }
 
-func convertItem(val *ItemValue) (ret *ItemValue, err error) {
+// ConvertItem convert ItemValue
+func ConvertItem(val *ItemValue) (ret *ItemValue, err error) {
 	objVal, objOK := val.Value.(map[string]interface{})
 	if objOK {
 		ret = &ItemValue{Name: val.Name}
@@ -816,7 +817,7 @@ func DecodeObjectValue(data []byte) (ret *ObjectValue, err error) {
 	for idx := range val.Items {
 		cur := &val.Items[idx]
 
-		item, itemErr := convertItem(cur)
+		item, itemErr := ConvertItem(cur)
 		if itemErr != nil {
 			err = itemErr
 			return
@@ -835,7 +836,7 @@ func ConvertObjectValue(objVal *ObjectValue) (ret *ObjectValue, err error) {
 	for idx := range objVal.Items {
 		cur := &objVal.Items[idx]
 
-		item, itemErr := convertItem(cur)
+		item, itemErr := ConvertItem(cur)
 		if itemErr != nil {
 			err = itemErr
 			return
