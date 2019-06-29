@@ -55,6 +55,13 @@ func TestRemoteGroup(t *testing.T) {
 	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", false)
 	defer orm.Uninitialize()
 
+	status := &Status{Value: 10}
+	statusDef, objErr := remote.GetObject(status)
+	if objErr != nil {
+		t.Errorf("GetObject failed, err:%s", objErr.Error())
+		return
+	}
+
 	user1 := &User{}
 	userDef, objErr := remote.GetObject(user1)
 	if objErr != nil {
@@ -78,8 +85,20 @@ func TestRemoteGroup(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{groupDef, userDef}
+	objList := []interface{}{groupDef, userDef, statusDef}
 	registerMode(o1, objList)
+
+	err = o1.Drop(statusDef, "default")
+	if err != nil {
+		t.Errorf("drop status failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Create(statusDef, "default")
+	if err != nil {
+		t.Errorf("create status failed, err:%s", err.Error())
+		return
+	}
 
 	err = o1.Drop(userDef, "default")
 	if err != nil {
@@ -102,6 +121,24 @@ func TestRemoteGroup(t *testing.T) {
 	err = o1.Create(groupDef, "default")
 	if err != nil {
 		t.Errorf("create group failed, err:%s", err.Error())
+		return
+	}
+
+	statusVal, objErr := getObjectValue(status)
+	if objErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+
+	err = o1.Insert(statusVal, "default")
+	if err != nil {
+		t.Errorf("insert Group1 failed, err:%s", err.Error())
+		return
+	}
+
+	err = remote.UpdateEntity(statusVal, status)
+	if err != nil {
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
@@ -198,6 +235,13 @@ func TestRemoteGroup(t *testing.T) {
 }
 
 func TestRemoteUser(t *testing.T) {
+	status := &Status{Value: 10}
+	statusDef, objErr := remote.GetObject(status)
+	if objErr != nil {
+		t.Errorf("GetObject failed, err:%s", objErr.Error())
+		return
+	}
+
 	group1 := &Group{Name: "testGroup1"}
 	group2 := &Group{Name: "testGroup2"}
 	group3 := &Group{Name: "testGroup3"}
@@ -225,8 +269,20 @@ func TestRemoteUser(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{groupDef, userDef}
+	objList := []interface{}{groupDef, userDef, statusDef}
 	registerMode(o1, objList)
+
+	err = o1.Drop(statusDef, "default")
+	if err != nil {
+		t.Errorf("drop status failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Create(statusDef, "default")
+	if err != nil {
+		t.Errorf("create status failed, err:%s", err.Error())
+		return
+	}
 
 	err = o1.Drop(userDef, "default")
 	if err != nil {
@@ -249,6 +305,24 @@ func TestRemoteUser(t *testing.T) {
 	err = o1.Create(groupDef, "default")
 	if err != nil {
 		t.Errorf("create group failed, err:%s", err.Error())
+		return
+	}
+
+	statusVal, objErr := getObjectValue(status)
+	if objErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+
+	err = o1.Insert(statusVal, "default")
+	if err != nil {
+		t.Errorf("insert Group1 failed, err:%s", err.Error())
+		return
+	}
+
+	err = remote.UpdateEntity(statusVal, status)
+	if err != nil {
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
@@ -304,6 +378,7 @@ func TestRemoteUser(t *testing.T) {
 	user1 := &User{Name: "demo", EMail: "123@demo.com", Group: []*Group{}}
 	user1.Group = append(user1.Group, group1)
 	user1.Group = append(user1.Group, group2)
+	user1.Status = status
 	user1Val, objErr := getObjectValue(user1)
 	if objErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
@@ -412,6 +487,13 @@ func TestRemoteSystem(t *testing.T) {
 	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", false)
 	defer orm.Uninitialize()
 
+	status := &Status{Value: 10}
+	statusDef, objErr := remote.GetObject(status)
+	if objErr != nil {
+		t.Errorf("GetObject failed, err:%s", objErr.Error())
+		return
+	}
+
 	user0 := &User{}
 	userDef, objErr := remote.GetObject(user0)
 	if objErr != nil {
@@ -443,8 +525,20 @@ func TestRemoteSystem(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{groupDef, userDef, sysDef}
+	objList := []interface{}{groupDef, userDef, statusDef, sysDef}
 	registerMode(o1, objList)
+
+	err = o1.Drop(statusDef, "default")
+	if err != nil {
+		t.Errorf("drop status failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Create(statusDef, "default")
+	if err != nil {
+		t.Errorf("create status failed, err:%s", err.Error())
+		return
+	}
 
 	err = o1.Drop(userDef, "default")
 	if err != nil {
@@ -464,6 +558,25 @@ func TestRemoteSystem(t *testing.T) {
 		return
 	}
 
+	statusVal, objErr := getObjectValue(status)
+	if objErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+
+	err = o1.Insert(statusVal, "default")
+	if err != nil {
+		t.Errorf("insert Group1 failed, err:%s", err.Error())
+		return
+	}
+
+	err = remote.UpdateEntity(statusVal, status)
+	if err != nil {
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
+		return
+	}
+
+	user1.Status = status
 	user1Val, objErr := getObjectValue(user1)
 	if objErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
@@ -584,6 +697,13 @@ func TestRemoteBatchQuery(t *testing.T) {
 	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", false)
 	defer orm.Uninitialize()
 
+	status := &Status{Value: 10}
+	statusDef, objErr := remote.GetObject(status)
+	if objErr != nil {
+		t.Errorf("GetObject failed, err:%s", objErr.Error())
+		return
+	}
+
 	user0 := &User{}
 	userDef, objErr := remote.GetObject(user0)
 	if objErr != nil {
@@ -612,8 +732,20 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{groupDef, userDef}
+	objList := []interface{}{groupDef, userDef, statusDef}
 	registerMode(o1, objList)
+
+	err = o1.Drop(statusDef, "default")
+	if err != nil {
+		t.Errorf("drop status failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Create(statusDef, "default")
+	if err != nil {
+		t.Errorf("create status failed, err:%s", err.Error())
+		return
+	}
 
 	err = o1.Drop(groupDef, "default")
 	if err != nil {
@@ -815,6 +947,13 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", false)
 	defer orm.Uninitialize()
 
+	status := &Status{Value: 10}
+	statusDef, objErr := remote.GetObject(status)
+	if objErr != nil {
+		t.Errorf("GetObject failed, err:%s", objErr.Error())
+		return
+	}
+
 	user0 := &User{}
 	userDef, objErr := remote.GetObject(user0)
 	if objErr != nil {
@@ -843,8 +982,20 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{groupDef, userDef}
+	objList := []interface{}{groupDef, userDef, statusDef}
 	registerMode(o1, objList)
+
+	err = o1.Drop(statusDef, "default")
+	if err != nil {
+		t.Errorf("drop status failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Create(statusDef, "default")
+	if err != nil {
+		t.Errorf("create status failed, err:%s", err.Error())
+		return
+	}
 
 	err = o1.Drop(groupDef, "default")
 	if err != nil {

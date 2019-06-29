@@ -23,7 +23,7 @@ func TestLocalGroup(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{&Group{}, &User{}}
+	objList := []interface{}{&Group{}, &User{}, &Status{}}
 	registerMode(o1, objList)
 
 	err = o1.Drop(group1, "default")
@@ -105,7 +105,7 @@ func TestLocalUser(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{&Group{}, &User{}}
+	objList := []interface{}{&Group{}, &User{}, &Status{}}
 	registerMode(o1, objList)
 
 	err = o1.Drop(group1, "default")
@@ -228,7 +228,7 @@ func TestLoalSystem(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{&Group{}, &User{}, &System{}}
+	objList := []interface{}{&Group{}, &User{}, &System{}, &Status{}}
 	registerMode(o1, objList)
 
 	err = o1.Drop(user1, "default")
@@ -318,6 +318,7 @@ func TestLocalBatchQuery(t *testing.T) {
 	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", true)
 	defer orm.Uninitialize()
 
+	status := &Status{Value: 10}
 	group1 := &Group{Name: "testGroup1"}
 	group2 := &Group{Name: "testGroup2"}
 
@@ -331,8 +332,25 @@ func TestLocalBatchQuery(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{&Group{}, &User{}}
+	objList := []interface{}{&Group{}, &User{}, &Status{}}
 	registerMode(o1, objList)
+
+	err = o1.Drop(status, "default")
+	if err != nil {
+		t.Errorf("drop status failed, err:%s", err.Error())
+		return
+	}
+	err = o1.Create(status, "default")
+	if err != nil {
+		t.Errorf("create status failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Insert(status, "default")
+	if err != nil {
+		t.Errorf("insert group failed, err:%s", err.Error())
+		return
+	}
 
 	err = o1.Drop(group1, "default")
 	if err != nil {
@@ -359,6 +377,7 @@ func TestLocalBatchQuery(t *testing.T) {
 
 	user1.Group = append(user1.Group, group1)
 	user1.Group = append(user1.Group, group2)
+	user1.Status = status
 
 	err = o1.Drop(user1, "default")
 	if err != nil {
@@ -389,19 +408,20 @@ func TestLocalBatchQuery(t *testing.T) {
 	filter.Equal("Name", &user1.Name)
 	filter.In("Group", user1.Group)
 	filter.Like("EMail", user1.EMail)
+	filter.Equal("Status", status)
 
 	pageFilter := &util.PageFilter{PageNum: 0, PageSize: 100}
 	filter.Page(pageFilter)
 
-	//err = o1.BatchQuery(&userList, filter)
-	retErr := o1.BatchQuery(&userList, nil, "default")
+	retErr := o1.BatchQuery(&userList, filter, "default")
+	//retErr := o1.BatchQuery(&userList, nil, "default")
 	if retErr != nil {
 		err = retErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
 		return
 	}
 
-	if len(userList) != 2 {
+	if len(userList) != 1 {
 		t.Errorf("filter query user failed")
 		return
 	}

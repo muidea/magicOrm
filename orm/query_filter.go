@@ -176,7 +176,7 @@ func (s *filterItem) FilterStr(name string, fType model.Type) (ret string, err e
 		return
 	}
 	if fModel != nil {
-		fType = fType.Elem()
+		fType = fType.Depend()
 	}
 
 	filterStr := ""

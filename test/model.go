@@ -1,5 +1,11 @@
 package test
 
+// Status status
+type Status struct {
+	ID    int `orm:"id key auto"`
+	Value int `orm:"value"`
+}
+
 // Group Group
 type Group struct {
 	ID     int      `orm:"id key auto"`
@@ -10,10 +16,11 @@ type Group struct {
 
 // User User
 type User struct {
-	ID    int      `orm:"id key auto"`
-	Name  string   `orm:"name"`
-	EMail string   `orm:"email"`
-	Group []*Group `orm:"group"`
+	ID     int      `orm:"id key auto"`
+	Name   string   `orm:"name"`
+	EMail  string   `orm:"email"`
+	Status *Status  `orm:"status"`
+	Group  []*Group `orm:"group"`
 }
 
 // System System
