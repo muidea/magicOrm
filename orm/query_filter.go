@@ -338,7 +338,7 @@ func (s *queryFilter) Like(key string, val interface{}) (err error) {
 	return
 }
 
-func (s *queryFilter) Mask(val interface{}) (err error) {
+func (s *queryFilter) ValueMask(val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	qvType, qvErr := ormutil.GetTypeValueEnum(qv.Type())
 	if qvErr != nil {
