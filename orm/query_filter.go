@@ -222,6 +222,7 @@ func (s *filterItem) FilterStr(name string, fType model.Type) (ret string, err e
 // queryFilter queryFilter
 type queryFilter struct {
 	params        map[string]model.FilterItem
+	maskValue     interface{}
 	pageFilter    *util.PageFilter
 	modelProvider provider.Provider
 }
@@ -334,6 +335,23 @@ func (s *queryFilter) Like(key string, val interface{}) (err error) {
 	}
 
 	s.params[key] = &filterItem{filterFun: builder.LikeOpr, value: qv, modelProvider: s.modelProvider}
+	return
+}
+
+func (s *queryFilter) Mask(val interface{}) (err error) {
+	qv := reflect.Indirect(reflect.ValueOf(val))
+	qvType, qvErr := ormutil.GetTypeValueEnum(qv.Type())
+	if qvErr != nil {
+		err = qvErr
+		return
+	}
+
+	if !ormutil.IsStructType(qvType) {
+		err = fmt.Errorf("illegal mask value")
+		return
+	}
+
+	s.maskValue = val
 	return
 }
 

@@ -18,6 +18,7 @@ type Filter interface {
 	In(key string, val interface{}) error
 	NotIn(key string, val interface{}) error
 	Like(key string, val interface{}) error
+	Mask(val interface{}) error
 	Page(filter *util.PageFilter)
 
 	Items() map[string]FilterItem
