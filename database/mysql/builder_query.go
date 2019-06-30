@@ -57,21 +57,20 @@ func (s *Builder) buildFilter(modelInfo model.Model) (ret string, err error) {
 		}
 
 		if dependModel != nil {
-			pkTag := pkField.GetTag()
 			relationTable := s.GetRelationTableName(field.GetName(), dependModel)
 			if util.IsSliceType(fType.GetValue()) {
 				if fStr != "" {
 					if relationSQL == "" {
-						relationSQL = fmt.Sprintf("`%s`in (SELECT `left` FROM `%s` WHERE `right` in (%s))", pkTag.GetName(), relationTable, fStr)
+						relationSQL = fmt.Sprintf("SELECT `left` FROM `%s` WHERE `right` IN (%s)", relationTable, fStr)
 					} else {
-						relationSQL = fmt.Sprintf("%s AND `%s`=(SELECT `left` FROM `%s` WHERE `right` in (%s))", relationSQL, pkTag.GetName(), relationTable, fStr)
+						relationSQL = fmt.Sprintf("%s UNION SELECT `left` FROM `%s` WHERE `right` IN (%s)", relationSQL, relationTable, fStr)
 					}
 				}
 			} else {
 				if relationSQL == "" {
-					relationSQL = fmt.Sprintf("`%s`=(SELECT `left` FROM `%s` WHERE `right`=%s)", pkTag.GetName(), relationTable, fStr)
+					relationSQL = fmt.Sprintf("SELECT `left` FROM `%s` WHERE `right`=%s", relationTable, fStr)
 				} else {
-					relationSQL = fmt.Sprintf("%s AND `%s`=(SELECT `left` FROM `%s` WHERE `right`=%s)", relationSQL, pkTag.GetName(), relationTable, fStr)
+					relationSQL = fmt.Sprintf("%s UNION SELECT `left` FROM `%s` WHERE `right`=%s", relationSQL, relationTable, fStr)
 				}
 			}
 
@@ -87,10 +86,11 @@ func (s *Builder) buildFilter(modelInfo model.Model) (ret string, err error) {
 	}
 
 	if relationSQL != "" {
+		pkTag := pkField.GetTag()
 		if filterSQL != "" {
-			filterSQL = fmt.Sprintf("%s AND %s", filterSQL, relationSQL)
+			filterSQL = fmt.Sprintf("%s AND %s IN (%s)", filterSQL, pkTag.GetName(), relationSQL)
 		} else {
-			filterSQL = fmt.Sprintf("%s", relationSQL)
+			filterSQL = fmt.Sprintf("%s IN (%s)", pkTag.GetName(), relationSQL)
 		}
 	}
 

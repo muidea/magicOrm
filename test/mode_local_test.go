@@ -1,6 +1,7 @@
 package test
 
 import (
+	"log"
 	"testing"
 
 	"github.com/muidea/magicCommon/foundation/util"
@@ -94,6 +95,7 @@ func TestLocalUser(t *testing.T) {
 	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", true)
 	defer orm.Uninitialize()
 
+	status := &Status{Value: 10}
 	group1 := &Group{Name: "testGroup1"}
 	group2 := &Group{Name: "testGroup2"}
 	group3 := &Group{Name: "testGroup3"}
@@ -107,6 +109,24 @@ func TestLocalUser(t *testing.T) {
 
 	objList := []interface{}{&Group{}, &User{}, &Status{}}
 	registerMode(o1, objList)
+
+	err = o1.Drop(status, "default")
+	if err != nil {
+		t.Errorf("drop status failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Create(status, "default")
+	if err != nil {
+		t.Errorf("create status failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Insert(status, "default")
+	if err != nil {
+		t.Errorf("insert status failed, err:%s", err.Error())
+		return
+	}
 
 	err = o1.Drop(group1, "default")
 	if err != nil {
@@ -138,7 +158,7 @@ func TestLocalUser(t *testing.T) {
 		return
 	}
 
-	user1 := &User{Name: "demo", EMail: "123@demo.com", Group: []*Group{}}
+	user1 := &User{Name: "demo", EMail: "123@demo.com", Status: status, Group: []*Group{}}
 	err = o1.Drop(user1, "default")
 	if err != nil {
 		t.Errorf("drop user failed, err:%s", err.Error())
@@ -159,7 +179,7 @@ func TestLocalUser(t *testing.T) {
 		return
 	}
 
-	user2 := &User{ID: user1.ID}
+	user2 := &User{ID: user1.ID, Status: &Status{}}
 	err = o1.Query(user2, "default")
 	if err != nil {
 		t.Errorf("query user2 failed, err:%s", err.Error())
@@ -403,12 +423,16 @@ func TestLocalBatchQuery(t *testing.T) {
 		return
 	}
 
+	valueMask := User{Status: &Status{}}
 	userList := []User{}
 	filter := o1.QueryFilter("default")
 	filter.Equal("Name", &user1.Name)
 	filter.In("Group", user1.Group)
 	filter.Like("EMail", user1.EMail)
 	filter.Equal("Status", status)
+	filter.ValueMask(valueMask)
+
+	log.Print(valueMask)
 
 	pageFilter := &util.PageFilter{PageNum: 0, PageSize: 100}
 	filter.Page(pageFilter)
@@ -425,4 +449,5 @@ func TestLocalBatchQuery(t *testing.T) {
 		t.Errorf("filter query user failed")
 		return
 	}
+	log.Print(userList[0].Status)
 }

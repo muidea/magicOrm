@@ -381,3 +381,11 @@ func (s *queryFilter) Pagination() (limit, offset int, paging bool) {
 
 	return
 }
+
+func (s *queryFilter) MaskModel() (ret model.Model, err error) {
+	if s.maskValue != nil {
+		ret, err = s.modelProvider.GetEntityModel(s.maskValue)
+	}
+
+	return
+}

@@ -12,6 +12,22 @@ import (
 type resultItems []interface{}
 
 func (s *Orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter model.Filter) (err error) {
+	var maskModel model.Model
+	if filter != nil {
+		maskModel, maskErr := filter.MaskModel()
+		if maskErr != nil {
+			err = maskErr
+			log.Printf("Get MaskModel failed, err:%s", err.Error())
+			return
+		}
+		if maskModel != nil {
+			if maskModel.GetName() != modelInfo.GetName() || maskModel.GetPkgPath() != modelInfo.GetPkgPath() {
+				err = fmt.Errorf("illegal value mask")
+				return
+			}
+		}
+	}
+
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	sql, sqlErr := builder.BuildBatchQuery(filter)
 	if sqlErr != nil {
@@ -37,7 +53,15 @@ func (s *Orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 
 	resultSlice := reflect.MakeSlice(sliceValue.Type(), 0, 0)
 	for idx := 0; idx < len(queryList); idx++ {
-		newVal := modelInfo.Interface()
+		var newVal reflect.Value
+		if maskModel != nil {
+			newVal = maskModel.Interface()
+			if modelInfo.IsPtrModel() {
+				newVal = newVal.Addr()
+			}
+		} else {
+			newVal = modelInfo.Interface()
+		}
 		newModelInfo, newErr := s.modelProvider.GetValueModel(newVal)
 		if newErr != nil {
 			err = newErr
