@@ -79,9 +79,18 @@ func (s *modelImpl) IsPtrModel() bool {
 }
 
 func (s *modelImpl) Interface() reflect.Value {
-	retVal := reflect.New(s.modelType)
-	if !s.isTypePtr {
-		retVal = retVal.Elem()
+	retVal := reflect.New(s.modelType).Elem()
+
+	for _, val := range s.fields {
+		tType := val.GetType()
+		tVal := val.GetValue()
+		if tType.IsPtrType() && !tVal.IsNil() {
+			retVal.FieldByName(val.GetName()).Set(tType.Interface())
+		}
+	}
+
+	if s.isTypePtr {
+		retVal = retVal.Addr()
 	}
 
 	return retVal
