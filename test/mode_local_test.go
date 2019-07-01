@@ -1,7 +1,6 @@
 package test
 
 import (
-	"log"
 	"testing"
 
 	"github.com/muidea/magicCommon/foundation/util"
@@ -432,8 +431,6 @@ func TestLocalBatchQuery(t *testing.T) {
 	filter.Equal("Status", status)
 	filter.ValueMask(valueMask)
 
-	log.Print(valueMask)
-
 	pageFilter := &util.PageFilter{PageNum: 0, PageSize: 100}
 	filter.Page(pageFilter)
 
@@ -449,5 +446,8 @@ func TestLocalBatchQuery(t *testing.T) {
 		t.Errorf("filter query user failed")
 		return
 	}
-	log.Print(userList[0].Status)
+	if userList[0].Status == nil {
+		t.Errorf("filter valueMask failed")
+		return
+	}
 }

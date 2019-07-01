@@ -140,7 +140,9 @@ func (s *Item) Copy() (ret model.Field) {
 func (s *Item) Interface() (ret *ItemValue) {
 	if s.value.IsNil() {
 		ret = &ItemValue{Name: s.Name, Value: false}
+		return
 	}
+
 	ret = &ItemValue{Name: s.Name, Value: s.Type.Interface().Interface()}
 
 	return
