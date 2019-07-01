@@ -111,6 +111,50 @@ func (s *modelImpl) Dump(cache Cache) (ret string) {
 	return
 }
 
+func registerModel(entityType reflect.Type, cache Cache) (err error) {
+	if entityType.Kind() == reflect.Ptr {
+		entityType = entityType.Elem()
+	}
+
+	hasPrimaryKey := false
+	modelImpl := &modelImpl{modelType: entityType, fields: make([]*fieldImpl, 0)}
+	fieldNum := entityType.NumField()
+	for idx := 0; idx < fieldNum; idx++ {
+		fieldType := entityType.Field(idx)
+		fieldInfo, fieldErr := getFieldInfo(idx, fieldType)
+		if fieldErr != nil {
+			err = fieldErr
+			log.Printf("getFieldInfo failed, field idx:%d, field name:%s, struct name:%s, err:%s", idx, fieldType.Name, modelImpl.GetName(), err.Error())
+			return
+		}
+
+		if fieldInfo.IsPrimary() {
+			if hasPrimaryKey {
+				err = fmt.Errorf("duplicate primary key field, struct name:%s", modelImpl.GetName())
+				return
+			}
+
+			hasPrimaryKey = true
+		}
+
+		if fieldInfo != nil {
+			modelImpl.fields = append(modelImpl.fields, fieldInfo)
+		}
+	}
+
+	if len(modelImpl.fields) == 0 {
+		err = fmt.Errorf("no define orm field, struct name:%s", modelImpl.GetName())
+		return
+	}
+	if !hasPrimaryKey {
+		err = fmt.Errorf("no define primary key field, struct name:%s", modelImpl.GetName())
+		return
+	}
+
+	cache.Put(modelImpl.GetName(), modelImpl)
+	return
+}
+
 // getValueModel getValueModel
 func getValueModel(modelVal reflect.Value, cache Cache) (ret *modelImpl, err error) {
 	var vType model.Type

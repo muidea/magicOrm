@@ -29,7 +29,10 @@ func TestIntSlice(t *testing.T) {
 		return
 	}
 
-	log.Print(ret.Interface())
+	if ret.Len() != len(data) {
+		t.Errorf("DecodeSliceValue failed, err:%s", err.Error())
+		return
+	}
 }
 
 func TestStrSlice(t *testing.T) {

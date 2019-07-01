@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strconv"
 	"time"
 
 	"github.com/muidea/magicOrm/util"
@@ -32,8 +33,17 @@ func ConvertValue(fromVal reflect.Value, toVal *reflect.Value) (err error) {
 			toVal.SetBool(fromVal.Uint() != 0)
 		case reflect.Float32, reflect.Float64:
 			toVal.SetBool(fromVal.Float() != 0)
+		case reflect.String:
+			strVal := fromVal.String()
+			if strVal == "1" {
+				toVal.SetBool(true)
+			} else if strVal == "0" {
+				toVal.SetBool(false)
+			} else {
+				err = fmt.Errorf("illegal bool value, fromVal:%v", fromVal.Interface())
+			}
 		default:
-			err = fmt.Errorf("illegal bool value, fromVal:%v", fromVal.Interface())
+			err = fmt.Errorf("illegal bool value, fromType:%s, fromVal:%v", fromVal.Type().String(), fromVal.Interface())
 		}
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int:
 		switch fromVal.Kind() {
@@ -43,8 +53,15 @@ func ConvertValue(fromVal reflect.Value, toVal *reflect.Value) (err error) {
 			toVal.SetInt(int64(fromVal.Uint()))
 		case reflect.Float32, reflect.Float64:
 			toVal.SetInt(int64(fromVal.Float()))
+		case reflect.String:
+			iVal, iErr := strconv.Atoi(fromVal.String())
+			if iErr == nil {
+				toVal.SetInt(int64(iVal))
+			} else {
+				err = fmt.Errorf("illegal int value, fromVal:%v", fromVal.String())
+			}
 		default:
-			err = fmt.Errorf("illegal int value, fromVal:%v", fromVal.Interface())
+			err = fmt.Errorf("illegal int value, fromVal type:%s, fromVal:%v", fromVal.Type().String(), fromVal.Interface())
 		}
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint:
 		switch fromVal.Kind() {
@@ -54,8 +71,15 @@ func ConvertValue(fromVal reflect.Value, toVal *reflect.Value) (err error) {
 			toVal.SetUint(fromVal.Uint())
 		case reflect.Float32, reflect.Float64:
 			toVal.SetUint(uint64(fromVal.Float()))
+		case reflect.String:
+			iVal, iErr := strconv.Atoi(fromVal.String())
+			if iErr == nil {
+				toVal.SetUint(uint64(iVal))
+			} else {
+				err = fmt.Errorf("illegal uint value, fromVal:%v", fromVal.String())
+			}
 		default:
-			err = fmt.Errorf("illegal uint value, fromVal:%v", fromVal.Interface())
+			err = fmt.Errorf("illegal uint value, fromVal type:%s, fromVal:%v", fromVal.Type().String(), fromVal.Interface())
 		}
 	case reflect.Float32, reflect.Float64:
 		switch fromVal.Kind() {
@@ -65,8 +89,15 @@ func ConvertValue(fromVal reflect.Value, toVal *reflect.Value) (err error) {
 			toVal.SetFloat(float64(fromVal.Uint()))
 		case reflect.Float32, reflect.Float64:
 			toVal.SetFloat(fromVal.Float())
+		case reflect.String:
+			fVal, fErr := strconv.ParseFloat(fromVal.String(), 64)
+			if fErr == nil {
+				toVal.SetFloat(fVal)
+			} else {
+				err = fmt.Errorf("illegal float value, fromVal:%v", fromVal.String())
+			}
 		default:
-			err = fmt.Errorf("illegal float value, fromVal:%v", fromVal.Interface())
+			err = fmt.Errorf("illegal float value, fromVal type:%s, fromVal:%v", fromVal.Type().String(), fromVal.Interface())
 		}
 	case reflect.String:
 		switch fromVal.Kind() {
@@ -90,7 +121,7 @@ func ConvertValue(fromVal reflect.Value, toVal *reflect.Value) (err error) {
 				strVal := fmt.Sprintf("%s", fromVal.Interface().(time.Time).Format("2006-01-02 15:04:05"))
 				toVal.SetString(strVal)
 			} else {
-				err = fmt.Errorf("illegal struct value, fromVal:%v", fromVal.Interface())
+				err = fmt.Errorf("illegal string value, fromVal type:%s, fromVal:%v", fromVal.Type().String(), fromVal.Interface())
 			}
 		case reflect.String:
 			toVal.SetString(fromVal.String())
@@ -126,7 +157,7 @@ func ConvertValue(fromVal reflect.Value, toVal *reflect.Value) (err error) {
 				toVal.Set(reflect.ValueOf(dtVal))
 			}
 		default:
-			err = fmt.Errorf("illegal datetime value, fromVal:%v", fromVal.Interface())
+			err = fmt.Errorf("illegal datetime value, fromVal type:%s, fromVal:%v", fromVal.Type().String(), fromVal.Interface())
 		}
 	case reflect.Slice:
 		sliceErr := ConvertSliceValue(fromVal, toVal)
@@ -134,7 +165,7 @@ func ConvertValue(fromVal reflect.Value, toVal *reflect.Value) (err error) {
 			err = sliceErr
 		}
 	default:
-		err = fmt.Errorf("illegal field type, fromVal:%v", fromVal.Interface())
+		err = fmt.Errorf("illegal field type, fromVal type:%s, fromVal:%v", fromVal.Type().String(), fromVal.Interface())
 	}
 
 	return

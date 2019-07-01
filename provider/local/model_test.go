@@ -1,7 +1,6 @@
 package local
 
 import (
-	"log"
 	"reflect"
 	"testing"
 	"time"
@@ -39,9 +38,35 @@ type Test struct {
 func TestModel(t *testing.T) {
 	cache := NewCache()
 	now := time.Now()
-	modelInfo, err := getValueModel(reflect.ValueOf(&Unit{T1: Test{ID: 12, Val: 123}, TimeStamp: now}), cache)
+
+	test := reflect.ValueOf(&Test{})
+	err := registerModel(test.Type().Elem(), cache)
+	if err != nil {
+		t.Errorf("registerModel failed, err:%s", err.Error())
+		return
+	}
+
+	val := reflect.ValueOf(&Unit{T1: Test{ID: 12, Val: 123}, TimeStamp: now})
+	err = registerModel(val.Type().Elem(), cache)
+	if err != nil {
+		t.Errorf("registerModel failed, err:%s", err.Error())
+		return
+	}
+
+	modelInfo, err := getValueModel(val, cache)
 	if modelInfo == nil || err != nil {
 		t.Errorf("getValueModel failed, err:%s", err.Error())
+		return
+	}
+
+	if !modelInfo.IsPtrModel() {
+		t.Errorf("get value Model failed")
+		return
+	}
+
+	fields := modelInfo.GetFields()
+	if len(fields) != 5 {
+		t.Errorf("get value Model failed")
 		return
 	}
 
@@ -52,13 +77,18 @@ func TestModelValue(t *testing.T) {
 	cache := NewCache()
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05", "2018-01-02 15:04:05", time.Local)
 	unit := &Unit{Name: "AA", T1: Test{Val: 123}, TimeStamp: now}
-	modelInfo, err := getValueModel(reflect.ValueOf(unit), cache)
+	unitVal := reflect.ValueOf(unit)
+	err := registerModel(unitVal.Type(), cache)
+	if err != nil {
+		t.Errorf("registerModel failed, err:%s", err.Error())
+		return
+	}
+
+	modelInfo, err := getValueModel(unitVal, cache)
 	if err != nil {
 		t.Errorf("getValueModel failed, err:%s", err.Error())
 		return
 	}
-
-	log.Print(*unit)
 
 	id := int64(123320)
 	pk := modelInfo.GetPrimaryField()
@@ -67,16 +97,26 @@ func TestModelValue(t *testing.T) {
 		return
 	}
 	fv := pk.GetValue()
-	fv.Set(reflect.ValueOf(id))
+	err = fv.Set(reflect.ValueOf(id))
+	if err != nil {
+		t.Errorf("Set value failed, err:%s", err.Error())
+		return
+	}
 
 	name := "abcdfrfe"
-	modelInfo.UpdateFieldValue("Name", reflect.ValueOf(name))
+	err = modelInfo.UpdateFieldValue("Name", reflect.ValueOf(name))
+	if err != nil {
+		t.Errorf("UpdateField value failed, err:%s", err.Error())
+		return
+	}
 
 	now = time.Now()
 	tsVal := reflect.ValueOf(now)
-	modelInfo.UpdateFieldValue("TimeStamp", tsVal)
-
-	log.Print(*unit)
+	err = modelInfo.UpdateFieldValue("TimeStamp", tsVal)
+	if err != nil {
+		t.Errorf("UpdateField value failed, err:%s", err.Error())
+		return
+	}
 }
 
 func TestReference(t *testing.T) {
@@ -97,7 +137,25 @@ func TestReference(t *testing.T) {
 	}
 
 	cache := NewCache()
-	f32Info, err := getValueModel(reflect.ValueOf(&Demo{AB: &AB{}}), cache)
+	abVal := reflect.ValueOf(&AB{})
+	cdVal := reflect.ValueOf(&CD{})
+	demoVal := reflect.ValueOf(&Demo{AB: &AB{}})
+	err := registerModel(abVal.Type(), cache)
+	if err != nil {
+		t.Errorf("registerModel failed, err:%s", err.Error())
+		return
+	}
+	err = registerModel(cdVal.Type(), cache)
+	if err != nil {
+		t.Errorf("registerModel failed, err:%s", err.Error())
+		return
+	}
+	err = registerModel(demoVal.Type(), cache)
+	if err != nil {
+		t.Errorf("registerModel failed, err:%s", err.Error())
+		return
+	}
+	f32Info, err := getValueModel(demoVal, cache)
 	if err != nil {
 		t.Errorf("getValueModel failed, err:%s", err.Error())
 		return
@@ -105,7 +163,7 @@ func TestReference(t *testing.T) {
 
 	f32Info.Dump(cache)
 
-	i64Info, err := getValueModel(reflect.ValueOf(&CD{}), cache)
+	i64Info, err := getValueModel(cdVal, cache)
 	if err != nil {
 		t.Errorf("getValueModel failed, err:%s", err.Error())
 	}
@@ -122,7 +180,13 @@ type TT struct {
 func TestGetModelValue(t *testing.T) {
 	cache := NewCache()
 	t1 := &TT{Aa: 12, Bb: 23}
-	t1Info, t1Err := getValueModel(reflect.ValueOf(t1), cache)
+	ttVal := reflect.ValueOf(t1)
+	err := registerModel(ttVal.Type(), cache)
+	if err != nil {
+		t.Errorf("registerModel failed, err:%s", err.Error())
+		return
+	}
+	t1Info, t1Err := getValueModel(ttVal, cache)
 	if t1Err != nil {
 		t.Errorf("getValueModel t1 failed, err:%s", t1Err.Error())
 		return

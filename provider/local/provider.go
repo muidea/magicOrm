@@ -23,46 +23,13 @@ func New(owner string) *Provider {
 // RegisterModel RegisterObjectModel
 func (s *Provider) RegisterModel(entity interface{}) (err error) {
 	entityType := reflect.TypeOf(entity)
-	if entityType.Kind() == reflect.Ptr {
-		entityType = entityType.Elem()
-	}
-
-	hasPrimaryKey := false
-	modelImpl := &modelImpl{modelType: entityType, fields: make([]*fieldImpl, 0)}
-	fieldNum := entityType.NumField()
-	for idx := 0; idx < fieldNum; idx++ {
-		fieldType := entityType.Field(idx)
-		fieldInfo, fieldErr := getFieldInfo(idx, fieldType)
-		if fieldErr != nil {
-			err = fieldErr
-			log.Printf("getFieldInfo failed, field idx:%d, field name:%s, struct name:%s, err:%s", idx, fieldType.Name, modelImpl.GetName(), err.Error())
-			return
-		}
-
-		if fieldInfo.IsPrimary() {
-			if hasPrimaryKey {
-				err = fmt.Errorf("duplicate primary key field, struct name:%s", modelImpl.GetName())
-				return
-			}
-
-			hasPrimaryKey = true
-		}
-
-		if fieldInfo != nil {
-			modelImpl.fields = append(modelImpl.fields, fieldInfo)
-		}
-	}
-
-	if len(modelImpl.fields) == 0 {
-		err = fmt.Errorf("no define orm field, struct name:%s", modelImpl.GetName())
-		return
-	}
-	if !hasPrimaryKey {
-		err = fmt.Errorf("no define primary key field, struct name:%s", modelImpl.GetName())
+	typeImpl, typeErr := newType(entityType)
+	if typeErr != nil {
+		err = typeErr
 		return
 	}
 
-	s.modelCache.Put(modelImpl.GetName(), modelImpl)
+	err = registerModel(typeImpl.GetType(), s.modelCache)
 	return
 }
 
@@ -72,7 +39,7 @@ func (s *Provider) UnregisterModel(entity interface{}) {
 	typeImpl, typeErr := newType(entityType)
 	if typeErr == nil {
 		cur := s.modelCache.Fetch(typeImpl.GetName())
-		if cur.GetPkgPath() == typeImpl.GetPkgPath() {
+		if cur != nil && cur.GetPkgPath() == typeImpl.GetPkgPath() {
 			s.modelCache.Remove(typeImpl.GetName())
 		}
 	}
