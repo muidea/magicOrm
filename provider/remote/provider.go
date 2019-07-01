@@ -107,50 +107,64 @@ func (s *Provider) GetEntityModel(objEntity interface{}) (ret model.Model, err e
 	objEntityType := reflect.TypeOf(objEntity)
 	if objEntityType.Kind() == reflect.Ptr {
 		objPtr, objOk := objEntity.(*Object)
-		if !objOk {
-			err = fmt.Errorf("illegal objEntity type, objEntity type:%s", objEntityType.String())
+		if objOk {
+			preObj := s.modelCache.Fetch(objPtr.GetName())
+			if preObj != nil {
+				if objPtr.GetPkgPath() != preObj.GetPkgPath() {
+					err = fmt.Errorf("illegal object, pkgPath isn't match")
+					return
+				}
+			} else {
+				err = fmt.Errorf("can't find objEntity model, objName:%s, objPkgPath:%s", objPtr.GetName(), objPtr.GetPkgPath())
+				return
+			}
+
+			objModel := preObj.Copy()
+			objModel.IsPtr = true
+			ret = objModel
+
 			return
 		}
 
-		preObj := s.modelCache.Fetch(objPtr.GetName())
+		_, objOk = objEntity.(*ObjectValue)
+		if objOk {
+			objVal := reflect.ValueOf(objEntity)
+			ret, err = s.GetValueModel(objVal)
+			return
+		}
+
+		err = fmt.Errorf("illegal objEntity type, objEntity type:%s", objEntityType.String())
+		return
+	}
+
+	objVal, objOk := objEntity.(Object)
+	if objOk {
+		preObj := s.modelCache.Fetch(objVal.GetName())
 		if preObj != nil {
-			if objPtr.GetPkgPath() != preObj.GetPkgPath() {
+			if objVal.GetPkgPath() != preObj.GetPkgPath() {
 				err = fmt.Errorf("illegal object, pkgPath isn't match")
 				return
 			}
 		} else {
-			err = fmt.Errorf("can't find objEntity model, objName:%s, objPkgPath:%s", objPtr.GetName(), objPtr.GetPkgPath())
+			err = fmt.Errorf("can't find objEntity model, objName:%s, objPkgPath:%s", objVal.GetName(), objVal.GetPkgPath())
 			return
 		}
 
 		objModel := preObj.Copy()
-		objModel.IsPtr = true
+		objModel.IsPtr = false
 		ret = objModel
 
 		return
 	}
 
-	objVal, objOk := objEntity.(Object)
-	if !objOk {
-		err = fmt.Errorf("illegal objEntity type, objEntity type:%s", objEntityType.String())
+	_, objOk = objEntity.(ObjectValue)
+	if objOk {
+		objVal := reflect.ValueOf(objEntity)
+		ret, err = s.GetValueModel(objVal)
 		return
 	}
 
-	preObj := s.modelCache.Fetch(objVal.GetName())
-	if preObj != nil {
-		if objVal.GetPkgPath() != preObj.GetPkgPath() {
-			err = fmt.Errorf("illegal object, pkgPath isn't match")
-			return
-		}
-	} else {
-		err = fmt.Errorf("can't find objEntity model, objName:%s, objPkgPath:%s", objVal.GetName(), objVal.GetPkgPath())
-		return
-	}
-
-	objModel := preObj.Copy()
-	objModel.IsPtr = false
-	ret = objModel
-
+	err = fmt.Errorf("illegal objEntity type, objEntity type:%s", objEntityType.String())
 	return
 }
 
