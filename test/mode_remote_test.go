@@ -1008,6 +1008,23 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
+	statusVal, objErr := getObjectValue(status)
+	if objErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+	err = o1.Insert(statusVal, "default")
+	if err != nil {
+		t.Errorf("insert group failed, err:%s", err.Error())
+		return
+	}
+	err = remote.UpdateEntity(statusVal, status)
+	if err != nil {
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
+		return
+	}
+	user1.Status = status
+
 	group1Val, objErr := getObjectValue(group1)
 	if objErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
@@ -1086,6 +1103,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
+	user2.Status = status
 	user2.Group = append(user2.Group, group1)
 	user2.Group = append(user2.Group, group3)
 	user2Val, objErr := getObjectValue(user2)
@@ -1104,12 +1122,17 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
+	maskValue := &User{Status: &Status{}}
+
+	maskVal, _ := getObjectValue(maskValue)
+
 	uGroup1 := []*remote.ObjectValue{group1Val, group2Val}
 	userList := &[]*User{}
 	filter := o1.QueryFilter("default")
 	filter.Equal("Name", &user1.Name)
 	filter.In("Group", uGroup1)
 	filter.Like("EMail", user1.EMail)
+	filter.ValueMask(maskVal)
 
 	pageFilter := &util.PageFilter{PageNum: 0, PageSize: 100}
 	filter.Page(pageFilter)
@@ -1163,6 +1186,10 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	}
 	if (*userList)[0].Name != user1.Name || len((*userList)[0].Group) != len(user1.Group) {
 		t.Errorf("filter query user failed")
+		return
+	}
+	if (*userList)[0].Status == nil {
+		t.Errorf("valueMask failed")
 		return
 	}
 

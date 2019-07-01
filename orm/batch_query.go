@@ -14,9 +14,8 @@ type resultItems []interface{}
 func (s *Orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter model.Filter) (err error) {
 	var maskModel model.Model
 	if filter != nil {
-		maskModel, maskErr := filter.MaskModel()
-		if maskErr != nil {
-			err = maskErr
+		maskModel, err = filter.MaskModel()
+		if err != nil {
 			log.Printf("Get MaskModel failed, err:%s", err.Error())
 			return
 		}
@@ -56,9 +55,6 @@ func (s *Orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 		var newVal reflect.Value
 		if maskModel != nil {
 			newVal = maskModel.Interface()
-			if modelInfo.IsPtrModel() {
-				newVal = newVal.Addr()
-			}
 		} else {
 			newVal = modelInfo.Interface()
 		}
