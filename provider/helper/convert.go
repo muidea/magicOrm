@@ -11,8 +11,9 @@ import (
 )
 
 // ConvertValue convert interface{} to reflect.Value
-func ConvertValue(fromVal reflect.Value, toVal *reflect.Value) (err error) {
+func ConvertValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.Value, err error) {
 	if util.IsNil(fromVal) {
+		ret = toVal
 		return
 	}
 
@@ -130,9 +131,9 @@ func ConvertValue(fromVal reflect.Value, toVal *reflect.Value) (err error) {
 			for idx := 0; idx < fromVal.Len(); idx++ {
 				str := ""
 				val := reflect.ValueOf(str)
-				valErr := ConvertValue(fromVal.Index(idx), &val)
-				if valErr != nil {
-					err = fmt.Errorf("convert to string failed, err:%s", valErr.Error())
+				val, err = ConvertValue(fromVal.Index(idx), val)
+				if err != nil {
+					err = fmt.Errorf("convert to string failed, err:%s", err.Error())
 					return
 				}
 
@@ -160,20 +161,20 @@ func ConvertValue(fromVal reflect.Value, toVal *reflect.Value) (err error) {
 			err = fmt.Errorf("illegal datetime value, fromVal type:%s, fromVal:%v", fromVal.Type().String(), fromVal.Interface())
 		}
 	case reflect.Slice:
-		sliceErr := ConvertSliceValue(fromVal, toVal)
-		if sliceErr != nil {
-			err = sliceErr
-		}
+		toVal, err = ConvertSliceValue(fromVal, toVal)
 	default:
 		err = fmt.Errorf("illegal field type, fromVal type:%s, fromVal:%v", fromVal.Type().String(), fromVal.Interface())
 	}
+
+	ret = toVal
 
 	return
 }
 
 // ConvertSliceValue convert interface{} slice to reflect.Value
-func ConvertSliceValue(fromVal reflect.Value, toVal *reflect.Value) (err error) {
+func ConvertSliceValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.Value, err error) {
 	if util.IsNil(fromVal) {
+		ret = toVal
 		return
 	}
 
@@ -203,9 +204,8 @@ func ConvertSliceValue(fromVal reflect.Value, toVal *reflect.Value) (err error) 
 	for idx := 0; idx < fromVal.Len(); idx++ {
 		v := fromVal.Index(idx)
 		iv := reflect.New(vType).Elem()
-		vErr := ConvertValue(v, &iv)
-		if vErr != nil {
-			err = vErr
+		iv, err = ConvertValue(v, iv)
+		if err != nil {
 			return
 		}
 
@@ -213,6 +213,8 @@ func ConvertSliceValue(fromVal reflect.Value, toVal *reflect.Value) (err error) 
 	}
 
 	toVal.Set(itemSlice)
+
+	ret = toVal
 
 	return
 }

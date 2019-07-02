@@ -72,3 +72,55 @@ func TestSimpleObjProvider(t *testing.T) {
 	}
 
 }
+
+func TestInterface(t *testing.T) {
+	type AA struct {
+		ID   int     `orm:"id key auto"`
+		Name string  `orm:"name"`
+		Desc *string `orm:"desc"`
+	}
+
+	type BB struct {
+		ID   int    `orm:"id key auto"`
+		Name string `orm:"name"`
+		AA   *AA    `orm:"aa"`
+	}
+
+	aaDef, aaErr := GetObject(&AA{})
+	if aaErr != nil {
+		t.Errorf("GetObject failed, err:%s", aaErr.Error())
+		return
+	}
+
+	bbDef, bbErr := GetObject(&BB{})
+	if bbErr != nil {
+		t.Errorf("GetObject failed, err:%s", bbErr.Error())
+		return
+	}
+
+	provider := New("default")
+
+	err := provider.RegisterModel(aaDef)
+	if err != nil {
+		t.Errorf("RegisterModel failed, err:%s", err.Error())
+		return
+	}
+	err = provider.RegisterModel(bbDef)
+	if err != nil {
+		t.Errorf("RegisterModel failed, err:%s", err.Error())
+		return
+	}
+
+	bb := &BB{AA: &AA{}}
+	bbVal, bbErr := GetObjectValue(bb)
+	if bbErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", bbErr.Error())
+		return
+	}
+
+	_, bbErr = provider.GetEntityModel(bbVal)
+	if bbErr != nil {
+		t.Errorf("GetEntityModel failed, err:%s", bbErr.Error())
+		return
+	}
+}

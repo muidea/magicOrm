@@ -387,11 +387,7 @@ func GetSliceObjectPtrValue(sliceEntity interface{}) (ret *SliceObjectPtrValue, 
 	return
 }
 
-func convertStructValue(objectValue reflect.Value, entityValue *reflect.Value) (err error) {
-	if util.IsNil(objectValue) || util.IsNil(*entityValue) {
-		return
-	}
-
+func convertStructValue(objectValue reflect.Value, entityValue reflect.Value) (ret reflect.Value, err error) {
 	if objectValue.Kind() == reflect.Interface {
 		objectValue = objectValue.Elem()
 	}
@@ -411,55 +407,59 @@ func convertStructValue(objectValue reflect.Value, entityValue *reflect.Value) (
 			continue
 		}
 
-		itemType, itemErr := GetType(entityType.Field(idx).Type)
+		fieldType := entityType.Field(idx).Type
+		itemType, itemErr := GetType(fieldType)
 		if itemErr != nil {
 			err = itemErr
 			return
 		}
+		if itemType.IsPtrType() {
+			fieldType = fieldType.Elem()
+		}
 
-		fieldValue := reflect.Indirect(entityValue.Field(idx))
+		fieldValue := reflect.New(fieldType).Elem()
 		itemValue := reflect.ValueOf(items[idx].Value)
 
 		dependType := itemType.Depend()
 		if dependType == nil || util.IsBasicType(dependType.GetValue()) {
 			if itemType.GetValue() != util.TypeSliceField {
-				valErr := helper.ConvertValue(itemValue, &fieldValue)
-				if valErr != nil {
-					err = valErr
+				fieldValue, err = helper.ConvertValue(itemValue, fieldValue)
+				if err != nil {
 					return
 				}
 			} else {
-				valErr := helper.ConvertSliceValue(itemValue, &fieldValue)
-				if valErr != nil {
-					err = valErr
+				fieldValue, err = helper.ConvertSliceValue(itemValue, fieldValue)
+				if err != nil {
 					return
 				}
 			}
 		} else {
 			if itemType.GetValue() != util.TypeSliceField {
-				valErr := convertStructValue(itemValue, &fieldValue)
-				if valErr != nil {
-					err = valErr
+				fieldValue, err = convertStructValue(itemValue, fieldValue)
+				if err != nil {
 					return
 				}
 			} else {
-				valErr := convertSliceValue(itemValue, &fieldValue)
-				if valErr != nil {
-					err = valErr
+				fieldValue, err = convertSliceValue(itemValue, fieldValue)
+				if err != nil {
 					return
 				}
 			}
 		}
+
+		if itemType.IsPtrType() {
+			fieldValue = fieldValue.Addr()
+		}
+
+		entityValue.Field(idx).Set(fieldValue)
 	}
+
+	ret = entityValue
 
 	return
 }
 
-func convertSliceValue(sliceObj reflect.Value, sliceVal *reflect.Value) (err error) {
-	if util.IsNil(sliceObj) || util.IsNil(*sliceVal) {
-		return
-	}
-
+func convertSliceValue(sliceObj reflect.Value, sliceVal reflect.Value) (ret reflect.Value, err error) {
 	rawType := sliceVal.Type().Elem()
 	itemType, itemErr := GetType(rawType)
 	if itemErr != nil {
@@ -488,15 +488,13 @@ func convertSliceValue(sliceObj reflect.Value, sliceVal *reflect.Value) (err err
 
 		dependType := itemType.Depend()
 		if dependType != nil && !util.IsBasicType(dependType.GetValue()) {
-			valErr := convertStructValue(itemObj, &itemVal)
-			if valErr != nil {
-				err = valErr
+			itemVal, err = convertStructValue(itemObj, itemVal)
+			if err != nil {
 				return
 			}
 		} else {
-			valErr := helper.ConvertValue(itemObj, &itemVal)
-			if valErr != nil {
-				err = valErr
+			itemVal, err = helper.ConvertValue(itemObj, itemVal)
+			if err != nil {
 				return
 			}
 		}
@@ -509,6 +507,7 @@ func convertSliceValue(sliceObj reflect.Value, sliceVal *reflect.Value) (err err
 	}
 
 	sliceVal.Set(itemSlice)
+	ret = sliceVal
 
 	return
 }
@@ -535,49 +534,58 @@ func updateEntity(objectValue *ObjectValue, entityValue reflect.Value) (err erro
 
 	fieldNum := entityValue.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		itemType, itemErr := GetType(entityType.Field(idx).Type)
+		itemValue := reflect.ValueOf(objectValue.Items[idx].Value)
+		if util.IsNil(itemValue) {
+			continue
+		}
+
+		fieldType := entityType.Field(idx).Type
+		itemType, itemErr := GetType(fieldType)
 		if itemErr != nil {
 			err = itemErr
 			return
 		}
 
-		fieldValue := reflect.Indirect(entityValue.Field(idx))
-		itemValue := reflect.ValueOf(objectValue.Items[idx].Value)
-
+		if itemType.IsPtrType() {
+			fieldType = fieldType.Elem()
+		}
+		fieldValue := reflect.New(fieldType).Elem()
 		dependType := itemType.Depend()
 		if dependType == nil || util.IsBasicType(dependType.GetValue()) {
 			if itemType.GetValue() != util.TypeSliceField {
-				valErr := helper.ConvertValue(itemValue, &fieldValue)
-				if valErr != nil {
-					err = valErr
-					log.Printf("convert basic field value failed, name:%s, err:%s", itemType.GetName(), valErr.Error())
+				fieldValue, err = helper.ConvertValue(itemValue, fieldValue)
+				if err != nil {
+					log.Printf("convert basic field value failed, name:%s, err:%s", itemType.GetName(), err.Error())
 					return
 				}
 			} else {
-				valErr := helper.ConvertSliceValue(itemValue, &fieldValue)
-				if valErr != nil {
-					err = valErr
-					log.Printf("convert basic slice field value failed, name:%s, err:%s", itemType.GetName(), valErr.Error())
+				fieldValue, err = helper.ConvertSliceValue(itemValue, fieldValue)
+				if err != nil {
+					log.Printf("convert basic slice field value failed, name:%s, err:%s", itemType.GetName(), err.Error())
 					return
 				}
 			}
 		} else {
 			if itemType.GetValue() != util.TypeSliceField {
-				valErr := convertStructValue(itemValue, &fieldValue)
-				if valErr != nil {
-					err = valErr
-					log.Printf("convert struct field value failed, name:%s, err:%s", itemType.GetName(), valErr.Error())
+				fieldValue, err = convertStructValue(itemValue, fieldValue)
+				if err != nil {
+					log.Printf("convert struct field value failed, name:%s, err:%s", itemType.GetName(), err.Error())
 					return
 				}
 			} else {
-				valErr := convertSliceValue(itemValue, &fieldValue)
-				if valErr != nil {
-					err = valErr
-					log.Printf("convert struct slice field value failed, name:%s, err:%s", itemType.GetName(), valErr.Error())
+				fieldValue, err = convertSliceValue(itemValue, fieldValue)
+				if err != nil {
+					log.Printf("convert struct slice field value failed, name:%s, err:%s", itemType.GetName(), err.Error())
 					return
 				}
 			}
 		}
+
+		if itemType.IsPtrType() {
+			fieldValue = fieldValue.Addr()
+		}
+
+		entityValue.Field(idx).Set(fieldValue)
 	}
 
 	return

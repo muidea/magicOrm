@@ -35,7 +35,7 @@ func DecodeFloatValue(val string, vType model.Type) (ret reflect.Value, err erro
 	}
 
 	ret = reflect.Indirect(vType.Interface())
-	err = ConvertValue(reflect.ValueOf(val), &ret)
+	ret, err = ConvertValue(reflect.ValueOf(val), ret)
 
 	if err != nil {
 		if vType.IsPtrType() {

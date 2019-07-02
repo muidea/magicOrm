@@ -112,9 +112,8 @@ func (s *Item) UpdateValue(val reflect.Value) (err error) {
 	depend := s.Type.Depend()
 	if depend == nil || util.IsBasicType(depend.GetValue()) {
 		fieldVal := reflect.Indirect(s.Type.Interface())
-		valErr := helper.ConvertValue(val, &fieldVal)
-		if valErr != nil {
-			err = valErr
+		fieldVal, err = helper.ConvertValue(val, fieldVal)
+		if err != nil {
 			log.Printf("helper.ConvertValue failed, err:%s", err.Error())
 			return
 		}
