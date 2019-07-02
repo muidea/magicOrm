@@ -24,7 +24,6 @@ func TestSimpleObjProvider(t *testing.T) {
 		log.Printf("marshal failed, err:%s", dataErr.Error())
 		return
 	}
-	log.Print(string(data))
 	localInfo := &Object{}
 	err := json.Unmarshal(data, localInfo)
 	if err != nil {
@@ -42,11 +41,16 @@ func TestSimpleObjProvider(t *testing.T) {
 		log.Printf("marshal failed, err:%s", dataErr.Error())
 		return
 	}
-	log.Print(string(data))
 	localVal := &ObjectValue{}
 	err = json.Unmarshal(data, localVal)
 	if err != nil {
 		log.Printf("unmarshal failed, err:%s", err.Error())
+		return
+	}
+
+	err = provider.RegisterModel(localInfo)
+	if err != nil {
+		log.Printf("RegisterModel failed, err:%s", err.Error())
 		return
 	}
 
@@ -55,14 +59,12 @@ func TestSimpleObjProvider(t *testing.T) {
 		log.Printf("GetEntityModel failed, err:%s", objErr.Error())
 		return
 	}
-	log.Printf("GetEntityModel name:%s,pkgPath:%s", infoModel.GetName(), infoModel.GetPkgPath())
 
 	valModel, objErr := provider.GetValueModel(reflect.ValueOf(localVal))
 	if objErr != nil {
 		log.Printf("GetValueModel failed, err:%s", objErr.Error())
 		return
 	}
-	log.Printf("GetValueModel name:%s,pkgPath:%s", valModel.GetName(), valModel.GetPkgPath())
 
 	if infoModel.GetName() != valModel.GetName() {
 		log.Printf("get value model failed. infoModel name:%s, valModel name:%s", infoModel.GetName(), valModel.GetName())

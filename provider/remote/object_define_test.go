@@ -2,7 +2,6 @@ package remote
 
 import (
 	"encoding/json"
-	"log"
 	"testing"
 )
 
@@ -29,10 +28,6 @@ func TestSimpleObj(t *testing.T) {
 		return
 	}
 
-	log.Print(obj)
-
-	log.Print(string(data))
-
 	tt := &SimpleObj{}
 	err = json.Unmarshal(data, tt)
 	if err != nil {
@@ -40,15 +35,20 @@ func TestSimpleObj(t *testing.T) {
 		return
 	}
 
-	log.Print(*tt)
+	if tt.Name != obj.Name {
+		t.Errorf("unmarshal obj failed")
+		return
+	}
+
 	t2 := &map[string]interface{}{}
 	err = json.Unmarshal(data, t2)
 	if err != nil {
 		t.Errorf("unmarshal obj failed, err:%s", err.Error())
 		return
 	}
-
-	log.Print(*t2)
+	if len(*t2) != 5 {
+		t.Errorf("unmarshal obj failed")
+	}
 }
 
 func TestSimpleObjInfo(t *testing.T) {
@@ -60,14 +60,15 @@ func TestSimpleObjInfo(t *testing.T) {
 		t.Errorf("GetObject failed, err:%s", err.Error())
 		return
 	}
-	log.Print(info)
+	if info.GetName() != "remote.SimpleObj" {
+		t.Errorf("GetObject failed")
+	}
 
 	data, err := json.Marshal(&info)
 	if err != nil {
 		t.Errorf("marshal info failed, err:%s", err.Error())
 		return
 	}
-	log.Print(string(data))
 
 	info2 := Object{}
 	err = json.Unmarshal(data, &info2)
@@ -75,14 +76,10 @@ func TestSimpleObjInfo(t *testing.T) {
 		t.Errorf("marshal info failed, err:%s", err.Error())
 		return
 	}
-	log.Print(info2)
 
-	data, err = json.Marshal(info2)
-	if err != nil {
-		t.Errorf("marshal info2 failed, err:%s", err.Error())
-		return
+	if info2.GetName() != info.GetName() {
+		t.Errorf("unmarshal failed")
 	}
-	log.Print(string(data))
 }
 
 func TestExtObjInfo(t *testing.T) {
@@ -95,14 +92,17 @@ func TestExtObjInfo(t *testing.T) {
 		t.Errorf("GetObject failed, err:%s", err.Error())
 		return
 	}
-	log.Print(info)
+
+	if info.GetName() != "remote.ExtObj" {
+		t.Errorf("get object failed")
+		return
+	}
 
 	data, err := json.Marshal(&info)
 	if err != nil {
 		t.Errorf("marshal info failed, err:%s", err.Error())
 		return
 	}
-	log.Print(string(data))
 
 	eInfo := Object{}
 	json.Unmarshal(data, &eInfo)
@@ -110,12 +110,9 @@ func TestExtObjInfo(t *testing.T) {
 		t.Errorf("unmarshal ext failed, err:%s", err.Error())
 		return
 	}
-	log.Print(eInfo)
 
-	data, err = json.Marshal(eInfo)
-	if err != nil {
-		t.Errorf("marshal eInfo failed, err:%s", err.Error())
+	if eInfo.GetName() != info.GetName() {
+		t.Errorf("unmarshal faile")
 		return
 	}
-	log.Print(string(data))
 }
