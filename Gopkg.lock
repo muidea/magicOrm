@@ -11,14 +11,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:613cdda629fc99fd8549d0589e4a4eb228a079755951836f3d90bb52e51c9112"
+  digest = "1:c2e979bba0e76a3f9627c6ab491f9d1b2e3452c303b9949d73baca8089f7cedf"
   name = "github.com/muidea/magicCommon"
   packages = [
     "foundation/cache",
     "foundation/util",
   ]
   pruneopts = "UT"
-  revision = "78f7e4911b32f8fc34082b02d9b49260b3a43f18"
+  revision = "cf4fd4e16191207c2cc9345493b0709475e7afbd"
 
 [solve-meta]
   analyzer-name = "dep"
