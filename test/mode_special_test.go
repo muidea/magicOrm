@@ -65,6 +65,14 @@ func TestKPI(t *testing.T) {
 		return
 	}
 
+	goal1 := &Goal{Type: ByMoney, Value: 1234}
+	kpi.JoinValue = *goal1
+	err = o1.Update(kpi, "default")
+	if err != nil {
+		t.Errorf("update kpi failed, err:%s", err.Error())
+		return
+	}
+
 	err = o1.Delete(kpi, "default")
 	if err != nil {
 		t.Errorf("delete kpi failed, err:%s", err.Error())

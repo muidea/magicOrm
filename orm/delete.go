@@ -7,6 +7,7 @@ import (
 
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/util"
 )
 
 func (s *Orm) deleteSingle(modelInfo model.Model) (err error) {
@@ -43,6 +44,53 @@ func (s *Orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 	}
 
 	if !relationInfo.IsPtrModel() {
+		fieldVal, fieldErr := s.queryRelation(modelInfo, fieldInfo)
+		if fieldErr != nil {
+			err = fieldErr
+			return
+		}
+		if !util.IsNil(fieldVal) {
+			if util.IsStructType(fType.GetValue()) {
+				relationModel, relationErr := s.modelProvider.GetValueModel(fieldVal)
+				if relationErr != nil {
+					err = relationErr
+					return
+				}
+
+				err = s.deleteSingle(relationModel)
+				if err != nil {
+					return
+				}
+
+				for _, field := range relationModel.GetFields() {
+					err = s.deleteRelation(relationModel, field)
+					if err != nil {
+						break
+					}
+				}
+			} else if util.IsSliceType(fType.GetValue()) {
+				for idx := 0; idx < fieldVal.Len(); idx++ {
+					relationModel, relationErr := s.modelProvider.GetValueModel(fieldVal.Index(idx))
+					if relationErr != nil {
+						err = relationErr
+						return
+					}
+
+					err = s.deleteSingle(relationModel)
+					if err != nil {
+						return
+					}
+
+					for _, field := range relationModel.GetFields() {
+						err = s.deleteRelation(relationModel, field)
+						if err != nil {
+							break
+						}
+					}
+				}
+			}
+		}
+
 		s.executor.Delete(rightSQL)
 	}
 
