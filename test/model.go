@@ -147,3 +147,43 @@ func (s *System) Equal(r *System) bool {
 
 	return true
 }
+
+const (
+	// ByPiece 按件数
+	ByPiece = iota
+	// ByMoney 按金额
+	ByMoney
+)
+
+const (
+	// CheckSingle 考核单项
+	CheckSingle = iota
+	// CheckTwice 考核两项
+	CheckTwice
+)
+
+// Goal 考核目标
+type Goal struct {
+	ID    int     `json:"id" orm:"id key auto"` // ID
+	Type  int     `json:"type" orm:"type"`
+	Value float32 `json:"value" orm:"value"`
+}
+
+// SpecialGoal 特殊目标
+type SpecialGoal struct {
+	ID            int      `json:"id" orm:"id key auto"` // ID
+	CheckDistrict []string `json:"checkDistrict" orm:"checkDistrict"`
+	CheckProduct  []string `json:"checkProduct" orm:"checkProduct"`
+	CheckType     int      `json:"checkType" orm:"checkType"`
+	CheckValue    Goal     `json:"checkValue" orm:"checkValue"`
+}
+
+// KPI 代理商考核指标
+type KPI struct {
+	ID            int         `json:"id" orm:"id key auto"`              // ID
+	Title         string      `json:"title" orm:"title"`                 // 名称
+	JoinValue     Goal        `json:"joinValue" orm:"joinValue"`         // 加盟目标
+	PerMonthValue Goal        `json:"perMonthValue" orm:"perMonthValue"` // 每月目标
+	SpecialValue  SpecialGoal `json:"specialValue" orm:"specialValue"`   // 特殊地区或产品目标
+	Default       bool        `json:"default" orm:"default"`
+}

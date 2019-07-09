@@ -7,6 +7,7 @@ import (
 
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/util"
 )
 
 type resultItems []interface{}
@@ -75,11 +76,17 @@ func (s *Orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 				return
 			}
 			if dependModel != nil {
-				err = s.queryRelation(newModelInfo, field)
-				if err != nil {
+				itemVal, itemErr := s.queryRelation(newModelInfo, field)
+				if itemErr != nil {
+					err = itemErr
 					log.Printf("queryRelation failed, err:%s", err.Error())
 					return
 				}
+				if util.IsNil(itemVal) {
+					continue
+				}
+
+				newModelInfo.UpdateFieldValue(field.GetName(), itemVal)
 				continue
 			}
 

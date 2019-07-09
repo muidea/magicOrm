@@ -52,7 +52,7 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 	return
 }
 
-func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
+func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret reflect.Value, err error) {
 	fType := fieldInfo.GetType()
 	fieldModel, fieldErr := s.modelProvider.GetTypeModel(fType)
 	if fieldErr != nil {
@@ -74,7 +74,7 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (err e
 	if relationErr != nil {
 		err = relationErr
 		log.Printf("BuildQueryRelation failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
-		return err
+		return
 	}
 
 	values := []int64{}
@@ -111,11 +111,25 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (err e
 				return
 			}
 
-			err = modelInfo.UpdateFieldValue(fieldInfo.GetName(), relationVal)
-			if err != nil {
-				log.Printf("UpdateFieldValue failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
-				return
+			for _, item := range relationInfo.GetFields() {
+				itemVal, itemErr := s.queryRelation(relationInfo, item)
+				if itemErr != nil {
+					err = itemErr
+					log.Printf("queryRelation failed, modelName:%s, field:%s, err:%s", relationInfo.GetName(), item.GetName(), err.Error())
+					return
+				}
+				if util.IsNil(itemVal) {
+					continue
+				}
+
+				err = relationInfo.UpdateFieldValue(item.GetName(), itemVal)
+				if err != nil {
+					log.Printf("UpdateFieldValue failed, fieldName:%s, err:%s", item.GetName(), err.Error())
+					return
+				}
 			}
+
+			ret = relationVal
 		}
 	} else if util.IsSliceType(fType.GetValue()) {
 		relationVal := reflect.Indirect(fType.Interface())
@@ -141,6 +155,24 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (err e
 				return
 			}
 
+			for _, item := range itemInfo.GetFields() {
+				subVal, subErr := s.queryRelation(itemInfo, item)
+				if subErr != nil {
+					err = subErr
+					log.Printf("queryRelation failed, modelName:%s, field:%s, err:%s", itemInfo.GetName(), item.GetName(), err.Error())
+					return
+				}
+				if util.IsNil(subVal) {
+					continue
+				}
+
+				err = itemInfo.UpdateFieldValue(item.GetName(), subVal)
+				if err != nil {
+					log.Printf("UpdateFieldValue failed, fieldName:%s, err:%s", item.GetName(), err.Error())
+					return
+				}
+			}
+
 			if fieldModel.IsPtrModel() {
 				itemVal = itemVal.Addr()
 			}
@@ -148,11 +180,7 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (err e
 			relationVal = reflect.Append(relationVal, itemVal)
 		}
 
-		err = modelInfo.UpdateFieldValue(fieldInfo.GetName(), relationVal)
-		if err != nil {
-			log.Printf("UpdateFieldValue failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
-			return
-		}
+		ret = relationVal
 	}
 
 	return
@@ -175,9 +203,19 @@ func (s *Orm) Query(entity interface{}) (err error) {
 	}
 
 	for _, item := range modelInfo.GetFields() {
-		err = s.queryRelation(modelInfo, item)
-		if err != nil {
+		itemVal, itemErr := s.queryRelation(modelInfo, item)
+		if itemErr != nil {
+			err = itemErr
 			log.Printf("queryRelation failed, modelName:%s, field:%s, err:%s", modelInfo.GetName(), item.GetName(), err.Error())
+			return
+		}
+		if util.IsNil(itemVal) {
+			continue
+		}
+
+		err = modelInfo.UpdateFieldValue(item.GetName(), itemVal)
+		if err != nil {
+			log.Printf("UpdateFieldValue failed, fieldName:%s, err:%s", item.GetName(), err.Error())
 			return
 		}
 	}

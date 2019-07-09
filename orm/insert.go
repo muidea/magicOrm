@@ -60,6 +60,13 @@ func (s *Orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 			if err != nil {
 				return
 			}
+
+			for _, subField := range relationInfo.GetFields() {
+				err = s.insertRelation(relationInfo, subField)
+				if err != nil {
+					return
+				}
+			}
 		}
 
 		builder := builder.NewBuilder(modelInfo, s.modelProvider)

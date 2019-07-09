@@ -80,6 +80,9 @@ func (s *typeImpl) Depend() (ret model.Type) {
 	switch tVal {
 	case util.TypeSliceField:
 		ret = s.Elem()
+		if util.IsBasicType(ret.GetValue()) {
+			ret = nil
+		}
 	case util.TypeStructField:
 		ret = s.Copy()
 	default:
