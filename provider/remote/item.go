@@ -80,10 +80,6 @@ func (s *Item) IsAssigned() (ret bool) {
 		}
 		// 值不相等，则可以认为有赋值过
 		ret = !sameVal
-		if s.IsPrimary() {
-			ret = true
-		}
-
 	} else if util.IsStructType(s.Type.GetValue()) {
 		curObj, curOK := currentVal.Interface().(ObjectValue)
 		if !curOK {
