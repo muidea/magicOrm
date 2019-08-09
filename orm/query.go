@@ -114,10 +114,12 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 			for _, item := range relationInfo.GetFields() {
 				itemVal, itemErr := s.queryRelation(relationInfo, item)
 				if itemErr != nil {
-					err = itemErr
+					//err = itemErr
 					log.Printf("queryRelation failed, modelName:%s, field:%s, err:%s", relationInfo.GetName(), item.GetName(), err.Error())
-					return
+					//return
+					continue
 				}
+
 				if util.IsNil(itemVal) {
 					continue
 				}
@@ -158,9 +160,10 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 			for _, item := range itemInfo.GetFields() {
 				subVal, subErr := s.queryRelation(itemInfo, item)
 				if subErr != nil {
-					err = subErr
+					//err = subErr
 					log.Printf("queryRelation failed, modelName:%s, field:%s, err:%s", itemInfo.GetName(), item.GetName(), err.Error())
-					return
+					//return
+					continue
 				}
 				if util.IsNil(subVal) {
 					continue
