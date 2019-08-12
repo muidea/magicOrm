@@ -26,11 +26,6 @@ func (s *Builder) BuildBatchQuery(filter model.Filter) (ret string, err error) {
 			ret = fmt.Sprintf("%s WHERE %s", ret, filterSQL)
 		}
 
-		limit, offset, paging := filter.Pagination()
-		if paging {
-			ret = fmt.Sprintf("%s LIMIT %d OFFSET %d", ret, limit, offset)
-		}
-
 		sortVal, sortErr := s.buildSortFilter(filter.Sorter())
 		if sortErr != nil {
 			err = sortErr
@@ -39,6 +34,11 @@ func (s *Builder) BuildBatchQuery(filter model.Filter) (ret string, err error) {
 
 		if sortVal != "" {
 			ret = fmt.Sprintf("%s order by %s", ret, sortVal)
+		}
+
+		limit, offset, paging := filter.Pagination()
+		if paging {
+			ret = fmt.Sprintf("%s LIMIT %d OFFSET %d", ret, limit, offset)
 		}
 	}
 
