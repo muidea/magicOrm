@@ -9,6 +9,12 @@ type FilterItem interface {
 	FilterStr(name string, fType Type) (string, error)
 }
 
+// Sorter sort Item
+type Sorter interface {
+	Name() string
+	SortStr(tagName string) string
+}
+
 // Filter orm query filter
 type Filter interface {
 	Equal(key string, val interface{}) error
@@ -20,10 +26,10 @@ type Filter interface {
 	Like(key string, val interface{}) error
 	ValueMask(val interface{}) error
 	Page(filter *util.PageFilter)
-	OrderBy(value string)
+	Sort(sorter *util.SortFilter)
 
 	Items() map[string]FilterItem
 	Pagination() (limit, offset int, paging bool)
 	MaskModel() (Model, error)
-	SortOrder() string
+	Sorter() Sorter
 }

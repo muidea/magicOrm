@@ -31,9 +31,14 @@ func (s *Builder) BuildBatchQuery(filter model.Filter) (ret string, err error) {
 			ret = fmt.Sprintf("%s LIMIT %d OFFSET %d", ret, limit, offset)
 		}
 
-		sortVal := filter.SortOrder()
+		sortVal, sortErr := s.buildSortFilter(filter.Sorter())
+		if sortErr != nil {
+			err = sortErr
+			return
+		}
+
 		if sortVal != "" {
-			ret = fmt.Sprintf("%s %s", ret, sortVal)
+			ret = fmt.Sprintf("%s order by %s", ret, sortVal)
 		}
 	}
 
@@ -111,5 +116,21 @@ func (s *Builder) buildBatchFilter(filter model.Filter) (ret string, err error) 
 		}
 	}
 
+	return
+}
+
+func (s *Builder) buildSortFilter(filter model.Sorter) (ret string, err error) {
+	if filter == nil {
+		return
+	}
+
+	for _, val := range s.modelInfo.GetFields() {
+		if val.GetName() == filter.Name() {
+			ret = filter.SortStr(val.GetTag().GetName())
+			return
+		}
+	}
+
+	err = fmt.Errorf("illegal sort field name:%s", filter.Name())
 	return
 }
