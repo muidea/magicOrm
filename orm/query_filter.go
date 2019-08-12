@@ -396,5 +396,9 @@ func (s *queryFilter) MaskModel() (ret model.Model, err error) {
 }
 
 func (s *queryFilter) Sorter() model.Sorter {
+	if s.sortFilter == nil {
+		return nil
+	}
+
 	return s.sortFilter
 }
