@@ -20,8 +20,10 @@ type Filter interface {
 	Like(key string, val interface{}) error
 	ValueMask(val interface{}) error
 	Page(filter *util.PageFilter)
+	OrderBy(value string)
 
 	Items() map[string]FilterItem
 	Pagination() (limit, offset int, paging bool)
 	MaskModel() (Model, error)
+	SortOrder() string
 }

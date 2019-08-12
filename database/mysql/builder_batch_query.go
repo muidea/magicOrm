@@ -30,6 +30,11 @@ func (s *Builder) BuildBatchQuery(filter model.Filter) (ret string, err error) {
 		if paging {
 			ret = fmt.Sprintf("%s LIMIT %d OFFSET %d", ret, limit, offset)
 		}
+
+		sortVal := filter.SortOrder()
+		if sortVal != "" {
+			ret = fmt.Sprintf("%s %s", ret, sortVal)
+		}
 	}
 
 	//log.Print(ret)

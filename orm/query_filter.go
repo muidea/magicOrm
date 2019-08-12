@@ -224,6 +224,7 @@ type queryFilter struct {
 	params        map[string]model.FilterItem
 	maskValue     interface{}
 	pageFilter    *util.PageFilter
+	oderByValue   string
 	modelProvider provider.Provider
 }
 
@@ -359,6 +360,10 @@ func (s *queryFilter) Page(filter *util.PageFilter) {
 	s.pageFilter = filter
 }
 
+func (s *queryFilter) OrderBy(value string) {
+	s.oderByValue = value
+}
+
 func (s *queryFilter) Items() map[string]model.FilterItem {
 	return s.params
 }
@@ -388,4 +393,8 @@ func (s *queryFilter) MaskModel() (ret model.Model, err error) {
 	}
 
 	return
+}
+
+func (s *queryFilter) SortOrder() string {
+	return s.oderByValue
 }
