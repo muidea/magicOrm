@@ -115,7 +115,7 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 				itemVal, itemErr := s.queryRelation(relationInfo, item)
 				if itemErr != nil {
 					//err = itemErr
-					log.Printf("queryRelation failed, modelName:%s, field:%s, err:%s", relationInfo.GetName(), item.GetName(), err.Error())
+					log.Printf("queryRelation failed, modelName:%s, field:%s, err:%s", relationInfo.GetName(), item.GetName(), itemErr.Error())
 					//return
 					continue
 				}
@@ -161,7 +161,7 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 				subVal, subErr := s.queryRelation(itemInfo, item)
 				if subErr != nil {
 					//err = subErr
-					log.Printf("queryRelation failed, modelName:%s, field:%s, err:%s", itemInfo.GetName(), item.GetName(), err.Error())
+					log.Printf("queryRelation failed, modelName:%s, field:%s, err:%s", itemInfo.GetName(), item.GetName(), subErr.Error())
 					//return
 					continue
 				}
@@ -208,9 +208,8 @@ func (s *Orm) Query(entity interface{}) (err error) {
 	for _, item := range modelInfo.GetFields() {
 		itemVal, itemErr := s.queryRelation(modelInfo, item)
 		if itemErr != nil {
-			err = itemErr
-			log.Printf("queryRelation failed, modelName:%s, field:%s, err:%s", modelInfo.GetName(), item.GetName(), err.Error())
-			return
+			log.Printf("queryRelation failed, modelName:%s, field:%s, err:%s", modelInfo.GetName(), item.GetName(), itemErr.Error())
+			continue
 		}
 		if util.IsNil(itemVal) {
 			continue

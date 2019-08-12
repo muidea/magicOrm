@@ -45,11 +45,7 @@ func (s *Orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 
 	if !relationInfo.IsPtrModel() {
 		fieldVal, fieldErr := s.queryRelation(modelInfo, fieldInfo)
-		if fieldErr != nil {
-			err = fieldErr
-			return
-		}
-		if !util.IsNil(fieldVal) {
+		if fieldErr == nil && !util.IsNil(fieldVal) {
 			if util.IsStructType(fType.GetValue()) {
 				relationModel, relationErr := s.modelProvider.GetValueModel(fieldVal)
 				if relationErr != nil {
