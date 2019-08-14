@@ -18,7 +18,7 @@
     "foundation/util",
   ]
   pruneopts = "UT"
-  revision = "935ff0c946668a53d4e57da3523b8b5ab0bb40cf"
+  revision = "26d2725d47b53849b70f5deef10a3abff2fe38e0"
 
 [solve-meta]
   analyzer-name = "dep"
