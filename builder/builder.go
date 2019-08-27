@@ -15,6 +15,7 @@ type Builder interface {
 	BuildUpdate() (string, error)
 	BuildDelete() (string, error)
 	BuildQuery() (string, error)
+	BuildCount(filter model.Filter) (string, error)
 	BuildBatchQuery(filter model.Filter) (string, error)
 
 	GetRelationTableName(fieldName string, relationInfo model.Model) string

@@ -19,6 +19,7 @@ type Orm interface {
 	Update(entity interface{}, owner string) error
 	Delete(entity interface{}, owner string) error
 	Query(entity interface{}, owner string) error
+	Count(entity interface{}, filter model.Filter, owner string) (int64, error)
 	BatchQuery(sliceEntity interface{}, filter model.Filter, owner string) error
 	QueryFilter(owner string) model.Filter
 	BeginTransaction()
@@ -119,6 +120,13 @@ func (s *orm) Update(entity interface{}, owner string) (err error) {
 	ormPtr := s.getOrm(owner)
 
 	err = ormPtr.Update(entity)
+	return
+}
+
+func (s *orm) Count(entity interface{}, filter model.Filter, owner string) (ret int64, err error) {
+	ormPtr := s.getOrm(owner)
+
+	ret, err = ormPtr.Count(entity, filter)
 	return
 }
 
