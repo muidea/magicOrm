@@ -21,11 +21,6 @@ func (s *Builder) BuildCount(filter model.Filter) (ret string, err error) {
 		if filterSQL != "" {
 			ret = fmt.Sprintf("%s WHERE %s", ret, filterSQL)
 		}
-
-		limit, offset, paging := filter.Pagination()
-		if paging {
-			ret = fmt.Sprintf("%s LIMIT %d OFFSET %d", ret, limit, offset)
-		}
 	}
 
 	//log.Print(ret)
