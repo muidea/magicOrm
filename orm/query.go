@@ -18,7 +18,11 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 		return err
 	}
 
-	s.executor.Query(sql)
+	err = s.executor.Query(sql)
+	if err != nil {
+		return
+	}
+
 	defer s.executor.Finish()
 	if !s.executor.Next() {
 		err = fmt.Errorf("query %s failed, no found object", modelInfo.GetName())
@@ -31,7 +35,10 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 		return
 	}
 
-	s.executor.GetField(items...)
+	err = s.executor.GetField(items...)
+	if err != nil {
+		return
+	}
 
 	idx := 0
 	for _, item := range modelInfo.GetFields() {
@@ -79,14 +86,24 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 
 	values := []int64{}
 	func() {
-		s.executor.Query(relationSQL)
+		err = s.executor.Query(relationSQL)
+		if err != nil {
+			return
+		}
+
 		defer s.executor.Finish()
 		for s.executor.Next() {
 			v := int64(0)
-			s.executor.GetField(&v)
+			err = s.executor.GetField(&v)
+			if err != nil {
+				return
+			}
 			values = append(values, v)
 		}
 	}()
+	if err != nil {
+		return
+	}
 
 	if util.IsStructType(fType.GetValue()) {
 		if len(values) > 0 {

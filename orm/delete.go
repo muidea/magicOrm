@@ -16,7 +16,12 @@ func (s *Orm) deleteSingle(modelInfo model.Model) (err error) {
 	if err != nil {
 		return err
 	}
-	num := s.executor.Delete(sql)
+	num, numErr := s.executor.Delete(sql)
+	if numErr != nil {
+		err = numErr
+		return
+	}
+
 	if num != 1 {
 		log.Printf("unexception delete, rowNum:%d", num)
 		err = fmt.Errorf("delete %s failed", modelInfo.GetName())
@@ -87,10 +92,13 @@ func (s *Orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 			}
 		}
 
-		s.executor.Delete(rightSQL)
+		_, err = s.executor.Delete(rightSQL)
+		if err != nil {
+			return
+		}
 	}
 
-	s.executor.Delete(relationSQL)
+	_, err = s.executor.Delete(relationSQL)
 
 	return
 }
@@ -105,7 +113,11 @@ func (s *Orm) Delete(entity interface{}) (err error) {
 		return
 	}
 
-	s.executor.BeginTransaction()
+	err = s.executor.BeginTransaction()
+	if err != nil {
+		return
+	}
+
 	for {
 		err = s.deleteSingle(modelInfo)
 		if err != nil {
@@ -123,9 +135,9 @@ func (s *Orm) Delete(entity interface{}) (err error) {
 	}
 
 	if err == nil {
-		s.executor.CommitTransaction()
+		err = s.executor.CommitTransaction()
 	} else {
-		s.executor.RollbackTransaction()
+		err = s.executor.RollbackTransaction()
 	}
 
 	return

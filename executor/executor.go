@@ -5,19 +5,19 @@ import "github.com/muidea/magicOrm/database/mysql"
 // Executor 数据库访问对象
 type Executor interface {
 	Release()
-	BeginTransaction()
-	CommitTransaction()
-	RollbackTransaction()
-	Query(sql string)
+	BeginTransaction() error
+	CommitTransaction() error
+	RollbackTransaction() error
+	Query(sql string) error
 	Next() bool
 	Finish()
-	GetField(value ...interface{})
+	GetField(value ...interface{}) error
 	// return auto increment id
-	Insert(sql string) int64
-	Delete(sql string) int64
-	Update(sql string) int64
-	Execute(sql string) int64
-	CheckTableExist(tableName string) bool
+	Insert(sql string) (int64, error)
+	Delete(sql string) (int64, error)
+	Update(sql string) (int64, error)
+	Execute(sql string) (int64, error)
+	CheckTableExist(tableName string) (bool, error)
 }
 
 // NewExecutor NewExecutor

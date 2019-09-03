@@ -18,11 +18,19 @@ func (s *Orm) queryCount(modelInfo model.Model, filter model.Filter) (ret int64,
 		return
 	}
 
-	s.executor.Query(sql)
+	err = s.executor.Query(sql)
+	if err != nil {
+		return
+	}
 	defer s.executor.Finish()
+
 	if s.executor.Next() {
 		var countVal dbsql.NullInt64
-		s.executor.GetField(&countVal)
+		err = s.executor.GetField(&countVal)
+		if err != nil {
+			return
+		}
+
 		ret = countVal.Int64
 	}
 

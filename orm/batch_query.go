@@ -37,8 +37,12 @@ func (s *Orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 	}
 
 	queryList := []resultItems{}
-	s.executor.Query(sql)
+	err = s.executor.Query(sql)
+	if err != nil {
+		return
+	}
 	defer s.executor.Finish()
+
 	for s.executor.Next() {
 		modelItems, modelErr := s.getItems(modelInfo)
 		if modelErr != nil {
@@ -46,7 +50,10 @@ func (s *Orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 			return
 		}
 
-		s.executor.GetField(modelItems...)
+		err = s.executor.GetField(modelItems...)
+		if err !=nil{
+			return
+		}
 
 		queryList = append(queryList, modelItems)
 	}

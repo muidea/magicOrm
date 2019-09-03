@@ -10,13 +10,20 @@ import (
 func (s *Orm) dropSingle(modelInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	tableName := builder.GetTableName()
-	if s.executor.CheckTableExist(tableName) {
+
+	existFlag, existErr := s.executor.CheckTableExist(tableName)
+	if existErr != nil {
+		err = existErr
+		return
+	}
+
+	if existFlag {
 		sql, err := builder.BuildDropSchema()
 		if err != nil {
 			return err
 		}
 
-		s.executor.Execute(sql)
+		_, err = s.executor.Execute(sql)
 	}
 
 	return
@@ -25,13 +32,19 @@ func (s *Orm) dropSingle(modelInfo model.Model) (err error) {
 func (s *Orm) dropRelation(modelInfo model.Model, fieldName string, relationInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	tableName := builder.GetRelationTableName(fieldName, relationInfo)
-	if s.executor.CheckTableExist(tableName) {
+
+	existFlag, existErr := s.executor.CheckTableExist(tableName)
+	if existErr != nil {
+		err = existErr
+		return
+	}
+	if existFlag {
 		sql, err := builder.BuildDropRelationSchema(fieldName, relationInfo)
 		if err != nil {
 			return err
 		}
 
-		s.executor.Execute(sql)
+		_, err = s.executor.Execute(sql)
 	}
 
 	return
@@ -46,7 +59,11 @@ func (s *Orm) Drop(entity interface{}) (err error) {
 		return
 	}
 
-	s.executor.BeginTransaction()
+	err = s.executor.BeginTransaction()
+	if err != nil {
+		return
+	}
+
 	for {
 		err = s.dropSingle(modelInfo)
 		if err != nil {
@@ -80,9 +97,9 @@ func (s *Orm) Drop(entity interface{}) (err error) {
 	}
 
 	if err == nil {
-		s.executor.CommitTransaction()
+		err = s.executor.CommitTransaction()
 	} else {
-		s.executor.RollbackTransaction()
+		err = s.executor.RollbackTransaction()
 	}
 
 	return

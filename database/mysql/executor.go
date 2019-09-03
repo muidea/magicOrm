@@ -62,7 +62,7 @@ func (s *Executor) Release() {
 }
 
 // BeginTransaction Begin Transaction
-func (s *Executor) BeginTransaction() {
+func (s *Executor) BeginTransaction() (err error) {
 	atomic.AddInt32(&s.dbTxCount, 1)
 	if s.dbTx == nil && s.dbTxCount == 1 {
 		if s.rowsHandle != nil {
@@ -70,50 +70,61 @@ func (s *Executor) BeginTransaction() {
 		}
 		s.rowsHandle = nil
 
-		tx, err := s.dbHandle.Begin()
-		if err != nil {
-			panic("begin transaction exception, err:" + err.Error())
+		tx, txErr := s.dbHandle.Begin()
+		if txErr != nil {
+			err = txErr
+			log.Printf("begin transaction failed, err:%s", err.Error())
+			return
 		}
 
 		s.dbTx = tx
 		//log.Print("BeginTransaction")
 	}
+
+	return
 }
 
 // CommitTransaction Commit Transaction
-func (s *Executor) CommitTransaction() {
+func (s *Executor) CommitTransaction() (err error) {
 	atomic.AddInt32(&s.dbTxCount, -1)
 	if s.dbTx != nil && s.dbTxCount == 0 {
-		err := s.dbTx.Commit()
+		err = s.dbTx.Commit()
 		if err != nil {
 			s.dbTx = nil
 
-			panic("commit transaction exception, err:" + err.Error())
+			log.Printf("commit transaction failed, err:%s", err.Error())
+			return
 		}
 
 		s.dbTx = nil
 		//log.Print("Commit")
 	}
+
+	return
 }
 
 // RollbackTransaction Rollback Transaction
-func (s *Executor) RollbackTransaction() {
+func (s *Executor) RollbackTransaction() (err error) {
 	atomic.AddInt32(&s.dbTxCount, -1)
 	if s.dbTx != nil && s.dbTxCount == 0 {
-		err := s.dbTx.Rollback()
+		err = s.dbTx.Rollback()
 		if err != nil {
 			s.dbTx = nil
 
-			panic("rollback transaction exception, err:" + err.Error())
+			log.Printf("rollback transaction failed, err:%s", err.Error())
+
+			return
 		}
 
 		s.dbTx = nil
 		//log.Print("Rollback")
 	}
+
+	return
 }
 
 // Query Query
-func (s *Executor) Query(sql string) {
+func (s *Executor) Query(sql string) (err error) {
 	//log.Printf("Query, sql:%s", sql)
 	if s.dbTx == nil {
 		if s.dbHandle == nil {
@@ -124,9 +135,11 @@ func (s *Executor) Query(sql string) {
 			s.rowsHandle = nil
 		}
 
-		rows, err := s.dbHandle.Query(sql)
-		if err != nil {
-			panic("query exception, err:" + err.Error() + ", sql:" + sql)
+		rows, rowErr := s.dbHandle.Query(sql)
+		if rowErr != nil {
+			err = rowErr
+			log.Printf("query failed, sql:%s, err:%s", sql, err.Error())
+			return
 		}
 		s.rowsHandle = rows
 	} else {
@@ -135,12 +148,17 @@ func (s *Executor) Query(sql string) {
 			s.rowsHandle = nil
 		}
 
-		rows, err := s.dbTx.Query(sql)
-		if err != nil {
-			panic("query exception, err:" + err.Error() + ", sql:" + sql)
+		rows, rowErr := s.dbTx.Query(sql)
+		if rowErr != nil {
+			err = rowErr
+			log.Printf("query failed, sql:%s, err:%s", sql, err.Error())
+			return
 		}
+
 		s.rowsHandle = rows
 	}
+
+	return
 }
 
 // Next Next
@@ -168,19 +186,21 @@ func (s *Executor) Finish() {
 }
 
 // GetField GetField
-func (s *Executor) GetField(value ...interface{}) {
+func (s *Executor) GetField(value ...interface{}) (err error) {
 	if s.rowsHandle == nil {
 		panic("rowsHandle is nil")
 	}
 
-	err := s.rowsHandle.Scan(value...)
+	err = s.rowsHandle.Scan(value...)
 	if err != nil {
-		panic("scan exception, err:" + err.Error())
+		log.Printf("scan failed, err:%s", err.Error())
 	}
+
+	return
 }
 
 // Insert Insert
-func (s *Executor) Insert(sql string) int64 {
+func (s *Executor) Insert(sql string) (ret int64, err error) {
 	if s.rowsHandle != nil {
 		s.rowsHandle.Close()
 	}
@@ -191,34 +211,45 @@ func (s *Executor) Insert(sql string) int64 {
 			panic("dbHandle is nil")
 		}
 
-		result, err := s.dbHandle.Exec(sql)
-		if err != nil {
-			panic("exec exception, err:" + err.Error() + ", sql:" + sql)
+		result, resultErr := s.dbHandle.Exec(sql)
+		if resultErr != nil {
+			err = resultErr
+			log.Printf("exec failed, sql:%s, err:%s", sql, err.Error())
+			return
 		}
 
-		idNum, err := result.LastInsertId()
-		if err != nil {
-			panic("insert failed exception, err:" + err.Error())
+		idNum, idErr := result.LastInsertId()
+		if idErr != nil {
+			err = idErr
+			log.Printf("get lastInsertId failed, sql:%s, err:%s", sql, err.Error())
+			return
 		}
+		ret = idNum
 
-		return idNum
+		return
 	}
 
-	result, err := s.dbTx.Exec(sql)
-	if err != nil {
-		panic("exec exception, err:" + err.Error() + ", sql:" + sql)
+	result, resultErr := s.dbTx.Exec(sql)
+	if resultErr != nil {
+		err = resultErr
+		log.Printf("exec failed, sql:%s, err:%s", sql, err.Error())
+		return
 	}
 
-	idNum, err := result.LastInsertId()
-	if err != nil {
-		panic("insert failed exception, err:" + err.Error())
+	idNum, idErr := result.LastInsertId()
+	if idErr != nil {
+		err = idErr
+		log.Printf("get lastInsertId failed, sql:%s, err:%s", sql, err.Error())
+		return
 	}
 
-	return idNum
+	ret = idNum
+
+	return
 }
 
 // Update Update
-func (s *Executor) Update(sql string) int64 {
+func (s *Executor) Update(sql string) (ret int64, err error) {
 	if s.rowsHandle != nil {
 		s.rowsHandle.Close()
 	}
@@ -229,34 +260,43 @@ func (s *Executor) Update(sql string) int64 {
 			panic("dbHandle is nil")
 		}
 
-		result, err := s.dbHandle.Exec(sql)
-		if err != nil {
-			panic("exec exception, err:" + err.Error() + ", sql:" + sql)
+		result, resultErr := s.dbHandle.Exec(sql)
+		if resultErr != nil {
+			err = resultErr
+			log.Printf("exec failed, sql:%s, err:%s", sql, err.Error())
+			return
 		}
 
-		num, err := result.RowsAffected()
-		if err != nil {
-			panic("rows affected exception, err:" + err.Error())
+		num, numErr := result.RowsAffected()
+		if numErr != nil {
+			err = numErr
+			log.Printf("get affected rows number failed, sql:%s, err:%s", sql, err.Error())
 		}
+		ret = num
 
-		return num
+		return
 	}
 
-	result, err := s.dbTx.Exec(sql)
-	if err != nil {
-		panic("exec exception, err:" + err.Error() + ", sql:" + sql)
+	result, resultErr := s.dbTx.Exec(sql)
+	if resultErr != nil {
+		err = resultErr
+		log.Printf("exec failed, sql:%s, err:%s", sql, err.Error())
+		return
 	}
 
-	num, err := result.RowsAffected()
-	if err != nil {
-		panic("rows affected exception, err:" + err.Error())
+	num, numErr := result.RowsAffected()
+	if numErr != nil {
+		err = numErr
+		log.Printf("get affected rows number failed, sql:%s, err:%s", sql, err.Error())
+		return
 	}
+	ret = num
 
-	return num
+	return
 }
 
 // Delete Delete
-func (s *Executor) Delete(sql string) int64 {
+func (s *Executor) Delete(sql string) (ret int64, err error) {
 	if s.rowsHandle != nil {
 		s.rowsHandle.Close()
 	}
@@ -267,34 +307,44 @@ func (s *Executor) Delete(sql string) int64 {
 			panic("dbHandle is nil")
 		}
 
-		result, err := s.dbHandle.Exec(sql)
-		if err != nil {
-			panic("exec exception, err:" + err.Error() + ", sql:" + sql)
+		result, resultErr := s.dbHandle.Exec(sql)
+		if resultErr != nil {
+			err = resultErr
+			log.Printf("exec failed, sql:%s, err:%s", sql, err.Error())
+			return
 		}
 
-		num, err := result.RowsAffected()
-		if err != nil {
-			panic("rows affected exception, err:" + err.Error())
+		num, numErr := result.RowsAffected()
+		if numErr != nil {
+			err = numErr
+			log.Printf("get affected rows number failed, sql:%s, err:%s", sql, err.Error())
+			return
 		}
+		ret = num
 
-		return num
+		return
 	}
 
-	result, err := s.dbTx.Exec(sql)
-	if err != nil {
-		panic("exec exception, err:" + err.Error() + ", sql:" + sql)
+	result, resultErr := s.dbTx.Exec(sql)
+	if resultErr != nil {
+		err = resultErr
+		log.Printf("exec failed, sql:%s, err:%s", sql, err.Error())
+		return
 	}
 
-	num, err := result.RowsAffected()
-	if err != nil {
-		panic("rows affected exception, err:" + err.Error())
+	num, numErr := result.RowsAffected()
+	if numErr != nil {
+		err = numErr
+		log.Printf("get affected rows number failed, sql:%s, err:%s", sql, err.Error())
+		return
 	}
+	ret = num
 
-	return num
+	return
 }
 
 // Execute Execute
-func (s *Executor) Execute(sql string) int64 {
+func (s *Executor) Execute(sql string) (ret int64, err error) {
 	if s.rowsHandle != nil {
 		s.rowsHandle.Close()
 	}
@@ -305,37 +355,51 @@ func (s *Executor) Execute(sql string) int64 {
 			panic("dbHandle is nil")
 		}
 
-		result, err := s.dbHandle.Exec(sql)
-		if err != nil {
-			panic("exec exception, err:" + err.Error() + ", sql:" + sql)
+		result, resultErr := s.dbHandle.Exec(sql)
+		if resultErr != nil {
+			err = resultErr
+			log.Printf("exec failed, sql:%s, err:%s", sql, err.Error())
+			return
 		}
 
-		num, err := result.RowsAffected()
-		if err != nil {
-			panic("rows affected exception, err:" + err.Error())
+		num, numErr := result.RowsAffected()
+		if numErr != nil {
+			err = numErr
+			log.Printf("get affected rows number failed, sql:%s, err:%s", sql, err.Error())
+			return
 		}
+		ret = num
 
-		return num
+		return
 	}
 
-	result, err := s.dbTx.Exec(sql)
-	if err != nil {
-		panic("exec exception, err:" + err.Error() + ", sql:" + sql)
+	result, resultErr := s.dbTx.Exec(sql)
+	if resultErr != nil {
+		err = resultErr
+		log.Printf("exec failed, sql:%s, err:%s", sql, err.Error())
+		return
 	}
 
-	num, err := result.RowsAffected()
-	if err != nil {
-		panic("rows affected exception, err:" + err.Error())
+	num, numErr := result.RowsAffected()
+	if numErr != nil {
+		err = numErr
+		log.Printf("get affected rows number failed, sql:%s, err:%s", sql, err.Error())
+		return
 	}
+	ret = num
 
-	return num
+	return
 }
 
 // CheckTableExist CheckTableExist
-func (s *Executor) CheckTableExist(tableName string) (ret bool) {
+func (s *Executor) CheckTableExist(tableName string) (ret bool, err error) {
 	sql := fmt.Sprintf("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_NAME ='%s' and TABLE_SCHEMA ='%s'", tableName, s.dbName)
 
-	s.Query(sql)
+	err = s.Query(sql)
+	if err != nil {
+		return
+	}
+
 	if s.Next() {
 		ret = true
 	} else {

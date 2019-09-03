@@ -33,24 +33,30 @@ func (s *Orm) UnregisterModel(entity interface{}) {
 }
 
 // BeginTransaction begin transaction
-func (s *Orm) BeginTransaction() {
+func (s *Orm) BeginTransaction() (err error) {
 	if s.executor != nil {
-		s.executor.BeginTransaction()
+		err = s.executor.BeginTransaction()
 	}
+
+	return
 }
 
 // CommitTransaction commit transaction
-func (s *Orm) CommitTransaction() {
+func (s *Orm) CommitTransaction() (err error) {
 	if s.executor != nil {
-		s.executor.CommitTransaction()
+		err = s.executor.CommitTransaction()
 	}
+
+	return
 }
 
 // RollbackTransaction rollbacktransaction
-func (s *Orm) RollbackTransaction() {
+func (s *Orm) RollbackTransaction() (err error) {
 	if s.executor != nil {
-		s.executor.RollbackTransaction()
+		err = s.executor.RollbackTransaction()
 	}
+
+	return
 }
 
 // NewQueryFilter new query filter

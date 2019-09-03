@@ -16,7 +16,11 @@ func (s *Orm) insertSingle(modelInfo model.Model) (err error) {
 		return err
 	}
 
-	id := s.executor.Insert(sql)
+	id, idErr := s.executor.Insert(sql)
+	if idErr != nil {
+		err = idErr
+		return
+	}
 	pk := modelInfo.GetPrimaryField()
 	if pk != nil {
 		err = pk.UpdateValue(reflect.ValueOf(id))
@@ -76,7 +80,10 @@ func (s *Orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 			return err
 		}
 
-		s.executor.Insert(relationSQL)
+		_, err = s.executor.Insert(relationSQL)
+		if err != nil {
+			return
+		}
 	}
 
 	return
@@ -92,7 +99,11 @@ func (s *Orm) Insert(entity interface{}) (err error) {
 		return
 	}
 
-	s.executor.BeginTransaction()
+	err = s.executor.BeginTransaction()
+	if err != nil {
+		return
+	}
+
 	for {
 		err = s.insertSingle(modelInfo)
 		if err != nil {
@@ -112,9 +123,9 @@ func (s *Orm) Insert(entity interface{}) (err error) {
 	}
 
 	if err == nil {
-		s.executor.CommitTransaction()
+		err = s.executor.CommitTransaction()
 	} else {
-		s.executor.RollbackTransaction()
+		err = s.executor.RollbackTransaction()
 	}
 
 	return

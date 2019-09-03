@@ -15,7 +15,7 @@ func (s *Orm) updateSingle(modelInfo model.Model) (err error) {
 		return err
 	}
 
-	s.executor.Update(sql)
+	_, err = s.executor.Update(sql)
 
 	return err
 }
@@ -54,7 +54,11 @@ func (s *Orm) Update(entity interface{}) (err error) {
 		return
 	}
 
-	s.executor.BeginTransaction()
+	err = s.executor.BeginTransaction()
+	if err != nil {
+		return
+	}
+
 	for {
 		err = s.updateSingle(modelInfo)
 		if err != nil {
@@ -72,9 +76,9 @@ func (s *Orm) Update(entity interface{}) (err error) {
 	}
 
 	if err == nil {
-		s.executor.CommitTransaction()
+		err = s.executor.CommitTransaction()
 	} else {
-		s.executor.RollbackTransaction()
+		err = s.executor.RollbackTransaction()
 	}
 
 	return

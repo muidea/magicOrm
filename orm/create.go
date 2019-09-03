@@ -12,7 +12,13 @@ func (s *Orm) createSchema(modelInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	tableName := builder.GetTableName()
 
-	if !s.executor.CheckTableExist(tableName) {
+	existFlag, existErr := s.executor.CheckTableExist(tableName)
+	if existErr != nil {
+		err = existErr
+		return
+	}
+
+	if !existFlag {
 		// no exist
 		sql, err := builder.BuildCreateSchema()
 		if err != nil {
@@ -20,7 +26,7 @@ func (s *Orm) createSchema(modelInfo model.Model) (err error) {
 			return err
 		}
 
-		s.executor.Execute(sql)
+		_, err = s.executor.Execute(sql)
 	}
 
 	return
@@ -30,14 +36,19 @@ func (s *Orm) createRelationSchema(modelInfo model.Model, fieldName string, rela
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	tableName := builder.GetRelationTableName(fieldName, relationInfo)
 
-	if !s.executor.CheckTableExist(tableName) {
+	existFlag, existErr := s.executor.CheckTableExist(tableName)
+	if existErr != nil {
+		err = existErr
+		return
+	}
+	if !existFlag {
 		// no exist
 		sql, err := builder.BuildCreateRelationSchema(fieldName, relationInfo)
 		if err != nil {
 			return err
 		}
 
-		s.executor.Execute(sql)
+		_, err = s.executor.Execute(sql)
 	}
 
 	return
@@ -94,12 +105,17 @@ func (s *Orm) Create(entity interface{}) (err error) {
 		return
 	}
 
-	s.executor.BeginTransaction()
+	err = s.executor.BeginTransaction()
+	if err != nil {
+		return
+	}
+
 	err = s.batchCreateSchema(modelInfo)
 	if err == nil {
-		s.executor.CommitTransaction()
+		err = s.executor.CommitTransaction()
 	} else {
-		s.executor.RollbackTransaction()
+		err = s.executor.RollbackTransaction()
 	}
+
 	return
 }
