@@ -9,7 +9,7 @@ import (
 
 func TestLocalGroup(t *testing.T) {
 	//orm.Initialize("root", "rootkit", "localhost:9696", "testdb")
-	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", true)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
 	defer orm.Uninitialize()
 
 	group1 := &Group{Name: "testGroup1"}
@@ -91,7 +91,7 @@ func TestLocalGroup(t *testing.T) {
 }
 
 func TestLocalUser(t *testing.T) {
-	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", true)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
 	defer orm.Uninitialize()
 
 	status := &Status{Value: 10}
@@ -234,7 +234,7 @@ func TestLocalUser(t *testing.T) {
 }
 
 func TestLoalSystem(t *testing.T) {
-	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", true)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
 	defer orm.Uninitialize()
 
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
@@ -334,7 +334,7 @@ func TestLoalSystem(t *testing.T) {
 }
 
 func TestLocalBatchQuery(t *testing.T) {
-	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", true)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
 	defer orm.Uninitialize()
 
 	status := &Status{Value: 10}

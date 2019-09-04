@@ -16,7 +16,7 @@ func registerMode(orm orm.Orm, objList []interface{}) {
 
 func TestLocalExecutor(t *testing.T) {
 
-	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", true)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
 	defer orm.Uninitialize()
 
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
@@ -79,7 +79,7 @@ func TestLocalExecutor(t *testing.T) {
 }
 
 func TestLocalDepends(t *testing.T) {
-	orm.Initialize("root", "rootkit", "localhost:3306", "testdb", true)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
 	defer orm.Uninitialize()
 
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)

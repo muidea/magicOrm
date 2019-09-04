@@ -11,34 +11,67 @@ import (
 
 // Executor Executor
 type Executor struct {
+	connectStr string
 	dbHandle   *sql.DB
 	dbTxCount  int32
 	dbTx       *sql.Tx
 	rowsHandle *sql.Rows
 	dbName     string
+
+	pool *Pool
 }
 
-// Fetch 获取一个数据访问对象
-func Fetch(user, password, address, dbName string) (*Executor, error) {
+// NewExecutor 新建一个数据访问对象
+func NewExecutor(user, password, address, dbName string) (ret *Executor, err error) {
 	connectStr := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8", user, password, address, dbName)
 
-	i := Executor{dbHandle: nil, dbTx: nil, rowsHandle: nil, dbName: dbName}
-	db, err := sql.Open("mysql", connectStr)
+	ret = &Executor{connectStr: connectStr, dbHandle: nil, dbTx: nil, rowsHandle: nil, dbName: dbName}
+	return
+}
+
+// FetchExecutor 获取一个数据访问对象
+func FetchExecutor(user, password, address, dbName string) (ret *Executor, err error) {
+	connectStr := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8", user, password, address, dbName)
+
+	i := &Executor{connectStr: connectStr, dbHandle: nil, dbTx: nil, rowsHandle: nil, dbName: dbName}
+	err = i.Connect()
+	if err != nil {
+		return
+	}
+	ret = i
+
+	return
+}
+
+// Connect connect database
+func (s *Executor) Connect() (err error) {
+	db, err := sql.Open("mysql", s.connectStr)
 	if err != nil {
 		log.Printf("open database exception, err:%s", err.Error())
-		return nil, err
+		return err
 	}
 
 	//log.Print("open database connection...")
-	i.dbHandle = db
+	s.dbHandle = db
 
 	err = db.Ping()
 	if err != nil {
 		log.Printf("ping database failed, err:%s", err.Error())
-		return nil, err
+		return err
 	}
 
-	return &i, err
+	s.dbHandle = db
+	return
+}
+
+// Ping ping connection
+func (s *Executor) Ping() (err error) {
+	err = s.dbHandle.Ping()
+	if err != nil {
+		log.Printf("ping database failed, err:%s", err.Error())
+	}
+
+	return
 }
 
 // Release Release
@@ -52,13 +85,17 @@ func (s *Executor) Release() {
 	}
 	s.rowsHandle = nil
 
-	if s.dbHandle != nil {
-		//log.Print("close database connection...")
+	if s.pool == nil {
+		if s.dbHandle != nil {
+			//log.Print("close database connection...")
 
-		s.dbHandle.Close()
+			s.dbHandle.Close()
+		}
+		s.dbHandle = nil
+		return
 	}
-	s.dbHandle = nil
 
+	s.pool.PutIn(s)
 }
 
 // BeginTransaction Begin Transaction
@@ -406,6 +443,154 @@ func (s *Executor) CheckTableExist(tableName string) (ret bool, err error) {
 		ret = false
 	}
 	s.Finish()
+
+	return
+}
+
+const (
+	initConnCount     = 16
+	defaultMaxConnNum = 1024
+)
+
+// Pool executorPool
+type Pool struct {
+	cacheExecutor chan *Executor
+	idleExecutor  chan *Executor
+}
+
+// NewPool new pool
+func NewPool() *Pool {
+	return &Pool{}
+}
+
+// Initialize initialize executor pool
+func (s *Pool) Initialize(maxConnNum int, user, password, address, dbName string) (err error) {
+	initConnNum := 0
+	if 0 < maxConnNum {
+		if maxConnNum < 16 {
+			initConnNum = maxConnNum
+		} else {
+			initConnNum = maxConnNum / 4
+		}
+	} else {
+		maxConnNum = defaultMaxConnNum
+		initConnNum = initConnCount
+	}
+
+	s.cacheExecutor = make(chan *Executor, initConnNum)
+	if maxConnNum-initConnNum > 0 {
+		s.idleExecutor = make(chan *Executor, maxConnNum-initConnNum)
+	}
+
+	for idx := 0; idx < maxConnNum; idx++ {
+		if idx < initConnNum {
+			executor, executorErr := FetchExecutor(user, password, address, dbName)
+			if executorErr == nil {
+				executor.pool = s
+				s.cacheExecutor <- executor
+			} else {
+				err = executorErr
+				return
+			}
+
+			continue
+		}
+
+		executor, executorErr := NewExecutor(user, password, address, dbName)
+		if executorErr == nil {
+			executor.pool = s
+			s.idleExecutor <- executor
+		} else {
+			err = executorErr
+			return
+		}
+	}
+
+	return
+}
+
+// Uninitialize uninitialize executor pool
+func (s *Pool) Uninitialize() {
+	close(s.cacheExecutor)
+	close(s.idleExecutor)
+}
+
+// FetchOut fetchOut Executor
+func (s *Pool) FetchOut() (ret *Executor, err error) {
+	executor, executorErr := s.getExecutorFromCache(false)
+	if executorErr != nil {
+		err = executorErr
+		return
+	}
+	if executor == nil {
+		executor, executorErr = s.getExecutorFromIdle()
+		if executorErr != nil {
+			err = executorErr
+			return
+		}
+	}
+
+	if executor == nil {
+		executor, executorErr = s.getExecutorFromCache(true)
+		if executorErr != nil {
+			err = executorErr
+			return
+		}
+	}
+
+	ret = executor
+
+	return
+}
+
+// PutIn putIn Executor
+func (s *Pool) PutIn(val *Executor) {
+	err := val.Ping()
+	if err != nil {
+		val.dbHandle.Close()
+		val.dbHandle = nil
+		//val.dbTx = nil
+		//val.rowsHandle = nil
+		//val.dbTxCount = 0
+
+		s.idleExecutor <- val
+	} else {
+		s.cacheExecutor <- val
+	}
+}
+
+func (s *Pool) getExecutorFromCache(blockFlag bool) (ret *Executor, err error) {
+	if !blockFlag {
+		val, ok := <-s.cacheExecutor
+		if ok {
+			err = val.Ping()
+			if err == nil {
+				ret = val
+			}
+		}
+
+		return
+	}
+
+	val := <-s.cacheExecutor
+	err = val.Ping()
+	if err == nil {
+		ret = val
+	}
+
+	return
+}
+
+func (s *Pool) getExecutorFromIdle() (ret *Executor, err error) {
+	val, ok := <-s.idleExecutor
+	if ok {
+		err = val.Connect()
+		if err == nil {
+			ret = val
+		}
+
+		return
+	}
 
 	return
 }

@@ -40,12 +40,14 @@ type orm struct {
 }
 
 // Initialize InitOrm
-func Initialize(user, password, address, dbName string, localProvider bool) error {
+func Initialize(maxConnNum int, user, password, address, dbName string, localProvider bool) error {
 	cfg := &serverConfig{user: user, password: password, address: address, dbName: dbName}
 
 	_config = newConfig(localProvider)
 
 	_config.updateServerConfig(cfg)
+
+	executor.InitializePool(maxConnNum, user, password, address, dbName)
 
 	return nil
 }
@@ -53,6 +55,8 @@ func Initialize(user, password, address, dbName string, localProvider bool) erro
 // Uninitialize Uninitialize orm
 func Uninitialize() {
 	_config = nil
+
+	executor.UninitializePool()
 }
 
 // New create new Orm
@@ -63,6 +67,16 @@ func New() (Orm, error) {
 	}
 
 	executor, err := executor.NewExecutor(cfg.user, cfg.password, cfg.address, cfg.dbName)
+	if err != nil {
+		return nil, err
+	}
+
+	return &orm{executor: executor, ownerOrmImplMap: map[string]*ormImpl.Orm{}}, nil
+}
+
+// Get get orm from pool
+func Get() (Orm, error) {
+	executor, err := executor.GetExecutor()
 	if err != nil {
 		return nil, err
 	}
