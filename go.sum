@@ -1,4 +1,0 @@
-github.com/go-sql-driver/mysql v1.5.0 h1:ozyZYNQW3x3HtqT1jira07DN2PArx2v7/mN66gGcHOs=
-github.com/go-sql-driver/mysql v1.5.0/go.mod h1:DCzpHaOWr8IXmIStZouvnhqoel9Qv2LBy8hT2VhHyBg=
-github.com/muidea/magicCommon v0.0.0-20200218080600-438d60187ba1 h1:vEy0KHcgAFvDhDjmsIwYhWOxPzc8Oi13g3PPbGvt3XU=
-github.com/muidea/magicCommon v0.0.0-20200218080600-438d60187ba1/go.mod h1:sPlk8MNlT7F03KXGzakrtQ2lkbRXRLgSE7O7C0cmCnY=
