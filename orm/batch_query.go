@@ -51,7 +51,7 @@ func (s *Orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 		}
 
 		err = s.executor.GetField(modelItems...)
-		if err !=nil{
+		if err != nil {
 			return
 		}
 

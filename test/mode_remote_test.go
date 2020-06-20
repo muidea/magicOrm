@@ -52,7 +52,7 @@ func getSliceObjectPtrValue(val interface{}) (ret *remote.SliceObjectPtrValue, e
 
 func TestRemoteGroup(t *testing.T) {
 	//orm.Initialize("root", "rootkit", "localhost:9696", "testdb")
-	orm.Initialize(50,"root", "rootkit", "localhost:3306", "testdb", false)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", false)
 	defer orm.Uninitialize()
 
 	status := &Status{Value: 10}
@@ -259,7 +259,7 @@ func TestRemoteUser(t *testing.T) {
 		return
 	}
 
-	orm.Initialize(50,"root", "rootkit", "localhost:3306", "testdb", false)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", false)
 	defer orm.Uninitialize()
 
 	o1, err := orm.New()
@@ -484,7 +484,7 @@ func TestRemoteUser(t *testing.T) {
 }
 
 func TestRemoteSystem(t *testing.T) {
-	orm.Initialize(50,"root", "rootkit", "localhost:3306", "testdb", false)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", false)
 	defer orm.Uninitialize()
 
 	status := &Status{Value: 10}
@@ -694,7 +694,7 @@ func TestRemoteSystem(t *testing.T) {
 }
 
 func TestRemoteBatchQuery(t *testing.T) {
-	orm.Initialize(50,"root", "rootkit", "localhost:3306", "testdb", false)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", false)
 	defer orm.Uninitialize()
 
 	status := &Status{Value: 10}
@@ -944,7 +944,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 }
 
 func TestRemoteBatchQueryPtr(t *testing.T) {
-	orm.Initialize(50,"root", "rootkit", "localhost:3306", "testdb", false)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", false)
 	defer orm.Uninitialize()
 
 	status := &Status{Value: 10}

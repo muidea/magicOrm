@@ -7,7 +7,7 @@ import (
 )
 
 func TestKPI(t *testing.T) {
-	orm.Initialize(50,"root", "rootkit", "localhost:3306", "testdb", true)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
 	defer orm.Uninitialize()
 
 	o1, err := orm.New()
