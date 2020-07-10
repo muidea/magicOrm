@@ -36,7 +36,7 @@ func (s *Orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 		return
 	}
 
-	queryList := []resultItems{}
+	var queryList []resultItems
 	err = s.executor.Query(sql)
 	if err != nil {
 		return

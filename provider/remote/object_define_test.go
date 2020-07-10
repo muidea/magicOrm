@@ -105,7 +105,7 @@ func TestExtObjInfo(t *testing.T) {
 	}
 
 	eInfo := Object{}
-	json.Unmarshal(data, &eInfo)
+	err = json.Unmarshal(data, &eInfo)
 	if err != nil {
 		t.Errorf("unmarshal ext failed, err:%s", err.Error())
 		return
