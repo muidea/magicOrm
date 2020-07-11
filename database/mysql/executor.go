@@ -511,8 +511,15 @@ func (s *Pool) Initialize(maxConnNum int, user, password, address, dbName string
 
 // Uninitialize uninitialize executor pool
 func (s *Pool) Uninitialize() {
-	close(s.cacheExecutor)
-	close(s.idleExecutor)
+	if s.cacheExecutor != nil {
+		close(s.cacheExecutor)
+		s.cacheExecutor = nil
+	}
+
+	if s.idleExecutor != nil {
+		close(s.idleExecutor)
+		s.idleExecutor = nil
+	}
 }
 
 // FetchOut fetchOut Executor
