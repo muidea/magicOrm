@@ -114,4 +114,45 @@ func TestAssignValue(t *testing.T) {
 		t.Errorf("assign int to string failed, convert unexpect")
 		return
 	}
+
+	strVal = "12.345"
+	iReflectVal = reflect.ValueOf(&iVal).Elem()
+	bReflectVal = reflect.ValueOf(&bVal).Elem()
+	fReflectVal = reflect.ValueOf(&fVal).Elem()
+	strReflectVal = reflect.ValueOf(strVal)
+	fReflectVal, err = AssignValue(strReflectVal, fReflectVal)
+	if err != nil {
+		t.Errorf("assign string to float failed,err:%s", err.Error())
+		return
+	}
+	if fVal != 12.345 {
+		t.Errorf("assign string to float failed, convert unexpect")
+		return
+	}
+
+	strVal = "1"
+	bReflectVal = reflect.ValueOf(&bVal).Elem()
+	strReflectVal = reflect.ValueOf(strVal)
+	bReflectVal, err = AssignValue(strReflectVal, bReflectVal)
+	if err != nil {
+		t.Errorf("assign string to bool failed,err:%s", err.Error())
+		return
+	}
+	if !bVal {
+		t.Errorf("assign string to bool failed, convert unexpect")
+		return
+	}
+
+	strVal = "12345"
+	iReflectVal = reflect.ValueOf(&iVal).Elem()
+	strReflectVal = reflect.ValueOf(strVal)
+	iReflectVal, err = AssignValue(strReflectVal, iReflectVal)
+	if err != nil {
+		t.Errorf("assign string to int failed,err:%s", err.Error())
+		return
+	}
+	if iVal != 12345 {
+		t.Errorf("assign string to int failed, convert unexpect")
+		return
+	}
 }

@@ -68,7 +68,7 @@ func AssignValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.Value,
 			if iErr == nil {
 				toVal.SetInt(int64(iVal))
 			} else {
-				err = fmt.Errorf("illegal int value, fromVal:%v", fromVal.String())
+				err = fmt.Errorf("illegal int value, fromVal:%v, err:%s", fromVal.String(), iErr.Error())
 			}
 		default:
 			err = fmt.Errorf("illegal int value, fromVal type:%s, fromVal:%v", fromVal.Type().String(), fromVal.Interface())
@@ -86,7 +86,7 @@ func AssignValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.Value,
 			if iErr == nil {
 				toVal.SetUint(uint64(iVal))
 			} else {
-				err = fmt.Errorf("illegal uint value, fromVal:%v", fromVal.String())
+				err = fmt.Errorf("illegal uint value, fromVal:%v, err:%s", fromVal.String(), iErr.Error())
 			}
 		default:
 			err = fmt.Errorf("illegal uint value, fromVal type:%s, fromVal:%v", fromVal.Type().String(), fromVal.Interface())
@@ -104,7 +104,7 @@ func AssignValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.Value,
 			if fErr == nil {
 				toVal.SetFloat(fVal)
 			} else {
-				err = fmt.Errorf("illegal float value, fromVal:%v", fromVal.String())
+				err = fmt.Errorf("illegal float value, fromVal:%v, err:%s", fromVal.String(), fErr.Error())
 			}
 		default:
 			err = fmt.Errorf("illegal float value, fromVal type:%s, fromVal:%v", fromVal.Type().String(), fromVal.Interface())
