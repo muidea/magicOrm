@@ -332,7 +332,7 @@ func getSliceStructValue(val reflect.Value, cache Cache) (ret string, err error)
 		return
 	}
 
-	sliceVal := []string{}
+	var sliceVal []string
 	for idx := 0; idx < val.Len(); idx++ {
 		v := val.Index(idx)
 

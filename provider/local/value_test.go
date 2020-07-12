@@ -8,12 +8,12 @@ import (
 
 func TestGetValueStr(t *testing.T) {
 	iVal := int(123)
-	fiType, fiErr := newType(reflect.TypeOf(&iVal))
+	fiType, fiErr := newType(reflect.TypeOf(iVal))
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 		return
 	}
-	fiVal, fiErr := newValue(reflect.ValueOf(&iVal))
+	fiVal, fiErr := newValue(reflect.ValueOf(iVal))
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 		return
@@ -25,12 +25,12 @@ func TestGetValueStr(t *testing.T) {
 	}
 
 	fVal := 12.34
-	ffType, ffErr := newType(reflect.TypeOf(&fVal))
+	ffType, ffErr := newType(reflect.TypeOf(fVal))
 	if ffErr != nil {
 		t.Errorf("%s", ffErr.Error())
 		return
 	}
-	ffVal, ffErr := newValue(reflect.ValueOf(&fVal))
+	ffVal, ffErr := newValue(reflect.ValueOf(fVal))
 	if ffErr != nil {
 		t.Errorf("%s", ffErr.Error())
 		return
@@ -41,13 +41,13 @@ func TestGetValueStr(t *testing.T) {
 	}
 
 	strVal := "abc"
-	fstrType, fstrErr := newType(reflect.TypeOf(&strVal))
+	fstrType, fstrErr := newType(reflect.TypeOf(strVal))
 	if fstrErr != nil {
 		t.Errorf("%s", fstrErr.Error())
 		return
 	}
 
-	fstrVal, fstrErr := newValue(reflect.ValueOf(&strVal))
+	fstrVal, fstrErr := newValue(reflect.ValueOf(strVal))
 	if fstrErr != nil {
 		t.Errorf("%s", fstrErr.Error())
 		return
@@ -59,13 +59,13 @@ func TestGetValueStr(t *testing.T) {
 	}
 
 	bVal := true
-	fbType, fbErr := newType(reflect.TypeOf(&bVal))
+	fbType, fbErr := newType(reflect.TypeOf(bVal))
 	if fbErr != nil {
 		t.Errorf("%s", fbErr.Error())
 		return
 	}
 
-	fbVal, fbErr := newValue(reflect.ValueOf(&bVal))
+	fbVal, fbErr := newValue(reflect.ValueOf(bVal))
 	if fbErr != nil {
 		t.Errorf("%s", fbErr.Error())
 		return
@@ -77,12 +77,12 @@ func TestGetValueStr(t *testing.T) {
 	}
 
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05", "2018-01-02 15:04:05", time.Local)
-	ftimeType, ftimeErr := newType(reflect.TypeOf(&now))
+	ftimeType, ftimeErr := newType(reflect.TypeOf(now))
 	if ftimeErr != nil {
 		t.Errorf("%s", ftimeErr.Error())
 		return
 	}
-	ftimeVal, ftimeErr := newValue(reflect.ValueOf(&now))
+	ftimeVal, ftimeErr := newValue(reflect.ValueOf(now))
 	if ftimeErr != nil {
 		t.Errorf("%s", ftimeErr.Error())
 		return
@@ -95,12 +95,12 @@ func TestGetValueStr(t *testing.T) {
 	ii := 123
 	var iiVal int
 	iiVal = ii
-	fiType, fiErr = newType(reflect.TypeOf(&iiVal))
+	fiType, fiErr = newType(reflect.TypeOf(iiVal))
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 		return
 	}
-	fiVal, fiErr = newValue(reflect.ValueOf(&iiVal))
+	fiVal, fiErr = newValue(reflect.ValueOf(iiVal))
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 		return
@@ -219,6 +219,7 @@ func TestPtr(t *testing.T) {
 	var iVal *int
 
 	iVal = &jj
+	reVal := &ii
 	fiType, fiErr := newType(reflect.TypeOf(&iVal).Elem())
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
@@ -230,7 +231,7 @@ func TestPtr(t *testing.T) {
 		return
 	}
 
-	err := fiVal.Update(reflect.ValueOf(&ii).Elem())
+	err := fiVal.Update(reflect.ValueOf(reVal))
 	if err != nil {
 		t.Errorf("%s", err.Error())
 		return

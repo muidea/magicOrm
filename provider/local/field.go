@@ -54,6 +54,7 @@ func (s *fieldImpl) IsAssigned() (ret bool) {
 	if s.fieldValue.IsNil() {
 		return
 	}
+
 	currentVal := s.fieldValue.Get()
 	if s.fieldType.IsPtrType() {
 		currentVal = reflect.Indirect(currentVal)

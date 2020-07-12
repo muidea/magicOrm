@@ -127,7 +127,7 @@ func ConvertValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.Value
 		case reflect.String:
 			toVal.SetString(fromVal.String())
 		case reflect.Slice:
-			array := []string{}
+			var array []string
 			for idx := 0; idx < fromVal.Len(); idx++ {
 				str := ""
 				val := reflect.ValueOf(str)
@@ -184,7 +184,7 @@ func ConvertSliceValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.
 
 	fromVal = reflect.Indirect(fromVal)
 	if fromVal.Kind() == reflect.String {
-		array := []string{}
+		var array []string
 		err = json.Unmarshal([]byte(fromVal.String()), &array)
 		if err != nil {
 			err = fmt.Errorf("unmarshal to slice failed,err:%s", err.Error())

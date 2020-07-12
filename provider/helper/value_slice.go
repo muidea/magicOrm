@@ -12,7 +12,7 @@ import (
 
 // EncodeSliceValue get slice value str
 func EncodeSliceValue(val reflect.Value) (ret string, err error) {
-	valSlice := []string{}
+	var valSlice []string
 
 	val = reflect.Indirect(val)
 	if val.Kind() == reflect.Interface {
