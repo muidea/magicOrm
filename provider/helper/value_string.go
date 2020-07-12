@@ -36,7 +36,7 @@ func DecodeStringValue(val string, vType model.Type) (ret reflect.Value, err err
 	}
 
 	ret = reflect.Indirect(vType.Interface())
-	ret, err = ConvertValue(reflect.ValueOf(val), ret)
+	ret, err = AssignValue(reflect.ValueOf(val), ret)
 
 	if err != nil {
 		if vType.IsPtrType() {

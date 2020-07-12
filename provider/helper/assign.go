@@ -10,12 +10,17 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
-// ConvertValue convert interface{} to reflect.Value
-func ConvertValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.Value, err error) {
+// AssignValue assign interface{} to reflect.Value
+// fromVal -> toVal
+// fromVal -> *toVal
+func AssignValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.Value, err error) {
 	if util.IsNil(fromVal) {
 		ret = toVal
 		return
 	}
+
+	isPtr := toVal.Kind() == reflect.Ptr
+	toVal = reflect.Indirect(toVal)
 
 	if fromVal.Kind() == reflect.Interface {
 		fromVal = fromVal.Elem()
@@ -131,7 +136,7 @@ func ConvertValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.Value
 			for idx := 0; idx < fromVal.Len(); idx++ {
 				str := ""
 				val := reflect.ValueOf(str)
-				val, err = ConvertValue(fromVal.Index(idx), val)
+				val, err = AssignValue(fromVal.Index(idx), val)
 				if err != nil {
 					err = fmt.Errorf("convert to string failed, err:%s", err.Error())
 					return
@@ -161,22 +166,35 @@ func ConvertValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.Value
 			err = fmt.Errorf("illegal datetime value, fromVal type:%s, fromVal:%v", fromVal.Type().String(), fromVal.Interface())
 		}
 	case reflect.Slice:
-		toVal, err = ConvertSliceValue(fromVal, toVal)
+		toVal, err = AssignSliceValue(fromVal, toVal)
 	default:
 		err = fmt.Errorf("illegal field type, fromVal type:%s, fromVal:%v", fromVal.Type().String(), fromVal.Interface())
 	}
 
-	ret = toVal
+	if err != nil {
+		return
+	}
 
+	if isPtr {
+		ret = toVal.Addr()
+		return
+	}
+
+	ret = toVal
 	return
 }
 
-// ConvertSliceValue convert interface{} slice to reflect.Value
-func ConvertSliceValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.Value, err error) {
+// AssignSliceValue assign interface{} slice to reflect.Value
+// fromSliceVal -> toSliceVal
+// fromVal -> *toSliceVal
+func AssignSliceValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.Value, err error) {
 	if util.IsNil(fromVal) {
 		ret = toVal
 		return
 	}
+
+	isPtr := toVal.Kind() == reflect.Ptr
+	toVal = reflect.Indirect(toVal)
 
 	if fromVal.Kind() == reflect.Interface {
 		fromVal = fromVal.Elem()
@@ -204,7 +222,7 @@ func ConvertSliceValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.
 	for idx := 0; idx < fromVal.Len(); idx++ {
 		v := fromVal.Index(idx)
 		iv := reflect.New(vType).Elem()
-		iv, err = ConvertValue(v, iv)
+		iv, err = AssignValue(v, iv)
 		if err != nil {
 			return
 		}
@@ -214,7 +232,11 @@ func ConvertSliceValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.
 
 	toVal.Set(itemSlice)
 
-	ret = toVal
+	if isPtr {
+		ret = toVal.Addr()
+		return
+	}
 
+	ret = toVal
 	return
 }

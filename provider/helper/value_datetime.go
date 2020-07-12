@@ -55,7 +55,7 @@ func DecodeDateTimeValue(val string, vType model.Type) (ret reflect.Value, err e
 		val = "0001-01-01 00:00:00"
 	}
 	ret = reflect.Indirect(vType.Interface())
-	ret, err = ConvertValue(reflect.ValueOf(val), ret)
+	ret, err = AssignValue(reflect.ValueOf(val), ret)
 
 	if err != nil {
 		if vType.IsPtrType() {

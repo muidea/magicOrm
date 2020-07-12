@@ -156,7 +156,7 @@ func DecodeSliceValue(val string, vType model.Type) (ret reflect.Value, err erro
 	}
 
 	ret = reflect.Indirect(vType.Interface())
-	ret, err = ConvertSliceValue(reflect.ValueOf(val), ret)
+	ret, err = AssignSliceValue(reflect.ValueOf(val), ret)
 
 	if err != nil {
 		if vType.IsPtrType() {
