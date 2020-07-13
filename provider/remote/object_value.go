@@ -46,7 +46,7 @@ func (s *ObjectValue) GetName() string {
 	return s.TypeName
 }
 
-// GetPkgPath get pkgpath
+// GetPkgPath get pkg path
 func (s *ObjectValue) GetPkgPath() string {
 	return s.PkgPath
 }
@@ -58,6 +58,7 @@ func (s *ObjectValue) IsPtrValue() bool {
 
 // IsAssigned is assigned value
 func (s *ObjectValue) IsAssigned() (ret bool) {
+	ret = false
 	for _, val := range s.Items {
 		if val.Value == nil {
 			continue
@@ -138,7 +139,7 @@ func (s *SliceObjectValue) GetName() string {
 	return s.TypeName
 }
 
-// GetPkgPath get pkgpath
+// GetPkgPath get pkg path
 func (s *SliceObjectValue) GetPkgPath() string {
 	return s.PkgPath
 }
@@ -153,7 +154,7 @@ func (s *SliceObjectPtrValue) GetName() string {
 	return s.TypeName
 }
 
-// GetPkgPath get pkgpath
+// GetPkgPath get pkg path
 func (s *SliceObjectPtrValue) GetPkgPath() string {
 	return s.PkgPath
 }
@@ -206,7 +207,7 @@ func getItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.Value
 }
 
 func getSliceItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.Value) (ret *ItemValue, err error) {
-	sliceVal := []interface{}{}
+	var sliceVal []interface{}
 	ret = &ItemValue{Name: fieldName}
 	if util.IsNil(fieldValue) {
 		return
@@ -423,12 +424,12 @@ func convertStructValue(objectValue reflect.Value, entityValue reflect.Value) (r
 		dependType := itemType.Depend()
 		if dependType == nil || util.IsBasicType(dependType.GetValue()) {
 			if itemType.GetValue() != util.TypeSliceField {
-				fieldValue, err = helper.ConvertValue(itemValue, fieldValue)
+				fieldValue, err = helper.AssignValue(itemValue, fieldValue)
 				if err != nil {
 					return
 				}
 			} else {
-				fieldValue, err = helper.ConvertSliceValue(itemValue, fieldValue)
+				fieldValue, err = helper.AssignSliceValue(itemValue, fieldValue)
 				if err != nil {
 					return
 				}
@@ -493,7 +494,7 @@ func convertSliceValue(sliceObj reflect.Value, sliceVal reflect.Value) (ret refl
 				return
 			}
 		} else {
-			itemVal, err = helper.ConvertValue(itemObj, itemVal)
+			itemVal, err = helper.AssignValue(itemObj, itemVal)
 			if err != nil {
 				return
 			}
@@ -553,13 +554,13 @@ func updateEntity(objectValue *ObjectValue, entityValue reflect.Value) (err erro
 		dependType := itemType.Depend()
 		if dependType == nil || util.IsBasicType(dependType.GetValue()) {
 			if itemType.GetValue() != util.TypeSliceField {
-				fieldValue, err = helper.ConvertValue(itemValue, fieldValue)
+				fieldValue, err = helper.AssignValue(itemValue, fieldValue)
 				if err != nil {
 					log.Printf("convert basic field value failed, name:%s, err:%s", itemType.GetName(), err.Error())
 					return
 				}
 			} else {
-				fieldValue, err = helper.ConvertSliceValue(itemValue, fieldValue)
+				fieldValue, err = helper.AssignSliceValue(itemValue, fieldValue)
 				if err != nil {
 					log.Printf("convert basic slice field value failed, name:%s, err:%s", itemType.GetName(), err.Error())
 					return

@@ -46,6 +46,19 @@ func TestModel(t *testing.T) {
 		return
 	}
 
+	testInfo, testErr := getValueModel(test, cache)
+	if testErr != nil {
+		t.Errorf("getValueModel failed, err:%s", testErr.Error())
+		return
+	}
+	fields := testInfo.GetFields()
+	for _, val := range fields {
+		if val.IsAssigned() {
+			t.Errorf("invalid filed,name:%s", val.GetName())
+			return
+		}
+	}
+
 	val := reflect.ValueOf(&Unit{T1: Test{ID: 12, Val: 123}, TimeStamp: now})
 	err = registerModel(val.Type().Elem(), cache)
 	if err != nil {
@@ -64,7 +77,7 @@ func TestModel(t *testing.T) {
 		return
 	}
 
-	fields := modelInfo.GetFields()
+	fields = modelInfo.GetFields()
 	if len(fields) != 5 {
 		t.Errorf("get value Model failed")
 		return

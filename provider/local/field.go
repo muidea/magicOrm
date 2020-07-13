@@ -2,13 +2,10 @@ package local
 
 import (
 	"fmt"
+	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/util"
 	"log"
 	"reflect"
-	"time"
-
-	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/helper"
-	"github.com/muidea/magicOrm/util"
 )
 
 // fieldImpl single field impl
@@ -56,15 +53,7 @@ func (s *fieldImpl) IsAssigned() (ret bool) {
 	}
 
 	currentVal := s.fieldValue.Get()
-	if s.fieldType.IsPtrType() {
-		currentVal = reflect.Indirect(currentVal)
-	}
-	if util.IsNil(currentVal) {
-		return
-	}
-
-	//currentVal = reflect.Indirect(currentVal)
-	originVal := reflect.New(currentVal.Type()).Elem()
+	originVal := s.fieldType.Interface()
 	sameVal, sameErr := util.IsSameVal(originVal, currentVal)
 	if sameErr != nil {
 		log.Printf("compare value failed, err:%s", sameErr.Error())
@@ -83,104 +72,7 @@ func (s *fieldImpl) SetValue(val reflect.Value) (err error) {
 }
 
 func (s *fieldImpl) UpdateValue(val reflect.Value) (err error) {
-	val = reflect.Indirect(val)
-	valType, valErr := newType(val.Type())
-	if valErr != nil {
-		err = valErr
-		return
-	}
-
-	typeVal := valType.GetValue()
-	fieldVal := reflect.Indirect(s.fieldType.Interface())
-	switch s.fieldType.GetValue() {
-	case util.TypeBooleanField:
-		switch typeVal {
-		case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
-			bVal := val.Int() > 0
-			fieldVal.SetBool(bVal)
-		case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
-			bVal := val.Uint() > 0
-			fieldVal.SetBool(bVal)
-		case util.TypeBooleanField:
-			fieldVal.Set(val)
-		default:
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.fieldType.GetValue())
-		}
-	case util.TypeStringField:
-		switch typeVal {
-		case util.TypeStringField:
-			fieldVal.SetString(val.String())
-		default:
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.fieldType.GetValue())
-		}
-	case util.TypeDateTimeField:
-		switch typeVal {
-		case util.TypeStringField:
-			tmVal, tmErr := time.ParseInLocation("2006-01-02 15:04:05", val.String(), time.Local)
-			if tmErr != nil {
-				err = tmErr
-			} else {
-				fieldVal.Set(reflect.ValueOf(tmVal))
-			}
-		case util.TypeDateTimeField:
-			fieldVal.Set(val)
-		default:
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.fieldType.GetValue())
-		}
-	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
-		switch typeVal {
-		case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
-			fieldVal.SetInt(val.Int())
-		default:
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.fieldType.GetValue())
-		}
-	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
-		switch typeVal {
-		case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
-			fieldVal.SetUint(val.Uint())
-		default:
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.fieldType.GetValue())
-		}
-	case util.TypeFloatField, util.TypeDoubleField:
-		switch typeVal {
-		case util.TypeFloatField, util.TypeDoubleField:
-			fieldVal.SetFloat(val.Float())
-		default:
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.fieldType.GetValue())
-		}
-	case util.TypeStructField:
-		if val.Type().String() == s.fieldType.GetType().String() {
-			fieldVal.Set(val)
-		} else {
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.fieldType.GetValue())
-		}
-	case util.TypeSliceField:
-		switch typeVal {
-		case util.TypeStringField:
-			sliceVal, sliceErr := helper.DecodeSliceValue(val.String(), &s.fieldType)
-			if sliceErr != nil {
-				err = sliceErr
-				return
-			}
-			fieldVal.Set(sliceVal)
-		case util.TypeSliceField:
-			if val.Type().String() == s.fieldType.GetType().String() {
-				fieldVal.Set(val)
-			} else {
-				err = fmt.Errorf("illegal value type,current type:%s, expect type:%s", val.Type().String(), s.fieldType.GetType().String())
-			}
-		default:
-			err = fmt.Errorf("illegal value type,current type:%d, expect type:%d", typeVal, s.fieldType.GetValue())
-		}
-	}
-
-	if err == nil {
-		if s.fieldType.IsPtrType() {
-			fieldVal = fieldVal.Addr()
-		}
-
-		err = s.fieldValue.Update(fieldVal)
-	}
+	err = s.fieldValue.Update(val)
 
 	return
 }

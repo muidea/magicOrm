@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/util"
 )
 
@@ -60,18 +59,8 @@ func (s *Item) IsAssigned() (ret bool) {
 	}
 
 	currentVal := s.value.Get()
-	if currentVal.Kind() == reflect.Interface {
-		currentVal = currentVal.Elem()
-	}
-	// 非空指针，则表示已经赋值
-	if s.Type.IsPtrType() {
-		currentVal = reflect.Indirect(currentVal)
-	}
-	if util.IsNil(currentVal) {
-		return
-	}
 	if util.IsBasicType(s.Type.GetValue()) {
-		originVal := reflect.New(currentVal.Type()).Elem()
+		originVal := s.Type.Interface()
 		sameVal, sameErr := util.IsSameVal(originVal, currentVal)
 		if sameErr != nil {
 			log.Printf("compare value failed, err:%s", sameErr.Error())
@@ -108,24 +97,6 @@ func (s *Item) SetValue(val reflect.Value) (err error) {
 
 // UpdateValue UpdateValue
 func (s *Item) UpdateValue(val reflect.Value) (err error) {
-	val = reflect.Indirect(val)
-	depend := s.Type.Depend()
-	if depend == nil || util.IsBasicType(depend.GetValue()) {
-		fieldVal := reflect.Indirect(s.Type.Interface())
-		fieldVal, err = helper.ConvertValue(val, fieldVal)
-		if err != nil {
-			log.Printf("helper.ConvertValue failed, err:%s", err.Error())
-			return
-		}
-
-		if s.Type.IsPtrType() {
-			fieldVal = fieldVal.Addr()
-		}
-
-		err = s.value.Update(fieldVal)
-		return
-	}
-
 	err = s.value.Update(val)
 	return
 }
