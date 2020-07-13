@@ -1,9 +1,10 @@
 package orm
 
 import (
-	dbsql "database/sql"
-	"log"
+	"database/sql"
 	"reflect"
+
+	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
@@ -11,21 +12,21 @@ import (
 
 func (s *Orm) queryCount(modelInfo model.Model, filter model.Filter) (ret int64, err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
-	sql, sqlErr := builder.BuildCount(filter)
+	sqlStr, sqlErr := builder.BuildCount(filter)
 	if sqlErr != nil {
 		err = sqlErr
-		log.Printf("BuildCount failed, err:%s", err.Error())
+		log.Errorf("BuildCount failed, err:%s", err.Error())
 		return
 	}
 
-	err = s.executor.Query(sql)
+	err = s.executor.Query(sqlStr)
 	if err != nil {
 		return
 	}
 	defer s.executor.Finish()
 
 	if s.executor.Next() {
-		var countVal dbsql.NullInt64
+		var countVal sql.NullInt64
 		err = s.executor.GetField(&countVal)
 		if err != nil {
 			return
@@ -39,18 +40,17 @@ func (s *Orm) queryCount(modelInfo model.Model, filter model.Filter) (ret int64,
 
 // Count count entity
 func (s *Orm) Count(entity interface{}, filter model.Filter) (ret int64, err error) {
-	entityVal := reflect.ValueOf(entity)
-	modelInfo, modelErr := s.modelProvider.GetValueModel(entityVal)
+	modelInfo, modelErr := s.modelProvider.GetValueModel(reflect.ValueOf(entity))
 	if modelErr != nil {
 		err = modelErr
-		log.Printf("GetValueModel failed, err:%s", err.Error())
+		log.Errorf("GetValueModel failed, err:%s", err.Error())
 		return
 	}
 
 	queryVal, queryErr := s.queryCount(modelInfo, filter)
 	if queryErr != nil {
 		err = queryErr
-		log.Printf("queryCount failed, err:%s", err.Error())
+		log.Errorf("queryCount failed, err:%s", err.Error())
 		return
 	}
 	ret = queryVal

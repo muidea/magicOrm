@@ -50,7 +50,7 @@ func (s *Orm) CommitTransaction() (err error) {
 	return
 }
 
-// RollbackTransaction rollbacktransaction
+// RollbackTransaction rollback transaction
 func (s *Orm) RollbackTransaction() (err error) {
 	if s.executor != nil {
 		err = s.executor.RollbackTransaction()

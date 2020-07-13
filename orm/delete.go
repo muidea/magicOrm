@@ -2,8 +2,9 @@ package orm
 
 import (
 	"fmt"
-	"log"
 	"reflect"
+
+	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
@@ -23,7 +24,7 @@ func (s *Orm) deleteSingle(modelInfo model.Model) (err error) {
 	}
 
 	if num != 1 {
-		log.Printf("unexception delete, rowNum:%d", num)
+		log.Errorf("unexception delete, rowNum:%d", num)
 		err = fmt.Errorf("delete %s failed", modelInfo.GetName())
 	}
 
@@ -109,7 +110,7 @@ func (s *Orm) Delete(entity interface{}) (err error) {
 	modelInfo, modelErr := s.modelProvider.GetValueModel(entityVal)
 	if modelErr != nil {
 		err = modelErr
-		log.Printf("GetValueModel failed, err:%s", err.Error())
+		log.Errorf("GetValueModel failed, err:%s", err.Error())
 		return
 	}
 

@@ -160,6 +160,23 @@ func TestRemoteGroup(t *testing.T) {
 		return
 	}
 
+	qGroup1 := &Group{ID: group1.ID, Parent: &Group{}}
+	qGroup1Val, qObjErr := getObjectValue(qGroup1)
+	if qObjErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", qObjErr.Error())
+		return
+	}
+	err = o1.Query(qGroup1Val, "default")
+	if err != nil {
+		t.Errorf("insert Group1 failed, err:%s", err.Error())
+		return
+	}
+	err = remote.UpdateEntity(qGroup1Val, qGroup1)
+	if err != nil {
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
+		return
+	}
+
 	group2.Parent = group1
 	group2Val, objErr := getObjectValue(group2)
 	if objErr != nil {
@@ -209,6 +226,12 @@ func TestRemoteGroup(t *testing.T) {
 	err = o1.Query(group4Val, "default")
 	if err != nil {
 		t.Errorf("query Group4 failed, err:%s", err.Error())
+		return
+	}
+
+	err = remote.UpdateEntity(group4Val, group4)
+	if err != nil {
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 

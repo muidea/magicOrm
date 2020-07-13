@@ -2,11 +2,13 @@ package orm
 
 import (
 	"fmt"
-	"log"
 	"reflect"
+
+	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/util"
 )
 
@@ -14,7 +16,7 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	sql, err := builder.BuildQuery()
 	if err != nil {
-		log.Printf("build query failed, err:%s", err.Error())
+		log.Errorf("build query failed, err:%s", err.Error())
 		return err
 	}
 
@@ -29,7 +31,7 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 		return
 	}
 
-	items, itemErr := s.getItems(modelInfo)
+	items, itemErr := s.getModelItems(modelInfo)
 	if itemErr != nil {
 		err = itemErr
 		return
@@ -44,12 +46,18 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 	for _, item := range modelInfo.GetFields() {
 		fType := item.GetType()
 		depend := fType.Depend()
-		if depend != nil && !util.IsBasicType(depend.GetValue()) {
+		if depend != nil {
 			continue
 		}
 
-		v := items[idx]
-		err = item.UpdateValue(reflect.Indirect(reflect.ValueOf(v)))
+		itemVal := items[idx]
+		typeVal := fType.Interface()
+		typeVal, err = helper.AssignValue(reflect.ValueOf(itemVal), typeVal)
+		if err != nil {
+			return err
+		}
+
+		err = item.UpdateValue(typeVal)
 		if err != nil {
 			return err
 		}
@@ -64,7 +72,7 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 	fieldModel, fieldErr := s.modelProvider.GetTypeModel(fType)
 	if fieldErr != nil {
 		err = fieldErr
-		log.Printf("GetTypeModel failed, type:%s, err:%s", fType.GetType().String(), err.Error())
+		log.Errorf("GetTypeModel failed, type:%s, err:%s", fType.GetType().String(), err.Error())
 		return
 	}
 	if fieldModel == nil {
@@ -80,11 +88,11 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 	relationSQL, relationErr := builder.BuildQueryRelation(fieldInfo.GetName(), fieldModel)
 	if relationErr != nil {
 		err = relationErr
-		log.Printf("BuildQueryRelation failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
+		log.Errorf("BuildQueryRelation failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
 		return
 	}
 
-	values := []int64{}
+	var values []int64
 	func() {
 		err = s.executor.Query(relationSQL)
 		if err != nil {
@@ -110,21 +118,29 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 			relationVal := fieldModel.Interface()
 			relationInfo, relationErr := s.modelProvider.GetValueModel(relationVal)
 			if relationErr != nil {
-				log.Printf("GetValueModel failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
 				err = relationErr
+				log.Errorf("GetValueModel failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
 				return
 			}
 
 			pkField := relationInfo.GetPrimaryField()
-			err = pkField.UpdateValue(reflect.ValueOf(values[0]))
+			qVal := reflect.ValueOf(values[0])
+			fVal := pkField.GetType().Interface()
+			fVal, err = helper.AssignValue(qVal, fVal)
 			if err != nil {
-				log.Printf("UpdateFieldValue pkField failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
+				log.Errorf("assign pk field failed, err:%s", err.Error())
+				return
+			}
+
+			err = pkField.UpdateValue(fVal)
+			if err != nil {
+				log.Errorf("UpdateFieldValue pkField failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
 				return
 			}
 
 			err = s.querySingle(relationInfo)
 			if err != nil {
-				log.Printf("querySingle for struct failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
+				log.Errorf("querySingle for struct failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
 				return
 			}
 
@@ -132,18 +148,14 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 				itemVal, itemErr := s.queryRelation(relationInfo, item)
 				if itemErr != nil {
 					//err = itemErr
-					log.Printf("queryRelation failed, modelName:%s, field:%s, err:%s", relationInfo.GetName(), item.GetName(), itemErr.Error())
+					log.Errorf("queryRelation failed, modelName:%s, field:%s, err:%s", relationInfo.GetName(), item.GetName(), itemErr.Error())
 					//return
 					continue
 				}
 
-				if util.IsNil(itemVal) {
-					continue
-				}
-
-				err = relationInfo.UpdateFieldValue(item.GetName(), itemVal)
+				err = item.SetValue(itemVal)
 				if err != nil {
-					log.Printf("UpdateFieldValue failed, fieldName:%s, err:%s", item.GetName(), err.Error())
+					log.Errorf("UpdateFieldValue failed, fieldName:%s, err:%s", item.GetName(), err.Error())
 					return
 				}
 			}
@@ -156,21 +168,29 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 			itemVal := reflect.Indirect(fieldModel.Interface())
 			itemInfo, itemErr := s.modelProvider.GetValueModel(itemVal)
 			if itemErr != nil {
-				log.Printf("GetValueModel faield, err:%s", itemErr.Error())
+				log.Errorf("GetValueModel faield, err:%s", itemErr.Error())
 				err = itemErr
 				return
 			}
 
 			pkField := itemInfo.GetPrimaryField()
-			err = pkField.UpdateValue(reflect.ValueOf(item))
+			qVal := reflect.ValueOf(item)
+			fVal := pkField.GetType().Interface()
+			fVal, err = helper.AssignValue(qVal, fVal)
 			if err != nil {
-				log.Printf("UpdateValue failed, err:%s", err.Error())
+				log.Errorf("assign pk field failed, err:%s", err.Error())
+				return
+			}
+
+			err = pkField.UpdateValue(fVal)
+			if err != nil {
+				log.Errorf("UpdateValue failed, err:%s", err.Error())
 				return
 			}
 
 			err = s.querySingle(itemInfo)
 			if err != nil {
-				log.Printf("querySingle for slice failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
+				log.Errorf("querySingle for slice failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
 				return
 			}
 
@@ -178,17 +198,14 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 				subVal, subErr := s.queryRelation(itemInfo, item)
 				if subErr != nil {
 					//err = subErr
-					log.Printf("queryRelation failed, modelName:%s, field:%s, err:%s", itemInfo.GetName(), item.GetName(), subErr.Error())
+					log.Errorf("queryRelation failed, modelName:%s, field:%s, err:%s", itemInfo.GetName(), item.GetName(), subErr.Error())
 					//return
 					continue
 				}
-				if util.IsNil(subVal) {
-					continue
-				}
 
-				err = itemInfo.UpdateFieldValue(item.GetName(), subVal)
+				err = item.SetValue(subVal)
 				if err != nil {
-					log.Printf("UpdateFieldValue failed, fieldName:%s, err:%s", item.GetName(), err.Error())
+					log.Errorf("UpdateFieldValue failed, fieldName:%s, err:%s", item.GetName(), err.Error())
 					return
 				}
 			}
@@ -212,29 +229,32 @@ func (s *Orm) Query(entity interface{}) (err error) {
 	modelInfo, modelErr := s.modelProvider.GetValueModel(entityVal)
 	if modelErr != nil {
 		err = modelErr
-		log.Printf("GetValueModel failed, err:%s", err.Error())
+		log.Errorf("GetValueModel failed, err:%s", err.Error())
 		return
 	}
 
 	err = s.querySingle(modelInfo)
 	if err != nil {
-		log.Printf("querySingle failed, modelName:%s, err:%s", modelInfo.GetName(), err.Error())
+		log.Errorf("querySingle failed, modelName:%s, err:%s", modelInfo.GetName(), err.Error())
 		return
 	}
 
 	for _, item := range modelInfo.GetFields() {
-		itemVal, itemErr := s.queryRelation(modelInfo, item)
-		if itemErr != nil {
-			log.Printf("queryRelation failed, modelName:%s, field:%s, err:%s", modelInfo.GetName(), item.GetName(), itemErr.Error())
-			continue
-		}
-		if util.IsNil(itemVal) {
+		fType := item.GetType()
+		depend := fType.Depend()
+		if depend == nil {
 			continue
 		}
 
-		err = modelInfo.UpdateFieldValue(item.GetName(), itemVal)
+		itemVal, itemErr := s.queryRelation(modelInfo, item)
+		if itemErr != nil {
+			log.Errorf("queryRelation failed, modelName:%s, field:%s, err:%s", modelInfo.GetName(), item.GetName(), itemErr.Error())
+			continue
+		}
+
+		err = item.SetValue(itemVal)
 		if err != nil {
-			log.Printf("UpdateFieldValue failed, fieldName:%s, err:%s", item.GetName(), err.Error())
+			log.Errorf("UpdateFieldValue failed, fieldName:%s, err:%s", item.GetName(), err.Error())
 			return
 		}
 	}

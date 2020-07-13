@@ -1,11 +1,10 @@
 package orm
 
 import (
-	"log"
+	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
 )
 
 func (s *Orm) createSchema(modelInfo model.Model) (err error) {
@@ -22,7 +21,7 @@ func (s *Orm) createSchema(modelInfo model.Model) (err error) {
 		// no exist
 		sql, err := builder.BuildCreateSchema()
 		if err != nil {
-			log.Printf("build create schema failed, err:%s", err.Error())
+			log.Errorf("build create schema failed, err:%s", err.Error())
 			return err
 		}
 
@@ -67,10 +66,6 @@ func (s *Orm) batchCreateSchema(modelInfo model.Model) (err error) {
 			continue
 		}
 
-		if util.IsBasicType(depend.GetValue()) {
-			continue
-		}
-
 		relationInfo, relationErr := s.modelProvider.GetTypeModel(fType)
 		if relationErr != nil {
 			err = relationErr
@@ -101,7 +96,7 @@ func (s *Orm) Create(entity interface{}) (err error) {
 	modelInfo, modelErr := s.modelProvider.GetEntityModel(entity)
 	if modelErr != nil {
 		err = modelErr
-		log.Printf("GetEntityModel failed, err:%s", err.Error())
+		log.Errorf("GetEntityModel failed, err:%s", err.Error())
 		return
 	}
 

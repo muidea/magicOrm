@@ -21,11 +21,6 @@ func (s *ValueImpl) IsNil() (ret bool) {
 
 // Set Set
 func (s *ValueImpl) Set(val reflect.Value) (err error) {
-	if util.IsNil(val) {
-		err = fmt.Errorf("invalid set value")
-		return
-	}
-
 	s.value = val
 	return
 }

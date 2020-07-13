@@ -5,8 +5,8 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
-func (s *Orm) getItems(modelInfo model.Model) (ret []interface{}, err error) {
-	items := []interface{}{}
+func (s *Orm) getModelItems(modelInfo model.Model) (ret []interface{}, err error) {
+	var items []interface{}
 	fields := modelInfo.GetFields()
 	for _, item := range fields {
 		fType := item.GetType()

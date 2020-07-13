@@ -1,18 +1,20 @@
 package orm
 
 import (
-	"log"
 	"reflect"
+
+	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider/helper"
 )
 
 func (s *Orm) insertSingle(modelInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	sql, err := builder.BuildInsert()
 	if err != nil {
-		log.Printf("BuildInsert failed, err:%s", err.Error())
+		log.Errorf("BuildInsert failed, err:%s", err.Error())
 		return err
 	}
 
@@ -23,9 +25,16 @@ func (s *Orm) insertSingle(modelInfo model.Model) (err error) {
 	}
 	pk := modelInfo.GetPrimaryField()
 	if pk != nil {
-		err = pk.UpdateValue(reflect.ValueOf(id))
+		typeVal := pk.GetType().Interface()
+		typeVal, err = helper.AssignValue(reflect.ValueOf(id), typeVal)
 		if err != nil {
-			log.Printf("UpdateValue failed, err:%s", err.Error())
+			log.Errorf("assign pk field failed, err:%s", err.Error())
+			return err
+		}
+
+		err = pk.UpdateValue(typeVal)
+		if err != nil {
+			log.Errorf("UpdateValue failed, err:%s", err.Error())
 			return err
 		}
 	}
@@ -47,14 +56,14 @@ func (s *Orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 	fDependValue, fDependErr := s.modelProvider.GetModelDependValue(fDependModel, fieldInfo.GetValue())
 	if fDependErr != nil {
 		err = fDependErr
-		log.Printf("GetModelDependValue failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
+		log.Errorf("GetModelDependValue failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
 		return
 	}
 
 	for _, fVal := range fDependValue {
 		relationInfo, relationErr := s.modelProvider.GetValueModel(fVal)
 		if relationErr != nil {
-			log.Printf("GetValueModel faield, err:%s", relationErr.Error())
+			log.Errorf("GetValueModel faield, err:%s", relationErr.Error())
 			err = relationErr
 			return
 		}
@@ -95,7 +104,7 @@ func (s *Orm) Insert(entity interface{}) (err error) {
 	modelInfo, modelErr := s.modelProvider.GetValueModel(entityVal)
 	if modelErr != nil {
 		err = modelErr
-		log.Printf("GetValueModel failed, err:%s", err.Error())
+		log.Errorf("GetValueModel failed, err:%s", err.Error())
 		return
 	}
 
@@ -107,14 +116,14 @@ func (s *Orm) Insert(entity interface{}) (err error) {
 	for {
 		err = s.insertSingle(modelInfo)
 		if err != nil {
-			log.Printf("insertSingle failed, name:%s, err:%s", modelInfo.GetName(), err.Error())
+			log.Errorf("insertSingle failed, name:%s, err:%s", modelInfo.GetName(), err.Error())
 			break
 		}
 
 		for _, field := range modelInfo.GetFields() {
 			err = s.insertRelation(modelInfo, field)
 			if err != nil {
-				log.Printf("insertRelation failed, name:%s, field:%s, err:%s", modelInfo.GetName(), field.GetName(), err.Error())
+				log.Errorf("insertRelation failed, name:%s, field:%s, err:%s", modelInfo.GetName(), field.GetName(), err.Error())
 				break
 			}
 		}

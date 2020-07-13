@@ -1,7 +1,7 @@
 package orm
 
 import (
-	"log"
+	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
@@ -55,7 +55,7 @@ func (s *Orm) Drop(entity interface{}) (err error) {
 	modelInfo, modelErr := s.modelProvider.GetEntityModel(entity)
 	if modelErr != nil {
 		err = modelErr
-		log.Printf("GetEntityModel failed, err:%s", err.Error())
+		log.Errorf("GetEntityModel failed, err:%s", err.Error())
 		return
 	}
 
