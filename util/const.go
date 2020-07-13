@@ -77,7 +77,7 @@ func GetBasicTypeInitValue(typeValue int) (ret interface{}, err error) {
 		ret = &val
 		break
 	case TypeFloatField, TypeDoubleField:
-		val := float64(0.00)
+		val := 0.00
 		ret = &val
 		break
 	case TypeStructField:
@@ -235,8 +235,8 @@ func IsSameVal(firstVal, secondVal reflect.Value) (ret bool, err error) {
 	}
 
 	firstIsNil := IsNil(firstVal)
-	secondIsNul := IsNil(secondVal)
-	if firstIsNil != secondIsNul {
+	secondIsNil := IsNil(secondVal)
+	if firstIsNil != secondIsNil {
 		ret = false
 		return
 	}
