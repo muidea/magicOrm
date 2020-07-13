@@ -225,7 +225,7 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 
 // Query query
 func (s *Orm) Query(entity interface{}) (err error) {
-	entityVal := reflect.ValueOf(entity)
+	entityVal := reflect.ValueOf(entity).Elem()
 	modelInfo, modelErr := s.modelProvider.GetValueModel(entityVal)
 	if modelErr != nil {
 		err = modelErr

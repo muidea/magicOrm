@@ -1,8 +1,9 @@
 package remote
 
 import (
-	"log"
 	"reflect"
+
+	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
@@ -63,16 +64,17 @@ func (s *Item) IsAssigned() (ret bool) {
 		originVal := s.Type.Interface()
 		sameVal, sameErr := util.IsSameVal(originVal, currentVal)
 		if sameErr != nil {
-			log.Printf("compare value failed, err:%s", sameErr.Error())
+			log.Errorf("compare value failed, err:%s", sameErr.Error())
 			ret = false
 			return
 		}
+
 		// 值不相等，则可以认为有赋值过
 		ret = !sameVal
 	} else if util.IsStructType(s.Type.GetValue()) {
 		curObj, curOK := currentVal.Interface().(ObjectValue)
 		if !curOK {
-			log.Fatalf("illegal item value. val:%v", currentVal.Interface())
+			log.Errorf("illegal item value. val:%v", currentVal.Interface())
 			ret = false
 		} else {
 			ret = curObj.IsAssigned()
@@ -83,7 +85,7 @@ func (s *Item) IsAssigned() (ret bool) {
 			return
 		}
 	} else {
-		log.Fatalf("illegal item type value, type:%s, value:%d", s.Type.GetName(), s.Type.GetValue())
+		log.Errorf("illegal item type value, type:%s, value:%d", s.Type.GetName(), s.Type.GetValue())
 	}
 
 	return
