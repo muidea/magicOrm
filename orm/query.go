@@ -52,8 +52,9 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 
 		itemVal := items[idx]
 		typeVal := fType.Interface()
-		typeVal, err = helper.AssignValue(reflect.ValueOf(itemVal), typeVal)
+		typeVal, err = helper.AssignValue(reflect.ValueOf(itemVal).Elem(), typeVal)
 		if err != nil {
+			log.Errorf("assignValue failed, name:%s", item.GetName())
 			return err
 		}
 
