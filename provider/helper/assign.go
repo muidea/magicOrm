@@ -26,10 +26,6 @@ func AssignValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.Value,
 	isPtr := toVal.Kind() == reflect.Ptr
 	toVal = reflect.Indirect(toVal)
 
-	if fromVal.Kind() == reflect.Interface {
-		fromVal = fromVal.Elem()
-	}
-
 	toType := toVal.Type()
 	switch toType.Kind() {
 	case reflect.Bool:
