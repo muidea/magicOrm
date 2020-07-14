@@ -87,11 +87,12 @@ func (s *Object) Interface() (ret reflect.Value) {
 		val.Items = append(val.Items, *v.Interface())
 	}
 
-	if s.IsPtr {
-		return reflect.ValueOf(&val)
+	ret = reflect.ValueOf(&val)
+	if !s.IsPtr {
+		ret = ret.Elem()
 	}
 
-	return reflect.ValueOf(val)
+	return
 }
 
 // Copy Copy

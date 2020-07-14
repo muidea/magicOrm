@@ -15,6 +15,11 @@ func TestSimpleObjValue(t *testing.T) {
 		return
 	}
 
+	if !objVal.IsAssigned() {
+		t.Errorf("check object is assigned failed")
+		return
+	}
+
 	data, err := json.Marshal(objVal)
 	if err != nil {
 		t.Errorf("marshal obj failed, err:%s", err.Error())
@@ -25,6 +30,18 @@ func TestSimpleObjValue(t *testing.T) {
 	err = json.Unmarshal(data, val)
 	if err != nil {
 		t.Errorf("marshal obj failed, err:%s", err.Error())
+		return
+	}
+
+	obj2 := SimpleObj{}
+	objVal, objErr = GetObjectValue(obj2)
+	if objErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+
+	if objVal.IsAssigned() {
+		t.Errorf("check object is assigned failed")
 		return
 	}
 }

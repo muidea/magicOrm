@@ -79,6 +79,7 @@ func TestSimpleObjInfo(t *testing.T) {
 
 	if info2.GetName() != info.GetName() {
 		t.Errorf("unmarshal failed")
+		return
 	}
 }
 

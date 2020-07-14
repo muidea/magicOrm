@@ -45,6 +45,9 @@ func (s *ValueImpl) Update(val reflect.Value) (err error) {
 // Get Get
 func (s *ValueImpl) Get() (ret reflect.Value) {
 	ret = s.value
+	if s.value.Kind() == reflect.Interface {
+		ret = ret.Elem()
+	}
 
 	return
 }

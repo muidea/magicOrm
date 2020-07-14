@@ -6,6 +6,7 @@ import (
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/util"
 )
 
@@ -60,8 +61,8 @@ func (s *Item) IsAssigned() (ret bool) {
 	}
 
 	currentVal := s.value.Get()
+	originVal := s.Type.Interface()
 	if util.IsBasicType(s.Type.GetValue()) {
-		originVal := s.Type.Interface()
 		sameVal, sameErr := util.IsSameVal(originVal, currentVal)
 		if sameErr != nil {
 			log.Errorf("compare value failed, err:%s", sameErr.Error())
@@ -72,6 +73,11 @@ func (s *Item) IsAssigned() (ret bool) {
 		// 值不相等，则可以认为有赋值过
 		ret = !sameVal
 	} else if util.IsStructType(s.Type.GetValue()) {
+		if s.Type.IsPtrType() {
+			ret = true
+			return
+		}
+
 		curObj, curOK := currentVal.Interface().(ObjectValue)
 		if !curOK {
 			log.Errorf("illegal item value. val:%v", currentVal.Interface())
@@ -93,7 +99,13 @@ func (s *Item) IsAssigned() (ret bool) {
 
 // SetValue SetValue
 func (s *Item) SetValue(val reflect.Value) (err error) {
-	err = s.value.Set(val)
+	toVal := s.Type.Interface()
+	toVal, err = helper.AssignValue(val, toVal)
+	if err != nil {
+		return
+	}
+
+	err = s.value.Set(toVal)
 	return
 }
 

@@ -9,7 +9,7 @@ import (
 
 func TestSimpleObjProvider(t *testing.T) {
 	desc := "obj_desc"
-	obj := SimpleObj{Name: "obj", Desc: &desc, Age: 240, Add: []int{12, 34, 45}}
+	obj := SimpleObj{Name: "obj", Desc: &desc, Age: 240, Flag: true, Add: []int{12, 34, 45}}
 
 	provider := New("default")
 
@@ -71,6 +71,12 @@ func TestSimpleObjProvider(t *testing.T) {
 		return
 	}
 
+	for _, val := range valModel.GetFields() {
+		if !val.IsAssigned() {
+			t.Errorf("name:%s, check field assigned failed", val.GetName())
+		}
+	}
+
 }
 
 func TestInterface(t *testing.T) {
@@ -122,5 +128,25 @@ func TestInterface(t *testing.T) {
 	if bbErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", bbErr.Error())
 		return
+	}
+
+	valModel, objErr := provider.GetValueModel(reflect.ValueOf(bbVal))
+	if objErr != nil {
+		log.Printf("GetValueModel failed, err:%s", objErr.Error())
+		return
+	}
+
+	for _, val := range valModel.GetFields() {
+		vName := val.GetName()
+		if val.IsAssigned() {
+			if vName != "AA" {
+				t.Errorf("name:%s, check field assigned failed", vName)
+			}
+		}
+		if !val.IsAssigned() {
+			if vName != "ID" && vName != "Name" {
+				t.Errorf("name:%s, check field assigned failed", vName)
+			}
+		}
 	}
 }

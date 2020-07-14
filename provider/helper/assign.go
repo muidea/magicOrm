@@ -30,9 +30,8 @@ func AssignValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.Value,
 		fromVal = fromVal.Elem()
 	}
 
-	fromVal = reflect.Indirect(fromVal)
-	vType := toVal.Type()
-	switch vType.Kind() {
+	toType := toVal.Type()
+	switch toType.Kind() {
 	case reflect.Bool:
 		switch fromVal.Kind() {
 		case reflect.Bool:
@@ -171,6 +170,13 @@ func AssignValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.Value,
 		}
 	case reflect.Slice:
 		toVal, err = AssignSliceValue(fromVal, toVal)
+	case reflect.Ptr:
+		switch fromVal.Kind() {
+		case reflect.Ptr:
+			toVal.Set(fromVal)
+		default:
+			err = fmt.Errorf("illegal ptr value, fromVal type:%s, fromVal:%v", fromVal.Type().String(), fromVal.Interface())
+		}
 	default:
 		err = fmt.Errorf("illegal field type, fromVal type:%s, fromVal:%v", fromVal.Type().String(), fromVal.Interface())
 	}
