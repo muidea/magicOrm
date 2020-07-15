@@ -3,9 +3,10 @@ package remote
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"math"
 	"reflect"
+
+	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/util"
@@ -216,7 +217,7 @@ func getSliceItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.
 	subItemType, subItemErr := GetType(itemType.GetType().Elem())
 	if subItemErr != nil {
 		err = subItemErr
-		log.Printf("Get subItem Type faield, err:%s", err.Error())
+		log.Errorf("Get subItem Type failed, err:%s", err.Error())
 		return
 	}
 
@@ -287,7 +288,7 @@ func GetObjectValue(entity interface{}) (ret *ObjectValue, err error) {
 		itemType, itemErr := GetType(fieldType.Type)
 		if itemErr != nil {
 			err = itemErr
-			log.Printf("GetType faield, type%s, err:%s", fieldType.Type.String(), err.Error())
+			log.Errorf("GetType failed, type%s, err:%s", fieldType.Type.String(), err.Error())
 			return
 		}
 
@@ -296,7 +297,7 @@ func GetObjectValue(entity interface{}) (ret *ObjectValue, err error) {
 			val, valErr := getItemValue(fieldType.Name, itemType, fieldValue)
 			if valErr != nil {
 				err = valErr
-				log.Printf("getItemValue faield, type%s, err:%s", fieldType.Type.String(), err.Error())
+				log.Errorf("getItemValue failed, type%s, err:%s", fieldType.Type.String(), err.Error())
 				return
 			}
 			ret.Items = append(ret.Items, *val)
@@ -304,7 +305,7 @@ func GetObjectValue(entity interface{}) (ret *ObjectValue, err error) {
 			val, valErr := getSliceItemValue(fieldType.Name, itemType, fieldValue)
 			if valErr != nil {
 				err = valErr
-				log.Printf("getSliceItemValue faield, type%s, err:%s", fieldType.Type.String(), err.Error())
+				log.Errorf("getSliceItemValue failed, type%s, err:%s", fieldType.Type.String(), err.Error())
 				return
 			}
 			ret.Items = append(ret.Items, *val)
@@ -521,69 +522,58 @@ func UpdateEntity(objectValue *ObjectValue, entity interface{}) (err error) {
 
 func updateEntity(objectValue *ObjectValue, entityValue reflect.Value) (err error) {
 	entityValue = reflect.Indirect(entityValue)
-	entityType := entityValue.Type()
-	itemType, itemErr := GetType(entityType)
-	if itemErr != nil {
-		err = itemErr
+	entityType, entityErr := GetType(entityValue.Type())
+	if entityErr != nil {
+		err = entityErr
 		return
 	}
 
-	if itemType.GetName() != objectValue.GetName() || itemType.GetPkgPath() != objectValue.GetPkgPath() {
-		err = fmt.Errorf("illegal object value, objectValue name:%s, entityType name:%s", objectValue.GetName(), itemType.GetName())
+	if entityType.GetName() != objectValue.GetName() || entityType.GetPkgPath() != objectValue.GetPkgPath() {
+		err = fmt.Errorf("illegal object value, objectValue name:%s, entityType name:%s", objectValue.GetName(), entityType.GetName())
 		return
 	}
 
-	fieldNum := entityValue.NumField()
-	for idx := 0; idx < fieldNum; idx++ {
+	for idx := 0; idx < entityValue.NumField(); idx++ {
 		itemValue := reflect.ValueOf(objectValue.Items[idx].Value)
-		if util.IsNil(itemValue) {
-			continue
-		}
-
-		fieldType := entityType.Field(idx).Type
-		itemType, itemErr := GetType(fieldType)
-		if itemErr != nil {
-			err = itemErr
+		fieldType, fieldErr := GetType(entityValue.Field(idx).Type())
+		if fieldErr != nil {
+			err = fieldErr
 			return
 		}
 
-		if itemType.IsPtrType() {
-			fieldType = fieldType.Elem()
-		}
-		fieldValue := reflect.New(fieldType).Elem()
-		dependType := itemType.Depend()
-		if dependType == nil || util.IsBasicType(dependType.GetValue()) {
-			if itemType.GetValue() != util.TypeSliceField {
+		fieldValue := fieldType.Interface()
+
+		log.Infof("itemValue type:%s, fieldValue type:%s", itemValue.Type().String(), fieldValue.Type().String())
+
+		dependType := fieldType.Depend()
+		if dependType == nil {
+			if fieldType.GetValue() != util.TypeSliceField {
 				fieldValue, err = helper.AssignValue(itemValue, fieldValue)
 				if err != nil {
-					log.Printf("convert basic field value failed, name:%s, err:%s", itemType.GetName(), err.Error())
+					log.Errorf("convert basic field value failed, name:%s, err:%s", fieldType.GetName(), err.Error())
 					return
 				}
 			} else {
 				fieldValue, err = helper.AssignSliceValue(itemValue, fieldValue)
 				if err != nil {
-					log.Printf("convert basic slice field value failed, name:%s, err:%s", itemType.GetName(), err.Error())
+					log.Errorf("convert basic slice field value failed, name:%s, err:%s", fieldType.GetName(), err.Error())
 					return
 				}
 			}
 		} else {
-			if itemType.GetValue() != util.TypeSliceField {
+			if fieldType.GetValue() != util.TypeSliceField {
 				fieldValue, err = convertStructValue(itemValue, fieldValue)
 				if err != nil {
-					log.Printf("convert struct field value failed, name:%s, err:%s", itemType.GetName(), err.Error())
+					log.Errorf("convert struct field value failed, name:%s, err:%s", fieldType.GetName(), err.Error())
 					return
 				}
 			} else {
 				fieldValue, err = convertSliceValue(itemValue, fieldValue)
 				if err != nil {
-					log.Printf("convert struct slice field value failed, name:%s, err:%s", itemType.GetName(), err.Error())
+					log.Errorf("convert struct slice field value failed, name:%s, err:%s", fieldType.GetName(), err.Error())
 					return
 				}
 			}
-		}
-
-		if itemType.IsPtrType() {
-			fieldValue = fieldValue.Addr()
 		}
 
 		entityValue.Field(idx).Set(fieldValue)
@@ -741,7 +731,7 @@ func decodeSliceValue(sliceVal []interface{}) (ret []interface{}, err error) {
 			item, itemErr := DecodeObjectValueFromMap(itemVal)
 			if itemErr != nil {
 				err = itemErr
-				log.Printf("DecodeObjectValueFromMap failed, itemVal:%v", itemVal)
+				log.Errorf("DecodeObjectValueFromMap failed, itemVal:%v", itemVal)
 				return
 			}
 

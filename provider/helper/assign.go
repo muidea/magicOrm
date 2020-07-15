@@ -155,11 +155,13 @@ func AssignValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.Value,
 	case reflect.Struct:
 		switch fromVal.Kind() {
 		case reflect.String:
-			dtVal, dtErr := time.ParseInLocation("2006-01-02 15:04:05", fromVal.String(), time.Local)
-			if dtErr != nil {
-				err = fmt.Errorf("illegal datetime value, err:%s", dtErr.Error())
-			} else {
-				toVal.Set(reflect.ValueOf(dtVal))
+			if fromVal.String() != "" {
+				dtVal, dtErr := time.ParseInLocation("2006-01-02 15:04:05", fromVal.String(), time.Local)
+				if dtErr != nil {
+					err = fmt.Errorf("illegal datetime value, err:%s", dtErr.Error())
+				} else {
+					toVal.Set(reflect.ValueOf(dtVal))
+				}
 			}
 		default:
 			err = fmt.Errorf("illegal datetime value, fromVal type:%s, fromVal:%v", fromVal.Type().String(), fromVal.Interface())

@@ -319,7 +319,7 @@ func getValueModel(val reflect.Value, cache Cache) (ret *Object, err error) {
 			}
 
 			offset++
-			itemValue := itemVal.FieldByName("Value")
+			itemValue := itemVal.FieldByName("Value").Elem()
 			if !util.IsNil(itemValue) {
 				err = item.SetValue(itemValue)
 				if err != nil {
@@ -431,7 +431,7 @@ func getValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, e
 			ret, err = getSliceModelValue(vVal.Get(), cache)
 		}
 	case util.TypeDateTimeField:
-		strRet, strErr := helper.EncodeStringValue(vVal.Get())
+		strRet, strErr := helper.EncodeDateTimeValue(vVal.Get())
 		if strErr != nil {
 			err = strErr
 			return

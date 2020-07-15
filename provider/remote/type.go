@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"time"
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
@@ -57,13 +58,45 @@ func (s *TypeImpl) getSliceType() (ret reflect.Type) {
 		}
 	case util.TypeDateTimeField:
 		if vType.IsPtrType() {
-			var val []*string
+			var val []*time.Time
 			ret = reflect.TypeOf(val)
 		} else {
-			var val []string
+			var val []time.Time
 			ret = reflect.TypeOf(val)
 		}
-	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
+	case util.TypeBitField:
+		if vType.IsPtrType() {
+			var val []*int8
+			ret = reflect.TypeOf(val)
+		} else {
+			var val []int8
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypeSmallIntegerField:
+		if vType.IsPtrType() {
+			var val []*int16
+			ret = reflect.TypeOf(val)
+		} else {
+			var val []int16
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypeInteger32Field:
+		if vType.IsPtrType() {
+			var val []*int32
+			ret = reflect.TypeOf(val)
+		} else {
+			var val []int32
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypeIntegerField:
+		if vType.IsPtrType() {
+			var val []*int
+			ret = reflect.TypeOf(val)
+		} else {
+			var val []int
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypeBigIntegerField:
 		if vType.IsPtrType() {
 			var val []*int64
 			ret = reflect.TypeOf(val)
@@ -71,7 +104,39 @@ func (s *TypeImpl) getSliceType() (ret reflect.Type) {
 			var val []int64
 			ret = reflect.TypeOf(val)
 		}
-	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
+	case util.TypePositiveBitField:
+		if vType.IsPtrType() {
+			var val []*uint8
+			ret = reflect.TypeOf(val)
+		} else {
+			var val []uint8
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypePositiveSmallIntegerField:
+		if vType.IsPtrType() {
+			var val []*uint16
+			ret = reflect.TypeOf(val)
+		} else {
+			var val []uint16
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypePositiveInteger32Field:
+		if vType.IsPtrType() {
+			var val []*uint32
+			ret = reflect.TypeOf(val)
+		} else {
+			var val []uint32
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypePositiveIntegerField:
+		if vType.IsPtrType() {
+			var val []*uint
+			ret = reflect.TypeOf(val)
+		} else {
+			var val []uint
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypePositiveBigIntegerField:
 		if vType.IsPtrType() {
 			var val []*uint64
 			ret = reflect.TypeOf(val)
@@ -79,7 +144,15 @@ func (s *TypeImpl) getSliceType() (ret reflect.Type) {
 			var val []uint64
 			ret = reflect.TypeOf(val)
 		}
-	case util.TypeFloatField, util.TypeDoubleField:
+	case util.TypeFloatField:
+		if vType.IsPtrType() {
+			var val []*float32
+			ret = reflect.TypeOf(val)
+		} else {
+			var val []float32
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypeDoubleField:
 		if vType.IsPtrType() {
 			var val []*float64
 			ret = reflect.TypeOf(val)
@@ -108,23 +181,125 @@ func (s *TypeImpl) GetType() (ret reflect.Type) {
 	vType := s
 	switch vType.GetValue() {
 	case util.TypeBooleanField:
-		var val bool
-		ret = reflect.TypeOf(val)
+		if vType.IsPtrType() {
+			var val *bool
+			ret = reflect.TypeOf(val)
+		} else {
+			var val bool
+			ret = reflect.TypeOf(val)
+		}
 	case util.TypeStringField:
-		var val string
-		ret = reflect.TypeOf(val)
+		if vType.IsPtrType() {
+			var val *string
+			ret = reflect.TypeOf(val)
+		} else {
+			var val string
+			ret = reflect.TypeOf(val)
+		}
 	case util.TypeDateTimeField:
-		var val string
-		ret = reflect.TypeOf(val)
-	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
-		var val int64
-		ret = reflect.TypeOf(val)
-	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
-		var val uint64
-		ret = reflect.TypeOf(val)
-	case util.TypeFloatField, util.TypeDoubleField:
-		var val float64
-		ret = reflect.TypeOf(val)
+		if vType.IsPtrType() {
+			var val *time.Time
+			ret = reflect.TypeOf(val)
+		} else {
+			var val time.Time
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypeBitField:
+		if vType.IsPtrType() {
+			var val *int8
+			ret = reflect.TypeOf(val)
+		} else {
+			var val int8
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypeSmallIntegerField:
+		if vType.IsPtrType() {
+			var val *int16
+			ret = reflect.TypeOf(val)
+		} else {
+			var val int16
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypeInteger32Field:
+		if vType.IsPtrType() {
+			var val *int32
+			ret = reflect.TypeOf(val)
+		} else {
+			var val int32
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypeIntegerField:
+		if vType.IsPtrType() {
+			var val *int
+			ret = reflect.TypeOf(val)
+		} else {
+			var val int
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypeBigIntegerField:
+		if vType.IsPtrType() {
+			var val *int64
+			ret = reflect.TypeOf(val)
+		} else {
+			var val int64
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypePositiveBitField:
+		if vType.IsPtrType() {
+			var val *uint8
+			ret = reflect.TypeOf(val)
+		} else {
+			var val uint8
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypePositiveSmallIntegerField:
+		if vType.IsPtrType() {
+			var val *uint16
+			ret = reflect.TypeOf(val)
+		} else {
+			var val uint16
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypePositiveInteger32Field:
+		if vType.IsPtrType() {
+			var val *uint32
+			ret = reflect.TypeOf(val)
+		} else {
+			var val uint32
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypePositiveIntegerField:
+		if vType.IsPtrType() {
+			var val *uint
+			ret = reflect.TypeOf(val)
+		} else {
+			var val uint
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypePositiveBigIntegerField:
+		if vType.IsPtrType() {
+			var val *uint64
+			ret = reflect.TypeOf(val)
+		} else {
+			var val uint64
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypeFloatField:
+		if vType.IsPtrType() {
+			var val *float32
+			ret = reflect.TypeOf(val)
+		} else {
+			var val float32
+			ret = reflect.TypeOf(val)
+		}
+	case util.TypeDoubleField:
+		if vType.IsPtrType() {
+			var val *float64
+			ret = reflect.TypeOf(val)
+		} else {
+			var val float64
+			ret = reflect.TypeOf(val)
+		}
 	case util.TypeStructField:
 		if vType.IsPtrType() {
 			var val *ObjectValue

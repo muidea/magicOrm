@@ -110,7 +110,7 @@ func (s *Orm) assignSingleModel(modelVal reflect.Value, queryVal resultItems) (r
 			continue
 		}
 
-		qVal := reflect.ValueOf(queryVal[offset])
+		qVal := reflect.ValueOf(queryVal[offset]).Elem()
 		fVal := fType.Interface()
 		fVal, err = helper.AssignValue(qVal, fVal)
 		if err != nil {
