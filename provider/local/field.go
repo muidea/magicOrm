@@ -52,6 +52,11 @@ func (s *fieldImpl) IsAssigned() (ret bool) {
 		return
 	}
 
+	if s.fieldType.IsPtrType() {
+		ret = true
+		return
+	}
+
 	currentVal := s.fieldValue.Get()
 	originVal := s.fieldType.Interface()
 	sameVal, sameErr := util.IsSameVal(originVal, currentVal)
