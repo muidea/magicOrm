@@ -29,10 +29,10 @@ func newType(val reflect.Type) (ret *typeImpl, err error) {
 
 func (s *typeImpl) GetName() string {
 	if s.typeImpl.Kind() == reflect.Ptr {
-		return s.typeImpl.Elem().Name()
+		return s.typeImpl.Elem().String()
 	}
 
-	return s.typeImpl.Name()
+	return s.typeImpl.String()
 }
 
 func (s *typeImpl) GetValue() (ret int) {

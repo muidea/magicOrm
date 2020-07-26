@@ -19,7 +19,7 @@ type modelImpl struct {
 }
 
 func (s *modelImpl) GetName() string {
-	return s.modelType.Name()
+	return s.modelType.String()
 }
 
 // GetPkgPath GetPkgPath

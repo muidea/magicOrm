@@ -3,6 +3,7 @@ package provider
 import (
 	"fmt"
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider/remote"
 	"reflect"
 	"testing"
 )
@@ -22,28 +23,10 @@ type ExtInfo struct {
 	Array []*Base `orm:"array"`
 }
 
-func TestLocalProvider(t *testing.T) {
-
-	provider := NewLocalProvider("default")
-
-	baseEntity := Base{}
-
-	provider.RegisterModel(baseEntity)
-	defer provider.UnregisterModel(baseEntity)
-
-	baseEntityModel, baseEntityErr := provider.GetEntityModel(&baseEntity)
-	if baseEntityErr != nil {
-		t.Errorf("get local entity model failed, err:%s", baseEntityErr.Error())
-		return
-	}
-
-	checkModel(t, baseEntityModel)
-}
-
 func checkModel(t *testing.T, baseEntityModel model.Model) {
 	modelName := baseEntityModel.GetName()
-	if modelName != "Base" {
-		t.Errorf("get model name failed")
+	if modelName != "provider.Base" {
+		t.Errorf("get model name failed, curName:%s", modelName)
 		return
 	}
 
@@ -205,7 +188,7 @@ func checkSliceField(t *testing.T, sliceField model.Field) (ret bool) {
 	fType := sliceField.GetType()
 
 	sliceVal := []string{"12.345"}
-	ret = checkFieldType(t, fType, reflect.TypeOf(sliceVal).Name(), nil)
+	ret = checkFieldType(t, fType, reflect.TypeOf(sliceVal).String(), nil)
 	if !ret {
 		t.Errorf("check field type failed")
 		return
@@ -239,20 +222,72 @@ func checkSliceField(t *testing.T, sliceField model.Field) (ret bool) {
 	return
 }
 
-func checkFieldType(t *testing.T, fType model.Type, typeName string, typeDepend model.Type) (ret bool) {
+func checkFieldType(t *testing.T, fType model.Type, typeName string, typeDepend model.Type) bool {
 	if fType.GetName() != typeName {
 		t.Errorf("get field type name failed, curType:%s, expect type:%s", fType.GetName(), typeName)
 		return false
 	}
 
 	if fType.Depend() != typeDepend {
-		t.Errorf("check depend type failed")
+		dependType := "nil"
+		if typeDepend != nil {
+			dependType = typeDepend.GetName()
+		}
+
+		t.Errorf("check depend type failed, currentType:%s, dependType:%s", fType.Depend().GetName(), dependType)
+		return false
+	}
+
+	if fType.Interface().Type().String() != typeName {
+		t.Errorf("illegal interface, expect type:%s", typeName)
 		return false
 	}
 
 	return true
 }
 
-func TestRemoteProvider(t *testing.T) {
+func TestLocalProvider(t *testing.T) {
+	provider := NewLocalProvider("default")
 
+	baseEntity := Base{}
+
+	provider.RegisterModel(baseEntity)
+	defer provider.UnregisterModel(baseEntity)
+
+	baseEntityModel, baseEntityErr := provider.GetEntityModel(&baseEntity)
+	if baseEntityErr != nil {
+		t.Errorf("get local entity model failed, err:%s", baseEntityErr.Error())
+		return
+	}
+
+	checkModel(t, baseEntityModel)
+}
+
+func TestRemoteProvider(t *testing.T) {
+	provider := NewRemoteProvider("default")
+
+	baseEntity := Base{}
+
+	baseObject, baseErr := remote.GetObject(baseEntity)
+	if baseErr != nil {
+		t.Errorf("GetObject failed, err:%s", baseErr.Error())
+		return
+	}
+
+	baseVal, baseErr := remote.GetObjectValue(baseEntity)
+	if baseErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", baseErr.Error())
+		return
+	}
+
+	provider.RegisterModel(baseObject)
+	defer provider.UnregisterModel(baseObject)
+
+	baseEntityModel, baseEntityErr := provider.GetEntityModel(baseVal)
+	if baseEntityErr != nil {
+		t.Errorf("get local entity model failed, err:%s", baseEntityErr.Error())
+		return
+	}
+
+	checkModel(t, baseEntityModel)
 }
