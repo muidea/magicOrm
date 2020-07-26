@@ -79,7 +79,7 @@ func checkModel(t *testing.T, baseEntityModel model.Model) {
 func checkIntField(t *testing.T, intField model.Field) (ret bool) {
 	fType := intField.GetType()
 
-	ret = checkFieldType(t, fType, "int", nil)
+	ret = checkFieldType(t, fType, "int", "")
 	if !ret {
 		t.Errorf("check field type failed")
 		return
@@ -115,7 +115,7 @@ func checkIntField(t *testing.T, intField model.Field) (ret bool) {
 func checkFloat32Field(t *testing.T, floatField model.Field) (ret bool) {
 	fType := floatField.GetType()
 
-	ret = checkFieldType(t, fType, "float32", nil)
+	ret = checkFieldType(t, fType, "float32", "")
 	if !ret {
 		t.Errorf("check field type failed")
 		return
@@ -151,7 +151,7 @@ func checkFloat32Field(t *testing.T, floatField model.Field) (ret bool) {
 func checkStringField(t *testing.T, strField model.Field) (ret bool) {
 	fType := strField.GetType()
 
-	ret = checkFieldType(t, fType, "string", nil)
+	ret = checkFieldType(t, fType, "string", "")
 	if !ret {
 		t.Errorf("check field type failed")
 		return
@@ -188,7 +188,8 @@ func checkSliceField(t *testing.T, sliceField model.Field) (ret bool) {
 	fType := sliceField.GetType()
 
 	sliceVal := []string{"12.345"}
-	ret = checkFieldType(t, fType, reflect.TypeOf(sliceVal).String(), nil)
+	sliceType := reflect.TypeOf(sliceVal)
+	ret = checkFieldType(t, fType, reflect.TypeOf(sliceVal).String(), sliceType.Elem().String())
 	if !ret {
 		t.Errorf("check field type failed")
 		return
@@ -222,19 +223,24 @@ func checkSliceField(t *testing.T, sliceField model.Field) (ret bool) {
 	return
 }
 
-func checkFieldType(t *testing.T, fType model.Type, typeName string, typeDepend model.Type) bool {
+func checkFieldType(t *testing.T, fType model.Type, typeName, typeDepend string) bool {
 	if fType.GetName() != typeName {
 		t.Errorf("get field type name failed, curType:%s, expect type:%s", fType.GetName(), typeName)
 		return false
 	}
 
-	if fType.Depend() != typeDepend {
-		dependType := "nil"
-		if typeDepend != nil {
-			dependType = typeDepend.GetName()
+	if fType.Depend() != nil && typeDepend != "" {
+		if fType.Depend().GetName() != typeDepend {
+			t.Errorf("check depend type failed, currentType:%s, dependType:%s", fType.Depend().GetName(), typeDepend)
+			return false
 		}
-
-		t.Errorf("check depend type failed, currentType:%s, dependType:%s", fType.Depend().GetName(), dependType)
+	}
+	if fType.Depend() == nil && typeDepend != "" {
+		t.Errorf("check depend type failed, currentType:%s, dependType:%s", "nil", typeDepend)
+		return false
+	}
+	if fType.Depend() != nil && typeDepend == "" {
+		t.Errorf("check depend type failed, currentType:%s, dependType:%s", fType.Depend().GetName(), "nil")
 		return false
 	}
 
