@@ -1,6 +1,7 @@
 package local
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/muidea/magicOrm/util"
@@ -26,6 +27,12 @@ func (s *valueImpl) Set(val reflect.Value) (err error) {
 }
 
 func (s *valueImpl) Update(val reflect.Value) (err error) {
+	preType := s.valueImpl.Type().String()
+	curType := val.Type().String()
+	if preType != curType {
+		err = fmt.Errorf("illegal update value type, value type:%s, expect type:%s", curType, preType)
+	}
+
 	s.valueImpl.Set(val)
 	return
 }

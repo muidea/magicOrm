@@ -21,8 +21,6 @@ type Field interface {
 	IsPrimary() bool
 	// 是否已赋值
 	IsAssigned() bool
-	// 设置值
-	SetValue(val reflect.Value) error
 	// 更新值
 	UpdateValue(val reflect.Value) error
 }
