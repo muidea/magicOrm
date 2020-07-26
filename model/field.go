@@ -49,7 +49,7 @@ func (s *Fields) Append(fieldInfo Field) {
 	*s = append(*s, fieldInfo)
 }
 
-// GetPrimaryField get primarykey field
+// GetPrimaryField get primary key field
 func (s *Fields) GetPrimaryField() Field {
 	for _, val := range *s {
 		if val.IsPrimary() {
