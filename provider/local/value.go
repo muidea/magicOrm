@@ -31,6 +31,7 @@ func (s *valueImpl) Update(val reflect.Value) (err error) {
 	curType := val.Type().String()
 	if preType != curType {
 		err = fmt.Errorf("illegal update value type, value type:%s, expect type:%s", curType, preType)
+		return
 	}
 
 	s.valueImpl.Set(val)
