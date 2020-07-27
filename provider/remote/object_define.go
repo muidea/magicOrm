@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
+	log "github.com/cihub/seelog"
+
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
 )
@@ -42,6 +44,10 @@ func (s *Object) SetFieldValue(idx int, val reflect.Value) (err error) {
 	for _, item := range s.Items {
 		if item.Index == idx {
 			err = item.SetValue(val)
+			if err != nil {
+				log.Errorf("set field value failed, object name:%s, err:%s", s.Name, err.Error())
+			}
+
 			return
 		}
 	}
@@ -54,6 +60,10 @@ func (s *Object) UpdateFieldValue(name string, val reflect.Value) (err error) {
 	for _, item := range s.Items {
 		if item.Name == name {
 			err = item.UpdateValue(val)
+			if err != nil {
+				log.Errorf("update field value failed, object name:%s, err:%s", s.Name, err.Error())
+			}
+
 			return
 		}
 	}
@@ -81,10 +91,10 @@ func (s *Object) IsPtrModel() (ret bool) {
 
 // Interface Interface
 func (s *Object) Interface() (ret reflect.Value) {
-	val := ObjectValue{TypeName: s.Name, PkgPath: s.PkgPath, IsPtrFlag: s.IsPtr, Items: []ItemValue{}}
+	val := ObjectValue{TypeName: s.Name, PkgPath: s.PkgPath, IsPtrFlag: s.IsPtr, Items: []*ItemValue{}}
 
 	for _, v := range s.Items {
-		val.Items = append(val.Items, *v.Interface())
+		val.Items = append(val.Items, v.Interface())
 	}
 
 	ret = reflect.ValueOf(&val)
@@ -110,6 +120,10 @@ func (s *Object) Copy() (ret *Object) {
 func GetObject(entity interface{}) (ret *Object, err error) {
 	entityType := reflect.ValueOf(entity).Type()
 	ret, err = type2Object(entityType)
+	if err != nil {
+		log.Errorf("type2Object failed, raw type:%s, err:%s", entityType.String(), err.Error())
+	}
+
 	return
 }
 
@@ -132,6 +146,7 @@ func type2Object(entityType reflect.Type) (ret *Object, err error) {
 	}
 
 	ret = &Object{}
+	//!! must be String, not Name
 	ret.Name = entityType.String()
 	ret.PkgPath = entityType.PkgPath()
 	ret.IsPtr = objPtr

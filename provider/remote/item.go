@@ -72,7 +72,10 @@ func (s *Item) IsAssigned() (ret bool) {
 
 		// 值不相等，则可以认为有赋值过
 		ret = !sameVal
-	} else if util.IsStructType(s.Type.GetValue()) {
+		return
+	}
+
+	if util.IsStructType(s.Type.GetValue()) {
 		if s.Type.IsPtrType() {
 			ret = true
 			return
@@ -85,15 +88,18 @@ func (s *Item) IsAssigned() (ret bool) {
 		} else {
 			ret = curObj.IsAssigned()
 		}
-	} else if util.IsSliceType(s.Type.GetValue()) {
+
+		return
+	}
+
+	if util.IsSliceType(s.Type.GetValue()) {
 		if currentVal.Len() > 0 {
 			ret = true
 			return
 		}
-	} else {
-		log.Errorf("illegal item type value, type:%s, value:%d", s.Type.GetName(), s.Type.GetValue())
 	}
 
+	log.Errorf("illegal item type value, type:%s, value:%d", s.Type.GetName(), s.Type.GetValue())
 	return
 }
 
@@ -102,32 +108,40 @@ func (s *Item) SetValue(val reflect.Value) (err error) {
 	toVal := s.Type.Interface()
 	toVal, err = helper.AssignValue(val, toVal)
 	if err != nil {
+		log.Errorf("assign value failed, name:%s, err:%s", s.Name, err.Error())
 		return
 	}
 
 	err = s.value.Set(toVal)
+	if err != nil {
+		log.Errorf("set value failed, name:%s, err:%s", s.Name, err.Error())
+	}
+
 	return
 }
 
 // UpdateValue UpdateValue
 func (s *Item) UpdateValue(val reflect.Value) (err error) {
 	err = s.value.Update(val)
+	if err != nil {
+		log.Errorf("update value failed, name:%s, err:%s", s.Name, err.Error())
+	}
+
 	return
 }
 
 // Copy Copy
 func (s *Item) Copy() (ret model.Field) {
-	return &Item{Index: s.Index, Name: s.Name, Tag: s.Tag, Type: s.Type}
+	return &Item{Index: s.Index, Name: s.Name, Tag: s.Tag, Type: s.Type, value: s.value}
 }
 
 // Interface interface value
 func (s *Item) Interface() (ret *ItemValue) {
-	if s.value.IsNil() && s.Type.IsPtrType() {
+	if s.Type.IsPtrType() {
 		ret = &ItemValue{Name: s.Name, Value: nil}
 		return
 	}
 
 	ret = &ItemValue{Name: s.Name, Value: s.Type.Interface().Interface()}
-
 	return
 }

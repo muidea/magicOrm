@@ -2,9 +2,10 @@ package remote
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
+
+	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/helper"
@@ -312,7 +313,7 @@ func getValueModel(val reflect.Value, cache Cache) (ret *Object, err error) {
 		objPtr = objPtr.Copy()
 		for idx := range objPtr.Items {
 			item := objPtr.Items[idx]
-			itemVal := itemsVal.Index(offset)
+			itemVal := itemsVal.Index(offset).Elem()
 			itemName := itemVal.FieldByName("Name").String()
 			if item.GetName() != itemName {
 				continue
@@ -477,14 +478,14 @@ func getSliceModelValue(val reflect.Value, cache Cache) (ret string, err error) 
 		return
 	}
 
-	sliceVal := []string{}
+	var sliceVal []string
 	for idx := 0; idx < val.Len(); idx++ {
 		v := val.Index(idx)
 
 		strVal, strErr := getModelValue(v, cache)
 		if strErr != nil {
 			err = strErr
-			log.Printf("getModelValue failed, err:%s", err.Error())
+			log.Errorf("getModelValue failed, err:%s", err.Error())
 			return
 		}
 
