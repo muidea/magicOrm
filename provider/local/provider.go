@@ -29,7 +29,7 @@ func (s *Provider) RegisterModel(entity interface{}) (err error) {
 		return
 	}
 
-	err = registerModel(typeImpl.GetType(), s.modelCache)
+	err = registerModel(typeImpl.getType(), s.modelCache)
 	return
 }
 

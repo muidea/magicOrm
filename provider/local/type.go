@@ -53,20 +53,12 @@ func (s *typeImpl) GetPkgPath() string {
 	return s.typeImpl.PkgPath()
 }
 
-func (s *typeImpl) GetType() reflect.Type {
-	if s.typeImpl.Kind() == reflect.Ptr {
-		return s.typeImpl.Elem()
-	}
-
-	return s.typeImpl
-}
-
 func (s *typeImpl) IsPtrType() bool {
 	return s.typeImpl.Kind() == reflect.Ptr
 }
 
 func (s *typeImpl) Interface() reflect.Value {
-	tType := s.GetType()
+	tType := s.getType()
 	val := reflect.New(tType)
 	if !s.IsPtrType() {
 		val = val.Elem()
@@ -90,7 +82,7 @@ func (s *typeImpl) Depend() (ret model.Type) {
 }
 
 func (s *typeImpl) Elem() model.Type {
-	tType := s.GetType()
+	tType := s.getType()
 	if tType.Kind() == reflect.Slice {
 		return &typeImpl{typeImpl: tType.Elem()}
 	}
@@ -109,4 +101,12 @@ func (s *typeImpl) Copy() (ret *typeImpl) {
 func (s *typeImpl) Dump() string {
 	val := s.GetValue()
 	return fmt.Sprintf("val:%d,name:%s,pkgPath:%s,isPtr:%v", val, s.GetName(), s.GetPkgPath(), s.IsPtrType())
+}
+
+func (s *typeImpl) getType() reflect.Type {
+	if s.typeImpl.Kind() == reflect.Ptr {
+		return s.typeImpl.Elem()
+	}
+
+	return s.typeImpl
 }
