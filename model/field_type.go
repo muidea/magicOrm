@@ -10,8 +10,6 @@ type Type interface {
 	GetValue() int
 	// Type pkgPath
 	GetPkgPath() string
-	// Type对应类型
-	GetType() reflect.Type
 	// 是否指针类型
 	IsPtrType() bool
 	// 实例化一个类型对应的数据值

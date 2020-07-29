@@ -251,14 +251,13 @@ func getSliceValueModel(modelVal reflect.Value, cache Cache) (retModel *modelImp
 
 // getTypeModel getTypeModel
 func getTypeModel(vType model.Type, cache Cache) (ret *modelImpl, err error) {
-	rawType := vType.GetType()
 	isPtr := vType.IsPtrType()
 
 	modelInfo := cache.Fetch(vType.GetName())
 	if modelInfo != nil {
 		preType := modelInfo.modelType
-		if preType.PkgPath() != rawType.PkgPath() {
-			err = fmt.Errorf("duplicate model info,name:%s", rawType.Name())
+		if preType.PkgPath() != vType.GetPkgPath() {
+			err = fmt.Errorf("duplicate model info,name:%s", vType.GetName())
 			return
 		}
 
@@ -278,24 +277,23 @@ func getValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, e
 		return
 	}
 
-	rawType := vType.GetType()
-	switch rawType.Kind() {
-	case reflect.Bool:
+	switch vType.GetValue() {
+	case util.TypeBooleanField:
 		ret, err = helper.EncodeBoolValue(vVal.Get())
-	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int:
+	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeBigIntegerField, util.TypeIntegerField:
 		ret, err = helper.EncodeIntValue(vVal.Get())
-	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint:
+	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveBigIntegerField, util.TypePositiveIntegerField:
 		ret, err = helper.EncodeUintValue(vVal.Get())
-	case reflect.Float32, reflect.Float64:
+	case util.TypeFloatField, util.TypeDoubleField:
 		ret, err = helper.EncodeFloatValue(vVal.Get())
-	case reflect.String:
+	case util.TypeStringField:
 		strRet, strErr := helper.EncodeStringValue(vVal.Get())
 		if strErr != nil {
 			err = strErr
 			return
 		}
 		ret = fmt.Sprintf("'%s'", strRet)
-	case reflect.Slice:
+	case util.TypeSliceField:
 		eleType := vType.Elem()
 		if eleType == nil || util.IsBasicType(eleType.GetValue()) {
 			strRet, strErr := helper.EncodeSliceValue(vVal.Get())
@@ -307,19 +305,18 @@ func getValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, e
 		} else {
 			ret, err = getSliceStructValue(vVal.Get(), cache)
 		}
-	case reflect.Struct:
-		if rawType.String() == "time.Time" {
-			strRet, strErr := helper.EncodeDateTimeValue(vVal.Get())
-			if strErr != nil {
-				err = strErr
-				return
-			}
-			ret = fmt.Sprintf("'%s'", strRet)
-		} else {
-			ret, err = getStructValue(vVal.Get(), cache)
+	case util.TypeDateTimeField:
+		strRet, strErr := helper.EncodeDateTimeValue(vVal.Get())
+		if strErr != nil {
+			err = strErr
+			return
 		}
+
+		ret = fmt.Sprintf("'%s'", strRet)
+	case util.TypeStructField:
+		ret, err = getStructValue(vVal.Get(), cache)
 	default:
-		err = fmt.Errorf("illegal value kind, kind:%v", rawType.Kind())
+		err = fmt.Errorf("illegal value kind, type name:%v", vType.GetName())
 	}
 
 	return
