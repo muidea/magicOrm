@@ -16,6 +16,7 @@ func EncodeDateTimeValue(val reflect.Value) (ret string, err error) {
 		val = val.Elem()
 	}
 
+	val = reflect.Indirect(val)
 	switch val.Kind() {
 	case reflect.Struct:
 		ts, ok := val.Interface().(time.Time)
