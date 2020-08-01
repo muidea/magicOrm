@@ -14,6 +14,10 @@ import (
 // fromVal -> toVal
 // fromVal -> *toVal
 func AssignValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.Value, err error) {
+	if fromVal.Kind() == reflect.Interface {
+		fromVal = fromVal.Elem()
+	}
+
 	if util.IsNil(toVal) {
 		err = fmt.Errorf("unexpected! toVal is nil ")
 	}
@@ -198,6 +202,7 @@ func AssignValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.Value,
 func AssignSliceValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.Value, err error) {
 	if util.IsNil(toVal) {
 		err = fmt.Errorf("unexpected! toVal is nil ")
+		return
 	}
 
 	if util.IsNil(fromVal) {

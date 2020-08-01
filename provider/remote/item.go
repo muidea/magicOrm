@@ -1,12 +1,12 @@
 package remote
 
 import (
+	"github.com/muidea/magicOrm/provider/helper"
 	"reflect"
 
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/util"
 )
 
@@ -106,10 +106,14 @@ func (s *Item) IsAssigned() (ret bool) {
 // SetValue SetValue
 func (s *Item) SetValue(val reflect.Value) (err error) {
 	toVal := s.Type.Interface()
-	toVal, err = helper.AssignValue(val, toVal)
-	if err != nil {
-		log.Errorf("assign value failed, name:%s, err:%s", s.Name, err.Error())
-		return
+
+	dependType := s.Type.Depend()
+	if util.IsBasicType(s.GetType().GetValue()) || util.IsBasicType(dependType.GetValue()) {
+		toVal, err = helper.AssignValue(val, toVal)
+		if err != nil {
+			log.Errorf("assign value failed, name:%s, from type:%s, to type:%s, err:%s", s.Name, val.Type().String(), s.Type.GetName(), err.Error())
+			return
+		}
 	}
 
 	err = s.value.Set(toVal)

@@ -71,7 +71,7 @@ func (s *TypeImpl) Interface() reflect.Value {
 		return val
 	}
 
-	val := &SliceObjectValue{TypeName: s.Name, PkgPath: s.PkgPath, IsPtrFlag: s.IsPtr, Values: []*ObjectValue{}}
+	var val []*ObjectValue
 	return reflect.ValueOf(val)
 }
 

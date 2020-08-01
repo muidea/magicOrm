@@ -131,6 +131,10 @@ func (s *Provider) GetEntityModel(objEntity interface{}) (ret model.Model, err e
 		if objOk {
 			objVal := reflect.ValueOf(objEntity)
 			ret, err = s.GetValueModel(objVal)
+			if err != nil {
+				log.Errorf("GetValueMode failed. err:%s", err.Error())
+			}
+
 			return
 		}
 
@@ -173,6 +177,7 @@ func (s *Provider) GetEntityModel(objEntity interface{}) (ret model.Model, err e
 func (s *Provider) GetValueModel(objVal reflect.Value) (ret model.Model, err error) {
 	objImpl, objErr := getValueModel(objVal, s.modelCache)
 	if objErr != nil {
+		log.Errorf("getValueMode failed, err:%s", objErr.Error())
 		err = objErr
 		return
 	}
@@ -324,6 +329,7 @@ func getValueModel(val reflect.Value, cache Cache) (ret *Object, err error) {
 			if !util.IsNil(itemValue) {
 				err = item.SetValue(itemValue)
 				if err != nil {
+					log.Errorf("SetItem value failed, name:%s, err:%s", item.GetName(), err.Error())
 					return
 				}
 			}
