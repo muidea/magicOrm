@@ -117,14 +117,13 @@ func TestModelValue(t *testing.T) {
 		return
 	}
 
-	id := int64(123320)
+	id := 123320
 	pk := modelInfo.GetPrimaryField()
 	if pk == nil {
 		t.Errorf("GetPrimaryField faield")
 		return
 	}
-	fv := pk.GetValue()
-	err = fv.Set(reflect.ValueOf(id))
+	err = pk.UpdateValue(reflect.ValueOf(id))
 	if err != nil {
 		t.Errorf("Set value failed, err:%s", err.Error())
 		return
@@ -142,6 +141,19 @@ func TestModelValue(t *testing.T) {
 	err = modelInfo.UpdateFieldValue("TimeStamp", tsVal)
 	if err != nil {
 		t.Errorf("UpdateField value failed, err:%s", err.Error())
+		return
+	}
+
+	if unit.ID != int64(id) {
+		t.Errorf("update id field failed")
+		return
+	}
+	if unit.Name != name {
+		t.Errorf("update id field failed")
+		return
+	}
+	if !unit.TimeStamp.Equal(now) {
+		t.Errorf("update timeStamp failed")
 		return
 	}
 }

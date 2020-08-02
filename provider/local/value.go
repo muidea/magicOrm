@@ -22,20 +22,18 @@ func (s *valueImpl) IsNil() (ret bool) {
 }
 
 func (s *valueImpl) Set(val reflect.Value) (err error) {
+	if !val.CanSet() {
+		err = fmt.Errorf("illegal value,can't be set")
+		return
+	}
+
 	s.valueImpl = val
 	return
 }
 
 func (s *valueImpl) Update(val reflect.Value) (err error) {
 	if util.IsNil(val) {
-		s.valueImpl = val
-		return
-	}
-
-	preType := s.valueImpl.Type().String()
-	curType := val.Type().String()
-	if preType != curType {
-		err = fmt.Errorf("illegal update value type, value type:%s, expect type:%s", curType, preType)
+		err = fmt.Errorf("invalid update value")
 		return
 	}
 

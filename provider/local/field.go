@@ -3,8 +3,11 @@ package local
 import (
 	"fmt"
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/util"
-	"log"
+
+	log "github.com/cihub/seelog"
+
 	"reflect"
 )
 
@@ -61,7 +64,6 @@ func (s *fieldImpl) IsAssigned() (ret bool) {
 	originVal := s.fieldType.Interface()
 	sameVal, sameErr := util.IsSameVal(originVal, currentVal)
 	if sameErr != nil {
-		log.Printf("compare value failed, err:%s", sameErr.Error())
 		ret = false
 		return
 	}
@@ -73,11 +75,41 @@ func (s *fieldImpl) IsAssigned() (ret bool) {
 
 func (s *fieldImpl) SetValue(val reflect.Value) (err error) {
 	err = s.fieldValue.Set(val)
+	if err != nil {
+		log.Errorf("set field value failed, name:%s, err:%s", s.fieldName, err.Error())
+	}
+
 	return
 }
 
 func (s *fieldImpl) UpdateValue(val reflect.Value) (err error) {
+	if util.IsNil(val) {
+		err = fmt.Errorf("invalid update value")
+		return
+	}
+
+	dependType := s.fieldType.Depend()
+	if util.IsBasicType(s.GetType().GetValue()) || util.IsBasicType(dependType.GetValue()) {
+		toVal := s.fieldType.Interface()
+		toVal, err = helper.AssignValue(val, toVal)
+		if err != nil {
+			log.Errorf("assign value failed, name:%s, from type:%s, to type:%s, err:%s", s.fieldName, val.Type().String(), s.fieldType.GetName(), err.Error())
+			return
+		}
+
+		err = s.fieldValue.Update(toVal)
+		return
+	}
+
+	if val.Type().String() != s.fieldType.GetName() {
+		err = fmt.Errorf("invalid update value")
+		return
+	}
+
 	err = s.fieldValue.Update(val)
+	if err != nil {
+		log.Errorf("update field value failed, name:%s, err:%s", s.fieldName, err.Error())
+	}
 
 	return
 }

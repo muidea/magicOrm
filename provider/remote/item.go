@@ -1,6 +1,7 @@
 package remote
 
 import (
+	"fmt"
 	"github.com/muidea/magicOrm/provider/helper"
 	"reflect"
 
@@ -65,7 +66,6 @@ func (s *Item) IsAssigned() (ret bool) {
 	if util.IsBasicType(s.Type.GetValue()) {
 		sameVal, sameErr := util.IsSameVal(originVal, currentVal)
 		if sameErr != nil {
-			log.Errorf("compare value failed, err:%s", sameErr.Error())
 			ret = false
 			return
 		}
@@ -104,6 +104,21 @@ func (s *Item) IsAssigned() (ret bool) {
 
 // SetValue SetValue
 func (s *Item) SetValue(val reflect.Value) (err error) {
+	err = s.value.Set(val)
+	if err != nil {
+		log.Errorf("set item value failed, name:%s, err:%s", s.Name, err.Error())
+	}
+
+	return
+}
+
+// UpdateValue UpdateValue
+func (s *Item) UpdateValue(val reflect.Value) (err error) {
+	if util.IsNil(val) {
+		err = fmt.Errorf("invalid update value")
+		return
+	}
+
 	toVal := s.Type.Interface()
 
 	dependType := s.Type.Depend()
@@ -113,21 +128,14 @@ func (s *Item) SetValue(val reflect.Value) (err error) {
 			log.Errorf("assign value failed, name:%s, from type:%s, to type:%s, err:%s", s.Name, val.Type().String(), s.Type.GetName(), err.Error())
 			return
 		}
+
+		err = s.value.Update(toVal)
+		return
 	}
 
-	err = s.value.Set(toVal)
-	if err != nil {
-		log.Errorf("set value failed, name:%s, err:%s", s.Name, err.Error())
-	}
-
-	return
-}
-
-// UpdateValue UpdateValue
-func (s *Item) UpdateValue(val reflect.Value) (err error) {
 	err = s.value.Update(val)
 	if err != nil {
-		log.Errorf("update value failed, name:%s, err:%s", s.Name, err.Error())
+		log.Errorf("update item value failed, name:%s, err:%s", s.Name, err.Error())
 	}
 
 	return

@@ -129,7 +129,7 @@ func (s *Provider) GetEntityModel(objEntity interface{}) (ret model.Model, err e
 
 		_, objOk = objEntity.(*ObjectValue)
 		if objOk {
-			objVal := reflect.ValueOf(objEntity)
+			objVal := reflect.ValueOf(&objEntity).Elem()
 			ret, err = s.GetValueModel(objVal)
 			if err != nil {
 				log.Errorf("GetValueMode failed. err:%s", err.Error())
@@ -164,7 +164,7 @@ func (s *Provider) GetEntityModel(objEntity interface{}) (ret model.Model, err e
 
 	_, objOk = objEntity.(ObjectValue)
 	if objOk {
-		objVal := reflect.ValueOf(objEntity)
+		objVal := reflect.ValueOf(&objEntity).Elem()
 		ret, err = s.GetValueModel(objVal)
 		return
 	}

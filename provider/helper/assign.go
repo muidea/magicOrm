@@ -167,16 +167,17 @@ func AssignValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.Value,
 					toVal.Set(reflect.ValueOf(dtVal))
 				}
 			}
+		case reflect.Struct:
+			toVal.Set(fromVal)
 		default:
 			err = fmt.Errorf("illegal datetime value, fromVal type:%s, fromVal:%v", fromVal.Type().String(), fromVal.Interface())
 		}
 	case reflect.Slice:
 		toVal, err = AssignSliceValue(fromVal, toVal)
 	case reflect.Ptr:
-		switch fromVal.Kind() {
-		case reflect.Ptr:
+		if fromVal.Type().String() == toVal.Type().String() {
 			toVal.Set(fromVal)
-		default:
+		} else {
 			err = fmt.Errorf("illegal ptr value, fromVal type:%s, fromVal:%v", fromVal.Type().String(), fromVal.Interface())
 		}
 	default:

@@ -1,9 +1,11 @@
 package provider
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/remote"
+	"log"
 	"reflect"
 	"testing"
 )
@@ -563,6 +565,8 @@ func TestLocalProvider(t *testing.T) {
 
 	checkBaseModel(t, baseEntityModel)
 
+	log.Print(baseEntity)
+
 	extEntityModel, extEntityErr := provider.GetEntityModel(&extEntity)
 	if extEntityErr != nil {
 		t.Errorf("get local entity model failed, err:%s", extEntityErr.Error())
@@ -570,6 +574,8 @@ func TestLocalProvider(t *testing.T) {
 	}
 
 	checkLocalExtModel(t, extEntityModel)
+
+	log.Print(extEntity)
 }
 
 func TestRemoteProvider(t *testing.T) {
@@ -612,8 +618,20 @@ func TestRemoteProvider(t *testing.T) {
 		t.Errorf("get remote entity model failed, err:%s", baseEntityErr.Error())
 		return
 	}
+	data, _ := json.Marshal(baseVal)
+	log.Print(string(data))
 
 	checkBaseModel(t, baseEntityModel)
+
+	data, _ = json.Marshal(baseVal)
+	log.Print(string(data))
+
+	err := remote.UpdateEntity(baseVal, &baseEntity)
+	if err != nil {
+		t.Errorf("updateEntity failed, err:%s", err.Error())
+		return
+	}
+	log.Print(baseEntity)
 
 	extEntityModel, extEntityErr := provider.GetEntityModel(extVal)
 	if extEntityErr != nil {
@@ -622,4 +640,11 @@ func TestRemoteProvider(t *testing.T) {
 	}
 
 	checkRemoteExtModel(t, extEntityModel)
+
+	err = remote.UpdateEntity(extVal, &extEntity)
+	if err != nil {
+		t.Errorf("updateEntity failed, err:%s", err.Error())
+		return
+	}
+	log.Print(extEntity)
 }

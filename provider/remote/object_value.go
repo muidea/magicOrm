@@ -408,7 +408,7 @@ func convertSliceItemValue(itemValue interface{}, fieldValue reflect.Value) (ret
 	}
 
 	if util.IsBasicType(subType.GetValue()) {
-		fieldValue, err = helper.AssignSliceValue(reflect.ValueOf(itemValue).Elem(), fieldValue)
+		fieldValue, err = helper.AssignSliceValue(reflect.ValueOf(itemValue), fieldValue)
 		if err != nil {
 			log.Errorf("assignSliceValue failed, valType:%s", fieldValue.Type().String())
 			return

@@ -21,17 +21,17 @@ func (s *ValueImpl) IsNil() (ret bool) {
 
 // Set Set
 func (s *ValueImpl) Set(val reflect.Value) (err error) {
+	if !val.CanSet() {
+		err = fmt.Errorf("illegal value,can't be set")
+		return
+	}
+
 	s.value = val
 	return
 }
 
 // Update Update
 func (s *ValueImpl) Update(val reflect.Value) (err error) {
-	if util.IsNil(s.value) {
-		err = fmt.Errorf("invalid current value")
-		return
-	}
-
 	if util.IsNil(val) {
 		err = fmt.Errorf("invalid update value")
 		return
