@@ -85,11 +85,6 @@ func (s *Provider) GetTypeModel(vType model.Type) (ret model.Model, err error) {
 
 // GetValueModel GetValueModel
 func (s *Provider) GetValueModel(modelVal reflect.Value) (ret model.Model, err error) {
-	if !modelVal.CanSet() {
-		err = fmt.Errorf("invalid canset value")
-		return
-	}
-
 	return getValueModel(modelVal, s.modelCache)
 }
 
