@@ -135,8 +135,7 @@ func checkSliceField(t *testing.T, sliceField model.Field) (ret bool) {
 	fType := sliceField.GetType()
 
 	sliceVal := []string{"12.345"}
-	sliceType := reflect.TypeOf(sliceVal)
-	ret = checkFieldType(t, fType, reflect.TypeOf(sliceVal).String(), sliceType.Elem().String())
+	ret = checkFieldType(t, fType, "[]string", "string")
 	if !ret {
 		t.Errorf("check field type failed")
 		return
@@ -174,8 +173,7 @@ func checkSliceStructField(t *testing.T, sliceField model.Field) (ret bool) {
 	fType := sliceField.GetType()
 
 	sliceVal := []*Base{{ID: 12}}
-	sliceType := reflect.TypeOf(sliceVal)
-	ret = checkFieldType(t, fType, sliceType.String(), sliceType.Elem().Elem().String())
+	ret = checkFieldType(t, fType, "[]*provider.Base", "provider.Base")
 	if !ret {
 		t.Errorf("check field type failed")
 		return
@@ -213,8 +211,7 @@ func checkStructField(t *testing.T, structField model.Field) (ret bool) {
 	fType := structField.GetType()
 
 	structVal := Base{ID: 10}
-	structType := reflect.TypeOf(structVal)
-	ret = checkFieldType(t, fType, reflect.TypeOf(structVal).String(), structType.String())
+	ret = checkFieldType(t, fType, "provider.Base", "provider.Base")
 	if !ret {
 		t.Errorf("check field type failed")
 		return
@@ -305,16 +302,6 @@ func checkFieldType(t *testing.T, fType model.Type, typeName, typeDepend string)
 	}
 	if fType.Depend() != nil && typeDepend == "" {
 		t.Errorf("check depend type failed, currentType:%s, dependType:%s", fType.Depend().GetName(), "nil")
-		return false
-	}
-
-	fVal := fType.Interface()
-	if fType.IsPtrType() {
-		fVal = reflect.Indirect(fVal)
-	}
-
-	if fVal.Type().String() != typeName {
-		t.Errorf("illegal interface, expect type:%s", typeName)
 		return false
 	}
 

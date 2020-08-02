@@ -141,26 +141,15 @@ func (s *filterItem) verify(fType model.Type) (err error) {
 		valType = valType.Elem()
 	}
 
-	fieldType := fType.GetType()
-	if fieldType.Kind() == reflect.Interface {
-		fieldType = fieldType.Elem()
-	}
-	if fieldType.Kind() == reflect.Ptr {
-		fieldType = fieldType.Elem()
-	}
-	if fieldType.Kind() == reflect.Slice {
-		fieldType = fieldType.Elem()
-	}
-
-	if valType.Kind() == fieldType.Kind() {
+	if valType.String() == fType.GetName() {
 		return
 	}
 
-	if isNumber(valType.Kind()) && isNumber(fieldType.Kind()) {
+	if isNumber(valType.Kind()) {
 		return
 	}
 
-	err = fmt.Errorf("illegal filter value, value type:%s, field type:%s", valType.String(), fieldType.String())
+	err = fmt.Errorf("illegal filter value, value type:%s", valType.String())
 	return
 }
 

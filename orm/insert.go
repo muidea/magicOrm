@@ -100,7 +100,7 @@ func (s *Orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 
 // Insert insert
 func (s *Orm) Insert(entity interface{}) (err error) {
-	entityVal := reflect.ValueOf(entity)
+	entityVal := reflect.ValueOf(&entity).Elem().Elem()
 	modelInfo, modelErr := s.modelProvider.GetValueModel(entityVal)
 	if modelErr != nil {
 		err = modelErr

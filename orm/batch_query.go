@@ -104,7 +104,7 @@ func (s *Orm) assignSingleModel(modelVal reflect.Value, queryVal resultItems) (r
 				continue
 			}
 
-			field.SetValue(itemVal)
+			field.UpdateValue(itemVal)
 
 			offset++
 			continue
@@ -118,7 +118,7 @@ func (s *Orm) assignSingleModel(modelVal reflect.Value, queryVal resultItems) (r
 			return
 		}
 
-		err = field.SetValue(fVal)
+		err = field.UpdateValue(fVal)
 		if err != nil {
 			log.Errorf("UpdateValue failed, err:%s", err.Error())
 			return

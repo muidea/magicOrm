@@ -1,6 +1,8 @@
 package test
 
 import (
+	"encoding/json"
+	"log"
 	"testing"
 	"time"
 
@@ -75,6 +77,9 @@ func TestRemoteExecutor(t *testing.T) {
 		t.Errorf("insert obj failed, err:%s", err.Error())
 		return
 	}
+
+	buff, _ := json.Marshal(objVal)
+	log.Print(string(buff))
 
 	err = remote.UpdateEntity(objVal, val)
 	if err != nil {

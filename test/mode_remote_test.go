@@ -29,20 +29,20 @@ func getSliceObjectValue(val interface{}) (ret *remote.SliceObjectValue, err err
 	return
 }
 
-func getSliceObjectPtrValue(val interface{}) (ret *remote.SliceObjectPtrValue, err error) {
-	objVal, objErr := remote.GetSliceObjectPtrValue(val)
+func getSliceObjectPtrValue(val interface{}) (ret *remote.SliceObjectValue, err error) {
+	objVal, objErr := remote.GetSliceObjectValue(val)
 	if objErr != nil {
 		err = objErr
 		return
 	}
 
-	data, dataErr := remote.EncodeSliceObjectPtrValue(objVal)
+	data, dataErr := remote.EncodeSliceObjectValue(objVal)
 	if dataErr != nil {
 		err = dataErr
 		return
 	}
 
-	ret, err = remote.DecodeSliceObjectPtrValue(data)
+	ret, err = remote.DecodeSliceObjectValue(data)
 	if err != nil {
 		return
 	}
@@ -1172,7 +1172,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
-	retErr = remote.UpdateSlicePtrEntity(userListVal, userList)
+	retErr = remote.UpdateSliceEntity(userListVal, userList)
 	if retErr != nil {
 		err = retErr
 		t.Errorf("UpdateSlicePtrEntity failed, err:%s", err.Error())
@@ -1197,7 +1197,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("batch query user failed, err:%s", err.Error())
 		return
 	}
-	retErr = remote.UpdateSlicePtrEntity(userListVal, userList)
+	retErr = remote.UpdateSliceEntity(userListVal, userList)
 	if retErr != nil {
 		err = retErr
 		t.Errorf("UpdateSliceEntity failed, err:%s", err.Error())
@@ -1231,7 +1231,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("batch query user failed, err:%s", err.Error())
 		return
 	}
-	retErr = remote.UpdateSlicePtrEntity(userListVal, userList)
+	retErr = remote.UpdateSliceEntity(userListVal, userList)
 	if retErr != nil {
 		err = retErr
 		t.Errorf("UpdateSlicePtrEntity failed, err:%s", err.Error())

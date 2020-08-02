@@ -419,7 +419,7 @@ func convertSliceItemValue(itemValue interface{}, fieldValue reflect.Value) (ret
 	}
 
 	if util.IsStructType(subType.GetValue()) {
-		fieldValue, err = convertSliceStructValue(reflect.ValueOf(itemValue).Elem(), fieldValue)
+		fieldValue, err = convertSliceStructValue(reflect.ValueOf(itemValue), fieldValue)
 		if err != nil {
 			log.Errorf("convertSliceStructValue failed, valType:%s", fieldValue.Type().String())
 			return

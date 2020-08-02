@@ -20,6 +20,8 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 		return err
 	}
 
+	log.Infof("sql:%s", sql)
+
 	err = s.executor.Query(sql)
 	if err != nil {
 		return
@@ -73,7 +75,7 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 	fieldModel, fieldErr := s.modelProvider.GetTypeModel(fType)
 	if fieldErr != nil {
 		err = fieldErr
-		log.Errorf("GetTypeModel failed, type:%s, err:%s", fType.GetType().String(), err.Error())
+		log.Errorf("GetTypeModel failed, type:%s, err:%s", fType.GetName(), err.Error())
 		return
 	}
 	if fieldModel == nil {
@@ -154,7 +156,7 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 					continue
 				}
 
-				err = item.SetValue(itemVal)
+				err = item.UpdateValue(itemVal)
 				if err != nil {
 					log.Errorf("UpdateFieldValue failed, fieldName:%s, err:%s", item.GetName(), err.Error())
 					return
@@ -204,7 +206,7 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 					continue
 				}
 
-				err = item.SetValue(subVal)
+				err = item.UpdateValue(subVal)
 				if err != nil {
 					log.Errorf("UpdateFieldValue failed, fieldName:%s, err:%s", item.GetName(), err.Error())
 					return
@@ -253,7 +255,7 @@ func (s *Orm) Query(entity interface{}) (err error) {
 			continue
 		}
 
-		err = item.SetValue(itemVal)
+		err = item.UpdateValue(itemVal)
 		if err != nil {
 			log.Errorf("UpdateFieldValue failed, fieldName:%s, err:%s", item.GetName(), err.Error())
 			return
