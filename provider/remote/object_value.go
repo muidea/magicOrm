@@ -368,7 +368,7 @@ func convertStructValue(objectValue *ObjectValue, entityValue reflect.Value) (re
 }
 
 func convertBasicItemValue(itemValue interface{}, fieldValue reflect.Value) (ret reflect.Value, err error) {
-	fieldValue, err = helper.AssignValue(reflect.ValueOf(itemValue).Elem(), fieldValue)
+	fieldValue, err = helper.AssignValue(reflect.ValueOf(itemValue), fieldValue)
 	if err != nil {
 		log.Errorf("assignValue failed, valType:%s, err:%s", fieldValue.Type().String(), err.Error())
 		return

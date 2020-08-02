@@ -231,6 +231,11 @@ func TestStructType(t *testing.T) {
 		t.Errorf("newType faild. illegal type value")
 		return
 	}
+
+	if structType.IsPtrType() {
+		t.Errorf("unexpect isPtrType")
+		return
+	}
 }
 
 func TestSliceType(t *testing.T) {
@@ -301,6 +306,84 @@ func TestSliceType(t *testing.T) {
 		return
 	}
 
+	if sliceType.IsPtrType() {
+		t.Errorf("unexpect isPtrType")
+		return
+	}
+}
+
+func TestPtrSliceType(t *testing.T) {
+	var sliceVal *[]*uint16
+	sliceType, sliceErr := newType(reflect.TypeOf(sliceVal))
+	if sliceErr != nil {
+		t.Errorf("newType failed, err:%s", sliceErr.Error())
+		return
+	}
+
+	if sliceType.GetValue() != util.TypeSliceField {
+		t.Errorf("get Slice type value failed.")
+		return
+	}
+
+	rsliceType, rsliceErr := newType(sliceType.Interface().Type())
+	if rsliceErr != nil {
+		t.Errorf("newType failed, err:%s", rsliceErr.Error())
+		return
+	}
+
+	if rsliceType.GetValue() != util.TypeSliceField {
+		t.Errorf("get Slice type value failed.")
+		return
+	}
+	if sliceType.GetName() != rsliceType.GetName() {
+		t.Errorf("newType faild. illegal type name")
+		return
+	}
+	if sliceType.GetPkgPath() != rsliceType.GetPkgPath() {
+		t.Errorf("newType faild. illegal type pkgPath")
+		return
+	}
+	if sliceType.GetValue() != rsliceType.GetValue() {
+		t.Errorf("newType faild. illegal type value")
+		return
+	}
+
+	dependType := sliceType.Depend()
+	if dependType == nil {
+		t.Errorf("illegal depend")
+		return
+	}
+
+	if dependType.GetValue() != util.TypePositiveSmallIntegerField {
+		t.Errorf("illegal depend type value")
+		return
+	}
+
+	if !dependType.IsPtrType() {
+		t.Errorf("illegal depend type value")
+		return
+	}
+
+	elemType := sliceType.Elem()
+	if elemType == nil {
+		t.Errorf("illegal elem")
+		return
+	}
+
+	if elemType.GetValue() != util.TypePositiveSmallIntegerField {
+		t.Errorf("illegal elem type value")
+		return
+	}
+
+	if !elemType.IsPtrType() {
+		t.Errorf("illegal elem type value")
+		return
+	}
+
+	if !sliceType.IsPtrType() {
+		t.Errorf("unexpect isPtrType")
+		return
+	}
 }
 
 func TestSliceStructType(t *testing.T) {
@@ -371,6 +454,10 @@ func TestSliceStructType(t *testing.T) {
 
 	if !elemType.IsPtrType() {
 		t.Errorf("illegal elem type value")
+		return
+	}
+	if sliceType.IsPtrType() {
+		t.Errorf("unexpect isPtrType")
 		return
 	}
 }

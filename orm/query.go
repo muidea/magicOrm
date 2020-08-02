@@ -171,7 +171,7 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 			itemVal := reflect.Indirect(fieldModel.Interface())
 			itemInfo, itemErr := s.modelProvider.GetValueModel(itemVal)
 			if itemErr != nil {
-				log.Errorf("GetValueModel faield, err:%s", itemErr.Error())
+				log.Errorf("GetValueModel failed, err:%s", itemErr.Error())
 				err = itemErr
 				return
 			}
@@ -218,6 +218,10 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 			}
 
 			relationVal = reflect.Append(relationVal, itemVal)
+		}
+
+		if fType.IsPtrType() {
+			relationVal = relationVal.Addr()
 		}
 
 		ret = relationVal

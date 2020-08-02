@@ -127,6 +127,7 @@ func (s *Orm) assignSingleModel(modelVal reflect.Value, queryVal resultItems) (r
 		offset++
 	}
 
+	ret = modelVal
 	return
 }
 

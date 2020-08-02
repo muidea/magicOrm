@@ -47,7 +47,7 @@ func (s *Orm) updateRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 
 // Update update
 func (s *Orm) Update(entity interface{}) (err error) {
-	entityVal := reflect.ValueOf(entity)
+	entityVal := reflect.ValueOf(entity).Elem()
 	modelInfo, modelErr := s.modelProvider.GetValueModel(entityVal)
 	if modelErr != nil {
 		err = modelErr

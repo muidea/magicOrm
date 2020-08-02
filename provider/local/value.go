@@ -27,6 +27,11 @@ func (s *valueImpl) Set(val reflect.Value) (err error) {
 }
 
 func (s *valueImpl) Update(val reflect.Value) (err error) {
+	if util.IsNil(val) {
+		s.valueImpl = val
+		return
+	}
+
 	preType := s.valueImpl.Type().String()
 	curType := val.Type().String()
 	if preType != curType {
