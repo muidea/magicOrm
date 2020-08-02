@@ -57,6 +57,12 @@ func (s *Builder) buildFilter(modelInfo model.Model) (ret string, err error) {
 		}
 
 		if dependModel != nil {
+			// if fStr is "0"
+			// a empty struct
+			if fStr == "0" {
+				continue
+			}
+
 			relationTable := s.GetRelationTableName(field.GetName(), dependModel)
 			if util.IsSliceType(fType.GetValue()) {
 				if fStr != "" {
