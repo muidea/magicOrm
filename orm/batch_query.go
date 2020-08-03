@@ -71,6 +71,10 @@ func (s *Orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 			return
 		}
 
+		if !modelInfo.IsPtrModel() {
+			modelVal = reflect.Indirect(modelVal)
+		}
+
 		resultSlice = reflect.Append(resultSlice, modelVal)
 	}
 

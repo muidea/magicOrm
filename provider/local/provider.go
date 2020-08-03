@@ -50,7 +50,6 @@ func (s *Provider) UnregisterModel(entity interface{}) {
 // GetEntityModel GetEntityModel
 func (s *Provider) GetEntityModel(objPtr interface{}) (ret model.Model, err error) {
 	modelVal := reflect.ValueOf(&objPtr).Elem().Elem()
-
 	modelImpl, modelErr := getValueModel(modelVal, s.modelCache)
 	if modelErr != nil {
 		err = modelErr
