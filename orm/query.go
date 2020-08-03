@@ -47,7 +47,7 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 	for _, item := range modelInfo.GetFields() {
 		fType := item.GetType()
 		depend := fType.Depend()
-		if depend != nil {
+		if depend != nil && !util.IsBasicType(depend.GetValue()) {
 			continue
 		}
 
@@ -62,7 +62,7 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 		fType := item.GetType()
 		fValue := item.GetValue()
 		depend := fType.Depend()
-		if depend == nil || fValue.IsNil() {
+		if depend == nil || util.IsBasicType(depend.GetValue()) || fValue.IsNil() {
 			continue
 		}
 

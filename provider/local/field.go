@@ -84,7 +84,7 @@ func (s *fieldImpl) SetValue(val reflect.Value) (err error) {
 
 func (s *fieldImpl) UpdateValue(val reflect.Value) (err error) {
 	if util.IsNil(val) {
-		err = fmt.Errorf("invalid update value")
+		err = fmt.Errorf("update value is nil")
 		return
 	}
 
@@ -101,8 +101,14 @@ func (s *fieldImpl) UpdateValue(val reflect.Value) (err error) {
 		return
 	}
 
-	if val.Type().String() != s.fieldType.GetName() {
-		err = fmt.Errorf("invalid update value")
+	vType, vErr := newType(val.Type())
+	if vErr != nil {
+		err = vErr
+		return
+	}
+
+	if vType.GetName() != s.fieldType.GetName() {
+		err = fmt.Errorf("invalid update value, value type:%s, expect type:%s", vType.GetName(), s.fieldType.GetName())
 		return
 	}
 
