@@ -9,7 +9,7 @@ import (
 	ormImpl "github.com/muidea/magicOrm/orm"
 )
 
-// Orm orm interfalce
+// Orm orm interface
 type Orm interface {
 	RegisterModel(entity interface{}, owner string) error
 	UnregisterModel(entity interface{}, owner string)

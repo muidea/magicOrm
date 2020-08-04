@@ -9,7 +9,7 @@ import (
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
-	ormutil "github.com/muidea/magicOrm/util"
+	ormUtil "github.com/muidea/magicOrm/util"
 )
 
 type filterValue struct {
@@ -17,6 +17,9 @@ type filterValue struct {
 }
 
 func newFilterValue(val reflect.Value) (ret model.Value, err error) {
+	if ormUtil.IsNil(val) {
+		return
+	}
 	if val.Kind() == reflect.Invalid {
 		err = fmt.Errorf("illegal filter value")
 		return
@@ -30,7 +33,7 @@ func newFilterValue(val reflect.Value) (ret model.Value, err error) {
 	}
 
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	_, qvErr := ormutil.GetTypeValueEnum(qv.Type())
+	_, qvErr := ormUtil.GetTypeValueEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
@@ -41,25 +44,12 @@ func newFilterValue(val reflect.Value) (ret model.Value, err error) {
 }
 
 func (s *filterValue) IsNil() (ret bool) {
-	if s.filterValue.Kind() == reflect.Invalid {
-		return true
-	}
-
-	if s.filterValue.Kind() == reflect.Ptr {
-		return s.filterValue.IsNil()
-	}
-
-	return false
+	return ormUtil.IsNil(s.filterValue)
 }
 
 func (s *filterValue) Set(val reflect.Value) (err error) {
-	if val.Kind() == reflect.Invalid {
+	if ormUtil.IsNil(val) {
 		return
-	}
-	if val.Kind() == reflect.Ptr {
-		if val.IsNil() {
-			return
-		}
 	}
 
 	if s.filterValue.Kind() == reflect.Invalid {
@@ -184,7 +174,7 @@ func (s *filterItem) FilterStr(name string, fType model.Type) (ret string, err e
 
 		filterStr = fVal
 	} else {
-		itemArray := []string{}
+		var itemArray []string
 		for idx := 0; idx < s.value.Len(); idx++ {
 			itemVal, itemErr := newFilterValue(s.value.Index(idx))
 			if itemErr != nil {
@@ -219,12 +209,12 @@ type queryFilter struct {
 
 func (s *queryFilter) Equal(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ormutil.GetTypeValueEnum(qv.Type())
+	qvType, qvErr := ormUtil.GetTypeValueEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
 	}
-	if ormutil.IsSliceType(qvType) {
+	if ormUtil.IsSliceType(qvType) {
 		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
 		return
 	}
@@ -235,12 +225,12 @@ func (s *queryFilter) Equal(key string, val interface{}) (err error) {
 
 func (s *queryFilter) NotEqual(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ormutil.GetTypeValueEnum(qv.Type())
+	qvType, qvErr := ormUtil.GetTypeValueEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
 	}
-	if ormutil.IsSliceType(qvType) {
+	if ormUtil.IsSliceType(qvType) {
 		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
 		return
 	}
@@ -251,12 +241,12 @@ func (s *queryFilter) NotEqual(key string, val interface{}) (err error) {
 
 func (s *queryFilter) Below(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ormutil.GetTypeValueEnum(qv.Type())
+	qvType, qvErr := ormUtil.GetTypeValueEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
 	}
-	if !ormutil.IsBasicType(qvType) {
+	if !ormUtil.IsBasicType(qvType) {
 		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
 		return
 	}
@@ -267,12 +257,12 @@ func (s *queryFilter) Below(key string, val interface{}) (err error) {
 
 func (s *queryFilter) Above(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ormutil.GetTypeValueEnum(qv.Type())
+	qvType, qvErr := ormUtil.GetTypeValueEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
 	}
-	if !ormutil.IsBasicType(qvType) {
+	if !ormUtil.IsBasicType(qvType) {
 		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
 		return
 	}
@@ -283,12 +273,12 @@ func (s *queryFilter) Above(key string, val interface{}) (err error) {
 
 func (s *queryFilter) In(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ormutil.GetTypeValueEnum(qv.Type())
+	qvType, qvErr := ormUtil.GetTypeValueEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
 	}
-	if !ormutil.IsSliceType(qvType) {
+	if !ormUtil.IsSliceType(qvType) {
 		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
 		return
 	}
@@ -301,12 +291,12 @@ func (s *queryFilter) In(key string, val interface{}) (err error) {
 
 func (s *queryFilter) NotIn(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ormutil.GetTypeValueEnum(qv.Type())
+	qvType, qvErr := ormUtil.GetTypeValueEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
 	}
-	if !ormutil.IsSliceType(qvType) {
+	if !ormUtil.IsSliceType(qvType) {
 		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
 		return
 	}
@@ -330,13 +320,13 @@ func (s *queryFilter) Like(key string, val interface{}) (err error) {
 
 func (s *queryFilter) ValueMask(val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ormutil.GetTypeValueEnum(qv.Type())
+	qvType, qvErr := ormUtil.GetTypeValueEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
 	}
 
-	if !ormutil.IsStructType(qvType) {
+	if !ormUtil.IsStructType(qvType) {
 		err = fmt.Errorf("illegal mask value")
 		return
 	}
