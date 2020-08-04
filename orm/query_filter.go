@@ -18,21 +18,11 @@ type filterValue struct {
 
 func newFilterValue(val reflect.Value) (ret model.Value, err error) {
 	if ormUtil.IsNil(val) {
-		return
-	}
-	if val.Kind() == reflect.Invalid {
 		err = fmt.Errorf("illegal filter value")
 		return
 	}
 
-	if val.Kind() == reflect.Ptr {
-		if val.IsNil() {
-			err = fmt.Errorf("nil filter value")
-			return
-		}
-	}
-
-	qv := reflect.Indirect(reflect.ValueOf(val))
+	qv := reflect.Indirect(val)
 	_, qvErr := ormUtil.GetTypeValueEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
@@ -52,34 +42,12 @@ func (s *filterValue) Set(val reflect.Value) (err error) {
 		return
 	}
 
-	if s.filterValue.Kind() == reflect.Invalid {
-		s.filterValue = val
-		return
-	}
-
-	valTypeName := val.Type().String()
-	expectTypeName := s.filterValue.Type().String()
-	if expectTypeName != valTypeName {
-		err = fmt.Errorf("illegal value type, type:%s, expect:%s", expectTypeName, valTypeName)
-		return
-	}
-
-	s.filterValue.Set(val)
+	s.filterValue = val
 	return
 }
 
 func (s *filterValue) Update(val reflect.Value) (err error) {
-	if val.Kind() == reflect.Invalid {
-		return
-	}
-	if val.Kind() == reflect.Ptr {
-		if val.IsNil() {
-			return
-		}
-	}
-
-	if s.filterValue.Kind() == reflect.Invalid {
-		s.filterValue = val
+	if ormUtil.IsNil(val) {
 		return
 	}
 
@@ -119,36 +87,7 @@ func isNumber(vKind reflect.Kind) (ret bool) {
 	return
 }
 
-func (s *filterItem) verify(fType model.Type) (err error) {
-	valType := s.value.Type()
-	if valType.Kind() == reflect.Interface {
-		valType = valType.Elem()
-	}
-	if valType.Kind() == reflect.Ptr {
-		valType = valType.Elem()
-	}
-	if valType.Kind() == reflect.Slice {
-		valType = valType.Elem()
-	}
-
-	if valType.String() == fType.GetName() {
-		return
-	}
-
-	if isNumber(valType.Kind()) {
-		return
-	}
-
-	err = fmt.Errorf("illegal filter value, value type:%s", valType.String())
-	return
-}
-
 func (s *filterItem) FilterStr(name string, fType model.Type) (ret string, err error) {
-	//err = s.verify(fType)
-	//if err != nil {
-	//	return
-	//}
-
 	fModel, fErr := s.modelProvider.GetTypeModel(fType)
 	if fErr != nil {
 		err = fErr
