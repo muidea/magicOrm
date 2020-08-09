@@ -2,15 +2,15 @@ package provider
 
 import (
 	"fmt"
-	"github.com/muidea/magicOrm/provider/helper"
-	"github.com/muidea/magicOrm/provider/local"
-	"github.com/muidea/magicOrm/provider/remote"
-	"github.com/muidea/magicOrm/util"
 	"log"
 	"reflect"
 	"strings"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider/helper"
+	"github.com/muidea/magicOrm/provider/local"
+	"github.com/muidea/magicOrm/provider/remote"
+	"github.com/muidea/magicOrm/util"
 )
 
 // Provider model provider
@@ -22,8 +22,6 @@ type Provider interface {
 	GetEntityModel(entity interface{}) (ret model.Model, err error)
 
 	GetValueModel(val reflect.Value) (ret model.Model, err error)
-
-	GetSliceValueModel(val reflect.Value) (ret model.Model, err error)
 
 	GetTypeModel(vType model.Type) (ret model.Model, err error)
 
@@ -42,15 +40,14 @@ type providerImpl struct {
 	localProvider bool
 	modelCache    model.Cache
 
-	getTypeFunc       func(p reflect.Type) (ret model.Type, err error)
+	getValueTypeFunc  func(p reflect.Value) (ret model.Type, err error)
 	getValueModelFunc func(p reflect.Value) (ret model.Model, err error)
-	getTypeModelFunc  func(p reflect.Type) (ret model.Model, err error)
 }
 
 // RegisterModel RegisterObjectModel
 func (s *providerImpl) RegisterModel(entity interface{}) (ret model.Model, err error) {
-	entityType := reflect.TypeOf(entity)
-	modelType, modelErr := s.getTypeFunc(entityType)
+	entityValue := reflect.ValueOf(entity)
+	modelType, modelErr := s.getValueTypeFunc(entityValue)
 	if modelErr != nil {
 		err = modelErr
 		return
@@ -67,7 +64,7 @@ func (s *providerImpl) RegisterModel(entity interface{}) (ret model.Model, err e
 		return
 	}
 
-	entityModel, entityErr := s.getTypeModelFunc(entityType)
+	entityModel, entityErr := s.getValueModelFunc(entityValue)
 	if entityErr != nil {
 		err = entityErr
 		return
@@ -80,8 +77,8 @@ func (s *providerImpl) RegisterModel(entity interface{}) (ret model.Model, err e
 
 // UnregisterModel register model
 func (s *providerImpl) UnregisterModel(entity interface{}) {
-	entityType := reflect.TypeOf(entity)
-	modelType, modelErr := s.getTypeFunc(entityType)
+	entityValue := reflect.ValueOf(entity)
+	modelType, modelErr := s.getValueTypeFunc(entityValue)
 	if modelErr != nil {
 		return
 	}
@@ -113,7 +110,7 @@ func (s *providerImpl) GetEntityModel(objPtr interface{}) (ret model.Model, err 
 		return
 	}
 	objVal = reflect.Indirect(objVal)
-	objType, objErr := s.getTypeFunc(objVal.Type())
+	objType, objErr := s.getValueTypeFunc(objVal)
 	if objErr != nil || !util.IsStructType(objType.GetValue()) {
 		err = fmt.Errorf("illegal entity, must be struct value")
 		return
@@ -171,33 +168,7 @@ func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err erro
 
 // GetValueModel GetValueModel
 func (s *providerImpl) GetValueModel(modelVal reflect.Value) (ret model.Model, err error) {
-	vType, vErr := s.getTypeFunc(modelVal.Type())
-	if vErr != nil {
-		err = vErr
-		return
-	}
-	vType = vType.Depend()
-	if util.IsBasicType(vType.GetValue()) {
-		return
-	}
-
-	typeModel := s.modelCache.Fetch(vType.GetName())
-	if typeModel == nil {
-		err = fmt.Errorf("can't fetch type model, must register type entity first")
-		return
-	}
-	if typeModel.GetPkgPath() != vType.GetPkgPath() {
-		err = fmt.Errorf("illegal object entity, must register entity first")
-		return
-	}
-
-	ret = typeModel
-	return
-}
-
-// GetSliceValueModel GetSliceValueModel
-func (s *providerImpl) GetSliceValueModel(sliceVal reflect.Value) (ret model.Model, err error) {
-	vType, vErr := s.getTypeFunc(sliceVal.Type())
+	vType, vErr := s.getValueTypeFunc(modelVal)
 	if vErr != nil {
 		err = vErr
 		return
@@ -331,7 +302,7 @@ func (s *providerImpl) GetDependValue(vValue model.Value) (ret []reflect.Value, 
 	}
 
 	val := vValue.Get()
-	vType, vErr := s.getTypeFunc(val.Type())
+	vType, vErr := s.getValueTypeFunc(val)
 	if vErr != nil {
 		err = vErr
 		return
@@ -379,9 +350,8 @@ func NewLocalProvider(owner string) Provider {
 		owner:             owner,
 		localProvider:     true,
 		modelCache:        model.NewCache(),
-		getTypeFunc:       local.GetType,
-		getValueModelFunc: local.GetValueModel,
-		getTypeModelFunc:  local.GetTypeModel,
+		getValueTypeFunc:  local.GetType,
+		getValueModelFunc: local.GetModel,
 	}
 }
 
@@ -391,8 +361,7 @@ func NewRemoteProvider(owner string) Provider {
 		owner:             owner,
 		localProvider:     false,
 		modelCache:        model.NewCache(),
-		getTypeFunc:       remote.GetType,
+		getValueTypeFunc:  remote.GetValueType,
 		getValueModelFunc: remote.GetValueModel,
-		getTypeModelFunc:  remote.GetTypeModel,
 	}
 }
