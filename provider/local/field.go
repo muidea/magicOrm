@@ -16,9 +16,9 @@ type fieldImpl struct {
 	fieldIndex int
 	fieldName  string
 
-	fieldType  typeImpl
-	fieldTag   tagImpl
-	fieldValue valueImpl
+	fieldType  *typeImpl
+	fieldTag   *tagImpl
+	fieldValue *valueImpl
 }
 
 func (s *fieldImpl) GetIndex() int {
@@ -32,17 +32,17 @@ func (s *fieldImpl) GetName() string {
 
 // GetType GetType
 func (s *fieldImpl) GetType() model.Type {
-	return &s.fieldType
+	return s.fieldType
 }
 
 // GetTag GetTag
 func (s *fieldImpl) GetTag() model.Tag {
-	return &s.fieldTag
+	return s.fieldTag
 }
 
 // GetValue GetValue
 func (s *fieldImpl) GetValue() model.Value {
-	return &s.fieldValue
+	return s.fieldValue
 }
 
 func (s *fieldImpl) IsPrimary() bool {
@@ -150,36 +150,43 @@ func (s *fieldImpl) Copy() *fieldImpl {
 	return &fieldImpl{
 		fieldIndex: s.fieldIndex,
 		fieldName:  s.fieldName,
-		fieldType:  s.fieldType,
-		fieldTag:   s.fieldTag,
-		fieldValue: s.fieldValue,
+		fieldType:  s.fieldType.Copy(),
+		fieldTag:   s.fieldTag.Copy(),
+		fieldValue: s.fieldValue.Copy(),
 	}
 }
 
 // Dump Dump
-func (s *fieldImpl) Dump(cache Cache) string {
-	str, _ := getValueStr(&s.fieldType, &s.fieldValue, cache)
-	str = fmt.Sprintf("index:%d,name:%s,type:[%s],tag:[%s],value:%s", s.fieldIndex, s.fieldName, s.fieldType.Dump(), s.fieldTag.Dump(), str)
-
+func (s *fieldImpl) Dump() string {
+	str := fmt.Sprintf("index:%d,name:%s,type:[%s],tag:[%s]", s.fieldIndex, s.fieldName, s.fieldType.Dump(), s.fieldTag.Dump())
 	return str
 }
 
-func getFieldInfo(idx int, fieldType reflect.StructField) (ret *fieldImpl, err error) {
-	typeImpl, err := newType(fieldType.Type)
-	if err != nil {
+func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Value) (ret *fieldImpl, err error) {
+	typeImpl, typeErr := newType(fieldType.Type)
+	if typeErr != nil {
+		err = typeErr
 		return
 	}
 
-	tagImpl, err := newTag(fieldType.Tag.Get("orm"))
-	if err != nil {
+	tagImpl, tagErr := newTag(fieldType.Tag.Get("orm"))
+	if tagErr != nil {
+		err = tagErr
+		return
+	}
+
+	valueImpl, valueErr := newValue(fieldValue)
+	if valueErr != nil {
+		err = valueErr
 		return
 	}
 
 	field := &fieldImpl{}
 	field.fieldIndex = idx
 	field.fieldName = fieldType.Name
-	field.fieldType = *typeImpl
-	field.fieldTag = *tagImpl
+	field.fieldType = typeImpl
+	field.fieldTag = tagImpl
+	field.fieldValue = valueImpl
 
 	err = field.verify()
 	if err != nil {

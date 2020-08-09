@@ -36,17 +36,34 @@ type Test struct {
 }
 
 func TestModel(t *testing.T) {
-	cache := NewCache()
 	now := time.Now()
 
-	test := reflect.ValueOf(&Test{})
-	err := registerModel(test.Type().Elem(), cache)
-	if err != nil {
-		t.Errorf("registerModel failed, err:%s", err.Error())
+	test := reflect.ValueOf(Test{})
+	if test.CanSet() {
+		t.Error("invalid value")
 		return
 	}
 
-	testInfo, testErr := getValueModel(test, cache)
+	ptr := &Test{}
+	test = reflect.ValueOf(ptr)
+	if test.CanSet() {
+		t.Error("invalid value")
+		return
+	}
+
+	test = test.Elem()
+	if !test.CanSet() {
+		t.Error("invalid value")
+		return
+	}
+
+	_, err := getTypeModel(test.Type())
+	if err != nil {
+		t.Errorf("getTypeModel failed, err:%s", err.Error())
+		return
+	}
+
+	testInfo, testErr := getValueModel(test)
 	if testErr != nil {
 		t.Errorf("getValueModel failed, err:%s", testErr.Error())
 		return
@@ -59,8 +76,8 @@ func TestModel(t *testing.T) {
 		}
 	}
 
-	test = reflect.ValueOf(&Test{ID: 10, Val: 123, Base: Base{ID: 12}, Base2: BT{ID: 23}})
-	testInfo, testErr = getValueModel(test, cache)
+	test = reflect.ValueOf(Test{ID: 10, Val: 123, Base: Base{ID: 12}, Base2: BT{ID: 23}})
+	testInfo, testErr = getValueModel(test)
 	if testErr != nil {
 		t.Errorf("getValueModel failed, err:%s", testErr.Error())
 		return
@@ -73,21 +90,16 @@ func TestModel(t *testing.T) {
 		}
 	}
 
-	val := reflect.ValueOf(&Unit{T1: Test{ID: 12, Val: 123}, TimeStamp: now})
-	err = registerModel(val.Type().Elem(), cache)
+	val := reflect.ValueOf(&Unit{T1: Test{ID: 12, Val: 123}, TimeStamp: now}).Elem()
+	_, err = getTypeModel(val.Type())
 	if err != nil {
-		t.Errorf("registerModel failed, err:%s", err.Error())
+		t.Errorf("getTypeModel failed, err:%s", err.Error())
 		return
 	}
 
-	modelInfo, err := getValueModel(val, cache)
+	modelInfo, err := getValueModel(val)
 	if modelInfo == nil || err != nil {
 		t.Errorf("getValueModel failed, err:%s", err.Error())
-		return
-	}
-
-	if !modelInfo.IsPtrModel() {
-		t.Errorf("get value Model failed")
 		return
 	}
 
@@ -97,21 +109,20 @@ func TestModel(t *testing.T) {
 		return
 	}
 
-	modelInfo.Dump(cache)
+	modelInfo.Dump()
 }
 
 func TestModelValue(t *testing.T) {
-	cache := NewCache()
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05", "2018-01-02 15:04:05", time.Local)
-	unit := &Unit{Name: "AA", T1: Test{Val: 123}, TimeStamp: now}
-	unitVal := reflect.ValueOf(unit)
-	err := registerModel(unitVal.Type(), cache)
+	unit := Unit{Name: "AA", T1: Test{Val: 123}, TimeStamp: now}
+	unitVal := reflect.ValueOf(&unit).Elem()
+	_, err := getTypeModel(unitVal.Type())
 	if err != nil {
-		t.Errorf("registerModel failed, err:%s", err.Error())
+		t.Errorf("getTypeModel failed, err:%s", err.Error())
 		return
 	}
 
-	modelInfo, err := getValueModel(unitVal, cache)
+	modelInfo, err := getValueModel(unitVal)
 	if err != nil {
 		t.Errorf("getValueModel failed, err:%s", err.Error())
 		return
@@ -175,39 +186,38 @@ func TestReference(t *testing.T) {
 		EF []*AB `orm:"ef"`
 	}
 
-	cache := NewCache()
 	abVal := reflect.ValueOf(&AB{})
-	cdVal := reflect.ValueOf(&CD{})
-	demoVal := reflect.ValueOf(&Demo{AB: &AB{}})
-	err := registerModel(abVal.Type(), cache)
+	cdVal := reflect.ValueOf(&CD{}).Elem()
+	demoVal := reflect.ValueOf(&Demo{AB: &AB{}}).Elem()
+	_, err := getTypeModel(abVal.Type())
 	if err != nil {
-		t.Errorf("registerModel failed, err:%s", err.Error())
+		t.Errorf("getTypeModel failed, err:%s", err.Error())
 		return
 	}
-	err = registerModel(cdVal.Type(), cache)
+	_, err = getTypeModel(cdVal.Type())
 	if err != nil {
-		t.Errorf("registerModel failed, err:%s", err.Error())
+		t.Errorf("getTypeModel failed, err:%s", err.Error())
 		return
 	}
-	err = registerModel(demoVal.Type(), cache)
+	_, err = getTypeModel(demoVal.Type())
 	if err != nil {
-		t.Errorf("registerModel failed, err:%s", err.Error())
+		t.Errorf("getTypeModel failed, err:%s", err.Error())
 		return
 	}
-	f32Info, err := getValueModel(demoVal, cache)
+	f32Info, err := getValueModel(demoVal)
 	if err != nil {
 		t.Errorf("getValueModel failed, err:%s", err.Error())
 		return
 	}
 
-	f32Info.Dump(cache)
+	f32Info.Dump()
 
-	i64Info, err := getValueModel(cdVal, cache)
+	i64Info, err := getValueModel(cdVal)
 	if err != nil {
 		t.Errorf("getValueModel failed, err:%s", err.Error())
 	}
 
-	i64Info.Dump(cache)
+	i64Info.Dump()
 }
 
 type TT struct {
@@ -217,15 +227,14 @@ type TT struct {
 }
 
 func TestGetModelValue(t *testing.T) {
-	cache := NewCache()
-	t1 := &TT{Aa: 12, Bb: 23}
-	ttVal := reflect.ValueOf(t1)
-	err := registerModel(ttVal.Type(), cache)
+	t1 := TT{Aa: 12, Bb: 23}
+	ttVal := reflect.ValueOf(&t1).Elem()
+	_, err := getTypeModel(ttVal.Type())
 	if err != nil {
-		t.Errorf("registerModel failed, err:%s", err.Error())
+		t.Errorf("getTypeModel failed, err:%s", err.Error())
 		return
 	}
-	t1Info, t1Err := getValueModel(ttVal, cache)
+	t1Info, t1Err := getValueModel(ttVal)
 	if t1Err != nil {
 		t.Errorf("getValueModel t1 failed, err:%s", t1Err.Error())
 		return
@@ -233,12 +242,12 @@ func TestGetModelValue(t *testing.T) {
 
 	t2 := &TT{Aa: 34, Bb: 45}
 	//reflect.TypeOf(t2)
-	t2Info, t2Err := getValueModel(reflect.ValueOf(t2), cache)
+	t2Info, t2Err := getValueModel(reflect.ValueOf(t2).Elem())
 	if t1Err != nil {
 		t.Errorf("getValueModel t2 failed, err:%s", t2Err.Error())
 		return
 	}
 
-	t1Info.Dump(cache)
-	t2Info.Dump(cache)
+	t1Info.Dump()
+	t2Info.Dump()
 }

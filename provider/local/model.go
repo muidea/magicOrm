@@ -4,11 +4,8 @@ import (
 	"fmt"
 	"log"
 	"reflect"
-	"strings"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/helper"
-	"github.com/muidea/magicOrm/util"
 )
 
 // modelImpl single model
@@ -106,13 +103,13 @@ func (s *modelImpl) Copy() *modelImpl {
 }
 
 // Dump Dump
-func (s *modelImpl) Dump(cache Cache) (ret string) {
+func (s *modelImpl) Dump() (ret string) {
 	ret = fmt.Sprintf("\nmodelImpl:\n")
 	ret = fmt.Sprintf("%s\tname:%s, pkgPath:%s\n", ret, s.GetName(), s.GetPkgPath())
 
 	ret = fmt.Sprintf("%sfields:\n", ret)
 	for _, field := range s.fields {
-		ret = fmt.Sprintf("%s\t%s\n", ret, field.Dump(cache))
+		ret = fmt.Sprintf("%s\t%s\n", ret, field.Dump())
 	}
 
 	log.Print(ret)
@@ -120,7 +117,7 @@ func (s *modelImpl) Dump(cache Cache) (ret string) {
 	return
 }
 
-func registerModel(entityType reflect.Type, cache Cache) (err error) {
+func getTypeModel(entityType reflect.Type) (ret model.Model, err error) {
 	if entityType.Kind() == reflect.Ptr {
 		entityType = entityType.Elem()
 	}
@@ -128,9 +125,10 @@ func registerModel(entityType reflect.Type, cache Cache) (err error) {
 	hasPrimaryKey := false
 	modelImpl := &modelImpl{modelType: entityType, fields: make([]*fieldImpl, 0)}
 	fieldNum := entityType.NumField()
+	var fieldValue reflect.Value
 	for idx := 0; idx < fieldNum; idx++ {
 		fieldType := entityType.Field(idx)
-		fieldInfo, fieldErr := getFieldInfo(idx, fieldType)
+		fieldInfo, fieldErr := getFieldInfo(idx, fieldType, fieldValue)
 		if fieldErr != nil {
 			err = fieldErr
 			log.Printf("getFieldInfo failed, field idx:%d, field name:%s, struct name:%s, err:%s", idx, fieldType.Name, modelImpl.GetName(), err.Error())
@@ -160,209 +158,48 @@ func registerModel(entityType reflect.Type, cache Cache) (err error) {
 		return
 	}
 
-	cache.Put(modelImpl.GetName(), modelImpl)
 	return
 }
 
 // getValueModel getValueModel
-func getValueModel(modelVal reflect.Value, cache Cache) (ret *modelImpl, err error) {
-	var vType model.Type
-	vType, vErr := newType(modelVal.Type())
-	if vErr != nil {
-		err = vErr
-		log.Printf("newType failed, err:%s", err.Error())
-		return
-	}
-
-	if util.IsSliceType(vType.GetValue()) {
-		err = fmt.Errorf("illegal value, type:%s", modelVal.Type().String())
-		return
-	}
-
-	modelInfo, modelErr := getTypeModel(vType, cache)
-	if modelErr != nil {
-		err = modelErr
-		log.Printf("getTypeModel failed, err:%s", err.Error())
-		return
-	}
-
-	rawVal := modelVal
-	if rawVal.Kind() == reflect.Ptr {
-		if rawVal.IsNil() {
-			return
-		}
-
-		rawVal = reflect.Indirect(rawVal)
-	}
-
-	if rawVal.Kind() != reflect.Struct {
-		ret = modelInfo
-		return
-	}
-
-	fieldNum := rawVal.NumField()
+func getValueModel(modelVal reflect.Value) (ret *modelImpl, err error) {
+	hasPrimaryKey := false
+	entityType := modelVal.Type()
+	modelImpl := &modelImpl{modelType: entityType, fields: make([]*fieldImpl, 0)}
+	fieldNum := entityType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		fieldVal := rawVal.Field(idx)
-		err = modelInfo.SetFieldValue(idx, fieldVal)
-		if err != nil {
-			log.Printf("SetFieldValue failed, err:%s", err.Error())
-			return
-		}
-	}
-
-	ret = modelInfo
-
-	return
-}
-
-// getSliceValueModel getSliceValueModel
-func getSliceValueModel(modelVal reflect.Value, cache Cache) (retModel *modelImpl, retVal reflect.Value, retErr error) {
-	var vType model.Type
-	vType, vErr := newType(modelVal.Type())
-	if vErr != nil {
-		retErr = vErr
-		log.Printf("newType failed, err:%s", retErr.Error())
-		return
-	}
-
-	if !util.IsSliceType(vType.GetValue()) {
-		retErr = fmt.Errorf("illegal slice value")
-		return
-	}
-
-	vType = vType.Elem()
-	if !util.IsStructType(vType.GetValue()) {
-		retErr = fmt.Errorf("illegal slice item value")
-		return
-	}
-
-	modelInfo, modelErr := getTypeModel(vType, cache)
-	if modelErr != nil {
-		retErr = modelErr
-		log.Printf("getTypeModel failed, err:%s", retErr.Error())
-		return
-	}
-
-	retModel = modelInfo
-	retVal = reflect.Indirect(modelVal)
-
-	return
-}
-
-// getTypeModel getTypeModel
-func getTypeModel(vType model.Type, cache Cache) (ret *modelImpl, err error) {
-	isPtr := vType.IsPtrType()
-
-	modelInfo := cache.Fetch(vType.GetName())
-	if modelInfo != nil {
-		preType := modelInfo.modelType
-		if preType.PkgPath() != vType.GetPkgPath() {
-			err = fmt.Errorf("duplicate model info,name:%s", vType.GetName())
+		fieldVal := modelVal.Field(idx)
+		fieldType := entityType.Field(idx)
+		fieldInfo, fieldErr := getFieldInfo(idx, fieldType, fieldVal)
+		if fieldErr != nil {
+			err = fieldErr
+			log.Printf("getFieldInfo failed, field idx:%d, field name:%s, struct name:%s, err:%s", idx, fieldType.Name, modelImpl.GetName(), err.Error())
 			return
 		}
 
-		ret = modelInfo.Copy()
-		ret.isTypePtr = isPtr
-		return
-	}
-
-	err = fmt.Errorf("can't find type model, typeName:%s", vType.GetName())
-
-	return
-}
-
-// getValueStr get value str
-func getValueStr(vType model.Type, vVal model.Value, cache Cache) (ret string, err error) {
-	if vVal.IsNil() {
-		return
-	}
-
-	switch vType.GetValue() {
-	case util.TypeBooleanField:
-		ret, err = helper.EncodeBoolValue(vVal.Get())
-	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeBigIntegerField, util.TypeIntegerField:
-		ret, err = helper.EncodeIntValue(vVal.Get())
-	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveBigIntegerField, util.TypePositiveIntegerField:
-		ret, err = helper.EncodeUintValue(vVal.Get())
-	case util.TypeFloatField, util.TypeDoubleField:
-		ret, err = helper.EncodeFloatValue(vVal.Get())
-	case util.TypeStringField:
-		strRet, strErr := helper.EncodeStringValue(vVal.Get())
-		if strErr != nil {
-			err = strErr
-			return
-		}
-		ret = fmt.Sprintf("'%s'", strRet)
-	case util.TypeSliceField:
-		eleType := vType.Elem()
-		if eleType == nil || util.IsBasicType(eleType.GetValue()) {
-			strRet, strErr := helper.EncodeSliceValue(vVal.Get())
-			if strErr != nil {
-				err = strErr
+		if fieldInfo.IsPrimary() {
+			if hasPrimaryKey {
+				err = fmt.Errorf("duplicate primary key field, struct name:%s", modelImpl.GetName())
 				return
 			}
-			ret = fmt.Sprintf("'%s'", strRet)
-		} else {
-			ret, err = getSliceStructValue(vVal.Get(), cache)
-		}
-	case util.TypeDateTimeField:
-		strRet, strErr := helper.EncodeDateTimeValue(vVal.Get())
-		if strErr != nil {
-			err = strErr
-			return
+
+			hasPrimaryKey = true
 		}
 
-		ret = fmt.Sprintf("'%s'", strRet)
-	case util.TypeStructField:
-		ret, err = getStructValue(vVal.Get(), cache)
-	default:
-		err = fmt.Errorf("illegal value kind, type name:%v", vType.GetName())
+		if fieldInfo != nil {
+			modelImpl.fields = append(modelImpl.fields, fieldInfo)
+		}
 	}
 
-	return
-}
-
-func getSliceStructValue(val reflect.Value, cache Cache) (ret string, err error) {
-	val = reflect.Indirect(val)
-	if val.Kind() != reflect.Slice {
-		err = fmt.Errorf("illegal slice value")
+	if len(modelImpl.fields) == 0 {
+		err = fmt.Errorf("no define orm field, struct name:%s", modelImpl.GetName())
+		return
+	}
+	if !hasPrimaryKey {
+		err = fmt.Errorf("no define primary key field, struct name:%s", modelImpl.GetName())
 		return
 	}
 
-	var sliceVal []string
-	for idx := 0; idx < val.Len(); idx++ {
-		v := val.Index(idx)
-
-		strVal, strErr := getStructValue(v, cache)
-		if strErr != nil {
-			err = strErr
-			log.Printf("getStructValue failed, err:%s", err.Error())
-			return
-		}
-
-		sliceVal = append(sliceVal, strVal)
-	}
-
-	ret = strings.Join(sliceVal, ",")
-	return
-}
-
-// getStructValue get struct value str
-func getStructValue(val reflect.Value, cache Cache) (ret string, err error) {
-	rawVal := reflect.Indirect(val)
-	modelImpl, modelErr := getValueModel(rawVal, cache)
-	if modelErr != nil {
-		err = modelErr
-		return
-	}
-
-	pk := modelImpl.GetPrimaryField()
-	if pk == nil {
-		err = fmt.Errorf("no define primary field")
-		return
-	}
-
-	ret, err = getValueStr(pk.GetType(), pk.GetValue(), cache)
-
+	ret = modelImpl
 	return
 }
