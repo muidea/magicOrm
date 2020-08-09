@@ -23,6 +23,8 @@ type Provider interface {
 
 	GetValueModel(val reflect.Value) (ret model.Model, err error)
 
+	UpdateModelValue(vModel model.Model, val reflect.Value) (ret model.Model, err error)
+
 	GetTypeModel(vType model.Type) (ret model.Model, err error)
 
 	GetValueStr(vType model.Type, vVal model.Value) (ret string, err error)
@@ -40,8 +42,9 @@ type providerImpl struct {
 	localProvider bool
 	modelCache    model.Cache
 
-	getValueTypeFunc  func(p reflect.Value) (ret model.Type, err error)
-	getValueModelFunc func(p reflect.Value) (ret model.Model, err error)
+	getValueTypeFunc     func(reflect.Value) (model.Type, error)
+	getValueModelFunc    func(reflect.Value) (model.Model, error)
+	updateModelValueFunc func(model.Model, reflect.Value) (model.Model, error)
 }
 
 // RegisterModel RegisterObjectModel
@@ -189,6 +192,21 @@ func (s *providerImpl) GetValueModel(modelVal reflect.Value) (ret model.Model, e
 	}
 
 	ret = typeModel
+	return
+}
+
+func (s *providerImpl) UpdateModelValue(vModel model.Model, val reflect.Value) (ret model.Model, err error) {
+	modelInfo := s.modelCache.Fetch(vModel.GetName())
+	if modelInfo == nil {
+		err = fmt.Errorf("can't fetch type model, must register type entity first")
+		return
+	}
+	if modelInfo.GetPkgPath() != vModel.GetPkgPath() {
+		err = fmt.Errorf("illegal object entity, must register entity first")
+		return
+	}
+
+	ret, err = s.updateModelValueFunc(vModel, val)
 	return
 }
 
@@ -347,21 +365,23 @@ func (s *providerImpl) Reset() {
 // NewLocalProvider model provider
 func NewLocalProvider(owner string) Provider {
 	return &providerImpl{
-		owner:             owner,
-		localProvider:     true,
-		modelCache:        model.NewCache(),
-		getValueTypeFunc:  local.GetType,
-		getValueModelFunc: local.GetModel,
+		owner:                owner,
+		localProvider:        true,
+		modelCache:           model.NewCache(),
+		getValueTypeFunc:     local.GetType,
+		getValueModelFunc:    local.GetModel,
+		updateModelValueFunc: local.UpdateModel,
 	}
 }
 
 // NewRemoteProvider model provider
 func NewRemoteProvider(owner string) Provider {
 	return &providerImpl{
-		owner:             owner,
-		localProvider:     false,
-		modelCache:        model.NewCache(),
-		getValueTypeFunc:  remote.GetValueType,
-		getValueModelFunc: remote.GetValueModel,
+		owner:                owner,
+		localProvider:        false,
+		modelCache:           model.NewCache(),
+		getValueTypeFunc:     remote.GetType,
+		getValueModelFunc:    remote.GetModel,
+		updateModelValueFunc: remote.UpdateModel,
 	}
 }

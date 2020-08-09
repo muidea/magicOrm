@@ -38,8 +38,36 @@ func GetModel(v reflect.Value) (ret model.Model, err error) {
 
 	// if slice value, elem slice item
 	if util.IsSliceType(vType.GetValue()) {
-		return getTypeModel(v.Type().Elem())
+		ret, err = getTypeModel(v.Type().Elem())
+		return
 	}
 
-	return getValueModel(v)
+	ret, err = getValueModel(v)
+	return
+}
+
+func UpdateModel(modelInfo model.Model, modelVal reflect.Value) (ret model.Model, err error) {
+	modelVal = reflect.Indirect(modelVal)
+	modelType := modelVal.Type()
+	fieldNum := modelType.NumField()
+	for idx := 0; idx < fieldNum; idx++ {
+		fieldType, fieldErr := newType(modelType.Field(idx).Type)
+		if fieldErr != nil {
+			err = fieldErr
+			return
+		}
+
+		fieldVal := modelVal.Field(idx)
+		if util.IsNil(fieldVal) {
+			continue
+		}
+
+		err = modelInfo.UpdateFieldValue(fieldType.GetName(), fieldVal)
+		if err != nil {
+			return
+		}
+	}
+
+	ret = modelInfo
+	return
 }
