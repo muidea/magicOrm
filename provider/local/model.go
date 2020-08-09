@@ -11,7 +11,6 @@ import (
 // modelImpl single model
 type modelImpl struct {
 	modelType reflect.Type
-	isTypePtr bool
 	fields    []*fieldImpl
 }
 
@@ -71,10 +70,6 @@ func (s *modelImpl) GetPrimaryField() (ret model.Field) {
 	return
 }
 
-func (s *modelImpl) IsPtrModel() bool {
-	return s.isTypePtr
-}
-
 func (s *modelImpl) Interface() reflect.Value {
 	retVal := reflect.New(s.modelType).Elem()
 
@@ -86,15 +81,11 @@ func (s *modelImpl) Interface() reflect.Value {
 		}
 	}
 
-	if s.isTypePtr {
-		retVal = retVal.Addr()
-	}
-
 	return retVal
 }
 
 func (s *modelImpl) Copy() *modelImpl {
-	modelInfo := &modelImpl{modelType: s.modelType, isTypePtr: s.isTypePtr, fields: []*fieldImpl{}}
+	modelInfo := &modelImpl{modelType: s.modelType, fields: []*fieldImpl{}}
 	for _, field := range s.fields {
 		modelInfo.fields = append(modelInfo.fields, field.Copy())
 	}
@@ -111,8 +102,6 @@ func (s *modelImpl) Dump() (ret string) {
 	for _, field := range s.fields {
 		ret = fmt.Sprintf("%s\t%s\n", ret, field.Dump())
 	}
-
-	log.Print(ret)
 
 	return
 }
@@ -164,6 +153,7 @@ func getTypeModel(entityType reflect.Type) (ret model.Model, err error) {
 // getValueModel getValueModel
 func getValueModel(modelVal reflect.Value) (ret *modelImpl, err error) {
 	hasPrimaryKey := false
+	modelVal = reflect.Indirect(modelVal)
 	entityType := modelVal.Type()
 	modelImpl := &modelImpl{modelType: entityType, fields: make([]*fieldImpl, 0)}
 	fieldNum := entityType.NumField()

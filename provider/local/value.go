@@ -22,11 +22,6 @@ func (s *valueImpl) IsNil() (ret bool) {
 }
 
 func (s *valueImpl) Set(val reflect.Value) (err error) {
-	if !val.CanSet() {
-		err = fmt.Errorf("illegal value,can't be set")
-		return
-	}
-
 	s.valueImpl = val
 	return
 }

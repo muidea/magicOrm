@@ -89,7 +89,7 @@ func (s *fieldImpl) UpdateValue(val reflect.Value) (err error) {
 	}
 
 	dependType := s.fieldType.Depend()
-	if util.IsBasicType(s.GetType().GetValue()) || util.IsBasicType(dependType.GetValue()) {
+	if util.IsBasicType(s.fieldType.GetValue()) || util.IsBasicType(dependType.GetValue()) {
 		toVal := s.fieldType.Interface()
 		toVal, err = helper.AssignValue(val, toVal)
 		if err != nil {
@@ -129,7 +129,13 @@ func (s *fieldImpl) verify() error {
 	val := s.fieldType.GetValue()
 	if s.fieldTag.IsAutoIncrement() {
 		switch val {
-		case util.TypeBooleanField, util.TypeStringField, util.TypeDateTimeField, util.TypeFloatField, util.TypeDoubleField, util.TypeStructField, util.TypeSliceField:
+		case util.TypeBooleanField,
+			util.TypeStringField,
+			util.TypeDateTimeField,
+			util.TypeFloatField,
+			util.TypeDoubleField,
+			util.TypeStructField,
+			util.TypeSliceField:
 			return fmt.Errorf("illegal auto_increment field type, type:%s", s.fieldType.Dump())
 		default:
 		}

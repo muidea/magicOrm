@@ -1,7 +1,6 @@
 package model
 
 import (
-	"log"
 	"reflect"
 )
 
@@ -29,7 +28,7 @@ type Field interface {
 type Fields []Field
 
 // Append Append
-func (s *Fields) Append(fieldInfo Field) {
+func (s *Fields) Append(fieldInfo Field) bool {
 	exist := false
 	newField := fieldInfo.GetTag()
 	for _, val := range *s {
@@ -40,11 +39,11 @@ func (s *Fields) Append(fieldInfo Field) {
 		}
 	}
 	if exist {
-		log.Printf("duplicate field tag,[%s]", newField.GetName())
-		return
+		return false
 	}
 
 	*s = append(*s, fieldInfo)
+	return true
 }
 
 // GetPrimaryField get primary key field

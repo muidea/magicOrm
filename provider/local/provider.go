@@ -28,10 +28,10 @@ func GetValue(v reflect.Value) (ret model.Value, err error) {
 	return
 }
 
-func GetValueModel(v reflect.Value) (ret model.Model, err error) {
-	return getValueModel(v)
-}
-
 func GetTypeModel(t reflect.Type) (ret model.Model, err error) {
 	return getTypeModel(t)
+}
+
+func GetValueModel(v reflect.Value) (ret model.Model, err error) {
+	return getValueModel(v)
 }
