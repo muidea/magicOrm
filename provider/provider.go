@@ -23,8 +23,6 @@ type Provider interface {
 
 	GetValueModel(val reflect.Value) (ret model.Model, err error)
 
-	UpdateModelValue(vModel model.Model, val reflect.Value) (ret model.Model, err error)
-
 	GetTypeModel(vType model.Type) (ret model.Model, err error)
 
 	GetValueStr(vType model.Type, vVal model.Value) (ret string, err error)
@@ -42,15 +40,15 @@ type providerImpl struct {
 	localProvider bool
 	modelCache    model.Cache
 
-	getValueTypeFunc     func(reflect.Value) (model.Type, error)
-	getValueModelFunc    func(reflect.Value) (model.Model, error)
-	updateModelValueFunc func(model.Model, reflect.Value) (model.Model, error)
+	getTypeFunc       func(reflect.Value) (model.Type, error)
+	getModelFunc      func(reflect.Value) (model.Model, error)
+	setModelValueFunc func(model.Model, reflect.Value) (model.Model, error)
 }
 
 // RegisterModel RegisterObjectModel
 func (s *providerImpl) RegisterModel(entity interface{}) (ret model.Model, err error) {
 	entityValue := reflect.ValueOf(entity)
-	modelType, modelErr := s.getValueTypeFunc(entityValue)
+	modelType, modelErr := s.getTypeFunc(entityValue)
 	if modelErr != nil {
 		err = modelErr
 		return
@@ -67,7 +65,7 @@ func (s *providerImpl) RegisterModel(entity interface{}) (ret model.Model, err e
 		return
 	}
 
-	entityModel, entityErr := s.getValueModelFunc(entityValue)
+	entityModel, entityErr := s.getModelFunc(entityValue)
 	if entityErr != nil {
 		err = entityErr
 		return
@@ -81,7 +79,7 @@ func (s *providerImpl) RegisterModel(entity interface{}) (ret model.Model, err e
 // UnregisterModel register model
 func (s *providerImpl) UnregisterModel(entity interface{}) {
 	entityValue := reflect.ValueOf(entity)
-	modelType, modelErr := s.getValueTypeFunc(entityValue)
+	modelType, modelErr := s.getTypeFunc(entityValue)
 	if modelErr != nil {
 		return
 	}
@@ -113,7 +111,7 @@ func (s *providerImpl) GetEntityModel(objPtr interface{}) (ret model.Model, err 
 		return
 	}
 	objVal = reflect.Indirect(objVal)
-	objType, objErr := s.getValueTypeFunc(objVal)
+	objType, objErr := s.getTypeFunc(objVal)
 	if objErr != nil || !util.IsStructType(objType.GetValue()) {
 		err = fmt.Errorf("illegal entity, must be struct value")
 		return
@@ -123,25 +121,19 @@ func (s *providerImpl) GetEntityModel(objPtr interface{}) (ret model.Model, err 
 		return
 	}
 
-	objModel, objErr := s.getValueModelFunc(objVal)
-	if objErr != nil {
-		err = objErr
-		return
-	}
-
 	// must check if register already
-	curModel := s.modelCache.Fetch(objModel.GetName())
-	if curModel == nil {
+	typeModel := s.modelCache.Fetch(objType.GetName())
+	if typeModel == nil {
 		err = fmt.Errorf("can't fetch entity model, must register entity first")
 		return
 	}
 
-	if curModel.GetPkgPath() != objModel.GetPkgPath() {
+	if typeModel.GetPkgPath() != objType.GetPkgPath() {
 		err = fmt.Errorf("illegal object entity, must register entity first")
 		return
 	}
 
-	ret = objModel
+	ret, err = s.setModelValueFunc(typeModel, objVal)
 	return
 }
 
@@ -171,7 +163,12 @@ func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err erro
 
 // GetValueModel GetValueModel
 func (s *providerImpl) GetValueModel(modelVal reflect.Value) (ret model.Model, err error) {
-	vType, vErr := s.getValueTypeFunc(modelVal)
+	if !modelVal.CanSet() {
+		err = fmt.Errorf("illegal entity value, read only value")
+		return
+	}
+
+	vType, vErr := s.getTypeFunc(modelVal)
 	if vErr != nil {
 		err = vErr
 		return
@@ -191,22 +188,7 @@ func (s *providerImpl) GetValueModel(modelVal reflect.Value) (ret model.Model, e
 		return
 	}
 
-	ret = typeModel
-	return
-}
-
-func (s *providerImpl) UpdateModelValue(vModel model.Model, val reflect.Value) (ret model.Model, err error) {
-	modelInfo := s.modelCache.Fetch(vModel.GetName())
-	if modelInfo == nil {
-		err = fmt.Errorf("can't fetch type model, must register type entity first")
-		return
-	}
-	if modelInfo.GetPkgPath() != vModel.GetPkgPath() {
-		err = fmt.Errorf("illegal object entity, must register entity first")
-		return
-	}
-
-	ret, err = s.updateModelValueFunc(vModel, val)
+	ret, err = s.setModelValueFunc(typeModel, modelVal)
 	return
 }
 
@@ -320,7 +302,7 @@ func (s *providerImpl) GetDependValue(vValue model.Value) (ret []reflect.Value, 
 	}
 
 	val := vValue.Get()
-	vType, vErr := s.getValueTypeFunc(val)
+	vType, vErr := s.getTypeFunc(val)
 	if vErr != nil {
 		err = vErr
 		return
@@ -365,23 +347,23 @@ func (s *providerImpl) Reset() {
 // NewLocalProvider model provider
 func NewLocalProvider(owner string) Provider {
 	return &providerImpl{
-		owner:                owner,
-		localProvider:        true,
-		modelCache:           model.NewCache(),
-		getValueTypeFunc:     local.GetType,
-		getValueModelFunc:    local.GetModel,
-		updateModelValueFunc: local.UpdateModel,
+		owner:             owner,
+		localProvider:     true,
+		modelCache:        model.NewCache(),
+		getTypeFunc:       local.GetType,
+		getModelFunc:      local.GetModel,
+		setModelValueFunc: local.SetModel,
 	}
 }
 
 // NewRemoteProvider model provider
 func NewRemoteProvider(owner string) Provider {
 	return &providerImpl{
-		owner:                owner,
-		localProvider:        false,
-		modelCache:           model.NewCache(),
-		getValueTypeFunc:     remote.GetType,
-		getValueModelFunc:    remote.GetModel,
-		updateModelValueFunc: remote.UpdateModel,
+		owner:             owner,
+		localProvider:     false,
+		modelCache:        model.NewCache(),
+		getTypeFunc:       remote.GetType,
+		getModelFunc:      remote.GetModel,
+		setModelValueFunc: remote.SetModel,
 	}
 }

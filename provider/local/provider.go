@@ -42,27 +42,21 @@ func GetModel(v reflect.Value) (ret model.Model, err error) {
 		return
 	}
 
-	ret, err = getValueModel(v)
+	ret, err = getTypeModel(v.Type())
 	return
 }
 
-func UpdateModel(modelInfo model.Model, modelVal reflect.Value) (ret model.Model, err error) {
+func SetModel(modelInfo model.Model, modelVal reflect.Value) (ret model.Model, err error) {
 	modelVal = reflect.Indirect(modelVal)
 	modelType := modelVal.Type()
 	fieldNum := modelType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		fieldType, fieldErr := newType(modelType.Field(idx).Type)
-		if fieldErr != nil {
-			err = fieldErr
-			return
-		}
-
 		fieldVal := modelVal.Field(idx)
 		if util.IsNil(fieldVal) {
 			continue
 		}
 
-		err = modelInfo.UpdateFieldValue(fieldType.GetName(), fieldVal)
+		err = modelInfo.SetFieldValue(idx, fieldVal)
 		if err != nil {
 			return
 		}
