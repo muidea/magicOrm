@@ -68,8 +68,14 @@ func (s *TagImpl) IsAutoIncrement() (ret bool) {
 	return
 }
 
-// GetTag get Item Value
-func GetTag(tag string) (ret *TagImpl, err error) {
+// Copy Copy
+func (s *TagImpl) Copy() (ret *TagImpl) {
+	ret = &TagImpl{Value: s.Value}
+	return
+}
+
+// newTag new Item Value
+func newTag(tag string) (ret *TagImpl, err error) {
 	items := strings.Split(tag, "")
 	if len(items) < 1 {
 		err = fmt.Errorf("illegal tag value, val:%s", tag)

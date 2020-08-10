@@ -58,3 +58,8 @@ func (s *ValueImpl) Copy() (ret *ValueImpl) {
 
 	return
 }
+
+func newValue(v reflect.Value) (ret *ValueImpl, err error) {
+	ret = &ValueImpl{value: v}
+	return
+}

@@ -20,15 +20,14 @@ type ItemValue struct {
 
 // ObjectValue Object Value
 type ObjectValue struct {
-	TypeName  string       `json:"typeName"`
-	PkgPath   string       `json:"pkgPath"`
-	IsPtrFlag bool         `json:"isPtr"`
-	Items     []*ItemValue `json:"items"`
+	Name    string       `json:"name"`
+	PkgPath string       `json:"pkgPath"`
+	Items   []*ItemValue `json:"items"`
 }
 
 // SliceObjectValue slice object value
 type SliceObjectValue struct {
-	TypeName  string         `json:"typeName"`
+	Name      string         `json:"name"`
 	PkgPath   string         `json:"pkgPath"`
 	IsPtrFlag bool           `json:"isPtr"`
 	Values    []*ObjectValue `json:"values"`
@@ -36,17 +35,12 @@ type SliceObjectValue struct {
 
 // GetName get object name
 func (s *ObjectValue) GetName() string {
-	return s.TypeName
+	return s.Name
 }
 
 // GetPkgPath get pkg path
 func (s *ObjectValue) GetPkgPath() string {
 	return s.PkgPath
-}
-
-// IsPtrValue isPtrValue
-func (s *ObjectValue) IsPtrValue() bool {
-	return s.IsPtrFlag
 }
 
 // IsAssigned is assigned value
@@ -99,7 +93,7 @@ func (s *ObjectValue) IsAssigned() (ret bool) {
 
 // GetName get object name
 func (s *SliceObjectValue) GetName() string {
-	return s.TypeName
+	return s.Name
 }
 
 // GetPkgPath get pkg path
@@ -208,16 +202,15 @@ func getSliceItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.
 // GetObjectValue get object value
 func GetObjectValue(entity interface{}) (ret *ObjectValue, err error) {
 	entityValue := reflect.ValueOf(entity)
-	isPtr := entityValue.Kind() == reflect.Ptr
 	entityValue = reflect.Indirect(entityValue)
 	entityType := entityValue.Type()
 
 	//!! must be String, not Name
-	ret = &ObjectValue{TypeName: entityType.String(), PkgPath: entityType.PkgPath(), IsPtrFlag: isPtr, Items: []*ItemValue{}}
+	ret = &ObjectValue{Name: entityType.String(), PkgPath: entityType.PkgPath(), Items: []*ItemValue{}}
 	fieldNum := entityValue.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		fieldType := entityType.Field(idx)
-		itemType, itemErr := GetType(fieldType.Type)
+		itemType, itemErr := newType(fieldType.Type)
 		if itemErr != nil {
 			err = itemErr
 			log.Errorf("GetType failed, type%s, err:%s", fieldType.Type.String(), err.Error())
@@ -250,7 +243,7 @@ func GetObjectValue(entity interface{}) (ret *ObjectValue, err error) {
 // GetSliceObjectValue get slice object value
 func GetSliceObjectValue(sliceEntity interface{}) (ret *SliceObjectValue, err error) {
 	entityValue := reflect.ValueOf(sliceEntity)
-	entityType, entityErr := GetType(entityValue.Type())
+	entityType, entityErr := newType(entityValue.Type())
 	if entityErr != nil {
 		err = fmt.Errorf("get slice object type failed, err:%s", err.Error())
 		log.Errorf("GetType failed, type%s, err:%s", entityValue.Type().String(), err.Error())
@@ -270,7 +263,7 @@ func GetSliceObjectValue(sliceEntity interface{}) (ret *SliceObjectValue, err er
 		return
 	}
 
-	ret = &SliceObjectValue{TypeName: subType.GetName(), PkgPath: subType.GetPkgPath(), IsPtrFlag: subType.IsPtrType(), Values: []*ObjectValue{}}
+	ret = &SliceObjectValue{Name: subType.GetName(), PkgPath: subType.GetPkgPath(), IsPtrFlag: subType.IsPtrType(), Values: []*ObjectValue{}}
 	entityValue = reflect.Indirect(entityValue)
 	for idx := 0; idx < entityValue.Len(); idx++ {
 		val := entityValue.Index(idx)
@@ -292,7 +285,7 @@ func convertStructValue(objectValue *ObjectValue, entityValue reflect.Value) (re
 	entityType := entityValue.Type()
 	fieldNum := entityValue.NumField()
 
-	valueType, valueErr := GetType(entityValue.Type())
+	valueType, valueErr := newType(entityValue.Type())
 	if valueErr != nil {
 		err = valueErr
 		log.Errorf("GetType failed, type%s, err:%s", entityValue.Type().String(), err.Error())
@@ -401,7 +394,7 @@ func convertSliceItemValue(itemValue interface{}, fieldValue reflect.Value) (ret
 		return
 	}
 
-	subType, subErr := GetType(fieldValue.Type().Elem())
+	subType, subErr := newType(fieldValue.Type().Elem())
 	if subErr != nil {
 		err = subErr
 		return
@@ -435,7 +428,7 @@ func convertSliceItemValue(itemValue interface{}, fieldValue reflect.Value) (ret
 
 func convertSliceStructValue(sliceObj reflect.Value, sliceVal reflect.Value) (ret reflect.Value, err error) {
 	elemType := sliceVal.Type().Elem()
-	itemType, itemErr := GetType(elemType)
+	itemType, itemErr := newType(elemType)
 	if itemErr != nil {
 		err = itemErr
 		return
@@ -505,7 +498,7 @@ func UpdateSliceEntity(sliceObjectValue *SliceObjectValue, entitySlice interface
 
 	sliceType := entitySliceVal.Type()
 	itemType := sliceType.Elem()
-	entityType, entityErr := GetType(itemType)
+	entityType, entityErr := newType(itemType)
 	if entityErr != nil || !util.IsStructType(entityType.GetValue()) || entityType.IsPtrType() {
 		err = fmt.Errorf("illegal entity slice value")
 		return
@@ -549,16 +542,15 @@ func EncodeSliceObjectValue(objVal *SliceObjectValue) (ret []byte, err error) {
 
 // DecodeObjectValueFromMap decode object value from map
 func DecodeObjectValueFromMap(objVal map[string]interface{}) (ret *ObjectValue, err error) {
-	nameVal, nameOK := objVal["typeName"]
+	nameVal, nameOK := objVal["name"]
 	pkgPathVal, pkgPathOK := objVal["pkgPath"]
-	isPtrVal, isPtrOK := objVal["isPtr"]
 	itemsVal, itemsOK := objVal["items"]
-	if !nameOK || !pkgPathOK || !isPtrOK || !itemsOK {
+	if !nameOK || !pkgPathOK || !itemsOK {
 		err = fmt.Errorf("illegal ObjectValue")
 		return
 	}
 
-	ret = &ObjectValue{TypeName: nameVal.(string), PkgPath: pkgPathVal.(string), IsPtrFlag: isPtrVal.(bool), Items: []*ItemValue{}}
+	ret = &ObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), Items: []*ItemValue{}}
 
 	for _, val := range itemsVal.([]interface{}) {
 		item, itemOK := val.(map[string]interface{})
@@ -592,11 +584,7 @@ func decodeSliceValue(sliceVal []interface{}) (ret []interface{}, err error) {
 				return
 			}
 
-			if item.IsPtrFlag {
-				ret = append(ret, item)
-			} else {
-				ret = append(ret, *item)
-			}
+			ret = append(ret, item)
 
 			continue
 		}
@@ -637,11 +625,7 @@ func ConvertItem(val *ItemValue) (ret *ItemValue, err error) {
 			return
 		}
 
-		if oVal.IsPtrFlag {
-			ret.Value = oVal
-		} else {
-			ret.Value = *oVal
-		}
+		ret.Value = oVal
 		return
 	}
 

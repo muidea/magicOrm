@@ -56,7 +56,7 @@ func (s *TypeImpl) Interface() reflect.Value {
 	}
 
 	if util.IsStructType(s.Value) {
-		val := &ObjectValue{TypeName: s.Name, PkgPath: s.PkgPath, IsPtrFlag: s.IsPtr, Items: []*ItemValue{}}
+		val := &ObjectValue{Name: s.Name, PkgPath: s.PkgPath, Items: []*ItemValue{}}
 		return reflect.ValueOf(val)
 	}
 
@@ -95,7 +95,11 @@ func (s *TypeImpl) Elem() model.Type {
 
 // Copy Copy
 func (s *TypeImpl) Copy() (ret *TypeImpl) {
-	ret = &TypeImpl{Name: s.Name, Value: s.Value, PkgPath: s.PkgPath, IsPtr: s.IsPtr, DependType: s.DependType}
+	ret = &TypeImpl{Name: s.Name, Value: s.Value, PkgPath: s.PkgPath, IsPtr: s.IsPtr}
+	if s.DependType != nil {
+		ret.DependType = s.DependType.Copy()
+	}
+
 	return
 }
 
@@ -292,8 +296,8 @@ func (s *TypeImpl) getType() (ret reflect.Type) {
 	return
 }
 
-// GetType GetType
-func GetType(itemType reflect.Type) (ret *TypeImpl, err error) {
+// newType new typeImpl
+func newType(itemType reflect.Type) (ret *TypeImpl, err error) {
 	isPtr := false
 	if itemType.Kind() == reflect.Ptr {
 		isPtr = true

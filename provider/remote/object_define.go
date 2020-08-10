@@ -14,7 +14,6 @@ import (
 type Object struct {
 	Name    string  `json:"name"`
 	PkgPath string  `json:"pkgPath"`
-	IsPtr   bool    `json:"isPtr"`
 	Items   []*Item `json:"items"`
 }
 
@@ -52,6 +51,7 @@ func (s *Object) SetFieldValue(idx int, val reflect.Value) (err error) {
 		}
 	}
 
+	err = fmt.Errorf("invalid field idx:%d", idx)
 	return
 }
 
@@ -68,6 +68,7 @@ func (s *Object) UpdateFieldValue(name string, val reflect.Value) (err error) {
 		}
 	}
 
+	err = fmt.Errorf("invalid field name:%s", name)
 	return
 }
 
@@ -83,33 +84,23 @@ func (s *Object) GetPrimaryField() (ret model.Field) {
 	return
 }
 
-// IsPtrModel IsPtrModel
-func (s *Object) IsPtrModel() (ret bool) {
-	ret = s.IsPtr
-	return
-}
-
 // Interface Interface
 func (s *Object) Interface() (ret reflect.Value) {
-	val := ObjectValue{TypeName: s.Name, PkgPath: s.PkgPath, IsPtrFlag: s.IsPtr, Items: []*ItemValue{}}
+	val := &ObjectValue{Name: s.Name, PkgPath: s.PkgPath, Items: []*ItemValue{}}
 
 	for _, v := range s.Items {
 		val.Items = append(val.Items, v.Interface())
 	}
 
-	ret = reflect.ValueOf(&val)
-	if !s.IsPtr {
-		ret = ret.Elem()
-	}
-
+	ret = reflect.ValueOf(val).Elem()
 	return
 }
 
 // Copy Copy
 func (s *Object) Copy() (ret *Object) {
-	obj := &Object{Name: s.Name, PkgPath: s.PkgPath, IsPtr: s.IsPtr, Items: []*Item{}}
+	obj := &Object{Name: s.Name, PkgPath: s.PkgPath, Items: []*Item{}}
 	for _, val := range s.Items {
-		obj.Items = append(obj.Items, &Item{Index: val.Index, Name: val.Name, Tag: val.Tag, Type: val.Type})
+		obj.Items = append(obj.Items, &Item{Index: val.Index, Name: val.Name, Tag: val.Tag.Copy(), Type: val.Type.Copy()})
 	}
 
 	ret = obj
@@ -129,13 +120,11 @@ func GetObject(entity interface{}) (ret *Object, err error) {
 
 // type2Object type2Object
 func type2Object(entityType reflect.Type) (ret *Object, err error) {
-	objPtr := false
 	if entityType.Kind() == reflect.Ptr {
-		objPtr = true
 		entityType = entityType.Elem()
 	}
 
-	typeImpl, typeErr := GetType(entityType)
+	typeImpl, typeErr := newType(entityType)
 	if typeErr != nil {
 		err = fmt.Errorf("illegal obj type, must be a struct obj, type:%s", entityType.String())
 		return
@@ -149,7 +138,6 @@ func type2Object(entityType reflect.Type) (ret *Object, err error) {
 	//!! must be String, not Name
 	ret.Name = entityType.String()
 	ret.PkgPath = entityType.PkgPath()
-	ret.IsPtr = objPtr
 	ret.Items = []*Item{}
 
 	fieldNum := entityType.NumField()
@@ -158,19 +146,19 @@ func type2Object(entityType reflect.Type) (ret *Object, err error) {
 		fType := field.Type
 		fTag := field.Tag.Get("orm")
 
-		itemTag, itemErr := GetTag(fTag)
+		itemTag, itemErr := newTag(fTag)
 		if itemErr != nil {
 			err = itemErr
 			return
 		}
 
-		itemType, itemErr := GetType(fType)
+		itemType, itemErr := newType(fType)
 		if itemErr != nil {
 			err = itemErr
 			return
 		}
 
-		fItem := &Item{Index: idx, Name: field.Name, Tag: *itemTag, Type: *itemType}
+		fItem := &Item{Index: idx, Name: field.Name, Tag: itemTag, Type: itemType}
 
 		ret.Items = append(ret.Items, fItem)
 	}

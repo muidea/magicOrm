@@ -1,6 +1,7 @@
-package local
+package provider
 
 import (
+	"github.com/muidea/magicOrm/provider/local"
 	"reflect"
 	"testing"
 	"time"
@@ -8,86 +9,86 @@ import (
 
 func TestGetValueStr(t *testing.T) {
 	iVal := int(123)
-	fiType, fiErr := newType(reflect.TypeOf(iVal))
+	fiType, fiErr := local.GetType(reflect.ValueOf(iVal))
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 		return
 	}
-	fiVal, fiErr := newValue(reflect.ValueOf(iVal))
+	fiVal, fiErr := local.GetValue(reflect.ValueOf(iVal))
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 		return
 	}
-	ret, _ := getValueStr(fiType, fiVal, nil)
+	ret, _ := getBasicValue(fiType, fiVal.Get())
 	if ret != "123" {
 		t.Errorf("getValueStr failed, iVal:%d", iVal)
 		return
 	}
 
 	fVal := 12.34
-	ffType, ffErr := newType(reflect.TypeOf(fVal))
+	ffType, ffErr := local.GetType(reflect.ValueOf(fVal))
 	if ffErr != nil {
 		t.Errorf("%s", ffErr.Error())
 		return
 	}
-	ffVal, ffErr := newValue(reflect.ValueOf(fVal))
+	ffVal, ffErr := local.GetValue(reflect.ValueOf(fVal))
 	if ffErr != nil {
 		t.Errorf("%s", ffErr.Error())
 		return
 	}
-	ret, _ = getValueStr(ffType, ffVal, nil)
+	ret, _ = getBasicValue(ffType, ffVal.Get())
 	if ret != "12.340000" {
 		t.Errorf("getValueStr failed, fVal:%f", fVal)
 	}
 
 	strVal := "abc"
-	fstrType, fstrErr := newType(reflect.TypeOf(strVal))
+	fstrType, fstrErr := local.GetType(reflect.ValueOf(strVal))
 	if fstrErr != nil {
 		t.Errorf("%s", fstrErr.Error())
 		return
 	}
 
-	fstrVal, fstrErr := newValue(reflect.ValueOf(strVal))
+	fstrVal, fstrErr := local.GetValue(reflect.ValueOf(strVal))
 	if fstrErr != nil {
 		t.Errorf("%s", fstrErr.Error())
 		return
 	}
-	ret, _ = getValueStr(fstrType, fstrVal, nil)
+	ret, _ = getBasicValue(fstrType, fstrVal.Get())
 	if ret != "'abc'" {
 		t.Errorf("getValueStr failed, ret:%s, strVal:%s", ret, strVal)
 		return
 	}
 
 	bVal := true
-	fbType, fbErr := newType(reflect.TypeOf(bVal))
+	fbType, fbErr := local.GetType(reflect.ValueOf(bVal))
 	if fbErr != nil {
 		t.Errorf("%s", fbErr.Error())
 		return
 	}
 
-	fbVal, fbErr := newValue(reflect.ValueOf(bVal))
+	fbVal, fbErr := local.GetValue(reflect.ValueOf(bVal))
 	if fbErr != nil {
 		t.Errorf("%s", fbErr.Error())
 		return
 	}
-	ret, _ = getValueStr(fbType, fbVal, nil)
+	ret, _ = getBasicValue(fbType, fbVal.Get())
 	if ret != "1" {
 		t.Errorf("getValueStr failed, ret:%s, bVal:%v", ret, bVal)
 		return
 	}
 
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05", "2018-01-02 15:04:05", time.Local)
-	ftimeType, ftimeErr := newType(reflect.TypeOf(now))
+	ftimeType, ftimeErr := local.GetType(reflect.ValueOf(now))
 	if ftimeErr != nil {
 		t.Errorf("%s", ftimeErr.Error())
 		return
 	}
-	ftimeVal, ftimeErr := newValue(reflect.ValueOf(now))
+	ftimeVal, ftimeErr := local.GetValue(reflect.ValueOf(now))
 	if ftimeErr != nil {
 		t.Errorf("%s", ftimeErr.Error())
 		return
 	}
-	ret, _ = getValueStr(ftimeType, ftimeVal, nil)
+	ret, _ = getBasicValue(ftimeType, ftimeVal.Get())
 	if ret != "'2018-01-02 15:04:05'" {
 		t.Errorf("getValueStr failed, ret:%s, ftimeVal:%v", ret, now)
 	}
@@ -95,17 +96,17 @@ func TestGetValueStr(t *testing.T) {
 	ii := 123
 	var iiVal int
 	iiVal = ii
-	fiType, fiErr = newType(reflect.TypeOf(iiVal))
+	fiType, fiErr = local.GetType(reflect.ValueOf(iiVal))
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 		return
 	}
-	fiVal, fiErr = newValue(reflect.ValueOf(iiVal))
+	fiVal, fiErr = local.GetValue(reflect.ValueOf(iiVal))
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 		return
 	}
-	ret, _ = getValueStr(fiType, fiVal, nil)
+	ret, _ = getBasicValue(fiType, fiVal.Get())
 	if ret != "123" {
 		t.Errorf("getValueStr failed, iVal:%d", iVal)
 	}
@@ -113,19 +114,19 @@ func TestGetValueStr(t *testing.T) {
 
 func TestSetValue(t *testing.T) {
 	var iVal int
-	fiType, fiErr := newType(reflect.TypeOf(&iVal).Elem())
+	fiType, fiErr := local.GetType(reflect.ValueOf(&iVal).Elem())
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 		return
 	}
-	fiVal, fiErr := newValue(reflect.ValueOf(&iVal).Elem())
+	fiVal, fiErr := local.GetValue(reflect.ValueOf(&iVal).Elem())
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 		return
 	}
 	intVal := 123
 	fiVal.Update(reflect.ValueOf(intVal))
-	ret, _ := getValueStr(fiType, fiVal, nil)
+	ret, _ := getBasicValue(fiType, fiVal.Get())
 	if ret != "123" {
 		t.Errorf("getValueStr failed, iVal:%d", iVal)
 		return
@@ -135,19 +136,19 @@ func TestSetValue(t *testing.T) {
 	}
 
 	var fVal float32
-	ffType, ffErr := newType(reflect.TypeOf(&fVal).Elem())
+	ffType, ffErr := local.GetType(reflect.ValueOf(&fVal).Elem())
 	if ffErr != nil {
 		t.Errorf("%s", ffErr.Error())
 		return
 	}
-	ffVal, ffErr := newValue(reflect.ValueOf(&fVal).Elem())
+	ffVal, ffErr := local.GetValue(reflect.ValueOf(&fVal).Elem())
 	if ffErr != nil {
 		t.Errorf("%s", ffErr.Error())
 		return
 	}
 	fltVal := float32(12.34)
 	ffVal.Update(reflect.ValueOf(fltVal))
-	ret, _ = getValueStr(ffType, ffVal, nil)
+	ret, _ = getBasicValue(ffType, ffVal.Get())
 	if ret != "12.340000" {
 		t.Errorf("getValueStr failed, fVal:%f", fVal)
 		return
@@ -157,12 +158,12 @@ func TestSetValue(t *testing.T) {
 	}
 
 	var strVal string
-	fstrType, fstrErr := newType(reflect.TypeOf(&strVal).Elem())
+	fstrType, fstrErr := local.GetType(reflect.ValueOf(&strVal).Elem())
 	if fstrErr != nil {
 		t.Errorf("%s", fstrErr.Error())
 		return
 	}
-	fstrVal, fstrErr := newValue(reflect.ValueOf(&strVal).Elem())
+	fstrVal, fstrErr := local.GetValue(reflect.ValueOf(&strVal).Elem())
 	if fstrErr != nil {
 		t.Errorf("%s", fstrErr.Error())
 		return
@@ -170,7 +171,7 @@ func TestSetValue(t *testing.T) {
 
 	stringVal := "abc"
 	fstrVal.Update(reflect.ValueOf(stringVal))
-	ret, _ = getValueStr(fstrType, fstrVal, nil)
+	ret, _ = getBasicValue(fstrType, fstrVal.Get())
 	if ret != "'abc'" {
 		t.Errorf("getValueStr failed, ret:%s, strVal:%s", ret, strVal)
 		return
@@ -181,19 +182,19 @@ func TestSetValue(t *testing.T) {
 	}
 
 	var bVal bool
-	fbType, fbErr := newType(reflect.TypeOf(&bVal).Elem())
+	fbType, fbErr := local.GetType(reflect.ValueOf(&bVal).Elem())
 	if fbErr != nil {
 		t.Errorf("%s", fbErr.Error())
 		return
 	}
-	fbVal, fbErr := newValue(reflect.ValueOf(&bVal).Elem())
+	fbVal, fbErr := local.GetValue(reflect.ValueOf(&bVal).Elem())
 	if fbErr != nil {
 		t.Errorf("%s", fbErr.Error())
 		return
 	}
 	boolVal := true
 	fbVal.Update(reflect.ValueOf(boolVal))
-	ret, _ = getValueStr(fbType, fbVal, nil)
+	ret, _ = getBasicValue(fbType, fbVal.Get())
 	if ret != "1" {
 		t.Errorf("getValueStr failed, ret:%s, bVal:%v", ret, bVal)
 		return
@@ -204,7 +205,7 @@ func TestSetValue(t *testing.T) {
 	}
 	bIntVal := false
 	fbVal.Update(reflect.ValueOf(bIntVal))
-	ret, _ = getValueStr(fbType, fbVal, nil)
+	ret, _ = getBasicValue(fbType, fbVal.Get())
 	if ret != "0" {
 		t.Errorf("getValueStr failed, ret:%s, bVal:%v", ret, bVal)
 	}
@@ -220,12 +221,12 @@ func TestPtr(t *testing.T) {
 
 	iVal = &jj
 	reVal := &ii
-	fiType, fiErr := newType(reflect.TypeOf(&iVal).Elem())
+	fiType, fiErr := local.GetType(reflect.ValueOf(&iVal).Elem())
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 		return
 	}
-	fiVal, fiErr := newValue(reflect.ValueOf(&iVal).Elem())
+	fiVal, fiErr := local.GetValue(reflect.ValueOf(&iVal).Elem())
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 		return
@@ -237,7 +238,7 @@ func TestPtr(t *testing.T) {
 		return
 	}
 
-	ret, err := getValueStr(fiType, fiVal, nil)
+	ret, err := getBasicValue(fiType, fiVal.Get())
 	if err != nil {
 		t.Errorf("%s", err.Error())
 		return
@@ -253,17 +254,17 @@ func TestPtr(t *testing.T) {
 	}
 
 	iVal = &ii
-	fiType, fiErr = newType(reflect.TypeOf(iVal).Elem())
+	fiType, fiErr = local.GetType(reflect.ValueOf(iVal).Elem())
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 		return
 	}
-	fiVal, fiErr = newValue(reflect.ValueOf(iVal).Elem())
+	fiVal, fiErr = local.GetValue(reflect.ValueOf(iVal).Elem())
 	if fiErr != nil {
 		t.Errorf("%s", fiErr.Error())
 		return
 	}
-	ret, _ = getValueStr(fiType, fiVal, nil)
+	ret, _ = getBasicValue(fiType, fiVal.Get())
 	if ret != "10" {
 		t.Errorf("getValueStr failed, ret:%s, iVal:%d", ret, iVal)
 	}
@@ -273,7 +274,7 @@ func TestPtr(t *testing.T) {
 
 	intVal := 123
 	fiVal.Update(reflect.ValueOf(intVal))
-	ret, _ = getValueStr(fiType, fiVal, nil)
+	ret, _ = getBasicValue(fiType, fiVal.Get())
 	if ret != "123" {
 		t.Errorf("getValueStr failed, ret:%s, iVal:%d", ret, iVal)
 	}

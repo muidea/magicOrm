@@ -16,9 +16,9 @@ type Item struct {
 	Index int    `json:"index"`
 	Name  string `json:"name"`
 
-	Tag   TagImpl  `json:"tag"`
-	Type  TypeImpl `json:"type"`
-	value ValueImpl
+	Tag   *TagImpl  `json:"tag"`
+	Type  *TypeImpl `json:"type"`
+	value *ValueImpl
 }
 
 // GetIndex GetIndex
@@ -33,19 +33,19 @@ func (s *Item) GetName() string {
 
 // GetType GetType
 func (s *Item) GetType() (ret model.Type) {
-	ret = &s.Type
+	ret = s.Type
 	return
 }
 
 // GetTag GetTag
 func (s *Item) GetTag() (ret model.Tag) {
-	ret = &s.Tag
+	ret = s.Tag
 	return
 }
 
 // GetValue GetValue
 func (s *Item) GetValue() (ret model.Value) {
-	ret = &s.value
+	ret = s.value
 	return
 }
 
