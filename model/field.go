@@ -24,6 +24,16 @@ type Field interface {
 	UpdateValue(val reflect.Value) error
 }
 
+func CompareField(l, r Field) bool {
+	return l.GetIndex() == r.GetIndex() &&
+		l.GetName() == r.GetName() &&
+		l.IsPrimary() == r.IsPrimary() &&
+		l.IsAssigned() == r.IsAssigned() &&
+		CompareType(l.GetType(), r.GetType()) &&
+		CompareTag(l.GetTag(), r.GetTag()) &&
+		CompareValue(l.GetValue(), r.GetValue())
+}
+
 // Fields field info collection
 type Fields []Field
 

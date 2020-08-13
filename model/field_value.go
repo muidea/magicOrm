@@ -1,6 +1,8 @@
 package model
 
-import "reflect"
+import (
+	"reflect"
+)
 
 // Value Value
 type Value interface {
@@ -12,4 +14,16 @@ type Value interface {
 	Update(val reflect.Value) error
 	// 获取值
 	Get() reflect.Value
+}
+
+func CompareValue(l, r Value) bool {
+	if l.IsNil() != r.IsNil() {
+		return false
+	}
+
+	if l.IsNil() {
+		return true
+	}
+
+	return true
 }

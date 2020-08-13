@@ -19,3 +19,7 @@ type Type interface {
 	// Elem 获取聚合类型(slice)对应子项的Type，非聚合类型返回nil
 	Elem() Type
 }
+
+func CompareType(l, r Type) bool {
+	return l.GetName() == r.GetName() && l.GetValue() == r.GetValue() && l.GetPkgPath() == r.GetPkgPath() && l.IsPtrType() == r.IsPtrType()
+}
