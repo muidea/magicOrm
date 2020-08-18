@@ -11,8 +11,6 @@ func TestSimpleObjProvider(t *testing.T) {
 	desc := "obj_desc"
 	obj := SimpleObj{Name: "obj", Desc: &desc, Age: 240, Flag: true, Add: []int{12, 34, 45}}
 
-	provider := New("default")
-
 	objInfo, objErr := GetObject(obj)
 	if objErr != nil {
 		log.Printf("GetObject failed, err:%s", objErr.Error())
@@ -48,35 +46,28 @@ func TestSimpleObjProvider(t *testing.T) {
 		return
 	}
 
-	err = provider.RegisterModel(localInfo)
-	if err != nil {
-		log.Printf("RegisterModel failed, err:%s", err.Error())
+	infoModel, infoErr := GetModel(reflect.ValueOf(localInfo))
+	if infoErr != nil {
+		log.Printf("GetModel failed, err:%s", infoErr.Error())
 		return
 	}
 
-	infoModel, objErr := provider.GetEntityModel(localInfo)
-	if objErr != nil {
-		log.Printf("GetEntityModel failed, err:%s", objErr.Error())
-		return
-	}
-
-	valModel, objErr := provider.GetValueModel(reflect.ValueOf(localVal))
-	if objErr != nil {
-		log.Printf("GetValueModel failed, err:%s", objErr.Error())
-		return
-	}
-
-	if infoModel.GetName() != valModel.GetName() {
-		log.Printf("get value model failed. infoModel name:%s, valModel name:%s", infoModel.GetName(), valModel.GetName())
-		return
-	}
-
-	for _, val := range valModel.GetFields() {
-		if !val.IsAssigned() {
+	for _, val := range infoModel.GetFields() {
+		if val.IsAssigned() {
 			t.Errorf("name:%s, check field assigned failed", val.GetName())
 		}
 	}
 
+	infoModel, infoErr = SetModel(infoModel, reflect.ValueOf(localVal))
+	if infoErr != nil {
+		log.Printf("SetModel failed, err:%s", infoErr.Error())
+		return
+	}
+	for _, val := range infoModel.GetFields() {
+		if !val.IsAssigned() {
+			t.Errorf("name:%s, check field assigned failed", val.GetName())
+		}
+	}
 }
 
 func TestInterface(t *testing.T) {
@@ -92,31 +83,6 @@ func TestInterface(t *testing.T) {
 		AA   *AA    `orm:"aa"`
 	}
 
-	aaDef, aaErr := GetObject(&AA{})
-	if aaErr != nil {
-		t.Errorf("GetObject failed, err:%s", aaErr.Error())
-		return
-	}
-
-	bbDef, bbErr := GetObject(&BB{})
-	if bbErr != nil {
-		t.Errorf("GetObject failed, err:%s", bbErr.Error())
-		return
-	}
-
-	provider := New("default")
-
-	err := provider.RegisterModel(aaDef)
-	if err != nil {
-		t.Errorf("RegisterModel failed, err:%s", err.Error())
-		return
-	}
-	err = provider.RegisterModel(bbDef)
-	if err != nil {
-		t.Errorf("RegisterModel failed, err:%s", err.Error())
-		return
-	}
-
 	bb := &BB{AA: &AA{}}
 	bbVal, bbErr := GetObjectValue(bb)
 	if bbErr != nil {
@@ -124,15 +90,9 @@ func TestInterface(t *testing.T) {
 		return
 	}
 
-	_, bbErr = provider.GetEntityModel(bbVal)
-	if bbErr != nil {
-		t.Errorf("GetEntityModel failed, err:%s", bbErr.Error())
-		return
-	}
-
-	valModel, objErr := provider.GetValueModel(reflect.ValueOf(bbVal))
+	valModel, objErr := GetModel(reflect.ValueOf(bbVal))
 	if objErr != nil {
-		log.Printf("GetValueModel failed, err:%s", objErr.Error())
+		log.Printf("GetModel failed, err:%s", objErr.Error())
 		return
 	}
 

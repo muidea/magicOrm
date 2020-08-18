@@ -53,10 +53,10 @@ func (s *Orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 		return
 	}
 
-	fDependValue, fDependErr := s.modelProvider.GetModelDependValue(fDependModel, fieldInfo.GetValue())
+	fDependValue, fDependErr := s.modelProvider.GetDependValue(fieldInfo.GetValue())
 	if fDependErr != nil {
 		err = fDependErr
-		log.Errorf("GetModelDependValue failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
+		log.Errorf("GetDependValue failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
 		return
 	}
 
@@ -68,7 +68,7 @@ func (s *Orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 			return
 		}
 
-		if !relationInfo.IsPtrModel() {
+		if !fType.IsPtrType() {
 			err = s.insertSingle(relationInfo)
 			if err != nil {
 				return

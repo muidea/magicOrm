@@ -1,6 +1,7 @@
 package test
 
 import (
+	"log"
 	"testing"
 
 	"github.com/muidea/magicCommon/foundation/util"
@@ -43,13 +44,14 @@ func TestLocalGroup(t *testing.T) {
 		t.Errorf("insert Group1 failed, err:%s", err.Error())
 		return
 	}
-
+	log.Printf("group1:%v", group1)
 	group2.Parent = group1
 	err = o1.Insert(group2, "default")
 	if err != nil {
 		t.Errorf("insert Group2 failed, err:%s", err.Error())
 		return
 	}
+	log.Printf("group2:%v", group2)
 
 	group3.Parent = group1
 	err = o1.Insert(group3, "default")
@@ -57,6 +59,7 @@ func TestLocalGroup(t *testing.T) {
 		t.Errorf("insert Group3 failed, err:%s", err.Error())
 		return
 	}
+	log.Printf("group3:%v", group3)
 
 	err = o1.Delete(group3, "default")
 	if err != nil {
@@ -423,7 +426,7 @@ func TestLocalBatchQuery(t *testing.T) {
 	}
 
 	valueMask := User{Status: &Status{}}
-	userList := []User{}
+	var userList []User
 	filter := o1.QueryFilter("default")
 	filter.Equal("Name", &user1.Name)
 	filter.In("Group", user1.Group)

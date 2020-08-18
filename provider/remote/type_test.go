@@ -9,7 +9,7 @@ import (
 
 func TestType(t *testing.T) {
 	var ii int
-	itemType, itemErr := GetType(reflect.TypeOf(ii))
+	itemType, itemErr := newType(reflect.TypeOf(ii))
 	if itemErr != nil {
 		t.Errorf("illegal type")
 		return
