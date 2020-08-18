@@ -17,17 +17,6 @@ func GetType(v reflect.Value) (ret model.Type, err error) {
 	return
 }
 
-func GetValue(v reflect.Value) (ret model.Value, err error) {
-	vVal, vErr := newValue(v)
-	if vErr != nil {
-		err = vErr
-		return
-	}
-
-	ret = vVal
-	return
-}
-
 func GetModel(v reflect.Value) (ret model.Model, err error) {
 	return
 }
