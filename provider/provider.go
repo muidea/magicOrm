@@ -60,8 +60,13 @@ func (s *providerImpl) RegisterModel(entity interface{}) (ret model.Model, err e
 	}
 
 	curModel := s.modelCache.Fetch(modelType.GetName())
-	if curModel.GetPkgPath() == modelType.GetPkgPath() {
-		ret = curModel
+	if curModel != nil {
+		if curModel.GetPkgPath() == modelType.GetPkgPath() {
+			ret = curModel
+			return
+		}
+
+		err = fmt.Errorf("confluct object model, name:%s,pkgPath:%s", modelType.GetName(), modelType.GetPkgPath())
 		return
 	}
 
@@ -100,40 +105,71 @@ func (s *providerImpl) UnregisterModel(entity interface{}) {
 }
 
 // GetEntityModel GetEntityModel
-func (s *providerImpl) GetEntityModel(objPtr interface{}) (ret model.Model, err error) {
-	objVal := reflect.ValueOf(objPtr)
-	if objVal.Kind() != reflect.Ptr {
+func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err error) {
+	entityVal := reflect.ValueOf(entity)
+	if entityVal.Kind() != reflect.Ptr {
 		err = fmt.Errorf("illegal entity, must be value ptr")
 		return
 	}
-	if util.IsNil(objVal) {
+	if util.IsNil(entityVal) {
 		err = fmt.Errorf("illegal entity, nil value point")
 		return
 	}
-	objVal = reflect.Indirect(objVal)
-	objType, objErr := s.getTypeFunc(objVal)
-	if objErr != nil || !util.IsStructType(objType.GetValue()) {
+	entityVal = reflect.Indirect(entityVal)
+	entityType, entityErr := s.getTypeFunc(entityVal)
+	if entityErr != nil || !util.IsStructType(entityType.GetValue()) {
 		err = fmt.Errorf("illegal entity, must be struct value")
 		return
 	}
-	if !objVal.CanSet() {
+	if !entityVal.CanSet() {
 		err = fmt.Errorf("illegal entity value, read only value")
 		return
 	}
 
 	// must check if register already
-	typeModel := s.modelCache.Fetch(objType.GetName())
-	if typeModel == nil {
+	entityModel := s.modelCache.Fetch(entityType.GetName())
+	if entityModel == nil {
 		err = fmt.Errorf("can't fetch entity model, must register entity first")
 		return
 	}
 
-	if typeModel.GetPkgPath() != objType.GetPkgPath() {
+	if entityModel.GetPkgPath() != entityType.GetPkgPath() {
 		err = fmt.Errorf("illegal object entity, must register entity first")
 		return
 	}
 
-	ret, err = s.setModelValueFunc(typeModel, objVal)
+	ret, err = s.setModelValueFunc(entityModel, entityVal)
+	return
+}
+
+// GetValueModel GetValueModel
+func (s *providerImpl) GetValueModel(vVal reflect.Value) (ret model.Model, err error) {
+	if !vVal.CanSet() {
+		err = fmt.Errorf("illegal value, read only value")
+		return
+	}
+
+	vType, vErr := s.getTypeFunc(vVal)
+	if vErr != nil {
+		err = vErr
+		return
+	}
+	vType = vType.Depend()
+	if util.IsBasicType(vType.GetValue()) {
+		return
+	}
+
+	typeModel := s.modelCache.Fetch(vType.GetName())
+	if typeModel == nil {
+		err = fmt.Errorf("can't fetch type model, must register type entity first")
+		return
+	}
+	if typeModel.GetPkgPath() != vType.GetPkgPath() {
+		err = fmt.Errorf("illegal object entity, must register entity first")
+		return
+	}
+
+	ret, err = s.setModelValueFunc(typeModel, vVal)
 	return
 }
 
@@ -161,37 +197,6 @@ func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err erro
 	return
 }
 
-// GetValueModel GetValueModel
-func (s *providerImpl) GetValueModel(modelVal reflect.Value) (ret model.Model, err error) {
-	if !modelVal.CanSet() {
-		err = fmt.Errorf("illegal entity value, read only value")
-		return
-	}
-
-	vType, vErr := s.getTypeFunc(modelVal)
-	if vErr != nil {
-		err = vErr
-		return
-	}
-	vType = vType.Depend()
-	if util.IsBasicType(vType.GetValue()) {
-		return
-	}
-
-	typeModel := s.modelCache.Fetch(vType.GetName())
-	if typeModel == nil {
-		err = fmt.Errorf("can't fetch type model, must register type entity first")
-		return
-	}
-	if typeModel.GetPkgPath() != vType.GetPkgPath() {
-		err = fmt.Errorf("illegal object entity, must register entity first")
-		return
-	}
-
-	ret, err = s.setModelValueFunc(typeModel, modelVal)
-	return
-}
-
 // GetValueStr GetValueStr
 func (s *providerImpl) GetValueStr(vType model.Type, vVal model.Value) (ret string, err error) {
 	if vVal.IsNil() {
@@ -215,6 +220,55 @@ func (s *providerImpl) GetValueStr(vType model.Type, vVal model.Value) (ret stri
 
 	ret, err = s.getSliceStructValue(vType, vVal)
 	return
+}
+
+// GetValueDepend GetValue depend values
+func (s *providerImpl) GetDependValue(vValue model.Value) (ret []reflect.Value, err error) {
+	if vValue.IsNil() {
+		return
+	}
+
+	val := vValue.Get()
+	vType, vErr := s.getTypeFunc(val)
+	if vErr != nil {
+		err = vErr
+		return
+	}
+	if vType.Depend() == nil {
+		return
+	}
+
+	typeModel := s.modelCache.Fetch(vType.GetName())
+	if typeModel == nil {
+		err = fmt.Errorf("can't fetch type model, must register type entity first")
+		return
+	}
+	if typeModel.GetPkgPath() != vType.GetPkgPath() {
+		err = fmt.Errorf("illegal object entity, must register entity first")
+		return
+	}
+
+	if vType.GetValue() == util.TypeSliceField {
+		val = reflect.Indirect(val)
+		for idx := 0; idx < val.Len(); idx++ {
+			ret = append(ret, val.Index(idx))
+		}
+
+		return
+	}
+
+	ret = append(ret, val)
+	return
+}
+
+// Owner owner
+func (s *providerImpl) Owner() string {
+	return s.owner
+}
+
+// Reset Reset
+func (s *providerImpl) Reset() {
+	s.modelCache.Reset()
 }
 
 func (s *providerImpl) getStructValue(vType model.Type, vVal model.Value) (ret string, err error) {
@@ -293,55 +347,6 @@ func getBasicValue(vType model.Type, val reflect.Value) (ret string, err error) 
 	}
 
 	return
-}
-
-// GetValueDepend GetValue depend values
-func (s *providerImpl) GetDependValue(vValue model.Value) (ret []reflect.Value, err error) {
-	if vValue.IsNil() {
-		return
-	}
-
-	val := vValue.Get()
-	vType, vErr := s.getTypeFunc(val)
-	if vErr != nil {
-		err = vErr
-		return
-	}
-	if vType.Depend() == nil {
-		return
-	}
-
-	typeModel := s.modelCache.Fetch(vType.GetName())
-	if typeModel == nil {
-		err = fmt.Errorf("can't fetch type model, must register type entity first")
-		return
-	}
-	if typeModel.GetPkgPath() != vType.GetPkgPath() {
-		err = fmt.Errorf("illegal object entity, must register entity first")
-		return
-	}
-
-	if vType.GetValue() == util.TypeSliceField {
-		val = reflect.Indirect(val)
-		for idx := 0; idx < val.Len(); idx++ {
-			ret = append(ret, val.Index(idx))
-		}
-
-		return
-	}
-
-	ret = append(ret, val)
-	return
-}
-
-// Owner owner
-func (s *providerImpl) Owner() string {
-	return s.owner
-}
-
-// Reset Reset
-func (s *providerImpl) Reset() {
-	s.modelCache.Reset()
 }
 
 // NewLocalProvider model provider
