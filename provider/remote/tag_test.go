@@ -4,14 +4,14 @@ import "testing"
 
 func TestTag(t *testing.T) {
 	tag := ""
-	_, err := GetTag(tag)
+	_, err := newTag(tag)
 	if err == nil {
 		t.Errorf("illegal tag value")
 		return
 	}
 
 	tag = "test"
-	itemTag, err := GetTag(tag)
+	itemTag, err := newTag(tag)
 	if err != nil {
 		t.Errorf("illegal tag value")
 		return
@@ -30,7 +30,7 @@ func TestTag(t *testing.T) {
 	}
 
 	tag = "test auto key"
-	itemTag, err = GetTag(tag)
+	itemTag, err = newTag(tag)
 	if err != nil {
 		t.Errorf("illegal tag value")
 		return
