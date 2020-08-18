@@ -45,6 +45,7 @@ func GetType(v reflect.Value) (ret model.Type, err error) {
 }
 
 func GetModel(v reflect.Value) (ret model.Model, err error) {
+	v = reflect.Indirect(v)
 	obj, ok := v.Interface().(Object)
 	if ok {
 		ret = &obj

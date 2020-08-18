@@ -9,61 +9,61 @@ import (
 
 func TestSimpleObjProvider(t *testing.T) {
 	desc := "obj_desc"
-	obj := SimpleObj{Name: "obj", Desc: &desc, Age: 240, Flag: true, Add: []int{12, 34, 45}}
+	simple := Simple{Name: "simple", Desc: &desc, Age: 240, Flag: true, Add: []int{12, 34, 45}}
 
-	objInfo, objErr := GetObject(obj)
-	if objErr != nil {
-		log.Printf("GetObject failed, err:%s", objErr.Error())
+	simpleObj, simpleErr := GetObject(simple)
+	if simpleErr != nil {
+		log.Printf("GetObject failed, err:%s", simpleErr.Error())
 		return
 	}
 
-	data, dataErr := json.Marshal(objInfo)
+	data, dataErr := json.Marshal(simpleObj)
 	if dataErr != nil {
 		log.Printf("marshal failed, err:%s", dataErr.Error())
 		return
 	}
-	localInfo := &Object{}
-	err := json.Unmarshal(data, localInfo)
+	simpleInfo := &Object{}
+	err := json.Unmarshal(data, simpleInfo)
 	if err != nil {
 		log.Printf("unmarshal failed, err:%s", err.Error())
 		return
 	}
 
-	objVal, objErr := GetObjectValue(obj)
-	if objErr != nil {
-		log.Printf("GetEntityModel failed, err:%s", objErr.Error())
+	simpleVal, simpleErr := GetObjectValue(simple)
+	if simpleErr != nil {
+		log.Printf("GetEntityModel failed, err:%s", simpleErr.Error())
 		return
 	}
-	data, dataErr = json.Marshal(objVal)
+	data, dataErr = json.Marshal(simpleVal)
 	if dataErr != nil {
 		log.Printf("marshal failed, err:%s", dataErr.Error())
 		return
 	}
-	localVal := &ObjectValue{}
-	err = json.Unmarshal(data, localVal)
+	simpleVal = &ObjectValue{}
+	err = json.Unmarshal(data, simpleVal)
 	if err != nil {
 		log.Printf("unmarshal failed, err:%s", err.Error())
 		return
 	}
 
-	infoModel, infoErr := GetModel(reflect.ValueOf(localInfo))
-	if infoErr != nil {
-		log.Printf("GetModel failed, err:%s", infoErr.Error())
+	simpleModel, simpleErr := GetModel(reflect.ValueOf(simpleInfo))
+	if simpleErr != nil {
+		log.Printf("GetModel failed, err:%s", simpleErr.Error())
 		return
 	}
 
-	for _, val := range infoModel.GetFields() {
+	for _, val := range simpleModel.GetFields() {
 		if val.IsAssigned() {
 			t.Errorf("name:%s, check field assigned failed", val.GetName())
 		}
 	}
 
-	infoModel, infoErr = SetModel(infoModel, reflect.ValueOf(localVal))
-	if infoErr != nil {
-		log.Printf("SetModel failed, err:%s", infoErr.Error())
+	simpleModel, simpleErr = SetModel(simpleModel, reflect.ValueOf(simpleVal))
+	if simpleErr != nil {
+		log.Printf("SetModel failed, err:%s", simpleErr.Error())
 		return
 	}
-	for _, val := range infoModel.GetFields() {
+	for _, val := range simpleModel.GetFields() {
 		if !val.IsAssigned() {
 			t.Errorf("name:%s, check field assigned failed", val.GetName())
 		}

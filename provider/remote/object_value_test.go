@@ -5,9 +5,9 @@ import (
 	"testing"
 )
 
-func TestSimpleObjValue(t *testing.T) {
+func TestSimpleValue(t *testing.T) {
 	desc := "obj_desc"
-	obj := SimpleObj{Name: "obj", Desc: &desc, Age: 240, Add: []int{12, 34, 45}}
+	obj := Simple{Name: "obj", Desc: &desc, Age: 240, Add: []int{12, 34, 45}}
 
 	objVal, objErr := GetObjectValue(obj)
 	if objErr != nil {
@@ -33,7 +33,7 @@ func TestSimpleObjValue(t *testing.T) {
 		return
 	}
 
-	obj2 := SimpleObj{}
+	obj2 := Simple{}
 	objVal, objErr = GetObjectValue(obj2)
 	if objErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
@@ -48,8 +48,8 @@ func TestSimpleObjValue(t *testing.T) {
 
 func TestExtObjValue(t *testing.T) {
 	desc := "obj_desc"
-	obj := SimpleObj{Name: "obj", Desc: &desc}
-	ext := &ExtObj{Name: "extObj", Obj: obj}
+	obj := Simple{Name: "obj", Desc: &desc}
+	ext := &ExtInfo{Name: "extObj", Obj: obj}
 
 	objVal, objErr := GetObjectValue(ext)
 	if objErr != nil {
