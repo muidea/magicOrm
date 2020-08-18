@@ -1,10 +1,13 @@
 package local
 
 import (
-	"github.com/muidea/magicOrm/util"
+	"log"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/muidea/magicOrm/provider/helper"
+	"github.com/muidea/magicOrm/util"
 )
 
 func TestIntType(t *testing.T) {
@@ -460,4 +463,55 @@ func TestSliceStructType(t *testing.T) {
 		t.Errorf("unexpect isPtrType")
 		return
 	}
+}
+
+func TestIntEncodeSlice(t *testing.T) {
+	data := []int64{112, 223}
+
+	strVal, strErr := helper.EncodeSliceValue(reflect.ValueOf(data))
+	if strErr != nil {
+		t.Errorf("marshal failed, err:%s", strErr.Error())
+		return
+	}
+
+	fType, fErr := newType(reflect.TypeOf(data))
+	if fErr != nil {
+		t.Errorf("illegal data type")
+		return
+	}
+
+	ret, err := helper.DecodeSliceValue(strVal, fType)
+	if err != nil {
+		t.Errorf("DecodeSliceValue failed, err:%s", err.Error())
+		return
+	}
+
+	if ret.Len() != len(data) {
+		t.Errorf("DecodeSliceValue failed, err:%s", err.Error())
+		return
+	}
+}
+
+func TestStrEncodeSlice(t *testing.T) {
+	data := []string{"aab", "ccd"}
+
+	strVal, strErr := helper.EncodeSliceValue(reflect.ValueOf(data))
+	if strErr != nil {
+		t.Errorf("marshal failed, err:%s", strErr.Error())
+		return
+	}
+
+	fType, fErr := newType(reflect.TypeOf(data))
+	if fErr != nil {
+		t.Errorf("illegal data type")
+		return
+	}
+
+	ret, err := helper.DecodeSliceValue(strVal, fType)
+	if err != nil {
+		t.Errorf("DecodeSliceValue failed, err:%s", err.Error())
+		return
+	}
+
+	log.Print(ret.Interface())
 }

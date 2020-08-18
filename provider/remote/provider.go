@@ -35,12 +35,24 @@ func GetType(v reflect.Value) (ret model.Type, err error) {
 		if ok {
 			vType.Name = vObj.GetName()
 			vType.PkgPath = vObj.GetPkgPath()
+
 			ret = vType
 			return
 		}
 	}
 
 	err = fmt.Errorf("illegal value")
+	return
+}
+
+func GetValue(val reflect.Value) (ret model.Value, err error) {
+	vVal, vErr := newValue(val)
+	if vErr != nil {
+		err = vErr
+		return
+	}
+
+	ret = vVal
 	return
 }
 
@@ -71,6 +83,10 @@ func SetModel(m model.Model, v reflect.Value) (ret model.Model, err error) {
 
 	for idx := range vObj.Items {
 		item := vObj.Items[idx]
+		if item.Value == nil {
+			continue
+		}
+
 		err = m.SetFieldValue(idx, reflect.ValueOf(item.Value))
 		if err != nil {
 			return

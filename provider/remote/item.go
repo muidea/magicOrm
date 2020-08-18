@@ -57,6 +57,10 @@ func (s *Item) IsPrimary() bool {
 // IsAssigned IsAssigned
 func (s *Item) IsAssigned() (ret bool) {
 	ret = false
+	if s.value == nil {
+		return
+	}
+
 	if s.value.IsNil() {
 		return
 	}
@@ -104,6 +108,17 @@ func (s *Item) IsAssigned() (ret bool) {
 
 // SetValue SetValue
 func (s *Item) SetValue(val reflect.Value) (err error) {
+	if s.value == nil {
+		vVal, vErr := newValue(val)
+		if vErr != nil {
+			err = vErr
+			return
+		}
+
+		s.value = vVal
+		return
+	}
+
 	err = s.value.Set(val)
 	if err != nil {
 		log.Errorf("set item value failed, name:%s, err:%s", s.Name, err.Error())

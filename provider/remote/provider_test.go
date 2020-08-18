@@ -2,7 +2,6 @@ package remote
 
 import (
 	"encoding/json"
-	"log"
 	"reflect"
 	"testing"
 )
@@ -13,42 +12,42 @@ func TestSimpleObjProvider(t *testing.T) {
 
 	simpleObj, simpleErr := GetObject(simple)
 	if simpleErr != nil {
-		log.Printf("GetObject failed, err:%s", simpleErr.Error())
+		t.Errorf("GetObject failed, err:%s", simpleErr.Error())
 		return
 	}
 
 	data, dataErr := json.Marshal(simpleObj)
 	if dataErr != nil {
-		log.Printf("marshal failed, err:%s", dataErr.Error())
+		t.Errorf("marshal failed, err:%s", dataErr.Error())
 		return
 	}
 	simpleInfo := &Object{}
 	err := json.Unmarshal(data, simpleInfo)
 	if err != nil {
-		log.Printf("unmarshal failed, err:%s", err.Error())
+		t.Errorf("unmarshal failed, err:%s", err.Error())
 		return
 	}
 
 	simpleVal, simpleErr := GetObjectValue(simple)
 	if simpleErr != nil {
-		log.Printf("GetEntityModel failed, err:%s", simpleErr.Error())
+		t.Errorf("GetEntityModel failed, err:%s", simpleErr.Error())
 		return
 	}
 	data, dataErr = json.Marshal(simpleVal)
 	if dataErr != nil {
-		log.Printf("marshal failed, err:%s", dataErr.Error())
+		t.Errorf("marshal failed, err:%s", dataErr.Error())
 		return
 	}
 	simpleVal = &ObjectValue{}
 	err = json.Unmarshal(data, simpleVal)
 	if err != nil {
-		log.Printf("unmarshal failed, err:%s", err.Error())
+		t.Errorf("unmarshal failed, err:%s", err.Error())
 		return
 	}
 
 	simpleModel, simpleErr := GetModel(reflect.ValueOf(simpleInfo))
 	if simpleErr != nil {
-		log.Printf("GetModel failed, err:%s", simpleErr.Error())
+		t.Errorf("GetModel failed, err:%s", simpleErr.Error())
 		return
 	}
 
@@ -60,7 +59,7 @@ func TestSimpleObjProvider(t *testing.T) {
 
 	simpleModel, simpleErr = SetModel(simpleModel, reflect.ValueOf(simpleVal))
 	if simpleErr != nil {
-		log.Printf("SetModel failed, err:%s", simpleErr.Error())
+		t.Errorf("SetModel failed, err:%s", simpleErr.Error())
 		return
 	}
 	for _, val := range simpleModel.GetFields() {
@@ -84,15 +83,15 @@ func TestInterface(t *testing.T) {
 	}
 
 	bb := &BB{AA: &AA{}}
-	bbVal, bbErr := GetObjectValue(bb)
+	bbVal, bbErr := GetObject(bb)
 	if bbErr != nil {
-		t.Errorf("GetObjectValue failed, err:%s", bbErr.Error())
+		t.Errorf("GetObject failed, err:%s", bbErr.Error())
 		return
 	}
 
 	valModel, objErr := GetModel(reflect.ValueOf(bbVal))
 	if objErr != nil {
-		log.Printf("GetModel failed, err:%s", objErr.Error())
+		t.Errorf("GetModel failed, err:%s", objErr.Error())
 		return
 	}
 
@@ -103,10 +102,8 @@ func TestInterface(t *testing.T) {
 				t.Errorf("name:%s, check field assigned failed", vName)
 			}
 		}
-		if !val.IsAssigned() {
-			if vName != "ID" && vName != "Name" {
-				t.Errorf("name:%s, check field assigned failed", vName)
-			}
+		if val.IsAssigned() {
+			t.Errorf("name:%s, check field assigned failed", vName)
 		}
 	}
 }
