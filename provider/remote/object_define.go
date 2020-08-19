@@ -158,8 +158,7 @@ func type2Object(entityType reflect.Type) (ret *Object, err error) {
 			return
 		}
 
-		fItem := &Item{Index: idx, Name: field.Name, Tag: itemTag, Type: itemType}
-
+		fItem := newItem(idx, field.Name, itemTag, itemType)
 		ret.Items = append(ret.Items, fItem)
 	}
 

@@ -20,9 +20,10 @@ type ItemValue struct {
 
 // ObjectValue Object Value
 type ObjectValue struct {
-	Name    string       `json:"name"`
-	PkgPath string       `json:"pkgPath"`
-	Items   []*ItemValue `json:"items"`
+	Name      string       `json:"name"`
+	PkgPath   string       `json:"pkgPath"`
+	IsPtrFlag bool         `json:"isPtr"`
+	Items     []*ItemValue `json:"items"`
 }
 
 // SliceObjectValue slice object value
@@ -41,6 +42,11 @@ func (s *ObjectValue) GetName() string {
 // GetPkgPath get pkg path
 func (s *ObjectValue) GetPkgPath() string {
 	return s.PkgPath
+}
+
+// IsPtrValue isPtrValue
+func (s *ObjectValue) IsPtrValue() bool {
+	return s.IsPtrFlag
 }
 
 // IsAssigned is assigned value
@@ -202,11 +208,12 @@ func getSliceItemValue(fieldName string, itemType *TypeImpl, fieldValue reflect.
 // GetObjectValue get object value
 func GetObjectValue(entity interface{}) (ret *ObjectValue, err error) {
 	entityValue := reflect.ValueOf(entity)
+	isPtr := entityValue.Kind() == reflect.Ptr
 	entityValue = reflect.Indirect(entityValue)
 	entityType := entityValue.Type()
 
 	//!! must be String, not Name
-	ret = &ObjectValue{Name: entityType.String(), PkgPath: entityType.PkgPath(), Items: []*ItemValue{}}
+	ret = &ObjectValue{Name: entityType.String(), PkgPath: entityType.PkgPath(), IsPtrFlag: isPtr, Items: []*ItemValue{}}
 	fieldNum := entityValue.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		fieldType := entityType.Field(idx)
@@ -246,13 +253,13 @@ func GetSliceObjectValue(sliceEntity interface{}) (ret *SliceObjectValue, err er
 	entityType, entityErr := newType(entityValue.Type())
 	if entityErr != nil {
 		err = fmt.Errorf("get slice object type failed, err:%s", err.Error())
-		log.Errorf("GetType failed, type%s, err:%s", entityValue.Type().String(), err.Error())
+		log.Errorf("GetType failed, type%s, err:%s", entityType.GetName(), err.Error())
 		return
 	}
 
 	if !util.IsSliceType(entityType.GetValue()) {
 		err = fmt.Errorf("illegal slice object value")
-		log.Errorf("illegal slice type, type%s, err:%s", entityValue.Type().String(), err.Error())
+		log.Errorf("illegal slice type, type%s, err:%s", entityType.GetName(), err.Error())
 		return
 	}
 
@@ -263,7 +270,7 @@ func GetSliceObjectValue(sliceEntity interface{}) (ret *SliceObjectValue, err er
 		return
 	}
 
-	ret = &SliceObjectValue{Name: subType.GetName(), PkgPath: subType.GetPkgPath(), IsPtrFlag: subType.IsPtrType(), Values: []*ObjectValue{}}
+	ret = &SliceObjectValue{Name: subType.GetName(), PkgPath: subType.GetPkgPath(), IsPtrFlag: entityType.IsPtrType(), Values: []*ObjectValue{}}
 	entityValue = reflect.Indirect(entityValue)
 	for idx := 0; idx < entityValue.Len(); idx++ {
 		val := entityValue.Index(idx)

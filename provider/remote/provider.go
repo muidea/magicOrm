@@ -41,7 +41,7 @@ func GetType(v reflect.Value) (ret model.Type, err error) {
 		}
 	}
 
-	err = fmt.Errorf("illegal value")
+	err = fmt.Errorf("illegal value type, type:%s", v.Type().String())
 	return
 }
 
@@ -68,31 +68,29 @@ func GetModel(v reflect.Value) (ret model.Model, err error) {
 	return
 }
 
-func SetModel(m model.Model, v reflect.Value) (ret model.Model, err error) {
-	v = reflect.Indirect(v)
-	vObj, ok := v.Interface().(ObjectValue)
-	if !ok {
+func SetModel(vModel model.Model, vVal reflect.Value) (ret model.Model, err error) {
+	vVal = reflect.Indirect(vVal)
+	vName := vVal.FieldByName("Name")
+	vPkgPath := vVal.FieldByName("PkgPath")
+	vFields := vVal.FieldByName("Items")
+	if vModel.GetName() != vName.String() || vModel.GetPkgPath() != vPkgPath.String() {
 		err = fmt.Errorf("illegal model value")
 		return
 	}
 
-	if m.GetName() != vObj.GetName() || m.GetPkgPath() != vObj.GetPkgPath() {
-		err = fmt.Errorf("illegal model value")
-		return
-	}
-
-	for idx := range vObj.Items {
-		item := vObj.Items[idx]
-		if item.Value == nil {
+	for idx := 0; idx < vFields.Len(); {
+		item := vFields.Index(idx)
+		fValue := item.FieldByName("Value")
+		if util.IsNil(fValue) {
 			continue
 		}
 
-		err = m.SetFieldValue(idx, reflect.ValueOf(item.Value))
+		err = vModel.SetFieldValue(idx, fValue)
 		if err != nil {
 			return
 		}
 	}
 
-	ret = m
+	ret = vModel
 	return
 }

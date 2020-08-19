@@ -18,39 +18,6 @@ type ExtInfo struct {
 	Obj  Simple `orm:"obj"`
 }
 
-func TestSimple(t *testing.T) {
-	desc := "obj_desc"
-	obj := Simple{Name: "obj", Desc: &desc, Age: 240, Add: []int{12, 34, 45}}
-
-	data, err := json.Marshal(&obj)
-	if err != nil {
-		t.Errorf("marshal obj failed, err:%s", err.Error())
-		return
-	}
-
-	tt := &Simple{}
-	err = json.Unmarshal(data, tt)
-	if err != nil {
-		t.Errorf("unmarshal obj failed, err:%s", err.Error())
-		return
-	}
-
-	if tt.Name != obj.Name {
-		t.Errorf("unmarshal obj failed")
-		return
-	}
-
-	t2 := &map[string]interface{}{}
-	err = json.Unmarshal(data, t2)
-	if err != nil {
-		t.Errorf("unmarshal obj failed, err:%s", err.Error())
-		return
-	}
-	if len(*t2) != 5 {
-		t.Errorf("unmarshal obj failed")
-	}
-}
-
 func TestSimpleObjInfo(t *testing.T) {
 	desc := "obj_desc"
 	obj := Simple{Name: "obj", Desc: &desc, Age: 240}

@@ -171,3 +171,7 @@ func (s *Item) Interface() (ret *ItemValue) {
 	ret = &ItemValue{Name: s.Name, Value: s.Type.Interface().Interface()}
 	return
 }
+
+func newItem(idx int, name string, iTag *TagImpl, iType *TypeImpl) *Item {
+	return &Item{Index: idx, Name: name, Tag: iTag, Type: iType}
+}
