@@ -239,10 +239,18 @@ func AssignSliceValue(fromVal reflect.Value, toVal reflect.Value) (ret reflect.V
 	vType := toVal.Type().Elem()
 	for idx := 0; idx < fromVal.Len(); idx++ {
 		v := fromVal.Index(idx)
+		isElemPtr := vType.Kind() == reflect.Ptr
+		if isElemPtr {
+			vType = vType.Elem()
+		}
 		iv := reflect.New(vType).Elem()
 		iv, err = AssignValue(v, iv)
 		if err != nil {
 			return
+		}
+
+		if isElemPtr {
+			iv = iv.Addr()
 		}
 
 		itemSlice = reflect.Append(itemSlice, iv)
