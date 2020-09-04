@@ -31,20 +31,20 @@ func TestSimpleObjInfo(t *testing.T) {
 		t.Errorf("GetObject failed")
 	}
 
-	data, err := json.Marshal(&info)
+	data, err := json.Marshal(info)
 	if err != nil {
 		t.Errorf("marshal info failed, err:%s", err.Error())
 		return
 	}
 
-	info2 := Object{}
-	err = json.Unmarshal(data, &info2)
+	info2 := &Object{}
+	err = json.Unmarshal(data, info2)
 	if err != nil {
 		t.Errorf("marshal info failed, err:%s", err.Error())
 		return
 	}
 
-	if info2.GetName() != info.GetName() {
+	if !compareObject(info, info2) {
 		t.Errorf("unmarshal failed")
 		return
 	}
@@ -66,20 +66,20 @@ func TestExtObjInfo(t *testing.T) {
 		return
 	}
 
-	data, err := json.Marshal(&info)
+	data, err := json.Marshal(info)
 	if err != nil {
 		t.Errorf("marshal info failed, err:%s", err.Error())
 		return
 	}
 
-	eInfo := Object{}
-	err = json.Unmarshal(data, &eInfo)
+	eInfo := &Object{}
+	err = json.Unmarshal(data, eInfo)
 	if err != nil {
 		t.Errorf("unmarshal ext failed, err:%s", err.Error())
 		return
 	}
 
-	if eInfo.GetName() != info.GetName() {
+	if !compareObject(info, eInfo) {
 		t.Errorf("unmarshal faile")
 		return
 	}

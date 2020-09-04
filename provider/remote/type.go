@@ -216,3 +216,32 @@ func newType(itemType reflect.Type) (ret *TypeImpl, err error) {
 
 	return
 }
+
+func compareType(l, r *TypeImpl) bool {
+	if l.Name != r.Name {
+		return false
+	}
+	if l.Value != r.Value {
+		return false
+	}
+	if l.PkgPath != r.PkgPath {
+		return false
+	}
+	if l.IsPtr != r.IsPtr {
+		return false
+	}
+
+	if l.DependType != nil && r.DependType == nil {
+		return false
+	}
+
+	if l.DependType == nil && r.DependType != nil {
+		return false
+	}
+
+	if l.DependType == nil && r.DependType == nil {
+		return true
+	}
+
+	return compareType(l.DependType, r.DependType)
+}

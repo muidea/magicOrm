@@ -86,3 +86,7 @@ func newTag(tag string) (ret *TagImpl, err error) {
 
 	return
 }
+
+func compareTag(l, r *TagImpl) bool {
+	return l.Value == r.Value
+}

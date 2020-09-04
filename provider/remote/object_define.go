@@ -165,7 +165,7 @@ func type2Object(entityType reflect.Type) (ret *Object, err error) {
 	return
 }
 
-func CompareObject(l, r *Object) bool {
+func compareObject(l, r *Object) bool {
 	if l.Name != r.Name {
 		return false
 	}
@@ -181,11 +181,7 @@ func CompareObject(l, r *Object) bool {
 	for idx := 0; idx < len(l.Items); idx++ {
 		lVal := l.Items[idx]
 		rVal := r.Items[idx]
-		if lVal.Name != rVal.Name {
-			return false
-		}
-
-		if lVal.Index != rVal.Index {
+		if !compareItem(lVal, rVal) {
 			return false
 		}
 	}

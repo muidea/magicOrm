@@ -601,8 +601,8 @@ func EncodeSliceObjectValue(objVal *SliceObjectValue) (ret []byte, err error) {
 	return
 }
 
-// DecodeObjectValueFromMap decode object value from map
-func DecodeObjectValueFromMap(objVal map[string]interface{}) (ret *ObjectValue, err error) {
+// decodeObjectValueFromMap decode object value from map
+func decodeObjectValueFromMap(objVal map[string]interface{}) (ret *ObjectValue, err error) {
 	nameVal, nameOK := objVal["name"]
 	pkgPathVal, pkgPathOK := objVal["pkgPath"]
 	itemsVal, itemsOK := objVal["items"]
@@ -638,10 +638,10 @@ func decodeSliceValue(sliceVal []interface{}) (ret []interface{}, err error) {
 	for _, val := range sliceVal {
 		itemVal, itemOK := val.(map[string]interface{})
 		if itemOK {
-			item, itemErr := DecodeObjectValueFromMap(itemVal)
+			item, itemErr := decodeObjectValueFromMap(itemVal)
 			if itemErr != nil {
 				err = itemErr
-				log.Errorf("DecodeObjectValueFromMap failed, itemVal:%v", itemVal)
+				log.Errorf("decodeObjectValueFromMap failed, itemVal:%v", itemVal)
 				return
 			}
 
@@ -670,17 +670,17 @@ func decodeItemValue(itemVal map[string]interface{}) (ret *ItemValue, err error)
 	}
 
 	ret = &ItemValue{Name: nameVal.(string), Value: valVal}
-	ret, err = ConvertItem(ret)
+	ret, err = convertItem(ret)
 	return
 }
 
-// ConvertItem convert ItemValue
-func ConvertItem(val *ItemValue) (ret *ItemValue, err error) {
+// convertItem convert ItemValue
+func convertItem(val *ItemValue) (ret *ItemValue, err error) {
 	objVal, objOK := val.Value.(map[string]interface{})
 	if objOK {
 		ret = &ItemValue{Name: val.Name}
 
-		oVal, oErr := DecodeObjectValueFromMap(objVal)
+		oVal, oErr := decodeObjectValueFromMap(objVal)
 		if oErr != nil {
 			err = oErr
 			return
@@ -718,7 +718,7 @@ func DecodeObjectValue(data []byte) (ret *ObjectValue, err error) {
 	for idx := range val.Items {
 		cur := val.Items[idx]
 
-		item, itemErr := ConvertItem(cur)
+		item, itemErr := convertItem(cur)
 		if itemErr != nil {
 			err = itemErr
 			return
@@ -742,7 +742,7 @@ func DecodeSliceObjectValue(data []byte) (ret *SliceObjectValue, err error) {
 
 	for idx := range sliceVal.Values {
 		cur := sliceVal.Values[idx]
-		val, valErr := ConvertObjectValue(cur)
+		val, valErr := convertObjectValue(cur)
 		if valErr != nil {
 			err = valErr
 			return
@@ -755,12 +755,12 @@ func DecodeSliceObjectValue(data []byte) (ret *SliceObjectValue, err error) {
 	return
 }
 
-// ConvertObjectValue convert object value
-func ConvertObjectValue(objVal *ObjectValue) (ret *ObjectValue, err error) {
+// convertObjectValue convert object value
+func convertObjectValue(objVal *ObjectValue) (ret *ObjectValue, err error) {
 	for idx := range objVal.Items {
 		cur := objVal.Items[idx]
 
-		item, itemErr := ConvertItem(cur)
+		item, itemErr := convertItem(cur)
 		if itemErr != nil {
 			err = itemErr
 			return
@@ -774,11 +774,11 @@ func ConvertObjectValue(objVal *ObjectValue) (ret *ObjectValue, err error) {
 	return
 }
 
-// ConvertSliceObjectValue convert slice object value
-func ConvertSliceObjectValue(sliceVal *SliceObjectValue) (ret *SliceObjectValue, err error) {
+// convertSliceObjectValue convert slice object value
+func convertSliceObjectValue(sliceVal *SliceObjectValue) (ret *SliceObjectValue, err error) {
 	for idx := range sliceVal.Values {
 		cur := sliceVal.Values[idx]
-		val, valErr := ConvertObjectValue(cur)
+		val, valErr := convertObjectValue(cur)
 		if valErr != nil {
 			err = valErr
 			return
@@ -791,7 +791,7 @@ func ConvertSliceObjectValue(sliceVal *SliceObjectValue) (ret *SliceObjectValue,
 	return
 }
 
-func compareItem(l, r *ItemValue) bool {
+func compareItemValue(l, r *ItemValue) bool {
 	if l.Name != r.Name {
 		return false
 	}
@@ -799,7 +799,7 @@ func compareItem(l, r *ItemValue) bool {
 	return true
 }
 
-func CompareObjectValue(l, r *ObjectValue) bool {
+func compareObjectValue(l, r *ObjectValue) bool {
 	if l.Name != r.Name {
 		return false
 	}
@@ -819,7 +819,7 @@ func CompareObjectValue(l, r *ObjectValue) bool {
 	for idx := 0; idx < len(l.Items); idx++ {
 		lVal := l.Items[idx]
 		rVal := r.Items[idx]
-		if !compareItem(lVal, rVal) {
+		if !compareItemValue(lVal, rVal) {
 			return false
 		}
 	}
@@ -827,7 +827,7 @@ func CompareObjectValue(l, r *ObjectValue) bool {
 	return true
 }
 
-func CompareSliceObjectValue(l, r *SliceObjectValue) bool {
+func compareSliceObjectValue(l, r *SliceObjectValue) bool {
 	if l.Name != r.Name {
 		return false
 	}
@@ -844,7 +844,7 @@ func CompareSliceObjectValue(l, r *SliceObjectValue) bool {
 	for idx := 0; idx < len(l.Values); idx++ {
 		lVal := l.Values[idx]
 		rVal := r.Values[idx]
-		if !CompareObjectValue(lVal, rVal) {
+		if !compareObjectValue(lVal, rVal) {
 			return false
 		}
 	}

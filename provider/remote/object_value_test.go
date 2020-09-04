@@ -1,7 +1,6 @@
 package remote
 
 import (
-	"encoding/json"
 	"testing"
 )
 
@@ -9,38 +8,42 @@ func TestSimpleValue(t *testing.T) {
 	desc := "obj_desc"
 	obj := Simple{Name: "obj", Desc: &desc, Age: 240, Add: []int{12, 34, 45}}
 
-	objVal, objErr := GetObjectValue(obj)
-	if objErr != nil {
-		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+	rawVal, rawErr := GetObjectValue(obj)
+	if rawErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", rawErr.Error())
 		return
 	}
 
-	if !objVal.IsAssigned() {
+	if !rawVal.IsAssigned() {
 		t.Errorf("check object is assigned failed")
 		return
 	}
 
-	data, err := json.Marshal(objVal)
+	data, err := EncodeObjectValue(rawVal)
 	if err != nil {
-		t.Errorf("marshal obj failed, err:%s", err.Error())
+		t.Errorf("encode object value failed, err:%s", err.Error())
 		return
 	}
 
-	val := &ObjectValue{}
-	err = json.Unmarshal(data, val)
-	if err != nil {
-		t.Errorf("marshal obj failed, err:%s", err.Error())
+	curVal, curErr := DecodeObjectValue(data)
+	if curErr != nil {
+		t.Errorf("decode obj failed, err:%s", curErr.Error())
+		return
+	}
+
+	if !compareObjectValue(rawVal, curVal) {
+		t.Errorf("CompareObjectValue failed")
 		return
 	}
 
 	obj2 := Simple{}
-	objVal, objErr = GetObjectValue(obj2)
-	if objErr != nil {
-		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+	rawVal, rawErr = GetObjectValue(obj2)
+	if rawErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", rawErr.Error())
 		return
 	}
 
-	if objVal.IsAssigned() {
+	if rawVal.IsAssigned() {
 		t.Errorf("check object is assigned failed")
 		return
 	}
@@ -57,9 +60,9 @@ func TestExtObjValue(t *testing.T) {
 		return
 	}
 
-	_, err := json.Marshal(&objVal)
+	_, err := EncodeObjectValue(objVal)
 	if err != nil {
-		t.Errorf("marshal obj failed, err:%s", err.Error())
+		t.Errorf("encode object value failed, err:%s", err.Error())
 		return
 	}
 }

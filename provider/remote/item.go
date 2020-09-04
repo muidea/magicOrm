@@ -175,3 +175,21 @@ func (s *Item) Interface() (ret *ItemValue) {
 func newItem(idx int, name string, iTag *TagImpl, iType *TypeImpl) *Item {
 	return &Item{Index: idx, Name: name, Tag: iTag, Type: iType}
 }
+
+func compareItem(l, r *Item) bool {
+	if l.Index != r.Index {
+		return false
+	}
+	if l.Name != r.Name {
+		return false
+	}
+
+	if !compareType(l.Type, r.Type) {
+		return false
+	}
+	if !compareTag(l.Tag, r.Tag) {
+		return false
+	}
+
+	return true
+}
