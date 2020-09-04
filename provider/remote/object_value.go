@@ -602,35 +602,64 @@ func EncodeSliceObjectValue(objVal *SliceObjectValue) (ret []byte, err error) {
 }
 
 // decodeObjectValueFromMap decode object value from map
-func decodeObjectValueFromMap(objVal map[string]interface{}) (ret *ObjectValue, err error) {
-	nameVal, nameOK := objVal["name"]
-	pkgPathVal, pkgPathOK := objVal["pkgPath"]
-	itemsVal, itemsOK := objVal["items"]
+func decodeObjectValueFromMap(mapVal map[string]interface{}) (ret *ObjectValue, err error) {
+	nameVal, nameOK := mapVal["name"]
+	pkgPathVal, pkgPathOK := mapVal["pkgPath"]
+	itemsVal, itemsOK := mapVal["items"]
 	if !nameOK || !pkgPathOK || !itemsOK {
 		err = fmt.Errorf("illegal ObjectValue")
 		return
 	}
 
-	ret = &ObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), Items: []*ItemValue{}}
-
+	objVal := &ObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), Items: []*ItemValue{}}
 	for _, val := range itemsVal.([]interface{}) {
 		item, itemOK := val.(map[string]interface{})
 		if !itemOK {
 			err = fmt.Errorf("illegal object field item value")
-			ret = nil
 			return
 		}
 
 		itemVal, itemErr := decodeItemValue(item)
 		if itemErr != nil {
 			err = itemErr
-			ret = nil
 			return
 		}
 
-		ret.Items = append(ret.Items, itemVal)
+		objVal.Items = append(objVal.Items, itemVal)
 	}
 
+	ret = objVal
+	return
+}
+
+// decodeSliceObjectValueFromMap decode slice object value from map
+func decodeSliceObjectValueFromMap(mapVal map[string]interface{}) (ret *SliceObjectValue, err error) {
+	nameVal, nameOK := mapVal["name"]
+	pkgPathVal, pkgPathOK := mapVal["pkgPath"]
+	valuesVal, valuesOK := mapVal["values"]
+	if !nameOK || !pkgPathOK || !valuesOK {
+		err = fmt.Errorf("illegal SliceObjectValue")
+		return
+	}
+
+	objVal := &SliceObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), Values: []*ObjectValue{}}
+	for _, val := range valuesVal.([]interface{}) {
+		item, itemOK := val.(map[string]interface{})
+		if !itemOK {
+			err = fmt.Errorf("illegal slice object field item value")
+			return
+		}
+
+		itemVal, itemErr := decodeObjectValueFromMap(item)
+		if itemErr != nil {
+			err = itemErr
+			return
+		}
+
+		objVal.Values = append(objVal.Values, itemVal)
+	}
+
+	ret = objVal
 	return
 }
 
@@ -678,15 +707,35 @@ func decodeItemValue(itemVal map[string]interface{}) (ret *ItemValue, err error)
 func convertItem(val *ItemValue) (ret *ItemValue, err error) {
 	objVal, objOK := val.Value.(map[string]interface{})
 	if objOK {
-		ret = &ItemValue{Name: val.Name}
+		_, itemsOK := objVal["items"]
+		if itemsOK {
+			ret = &ItemValue{Name: val.Name}
 
-		oVal, oErr := decodeObjectValueFromMap(objVal)
-		if oErr != nil {
-			err = oErr
+			oVal, oErr := decodeObjectValueFromMap(objVal)
+			if oErr != nil {
+				err = oErr
+				return
+			}
+
+			ret.Value = oVal
 			return
 		}
 
-		ret.Value = oVal
+		_, valuesOK := objVal["values"]
+		if valuesOK {
+			ret = &ItemValue{Name: val.Name}
+
+			oVal, oErr := decodeSliceObjectValueFromMap(objVal)
+			if oErr != nil {
+				err = oErr
+				return
+			}
+
+			ret.Value = oVal
+			return
+		}
+
+		err = fmt.Errorf("illegal itemValue")
 		return
 	}
 

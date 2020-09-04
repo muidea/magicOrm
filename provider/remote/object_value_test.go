@@ -1,6 +1,7 @@
 package remote
 
 import (
+	"log"
 	"testing"
 )
 
@@ -51,8 +52,8 @@ func TestSimpleValue(t *testing.T) {
 
 func TestExtObjValue(t *testing.T) {
 	desc := "obj_desc"
-	obj := Simple{Name: "obj", Desc: &desc}
-	ext := &ExtInfo{Name: "extObj", Obj: obj}
+	obj := Simple{Name: "obj", Desc: &desc, Add: []int{12, 223, 456}}
+	ext := &ExtInfo{Name: "extObj", Obj: obj, ObjArray: []*Simple{&obj, &obj}}
 
 	objVal, objErr := GetObjectValue(ext)
 	if objErr != nil {
@@ -60,9 +61,22 @@ func TestExtObjValue(t *testing.T) {
 		return
 	}
 
-	_, err := EncodeObjectValue(objVal)
+	data, err := EncodeObjectValue(objVal)
 	if err != nil {
 		t.Errorf("encode object value failed, err:%s", err.Error())
+		return
+	}
+
+	log.Print(string(data))
+
+	objInfo, objErr := DecodeObjectValue(data)
+	if objErr != nil {
+		t.Errorf("DecodeObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+
+	if !compareObjectValue(objVal, objInfo) {
+		t.Errorf("compareObjectValue failed")
 		return
 	}
 }

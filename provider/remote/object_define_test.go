@@ -14,8 +14,9 @@ type Simple struct {
 }
 
 type ExtInfo struct {
-	Name string `orm:"name"`
-	Obj  Simple `orm:"obj"`
+	Name     string    `orm:"name"`
+	Obj      Simple    `orm:"obj"`
+	ObjArray []*Simple `orm:"array"`
 }
 
 func TestSimpleObjInfo(t *testing.T) {
@@ -53,7 +54,7 @@ func TestSimpleObjInfo(t *testing.T) {
 func TestExtObjInfo(t *testing.T) {
 	desc := "obj_desc"
 	obj := Simple{Name: "obj", Desc: &desc}
-	ext := &ExtInfo{Name: "extObj", Obj: obj}
+	ext := &ExtInfo{Name: "extObj", Obj: obj, ObjArray: []*Simple{&obj, &obj}}
 
 	info, err := GetObject(ext)
 	if err != nil {
