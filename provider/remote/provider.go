@@ -78,8 +78,8 @@ func SetModel(vModel model.Model, vVal reflect.Value) (ret model.Model, err erro
 		return
 	}
 
-	for idx := 0; idx < vFields.Len(); {
-		item := vFields.Index(idx)
+	for idx := 0; idx < vFields.Len(); idx++ {
+		item := reflect.Indirect(vFields.Index(idx))
 		fValue := item.FieldByName("Value")
 		if util.IsNil(fValue) {
 			continue

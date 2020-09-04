@@ -1,12 +1,13 @@
 package provider
 
 import (
-	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/local"
-	"github.com/muidea/magicOrm/provider/remote"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider/local"
+	"github.com/muidea/magicOrm/provider/remote"
 )
 
 func checkType(val interface{}, t *testing.T) bool {
