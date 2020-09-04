@@ -164,3 +164,31 @@ func type2Object(entityType reflect.Type) (ret *Object, err error) {
 
 	return
 }
+
+func CompareObject(l, r *Object) bool {
+	if l.Name != r.Name {
+		return false
+	}
+
+	if l.PkgPath != r.PkgPath {
+		return false
+	}
+
+	if len(l.Items) != len(r.Items) {
+		return false
+	}
+
+	for idx := 0; idx < len(l.Items); idx++ {
+		lVal := l.Items[idx]
+		rVal := r.Items[idx]
+		if lVal.Name != rVal.Name {
+			return false
+		}
+
+		if lVal.Index != rVal.Index {
+			return false
+		}
+	}
+
+	return true
+}

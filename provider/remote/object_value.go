@@ -790,3 +790,64 @@ func ConvertSliceObjectValue(sliceVal *SliceObjectValue) (ret *SliceObjectValue,
 	ret = sliceVal
 	return
 }
+
+func compareItem(l, r *ItemValue) bool {
+	if l.Name != r.Name {
+		return false
+	}
+
+	return true
+}
+
+func CompareObjectValue(l, r *ObjectValue) bool {
+	if l.Name != r.Name {
+		return false
+	}
+
+	if l.PkgPath != r.PkgPath {
+		return false
+	}
+
+	if l.IsPtr != r.IsPtr {
+		return false
+	}
+
+	if len(l.Items) != len(r.Items) {
+		return false
+	}
+
+	for idx := 0; idx < len(l.Items); idx++ {
+		lVal := l.Items[idx]
+		rVal := r.Items[idx]
+		if !compareItem(lVal, rVal) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func CompareSliceObjectValue(l, r *SliceObjectValue) bool {
+	if l.Name != r.Name {
+		return false
+	}
+	if l.PkgPath != r.PkgPath {
+		return false
+	}
+	if l.IsPtr != r.IsPtr {
+		return false
+	}
+	if len(l.Values) != len(r.Values) {
+		return false
+	}
+
+	for idx := 0; idx < len(l.Values); idx++ {
+		lVal := l.Values[idx]
+		rVal := r.Values[idx]
+		if !CompareObjectValue(lVal, rVal) {
+			return false
+		}
+	}
+
+	return true
+}
