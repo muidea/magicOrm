@@ -1,7 +1,6 @@
 package remote
 
 import (
-	"log"
 	"testing"
 )
 
@@ -66,8 +65,6 @@ func TestExtObjValue(t *testing.T) {
 		t.Errorf("encode object value failed, err:%s", err.Error())
 		return
 	}
-
-	log.Print(string(data))
 
 	objInfo, objErr := DecodeObjectValue(data)
 	if objErr != nil {
