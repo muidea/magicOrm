@@ -663,34 +663,6 @@ func decodeSliceObjectValueFromMap(mapVal map[string]interface{}) (ret *SliceObj
 	return
 }
 
-func decodeSliceValue(sliceVal []interface{}) (ret []interface{}, err error) {
-	for _, val := range sliceVal {
-		itemVal, itemOK := val.(map[string]interface{})
-		if itemOK {
-			item, itemErr := decodeObjectValueFromMap(itemVal)
-			if itemErr != nil {
-				err = itemErr
-				log.Errorf("decodeObjectValueFromMap failed, itemVal:%v", itemVal)
-				return
-			}
-
-			ret = append(ret, item)
-
-			continue
-		}
-
-		_, sliceOK := val.([]interface{})
-		if sliceOK {
-			err = fmt.Errorf("illegal slice item value")
-			return
-		}
-
-		ret = append(ret, val)
-	}
-
-	return
-}
-
 func decodeItemValue(itemVal map[string]interface{}) (ret *ItemValue, err error) {
 	nameVal, nameOK := itemVal["name"]
 	valVal, valOK := itemVal["value"]
@@ -741,14 +713,7 @@ func convertItem(val *ItemValue) (ret *ItemValue, err error) {
 
 	sliceVal, sliceOK := val.Value.([]interface{})
 	if sliceOK {
-		ret = &ItemValue{Name: val.Name}
-		sVal, sErr := decodeSliceValue(sliceVal)
-		if sErr != nil {
-			err = sErr
-			return
-		}
-
-		ret.Value = sVal
+		ret = &ItemValue{Name: val.Name, Value: sliceVal}
 		return
 	}
 
