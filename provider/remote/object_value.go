@@ -644,20 +644,22 @@ func decodeSliceObjectValueFromMap(mapVal map[string]interface{}) (ret *SliceObj
 	}
 
 	objVal := &SliceObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), Values: []*ObjectValue{}}
-	for _, val := range valuesVal.([]interface{}) {
-		item, itemOK := val.(map[string]interface{})
-		if !itemOK {
-			err = fmt.Errorf("illegal slice object field item value")
-			return
-		}
+	if valuesVal != nil {
+		for _, val := range valuesVal.([]interface{}) {
+			item, itemOK := val.(map[string]interface{})
+			if !itemOK {
+				err = fmt.Errorf("illegal slice object field item value")
+				return
+			}
 
-		itemVal, itemErr := decodeObjectValueFromMap(item)
-		if itemErr != nil {
-			err = itemErr
-			return
-		}
+			itemVal, itemErr := decodeObjectValueFromMap(item)
+			if itemErr != nil {
+				err = itemErr
+				return
+			}
 
-		objVal.Values = append(objVal.Values, itemVal)
+			objVal.Values = append(objVal.Values, itemVal)
+		}
 	}
 
 	ret = objVal
