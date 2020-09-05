@@ -476,14 +476,15 @@ func convertSliceStructValue(itemValue reflect.Value, fieldValue reflect.Value) 
 		err = fmt.Errorf("illegal slice struct")
 		return
 	}
-	sliceValue := itemValue.FieldByName("Value")
+	if fieldType.IsPtrType() {
+		elemType = elemType.Elem()
+	}
+
+	sliceValue := itemValue.FieldByName("Values")
 	itemSlice := reflect.MakeSlice(fieldValue.Type(), 0, 0)
+
 	for idx := 0; idx < sliceValue.Len(); idx++ {
 		sliceItem := sliceValue.Index(idx)
-		if fieldType.IsPtrType() {
-			elemType = elemType.Elem()
-		}
-
 		elemVal := reflect.New(elemType).Elem()
 		for {
 			if util.IsBasicType(fieldType.GetValue()) {

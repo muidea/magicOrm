@@ -77,3 +77,43 @@ func TestExtObjValue(t *testing.T) {
 		return
 	}
 }
+
+func TestUpdateExtObjValue(t *testing.T) {
+	desc := "obj_desc"
+	obj := Simple{Name: "obj", Desc: &desc, Add: []int{12, 223, 456}}
+	ext1 := &ExtInfo{}
+	ext2 := &ExtInfo{Name: "extObj", Obj: obj, ObjArray: []*Simple{&obj, &obj}}
+
+	objVal, objErr := GetObjectValue(ext2)
+	if objErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+
+	data, err := EncodeObjectValue(objVal)
+	if err != nil {
+		t.Errorf("encode object value failed, err:%s", err.Error())
+		return
+	}
+
+	objInfo, objErr := DecodeObjectValue(data)
+	if objErr != nil {
+		t.Errorf("DecodeObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+
+	if !compareObjectValue(objVal, objInfo) {
+		t.Errorf("compareObjectValue failed")
+		return
+	}
+
+	err = UpdateEntity(objInfo, ext1)
+	if err != nil {
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
+		return
+	}
+
+	if ext1.Name != ext2.Name {
+		t.Errorf("updateEntity failed")
+	}
+}
