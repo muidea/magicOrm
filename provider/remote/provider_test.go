@@ -1,7 +1,6 @@
 package remote
 
 import (
-	"encoding/json"
 	"reflect"
 	"testing"
 )
@@ -16,15 +15,15 @@ func TestSimpleObjProvider(t *testing.T) {
 		return
 	}
 
-	data, dataErr := json.Marshal(simpleObj)
+	data, dataErr := EncodeObject(simpleObj)
 	if dataErr != nil {
 		t.Errorf("marshal failed, err:%s", dataErr.Error())
 		return
 	}
 	simpleInfo := &Object{}
-	err := json.Unmarshal(data, simpleInfo)
-	if err != nil {
-		t.Errorf("unmarshal failed, err:%s", err.Error())
+	simpleInfo, simpleErr = DecodeObject(data)
+	if simpleErr != nil {
+		t.Errorf("unmarshal failed, err:%s", simpleErr.Error())
 		return
 	}
 
@@ -33,15 +32,14 @@ func TestSimpleObjProvider(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", simpleErr.Error())
 		return
 	}
-	data, dataErr = json.Marshal(simpleVal)
+	data, dataErr = EncodeObjectValue(simpleVal)
 	if dataErr != nil {
 		t.Errorf("marshal failed, err:%s", dataErr.Error())
 		return
 	}
-	simpleVal = &ObjectValue{}
-	err = json.Unmarshal(data, simpleVal)
-	if err != nil {
-		t.Errorf("unmarshal failed, err:%s", err.Error())
+	simpleVal, simpleErr = DecodeObjectValue(data)
+	if simpleErr != nil {
+		t.Errorf("unmarshal failed, err:%s", simpleErr.Error())
 		return
 	}
 

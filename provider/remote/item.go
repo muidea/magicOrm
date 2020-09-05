@@ -110,15 +110,20 @@ func (s *Item) IsAssigned() (ret bool) {
 			return
 		}
 
-		curObj, curOK := currentVal.Interface().(*SliceObjectValue)
-		if !curOK {
-			log.Errorf("illegal slice item value. val:%v", currentVal.Interface())
-			ret = false
-		} else {
-			ret = len(curObj.Values) > 0
+		dependType := s.GetType().Depend()
+		if util.IsStructType(dependType.GetValue()) {
+			curObj, curOK := currentVal.Interface().(*SliceObjectValue)
+			if !curOK {
+				log.Errorf("illegal slice item value. val:%v", currentVal.Interface())
+				ret = false
+			} else {
+				ret = len(curObj.Values) > 0
+			}
+
+			return
 		}
 
-		return
+		return currentVal.Len() > 0
 	}
 
 	return
