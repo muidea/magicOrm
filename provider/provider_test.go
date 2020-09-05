@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/remote"
-	"log"
 	"reflect"
 	"testing"
 )
@@ -546,14 +545,6 @@ func TestRemoteProvider(t *testing.T) {
 
 	checkBaseModel(t, baseEntityModel)
 
-	log.Print("-------------------")
-
-	err := remote.UpdateEntity(baseVal, &baseEntity)
-	if err != nil {
-		t.Errorf("updateEntity failed, err:%s", err.Error())
-		return
-	}
-
 	extEntityModel, extEntityErr := provider.GetEntityModel(extVal)
 	if extEntityErr != nil {
 		t.Errorf("get remote entity model failed, err:%s", extEntityErr.Error())
@@ -561,10 +552,118 @@ func TestRemoteProvider(t *testing.T) {
 	}
 
 	checkRemoteExtModel(t, extEntityModel)
+}
 
-	err = remote.UpdateEntity(extVal, &extEntity)
+func TestUpdateRemoteProvider(t *testing.T) {
+	provider := NewRemoteProvider("default")
+
+	baseEntity := Base{ID: 123, Name: "test int", Price: 12.35, Addr: []string{"qq", "ar", "yt"}}
+	extEntity := ExtInfo{ID: 234, Name: "hello", Info: baseEntity, Ptr: &baseEntity, Array: []*Base{&baseEntity}}
+
+	baseObject, baseErr := remote.GetObject(baseEntity)
+	if baseErr != nil {
+		t.Errorf("GetObject failed, err:%s", baseErr.Error())
+		return
+	}
+
+	baseVal, baseErr := remote.GetObjectValue(baseEntity)
+	if baseErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", baseErr.Error())
+		return
+	}
+
+	extObject, extErr := remote.GetObject(extEntity)
+	if extErr != nil {
+		t.Errorf("GetObject failed, err:%s", extErr.Error())
+		return
+	}
+
+	extVal, extErr := remote.GetObjectValue(extEntity)
+	if extErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", extErr.Error())
+		return
+	}
+
+	baseData, baseErr := remote.EncodeObject(baseObject)
+	if baseErr != nil {
+		t.Errorf("encode object faield, err:%s", baseErr.Error())
+		return
+	}
+	baseObject, baseErr = remote.DecodeObject(baseData)
+	if baseErr != nil {
+		t.Errorf("decode object faield, err:%s", baseErr.Error())
+		return
+	}
+
+	extData, extErr := remote.EncodeObject(extObject)
+	if extErr != nil {
+		t.Errorf("encode object faield, err:%s", extErr.Error())
+		return
+	}
+	extObject, extErr = remote.DecodeObject(extData)
+	if baseErr != nil {
+		t.Errorf("decode object faield, err:%s", baseErr.Error())
+		return
+	}
+
+	baseValData, baseValErr := remote.EncodeObjectValue(baseVal)
+	if baseValErr != nil {
+		t.Errorf("encode object faield, err:%s", baseValErr.Error())
+		return
+	}
+	baseVal, baseValErr = remote.DecodeObjectValue(baseValData)
+	if baseValErr != nil {
+		t.Errorf("decode object faield, err:%s", baseValErr.Error())
+		return
+	}
+
+	extValData, extValErr := remote.EncodeObjectValue(extVal)
+	if extValErr != nil {
+		t.Errorf("encode object faield, err:%s", extValErr.Error())
+		return
+	}
+	extVal, extValErr = remote.DecodeObjectValue(extValData)
+	if extValErr != nil {
+		t.Errorf("decode object faield, err:%s", extValErr.Error())
+		return
+	}
+
+	provider.RegisterModel(baseObject)
+	provider.RegisterModel(extObject)
+	defer provider.UnregisterModel(baseObject)
+	defer provider.UnregisterModel(extObject)
+
+	base := &Base{}
+	err := remote.UpdateEntity(baseVal, base)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
+		return
+	}
+
+	if base.ID != baseEntity.ID || base.Name != baseEntity.Name || base.Price != baseEntity.Price || len(base.Addr) != len(baseEntity.Addr) {
+		t.Error("UpdateEntity failed")
+	}
+
+	ext := &ExtInfo{}
+	err = remote.UpdateEntity(extVal, ext)
+	if err != nil {
+		t.Errorf("updateEntity failed, err:%s", err.Error())
+		return
+	}
+	if ext.ID != extEntity.ID || ext.Name != extEntity.Name || ext.Info.ID != extEntity.Info.ID || ext.Info.Price != extEntity.Info.Price {
+		t.Error("UpdateEntity failed")
+		return
+	}
+	if ext.Ptr == nil {
+		t.Error("UpdateEntity failed")
+		return
+	}
+	if ext.Ptr.ID != extEntity.Ptr.ID {
+		t.Error("UpdateEntity failed")
+		return
+	}
+	if len(ext.Array) != len(extEntity.Array) {
+		t.Error("UpdateEntity failed")
 		return
 	}
 }
