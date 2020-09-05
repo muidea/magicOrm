@@ -1,6 +1,7 @@
 package remote
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 
@@ -160,6 +161,21 @@ func type2Object(entityType reflect.Type) (ret *Object, err error) {
 
 		fItem := newItem(idx, field.Name, itemTag, itemType)
 		ret.Items = append(ret.Items, fItem)
+	}
+
+	return
+}
+
+func EncodeObject(objPtr *Object) (ret []byte, err error) {
+	ret, err = json.Marshal(objPtr)
+	return
+}
+
+func DecodeObject(data []byte) (ret *Object, err error) {
+	objPtr := &Object{}
+	err = json.Unmarshal(data, objPtr)
+	if err == nil {
+		ret = objPtr
 	}
 
 	return

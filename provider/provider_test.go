@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/remote"
@@ -39,24 +38,6 @@ func checkIntField(t *testing.T, intField model.Field) (ret bool) {
 		return
 	}
 
-	iVal := 10
-	rVal := reflect.ValueOf(iVal)
-	err := intField.UpdateValue(rVal)
-	if err != nil {
-		t.Errorf("SetValue failed, err:%s", err.Error())
-		return
-	}
-
-	if !intField.IsAssigned() {
-		t.Error("SetValue failed")
-		return
-	}
-
-	if intField.GetValue().Get().Int() != 10 {
-		t.Error("SetValue failed")
-		return
-	}
-
 	ret = true
 	return
 }
@@ -72,24 +53,6 @@ func checkFloat32Field(t *testing.T, floatField model.Field) (ret bool) {
 
 	if floatField.IsAssigned() {
 		t.Errorf("check is assigned failed")
-		return
-	}
-
-	fVal := float32(12.345)
-	rVal := reflect.ValueOf(fVal)
-	err := floatField.UpdateValue(rVal)
-	if err != nil {
-		t.Errorf("SetValue failed, err:%s", err.Error())
-		return
-	}
-
-	if !floatField.IsAssigned() {
-		t.Error("SetValue failed")
-		return
-	}
-
-	if floatField.GetValue().Get().Float() != float64(fVal) {
-		t.Error("SetValue failed")
 		return
 	}
 
@@ -111,24 +74,6 @@ func checkStringField(t *testing.T, strField model.Field) (ret bool) {
 		return
 	}
 
-	strVal := "12.345"
-	rVal := reflect.ValueOf(strVal)
-	err := strField.UpdateValue(rVal)
-	if err != nil {
-		t.Errorf("SetValue failed, err:%s", err.Error())
-		return
-	}
-
-	if !strField.IsAssigned() {
-		t.Error("SetValue failed")
-		return
-	}
-
-	if strField.GetValue().Get().String() != strVal {
-		t.Error("SetValue failed")
-		return
-	}
-
 	ret = true
 	return
 }
@@ -136,7 +81,6 @@ func checkStringField(t *testing.T, strField model.Field) (ret bool) {
 func checkSliceField(t *testing.T, sliceField model.Field) (ret bool) {
 	fType := sliceField.GetType()
 
-	sliceVal := []string{"12.345"}
 	ret = checkFieldType(t, fType, "[]string", "string")
 	if !ret {
 		t.Errorf("check field type failed")
@@ -145,25 +89,6 @@ func checkSliceField(t *testing.T, sliceField model.Field) (ret bool) {
 
 	if sliceField.IsAssigned() {
 		t.Errorf("check is assigned failed")
-		return
-	}
-
-	rVal := reflect.ValueOf(sliceVal)
-	err := sliceField.UpdateValue(rVal)
-	if err != nil {
-		t.Errorf("SetValue failed, err:%s", err.Error())
-		return
-	}
-
-	if !sliceField.IsAssigned() {
-		t.Error("SetValue failed")
-		return
-	}
-
-	strV := fmt.Sprintf("%v", sliceVal)
-	strR := fmt.Sprintf("%v", sliceField.GetValue().Get().Interface())
-	if strV != strR {
-		t.Errorf("SetValue failed")
 		return
 	}
 
@@ -230,7 +155,6 @@ func checkSliceRemoteStructField(t *testing.T, sliceField model.Field) (ret bool
 func checkLocalStructField(t *testing.T, structField model.Field) (ret bool) {
 	fType := structField.GetType()
 
-	structVal := Base{ID: 10}
 	ret = checkFieldType(t, fType, "provider.Base", "provider.Base")
 	if !ret {
 		t.Errorf("check field type failed")
@@ -239,25 +163,6 @@ func checkLocalStructField(t *testing.T, structField model.Field) (ret bool) {
 
 	if structField.IsAssigned() {
 		t.Errorf("check is assigned failed")
-		return
-	}
-
-	rVal := reflect.ValueOf(structVal)
-	err := structField.UpdateValue(rVal)
-	if err != nil {
-		t.Errorf("SetValue failed, err:%s", err.Error())
-		return
-	}
-
-	if !structField.IsAssigned() {
-		t.Error("SetValue failed")
-		return
-	}
-
-	strV := fmt.Sprintf("%v", structVal)
-	strR := fmt.Sprintf("%v", structField.GetValue().Get().Interface())
-	if strV != strR {
-		t.Errorf("SetValue failed")
 		return
 	}
 
@@ -286,7 +191,6 @@ func checkRemoteStructField(t *testing.T, structField model.Field) (ret bool) {
 func checkLocalStructPtrField(t *testing.T, structField model.Field) (ret bool) {
 	fType := structField.GetType()
 
-	structVal := &Base{}
 	ret = checkFieldType(t, fType, "provider.Base", "provider.Base")
 	if !ret {
 		t.Errorf("check field type failed")
@@ -295,25 +199,6 @@ func checkLocalStructPtrField(t *testing.T, structField model.Field) (ret bool) 
 
 	if structField.IsAssigned() {
 		t.Errorf("check is assigned failed")
-		return
-	}
-
-	rVal := reflect.ValueOf(structVal)
-	err := structField.UpdateValue(rVal)
-	if err != nil {
-		t.Errorf("UpdateValue failed, err:%s", err.Error())
-		return
-	}
-
-	if !structField.IsAssigned() {
-		t.Errorf("name:%s,UpdateValue failed", structField.GetName())
-		return
-	}
-
-	strV := fmt.Sprintf("%v", structVal)
-	strR := fmt.Sprintf("%v", structField.GetValue().Get().Interface())
-	if strV != strR {
-		t.Errorf("SetValue failed")
 		return
 	}
 
@@ -565,8 +450,6 @@ func TestLocalProvider(t *testing.T) {
 
 	checkBaseModel(t, baseEntityModel)
 
-	log.Print(baseEntity)
-
 	extEntityModel, extEntityErr := provider.GetEntityModel(&extEntity)
 	if extEntityErr != nil {
 		t.Errorf("get local entity model failed, err:%s", extEntityErr.Error())
@@ -574,8 +457,6 @@ func TestLocalProvider(t *testing.T) {
 	}
 
 	checkLocalExtModel(t, extEntityModel)
-
-	log.Print(extEntity)
 }
 
 func TestRemoteProvider(t *testing.T) {
@@ -608,6 +489,50 @@ func TestRemoteProvider(t *testing.T) {
 		return
 	}
 
+	baseData, baseErr := remote.EncodeObject(baseObject)
+	if baseErr != nil {
+		t.Errorf("encode object faield, err:%s", baseErr.Error())
+		return
+	}
+	baseObject, baseErr = remote.DecodeObject(baseData)
+	if baseErr != nil {
+		t.Errorf("decode object faield, err:%s", baseErr.Error())
+		return
+	}
+
+	extData, extErr := remote.EncodeObject(extObject)
+	if extErr != nil {
+		t.Errorf("encode object faield, err:%s", extErr.Error())
+		return
+	}
+	extObject, extErr = remote.DecodeObject(extData)
+	if baseErr != nil {
+		t.Errorf("decode object faield, err:%s", baseErr.Error())
+		return
+	}
+
+	baseValData, baseValErr := remote.EncodeObjectValue(baseVal)
+	if baseValErr != nil {
+		t.Errorf("encode object faield, err:%s", baseValErr.Error())
+		return
+	}
+	baseVal, baseValErr = remote.DecodeObjectValue(baseValData)
+	if baseValErr != nil {
+		t.Errorf("decode object faield, err:%s", baseValErr.Error())
+		return
+	}
+
+	extValData, extValErr := remote.EncodeObjectValue(extVal)
+	if extValErr != nil {
+		t.Errorf("encode object faield, err:%s", extValErr.Error())
+		return
+	}
+	extVal, extValErr = remote.DecodeObjectValue(extValData)
+	if extValErr != nil {
+		t.Errorf("decode object faield, err:%s", extValErr.Error())
+		return
+	}
+
 	provider.RegisterModel(baseObject)
 	provider.RegisterModel(extObject)
 	defer provider.UnregisterModel(baseObject)
@@ -618,20 +543,16 @@ func TestRemoteProvider(t *testing.T) {
 		t.Errorf("get remote entity model failed, err:%s", baseEntityErr.Error())
 		return
 	}
-	data, _ := json.Marshal(baseVal)
-	log.Print(string(data))
 
 	checkBaseModel(t, baseEntityModel)
 
-	data, _ = json.Marshal(baseVal)
-	log.Print(string(data))
+	log.Print("-------------------")
 
 	err := remote.UpdateEntity(baseVal, &baseEntity)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
 	}
-	log.Print(baseEntity)
 
 	extEntityModel, extEntityErr := provider.GetEntityModel(extVal)
 	if extEntityErr != nil {
@@ -646,5 +567,4 @@ func TestRemoteProvider(t *testing.T) {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
 	}
-	log.Print(extEntity)
 }

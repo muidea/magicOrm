@@ -105,10 +105,20 @@ func (s *Item) IsAssigned() (ret bool) {
 	}
 
 	if util.IsSliceType(s.Type.GetValue()) {
-		if currentVal.Len() > 0 {
+		if s.Type.IsPtrType() {
 			ret = true
 			return
 		}
+
+		curObj, curOK := currentVal.Interface().(*SliceObjectValue)
+		if !curOK {
+			log.Errorf("illegal slice item value. val:%v", currentVal.Interface())
+			ret = false
+		} else {
+			ret = len(curObj.Values) > 0
+		}
+
+		return
 	}
 
 	return
