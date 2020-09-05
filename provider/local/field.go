@@ -31,18 +31,30 @@ func (s *fieldImpl) GetName() string {
 }
 
 // GetType GetType
-func (s *fieldImpl) GetType() model.Type {
-	return s.fieldType
+func (s *fieldImpl) GetType() (ret model.Type) {
+	if s.fieldType != nil {
+		ret = s.fieldType
+	}
+
+	return
 }
 
 // GetTag GetTag
-func (s *fieldImpl) GetTag() model.Tag {
-	return s.fieldTag
+func (s *fieldImpl) GetTag() (ret model.Tag) {
+	if s.fieldTag != nil {
+		ret = s.fieldTag
+	}
+
+	return
 }
 
 // GetValue GetValue
-func (s *fieldImpl) GetValue() model.Value {
-	return s.fieldValue
+func (s *fieldImpl) GetValue() (ret model.Value) {
+	if s.fieldValue != nil {
+		ret = s.fieldValue
+	}
+
+	return
 }
 
 func (s *fieldImpl) IsPrimary() bool {

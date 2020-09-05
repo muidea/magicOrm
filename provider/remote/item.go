@@ -33,19 +33,27 @@ func (s *Item) GetName() string {
 
 // GetType GetType
 func (s *Item) GetType() (ret model.Type) {
-	ret = s.Type
+	if s.Type != nil {
+		ret = s.Type
+	}
 	return
 }
 
 // GetTag GetTag
 func (s *Item) GetTag() (ret model.Tag) {
-	ret = s.Tag
+	if s.Tag != nil {
+		ret = s.Tag
+	}
+
 	return
 }
 
 // GetValue GetValue
 func (s *Item) GetValue() (ret model.Value) {
-	ret = s.value
+	if s.value != nil {
+		ret = s.value
+	}
+
 	return
 }
 

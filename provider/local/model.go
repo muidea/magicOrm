@@ -147,6 +147,7 @@ func getTypeModel(entityType reflect.Type) (ret model.Model, err error) {
 		return
 	}
 
+	ret = modelImpl
 	return
 }
 

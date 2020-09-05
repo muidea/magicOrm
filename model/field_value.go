@@ -17,13 +17,21 @@ type Value interface {
 }
 
 func CompareValue(l, r Value) bool {
-	if l.IsNil() != r.IsNil() {
-		return false
+	if l != nil && r != nil {
+		return l.IsNil() == r.IsNil()
 	}
 
-	if l.IsNil() {
+	if l == nil && r == nil {
 		return true
 	}
 
-	return true
+	if l == nil && r != nil {
+		return r.IsNil()
+	}
+
+	if l != nil && r == nil {
+		return l.IsNil()
+	}
+
+	return false
 }
