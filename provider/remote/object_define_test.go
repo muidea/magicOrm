@@ -16,6 +16,7 @@ type Simple struct {
 type ExtInfo struct {
 	Name     string    `orm:"name"`
 	Obj      Simple    `orm:"obj"`
+	ObjPtr   *Simple   `orm:"objPtr"`
 	ObjArray []*Simple `orm:"array"`
 }
 

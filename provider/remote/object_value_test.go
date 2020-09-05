@@ -116,4 +116,10 @@ func TestUpdateExtObjValue(t *testing.T) {
 	if ext1.Name != ext2.Name {
 		t.Errorf("updateEntity failed")
 	}
+	if ext1.Obj.Name != ext2.Obj.Name {
+		t.Errorf("updateEntity failed")
+	}
+	if len(ext1.ObjArray) != len(ext2.ObjArray) {
+		t.Errorf("updateEntity failed")
+	}
 }
