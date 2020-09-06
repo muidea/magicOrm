@@ -53,7 +53,7 @@ func (s *Orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 		return
 	}
 
-	fDependValue, fDependErr := s.modelProvider.GetDependValue(fieldInfo.GetValue())
+	fDependValue, fDependErr := s.modelProvider.ElemDependValue(fieldInfo.GetValue())
 	if fDependErr != nil {
 		err = fDependErr
 		log.Errorf("GetDependValue failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
@@ -61,7 +61,7 @@ func (s *Orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 	}
 
 	for _, fVal := range fDependValue {
-		relationInfo, relationErr := s.modelProvider.GetValueModel(fVal)
+		relationInfo, relationErr := s.modelProvider.GetValueModel(fVal.Get())
 		if relationErr != nil {
 			log.Errorf("GetValueModel faield, err:%s", relationErr.Error())
 			err = relationErr
