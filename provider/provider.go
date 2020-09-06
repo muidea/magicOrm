@@ -19,6 +19,8 @@ type Provider interface {
 
 	UnregisterModel(entity interface{})
 
+	GetEntityType(entity interface{}) (ret model.Type, err error)
+
 	GetEntityModel(entity interface{}) (ret model.Model, err error)
 
 	GetValueModel(val reflect.Value) (ret model.Model, err error)
@@ -101,6 +103,22 @@ func (s *providerImpl) UnregisterModel(entity interface{}) {
 
 		s.modelCache.Remove(curModel.GetName())
 	}
+	return
+}
+
+func (s *providerImpl) GetEntityType(entity interface{}) (ret model.Type, err error) {
+	entityVal := reflect.ValueOf(entity)
+	if util.IsNil(entityVal) {
+		err = fmt.Errorf("illegal entity, nil value point")
+		return
+	}
+	entityType, entityErr := s.getTypeFunc(entityVal)
+	if entityErr != nil {
+		err = entityErr
+		return
+	}
+
+	ret = entityType
 	return
 }
 
@@ -205,6 +223,7 @@ func (s *providerImpl) GetValueStr(vType model.Type, vVal model.Value) (ret stri
 
 	if util.IsBasicType(vType.GetValue()) {
 		ret, err = getBasicValue(vType, vVal.Get())
+		return
 	}
 
 	if util.IsStructType(vType.GetValue()) {

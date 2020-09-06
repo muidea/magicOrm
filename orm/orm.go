@@ -23,8 +23,9 @@ func New(executor executor.Executor, modelProvider provider.Provider) *Orm {
 }
 
 // RegisterModel register model
-func (s *Orm) RegisterModel(entity interface{}) error {
-	return s.modelProvider.RegisterModel(entity)
+func (s *Orm) RegisterModel(entity interface{}) (err error) {
+	_, err = s.modelProvider.RegisterModel(entity)
+	return
 }
 
 // UnregisterModel unregister model

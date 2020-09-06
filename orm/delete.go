@@ -49,7 +49,7 @@ func (s *Orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 		return
 	}
 
-	if !relationInfo.IsPtrModel() {
+	if !fType.IsPtrType() {
 		fieldVal, fieldErr := s.queryRelation(modelInfo, fieldInfo)
 		fieldVal = reflect.Indirect(fieldVal)
 		if fieldErr == nil && !util.IsNil(fieldVal) {

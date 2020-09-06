@@ -81,7 +81,7 @@ func (s *Orm) Drop(entity interface{}) (err error) {
 				continue
 			}
 
-			if !relationInfo.IsPtrModel() {
+			if !fType.IsPtrType() {
 				err = s.dropSingle(relationInfo)
 				if err != nil {
 					break

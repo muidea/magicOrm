@@ -9,11 +9,12 @@ import (
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/helper"
+	"github.com/muidea/magicOrm/util"
 )
 
 type resultItems []interface{}
 
-func (s *Orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter model.Filter) (err error) {
+func (s *Orm) queryBatch(elemType model.Type, elemModel model.Model, sliceValue reflect.Value, filter model.Filter) (err error) {
 	var maskModel model.Model
 	if filter != nil {
 		maskModel, err = filter.MaskModel()
@@ -23,17 +24,17 @@ func (s *Orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 		}
 
 		if maskModel != nil {
-			if maskModel.GetName() != modelInfo.GetName() || maskModel.GetPkgPath() != modelInfo.GetPkgPath() {
+			if maskModel.GetName() != elemModel.GetName() || maskModel.GetPkgPath() != elemModel.GetPkgPath() {
 				err = fmt.Errorf("illegal value mask")
 				return
 			}
 		}
 	}
 	if maskModel == nil {
-		maskModel = modelInfo
+		maskModel = elemModel
 	}
 
-	builder := builder.NewBuilder(modelInfo, s.modelProvider)
+	builder := builder.NewBuilder(elemModel, s.modelProvider)
 	sql, sqlErr := builder.BuildBatchQuery(filter)
 	if sqlErr != nil {
 		err = sqlErr
@@ -71,8 +72,8 @@ func (s *Orm) queryBatch(modelInfo model.Model, sliceValue reflect.Value, filter
 			return
 		}
 
-		if !modelInfo.IsPtrModel() {
-			modelVal = reflect.Indirect(modelVal)
+		if elemType.IsPtrType() {
+			modelVal = modelVal.Addr()
 		}
 
 		resultSlice = reflect.Append(resultSlice, modelVal)
@@ -143,14 +144,25 @@ func (s *Orm) BatchQuery(sliceEntity interface{}, filter model.Filter) (err erro
 		return
 	}
 
-	sliceModel, sliceVal, modelErr := s.modelProvider.GetSliceValueModel(sliceEntityVal)
-	if modelErr != nil {
-		err = modelErr
+	entityType, entityErr := s.modelProvider.GetEntityType(sliceEntity)
+	if entityErr != nil {
+		err = entityErr
+		return
+	}
+	if !util.IsSliceType(entityType.GetValue()) || !entityType.IsPtrType() {
+		err = fmt.Errorf("illegal entity value")
+		return
+	}
+
+	elemType := entityType.Elem()
+	elemModel, elemErr := s.modelProvider.GetTypeModel(elemType)
+	if elemErr != nil {
+		err = elemErr
 		log.Errorf("GetTypeModel failed, err:%s", err.Error())
 		return
 	}
 
-	queryErr := s.queryBatch(sliceModel, sliceVal, filter)
+	queryErr := s.queryBatch(elemType, elemModel, sliceEntityVal, filter)
 	if queryErr != nil {
 		err = queryErr
 		log.Errorf("queryBatch failed, err:%s", err.Error())
