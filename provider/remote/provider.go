@@ -50,6 +50,7 @@ func GetType(v reflect.Value) (ret model.Type, err error) {
 		if ok {
 			vType.Name = vSliceObj.GetName()
 			vType.PkgPath = vSliceObj.GetPkgPath()
+			vType.Value = util.TypeSliceField
 
 			vType.DependType.Name = vSliceObj.GetName()
 			vType.DependType.PkgPath = vSliceObj.GetPkgPath()
