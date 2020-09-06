@@ -27,6 +27,9 @@ func GetType(v reflect.Value) (ret model.Type, err error) {
 			vType.Name = obj.GetName()
 			vType.PkgPath = obj.GetPkgPath()
 
+			vType.DependType.Name = obj.GetName()
+			vType.DependType.PkgPath = obj.GetPkgPath()
+
 			ret = vType
 			return
 		}
@@ -35,6 +38,22 @@ func GetType(v reflect.Value) (ret model.Type, err error) {
 		if ok {
 			vType.Name = vObj.GetName()
 			vType.PkgPath = vObj.GetPkgPath()
+
+			vType.DependType.Name = vObj.GetName()
+			vType.DependType.PkgPath = vObj.GetPkgPath()
+
+			ret = vType
+			return
+		}
+
+		vSliceObj, ok := v.Interface().(SliceObjectValue)
+		if ok {
+			vType.Name = vSliceObj.GetName()
+			vType.PkgPath = vSliceObj.GetPkgPath()
+
+			vType.DependType.Name = vSliceObj.GetName()
+			vType.DependType.PkgPath = vSliceObj.GetPkgPath()
+			vType.DependType.IsPtr = vSliceObj.IsPtrValue()
 
 			ret = vType
 			return

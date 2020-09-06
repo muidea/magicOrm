@@ -8,10 +8,15 @@ import (
 	orm "github.com/muidea/magicOrm"
 )
 
-func registerMode(orm orm.Orm, objList []interface{}) {
+func registerMode(orm orm.Orm, objList []interface{}) (err error) {
 	for _, val := range objList {
-		orm.RegisterModel(val, "default")
+		err = orm.RegisterModel(val, "default")
+		if err != nil {
+			return
+		}
 	}
+
+	return
 }
 
 func TestLocalExecutor(t *testing.T) {

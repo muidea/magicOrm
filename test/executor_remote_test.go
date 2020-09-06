@@ -52,7 +52,11 @@ func TestRemoteExecutor(t *testing.T) {
 	}
 
 	objList := []interface{}{objDef}
-	registerMode(o1, objList)
+	err = registerMode(o1, objList)
+	if err != nil {
+		t.Errorf("register mode failed, err:%s", err.Error())
+		return
+	}
 
 	err = o1.Drop(objDef, "default")
 	if err != nil {

@@ -61,7 +61,7 @@ func (s *Orm) Drop(entity interface{}) (err error) {
 	entityModel, entityErr := s.modelProvider.GetTypeModel(entityType)
 	if entityErr != nil {
 		err = entityErr
-		log.Errorf("GetTypeModel failed, err:%s", err.Error())
+		log.Errorf("GetTypeModel failed, type name:%s, err:%s", entityType.GetName(), err.Error())
 		return
 	}
 

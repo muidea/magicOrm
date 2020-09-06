@@ -253,13 +253,13 @@ func (s *providerImpl) GetDependValue(vValue model.Value) (ret []reflect.Value, 
 		return
 	}
 
-	vType = vType.Depend()
-	typeModel := s.modelCache.Fetch(vType.GetName())
+	vDependType := vType.Depend()
+	typeModel := s.modelCache.Fetch(vDependType.GetName())
 	if typeModel == nil {
 		err = fmt.Errorf("can't fetch type model, must register type entity first")
 		return
 	}
-	if typeModel.GetPkgPath() != vType.GetPkgPath() {
+	if typeModel.GetPkgPath() != vDependType.GetPkgPath() {
 		err = fmt.Errorf("illegal object entity, must register entity first")
 		return
 	}
