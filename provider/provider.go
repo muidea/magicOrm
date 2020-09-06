@@ -162,11 +162,6 @@ func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err 
 
 // GetValueModel GetValueModel
 func (s *providerImpl) GetValueModel(vVal reflect.Value) (ret model.Model, err error) {
-	if !vVal.CanSet() {
-		err = fmt.Errorf("illegal value, read only value")
-		return
-	}
-
 	vType, vErr := s.getTypeFunc(vVal)
 	if vErr != nil {
 		err = vErr
@@ -258,6 +253,7 @@ func (s *providerImpl) GetDependValue(vValue model.Value) (ret []reflect.Value, 
 		return
 	}
 
+	vType = vType.Depend()
 	typeModel := s.modelCache.Fetch(vType.GetName())
 	if typeModel == nil {
 		err = fmt.Errorf("can't fetch type model, must register type entity first")

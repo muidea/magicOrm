@@ -143,6 +143,7 @@ func TestLocalDepends(t *testing.T) {
 	err = o1.Delete(ext2, "default")
 	if err != nil {
 		t.Errorf("delete ext2 failed, err:%s", err.Error())
+		return
 	}
 
 }
