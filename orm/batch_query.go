@@ -139,11 +139,7 @@ func (s *Orm) assignSingleModel(modelVal reflect.Value, queryVal resultItems) (r
 // BatchQuery batch query
 func (s *Orm) BatchQuery(sliceEntity interface{}, filter model.Filter) (err error) {
 	sliceEntityVal := reflect.ValueOf(sliceEntity)
-	if sliceEntityVal.Kind() != reflect.Ptr {
-		err = fmt.Errorf("illegal obj type. must be a slice ptr")
-		return
-	}
-
+	sliceEntityVal = reflect.Indirect(sliceEntityVal)
 	entityType, entityErr := s.modelProvider.GetEntityType(sliceEntity)
 	if entityErr != nil {
 		err = entityErr

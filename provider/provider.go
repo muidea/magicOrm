@@ -197,7 +197,8 @@ func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err erro
 	if vType == nil {
 		return
 	}
-	if util.IsBasicType(vType.GetValue()) {
+	if !util.IsStructType(vType.GetValue()) {
+		err = fmt.Errorf("invalid type, name:%s", vType.GetName())
 		return
 	}
 

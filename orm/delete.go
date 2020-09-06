@@ -108,9 +108,10 @@ func (s *Orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 // Delete delete
 func (s *Orm) Delete(entity interface{}) (err error) {
 	entityVal := reflect.ValueOf(entity)
-	modelInfo, modelErr := s.modelProvider.GetValueModel(entityVal)
-	if modelErr != nil {
-		err = modelErr
+	entityVal = reflect.Indirect(entityVal)
+	entityModel, entityErr := s.modelProvider.GetValueModel(entityVal)
+	if entityErr != nil {
+		err = entityErr
 		log.Errorf("GetValueModel failed, err:%s", err.Error())
 		return
 	}
@@ -121,13 +122,13 @@ func (s *Orm) Delete(entity interface{}) (err error) {
 	}
 
 	for {
-		err = s.deleteSingle(modelInfo)
+		err = s.deleteSingle(entityModel)
 		if err != nil {
 			break
 		}
 
-		for _, field := range modelInfo.GetFields() {
-			err = s.deleteRelation(modelInfo, field)
+		for _, field := range entityModel.GetFields() {
+			err = s.deleteRelation(entityModel, field)
 			if err != nil {
 				break
 			}

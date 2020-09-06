@@ -207,17 +207,16 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 
 // Query query
 func (s *Orm) Query(entity interface{}) (err error) {
-	entityVal := reflect.ValueOf(entity).Elem()
-	modelInfo, modelErr := s.modelProvider.GetValueModel(entityVal)
-	if modelErr != nil {
-		err = modelErr
-		log.Errorf("GetValueModel failed, err:%s", err.Error())
+	entityModel, entityErr := s.modelProvider.GetEntityModel(entity)
+	if entityErr != nil {
+		err = entityErr
+		log.Errorf("GetEntityModel failed, err:%s", err.Error())
 		return
 	}
 
-	err = s.querySingle(modelInfo)
+	err = s.querySingle(entityModel)
 	if err != nil {
-		log.Errorf("querySingle failed, modelName:%s, err:%s", modelInfo.GetName(), err.Error())
+		log.Errorf("querySingle failed, modelName:%s, err:%s", entityModel.GetName(), err.Error())
 		return
 	}
 

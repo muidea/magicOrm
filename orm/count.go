@@ -2,10 +2,7 @@ package orm
 
 import (
 	"database/sql"
-	"reflect"
-
 	log "github.com/cihub/seelog"
-
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
 )
@@ -40,14 +37,20 @@ func (s *Orm) queryCount(modelInfo model.Model, filter model.Filter) (ret int64,
 
 // Count count entity
 func (s *Orm) Count(entity interface{}, filter model.Filter) (ret int64, err error) {
-	modelInfo, modelErr := s.modelProvider.GetValueModel(reflect.ValueOf(entity))
-	if modelErr != nil {
-		err = modelErr
-		log.Errorf("GetValueModel failed, err:%s", err.Error())
+	entityType, entityErr := s.modelProvider.GetEntityType(entity)
+	if entityErr != nil {
+		err = entityErr
 		return
 	}
 
-	queryVal, queryErr := s.queryCount(modelInfo, filter)
+	entityModel, entityErr := s.modelProvider.GetTypeModel(entityType)
+	if entityErr != nil {
+		err = entityErr
+		log.Errorf("GetTypeModel failed, err:%s", err.Error())
+		return
+	}
+
+	queryVal, queryErr := s.queryCount(entityModel, filter)
 	if queryErr != nil {
 		err = queryErr
 		log.Errorf("queryCount failed, err:%s", err.Error())

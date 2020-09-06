@@ -100,11 +100,10 @@ func (s *Orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 
 // Insert insert
 func (s *Orm) Insert(entity interface{}) (err error) {
-	entityVal := reflect.ValueOf(&entity).Elem().Elem()
-	modelInfo, modelErr := s.modelProvider.GetValueModel(entityVal)
-	if modelErr != nil {
-		err = modelErr
-		log.Errorf("GetValueModel failed, err:%s", err.Error())
+	entityModel, entityErr := s.modelProvider.GetEntityModel(entity)
+	if entityErr != nil {
+		err = entityErr
+		log.Errorf("GetEntityModel failed, err:%s", err.Error())
 		return
 	}
 
@@ -114,16 +113,16 @@ func (s *Orm) Insert(entity interface{}) (err error) {
 	}
 
 	for {
-		err = s.insertSingle(modelInfo)
+		err = s.insertSingle(entityModel)
 		if err != nil {
-			log.Errorf("insertSingle failed, name:%s, err:%s", modelInfo.GetName(), err.Error())
+			log.Errorf("insertSingle failed, name:%s, err:%s", entityModel.GetName(), err.Error())
 			break
 		}
 
-		for _, field := range modelInfo.GetFields() {
-			err = s.insertRelation(modelInfo, field)
+		for _, field := range entityModel.GetFields() {
+			err = s.insertRelation(entityModel, field)
 			if err != nil {
-				log.Errorf("insertRelation failed, name:%s, field:%s, err:%s", modelInfo.GetName(), field.GetName(), err.Error())
+				log.Errorf("insertRelation failed, name:%s, field:%s, err:%s", entityModel.GetName(), field.GetName(), err.Error())
 				break
 			}
 		}

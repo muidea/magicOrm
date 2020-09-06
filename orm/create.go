@@ -2,7 +2,6 @@ package orm
 
 import (
 	log "github.com/cihub/seelog"
-
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
 )
@@ -93,10 +92,16 @@ func (s *Orm) batchCreateSchema(modelInfo model.Model) (err error) {
 
 // Create create
 func (s *Orm) Create(entity interface{}) (err error) {
-	modelInfo, modelErr := s.modelProvider.GetEntityModel(entity)
-	if modelErr != nil {
-		err = modelErr
-		log.Errorf("GetEntityModel failed, err:%s", err.Error())
+	entityType, entityErr := s.modelProvider.GetEntityType(entity)
+	if entityErr != nil {
+		err = entityErr
+		return
+	}
+
+	entityModel, entityErr := s.modelProvider.GetTypeModel(entityType)
+	if entityErr != nil {
+		err = entityErr
+		log.Errorf("GetTypeModel failed, err:%s", err.Error())
 		return
 	}
 
@@ -105,7 +110,7 @@ func (s *Orm) Create(entity interface{}) (err error) {
 		return
 	}
 
-	err = s.batchCreateSchema(modelInfo)
+	err = s.batchCreateSchema(entityModel)
 	if err == nil {
 		err = s.executor.CommitTransaction()
 	} else {
