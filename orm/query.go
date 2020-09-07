@@ -152,13 +152,6 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 
 			ret = relationVal
 			if fieldType.IsPtrType() {
-				if relationVal.CanAddr() {
-					ret = relationVal.Addr()
-					return
-				}
-
-				ret = reflect.New(relationVal.Type()).Elem()
-				ret.Set(relationVal)
 				ret = ret.Addr()
 			}
 		}
@@ -186,18 +179,15 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 				return
 			}
 
+			if fieldType.IsPtrType() {
+				itemVal = itemVal.Addr()
+			}
+
 			relationVal = reflect.Append(relationVal, itemVal)
 		}
 
 		ret = relationVal
 		if fieldType.IsPtrType() {
-			if relationVal.CanAddr() {
-				ret = relationVal.Addr()
-				return
-			}
-
-			ret = reflect.New(relationVal.Type()).Elem()
-			ret.Set(relationVal)
 			ret = ret.Addr()
 		}
 	}
