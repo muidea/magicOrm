@@ -63,7 +63,6 @@ func (s *Orm) queryBatch(elemType model.Type, elemModel model.Model, sliceValue 
 		queryList = append(queryList, modelItems)
 	}
 
-	resultSlice := reflect.MakeSlice(sliceValue.Type(), 0, 0)
 	for idx := 0; idx < len(queryList); idx++ {
 		modelVal := maskModel.Interface()
 		modelVal, err = s.assignSingleModel(modelVal, queryList[idx])
@@ -76,10 +75,12 @@ func (s *Orm) queryBatch(elemType model.Type, elemModel model.Model, sliceValue 
 			modelVal = modelVal.Addr()
 		}
 
-		resultSlice = reflect.Append(resultSlice, modelVal)
+		sliceValue, err = s.modelProvider.AppendSliceValue(sliceValue, modelVal)
+		if err != nil {
+			log.Errorf("append slice value failed, err:%s", err.Error())
+			return
+		}
 	}
-
-	sliceValue.Set(resultSlice)
 
 	return
 }
