@@ -476,7 +476,9 @@ func convertSliceStructValue(itemValue reflect.Value, fieldValue reflect.Value) 
 		err = fmt.Errorf("illegal slice struct")
 		return
 	}
-	if fieldType.IsPtrType() {
+
+	isElemPtr := elemType.Kind() == reflect.Ptr
+	if isElemPtr {
 		elemType = elemType.Elem()
 	}
 
@@ -510,7 +512,7 @@ func convertSliceStructValue(itemValue reflect.Value, fieldValue reflect.Value) 
 			break
 		}
 
-		if fieldType.IsPtrType() {
+		if isElemPtr {
 			elemVal = elemVal.Addr()
 		}
 

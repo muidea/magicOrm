@@ -29,7 +29,9 @@ type Provider interface {
 
 	GetValueStr(vType model.Type, vVal model.Value) (ret string, err error)
 
-	ElemDependValue(vVal model.Value) (ret []model.Value, err error)
+	ElemDependValue(val reflect.Value) (ret []reflect.Value, err error)
+
+	AppendSliceValue(sliceVal reflect.Value, val reflect.Value) (ret reflect.Value, err error)
 
 	Owner() string
 
@@ -42,10 +44,11 @@ type providerImpl struct {
 	localProvider bool
 	modelCache    model.Cache
 
-	getTypeFunc         func(reflect.Value) (model.Type, error)
-	getModelFunc        func(reflect.Value) (model.Model, error)
-	setModelValueFunc   func(model.Model, reflect.Value) (model.Model, error)
-	elemDependValueFunc func(model.Type, reflect.Value) ([]model.Value, error)
+	getTypeFunc          func(reflect.Value) (model.Type, error)
+	getModelFunc         func(reflect.Value) (model.Model, error)
+	setModelValueFunc    func(model.Model, reflect.Value) (model.Model, error)
+	elemDependValueFunc  func(model.Type, reflect.Value) ([]reflect.Value, error)
+	appendSliceValueFunc func(reflect.Value, reflect.Value) (reflect.Value, error)
 }
 
 // RegisterModel RegisterObjectModel
@@ -195,7 +198,6 @@ func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err erro
 		return
 	}
 	if !util.IsStructType(vType.GetValue()) {
-		err = fmt.Errorf("invalid type, name:%s", vType.GetName())
 		return
 	}
 
@@ -240,12 +242,7 @@ func (s *providerImpl) GetValueStr(vType model.Type, vVal model.Value) (ret stri
 }
 
 // GetValueDepend GetValue depend values
-func (s *providerImpl) ElemDependValue(vValue model.Value) (ret []model.Value, err error) {
-	if vValue.IsNil() {
-		return
-	}
-
-	val := vValue.Get()
+func (s *providerImpl) ElemDependValue(val reflect.Value) (ret []reflect.Value, err error) {
 	vType, vErr := s.getTypeFunc(val)
 	if vErr != nil {
 		err = vErr
@@ -269,6 +266,10 @@ func (s *providerImpl) ElemDependValue(vValue model.Value) (ret []model.Value, e
 	val = reflect.Indirect(val)
 	ret, err = s.elemDependValueFunc(vType, val)
 	return
+}
+
+func (s *providerImpl) AppendSliceValue(sliceVal reflect.Value, val reflect.Value) (ret reflect.Value, err error) {
+	return s.appendSliceValueFunc(sliceVal, val)
 }
 
 // Owner owner
@@ -362,25 +363,27 @@ func getBasicValue(vType model.Type, val reflect.Value) (ret string, err error) 
 // NewLocalProvider model provider
 func NewLocalProvider(owner string) Provider {
 	return &providerImpl{
-		owner:               owner,
-		localProvider:       true,
-		modelCache:          model.NewCache(),
-		getTypeFunc:         local.GetType,
-		getModelFunc:        local.GetModel,
-		setModelValueFunc:   local.SetModel,
-		elemDependValueFunc: local.ElemDependValue,
+		owner:                owner,
+		localProvider:        true,
+		modelCache:           model.NewCache(),
+		getTypeFunc:          local.GetType,
+		getModelFunc:         local.GetModel,
+		setModelValueFunc:    local.SetModel,
+		elemDependValueFunc:  local.ElemDependValue,
+		appendSliceValueFunc: local.AppendSliceValue,
 	}
 }
 
 // NewRemoteProvider model provider
 func NewRemoteProvider(owner string) Provider {
 	return &providerImpl{
-		owner:               owner,
-		localProvider:       false,
-		modelCache:          model.NewCache(),
-		getTypeFunc:         remote.GetType,
-		getModelFunc:        remote.GetModel,
-		setModelValueFunc:   remote.SetModel,
-		elemDependValueFunc: remote.ElemDependValue,
+		owner:                owner,
+		localProvider:        false,
+		modelCache:           model.NewCache(),
+		getTypeFunc:          remote.GetType,
+		getModelFunc:         remote.GetModel,
+		setModelValueFunc:    remote.SetModel,
+		elemDependValueFunc:  remote.ElemDependValue,
+		appendSliceValueFunc: remote.AppendSliceValue,
 	}
 }

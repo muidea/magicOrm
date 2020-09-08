@@ -66,27 +66,22 @@ func SetModel(vModel model.Model, vVal reflect.Value) (ret model.Model, err erro
 	return
 }
 
-func ElemDependValue(vType model.Type, val reflect.Value) (ret []model.Value, err error) {
+func ElemDependValue(vType model.Type, val reflect.Value) (ret []reflect.Value, err error) {
 	if vType.GetValue() == util.TypeSliceField {
 		for idx := 0; idx < val.Len(); idx++ {
-			vVal, vErr := newValue(val.Index(idx))
-			if vErr != nil {
-				err = vErr
-				return
-			}
-
-			ret = append(ret, vVal)
+			ret = append(ret, val.Index(idx))
 		}
 
 		return
 	}
 
-	vVal, vErr := newValue(val)
-	if vErr != nil {
-		err = vErr
-		return
-	}
-	ret = append(ret, vVal)
+	ret = append(ret, val)
+	return
+}
 
+func AppendSliceValue(sliceVal reflect.Value, val reflect.Value) (ret reflect.Value, err error) {
+	sliceVal = reflect.Append(sliceVal, val)
+
+	ret = sliceVal
 	return
 }

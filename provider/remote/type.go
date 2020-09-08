@@ -38,6 +38,11 @@ func (s *TypeImpl) GetPkgPath() (ret string) {
 
 // IsPtrType IsPtrType
 func (s *TypeImpl) IsPtrType() (ret bool) {
+	if util.IsStructType(s.Value) {
+		ret = true
+		return
+	}
+
 	ret = s.IsPtr
 	return
 }
@@ -56,7 +61,12 @@ func (s *TypeImpl) Interface() reflect.Value {
 
 	if util.IsStructType(s.Value) {
 		val := &ObjectValue{Name: s.Name, PkgPath: s.PkgPath, Items: []*ItemValue{}}
-		return reflect.ValueOf(val)
+		retVal := reflect.ValueOf(val)
+		if !s.IsPtrType() {
+			retVal = retVal.Elem()
+		}
+
+		return retVal
 	}
 
 	elemVal := s.DependType.GetValue()
@@ -71,7 +81,12 @@ func (s *TypeImpl) Interface() reflect.Value {
 	}
 
 	val := &SliceObjectValue{Name: s.DependType.Name, PkgPath: s.DependType.PkgPath, IsPtr: s.DependType.IsPtr, Values: []*ObjectValue{}}
-	return reflect.ValueOf(val)
+	retVal := reflect.ValueOf(val)
+	if !s.IsPtr {
+		retVal = retVal.Elem()
+	}
+
+	return retVal
 }
 
 // Depend get depend type
