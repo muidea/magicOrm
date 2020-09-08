@@ -68,6 +68,11 @@ func (s *Builder) getFieldValue(field model.Field) (ret string, isNil bool, err 
 	fType := field.GetType()
 	fValue := field.GetValue()
 
+	if fValue == nil {
+		isNil = true
+		return
+	}
+
 	if fType.IsPtrType() && fValue.IsNil() {
 		isNil = true
 		return
