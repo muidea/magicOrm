@@ -156,6 +156,7 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 			}
 		}
 	} else if util.IsSliceType(fieldType.GetValue()) {
+		dependType := fieldType.Depend()
 		relationVal := reflect.Indirect(fieldType.Interface())
 		for _, item := range values {
 			itemVal := fieldModel.Interface()
@@ -179,11 +180,15 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 				return
 			}
 
-			if fieldType.IsPtrType() {
+			if dependType.IsPtrType() {
 				itemVal = itemVal.Addr()
 			}
 
-			relationVal = reflect.Append(relationVal, itemVal)
+			relationVal, err = s.modelProvider.AppendSliceValue(relationVal, itemVal)
+			if err != nil {
+				log.Errorf("append slice value failed, err:%s", err.Error())
+				return
+			}
 		}
 
 		ret = relationVal
