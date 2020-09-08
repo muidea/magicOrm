@@ -72,8 +72,13 @@ func (s *Orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 					}
 				}
 			} else if util.IsSliceType(fType.GetValue()) {
-				for idx := 0; idx < fieldVal.Len(); idx++ {
-					relationModel, relationErr := s.modelProvider.GetValueModel(fieldVal.Index(idx))
+				elemVals, elemErr := s.modelProvider.ElemDependValue(fieldVal)
+				if elemErr != nil {
+					err = elemErr
+					return
+				}
+				for idx := 0; idx < len(elemVals); idx++ {
+					relationModel, relationErr := s.modelProvider.GetValueModel(elemVals[idx])
 					if relationErr != nil {
 						err = relationErr
 						return
