@@ -25,7 +25,7 @@ func TestLocalGroup(t *testing.T) {
 	}
 
 	objList := []interface{}{&Group{}, &User{}, &Status{}}
-	registerMode(o1, objList)
+	registerModel(o1, objList)
 
 	err = o1.Drop(group1, "default")
 	if err != nil {
@@ -110,7 +110,7 @@ func TestLocalUser(t *testing.T) {
 	}
 
 	objList := []interface{}{&Group{}, &User{}, &Status{}}
-	registerMode(o1, objList)
+	registerModel(o1, objList)
 
 	err = o1.Drop(status, "default")
 	if err != nil {
@@ -251,7 +251,7 @@ func TestLoalSystem(t *testing.T) {
 	}
 
 	objList := []interface{}{&Group{}, &User{}, &System{}, &Status{}}
-	registerMode(o1, objList)
+	registerModel(o1, objList)
 
 	err = o1.Drop(user1, "default")
 	if err != nil {
@@ -355,7 +355,7 @@ func TestLocalBatchQuery(t *testing.T) {
 	}
 
 	objList := []interface{}{&Group{}, &User{}, &Status{}}
-	registerMode(o1, objList)
+	registerModel(o1, objList)
 
 	err = o1.Drop(status, "default")
 	if err != nil {

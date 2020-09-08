@@ -129,7 +129,6 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 	if util.IsStructType(fieldType.GetValue()) {
 		if len(values) > 0 {
 			relationVal := reflect.Indirect(fieldModel.Interface())
-			log.Errorf("type:%v", relationVal.Type().String())
 			relationInfo, relationErr := s.modelProvider.GetValueModel(relationVal)
 			if relationErr != nil {
 				err = relationErr

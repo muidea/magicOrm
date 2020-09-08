@@ -1,6 +1,10 @@
 package test
 
-import "time"
+import (
+	"time"
+
+	orm "github.com/muidea/magicOrm"
+)
 
 // Unit 单元信息
 type Unit struct {
@@ -29,4 +33,15 @@ type ExtUnitList struct {
 	ID       int    `orm:"id key auto"`
 	Unit     Unit   `orm:"unit"`
 	UnitList []Unit `orm:"unitlist"`
+}
+
+func registerModel(orm orm.Orm, objList []interface{}) (err error) {
+	for _, val := range objList {
+		err = orm.RegisterModel(val, "default")
+		if err != nil {
+			return
+		}
+	}
+
+	return
 }
