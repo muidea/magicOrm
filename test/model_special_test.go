@@ -18,7 +18,7 @@ func TestKPI(t *testing.T) {
 	}
 
 	objList := []interface{}{&Goal{}, &SpecialGoal{}, &KPI{}}
-	registerMode(o1, objList)
+	registerModel(o1, objList)
 
 	goal := &Goal{Type: ByPiece, Value: 10}
 	err = o1.Drop(goal, "default")

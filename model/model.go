@@ -11,6 +11,7 @@ type Model interface {
 	UpdateFieldValue(name string, val reflect.Value) error
 	GetPrimaryField() Field
 	Interface() reflect.Value
+	Copy() Model
 }
 
 func CompareModel(l, r Model) bool {

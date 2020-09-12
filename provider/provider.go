@@ -160,7 +160,7 @@ func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err 
 		return
 	}
 
-	ret, err = s.setModelValueFunc(entityModel, entityVal)
+	ret, err = s.setModelValueFunc(entityModel.Copy(), entityVal)
 	return
 }
 
@@ -187,7 +187,7 @@ func (s *providerImpl) GetValueModel(vVal reflect.Value) (ret model.Model, err e
 		return
 	}
 
-	ret, err = s.setModelValueFunc(typeModel, vVal)
+	ret, err = s.setModelValueFunc(typeModel.Copy(), vVal)
 	return
 }
 
@@ -283,14 +283,14 @@ func (s *providerImpl) Reset() {
 }
 
 func (s *providerImpl) getStructValue(vType model.Type, vVal model.Value) (ret string, err error) {
-	typeModel, typeErr := s.GetTypeModel(vType)
+	typeModel, typeErr := s.GetValueModel(vVal.Get())
 	if typeErr != nil {
 		err = typeErr
 		return
 	}
 
 	pkField := typeModel.GetPrimaryField()
-	return getBasicValue(pkField.GetType(), vVal.Get())
+	return getBasicValue(pkField.GetType(), pkField.GetValue().Get())
 }
 
 func (s *providerImpl) getSliceStructValue(vType model.Type, vVal model.Value) (ret string, err error) {

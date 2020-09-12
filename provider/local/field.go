@@ -2,13 +2,13 @@ package local
 
 import (
 	"fmt"
+	"reflect"
+
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/util"
 
 	log "github.com/cihub/seelog"
-
-	"reflect"
 )
 
 // fieldImpl single field impl

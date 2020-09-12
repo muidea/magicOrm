@@ -75,16 +75,13 @@ func (s *modelImpl) Interface() reflect.Value {
 
 	for _, val := range s.fields {
 		tType := val.GetType()
-		tVal := val.GetValue()
-		if tType.IsPtrType() && !tVal.IsNil() {
-			retVal.FieldByName(val.GetName()).Set(tType.Interface())
-		}
+		retVal.FieldByName(val.GetName()).Set(tType.Interface())
 	}
 
 	return retVal
 }
 
-func (s *modelImpl) Copy() *modelImpl {
+func (s *modelImpl) Copy() model.Model {
 	modelInfo := &modelImpl{modelType: s.modelType, fields: []*fieldImpl{}}
 	for _, field := range s.fields {
 		modelInfo.fields = append(modelInfo.fields, field.Copy())
