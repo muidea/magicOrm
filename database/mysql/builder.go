@@ -119,3 +119,7 @@ func (s *Builder) getRelationValue(relationInfo model.Model) (leftVal, rightVal 
 	rightVal = relationVal
 	return
 }
+
+func (s *Builder) DeclareFieldValue(field model.Field) (ret interface{}, err error) {
+	return getFieldInitValue(field)
+}

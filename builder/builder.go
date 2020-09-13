@@ -24,6 +24,8 @@ type Builder interface {
 	BuildInsertRelation(fieldName string, relationInfo model.Model) (string, error)
 	BuildDeleteRelation(fieldName string, relationInfo model.Model) (string, string, error)
 	BuildQueryRelation(fieldName string, relationInfo model.Model) (string, error)
+
+	DeclareFieldValue(field model.Field) (interface{}, error)
 }
 
 // NewBuilder new builder

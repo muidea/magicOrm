@@ -32,7 +32,7 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 			return
 		}
 
-		items, itemErr := s.getModelItems(modelInfo)
+		items, itemErr := s.getModelItems(modelInfo, builder)
 		if itemErr != nil {
 			err = itemErr
 			return
