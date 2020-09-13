@@ -12,50 +12,54 @@ import (
 )
 
 func (s *Orm) querySingle(modelInfo model.Model) (err error) {
-	builder := builder.NewBuilder(modelInfo, s.modelProvider)
-	sql, err := builder.BuildQuery()
-	if err != nil {
-		log.Errorf("build query failed, err:%s", err.Error())
-		return err
-	}
-
-	log.Infof("sql:%s", sql)
-
-	err = s.executor.Query(sql)
-	if err != nil {
-		return
-	}
-
-	defer s.executor.Finish()
-	if !s.executor.Next() {
-		err = fmt.Errorf("query %s failed, no found object", modelInfo.GetName())
-		return
-	}
-
-	items, itemErr := s.getModelItems(modelInfo)
-	if itemErr != nil {
-		err = itemErr
-		return
-	}
-
-	err = s.executor.GetField(items...)
-	if err != nil {
-		return
-	}
-
-	idx := 0
-	for _, item := range modelInfo.GetFields() {
-		fType := item.GetType()
-		depend := fType.Depend()
-		if depend != nil && !util.IsBasicType(depend.GetValue()) {
-			continue
+	func() {
+		builder := builder.NewBuilder(modelInfo, s.modelProvider)
+		sql, sqlErr := builder.BuildQuery()
+		if sqlErr != nil {
+			err = sqlErr
+			log.Errorf("build query failed, err:%s", err.Error())
+			return
 		}
 
-		err = item.UpdateValue(reflect.ValueOf(items[idx]).Elem())
+		err = s.executor.Query(sql)
 		if err != nil {
-			return err
+			return
 		}
-		idx++
+
+		defer s.executor.Finish()
+		if !s.executor.Next() {
+			err = fmt.Errorf("query %s failed, no found object", modelInfo.GetName())
+			return
+		}
+
+		items, itemErr := s.getModelItems(modelInfo)
+		if itemErr != nil {
+			err = itemErr
+			return
+		}
+
+		err = s.executor.GetField(items...)
+		if err != nil {
+			return
+		}
+
+		idx := 0
+		for _, item := range modelInfo.GetFields() {
+			fType := item.GetType()
+			depend := fType.Depend()
+			if depend != nil && !util.IsBasicType(depend.GetValue()) {
+				continue
+			}
+
+			err = item.UpdateValue(reflect.ValueOf(items[idx]).Elem())
+			if err != nil {
+				return
+			}
+			idx++
+		}
+	}()
+	if err != nil {
+		return
 	}
 
 	for _, item := range modelInfo.GetFields() {

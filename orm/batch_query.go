@@ -34,33 +34,38 @@ func (s *Orm) queryBatch(elemType model.Type, elemModel model.Model, sliceValue 
 		maskModel = elemModel
 	}
 
-	builder := builder.NewBuilder(elemModel, s.modelProvider)
-	sql, sqlErr := builder.BuildBatchQuery(filter)
-	if sqlErr != nil {
-		err = sqlErr
-		log.Errorf("BuildBatchQuery failed, err:%s", err.Error())
-		return
-	}
-
 	var queryList []resultItems
-	err = s.executor.Query(sql)
-	if err != nil {
-		return
-	}
-	defer s.executor.Finish()
-	for s.executor.Next() {
-		modelItems, modelErr := s.getModelItems(maskModel)
-		if modelErr != nil {
-			err = modelErr
+	func() {
+		builder := builder.NewBuilder(elemModel, s.modelProvider)
+		sql, sqlErr := builder.BuildBatchQuery(filter)
+		if sqlErr != nil {
+			err = sqlErr
+			log.Errorf("BuildBatchQuery failed, err:%s", err.Error())
 			return
 		}
 
-		err = s.executor.GetField(modelItems...)
+		err = s.executor.Query(sql)
 		if err != nil {
 			return
 		}
+		defer s.executor.Finish()
+		for s.executor.Next() {
+			modelItems, modelErr := s.getModelItems(maskModel)
+			if modelErr != nil {
+				err = modelErr
+				return
+			}
 
-		queryList = append(queryList, modelItems)
+			err = s.executor.GetField(modelItems...)
+			if err != nil {
+				return
+			}
+
+			queryList = append(queryList, modelItems)
+		}
+	}()
+	if err != nil {
+		return
 	}
 
 	for idx := 0; idx < len(queryList); idx++ {
