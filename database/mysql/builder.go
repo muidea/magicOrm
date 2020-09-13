@@ -26,11 +26,11 @@ func (s *Builder) getTableName(info model.Model) string {
 
 // GetTableName GetTableName
 func (s *Builder) GetTableName() string {
-	return s.GetHostTableName(s.modelInfo)
+	return s.getHostTableName(s.modelInfo)
 }
 
-// GetHostTableName GetHostTableName
-func (s *Builder) GetHostTableName(info model.Model) string {
+// getHostTableName getHostTableName
+func (s *Builder) getHostTableName(info model.Model) string {
 	tableName := s.getTableName(info)
 	return fmt.Sprintf("%s_%s", s.modelProvider.Owner(), tableName)
 }
@@ -68,13 +68,17 @@ func (s *Builder) getFieldValue(field model.Field) (ret string, isNil bool, err 
 	fType := field.GetType()
 	fValue := field.GetValue()
 
-	if fValue == nil {
-		isNil = true
-		return
+	if !fType.IsPtrType() {
+		if fValue == nil || fValue.IsNil() {
+			err = fmt.Errorf("illegal field value, must assigned first, name:%s", field.GetName())
+			return
+		}
 	}
 
-	if fType.IsPtrType() && fValue.IsNil() {
-		isNil = true
+	if fType.IsPtrType() {
+		if fValue == nil || fValue.IsNil() {
+			isNil = true
+		}
 		return
 	}
 

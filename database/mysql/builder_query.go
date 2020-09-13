@@ -24,9 +24,9 @@ func (s *Builder) BuildQuery() (ret string, err error) {
 	}
 
 	if filterStr != "" {
-		ret = fmt.Sprintf("SELECT %s FROM `%s` WHERE %s", namesVal, s.GetHostTableName(s.modelInfo), filterStr)
+		ret = fmt.Sprintf("SELECT %s FROM `%s` WHERE %s", namesVal, s.getHostTableName(s.modelInfo), filterStr)
 	} else {
-		ret = fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.GetHostTableName(s.modelInfo))
+		ret = fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.getHostTableName(s.modelInfo))
 	}
 	//log.Print(ret)
 

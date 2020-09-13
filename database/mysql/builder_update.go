@@ -36,7 +36,7 @@ func (s *Builder) BuildUpdate() (ret string, err error) {
 	}
 
 	pkfTag := s.modelInfo.GetPrimaryField().GetTag()
-	str = fmt.Sprintf("UPDATE `%s` SET %s WHERE `%s`=%s", s.GetHostTableName(s.modelInfo), str, pkfTag.GetName(), pkfStr)
+	str = fmt.Sprintf("UPDATE `%s` SET %s WHERE `%s`=%s", s.getHostTableName(s.modelInfo), str, pkfTag.GetName(), pkfStr)
 	//log.Print(str)
 	ret = str
 

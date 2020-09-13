@@ -8,7 +8,7 @@ import (
 
 // BuildDropSchema  BuildDropSchema
 func (s *Builder) BuildDropSchema() (string, error) {
-	str := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", s.GetHostTableName(s.modelInfo))
+	str := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", s.getHostTableName(s.modelInfo))
 	//log.Print(str)
 
 	return str, nil

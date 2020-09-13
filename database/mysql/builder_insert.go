@@ -9,19 +9,19 @@ import (
 // BuildInsert  BuildInsert
 func (s *Builder) BuildInsert() (ret string, err error) {
 	sql := ""
-	fieldValues, fieldErr := s.getFieldInsertValues(s.modelInfo)
-	if fieldErr != nil {
-		err = fieldErr
-		return
-	}
-
 	fieldNames, fieldErr := s.getFieldInsertNames(s.modelInfo)
 	if fieldErr != nil {
 		err = fieldErr
 		return
 	}
 
-	sql = fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.GetHostTableName(s.modelInfo), fieldNames, fieldValues)
+	fieldValues, fieldErr := s.getFieldInsertValues(s.modelInfo)
+	if fieldErr != nil {
+		err = fieldErr
+		return
+	}
+
+	sql = fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.getHostTableName(s.modelInfo), fieldNames, fieldValues)
 	//log.Print(sql)
 	ret = sql
 
