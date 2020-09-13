@@ -195,7 +195,7 @@ func newType(itemType reflect.Type) (ret *TypeImpl, err error) {
 		itemType = itemType.Elem()
 	}
 
-	typeVal, typeErr := util.GetTypeValueEnum(itemType)
+	typeVal, typeErr := util.GetTypeEnum(itemType)
 	if typeErr != nil {
 		err = typeErr
 		return
@@ -215,7 +215,7 @@ func newType(itemType reflect.Type) (ret *TypeImpl, err error) {
 			sliceType = sliceType.Elem()
 			slicePtr = true
 		}
-		sliceVal, sliceErr := util.GetTypeValueEnum(sliceType)
+		sliceVal, sliceErr := util.GetTypeEnum(sliceType)
 		if sliceErr != nil {
 			err = sliceErr
 			return

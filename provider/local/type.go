@@ -18,7 +18,7 @@ func newType(val reflect.Type) (ret *typeImpl, err error) {
 	if rawType.Kind() == reflect.Ptr {
 		rawType = rawType.Elem()
 	}
-	_, err = util.GetTypeValueEnum(rawType)
+	_, err = util.GetTypeEnum(rawType)
 	if err != nil {
 		return
 	}
@@ -37,11 +37,11 @@ func (s *typeImpl) GetName() string {
 
 func (s *typeImpl) GetValue() (ret int) {
 	if s.typeImpl.Kind() == reflect.Ptr {
-		ret, _ = util.GetTypeValueEnum(s.typeImpl.Elem())
+		ret, _ = util.GetTypeEnum(s.typeImpl.Elem())
 		return
 	}
 
-	ret, _ = util.GetTypeValueEnum(s.typeImpl)
+	ret, _ = util.GetTypeEnum(s.typeImpl)
 	return
 }
 

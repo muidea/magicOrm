@@ -344,7 +344,7 @@ func convertStructValue(objectValue *ObjectValue, entityValue reflect.Value) (re
 		}
 		fieldValue := reflect.New(fieldType).Elem()
 
-		tVal, tErr := util.GetTypeValueEnum(fieldType)
+		tVal, tErr := util.GetTypeEnum(fieldType)
 		if tErr != nil {
 			err = tErr
 			log.Errorf("illegal struct field, err:%s", err.Error())
