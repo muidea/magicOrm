@@ -23,7 +23,7 @@ func newFilterValue(val reflect.Value) (ret model.Value, err error) {
 	}
 
 	qv := reflect.Indirect(val)
-	_, qvErr := ormUtil.GetTypeValueEnum(qv.Type())
+	_, qvErr := ormUtil.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
@@ -148,7 +148,7 @@ type queryFilter struct {
 
 func (s *queryFilter) Equal(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ormUtil.GetTypeValueEnum(qv.Type())
+	qvType, qvErr := ormUtil.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
@@ -164,7 +164,7 @@ func (s *queryFilter) Equal(key string, val interface{}) (err error) {
 
 func (s *queryFilter) NotEqual(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ormUtil.GetTypeValueEnum(qv.Type())
+	qvType, qvErr := ormUtil.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
@@ -180,7 +180,7 @@ func (s *queryFilter) NotEqual(key string, val interface{}) (err error) {
 
 func (s *queryFilter) Below(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ormUtil.GetTypeValueEnum(qv.Type())
+	qvType, qvErr := ormUtil.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
@@ -196,7 +196,7 @@ func (s *queryFilter) Below(key string, val interface{}) (err error) {
 
 func (s *queryFilter) Above(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ormUtil.GetTypeValueEnum(qv.Type())
+	qvType, qvErr := ormUtil.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
@@ -212,7 +212,7 @@ func (s *queryFilter) Above(key string, val interface{}) (err error) {
 
 func (s *queryFilter) In(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ormUtil.GetTypeValueEnum(qv.Type())
+	qvType, qvErr := ormUtil.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
@@ -230,7 +230,7 @@ func (s *queryFilter) In(key string, val interface{}) (err error) {
 
 func (s *queryFilter) NotIn(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ormUtil.GetTypeValueEnum(qv.Type())
+	qvType, qvErr := ormUtil.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
@@ -259,7 +259,7 @@ func (s *queryFilter) Like(key string, val interface{}) (err error) {
 
 func (s *queryFilter) ValueMask(val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ormUtil.GetTypeValueEnum(qv.Type())
+	qvType, qvErr := ormUtil.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return

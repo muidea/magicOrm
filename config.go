@@ -16,11 +16,11 @@ type ormConfig struct {
 
 	localProviderFlag bool
 
-	ownermodelProviderMap map[string]provider.Provider
+	modelProviderMap map[string]provider.Provider
 }
 
 func newConfig(localProvider bool) *ormConfig {
-	return &ormConfig{localProviderFlag: localProvider, ownermodelProviderMap: map[string]provider.Provider{}}
+	return &ormConfig{localProviderFlag: localProvider, modelProviderMap: map[string]provider.Provider{}}
 }
 
 func (s *ormConfig) updateServerConfig(cfg *serverConfig) {
@@ -33,7 +33,7 @@ func (s *ormConfig) getServerConfig() *serverConfig {
 
 func (s *ormConfig) getProvider(owner string) provider.Provider {
 
-	curProvider, ok := s.ownermodelProviderMap[owner]
+	curProvider, ok := s.modelProviderMap[owner]
 	if ok {
 		return curProvider
 	}
@@ -43,7 +43,7 @@ func (s *ormConfig) getProvider(owner string) provider.Provider {
 	} else {
 		curProvider = provider.NewRemoteProvider(owner)
 	}
-	s.ownermodelProviderMap[owner] = curProvider
+	s.modelProviderMap[owner] = curProvider
 
 	return curProvider
 }
