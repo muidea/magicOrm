@@ -46,8 +46,7 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 		idx := 0
 		for _, item := range modelInfo.GetFields() {
 			fType := item.GetType()
-			depend := fType.Depend()
-			if depend != nil && !util.IsBasicType(depend.GetValue()) {
+			if !s.isCommonType(fType) {
 				continue
 			}
 
@@ -65,8 +64,7 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 	for _, item := range modelInfo.GetFields() {
 		fType := item.GetType()
 		fValue := item.GetValue()
-		depend := fType.Depend()
-		if depend == nil || util.IsBasicType(depend.GetValue()) || fValue.IsNil() {
+		if s.isCommonType(fType) || fValue.IsNil() {
 			continue
 		}
 
@@ -75,6 +73,9 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 			err = itemErr
 			log.Errorf("queryRelation failed, modelName:%s, fieldName:%s, err:%s", modelInfo.GetName(), item.GetName(), err.Error())
 			return
+		}
+		if util.IsNil(itemVal) {
+			continue
 		}
 
 		itemErr = item.UpdateValue(itemVal)
@@ -126,7 +127,7 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 			values = append(values, v)
 		}
 	}()
-	if err != nil {
+	if err != nil || len(values) == 0 {
 		return
 	}
 

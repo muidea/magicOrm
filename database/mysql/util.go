@@ -112,18 +112,14 @@ func getFieldType(info model.Field) (ret string, err error) {
 	return
 }
 
-func getFieldInitValue(info model.Field) (ret interface{}, err error) {
-	fType := info.GetType()
-	if fType.Depend() != nil {
-		fType = fType.Depend()
-	}
-
-	if !util.IsStructType(fType.GetValue()) {
-		return
-	}
-
+func getFieldInitValue(field model.Field) (ret interface{}, err error) {
+	fType := field.GetType()
 	switch fType.GetValue() {
-	case util.TypeBooleanField, util.TypeBitField:
+	case util.TypeBooleanField:
+		val := uint8(0)
+		ret = &val
+		break
+	case util.TypeBitField:
 		val := int8(0)
 		ret = &val
 		break
@@ -171,12 +167,23 @@ func getFieldInitValue(info model.Field) (ret interface{}, err error) {
 		val := 0.0000
 		ret = &val
 		break
-	case util.TypeStringField, util.TypeDateTimeField, util.TypeSliceField:
+	case util.TypeStringField, util.TypeDateTimeField:
 		val := ""
 		ret = &val
 		break
+	case util.TypeSliceField:
+		if fType.Depend() != nil {
+			fType = fType.Depend()
+		}
+
+		if util.IsBasicType(fType.GetValue()) {
+			val := ""
+			ret = &val
+		} else {
+			err = fmt.Errorf("no support fileType, name:%s, type:%d", field.GetName(), fType.GetValue())
+		}
 	default:
-		err = fmt.Errorf("no support fileType, name:%s, type:%d", info.GetName(), fType.GetValue())
+		err = fmt.Errorf("no support fileType, name:%s, type:%d", field.GetName(), fType.GetValue())
 	}
 
 	return

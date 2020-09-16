@@ -50,7 +50,7 @@ func (s *Orm) queryBatch(elemType model.Type, elemModel model.Model, sliceValue 
 		}
 		defer s.executor.Finish()
 		for s.executor.Next() {
-			modelItems, modelErr := s.getModelItems(maskModel)
+			modelItems, modelErr := s.getModelItems(maskModel, builder)
 			if modelErr != nil {
 				err = modelErr
 				return

@@ -78,8 +78,8 @@ func (s *Builder) getFieldValue(field model.Field) (ret string, isNil bool, err 
 	if fType.IsPtrType() {
 		if fValue == nil || fValue.IsNil() {
 			isNil = true
+			return
 		}
-		return
 	}
 
 	dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
