@@ -140,7 +140,7 @@ func EncodeSliceValue(val reflect.Value) (ret string, err error) {
 	if dataErr != nil {
 		err = dataErr
 	}
-	ret = fmt.Sprintf("%s", string(data))
+	ret = fmt.Sprintf("'%s'", string(data))
 
 	return
 }

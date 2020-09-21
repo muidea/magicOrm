@@ -300,8 +300,6 @@ func (s *providerImpl) getSliceStructValue(vType model.Type, vVal model.Value) (
 		return
 	}
 
-	pkField := typeModel.GetPrimaryField()
-
 	val := reflect.Indirect(vVal.Get())
 	if val.Kind() != reflect.Slice {
 		err = fmt.Errorf("illegal slice value")
@@ -310,7 +308,14 @@ func (s *providerImpl) getSliceStructValue(vType model.Type, vVal model.Value) (
 
 	var sliceVal []string
 	for idx := 0; idx < val.Len(); idx++ {
-		strVal, strErr := getBasicValue(pkField.GetType(), val.Index(idx))
+		vModel, vErr := s.setModelValueFunc(typeModel, val.Index(idx))
+		if vErr != nil {
+			err = vErr
+			return
+		}
+
+		pkField := vModel.GetPrimaryField()
+		strVal, strErr := getBasicValue(pkField.GetType(), pkField.GetValue().Get())
 		if strErr != nil {
 			err = strErr
 			log.Printf("getStructValue failed, err:%s", err.Error())

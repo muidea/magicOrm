@@ -80,8 +80,8 @@ func ElemDependValue(vType model.Type, val reflect.Value) (ret []reflect.Value, 
 }
 
 func AppendSliceValue(sliceVal reflect.Value, val reflect.Value) (ret reflect.Value, err error) {
-	sliceVal = reflect.Append(sliceVal, val)
-
 	ret = sliceVal
+	sliceVal = reflect.Append(sliceVal, val)
+	ret.Set(sliceVal)
 	return
 }

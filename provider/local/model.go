@@ -75,7 +75,8 @@ func (s *modelImpl) Interface() reflect.Value {
 
 	for _, val := range s.fields {
 		tType := val.GetType()
-		if tType.IsPtrType() {
+		tVal := val.GetValue()
+		if tType.IsPtrType() && tVal.IsNil() {
 			continue
 		}
 

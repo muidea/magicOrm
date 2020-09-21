@@ -307,8 +307,7 @@ func (s *queryFilter) Pagination() (limit, offset int, paging bool) {
 
 func (s *queryFilter) MaskModel() (ret model.Model, err error) {
 	if s.maskValue != nil {
-		maskVal := reflect.New(reflect.TypeOf(s.maskValue))
-		ret, err = s.modelProvider.GetEntityModel(maskVal.Interface())
+		ret, err = s.modelProvider.GetValueModel(reflect.ValueOf(s.maskValue))
 	}
 
 	return

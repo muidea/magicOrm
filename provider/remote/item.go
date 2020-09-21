@@ -186,7 +186,7 @@ func (s *Item) Copy() (ret model.Field) {
 
 // Interface interface value
 func (s *Item) Interface() (ret *ItemValue) {
-	if s.Type.IsPtrType() {
+	if s.Type.IsPtrType() && s.value == nil {
 		ret = &ItemValue{Name: s.Name, Value: nil}
 		return
 	}
