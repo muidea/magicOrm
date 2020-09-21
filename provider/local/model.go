@@ -75,6 +75,10 @@ func (s *modelImpl) Interface() reflect.Value {
 
 	for _, val := range s.fields {
 		tType := val.GetType()
+		if tType.IsPtrType() {
+			continue
+		}
+
 		retVal.FieldByName(val.GetName()).Set(tType.Interface())
 	}
 

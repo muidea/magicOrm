@@ -81,6 +81,11 @@ func TestLocalGroup(t *testing.T) {
 		t.Errorf("query Group42 failed, err:%s", err.Error())
 		return
 	}
+	if !group42.Equal(group2) {
+		t.Errorf("query Group42 failed")
+		return
+	}
+	log.Printf("group42:%v", group42)
 
 	group5 := &Group{Parent: &Group{ID: 1}}
 	err = o1.Query(group5, "default")
@@ -88,6 +93,7 @@ func TestLocalGroup(t *testing.T) {
 		t.Errorf("query Group5 failed, err:%s", err.Error())
 		return
 	}
+	log.Printf("group5:%v", group5)
 
 	if !group5.Equal(group2) {
 		t.Errorf("query Group5 failed")
