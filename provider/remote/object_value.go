@@ -161,8 +161,8 @@ func getFieldValue(fieldName string, itemType *TypeImpl, fieldValue reflect.Valu
 }
 
 func getSliceFieldValue(fieldName string, itemType *TypeImpl, fieldValue reflect.Value) (ret *ItemValue, err error) {
-	var sliceVal []interface{}
-	var sliceObjectVal []*ObjectValue
+	sliceVal := []interface{}{}
+	sliceObjectVal := []*ObjectValue{}
 	ret = &ItemValue{Name: fieldName}
 	if util.IsNil(fieldValue) {
 		return

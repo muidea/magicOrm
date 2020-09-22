@@ -294,7 +294,7 @@ func (s *providerImpl) getStructValue(vType model.Type, vVal model.Value) (ret s
 }
 
 func (s *providerImpl) getSliceStructValue(vType model.Type, vVal model.Value) (ret string, err error) {
-	typeModel, typeErr := s.GetTypeModel(vType.Depend())
+	typeModel, typeErr := s.GetTypeModel(vType)
 	if typeErr != nil {
 		err = typeErr
 		return

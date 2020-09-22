@@ -677,7 +677,7 @@ func TestRemoteSystem(t *testing.T) {
 		return
 	}
 
-	sys2 := &System{ID: sys1.ID, Users: &[]User{}}
+	sys2 := &System{ID: sys1.ID, Users: &[]User{}, Tags: []string{}}
 	sys2Val, objErr := getObjectValue(sys2)
 	if objErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
