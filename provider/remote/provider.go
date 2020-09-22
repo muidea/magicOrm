@@ -133,6 +133,8 @@ func AppendSliceValue(sliceVal reflect.Value, val reflect.Value) (ret reflect.Va
 	values := sliceVal.FieldByName("Values")
 	values = reflect.Append(values, val)
 
+	sliceVal.FieldByName("Values").Set(values)
+
 	ret = sliceVal
 	return
 }

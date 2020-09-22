@@ -64,7 +64,7 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 	for _, item := range modelInfo.GetFields() {
 		fType := item.GetType()
 		fValue := item.GetValue()
-		if s.isCommonType(fType) || fValue.IsNil() {
+		if s.isCommonType(fType) || fValue == nil || fValue.IsNil() {
 			continue
 		}
 

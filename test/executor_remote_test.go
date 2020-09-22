@@ -10,26 +10,6 @@ import (
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
-func getObjectValue(val interface{}) (ret *remote.ObjectValue, err error) {
-	objVal, objErr := remote.GetObjectValue(val)
-	if objErr != nil {
-		err = objErr
-		return
-	}
-
-	data, dataErr := remote.EncodeObjectValue(objVal)
-	if dataErr != nil {
-		err = dataErr
-		return
-	}
-	ret, err = remote.DecodeObjectValue(data)
-	if err != nil {
-		return
-	}
-
-	return
-}
-
 func TestRemoteExecutor(t *testing.T) {
 
 	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", false)

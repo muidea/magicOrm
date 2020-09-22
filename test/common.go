@@ -4,6 +4,8 @@ import (
 	"time"
 
 	orm "github.com/muidea/magicOrm"
+
+	"github.com/muidea/magicOrm/provider/remote"
 )
 
 // Unit 单元信息
@@ -41,6 +43,26 @@ func registerModel(orm orm.Orm, objList []interface{}) (err error) {
 		if err != nil {
 			return
 		}
+	}
+
+	return
+}
+
+func getObjectValue(val interface{}) (ret *remote.ObjectValue, err error) {
+	objVal, objErr := remote.GetObjectValue(val)
+	if objErr != nil {
+		err = objErr
+		return
+	}
+
+	data, dataErr := remote.EncodeObjectValue(objVal)
+	if dataErr != nil {
+		err = dataErr
+		return
+	}
+	ret, err = remote.DecodeObjectValue(data)
+	if err != nil {
+		return
 	}
 
 	return

@@ -231,8 +231,8 @@ func (s *providerImpl) GetValueStr(vType model.Type, vVal model.Value) (ret stri
 		return
 	}
 
-	vType = vType.Depend()
-	if util.IsBasicType(vType.GetValue()) {
+	dType := vType.Depend()
+	if util.IsBasicType(dType.GetValue()) {
 		ret, err = helper.EncodeSliceValue(vVal.Get())
 		return
 	}
@@ -294,21 +294,22 @@ func (s *providerImpl) getStructValue(vType model.Type, vVal model.Value) (ret s
 }
 
 func (s *providerImpl) getSliceStructValue(vType model.Type, vVal model.Value) (ret string, err error) {
-	typeModel, typeErr := s.GetTypeModel(vType)
+	typeModel, typeErr := s.GetTypeModel(vType.Depend())
 	if typeErr != nil {
 		err = typeErr
 		return
 	}
 
 	val := reflect.Indirect(vVal.Get())
-	if val.Kind() != reflect.Slice {
-		err = fmt.Errorf("illegal slice value")
+	sliceVal, sliceErr := s.elemDependValueFunc(vType, val)
+	if sliceErr != nil {
+		err = sliceErr
 		return
 	}
 
-	var sliceVal []string
-	for idx := 0; idx < val.Len(); idx++ {
-		vModel, vErr := s.setModelValueFunc(typeModel, val.Index(idx))
+	var sliceStrVal []string
+	for idx := 0; idx < len(sliceVal); idx++ {
+		vModel, vErr := s.setModelValueFunc(typeModel, sliceVal[idx])
 		if vErr != nil {
 			err = vErr
 			return
@@ -322,10 +323,10 @@ func (s *providerImpl) getSliceStructValue(vType model.Type, vVal model.Value) (
 			return
 		}
 
-		sliceVal = append(sliceVal, strVal)
+		sliceStrVal = append(sliceStrVal, strVal)
 	}
 
-	ret = strings.Join(sliceVal, ",")
+	ret = strings.Join(sliceStrVal, ",")
 	return
 }
 
