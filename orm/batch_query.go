@@ -101,6 +101,11 @@ func (s *Orm) assignSingleModel(modelVal reflect.Value, queryVal resultItems) (r
 	offset := 0
 	for _, field := range modelInfo.GetFields() {
 		fType := field.GetType()
+		fValue := field.GetValue()
+		if fValue == nil || fValue.IsNil() {
+			continue
+		}
+
 		dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
 		if dependErr != nil {
 			err = dependErr
@@ -156,14 +161,14 @@ func (s *Orm) BatchQuery(sliceEntity interface{}, filter model.Filter) (err erro
 		return
 	}
 
-	elemType := entityType.Elem()
-	elemModel, elemErr := s.modelProvider.GetTypeModel(elemType)
+	elemModel, elemErr := s.modelProvider.GetTypeModel(entityType)
 	if elemErr != nil {
 		err = elemErr
 		log.Errorf("GetTypeModel failed, err:%s", err.Error())
 		return
 	}
 
+	elemType := entityType.Elem()
 	queryErr := s.queryBatch(elemType, elemModel, sliceEntityVal, filter)
 	if queryErr != nil {
 		err = queryErr

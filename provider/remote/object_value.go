@@ -563,7 +563,7 @@ func UpdateSliceEntity(sliceObjectValue *SliceObjectValue, entitySlice interface
 	sliceType := entitySliceVal.Type()
 	itemType := sliceType.Elem()
 	entityType, entityErr := newType(itemType)
-	if entityErr != nil || !util.IsStructType(entityType.GetValue()) || entityType.IsPtrType() {
+	if entityErr != nil || !util.IsStructType(entityType.GetValue()) {
 		err = fmt.Errorf("illegal entity slice value")
 		return
 	}
@@ -573,6 +573,10 @@ func UpdateSliceEntity(sliceObjectValue *SliceObjectValue, entitySlice interface
 		return
 	}
 
+	isPtrItem := itemType.Kind() == reflect.Ptr
+	if isPtrItem {
+		itemType = itemType.Elem()
+	}
 	sliceVal := reflect.MakeSlice(sliceType, 0, 0)
 	for idx := 0; idx < len(sliceObjectValue.Values); idx++ {
 		objEntityVal := sliceObjectValue.Values[idx]
@@ -584,6 +588,9 @@ func UpdateSliceEntity(sliceObjectValue *SliceObjectValue, entitySlice interface
 			return
 		}
 
+		if isPtrItem {
+			entityVal = entityVal.Addr()
+		}
 		sliceVal = reflect.Append(sliceVal, entityVal)
 	}
 
