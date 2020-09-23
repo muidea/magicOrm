@@ -70,7 +70,8 @@ func (s *Orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 			return
 		}
 
-		if !fType.IsPtrType() {
+		dependType := fType.Depend()
+		if !dependType.IsPtrType() {
 			err = s.insertSingle(relationInfo)
 			if err != nil {
 				return

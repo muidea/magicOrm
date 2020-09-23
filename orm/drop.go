@@ -87,7 +87,8 @@ func (s *Orm) Drop(entity interface{}) (err error) {
 				continue
 			}
 
-			if !fType.IsPtrType() {
+			dependType := fType.Depend()
+			if !dependType.IsPtrType() {
 				err = s.dropSingle(relationInfo)
 				if err != nil {
 					break
