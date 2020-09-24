@@ -31,7 +31,7 @@ func InitializePool(maxConnNum int, user, password, address, dbName string) (err
 	if executorPool == nil {
 		executorPool = mysql.NewPool()
 
-		err = executorPool.Initialize(10, user, password, address, dbName)
+		err = executorPool.Initialize(maxConnNum, user, password, address, dbName)
 	}
 
 	return
