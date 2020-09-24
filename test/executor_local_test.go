@@ -1,7 +1,6 @@
 package test
 
 import (
-	"log"
 	"testing"
 	"time"
 
@@ -57,13 +56,11 @@ func TestLocalExecutor(t *testing.T) {
 		return
 	}
 
-	countVal, countErr := o1.Count(obj2, nil, "default")
+	_, countErr := o1.Count(obj2, nil, "default")
 	if countErr != nil {
 		t.Errorf("count object failed, err:%s", countErr.Error())
 		return
 	}
-
-	log.Printf("countVal:%d", countVal)
 
 	err = o1.Delete(obj, "default")
 	if err != nil {
