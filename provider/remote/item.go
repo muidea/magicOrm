@@ -112,7 +112,8 @@ func (s *Item) IsAssigned() (ret bool) {
 
 		dependType := s.GetType().Depend()
 		if util.IsStructType(dependType.GetValue()) {
-			curObj, curOK := currentVal.Interface().(*SliceObjectValue)
+			currentVal = reflect.Indirect(currentVal)
+			curObj, curOK := currentVal.Interface().(SliceObjectValue)
 			if !curOK {
 				log.Errorf("illegal slice item value. val:%v", currentVal.Interface())
 				ret = false

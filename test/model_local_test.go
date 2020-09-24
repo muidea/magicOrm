@@ -1,7 +1,6 @@
 package test
 
 import (
-	"log"
 	"testing"
 
 	"github.com/muidea/magicCommon/foundation/util"
@@ -44,14 +43,12 @@ func TestLocalGroup(t *testing.T) {
 		t.Errorf("insert Group1 failed, err:%s", err.Error())
 		return
 	}
-	log.Printf("group1:%v", group1)
 	group2.Parent = group1
 	err = o1.Insert(group2, "default")
 	if err != nil {
 		t.Errorf("insert Group2 failed, err:%s", err.Error())
 		return
 	}
-	log.Printf("group2:%v", group2)
 
 	group3.Parent = group1
 	err = o1.Insert(group3, "default")
@@ -59,7 +56,6 @@ func TestLocalGroup(t *testing.T) {
 		t.Errorf("insert Group3 failed, err:%s", err.Error())
 		return
 	}
-	log.Printf("group3:%v", group3)
 
 	err = o1.Delete(group3, "default")
 	if err != nil {
@@ -73,7 +69,6 @@ func TestLocalGroup(t *testing.T) {
 		t.Errorf("query Group4 failed, err:%s", err.Error())
 		return
 	}
-	log.Printf("group4:%v", group4)
 
 	group42 := &Group{ID: group2.ID, Name: group2.Name, Parent: &Group{}}
 	err = o1.Query(group42, "default")
@@ -85,7 +80,6 @@ func TestLocalGroup(t *testing.T) {
 		t.Errorf("query Group42 failed")
 		return
 	}
-	log.Printf("group42:%v", group42)
 
 	group5 := &Group{Parent: &Group{ID: 1}}
 	err = o1.Query(group5, "default")
@@ -93,7 +87,6 @@ func TestLocalGroup(t *testing.T) {
 		t.Errorf("query Group5 failed, err:%s", err.Error())
 		return
 	}
-	log.Printf("group5:%v", group5)
 
 	if !group5.Equal(group2) {
 		t.Errorf("query Group5 failed")
