@@ -1,6 +1,11 @@
 package test
 
-import "time"
+import (
+	"time"
+
+	orm "github.com/muidea/magicOrm"
+	"github.com/muidea/magicOrm/provider/remote"
+)
 
 type Simple struct {
 	ID        int       `orm:"id key auto"`
@@ -45,4 +50,35 @@ type Compose struct {
 	RefPtrArray    []*Reference  `orm:"refPtrArray"`
 	PtrRefArray    *[]*Reference `orm:"ptrRefArray"`
 	PtrCompose     *Compose      `orm:"ptrCompose"`
+}
+
+func registerModel(orm orm.Orm, objList []interface{}) (err error) {
+	for _, val := range objList {
+		err = orm.RegisterModel(val, "default")
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func getObjectValue(val interface{}) (ret *remote.ObjectValue, err error) {
+	objVal, objErr := remote.GetObjectValue(val)
+	if objErr != nil {
+		err = objErr
+		return
+	}
+
+	data, dataErr := remote.EncodeObjectValue(objVal)
+	if dataErr != nil {
+		err = dataErr
+		return
+	}
+	ret, err = remote.DecodeObjectValue(data)
+	if err != nil {
+		return
+	}
+
+	return
 }
