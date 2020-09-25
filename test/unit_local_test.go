@@ -23,7 +23,7 @@ func TestLocalExecutor(t *testing.T) {
 	}
 
 	objList := []interface{}{&Unit{}}
-	registerModel(o1, objList)
+	registerModel(o1, objList, "default")
 
 	err = o1.Create(obj, "default")
 	if err != nil {
@@ -85,7 +85,7 @@ func TestLocalDepends(t *testing.T) {
 	}
 
 	objList := []interface{}{&Unit{}, &ExtUnit{}, &ExtUnitList{}}
-	registerModel(o1, objList)
+	registerModel(o1, objList, "default")
 
 	err = o1.Drop(ext, "default")
 	if err != nil {

@@ -25,6 +25,6 @@ func TestRemoteSimple(t *testing.T) {
 	}
 
 	objList := []interface{}{simpleDef}
-	registerModel(o1, objList)
+	registerModel(o1, objList, "default")
 
 }

@@ -268,9 +268,9 @@ func (l *Compose) IsSame(r *Compose) bool {
 	return true
 }
 
-func registerModel(orm orm.Orm, objList []interface{}) (err error) {
+func registerModel(orm orm.Orm, objList []interface{}, owner string) (err error) {
 	for _, val := range objList {
-		err = orm.RegisterModel(val, "default")
+		err = orm.RegisterModel(val, owner)
 		if err != nil {
 			return
 		}

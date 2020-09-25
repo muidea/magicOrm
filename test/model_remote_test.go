@@ -86,7 +86,7 @@ func TestRemoteGroup(t *testing.T) {
 	}
 
 	objList := []interface{}{groupDef, userDef, statusDef}
-	registerModel(o1, objList)
+	registerModel(o1, objList, "default")
 
 	err = o1.Drop(statusDef, "default")
 	if err != nil {
@@ -293,7 +293,7 @@ func TestRemoteUser(t *testing.T) {
 	}
 
 	objList := []interface{}{groupDef, userDef, statusDef}
-	registerModel(o1, objList)
+	registerModel(o1, objList, "default")
 
 	err = o1.Drop(statusDef, "default")
 	if err != nil {
@@ -549,7 +549,7 @@ func TestRemoteSystem(t *testing.T) {
 	}
 
 	objList := []interface{}{groupDef, userDef, statusDef, sysDef}
-	registerModel(o1, objList)
+	registerModel(o1, objList, "default")
 
 	err = o1.Drop(statusDef, "default")
 	if err != nil {
@@ -756,7 +756,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 	}
 
 	objList := []interface{}{groupDef, userDef, statusDef}
-	registerModel(o1, objList)
+	registerModel(o1, objList, "default")
 
 	err = o1.Drop(statusDef, "default")
 	if err != nil {
@@ -1006,7 +1006,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	}
 
 	objList := []interface{}{groupDef, userDef, statusDef}
-	registerModel(o1, objList)
+	registerModel(o1, objList, "default")
 
 	err = o1.Drop(statusDef, "default")
 	if err != nil {
