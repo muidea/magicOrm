@@ -46,14 +46,18 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 		idx := 0
 		for _, item := range modelInfo.GetFields() {
 			fType := item.GetType()
+			fValue := item.GetValue()
 			if !s.isCommonType(fType) {
 				continue
 			}
 
-			err = item.UpdateValue(reflect.ValueOf(items[idx]).Elem())
-			if err != nil {
-				return
+			if fValue != nil && !fValue.IsNil() {
+				err = item.UpdateValue(reflect.ValueOf(items[idx]).Elem())
+				if err != nil {
+					return
+				}
 			}
+
 			idx++
 		}
 	}()

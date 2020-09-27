@@ -148,10 +148,38 @@ func TestLocalReference(t *testing.T) {
 
 	err = o1.Query(s2, owner)
 	if err != nil {
-		t.Errorf("query simple failed, err:%s", err.Error())
+		t.Errorf("query reference failed, err:%s", err.Error())
 		return
 	}
 	if !s1.IsSame(s2) {
-		t.Errorf("Query simple failed.")
+		t.Errorf("Query reference failed.")
+		return
+	}
+
+	err = o1.Insert(s2, owner)
+	if err != nil {
+		t.Errorf("insert reference failed, err:%s", err.Error())
+		return
+	}
+	if s1.IsSame(s2) {
+		t.Errorf("Query reference failed.")
+		return
+	}
+
+	s4 := &Reference{
+		ID: s1.ID,
+	}
+	err = o1.Query(s4, owner)
+	if err != nil {
+		t.Errorf("query reference failed, err:%s", err.Error())
+		return
+	}
+	if s4.Name != s2.Name {
+		t.Errorf("query reference failed, err:%s", err.Error())
+		return
+	}
+	if s4.FValue != nil || s4.TimeStamp != nil || s4.Flag != nil || s4.PtrStrArray != nil || s4.PtrArray != nil {
+		t.Errorf("query reference failed, err:%s", err.Error())
+		return
 	}
 }
