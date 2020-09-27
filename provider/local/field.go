@@ -68,8 +68,19 @@ func (s *fieldImpl) IsAssigned() (ret bool) {
 	}
 
 	if s.fieldType.IsPtrType() {
-		ret = true
-		return
+		if util.IsStructType(s.fieldType.GetValue()) {
+			ret = true
+			return
+		}
+
+		if util.IsSliceType(s.fieldType.GetValue()) {
+			val := reflect.Indirect(s.fieldValue.Get())
+			if val.Len() > 0 {
+				return true
+			}
+
+			return false
+		}
 	}
 
 	currentVal := s.fieldValue.Get()
