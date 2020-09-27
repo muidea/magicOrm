@@ -98,6 +98,12 @@ func (s *Executor) Release() {
 	s.pool.PutIn(s)
 }
 
+func (s *Executor) destroy() {
+	if s.dbHandle != nil {
+		s.dbHandle.Close()
+	}
+}
+
 // BeginTransaction Begin Transaction
 func (s *Executor) BeginTransaction() (err error) {
 	atomic.AddInt32(&s.dbTxCount, 1)
@@ -512,11 +518,40 @@ func (s *Pool) Initialize(maxConnNum int, user, password, address, dbName string
 // Uninitialize uninitialize executor pool
 func (s *Pool) Uninitialize() {
 	if s.cacheExecutor != nil {
+		for {
+			var val *Executor
+			var ok bool
+			select {
+			case val, ok = <-s.cacheExecutor:
+			default:
+			}
+			if ok && val != nil {
+				val.destroy()
+				continue
+			}
+
+			break
+		}
+
 		close(s.cacheExecutor)
 		s.cacheExecutor = nil
 	}
 
 	if s.idleExecutor != nil {
+		for {
+			var val *Executor
+			var ok bool
+			select {
+			case val, ok = <-s.idleExecutor:
+			default:
+			}
+			if ok && val != nil {
+				val.destroy()
+				continue
+			}
+
+			break
+		}
 		close(s.idleExecutor)
 		s.idleExecutor = nil
 	}
@@ -568,8 +603,14 @@ func (s *Pool) PutIn(val *Executor) {
 
 func (s *Pool) getExecutorFromCache(blockFlag bool) (ret *Executor, err error) {
 	if !blockFlag {
-		val, ok := <-s.cacheExecutor
-		if ok {
+		var val *Executor
+		var ok bool
+		select {
+		case val, ok = <-s.cacheExecutor:
+		default:
+		}
+
+		if ok && val != nil {
 			err = val.Ping()
 			if err == nil {
 				ret = val
