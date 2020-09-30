@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const owner = "test"
+const localOwner = "local"
 
 func TestLocalSimple(t *testing.T) {
 	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
@@ -20,42 +20,42 @@ func TestLocalSimple(t *testing.T) {
 	}
 
 	objList := []interface{}{&Simple{}}
-	err = registerModel(o1, objList, owner)
+	err = registerModel(o1, objList, localOwner)
 	if err != nil {
 		t.Errorf("register model failed. err:%s", err.Error())
 		return
 	}
 
-	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
-	s1 := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: now, Flag: true}
+	ts, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
+	s1 := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
 
-	err = o1.Drop(s1, owner)
+	err = o1.Drop(s1, localOwner)
 	if err != nil {
 		t.Errorf("drop simple schema failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(s1, owner)
+	err = o1.Create(s1, localOwner)
 	if err != nil {
 		t.Errorf("create simple schema failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(s1, owner)
+	err = o1.Insert(s1, localOwner)
 	if err != nil {
 		t.Errorf("insert simple failed, err:%s", err.Error())
 		return
 	}
 
 	s1.Name = "hello"
-	err = o1.Update(s1, owner)
+	err = o1.Update(s1, localOwner)
 	if err != nil {
 		t.Errorf("update simple failed, err:%s", err.Error())
 		return
 	}
 
 	s2 := &Simple{ID: s1.ID}
-	err = o1.Query(s2, owner)
+	err = o1.Query(s2, localOwner)
 	if err != nil {
 		t.Errorf("query simple failed, err:%s", err.Error())
 		return
@@ -77,7 +77,7 @@ func TestLocalReference(t *testing.T) {
 	}
 
 	objList := []interface{}{&Reference{}}
-	err = registerModel(o1, objList, owner)
+	err = registerModel(o1, objList, localOwner)
 	if err != nil {
 		t.Errorf("register model failed. err:%s", err.Error())
 		return
@@ -107,26 +107,26 @@ func TestLocalReference(t *testing.T) {
 		PtrStrArray: &strPtrArray,
 	}
 
-	err = o1.Drop(s1, owner)
+	err = o1.Drop(s1, localOwner)
 	if err != nil {
 		t.Errorf("drop simple schema failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(s1, owner)
+	err = o1.Create(s1, localOwner)
 	if err != nil {
 		t.Errorf("create simple schema failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(s1, owner)
+	err = o1.Insert(s1, localOwner)
 	if err != nil {
 		t.Errorf("insert simple failed, err:%s", err.Error())
 		return
 	}
 
 	s1.Name = "hello"
-	err = o1.Update(s1, owner)
+	err = o1.Update(s1, localOwner)
 	if err != nil {
 		t.Errorf("update simple failed, err:%s", err.Error())
 		return
@@ -146,7 +146,7 @@ func TestLocalReference(t *testing.T) {
 		PtrStrArray: &ptrArray2,
 	}
 
-	err = o1.Query(s2, owner)
+	err = o1.Query(s2, localOwner)
 	if err != nil {
 		t.Errorf("query reference failed, err:%s", err.Error())
 		return
@@ -156,7 +156,7 @@ func TestLocalReference(t *testing.T) {
 		return
 	}
 
-	err = o1.Insert(s2, owner)
+	err = o1.Insert(s2, localOwner)
 	if err != nil {
 		t.Errorf("insert reference failed, err:%s", err.Error())
 		return
@@ -169,7 +169,7 @@ func TestLocalReference(t *testing.T) {
 	s4 := &Reference{
 		ID: s1.ID,
 	}
-	err = o1.Query(s4, owner)
+	err = o1.Query(s4, localOwner)
 	if err != nil {
 		t.Errorf("query reference failed, err:%s", err.Error())
 		return

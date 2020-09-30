@@ -75,6 +75,8 @@ func (s *Item) IsAssigned() (ret bool) {
 
 	currentVal := s.value.Get()
 	originVal := s.Type.Interface()
+	currentVal = reflect.Indirect(currentVal)
+	originVal = reflect.Indirect(originVal)
 	if util.IsBasicType(s.Type.GetValue()) {
 		sameVal, sameErr := util.IsSameVal(originVal, currentVal)
 		if sameErr != nil {
@@ -105,14 +107,13 @@ func (s *Item) IsAssigned() (ret bool) {
 	}
 
 	if util.IsSliceType(s.Type.GetValue()) {
-		if s.Type.IsPtrType() {
-			ret = true
-			return
-		}
+		//if s.Type.IsPtrType() {
+		//	ret = true
+		//	return
+		//}
 
 		dependType := s.GetType().Depend()
 		if util.IsStructType(dependType.GetValue()) {
-			currentVal = reflect.Indirect(currentVal)
 			curObj, curOK := currentVal.Interface().(SliceObjectValue)
 			if !curOK {
 				log.Errorf("illegal slice item value. val:%v", currentVal.Interface())
