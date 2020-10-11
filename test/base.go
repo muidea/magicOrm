@@ -132,7 +132,7 @@ func (l *Reference) IsSame(r *Reference) bool {
 	if len(l.BArray) != len(r.BArray) {
 		return false
 	}
-	if l.PtrArray != nil {
+	if l.PtrArray != nil && len(*l.PtrArray) > 0 {
 		if r.PtrArray == nil {
 			return false
 		}
@@ -141,14 +141,14 @@ func (l *Reference) IsSame(r *Reference) bool {
 		}
 	}
 	if l.PtrArray == nil {
-		if r.PtrArray != nil {
+		if r.PtrArray != nil && len(*r.PtrArray) > 0 {
 			return false
 		}
 	}
 	if len(l.StrPtrArray) != len(r.StrPtrArray) {
 		return false
 	}
-	if l.PtrStrArray != nil {
+	if l.PtrStrArray != nil && len(*l.PtrStrArray) > 0 {
 		if r.PtrStrArray == nil {
 			return false
 		}
@@ -157,7 +157,7 @@ func (l *Reference) IsSame(r *Reference) bool {
 		}
 	}
 	if l.PtrStrArray == nil {
-		if r.PtrStrArray != nil {
+		if r.PtrStrArray != nil && len(*r.PtrStrArray) > 0 {
 			return false
 		}
 	}
@@ -195,6 +195,9 @@ func (l *Compose) IsSame(r *Compose) bool {
 		if r.PtrSimple == nil {
 			return false
 		}
+		if l.PtrSimple.ID != r.PtrSimple.ID {
+			return false
+		}
 	}
 	if l.PtrSimple == nil {
 		if r.PtrSimple != nil {
@@ -207,7 +210,7 @@ func (l *Compose) IsSame(r *Compose) bool {
 	if len(l.SimplePtrArray) != len(r.SimplePtrArray) {
 		return false
 	}
-	if l.PtrSimpleArray != nil {
+	if l.PtrSimpleArray != nil && len(*l.PtrSimpleArray) > 0 {
 		if r.PtrSimpleArray == nil {
 			return false
 		}
@@ -216,18 +219,18 @@ func (l *Compose) IsSame(r *Compose) bool {
 		}
 	}
 	if l.PtrSimpleArray == nil {
-		if r.PtrSimpleArray != nil {
+		if r.PtrSimpleArray != nil && len(*r.PtrSimpleArray) > 0 {
 			return false
 		}
 	}
-	if !l.Reference.IsSame(&r.Reference) {
+	if l.Reference.ID != r.Reference.ID {
 		return false
 	}
 	if l.PtrReference != nil {
 		if r.PtrReference == nil {
 			return false
 		}
-		if !l.PtrReference.IsSame(r.PtrReference) {
+		if l.PtrReference.ID != r.PtrReference.ID {
 			return false
 		}
 	}
@@ -242,7 +245,7 @@ func (l *Compose) IsSame(r *Compose) bool {
 	if len(l.RefPtrArray) != len(r.RefPtrArray) {
 		return false
 	}
-	if l.PtrRefArray != nil {
+	if l.PtrRefArray != nil && len(*l.PtrRefArray) > 0 {
 		if r.PtrRefArray == nil {
 			return false
 		}
@@ -251,7 +254,7 @@ func (l *Compose) IsSame(r *Compose) bool {
 		}
 	}
 	if l.PtrRefArray == nil {
-		if r.PtrRefArray != nil {
+		if r.PtrRefArray != nil && len(*r.PtrRefArray) > 0 {
 			return false
 		}
 	}
@@ -260,7 +263,12 @@ func (l *Compose) IsSame(r *Compose) bool {
 			return false
 		}
 
-		if !l.PtrCompose.IsSame(r.PtrCompose) {
+		if l.PtrCompose.ID != r.PtrCompose.ID {
+			return false
+		}
+	}
+	if l.PtrCompose == nil {
+		if r.PtrCompose != nil {
 			return false
 		}
 	}
