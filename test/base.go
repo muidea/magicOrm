@@ -188,7 +188,7 @@ func (l *Compose) IsSame(r *Compose) bool {
 	if l.Name != r.Name {
 		return false
 	}
-	if !l.Simple.IsSame(&r.Simple) {
+	if l.Simple.ID != r.Simple.ID {
 		return false
 	}
 	if l.PtrSimple != nil {
