@@ -308,3 +308,152 @@ func TestLocalCompose(t *testing.T) {
 		return
 	}
 }
+
+func TestLocalQuery(t *testing.T) {
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
+	defer orm.Uninitialize()
+
+	o1, err := orm.New()
+	defer o1.Release()
+	if err != nil {
+		t.Errorf("new Orm failed, err:%s", err.Error())
+		return
+	}
+
+	objList := []interface{}{&Simple{}, &Reference{}, &Compose{}}
+	err = registerModel(o1, objList, localOwner)
+	if err != nil {
+		t.Errorf("register model failed. err:%s", err.Error())
+		return
+	}
+
+	for _, val := range objList {
+		err = o1.Drop(val, localOwner)
+		if err != nil {
+			t.Errorf("drop object failed, err:%s", err.Error())
+		}
+	}
+
+	for _, val := range objList {
+		err = o1.Create(val, localOwner)
+		if err != nil {
+			t.Errorf("create object failed, err:%s", err.Error())
+		}
+	}
+
+	ts, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
+	s1 := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
+
+	err = o1.Insert(s1, localOwner)
+	if err != nil {
+		t.Errorf("insert simple failed, err:%s", err.Error())
+		return
+	}
+
+	strValue := "test code"
+	fValue := float32(12.34)
+	flag := true
+	iArray := []int{12, 23, 34}
+	fArray := []float32{12.34, 23, 45, 45, 67}
+	strArray := []string{"Abc", "Bcd"}
+	bArray := []bool{true, true, false, false}
+	strPtrArray := []*string{&strValue, &strValue}
+	r1 := &Reference{
+		Name:        strValue,
+		FValue:      &fValue,
+		F64:         23.456,
+		TimeStamp:   &ts,
+		Flag:        &flag,
+		IArray:      iArray,
+		FArray:      fArray,
+		StrArray:    strArray,
+		BArray:      bArray,
+		PtrArray:    &strArray,
+		StrPtrArray: strPtrArray,
+		PtrStrArray: &strPtrArray,
+	}
+
+	err = o1.Insert(r1, localOwner)
+	if err != nil {
+		t.Errorf("insert reference failed, err:%s", err.Error())
+		return
+	}
+
+	refPtrArray := []*Reference{r1}
+	c1 := &Compose{
+		Name:           strValue,
+		Simple:         *s1,
+		PtrSimple:      s1,
+		SimpleArray:    []Simple{*s1, *s1},
+		SimplePtrArray: []*Simple{s1, s1},
+		Reference:      *r1,
+		PtrReference:   r1,
+		RefArray:       []Reference{*r1, *r1, *r1},
+		RefPtrArray:    refPtrArray,
+		PtrRefArray:    &refPtrArray,
+	}
+	err = o1.Insert(c1, localOwner)
+	if err != nil {
+		t.Errorf("insert compose failed, err:%s", err.Error())
+		return
+	}
+
+	strValue = "123"
+	c2 := &Compose{
+		Name:           strValue,
+		Simple:         *s1,
+		PtrSimple:      s1,
+		SimpleArray:    []Simple{*s1, *s1},
+		SimplePtrArray: []*Simple{s1, s1},
+		Reference:      *r1,
+		PtrReference:   r1,
+		RefArray:       []Reference{*r1, *r1, *r1},
+		RefPtrArray:    refPtrArray,
+		PtrRefArray:    &refPtrArray,
+		PtrCompose:     c1,
+	}
+
+	err = o1.Insert(c2, localOwner)
+	if err != nil {
+		t.Errorf("insert compose failed, err:%s", err.Error())
+		return
+	}
+
+	c3 := *c2
+	err = o1.Insert(&c3, localOwner)
+	if err != nil {
+		t.Errorf("insert compose failed, err:%s", err.Error())
+		return
+	}
+
+	c4 := *c2
+	err = o1.Insert(&c4, localOwner)
+	if err != nil {
+		t.Errorf("insert compose failed, err:%s", err.Error())
+		return
+	}
+
+	cList := []*Compose{}
+	err = o1.BatchQuery(&cList, nil, localOwner)
+	if err != nil {
+		t.Errorf("batch query compose failed, err:%s", err.Error())
+		return
+	}
+	if len(cList) != 4 {
+		t.Errorf("batch query compose failed")
+		return
+	}
+
+	cList = []*Compose{}
+	filter := o1.QueryFilter(localOwner)
+	filter.Equal("Name", c2.Name)
+	err = o1.BatchQuery(&cList, filter, localOwner)
+	if err != nil {
+		t.Errorf("batch query compose failed, err:%s", err.Error())
+		return
+	}
+	if len(cList) != 3 {
+		t.Errorf("batch query compose failed")
+		return
+	}
+}
