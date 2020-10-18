@@ -768,7 +768,7 @@ func DecodeSliceObjectValue(data []byte) (ret *SliceObjectValue, err error) {
 
 	for idx := range sliceVal.Values {
 		cur := sliceVal.Values[idx]
-		val, valErr := convertObjectValue(cur)
+		val, valErr := ConvertObjectValue(cur)
 		if valErr != nil {
 			err = valErr
 			return
@@ -781,8 +781,8 @@ func DecodeSliceObjectValue(data []byte) (ret *SliceObjectValue, err error) {
 	return
 }
 
-// convertObjectValue convert object value
-func convertObjectValue(objVal *ObjectValue) (ret *ObjectValue, err error) {
+// ConvertObjectValue convert object value
+func ConvertObjectValue(objVal *ObjectValue) (ret *ObjectValue, err error) {
 	for idx := range objVal.Items {
 		cur := objVal.Items[idx]
 
@@ -800,11 +800,11 @@ func convertObjectValue(objVal *ObjectValue) (ret *ObjectValue, err error) {
 	return
 }
 
-// convertSliceObjectValue convert slice object value
-func convertSliceObjectValue(sliceVal *SliceObjectValue) (ret *SliceObjectValue, err error) {
+// ConvertSliceObjectValue convert slice object value
+func ConvertSliceObjectValue(sliceVal *SliceObjectValue) (ret *SliceObjectValue, err error) {
 	for idx := range sliceVal.Values {
 		cur := sliceVal.Values[idx]
-		val, valErr := convertObjectValue(cur)
+		val, valErr := ConvertObjectValue(cur)
 		if valErr != nil {
 			err = valErr
 			return
