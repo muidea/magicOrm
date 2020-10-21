@@ -447,6 +447,7 @@ func TestLocalQuery(t *testing.T) {
 	cList = []*Compose{}
 	filter := o1.QueryFilter(localOwner)
 	filter.Equal("Name", c2.Name)
+	filter.ValueMask(&Compose{PtrSimple: &Simple{}})
 	err = o1.BatchQuery(&cList, filter, localOwner)
 	if err != nil {
 		t.Errorf("batch query compose failed, err:%s", err.Error())

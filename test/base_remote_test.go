@@ -676,6 +676,7 @@ func TestRemoteQuery(t *testing.T) {
 
 	filter := o1.QueryFilter(remoteOwner)
 	filter.Equal("Name", strValue)
+	filter.ValueMask(&Compose{PtrSimple: &Simple{}})
 	err = o1.BatchQuery(cListValue, filter, remoteOwner)
 	if err != nil {
 		t.Errorf("batch query compose failed, err:%s", err.Error())
