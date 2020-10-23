@@ -122,7 +122,7 @@ func (s *Orm) assignSingleModel(modelVal reflect.Value, queryVal resultItems) (r
 
 			field.UpdateValue(itemVal)
 
-			offset++
+			//offset++
 			continue
 		}
 
