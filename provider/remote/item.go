@@ -96,7 +96,7 @@ func (s *Item) IsAssigned() (ret bool) {
 		//	return
 		//}
 
-		curObj, curOK := currentVal.Interface().(*ObjectValue)
+		curObj, curOK := currentVal.Interface().(ObjectValue)
 		if !curOK {
 			log.Errorf("illegal item value. val:%v", currentVal.Interface())
 			ret = false
