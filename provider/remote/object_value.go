@@ -424,7 +424,7 @@ func convertStructItemValue(itemValue interface{}, fieldValue reflect.Value) (is
 	}
 
 	// remote.Type.Interface(), Items size if zero
-	if len(itemObject.Items) == 0 {
+	if !itemObject.IsAssigned() {
 		isEmpty = true
 		return
 	}
@@ -515,18 +515,20 @@ func convertSliceStructValue(objectValue *SliceObjectValue, fieldValue reflect.V
 
 	for idx := 0; idx < len(sliceValue); idx++ {
 		sliceItem := sliceValue[idx]
-		elemVal := reflect.New(elemType).Elem()
-		elemVal, err = convertStructValue(sliceItem, elemVal)
-		if err != nil {
-			log.Errorf("convertStructValue failed, elemType:%s, valType:%s", sliceItem.GetName(), elemVal.Type().String())
-			return
-		}
+		if sliceItem.IsAssigned() {
+			elemVal := reflect.New(elemType).Elem()
+			elemVal, err = convertStructValue(sliceItem, elemVal)
+			if err != nil {
+				log.Errorf("convertStructValue failed, elemType:%s, valType:%s", sliceItem.GetName(), elemVal.Type().String())
+				return
+			}
 
-		if isElemPtr {
-			elemVal = elemVal.Addr()
-		}
+			if isElemPtr {
+				elemVal = elemVal.Addr()
+			}
 
-		itemSlice = reflect.Append(itemSlice, elemVal)
+			itemSlice = reflect.Append(itemSlice, elemVal)
+		}
 	}
 
 	fieldValue.Set(itemSlice)
@@ -536,6 +538,10 @@ func convertSliceStructValue(objectValue *SliceObjectValue, fieldValue reflect.V
 
 // UpdateEntity update object value -> entity
 func UpdateEntity(objectValue *ObjectValue, entity interface{}) (err error) {
+	if !objectValue.IsAssigned() {
+		return
+	}
+
 	entityValue := reflect.ValueOf(entity)
 	if entityValue.Kind() != reflect.Ptr {
 		err = fmt.Errorf("illegal entity value")
@@ -589,6 +595,10 @@ func UpdateSliceEntity(sliceObjectValue *SliceObjectValue, entitySlice interface
 	sliceVal := reflect.MakeSlice(sliceType, 0, 0)
 	for idx := 0; idx < len(sliceObjectValue.Values); idx++ {
 		objEntityVal := sliceObjectValue.Values[idx]
+		if !objEntityVal.IsAssigned() {
+			continue
+		}
+
 		entityVal := reflect.New(itemType).Elem()
 
 		entityVal, err = convertStructValue(objEntityVal, entityVal)
