@@ -222,33 +222,30 @@ func getSliceFieldValue(fieldName string, itemType *TypeImpl, fieldValue reflect
 	return
 }
 
-// GetObjectValue get object value
-func GetObjectValue(entity interface{}) (ret *ObjectValue, err error) {
-	objectValue := reflect.ValueOf(entity)
-	objectValue = reflect.Indirect(objectValue)
-	objectType := objectValue.Type()
-
-	entityType, entityErr := newType(objectType)
-	if entityErr != nil {
-		err = entityErr
+func getObjectValue(entityVal reflect.Value) (ret *ObjectValue, err error) {
+	entityVal = reflect.Indirect(entityVal)
+	entityType := entityVal.Type()
+	objType, objErr := newType(entityType)
+	if objErr != nil {
+		err = objErr
 		return
 	}
-	if !util.IsStructType(entityType.GetValue()) {
-		err = fmt.Errorf("illegal entity value")
+	if !util.IsStructType(objType.GetValue()) {
+		err = fmt.Errorf("illegal entity, entity type:%s", entityType.String())
 		return
 	}
 
 	//!! must be String, not Name
-	ret = &ObjectValue{Name: entityType.GetName(), PkgPath: entityType.GetPkgPath(), IsPtr: entityType.IsPtrType(), Items: []*ItemValue{}}
-	fieldNum := objectValue.NumField()
+	ret = &ObjectValue{Name: objType.GetName(), PkgPath: objType.GetPkgPath(), IsPtr: objType.IsPtrType(), Items: []*ItemValue{}}
+	fieldNum := entityVal.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		fieldValue := objectValue.Field(idx)
-		fieldType := objectType.Field(idx)
+		fieldValue := entityVal.Field(idx)
+		fieldType := entityType.Field(idx)
 
 		itemType, itemErr := newType(fieldType.Type)
 		if itemErr != nil {
 			err = itemErr
-			log.Errorf("GetType failed, type%s, err:%s", fieldType.Type.String(), err.Error())
+			log.Errorf("get entity field type failed, type%s, err:%s", fieldType.Type.String(), err.Error())
 			return
 		}
 
@@ -271,6 +268,13 @@ func GetObjectValue(entity interface{}) (ret *ObjectValue, err error) {
 		}
 	}
 
+	return
+}
+
+// GetObjectValue get object value
+func GetObjectValue(entity interface{}) (ret *ObjectValue, err error) {
+	entityVal := reflect.ValueOf(entity)
+	ret, err = getObjectValue(entityVal)
 	return
 }
 
@@ -301,8 +305,7 @@ func GetSliceObjectValue(sliceEntity interface{}) (ret *SliceObjectValue, err er
 	sliceValue = reflect.Indirect(sliceValue)
 	for idx := 0; idx < sliceValue.Len(); idx++ {
 		val := sliceValue.Index(idx)
-
-		objVal, objErr := GetObjectValue(val.Interface())
+		objVal, objErr := getObjectValue(val)
 		if objErr != nil {
 			err = objErr
 			log.Errorf("GetObjectValue failed, type%s, err:%s", val.Type().String(), err.Error())
@@ -327,7 +330,7 @@ func convertStructValue(objectValue *ObjectValue, entityValue reflect.Value) (re
 	}
 	if valueType.GetName() != objectValue.GetName() || valueType.GetPkgPath() != objectValue.GetPkgPath() {
 		err = fmt.Errorf("illegal object value, objectValue name:%s, entityType name:%s", objectValue.GetName(), valueType.GetName())
-		log.Error(err)
+		log.Errorf("mismatch objectValue for entityValue, err:%s", err)
 		return
 	}
 
