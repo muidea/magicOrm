@@ -233,7 +233,13 @@ func (s *providerImpl) GetValueStr(vType model.Type, vVal model.Value) (ret stri
 
 	dType := vType.Depend()
 	if util.IsBasicType(dType.GetValue()) {
-		ret, err = helper.EncodeSliceValue(vVal.Get())
+		sliceStr, sliceErr := helper.EncodeSliceValue(vVal.Get())
+		if sliceErr != nil {
+			err = sliceErr
+			return
+		}
+
+		ret = fmt.Sprintf("'%s'", sliceStr)
 		return
 	}
 

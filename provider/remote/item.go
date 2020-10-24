@@ -90,10 +90,11 @@ func (s *Item) IsAssigned() (ret bool) {
 	}
 
 	if util.IsStructType(s.Type.GetValue()) {
-		if s.Type.IsPtrType() {
-			ret = true
-			return
-		}
+		// special define objectValue must be ptr
+		//if s.Type.IsPtrType() {
+		//	ret = true
+		//	return
+		//}
 
 		curObj, curOK := currentVal.Interface().(*ObjectValue)
 		if !curOK {
