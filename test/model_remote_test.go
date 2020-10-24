@@ -877,12 +877,19 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
+	maskVal, maskErr := remote.GetObjectValue(&User{Group: []*Group{}})
+	if maskErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", maskErr.Error())
+		return
+	}
+
 	uGroup1 := []*remote.ObjectValue{group1Val, group2Val}
 	userList := &[]User{}
 	filter := o1.QueryFilter("default")
 	filter.Equal("Name", &user1.Name)
 	filter.In("Group", uGroup1)
 	filter.Like("EMail", user1.EMail)
+	filter.ValueMask(maskVal)
 
 	pageFilter := &util.PageFilter{PageNum: 0, PageSize: 100}
 	filter.Page(pageFilter)

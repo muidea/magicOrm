@@ -38,6 +38,12 @@ func (s *TypeImpl) GetPkgPath() (ret string) {
 
 // IsPtrType IsPtrType
 func (s *TypeImpl) IsPtrType() (ret bool) {
+	if s.DependType != nil {
+		if util.IsStructType(s.DependType.Value) {
+			ret = true
+			return
+		}
+	}
 	if util.IsStructType(s.Value) {
 		ret = true
 		return

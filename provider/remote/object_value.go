@@ -336,15 +336,12 @@ func convertStructValue(objectValue *ObjectValue, entityValue reflect.Value) (re
 
 	for idx := 0; idx < fieldNum; idx++ {
 		curItem := objectValue.Items[idx]
-		if curItem.Value == nil {
-			continue
-		}
-
 		fieldType := entityType.Field(idx).Type
 		isPtr := fieldType.Kind() == reflect.Ptr
 		if isPtr {
 			fieldType = fieldType.Elem()
 		}
+		isEmpty := false
 		fieldValue := reflect.New(fieldType).Elem()
 
 		tVal, tErr := util.GetTypeEnum(fieldType)
@@ -356,7 +353,7 @@ func convertStructValue(objectValue *ObjectValue, entityValue reflect.Value) (re
 
 		for {
 			if util.IsBasicType(tVal) {
-				fieldValue, err = convertBasicItemValue(curItem.Value, fieldValue)
+				isEmpty, fieldValue, err = convertBasicItemValue(curItem.Value, fieldValue)
 				if err != nil {
 					log.Errorf("convertBasicItemValue failed, fieldName:%s", fieldType.Name())
 					return
@@ -365,7 +362,7 @@ func convertStructValue(objectValue *ObjectValue, entityValue reflect.Value) (re
 			}
 
 			if util.IsStructType(tVal) {
-				fieldValue, err = convertStructItemValue(curItem.Value, fieldValue)
+				isEmpty, fieldValue, err = convertStructItemValue(curItem.Value, fieldValue)
 				if err != nil {
 					log.Errorf("convertStructItemValue failed, fieldName:%s", fieldType.Name())
 					return
@@ -374,7 +371,7 @@ func convertStructValue(objectValue *ObjectValue, entityValue reflect.Value) (re
 			}
 
 			if util.IsSliceType(tVal) {
-				fieldValue, err = convertSliceItemValue(curItem.Value, fieldValue)
+				isEmpty, fieldValue, err = convertSliceItemValue(curItem.Value, fieldValue)
 				if err != nil {
 					log.Errorf("convertSliceItemValue failed, fieldName:%s", fieldType.Name())
 					return
@@ -386,46 +383,67 @@ func convertStructValue(objectValue *ObjectValue, entityValue reflect.Value) (re
 			return
 		}
 
-		if isPtr {
-			fieldValue = fieldValue.Addr()
-		}
+		if !isEmpty {
+			if isPtr {
+				fieldValue = fieldValue.Addr()
+			}
 
-		entityValue.Field(idx).Set(fieldValue)
+			entityValue.Field(idx).Set(fieldValue)
+		}
 	}
 
 	ret = entityValue
 	return
 }
 
-func convertBasicItemValue(itemValue interface{}, fieldValue reflect.Value) (ret reflect.Value, err error) {
-	fieldValue, err = helper.AssignValue(reflect.ValueOf(itemValue), fieldValue)
+func convertBasicItemValue(itemValue interface{}, fieldValue reflect.Value) (isEmpty bool, itemVal reflect.Value, err error) {
+	if itemValue == nil {
+		isEmpty = true
+		return
+	}
+
+	itemVal, err = helper.AssignValue(reflect.ValueOf(itemValue), fieldValue)
 	if err != nil {
 		log.Errorf("assignValue failed, valType:%s, err:%s", fieldValue.Type().String(), err.Error())
 		return
 	}
 
-	ret = fieldValue
 	return
 }
 
-func convertStructItemValue(itemValue interface{}, fieldValue reflect.Value) (ret reflect.Value, err error) {
+func convertStructItemValue(itemValue interface{}, fieldValue reflect.Value) (isEmpty bool, itemVal reflect.Value, err error) {
+	if itemValue == nil {
+		isEmpty = true
+		return
+	}
+
 	itemObject, ok := itemValue.(*ObjectValue)
 	if !ok {
 		err = fmt.Errorf("illegal itemValue")
 		return
 	}
 
-	fieldValue, err = convertStructValue(itemObject, fieldValue)
+	// remote.Type.Interface(), Items size if zero
+	if len(itemObject.Items) == 0 {
+		isEmpty = true
+		return
+	}
+
+	itemVal, err = convertStructValue(itemObject, fieldValue)
 	if err != nil {
 		log.Errorf("convertStructValue failed, valType:%s, err:%s", fieldValue.Type().String(), err.Error())
 		return
 	}
 
-	ret = fieldValue
 	return
 }
 
-func convertSliceItemValue(itemValue interface{}, fieldValue reflect.Value) (ret reflect.Value, err error) {
+func convertSliceItemValue(itemValue interface{}, fieldValue reflect.Value) (isEmpty bool, itemVal reflect.Value, err error) {
+	if itemValue == nil {
+		isEmpty = true
+		return
+	}
+
 	if fieldValue.Kind() != reflect.Slice {
 		err = fmt.Errorf("illegal fieldValue, type:%s", fieldValue.Type().String())
 		return
@@ -438,24 +456,34 @@ func convertSliceItemValue(itemValue interface{}, fieldValue reflect.Value) (ret
 	}
 
 	if util.IsBasicType(elemType.GetValue()) {
-		fieldValue, err = helper.AssignSliceValue(reflect.ValueOf(itemValue), fieldValue)
+		itemVal, err = helper.AssignSliceValue(reflect.ValueOf(itemValue), fieldValue)
 		if err != nil {
 			log.Errorf("assignSliceValue failed, valType:%s", fieldValue.Type().String())
 			return
 		}
 
-		ret = fieldValue
 		return
 	}
 
 	if util.IsStructType(elemType.GetValue()) {
-		fieldValue, err = convertSliceStructValue(reflect.ValueOf(itemValue), fieldValue)
+		sliceObject, sliceOK := itemValue.(*SliceObjectValue)
+		if !sliceOK {
+			err = fmt.Errorf("illegal itemValue")
+			return
+		}
+
+		// remote.Type.Interface(), Items size if zero
+		if len(sliceObject.Values) == 0 {
+			isEmpty = true
+			return
+		}
+
+		itemVal, err = convertSliceStructValue(sliceObject, fieldValue)
 		if err != nil {
 			log.Errorf("convertSliceStructValue failed, valType:%s", fieldValue.Type().String())
 			return
 		}
 
-		ret = fieldValue
 		return
 	}
 
@@ -463,7 +491,7 @@ func convertSliceItemValue(itemValue interface{}, fieldValue reflect.Value) (ret
 	return
 }
 
-func convertSliceStructValue(itemValue reflect.Value, fieldValue reflect.Value) (ret reflect.Value, err error) {
+func convertSliceStructValue(objectValue *SliceObjectValue, fieldValue reflect.Value) (ret reflect.Value, err error) {
 	elemType := fieldValue.Type().Elem()
 	fieldType, fieldErr := newType(elemType)
 	if fieldErr != nil {
@@ -472,10 +500,7 @@ func convertSliceStructValue(itemValue reflect.Value, fieldValue reflect.Value) 
 	}
 
 	// SliceObjectValue{}
-	itemValue = reflect.Indirect(itemValue)
-	sliceName := itemValue.FieldByName("Name").String()
-	slicePkgPath := itemValue.FieldByName("PkgPath").String()
-	if sliceName != fieldType.GetName() || slicePkgPath != fieldType.GetPkgPath() {
+	if objectValue.GetName() != fieldType.GetName() || objectValue.GetPkgPath() != fieldType.GetPkgPath() {
 		err = fmt.Errorf("illegal slice struct")
 		return
 	}
@@ -485,34 +510,16 @@ func convertSliceStructValue(itemValue reflect.Value, fieldValue reflect.Value) 
 		elemType = elemType.Elem()
 	}
 
-	sliceValue := itemValue.FieldByName("Values")
+	sliceValue := objectValue.Values
 	itemSlice := reflect.MakeSlice(fieldValue.Type(), 0, 0)
 
-	for idx := 0; idx < sliceValue.Len(); idx++ {
-		sliceItem := sliceValue.Index(idx)
+	for idx := 0; idx < len(sliceValue); idx++ {
+		sliceItem := sliceValue[idx]
 		elemVal := reflect.New(elemType).Elem()
-		for {
-			if util.IsBasicType(fieldType.GetValue()) {
-				elemVal, err = helper.AssignValue(sliceItem, elemVal)
-				if err != nil {
-					log.Errorf("AssignValue failed, elemType:%s, valType:%s", sliceItem.Type().String(), elemVal.Type().String())
-					return
-				}
-
-				break
-			}
-
-			if util.IsStructType(fieldType.GetValue()) {
-				elemVal, err = convertStructValue(sliceItem.Interface().(*ObjectValue), elemVal)
-				if err != nil {
-					log.Errorf("convertStructValue failed, elemType:%s, valType:%s", sliceItem.Type().String(), elemVal.Type().String())
-					return
-				}
-
-				break
-			}
-
-			break
+		elemVal, err = convertStructValue(sliceItem, elemVal)
+		if err != nil {
+			log.Errorf("convertStructValue failed, elemType:%s, valType:%s", sliceItem.GetName(), elemVal.Type().String())
+			return
 		}
 
 		if isElemPtr {
@@ -524,7 +531,6 @@ func convertSliceStructValue(itemValue reflect.Value, fieldValue reflect.Value) 
 
 	fieldValue.Set(itemSlice)
 	ret = fieldValue
-
 	return
 }
 
