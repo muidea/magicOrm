@@ -122,6 +122,11 @@ func (s *SliceObjectValue) IsPtrValue() bool {
 	return s.IsPtr
 }
 
+// IsAssigned is assigned value
+func (s *SliceObjectValue) IsAssigned() (ret bool) {
+	ret = len(s.Values) > 0
+	return
+}
 func getFieldValue(fieldName string, itemType *TypeImpl, fieldValue reflect.Value) (ret *ItemValue, err error) {
 	if util.IsNil(fieldValue) {
 		ret = &ItemValue{Name: fieldName}
@@ -473,7 +478,7 @@ func convertSliceItemValue(itemValue interface{}, fieldValue reflect.Value) (isE
 		}
 
 		// remote.Type.Interface(), Items size if zero
-		if len(sliceObject.Values) == 0 {
+		if !sliceObject.IsAssigned() {
 			isEmpty = true
 			return
 		}
