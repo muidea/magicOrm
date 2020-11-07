@@ -47,9 +47,7 @@ func Initialize(maxConnNum int, user, password, address, dbName string, localPro
 
 	_config.updateServerConfig(cfg)
 
-	executor.InitializePool(maxConnNum, user, password, address, dbName)
-
-	return nil
+	return executor.InitializePool(maxConnNum, user, password, address, dbName)
 }
 
 // Uninitialize Uninitialize orm
