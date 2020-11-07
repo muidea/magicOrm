@@ -140,7 +140,7 @@ func (s *filterItem) FilterStr(name string, fType model.Type) (ret string, err e
 // queryFilter queryFilter
 type queryFilter struct {
 	params        map[string]model.FilterItem
-	maskValue     interface{}
+	maskValue     reflect.Value
 	pageFilter    *util.PageFilter
 	sortFilter    *util.SortFilter
 	modelProvider provider.Provider
@@ -148,101 +148,38 @@ type queryFilter struct {
 
 func (s *queryFilter) Equal(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ormUtil.GetTypeEnum(qv.Type())
-	if qvErr != nil {
-		err = qvErr
-		return
-	}
-	if ormUtil.IsSliceType(qvType) {
-		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
-		return
-	}
-
 	s.params[key] = &filterItem{filterFun: builder.EqualOpr, value: qv, modelProvider: s.modelProvider}
 	return
 }
 
 func (s *queryFilter) NotEqual(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ormUtil.GetTypeEnum(qv.Type())
-	if qvErr != nil {
-		err = qvErr
-		return
-	}
-	if ormUtil.IsSliceType(qvType) {
-		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
-		return
-	}
-
 	s.params[key] = &filterItem{filterFun: builder.NotEqualOpr, value: qv, modelProvider: s.modelProvider}
 	return
 }
 
 func (s *queryFilter) Below(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ormUtil.GetTypeEnum(qv.Type())
-	if qvErr != nil {
-		err = qvErr
-		return
-	}
-	if !ormUtil.IsBasicType(qvType) {
-		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
-		return
-	}
-
 	s.params[key] = &filterItem{filterFun: builder.BelowOpr, value: qv, modelProvider: s.modelProvider}
 	return
 }
 
 func (s *queryFilter) Above(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ormUtil.GetTypeEnum(qv.Type())
-	if qvErr != nil {
-		err = qvErr
-		return
-	}
-	if !ormUtil.IsBasicType(qvType) {
-		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
-		return
-	}
-
 	s.params[key] = &filterItem{filterFun: builder.AboveOpr, value: qv, modelProvider: s.modelProvider}
 	return
 }
 
 func (s *queryFilter) In(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ormUtil.GetTypeEnum(qv.Type())
-	if qvErr != nil {
-		err = qvErr
-		return
-	}
-	if !ormUtil.IsSliceType(qvType) {
-		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
-		return
-	}
-	if qv.Len() > 0 {
-		s.params[key] = &filterItem{filterFun: builder.InOpr, value: qv, modelProvider: s.modelProvider}
-	}
+	s.params[key] = &filterItem{filterFun: builder.InOpr, value: qv, modelProvider: s.modelProvider}
 
 	return
 }
 
 func (s *queryFilter) NotIn(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ormUtil.GetTypeEnum(qv.Type())
-	if qvErr != nil {
-		err = qvErr
-		return
-	}
-	if !ormUtil.IsSliceType(qvType) {
-		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
-		return
-	}
-
-	if qv.Len() > 0 {
-		s.params[key] = &filterItem{filterFun: builder.NotInOpr, value: qv, modelProvider: s.modelProvider}
-	}
+	s.params[key] = &filterItem{filterFun: builder.NotInOpr, value: qv, modelProvider: s.modelProvider}
 	return
 }
 
@@ -258,19 +195,12 @@ func (s *queryFilter) Like(key string, val interface{}) (err error) {
 }
 
 func (s *queryFilter) ValueMask(val interface{}) (err error) {
+	if val == nil {
+		return
+	}
+
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ormUtil.GetTypeEnum(qv.Type())
-	if qvErr != nil {
-		err = qvErr
-		return
-	}
-
-	if !ormUtil.IsStructType(qvType) {
-		err = fmt.Errorf("illegal mask value")
-		return
-	}
-
-	s.maskValue = val
+	s.maskValue = qv
 	return
 }
 
@@ -306,9 +236,7 @@ func (s *queryFilter) Pagination() (limit, offset int, paging bool) {
 }
 
 func (s *queryFilter) MaskModel() (ret model.Model, err error) {
-	if s.maskValue != nil {
-		ret, err = s.modelProvider.GetValueModel(reflect.ValueOf(s.maskValue))
-	}
+	ret, err = s.modelProvider.GetValueModel(s.maskValue)
 
 	return
 }
