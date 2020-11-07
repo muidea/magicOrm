@@ -883,11 +883,17 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	uGroup1 := []*remote.ObjectValue{group1Val, group2Val}
+	groupList := []*Group{group1, group2}
+	groupListVal, groupListErr := remote.GetSliceObjectValue(groupList)
+	if groupListErr != nil {
+		t.Errorf("GetSliceObjectValue failed, err:%s", groupListErr.Error())
+		return
+	}
+
 	userList := &[]User{}
 	filter := o1.QueryFilter("default")
 	filter.Equal("Name", &user1.Name)
-	filter.In("Group", uGroup1)
+	filter.In("Group", groupListVal)
 	filter.Like("EMail", user1.EMail)
 	filter.ValueMask(maskVal)
 
@@ -946,9 +952,14 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	gs := []*remote.ObjectValue{group1Val}
+	groupList = []*Group{group1}
+	groupListVal, groupListErr = remote.GetSliceObjectValue(groupList)
+	if groupListErr != nil {
+		t.Errorf("GetSliceObjectValue failed, err:%s", groupListErr.Error())
+		return
+	}
 	filter2 := o1.QueryFilter("default")
-	filter2.In("Group", gs)
+	filter2.In("Group", groupListVal)
 	userList = &[]User{}
 	userListVal, objErr = getSliceObjectValue(userList)
 	if objErr != nil {
@@ -1155,12 +1166,17 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	maskValue := &User{Status: &Status{}}
 
 	maskVal, _ := getObjectValue(maskValue)
+	groupList := []*Group{group1, group2}
+	groupListVal, groupListErr := remote.GetSliceObjectValue(groupList)
+	if groupListErr != nil {
+		t.Errorf("GetSliceObjectValue failed, err:%s", groupListErr.Error())
+		return
+	}
 
-	uGroup1 := []*remote.ObjectValue{group1Val, group2Val}
 	userList := &[]*User{}
 	filter := o1.QueryFilter("default")
 	filter.Equal("Name", &user1.Name)
-	filter.In("Group", uGroup1)
+	filter.In("Group", groupListVal)
 	filter.Like("EMail", user1.EMail)
 	filter.ValueMask(maskVal)
 
@@ -1223,9 +1239,15 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
-	gs := []*remote.ObjectValue{group1Val}
+	groupList = []*Group{group1}
+	groupListVal, groupListErr = remote.GetSliceObjectValue(groupList)
+	if groupListErr != nil {
+		t.Errorf("GetSliceObjectValue failed, err:%s", groupListErr.Error())
+		return
+	}
+
 	filter2 := o1.QueryFilter("default")
-	filter2.In("Group", gs)
+	filter2.In("Group", groupListVal)
 	userList = &[]*User{}
 	userListVal, objErr = getSliceObjectPtrValue(userList)
 	if objErr != nil {

@@ -3,7 +3,6 @@ package orm
 import (
 	"fmt"
 	"reflect"
-	"strings"
 
 	"github.com/muidea/magicCommon/foundation/util"
 	"github.com/muidea/magicOrm/builder"
@@ -88,52 +87,19 @@ func isNumber(vKind reflect.Kind) (ret bool) {
 }
 
 func (s *filterItem) FilterStr(name string, fType model.Type) (ret string, err error) {
-	fModel, fErr := s.modelProvider.GetTypeModel(fType)
-	if fErr != nil {
-		err = fErr
+	filterVal, filterErr := newFilterValue(s.value)
+	if filterErr != nil {
+		err = filterErr
 		return
 	}
-	if fModel != nil {
-		fType = fType.Depend()
+
+	itemStr, itemErr := s.modelProvider.GetValueStr(fType, filterVal)
+	if itemErr != nil {
+		err = itemErr
+		return
 	}
 
-	filterStr := ""
-	if s.value.Kind() != reflect.Slice {
-		filterVal, filterErr := newFilterValue(s.value)
-		if filterErr != nil {
-			err = filterErr
-			return
-		}
-
-		fVal, fErr := s.modelProvider.GetValueStr(fType, filterVal)
-		if fErr != nil {
-			err = fErr
-			return
-		}
-
-		filterStr = fVal
-	} else {
-		var itemArray []string
-		for idx := 0; idx < s.value.Len(); idx++ {
-			itemVal, itemErr := newFilterValue(s.value.Index(idx))
-			if itemErr != nil {
-				err = itemErr
-				return
-			}
-
-			itemStr, itemErr := s.modelProvider.GetValueStr(fType, itemVal)
-			if itemErr != nil {
-				err = itemErr
-				return
-			}
-
-			itemArray = append(itemArray, itemStr)
-		}
-
-		filterStr = strings.Join(itemArray, ",")
-	}
-
-	ret = s.filterFun(name, filterStr)
+	ret = s.filterFun(name, itemStr)
 	return
 }
 
@@ -236,8 +202,11 @@ func (s *queryFilter) Pagination() (limit, offset int, paging bool) {
 }
 
 func (s *queryFilter) MaskModel() (ret model.Model, err error) {
-	ret, err = s.modelProvider.GetValueModel(s.maskValue)
+	if ormUtil.IsNil(s.maskValue) {
+		return
+	}
 
+	ret, err = s.modelProvider.GetValueModel(s.maskValue)
 	return
 }
 
