@@ -39,3 +39,20 @@ func (s *Orm) getModelItems(modelInfo model.Model, builder builder.Builder) (ret
 
 	return
 }
+
+func (s *Orm) needStripSlashes(fType model.Type) bool {
+	switch fType.GetValue() {
+	case util.TypeStringField, util.TypeDateTimeField:
+		return true
+	}
+
+	dependType := fType.Depend()
+	if dependType == nil {
+		return false
+	}
+	if s.isCommonType(dependType) {
+		return true
+	}
+
+	return false
+}

@@ -239,7 +239,7 @@ func (s *providerImpl) GetValueStr(vType model.Type, vVal model.Value) (ret stri
 			return
 		}
 
-		ret = fmt.Sprintf("'%s'", sliceStr)
+		ret = fmt.Sprintf("'%s'", util.AddSlashes(sliceStr))
 		return
 	}
 
@@ -356,7 +356,8 @@ func getBasicValue(vType model.Type, val reflect.Value) (ret string, err error) 
 			err = strErr
 			return
 		}
-		ret = fmt.Sprintf("'%s'", strRet)
+
+		ret = fmt.Sprintf("'%s'", util.AddSlashes(strRet))
 	case util.TypeDateTimeField:
 		strRet, strErr := helper.EncodeDateTimeValue(val)
 		if strErr != nil {
@@ -364,7 +365,7 @@ func getBasicValue(vType model.Type, val reflect.Value) (ret string, err error) 
 			return
 		}
 
-		ret = fmt.Sprintf("'%s'", strRet)
+		ret = fmt.Sprintf("'%s'", util.AddSlashes(strRet))
 	default:
 		err = fmt.Errorf("illegal value kind, type name:%v", vType.GetName())
 	}

@@ -52,7 +52,8 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 			}
 
 			if fValue != nil && !fValue.IsNil() {
-				err = item.UpdateValue(reflect.ValueOf(items[idx]).Elem())
+				val := s.stripSlashes(fType, items[idx])
+				err = item.UpdateValue(reflect.ValueOf(val).Elem())
 				if err != nil {
 					return
 				}
@@ -91,6 +92,20 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 	}
 
 	return
+}
+
+func (s *Orm) stripSlashes(fType model.Type, val interface{}) interface{} {
+	if !s.needStripSlashes(fType) {
+		return val
+	}
+
+	strPtr, strOK := val.(*string)
+	if !strOK {
+		return val
+	}
+
+	strVal := util.StripSlashes(*strPtr)
+	return &strVal
 }
 
 func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret reflect.Value, err error) {
