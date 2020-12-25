@@ -65,7 +65,7 @@ func (s *Orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 	for _, fVal := range fDependValue {
 		relationInfo, relationErr := s.modelProvider.GetValueModel(fVal)
 		if relationErr != nil {
-			log.Errorf("GetValueModel faield, err:%s", relationErr.Error())
+			log.Errorf("GetValueModel failed, err:%s", relationErr.Error())
 			err = relationErr
 			return
 		}
