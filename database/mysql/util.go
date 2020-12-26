@@ -172,11 +172,7 @@ func getFieldInitValue(field model.Field) (ret interface{}, err error) {
 		ret = &val
 		break
 	case util.TypeSliceField:
-		if fType.Depend() != nil {
-			fType = fType.Depend()
-		}
-
-		if util.IsBasicType(fType.GetValue()) {
+		if fType.IsBasic() {
 			val := ""
 			ret = &val
 		} else {

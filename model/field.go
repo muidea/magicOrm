@@ -6,21 +6,21 @@ import (
 
 // Field Field
 type Field interface {
-	// Index
+	//@GetIndex Index
 	GetIndex() int
-	// Name
+	//@GetName Name
 	GetName() string
-	// Type
+	//@GetType Type
 	GetType() Type
-	// Tag
+	//@GetTag Tag
 	GetTag() Tag
-	// Value
+	//@GetValue Value
 	GetValue() Value
-	// 是否主键
+	//@IsPrimary 是否主键
 	IsPrimary() bool
-	// 是否已赋值
+	//@IsAssigned 是否已赋值
 	IsAssigned() bool
-	// 更新值
+	//@UpdateValue 更新值
 	UpdateValue(val reflect.Value) error
 }
 

@@ -4,20 +4,20 @@ import "reflect"
 
 // Type Type
 type Type interface {
-	// Type名称
+	// @GetName 名称
 	GetName() string
-	// Type值
+	// @GetValue 值
 	GetValue() int
-	// Type pkgPath
+	// @GetPkgPath pkgPath
 	GetPkgPath() string
-	// 是否指针类型
+	// @IsPtrType 是否指针类型
 	IsPtrType() bool
-	// 实例化一个类型对应的数据值
+	// @Interface 实例化一个类型对应的数据值
 	Interface() reflect.Value
-	// 获取依赖类型
-	Depend() Type
-	// Elem 获取聚合类型(slice)对应子项的Type，非聚合类型返回nil
+	// Elem 获取要素类型(如果非slice，则返回的是本身，如果是slice,则返回slice的elem类型)
 	Elem() Type
+	// @IsBasic 判断是否基础类型(不是struct，也不是slice struct)
+	IsBasic() bool
 }
 
 func CompareType(l, r Type) bool {
