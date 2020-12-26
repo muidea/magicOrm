@@ -42,7 +42,7 @@ func (s *valueImpl) Get() (ret reflect.Value) {
 	return
 }
 
-func (s *valueImpl) Copy() (ret *valueImpl) {
+func (s *valueImpl) copy() (ret *valueImpl) {
 	ret = &valueImpl{valueImpl: s.valueImpl}
 
 	return

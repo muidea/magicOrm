@@ -68,8 +68,8 @@ func (s *TagImpl) IsAutoIncrement() (ret bool) {
 	return
 }
 
-// Copy Copy
-func (s *TagImpl) Copy() (ret *TagImpl) {
+// copy copy
+func (s *TagImpl) copy() (ret *TagImpl) {
 	ret = &TagImpl{Value: s.Value}
 	return
 }

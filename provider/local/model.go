@@ -89,7 +89,7 @@ func (s *modelImpl) Interface() reflect.Value {
 func (s *modelImpl) Copy() model.Model {
 	modelInfo := &modelImpl{modelType: s.modelType, fields: []*fieldImpl{}}
 	for _, field := range s.fields {
-		modelInfo.fields = append(modelInfo.fields, field.Copy())
+		modelInfo.fields = append(modelInfo.fields, field.copy())
 	}
 
 	return modelInfo
@@ -102,7 +102,7 @@ func (s *modelImpl) Dump() (ret string) {
 
 	ret = fmt.Sprintf("%sfields:\n", ret)
 	for _, field := range s.fields {
-		ret = fmt.Sprintf("%s\t%s\n", ret, field.Dump())
+		ret = fmt.Sprintf("%s\t%s\n", ret, field.dump())
 	}
 
 	return

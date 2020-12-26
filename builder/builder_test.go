@@ -51,7 +51,7 @@ func TestBuilderCommon(t *testing.T) {
 		return
 	}
 	if str != "CREATE TABLE `default_Unit` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`value` FLOAT NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\tPRIMARY KEY (`id`)\n)\n" {
-		t.Error("build create schema failed")
+		t.Errorf("build create schema failed, str:%s", str)
 		return
 	}
 

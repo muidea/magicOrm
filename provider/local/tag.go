@@ -80,11 +80,11 @@ func (s *tagImpl) IsAutoIncrement() (ret bool) {
 }
 
 // Copy Copy
-func (s *tagImpl) Copy() (ret *tagImpl) {
+func (s *tagImpl) copy() (ret *tagImpl) {
 	ret = &tagImpl{tagImpl: s.tagImpl}
 	return
 }
 
-func (s *tagImpl) Dump() (ret string) {
+func (s *tagImpl) dump() (ret string) {
 	return fmt.Sprintf("name=%s key=%v auto=%v", s.GetName(), s.IsPrimaryKey(), s.IsAutoIncrement())
 }
