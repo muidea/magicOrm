@@ -28,29 +28,19 @@ func newType(val reflect.Type) (ret *typeImpl, err error) {
 }
 
 func (s *typeImpl) GetName() string {
-	if s.typeImpl.Kind() == reflect.Ptr {
-		return s.typeImpl.Elem().String()
-	}
-
-	return s.typeImpl.String()
+	tType := s.getType()
+	return tType.String()
 }
 
 func (s *typeImpl) GetValue() (ret int) {
-	if s.typeImpl.Kind() == reflect.Ptr {
-		ret, _ = util.GetTypeEnum(s.typeImpl.Elem())
-		return
-	}
-
-	ret, _ = util.GetTypeEnum(s.typeImpl)
+	tType := s.getType()
+	ret, _ = util.GetTypeEnum(tType)
 	return
 }
 
 func (s *typeImpl) GetPkgPath() string {
-	if s.typeImpl.Kind() == reflect.Ptr {
-		return s.typeImpl.Elem().PkgPath()
-	}
-
-	return s.typeImpl.PkgPath()
+	tType := s.getType()
+	return tType.PkgPath()
 }
 
 func (s *typeImpl) IsPtrType() bool {
@@ -67,40 +57,19 @@ func (s *typeImpl) Interface() reflect.Value {
 	return val
 }
 
-func (s *typeImpl) Depend() (ret model.Type) {
-	tVal := s.GetValue()
-	switch tVal {
-	case util.TypeSliceField:
-		ret = s.Elem()
-	case util.TypeStructField:
-		ret = s.Copy()
-	default:
-		ret = nil
-	}
-
-	return
-}
-
 func (s *typeImpl) Elem() model.Type {
 	tType := s.getType()
 	if tType.Kind() == reflect.Slice {
 		return &typeImpl{typeImpl: tType.Elem()}
 	}
 
-	return nil
+	return &typeImpl{typeImpl: s.typeImpl}
 }
 
-func (s *typeImpl) Copy() (ret *typeImpl) {
-	ret = &typeImpl{
-		typeImpl: s.typeImpl,
-	}
+func (s *typeImpl) IsBasic() bool {
+	elemType := s.Elem()
 
-	return
-}
-
-func (s *typeImpl) Dump() string {
-	val := s.GetValue()
-	return fmt.Sprintf("val:%d,name:%s,pkgPath:%s,isPtr:%v", val, s.GetName(), s.GetPkgPath(), s.IsPtrType())
+	return util.IsBasicType(elemType.GetValue())
 }
 
 func (s *typeImpl) getType() reflect.Type {
@@ -109,4 +78,17 @@ func (s *typeImpl) getType() reflect.Type {
 	}
 
 	return s.typeImpl
+}
+
+func (s *typeImpl) copy() (ret *typeImpl) {
+	ret = &typeImpl{
+		typeImpl: s.typeImpl,
+	}
+
+	return
+}
+
+func (s *typeImpl) dump() string {
+	val := s.GetValue()
+	return fmt.Sprintf("val:%d,name:%s,pkgPath:%s,isPtr:%v", val, s.GetName(), s.GetPkgPath(), s.IsPtrType())
 }

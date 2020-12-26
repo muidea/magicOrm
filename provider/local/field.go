@@ -111,8 +111,7 @@ func (s *fieldImpl) UpdateValue(val reflect.Value) (err error) {
 		return
 	}
 
-	dependType := s.fieldType.Depend()
-	if util.IsBasicType(s.fieldType.GetValue()) || util.IsBasicType(dependType.GetValue()) {
+	if s.fieldType.IsBasic() {
 		toVal := s.fieldType.Interface()
 		toVal, err = helper.AssignValue(val, toVal)
 		if err != nil {
@@ -159,7 +158,7 @@ func (s *fieldImpl) verify() error {
 			util.TypeDoubleField,
 			util.TypeStructField,
 			util.TypeSliceField:
-			return fmt.Errorf("illegal auto_increment field type, type:%s", s.fieldType.Dump())
+			return fmt.Errorf("illegal auto_increment field type, type:%s", s.fieldType.dump())
 		default:
 		}
 	}
@@ -167,7 +166,7 @@ func (s *fieldImpl) verify() error {
 	if s.fieldTag.IsPrimaryKey() {
 		switch val {
 		case util.TypeStructField, util.TypeSliceField:
-			return fmt.Errorf("illegal primary key field type, type:%s", s.fieldType.Dump())
+			return fmt.Errorf("illegal primary key field type, type:%s", s.fieldType.dump())
 		default:
 		}
 	}
@@ -175,19 +174,19 @@ func (s *fieldImpl) verify() error {
 	return nil
 }
 
-func (s *fieldImpl) Copy() *fieldImpl {
+func (s *fieldImpl) copy() *fieldImpl {
 	return &fieldImpl{
 		fieldIndex: s.fieldIndex,
 		fieldName:  s.fieldName,
-		fieldType:  s.fieldType.Copy(),
-		fieldTag:   s.fieldTag.Copy(),
-		fieldValue: s.fieldValue.Copy(),
+		fieldType:  s.fieldType.copy(),
+		fieldTag:   s.fieldTag.copy(),
+		fieldValue: s.fieldValue.copy(),
 	}
 }
 
 // Dump Dump
-func (s *fieldImpl) Dump() string {
-	str := fmt.Sprintf("index:%d,name:%s,type:[%s],tag:[%s]", s.fieldIndex, s.fieldName, s.fieldType.Dump(), s.fieldTag.Dump())
+func (s *fieldImpl) dump() string {
+	str := fmt.Sprintf("index:%d,name:%s,type:[%s],tag:[%s]", s.fieldIndex, s.fieldName, s.fieldType.dump(), s.fieldTag.dump())
 	return str
 }
 

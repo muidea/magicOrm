@@ -277,7 +277,7 @@ func TestSliceType(t *testing.T) {
 		return
 	}
 
-	dependType := sliceType.Depend()
+	dependType := sliceType.Elem()
 	if dependType == nil {
 		t.Errorf("illegal depend")
 		return
@@ -351,7 +351,7 @@ func TestPtrSliceType(t *testing.T) {
 		return
 	}
 
-	dependType := sliceType.Depend()
+	dependType := sliceType.Elem()
 	if dependType == nil {
 		t.Errorf("illegal depend")
 		return
@@ -428,7 +428,7 @@ func TestSliceStructType(t *testing.T) {
 		return
 	}
 
-	dependType := sliceType.Depend()
+	dependType := sliceType.Elem()
 	if dependType == nil {
 		t.Errorf("illegal depend")
 		return

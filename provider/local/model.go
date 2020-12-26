@@ -114,7 +114,7 @@ func getTypeModel(entityType reflect.Type) (ret model.Model, err error) {
 	}
 
 	hasPrimaryKey := false
-	modelImpl := &modelImpl{modelType: entityType, fields: make([]*fieldImpl, 0)}
+	impl := &modelImpl{modelType: entityType, fields: make([]*fieldImpl, 0)}
 	fieldNum := entityType.NumField()
 	var fieldValue reflect.Value
 	for idx := 0; idx < fieldNum; idx++ {
@@ -122,13 +122,13 @@ func getTypeModel(entityType reflect.Type) (ret model.Model, err error) {
 		fieldInfo, fieldErr := getFieldInfo(idx, fieldType, fieldValue)
 		if fieldErr != nil {
 			err = fieldErr
-			log.Printf("getFieldInfo failed, field idx:%d, field name:%s, struct name:%s, err:%s", idx, fieldType.Name, modelImpl.GetName(), err.Error())
+			log.Printf("getFieldInfo failed, field idx:%d, field name:%s, struct name:%s, err:%s", idx, fieldType.Name, impl.GetName(), err.Error())
 			return
 		}
 
 		if fieldInfo.IsPrimary() {
 			if hasPrimaryKey {
-				err = fmt.Errorf("duplicate primary key field, struct name:%s", modelImpl.GetName())
+				err = fmt.Errorf("duplicate primary key field, struct name:%s", impl.GetName())
 				return
 			}
 
@@ -136,20 +136,20 @@ func getTypeModel(entityType reflect.Type) (ret model.Model, err error) {
 		}
 
 		if fieldInfo != nil {
-			modelImpl.fields = append(modelImpl.fields, fieldInfo)
+			impl.fields = append(impl.fields, fieldInfo)
 		}
 	}
 
-	if len(modelImpl.fields) == 0 {
-		err = fmt.Errorf("no define orm field, struct name:%s", modelImpl.GetName())
+	if len(impl.fields) == 0 {
+		err = fmt.Errorf("no define orm field, struct name:%s", impl.GetName())
 		return
 	}
 	if !hasPrimaryKey {
-		err = fmt.Errorf("no define primary key field, struct name:%s", modelImpl.GetName())
+		err = fmt.Errorf("no define primary key field, struct name:%s", impl.GetName())
 		return
 	}
 
-	ret = modelImpl
+	ret = impl
 	return
 }
 
@@ -158,7 +158,7 @@ func getValueModel(modelVal reflect.Value) (ret *modelImpl, err error) {
 	hasPrimaryKey := false
 	modelVal = reflect.Indirect(modelVal)
 	entityType := modelVal.Type()
-	modelImpl := &modelImpl{modelType: entityType, fields: make([]*fieldImpl, 0)}
+	impl := &modelImpl{modelType: entityType, fields: make([]*fieldImpl, 0)}
 	fieldNum := entityType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		fieldVal := modelVal.Field(idx)
@@ -166,13 +166,13 @@ func getValueModel(modelVal reflect.Value) (ret *modelImpl, err error) {
 		fieldInfo, fieldErr := getFieldInfo(idx, fieldType, fieldVal)
 		if fieldErr != nil {
 			err = fieldErr
-			log.Printf("getFieldInfo failed, field idx:%d, field name:%s, struct name:%s, err:%s", idx, fieldType.Name, modelImpl.GetName(), err.Error())
+			log.Printf("getFieldInfo failed, field idx:%d, field name:%s, struct name:%s, err:%s", idx, fieldType.Name, impl.GetName(), err.Error())
 			return
 		}
 
 		if fieldInfo.IsPrimary() {
 			if hasPrimaryKey {
-				err = fmt.Errorf("duplicate primary key field, struct name:%s", modelImpl.GetName())
+				err = fmt.Errorf("duplicate primary key field, struct name:%s", impl.GetName())
 				return
 			}
 
@@ -180,19 +180,19 @@ func getValueModel(modelVal reflect.Value) (ret *modelImpl, err error) {
 		}
 
 		if fieldInfo != nil {
-			modelImpl.fields = append(modelImpl.fields, fieldInfo)
+			impl.fields = append(impl.fields, fieldInfo)
 		}
 	}
 
-	if len(modelImpl.fields) == 0 {
-		err = fmt.Errorf("no define orm field, struct name:%s", modelImpl.GetName())
+	if len(impl.fields) == 0 {
+		err = fmt.Errorf("no define orm field, struct name:%s", impl.GetName())
 		return
 	}
 	if !hasPrimaryKey {
-		err = fmt.Errorf("no define primary key field, struct name:%s", modelImpl.GetName())
+		err = fmt.Errorf("no define primary key field, struct name:%s", impl.GetName())
 		return
 	}
 
-	ret = modelImpl
+	ret = impl
 	return
 }
