@@ -60,8 +60,7 @@ func (s *Orm) batchCreateSchema(modelInfo model.Model) (err error) {
 
 	for _, field := range modelInfo.GetFields() {
 		fType := field.GetType()
-		depend := fType.Depend()
-		if depend == nil {
+		if fType.IsBasic() {
 			continue
 		}
 
