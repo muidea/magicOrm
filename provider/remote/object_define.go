@@ -40,7 +40,7 @@ func (s *Object) GetFields() (ret model.Fields) {
 }
 
 // SetFieldValue SetFieldValue
-func (s *Object) SetFieldValue(idx int, val reflect.Value) (err error) {
+func (s *Object) SetFieldValue(idx int, val model.Value) (err error) {
 	for _, item := range s.Items {
 		if item.Index == idx {
 			err = item.SetValue(val)
@@ -57,7 +57,7 @@ func (s *Object) SetFieldValue(idx int, val reflect.Value) (err error) {
 }
 
 // UpdateFieldValue UpdateFieldValue
-func (s *Object) UpdateFieldValue(name string, val reflect.Value) (err error) {
+func (s *Object) UpdateFieldValue(name string, val model.Value) (err error) {
 	for _, item := range s.Items {
 		if item.Name == name {
 			err = item.UpdateValue(val)
@@ -86,14 +86,19 @@ func (s *Object) GetPrimaryField() (ret model.Field) {
 }
 
 // Interface Interface
-func (s *Object) Interface() (ret reflect.Value) {
+func (s *Object) Interface() (ret model.Value) {
 	val := &ObjectValue{Name: s.Name, PkgPath: s.PkgPath, Items: []*ItemValue{}}
 
 	for _, v := range s.Items {
-		val.Items = append(val.Items, v.Interface())
+		if v.value.IsNil() {
+			val.Items = append(val.Items, &ItemValue{Name: v.Name, Value: nil})
+			continue
+		}
+
+		val.Items = append(val.Items, &ItemValue{Name: v.Name, Value: v.value.Get()})
 	}
 
-	ret = reflect.ValueOf(val).Elem()
+	ret = newValue(reflect.ValueOf(val))
 	return
 }
 
@@ -105,6 +110,18 @@ func (s *Object) Copy() (ret model.Model) {
 	}
 
 	ret = obj
+	return
+}
+
+func (s *Object) Dump() (ret string) {
+	ret = fmt.Sprintf("\nmodelImpl:\n")
+	ret = fmt.Sprintf("%s\tname:%s, pkgPath:%s\n", ret, s.GetName(), s.GetPkgPath())
+
+	ret = fmt.Sprintf("%sfields:\n", ret)
+	for _, field := range s.Items {
+		ret = fmt.Sprintf("%s\t%s\n", ret, field.dump())
+	}
+
 	return
 }
 
@@ -135,34 +152,30 @@ func type2Object(entityType reflect.Type) (ret *Object, err error) {
 		return
 	}
 
-	ret = &Object{}
+	impl := &Object{}
 	//!! must be String, not Name
-	ret.Name = entityType.String()
-	ret.PkgPath = entityType.PkgPath()
-	ret.Items = []*Item{}
+	impl.Name = entityType.String()
+	impl.PkgPath = entityType.PkgPath()
+	impl.Items = []*Item{}
 
 	fieldNum := entityType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		field := entityType.Field(idx)
-		fType := field.Type
-		fTag := field.Tag.Get("orm")
-
-		itemTag, itemErr := newTag(fTag)
-		if itemErr != nil {
-			err = itemErr
+		fItem, fErr := getItemInfo(idx, field)
+		if fErr != nil {
+			err = fErr
 			return
 		}
 
-		itemType, itemErr := newType(fType)
-		if itemErr != nil {
-			err = itemErr
-			return
-		}
-
-		fItem := newItem(idx, field.Name, itemTag, itemType)
-		ret.Items = append(ret.Items, fItem)
+		impl.Items = append(impl.Items, fItem)
 	}
 
+	if len(impl.Items) == 0 {
+		err = fmt.Errorf("no define orm field, struct name:%s", impl.GetName())
+		return
+	}
+
+	ret = impl
 	return
 }
 
@@ -174,10 +187,11 @@ func EncodeObject(objPtr *Object) (ret []byte, err error) {
 func DecodeObject(data []byte) (ret *Object, err error) {
 	objPtr := &Object{}
 	err = json.Unmarshal(data, objPtr)
-	if err == nil {
-		ret = objPtr
+	if err != nil {
+		return
 	}
 
+	ret = objPtr
 	return
 }
 

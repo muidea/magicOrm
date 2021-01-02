@@ -2,20 +2,14 @@ package helper
 
 import (
 	"fmt"
+	"github.com/muidea/magicOrm/model"
 	"reflect"
 	"time"
-
-	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
 )
 
-//EncodeDateTimeValue get datetime value str
-func EncodeDateTimeValue(val reflect.Value) (ret string, err error) {
-	val = reflect.Indirect(val)
-	if val.Kind() == reflect.Interface {
-		val = val.Elem()
-	}
-
+//encodeDateTimeValue get datetime value str
+func (s *impl) encodeDateTimeValue(vVal model.Value) (ret string, err error) {
+	val := vVal.Get().(reflect.Value)
 	val = reflect.Indirect(val)
 	switch val.Kind() {
 	case reflect.Struct:
@@ -26,43 +20,27 @@ func EncodeDateTimeValue(val reflect.Value) (ret string, err error) {
 				ret = ""
 			}
 		} else {
-			err = fmt.Errorf("no support get datetime value from struct, [%s]", val.Type().String())
-		}
-	case reflect.String:
-		_, tmErr := time.ParseInLocation("2006-01-02 15:04:05", val.String(), time.Local)
-		if tmErr != nil {
-			err = fmt.Errorf("illegal datetime value, val:%v", val.Interface())
-		} else {
-			ret = val.String()
+			err = fmt.Errorf("illegal dateTime value, type:%s", val.Type().String())
 		}
 	default:
-		err = fmt.Errorf("illegal value, type:%s", val.Type().String())
+		err = fmt.Errorf("illegal dateTime value, type:%s", val.Type().String())
 	}
 
 	return
 }
 
-// DecodeDateTimeValue decode datetime from string
-func DecodeDateTimeValue(val string, vType model.Type) (ret reflect.Value, err error) {
-	tVal := vType.GetValue()
-	switch tVal {
-	case util.TypeDateTimeField:
-	default:
-		err = fmt.Errorf("illegal dateTime value type")
-		return
-	}
-
+// decodeDateTimeValue decode datetime from string
+func (s *impl) decodeDateTimeValue(val string) (ret model.Value, err error) {
 	if val == "" {
 		val = "0001-01-01 00:00:00"
 	}
-	ret = reflect.Indirect(vType.Interface())
-	ret, err = AssignValue(reflect.ValueOf(val), ret)
 
-	if err != nil {
-		if vType.IsPtrType() {
-			ret = ret.Addr()
-		}
+	dtVal, dtErr := time.Parse("2006-01-02 15:04:05", val)
+	if dtErr != nil {
+		err = dtErr
+		return
 	}
 
+	ret = s.getValue(reflect.ValueOf(&dtVal).Elem())
 	return
 }

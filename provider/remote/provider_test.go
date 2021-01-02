@@ -1,7 +1,6 @@
 package remote
 
 import (
-	"reflect"
 	"testing"
 )
 
@@ -43,27 +42,16 @@ func TestSimpleObjProvider(t *testing.T) {
 		return
 	}
 
-	simpleModel, simpleErr := GetModel(reflect.ValueOf(simpleInfo))
+	simpleModel, simpleErr := GetEntityModel(simpleInfo)
 	if simpleErr != nil {
-		t.Errorf("GetModel failed, err:%s", simpleErr.Error())
+		t.Errorf("GetEntityModel failed, err:%s", simpleErr.Error())
 		return
 	}
 
-	for _, val := range simpleModel.GetFields() {
-		if val.IsAssigned() {
-			t.Errorf("name:%s, check field assigned failed", val.GetName())
-		}
-	}
-
-	simpleModel, simpleErr = SetModel(simpleModel, reflect.ValueOf(simpleVal))
+	simpleModel, simpleErr = SetModelValue(simpleModel, newValue(simpleVal))
 	if simpleErr != nil {
-		t.Errorf("SetModel failed, err:%s", simpleErr.Error())
+		t.Errorf("SetModelValue failed, err:%s", simpleErr.Error())
 		return
-	}
-	for _, val := range simpleModel.GetFields() {
-		if !val.IsAssigned() {
-			t.Errorf("name:%s, check field assigned failed", val.GetName())
-		}
 	}
 }
 
@@ -87,21 +75,9 @@ func TestInterface(t *testing.T) {
 		return
 	}
 
-	valModel, objErr := GetModel(reflect.ValueOf(bbVal))
+	_, objErr := GetEntityModel(bbVal)
 	if objErr != nil {
-		t.Errorf("GetModel failed, err:%s", objErr.Error())
+		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
-	}
-
-	for _, val := range valModel.GetFields() {
-		vName := val.GetName()
-		if val.IsAssigned() {
-			if vName != "AA" {
-				t.Errorf("name:%s, check field assigned failed", vName)
-			}
-		}
-		if val.IsAssigned() {
-			t.Errorf("name:%s, check field assigned failed", vName)
-		}
 	}
 }

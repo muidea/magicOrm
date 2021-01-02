@@ -1,13 +1,10 @@
 package orm
 
 import (
-	"reflect"
-
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/helper"
 )
 
 func (s *Orm) insertSingle(modelInfo model.Model) (err error) {
@@ -23,20 +20,19 @@ func (s *Orm) insertSingle(modelInfo model.Model) (err error) {
 		err = idErr
 		return
 	}
-	pk := modelInfo.GetPrimaryField()
-	if pk != nil {
-		typeVal := pk.GetType().Interface()
-		typeVal, err = helper.AssignValue(reflect.ValueOf(id), typeVal)
-		if err != nil {
-			log.Errorf("assign pk field failed, err:%s", err.Error())
-			return err
-		}
 
-		err = pk.UpdateValue(typeVal)
-		if err != nil {
-			log.Errorf("UpdateValue failed, err:%s", err.Error())
-			return err
-		}
+	pk := modelInfo.GetPrimaryField()
+
+	typeVal := pk.GetType().Interface()
+	err = typeVal.Set(id)
+	if err != nil {
+		return
+	}
+
+	err = pk.UpdateValue(typeVal)
+	if err != nil {
+		log.Errorf("UpdateValue failed, err:%s", err.Error())
+		return err
 	}
 
 	return
@@ -55,7 +51,7 @@ func (s *Orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 		return
 	}
 
-	fDependValue, fDependErr := s.modelProvider.ElemDependValue(fValue.Get())
+	fDependValue, fDependErr := s.modelProvider.ElemDependValue(fValue)
 	if fDependErr != nil {
 		err = fDependErr
 		log.Errorf("GetDependValue failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
@@ -63,15 +59,15 @@ func (s *Orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 	}
 
 	for _, fVal := range fDependValue {
-		relationInfo, relationErr := s.modelProvider.GetValueModel(fVal)
+		relationInfo, relationErr := s.modelProvider.GetValueModel(fVal, fType)
 		if relationErr != nil {
 			log.Errorf("GetValueModel failed, err:%s", relationErr.Error())
 			err = relationErr
 			return
 		}
 
-		dependType := fType.Depend()
-		if !dependType.IsPtrType() {
+		elemType := fType.Elem()
+		if !elemType.IsPtrType() {
 			err = s.insertSingle(relationInfo)
 			if err != nil {
 				return

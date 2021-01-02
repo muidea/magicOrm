@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"reflect"
 	"testing"
 	"time"
 
@@ -9,46 +8,6 @@ import (
 	"github.com/muidea/magicOrm/provider/local"
 	"github.com/muidea/magicOrm/provider/remote"
 )
-
-func checkType(val interface{}, t *testing.T) bool {
-	lType, lErr := local.GetType(reflect.ValueOf(val))
-	if lErr != nil {
-		t.Errorf("local.GetType failed, err:%s", lErr.Error())
-		return false
-	}
-
-	rType, rErr := remote.GetType(reflect.ValueOf(val))
-	if rErr != nil {
-		t.Errorf("local.GetType failed, err:%s", lErr.Error())
-		return false
-	}
-
-	if !model.CompareType(lType, rType) {
-		t.Errorf("compareType failed")
-		return false
-	}
-
-	return true
-}
-
-func TestType(t *testing.T) {
-	var iVal int
-	if !checkType(iVal, t) {
-		return
-	}
-	var fVal float64
-	if !checkType(fVal, t) {
-		return
-	}
-	var bVal bool
-	if !checkType(bVal, t) {
-		return
-	}
-	var strVal string
-	if !checkType(strVal, t) {
-		return
-	}
-}
 
 func TestModel(t *testing.T) {
 	type Base struct {
@@ -66,10 +25,10 @@ func TestModel(t *testing.T) {
 		Flag      bool      `orm:"flag"`
 	}
 
-	base := Base{}
-	lModel, lErr := local.GetModel(reflect.ValueOf(base))
+	base := &Base{}
+	lModel, lErr := local.GetEntityModel(base)
 	if lErr != nil {
-		t.Errorf("local.GetModel failed. err:%s", lErr.Error())
+		t.Errorf("local.GetEntityModel failed. err:%s", lErr.Error())
 		return
 	}
 
@@ -78,11 +37,29 @@ func TestModel(t *testing.T) {
 		t.Errorf("remote.GetObject failed, err:%s", baseErr.Error())
 		return
 	}
-	rModel, rErr := remote.GetModel(reflect.ValueOf(baseObject))
+	rModel, rErr := remote.GetEntityModel(baseObject)
 	if rErr != nil {
-		t.Errorf("remote.GetModel failed. err:%s", rErr.Error())
+		t.Errorf("remote.GetEntityModel failed. err:%s", rErr.Error())
 		return
 	}
+
+	baseObjectVal, baseValErr := remote.GetObjectValue(base)
+	if baseValErr != nil {
+		t.Errorf("remote.GetObjectValue failed, err:%s", baseErr.Error())
+		return
+	}
+	rVal, rErr := remote.GetEntityValue(baseObjectVal)
+	if rErr != nil {
+		t.Errorf("remote.GetEntityValue failed. err:%s", rErr.Error())
+		return
+	}
+
+	rModel, rErr = remote.SetModelValue(rModel, rVal)
+	if rErr != nil {
+		t.Errorf("remote.SetModelValue failed. err:%s", rErr.Error())
+		return
+	}
+
 	if !model.CompareModel(lModel, rModel) {
 		t.Errorf("CompareModel failed")
 		return

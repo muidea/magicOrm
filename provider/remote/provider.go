@@ -2,85 +2,64 @@ package remote
 
 import (
 	"fmt"
-	"reflect"
-
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
 )
 
-func GetType(v reflect.Value) (ret model.Type, err error) {
-	vType, vErr := newType(v.Type())
-	if vErr != nil {
-		err = vErr
-		return
-	}
-
-	if util.IsBasicType(vType.GetValue()) {
-		ret = vType
-		return
-	}
-
-	if util.IsStructType(vType.GetValue()) {
-		v := reflect.Indirect(v)
-		obj, ok := v.Interface().(Object)
-		if ok {
-			vType.Name = obj.GetName()
-			vType.PkgPath = obj.GetPkgPath()
-
-			vType.DependType.Name = obj.GetName()
-			vType.DependType.PkgPath = obj.GetPkgPath()
-
-			ret = vType
-			return
-		}
-
-		vObj, ok := v.Interface().(ObjectValue)
-		if ok {
-			vType.Name = vObj.GetName()
-			vType.PkgPath = vObj.GetPkgPath()
-
-			vType.DependType.Name = vObj.GetName()
-			vType.DependType.PkgPath = vObj.GetPkgPath()
-
-			ret = vType
-			return
-		}
-
-		vSliceObj, ok := v.Interface().(SliceObjectValue)
-		if ok {
-			vType.Name = vSliceObj.GetName()
-			vType.PkgPath = vSliceObj.GetPkgPath()
-			vType.Value = util.TypeSliceField
-
-			vType.DependType.Name = vSliceObj.GetName()
-			vType.DependType.PkgPath = vSliceObj.GetPkgPath()
-			vType.DependType.IsPtr = vSliceObj.IsPtrValue()
-
-			ret = vType
-			return
-		}
-	}
-
-	err = fmt.Errorf("illegal value type, type:%s", v.Type().String())
-	return
-}
-
-func GetValue(val reflect.Value) (ret model.Value, err error) {
-	vVal, vErr := newValue(val)
-	if vErr != nil {
-		err = vErr
-		return
-	}
-
-	ret = vVal
-	return
-}
-
-func GetModel(v reflect.Value) (ret model.Model, err error) {
-	v = reflect.Indirect(v)
-	obj, ok := v.Interface().(Object)
+func GetEntityType(entity interface{}) (ret model.Type, err error) {
+	objPtr, ok := entity.(*Object)
 	if ok {
-		ret = &obj
+		impl := &TypeImpl{Name: objPtr.GetName(), Value: util.TypeStructField, PkgPath: objPtr.GetPkgPath(), IsPtr: true}
+		impl.ElemType = &TypeImpl{Name: objPtr.GetName(), Value: util.TypeStructField, PkgPath: objPtr.GetPkgPath(), IsPtr: true}
+
+		ret = impl
+		return
+	}
+
+	valPtr, ok := entity.(*ObjectValue)
+	if ok {
+		impl := &TypeImpl{Name: valPtr.GetName(), Value: util.TypeStructField, PkgPath: valPtr.GetPkgPath(), IsPtr: true}
+		impl.ElemType = &TypeImpl{Name: valPtr.GetName(), Value: util.TypeStructField, PkgPath: valPtr.GetPkgPath(), IsPtr: true}
+
+		ret = impl
+		return
+	}
+
+	sValPtr, ok := entity.(*SliceObjectValue)
+	if ok {
+		impl := &TypeImpl{Name: sValPtr.GetName(), Value: util.TypeSliceField, PkgPath: sValPtr.GetPkgPath(), IsPtr: true}
+		impl.ElemType = &TypeImpl{Name: sValPtr.GetName(), Value: util.TypeStructField, PkgPath: sValPtr.GetPkgPath(), IsPtr: true}
+
+		ret = impl
+		return
+	}
+
+	err = fmt.Errorf("illegal entity")
+
+	return
+}
+
+func GetEntityValue(entity interface{}) (ret model.Value, err error) {
+	valPtr, ok := entity.(*ObjectValue)
+	if ok {
+		ret = newValue(valPtr)
+		return
+	}
+
+	sliceValPtr, ok := entity.(*SliceObjectValue)
+	if ok {
+		ret = newValue(sliceValPtr)
+		return
+	}
+
+	err = fmt.Errorf("illegal entity")
+	return
+}
+
+func GetEntityModel(entity interface{}) (ret model.Model, err error) {
+	objPtr, ok := entity.(*Object)
+	if ok {
+		ret = objPtr
 		return
 	}
 
@@ -88,24 +67,19 @@ func GetModel(v reflect.Value) (ret model.Model, err error) {
 	return
 }
 
-func SetModel(vModel model.Model, vVal reflect.Value) (ret model.Model, err error) {
-	vVal = reflect.Indirect(vVal)
-	vName := vVal.FieldByName("Name")
-	vPkgPath := vVal.FieldByName("PkgPath")
-	vFields := vVal.FieldByName("Items")
-	if vModel.GetName() != vName.String() || vModel.GetPkgPath() != vPkgPath.String() {
-		err = fmt.Errorf("illegal model value")
+func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err error) {
+	val, ok := vVal.Get().(*ObjectValue)
+	if !ok {
+		err = fmt.Errorf("illegal remote model value")
 		return
 	}
 
-	for idx := 0; idx < vFields.Len(); idx++ {
-		item := reflect.Indirect(vFields.Index(idx))
-		fValue := item.FieldByName("Value")
-		if util.IsNil(fValue) {
+	for idx, item := range val.Items {
+		if item.Value == nil {
 			continue
 		}
 
-		err = vModel.SetFieldValue(idx, fValue)
+		err = vModel.SetFieldValue(idx, newValue(item.Value))
 		if err != nil {
 			return
 		}
@@ -115,26 +89,39 @@ func SetModel(vModel model.Model, vVal reflect.Value) (ret model.Model, err erro
 	return
 }
 
-func ElemDependValue(vType model.Type, val reflect.Value) (ret []reflect.Value, err error) {
-	if vType.GetValue() == util.TypeSliceField {
-		values := val.FieldByName("Values")
-		for idx := 0; idx < values.Len(); idx++ {
-			ret = append(ret, values.Index(idx))
-		}
-
+func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
+	val, ok := vVal.Get().(*SliceObjectValue)
+	if !ok {
+		err = fmt.Errorf("illegal remote model slice value")
 		return
 	}
 
-	ret = append(ret, val)
+	for _, item := range val.Values {
+		ret = append(ret, newValue(item))
+	}
+
 	return
 }
 
-func AppendSliceValue(sliceVal reflect.Value, val reflect.Value) (ret reflect.Value, err error) {
-	values := sliceVal.FieldByName("Values")
-	values = reflect.Append(values, val)
+func AppendSliceValue(sliceVal model.Value, vVal model.Value) (ret model.Value, err error) {
+	sVal, ok := sliceVal.Get().(*SliceObjectValue)
+	if !ok {
+		err = fmt.Errorf("illegal remote model slice value")
+		return
+	}
 
-	sliceVal.FieldByName("Values").Set(values)
+	val, ok := vVal.Get().(*ObjectValue)
+	if !ok {
+		err = fmt.Errorf("illegal remote model item value")
+		return
+	}
 
-	ret = sliceVal
+	if sVal.GetName() != val.GetName() || sVal.GetPkgPath() != val.GetPkgPath() {
+		err = fmt.Errorf("mismatch slice value")
+		return
+	}
+
+	sVal.Values = append(sVal.Values, val)
+	ret = newValue(sVal)
 	return
 }

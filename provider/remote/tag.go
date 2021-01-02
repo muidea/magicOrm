@@ -74,7 +74,11 @@ func (s *TagImpl) copy() (ret *TagImpl) {
 	return
 }
 
-// newTag new Item Value
+func (s *TagImpl) dump() (ret string) {
+	return fmt.Sprintf("name=%s key=%v auto=%v", s.GetName(), s.IsPrimaryKey(), s.IsAutoIncrement())
+}
+
+// newTag new tag
 func newTag(tag string) (ret *TagImpl, err error) {
 	items := strings.Split(tag, "")
 	if len(items) < 1 {

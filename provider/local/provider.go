@@ -1,16 +1,27 @@
 package local
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
 )
 
-func GetType(val reflect.Value) (ret model.Type, err error) {
-	vType, vErr := newType(val.Type())
+func GetEntityType(entity interface{}) (ret model.Type, err error) {
+	rVal := reflect.ValueOf(entity)
+	if rVal.Kind() != reflect.Ptr {
+		err = fmt.Errorf("must be a pointer entity")
+		return
+	}
+	rVal = rVal.Elem()
+
+	vType, vErr := newType(rVal.Type())
 	if vErr != nil {
 		err = vErr
+		return
+	}
+	if vType.IsBasic() {
+		err = fmt.Errorf("illegal entity")
 		return
 	}
 
@@ -18,41 +29,65 @@ func GetType(val reflect.Value) (ret model.Type, err error) {
 	return
 }
 
-func GetValue(val reflect.Value) (ret model.Value, err error) {
-	vVal, vErr := newValue(val)
+func GetEntityValue(entity interface{}) (ret model.Value, err error) {
+	rVal := reflect.ValueOf(entity)
+	if rVal.Kind() != reflect.Ptr {
+		err = fmt.Errorf("must be a pointer entity")
+		return
+	}
+	rVal = rVal.Elem()
+
+	vType, vErr := newType(rVal.Type())
 	if vErr != nil {
 		err = vErr
 		return
 	}
+	if vType.IsBasic() {
+		err = fmt.Errorf("illegal entity")
+		return
+	}
 
+	vVal := newValue(rVal)
 	ret = vVal
 	return
 }
 
-func GetModel(vVal reflect.Value) (ret model.Model, err error) {
-	vType, vErr := GetType(vVal)
+func GetEntityModel(entity interface{}) (ret model.Model, err error) {
+	rVal := reflect.ValueOf(entity)
+	if rVal.Kind() != reflect.Ptr {
+		err = fmt.Errorf("must be a pointer entity")
+		return
+	}
+	rVal = rVal.Elem()
+
+	vType, vErr := newType(rVal.Type())
 	if vErr != nil {
 		err = vErr
 		return
 	}
-
-	// if slice value, elem slice item
-	if util.IsSliceType(vType.GetValue()) {
-		ret, err = getTypeModel(vVal.Type().Elem())
+	if vType.IsBasic() {
+		err = fmt.Errorf("illegal entity")
 		return
 	}
 
-	ret, err = getTypeModel(vVal.Type())
+	implPtr, implErr := getValueModel(rVal)
+	if implErr != nil {
+		err = implErr
+		return
+	}
+
+	ret = implPtr
 	return
 }
 
-func SetModel(vModel model.Model, vVal reflect.Value) (ret model.Model, err error) {
-	vVal = reflect.Indirect(vVal)
-	vType := vVal.Type()
+func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err error) {
+	rVal := vVal.Get().(reflect.Value)
+	rVal = reflect.Indirect(rVal)
+	vType := rVal.Type()
 	fieldNum := vType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		fieldVal := vVal.Field(idx)
-		if util.IsNil(fieldVal) {
+		fieldVal := newValue(rVal.Field(idx))
+		if fieldVal.IsNil() {
 			continue
 		}
 
@@ -66,22 +101,44 @@ func SetModel(vModel model.Model, vVal reflect.Value) (ret model.Model, err erro
 	return
 }
 
-func ElemDependValue(vType model.Type, val reflect.Value) (ret []reflect.Value, err error) {
-	if vType.GetValue() == util.TypeSliceField {
-		for idx := 0; idx < val.Len(); idx++ {
-			ret = append(ret, val.Index(idx))
-		}
-
+func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
+	rVal := vVal.Get().(reflect.Value)
+	rVal = reflect.Indirect(rVal)
+	if rVal.Kind() != reflect.Slice {
+		err = fmt.Errorf("illegal slice value")
 		return
 	}
 
-	ret = append(ret, val)
+	for idx := 0; idx < rVal.Len(); idx++ {
+		val := newValue(rVal.Index(idx))
+		ret = append(ret, val)
+	}
+
 	return
 }
 
-func AppendSliceValue(sliceVal reflect.Value, val reflect.Value) (ret reflect.Value, err error) {
-	ret = sliceVal
-	sliceVal = reflect.Append(sliceVal, val)
-	ret.Set(sliceVal)
+func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, err error) {
+	rSliceVal := sliceVal.Get().(reflect.Value)
+	isPtr := rSliceVal.Kind() == reflect.Ptr
+	rSliceVal = reflect.Indirect(rSliceVal)
+	rSliceType := rSliceVal.Type()
+	if rSliceType.Kind() != reflect.Slice {
+		err = fmt.Errorf("illegal slice value, slice type:%s", rSliceType.String())
+		return
+	}
+
+	rVal := val.Get().(reflect.Value)
+	rType := rVal.Type()
+	if rSliceType.Elem().String() != rType.String() {
+		err = fmt.Errorf("illegal slice item value, slice type:%s, item type:%s", rSliceType.String(), rType.String())
+		return
+	}
+
+	rSliceVal = reflect.Append(rSliceVal, rVal)
+	if isPtr {
+		rSliceVal = rSliceVal.Addr()
+	}
+
+	ret.Set(rSliceVal)
 	return
 }

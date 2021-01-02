@@ -35,126 +35,47 @@ type Test struct {
 	Base2 BT   `orm:"b2"`
 }
 
-func TestModel(t *testing.T) {
-	now := time.Now()
-
-	test := reflect.ValueOf(Test{})
-	if test.CanSet() {
-		t.Error("invalid value")
-		return
-	}
-
-	ptr := &Test{}
-	test = reflect.ValueOf(ptr)
-	if test.CanSet() {
-		t.Error("invalid value")
-		return
-	}
-
-	test = test.Elem()
-	if !test.CanSet() {
-		t.Error("invalid value")
-		return
-	}
-
-	_, err := getTypeModel(test.Type())
-	if err != nil {
-		t.Errorf("getTypeModel failed, err:%s", err.Error())
-		return
-	}
-
-	testInfo, testErr := getValueModel(test)
-	if testErr != nil {
-		t.Errorf("getValueModel failed, err:%s", testErr.Error())
-		return
-	}
-	fields := testInfo.GetFields()
-	for _, val := range fields {
-		if val.IsAssigned() {
-			t.Errorf("invalid filed,name:%s", val.GetName())
-			return
-		}
-	}
-
-	test = reflect.ValueOf(Test{ID: 10, Val: 123, Base: Base{ID: 12}, Base2: BT{ID: 23}})
-	testInfo, testErr = getValueModel(test)
-	if testErr != nil {
-		t.Errorf("getValueModel failed, err:%s", testErr.Error())
-		return
-	}
-	fields = testInfo.GetFields()
-	for _, val := range fields {
-		if !val.IsAssigned() {
-			t.Errorf("invalid filed,name:%s", val.GetName())
-			return
-		}
-	}
-
-	val := reflect.ValueOf(&Unit{T1: Test{ID: 12, Val: 123}, TimeStamp: now}).Elem()
-	_, err = getTypeModel(val.Type())
-	if err != nil {
-		t.Errorf("getTypeModel failed, err:%s", err.Error())
-		return
-	}
-
-	modelInfo, err := getValueModel(val)
-	if modelInfo == nil || err != nil {
-		t.Errorf("getValueModel failed, err:%s", err.Error())
-		return
-	}
-
-	fields = modelInfo.GetFields()
-	if len(fields) != 5 {
-		t.Errorf("get value Model failed")
-		return
-	}
-
-	modelInfo.Dump()
-}
-
 func TestModelValue(t *testing.T) {
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05", "2018-01-02 15:04:05", time.Local)
 	unit := Unit{Name: "AA", T1: Test{Val: 123}, TimeStamp: now}
 	unitVal := reflect.ValueOf(&unit).Elem()
-	_, err := getTypeModel(unitVal.Type())
-	if err != nil {
-		t.Errorf("getTypeModel failed, err:%s", err.Error())
+	unitInfo, unitErr := getTypeModel(unitVal.Type())
+	if unitErr != nil {
+		t.Errorf("getValueModel failed, unitErr:%s", unitErr.Error())
 		return
 	}
 
-	modelInfo, err := getValueModel(unitVal)
-	if err != nil {
-		t.Errorf("getValueModel failed, err:%s", err.Error())
-		return
-	}
-
-	id := 123320
-	pk := modelInfo.GetPrimaryField()
+	id := int64(123320)
+	iVal := newValue(reflect.ValueOf(id))
+	pk := unitInfo.GetPrimaryField()
 	if pk == nil {
 		t.Errorf("GetPrimaryField faield")
 		return
 	}
-	err = pk.UpdateValue(reflect.ValueOf(id))
-	if err != nil {
-		t.Errorf("Set value failed, err:%s", err.Error())
+	unitErr = pk.SetValue(iVal)
+	if unitErr != nil {
+		t.Errorf("Set value failed, unitErr:%s", unitErr.Error())
 		return
 	}
 
 	name := "abcdfrfe"
-	err = modelInfo.UpdateFieldValue("Name", reflect.ValueOf(name))
-	if err != nil {
-		t.Errorf("UpdateField value failed, err:%s", err.Error())
+	nVal := newValue(reflect.ValueOf(name))
+	unitErr = unitInfo.UpdateFieldValue("Name", nVal)
+	if unitErr != nil {
+		t.Errorf("UpdateField value failed, unitErr:%s", unitErr.Error())
 		return
 	}
 
 	now = time.Now()
-	tsVal := reflect.ValueOf(now)
-	err = modelInfo.UpdateFieldValue("TimeStamp", tsVal)
-	if err != nil {
-		t.Errorf("UpdateField value failed, err:%s", err.Error())
+	tsVal := newValue(reflect.ValueOf(now))
+	unitErr = unitInfo.UpdateFieldValue("TimeStamp", tsVal)
+	if unitErr != nil {
+		t.Errorf("UpdateField value failed, unitErr:%s", unitErr.Error())
 		return
 	}
 
+	uVal := unitInfo.Interface()
+	unit = uVal.Get().(reflect.Value).Interface().(Unit)
 	if unit.ID != int64(id) {
 		t.Errorf("update id field failed")
 		return

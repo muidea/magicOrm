@@ -2,13 +2,11 @@ package remote
 
 import (
 	"fmt"
-	"github.com/muidea/magicOrm/provider/helper"
 	"reflect"
 
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
 )
 
 // Item Item
@@ -31,7 +29,7 @@ func (s *Item) GetName() string {
 	return s.Name
 }
 
-// GetType GetType
+// GetEntityType GetEntityType
 func (s *Item) GetType() (ret model.Type) {
 	if s.Type != nil {
 		ret = s.Type
@@ -48,7 +46,7 @@ func (s *Item) GetTag() (ret model.Tag) {
 	return
 }
 
-// GetValue GetValue
+// GetEntityValue GetEntityValue
 func (s *Item) GetValue() (ret model.Value) {
 	if s.value != nil {
 		ret = s.value
@@ -62,144 +60,61 @@ func (s *Item) IsPrimary() bool {
 	return s.Tag.IsPrimaryKey()
 }
 
-// IsAssigned IsAssigned
-func (s *Item) IsAssigned() (ret bool) {
-	ret = false
-	if s.value == nil {
-		return
-	}
-
-	if s.value.IsNil() {
-		return
-	}
-
-	currentVal := s.value.Get()
-	originVal := s.Type.Interface()
-	currentVal = reflect.Indirect(currentVal)
-	originVal = reflect.Indirect(originVal)
-	if util.IsBasicType(s.Type.GetValue()) {
-		sameVal, sameErr := util.IsSameVal(originVal, currentVal)
-		if sameErr != nil {
-			ret = false
-			return
-		}
-
-		// 值不相等，则可以认为有赋值过
-		ret = !sameVal
-		return
-	}
-
-	if util.IsStructType(s.Type.GetValue()) {
-		// special define objectValue must be ptr
-		//if s.Type.IsPtrType() {
-		//	ret = true
-		//	return
-		//}
-
-		curObj, curOK := currentVal.Interface().(ObjectValue)
-		if !curOK {
-			log.Errorf("illegal item value. val:%v", currentVal.Interface())
-			ret = false
-		} else {
-			ret = curObj.IsAssigned()
-		}
-
-		return
-	}
-
-	if util.IsSliceType(s.Type.GetValue()) {
-		//if s.Type.IsPtrType() {
-		//	ret = true
-		//	return
-		//}
-
-		dependType := s.GetType().Depend()
-		if util.IsStructType(dependType.GetValue()) {
-			curObj, curOK := currentVal.Interface().(SliceObjectValue)
-			if !curOK {
-				log.Errorf("illegal slice item value. val:%v", currentVal.Interface())
-				ret = false
-			} else {
-				ret = len(curObj.Values) > 0
-			}
-
-			return
-		}
-
-		return currentVal.Len() > 0
-	}
-
-	return
-}
-
 // SetValue SetValue
-func (s *Item) SetValue(val reflect.Value) (err error) {
-	if s.value == nil {
-		vVal, vErr := newValue(val)
-		if vErr != nil {
-			err = vErr
-			return
+func (s *Item) SetValue(val model.Value) (err error) {
+	if s.value != nil {
+		err = s.value.Set(val.Get())
+		if err != nil {
+			log.Errorf("set field value failed, name:%s, err:%s", s.Name, err.Error())
 		}
-
-		s.value = vVal
 		return
 	}
 
-	err = s.value.Set(val)
-	if err != nil {
-		log.Errorf("set item value failed, name:%s, err:%s", s.Name, err.Error())
-	}
-
+	s.value = &ValueImpl{value: val.Get()}
 	return
 }
 
 // UpdateValue UpdateValue
-func (s *Item) UpdateValue(val reflect.Value) (err error) {
-	if util.IsNil(val) {
-		err = fmt.Errorf("invalid update value")
-		return
-	}
-
-	toVal := s.Type.Interface()
-
-	dependType := s.Type.Depend()
-	if util.IsBasicType(s.GetType().GetValue()) || util.IsBasicType(dependType.GetValue()) {
-		toVal, err = helper.AssignValue(val, toVal)
-		if err != nil {
-			log.Errorf("assign value failed, name:%s, from type:%s, to type:%s, err:%s", s.Name, val.Type().String(), s.Type.GetName(), err.Error())
-			return
-		}
-
-		err = s.value.Update(toVal)
-		return
-	}
-
-	err = s.value.Update(val)
+func (s *Item) UpdateValue(val model.Value) (err error) {
+	err = s.value.Update(val.Get())
 	if err != nil {
-		log.Errorf("update item value failed, name:%s, err:%s", s.Name, err.Error())
+		log.Errorf("update field value failed, name:%s, err:%s", s.Name, err.Error())
 	}
 
 	return
 }
 
-// Copy Copy
-func (s *Item) Copy() (ret model.Field) {
+// copy copy
+func (s *Item) copy() (ret model.Field) {
 	return &Item{Index: s.Index, Name: s.Name, Tag: s.Tag, Type: s.Type, value: s.value}
 }
 
-// Interface interface value
-func (s *Item) Interface() (ret *ItemValue) {
-	if s.Type.IsPtrType() && s.value == nil {
-		ret = &ItemValue{Name: s.Name, Value: nil}
+func (s *Item) dump() string {
+	str := fmt.Sprintf("index:%d,name:%s,type:[%s],tag:[%s]", s.Index, s.Name, s.Type.dump(), s.Tag.dump())
+	return str
+}
+
+func getItemInfo(idx int, fieldType reflect.StructField) (ret *Item, err error) {
+	typeImpl, typeErr := newType(fieldType.Type)
+	if typeErr != nil {
+		err = typeErr
 		return
 	}
 
-	ret = &ItemValue{Name: s.Name, Value: s.Type.Interface().Interface()}
-	return
-}
+	tagImpl, tagErr := newTag(fieldType.Tag.Get("orm"))
+	if tagErr != nil {
+		err = tagErr
+		return
+	}
 
-func newItem(idx int, name string, iTag *TagImpl, iType *TypeImpl) *Item {
-	return &Item{Index: idx, Name: name, Tag: iTag, Type: iType}
+	item := &Item{}
+	item.Index = idx
+	item.Name = fieldType.Name
+	item.Type = typeImpl
+	item.Tag = tagImpl
+
+	ret = item
+	return
 }
 
 func compareItem(l, r *Item) bool {

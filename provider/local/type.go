@@ -29,6 +29,13 @@ func newType(val reflect.Type) (ret *typeImpl, err error) {
 
 func (s *typeImpl) GetName() string {
 	tType := s.getType()
+	if tType.Kind() == reflect.Slice {
+		tType = tType.Elem()
+	}
+	if tType.Kind() == reflect.Ptr {
+		tType = tType.Elem()
+	}
+
 	return tType.String()
 }
 
@@ -40,6 +47,13 @@ func (s *typeImpl) GetValue() (ret int) {
 
 func (s *typeImpl) GetPkgPath() string {
 	tType := s.getType()
+	if tType.Kind() == reflect.Slice {
+		tType = tType.Elem()
+	}
+	if tType.Kind() == reflect.Ptr {
+		tType = tType.Elem()
+	}
+
 	return tType.PkgPath()
 }
 
@@ -47,14 +61,15 @@ func (s *typeImpl) IsPtrType() bool {
 	return s.typeImpl.Kind() == reflect.Ptr
 }
 
-func (s *typeImpl) Interface() reflect.Value {
+func (s *typeImpl) Interface() (ret model.Value) {
 	tType := s.getType()
 	val := reflect.New(tType)
 	if !s.IsPtrType() {
 		val = val.Elem()
 	}
 
-	return val
+	ret = newValue(val)
+	return
 }
 
 func (s *typeImpl) Elem() model.Type {

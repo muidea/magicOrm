@@ -2,19 +2,15 @@ package orm
 
 import (
 	"fmt"
-	"reflect"
-
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/helper"
-	"github.com/muidea/magicOrm/util"
 )
 
 type resultItems []interface{}
 
-func (s *Orm) queryBatch(elemType model.Type, elemModel model.Model, sliceValue reflect.Value, filter model.Filter) (err error) {
+func (s *Orm) queryBatch(elemModel model.Model, sliceValue model.Value, filter model.Filter) (err error) {
 	var maskModel model.Model
 	if filter != nil {
 		maskModel, err = filter.MaskModel()
@@ -69,15 +65,10 @@ func (s *Orm) queryBatch(elemType model.Type, elemModel model.Model, sliceValue 
 	}
 
 	for idx := 0; idx < len(queryList); idx++ {
-		modelVal := maskModel.Interface()
-		modelVal, err = s.assignSingleModel(modelVal, queryList[idx])
+		modelVal, err := s.assignSingleModel(maskModel.Copy(), queryList[idx])
 		if err != nil {
 			log.Errorf("assignSingle model failed, err:%s", err.Error())
 			return
-		}
-
-		if elemType.IsPtrType() {
-			modelVal = modelVal.Addr()
 		}
 
 		sliceValue, err = s.modelProvider.AppendSliceValue(sliceValue, modelVal)
@@ -90,16 +81,9 @@ func (s *Orm) queryBatch(elemType model.Type, elemModel model.Model, sliceValue 
 	return
 }
 
-func (s *Orm) assignSingleModel(modelVal reflect.Value, queryVal resultItems) (ret reflect.Value, err error) {
-	modelInfo, modelErr := s.modelProvider.GetValueModel(modelVal)
-	if modelErr != nil {
-		err = modelErr
-		log.Errorf("GetValueModel failed, err:%s", err.Error())
-		return
-	}
-
+func (s *Orm) assignSingleModel(modelVal model.Model, queryVal resultItems) (ret model.Value, err error) {
 	offset := 0
-	for _, field := range modelInfo.GetFields() {
+	for _, field := range modelVal.GetFields() {
 		fType := field.GetType()
 		fValue := field.GetValue()
 		if fValue == nil || fValue.IsNil() {
@@ -114,7 +98,7 @@ func (s *Orm) assignSingleModel(modelVal reflect.Value, queryVal resultItems) (r
 		}
 
 		if dependModel != nil {
-			itemVal, itemErr := s.queryRelation(modelInfo, field)
+			itemVal, itemErr := s.queryRelation(modelVal, field)
 			if itemErr != nil {
 				log.Errorf("queryRelation failed, err:%s", itemErr.Error())
 				continue
@@ -126,15 +110,7 @@ func (s *Orm) assignSingleModel(modelVal reflect.Value, queryVal resultItems) (r
 			continue
 		}
 
-		val := s.stripSlashes(fType, queryVal[offset])
-		qVal := reflect.ValueOf(val).Elem()
-		fVal := fType.Interface()
-		fVal, err = helper.AssignValue(qVal, fVal)
-		if err != nil {
-			log.Errorf("assignValue failed, field name:%s, err:%s", field.GetName(), err.Error())
-			return
-		}
-
+		fVal := fType.Interface(s.stripSlashes(fType, queryVal[offset]))
 		err = field.UpdateValue(fVal)
 		if err != nil {
 			log.Errorf("UpdateValue failed, err:%s", err.Error())
@@ -144,33 +120,27 @@ func (s *Orm) assignSingleModel(modelVal reflect.Value, queryVal resultItems) (r
 		offset++
 	}
 
-	ret = modelVal
+	ret = modelVal.Interface()
 	return
 }
 
 // BatchQuery batch query
 func (s *Orm) BatchQuery(sliceEntity interface{}, filter model.Filter) (err error) {
-	sliceEntityVal := reflect.ValueOf(sliceEntity)
-	sliceEntityVal = reflect.Indirect(sliceEntityVal)
-	entityType, entityErr := s.modelProvider.GetEntityType(sliceEntity)
+	entityModel, entityErr := s.modelProvider.GetEntityModel(sliceEntity)
 	if entityErr != nil {
 		err = entityErr
-		return
-	}
-	if !util.IsSliceType(entityType.GetValue()) || !entityType.IsPtrType() {
-		err = fmt.Errorf("illegal entity value")
+		log.Errorf("GetEntityModel failed, err:%s", err.Error())
 		return
 	}
 
-	elemModel, elemErr := s.modelProvider.GetTypeModel(entityType)
-	if elemErr != nil {
-		err = elemErr
-		log.Errorf("GetTypeModel failed, err:%s", err.Error())
+	sliceEntityVal, sliceEntityErr := s.modelProvider.GetEntityValue(sliceEntity)
+	if sliceEntityErr != nil {
+		err = entityErr
+		log.Errorf("GetEntityValue failed, err:%s", err.Error())
 		return
 	}
 
-	elemType := entityType.Elem()
-	queryErr := s.queryBatch(elemType, elemModel, sliceEntityVal, filter)
+	queryErr := s.queryBatch(entityModel, sliceEntityVal, filter)
 	if queryErr != nil {
 		err = queryErr
 		log.Errorf("queryBatch failed, err:%s", err.Error())

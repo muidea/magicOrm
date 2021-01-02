@@ -92,7 +92,7 @@ func (s *Builder) getFieldValue(field model.Field) (ret string, isNil bool, err 
 		return
 	}
 
-	fStr, fErr := s.modelProvider.GetValueStr(fType, fValue)
+	fStr, fErr := s.modelProvider.GetValueStr(fValue)
 	if fErr != nil {
 		err = fErr
 		return

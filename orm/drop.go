@@ -52,16 +52,10 @@ func (s *Orm) dropRelation(modelInfo model.Model, fieldName string, relationInfo
 
 // Drop drop
 func (s *Orm) Drop(entity interface{}) (err error) {
-	entityType, entityErr := s.modelProvider.GetEntityType(entity)
+	entityModel, entityErr := s.modelProvider.GetEntityModel(entity)
 	if entityErr != nil {
 		err = entityErr
-		return
-	}
-
-	entityModel, entityErr := s.modelProvider.GetTypeModel(entityType)
-	if entityErr != nil {
-		err = entityErr
-		log.Errorf("GetTypeModel failed, type name:%s, err:%s", entityType.GetName(), err.Error())
+		log.Errorf("GetEntityModel failed, err:%s", err.Error())
 		return
 	}
 
@@ -78,6 +72,10 @@ func (s *Orm) Drop(entity interface{}) (err error) {
 
 		for _, field := range entityModel.GetFields() {
 			fType := field.GetType()
+			if fType.IsBasic() {
+				continue
+			}
+
 			relationInfo, relationErr := s.modelProvider.GetTypeModel(fType)
 			if relationErr != nil {
 				err = relationErr
@@ -87,8 +85,8 @@ func (s *Orm) Drop(entity interface{}) (err error) {
 				continue
 			}
 
-			dependType := fType.Depend()
-			if !dependType.IsPtrType() {
+			elemType := fType.Elem()
+			if !elemType.IsPtrType() {
 				err = s.dropSingle(relationInfo)
 				if err != nil {
 					break

@@ -5,151 +5,97 @@ import (
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/util"
 
 	log "github.com/cihub/seelog"
 )
 
-// fieldImpl single field impl
-type fieldImpl struct {
-	fieldIndex int
-	fieldName  string
+// field single field impl
+type field struct {
+	Index int
+	Name  string
 
-	fieldType  *typeImpl
-	fieldTag   *tagImpl
-	fieldValue *valueImpl
+	Type  *typeImpl
+	Tag   *tagImpl
+	value *valueImpl
 }
 
-func (s *fieldImpl) GetIndex() int {
-	return s.fieldIndex
+func (s *field) GetIndex() int {
+	return s.Index
 }
 
 // GetName GetName
-func (s *fieldImpl) GetName() string {
-	return s.fieldName
+func (s *field) GetName() string {
+	return s.Name
 }
 
-// GetType GetType
-func (s *fieldImpl) GetType() (ret model.Type) {
-	if s.fieldType != nil {
-		ret = s.fieldType
+// GetEntityType GetEntityType
+func (s *field) GetType() (ret model.Type) {
+	if s.Type != nil {
+		ret = s.Type
 	}
 
 	return
 }
 
 // GetTag GetTag
-func (s *fieldImpl) GetTag() (ret model.Tag) {
-	if s.fieldTag != nil {
-		ret = s.fieldTag
+func (s *field) GetTag() (ret model.Tag) {
+	if s.Tag != nil {
+		ret = s.Tag
 	}
 
 	return
 }
 
-// GetValue GetValue
-func (s *fieldImpl) GetValue() (ret model.Value) {
-	if s.fieldValue != nil {
-		ret = s.fieldValue
+// GetEntityValue GetEntityValue
+func (s *field) GetValue() (ret model.Value) {
+	if s.value != nil {
+		ret = s.value
 	}
 
 	return
 }
 
-func (s *fieldImpl) IsPrimary() bool {
-	return s.fieldTag.IsPrimaryKey()
+func (s *field) IsPrimary() bool {
+	return s.Tag.IsPrimaryKey()
 }
 
-func (s *fieldImpl) IsAssigned() (ret bool) {
-	ret = false
-	if s.fieldValue.IsNil() {
-		return
-	}
-
-	if s.fieldType.IsPtrType() {
-		if util.IsStructType(s.fieldType.GetValue()) {
-			ret = true
-			return
-		}
-
-		if util.IsSliceType(s.fieldType.GetValue()) {
-			val := reflect.Indirect(s.fieldValue.Get())
-			if val.Len() > 0 {
-				return true
-			}
-
-			return false
-		}
-	}
-
-	currentVal := s.fieldValue.Get()
-	originVal := s.fieldType.Interface()
-	sameVal, sameErr := util.IsSameVal(originVal, currentVal)
-	if sameErr != nil {
-		ret = false
-		return
-	}
-	// 值不相等，则可以认为有赋值过
-	ret = !sameVal
-
-	return
-}
-
-func (s *fieldImpl) SetValue(val reflect.Value) (err error) {
-	err = s.fieldValue.Set(val)
+func (s *field) SetValue(val model.Value) (err error) {
+	err = s.value.Set(val.Get())
 	if err != nil {
-		log.Errorf("set field value failed, name:%s, err:%s", s.fieldName, err.Error())
+		log.Errorf("set field value failed, name:%s, err:%s", s.Name, err.Error())
 	}
 
 	return
 }
 
-func (s *fieldImpl) UpdateValue(val reflect.Value) (err error) {
-	if util.IsNil(val) {
-		err = fmt.Errorf("update value is nil")
-		return
-	}
-
-	if s.fieldType.IsBasic() {
-		toVal := s.fieldType.Interface()
-		toVal, err = helper.AssignValue(val, toVal)
-		if err != nil {
-			log.Errorf("assign value failed, name:%s, from type:%s, to type:%s, err:%s", s.fieldName, val.Type().String(), s.fieldType.GetName(), err.Error())
-			return
-		}
-
-		err = s.fieldValue.Update(toVal)
-		return
-	}
-
-	vType, vErr := newType(val.Type())
-	if vErr != nil {
-		err = vErr
-		return
-	}
-
-	if vType.GetName() != s.fieldType.GetName() {
-		err = fmt.Errorf("invalid update value, value type:%s, expect type:%s", vType.GetName(), s.fieldType.GetName())
-		return
-	}
-
-	err = s.fieldValue.Update(val)
+func (s *field) UpdateValue(val model.Value) (err error) {
+	err = s.value.Update(val.Get())
 	if err != nil {
-		log.Errorf("update field value failed, name:%s, err:%s", s.fieldName, err.Error())
+		log.Errorf("update field value failed, name:%s, err:%s", s.Name, err.Error())
 	}
 
 	return
+}
+
+func (s *field) copy() *field {
+	return &field{
+		Index: s.Index,
+		Name:  s.Name,
+		Type:  s.Type.copy(),
+		Tag:   s.Tag.copy(),
+		value: s.value.copy(),
+	}
 }
 
 // verify verify
-func (s *fieldImpl) verify() error {
-	if s.fieldTag.GetName() == "" {
+func (s *field) verify() error {
+	if s.Tag.GetName() == "" {
 		return fmt.Errorf("no define field tag")
 	}
 
-	val := s.fieldType.GetValue()
-	if s.fieldTag.IsAutoIncrement() {
+	val := s.Type.GetValue()
+	if s.Tag.IsAutoIncrement() {
 		switch val {
 		case util.TypeBooleanField,
 			util.TypeStringField,
@@ -158,15 +104,15 @@ func (s *fieldImpl) verify() error {
 			util.TypeDoubleField,
 			util.TypeStructField,
 			util.TypeSliceField:
-			return fmt.Errorf("illegal auto_increment field type, type:%s", s.fieldType.dump())
+			return fmt.Errorf("illegal auto_increment field type, type:%s", s.Type.dump())
 		default:
 		}
 	}
 
-	if s.fieldTag.IsPrimaryKey() {
+	if s.Tag.IsPrimaryKey() {
 		switch val {
 		case util.TypeStructField, util.TypeSliceField:
-			return fmt.Errorf("illegal primary key field type, type:%s", s.fieldType.dump())
+			return fmt.Errorf("illegal primary key field type, type:%s", s.Type.dump())
 		default:
 		}
 	}
@@ -174,23 +120,13 @@ func (s *fieldImpl) verify() error {
 	return nil
 }
 
-func (s *fieldImpl) copy() *fieldImpl {
-	return &fieldImpl{
-		fieldIndex: s.fieldIndex,
-		fieldName:  s.fieldName,
-		fieldType:  s.fieldType.copy(),
-		fieldTag:   s.fieldTag.copy(),
-		fieldValue: s.fieldValue.copy(),
-	}
-}
-
-// Dump Dump
-func (s *fieldImpl) dump() string {
-	str := fmt.Sprintf("index:%d,name:%s,type:[%s],tag:[%s]", s.fieldIndex, s.fieldName, s.fieldType.dump(), s.fieldTag.dump())
+// dump dump
+func (s *field) dump() string {
+	str := fmt.Sprintf("index:%d,name:%s,type:[%s],tag:[%s]", s.Index, s.Name, s.Type.dump(), s.Tag.dump())
 	return str
 }
 
-func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Value) (ret *fieldImpl, err error) {
+func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Value) (ret *field, err error) {
 	typeImpl, typeErr := newType(fieldType.Type)
 	if typeErr != nil {
 		err = typeErr
@@ -203,18 +139,14 @@ func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Val
 		return
 	}
 
-	valueImpl, valueErr := newValue(fieldValue)
-	if valueErr != nil {
-		err = valueErr
-		return
-	}
+	valueImpl := newValue(fieldValue)
 
-	field := &fieldImpl{}
-	field.fieldIndex = idx
-	field.fieldName = fieldType.Name
-	field.fieldType = typeImpl
-	field.fieldTag = tagImpl
-	field.fieldValue = valueImpl
+	field := &field{}
+	field.Index = idx
+	field.Name = fieldType.Name
+	field.Type = typeImpl
+	field.Tag = tagImpl
+	field.value = valueImpl
 
 	err = field.verify()
 	if err != nil {

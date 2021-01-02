@@ -6,20 +6,12 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
-func (s *Orm) isCommonType(fType model.Type) bool {
-	if fType.Depend() == nil {
-		return true
-	}
-
-	return util.IsBasicType(fType.Depend().GetValue())
-}
-
 func (s *Orm) getModelItems(modelInfo model.Model, builder builder.Builder) (ret []interface{}, err error) {
 	var items []interface{}
 	fields := modelInfo.GetFields()
 	for _, item := range fields {
 		fType := item.GetType()
-		if !s.isCommonType(fType) {
+		if !fType.IsBasic() {
 			continue
 		}
 
@@ -46,13 +38,9 @@ func (s *Orm) needStripSlashes(fType model.Type) bool {
 		return true
 	}
 
-	dependType := fType.Depend()
-	if dependType == nil {
+	if !util.IsSliceType(fType.GetValue()) {
 		return false
 	}
-	if s.isCommonType(dependType) {
-		return true
-	}
 
-	return false
+	return fType.IsBasic()
 }

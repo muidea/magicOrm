@@ -2,8 +2,6 @@ package orm
 
 import (
 	"fmt"
-	"reflect"
-
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/builder"
@@ -43,23 +41,17 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 			return
 		}
 
-		idx := 0
-		for _, item := range modelInfo.GetFields() {
+		for idx, item := range modelInfo.GetFields() {
 			fType := item.GetType()
-			fValue := item.GetValue()
-			if !s.isCommonType(fType) {
+			if !fType.IsBasic() {
 				continue
 			}
 
-			if fValue != nil && !fValue.IsNil() {
-				val := s.stripSlashes(fType, items[idx])
-				err = item.UpdateValue(reflect.ValueOf(val).Elem())
-				if err != nil {
-					return
-				}
+			vVal := fType.Interface(s.stripSlashes(fType, items[idx]))
+			err = item.UpdateValue(vVal)
+			if err != nil {
+				return
 			}
-
-			idx++
 		}
 	}()
 	if err != nil {
@@ -68,8 +60,7 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 
 	for _, item := range modelInfo.GetFields() {
 		fType := item.GetType()
-		fValue := item.GetValue()
-		if s.isCommonType(fType) || fValue == nil || fValue.IsNil() {
+		if fType.IsBasic() {
 			continue
 		}
 
@@ -78,9 +69,6 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 			err = itemErr
 			log.Errorf("queryRelation failed, modelName:%s, fieldName:%s, err:%s", modelInfo.GetName(), item.GetName(), err.Error())
 			return
-		}
-		if util.IsNil(itemVal) {
-			continue
 		}
 
 		itemErr = item.UpdateValue(itemVal)
@@ -108,7 +96,7 @@ func (s *Orm) stripSlashes(fType model.Type, val interface{}) interface{} {
 	return &strVal
 }
 
-func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret reflect.Value, err error) {
+func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret model.Value, err error) {
 	fieldType := fieldInfo.GetType()
 	fieldModel, fieldErr := s.modelProvider.GetTypeModel(fieldType)
 	if fieldErr != nil || fieldModel == nil {
@@ -152,8 +140,8 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 
 	if util.IsStructType(fieldType.GetValue()) {
 		if len(values) > 0 {
-			relationVal := reflect.Indirect(fieldModel.Interface())
-			relationInfo, relationErr := s.modelProvider.GetValueModel(relationVal)
+			relationVal := fieldModel.Interface()
+			relationInfo, relationErr := s.modelProvider.GetValueModel(relationVal, fieldType)
 			if relationErr != nil {
 				err = relationErr
 				log.Errorf("GetValueModel failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
@@ -161,7 +149,8 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 			}
 
 			pkField := relationInfo.GetPrimaryField()
-			err = pkField.UpdateValue(reflect.ValueOf(values[0]))
+			pkVal := pkField.GetType().Interface(values[0])
+			err = pkField.UpdateValue(pkVal)
 			if err != nil {
 				log.Errorf("UpdateFieldValue pkField failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
 				return
@@ -179,11 +168,10 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 			}
 		}
 	} else if util.IsSliceType(fieldType.GetValue()) {
-		dependType := fieldType.Depend()
-		relationVal := reflect.Indirect(fieldType.Interface())
+		relationVal := fieldType.Interface(nil)
 		for _, item := range values {
 			itemVal := fieldModel.Interface()
-			itemInfo, itemErr := s.modelProvider.GetValueModel(itemVal)
+			itemInfo, itemErr := s.modelProvider.GetValueModel(itemVal, fieldType.Elem())
 			if itemErr != nil {
 				log.Errorf("GetValueModel failed, err:%s", itemErr.Error())
 				err = itemErr
@@ -191,7 +179,8 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 			}
 
 			pkField := itemInfo.GetPrimaryField()
-			err = pkField.UpdateValue(reflect.ValueOf(item))
+			pkVal := pkField.GetType().Interface(item)
+			err = pkField.UpdateValue(pkVal)
 			if err != nil {
 				log.Errorf("UpdateValue failed, err:%s", err.Error())
 				return
@@ -201,10 +190,6 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret r
 			if err != nil {
 				log.Errorf("querySingle for slice failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
 				return
-			}
-
-			if dependType.IsPtrType() {
-				itemVal = itemVal.Addr()
 			}
 
 			relationVal, err = s.modelProvider.AppendSliceValue(relationVal, itemVal)

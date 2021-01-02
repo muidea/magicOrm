@@ -5,16 +5,12 @@ import (
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
 )
 
-// EncodeBoolValue get bool value str
-func EncodeBoolValue(val reflect.Value) (ret string, err error) {
+// encodeBoolValue get bool value str
+func (s *impl) encodeBoolValue(vVal model.Value) (ret string, err error) {
+	val := vVal.Get().(reflect.Value)
 	val = reflect.Indirect(val)
-	if val.Kind() == reflect.Interface {
-		val = val.Elem()
-	}
-
 	switch val.Kind() {
 	case reflect.Bool:
 		if val.Bool() {
@@ -23,30 +19,28 @@ func EncodeBoolValue(val reflect.Value) (ret string, err error) {
 			ret = "0"
 		}
 	default:
-		err = fmt.Errorf("illegal value, type:%s", val.Type().String())
+		err = fmt.Errorf("illegal boolean value, type:%s", val.Type().String())
 	}
 
 	return
 }
 
-// DecodeBoolValue decode bool from string
-func DecodeBoolValue(val string, vType model.Type) (ret reflect.Value, err error) {
-	tVal := vType.GetValue()
-	switch tVal {
-	case util.TypeBooleanField:
+// decodeBoolValue decode bool from string
+func (s *impl) decodeBoolValue(val string) (ret model.Value, err error) {
+	bVal := false
+	switch val {
+	case "1":
+		bVal = true
+	case "0":
+		bVal = false
 	default:
-		err = fmt.Errorf("illegal bool value type")
+		err = fmt.Errorf("illegal boolean value, val:%s", val)
+	}
+
+	if err != nil {
 		return
 	}
 
-	ret = reflect.Indirect(vType.Interface())
-	ret, err = AssignValue(reflect.ValueOf(val), ret)
-
-	if err != nil {
-		if vType.IsPtrType() {
-			ret = ret.Addr()
-		}
-	}
-
+	ret = s.getValue(reflect.ValueOf(&bVal).Elem())
 	return
 }

@@ -2,15 +2,11 @@ package provider
 
 import (
 	"fmt"
-	"log"
-	"reflect"
-	"strings"
-
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/provider/local"
 	"github.com/muidea/magicOrm/provider/remote"
-	"github.com/muidea/magicOrm/util"
+	"reflect"
 )
 
 // Provider model provider
@@ -21,17 +17,21 @@ type Provider interface {
 
 	GetEntityType(entity interface{}) (ret model.Type, err error)
 
+	GetEntityValue(entity interface{}) (ret model.Value, err error)
+
 	GetEntityModel(entity interface{}) (ret model.Model, err error)
 
-	GetValueModel(val reflect.Value) (ret model.Model, err error)
+	GetValueModel(vVal model.Value, vType model.Type) (ret model.Model, err error)
 
 	GetTypeModel(vType model.Type) (ret model.Model, err error)
 
-	GetValueStr(vType model.Type, vVal model.Value) (ret string, err error)
+	GetValueStr(vVal model.Value, vType model.Type) (ret string, err error)
 
-	ElemDependValue(val reflect.Value) (ret []reflect.Value, err error)
+	ElemDependValue(val model.Value) (ret []model.Value, err error)
 
-	AppendSliceValue(sliceVal reflect.Value, val reflect.Value) (ret reflect.Value, err error)
+	AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, err error)
+
+	IsAssigned(vVal model.Value, vType model.Type) bool
 
 	Owner() string
 
@@ -41,30 +41,30 @@ type Provider interface {
 type providerImpl struct {
 	owner string
 
-	localProvider bool
-	modelCache    model.Cache
+	modelCache model.Cache
+	helper     helper.Helper
 
-	getTypeFunc          func(reflect.Value) (model.Type, error)
-	getModelFunc         func(reflect.Value) (model.Model, error)
-	setModelValueFunc    func(model.Model, reflect.Value) (model.Model, error)
-	elemDependValueFunc  func(model.Type, reflect.Value) ([]reflect.Value, error)
-	appendSliceValueFunc func(reflect.Value, reflect.Value) (reflect.Value, error)
+	getTypeFunc          func(interface{}) (model.Type, error)
+	getValueFunc         func(interface{}) (model.Value, error)
+	getModelFunc         func(interface{}) (model.Model, error)
+	setModelValueFunc    func(model.Model, model.Value) (model.Model, error)
+	elemDependValueFunc  func(model.Value) ([]model.Value, error)
+	appendSliceValueFunc func(model.Value, model.Value) (model.Value, error)
 }
 
 // RegisterModel RegisterObjectModel
 func (s *providerImpl) RegisterModel(entity interface{}) (ret model.Model, err error) {
-	entityValue := reflect.ValueOf(entity)
-	modelType, modelErr := s.getTypeFunc(entityValue)
+	modelType, modelErr := s.getTypeFunc(entity)
 	if modelErr != nil {
 		err = modelErr
 		return
 	}
-	modelType = modelType.Depend()
-	if modelType == nil {
-		err = fmt.Errorf("illegal entity, must be a struct or slice struct")
+	if modelType.IsBasic() {
+		err = fmt.Errorf("illegal entity model, name:%s", modelType.GetName())
 		return
 	}
 
+	modelType = modelType.Elem()
 	curModel := s.modelCache.Fetch(modelType.GetName())
 	if curModel != nil {
 		if curModel.GetPkgPath() == modelType.GetPkgPath() {
@@ -76,7 +76,7 @@ func (s *providerImpl) RegisterModel(entity interface{}) (ret model.Model, err e
 		return
 	}
 
-	entityModel, entityErr := s.getModelFunc(entityValue)
+	entityModel, entityErr := s.getModelFunc(entity)
 	if entityErr != nil {
 		err = entityErr
 		return
@@ -89,16 +89,15 @@ func (s *providerImpl) RegisterModel(entity interface{}) (ret model.Model, err e
 
 // UnregisterModel register model
 func (s *providerImpl) UnregisterModel(entity interface{}) {
-	entityValue := reflect.ValueOf(entity)
-	modelType, modelErr := s.getTypeFunc(entityValue)
+	modelType, modelErr := s.getTypeFunc(entity)
 	if modelErr != nil {
 		return
 	}
-	modelType = modelType.Depend()
-	if modelType == nil {
+	if modelType.IsBasic() {
 		return
 	}
 
+	modelType = modelType.Elem()
 	curModel := s.modelCache.Fetch(modelType.GetName())
 	if curModel != nil {
 		if curModel.GetPkgPath() != modelType.GetPkgPath() {
@@ -111,47 +110,27 @@ func (s *providerImpl) UnregisterModel(entity interface{}) {
 }
 
 func (s *providerImpl) GetEntityType(entity interface{}) (ret model.Type, err error) {
-	entityVal := reflect.ValueOf(entity)
-	if util.IsNil(entityVal) {
-		err = fmt.Errorf("illegal entity, nil value point")
-		return
-	}
-	entityType, entityErr := s.getTypeFunc(entityVal)
-	if entityErr != nil {
-		err = entityErr
-		return
-	}
+	ret, err = s.getTypeFunc(entity)
+	return
+}
 
-	ret = entityType
+func (s *providerImpl) GetEntityValue(entity interface{}) (ret model.Value, err error) {
+	ret, err = s.getValueFunc(entity)
 	return
 }
 
 // GetEntityModel GetEntityModel
 func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err error) {
-	entityVal := reflect.ValueOf(entity)
-	if entityVal.Kind() != reflect.Ptr {
-		err = fmt.Errorf("illegal entity, must be value ptr")
-		return
-	}
-	if util.IsNil(entityVal) {
-		err = fmt.Errorf("illegal entity, nil value point")
-		return
-	}
-	entityVal = reflect.Indirect(entityVal)
-	entityType, entityErr := s.getTypeFunc(entityVal)
-	if entityErr != nil || !util.IsStructType(entityType.GetValue()) {
-		err = fmt.Errorf("illegal entity, must be struct value")
-		return
-	}
-	if !entityVal.CanSet() {
-		err = fmt.Errorf("illegal entity value, read only value")
+	entityType, entityErr := s.getTypeFunc(entity)
+	if entityErr != nil || entityType.IsBasic() {
+		err = fmt.Errorf("illegal entity, must be struct entity")
 		return
 	}
 
 	// must check if register already
 	entityModel := s.modelCache.Fetch(entityType.GetName())
 	if entityModel == nil {
-		err = fmt.Errorf("can't fetch entity model, must register entity first")
+		err = fmt.Errorf("can't fetch entity model, must register entity first, entity Name:%s", entityType.GetName())
 		return
 	}
 
@@ -160,23 +139,18 @@ func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err 
 		return
 	}
 
-	ret, err = s.setModelValueFunc(entityModel.Copy(), entityVal)
+	entityValue, entityErr := s.getValueFunc(entity)
+	if entityErr != nil {
+		err = entityErr
+		return
+	}
+
+	ret, err = s.setModelValueFunc(entityModel.Copy(), entityValue)
 	return
 }
 
 // GetValueModel GetValueModel
-func (s *providerImpl) GetValueModel(vVal reflect.Value) (ret model.Model, err error) {
-	vType, vErr := s.getTypeFunc(vVal)
-	if vErr != nil {
-		err = vErr
-		return
-	}
-
-	vType = vType.Depend()
-	if util.IsBasicType(vType.GetValue()) {
-		return
-	}
-
+func (s *providerImpl) GetValueModel(vVal model.Value, vType model.Type) (ret model.Model, err error) {
 	typeModel := s.modelCache.Fetch(vType.GetName())
 	if typeModel == nil {
 		err = fmt.Errorf("can't fetch type model, must register type entity first")
@@ -193,17 +167,13 @@ func (s *providerImpl) GetValueModel(vVal reflect.Value) (ret model.Model, err e
 
 // GetTypeModel GetTypeModel
 func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err error) {
-	vType = vType.Depend()
-	if vType == nil {
+	if vType.IsBasic() {
 		return
 	}
-	if !util.IsStructType(vType.GetValue()) {
-		return
-	}
-
+	vType = vType.Elem()
 	typeModel := s.modelCache.Fetch(vType.GetName())
 	if typeModel == nil {
-		err = fmt.Errorf("can't fetch type model, must register type entity first")
+		err = fmt.Errorf("can't fetch type model, must register type entity first, name:%s", vType.GetName())
 		return
 	}
 	if typeModel.GetPkgPath() != vType.GetPkgPath() {
@@ -216,66 +186,42 @@ func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err erro
 }
 
 // GetValueStr GetValueStr
-func (s *providerImpl) GetValueStr(vType model.Type, vVal model.Value) (ret string, err error) {
+func (s *providerImpl) GetValueStr(vVal model.Value, vType model.Type) (ret string, err error) {
+	ret, err = s.helper.Encode(vVal, vType)
+	return
+}
+
+// GetValueDepend GetEntityValue depend values
+func (s *providerImpl) ElemDependValue(val model.Value) (ret []model.Value, err error) {
+	ret, err = s.elemDependValueFunc(val)
+	return
+}
+
+func (s *providerImpl) AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, err error) {
+	ret, err = s.appendSliceValueFunc(sliceVal, val)
+	return
+}
+
+func (s *providerImpl) IsAssigned(vVal model.Value, vType model.Type) (ret bool) {
 	if vVal.IsNil() {
+		ret = false
 		return
 	}
 
-	if util.IsBasicType(vType.GetValue()) {
-		ret, err = getBasicValue(vType, vVal.Get())
+	curVal := vVal
+	originVal := vType.Interface()
+	curStr, curErr := s.helper.Encode(curVal, vType)
+	if curErr != nil {
+		ret = false
 		return
 	}
-
-	if util.IsStructType(vType.GetValue()) {
-		ret, err = s.getStructValue(vType, vVal)
-		return
+	originStr, originErr := s.helper.Encode(originVal, vType)
+	if originErr != nil {
+		ret = false
 	}
 
-	dType := vType.Depend()
-	if util.IsBasicType(dType.GetValue()) {
-		sliceStr, sliceErr := helper.EncodeSliceValue(vVal.Get())
-		if sliceErr != nil {
-			err = sliceErr
-			return
-		}
-
-		ret = fmt.Sprintf("'%s'", util.AddSlashes(sliceStr))
-		return
-	}
-
-	ret, err = s.getSliceStructValue(vType, vVal)
+	ret = curStr != originStr
 	return
-}
-
-// GetValueDepend GetValue depend values
-func (s *providerImpl) ElemDependValue(val reflect.Value) (ret []reflect.Value, err error) {
-	vType, vErr := s.getTypeFunc(val)
-	if vErr != nil {
-		err = vErr
-		return
-	}
-	if vType.Depend() == nil {
-		return
-	}
-
-	vDependType := vType.Depend()
-	typeModel := s.modelCache.Fetch(vDependType.GetName())
-	if typeModel == nil {
-		err = fmt.Errorf("can't fetch type model, must register type entity first")
-		return
-	}
-	if typeModel.GetPkgPath() != vDependType.GetPkgPath() {
-		err = fmt.Errorf("illegal object entity, must register entity first")
-		return
-	}
-
-	val = reflect.Indirect(val)
-	ret, err = s.elemDependValueFunc(vType, val)
-	return
-}
-
-func (s *providerImpl) AppendSliceValue(sliceVal reflect.Value, val reflect.Value) (ret reflect.Value, err error) {
-	return s.appendSliceValueFunc(sliceVal, val)
 }
 
 // Owner owner
@@ -288,115 +234,41 @@ func (s *providerImpl) Reset() {
 	s.modelCache.Reset()
 }
 
-func (s *providerImpl) getStructValue(vType model.Type, vVal model.Value) (ret string, err error) {
-	typeModel, typeErr := s.GetValueModel(vVal.Get())
-	if typeErr != nil {
-		err = typeErr
-		return
-	}
-
-	pkField := typeModel.GetPrimaryField()
-	return getBasicValue(pkField.GetType(), pkField.GetValue().Get())
-}
-
-func (s *providerImpl) getSliceStructValue(vType model.Type, vVal model.Value) (ret string, err error) {
-	typeModel, typeErr := s.GetTypeModel(vType)
-	if typeErr != nil {
-		err = typeErr
-		return
-	}
-
-	val := reflect.Indirect(vVal.Get())
-	sliceVal, sliceErr := s.elemDependValueFunc(vType, val)
-	if sliceErr != nil {
-		err = sliceErr
-		return
-	}
-
-	var sliceStrVal []string
-	for idx := 0; idx < len(sliceVal); idx++ {
-		vModel, vErr := s.setModelValueFunc(typeModel, sliceVal[idx])
-		if vErr != nil {
-			err = vErr
-			return
-		}
-
-		pkField := vModel.GetPrimaryField()
-		strVal, strErr := getBasicValue(pkField.GetType(), pkField.GetValue().Get())
-		if strErr != nil {
-			err = strErr
-			log.Printf("getStructValue failed, err:%s", err.Error())
-			return
-		}
-
-		sliceStrVal = append(sliceStrVal, strVal)
-	}
-
-	ret = strings.Join(sliceStrVal, ",")
-	return
-}
-
-func getBasicValue(vType model.Type, val reflect.Value) (ret string, err error) {
-	if util.IsNil(val) {
-		return
-	}
-
-	switch vType.GetValue() {
-	case util.TypeBooleanField:
-		ret, err = helper.EncodeBoolValue(val)
-	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeBigIntegerField, util.TypeIntegerField:
-		ret, err = helper.EncodeIntValue(val)
-	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveBigIntegerField, util.TypePositiveIntegerField:
-		ret, err = helper.EncodeUintValue(val)
-	case util.TypeFloatField, util.TypeDoubleField:
-		ret, err = helper.EncodeFloatValue(val)
-	case util.TypeStringField:
-		strRet, strErr := helper.EncodeStringValue(val)
-		if strErr != nil {
-			err = strErr
-			return
-		}
-
-		ret = fmt.Sprintf("'%s'", util.AddSlashes(strRet))
-	case util.TypeDateTimeField:
-		strRet, strErr := helper.EncodeDateTimeValue(val)
-		if strErr != nil {
-			err = strErr
-			return
-		}
-
-		ret = fmt.Sprintf("'%s'", util.AddSlashes(strRet))
-	default:
-		err = fmt.Errorf("illegal value kind, type name:%v", vType.GetName())
-	}
-
+func (s *providerImpl) GetValue(val reflect.Value) (ret model.Value) {
 	return
 }
 
 // NewLocalProvider model provider
 func NewLocalProvider(owner string) Provider {
-	return &providerImpl{
+	ret := &providerImpl{
 		owner:                owner,
-		localProvider:        true,
 		modelCache:           model.NewCache(),
-		getTypeFunc:          local.GetType,
-		getModelFunc:         local.GetModel,
-		setModelValueFunc:    local.SetModel,
+		getTypeFunc:          local.GetEntityType,
+		getValueFunc:         local.GetEntityValue,
+		getModelFunc:         local.GetEntityModel,
+		setModelValueFunc:    local.SetModelValue,
 		elemDependValueFunc:  local.ElemDependValue,
 		appendSliceValueFunc: local.AppendSliceValue,
 	}
+
+	ret.helper = helper.New(ret.GetValue, ret.GetValueModel)
+	return ret
 }
 
 // NewRemoteProvider model provider
 func NewRemoteProvider(owner string) Provider {
-	return &providerImpl{
+	ret := &providerImpl{
 		owner:                owner,
-		localProvider:        false,
 		modelCache:           model.NewCache(),
-		getTypeFunc:          remote.GetType,
-		getModelFunc:         remote.GetModel,
-		setModelValueFunc:    remote.SetModel,
+		getTypeFunc:          remote.GetEntityType,
+		getValueFunc:         remote.GetEntityValue,
+		getModelFunc:         remote.GetEntityModel,
+		setModelValueFunc:    remote.SetModelValue,
 		elemDependValueFunc:  remote.ElemDependValue,
 		appendSliceValueFunc: remote.AppendSliceValue,
 	}
+
+	ret.helper = helper.New(ret.GetValue, ret.GetValueModel)
+
+	return ret
 }

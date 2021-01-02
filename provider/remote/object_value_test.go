@@ -81,7 +81,7 @@ func TestExtObjValue(t *testing.T) {
 func TestUpdateExtObjValue(t *testing.T) {
 	desc := "obj_desc"
 	obj := Simple{Name: "obj", Desc: &desc, Add: []int{12, 223, 456}}
-	ext1 := &ExtInfo{}
+	ext1 := &ExtInfo{ObjArray: []*Simple{}}
 	ext2 := &ExtInfo{Name: "extObj", Obj: obj, ObjArray: []*Simple{&obj, &obj}}
 
 	objVal, objErr := GetObjectValue(ext2)

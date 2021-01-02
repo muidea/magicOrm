@@ -1,8 +1,6 @@
 package orm
 
 import (
-	"reflect"
-
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/builder"
@@ -47,12 +45,10 @@ func (s *Orm) updateRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 
 // Update update
 func (s *Orm) Update(entity interface{}) (err error) {
-	entityVal := reflect.ValueOf(entity)
-	entityVal = reflect.Indirect(entityVal)
-	entityModel, entityErr := s.modelProvider.GetValueModel(entityVal)
+	entityModel, entityErr := s.modelProvider.GetEntityModel(entity)
 	if entityErr != nil {
 		err = entityErr
-		log.Errorf("GetValueModel failed, err:%s", err.Error())
+		log.Errorf("GetEntityModel failed, err:%s", err.Error())
 		return
 	}
 

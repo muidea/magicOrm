@@ -37,16 +37,10 @@ func (s *Orm) queryCount(modelInfo model.Model, filter model.Filter) (ret int64,
 
 // Count count entity
 func (s *Orm) Count(entity interface{}, filter model.Filter) (ret int64, err error) {
-	entityType, entityErr := s.modelProvider.GetEntityType(entity)
+	entityModel, entityErr := s.modelProvider.GetEntityModel(entity)
 	if entityErr != nil {
 		err = entityErr
-		return
-	}
-
-	entityModel, entityErr := s.modelProvider.GetTypeModel(entityType)
-	if entityErr != nil {
-		err = entityErr
-		log.Errorf("GetTypeModel failed, err:%s", err.Error())
+		log.Errorf("GetEntityModel failed, err:%s", err.Error())
 		return
 	}
 

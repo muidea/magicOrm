@@ -1,9 +1,5 @@
 package model
 
-import (
-	"reflect"
-)
-
 // Field Field
 type Field interface {
 	//@GetIndex Index
@@ -18,17 +14,16 @@ type Field interface {
 	GetValue() Value
 	//@IsPrimary 是否主键
 	IsPrimary() bool
-	//@IsAssigned 是否已赋值
-	IsAssigned() bool
+	//@SetValue 设置值
+	SetValue(val Value) error
 	//@UpdateValue 更新值
-	UpdateValue(val reflect.Value) error
+	UpdateValue(val Value) error
 }
 
 func CompareField(l, r Field) bool {
 	return l.GetIndex() == r.GetIndex() &&
 		l.GetName() == r.GetName() &&
 		l.IsPrimary() == r.IsPrimary() &&
-		l.IsAssigned() == r.IsAssigned() &&
 		CompareType(l.GetType(), r.GetType()) &&
 		CompareTag(l.GetTag(), r.GetTag()) &&
 		CompareValue(l.GetValue(), r.GetValue())

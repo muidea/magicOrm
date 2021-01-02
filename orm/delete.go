@@ -2,8 +2,6 @@ package orm
 
 import (
 	"fmt"
-	"reflect"
-
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/builder"
@@ -49,13 +47,12 @@ func (s *Orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 		return
 	}
 
-	dependType := fType.Depend()
-	if !dependType.IsPtrType() {
+	elemType := fType.Elem()
+	if !elemType.IsPtrType() {
 		fieldVal, fieldErr := s.queryRelation(modelInfo, fieldInfo)
-		fieldVal = reflect.Indirect(fieldVal)
-		if fieldErr == nil && !util.IsNil(fieldVal) {
+		if fieldErr == nil && !fieldVal.IsNil() {
 			if util.IsStructType(fType.GetValue()) {
-				relationModel, relationErr := s.modelProvider.GetValueModel(fieldVal)
+				relationModel, relationErr := s.modelProvider.GetValueModel(fieldVal, fType)
 				if relationErr != nil {
 					err = relationErr
 					return
@@ -79,7 +76,7 @@ func (s *Orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 					return
 				}
 				for idx := 0; idx < len(elemVals); idx++ {
-					relationModel, relationErr := s.modelProvider.GetValueModel(elemVals[idx])
+					relationModel, relationErr := s.modelProvider.GetValueModel(elemVals[idx], fType)
 					if relationErr != nil {
 						err = relationErr
 						return
@@ -113,12 +110,10 @@ func (s *Orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 
 // Delete delete
 func (s *Orm) Delete(entity interface{}) (err error) {
-	entityVal := reflect.ValueOf(entity)
-	entityVal = reflect.Indirect(entityVal)
-	entityModel, entityErr := s.modelProvider.GetValueModel(entityVal)
+	entityModel, entityErr := s.modelProvider.GetEntityModel(entity)
 	if entityErr != nil {
 		err = entityErr
-		log.Errorf("GetValueModel failed, err:%s", err.Error())
+		log.Errorf("GetEntityModel failed, err:%s", err.Error())
 		return
 	}
 

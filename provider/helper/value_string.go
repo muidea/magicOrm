@@ -2,47 +2,26 @@ package helper
 
 import (
 	"fmt"
-	"reflect"
-
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
+	"reflect"
 )
 
-// EncodeStringValue get string value str
-func EncodeStringValue(val reflect.Value) (ret string, err error) {
+// encodeStringValue get string value str
+func (s *impl) encodeStringValue(vVal model.Value) (ret string, err error) {
+	val := vVal.Get().(reflect.Value)
 	val = reflect.Indirect(val)
-	if val.Kind() == reflect.Interface {
-		val = val.Elem()
-	}
-
 	switch val.Kind() {
 	case reflect.String:
-		ret = fmt.Sprintf("%s", val.String())
+		ret = val.String()
 	default:
-		err = fmt.Errorf("illegal value, type:%s", val.Type().String())
+		err = fmt.Errorf("illegal string value, type:%s", val.Type().String())
 	}
 
 	return
 }
 
-//DecodeStringValue decode string from string
-func DecodeStringValue(val string, vType model.Type) (ret reflect.Value, err error) {
-	tVal := vType.GetValue()
-	switch tVal {
-	case util.TypeStringField:
-	default:
-		err = fmt.Errorf("illegal string value type")
-		return
-	}
-
-	ret = reflect.Indirect(vType.Interface())
-	ret, err = AssignValue(reflect.ValueOf(val), ret)
-
-	if err != nil {
-		if vType.IsPtrType() {
-			ret = ret.Addr()
-		}
-	}
-
+//decodeStringValue decode string from string
+func (s *impl) decodeStringValue(val string) (ret model.Value, err error) {
+	ret = s.getValue(reflect.ValueOf(&val).Elem())
 	return
 }

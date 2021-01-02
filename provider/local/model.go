@@ -6,12 +6,13 @@ import (
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/util"
 )
 
 // modelImpl single model
 type modelImpl struct {
 	modelType reflect.Type
-	fields    []*fieldImpl
+	fields    []*field
 }
 
 func (s *modelImpl) GetName() string {
@@ -33,7 +34,7 @@ func (s *modelImpl) GetFields() (ret model.Fields) {
 }
 
 // SetFieldValue SetFieldValue
-func (s *modelImpl) SetFieldValue(idx int, val reflect.Value) (err error) {
+func (s *modelImpl) SetFieldValue(idx int, val model.Value) (err error) {
 	for _, field := range s.fields {
 		if field.GetIndex() == idx {
 			err = field.SetValue(val)
@@ -46,7 +47,7 @@ func (s *modelImpl) SetFieldValue(idx int, val reflect.Value) (err error) {
 }
 
 // UpdateFieldValue UpdateFieldValue
-func (s *modelImpl) UpdateFieldValue(name string, val reflect.Value) (err error) {
+func (s *modelImpl) UpdateFieldValue(name string, val model.Value) (err error) {
 	for _, field := range s.fields {
 		if field.GetName() == name {
 			err = field.UpdateValue(val)
@@ -70,24 +71,24 @@ func (s *modelImpl) GetPrimaryField() (ret model.Field) {
 	return
 }
 
-func (s *modelImpl) Interface() reflect.Value {
+func (s *modelImpl) Interface() (ret model.Value) {
 	retVal := reflect.New(s.modelType).Elem()
 
-	for _, val := range s.fields {
-		tType := val.GetType()
-		tVal := val.GetValue()
-		if tType.IsPtrType() && tVal.IsNil() {
+	for _, field := range s.fields {
+		tVal := field.GetValue()
+		if tVal.IsNil() {
 			continue
 		}
 
-		retVal.FieldByName(val.GetName()).Set(tType.Interface())
+		retVal.FieldByName(field.GetName()).Set(tVal.Get().(reflect.Value))
 	}
 
-	return retVal
+	ret = newValue(retVal)
+	return
 }
 
 func (s *modelImpl) Copy() model.Model {
-	modelInfo := &modelImpl{modelType: s.modelType, fields: []*fieldImpl{}}
+	modelInfo := &modelImpl{modelType: s.modelType, fields: []*field{}}
 	for _, field := range s.fields {
 		modelInfo.fields = append(modelInfo.fields, field.copy())
 	}
@@ -108,13 +109,23 @@ func (s *modelImpl) Dump() (ret string) {
 	return
 }
 
-func getTypeModel(entityType reflect.Type) (ret model.Model, err error) {
+func getTypeModel(entityType reflect.Type) (ret *modelImpl, err error) {
 	if entityType.Kind() == reflect.Ptr {
 		entityType = entityType.Elem()
 	}
 
+	typeImpl, typeErr := newType(entityType)
+	if typeErr != nil {
+		err = fmt.Errorf("illegal type, must be a struct entity, type:%s", entityType.String())
+		return
+	}
+	if typeImpl.GetValue() != util.TypeStructField {
+		err = fmt.Errorf("illegal type, must be a struct entity, type:%s", entityType.String())
+		return
+	}
+
 	hasPrimaryKey := false
-	impl := &modelImpl{modelType: entityType, fields: make([]*fieldImpl, 0)}
+	impl := &modelImpl{modelType: entityType, fields: make([]*field, 0)}
 	fieldNum := entityType.NumField()
 	var fieldValue reflect.Value
 	for idx := 0; idx < fieldNum; idx++ {
@@ -135,9 +146,7 @@ func getTypeModel(entityType reflect.Type) (ret model.Model, err error) {
 			hasPrimaryKey = true
 		}
 
-		if fieldInfo != nil {
-			impl.fields = append(impl.fields, fieldInfo)
-		}
+		impl.fields = append(impl.fields, fieldInfo)
 	}
 
 	if len(impl.fields) == 0 {
@@ -158,7 +167,7 @@ func getValueModel(modelVal reflect.Value) (ret *modelImpl, err error) {
 	hasPrimaryKey := false
 	modelVal = reflect.Indirect(modelVal)
 	entityType := modelVal.Type()
-	impl := &modelImpl{modelType: entityType, fields: make([]*fieldImpl, 0)}
+	impl := &modelImpl{modelType: entityType, fields: make([]*field, 0)}
 	fieldNum := entityType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		fieldVal := modelVal.Field(idx)

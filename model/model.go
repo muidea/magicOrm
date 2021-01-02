@@ -1,17 +1,16 @@
 package model
 
-import "reflect"
-
 // Model Model
 type Model interface {
 	GetName() string
 	GetPkgPath() string
 	GetFields() Fields
-	SetFieldValue(idx int, val reflect.Value) error
-	UpdateFieldValue(name string, val reflect.Value) error
+	SetFieldValue(idx int, val Value) error
+	UpdateFieldValue(name string, val Value) error
 	GetPrimaryField() Field
-	Interface() reflect.Value
+	Interface() Value
 	Copy() Model
+	Dump() string
 }
 
 func CompareModel(l, r Model) bool {

@@ -1,65 +1,67 @@
 package remote
 
 import (
-	"fmt"
 	"reflect"
 
-	"github.com/muidea/magicOrm/util"
+	"github.com/muidea/magicOrm/model"
 )
 
 // ValueImpl ValueImpl
 type ValueImpl struct {
-	value reflect.Value
+	value interface{}
+}
+
+func GetValue(val reflect.Value) model.Value {
+	return newValue(val)
+}
+
+func newValue(v interface{}) (ret *ValueImpl) {
+	ret = &ValueImpl{value: v}
+	return
 }
 
 // IsNil IsNil
 func (s *ValueImpl) IsNil() (ret bool) {
-	ret = util.IsNil(s.value)
+	ret = s.value == nil
 
 	return
 }
 
 // Set Set
-func (s *ValueImpl) Set(val reflect.Value) (err error) {
-	if !val.CanSet() {
-		err = fmt.Errorf("illegal value,can't be set")
-		return
-	}
-
+func (s *ValueImpl) Set(val interface{}) (err error) {
 	s.value = val
 	return
 }
 
 // Update Update
-func (s *ValueImpl) Update(val reflect.Value) (err error) {
-	if util.IsNil(val) {
-		err = fmt.Errorf("invalid update value")
-		return
-	}
-
-	s.value.Set(val)
-
+func (s *ValueImpl) Update(val interface{}) (err error) {
+	s.value = val
 	return
 }
 
 // Get Get
-func (s *ValueImpl) Get() (ret reflect.Value) {
+func (s *ValueImpl) Get() (ret interface{}) {
 	ret = s.value
-	if s.value.Kind() == reflect.Interface {
-		ret = ret.Elem()
+	return
+}
+
+func (s *ValueImpl) Addr() model.Value {
+	impl := &ValueImpl{value: &s.value}
+	return impl
+}
+
+func (s *ValueImpl) Type() (model.Type, error) {
+	vType := reflect.TypeOf(s.value)
+	if vType.Kind() == reflect.Interface {
+		vType = vType.Elem()
 	}
 
-	return
+	return newType(vType)
 }
 
 // Copy Copy
 func (s *ValueImpl) copy() (ret *ValueImpl) {
 	ret = &ValueImpl{value: s.value}
 
-	return
-}
-
-func newValue(v reflect.Value) (ret *ValueImpl, err error) {
-	ret = &ValueImpl{value: v}
 	return
 }

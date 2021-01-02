@@ -2,48 +2,78 @@ package local
 
 import (
 	"fmt"
+	"github.com/muidea/magicOrm/model"
 	"reflect"
 
 	"github.com/muidea/magicOrm/util"
 )
 
 type valueImpl struct {
-	valueImpl reflect.Value
+	value reflect.Value
 }
 
-func newValue(val reflect.Value) (ret *valueImpl, err error) {
-	ret = &valueImpl{valueImpl: val}
+func GetValue(val reflect.Value) model.Value {
+	return newValue(val)
+}
+
+func newValue(val reflect.Value) (ret *valueImpl) {
+	ret = &valueImpl{value: val}
 	return
 }
 
 func (s *valueImpl) IsNil() (ret bool) {
-	ret = util.IsNil(s.valueImpl)
+	ret = util.IsNil(s.value)
 	return
 }
 
-func (s *valueImpl) Set(val reflect.Value) (err error) {
-	s.valueImpl = val
-	return
-}
-
-func (s *valueImpl) Update(val reflect.Value) (err error) {
-	if util.IsNil(val) {
-		err = fmt.Errorf("invalid update value")
+func (s *valueImpl) Set(val interface{}) (err error) {
+	v, ok := val.(reflect.Value)
+	if !ok {
+		err = fmt.Errorf("illegal set value")
 		return
 	}
 
-	s.valueImpl.Set(val)
+	s.value = v
 	return
 }
 
-func (s *valueImpl) Get() (ret reflect.Value) {
-	ret = s.valueImpl
+func (s *valueImpl) Update(val interface{}) (err error) {
+	v, ok := val.(reflect.Value)
+	if !ok {
+		err = fmt.Errorf("illegal update value")
+		return
+	}
+	if !util.IsNil(s.value) {
+		if v.Type().String() != s.value.Type().String() {
+			err = fmt.Errorf("illegal update value")
+			return
+		}
+
+		s.value.Set(v)
+		return
+	}
+
+	s.value = v
+	return
+}
+
+func (s *valueImpl) Get() (ret interface{}) {
+	ret = s.value
 
 	return
+}
+
+func (s *valueImpl) Addr() model.Value {
+	impl := &valueImpl{value: s.value.Addr()}
+	return impl
+}
+
+func (s *valueImpl) Type() (model.Type, error) {
+	return newType(s.value.Type())
 }
 
 func (s *valueImpl) copy() (ret *valueImpl) {
-	ret = &valueImpl{valueImpl: s.valueImpl}
+	ret = &valueImpl{value: s.value}
 
 	return
 }

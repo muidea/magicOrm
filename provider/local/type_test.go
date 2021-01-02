@@ -1,12 +1,10 @@
 package local
 
 import (
-	"log"
 	"reflect"
 	"testing"
 	"time"
 
-	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/util"
 )
 
@@ -23,7 +21,8 @@ func TestIntType(t *testing.T) {
 		return
 	}
 
-	riType, riErr := newType(iType.Interface().Type())
+	newVal := iType.Interface().Get().(reflect.Value)
+	riType, riErr := newType(newVal.Type())
 	if riErr != nil {
 		t.Errorf("newType failed, err:%s", riErr.Error())
 		return
@@ -60,7 +59,8 @@ func TestFloatType(t *testing.T) {
 		return
 	}
 
-	rfType, rfErr := newType(fType.Interface().Type())
+	newVal := fType.Interface().Get().(reflect.Value)
+	rfType, rfErr := newType(newVal.Type())
 	if rfErr != nil {
 		t.Errorf("newType failed, err:%s", rfErr.Error())
 		return
@@ -97,7 +97,8 @@ func TestBoolType(t *testing.T) {
 		return
 	}
 
-	rbType, rbErr := newType(bType.Interface().Type())
+	newVal := bType.Interface().Get().(reflect.Value)
+	rbType, rbErr := newType(newVal.Type())
 	if rbErr != nil {
 		t.Errorf("newType failed, err:%s", rbErr.Error())
 		return
@@ -134,7 +135,8 @@ func TestStringType(t *testing.T) {
 		return
 	}
 
-	rstrType, rstrErr := newType(strType.Interface().Type())
+	newVal := strType.Interface().Get().(reflect.Value)
+	rstrType, rstrErr := newType(newVal.Type())
 	if rstrErr != nil {
 		t.Errorf("newType failed, err:%s", rstrErr.Error())
 		return
@@ -171,7 +173,8 @@ func TestDateTimeType(t *testing.T) {
 		return
 	}
 
-	rdtType, rdtErr := newType(dtType.Interface().Type())
+	newVal := dtType.Interface().Get().(reflect.Value)
+	rdtType, rdtErr := newType(newVal.Type())
 	if rdtErr != nil {
 		t.Errorf("newType failed, err:%s", rdtErr.Error())
 		return
@@ -212,7 +215,8 @@ func TestStructType(t *testing.T) {
 		return
 	}
 
-	rstructType, rstructErr := newType(structType.Interface().Type())
+	newVal := structType.Interface().Get().(reflect.Value)
+	rstructType, rstructErr := newType(newVal.Type())
 	if rstructErr != nil {
 		t.Errorf("newType failed, err:%s", rstructErr.Error())
 		return
@@ -254,7 +258,8 @@ func TestSliceType(t *testing.T) {
 		return
 	}
 
-	rsliceType, rsliceErr := newType(sliceType.Interface().Type())
+	newVal := sliceType.Interface().Get().(reflect.Value)
+	rsliceType, rsliceErr := newType(newVal.Type())
 	if rsliceErr != nil {
 		t.Errorf("newType failed, err:%s", rsliceErr.Error())
 		return
@@ -328,7 +333,8 @@ func TestPtrSliceType(t *testing.T) {
 		return
 	}
 
-	rsliceType, rsliceErr := newType(sliceType.Interface().Type())
+	newVal := sliceType.Interface().Get().(reflect.Value)
+	rsliceType, rsliceErr := newType(newVal.Type())
 	if rsliceErr != nil {
 		t.Errorf("newType failed, err:%s", rsliceErr.Error())
 		return
@@ -405,7 +411,8 @@ func TestSliceStructType(t *testing.T) {
 		return
 	}
 
-	rsliceType, rsliceErr := newType(sliceType.Interface().Type())
+	newVal := sliceType.Interface().Get().(reflect.Value)
+	rsliceType, rsliceErr := newType(newVal.Type())
 	if rsliceErr != nil {
 		t.Errorf("newType failed, err:%s", rsliceErr.Error())
 		return
@@ -463,55 +470,4 @@ func TestSliceStructType(t *testing.T) {
 		t.Errorf("unexpect isPtrType")
 		return
 	}
-}
-
-func TestIntEncodeSlice(t *testing.T) {
-	data := []int64{112, 223}
-
-	strVal, strErr := helper.EncodeSliceValue(reflect.ValueOf(data))
-	if strErr != nil {
-		t.Errorf("marshal failed, err:%s", strErr.Error())
-		return
-	}
-
-	fType, fErr := newType(reflect.TypeOf(data))
-	if fErr != nil {
-		t.Errorf("illegal data type")
-		return
-	}
-
-	ret, err := helper.DecodeSliceValue(strVal, fType)
-	if err != nil {
-		t.Errorf("DecodeSliceValue failed, err:%s", err.Error())
-		return
-	}
-
-	if ret.Len() != len(data) {
-		t.Errorf("DecodeSliceValue failed, err:%s", err.Error())
-		return
-	}
-}
-
-func TestStrEncodeSlice(t *testing.T) {
-	data := []string{"aab", "ccd"}
-
-	strVal, strErr := helper.EncodeSliceValue(reflect.ValueOf(data))
-	if strErr != nil {
-		t.Errorf("marshal failed, err:%s", strErr.Error())
-		return
-	}
-
-	fType, fErr := newType(reflect.TypeOf(data))
-	if fErr != nil {
-		t.Errorf("illegal data type")
-		return
-	}
-
-	ret, err := helper.DecodeSliceValue(strVal, fType)
-	if err != nil {
-		t.Errorf("DecodeSliceValue failed, err:%s", err.Error())
-		return
-	}
-
-	log.Print(ret.Interface())
 }

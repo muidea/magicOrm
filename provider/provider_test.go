@@ -1,11 +1,10 @@
 package provider
 
 import (
-	"fmt"
+	"testing"
+
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/remote"
-	"reflect"
-	"testing"
 )
 
 type Base struct {
@@ -26,14 +25,9 @@ type ExtInfo struct {
 func checkIntField(t *testing.T, intField model.Field) (ret bool) {
 	fType := intField.GetType()
 
-	ret = checkFieldType(t, fType, "int", "")
+	ret = checkFieldType(t, fType, "int", "int")
 	if !ret {
 		t.Errorf("check field type failed")
-		return
-	}
-
-	if intField.IsAssigned() {
-		t.Errorf("check is assigned failed")
 		return
 	}
 
@@ -44,14 +38,9 @@ func checkIntField(t *testing.T, intField model.Field) (ret bool) {
 func checkFloat32Field(t *testing.T, floatField model.Field) (ret bool) {
 	fType := floatField.GetType()
 
-	ret = checkFieldType(t, fType, "float32", "")
+	ret = checkFieldType(t, fType, "float32", "float32")
 	if !ret {
 		t.Errorf("check field type failed")
-		return
-	}
-
-	if floatField.IsAssigned() {
-		t.Errorf("check is assigned failed")
 		return
 	}
 
@@ -62,14 +51,9 @@ func checkFloat32Field(t *testing.T, floatField model.Field) (ret bool) {
 func checkStringField(t *testing.T, strField model.Field) (ret bool) {
 	fType := strField.GetType()
 
-	ret = checkFieldType(t, fType, "string", "")
+	ret = checkFieldType(t, fType, "string", "string")
 	if !ret {
 		t.Errorf("check field type failed")
-		return
-	}
-
-	if strField.IsAssigned() {
-		t.Errorf("check is assigned failed")
 		return
 	}
 
@@ -80,14 +64,9 @@ func checkStringField(t *testing.T, strField model.Field) (ret bool) {
 func checkSliceField(t *testing.T, sliceField model.Field) (ret bool) {
 	fType := sliceField.GetType()
 
-	ret = checkFieldType(t, fType, "[]string", "string")
+	ret = checkFieldType(t, fType, "string", "string")
 	if !ret {
 		t.Errorf("check field type failed")
-		return
-	}
-
-	if sliceField.IsAssigned() {
-		t.Errorf("check is assigned failed")
 		return
 	}
 
@@ -95,37 +74,12 @@ func checkSliceField(t *testing.T, sliceField model.Field) (ret bool) {
 	return
 }
 
-func checkSliceLocalStructField(t *testing.T, sliceField model.Field) (ret bool) {
+func checkSliceStructField(t *testing.T, sliceField model.Field) (ret bool) {
 	fType := sliceField.GetType()
 
-	sliceVal := []*Base{{ID: 12}}
-	ret = checkFieldType(t, fType, "[]*provider.Base", "provider.Base")
+	ret = checkFieldType(t, fType, "provider.Base", "provider.Base")
 	if !ret {
 		t.Errorf("check field type failed")
-		return
-	}
-
-	if sliceField.IsAssigned() {
-		t.Errorf("check is assigned failed")
-		return
-	}
-
-	rVal := reflect.ValueOf(sliceVal)
-	err := sliceField.UpdateValue(rVal)
-	if err != nil {
-		t.Errorf("SetValue failed, err:%s", err.Error())
-		return
-	}
-
-	if !sliceField.IsAssigned() {
-		t.Error("SetValue failed")
-		return
-	}
-
-	strV := fmt.Sprintf("%v", sliceVal)
-	strR := fmt.Sprintf("%v", sliceField.GetValue().Get().Interface())
-	if strV != strR {
-		t.Errorf("SetValue failed")
 		return
 	}
 
@@ -133,25 +87,7 @@ func checkSliceLocalStructField(t *testing.T, sliceField model.Field) (ret bool)
 	return
 }
 
-func checkSliceRemoteStructField(t *testing.T, sliceField model.Field) (ret bool) {
-	fType := sliceField.GetType()
-
-	ret = checkFieldType(t, fType, "[]*provider.Base", "provider.Base")
-	if !ret {
-		t.Errorf("check field type failed")
-		return
-	}
-
-	if sliceField.IsAssigned() {
-		t.Errorf("check is assigned failed")
-		return
-	}
-
-	ret = true
-	return
-}
-
-func checkLocalStructField(t *testing.T, structField model.Field) (ret bool) {
+func checkStructField(t *testing.T, structField model.Field) (ret bool) {
 	fType := structField.GetType()
 
 	ret = checkFieldType(t, fType, "provider.Base", "provider.Base")
@@ -160,62 +96,16 @@ func checkLocalStructField(t *testing.T, structField model.Field) (ret bool) {
 		return
 	}
 
-	if structField.IsAssigned() {
-		t.Errorf("check is assigned failed")
-		return
-	}
-
 	ret = true
 	return
 }
 
-func checkRemoteStructField(t *testing.T, structField model.Field) (ret bool) {
+func checkStructPtrField(t *testing.T, structField model.Field) (ret bool) {
 	fType := structField.GetType()
 
 	ret = checkFieldType(t, fType, "provider.Base", "provider.Base")
 	if !ret {
 		t.Errorf("check field type failed")
-		return
-	}
-
-	if structField.IsAssigned() {
-		t.Errorf("check is assigned failed")
-		return
-	}
-
-	ret = true
-	return
-}
-
-func checkLocalStructPtrField(t *testing.T, structField model.Field) (ret bool) {
-	fType := structField.GetType()
-
-	ret = checkFieldType(t, fType, "provider.Base", "provider.Base")
-	if !ret {
-		t.Errorf("check field type failed")
-		return
-	}
-
-	if structField.IsAssigned() {
-		t.Errorf("check is assigned failed")
-		return
-	}
-
-	ret = true
-	return
-}
-
-func checkRemoteStructPtrField(t *testing.T, structField model.Field) (ret bool) {
-	fType := structField.GetType()
-
-	ret = checkFieldType(t, fType, "provider.Base", "provider.Base")
-	if !ret {
-		t.Errorf("check field type failed")
-		return
-	}
-
-	if structField.IsAssigned() {
-		t.Errorf("check is assigned failed")
 		return
 	}
 
@@ -229,24 +119,32 @@ func checkFieldType(t *testing.T, fType model.Type, typeName, typeDepend string)
 		return false
 	}
 
-	if fType.Depend() != nil && typeDepend != "" {
-		if fType.Depend().GetName() != typeDepend {
-			t.Errorf("check depend type failed, currentType:%s, dependType:%s", fType.Depend().GetName(), typeDepend)
+	if fType.Elem() != nil && typeDepend != "" {
+		if fType.Elem().GetName() != typeDepend {
+			t.Errorf("check depend type failed, currentType:%s, dependType:%s", fType.Elem().GetName(), typeDepend)
 			return false
 		}
 	}
-	if fType.Depend() == nil && typeDepend != "" {
+	if fType.Elem() == nil && typeDepend != "" {
 		t.Errorf("check depend type failed, currentType:%s, dependType:%s", "nil", typeDepend)
 		return false
 	}
-	if fType.Depend() != nil && typeDepend == "" {
-		t.Errorf("check depend type failed, currentType:%s, dependType:%s", fType.Depend().GetName(), "nil")
+	if fType.Elem() != nil && typeDepend == "" {
+		t.Errorf("check depend type failed, currentType:%s, dependType:%s", fType.Elem().GetName(), "nil")
 		return false
 	}
 
 	return true
 }
 
+/*
+type Base struct {
+	ID    int      `orm:"id key auto"`
+	Name  string   `orm:"name"`
+	Price float32  `orm:"price"`
+	Addr  []string `orm:"addr"`
+}
+*/
 func checkBaseModel(t *testing.T, baseEntityModel model.Model) {
 	modelName := baseEntityModel.GetName()
 	if modelName != "provider.Base" {
@@ -308,7 +206,7 @@ type ExtInfo struct {
 	Array []*Base `orm:"array"`
 }
 */
-func checkLocalExtModel(t *testing.T, extEntityModel model.Model) {
+func checkExtModel(t *testing.T, extEntityModel model.Model) {
 	modelName := extEntityModel.GetName()
 	if modelName != "provider.ExtInfo" {
 		t.Errorf("get model name failed, curName:%s", modelName)
@@ -343,86 +241,25 @@ func checkLocalExtModel(t *testing.T, extEntityModel model.Model) {
 		}
 
 		if val.GetIndex() == 2 {
-			ret = checkLocalStructField(t, val)
+			ret = checkStructField(t, val)
 			if !ret {
-				t.Errorf("checkLocalStructField failed")
+				t.Errorf("checkStructField failed")
 				return
 			}
 		}
 
 		if val.GetIndex() == 3 {
-			ret = checkLocalStructPtrField(t, val)
+			ret = checkStructPtrField(t, val)
 			if !ret {
-				t.Errorf("checkLocalStructPtrField failed")
+				t.Errorf("checkStructPtrField failed")
 				return
 			}
 		}
 
 		if val.GetIndex() == 4 {
-			ret = checkSliceLocalStructField(t, val)
+			ret = checkSliceStructField(t, val)
 			if !ret {
-				t.Errorf("checkSliceLocalStructField failed")
-				return
-			}
-		}
-	}
-
-}
-
-func checkRemoteExtModel(t *testing.T, extEntityModel model.Model) {
-	modelName := extEntityModel.GetName()
-	if modelName != "provider.ExtInfo" {
-		t.Errorf("get model name failed, curName:%s", modelName)
-		return
-	}
-
-	fields := extEntityModel.GetFields()
-	if len(fields) != 5 {
-		t.Errorf("get model fields failed")
-		return
-	}
-
-	pkField := extEntityModel.GetPrimaryField()
-	if pkField.GetName() != "ID" {
-		t.Errorf("get pk field failed")
-		return
-	}
-
-	ret := checkIntField(t, pkField)
-	if !ret {
-		t.Errorf("checkIntField failed")
-		return
-	}
-
-	for _, val := range fields {
-		if val.GetIndex() == 1 {
-			ret = checkStringField(t, val)
-			if !ret {
-				t.Errorf("checkStringField failed")
-				return
-			}
-		}
-
-		if val.GetIndex() == 2 {
-			ret = checkRemoteStructField(t, val)
-			if !ret {
-				t.Errorf("checkRemoteStructField failed")
-				return
-			}
-		}
-
-		if val.GetIndex() == 3 {
-			ret = checkRemoteStructPtrField(t, val)
-			if !ret {
-				t.Errorf("checkRemoteStructPtrField failed")
-				return
-			}
-		}
-
-		if val.GetIndex() == 4 {
-			ret = checkSliceRemoteStructField(t, val)
-			if !ret {
-				t.Errorf("checkSliceRemoteStructField failed")
+				t.Errorf("checkSliceStructField failed")
 				return
 			}
 		}
@@ -433,15 +270,24 @@ func checkRemoteExtModel(t *testing.T, extEntityModel model.Model) {
 func TestLocalProvider(t *testing.T) {
 	provider := NewLocalProvider("default")
 
-	baseEntity := Base{}
-	extEntity := ExtInfo{}
+	baseEntity := &Base{}
+	extEntity := &ExtInfo{}
 
-	provider.RegisterModel(baseEntity)
-	provider.RegisterModel(extEntity)
+	_, err := provider.RegisterModel(baseEntity)
+	if err != nil {
+		t.Errorf("registerModel failed, err:%s", err.Error())
+		return
+	}
+	_, err = provider.RegisterModel(extEntity)
+	if err != nil {
+		t.Errorf("registerModel failed, err:%s", err.Error())
+		return
+	}
+
 	defer provider.UnregisterModel(baseEntity)
 	defer provider.UnregisterModel(extEntity)
 
-	baseEntityModel, baseEntityErr := provider.GetEntityModel(&baseEntity)
+	baseEntityModel, baseEntityErr := provider.GetEntityModel(baseEntity)
 	if baseEntityErr != nil {
 		t.Errorf("get local entity model failed, err:%s", baseEntityErr.Error())
 		return
@@ -449,20 +295,20 @@ func TestLocalProvider(t *testing.T) {
 
 	checkBaseModel(t, baseEntityModel)
 
-	extEntityModel, extEntityErr := provider.GetEntityModel(&extEntity)
+	extEntityModel, extEntityErr := provider.GetEntityModel(extEntity)
 	if extEntityErr != nil {
 		t.Errorf("get local entity model failed, err:%s", extEntityErr.Error())
 		return
 	}
 
-	checkLocalExtModel(t, extEntityModel)
+	checkExtModel(t, extEntityModel)
 }
 
 func TestRemoteProvider(t *testing.T) {
 	provider := NewRemoteProvider("default")
 
-	baseEntity := Base{}
-	extEntity := ExtInfo{}
+	baseEntity := &Base{}
+	extEntity := &ExtInfo{}
 
 	baseObject, baseErr := remote.GetObject(baseEntity)
 	if baseErr != nil {
@@ -551,14 +397,14 @@ func TestRemoteProvider(t *testing.T) {
 		return
 	}
 
-	checkRemoteExtModel(t, extEntityModel)
+	checkExtModel(t, extEntityModel)
 }
 
 func TestUpdateRemoteProvider(t *testing.T) {
 	provider := NewRemoteProvider("default")
 
-	baseEntity := Base{ID: 123, Name: "test int", Price: 12.35, Addr: []string{"qq", "ar", "yt"}}
-	extEntity := ExtInfo{ID: 234, Name: "hello", Info: baseEntity, Ptr: &baseEntity, Array: []*Base{&baseEntity}}
+	baseEntity := &Base{ID: 123, Name: "test int", Price: 12.35, Addr: []string{"qq", "ar", "yt"}}
+	extEntity := &ExtInfo{ID: 234, Name: "hello", Info: *baseEntity, Ptr: baseEntity, Array: []*Base{baseEntity}}
 
 	baseObject, baseErr := remote.GetObject(baseEntity)
 	if baseErr != nil {
@@ -644,7 +490,7 @@ func TestUpdateRemoteProvider(t *testing.T) {
 		t.Error("UpdateEntity failed")
 	}
 
-	ext := &ExtInfo{}
+	ext := &ExtInfo{Ptr: &Base{}}
 	err = remote.UpdateEntity(extVal, ext)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
