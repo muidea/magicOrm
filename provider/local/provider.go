@@ -30,25 +30,7 @@ func GetEntityType(entity interface{}) (ret model.Type, err error) {
 }
 
 func GetEntityValue(entity interface{}) (ret model.Value, err error) {
-	rVal := reflect.ValueOf(entity)
-	if rVal.Kind() != reflect.Ptr {
-		err = fmt.Errorf("must be a pointer entity")
-		return
-	}
-	rVal = rVal.Elem()
-
-	vType, vErr := newType(rVal.Type())
-	if vErr != nil {
-		err = vErr
-		return
-	}
-	if vType.IsBasic() {
-		err = fmt.Errorf("illegal entity")
-		return
-	}
-
-	vVal := newValue(rVal)
-	ret = vVal
+	ret = newValue(reflect.ValueOf(entity))
 	return
 }
 

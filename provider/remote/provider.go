@@ -52,7 +52,7 @@ func GetEntityValue(entity interface{}) (ret model.Value, err error) {
 		return
 	}
 
-	err = fmt.Errorf("illegal entity")
+	ret = newValue(entity)
 	return
 }
 
