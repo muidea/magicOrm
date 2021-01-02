@@ -1,99 +1,20 @@
 package orm
 
 import (
-	"fmt"
-	"reflect"
-
 	"github.com/muidea/magicCommon/foundation/util"
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
-	ormUtil "github.com/muidea/magicOrm/util"
 )
-
-type filterValue struct {
-	filterValue reflect.Value
-}
-
-func newFilterValue(val reflect.Value) (ret model.Value, err error) {
-	if ormUtil.IsNil(val) {
-		err = fmt.Errorf("illegal filter value")
-		return
-	}
-
-	qv := reflect.Indirect(val)
-	_, qvErr := ormUtil.GetTypeEnum(qv.Type())
-	if qvErr != nil {
-		err = qvErr
-		return
-	}
-
-	ret = &filterValue{filterValue: val}
-	return
-}
-
-func (s *filterValue) IsNil() (ret bool) {
-	return ormUtil.IsNil(s.filterValue)
-}
-
-func (s *filterValue) Set(val reflect.Value) (err error) {
-	if ormUtil.IsNil(val) {
-		return
-	}
-
-	s.filterValue = val
-	return
-}
-
-func (s *filterValue) Update(val reflect.Value) (err error) {
-	if ormUtil.IsNil(val) {
-		return
-	}
-
-	valTypeName := val.Type().String()
-	expectTypeName := s.filterValue.Type().String()
-	if expectTypeName != valTypeName {
-		err = fmt.Errorf("illegal value type, type:%s, expect:%s", expectTypeName, valTypeName)
-		return
-	}
-
-	s.filterValue.Set(val)
-	return
-}
-
-func (s *filterValue) Get() (ret reflect.Value) {
-	ret = s.filterValue
-
-	return
-}
 
 type filterItem struct {
 	filterFun     func(name, value string) string
-	value         reflect.Value
+	value         model.Value
 	modelProvider provider.Provider
 }
 
-func isNumber(vKind reflect.Kind) (ret bool) {
-	switch vKind {
-	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int,
-		reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint,
-		reflect.Float32, reflect.Float64:
-		ret = true
-	default:
-		ret = false
-	}
-
-	return
-}
-
 func (s *filterItem) FilterStr(name string, fType model.Type) (ret string, err error) {
-	filterVal, filterErr := newFilterValue(s.value)
-	if filterErr != nil {
-		err = filterErr
-		return
-	}
-
-	itemStr, itemErr := s.modelProvider.GetValueStr(fType, filterVal)
+	itemStr, itemErr := s.modelProvider.GetValueStr(s.value, fType)
 	if itemErr != nil {
 		err = itemErr
 		return
@@ -106,67 +27,98 @@ func (s *filterItem) FilterStr(name string, fType model.Type) (ret string, err e
 // queryFilter queryFilter
 type queryFilter struct {
 	params        map[string]model.FilterItem
-	maskValue     reflect.Value
+	maskValue     model.Model
 	pageFilter    *util.PageFilter
 	sortFilter    *util.SortFilter
 	modelProvider provider.Provider
 }
 
 func (s *queryFilter) Equal(key string, val interface{}) (err error) {
-	qv := reflect.Indirect(reflect.ValueOf(val))
-	s.params[key] = &filterItem{filterFun: builder.EqualOpr, value: qv, modelProvider: s.modelProvider}
+	vVal, vErr := s.modelProvider.GetEntityValue(val)
+	if vErr != nil {
+		err = vErr
+		return
+	}
+
+	s.params[key] = &filterItem{filterFun: builder.EqualOpr, value: vVal, modelProvider: s.modelProvider}
 	return
 }
 
 func (s *queryFilter) NotEqual(key string, val interface{}) (err error) {
-	qv := reflect.Indirect(reflect.ValueOf(val))
-	s.params[key] = &filterItem{filterFun: builder.NotEqualOpr, value: qv, modelProvider: s.modelProvider}
+	vVal, vErr := s.modelProvider.GetEntityValue(val)
+	if vErr != nil {
+		err = vErr
+		return
+	}
+
+	s.params[key] = &filterItem{filterFun: builder.NotEqualOpr, value: vVal, modelProvider: s.modelProvider}
 	return
 }
 
 func (s *queryFilter) Below(key string, val interface{}) (err error) {
-	qv := reflect.Indirect(reflect.ValueOf(val))
-	s.params[key] = &filterItem{filterFun: builder.BelowOpr, value: qv, modelProvider: s.modelProvider}
+	vVal, vErr := s.modelProvider.GetEntityValue(val)
+	if vErr != nil {
+		err = vErr
+		return
+	}
+
+	s.params[key] = &filterItem{filterFun: builder.BelowOpr, value: vVal, modelProvider: s.modelProvider}
 	return
 }
 
 func (s *queryFilter) Above(key string, val interface{}) (err error) {
-	qv := reflect.Indirect(reflect.ValueOf(val))
-	s.params[key] = &filterItem{filterFun: builder.AboveOpr, value: qv, modelProvider: s.modelProvider}
+	vVal, vErr := s.modelProvider.GetEntityValue(val)
+	if vErr != nil {
+		err = vErr
+		return
+	}
+
+	s.params[key] = &filterItem{filterFun: builder.AboveOpr, value: vVal, modelProvider: s.modelProvider}
 	return
 }
 
 func (s *queryFilter) In(key string, val interface{}) (err error) {
-	qv := reflect.Indirect(reflect.ValueOf(val))
-	s.params[key] = &filterItem{filterFun: builder.InOpr, value: qv, modelProvider: s.modelProvider}
+	vVal, vErr := s.modelProvider.GetEntityValue(val)
+	if vErr != nil {
+		err = vErr
+		return
+	}
+
+	s.params[key] = &filterItem{filterFun: builder.InOpr, value: vVal, modelProvider: s.modelProvider}
 
 	return
 }
 
 func (s *queryFilter) NotIn(key string, val interface{}) (err error) {
-	qv := reflect.Indirect(reflect.ValueOf(val))
-	s.params[key] = &filterItem{filterFun: builder.NotInOpr, value: qv, modelProvider: s.modelProvider}
+	vVal, vErr := s.modelProvider.GetEntityValue(val)
+	if vErr != nil {
+		err = vErr
+		return
+	}
+
+	s.params[key] = &filterItem{filterFun: builder.NotInOpr, value: vVal, modelProvider: s.modelProvider}
 	return
 }
 
 func (s *queryFilter) Like(key string, val interface{}) (err error) {
-	qv := reflect.Indirect(reflect.ValueOf(val))
-	if qv.Kind() != reflect.String {
-		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
+	vVal, vErr := s.modelProvider.GetEntityValue(val)
+	if vErr != nil {
+		err = vErr
 		return
 	}
 
-	s.params[key] = &filterItem{filterFun: builder.LikeOpr, value: qv, modelProvider: s.modelProvider}
+	s.params[key] = &filterItem{filterFun: builder.LikeOpr, value: vVal, modelProvider: s.modelProvider}
 	return
 }
 
 func (s *queryFilter) ValueMask(val interface{}) (err error) {
-	if val == nil {
+	vModel, vErr := s.modelProvider.GetEntityModel(val)
+	if vErr != nil {
+		err = vErr
 		return
 	}
 
-	qv := reflect.Indirect(reflect.ValueOf(val))
-	s.maskValue = qv
+	s.maskValue = vModel
 	return
 }
 
@@ -201,12 +153,8 @@ func (s *queryFilter) Pagination() (limit, offset int, paging bool) {
 	return
 }
 
-func (s *queryFilter) MaskModel() (ret model.Model, err error) {
-	if ormUtil.IsNil(s.maskValue) {
-		return
-	}
-
-	ret, err = s.modelProvider.GetValueModel(s.maskValue)
+func (s *queryFilter) MaskModel() (ret model.Model) {
+	ret = s.maskValue
 	return
 }
 

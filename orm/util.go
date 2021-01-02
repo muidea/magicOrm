@@ -10,6 +10,10 @@ func (s *Orm) getModelItems(modelInfo model.Model, builder builder.Builder) (ret
 	var items []interface{}
 	fields := modelInfo.GetFields()
 	for _, item := range fields {
+		if item.GetValue().IsNil() {
+			continue
+		}
+
 		fType := item.GetType()
 		if !fType.IsBasic() {
 			continue

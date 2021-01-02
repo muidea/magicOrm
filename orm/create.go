@@ -2,6 +2,7 @@ package orm
 
 import (
 	log "github.com/cihub/seelog"
+
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
 )
@@ -68,9 +69,6 @@ func (s *Orm) batchCreateSchema(modelInfo model.Model) (err error) {
 		if relationErr != nil {
 			err = relationErr
 			return
-		}
-		if relationInfo == nil {
-			continue
 		}
 
 		if !fType.IsPtrType() {

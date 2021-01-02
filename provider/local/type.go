@@ -61,14 +61,24 @@ func (s *typeImpl) IsPtrType() bool {
 	return s.typeImpl.Kind() == reflect.Ptr
 }
 
-func (s *typeImpl) Interface() (ret model.Value) {
-	tType := s.getType()
-	val := reflect.New(tType)
-	if !s.IsPtrType() {
-		val = val.Elem()
+func (s *typeImpl) Interface(val interface{}) (ret model.Value) {
+	if val == nil {
+		tType := s.getType()
+		newVal := reflect.New(tType)
+		if !s.IsPtrType() {
+			newVal = newVal.Elem()
+		}
+
+		ret = newValue(newVal)
+		return
 	}
 
-	ret = newValue(val)
+	rVal, rOK := val.(reflect.Value)
+	if !rOK {
+		return
+	}
+
+	ret = newValue(rVal)
 	return
 }
 

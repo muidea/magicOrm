@@ -23,12 +23,7 @@ func (s *Orm) insertSingle(modelInfo model.Model) (err error) {
 
 	pk := modelInfo.GetPrimaryField()
 
-	typeVal := pk.GetType().Interface()
-	err = typeVal.Set(id)
-	if err != nil {
-		return
-	}
-
+	typeVal := pk.GetType().Interface(id)
 	err = pk.UpdateValue(typeVal)
 	if err != nil {
 		log.Errorf("UpdateValue failed, err:%s", err.Error())
@@ -39,26 +34,20 @@ func (s *Orm) insertSingle(modelInfo model.Model) (err error) {
 }
 
 func (s *Orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
-	fType := fieldInfo.GetType()
-	fDependModel, fDependErr := s.modelProvider.GetTypeModel(fType)
-	if fDependErr != nil {
-		err = fDependErr
-		return
-	}
-
 	fValue := fieldInfo.GetValue()
-	if fDependModel == nil || fValue == nil || fValue.IsNil() {
+	if fValue.IsNil() {
 		return
 	}
 
-	fDependValue, fDependErr := s.modelProvider.ElemDependValue(fValue)
-	if fDependErr != nil {
-		err = fDependErr
-		log.Errorf("GetDependValue failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
+	fType := fieldInfo.GetType()
+	fSliceValue, fSliceErr := s.modelProvider.ElemDependValue(fValue)
+	if fSliceErr != nil {
+		err = fSliceErr
+		log.Errorf("ElemDependValue failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
 		return
 	}
 
-	for _, fVal := range fDependValue {
+	for _, fVal := range fSliceValue {
 		relationInfo, relationErr := s.modelProvider.GetValueModel(fVal, fType)
 		if relationErr != nil {
 			log.Errorf("GetValueModel failed, err:%s", relationErr.Error())

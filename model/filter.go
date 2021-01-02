@@ -30,6 +30,6 @@ type Filter interface {
 
 	Items() map[string]FilterItem
 	Pagination() (limit, offset int, paging bool)
-	MaskModel() (Model, error)
+	MaskModel() Model
 	Sorter() Sorter
 }

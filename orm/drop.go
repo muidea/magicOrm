@@ -81,9 +81,6 @@ func (s *Orm) Drop(entity interface{}) (err error) {
 				err = relationErr
 				break
 			}
-			if relationInfo == nil {
-				continue
-			}
 
 			elemType := fType.Elem()
 			if !elemType.IsPtrType() {

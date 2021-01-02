@@ -21,7 +21,7 @@ func TestIntType(t *testing.T) {
 		return
 	}
 
-	newVal := iType.Interface().Get().(reflect.Value)
+	newVal := iType.Interface(nil).Get().(reflect.Value)
 	riType, riErr := newType(newVal.Type())
 	if riErr != nil {
 		t.Errorf("newType failed, err:%s", riErr.Error())
@@ -59,7 +59,7 @@ func TestFloatType(t *testing.T) {
 		return
 	}
 
-	newVal := fType.Interface().Get().(reflect.Value)
+	newVal := fType.Interface(nil).Get().(reflect.Value)
 	rfType, rfErr := newType(newVal.Type())
 	if rfErr != nil {
 		t.Errorf("newType failed, err:%s", rfErr.Error())
@@ -97,7 +97,7 @@ func TestBoolType(t *testing.T) {
 		return
 	}
 
-	newVal := bType.Interface().Get().(reflect.Value)
+	newVal := bType.Interface(nil).Get().(reflect.Value)
 	rbType, rbErr := newType(newVal.Type())
 	if rbErr != nil {
 		t.Errorf("newType failed, err:%s", rbErr.Error())
@@ -135,7 +135,7 @@ func TestStringType(t *testing.T) {
 		return
 	}
 
-	newVal := strType.Interface().Get().(reflect.Value)
+	newVal := strType.Interface(nil).Get().(reflect.Value)
 	rstrType, rstrErr := newType(newVal.Type())
 	if rstrErr != nil {
 		t.Errorf("newType failed, err:%s", rstrErr.Error())
@@ -173,7 +173,7 @@ func TestDateTimeType(t *testing.T) {
 		return
 	}
 
-	newVal := dtType.Interface().Get().(reflect.Value)
+	newVal := dtType.Interface(nil).Get().(reflect.Value)
 	rdtType, rdtErr := newType(newVal.Type())
 	if rdtErr != nil {
 		t.Errorf("newType failed, err:%s", rdtErr.Error())
@@ -215,7 +215,7 @@ func TestStructType(t *testing.T) {
 		return
 	}
 
-	newVal := structType.Interface().Get().(reflect.Value)
+	newVal := structType.Interface(nil).Get().(reflect.Value)
 	rstructType, rstructErr := newType(newVal.Type())
 	if rstructErr != nil {
 		t.Errorf("newType failed, err:%s", rstructErr.Error())
@@ -258,7 +258,7 @@ func TestSliceType(t *testing.T) {
 		return
 	}
 
-	newVal := sliceType.Interface().Get().(reflect.Value)
+	newVal := sliceType.Interface(nil).Get().(reflect.Value)
 	rsliceType, rsliceErr := newType(newVal.Type())
 	if rsliceErr != nil {
 		t.Errorf("newType failed, err:%s", rsliceErr.Error())
@@ -333,7 +333,7 @@ func TestPtrSliceType(t *testing.T) {
 		return
 	}
 
-	newVal := sliceType.Interface().Get().(reflect.Value)
+	newVal := sliceType.Interface(nil).Get().(reflect.Value)
 	rsliceType, rsliceErr := newType(newVal.Type())
 	if rsliceErr != nil {
 		t.Errorf("newType failed, err:%s", rsliceErr.Error())
@@ -411,7 +411,7 @@ func TestSliceStructType(t *testing.T) {
 		return
 	}
 
-	newVal := sliceType.Interface().Get().(reflect.Value)
+	newVal := sliceType.Interface(nil).Get().(reflect.Value)
 	rsliceType, rsliceErr := newType(newVal.Type())
 	if rsliceErr != nil {
 		t.Errorf("newType failed, err:%s", rsliceErr.Error())

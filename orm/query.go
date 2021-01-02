@@ -2,6 +2,7 @@ package orm
 
 import (
 	"fmt"
+
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/builder"

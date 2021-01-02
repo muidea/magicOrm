@@ -84,20 +84,12 @@ func (s *Orm) queryBatch(elemModel model.Model, sliceValue model.Value, filter m
 func (s *Orm) assignSingleModel(modelVal model.Model, queryVal resultItems) (ret model.Value, err error) {
 	offset := 0
 	for _, field := range modelVal.GetFields() {
-		fType := field.GetType()
-		fValue := field.GetValue()
-		if fValue == nil || fValue.IsNil() {
+		if field.GetValue().IsNil() {
 			continue
 		}
 
-		dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
-		if dependErr != nil {
-			err = dependErr
-			log.Errorf("GetTypeModel failed, err:%s", err.Error())
-			return
-		}
-
-		if dependModel != nil {
+		fType := field.GetType()
+		if !fType.IsBasic() {
 			itemVal, itemErr := s.queryRelation(modelVal, field)
 			if itemErr != nil {
 				log.Errorf("queryRelation failed, err:%s", itemErr.Error())

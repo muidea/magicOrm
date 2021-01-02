@@ -2,6 +2,7 @@ package orm
 
 import (
 	"fmt"
+
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/builder"
@@ -34,9 +35,6 @@ func (s *Orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 	relationInfo, relationErr := s.modelProvider.GetTypeModel(fType)
 	if relationErr != nil {
 		err = relationErr
-		return
-	}
-	if relationInfo == nil {
 		return
 	}
 
@@ -76,7 +74,7 @@ func (s *Orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 					return
 				}
 				for idx := 0; idx < len(elemVals); idx++ {
-					relationModel, relationErr := s.modelProvider.GetValueModel(elemVals[idx], fType)
+					relationModel, relationErr := s.modelProvider.GetValueModel(elemVals[idx], fType.Elem())
 					if relationErr != nil {
 						err = relationErr
 						return

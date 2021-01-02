@@ -2,7 +2,9 @@ package orm
 
 import (
 	"database/sql"
+
 	log "github.com/cihub/seelog"
+
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
 )

@@ -12,8 +12,6 @@ type Value interface {
 	Get() interface{}
 	// 获取指针
 	Addr() Value
-	// 获取类型
-	Type() (Type, error)
 }
 
 func CompareValue(l, r Value) bool {

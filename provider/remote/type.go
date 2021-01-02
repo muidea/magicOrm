@@ -88,32 +88,37 @@ func (s *TypeImpl) IsPtrType() (ret bool) {
 }
 
 // Interface Interface
-func (s *TypeImpl) Interface() (ret model.Value) {
-	rawType := s.getType()
-	val := reflect.New(rawType).Elem()
-	if s.IsBasic() {
-		if s.IsPtrType() {
-			val = val.Addr()
-		}
-
+func (s *TypeImpl) Interface(val interface{}) (ret model.Value) {
+	if val != nil {
 		ret = newValue(val)
 		return
 	}
 
-	if util.IsStructType(s.Value) {
-		val.FieldByName("Name").SetString(s.Name)
-		val.FieldByName("PkgPath").SetString(s.PkgPath)
-		val.FieldByName("IsPtr").SetBool(s.IsPtr)
+	rawType := s.getType()
+	rVal := reflect.New(rawType).Elem()
+	if s.IsBasic() {
+		if s.IsPtrType() {
+			rVal = rVal.Addr()
+		}
 
-		ret = newValue(val.Addr())
+		ret = newValue(rVal.Interface())
 		return
 	}
 
-	val.FieldByName("Name").SetString(s.ElemType.Name)
-	val.FieldByName("PkgPath").SetString(s.ElemType.PkgPath)
-	val.FieldByName("IsPtr").SetBool(s.ElemType.IsPtr)
+	if util.IsStructType(s.Value) {
+		rVal.FieldByName("Name").SetString(s.Name)
+		rVal.FieldByName("PkgPath").SetString(s.PkgPath)
+		rVal.FieldByName("IsPtr").SetBool(s.IsPtr)
 
-	ret = newValue(val.Addr())
+		ret = newValue(rVal.Addr().Interface())
+		return
+	}
+
+	rVal.FieldByName("Name").SetString(s.ElemType.Name)
+	rVal.FieldByName("PkgPath").SetString(s.ElemType.PkgPath)
+	rVal.FieldByName("IsPtr").SetBool(s.ElemType.IsPtr)
+
+	ret = newValue(rVal.Addr().Interface())
 	return
 }
 
