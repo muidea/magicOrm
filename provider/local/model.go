@@ -34,15 +34,15 @@ func (s *modelImpl) GetFields() (ret model.Fields) {
 }
 
 // SetFieldValue SetFieldValue
-func (s *modelImpl) SetFieldValue(idx int, val model.Value) (err error) {
+func (s *modelImpl) SetFieldValue(name string, val model.Value) (err error) {
 	for _, field := range s.fields {
-		if field.GetIndex() == idx {
+		if field.GetName() == name {
 			err = field.SetValue(val)
 			return
 		}
 	}
 
-	err = fmt.Errorf("out of index, index:%d", idx)
+	err = fmt.Errorf("illegal field,model name:%s, field name:%s", s.GetName(), name)
 	return
 }
 

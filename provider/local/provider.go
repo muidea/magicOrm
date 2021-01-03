@@ -8,14 +8,8 @@ import (
 )
 
 func GetEntityType(entity interface{}) (ret model.Type, err error) {
-	rVal := reflect.ValueOf(entity)
-	if rVal.Kind() != reflect.Ptr {
-		err = fmt.Errorf("must be a pointer entity")
-		return
-	}
-	rVal = rVal.Elem()
-
-	vType, vErr := newType(rVal.Type())
+	rType := reflect.TypeOf(entity)
+	vType, vErr := newType(rType)
 	if vErr != nil {
 		err = vErr
 		return
@@ -30,7 +24,8 @@ func GetEntityType(entity interface{}) (ret model.Type, err error) {
 }
 
 func GetEntityValue(entity interface{}) (ret model.Value, err error) {
-	ret = newValue(reflect.ValueOf(entity).Elem())
+	rVal := reflect.ValueOf(entity)
+	ret = newValue(rVal)
 	return
 }
 
@@ -68,12 +63,13 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 	vType := rVal.Type()
 	fieldNum := vType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
+		fieldType := vType.Field(idx)
 		fieldVal := newValue(rVal.Field(idx))
 		if fieldVal.IsNil() {
 			continue
 		}
 
-		err = vModel.SetFieldValue(idx, fieldVal)
+		err = vModel.SetFieldValue(fieldType.Name, fieldVal)
 		if err != nil {
 			return
 		}

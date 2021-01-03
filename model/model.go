@@ -5,7 +5,7 @@ type Model interface {
 	GetName() string
 	GetPkgPath() string
 	GetFields() Fields
-	SetFieldValue(idx int, val Value) error
+	SetFieldValue(name string, val Value) error
 	GetPrimaryField() Field
 	Interface() Value
 	Copy() Model
