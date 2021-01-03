@@ -49,7 +49,7 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 			}
 
 			vVal := fType.Interface(s.stripSlashes(fType, items[idx]))
-			err = item.UpdateValue(vVal)
+			err = item.SetValue(vVal)
 			if err != nil {
 				return
 			}
@@ -72,7 +72,7 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 			return
 		}
 
-		itemErr = item.UpdateValue(itemVal)
+		itemErr = item.SetValue(itemVal)
 		if itemErr != nil {
 			err = itemErr
 			log.Errorf("UpdateFieldValue failed, modelName:%s, fieldName:%s, err:%s", modelInfo.GetName(), item.GetName(), err.Error())
@@ -151,7 +151,7 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret m
 
 			pkField := relationInfo.GetPrimaryField()
 			pkVal := pkField.GetType().Interface(values[0])
-			err = pkField.UpdateValue(pkVal)
+			err = pkField.SetValue(pkVal)
 			if err != nil {
 				log.Errorf("UpdateFieldValue pkField failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
 				return
@@ -181,7 +181,7 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret m
 
 			pkField := itemInfo.GetPrimaryField()
 			pkVal := pkField.GetType().Interface(item)
-			err = pkField.UpdateValue(pkVal)
+			err = pkField.SetValue(pkVal)
 			if err != nil {
 				log.Errorf("UpdateValue failed, err:%s", err.Error())
 				return

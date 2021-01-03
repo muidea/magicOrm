@@ -8,7 +8,7 @@ import (
 )
 
 //encodeIntValue get int value str
-func (s *impl) encodeIntValue(vVal model.Value) (ret string, err error) {
+func (s *impl) encodeIntValue(vVal model.Value, tType model.Type) (ret string, err error) {
 	val := vVal.Get().(reflect.Value)
 	val = reflect.Indirect(val)
 	switch val.Kind() {
@@ -22,19 +22,19 @@ func (s *impl) encodeIntValue(vVal model.Value) (ret string, err error) {
 }
 
 // decodeIntValue decode int from string
-func (s *impl) decodeIntValue(val string) (ret model.Value, err error) {
+func (s *impl) decodeIntValue(val string, tType model.Type) (ret model.Value, err error) {
 	iVal, iErr := strconv.ParseInt(val, 0, 64)
 	if iErr != nil {
 		err = iErr
 		return
 	}
 
-	ret = s.getValue(reflect.ValueOf(&iVal).Elem())
+	ret, err = s.getValue(&iVal)
 	return
 }
 
 //encodeUintValue get uint value str
-func (s *impl) encodeUintValue(vVal model.Value) (ret string, err error) {
+func (s *impl) encodeUintValue(vVal model.Value, tType model.Type) (ret string, err error) {
 	val := vVal.Get().(reflect.Value)
 	val = reflect.Indirect(val)
 	switch val.Kind() {
@@ -48,13 +48,13 @@ func (s *impl) encodeUintValue(vVal model.Value) (ret string, err error) {
 }
 
 // decodeUintValue decode uint from string
-func (s *impl) decodeUintValue(val string) (ret model.Value, err error) {
+func (s *impl) decodeUintValue(val string, tType model.Type) (ret model.Value, err error) {
 	uVal, uErr := strconv.ParseUint(val, 0, 64)
 	if uErr != nil {
 		err = uErr
 		return
 	}
 
-	ret = s.getValue(reflect.ValueOf(&uVal).Elem())
+	ret, err = s.getValue(&uVal)
 	return
 }

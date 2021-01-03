@@ -6,7 +6,6 @@ import (
 	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/provider/local"
 	"github.com/muidea/magicOrm/provider/remote"
-	"reflect"
 )
 
 // Provider model provider
@@ -234,10 +233,6 @@ func (s *providerImpl) Reset() {
 	s.modelCache.Reset()
 }
 
-func (s *providerImpl) GetValue(val reflect.Value) (ret model.Value) {
-	return
-}
-
 // NewLocalProvider model provider
 func NewLocalProvider(owner string) Provider {
 	ret := &providerImpl{
@@ -251,7 +246,7 @@ func NewLocalProvider(owner string) Provider {
 		appendSliceValueFunc: local.AppendSliceValue,
 	}
 
-	ret.helper = helper.New(ret.GetValue, ret.GetValueModel)
+	ret.helper = helper.New(ret.GetEntityValue, ret.GetValueModel)
 	return ret
 }
 
@@ -268,7 +263,7 @@ func NewRemoteProvider(owner string) Provider {
 		appendSliceValueFunc: remote.AppendSliceValue,
 	}
 
-	ret.helper = helper.New(ret.GetValue, ret.GetValueModel)
+	ret.helper = helper.New(ret.GetEntityValue, ret.GetValueModel)
 
 	return ret
 }

@@ -2,13 +2,14 @@ package helper
 
 import (
 	"fmt"
-	"github.com/muidea/magicOrm/model"
 	"reflect"
 	"time"
+
+	"github.com/muidea/magicOrm/model"
 )
 
 //encodeDateTimeValue get datetime value str
-func (s *impl) encodeDateTimeValue(vVal model.Value) (ret string, err error) {
+func (s *impl) encodeDateTimeValue(vVal model.Value, tType model.Type) (ret string, err error) {
 	val := vVal.Get().(reflect.Value)
 	val = reflect.Indirect(val)
 	switch val.Kind() {
@@ -30,7 +31,7 @@ func (s *impl) encodeDateTimeValue(vVal model.Value) (ret string, err error) {
 }
 
 // decodeDateTimeValue decode datetime from string
-func (s *impl) decodeDateTimeValue(val string) (ret model.Value, err error) {
+func (s *impl) decodeDateTimeValue(val string, tType model.Type) (ret model.Value, err error) {
 	if val == "" {
 		val = "0001-01-01 00:00:00"
 	}
@@ -41,6 +42,6 @@ func (s *impl) decodeDateTimeValue(val string) (ret model.Value, err error) {
 		return
 	}
 
-	ret = s.getValue(reflect.ValueOf(&dtVal).Elem())
+	ret, err = s.getValue(&dtVal)
 	return
 }

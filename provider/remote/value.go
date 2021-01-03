@@ -33,12 +33,6 @@ func (s *ValueImpl) Set(val interface{}) (err error) {
 	return
 }
 
-// Update Update
-func (s *ValueImpl) Update(val interface{}) (err error) {
-	s.value = val
-	return
-}
-
 // Get Get
 func (s *ValueImpl) Get() (ret interface{}) {
 	ret = s.value
@@ -48,15 +42,6 @@ func (s *ValueImpl) Get() (ret interface{}) {
 func (s *ValueImpl) Addr() model.Value {
 	impl := &ValueImpl{value: &s.value}
 	return impl
-}
-
-func (s *ValueImpl) Type() (model.Type, error) {
-	vType := reflect.TypeOf(s.value)
-	if vType.Kind() == reflect.Interface {
-		vType = vType.Elem()
-	}
-
-	return newType(vType)
 }
 
 // Copy Copy

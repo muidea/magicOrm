@@ -32,7 +32,7 @@ func (s *impl) decodeStructValue(val string, tType model.Type) (ret model.Value,
 		err = fErr
 		return
 	}
-	err = pkField.UpdateValue(fVal)
+	err = pkField.SetValue(fVal)
 	if err != nil {
 		return
 	}

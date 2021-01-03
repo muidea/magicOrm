@@ -6,7 +6,6 @@ type Model interface {
 	GetPkgPath() string
 	GetFields() Fields
 	SetFieldValue(idx int, val Value) error
-	UpdateFieldValue(name string, val Value) error
 	GetPrimaryField() Field
 	Interface() Value
 	Copy() Model

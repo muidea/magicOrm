@@ -56,10 +56,6 @@ func (s *field) GetValue() (ret model.Value) {
 	return
 }
 
-func (s *field) IsPrimary() bool {
-	return s.Tag.IsPrimaryKey()
-}
-
 func (s *field) SetValue(val model.Value) (err error) {
 	err = s.value.Set(val.Get())
 	if err != nil {
@@ -69,13 +65,8 @@ func (s *field) SetValue(val model.Value) (err error) {
 	return
 }
 
-func (s *field) UpdateValue(val model.Value) (err error) {
-	err = s.value.Update(val.Get())
-	if err != nil {
-		log.Errorf("update field value failed, name:%s, err:%s", s.Name, err.Error())
-	}
-
-	return
+func (s *field) IsPrimary() bool {
+	return s.Tag.IsPrimaryKey()
 }
 
 func (s *field) copy() *field {

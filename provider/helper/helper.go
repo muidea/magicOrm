@@ -2,13 +2,12 @@ package helper
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
 )
 
-type GetValueFunc func(reflect.Value) model.Value
+type GetValueFunc func(interface{}) (model.Value, error)
 type GetValueModelFunc func(model.Value, model.Type) (model.Model, error)
 
 type Helper interface {
@@ -28,19 +27,19 @@ func New(getValue GetValueFunc, getValueModel GetValueModelFunc) Helper {
 func (s *impl) Encode(vVal model.Value, tType model.Type) (ret string, err error) {
 	switch tType.GetValue() {
 	case util.TypeBooleanField:
-		ret, err = s.encodeBoolValue(vVal)
+		ret, err = s.encodeBoolValue(vVal, tType)
 	case util.TypeDateTimeField:
-		ret, err = s.encodeDateTimeValue(vVal)
+		ret, err = s.encodeDateTimeValue(vVal, tType)
 	case util.TypeFloatField, util.TypeDoubleField:
-		ret, err = s.encodeFloatValue(vVal)
+		ret, err = s.encodeFloatValue(vVal, tType)
 	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
-		ret, err = s.encodeIntValue(vVal)
+		ret, err = s.encodeIntValue(vVal, tType)
 	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
-		ret, err = s.encodeUintValue(vVal)
+		ret, err = s.encodeUintValue(vVal, tType)
 	case util.TypeSliceField:
 		ret, err = s.encodeSliceValue(vVal, tType)
 	case util.TypeStringField:
-		ret, err = s.encodeStringValue(vVal)
+		ret, err = s.encodeStringValue(vVal, tType)
 	case util.TypeStructField:
 		ret, err = s.encodeStructValue(vVal, tType)
 	default:
@@ -51,31 +50,26 @@ func (s *impl) Encode(vVal model.Value, tType model.Type) (ret string, err error
 }
 
 func (s *impl) Decode(val string, tType model.Type) (ret model.Value, err error) {
-	var tVal model.Value
 	switch tType.GetValue() {
 	case util.TypeBooleanField:
-		tVal, err = s.decodeBoolValue(val)
+		ret, err = s.decodeBoolValue(val, tType)
 	case util.TypeDateTimeField:
-		tVal, err = s.decodeDateTimeValue(val)
+		ret, err = s.decodeDateTimeValue(val, tType)
 	case util.TypeFloatField, util.TypeDoubleField:
-		tVal, err = s.decodeFloatValue(val)
+		ret, err = s.decodeFloatValue(val, tType)
 	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
-		tVal, err = s.decodeIntValue(val)
+		ret, err = s.decodeIntValue(val, tType)
 	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
-		tVal, err = s.decodeUintValue(val)
+		ret, err = s.decodeUintValue(val, tType)
 	case util.TypeSliceField:
-		tVal, err = s.decodeSliceValue(val, tType)
+		ret, err = s.decodeSliceValue(val, tType)
 	case util.TypeStringField:
-		tVal, err = s.decodeStringValue(val)
+		ret, err = s.decodeStringValue(val, tType)
 	case util.TypeStructField:
-		tVal, err = s.decodeStructValue(val, tType)
+		ret, err = s.decodeStructValue(val, tType)
 	default:
 		err = fmt.Errorf("illegal type, type:%s", tType.GetName())
 	}
-	if tType.IsPtrType() {
-		tVal = tVal.Addr()
-	}
 
-	ret = tVal
 	return
 }

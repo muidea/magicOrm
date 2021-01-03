@@ -2,6 +2,7 @@ package orm
 
 import (
 	"fmt"
+
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/builder"
@@ -13,12 +14,7 @@ type resultItems []interface{}
 func (s *Orm) queryBatch(elemModel model.Model, sliceValue model.Value, filter model.Filter) (err error) {
 	var maskModel model.Model
 	if filter != nil {
-		maskModel, err = filter.MaskModel()
-		if err != nil {
-			log.Errorf("Get MaskModel failed, err:%s", err.Error())
-			return
-		}
-
+		maskModel = filter.MaskModel()
 		if maskModel != nil {
 			if maskModel.GetName() != elemModel.GetName() || maskModel.GetPkgPath() != elemModel.GetPkgPath() {
 				err = fmt.Errorf("illegal value mask")
@@ -96,14 +92,14 @@ func (s *Orm) assignSingleModel(modelVal model.Model, queryVal resultItems) (ret
 				continue
 			}
 
-			field.UpdateValue(itemVal)
+			field.SetValue(itemVal)
 
 			//offset++
 			continue
 		}
 
 		fVal := fType.Interface(s.stripSlashes(fType, queryVal[offset]))
-		err = field.UpdateValue(fVal)
+		err = field.SetValue(fVal)
 		if err != nil {
 			log.Errorf("UpdateValue failed, err:%s", err.Error())
 			return

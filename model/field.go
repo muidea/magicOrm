@@ -12,12 +12,10 @@ type Field interface {
 	GetTag() Tag
 	//@GetValue Value
 	GetValue() Value
+	//@SetValue 更新值
+	SetValue(val Value) error
 	//@IsPrimary 是否主键
 	IsPrimary() bool
-	//@SetValue 设置值
-	SetValue(val Value) error
-	//@UpdateValue 更新值
-	UpdateValue(val Value) error
 }
 
 func CompareField(l, r Field) bool {

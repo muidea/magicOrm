@@ -19,7 +19,13 @@ func (s *impl) encodeSliceValue(vVal model.Value, tType model.Type) (ret string,
 
 	items := []string{}
 	for idx := 0; idx < val.Len(); idx++ {
-		strVal, strErr := s.Encode(s.getValue(val.Index(idx)), tType.Elem())
+		vVal, vErr := s.getValue(val.Index(idx))
+		if vErr != nil {
+			err = vErr
+			return
+		}
+
+		strVal, strErr := s.Encode(vVal, tType.Elem())
 		if strErr != nil {
 			err = strErr
 			return

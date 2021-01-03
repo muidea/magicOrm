@@ -46,19 +46,6 @@ func (s *modelImpl) SetFieldValue(idx int, val model.Value) (err error) {
 	return
 }
 
-// UpdateFieldValue UpdateFieldValue
-func (s *modelImpl) UpdateFieldValue(name string, val model.Value) (err error) {
-	for _, field := range s.fields {
-		if field.GetName() == name {
-			err = field.UpdateValue(val)
-			return
-		}
-	}
-
-	err = fmt.Errorf("no found field, name:%s", name)
-	return
-}
-
 // GetPrimaryField GetPrimaryField
 func (s *modelImpl) GetPrimaryField() (ret model.Field) {
 	for _, field := range s.fields {
@@ -80,7 +67,7 @@ func (s *modelImpl) Interface() (ret model.Value) {
 			continue
 		}
 
-		retVal.FieldByName(field.GetName()).Set(tVal.Get().(reflect.Value))
+		retVal.Field(field.GetIndex()).Set(tVal.Get().(reflect.Value))
 	}
 
 	ret = newValue(retVal)

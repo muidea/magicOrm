@@ -30,7 +30,7 @@ func GetEntityType(entity interface{}) (ret model.Type, err error) {
 }
 
 func GetEntityValue(entity interface{}) (ret model.Value, err error) {
-	ret = newValue(reflect.ValueOf(entity))
+	ret = newValue(reflect.ValueOf(entity).Elem())
 	return
 }
 

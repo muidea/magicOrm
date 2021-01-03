@@ -39,7 +39,7 @@ func TestValue(t *testing.T) {
 	}
 
 	iReflect2 := reflect.ValueOf(12)
-	value2Err := value2Ptr.Update(iReflect2)
+	value2Err := value2Ptr.Set(iReflect2)
 	if value2Err != nil {
 		t.Errorf("update failed, err:%s", value2Err.Error())
 		return

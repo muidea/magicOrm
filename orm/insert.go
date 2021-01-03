@@ -24,7 +24,7 @@ func (s *Orm) insertSingle(modelInfo model.Model) (err error) {
 	pk := modelInfo.GetPrimaryField()
 
 	typeVal := pk.GetType().Interface(id)
-	err = pk.UpdateValue(typeVal)
+	err = pk.SetValue(typeVal)
 	if err != nil {
 		log.Errorf("UpdateValue failed, err:%s", err.Error())
 		return err
