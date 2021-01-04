@@ -14,7 +14,7 @@ type Builder interface {
 	BuildInsert() (string, error)
 	BuildUpdate() (string, error)
 	BuildDelete() (string, error)
-	BuildQuery() (string, error)
+	BuildQuery(filter model.Filter) (string, error)
 	BuildCount(filter model.Filter) (string, error)
 	BuildBatchQuery(filter model.Filter) (string, error)
 

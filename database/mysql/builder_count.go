@@ -12,7 +12,7 @@ func (s *Builder) BuildCount(filter model.Filter) (ret string, err error) {
 
 	ret = fmt.Sprintf("SELECT COUNT(%s) FROM `%s`", pkField.GetTag().GetName(), s.getHostTableName(s.modelInfo))
 	if filter != nil {
-		filterSQL, filterErr := s.buildBatchFilter(filter)
+		filterSQL, filterErr := s.buildFilter(filter)
 		if filterErr != nil {
 			err = filterErr
 			return

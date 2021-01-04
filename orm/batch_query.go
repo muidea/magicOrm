@@ -1,8 +1,6 @@
 package orm
 
 import (
-	"fmt"
-
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/builder"
@@ -15,12 +13,6 @@ func (s *Orm) queryBatch(elemModel model.Model, sliceValue model.Value, filter m
 	var maskModel model.Model
 	if filter != nil {
 		maskModel = filter.MaskModel()
-		if maskModel != nil {
-			if maskModel.GetName() != elemModel.GetName() || maskModel.GetPkgPath() != elemModel.GetPkgPath() {
-				err = fmt.Errorf("illegal value mask")
-				return
-			}
-		}
 	}
 	if maskModel == nil {
 		maskModel = elemModel

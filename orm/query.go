@@ -10,28 +10,28 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
-func (s *Orm) querySingle(modelInfo model.Model) (err error) {
+func (s *Orm) querySingle(vModel model.Model, vVal model.Value, filter model.Filter) (err error) {
 	func() {
-		builder := builder.NewBuilder(modelInfo, s.modelProvider)
-		sql, sqlErr := builder.BuildQuery()
+		builder := builder.NewBuilder(vModel, s.modelProvider)
+		sqlStr, sqlErr := builder.BuildQuery(filter)
 		if sqlErr != nil {
 			err = sqlErr
 			log.Errorf("build query failed, err:%s", err.Error())
 			return
 		}
 
-		err = s.executor.Query(sql)
+		err = s.executor.Query(sqlStr)
 		if err != nil {
 			return
 		}
 
 		defer s.executor.Finish()
 		if !s.executor.Next() {
-			err = fmt.Errorf("query %s failed, no found object", modelInfo.GetName())
+			err = fmt.Errorf("query %s failed, no found object", vModel.GetName())
 			return
 		}
 
-		items, itemErr := s.getModelItems(modelInfo, builder)
+		items, itemErr := s.getModelItems(vModel, builder)
 		if itemErr != nil {
 			err = itemErr
 			return
@@ -42,9 +42,9 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 			return
 		}
 
-		for idx, item := range modelInfo.GetFields() {
+		for idx, item := range vModel.GetFields() {
 			fType := item.GetType()
-			if !fType.IsBasic() {
+			if item.GetValue().IsNil() || !fType.IsBasic() {
 				continue
 			}
 
@@ -59,53 +59,98 @@ func (s *Orm) querySingle(modelInfo model.Model) (err error) {
 		return
 	}
 
-	for _, item := range modelInfo.GetFields() {
+	for _, item := range vModel.GetFields() {
 		fType := item.GetType()
-		if fType.IsBasic() {
+		if item.GetValue().IsNil() || fType.IsBasic() {
 			continue
 		}
 
-		itemVal, itemErr := s.queryRelation(modelInfo, item)
+		itemVal, itemErr := s.queryRelation(vModel, item)
 		if itemErr != nil {
 			err = itemErr
-			log.Errorf("queryRelation failed, modelName:%s, fieldName:%s, err:%s", modelInfo.GetName(), item.GetName(), err.Error())
+			log.Errorf("queryRelation failed, modelName:%s, fieldName:%s, err:%s", vModel.GetName(), item.GetName(), err.Error())
 			return
 		}
 
 		itemErr = item.SetValue(itemVal)
 		if itemErr != nil {
 			err = itemErr
-			log.Errorf("UpdateFieldValue failed, modelName:%s, fieldName:%s, err:%s", modelInfo.GetName(), item.GetName(), err.Error())
+			log.Errorf("UpdateFieldValue failed, modelName:%s, fieldName:%s, err:%s", vModel.GetName(), item.GetName(), err.Error())
 			return
 		}
 	}
 
+	vVal.Set(vModel.Interface().Get())
+
 	return
 }
 
-func (s *Orm) stripSlashes(fType model.Type, val interface{}) interface{} {
-	if !s.needStripSlashes(fType) {
-		return val
+func (s *Orm) queryRelationSingle(id int, vModel model.Model) (ret model.Value, err error) {
+	relationModel := vModel.Copy()
+	relationVal, relationErr := s.modelProvider.GetEntityValue(id)
+	if relationErr != nil {
+		err = fmt.Errorf("GetEntityValue failed, err:%s", relationErr)
+		return
 	}
 
-	strPtr, strOK := val.(*string)
-	if !strOK {
-		return val
+	pkField := relationModel.GetPrimaryField()
+	pkField.SetValue(relationVal)
+	relationFilter, relationErr := s.getFieldFilter(pkField)
+	if relationErr != nil {
+		err = fmt.Errorf("GetEntityValue failed, err:%s", relationErr)
+		return
 	}
 
-	strVal := util.StripSlashes(*strPtr)
-	return &strVal
+	err = s.querySingle(relationModel, relationVal, relationFilter)
+	if err != nil {
+		log.Errorf("querySingle for struct failed, err:%s", err.Error())
+		return
+	}
+
+	ret = relationModel.Interface()
+	return
+}
+
+func (s *Orm) queryRelationSlice(ids []int, vModel model.Model, sliceVal model.Value) (ret model.Value, err error) {
+	for _, item := range ids {
+		relationModel := vModel.Copy()
+		relationVal, relationErr := s.modelProvider.GetEntityValue(item)
+		if relationErr != nil {
+			err = fmt.Errorf("GetEntityValue failed, err:%s", relationErr)
+			return
+		}
+
+		pkField := relationModel.GetPrimaryField()
+		pkField.SetValue(relationVal)
+		relationFilter, relationErr := s.getFieldFilter(pkField)
+		if relationErr != nil {
+			err = fmt.Errorf("GetEntityValue failed, err:%s", relationErr)
+			return
+		}
+
+		err = s.querySingle(relationModel, relationVal, relationFilter)
+		if err != nil {
+			log.Errorf("querySingle for slice failed, err:%s", err.Error())
+			return
+		}
+
+		itemVal := relationModel.Interface()
+		sliceVal, err = s.modelProvider.AppendSliceValue(sliceVal, itemVal)
+		if err != nil {
+			log.Errorf("append slice value failed, err:%s", err.Error())
+			return
+		}
+	}
+
+	ret = sliceVal
+	return
 }
 
 func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret model.Value, err error) {
 	fieldType := fieldInfo.GetType()
 	fieldModel, fieldErr := s.modelProvider.GetTypeModel(fieldType)
-	if fieldErr != nil || fieldModel == nil {
+	if fieldErr != nil {
 		err = fieldErr
-		if err == nil {
-			err = fmt.Errorf("can't find typeModel")
-		}
-
 		log.Errorf("GetTypeModel failed, type:%s, err:%s", fieldType.GetName(), err.Error())
 		return
 	}
@@ -118,7 +163,7 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret m
 		return
 	}
 
-	var values []int64
+	var values []int
 	func() {
 		err = s.executor.Query(relationSQL)
 		if err != nil {
@@ -127,7 +172,7 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret m
 
 		defer s.executor.Finish()
 		for s.executor.Next() {
-			v := int64(0)
+			v := 0
 			err = s.executor.GetField(&v)
 			if err != nil {
 				return
@@ -140,70 +185,30 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret m
 	}
 
 	if util.IsStructType(fieldType.GetValue()) {
-		if len(values) > 0 {
-			relationVal := fieldModel.Interface()
-			relationInfo, relationErr := s.modelProvider.GetValueModel(relationVal, fieldType)
-			if relationErr != nil {
-				err = relationErr
-				log.Errorf("GetValueModel failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
-				return
-			}
-
-			pkField := relationInfo.GetPrimaryField()
-			pkVal := pkField.GetType().Interface(values[0])
-			err = pkField.SetValue(pkVal)
-			if err != nil {
-				log.Errorf("UpdateFieldValue pkField failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
-				return
-			}
-
-			err = s.querySingle(relationInfo)
-			if err != nil {
-				log.Errorf("querySingle for struct failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
-				return
-			}
-
-			ret = relationVal
-			if fieldType.IsPtrType() {
-				ret = ret.Addr()
-			}
-		}
-	} else if util.IsSliceType(fieldType.GetValue()) {
-		relationVal := fieldType.Interface(nil)
-		for _, item := range values {
-			itemVal := fieldModel.Interface()
-			itemInfo, itemErr := s.modelProvider.GetValueModel(itemVal, fieldType.Elem())
-			if itemErr != nil {
-				log.Errorf("GetValueModel failed, err:%s", itemErr.Error())
-				err = itemErr
-				return
-			}
-
-			pkField := itemInfo.GetPrimaryField()
-			pkVal := pkField.GetType().Interface(item)
-			err = pkField.SetValue(pkVal)
-			if err != nil {
-				log.Errorf("UpdateValue failed, err:%s", err.Error())
-				return
-			}
-
-			err = s.querySingle(itemInfo)
-			if err != nil {
-				log.Errorf("querySingle for slice failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
-				return
-			}
-
-			relationVal, err = s.modelProvider.AppendSliceValue(relationVal, itemVal)
-			if err != nil {
-				log.Errorf("append slice value failed, err:%s", err.Error())
-				return
-			}
+		singleVal, singleErr := s.queryRelationSingle(values[0], fieldModel)
+		if singleErr != nil {
+			err = singleErr
+			log.Errorf("queryRelationSingle failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
+			return
 		}
 
-		ret = relationVal
 		if fieldType.IsPtrType() {
-			ret = ret.Addr()
+			singleVal = singleVal.Addr()
 		}
+		ret = singleVal
+	} else if util.IsSliceType(fieldType.GetValue()) {
+		sliceVal := fieldType.Interface(nil)
+		sliceVal, sliceErr := s.queryRelationSlice(values, fieldModel, sliceVal)
+		if sliceErr != nil {
+			err = sliceErr
+			log.Errorf("queryRelationSlice failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
+			return
+		}
+
+		if fieldType.IsPtrType() {
+			sliceVal = sliceVal.Addr()
+		}
+		ret = sliceVal
 	}
 
 	return
@@ -218,7 +223,21 @@ func (s *Orm) Query(entity interface{}) (err error) {
 		return
 	}
 
-	err = s.querySingle(entityModel)
+	entityVal, entityErr := s.modelProvider.GetEntityValue(entity)
+	if entityErr != nil {
+		err = entityErr
+		log.Errorf("GetEntityValue failed, err:%s", err.Error())
+		return
+	}
+
+	entityFilter, entityErr := s.getModelFilter(entityModel)
+	if entityErr != nil {
+		err = entityErr
+		log.Errorf("getFilter failed, err:%s", err.Error())
+		return
+	}
+
+	err = s.querySingle(entityModel, entityVal, entityFilter)
 	if err != nil {
 		log.Errorf("querySingle failed, modelName:%s, err:%s", entityModel.GetName(), err.Error())
 		return

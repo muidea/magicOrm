@@ -6,24 +6,43 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
+func (s *Orm) getModelFilter(vModel model.Model) (ret model.Filter, err error) {
+	filter := &queryFilter{}
+	fields := vModel.GetFields()
+	for _, item := range fields {
+		vVal := item.GetValue()
+		if vVal.IsNil() {
+			continue
+		}
+
+		filter.Equal(item.GetName(), vVal.Get())
+	}
+
+	ret = filter
+	return
+}
+
+func (s *Orm) getFieldFilter(vField model.Field) (ret model.Filter, err error) {
+	filter := &queryFilter{}
+	vVal := vField.GetValue()
+	if !vVal.IsNil() {
+		filter.Equal(vField.GetName(), vField.GetValue())
+	}
+
+	ret = filter
+	return
+}
+
 func (s *Orm) getModelItems(modelInfo model.Model, builder builder.Builder) (ret []interface{}, err error) {
 	var items []interface{}
 	fields := modelInfo.GetFields()
 	for _, item := range fields {
-		if item.GetValue().IsNil() {
-			continue
-		}
-
 		fType := item.GetType()
-		if !fType.IsBasic() {
+		if item.GetValue().IsNil() || !fType.IsBasic() {
 			continue
 		}
 
 		itemVal, itemErr := builder.DeclareFieldValue(item)
-		if itemVal == nil {
-			continue
-		}
-
 		if itemErr != nil {
 			err = itemErr
 			return
@@ -47,4 +66,18 @@ func (s *Orm) needStripSlashes(fType model.Type) bool {
 	}
 
 	return fType.IsBasic()
+}
+
+func (s *Orm) stripSlashes(fType model.Type, val interface{}) interface{} {
+	if !s.needStripSlashes(fType) {
+		return val
+	}
+
+	strPtr, strOK := val.(*string)
+	if !strOK {
+		return val
+	}
+
+	strVal := util.StripSlashes(*strPtr)
+	return &strVal
 }

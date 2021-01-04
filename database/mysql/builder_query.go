@@ -5,18 +5,17 @@ import (
 	"log"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
 )
 
 // BuildQuery BuildQuery
-func (s *Builder) BuildQuery() (ret string, err error) {
+func (s *Builder) BuildQuery(filter model.Filter) (ret string, err error) {
 	namesVal, nameErr := s.getFieldQueryNames(s.modelInfo)
 	if nameErr != nil {
 		err = nameErr
 		return
 	}
 
-	filterStr, filterErr := s.buildFilter(s.modelInfo)
+	filterStr, filterErr := s.buildFilter(filter)
 	if filterErr != nil {
 		err = filterErr
 		log.Printf("buildFilter failed, err:%s", err.Error())
@@ -30,77 +29,6 @@ func (s *Builder) BuildQuery() (ret string, err error) {
 	}
 	//log.Print(ret)
 
-	return
-}
-
-func (s *Builder) buildFilter(modelInfo model.Model) (ret string, err error) {
-	filterSQL := ""
-	relationSQL := ""
-	pkField := modelInfo.GetPrimaryField()
-	for _, field := range modelInfo.GetFields() {
-		if !field.IsAssigned() {
-			continue
-		}
-
-		fType := field.GetType()
-		fValue := field.GetValue()
-		fStr, fErr := s.modelProvider.GetValueStr(fType, fValue)
-		if fErr != nil {
-			err = fErr
-			return
-		}
-
-		dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
-		if dependErr != nil {
-			err = dependErr
-			return
-		}
-
-		if dependModel != nil {
-			// if fStr is "0"
-			// a empty struct
-			if fStr == "0" {
-				continue
-			}
-
-			relationTable := s.GetRelationTableName(field.GetName(), dependModel)
-			if util.IsSliceType(fType.GetValue()) {
-				if fStr != "" {
-					if relationSQL == "" {
-						relationSQL = fmt.Sprintf("SELECT `left` FROM `%s` WHERE `right` IN (%s)", relationTable, fStr)
-					} else {
-						relationSQL = fmt.Sprintf("%s UNION SELECT `left` FROM `%s` WHERE `right` IN (%s)", relationSQL, relationTable, fStr)
-					}
-				}
-			} else {
-				if relationSQL == "" {
-					relationSQL = fmt.Sprintf("SELECT `left` FROM `%s` WHERE `right`=%s", relationTable, fStr)
-				} else {
-					relationSQL = fmt.Sprintf("%s UNION SELECT `left` FROM `%s` WHERE `right`=%s", relationSQL, relationTable, fStr)
-				}
-			}
-
-			continue
-		}
-
-		fTag := field.GetTag()
-		if filterSQL == "" {
-			filterSQL = fmt.Sprintf("`%s`=%s", fTag.GetName(), fStr)
-		} else {
-			filterSQL = fmt.Sprintf("%s AND `%s`=%s", filterSQL, fTag.GetName(), fStr)
-		}
-	}
-
-	if relationSQL != "" {
-		pkTag := pkField.GetTag()
-		if filterSQL != "" {
-			filterSQL = fmt.Sprintf("%s AND %s IN (%s)", filterSQL, pkTag.GetName(), relationSQL)
-		} else {
-			filterSQL = fmt.Sprintf("%s IN (%s)", pkTag.GetName(), relationSQL)
-		}
-	}
-
-	ret = filterSQL
 	return
 }
 

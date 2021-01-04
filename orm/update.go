@@ -9,24 +9,20 @@ import (
 
 func (s *Orm) updateSingle(modelInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
-	sql, err := builder.BuildUpdate()
-	if err != nil {
+	sqlStr, sqlErr := builder.BuildUpdate()
+	if sqlErr != nil {
+		err = sqlErr
 		return err
 	}
 
-	_, err = s.executor.Update(sql)
+	_, err = s.executor.Update(sqlStr)
 
 	return err
 }
 
 func (s *Orm) updateRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
 	fType := fieldInfo.GetType()
-	fDependModel, fDependErr := s.modelProvider.GetTypeModel(fType)
-	if fDependErr != nil {
-		err = fDependErr
-		return
-	}
-	if fDependModel == nil {
+	if fType.IsBasic() {
 		return
 	}
 
