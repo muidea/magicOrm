@@ -102,6 +102,7 @@ func getItemInfo(idx int, fieldType reflect.StructField) (ret *Item, err error) 
 	item.Name = fieldType.Name
 	item.Type = typeImpl
 	item.Tag = tagImpl
+	item.value = newValue(nil)
 
 	ret = item
 	return

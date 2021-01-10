@@ -19,13 +19,13 @@ func UpdateEntity(objectValue *ObjectValue, entity interface{}) (err error) {
 
 	entityValue := reflect.ValueOf(entity)
 	if entityValue.Kind() != reflect.Ptr {
-		err = fmt.Errorf("illegal entity value")
+		err = fmt.Errorf("illegal entity value, must be a pointer entity")
 		return
 	}
 
 	entityValue = reflect.Indirect(entityValue)
 	if entityValue.Kind() != reflect.Struct {
-		err = fmt.Errorf("illegal entity")
+		err = fmt.Errorf("illegal entity, must be a struct entity")
 		return
 	}
 	if !entityValue.CanSet() {
@@ -223,7 +223,35 @@ func updateSliceBasicValue(basicValue interface{}, tType model.Type, value refle
 			} else {
 				value = reflect.Append(value, reflect.ValueOf(iVal))
 			}
-		case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
+		case util.TypePositiveBitField:
+			uVal := uint8(val.Float())
+			if tType.IsPtrType() {
+				value = reflect.Append(value, reflect.ValueOf(&uVal))
+			} else {
+				value = reflect.Append(value, reflect.ValueOf(uVal))
+			}
+		case util.TypePositiveSmallIntegerField:
+			uVal := uint16(val.Float())
+			if tType.IsPtrType() {
+				value = reflect.Append(value, reflect.ValueOf(&uVal))
+			} else {
+				value = reflect.Append(value, reflect.ValueOf(uVal))
+			}
+		case util.TypePositiveInteger32Field:
+			uVal := uint32(val.Float())
+			if tType.IsPtrType() {
+				value = reflect.Append(value, reflect.ValueOf(&uVal))
+			} else {
+				value = reflect.Append(value, reflect.ValueOf(uVal))
+			}
+		case util.TypePositiveIntegerField:
+			uVal := uint(val.Float())
+			if tType.IsPtrType() {
+				value = reflect.Append(value, reflect.ValueOf(&uVal))
+			} else {
+				value = reflect.Append(value, reflect.ValueOf(uVal))
+			}
+		case util.TypePositiveBigIntegerField:
 			uVal := uint64(val.Float())
 			if tType.IsPtrType() {
 				value = reflect.Append(value, reflect.ValueOf(&uVal))
@@ -282,6 +310,7 @@ func updateStructValue(objectValue *ObjectValue, vType model.Type, value reflect
 		}
 
 		for {
+			// for basic type
 			if util.IsBasicType(tType.GetValue()) {
 				_, err = updateBasicValue(curItem.Value, tType, curValue)
 				if err != nil {
@@ -291,6 +320,7 @@ func updateStructValue(objectValue *ObjectValue, vType model.Type, value reflect
 				break
 			}
 
+			// for struct type
 			if util.IsStructType(tType.GetValue()) {
 				_, err = updateStructValue(curItem.Value.(*ObjectValue), tType, curValue)
 				if err != nil {
@@ -300,6 +330,7 @@ func updateStructValue(objectValue *ObjectValue, vType model.Type, value reflect
 				break
 			}
 
+			// for basic slice
 			if tType.IsBasic() {
 				val, valErr := updateSliceBasicValue(curItem.Value, tType, curValue)
 				if valErr != nil {
@@ -312,6 +343,7 @@ func updateStructValue(objectValue *ObjectValue, vType model.Type, value reflect
 				break
 			}
 
+			// for struct slice
 			val, valErr := updateSliceStructValue(curItem.Value.(*SliceObjectValue), tType, curValue)
 			if valErr != nil {
 				err = valErr

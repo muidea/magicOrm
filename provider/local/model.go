@@ -100,6 +100,12 @@ func getTypeModel(entityType reflect.Type) (ret *modelImpl, err error) {
 	if entityType.Kind() == reflect.Ptr {
 		entityType = entityType.Elem()
 	}
+	if entityType.Kind() == reflect.Interface {
+		entityType = entityType.Elem()
+	}
+	if entityType.Kind() == reflect.Ptr {
+		entityType = entityType.Elem()
+	}
 
 	typeImpl, typeErr := newType(entityType)
 	if typeErr != nil {
@@ -116,24 +122,24 @@ func getTypeModel(entityType reflect.Type) (ret *modelImpl, err error) {
 	fieldNum := entityType.NumField()
 	var fieldValue reflect.Value
 	for idx := 0; idx < fieldNum; idx++ {
-		fieldType := entityType.Field(idx)
-		fieldInfo, fieldErr := getFieldInfo(idx, fieldType, fieldValue)
-		if fieldErr != nil {
-			err = fieldErr
-			log.Printf("getFieldInfo failed, field idx:%d, field name:%s, struct name:%s, err:%s", idx, fieldType.Name, impl.GetName(), err.Error())
+		fieldInfo := entityType.Field(idx)
+		tField, tErr := getFieldInfo(idx, fieldInfo, fieldValue)
+		if tErr != nil {
+			err = tErr
+			log.Printf("getFieldInfo failed, field idx:%d, field name:%s, struct name:%s, err:%s", idx, fieldInfo.Name, impl.GetName(), err.Error())
 			return
 		}
 
-		if fieldInfo.IsPrimary() {
+		if tField.IsPrimary() {
 			if hasPrimaryKey {
-				err = fmt.Errorf("duplicate primary key field, struct name:%s", impl.GetName())
+				err = fmt.Errorf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldInfo.Name, impl.GetName())
 				return
 			}
 
 			hasPrimaryKey = true
 		}
 
-		impl.fields = append(impl.fields, fieldInfo)
+		impl.fields = append(impl.fields, tField)
 	}
 
 	if len(impl.fields) == 0 {
@@ -158,25 +164,25 @@ func getValueModel(modelVal reflect.Value) (ret *modelImpl, err error) {
 	fieldNum := entityType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		fieldVal := modelVal.Field(idx)
-		fieldType := entityType.Field(idx)
-		fieldInfo, fieldErr := getFieldInfo(idx, fieldType, fieldVal)
-		if fieldErr != nil {
-			err = fieldErr
-			log.Printf("getFieldInfo failed, field idx:%d, field name:%s, struct name:%s, err:%s", idx, fieldType.Name, impl.GetName(), err.Error())
+		fieldInfo := entityType.Field(idx)
+		tField, tErr := getFieldInfo(idx, fieldInfo, fieldVal)
+		if tErr != nil {
+			err = tErr
+			log.Printf("getFieldInfo failed, field idx:%d, field name:%s, struct name:%s, err:%s", idx, fieldInfo.Name, impl.GetName(), err.Error())
 			return
 		}
 
-		if fieldInfo.IsPrimary() {
+		if tField.IsPrimary() {
 			if hasPrimaryKey {
-				err = fmt.Errorf("duplicate primary key field, struct name:%s", impl.GetName())
+				err = fmt.Errorf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldInfo.Name, impl.GetName())
 				return
 			}
 
 			hasPrimaryKey = true
 		}
 
-		if fieldInfo != nil {
-			impl.fields = append(impl.fields, fieldInfo)
+		if tField != nil {
+			impl.fields = append(impl.fields, tField)
 		}
 	}
 

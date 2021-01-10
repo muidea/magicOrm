@@ -2,6 +2,7 @@ package local
 
 import (
 	"fmt"
+	"github.com/muidea/magicOrm/util"
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
@@ -12,10 +13,6 @@ func GetEntityType(entity interface{}) (ret model.Type, err error) {
 	vType, vErr := newType(rType)
 	if vErr != nil {
 		err = vErr
-		return
-	}
-	if vType.IsBasic() {
-		err = fmt.Errorf("illegal entity")
 		return
 	}
 
@@ -42,8 +39,8 @@ func GetEntityModel(entity interface{}) (ret model.Model, err error) {
 		err = vErr
 		return
 	}
-	if vType.IsBasic() {
-		err = fmt.Errorf("illegal entity")
+	if !util.IsStructType(vType.GetValue()) {
+		err = fmt.Errorf("illegal entity, must be a struct entity")
 		return
 	}
 
@@ -61,6 +58,11 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 	rVal := vVal.Get().(reflect.Value)
 	rVal = reflect.Indirect(rVal)
 	vType := rVal.Type()
+	if vType.Kind() != reflect.Struct {
+		err = fmt.Errorf("illegal model value, mode name:%s", vModel.GetName())
+		return
+	}
+
 	fieldNum := vType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		fieldType := vType.Field(idx)

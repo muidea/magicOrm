@@ -73,15 +73,10 @@ func (s *Object) Interface() (ret model.Value) {
 	val := &ObjectValue{Name: s.Name, PkgPath: s.PkgPath, Items: []*ItemValue{}}
 
 	for _, v := range s.Items {
-		if v.value.IsNil() {
-			val.Items = append(val.Items, &ItemValue{Name: v.Name, Value: nil})
-			continue
-		}
-
 		val.Items = append(val.Items, &ItemValue{Name: v.Name, Value: v.value.Get()})
 	}
 
-	ret = newValue(reflect.ValueOf(val))
+	ret = newValue(val)
 	return
 }
 
@@ -89,7 +84,12 @@ func (s *Object) Interface() (ret model.Value) {
 func (s *Object) Copy() (ret model.Model) {
 	obj := &Object{Name: s.Name, PkgPath: s.PkgPath, Items: []*Item{}}
 	for _, val := range s.Items {
-		obj.Items = append(obj.Items, &Item{Index: val.Index, Name: val.Name, Tag: val.Tag.copy(), Type: val.Type.copy()})
+		item := &Item{Index: val.Index, Name: val.Name, Tag: val.Tag.copy(), Type: val.Type.copy()}
+		if val.value != nil {
+			item.value = val.value.copy()
+		}
+
+		obj.Items = append(obj.Items, item)
 	}
 
 	ret = obj
@@ -124,13 +124,19 @@ func type2Object(entityType reflect.Type) (ret *Object, err error) {
 	if entityType.Kind() == reflect.Ptr {
 		entityType = entityType.Elem()
 	}
+	if entityType.Kind() == reflect.Interface {
+		entityType = entityType.Elem()
+	}
+	if entityType.Kind() == reflect.Ptr {
+		entityType = entityType.Elem()
+	}
 
 	typeImpl, typeErr := newType(entityType)
 	if typeErr != nil {
 		err = fmt.Errorf("illegal obj type, must be a struct obj, type:%s", entityType.String())
 		return
 	}
-	if typeImpl.GetValue() != util.TypeStructField {
+	if util.IsStructType(typeImpl.GetValue()) {
 		err = fmt.Errorf("illegal obj type, must be a struct obj, type:%s", entityType.String())
 		return
 	}
@@ -141,13 +147,22 @@ func type2Object(entityType reflect.Type) (ret *Object, err error) {
 	impl.PkgPath = entityType.PkgPath()
 	impl.Items = []*Item{}
 
+	hasPrimaryKey := false
 	fieldNum := entityType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		field := entityType.Field(idx)
-		fItem, fErr := getItemInfo(idx, field)
+		fieldInfo := entityType.Field(idx)
+		fItem, fErr := getItemInfo(idx, fieldInfo)
 		if fErr != nil {
 			err = fErr
 			return
+		}
+		if fItem.IsPrimary() {
+			if hasPrimaryKey {
+				err = fmt.Errorf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldInfo.Name, impl.GetName())
+				return
+			}
+
+			hasPrimaryKey = true
 		}
 
 		impl.Items = append(impl.Items, fItem)
@@ -155,6 +170,11 @@ func type2Object(entityType reflect.Type) (ret *Object, err error) {
 
 	if len(impl.Items) == 0 {
 		err = fmt.Errorf("no define orm field, struct name:%s", impl.GetName())
+		return
+	}
+
+	if !hasPrimaryKey {
+		err = fmt.Errorf("no define primary key field, struct name:%s", impl.GetName())
 		return
 	}
 

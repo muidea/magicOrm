@@ -1,18 +1,12 @@
 package remote
 
 import (
-	"reflect"
-
 	"github.com/muidea/magicOrm/model"
 )
 
 // ValueImpl ValueImpl
 type ValueImpl struct {
 	value interface{}
-}
-
-func GetValue(val reflect.Value) model.Value {
-	return newValue(val)
 }
 
 func newValue(v interface{}) (ret *ValueImpl) {
