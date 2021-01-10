@@ -74,16 +74,6 @@ func (s *Item) SetValue(val model.Value) (err error) {
 	return
 }
 
-// UpdateValue UpdateValue
-func (s *Item) UpdateValue(val model.Value) (err error) {
-	err = s.value.Update(val.Get())
-	if err != nil {
-		log.Errorf("update field value failed, name:%s, err:%s", s.Name, err.Error())
-	}
-
-	return
-}
-
 // copy copy
 func (s *Item) copy() (ret model.Field) {
 	return &Item{Index: s.Index, Name: s.Name, Tag: s.Tag, Type: s.Type, value: s.value}

@@ -74,12 +74,12 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 		return
 	}
 
-	for idx, item := range val.Items {
+	for _, item := range val.Items {
 		if item.Value == nil {
 			continue
 		}
 
-		err = vModel.SetFieldValue(idx, newValue(item.Value))
+		err = vModel.SetFieldValue(item.Name, newValue(item.Value))
 		if err != nil {
 			return
 		}

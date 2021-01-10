@@ -39,30 +39,13 @@ func (s *Object) GetFields() (ret model.Fields) {
 	return
 }
 
-// SetFieldValue SetFieldValue
-func (s *Object) SetFieldValue(idx int, val model.Value) (err error) {
+// UpdateFieldValue UpdateFieldValue
+func (s *Object) SetFieldValue(name string, val model.Value) (err error) {
 	for _, item := range s.Items {
-		if item.Index == idx {
+		if item.Name == name {
 			err = item.SetValue(val)
 			if err != nil {
 				log.Errorf("set field value failed, object name:%s, err:%s", s.Name, err.Error())
-			}
-
-			return
-		}
-	}
-
-	err = fmt.Errorf("invalid field idx:%d", idx)
-	return
-}
-
-// UpdateFieldValue UpdateFieldValue
-func (s *Object) UpdateFieldValue(name string, val model.Value) (err error) {
-	for _, item := range s.Items {
-		if item.Name == name {
-			err = item.UpdateValue(val)
-			if err != nil {
-				log.Errorf("update field value failed, object name:%s, err:%s", s.Name, err.Error())
 			}
 
 			return
