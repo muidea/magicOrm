@@ -4,13 +4,23 @@ import (
 	"fmt"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
+	"reflect"
 )
+
+func isRemoteType(vType model.Type) bool {
+	switch vType.GetValue() {
+	case util.TypeDoubleField, util.TypeBooleanField, util.TypeStringField:
+		return true
+	}
+
+	return false
+}
 
 func GetEntityType(entity interface{}) (ret model.Type, err error) {
 	objPtr, ok := entity.(*Object)
 	if ok {
-		impl := &TypeImpl{Name: objPtr.GetName(), Value: util.TypeStructField, PkgPath: objPtr.GetPkgPath(), IsPtr: true}
-		impl.ElemType = &TypeImpl{Name: objPtr.GetName(), Value: util.TypeStructField, PkgPath: objPtr.GetPkgPath(), IsPtr: true}
+		impl := &TypeImpl{Name: objPtr.GetName(), Value: util.TypeStructField, PkgPath: objPtr.GetPkgPath(), IsPtr: objPtr.IsPtr}
+		impl.ElemType = &TypeImpl{Name: objPtr.GetName(), Value: util.TypeStructField, PkgPath: objPtr.GetPkgPath(), IsPtr: objPtr.IsPtr}
 
 		ret = impl
 		return
@@ -18,8 +28,8 @@ func GetEntityType(entity interface{}) (ret model.Type, err error) {
 
 	valPtr, ok := entity.(*ObjectValue)
 	if ok {
-		impl := &TypeImpl{Name: valPtr.GetName(), Value: util.TypeStructField, PkgPath: valPtr.GetPkgPath(), IsPtr: true}
-		impl.ElemType = &TypeImpl{Name: valPtr.GetName(), Value: util.TypeStructField, PkgPath: valPtr.GetPkgPath(), IsPtr: true}
+		impl := &TypeImpl{Name: valPtr.GetName(), Value: util.TypeStructField, PkgPath: valPtr.GetPkgPath(), IsPtr: valPtr.IsPtr}
+		impl.ElemType = &TypeImpl{Name: valPtr.GetName(), Value: util.TypeStructField, PkgPath: valPtr.GetPkgPath(), IsPtr: valPtr.IsPtr}
 
 		ret = impl
 		return
@@ -27,15 +37,24 @@ func GetEntityType(entity interface{}) (ret model.Type, err error) {
 
 	sValPtr, ok := entity.(*SliceObjectValue)
 	if ok {
-		impl := &TypeImpl{Name: sValPtr.GetName(), Value: util.TypeSliceField, PkgPath: sValPtr.GetPkgPath(), IsPtr: true}
-		impl.ElemType = &TypeImpl{Name: sValPtr.GetName(), Value: util.TypeStructField, PkgPath: sValPtr.GetPkgPath(), IsPtr: true}
+		impl := &TypeImpl{Name: sValPtr.GetName(), Value: util.TypeSliceField, PkgPath: sValPtr.GetPkgPath(), IsPtr: sValPtr.IsPtr}
+		impl.ElemType = &TypeImpl{Name: sValPtr.GetName(), Value: util.TypeStructField, PkgPath: sValPtr.GetPkgPath(), IsPtr: sValPtr.IsElemPtr}
 
 		ret = impl
 		return
 	}
 
-	err = fmt.Errorf("illegal entity")
+	typeImpl, typeErr := newType(reflect.TypeOf(entity))
+	if typeErr != nil {
+		err = typeErr
+		return
+	}
+	if !isRemoteType(typeImpl.Elem()) {
+		err = fmt.Errorf("illegal entity type, name:%s", typeImpl.GetName())
+		return
+	}
 
+	ret = typeImpl
 	return
 }
 

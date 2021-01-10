@@ -28,10 +28,11 @@ type ObjectValue struct {
 
 // SliceObjectValue slice object value
 type SliceObjectValue struct {
-	Name    string         `json:"name"`
-	PkgPath string         `json:"pkgPath"`
-	IsPtr   bool           `json:"isPtr"`
-	Values  []*ObjectValue `json:"values"`
+	Name      string         `json:"name"`
+	PkgPath   string         `json:"pkgPath"`
+	IsPtr     bool           `json:"isPtr"`
+	IsElemPtr bool           `json:"isElemPtr"`
+	Values    []*ObjectValue `json:"values"`
 }
 
 // GetName get object name
@@ -122,6 +123,11 @@ func (s *SliceObjectValue) IsPtrValue() bool {
 	return s.IsPtr
 }
 
+// IsElemPtr isPtrValue
+func (s *SliceObjectValue) IsElemPtrValue() bool {
+	return s.IsElemPtr
+}
+
 // IsAssigned is assigned value
 func (s *SliceObjectValue) IsAssigned() (ret bool) {
 	ret = len(s.Values) > 0
@@ -150,7 +156,7 @@ func encodeDateTime(val reflect.Value) (ret string, err error) {
 
 func getFieldValue(fieldName string, itemType *TypeImpl, fieldValue reflect.Value) (ret *ItemValue, err error) {
 	if util.IsNil(fieldValue) {
-		ret = &ItemValue{Name: fieldName}
+		ret = &ItemValue{Name: fieldName, Value: nil}
 		return
 	}
 
@@ -240,7 +246,7 @@ func getSliceFieldValue(fieldName string, itemType *TypeImpl, fieldValue reflect
 	}
 
 	if util.IsStructType(elemType.GetValue()) {
-		ret.Value = &SliceObjectValue{Name: elemType.GetName(), PkgPath: elemType.GetPkgPath(), IsPtr: itemType.IsPtrType(), Values: sliceObjectVal}
+		ret.Value = &SliceObjectValue{Name: elemType.GetName(), PkgPath: elemType.GetPkgPath(), Values: sliceObjectVal}
 		return
 	}
 
@@ -310,24 +316,24 @@ func GetSliceObjectValue(sliceEntity interface{}) (ret *SliceObjectValue, err er
 	sliceType, sliceErr := newType(sliceValue.Type())
 	if sliceErr != nil {
 		err = fmt.Errorf("get slice object type failed, err:%s", err.Error())
-		log.Errorf("GetEntityType failed, type%s, err:%s", sliceType.GetName(), err.Error())
+		log.Errorf("GetSliceObjectValue failed, slice type name:%s", sliceType.GetName())
 		return
 	}
 
 	if !util.IsSliceType(sliceType.GetValue()) {
 		err = fmt.Errorf("illegal slice object value")
-		log.Errorf("illegal slice type, type%s, err:%s", sliceType.GetName(), err.Error())
+		log.Errorf("illegal slice type, slice type name:%s", sliceType.GetName())
 		return
 	}
 
 	elemType := sliceType.Elem()
 	if !util.IsStructType(elemType.GetValue()) {
 		err = fmt.Errorf("illegal slice item type")
-		log.Errorf("illegal slice elem type, type%s, err:%s", elemType.GetName(), err.Error())
+		log.Errorf("illegal slice elem type, type%s", elemType.GetName())
 		return
 	}
 
-	ret = &SliceObjectValue{Name: sliceType.GetName(), PkgPath: sliceType.GetPkgPath(), IsPtr: sliceType.IsPtrType(), Values: []*ObjectValue{}}
+	ret = &SliceObjectValue{Name: elemType.GetName(), PkgPath: elemType.GetPkgPath(), IsPtr: sliceType.IsPtrType(), IsElemPtr: elemType.IsPtrType(), Values: []*ObjectValue{}}
 	sliceValue = reflect.Indirect(sliceValue)
 	for idx := 0; idx < sliceValue.Len(); idx++ {
 		val := sliceValue.Index(idx)
@@ -360,13 +366,14 @@ func EncodeSliceObjectValue(objVal *SliceObjectValue) (ret []byte, err error) {
 func decodeObjectValueFromMap(mapVal map[string]interface{}) (ret *ObjectValue, err error) {
 	nameVal, nameOK := mapVal["name"]
 	pkgPathVal, pkgPathOK := mapVal["pkgPath"]
+	isPtrVal, isPtrOK := mapVal["isPtr"]
 	itemsVal, itemsOK := mapVal["items"]
-	if !nameOK || !pkgPathOK || !itemsOK {
+	if !nameOK || !pkgPathOK || !itemsOK || !isPtrOK {
 		err = fmt.Errorf("illegal ObjectValue")
 		return
 	}
 
-	objVal := &ObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), Items: []*ItemValue{}}
+	objVal := &ObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), IsPtr: isPtrVal.(bool), Items: []*ItemValue{}}
 	for _, val := range itemsVal.([]interface{}) {
 		item, itemOK := val.(map[string]interface{})
 		if !itemOK {
@@ -391,13 +398,15 @@ func decodeObjectValueFromMap(mapVal map[string]interface{}) (ret *ObjectValue, 
 func decodeSliceObjectValueFromMap(mapVal map[string]interface{}) (ret *SliceObjectValue, err error) {
 	nameVal, nameOK := mapVal["name"]
 	pkgPathVal, pkgPathOK := mapVal["pkgPath"]
+	isPtrVal, isPtrOK := mapVal["isPtr"]
+	isElemPtrVal, isElemPtrOK := mapVal["isElemPtr"]
 	valuesVal, valuesOK := mapVal["values"]
-	if !nameOK || !pkgPathOK || !valuesOK {
+	if !nameOK || !pkgPathOK || !valuesOK || !isPtrOK || !isElemPtrOK {
 		err = fmt.Errorf("illegal SliceObjectValue")
 		return
 	}
 
-	objVal := &SliceObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), Values: []*ObjectValue{}}
+	objVal := &SliceObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), IsPtr: isPtrVal.(bool), IsElemPtr: isElemPtrVal.(bool), Values: []*ObjectValue{}}
 	if valuesVal != nil {
 		for _, val := range valuesVal.([]interface{}) {
 			item, itemOK := val.(map[string]interface{})
@@ -428,13 +437,14 @@ func decodeItemValue(itemVal map[string]interface{}) (ret *ItemValue, err error)
 	}
 
 	ret = &ItemValue{Name: nameVal.(string), Value: valVal}
-	ret, err = ConvertItem(ret)
+	ret, err = convertItem(ret)
 	return
 }
 
-// ConvertItem convert ItemValue
-func ConvertItem(val *ItemValue) (ret *ItemValue, err error) {
+// convertItem convert ItemValue
+func convertItem(val *ItemValue) (ret *ItemValue, err error) {
 	objVal, objOK := val.Value.(map[string]interface{})
+	// for struct or slice struct
 	if objOK {
 		_, itemsOK := objVal["items"]
 		if itemsOK {
@@ -468,12 +478,14 @@ func ConvertItem(val *ItemValue) (ret *ItemValue, err error) {
 		return
 	}
 
+	// for basic slice
 	sliceVal, sliceOK := val.Value.([]interface{})
 	if sliceOK {
 		ret = &ItemValue{Name: val.Name, Value: sliceVal}
 		return
 	}
 
+	// for basic
 	ret = val
 	return
 }
@@ -489,7 +501,7 @@ func DecodeObjectValue(data []byte) (ret *ObjectValue, err error) {
 	for idx := range val.Items {
 		cur := val.Items[idx]
 
-		item, itemErr := ConvertItem(cur)
+		item, itemErr := convertItem(cur)
 		if itemErr != nil {
 			err = itemErr
 			return
@@ -513,7 +525,7 @@ func DecodeSliceObjectValue(data []byte) (ret *SliceObjectValue, err error) {
 
 	for idx := range sliceVal.Values {
 		cur := sliceVal.Values[idx]
-		val, valErr := ConvertObjectValue(cur)
+		val, valErr := convertObjectValue(cur)
 		if valErr != nil {
 			err = valErr
 			return
@@ -526,12 +538,12 @@ func DecodeSliceObjectValue(data []byte) (ret *SliceObjectValue, err error) {
 	return
 }
 
-// ConvertObjectValue convert object value
-func ConvertObjectValue(objVal *ObjectValue) (ret *ObjectValue, err error) {
+// convertObjectValue convert object value
+func convertObjectValue(objVal *ObjectValue) (ret *ObjectValue, err error) {
 	for idx := range objVal.Items {
 		cur := objVal.Items[idx]
 
-		item, itemErr := ConvertItem(cur)
+		item, itemErr := convertItem(cur)
 		if itemErr != nil {
 			err = itemErr
 			return
@@ -542,23 +554,6 @@ func ConvertObjectValue(objVal *ObjectValue) (ret *ObjectValue, err error) {
 
 	ret = objVal
 
-	return
-}
-
-// ConvertSliceObjectValue convert slice object value
-func ConvertSliceObjectValue(sliceVal *SliceObjectValue) (ret *SliceObjectValue, err error) {
-	for idx := range sliceVal.Values {
-		cur := sliceVal.Values[idx]
-		val, valErr := ConvertObjectValue(cur)
-		if valErr != nil {
-			err = valErr
-			return
-		}
-
-		sliceVal.Values[idx] = val
-	}
-
-	ret = sliceVal
 	return
 }
 
@@ -606,6 +601,9 @@ func compareSliceObjectValue(l, r *SliceObjectValue) bool {
 		return false
 	}
 	if l.IsPtr != r.IsPtr {
+		return false
+	}
+	if l.IsElemPtr != r.IsElemPtr {
 		return false
 	}
 	if len(l.Values) != len(r.Values) {

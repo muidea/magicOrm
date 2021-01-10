@@ -15,6 +15,7 @@ import (
 type Object struct {
 	Name    string  `json:"name"`
 	PkgPath string  `json:"pkgPath"`
+	IsPtr   bool    `json:"isPtr"`
 	Items   []*Item `json:"items"`
 }
 
@@ -28,6 +29,11 @@ func (s *Object) GetName() (ret string) {
 func (s *Object) GetPkgPath() (ret string) {
 	ret = s.PkgPath
 	return
+}
+
+// IsPtrValue isPtrValue
+func (s *Object) IsPtrValue() bool {
+	return s.IsPtr
 }
 
 // GetFields GetFields
@@ -121,22 +127,25 @@ func GetObject(entity interface{}) (ret *Object, err error) {
 
 // type2Object type2Object
 func type2Object(entityType reflect.Type) (ret *Object, err error) {
+	isPtr := false
 	if entityType.Kind() == reflect.Ptr {
 		entityType = entityType.Elem()
+		isPtr = true
 	}
 	if entityType.Kind() == reflect.Interface {
 		entityType = entityType.Elem()
 	}
 	if entityType.Kind() == reflect.Ptr {
 		entityType = entityType.Elem()
+		isPtr = true
 	}
 
 	typeImpl, typeErr := newType(entityType)
 	if typeErr != nil {
-		err = fmt.Errorf("illegal obj type, must be a struct obj, type:%s", entityType.String())
+		err = fmt.Errorf("illegal entity type, must be a struct obj, type:%s", entityType.String())
 		return
 	}
-	if util.IsStructType(typeImpl.GetValue()) {
+	if !util.IsStructType(typeImpl.GetValue()) {
 		err = fmt.Errorf("illegal obj type, must be a struct obj, type:%s", entityType.String())
 		return
 	}
@@ -145,6 +154,7 @@ func type2Object(entityType reflect.Type) (ret *Object, err error) {
 	//!! must be String, not Name
 	impl.Name = entityType.String()
 	impl.PkgPath = entityType.PkgPath()
+	impl.IsPtr = isPtr
 	impl.Items = []*Item{}
 
 	hasPrimaryKey := false

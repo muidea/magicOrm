@@ -6,6 +6,8 @@ import (
 )
 
 type Simple struct {
+	//ID 唯一标示单元
+	ID   int64   `orm:"id key"`
 	Name string  `orm:"name"`
 	Desc *string `orm:"desc"`
 	Age  uint8   `orm:"age"`
@@ -14,6 +16,7 @@ type Simple struct {
 }
 
 type ExtInfo struct {
+	ID       int64     `orm:"id key"`
 	Name     string    `orm:"name"`
 	Obj      Simple    `orm:"obj"`
 	ObjPtr   *Simple   `orm:"objPtr"`
