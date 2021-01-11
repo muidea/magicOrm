@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"fmt"
+	"github.com/muidea/magicOrm/util"
 	"strings"
 
 	"github.com/muidea/magicOrm/model"
@@ -98,7 +99,12 @@ func (s *Builder) getFieldValue(field model.Field) (ret string, isNil bool, err 
 		return
 	}
 
-	ret = fStr
+	switch fType.GetValue() {
+	case util.TypeStringField, util.TypeDateTimeField, util.TypeSliceField:
+		ret = fmt.Sprintf("'%s'", fStr)
+	default:
+		ret = fStr
+	}
 
 	return
 }
@@ -122,4 +128,16 @@ func (s *Builder) getRelationValue(relationInfo model.Model) (leftVal, rightVal 
 
 func (s *Builder) DeclareFieldValue(field model.Field) (ret interface{}, err error) {
 	return getFieldInitValue(field)
+}
+
+func (s *Builder) buildPKFilter() (ret string, err error) {
+	pkfVal, pkfErr := s.getStructValue(s.modelInfo)
+	if pkfErr != nil {
+		err = pkfErr
+		return
+	}
+
+	pkfTag := s.modelInfo.GetPrimaryField().GetTag().GetName()
+	ret = fmt.Sprintf("`%s`=%s", pkfTag, pkfVal)
+	return
 }

@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"fmt"
+	"log"
 )
 
 // BuildUpdate  BuildUpdate
@@ -29,14 +30,14 @@ func (s *Builder) BuildUpdate() (ret string, err error) {
 		}
 	}
 
-	pkfStr, pkfErr := s.getStructValue(s.modelInfo)
-	if pkfErr != nil {
-		err = pkfErr
+	filterStr, filterErr := s.buildPKFilter()
+	if filterErr != nil {
+		err = filterErr
+		log.Printf("buildPKFilter failed, err:%s", err.Error())
 		return
 	}
 
-	pkfTag := s.modelInfo.GetPrimaryField().GetTag()
-	str = fmt.Sprintf("UPDATE `%s` SET %s WHERE `%s`=%s", s.getHostTableName(s.modelInfo), str, pkfTag.GetName(), pkfStr)
+	str = fmt.Sprintf("UPDATE `%s` SET %s WHERE %s", s.getHostTableName(s.modelInfo), str, filterStr)
 	//log.Print(str)
 	ret = str
 

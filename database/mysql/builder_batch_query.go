@@ -47,6 +47,10 @@ func (s *Builder) BuildBatchQuery(filter model.Filter) (ret string, err error) {
 }
 
 func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
+	if filter == nil {
+		return
+	}
+
 	filterSQL := ""
 	relationFilterSQL := ""
 	params := filter.Items()

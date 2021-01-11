@@ -70,7 +70,7 @@ func TestBuilderCommon(t *testing.T) {
 		t.Errorf("build insert failed, err:%s", err.Error())
 	}
 	if str != "INSERT INTO `default_Unit` (`name`,`value`,`ts`) VALUES ('Hello world',12.345600,'2018-01-02 15:04:05')" {
-		t.Error("build insert failed")
+		t.Errorf("build insert failed, str:%s", str)
 		return
 	}
 
@@ -80,7 +80,7 @@ func TestBuilderCommon(t *testing.T) {
 		return
 	}
 	if str != "UPDATE `default_Unit` SET `name`='Hello world',`value`=12.345600,`ts`='2018-01-02 15:04:05' WHERE `id`=10" {
-		t.Error("build update failed")
+		t.Errorf("build update failed, str:%s", str)
 		return
 	}
 
@@ -94,12 +94,12 @@ func TestBuilderCommon(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildQuery()
+	str, err = builder.BuildQuery(nil)
 	if err != nil {
 		t.Errorf("build query failed, err:%s", err.Error())
 		return
 	}
-	if str != "SELECT `id`,`name`,`value`,`ts` FROM `default_Unit` WHERE `id`=10 AND `name`='Hello world' AND `value`=12.345600 AND `ts`='2018-01-02 15:04:05'" {
+	if str != "SELECT `id`,`name`,`value`,`ts` FROM `default_Unit`" {
 		t.Errorf("build query failed, str:%s", str)
 		return
 	}
@@ -165,7 +165,7 @@ func TestBuilderReference(t *testing.T) {
 		t.Error("build delete failed")
 	}
 
-	str, err = builder.BuildQuery()
+	str, err = builder.BuildQuery(nil)
 	if err != nil {
 		t.Errorf("build query failed, err:%s", err.Error())
 	}
@@ -233,11 +233,11 @@ func TestBuilderReference2(t *testing.T) {
 		t.Error("build delete failed")
 	}
 
-	str, err = builder.BuildQuery()
+	str, err = builder.BuildQuery(nil)
 	if err != nil {
 		t.Errorf("build query failed, err:%s", err.Error())
 	}
-	if str != "SELECT `id`,`name`,`description` FROM `default_Ext` WHERE `description`='Desc'" {
+	if str != "SELECT `id`,`name`,`description` FROM `default_Ext`" {
 		t.Errorf("build query failed, str:%s", str)
 	}
 }

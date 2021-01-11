@@ -2,20 +2,21 @@ package mysql
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/muidea/magicOrm/model"
 )
 
 // BuildDelete  BuildDelete
 func (s *Builder) BuildDelete() (ret string, err error) {
-	pkfVal, pkfErr := s.getStructValue(s.modelInfo)
-	if pkfErr != nil {
-		err = pkfErr
+	filterStr, filterErr := s.buildPKFilter()
+	if filterErr != nil {
+		err = filterErr
+		log.Printf("buildPKFilter failed, err:%s", err.Error())
 		return
 	}
 
-	pkfTag := s.modelInfo.GetPrimaryField().GetTag()
-	ret = fmt.Sprintf("DELETE FROM `%s` WHERE `%s`=%s", s.getHostTableName(s.modelInfo), pkfTag.GetName(), pkfVal)
+	ret = fmt.Sprintf("DELETE FROM `%s` WHERE %s", s.getHostTableName(s.modelInfo), filterStr)
 	//log.Print(ret)
 
 	return

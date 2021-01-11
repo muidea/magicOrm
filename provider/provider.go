@@ -14,7 +14,7 @@ type Provider interface {
 
 	UnregisterModel(entity interface{})
 
-	GetEntityType(entity interface{}) (ret model.Type, err error)
+	//GetEntityType(entity interface{}) (ret model.Type, err error)
 
 	GetEntityValue(entity interface{}) (ret model.Value, err error)
 
@@ -108,10 +108,12 @@ func (s *providerImpl) UnregisterModel(entity interface{}) {
 	return
 }
 
+/*
 func (s *providerImpl) GetEntityType(entity interface{}) (ret model.Type, err error) {
 	ret, err = s.getTypeFunc(entity)
 	return
 }
+*/
 
 func (s *providerImpl) GetEntityValue(entity interface{}) (ret model.Value, err error) {
 	ret, err = s.getValueFunc(entity)

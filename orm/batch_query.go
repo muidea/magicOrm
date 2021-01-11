@@ -53,8 +53,9 @@ func (s *Orm) queryBatch(elemModel model.Model, sliceValue model.Value, filter m
 	}
 
 	for idx := 0; idx < len(queryList); idx++ {
-		modelVal, err := s.assignSingleModel(maskModel.Copy(), queryList[idx])
-		if err != nil {
+		modelVal, modelErr := s.assignSingleModel(maskModel.Copy(), queryList[idx])
+		if modelErr != nil {
+			err = modelErr
 			log.Errorf("assignSingle model failed, err:%s", err.Error())
 			return
 		}
