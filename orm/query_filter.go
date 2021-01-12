@@ -40,8 +40,13 @@ func (s *queryFilter) Equal(key string, val interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = &filterItem{filterFun: builder.EqualOpr, value: vVal, modelProvider: s.modelProvider}
+	//s.params[key] = &filterItem{filterFun: builder.EqualOpr, value: vVal, modelProvider: s.modelProvider}
+	s.equalInternal(key, vVal)
 	return
+}
+
+func (s *queryFilter) equalInternal(key string, vVal model.Value) {
+	s.params[key] = &filterItem{filterFun: builder.EqualOpr, value: vVal, modelProvider: s.modelProvider}
 }
 
 func (s *queryFilter) NotEqual(key string, val interface{}) (err error) {
@@ -51,8 +56,13 @@ func (s *queryFilter) NotEqual(key string, val interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = &filterItem{filterFun: builder.NotEqualOpr, value: vVal, modelProvider: s.modelProvider}
+	//s.params[key] = &filterItem{filterFun: builder.NotEqualOpr, value: vVal, modelProvider: s.modelProvider}
+	s.notEqualInternal(key, vVal)
 	return
+}
+
+func (s *queryFilter) notEqualInternal(key string, vVal model.Value) {
+	s.params[key] = &filterItem{filterFun: builder.NotEqualOpr, value: vVal, modelProvider: s.modelProvider}
 }
 
 func (s *queryFilter) Below(key string, val interface{}) (err error) {
@@ -62,8 +72,13 @@ func (s *queryFilter) Below(key string, val interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = &filterItem{filterFun: builder.BelowOpr, value: vVal, modelProvider: s.modelProvider}
+	//s.params[key] = &filterItem{filterFun: builder.BelowOpr, value: vVal, modelProvider: s.modelProvider}
+	s.belowInternal(key, vVal)
 	return
+}
+
+func (s *queryFilter) belowInternal(key string, vVal model.Value) {
+	s.params[key] = &filterItem{filterFun: builder.BelowOpr, value: vVal, modelProvider: s.modelProvider}
 }
 
 func (s *queryFilter) Above(key string, val interface{}) (err error) {
@@ -73,8 +88,13 @@ func (s *queryFilter) Above(key string, val interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = &filterItem{filterFun: builder.AboveOpr, value: vVal, modelProvider: s.modelProvider}
+	//s.params[key] = &filterItem{filterFun: builder.AboveOpr, value: vVal, modelProvider: s.modelProvider}
+	s.aboveInternal(key, vVal)
 	return
+}
+
+func (s *queryFilter) aboveInternal(key string, vVal model.Value) {
+	s.params[key] = &filterItem{filterFun: builder.AboveOpr, value: vVal, modelProvider: s.modelProvider}
 }
 
 func (s *queryFilter) In(key string, val interface{}) (err error) {
@@ -84,9 +104,13 @@ func (s *queryFilter) In(key string, val interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = &filterItem{filterFun: builder.InOpr, value: vVal, modelProvider: s.modelProvider}
-
+	//s.params[key] = &filterItem{filterFun: builder.InOpr, value: vVal, modelProvider: s.modelProvider}
+	s.inInternal(key, vVal)
 	return
+}
+
+func (s *queryFilter) inInternal(key string, vVal model.Value) {
+	s.params[key] = &filterItem{filterFun: builder.InOpr, value: vVal, modelProvider: s.modelProvider}
 }
 
 func (s *queryFilter) NotIn(key string, val interface{}) (err error) {
@@ -96,8 +120,13 @@ func (s *queryFilter) NotIn(key string, val interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = &filterItem{filterFun: builder.NotInOpr, value: vVal, modelProvider: s.modelProvider}
+	//s.params[key] = &filterItem{filterFun: builder.NotInOpr, value: vVal, modelProvider: s.modelProvider}
+	s.notInInternal(key, vVal)
 	return
+}
+
+func (s *queryFilter) notInInternal(key string, vVal model.Value) {
+	s.params[key] = &filterItem{filterFun: builder.NotInOpr, value: vVal, modelProvider: s.modelProvider}
 }
 
 func (s *queryFilter) Like(key string, val interface{}) (err error) {
@@ -107,8 +136,13 @@ func (s *queryFilter) Like(key string, val interface{}) (err error) {
 		return
 	}
 
-	s.params[key] = &filterItem{filterFun: builder.LikeOpr, value: vVal, modelProvider: s.modelProvider}
+	//s.params[key] = &filterItem{filterFun: builder.LikeOpr, value: vVal, modelProvider: s.modelProvider}
+	s.likeInternal(key, vVal)
 	return
+}
+
+func (s *queryFilter) likeInternal(key string, vVal model.Value) {
+	s.params[key] = &filterItem{filterFun: builder.LikeOpr, value: vVal, modelProvider: s.modelProvider}
 }
 
 func (s *queryFilter) ValueMask(val interface{}) (err error) {

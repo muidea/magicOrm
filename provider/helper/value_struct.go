@@ -19,7 +19,7 @@ func (s *impl) encodeStructValue(vVal model.Value, tType model.Type) (ret string
 
 // decodeStructValue decode struct from string
 func (s *impl) decodeStructValue(val string, tType model.Type) (ret model.Value, err error) {
-	tVal := tType.Interface(nil)
+	tVal, _ := tType.Interface(nil)
 	vModel, vErr := s.getValueModel(tVal, tType)
 	if vErr != nil {
 		err = vErr

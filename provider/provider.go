@@ -210,7 +210,7 @@ func (s *providerImpl) IsAssigned(vVal model.Value, vType model.Type) (ret bool)
 	}
 
 	curVal := vVal
-	originVal := vType.Interface(nil)
+	originVal, _ := vType.Interface(nil)
 	curStr, curErr := s.helper.Encode(curVal, vType)
 	if curErr != nil {
 		ret = false

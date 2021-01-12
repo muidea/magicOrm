@@ -29,6 +29,10 @@ func (s *valueImpl) Set(val interface{}) (err error) {
 		return
 	}
 
+	if v.Kind() == reflect.Interface {
+		v = v.Elem()
+	}
+
 	if util.IsNil(s.value) {
 		s.value = v
 		return

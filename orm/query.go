@@ -48,7 +48,13 @@ func (s *Orm) querySingle(vModel model.Model, vVal model.Value, filter model.Fil
 				continue
 			}
 
-			vVal := fType.Interface(s.stripSlashes(fType, items[idx]))
+			vVal, vErr := fType.Interface(s.stripSlashes(fType, items[idx]))
+			if vErr != nil {
+				err = vErr
+				log.Errorf("Interface failed, err:%s", err.Error())
+				return
+			}
+
 			err = item.SetValue(vVal)
 			if err != nil {
 				return
@@ -197,7 +203,7 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret m
 		}
 		ret = singleVal
 	} else if util.IsSliceType(fieldType.GetValue()) {
-		sliceVal := fieldType.Interface(nil)
+		sliceVal, _ := fieldType.Interface(nil)
 		sliceVal, sliceErr := s.queryRelationSlice(values, fieldModel, sliceVal)
 		if sliceErr != nil {
 			err = sliceErr

@@ -51,7 +51,7 @@ func (s *impl) decodeSliceValue(val string, tType model.Type) (ret model.Value, 
 	if err != nil {
 		return
 	}
-	tVal := tType.Interface(nil)
+	tVal, _ := tType.Interface(nil)
 	sliceVal := tVal.Get().(reflect.Value)
 	sliceVal = reflect.Indirect(sliceVal)
 	for idx := range items {

@@ -11,7 +11,7 @@ type Type interface {
 	// @IsPtrType 是否指针类型
 	IsPtrType() bool
 	// @Interface 实例化一个类型对应的数据值
-	Interface(interface{}) Value
+	Interface(interface{}) (Value, error)
 	// Elem 获取要素类型(如果非slice，则返回的是本身，如果是slice,则返回slice的elem类型)
 	Elem() Type
 	// @IsBasic 判断是否基础类型(不是struct，也不是slice struct)

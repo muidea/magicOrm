@@ -91,7 +91,12 @@ func (s *Orm) assignSingleModel(modelVal model.Model, queryVal resultItems) (ret
 			continue
 		}
 
-		fVal := fType.Interface(s.stripSlashes(fType, queryVal[offset]))
+		fVal, fErr := fType.Interface(s.stripSlashes(fType, queryVal[offset]))
+		if fErr != nil {
+			err = fErr
+			log.Errorf("Interface failed, err:%s", err.Error())
+			return
+		}
 		err = field.SetValue(fVal)
 		if err != nil {
 			log.Errorf("UpdateValue failed, err:%s", err.Error())

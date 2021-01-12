@@ -61,24 +61,56 @@ func (s *typeImpl) IsPtrType() bool {
 	return s.typeImpl.Kind() == reflect.Ptr
 }
 
-func (s *typeImpl) Interface(val interface{}) (ret model.Value) {
-	if val == nil {
-		tType := s.getType()
-		newVal := reflect.New(tType)
-		if !s.IsPtrType() {
-			newVal = newVal.Elem()
+func (s *typeImpl) Interface(val interface{}) (ret model.Value, err error) {
+	tType := s.getType()
+	tVal := reflect.New(tType).Elem()
+	if val != nil {
+		rVal := reflect.ValueOf(val)
+		if rVal.Kind() == reflect.Interface {
+			rVal = rVal.Elem()
 		}
 
-		ret = newValue(newVal)
-		return
+		assignFlag := false
+		rVal = reflect.Indirect(rVal)
+		rType := rVal.Type()
+		if util.IsBool(tType) && util.IsBool(rType) {
+			tVal.SetBool(rVal.Bool())
+			assignFlag = true
+		}
+		if util.IsInteger(tType) && util.IsInteger(rType) {
+			tVal.SetInt(rVal.Int())
+			assignFlag = true
+		}
+		if util.IsUInteger(tType) && util.IsUInteger(rType) {
+			tVal.SetUint(rVal.Uint())
+			assignFlag = true
+		}
+		if util.IsFloat(tType) && util.IsFloat(rType) {
+			tVal.SetFloat(rVal.Float())
+			assignFlag = true
+		}
+		if util.IsDateTime(tType) && util.IsDateTime(rType) {
+			tVal.Set(rVal)
+			assignFlag = true
+		}
+		if util.IsString(tType) && util.IsString(rType) {
+			tVal.SetString(rVal.String())
+			assignFlag = true
+		}
+		if tType.String() == rType.String() {
+			tVal.Set(rVal)
+			assignFlag = true
+		}
+		if !assignFlag {
+			err = fmt.Errorf("illegal initialize value, current type:%s,expect type:%s", tType.String(), rType.String())
+			return
+		}
 	}
 
-	rVal, rOK := val.(reflect.Value)
-	if !rOK {
-		return
+	if s.IsPtrType() {
+		tVal = tVal.Addr()
 	}
-
-	ret = newValue(rVal)
+	ret = newValue(tVal)
 	return
 }
 

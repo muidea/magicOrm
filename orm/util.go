@@ -7,7 +7,8 @@ import (
 )
 
 func (s *Orm) getModelFilter(vModel model.Model) (ret model.Filter, err error) {
-	filter := &queryFilter{}
+	filter := &queryFilter{params: map[string]model.FilterItem{}, modelProvider: s.modelProvider}
+
 	fields := vModel.GetFields()
 	for _, item := range fields {
 		vVal := item.GetValue()
@@ -15,7 +16,7 @@ func (s *Orm) getModelFilter(vModel model.Model) (ret model.Filter, err error) {
 			continue
 		}
 
-		filter.Equal(item.GetName(), vVal.Get())
+		filter.equalInternal(item.GetName(), vVal)
 	}
 
 	ret = filter
@@ -23,10 +24,10 @@ func (s *Orm) getModelFilter(vModel model.Model) (ret model.Filter, err error) {
 }
 
 func (s *Orm) getFieldFilter(vField model.Field) (ret model.Filter, err error) {
-	filter := &queryFilter{}
+	filter := &queryFilter{params: map[string]model.FilterItem{}, modelProvider: s.modelProvider}
 	vVal := vField.GetValue()
 	if !vVal.IsNil() {
-		filter.Equal(vField.GetName(), vField.GetValue())
+		filter.equalInternal(vField.GetName(), vField.GetValue())
 	}
 
 	ret = filter

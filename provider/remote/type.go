@@ -88,7 +88,7 @@ func (s *TypeImpl) IsPtrType() (ret bool) {
 }
 
 // Interface Interface
-func (s *TypeImpl) Interface(val interface{}) (ret model.Value) {
+func (s *TypeImpl) Interface(val interface{}) (ret model.Value, err error) {
 	if val != nil {
 		ret = newValue(val)
 		return

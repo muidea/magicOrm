@@ -45,6 +45,45 @@ const (
 	TypeSliceField
 )
 
+func IsInteger(tType reflect.Type) bool {
+	switch tType.Kind() {
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+		return true
+	}
+
+	return false
+}
+
+func IsUInteger(tType reflect.Type) bool {
+	switch tType.Kind() {
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
+		return true
+	}
+
+	return false
+}
+
+func IsFloat(tType reflect.Type) bool {
+	switch tType.Kind() {
+	case reflect.Float32, reflect.Float64:
+		return true
+	}
+
+	return false
+}
+
+func IsBool(tType reflect.Type) bool {
+	return tType.Kind() == reflect.Bool
+}
+
+func IsString(tType reflect.Type) bool {
+	return tType.Kind() == reflect.String
+}
+
+func IsDateTime(tType reflect.Type) bool {
+	return tType.String() == "time.Time"
+}
+
 // IsBasicType IsBasicType
 func IsBasicType(typeValue int) bool {
 	return typeValue < TypeStructField
