@@ -81,7 +81,7 @@ func (s *Builder) getFieldInsertValues(info model.Model) (ret string, err error)
 			continue
 		}
 
-		fStr, fErr := s.buildValue(field)
+		fStr, fErr := s.buildValue(fValue, fType)
 		if fErr != nil {
 			err = fErr
 			return
