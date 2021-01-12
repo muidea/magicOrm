@@ -47,7 +47,7 @@ func (s *Builder) GetRelationTableName(fieldName string, relationInfo model.Mode
 func (s *Builder) getFieldValue(fField model.Field) (ret string, err error) {
 	fType := fField.GetType()
 	fValue := fField.GetValue()
-	fStr, fErr := s.modelProvider.GetFieldStrValue(fValue, fType)
+	fStr, fErr := s.modelProvider.GetValueStr(fValue, fType)
 	if fErr != nil {
 		err = fErr
 		return
@@ -64,12 +64,12 @@ func (s *Builder) getFieldValue(fField model.Field) (ret string, err error) {
 }
 
 func (s *Builder) getRelationValue(relationInfo model.Model) (leftVal, rightVal string, err error) {
-	structVal, structErr := s.modelProvider.GetModelStrValue(s.modelInfo)
+	structVal, structErr := s.getModelStr(s.modelInfo)
 	if structErr != nil {
 		err = structErr
 		return
 	}
-	relationVal, relationErr := s.modelProvider.GetModelStrValue(relationInfo)
+	relationVal, relationErr := s.getModelStr(relationInfo)
 	if relationErr != nil {
 		err = relationErr
 		return
@@ -85,7 +85,7 @@ func (s *Builder) DeclareFieldValue(field model.Field) (ret interface{}, err err
 }
 
 func (s *Builder) buildPKFilter() (ret string, err error) {
-	pkfVal, pkfErr := s.modelProvider.GetModelStrValue(s.modelInfo)
+	pkfVal, pkfErr := s.getModelStr(s.modelInfo)
 	if pkfErr != nil {
 		err = pkfErr
 		return
@@ -93,5 +93,22 @@ func (s *Builder) buildPKFilter() (ret string, err error) {
 
 	pkfTag := s.modelInfo.GetPrimaryField().GetTag().GetName()
 	ret = fmt.Sprintf("`%s`=%s", pkfTag, pkfVal)
+	return
+}
+
+func (s *Builder) getModelStr(vModel model.Model) (ret string, err error) {
+	pkField := vModel.GetPrimaryField()
+	if pkField == nil {
+		err = fmt.Errorf("no define primaryKey")
+		return
+	}
+
+	fStr, fErr := s.modelProvider.GetValueStr(pkField.GetValue(), pkField.GetType())
+	if fErr != nil {
+		err = fErr
+		return
+	}
+
+	ret = fStr
 	return
 }

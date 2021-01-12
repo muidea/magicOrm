@@ -14,7 +14,7 @@ type filterItem struct {
 }
 
 func (s *filterItem) FilterStr(name string, fType model.Type) (ret string, err error) {
-	itemStr, itemErr := s.modelProvider.GetFieldStrValue(s.value, fType)
+	itemStr, itemErr := s.modelProvider.GetValueStr(s.value, fType)
 	if itemErr != nil {
 		err = itemErr
 		return
