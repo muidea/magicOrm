@@ -24,7 +24,7 @@ func (s *Builder) BuildDelete() (ret string, err error) {
 
 // BuildDeleteRelation BuildDeleteRelation
 func (s *Builder) BuildDeleteRelation(fieldName string, relationInfo model.Model) (delRight, delRelation string, err error) {
-	leftVal, leftErr := s.getModelStr(s.modelInfo)
+	leftVal, leftErr := s.getModelValue(s.modelInfo)
 	if leftErr != nil {
 		err = leftErr
 		return

@@ -44,32 +44,13 @@ func (s *Builder) GetRelationTableName(fieldName string, relationInfo model.Mode
 	return fmt.Sprintf("%s_%s%s2%s", s.modelProvider.Owner(), leftName, fieldName, rightName)
 }
 
-func (s *Builder) getFieldValue(fField model.Field) (ret string, err error) {
-	fType := fField.GetType()
-	fValue := fField.GetValue()
-	fStr, fErr := s.modelProvider.GetValueStr(fValue, fType)
-	if fErr != nil {
-		err = fErr
-		return
-	}
-
-	switch fType.GetValue() {
-	case util.TypeStringField, util.TypeDateTimeField, util.TypeSliceField:
-		ret = fmt.Sprintf("'%s'", fStr)
-	default:
-		ret = fStr
-	}
-
-	return
-}
-
-func (s *Builder) getRelationValue(relationInfo model.Model) (leftVal, rightVal string, err error) {
-	structVal, structErr := s.getModelStr(s.modelInfo)
+func (s *Builder) getRelationValue(rModel model.Model) (leftVal, rightVal string, err error) {
+	structVal, structErr := s.getModelValue(s.modelInfo)
 	if structErr != nil {
 		err = structErr
 		return
 	}
-	relationVal, relationErr := s.getModelStr(relationInfo)
+	relationVal, relationErr := s.getModelValue(rModel)
 	if relationErr != nil {
 		err = relationErr
 		return
@@ -84,19 +65,7 @@ func (s *Builder) GetInitializeValue(field model.Field) (ret interface{}, err er
 	return getFieldInitializeValue(field)
 }
 
-func (s *Builder) buildPKFilter() (ret string, err error) {
-	pkfVal, pkfErr := s.getModelStr(s.modelInfo)
-	if pkfErr != nil {
-		err = pkfErr
-		return
-	}
-
-	pkfTag := s.modelInfo.GetPrimaryField().GetTag().GetName()
-	ret = fmt.Sprintf("`%s`=%s", pkfTag, pkfVal)
-	return
-}
-
-func (s *Builder) getModelStr(vModel model.Model) (ret string, err error) {
+func (s *Builder) getModelValue(vModel model.Model) (ret string, err error) {
 	pkField := vModel.GetPrimaryField()
 	if pkField == nil {
 		err = fmt.Errorf("no define primaryKey")
@@ -110,5 +79,34 @@ func (s *Builder) getModelStr(vModel model.Model) (ret string, err error) {
 	}
 
 	ret = fStr
+	return
+}
+
+func (s *Builder) buildValue(vValue model.Value, vType model.Type) (ret string, err error) {
+	fStr, fErr := s.modelProvider.GetValueStr(vValue, vType)
+	if fErr != nil {
+		err = fErr
+		return
+	}
+
+	switch vType.GetValue() {
+	case util.TypeStringField, util.TypeDateTimeField, util.TypeSliceField:
+		ret = fmt.Sprintf("'%s'", fStr)
+	default:
+		ret = fStr
+	}
+
+	return
+}
+
+func (s *Builder) buildPKFilter() (ret string, err error) {
+	pkfVal, pkfErr := s.getModelValue(s.modelInfo)
+	if pkfErr != nil {
+		err = pkfErr
+		return
+	}
+
+	pkfTag := s.modelInfo.GetPrimaryField().GetTag().GetName()
+	ret = fmt.Sprintf("`%s`=%s", pkfTag, pkfVal)
 	return
 }
