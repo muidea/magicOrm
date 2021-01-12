@@ -32,6 +32,10 @@ func (s *Orm) deleteSingle(modelInfo model.Model) (err error) {
 
 func (s *Orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
 	fType := fieldInfo.GetType()
+	if fType.IsBasic() {
+		return
+	}
+
 	relationInfo, relationErr := s.modelProvider.GetTypeModel(fType)
 	if relationErr != nil {
 		err = relationErr

@@ -13,7 +13,7 @@ type valueImpl struct {
 }
 
 func newValue(val reflect.Value) (ret *valueImpl) {
-	ret = &valueImpl{value: val}
+	ret = &valueImpl{value: reflect.Indirect(val)}
 	return
 }
 

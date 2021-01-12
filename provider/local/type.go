@@ -3,6 +3,7 @@ package local
 import (
 	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
@@ -73,9 +74,19 @@ func (s *typeImpl) Interface(val interface{}) (ret model.Value, err error) {
 		assignFlag := false
 		rVal = reflect.Indirect(rVal)
 		rType := rVal.Type()
-		if util.IsBool(tType) && util.IsBool(rType) {
-			tVal.SetBool(rVal.Bool())
-			assignFlag = true
+		if util.IsBool(tType) {
+			if util.IsBool(rType) {
+				tVal.SetBool(rVal.Bool())
+				assignFlag = true
+			}
+			if util.IsInteger(rType) {
+				tVal.SetBool(rVal.Int() > 0)
+				assignFlag = true
+			}
+			if util.IsUInteger(rType) {
+				tVal.SetBool(rVal.Uint() > 0)
+				assignFlag = true
+			}
 		}
 		if util.IsInteger(tType) && util.IsInteger(rType) {
 			tVal.SetInt(rVal.Int())
@@ -89,14 +100,24 @@ func (s *typeImpl) Interface(val interface{}) (ret model.Value, err error) {
 			tVal.SetFloat(rVal.Float())
 			assignFlag = true
 		}
-		if util.IsDateTime(tType) && util.IsDateTime(rType) {
-			tVal.Set(rVal)
-			assignFlag = true
-		}
 		if util.IsString(tType) && util.IsString(rType) {
 			tVal.SetString(rVal.String())
 			assignFlag = true
 		}
+		if util.IsDateTime(tType) {
+			if util.IsDateTime(rType) {
+				tVal.Set(rVal)
+				assignFlag = true
+			}
+			if util.IsString(rType) {
+				dtVal, dtErr := time.Parse("2006-01-02 15:04:05", rVal.String())
+				if dtErr == nil {
+					tVal.Set(reflect.ValueOf(dtVal))
+					assignFlag = true
+				}
+			}
+		}
+
 		if tType.String() == rType.String() {
 			tVal.Set(rVal)
 			assignFlag = true

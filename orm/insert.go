@@ -41,11 +41,11 @@ func (s *Orm) insertSingle(modelInfo model.Model) (err error) {
 
 func (s *Orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
 	fValue := fieldInfo.GetValue()
-	if fValue.IsNil() {
+	fType := fieldInfo.GetType()
+	if fType.IsBasic() || !s.modelProvider.IsAssigned(fValue, fType) {
 		return
 	}
 
-	fType := fieldInfo.GetType()
 	fSliceValue, fSliceErr := s.modelProvider.ElemDependValue(fValue)
 	if fSliceErr != nil {
 		err = fSliceErr
@@ -101,6 +101,13 @@ func (s *Orm) Insert(entity interface{}) (err error) {
 		return
 	}
 
+	entityVal, entityErr := s.modelProvider.GetEntityValue(entity)
+	if entityErr != nil {
+		err = entityErr
+		log.Errorf("GetEntityValue failed, err:%s", err.Error())
+		return
+	}
+
 	err = s.executor.BeginTransaction()
 	if err != nil {
 		return
@@ -129,6 +136,12 @@ func (s *Orm) Insert(entity interface{}) (err error) {
 	} else {
 		err = s.executor.RollbackTransaction()
 	}
+
+	if err != nil {
+		return
+	}
+
+	err = entityVal.Set(entityModel.Interface().Get())
 
 	return
 }

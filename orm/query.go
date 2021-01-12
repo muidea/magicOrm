@@ -11,6 +11,8 @@ import (
 )
 
 func (s *Orm) querySingle(vModel model.Model, vVal model.Value, filter model.Filter) (err error) {
+	hasRelation := false
+
 	func() {
 		builder := builder.NewBuilder(vModel, s.modelProvider)
 		sqlStr, sqlErr := builder.BuildQuery(filter)
@@ -44,7 +46,12 @@ func (s *Orm) querySingle(vModel model.Model, vVal model.Value, filter model.Fil
 
 		for idx, item := range vModel.GetFields() {
 			fType := item.GetType()
-			if item.GetValue().IsNil() || !fType.IsBasic() {
+			if item.GetValue().IsNil() {
+				continue
+			}
+
+			if !fType.IsBasic() {
+				hasRelation = true
 				continue
 			}
 
@@ -65,24 +72,26 @@ func (s *Orm) querySingle(vModel model.Model, vVal model.Value, filter model.Fil
 		return
 	}
 
-	for _, item := range vModel.GetFields() {
-		fType := item.GetType()
-		if item.GetValue().IsNil() || fType.IsBasic() {
-			continue
-		}
+	if hasRelation {
+		for _, item := range vModel.GetFields() {
+			fType := item.GetType()
+			if item.GetValue().IsNil() || fType.IsBasic() {
+				continue
+			}
 
-		itemVal, itemErr := s.queryRelation(vModel, item)
-		if itemErr != nil {
-			err = itemErr
-			log.Errorf("queryRelation failed, modelName:%s, fieldName:%s, err:%s", vModel.GetName(), item.GetName(), err.Error())
-			return
-		}
+			itemVal, itemErr := s.queryRelation(vModel, item)
+			if itemErr != nil {
+				err = itemErr
+				log.Errorf("queryRelation failed, modelName:%s, fieldName:%s, err:%s", vModel.GetName(), item.GetName(), err.Error())
+				return
+			}
 
-		itemErr = item.SetValue(itemVal)
-		if itemErr != nil {
-			err = itemErr
-			log.Errorf("UpdateFieldValue failed, modelName:%s, fieldName:%s, err:%s", vModel.GetName(), item.GetName(), err.Error())
-			return
+			itemErr = item.SetValue(itemVal)
+			if itemErr != nil {
+				err = itemErr
+				log.Errorf("UpdateFieldValue failed, modelName:%s, fieldName:%s, err:%s", vModel.GetName(), item.GetName(), err.Error())
+				return
+			}
 		}
 	}
 

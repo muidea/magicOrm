@@ -48,6 +48,13 @@ func (s *Orm) Update(entity interface{}) (err error) {
 		return
 	}
 
+	entityVal, entityErr := s.modelProvider.GetEntityValue(entity)
+	if entityErr != nil {
+		err = entityErr
+		log.Errorf("GetEntityValue failed, err:%s", err.Error())
+		return
+	}
+
 	err = s.executor.BeginTransaction()
 	if err != nil {
 		return
@@ -74,6 +81,12 @@ func (s *Orm) Update(entity interface{}) (err error) {
 	} else {
 		err = s.executor.RollbackTransaction()
 	}
+
+	if err != nil {
+		return
+	}
+
+	err = entityVal.Set(entityModel.Interface().Get())
 
 	return
 }
