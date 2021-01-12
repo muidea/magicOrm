@@ -44,27 +44,10 @@ func (s *Builder) GetRelationTableName(fieldName string, relationInfo model.Mode
 	return fmt.Sprintf("%s_%s%s2%s", s.modelProvider.Owner(), leftName, fieldName, rightName)
 }
 
-func (s *Builder) getStructValue(modelInfo model.Model) (ret string, err error) {
-	pkField := modelInfo.GetPrimaryField()
-	if pkField == nil {
-		err = fmt.Errorf("no define primaryKey")
-		return
-	}
-
-	fStr, fErr := s.getFieldValue(pkField)
-	if fErr != nil {
-		err = fErr
-		return
-	}
-
-	ret = fStr
-	return
-}
-
 func (s *Builder) getFieldValue(fField model.Field) (ret string, err error) {
 	fType := fField.GetType()
 	fValue := fField.GetValue()
-	fStr, fErr := s.modelProvider.GetValueStr(fValue, fType)
+	fStr, fErr := s.modelProvider.GetFieldStrValue(fValue, fType)
 	if fErr != nil {
 		err = fErr
 		return
@@ -81,12 +64,12 @@ func (s *Builder) getFieldValue(fField model.Field) (ret string, err error) {
 }
 
 func (s *Builder) getRelationValue(relationInfo model.Model) (leftVal, rightVal string, err error) {
-	structVal, structErr := s.getStructValue(s.modelInfo)
+	structVal, structErr := s.modelProvider.GetModelStrValue(s.modelInfo)
 	if structErr != nil {
 		err = structErr
 		return
 	}
-	relationVal, relationErr := s.getStructValue(relationInfo)
+	relationVal, relationErr := s.modelProvider.GetModelStrValue(relationInfo)
 	if relationErr != nil {
 		err = relationErr
 		return
@@ -102,7 +85,7 @@ func (s *Builder) DeclareFieldValue(field model.Field) (ret interface{}, err err
 }
 
 func (s *Builder) buildPKFilter() (ret string, err error) {
-	pkfVal, pkfErr := s.getStructValue(s.modelInfo)
+	pkfVal, pkfErr := s.modelProvider.GetModelStrValue(s.modelInfo)
 	if pkfErr != nil {
 		err = pkfErr
 		return

@@ -24,7 +24,9 @@ type Provider interface {
 
 	GetTypeModel(vType model.Type) (ret model.Model, err error)
 
-	GetValueStr(vVal model.Value, vType model.Type) (ret string, err error)
+	GetFieldStrValue(vVal model.Value, vType model.Type) (ret string, err error)
+
+	GetModelStrValue(vModel model.Model) (ret string, err error)
 
 	ElemDependValue(val model.Value) (ret []model.Value, err error)
 
@@ -187,8 +189,25 @@ func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err erro
 }
 
 // GetValueStr GetValueStr
-func (s *providerImpl) GetValueStr(vVal model.Value, vType model.Type) (ret string, err error) {
+func (s *providerImpl) GetFieldStrValue(vVal model.Value, vType model.Type) (ret string, err error) {
 	ret, err = s.helper.Encode(vVal, vType)
+	return
+}
+
+func (s *providerImpl) GetModelStrValue(vModel model.Model) (ret string, err error) {
+	pkField := vModel.GetPrimaryField()
+	if pkField == nil {
+		err = fmt.Errorf("no define primaryKey")
+		return
+	}
+
+	fStr, fErr := s.GetFieldStrValue(pkField.GetValue(), pkField.GetType())
+	if fErr != nil {
+		err = fErr
+		return
+	}
+
+	ret = fStr
 	return
 }
 

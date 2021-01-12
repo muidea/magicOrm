@@ -34,7 +34,7 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret string, err error) {
 
 // BuildQueryRelation BuildQueryRelation
 func (s *Builder) BuildQueryRelation(fieldName string, relationInfo model.Model) (ret string, err error) {
-	pkfStr, pkfErr := s.getStructValue(s.modelInfo)
+	pkfStr, pkfErr := s.modelProvider.GetModelStrValue(s.modelInfo)
 	if pkfErr != nil {
 		err = pkfErr
 		return
