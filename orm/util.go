@@ -35,16 +35,16 @@ func (s *Orm) getFieldFilter(vField model.Field) (ret model.Filter, err error) {
 	return
 }
 
-func (s *Orm) getModelItems(modelInfo model.Model, builder builder.Builder) (ret []interface{}, err error) {
+func (s *Orm) getModelItems(vModel model.Model, builder builder.Builder) (ret []interface{}, err error) {
 	var items []interface{}
-	fields := modelInfo.GetFields()
-	for _, item := range fields {
-		fType := item.GetType()
-		if item.GetValue().IsNil() || !fType.IsBasic() {
+	fields := vModel.GetFields()
+	for _, field := range fields {
+		fType := field.GetType()
+		if field.GetValue().IsNil() || !fType.IsBasic() {
 			continue
 		}
 
-		itemVal, itemErr := builder.DeclareFieldValue(item)
+		itemVal, itemErr := builder.GetInitializeValue(field)
 		if itemErr != nil {
 			err = itemErr
 			return

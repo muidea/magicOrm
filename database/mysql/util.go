@@ -112,7 +112,7 @@ func getFieldType(info model.Field) (ret string, err error) {
 	return
 }
 
-func getFieldInitValue(field model.Field) (ret interface{}, err error) {
+func getFieldInitializeValue(field model.Field) (ret interface{}, err error) {
 	fType := field.GetType()
 	switch fType.GetValue() {
 	case util.TypeBooleanField:

@@ -80,8 +80,8 @@ func (s *Builder) getRelationValue(relationInfo model.Model) (leftVal, rightVal 
 	return
 }
 
-func (s *Builder) DeclareFieldValue(field model.Field) (ret interface{}, err error) {
-	return getFieldInitValue(field)
+func (s *Builder) GetInitializeValue(field model.Field) (ret interface{}, err error) {
+	return getFieldInitializeValue(field)
 }
 
 func (s *Builder) buildPKFilter() (ret string, err error) {

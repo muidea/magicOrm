@@ -25,7 +25,7 @@ type Builder interface {
 	BuildDeleteRelation(fieldName string, relationInfo model.Model) (string, string, error)
 	BuildQueryRelation(fieldName string, relationInfo model.Model) (string, error)
 
-	DeclareFieldValue(field model.Field) (interface{}, error)
+	GetInitializeValue(field model.Field) (interface{}, error)
 }
 
 // NewBuilder new builder
