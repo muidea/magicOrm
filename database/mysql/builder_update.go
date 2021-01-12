@@ -8,24 +8,24 @@ import (
 // BuildUpdate  BuildUpdate
 func (s *Builder) BuildUpdate() (ret string, err error) {
 	str := ""
-	for _, val := range s.modelInfo.GetFields() {
-		if val.IsPrimary() {
+	for _, field := range s.modelInfo.GetFields() {
+		if field.IsPrimary() {
 			continue
 		}
 
-		fType := val.GetType()
-		fValue := val.GetValue()
+		fType := field.GetType()
+		fValue := field.GetValue()
 		if !fType.IsBasic() || fValue.IsNil() {
 			continue
 		}
 
-		fStr, fErr := s.getFieldValue(fType, fValue)
+		fStr, fErr := s.getFieldValue(field)
 		if fErr != nil {
 			err = fErr
 			return
 		}
 
-		fTag := val.GetTag()
+		fTag := field.GetTag()
 		if str == "" {
 			str = fmt.Sprintf("`%s`=%s", fTag.GetName(), fStr)
 		} else {

@@ -51,7 +51,7 @@ func (s *Builder) getStructValue(modelInfo model.Model) (ret string, err error) 
 		return
 	}
 
-	fStr, fErr := s.getFieldValue(pkField.GetType(), pkField.GetValue())
+	fStr, fErr := s.getFieldValue(pkField)
 	if fErr != nil {
 		err = fErr
 		return
@@ -61,7 +61,9 @@ func (s *Builder) getStructValue(modelInfo model.Model) (ret string, err error) 
 	return
 }
 
-func (s *Builder) getFieldValue(fType model.Type, fValue model.Value) (ret string, err error) {
+func (s *Builder) getFieldValue(fField model.Field) (ret string, err error) {
+	fType := fField.GetType()
+	fValue := fField.GetValue()
 	fStr, fErr := s.modelProvider.GetValueStr(fValue, fType)
 	if fErr != nil {
 		err = fErr
