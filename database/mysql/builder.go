@@ -20,7 +20,7 @@ func New(modelInfo model.Model, modelProvider provider.Provider) *Builder {
 	return &Builder{modelInfo: modelInfo, modelProvider: modelProvider}
 }
 
-func (s *Builder) getTableName(info model.Model) string {
+func (s *Builder) constructTableName(info model.Model) string {
 	items := strings.Split(info.GetName(), ".")
 	return items[len(items)-1]
 }
@@ -32,14 +32,14 @@ func (s *Builder) GetTableName() string {
 
 // getHostTableName getHostTableName
 func (s *Builder) getHostTableName(info model.Model) string {
-	tableName := s.getTableName(info)
+	tableName := s.constructTableName(info)
 	return fmt.Sprintf("%s_%s", s.modelProvider.Owner(), tableName)
 }
 
 // GetRelationTableName GetRelationTableName
 func (s *Builder) GetRelationTableName(fieldName string, relationInfo model.Model) string {
-	leftName := s.getTableName(s.modelInfo)
-	rightName := s.getTableName(relationInfo)
+	leftName := s.constructTableName(s.modelInfo)
+	rightName := s.constructTableName(relationInfo)
 
 	return fmt.Sprintf("%s_%s%s2%s", s.modelProvider.Owner(), leftName, fieldName, rightName)
 }

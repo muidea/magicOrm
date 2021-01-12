@@ -9,7 +9,7 @@ import (
 
 // BuildQuery BuildQuery
 func (s *Builder) BuildQuery(filter model.Filter) (ret string, err error) {
-	namesVal, nameErr := s.getFieldQueryNames(s.modelInfo)
+	namesVal, nameErr := s.getQueryFieldNames(s.modelInfo)
 	if nameErr != nil {
 		err = nameErr
 		return
@@ -46,17 +46,11 @@ func (s *Builder) BuildQueryRelation(fieldName string, relationInfo model.Model)
 	return
 }
 
-func (s *Builder) getFieldQueryNames(info model.Model) (ret string, err error) {
+func (s *Builder) getQueryFieldNames(info model.Model) (ret string, err error) {
 	str := ""
-	for _, field := range s.modelInfo.GetFields() {
+	for _, field := range info.GetFields() {
 		fType := field.GetType()
-		dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
-		if dependErr != nil {
-			err = dependErr
-			return
-		}
-
-		if dependModel != nil {
+		if !fType.IsBasic() {
 			continue
 		}
 

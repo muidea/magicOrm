@@ -8,7 +8,7 @@ import (
 
 // BuildBatchQuery BuildBatchQuery
 func (s *Builder) BuildBatchQuery(filter model.Filter) (ret string, err error) {
-	namesVal, nameErr := s.getFieldQueryNames(s.modelInfo)
+	namesVal, nameErr := s.getQueryFieldNames(s.modelInfo)
 	if nameErr != nil {
 		err = nameErr
 		return
