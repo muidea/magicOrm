@@ -12,7 +12,8 @@ func (s *Orm) getModelFilter(vModel model.Model) (ret model.Filter, err error) {
 	fields := vModel.GetFields()
 	for _, item := range fields {
 		vVal := item.GetValue()
-		if vVal.IsNil() {
+		vType := item.GetType()
+		if !s.modelProvider.IsAssigned(vVal, vType) {
 			continue
 		}
 
