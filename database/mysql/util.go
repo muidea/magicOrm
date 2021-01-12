@@ -7,8 +7,8 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
-func verifyFieldInfo(fieldInfo model.Field) error {
-	fTag := fieldInfo.GetTag()
+func verifyField(info model.Field) error {
+	fTag := info.GetTag()
 	if IsKeyWord(fTag.GetName()) {
 		return fmt.Errorf("illegal fieldTag, is a key word.[%s]", fTag)
 	}
@@ -16,14 +16,14 @@ func verifyFieldInfo(fieldInfo model.Field) error {
 	return nil
 }
 
-func verifyModelInfo(modelInfo model.Model) error {
-	name := modelInfo.GetName()
+func verifyModel(info model.Model) error {
+	name := info.GetName()
 	if IsKeyWord(name) {
 		return fmt.Errorf("illegal structName, is a key word.[%s]", name)
 	}
 
-	for _, val := range modelInfo.GetFields() {
-		err := verifyFieldInfo(val)
+	for _, val := range info.GetFields() {
+		err := verifyField(val)
 		if err != nil {
 			return err
 		}
@@ -32,20 +32,20 @@ func verifyModelInfo(modelInfo model.Model) error {
 	return nil
 }
 
-func declareFieldInfo(fieldInfo model.Field) (ret string, err error) {
+func declareFieldInfo(info model.Field) (ret string, err error) {
 	autoIncrement := ""
-	fTag := fieldInfo.GetTag()
+	fTag := info.GetTag()
 	if fTag.IsAutoIncrement() {
 		autoIncrement = "AUTO_INCREMENT"
 	}
 
 	allowNull := "NOT NULL"
-	fType := fieldInfo.GetType()
+	fType := info.GetType()
 	if fType.IsPtrType() {
 		allowNull = ""
 	}
 
-	infoVal, infoErr := getFieldType(fieldInfo)
+	infoVal, infoErr := getFieldType(info)
 	if infoErr != nil {
 		err = infoErr
 		return
