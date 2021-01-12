@@ -132,9 +132,15 @@ func (s *Orm) Insert(entity interface{}) (err error) {
 	}
 
 	if err == nil {
-		err = s.executor.CommitTransaction()
+		cErr := s.executor.CommitTransaction()
+		if cErr != nil {
+			err = cErr
+		}
 	} else {
-		err = s.executor.RollbackTransaction()
+		cErr := s.executor.RollbackTransaction()
+		if cErr != nil {
+			err = cErr
+		}
 	}
 
 	if err != nil {

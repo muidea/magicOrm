@@ -13,13 +13,16 @@ func (s *Builder) BuildUpdate() (ret string, err error) {
 			continue
 		}
 
-		fStr, isNil, fErr := s.getFieldValue(val)
+		fType := val.GetType()
+		fValue := val.GetValue()
+		if !fType.IsBasic() || fValue.IsNil() {
+			continue
+		}
+
+		fStr, fErr := s.getFieldValue(fType, fValue)
 		if fErr != nil {
 			err = fErr
 			return
-		}
-		if isNil {
-			continue
 		}
 
 		fTag := val.GetTag()

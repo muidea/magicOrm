@@ -51,13 +51,9 @@ func (s *Builder) getStructValue(modelInfo model.Model) (ret string, err error) 
 		return
 	}
 
-	fStr, isNil, fErr := s.getFieldValue(pkField)
+	fStr, fErr := s.getFieldValue(pkField.GetType(), pkField.GetValue())
 	if fErr != nil {
 		err = fErr
-		return
-	}
-	if isNil {
-		err = fmt.Errorf("illegal primarykey value")
 		return
 	}
 
@@ -65,34 +61,7 @@ func (s *Builder) getStructValue(modelInfo model.Model) (ret string, err error) 
 	return
 }
 
-func (s *Builder) getFieldValue(field model.Field) (ret string, isNil bool, err error) {
-	fType := field.GetType()
-	fValue := field.GetValue()
-
-	if !fType.IsPtrType() {
-		if fValue == nil || fValue.IsNil() {
-			err = fmt.Errorf("illegal field value, must assigned first, name:%s", field.GetName())
-			return
-		}
-	}
-
-	if fType.IsPtrType() {
-		if fValue == nil || fValue.IsNil() {
-			isNil = true
-			return
-		}
-	}
-
-	dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
-	if dependErr != nil {
-		err = dependErr
-		return
-	}
-	if dependModel != nil {
-		isNil = true
-		return
-	}
-
+func (s *Builder) getFieldValue(fType model.Type, fValue model.Value) (ret string, err error) {
 	fStr, fErr := s.modelProvider.GetValueStr(fValue, fType)
 	if fErr != nil {
 		err = fErr

@@ -44,18 +44,15 @@ func (s *Builder) BuildInsertRelation(fieldName string, relationInfo model.Model
 
 func (s *Builder) getFieldInsertNames(info model.Model) (ret string, err error) {
 	str := ""
-	for _, field := range s.modelInfo.GetFields() {
+	for _, field := range info.GetFields() {
 		fTag := field.GetTag()
 		if fTag.IsAutoIncrement() {
 			continue
 		}
 
-		_, isNil, fErr := s.getFieldValue(field)
-		if fErr != nil {
-			err = fErr
-			return
-		}
-		if isNil {
+		fType := field.GetType()
+		fValue := field.GetValue()
+		if !fType.IsBasic() || fValue.IsNil() {
 			continue
 		}
 
@@ -78,13 +75,16 @@ func (s *Builder) getFieldInsertValues(info model.Model) (ret string, err error)
 			continue
 		}
 
-		fStr, isNil, fErr := s.getFieldValue(field)
+		fType := field.GetType()
+		fValue := field.GetValue()
+		if !fType.IsBasic() || fValue.IsNil() {
+			continue
+		}
+
+		fStr, fErr := s.getFieldValue(fType, fValue)
 		if fErr != nil {
 			err = fErr
 			return
-		}
-		if isNil {
-			continue
 		}
 
 		if str == "" {

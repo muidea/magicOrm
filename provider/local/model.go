@@ -67,7 +67,13 @@ func (s *modelImpl) Interface() (ret model.Value) {
 			continue
 		}
 
-		retVal.Field(field.GetIndex()).Set(tVal.Get().(reflect.Value))
+		val := tVal.Get().(reflect.Value)
+		tType := field.GetType()
+		if tType.IsPtrType() {
+			val = val.Addr()
+		}
+
+		retVal.Field(field.GetIndex()).Set(val)
 	}
 
 	ret = newValue(retVal)
