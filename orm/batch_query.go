@@ -18,7 +18,7 @@ func (s *Orm) queryBatch(elemModel model.Model, sliceValue model.Value, filter m
 		maskModel = elemModel
 	}
 
-	var queryList []resultItems
+	var queryValueList []resultItems
 	func() {
 		builder := builder.NewBuilder(elemModel, s.modelProvider)
 		sql, sqlErr := builder.BuildBatchQuery(filter)
@@ -34,26 +34,26 @@ func (s *Orm) queryBatch(elemModel model.Model, sliceValue model.Value, filter m
 		}
 		defer s.executor.Finish()
 		for s.executor.Next() {
-			modelItems, modelErr := s.getModelItems(maskModel, builder)
-			if modelErr != nil {
-				err = modelErr
+			itemValues, itemErr := s.getInitializeValue(maskModel, builder)
+			if itemErr != nil {
+				err = itemErr
 				return
 			}
 
-			err = s.executor.GetField(modelItems...)
+			err = s.executor.GetField(itemValues...)
 			if err != nil {
 				return
 			}
 
-			queryList = append(queryList, modelItems)
+			queryValueList = append(queryValueList, itemValues)
 		}
 	}()
 	if err != nil {
 		return
 	}
 
-	for idx := 0; idx < len(queryList); idx++ {
-		modelVal, modelErr := s.assignSingleModel(maskModel.Copy(), queryList[idx])
+	for idx := 0; idx < len(queryValueList); idx++ {
+		modelVal, modelErr := s.assignSingleModel(maskModel.Copy(), queryValueList[idx])
 		if modelErr != nil {
 			err = modelErr
 			log.Errorf("assignSingle model failed, err:%s", err.Error())
@@ -73,10 +73,6 @@ func (s *Orm) queryBatch(elemModel model.Model, sliceValue model.Value, filter m
 func (s *Orm) assignSingleModel(modelVal model.Model, queryVal resultItems) (ret model.Value, err error) {
 	offset := 0
 	for _, field := range modelVal.GetFields() {
-		if field.GetValue().IsNil() {
-			continue
-		}
-
 		fType := field.GetType()
 		if !fType.IsBasic() {
 			itemVal, itemErr := s.queryRelation(modelVal, field)

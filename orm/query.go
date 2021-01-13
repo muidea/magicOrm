@@ -33,7 +33,7 @@ func (s *Orm) querySingle(vModel model.Model, vVal model.Value, filter model.Fil
 			return
 		}
 
-		items, itemErr := s.getModelItems(vModel, builder)
+		items, itemErr := s.getInitializeValue(vModel, builder)
 		if itemErr != nil {
 			err = itemErr
 			return
