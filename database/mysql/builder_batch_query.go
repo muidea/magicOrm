@@ -62,13 +62,13 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 		}
 
 		fType := field.GetType()
-		dependModel, dependErr := s.modelProvider.GetTypeModel(fType)
-		if dependErr != nil {
-			err = dependErr
+		fieldModel, fieldErr := s.modelProvider.GetTypeModel(fType)
+		if fieldErr != nil {
+			err = fieldErr
 			return
 		}
 
-		if dependModel != nil {
+		if fieldModel != nil {
 			strVal, strErr := filterItem.FilterStr("right", fType)
 			if strErr != nil {
 				err = strErr
@@ -78,7 +78,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 				continue
 			}
 
-			relationTable := s.GetRelationTableName(field.GetName(), dependModel)
+			relationTable := s.GetRelationTableName(field.GetName(), fieldModel)
 			if relationFilterSQL == "" {
 				relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTable, strVal)
 			} else {
@@ -89,7 +89,6 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 		}
 
 		strVal, strErr := filterItem.FilterStr(field.GetName(), fType)
-
 		if strErr != nil {
 			err = strErr
 			return

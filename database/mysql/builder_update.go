@@ -14,7 +14,7 @@ func (s *Builder) BuildUpdate() (ret string, err error) {
 		log.Printf("getFieldUpdateValues failed, err:%s", err.Error())
 		return
 	}
-	filterStr, filterErr := s.buildPKFilter()
+	filterStr, filterErr := s.buildPKFilter(s.modelInfo)
 	if filterErr != nil {
 		err = filterErr
 		log.Printf("buildPKFilter failed, err:%s", err.Error())

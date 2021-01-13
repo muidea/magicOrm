@@ -2,11 +2,11 @@ package mysql
 
 import (
 	"fmt"
-	"github.com/muidea/magicOrm/util"
 	"strings"
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
+	"github.com/muidea/magicOrm/util"
 )
 
 // Builder Builder
@@ -16,8 +16,8 @@ type Builder struct {
 }
 
 // New create builder
-func New(modelInfo model.Model, modelProvider provider.Provider) *Builder {
-	return &Builder{modelInfo: modelInfo, modelProvider: modelProvider}
+func New(vModel model.Model, modelProvider provider.Provider) *Builder {
+	return &Builder{modelInfo: vModel, modelProvider: modelProvider}
 }
 
 func (s *Builder) constructTableName(info model.Model) string {
@@ -45,9 +45,9 @@ func (s *Builder) GetRelationTableName(fieldName string, relationInfo model.Mode
 }
 
 func (s *Builder) getRelationValue(rModel model.Model) (leftVal, rightVal string, err error) {
-	structVal, structErr := s.getModelValue(s.modelInfo)
-	if structErr != nil {
-		err = structErr
+	infoVal, infoErr := s.getModelValue(s.modelInfo)
+	if infoErr != nil {
+		err = infoErr
 		return
 	}
 	relationVal, relationErr := s.getModelValue(rModel)
@@ -56,7 +56,7 @@ func (s *Builder) getRelationValue(rModel model.Model) (leftVal, rightVal string
 		return
 	}
 
-	leftVal = structVal
+	leftVal = infoVal
 	rightVal = relationVal
 	return
 }
@@ -99,14 +99,14 @@ func (s *Builder) buildValue(vValue model.Value, vType model.Type) (ret string, 
 	return
 }
 
-func (s *Builder) buildPKFilter() (ret string, err error) {
-	pkfVal, pkfErr := s.getModelValue(s.modelInfo)
+func (s *Builder) buildPKFilter(vModel model.Model) (ret string, err error) {
+	pkfVal, pkfErr := s.getModelValue(vModel)
 	if pkfErr != nil {
 		err = pkfErr
 		return
 	}
 
-	pkfTag := s.modelInfo.GetPrimaryField().GetTag().GetName()
+	pkfTag := vModel.GetPrimaryField().GetTag().GetName()
 	ret = fmt.Sprintf("`%s`=%s", pkfTag, pkfVal)
 	return
 }

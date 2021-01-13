@@ -9,7 +9,7 @@ import (
 
 // BuildDelete  BuildDelete
 func (s *Builder) BuildDelete() (ret string, err error) {
-	filterStr, filterErr := s.buildPKFilter()
+	filterStr, filterErr := s.buildPKFilter(s.modelInfo)
 	if filterErr != nil {
 		err = filterErr
 		log.Printf("buildPKFilter failed, err:%s", err.Error())
