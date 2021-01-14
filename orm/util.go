@@ -37,8 +37,7 @@ func (s *Orm) getFieldFilter(vField model.Field) (ret model.Filter, err error) {
 
 func (s *Orm) getInitializeValue(vModel model.Model, builder builder.Builder) (ret []interface{}, err error) {
 	var items []interface{}
-	fields := vModel.GetFields()
-	for _, field := range fields {
+	for _, field := range vModel.GetFields() {
 		fType := field.GetType()
 		if !fType.IsBasic() {
 			continue

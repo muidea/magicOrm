@@ -10,9 +10,10 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
-func (s *Orm) querySingle(vModel model.Model, vVal model.Value, filter model.Filter) (err error) {
-	hasRelation := false
+type resultItems []interface{}
 
+func (s *Orm) querySingle(vModel model.Model, vVal model.Value, filter model.Filter) (err error) {
+	var queryValue resultItems
 	func() {
 		builder := builder.NewBuilder(vModel, s.modelProvider)
 		sqlStr, sqlErr := builder.BuildQuery(filter)
@@ -44,59 +45,61 @@ func (s *Orm) querySingle(vModel model.Model, vVal model.Value, filter model.Fil
 			return
 		}
 
-		for idx, item := range vModel.GetFields() {
-			fType := item.GetType()
-			if item.GetValue().IsNil() {
-				continue
-			}
-
-			if !fType.IsBasic() {
-				hasRelation = true
-				continue
-			}
-
-			vVal, vErr := fType.Interface(s.stripSlashes(fType, items[idx]))
-			if vErr != nil {
-				err = vErr
-				log.Errorf("Interface failed, err:%s", err.Error())
-				return
-			}
-
-			err = item.SetValue(vVal)
-			if err != nil {
-				return
-			}
-		}
+		queryValue = items
 	}()
 	if err != nil {
 		return
 	}
 
-	if hasRelation {
-		for _, item := range vModel.GetFields() {
-			fType := item.GetType()
-			if item.GetValue().IsNil() || fType.IsBasic() {
+	modelVal, modelErr := s.assignSingleModel(vModel, queryValue)
+	if modelErr != nil {
+		err = modelErr
+		log.Errorf("assignSingle model failed, err:%s", err.Error())
+		return
+	}
+
+	vVal.Set(modelVal.Get())
+
+	return
+}
+
+func (s *Orm) assignSingleModel(modelVal model.Model, queryVal resultItems) (ret model.Value, err error) {
+	offset := 0
+	for _, field := range modelVal.GetFields() {
+		fType := field.GetType()
+		if !fType.IsBasic() {
+			itemVal, itemErr := s.queryRelation(modelVal, field)
+			if itemErr != nil {
+				log.Errorf("queryRelation failed, err:%s", itemErr.Error())
 				continue
 			}
 
-			itemVal, itemErr := s.queryRelation(vModel, item)
-			if itemErr != nil {
-				err = itemErr
-				log.Errorf("queryRelation failed, modelName:%s, fieldName:%s, err:%s", vModel.GetName(), item.GetName(), err.Error())
+			err = field.SetValue(itemVal)
+			if err != nil {
+				log.Errorf("SetValue failed, err:%s", err.Error())
 				return
 			}
 
-			itemErr = item.SetValue(itemVal)
-			if itemErr != nil {
-				err = itemErr
-				log.Errorf("UpdateFieldValue failed, modelName:%s, fieldName:%s, err:%s", vModel.GetName(), item.GetName(), err.Error())
-				return
-			}
+			//offset++
+			continue
 		}
+
+		fVal, fErr := fType.Interface(s.stripSlashes(fType, queryVal[offset]))
+		if fErr != nil {
+			err = fErr
+			log.Errorf("Interface failed, err:%s", err.Error())
+			return
+		}
+		err = field.SetValue(fVal)
+		if err != nil {
+			log.Errorf("SetValue failed, err:%s", err.Error())
+			return
+		}
+
+		offset++
 	}
 
-	vVal.Set(vModel.Interface().Get())
-
+	ret = modelVal.Interface()
 	return
 }
 
@@ -248,7 +251,7 @@ func (s *Orm) Query(entity interface{}) (err error) {
 	entityFilter, entityErr := s.getModelFilter(entityModel)
 	if entityErr != nil {
 		err = entityErr
-		log.Errorf("getFilter failed, err:%s", err.Error())
+		log.Errorf("getModelFilter failed, err:%s", err.Error())
 		return
 	}
 

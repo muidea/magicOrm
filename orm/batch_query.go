@@ -1,13 +1,14 @@
 package orm
 
 import (
+	"fmt"
+
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/util"
 )
-
-type resultItems []interface{}
 
 func (s *Orm) queryBatch(elemModel model.Model, sliceValue model.Value, filter model.Filter) (err error) {
 	var maskModel model.Model
@@ -21,14 +22,14 @@ func (s *Orm) queryBatch(elemModel model.Model, sliceValue model.Value, filter m
 	var queryValueList []resultItems
 	func() {
 		builder := builder.NewBuilder(elemModel, s.modelProvider)
-		sql, sqlErr := builder.BuildBatchQuery(filter)
+		sqlStr, sqlErr := builder.BuildBatchQuery(filter)
 		if sqlErr != nil {
 			err = sqlErr
 			log.Errorf("BuildBatchQuery failed, err:%s", err.Error())
 			return
 		}
 
-		err = s.executor.Query(sql)
+		err = s.executor.Query(sqlStr)
 		if err != nil {
 			return
 		}
@@ -70,45 +71,21 @@ func (s *Orm) queryBatch(elemModel model.Model, sliceValue model.Value, filter m
 	return
 }
 
-func (s *Orm) assignSingleModel(modelVal model.Model, queryVal resultItems) (ret model.Value, err error) {
-	offset := 0
-	for _, field := range modelVal.GetFields() {
-		fType := field.GetType()
-		if !fType.IsBasic() {
-			itemVal, itemErr := s.queryRelation(modelVal, field)
-			if itemErr != nil {
-				log.Errorf("queryRelation failed, err:%s", itemErr.Error())
-				continue
-			}
-
-			field.SetValue(itemVal)
-
-			//offset++
-			continue
-		}
-
-		fVal, fErr := fType.Interface(s.stripSlashes(fType, queryVal[offset]))
-		if fErr != nil {
-			err = fErr
-			log.Errorf("Interface failed, err:%s", err.Error())
-			return
-		}
-		err = field.SetValue(fVal)
-		if err != nil {
-			log.Errorf("UpdateValue failed, err:%s", err.Error())
-			return
-		}
-
-		offset++
-	}
-
-	ret = modelVal.Interface()
-	return
-}
-
 // BatchQuery batch query
 func (s *Orm) BatchQuery(sliceEntity interface{}, filter model.Filter) (err error) {
-	entityModel, entityErr := s.modelProvider.GetEntityModel(sliceEntity)
+	entityType, entityErr := s.modelProvider.GetEntityType(sliceEntity)
+	if entityErr != nil {
+		err = entityErr
+		log.Errorf("GetEntityType failed, err:%s", err.Error())
+		return
+	}
+
+	if !util.IsSliceType(entityType.GetValue()) {
+		err = fmt.Errorf("illegal entity, must be a slice ptr")
+		return
+	}
+
+	entityModel, entityErr := s.modelProvider.GetTypeModel(entityType.Elem())
 	if entityErr != nil {
 		err = entityErr
 		log.Errorf("GetEntityModel failed, err:%s", err.Error())
