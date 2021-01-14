@@ -2,7 +2,6 @@ package helper
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
@@ -10,22 +9,14 @@ import (
 
 // encodeSliceValue get slice value str
 func (s *impl) encodeSliceValue(vVal model.Value, tType model.Type) (ret string, err error) {
-	val := vVal.Get().(reflect.Value)
-	val = reflect.Indirect(val)
-	if val.Kind() != reflect.Slice {
-		err = fmt.Errorf("illegal slice value, type:%s", val.Type().String())
+	vals, valErr := s.elemDependValue(vVal)
+	if valErr != nil {
+		err = valErr
 		return
 	}
-
 	items := []string{}
-	for idx := 0; idx < val.Len(); idx++ {
-		vVal, vErr := s.getValue(val.Index(idx))
-		if vErr != nil {
-			err = vErr
-			return
-		}
-
-		strVal, strErr := s.Encode(vVal, tType.Elem())
+	for _, val := range vals {
+		strVal, strErr := s.Encode(val, tType.Elem())
 		if strErr != nil {
 			err = strErr
 			return

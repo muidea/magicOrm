@@ -9,6 +9,7 @@ import (
 
 type GetValueFunc func(interface{}) (model.Value, error)
 type GetValueModelFunc func(model.Value, model.Type) (model.Model, error)
+type ElemDependValue func(model.Value) ([]model.Value, error)
 
 type Helper interface {
 	Encode(vVal model.Value, tType model.Type) (ret string, err error)
@@ -16,12 +17,13 @@ type Helper interface {
 }
 
 type impl struct {
-	getValueModel GetValueModelFunc
-	getValue      GetValueFunc
+	getValueModel   GetValueModelFunc
+	getValue        GetValueFunc
+	elemDependValue ElemDependValue
 }
 
-func New(getValue GetValueFunc, getValueModel GetValueModelFunc) Helper {
-	return &impl{getValue: getValue, getValueModel: getValueModel}
+func New(getValue GetValueFunc, getValueModel GetValueModelFunc, elemDependValue ElemDependValue) Helper {
+	return &impl{getValue: getValue, getValueModel: getValueModel, elemDependValue: elemDependValue}
 }
 
 func (s *impl) Encode(vVal model.Value, tType model.Type) (ret string, err error) {

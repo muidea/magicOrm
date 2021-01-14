@@ -246,7 +246,7 @@ func NewLocalProvider(owner string) Provider {
 		appendSliceValueFunc: local.AppendSliceValue,
 	}
 
-	ret.helper = helper.New(ret.GetEntityValue, ret.GetValueModel)
+	ret.helper = helper.New(ret.GetEntityValue, ret.GetValueModel, ret.ElemDependValue)
 	return ret
 }
 
@@ -263,7 +263,7 @@ func NewRemoteProvider(owner string) Provider {
 		appendSliceValueFunc: remote.AppendSliceValue,
 	}
 
-	ret.helper = helper.New(ret.GetEntityValue, ret.GetValueModel)
+	ret.helper = helper.New(ret.GetEntityValue, ret.GetValueModel, ret.ElemDependValue)
 
 	return ret
 }
