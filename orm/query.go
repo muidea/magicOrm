@@ -67,7 +67,8 @@ func (s *Orm) assignSingleModel(modelVal model.Model, queryVal resultItems) (ret
 	offset := 0
 	for _, field := range modelVal.GetFields() {
 		fType := field.GetType()
-		if !fType.IsBasic() {
+		fValue := field.GetValue()
+		if !fType.IsBasic() && !fValue.IsNil() {
 			itemVal, itemErr := s.queryRelation(modelVal, field)
 			if itemErr != nil {
 				log.Errorf("queryRelation failed, err:%s", itemErr.Error())
@@ -84,16 +85,18 @@ func (s *Orm) assignSingleModel(modelVal model.Model, queryVal resultItems) (ret
 			continue
 		}
 
-		fVal, fErr := fType.Interface(s.stripSlashes(fType, queryVal[offset]))
-		if fErr != nil {
-			err = fErr
-			log.Errorf("Interface failed, err:%s", err.Error())
-			return
-		}
-		err = field.SetValue(fVal)
-		if err != nil {
-			log.Errorf("SetValue failed, err:%s", err.Error())
-			return
+		if !fValue.IsNil() {
+			fVal, fErr := fType.Interface(s.stripSlashes(fType, queryVal[offset]))
+			if fErr != nil {
+				err = fErr
+				log.Errorf("Interface failed, err:%s", err.Error())
+				return
+			}
+			err = field.SetValue(fVal)
+			if err != nil {
+				log.Errorf("SetValue failed, err:%s", err.Error())
+				return
+			}
 		}
 
 		offset++
