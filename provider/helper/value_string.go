@@ -2,8 +2,9 @@ package helper
 
 import (
 	"fmt"
-	"github.com/muidea/magicOrm/model"
 	"reflect"
+
+	"github.com/muidea/magicOrm/model"
 )
 
 // encodeStringValue get string value str

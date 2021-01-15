@@ -2,9 +2,10 @@ package helper
 
 import (
 	"fmt"
-	"github.com/muidea/magicOrm/model"
 	"reflect"
 	"strconv"
+
+	"github.com/muidea/magicOrm/model"
 )
 
 //encodeIntValue get int value str
