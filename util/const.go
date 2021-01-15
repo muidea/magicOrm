@@ -84,6 +84,14 @@ func IsDateTime(tType reflect.Type) bool {
 	return tType.String() == "time.Time"
 }
 
+func IsSlice(tType reflect.Type) bool {
+	return tType.Kind() == reflect.Slice
+}
+
+func IsStruct(tType reflect.Type) bool {
+	return tType.Kind() == reflect.Struct
+}
+
 // IsBasicType IsBasicType
 func IsBasicType(typeValue int) bool {
 	return typeValue < TypeStructField

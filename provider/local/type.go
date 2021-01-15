@@ -117,6 +117,11 @@ func (s *typeImpl) Interface(val interface{}) (ret model.Value, err error) {
 				}
 			}
 		}
+		if util.IsSlice(tType) {
+			if util.IsString(rType) {
+
+			}
+		}
 
 		if tType.String() == rType.String() {
 			tVal.Set(rVal)
