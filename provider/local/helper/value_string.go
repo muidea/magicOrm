@@ -22,7 +22,14 @@ func (s *impl) encodeStringValue(vVal model.Value) (ret string, err error) {
 }
 
 //decodeStringValue decode string from string
-func (s *impl) decodeStringValue(val string) (ret model.Value, err error) {
+func (s *impl) decodeStringValue(val string, tType model.Type) (ret model.Value, err error) {
 	ret, err = s.getValue(&val)
+	if err != nil {
+		return
+	}
+
+	if tType.IsPtrType() {
+		ret = ret.Addr()
+	}
 	return
 }

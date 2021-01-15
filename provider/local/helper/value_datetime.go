@@ -31,7 +31,7 @@ func (s *impl) encodeDateTimeValue(vVal model.Value) (ret string, err error) {
 }
 
 // decodeDateTimeValue decode datetime from string
-func (s *impl) decodeDateTimeValue(val string) (ret model.Value, err error) {
+func (s *impl) decodeDateTimeValue(val string, tType model.Type) (ret model.Value, err error) {
 	if val == "" {
 		val = "0001-01-01 00:00:00"
 	}
@@ -43,5 +43,12 @@ func (s *impl) decodeDateTimeValue(val string) (ret model.Value, err error) {
 	}
 
 	ret, err = s.getValue(&dtVal)
+	if err != nil {
+		return
+	}
+
+	if tType.IsPtrType() {
+		ret = ret.Addr()
+	}
 	return
 }

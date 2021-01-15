@@ -60,19 +60,19 @@ func (s *impl) Decode(val string, tType model.Type) (ret model.Value, err error)
 
 	switch tType.GetValue() {
 	case util.TypeBooleanField:
-		ret, err = s.decodeBoolValue(val)
+		ret, err = s.decodeBoolValue(val, tType)
 	case util.TypeDateTimeField:
-		ret, err = s.decodeDateTimeValue(val)
+		ret, err = s.decodeDateTimeValue(val, tType)
 	case util.TypeFloatField, util.TypeDoubleField:
-		ret, err = s.decodeFloatValue(val)
+		ret, err = s.decodeFloatValue(val, tType)
 	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
-		ret, err = s.decodeIntValue(val)
+		ret, err = s.decodeIntValue(val, tType)
 	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
-		ret, err = s.decodeUintValue(val)
+		ret, err = s.decodeUintValue(val, tType)
 	case util.TypeSliceField:
 		ret, err = s.decodeSliceValue(val, tType)
 	case util.TypeStringField:
-		ret, err = s.decodeStringValue(val)
+		ret, err = s.decodeStringValue(val, tType)
 	default:
 		err = fmt.Errorf("illegal type, type:%s", tType.GetName())
 	}

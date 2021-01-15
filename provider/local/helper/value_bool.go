@@ -26,7 +26,7 @@ func (s *impl) encodeBoolValue(vVal model.Value) (ret string, err error) {
 }
 
 // decodeBoolValue decode bool from string
-func (s *impl) decodeBoolValue(val string) (ret model.Value, err error) {
+func (s *impl) decodeBoolValue(val string, tType model.Type) (ret model.Value, err error) {
 	bVal := false
 	switch val {
 	case "1":
@@ -42,5 +42,12 @@ func (s *impl) decodeBoolValue(val string) (ret model.Value, err error) {
 	}
 
 	ret, err = s.getValue(&bVal)
+	if err != nil {
+		return
+	}
+
+	if tType.IsPtrType() {
+		ret = ret.Addr()
+	}
 	return
 }

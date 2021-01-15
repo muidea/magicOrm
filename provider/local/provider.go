@@ -10,6 +10,12 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
+var _helper helper.Helper
+
+func init() {
+	_helper = helper.New(GetEntityValue, ElemDependValue)
+}
+
 func GetEntityType(entity interface{}) (ret model.Type, err error) {
 	rType := reflect.TypeOf(entity)
 	vType, vErr := newType(rType)
@@ -174,16 +180,15 @@ func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache, he
 }
 
 func EncodeValue(tVal model.Value, tType model.Type, mCache model.Cache) (ret string, err error) {
-	helper := helper.New(GetEntityValue, ElemDependValue)
 	if tType.IsBasic() {
-		ret, err = helper.Encode(tVal, tType)
+		ret, err = _helper.Encode(tVal, tType)
 		return
 	}
 	if util.IsStructType(tType.GetValue()) {
-		ret, err = encodeModel(tVal, tType, mCache, helper)
+		ret, err = encodeModel(tVal, tType, mCache, _helper)
 		return
 	}
 
-	ret, err = encodeSliceModel(tVal, tType, mCache, helper)
+	ret, err = encodeSliceModel(tVal, tType, mCache, _helper)
 	return
 }

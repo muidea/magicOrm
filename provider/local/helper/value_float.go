@@ -2,6 +2,7 @@ package helper
 
 import (
 	"fmt"
+	"github.com/muidea/magicOrm/util"
 	"reflect"
 	"strconv"
 
@@ -23,7 +24,26 @@ func (s *impl) encodeFloatValue(vVal model.Value) (ret string, err error) {
 }
 
 // decodeFloatValue decode float from string
-func (s *impl) decodeFloatValue(val string) (ret model.Value, err error) {
+func (s *impl) decodeFloatValue(val string, tType model.Type) (ret model.Value, err error) {
+	if tType.GetValue() == util.TypeFloatField {
+		fVal, fErr := strconv.ParseFloat(val, 32)
+		if fErr != nil {
+			err = fErr
+			return
+		}
+
+		f32Val := float32(fVal)
+		ret, err = s.getValue(&f32Val)
+		if err != nil {
+			return
+		}
+
+		if tType.IsPtrType() {
+			ret = ret.Addr()
+		}
+		return
+	}
+
 	fVal, fErr := strconv.ParseFloat(val, 64)
 	if fErr != nil {
 		err = fErr
@@ -31,5 +51,12 @@ func (s *impl) decodeFloatValue(val string) (ret model.Value, err error) {
 	}
 
 	ret, err = s.getValue(&fVal)
+	if err != nil {
+		return
+	}
+
+	if tType.IsPtrType() {
+		ret = ret.Addr()
+	}
 	return
 }
