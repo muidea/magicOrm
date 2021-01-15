@@ -1,11 +1,12 @@
 package local
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/muidea/magicOrm/provider/local/helper"
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider/local/helper"
 	"github.com/muidea/magicOrm/util"
 )
 
@@ -124,12 +125,65 @@ func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, e
 	return
 }
 
-func EncodeValue(tVal model.Value, tType model.Type, mCache model.Cache) (ret string, err error) {
-	if tType.IsBasic() {
-		helper := helper.New(GetEntityValue, ElemDependValue)
-		ret, err = helper.Encode(tVal, tType)
+func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, helper helper.Helper) (ret string, err error) {
+	vModel := mCache.Fetch(vType.GetName())
+	if vModel == nil {
+		err = fmt.Errorf("illegal value type,type:%s", vType.GetName())
+		return
+	}
+	vModel, vErr := SetModelValue(vModel, vVal)
+	if vErr != nil {
+		err = vErr
 		return
 	}
 
+	pkField := vModel.GetPrimaryField()
+	ret, err = helper.Encode(pkField.GetValue(), pkField.GetType())
+	return
+}
+
+func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache, helper helper.Helper) (ret string, err error) {
+	vVals, vErr := ElemDependValue(tVal)
+	if vErr != nil {
+		err = vErr
+		return
+	}
+	if len(vVals) == 0 {
+		return
+	}
+
+	items := []string{}
+	for _, v := range vVals {
+		strVal, strErr := encodeModel(v, tType.Elem(), mCache, helper)
+		if strErr != nil {
+			err = strErr
+			return
+		}
+
+		items = append(items, strVal)
+	}
+
+	dataVal, dataErr := json.Marshal(items)
+	if dataErr != nil {
+		err = dataErr
+		return
+	}
+
+	ret = string(dataVal)
+	return
+}
+
+func EncodeValue(tVal model.Value, tType model.Type, mCache model.Cache) (ret string, err error) {
+	helper := helper.New(GetEntityValue, ElemDependValue)
+	if tType.IsBasic() {
+		ret, err = helper.Encode(tVal, tType)
+		return
+	}
+	if util.IsStructType(tType.GetValue()) {
+		ret, err = encodeModel(tVal, tType, mCache, helper)
+		return
+	}
+
+	ret, err = encodeSliceModel(tVal, tType, mCache, helper)
 	return
 }

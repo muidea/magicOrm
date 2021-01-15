@@ -32,19 +32,19 @@ func (s *impl) Encode(vVal model.Value, tType model.Type) (ret string, err error
 
 	switch tType.GetValue() {
 	case util.TypeBooleanField:
-		ret, err = s.encodeBoolValue(vVal, tType)
+		ret, err = s.encodeBoolValue(vVal)
 	case util.TypeDateTimeField:
-		ret, err = s.encodeDateTimeValue(vVal, tType)
+		ret, err = s.encodeDateTimeValue(vVal)
 	case util.TypeFloatField, util.TypeDoubleField:
-		ret, err = s.encodeFloatValue(vVal, tType)
+		ret, err = s.encodeFloatValue(vVal)
 	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
-		ret, err = s.encodeIntValue(vVal, tType)
+		ret, err = s.encodeIntValue(vVal)
 	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
-		ret, err = s.encodeUintValue(vVal, tType)
+		ret, err = s.encodeUintValue(vVal)
 	case util.TypeSliceField:
 		ret, err = s.encodeSliceValue(vVal, tType)
 	case util.TypeStringField:
-		ret, err = s.encodeStringValue(vVal, tType)
+		ret, err = s.encodeStringValue(vVal)
 	default:
 		err = fmt.Errorf("illegal type, type:%s", tType.GetName())
 	}
@@ -60,19 +60,19 @@ func (s *impl) Decode(val string, tType model.Type) (ret model.Value, err error)
 
 	switch tType.GetValue() {
 	case util.TypeBooleanField:
-		ret, err = s.decodeBoolValue(val, tType)
+		ret, err = s.decodeBoolValue(val)
 	case util.TypeDateTimeField:
-		ret, err = s.decodeDateTimeValue(val, tType)
+		ret, err = s.decodeDateTimeValue(val)
 	case util.TypeFloatField, util.TypeDoubleField:
-		ret, err = s.decodeFloatValue(val, tType)
+		ret, err = s.decodeFloatValue(val)
 	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
-		ret, err = s.decodeIntValue(val, tType)
+		ret, err = s.decodeIntValue(val)
 	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
-		ret, err = s.decodeUintValue(val, tType)
+		ret, err = s.decodeUintValue(val)
 	case util.TypeSliceField:
 		ret, err = s.decodeSliceValue(val, tType)
 	case util.TypeStringField:
-		ret, err = s.decodeStringValue(val, tType)
+		ret, err = s.decodeStringValue(val)
 	default:
 		err = fmt.Errorf("illegal type, type:%s", tType.GetName())
 	}

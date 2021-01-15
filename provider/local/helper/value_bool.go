@@ -8,7 +8,7 @@ import (
 )
 
 // encodeBoolValue get bool value str
-func (s *impl) encodeBoolValue(vVal model.Value, tType model.Type) (ret string, err error) {
+func (s *impl) encodeBoolValue(vVal model.Value) (ret string, err error) {
 	val := vVal.Get().(reflect.Value)
 	val = reflect.Indirect(val)
 	switch val.Kind() {
@@ -26,7 +26,7 @@ func (s *impl) encodeBoolValue(vVal model.Value, tType model.Type) (ret string, 
 }
 
 // decodeBoolValue decode bool from string
-func (s *impl) decodeBoolValue(val string, tType model.Type) (ret model.Value, err error) {
+func (s *impl) decodeBoolValue(val string) (ret model.Value, err error) {
 	bVal := false
 	switch val {
 	case "1":

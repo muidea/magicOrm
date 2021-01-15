@@ -9,7 +9,7 @@ import (
 )
 
 // encodeFloatValue get float value str
-func (s *impl) encodeFloatValue(vVal model.Value, tType model.Type) (ret string, err error) {
+func (s *impl) encodeFloatValue(vVal model.Value) (ret string, err error) {
 	val := vVal.Get().(reflect.Value)
 	val = reflect.Indirect(val)
 	switch val.Kind() {
@@ -23,7 +23,7 @@ func (s *impl) encodeFloatValue(vVal model.Value, tType model.Type) (ret string,
 }
 
 // decodeFloatValue decode float from string
-func (s *impl) decodeFloatValue(val string, tType model.Type) (ret model.Value, err error) {
+func (s *impl) decodeFloatValue(val string) (ret model.Value, err error) {
 	fVal, fErr := strconv.ParseFloat(val, 64)
 	if fErr != nil {
 		err = fErr
