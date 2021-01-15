@@ -144,3 +144,7 @@ func AppendSliceValue(sliceVal model.Value, vVal model.Value) (ret model.Value, 
 	ret = newValue(sVal)
 	return
 }
+
+func EncodeValue(tVal model.Value, tType model.Type, mCache model.Cache) (ret string, err error) {
+	return
+}

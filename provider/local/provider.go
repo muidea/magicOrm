@@ -2,10 +2,11 @@ package local
 
 import (
 	"fmt"
-	"github.com/muidea/magicOrm/util"
+	"github.com/muidea/magicOrm/provider/local/helper"
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/util"
 )
 
 func GetEntityType(entity interface{}) (ret model.Type, err error) {
@@ -120,5 +121,15 @@ func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, e
 	}
 
 	ret.Set(rSliceVal)
+	return
+}
+
+func EncodeValue(tVal model.Value, tType model.Type, mCache model.Cache) (ret string, err error) {
+	if tType.IsBasic() {
+		helper := helper.New(GetEntityValue, ElemDependValue)
+		ret, err = helper.Encode(tVal, tType)
+		return
+	}
+
 	return
 }

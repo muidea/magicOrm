@@ -2,8 +2,8 @@ package provider
 
 import (
 	"fmt"
+
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/provider/local"
 	"github.com/muidea/magicOrm/provider/remote"
 )
@@ -41,7 +41,6 @@ type providerImpl struct {
 	owner string
 
 	modelCache model.Cache
-	helper     helper.Helper
 
 	getTypeFunc          func(interface{}) (model.Type, error)
 	getValueFunc         func(interface{}) (model.Value, error)
@@ -49,6 +48,7 @@ type providerImpl struct {
 	setModelValueFunc    func(model.Model, model.Value) (model.Model, error)
 	elemDependValueFunc  func(model.Value) ([]model.Value, error)
 	appendSliceValueFunc func(model.Value, model.Value) (model.Value, error)
+	encodeValueFunc      func(model.Value, model.Type, model.Cache) (string, error)
 }
 
 // RegisterModel RegisterObjectModel
@@ -186,7 +186,7 @@ func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err erro
 
 // GetValueStr GetValueStr
 func (s *providerImpl) GetValueStr(vVal model.Value, vType model.Type) (ret string, err error) {
-	ret, err = s.helper.Encode(vVal, vType)
+	ret, err = s.encodeValueFunc(vVal, vType, s.modelCache)
 	return
 }
 
@@ -209,12 +209,12 @@ func (s *providerImpl) IsAssigned(vVal model.Value, vType model.Type) (ret bool)
 
 	curVal := vVal
 	originVal, _ := vType.Interface(nil)
-	curStr, curErr := s.helper.Encode(curVal, vType)
+	curStr, curErr := s.encodeValueFunc(curVal, vType, s.modelCache)
 	if curErr != nil {
 		ret = false
 		return
 	}
-	originStr, originErr := s.helper.Encode(originVal, vType)
+	originStr, originErr := s.encodeValueFunc(originVal, vType, s.modelCache)
 	if originErr != nil {
 		ret = false
 	}
@@ -244,9 +244,9 @@ func NewLocalProvider(owner string) Provider {
 		setModelValueFunc:    local.SetModelValue,
 		elemDependValueFunc:  local.ElemDependValue,
 		appendSliceValueFunc: local.AppendSliceValue,
+		encodeValueFunc:      local.EncodeValue,
 	}
 
-	ret.helper = helper.New(ret.GetEntityValue, ret.GetValueModel, ret.ElemDependValue)
 	return ret
 }
 
@@ -261,9 +261,8 @@ func NewRemoteProvider(owner string) Provider {
 		setModelValueFunc:    remote.SetModelValue,
 		elemDependValueFunc:  remote.ElemDependValue,
 		appendSliceValueFunc: remote.AppendSliceValue,
+		encodeValueFunc:      remote.EncodeValue,
 	}
-
-	ret.helper = helper.New(ret.GetEntityValue, ret.GetValueModel, ret.ElemDependValue)
 
 	return ret
 }

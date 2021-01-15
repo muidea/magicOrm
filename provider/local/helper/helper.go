@@ -8,7 +8,6 @@ import (
 )
 
 type GetValueFunc func(interface{}) (model.Value, error)
-type GetValueModelFunc func(model.Value, model.Type) (model.Model, error)
 type ElemDependValueFunc func(model.Value) ([]model.Value, error)
 
 type Helper interface {
@@ -17,16 +16,20 @@ type Helper interface {
 }
 
 type impl struct {
-	getValueModel   GetValueModelFunc
 	getValue        GetValueFunc
 	elemDependValue ElemDependValueFunc
 }
 
-func New(getValue GetValueFunc, getValueModel GetValueModelFunc, elemDependValue ElemDependValueFunc) Helper {
-	return &impl{getValue: getValue, getValueModel: getValueModel, elemDependValue: elemDependValue}
+func New(getValue GetValueFunc, elemDependValue ElemDependValueFunc) Helper {
+	return &impl{getValue: getValue, elemDependValue: elemDependValue}
 }
 
 func (s *impl) Encode(vVal model.Value, tType model.Type) (ret string, err error) {
+	if !tType.IsBasic() {
+		err = fmt.Errorf("illegal value type, type:%s", tType.GetName())
+		return
+	}
+
 	switch tType.GetValue() {
 	case util.TypeBooleanField:
 		ret, err = s.encodeBoolValue(vVal, tType)
@@ -42,8 +45,6 @@ func (s *impl) Encode(vVal model.Value, tType model.Type) (ret string, err error
 		ret, err = s.encodeSliceValue(vVal, tType)
 	case util.TypeStringField:
 		ret, err = s.encodeStringValue(vVal, tType)
-	case util.TypeStructField:
-		ret, err = s.encodeStructValue(vVal, tType)
 	default:
 		err = fmt.Errorf("illegal type, type:%s", tType.GetName())
 	}
@@ -52,6 +53,11 @@ func (s *impl) Encode(vVal model.Value, tType model.Type) (ret string, err error
 }
 
 func (s *impl) Decode(val string, tType model.Type) (ret model.Value, err error) {
+	if !tType.IsBasic() {
+		err = fmt.Errorf("illegal value type, type:%s", tType.GetName())
+		return
+	}
+
 	switch tType.GetValue() {
 	case util.TypeBooleanField:
 		ret, err = s.decodeBoolValue(val, tType)
@@ -67,8 +73,6 @@ func (s *impl) Decode(val string, tType model.Type) (ret model.Value, err error)
 		ret, err = s.decodeSliceValue(val, tType)
 	case util.TypeStringField:
 		ret, err = s.decodeStringValue(val, tType)
-	case util.TypeStructField:
-		ret, err = s.decodeStructValue(val, tType)
 	default:
 		err = fmt.Errorf("illegal type, type:%s", tType.GetName())
 	}
