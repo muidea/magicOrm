@@ -121,7 +121,7 @@ func (s *typeImpl) Interface(val interface{}) (ret model.Value, err error) {
 			if util.IsString(rType) {
 				sVal, sErr := _helper.Decode(rVal.String(), s)
 				if sErr == nil {
-					tVal.Set(sVal.Get().(reflect.Value))
+					tVal.Set(reflect.Indirect(sVal.Get().(reflect.Value)))
 					assignFlag = true
 				}
 			}

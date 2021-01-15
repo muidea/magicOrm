@@ -83,7 +83,7 @@ func TestLocalReference(t *testing.T) {
 		return
 	}
 
-	ts, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
+	ts, _ := time.Parse("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000")
 	strValue := "test code"
 	fValue := float32(12.34)
 	flag := true
