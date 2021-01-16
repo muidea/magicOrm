@@ -54,38 +54,39 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 	filterSQL := ""
 	relationFilterSQL := ""
 	params := filter.Items()
-	fields := s.modelInfo.GetFields()
-	for _, field := range fields {
+	for _, field := range s.modelInfo.GetFields() {
 		filterItem, ok := params[field.GetName()]
 		if !ok {
 			continue
 		}
 
 		fType := field.GetType()
-		fieldModel, fieldErr := s.modelProvider.GetTypeModel(fType)
-		if fieldErr != nil {
-			err = fieldErr
-			return
-		}
-
-		if fieldModel != nil {
-			strVal, strErr := filterItem.FilterStr("right", fType)
-			if strErr != nil {
-				err = strErr
+		if !fType.IsBasic() {
+			fieldModel, fieldErr := s.modelProvider.GetTypeModel(fType)
+			if fieldErr != nil {
+				err = fieldErr
 				return
 			}
-			if strVal == "" {
+
+			if fieldModel != nil {
+				strVal, strErr := filterItem.FilterStr("right", fType)
+				if strErr != nil {
+					err = strErr
+					return
+				}
+				if strVal == "" {
+					continue
+				}
+
+				relationTable := s.GetRelationTableName(field.GetName(), fieldModel)
+				if relationFilterSQL == "" {
+					relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTable, strVal)
+				} else {
+					relationFilterSQL = fmt.Sprintf("%s UNION SELECT DISTINCT(`left`) `id` FROM `%s` WHERE %s", relationFilterSQL, relationTable, strVal)
+				}
+
 				continue
 			}
-
-			relationTable := s.GetRelationTableName(field.GetName(), fieldModel)
-			if relationFilterSQL == "" {
-				relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTable, strVal)
-			} else {
-				relationFilterSQL = fmt.Sprintf("%s UNION SELECT DISTINCT(`left`) `id` FROM `%s` WHERE %s", relationFilterSQL, relationTable, strVal)
-			}
-
-			continue
 		}
 
 		strVal, strErr := filterItem.FilterStr(field.GetName(), fType)

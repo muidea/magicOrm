@@ -2,9 +2,9 @@ package local
 
 import (
 	"fmt"
-	"github.com/muidea/magicOrm/model"
 	"reflect"
 
+	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
 )
 
