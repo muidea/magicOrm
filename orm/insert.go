@@ -87,6 +87,8 @@ func (s *Orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 		if err != nil {
 			return
 		}
+
+		fVal.Set(relationInfo.Interface().Get())
 	}
 
 	return

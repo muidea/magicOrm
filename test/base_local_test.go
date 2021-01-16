@@ -296,8 +296,11 @@ func TestLocalCompose(t *testing.T) {
 	c3 := &Compose{
 		ID:             c2.ID,
 		PtrSimple:      &Simple{},
+		SimpleArray:    []Simple{},
+		SimplePtrArray: []*Simple{},
 		PtrSimpleArray: &[]Simple{},
 		PtrReference:   &Reference{},
+		RefArray:       []Reference{},
 		PtrRefArray:    &[]*Reference{},
 		PtrCompose:     &Compose{},
 	}

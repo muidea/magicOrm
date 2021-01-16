@@ -137,9 +137,6 @@ func (s *typeImpl) Interface(val interface{}) (ret model.Value, err error) {
 		}
 	}
 
-	if s.IsPtrType() {
-		tVal = tVal.Addr()
-	}
 	ret = newValue(tVal)
 	return
 }

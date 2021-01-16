@@ -120,7 +120,17 @@ func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, e
 		return
 	}
 
+	isElemPtr := false
+	rElemType := rSliceType.Elem()
+	if rElemType.Kind() == reflect.Ptr {
+		isElemPtr = true
+	}
+
 	rVal := val.Get().(reflect.Value)
+	if isElemPtr {
+		rVal = rVal.Addr()
+	}
+
 	rType := rVal.Type()
 	if rSliceType.Elem().String() != rType.String() {
 		err = fmt.Errorf("illegal slice item value, slice type:%s, item type:%s", rSliceType.String(), rType.String())
