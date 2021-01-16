@@ -207,33 +207,32 @@ func (s *Orm) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret m
 		return
 	}
 
+	fieldValue, _ := fieldType.Interface(nil)
 	if util.IsStructType(fieldType.GetValue()) {
-		singleVal, singleErr := s.queryRelationSingle(values[0], fieldModel)
-		if singleErr != nil {
-			err = singleErr
+		queryVal, queryErr := s.queryRelationSingle(values[0], fieldModel)
+		if queryErr != nil {
+			err = queryErr
 			log.Errorf("queryRelationSingle failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
 			return
 		}
 
-		if fieldType.IsPtrType() {
-			singleVal = singleVal.Addr()
-		}
-		ret = singleVal
+		fieldValue.Set(queryVal.Get())
 	} else if util.IsSliceType(fieldType.GetValue()) {
-		sliceVal, _ := fieldType.Interface(nil)
-		sliceVal, sliceErr := s.queryRelationSlice(values, fieldModel, sliceVal)
-		if sliceErr != nil {
-			err = sliceErr
+		queryVal, queryErr := s.queryRelationSlice(values, fieldModel, fieldValue)
+		if queryErr != nil {
+			err = queryErr
 			log.Errorf("queryRelationSlice failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
 			return
 		}
 
-		if fieldType.IsPtrType() {
-			sliceVal = sliceVal.Addr()
-		}
-		ret = sliceVal
+		fieldValue.Set(queryVal.Get())
 	}
 
+	if fieldType.IsPtrType() {
+		fieldValue = fieldValue.Addr()
+	}
+
+	ret = fieldValue
 	return
 }
 

@@ -10,7 +10,7 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
-func (s *Orm) queryBatch(elemModel model.Model, sliceValue model.Value, filter model.Filter) (err error) {
+func (s *Orm) queryBatch(elemModel model.Model, sliceValue model.Value, filter model.Filter) (ret model.Value, err error) {
 	var maskModel model.Model
 	if filter != nil {
 		maskModel = filter.MaskModel()
@@ -68,6 +68,7 @@ func (s *Orm) queryBatch(elemModel model.Model, sliceValue model.Value, filter m
 		}
 	}
 
+	ret = sliceValue
 	return
 }
 
@@ -99,12 +100,13 @@ func (s *Orm) BatchQuery(sliceEntity interface{}, filter model.Filter) (err erro
 		return
 	}
 
-	queryErr := s.queryBatch(entityModel, sliceEntityVal, filter)
+	queryVal, queryErr := s.queryBatch(entityModel, sliceEntityVal, filter)
 	if queryErr != nil {
 		err = queryErr
 		log.Errorf("queryBatch failed, err:%s", err.Error())
 		return
 	}
 
+	sliceEntityVal.Set(queryVal.Get())
 	return
 }
