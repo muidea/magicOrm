@@ -92,6 +92,11 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 	rVal := vVal.Get().(reflect.Value)
 	rVal = reflect.Indirect(rVal)
+	if rVal.Kind() == reflect.Struct {
+		ret = append(ret, vVal)
+		return
+	}
+
 	if rVal.Kind() != reflect.Slice {
 		err = fmt.Errorf("illegal slice value")
 		return

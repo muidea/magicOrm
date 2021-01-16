@@ -10,14 +10,14 @@ func (s *Orm) getModelFilter(vModel model.Model) (ret model.Filter, err error) {
 	filter := &queryFilter{params: map[string]model.FilterItem{}, modelProvider: s.modelProvider}
 
 	fields := vModel.GetFields()
-	for _, item := range fields {
-		vVal := item.GetValue()
-		vType := item.GetType()
+	for _, field := range fields {
+		vVal := field.GetValue()
+		vType := field.GetType()
 		if !s.modelProvider.IsAssigned(vVal, vType) {
 			continue
 		}
 
-		filter.equalInternal(item.GetName(), vVal)
+		filter.equalInternal(field.GetName(), vVal)
 	}
 
 	ret = filter
