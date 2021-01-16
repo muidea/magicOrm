@@ -28,7 +28,7 @@ type Filter interface {
 	Page(filter *util.PageFilter)
 	Sort(sorter *util.SortFilter)
 
-	Items() map[string]FilterItem
+	GetFilterItem(name string) FilterItem
 	Pagination() (limit, offset int, paging bool)
 	MaskModel() Model
 	Sorter() Sorter

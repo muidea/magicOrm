@@ -164,8 +164,13 @@ func (s *queryFilter) Sort(sorter *util.SortFilter) {
 	s.sortFilter = sorter
 }
 
-func (s *queryFilter) Items() map[string]model.FilterItem {
-	return s.params
+func (s *queryFilter) GetFilterItem(name string) model.FilterItem {
+	v, ok := s.params[name]
+	if ok {
+		return v
+	}
+
+	return nil
 }
 
 func (s *queryFilter) Pagination() (limit, offset int, paging bool) {

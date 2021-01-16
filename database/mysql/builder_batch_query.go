@@ -53,10 +53,9 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 
 	filterSQL := ""
 	relationFilterSQL := ""
-	params := filter.Items()
 	for _, field := range s.modelInfo.GetFields() {
-		filterItem, ok := params[field.GetName()]
-		if !ok {
+		filterItem := filter.GetFilterItem(field.GetName())
+		if filterItem == nil {
 			continue
 		}
 

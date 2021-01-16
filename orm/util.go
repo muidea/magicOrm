@@ -9,8 +9,7 @@ import (
 func (s *Orm) getModelFilter(vModel model.Model) (ret model.Filter, err error) {
 	filter := &queryFilter{params: map[string]model.FilterItem{}, modelProvider: s.modelProvider}
 
-	fields := vModel.GetFields()
-	for _, field := range fields {
+	for _, field := range vModel.GetFields() {
 		vVal := field.GetValue()
 		vType := field.GetType()
 		if !s.modelProvider.IsAssigned(vVal, vType) {
