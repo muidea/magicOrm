@@ -132,7 +132,7 @@ func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, e
 		rSliceVal = rSliceVal.Addr()
 	}
 
-	ret.Set(rSliceVal)
+	ret = newValue(rSliceVal)
 	return
 }
 

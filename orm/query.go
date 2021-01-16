@@ -12,7 +12,7 @@ import (
 
 type resultItems []interface{}
 
-func (s *Orm) querySingle(vModel model.Model, vVal model.Value, filter model.Filter) (err error) {
+func (s *Orm) querySingle(vModel model.Model, filter model.Filter) (ret model.Value, err error) {
 	var queryValue resultItems
 	func() {
 		builder := builder.NewBuilder(vModel, s.modelProvider)
@@ -58,8 +58,7 @@ func (s *Orm) querySingle(vModel model.Model, vVal model.Value, filter model.Fil
 		return
 	}
 
-	vVal.Set(modelVal.Get())
-
+	ret = modelVal
 	return
 }
 
@@ -75,10 +74,12 @@ func (s *Orm) assignSingleModel(modelVal model.Model, queryVal resultItems) (ret
 				continue
 			}
 
-			err = field.SetValue(itemVal)
-			if err != nil {
-				log.Errorf("SetValue failed, err:%s", err.Error())
-				return
+			if itemVal != nil {
+				err = field.SetValue(itemVal)
+				if err != nil {
+					log.Errorf("SetValue failed, err:%s", err.Error())
+					return
+				}
 			}
 
 			//offset++
@@ -122,13 +123,14 @@ func (s *Orm) queryRelationSingle(id int, vModel model.Model) (ret model.Value, 
 		return
 	}
 
-	err = s.querySingle(relationModel, relationVal, relationFilter)
-	if err != nil {
+	queryVal, queryErr := s.querySingle(relationModel, relationFilter)
+	if queryErr != nil {
+		err = queryErr
 		log.Errorf("querySingle for struct failed, err:%s", err.Error())
 		return
 	}
 
-	ret = relationModel.Interface()
+	ret = queryVal
 	return
 }
 
@@ -149,14 +151,14 @@ func (s *Orm) queryRelationSlice(ids []int, vModel model.Model, sliceVal model.V
 			return
 		}
 
-		err = s.querySingle(relationModel, relationVal, relationFilter)
-		if err != nil {
+		queryVal, queryErr := s.querySingle(relationModel, relationFilter)
+		if queryErr != nil {
+			err = queryErr
 			log.Errorf("querySingle for slice failed, err:%s", err.Error())
 			return
 		}
 
-		itemVal := relationModel.Interface()
-		sliceVal, err = s.modelProvider.AppendSliceValue(sliceVal, itemVal)
+		sliceVal, err = s.modelProvider.AppendSliceValue(sliceVal, queryVal)
 		if err != nil {
 			log.Errorf("append slice value failed, err:%s", err.Error())
 			return
@@ -258,11 +260,13 @@ func (s *Orm) Query(entity interface{}) (err error) {
 		return
 	}
 
-	err = s.querySingle(entityModel, entityVal, entityFilter)
-	if err != nil {
+	queryVal, queryErr := s.querySingle(entityModel, entityFilter)
+	if queryErr != nil {
+		err = queryErr
 		log.Errorf("querySingle failed, modelName:%s, err:%s", entityModel.GetName(), err.Error())
 		return
 	}
 
+	entityVal.Set(queryVal.Get())
 	return
 }

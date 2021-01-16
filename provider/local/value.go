@@ -33,6 +33,7 @@ func (s *valueImpl) Set(val interface{}) (err error) {
 		v = v.Elem()
 	}
 
+	v = reflect.Indirect(v)
 	if util.IsNil(s.value) {
 		s.value = v
 		return
