@@ -293,7 +293,14 @@ func TestLocalCompose(t *testing.T) {
 		return
 	}
 
-	c3 := &Compose{ID: c2.ID, PtrSimple: &Simple{}, PtrSimpleArray: &[]Simple{}, PtrReference: &Reference{}, PtrRefArray: &[]*Reference{}, PtrCompose: &Compose{}}
+	c3 := &Compose{
+		ID:             c2.ID,
+		PtrSimple:      &Simple{},
+		PtrSimpleArray: &[]Simple{},
+		PtrReference:   &Reference{},
+		PtrRefArray:    &[]*Reference{},
+		PtrCompose:     &Compose{},
+	}
 	err = o1.Query(c3, localOwner)
 	if err != nil {
 		t.Errorf("query compose failed, err:%s", err.Error())

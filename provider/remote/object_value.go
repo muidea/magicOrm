@@ -18,7 +18,7 @@ type ItemValue struct {
 	Value interface{} `json:"value"`
 }
 
-// ObjectValue Object Value
+// ObjectValue Object value
 type ObjectValue struct {
 	Name    string       `json:"name"`
 	PkgPath string       `json:"pkgPath"`

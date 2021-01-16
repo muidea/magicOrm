@@ -137,12 +137,13 @@ func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, e
 }
 
 func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, helper helper.Helper) (ret string, err error) {
-	vModel := mCache.Fetch(vType.GetName())
-	if vModel == nil {
+	tModel := mCache.Fetch(vType.GetName())
+	if tModel == nil {
 		err = fmt.Errorf("illegal value type,type:%s", vType.GetName())
 		return
 	}
-	vModel, vErr := SetModelValue(vModel, vVal)
+
+	vModel, vErr := SetModelValue(tModel.Copy(), vVal)
 	if vErr != nil {
 		err = vErr
 		return

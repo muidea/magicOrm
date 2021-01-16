@@ -53,7 +53,12 @@ func (s *valueImpl) Addr() model.Value {
 }
 
 func (s *valueImpl) copy() (ret *valueImpl) {
-	ret = &valueImpl{value: s.value}
+	if !util.IsNil(s.value) {
+		ret = &valueImpl{value: reflect.New(s.value.Type()).Elem()}
+		ret.value.Set(s.value)
+		return
+	}
 
+	ret = &valueImpl{}
 	return
 }
