@@ -1,11 +1,20 @@
 package remote
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
 	"reflect"
+
+	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider/remote/helper"
+	"github.com/muidea/magicOrm/util"
 )
+
+var _helper helper.Helper
+
+func init() {
+	_helper = helper.New(GetEntityValue, ElemDependValue)
+}
 
 func isRemoteType(vType model.Type) bool {
 	switch vType.GetValue() {
@@ -145,6 +154,65 @@ func AppendSliceValue(sliceVal model.Value, vVal model.Value) (ret model.Value, 
 	return
 }
 
+func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, helper helper.Helper) (ret string, err error) {
+	tModel := mCache.Fetch(vType.GetName())
+	if tModel == nil {
+		err = fmt.Errorf("illegal value type,type:%s", vType.GetName())
+		return
+	}
+
+	vModel, vErr := SetModelValue(tModel.Copy(), vVal)
+	if vErr != nil {
+		err = vErr
+		return
+	}
+
+	pkField := vModel.GetPrimaryField()
+	ret, err = helper.Encode(pkField.GetValue(), pkField.GetType())
+	return
+}
+
+func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache, helper helper.Helper) (ret string, err error) {
+	vVals, vErr := ElemDependValue(tVal)
+	if vErr != nil {
+		err = vErr
+		return
+	}
+	if len(vVals) == 0 {
+		return
+	}
+
+	items := []string{}
+	for _, v := range vVals {
+		strVal, strErr := encodeModel(v, tType.Elem(), mCache, helper)
+		if strErr != nil {
+			err = strErr
+			return
+		}
+
+		items = append(items, strVal)
+	}
+
+	dataVal, dataErr := json.Marshal(items)
+	if dataErr != nil {
+		err = dataErr
+		return
+	}
+
+	ret = string(dataVal)
+	return
+}
+
 func EncodeValue(tVal model.Value, tType model.Type, mCache model.Cache) (ret string, err error) {
+	if tType.IsBasic() {
+		ret, err = _helper.Encode(tVal, tType)
+		return
+	}
+	if util.IsStructType(tType.GetValue()) {
+		ret, err = encodeModel(tVal, tType, mCache, _helper)
+		return
+	}
+
+	ret, err = encodeSliceModel(tVal, tType, mCache, _helper)
 	return
 }

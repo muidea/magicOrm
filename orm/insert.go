@@ -9,13 +9,14 @@ import (
 
 func (s *Orm) insertSingle(modelInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
-	sql, err := builder.BuildInsert()
-	if err != nil {
+	sqlStr, sqlErr := builder.BuildInsert()
+	if sqlErr != nil {
+		err = sqlErr
 		log.Errorf("BuildInsert failed, err:%s", err.Error())
 		return err
 	}
 
-	id, idErr := s.executor.Insert(sql)
+	id, idErr := s.executor.Insert(sqlStr)
 	if idErr != nil {
 		err = idErr
 		return

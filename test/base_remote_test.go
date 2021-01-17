@@ -28,7 +28,11 @@ func TestRemoteSimple(t *testing.T) {
 	}
 
 	objList := []interface{}{simpleDef}
-	registerModel(o1, objList, remoteOwner)
+	err = registerModel(o1, objList, remoteOwner)
+	if err != nil {
+		t.Errorf("registerModel failed, err:%s", err.Error())
+		return
+	}
 
 	err = o1.Drop(simpleDef, remoteOwner)
 	if err != nil {
