@@ -141,9 +141,15 @@ func (s *Orm) Delete(entity interface{}) (err error) {
 	}
 
 	if err == nil {
-		err = s.executor.CommitTransaction()
+		cErr := s.executor.CommitTransaction()
+		if cErr != nil {
+			err = cErr
+		}
 	} else {
-		err = s.executor.RollbackTransaction()
+		rErr := s.executor.RollbackTransaction()
+		if rErr != nil {
+			err = rErr
+		}
 	}
 
 	return

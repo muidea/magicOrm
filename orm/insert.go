@@ -139,9 +139,9 @@ func (s *Orm) Insert(entity interface{}) (err error) {
 			err = cErr
 		}
 	} else {
-		cErr := s.executor.RollbackTransaction()
-		if cErr != nil {
-			err = cErr
+		rErr := s.executor.RollbackTransaction()
+		if rErr != nil {
+			err = rErr
 		}
 	}
 
