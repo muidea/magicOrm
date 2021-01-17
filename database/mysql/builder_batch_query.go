@@ -58,8 +58,16 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 		if filterItem == nil {
 			continue
 		}
+		oprValue := filterItem.OprValue()
+		oprFunc := filterItem.OprFunc()
 
 		fType := field.GetType()
+		valueStr, valueErr := s.buildValue(oprValue, fType)
+		if valueErr != nil {
+			err = valueErr
+			return
+		}
+
 		if !fType.IsBasic() {
 			fieldModel, fieldErr := s.modelProvider.GetTypeModel(fType)
 			if fieldErr != nil {
@@ -68,15 +76,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 			}
 
 			if fieldModel != nil {
-				strVal, strErr := filterItem.FilterStr("right", fType)
-				if strErr != nil {
-					err = strErr
-					return
-				}
-				if strVal == "" {
-					continue
-				}
-
+				strVal := oprFunc("right", valueStr)
 				relationTable := s.GetRelationTableName(field.GetName(), fieldModel)
 				if relationFilterSQL == "" {
 					relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTable, strVal)
@@ -88,15 +88,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 			}
 		}
 
-		strVal, strErr := filterItem.FilterStr(field.GetName(), fType)
-		if strErr != nil {
-			err = strErr
-			return
-		}
-		if strVal == "" {
-			continue
-		}
-
+		strVal := oprFunc(field.GetName(), valueStr)
 		if filterSQL == "" {
 			filterSQL = fmt.Sprintf("%s", strVal)
 		} else {

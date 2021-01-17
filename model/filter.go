@@ -4,9 +4,12 @@ import (
 	"github.com/muidea/magicCommon/foundation/util"
 )
 
+type OprFunc func(string, string) string
+
 // FilterItem FilterItem
 type FilterItem interface {
-	FilterStr(name string, fType Type) (string, error)
+	OprFunc() OprFunc
+	OprValue() Value
 }
 
 // Sorter sort Item
