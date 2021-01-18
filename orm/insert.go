@@ -82,7 +82,8 @@ func (s *impl) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err
 			return
 		}
 
-		fVal.Set(relationInfo.Interface().Get())
+		rVal, _ := s.modelProvider.GetEntityValue(relationInfo.Interface(true))
+		fVal.Set(rVal.Get())
 	}
 
 	return

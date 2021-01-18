@@ -58,7 +58,7 @@ func (s *modelImpl) GetPrimaryField() (ret model.Field) {
 	return
 }
 
-func (s *modelImpl) Interface() (ret model.Value) {
+func (s *modelImpl) Interface(ptrValue bool) (ret interface{}) {
 	retVal := reflect.New(s.modelType).Elem()
 
 	for _, field := range s.fields {
@@ -76,7 +76,11 @@ func (s *modelImpl) Interface() (ret model.Value) {
 		retVal.Field(field.GetIndex()).Set(val)
 	}
 
-	ret = newValue(retVal)
+	if ptrValue {
+		retVal = retVal.Addr()
+	}
+
+	ret = retVal.Interface()
 	return
 }
 

@@ -2,9 +2,9 @@ package orm
 
 import (
 	"fmt"
-	"github.com/muidea/magicOrm/model"
 
 	"github.com/muidea/magicOrm/executor"
+	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
 )

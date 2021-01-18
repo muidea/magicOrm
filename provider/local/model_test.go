@@ -74,8 +74,7 @@ func TestModelValue(t *testing.T) {
 		return
 	}
 
-	uVal := unitInfo.Interface()
-	unit = uVal.Get().(reflect.Value).Interface().(Unit)
+	unit = unitInfo.Interface(false).(Unit)
 	if unit.ID != int64(id) {
 		t.Errorf("update id field failed")
 		return

@@ -16,17 +16,19 @@ func TestLocalGroup(t *testing.T) {
 	group2 := &Group{Name: "testGroup2"}
 	group3 := &Group{Name: "testGroup3"}
 
-	o1, err := orm.NewOrm()
+	o1, err := orm.NewOrm(localOwner)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
 
-	objList := []interface{}{&Group{}, &User{}, &Status{}}
-	registerModel(o1, objList, "default")
+	provider := orm.GetProvider(localOwner)
 
-	err = o1.Drop(group1, "default")
+	objList := []interface{}{&Group{}, &User{}, &Status{}}
+	registerModel(provider, objList)
+
+	err = o1.Drop(group1)
 	if err != nil {
 		t.Errorf("drop group failed, err:%s", err.Error())
 		return
