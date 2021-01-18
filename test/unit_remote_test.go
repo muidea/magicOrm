@@ -22,7 +22,7 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	o1, err := orm.New()
+	o1, err := orm.NewOrm()
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -138,7 +138,7 @@ func TestRemoteDepends(t *testing.T) {
 		return
 	}
 
-	o1, err := orm.New()
+	o1, err := orm.NewOrm()
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())

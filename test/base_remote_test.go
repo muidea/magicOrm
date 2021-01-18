@@ -13,7 +13,7 @@ func TestRemoteSimple(t *testing.T) {
 	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", false)
 	defer orm.Uninitialize()
 
-	o1, err := orm.New()
+	o1, err := orm.NewOrm()
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -109,7 +109,7 @@ func TestRemoteReference(t *testing.T) {
 	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", false)
 	defer orm.Uninitialize()
 
-	o1, err := orm.New()
+	o1, err := orm.NewOrm()
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -264,7 +264,7 @@ func TestRemoteCompose(t *testing.T) {
 	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", false)
 	defer orm.Uninitialize()
 
-	o1, err := orm.New()
+	o1, err := orm.NewOrm()
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -458,7 +458,7 @@ func TestRemoteQuery(t *testing.T) {
 	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", false)
 	defer orm.Uninitialize()
 
-	o1, err := orm.New()
+	o1, err := orm.NewOrm()
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())

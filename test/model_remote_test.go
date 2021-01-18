@@ -78,7 +78,7 @@ func TestRemoteGroup(t *testing.T) {
 		return
 	}
 
-	o1, err := orm.New()
+	o1, err := orm.NewOrm()
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -285,7 +285,7 @@ func TestRemoteUser(t *testing.T) {
 	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", false)
 	defer orm.Uninitialize()
 
-	o1, err := orm.New()
+	o1, err := orm.NewOrm()
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -541,7 +541,7 @@ func TestRemoteSystem(t *testing.T) {
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
-	o1, err := orm.New()
+	o1, err := orm.NewOrm()
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -748,7 +748,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
-	o1, err := orm.New()
+	o1, err := orm.NewOrm()
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -1016,7 +1016,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
-	o1, err := orm.New()
+	o1, err := orm.NewOrm()
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())

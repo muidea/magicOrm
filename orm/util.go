@@ -6,7 +6,7 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
-func (s *Orm) getModelFilter(vModel model.Model) (ret model.Filter, err error) {
+func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, err error) {
 	filter := &queryFilter{params: map[string]model.FilterItem{}, modelProvider: s.modelProvider}
 
 	for _, field := range vModel.GetFields() {
@@ -23,7 +23,7 @@ func (s *Orm) getModelFilter(vModel model.Model) (ret model.Filter, err error) {
 	return
 }
 
-func (s *Orm) getFieldFilter(vField model.Field) (ret model.Filter, err error) {
+func (s *impl) getFieldFilter(vField model.Field) (ret model.Filter, err error) {
 	filter := &queryFilter{params: map[string]model.FilterItem{}, modelProvider: s.modelProvider}
 	vVal := vField.GetValue()
 	if !vVal.IsNil() {
@@ -34,7 +34,7 @@ func (s *Orm) getFieldFilter(vField model.Field) (ret model.Filter, err error) {
 	return
 }
 
-func (s *Orm) getInitializeValue(vModel model.Model, builder builder.Builder) (ret []interface{}, err error) {
+func (s *impl) getInitializeValue(vModel model.Model, builder builder.Builder) (ret []interface{}, err error) {
 	var items []interface{}
 	for _, field := range vModel.GetFields() {
 		fType := field.GetType()
@@ -55,7 +55,7 @@ func (s *Orm) getInitializeValue(vModel model.Model, builder builder.Builder) (r
 	return
 }
 
-func (s *Orm) needStripSlashes(fType model.Type) bool {
+func (s *impl) needStripSlashes(fType model.Type) bool {
 	switch fType.GetValue() {
 	case util.TypeStringField, util.TypeDateTimeField:
 		return true
@@ -68,7 +68,7 @@ func (s *Orm) needStripSlashes(fType model.Type) bool {
 	return fType.IsBasic()
 }
 
-func (s *Orm) stripSlashes(fType model.Type, val interface{}) interface{} {
+func (s *impl) stripSlashes(fType model.Type, val interface{}) interface{} {
 	if !s.needStripSlashes(fType) {
 		return val
 	}

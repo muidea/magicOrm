@@ -1,18 +1,15 @@
 package orm
 
 import (
-	log "github.com/cihub/seelog"
-
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *Orm) insertSingle(modelInfo model.Model) (err error) {
+func (s *impl) insertSingle(modelInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	sqlStr, sqlErr := builder.BuildInsert()
 	if sqlErr != nil {
 		err = sqlErr
-		log.Errorf("BuildInsert failed, err:%s", err.Error())
 		return err
 	}
 
@@ -27,20 +24,18 @@ func (s *Orm) insertSingle(modelInfo model.Model) (err error) {
 	tVal, tErr := pk.GetType().Interface(id)
 	if tErr != nil {
 		err = tErr
-		log.Errorf("Interface failed, err:%s", err.Error())
 		return
 	}
 
 	err = pk.SetValue(tVal)
 	if err != nil {
-		log.Errorf("UpdateValue failed, err:%s", err.Error())
 		return err
 	}
 
 	return
 }
 
-func (s *Orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
+func (s *impl) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
 	fValue := fieldInfo.GetValue()
 	fType := fieldInfo.GetType()
 	if fType.IsBasic() || !s.modelProvider.IsAssigned(fValue, fType) {
@@ -50,14 +45,12 @@ func (s *Orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 	fSliceValue, fSliceErr := s.modelProvider.ElemDependValue(fValue)
 	if fSliceErr != nil {
 		err = fSliceErr
-		log.Errorf("ElemDependValue failed, fieldName:%s, err:%s", fieldInfo.GetName(), err.Error())
 		return
 	}
 
 	for _, fVal := range fSliceValue {
 		relationInfo, relationErr := s.modelProvider.GetValueModel(fVal, fType)
 		if relationErr != nil {
-			log.Errorf("GetValueModel failed, err:%s", relationErr.Error())
 			err = relationErr
 			return
 		}
@@ -96,21 +89,7 @@ func (s *Orm) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 }
 
 // Insert insert
-func (s *Orm) Insert(entity interface{}) (err error) {
-	entityModel, entityErr := s.modelProvider.GetEntityModel(entity)
-	if entityErr != nil {
-		err = entityErr
-		log.Errorf("GetEntityModel failed, err:%s", err.Error())
-		return
-	}
-
-	entityVal, entityErr := s.modelProvider.GetEntityValue(entity)
-	if entityErr != nil {
-		err = entityErr
-		log.Errorf("GetEntityValue failed, err:%s", err.Error())
-		return
-	}
-
+func (s *impl) Insert(entityModel model.Model) (ret model.Model, err error) {
 	err = s.executor.BeginTransaction()
 	if err != nil {
 		return
@@ -119,14 +98,12 @@ func (s *Orm) Insert(entity interface{}) (err error) {
 	for {
 		err = s.insertSingle(entityModel)
 		if err != nil {
-			log.Errorf("insertSingle failed, name:%s, err:%s", entityModel.GetName(), err.Error())
 			break
 		}
 
 		for _, field := range entityModel.GetFields() {
 			err = s.insertRelation(entityModel, field)
 			if err != nil {
-				log.Errorf("insertRelation failed, name:%s, field:%s, err:%s", entityModel.GetName(), field.GetName(), err.Error())
 				break
 			}
 		}
@@ -150,7 +127,6 @@ func (s *Orm) Insert(entity interface{}) (err error) {
 		return
 	}
 
-	err = entityVal.Set(entityModel.Interface().Get())
-
+	ret = entityModel
 	return
 }

@@ -1,13 +1,11 @@
 package orm
 
 import (
-	log "github.com/cihub/seelog"
-
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *Orm) dropSingle(modelInfo model.Model) (err error) {
+func (s *impl) dropSingle(modelInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	tableName := builder.GetTableName()
 
@@ -29,7 +27,7 @@ func (s *Orm) dropSingle(modelInfo model.Model) (err error) {
 	return
 }
 
-func (s *Orm) dropRelation(modelInfo model.Model, fieldName string, relationInfo model.Model) (err error) {
+func (s *impl) dropRelation(modelInfo model.Model, fieldName string, relationInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	tableName := builder.GetRelationTableName(fieldName, relationInfo)
 
@@ -51,21 +49,7 @@ func (s *Orm) dropRelation(modelInfo model.Model, fieldName string, relationInfo
 }
 
 // Drop drop
-func (s *Orm) Drop(entity interface{}) (err error) {
-	entityType, entityErr := s.modelProvider.GetEntityType(entity)
-	if entityErr != nil {
-		err = entityErr
-		log.Errorf("GetEntityType failed, err:%s", err.Error())
-		return
-	}
-
-	entityModel, entityErr := s.modelProvider.GetTypeModel(entityType)
-	if entityErr != nil {
-		err = entityErr
-		log.Errorf("GetTypeModel failed, type name:%s, err:%s", entityType.GetName(), err.Error())
-		return
-	}
-
+func (s *impl) Drop(entityModel model.Model) (err error) {
 	err = s.executor.BeginTransaction()
 	if err != nil {
 		return

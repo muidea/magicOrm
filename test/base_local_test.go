@@ -12,55 +12,77 @@ func TestLocalSimple(t *testing.T) {
 	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
 	defer orm.Uninitialize()
 
-	o1, err := orm.New()
+	o1, err := orm.NewOrm(localOwner)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
 
+	provider := orm.GetProvider(localOwner)
 	objList := []interface{}{&Simple{}}
-	err = registerModel(o1, objList, localOwner)
+	_, err = registerModel(provider, objList)
 	if err != nil {
 		t.Errorf("register model failed. err:%s", err.Error())
 		return
 	}
 
 	ts, _ := time.Parse("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000")
-	s1 := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
+	s1 := Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
 
-	err = o1.Drop(s1, localOwner)
+	s1Model, s1Err := provider.GetEntityModel(s1)
+	if s1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", s1Err.Error())
+		return
+	}
+
+	err = o1.Drop(s1Model)
 	if err != nil {
 		t.Errorf("drop simple schema failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(s1, localOwner)
+	err = o1.Create(s1Model)
 	if err != nil {
 		t.Errorf("create simple schema failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(s1, localOwner)
+	s1Model, err = o1.Insert(s1Model)
 	if err != nil {
 		t.Errorf("insert simple failed, err:%s", err.Error())
 		return
 	}
+	s1 = s1Model.Interface().Get().(Simple)
 
 	s1.Name = "hello"
-	err = o1.Update(s1, localOwner)
+	s1Model, s1Err = provider.GetEntityModel(s1)
+	if s1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", s1Err.Error())
+		return
+	}
+	s1Model, err = o1.Update(s1Model)
 	if err != nil {
 		t.Errorf("update simple failed, err:%s", err.Error())
 		return
 	}
+	s1 = s1Model.Interface().Get().(Simple)
 
-	s2 := &Simple{ID: s1.ID}
-	err = o1.Query(s2, localOwner)
+	s2 := Simple{ID: s1.ID}
+	s2Model, s2Err := provider.GetEntityModel(s2)
+	if s2Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", s2Err.Error())
+		return
+	}
+
+	s2Model, err = o1.Query(s2Model)
 	if err != nil {
 		t.Errorf("query simple failed, err:%s", err.Error())
 		return
 	}
-	if !s1.IsSame(s2) {
+	s2 = s2Model.Interface().Get().(Simple)
+
+	if !s1.IsSame(&s2) {
 		t.Errorf("Query simple failed.")
 	}
 }
@@ -69,15 +91,17 @@ func TestLocalReference(t *testing.T) {
 	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
 	defer orm.Uninitialize()
 
-	o1, err := orm.New()
+	o1, err := orm.NewOrm(localOwner)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
 
+	provider := orm.GetProvider(localOwner)
+
 	objList := []interface{}{&Reference{}}
-	err = registerModel(o1, objList, localOwner)
+	_, err = registerModel(provider, objList)
 	if err != nil {
 		t.Errorf("register model failed. err:%s", err.Error())
 		return
@@ -92,7 +116,7 @@ func TestLocalReference(t *testing.T) {
 	strArray := []string{"Abc", "Bcd"}
 	bArray := []bool{true, true, false, false}
 	strPtrArray := []*string{&strValue, &strValue}
-	s1 := &Reference{
+	s1 := Reference{
 		Name:        strValue,
 		FValue:      &fValue,
 		F64:         23.456,
@@ -107,37 +131,50 @@ func TestLocalReference(t *testing.T) {
 		PtrStrArray: &strPtrArray,
 	}
 
-	err = o1.Drop(s1, localOwner)
+	s1Model, s1Err := provider.GetEntityModel(s1)
+	if s1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", s1Err.Error())
+		return
+	}
+	err = o1.Drop(s1Model)
 	if err != nil {
 		t.Errorf("drop simple schema failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(s1, localOwner)
+	err = o1.Create(s1Model)
 	if err != nil {
 		t.Errorf("create simple schema failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(s1, localOwner)
+	s1Model, err = o1.Insert(s1Model)
 	if err != nil {
 		t.Errorf("insert simple failed, err:%s", err.Error())
 		return
 	}
+	s1 = s1Model.Interface().Get().(Reference)
 
 	s1.Name = "hello"
-	err = o1.Update(s1, localOwner)
+	s1Model, s1Err = provider.GetEntityModel(s1)
+	if s1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", s1Err.Error())
+		return
+	}
+
+	s1Model, err = o1.Update(s1Model)
 	if err != nil {
 		t.Errorf("update simple failed, err:%s", err.Error())
 		return
 	}
+	s1 = s1Model.Interface().Get().(Reference)
 
 	fValue2 := float32(0.0)
 	var ts2 time.Time
 	var bVal bool
 	var strArray2 []string
 	var ptrArray2 []*string
-	s2 := &Reference{
+	s2 := Reference{
 		ID:          s1.ID,
 		FValue:      &fValue2,
 		TimeStamp:   &ts2,
@@ -146,34 +183,50 @@ func TestLocalReference(t *testing.T) {
 		PtrStrArray: &ptrArray2,
 	}
 
-	err = o1.Query(s2, localOwner)
+	s2Model, s2Err := provider.GetEntityModel(s2)
+	if s2Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", s2Err.Error())
+		return
+	}
+
+	s2Model, err = o1.Query(s2Model)
 	if err != nil {
 		t.Errorf("query reference failed, err:%s", err.Error())
 		return
 	}
-	if !s1.IsSame(s2) {
+	s2 = s2Model.Interface().Get().(Reference)
+
+	if !s1.IsSame(&s2) {
 		t.Errorf("Query reference failed.")
 		return
 	}
 
-	err = o1.Insert(s2, localOwner)
+	s2Model, err = o1.Insert(s2Model)
 	if err != nil {
 		t.Errorf("insert reference failed, err:%s", err.Error())
 		return
 	}
-	if s1.IsSame(s2) {
+	s2 = s2Model.Interface().Get().(Reference)
+	if s1.IsSame(&s2) {
 		t.Errorf("Query reference failed.")
 		return
 	}
 
-	s4 := &Reference{
+	s4 := Reference{
 		ID: s1.ID,
 	}
-	err = o1.Query(s4, localOwner)
+	s4Model, s4Err := provider.GetEntityModel(s4)
+	if s4Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", s4Err.Error())
+		return
+	}
+
+	s4Model, err = o1.Query(s4Model)
 	if err != nil {
 		t.Errorf("query reference failed, err:%s", err.Error())
 		return
 	}
+	s4 = s4Model.Interface().Get().(Reference)
 	if s4.Name != s2.Name {
 		t.Errorf("query reference failed, err:%s", err.Error())
 		return
@@ -188,42 +241,50 @@ func TestLocalCompose(t *testing.T) {
 	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
 	defer orm.Uninitialize()
 
-	o1, err := orm.New()
+	o1, err := orm.NewOrm(localOwner)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
 
+	provider := orm.GetProvider(localOwner)
+
 	objList := []interface{}{&Simple{}, &Reference{}, &Compose{}}
-	err = registerModel(o1, objList, localOwner)
-	if err != nil {
+	mList, mErr := registerModel(provider, objList)
+	if mErr != nil {
+		err = mErr
 		t.Errorf("register model failed. err:%s", err.Error())
 		return
 	}
 
-	for _, val := range objList {
-		err = o1.Drop(val, localOwner)
+	for _, val := range mList {
+		err = o1.Drop(val)
 		if err != nil {
 			t.Errorf("drop object failed, err:%s", err.Error())
 		}
 	}
 
-	for _, val := range objList {
-		err = o1.Create(val, localOwner)
+	for _, val := range mList {
+		err = o1.Create(val)
 		if err != nil {
 			t.Errorf("create object failed, err:%s", err.Error())
 		}
 	}
 
-	ts, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
-	s1 := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
-
-	err = o1.Insert(s1, localOwner)
+	ts, _ := time.Parse("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000")
+	s1 := Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
+	s1Model, s1Err := provider.GetEntityModel(s1)
+	if s1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", s1Err.Error())
+		return
+	}
+	s1Model, err = o1.Insert(s1Model)
 	if err != nil {
 		t.Errorf("insert simple failed, err:%s", err.Error())
 		return
 	}
+	s1 = s1Model.Interface().Get().(Simple)
 
 	strValue := "test code"
 	fValue := float32(12.34)
@@ -233,7 +294,7 @@ func TestLocalCompose(t *testing.T) {
 	strArray := []string{"Abc", "Bcd"}
 	bArray := []bool{true, true, false, false}
 	strPtrArray := []*string{&strValue, &strValue}
-	r1 := &Reference{
+	r1 := Reference{
 		Name:        strValue,
 		FValue:      &fValue,
 		F64:         23.456,
@@ -248,52 +309,72 @@ func TestLocalCompose(t *testing.T) {
 		PtrStrArray: &strPtrArray,
 	}
 
-	err = o1.Insert(r1, localOwner)
+	r1Model, r1Err := provider.GetEntityModel(r1)
+	if r1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", r1Err.Error())
+		return
+	}
+
+	r1Model, err = o1.Insert(r1Model)
 	if err != nil {
 		t.Errorf("insert reference failed, err:%s", err.Error())
 		return
 	}
 
-	refPtrArray := []*Reference{r1}
-	c1 := &Compose{
+	r1 = r1Model.Interface().Get().(Reference)
+
+	refPtrArray := []*Reference{&r1}
+	c1 := Compose{
 		Name:           strValue,
-		Simple:         *s1,
-		PtrSimple:      s1,
-		SimpleArray:    []Simple{*s1, *s1},
-		SimplePtrArray: []*Simple{s1, s1},
-		Reference:      *r1,
-		PtrReference:   r1,
-		RefArray:       []Reference{*r1, *r1, *r1},
+		Simple:         s1,
+		PtrSimple:      &s1,
+		SimpleArray:    []Simple{s1, s1},
+		SimplePtrArray: []*Simple{&s1, &s1},
+		Reference:      r1,
+		PtrReference:   &r1,
+		RefArray:       []Reference{r1, r1, r1},
 		RefPtrArray:    refPtrArray,
 		PtrRefArray:    &refPtrArray,
 	}
-	err = o1.Insert(c1, localOwner)
+	c1Model, c1Err := provider.GetEntityModel(c1)
+	if c1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", c1Err.Error())
+		return
+	}
+	c1Model, err = o1.Insert(c1Model)
 	if err != nil {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
+	c1 = c1Model.Interface().Get().(Compose)
 
-	c2 := &Compose{
+	c2 := Compose{
 		Name:           strValue,
-		Simple:         *s1,
-		PtrSimple:      s1,
-		SimpleArray:    []Simple{*s1, *s1},
-		SimplePtrArray: []*Simple{s1, s1},
-		Reference:      *r1,
-		PtrReference:   r1,
-		RefArray:       []Reference{*r1, *r1, *r1},
+		Simple:         s1,
+		PtrSimple:      &s1,
+		SimpleArray:    []Simple{s1, s1},
+		SimplePtrArray: []*Simple{&s1, &s1},
+		Reference:      r1,
+		PtrReference:   &r1,
+		RefArray:       []Reference{r1, r1, r1},
 		RefPtrArray:    refPtrArray,
 		PtrRefArray:    &refPtrArray,
-		PtrCompose:     c1,
+		PtrCompose:     &c1,
+	}
+	c2Model, c2Err := provider.GetEntityModel(c2)
+	if c2Err != nil {
+		t.Errorf("GetEntityModel failed,err:%s", c2Err.Error())
+		return
 	}
 
-	err = o1.Insert(c2, localOwner)
+	c2Model, err = o1.Insert(c2Model)
 	if err != nil {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
+	c2 = c2Model.Interface().Get().(Compose)
 
-	c3 := &Compose{
+	c3 := Compose{
 		ID:             c2.ID,
 		PtrSimple:      &Simple{},
 		SimpleArray:    []Simple{},
@@ -304,16 +385,24 @@ func TestLocalCompose(t *testing.T) {
 		PtrRefArray:    &[]*Reference{},
 		PtrCompose:     &Compose{},
 	}
-	err = o1.Query(c3, localOwner)
+	c3Model, c3Err := provider.GetEntityModel(c3)
+	if c3Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", c3Err.Error())
+		return
+	}
+
+	c3Model, err = o1.Query(c3Model)
 	if err != nil {
 		t.Errorf("query compose failed, err:%s", err.Error())
 		return
 	}
-	if c3.IsSame(c1) {
+	c3 = c3Model.Interface().Get().(Compose)
+
+	if c3.IsSame(&c1) {
 		t.Error("query compose failed")
 		return
 	}
-	if !c3.IsSame(c2) {
+	if !c3.IsSame(&c2) {
 		t.Error("query compose failed")
 		return
 	}
@@ -323,42 +412,50 @@ func TestLocalQuery(t *testing.T) {
 	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
 	defer orm.Uninitialize()
 
-	o1, err := orm.New()
+	o1, err := orm.NewOrm(localOwner)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
 
+	provider := orm.GetProvider(localOwner)
+
 	objList := []interface{}{&Simple{}, &Reference{}, &Compose{}}
-	err = registerModel(o1, objList, localOwner)
-	if err != nil {
-		t.Errorf("register model failed. err:%s", err.Error())
+	mList, mErr := registerModel(provider, objList)
+	if mErr != nil {
+		t.Errorf("register model failed. err:%s", mErr.Error())
 		return
 	}
 
-	for _, val := range objList {
-		err = o1.Drop(val, localOwner)
+	for _, val := range mList {
+		err = o1.Drop(val)
 		if err != nil {
 			t.Errorf("drop object failed, err:%s", err.Error())
 		}
 	}
 
-	for _, val := range objList {
-		err = o1.Create(val, localOwner)
+	for _, val := range mList {
+		err = o1.Create(val)
 		if err != nil {
 			t.Errorf("create object failed, err:%s", err.Error())
 		}
 	}
 
 	ts, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
-	s1 := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
+	s1 := Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
+	s1Model, s1Err := provider.GetEntityModel(s1)
+	if s1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", s1Err.Error())
+		return
+	}
 
-	err = o1.Insert(s1, localOwner)
+	s1Model, err = o1.Insert(s1Model)
 	if err != nil {
 		t.Errorf("insert simple failed, err:%s", err.Error())
 		return
 	}
+	s1 = s1Model.Interface().Get().(Simple)
 
 	strValue := "test code"
 	fValue := float32(12.34)
@@ -368,7 +465,7 @@ func TestLocalQuery(t *testing.T) {
 	strArray := []string{"Abc", "Bcd"}
 	bArray := []bool{true, true, false, false}
 	strPtrArray := []*string{&strValue, &strValue}
-	r1 := &Reference{
+	r1 := Reference{
 		Name:        strValue,
 		FValue:      &fValue,
 		F64:         23.456,
@@ -382,88 +479,121 @@ func TestLocalQuery(t *testing.T) {
 		StrPtrArray: strPtrArray,
 		PtrStrArray: &strPtrArray,
 	}
-
-	err = o1.Insert(r1, localOwner)
+	r1Model, r1Err := provider.GetEntityModel(r1)
+	if r1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", r1Err.Error())
+		return
+	}
+	r1Model, err = o1.Insert(r1Model)
 	if err != nil {
 		t.Errorf("insert reference failed, err:%s", err.Error())
 		return
 	}
 
-	refPtrArray := []*Reference{r1}
-	c1 := &Compose{
+	refPtrArray := []*Reference{&r1}
+	c1 := Compose{
 		Name:           strValue,
-		Simple:         *s1,
-		PtrSimple:      s1,
-		SimpleArray:    []Simple{*s1, *s1},
-		SimplePtrArray: []*Simple{s1, s1},
-		Reference:      *r1,
-		PtrReference:   r1,
-		RefArray:       []Reference{*r1, *r1, *r1},
+		Simple:         s1,
+		PtrSimple:      &s1,
+		SimpleArray:    []Simple{s1, s1},
+		SimplePtrArray: []*Simple{&s1, &s1},
+		Reference:      r1,
+		PtrReference:   &r1,
+		RefArray:       []Reference{r1, r1, r1},
 		RefPtrArray:    refPtrArray,
 		PtrRefArray:    &refPtrArray,
 	}
-	err = o1.Insert(c1, localOwner)
+	c1Model, c1Err := provider.GetEntityModel(c1)
+	if c1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", c1Err.Error())
+		return
+	}
+
+	c1Model, err = o1.Insert(c1Model)
 	if err != nil {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
+	c1 = c1Model.Interface().Get().(Compose)
 
 	strValue = "123"
-	c2 := &Compose{
+	c2 := Compose{
 		Name:           strValue,
-		Simple:         *s1,
-		PtrSimple:      s1,
-		SimpleArray:    []Simple{*s1, *s1},
-		SimplePtrArray: []*Simple{s1, s1},
-		Reference:      *r1,
-		PtrReference:   r1,
-		RefArray:       []Reference{*r1, *r1, *r1},
+		Simple:         s1,
+		PtrSimple:      &s1,
+		SimpleArray:    []Simple{s1, s1},
+		SimplePtrArray: []*Simple{&s1, &s1},
+		Reference:      r1,
+		PtrReference:   &r1,
+		RefArray:       []Reference{r1, r1, r1},
 		RefPtrArray:    refPtrArray,
 		PtrRefArray:    &refPtrArray,
-		PtrCompose:     c1,
+		PtrCompose:     &c1,
+	}
+	c2Model, c2Err := provider.GetEntityModel(c2)
+	if c2Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", c2Err.Error())
+		return
 	}
 
-	err = o1.Insert(c2, localOwner)
+	c2Model, err = o1.Insert(c2Model)
 	if err != nil {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
+	c2 = c2Model.Interface().Get().(Compose)
 
-	c3 := *c2
-	err = o1.Insert(&c3, localOwner)
+	c3 := c2
+	c3Model, c3Err := provider.GetEntityModel(c3)
+	if c3Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", c3Err.Error())
+		return
+	}
+	c3Model, err = o1.Insert(c3Model)
 	if err != nil {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
+	c3 = c3Model.Interface().Get().(Compose)
 
-	c4 := *c2
-	err = o1.Insert(&c4, localOwner)
+	c4 := c2
+	c4Model, c4Err := provider.GetEntityModel(c4)
+	if c4Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", c4Err.Error())
+		return
+	}
+	c4Model, err = o1.Insert(c4Model)
 	if err != nil {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
 
 	cList := []*Compose{}
-	err = o1.BatchQuery(&cList, nil, localOwner)
-	if err != nil {
-		t.Errorf("batch query compose failed, err:%s", err.Error())
+	cModel, cErr := provider.GetEntityModel(cList)
+	if cErr != nil {
+		t.Errorf("GetEntityModel failed, err:%s", cErr.Error())
 		return
 	}
-	if len(cList) != 4 {
+	cModelList, cModelErr := o1.BatchQuery(cModel, nil)
+	if cModelErr != nil {
+		t.Errorf("batch query compose failed, err:%s", cModelErr.Error())
+		return
+	}
+	if len(cModelList) != 4 {
 		t.Errorf("batch query compose failed")
 		return
 	}
 
 	cList = []*Compose{}
-	filter := o1.QueryFilter(localOwner)
+	filter := orm.GetFilter(localOwner)
 	filter.Equal("Name", c2.Name)
 	filter.ValueMask(&Compose{PtrSimple: &Simple{}})
-	err = o1.BatchQuery(&cList, filter, localOwner)
-	if err != nil {
-		t.Errorf("batch query compose failed, err:%s", err.Error())
+	cModelList, cModelErr = o1.BatchQuery(cModel, filter)
+	if cModelErr != nil {
+		t.Errorf("batch query compose failed, err:%s", cModelErr.Error())
 		return
 	}
-	if len(cList) != 3 {
+	if len(cModelList) != 3 {
 		t.Errorf("batch query compose failed")
 		return
 	}

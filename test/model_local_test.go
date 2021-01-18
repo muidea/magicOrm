@@ -16,7 +16,7 @@ func TestLocalGroup(t *testing.T) {
 	group2 := &Group{Name: "testGroup2"}
 	group3 := &Group{Name: "testGroup3"}
 
-	o1, err := orm.New()
+	o1, err := orm.NewOrm()
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -102,7 +102,7 @@ func TestLocalUser(t *testing.T) {
 	group2 := &Group{Name: "testGroup2"}
 	group3 := &Group{Name: "testGroup3"}
 
-	o1, err := orm.New()
+	o1, err := orm.NewOrm()
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -243,7 +243,7 @@ func TestLoalSystem(t *testing.T) {
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
-	o1, err := orm.New()
+	o1, err := orm.NewOrm()
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -347,7 +347,7 @@ func TestLocalBatchQuery(t *testing.T) {
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
-	o1, err := orm.New()
+	o1, err := orm.NewOrm()
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())

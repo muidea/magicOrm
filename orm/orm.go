@@ -6,8 +6,24 @@ import (
 	"github.com/muidea/magicOrm/provider"
 )
 
-// Orm orm
-type Orm struct {
+// Orm orm interface
+type Orm interface {
+	Create(entity model.Model) error
+	Drop(entity model.Model) error
+	Insert(entity model.Model) (model.Model, error)
+	Update(entity model.Model) (model.Model, error)
+	Delete(entity model.Model) (model.Model, error)
+	Query(entity model.Model) (model.Model, error)
+	Count(entity model.Model, filter model.Filter) (int64, error)
+	BatchQuery(entity model.Model, filter model.Filter) ([]model.Model, error)
+	BeginTransaction() error
+	CommitTransaction() error
+	RollbackTransaction() error
+	Release()
+}
+
+// impl orm
+type impl struct {
 	executor      executor.Executor
 	modelProvider provider.Provider
 }
@@ -17,24 +33,13 @@ func NewFilter(modelProvider provider.Provider) model.Filter {
 	return &queryFilter{params: map[string]model.FilterItem{}, modelProvider: modelProvider}
 }
 
-// New create new Orm
-func New(executor executor.Executor, modelProvider provider.Provider) *Orm {
-	return &Orm{executor: executor, modelProvider: modelProvider}
-}
-
-// RegisterModel register model
-func (s *Orm) RegisterModel(entity interface{}) (err error) {
-	_, err = s.modelProvider.RegisterModel(entity)
-	return
-}
-
-// UnregisterModel unregister model
-func (s *Orm) UnregisterModel(entity interface{}) {
-	s.modelProvider.UnregisterModel(entity)
+// New create new impl
+func New(executor executor.Executor, modelProvider provider.Provider) Orm {
+	return &impl{executor: executor, modelProvider: modelProvider}
 }
 
 // BeginTransaction begin transaction
-func (s *Orm) BeginTransaction() (err error) {
+func (s *impl) BeginTransaction() (err error) {
 	if s.executor != nil {
 		err = s.executor.BeginTransaction()
 	}
@@ -43,7 +48,7 @@ func (s *Orm) BeginTransaction() (err error) {
 }
 
 // CommitTransaction commit transaction
-func (s *Orm) CommitTransaction() (err error) {
+func (s *impl) CommitTransaction() (err error) {
 	if s.executor != nil {
 		err = s.executor.CommitTransaction()
 	}
@@ -52,7 +57,7 @@ func (s *Orm) CommitTransaction() (err error) {
 }
 
 // RollbackTransaction rollback transaction
-func (s *Orm) RollbackTransaction() (err error) {
+func (s *impl) RollbackTransaction() (err error) {
 	if s.executor != nil {
 		err = s.executor.RollbackTransaction()
 	}
@@ -60,7 +65,14 @@ func (s *Orm) RollbackTransaction() (err error) {
 	return
 }
 
+func (s *impl) Release() {
+	if s.executor != nil {
+		s.executor.Release()
+		s.executor = nil
+	}
+}
+
 // NewQueryFilter new query filter
-func (s *Orm) NewQueryFilter() model.Filter {
+func (s *impl) NewQueryFilter() model.Filter {
 	return NewFilter(s.modelProvider)
 }

@@ -3,14 +3,12 @@ package orm
 import (
 	"fmt"
 
-	log "github.com/cihub/seelog"
-
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
 )
 
-func (s *Orm) deleteSingle(modelInfo model.Model) (err error) {
+func (s *impl) deleteSingle(modelInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	sql, err := builder.BuildDelete()
 	if err != nil {
@@ -23,14 +21,13 @@ func (s *Orm) deleteSingle(modelInfo model.Model) (err error) {
 	}
 
 	if num != 1 {
-		log.Errorf("unexception delete, rowNum:%d", num)
 		err = fmt.Errorf("delete %s failed", modelInfo.GetName())
 	}
 
 	return
 }
 
-func (s *Orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
+func (s *impl) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
 	fType := fieldInfo.GetType()
 	if fType.IsBasic() {
 		return
@@ -111,14 +108,7 @@ func (s *Orm) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 }
 
 // Delete delete
-func (s *Orm) Delete(entity interface{}) (err error) {
-	entityModel, entityErr := s.modelProvider.GetEntityModel(entity)
-	if entityErr != nil {
-		err = entityErr
-		log.Errorf("GetEntityModel failed, err:%s", err.Error())
-		return
-	}
-
+func (s *impl) Delete(entityModel model.Model) (ret model.Model, err error) {
 	err = s.executor.BeginTransaction()
 	if err != nil {
 		return

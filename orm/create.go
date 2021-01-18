@@ -1,13 +1,11 @@
 package orm
 
 import (
-	log "github.com/cihub/seelog"
-
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *Orm) createSchema(modelInfo model.Model) (err error) {
+func (s *impl) createSchema(modelInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	tableName := builder.GetTableName()
 
@@ -21,7 +19,6 @@ func (s *Orm) createSchema(modelInfo model.Model) (err error) {
 		// no exist
 		sql, err := builder.BuildCreateSchema()
 		if err != nil {
-			log.Errorf("build create schema failed, err:%s", err.Error())
 			return err
 		}
 
@@ -31,7 +28,7 @@ func (s *Orm) createSchema(modelInfo model.Model) (err error) {
 	return
 }
 
-func (s *Orm) createRelationSchema(modelInfo model.Model, fieldName string, relationInfo model.Model) (err error) {
+func (s *impl) createRelationSchema(modelInfo model.Model, fieldName string, relationInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	tableName := builder.GetRelationTableName(fieldName, relationInfo)
 
@@ -53,7 +50,7 @@ func (s *Orm) createRelationSchema(modelInfo model.Model, fieldName string, rela
 	return
 }
 
-func (s *Orm) batchCreateSchema(modelInfo model.Model) (err error) {
+func (s *impl) batchCreateSchema(modelInfo model.Model) (err error) {
 	err = s.createSchema(modelInfo)
 	if err != nil {
 		return
@@ -88,21 +85,7 @@ func (s *Orm) batchCreateSchema(modelInfo model.Model) (err error) {
 }
 
 // Create create
-func (s *Orm) Create(entity interface{}) (err error) {
-	entityType, entityErr := s.modelProvider.GetEntityType(entity)
-	if entityErr != nil {
-		err = entityErr
-		log.Errorf("GetEntityType failed, err:%s", err.Error())
-		return
-	}
-
-	entityModel, entityErr := s.modelProvider.GetTypeModel(entityType)
-	if entityErr != nil {
-		err = entityErr
-		log.Errorf("GetTypeModel failed, type name:%s, err:%s", entityType.GetName(), err.Error())
-		return
-	}
-
+func (s *impl) Create(entityModel model.Model) (err error) {
 	err = s.executor.BeginTransaction()
 	if err != nil {
 		return

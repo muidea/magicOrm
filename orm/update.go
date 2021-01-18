@@ -1,13 +1,11 @@
 package orm
 
 import (
-	log "github.com/cihub/seelog"
-
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *Orm) updateSingle(modelInfo model.Model) (err error) {
+func (s *impl) updateSingle(modelInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	sqlStr, sqlErr := builder.BuildUpdate()
 	if sqlErr != nil {
@@ -20,7 +18,7 @@ func (s *Orm) updateSingle(modelInfo model.Model) (err error) {
 	return err
 }
 
-func (s *Orm) updateRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
+func (s *impl) updateRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
 	fType := fieldInfo.GetType()
 	if fType.IsBasic() {
 		return
@@ -40,21 +38,7 @@ func (s *Orm) updateRelation(modelInfo model.Model, fieldInfo model.Field) (err 
 }
 
 // Update update
-func (s *Orm) Update(entity interface{}) (err error) {
-	entityModel, entityErr := s.modelProvider.GetEntityModel(entity)
-	if entityErr != nil {
-		err = entityErr
-		log.Errorf("GetEntityModel failed, err:%s", err.Error())
-		return
-	}
-
-	entityVal, entityErr := s.modelProvider.GetEntityValue(entity)
-	if entityErr != nil {
-		err = entityErr
-		log.Errorf("GetEntityValue failed, err:%s", err.Error())
-		return
-	}
-
+func (s *impl) Update(entityModel model.Model) (ret model.Model, err error) {
 	err = s.executor.BeginTransaction()
 	if err != nil {
 		return
@@ -92,7 +76,6 @@ func (s *Orm) Update(entity interface{}) (err error) {
 		return
 	}
 
-	err = entityVal.Set(entityModel.Interface().Get())
-
+	ret = entityModel
 	return
 }

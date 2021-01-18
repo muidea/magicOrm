@@ -15,7 +15,7 @@ func TestLocalExecutor(t *testing.T) {
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
 	obj := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
 
-	o1, err := orm.New()
+	o1, err := orm.NewOrm()
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -77,7 +77,7 @@ func TestLocalDepends(t *testing.T) {
 	obj := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
 	ext := &ExtUnit{Unit: obj}
 
-	o1, err := orm.New()
+	o1, err := orm.NewOrm()
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
