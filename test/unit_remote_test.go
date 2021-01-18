@@ -22,27 +22,29 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	o1, err := orm.NewOrm()
+	o1, err := orm.NewOrm("default")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
 
+	provider := orm.GetProvider("default")
+
 	objList := []interface{}{objDef}
-	err = registerModel(o1, objList, "default")
+	_, err = registerModel(provider, objList)
 	if err != nil {
 		t.Errorf("register mode failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Drop(objDef, "default")
+	err = o1.Drop(objDef)
 	if err != nil {
 		t.Errorf("drop ext failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(objDef, "default")
+	err = o1.Create(objDef)
 	if err != nil {
 		t.Errorf("create obj failed, err:%s", err.Error())
 		return
@@ -54,13 +56,19 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	err = o1.Insert(objVal, "default")
-	if err != nil {
-		t.Errorf("insert obj failed, err:%s", err.Error())
+	objModel, objErr := provider.GetEntityModel(objVal)
+	if objErr != nil {
+		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
 	}
 
-	err = remote.UpdateEntity(objVal, val)
+	objModel, objErr = o1.Insert(objModel)
+	if objErr != nil {
+		t.Errorf("insert obj failed, err:%s", objErr.Error())
+		return
+	}
+
+	err = remote.UpdateEntity(objModel.Interface(true).(*remote.ObjectValue), val)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -74,26 +82,36 @@ func TestRemoteExecutor(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Update(objVal, "default")
+	objModel, objErr = provider.GetEntityModel(objVal)
+	if objErr != nil {
+		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
+		return
+	}
+	objModel, objErr = o1.Update(objModel)
 	if err != nil {
 		t.Errorf("update obj failed, err:%s", err.Error())
 		return
 	}
 
 	val2 := &Unit{ID: val.ID, Name: "", Value: 0.0}
-	objVal2, objErr := getObjectValue(val2)
+	obj2Val, objErr := getObjectValue(val2)
 	if objErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-
-	err = o1.Query(objVal2, "default")
-	if err != nil {
-		t.Errorf("query obj failed, err:%s", err.Error())
+	obj2Model, obj2Err := provider.GetEntityModel(obj2Val)
+	if obj2Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", obj2Err.Error())
 		return
 	}
 
-	err = remote.UpdateEntity(objVal2, val2)
+	obj2Model, obj2Err = o1.Query(obj2Model)
+	if obj2Err != nil {
+		t.Errorf("query obj failed, err:%s", obj2Err.Error())
+		return
+	}
+
+	err = remote.UpdateEntity(obj2Model.Interface(true).(*remote.ObjectValue), val2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -104,7 +122,7 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	err = o1.Delete(objVal2, "default")
+	_, err = o1.Delete(obj2Model)
 	if err != nil {
 		t.Errorf("query obj failed, err:%s", err.Error())
 	}
@@ -138,78 +156,92 @@ func TestRemoteDepends(t *testing.T) {
 		return
 	}
 
-	o1, err := orm.NewOrm()
+	o1, err := orm.NewOrm("default")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
 
-	objList := []interface{}{objDef, extObjDef, ext2ObjDef}
-	registerModel(o1, objList, "default")
+	provider := orm.GetProvider("default")
 
-	err = o1.Drop(objDef, "default")
+	objList := []interface{}{objDef, extObjDef, ext2ObjDef}
+	registerModel(provider, objList)
+
+	err = o1.Drop(objDef)
 	if err != nil {
 		t.Errorf("drop unit failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(objDef, "default")
+	err = o1.Create(objDef)
 	if err != nil {
 		t.Errorf("create unit failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Drop(extObjDef, "default")
+	err = o1.Drop(extObjDef)
 	if err != nil {
 		t.Errorf("drop ext failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(extObjDef, "default")
+	err = o1.Create(extObjDef)
 	if err != nil {
 		t.Errorf("create ext failed, err:%s", err.Error())
 		return
 	}
 
-	extObjVal, objErr := getObjectValue(extVal)
-	if objErr != nil {
-		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+	extObjVal, extObjErr := getObjectValue(extVal)
+	if extObjErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", extObjErr.Error())
 		return
 	}
 
-	err = o1.Insert(extObjVal, "default")
-	if err != nil {
-		t.Errorf("insert ext failed, err:%s", err.Error())
+	extObjModel, extObjErr := provider.GetEntityModel(extObjVal)
+	if extObjErr != nil {
+		t.Errorf("GetEntityModel failed, err:%s", extObjErr.Error())
+		return
+	}
+
+	extObjModel, extObjErr = o1.Insert(extObjModel)
+	if extObjErr != nil {
+		t.Errorf("insert ext failed, err:%s", extObjErr.Error())
 		return
 	}
 
 	extVal2.UnitList = append(extVal2.UnitList, *val)
 
-	err = o1.Drop(ext2ObjDef, "default")
+	err = o1.Drop(ext2ObjDef)
 	if err != nil {
 		t.Errorf("drop ext2 failed, err:%s", err.Error())
 		return
 	}
 
-	ext2ObjVal, objErr := getObjectValue(extVal2)
-	if objErr != nil {
-		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
-		return
-	}
-	err = o1.Create(ext2ObjDef, "default")
+	err = o1.Create(ext2ObjDef)
 	if err != nil {
 		t.Errorf("create ext2 failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Insert(ext2ObjVal, "default")
-	if err != nil {
-		t.Errorf("insert ext2 failed, err:%s", err.Error())
+	ext2ObjVal, ext2ObjErr := getObjectValue(extVal2)
+	if ext2ObjErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", ext2ObjErr.Error())
+		return
+	}
+	ext2ObjModel, ext2ObjErr := provider.GetEntityModel(ext2ObjVal)
+	if ext2ObjErr != nil {
+		t.Errorf("GetEntityModel failed, err:%s", ext2ObjErr.Error())
 		return
 	}
 
-	err = o1.Delete(ext2ObjVal, "default")
+	ext2ObjModel, ext2ObjErr = o1.Insert(ext2ObjModel)
+	if ext2ObjErr != nil {
+		t.Errorf("insert ext2 failed, err:%s", ext2ObjErr.Error())
+		return
+	}
+
+	_, err = o1.Delete(ext2ObjModel)
 	if err != nil {
 		t.Errorf("delete ext2 failed, err:%s", err.Error())
 	}

@@ -78,47 +78,49 @@ func TestRemoteGroup(t *testing.T) {
 		return
 	}
 
-	o1, err := orm.NewOrm()
+	o1, err := orm.NewOrm("default")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
 
-	objList := []interface{}{groupDef, userDef, statusDef}
-	registerModel(o1, objList, "default")
+	provider := orm.GetProvider("default")
 
-	err = o1.Drop(statusDef, "default")
+	objList := []interface{}{groupDef, userDef, statusDef}
+	registerModel(provider, objList)
+
+	err = o1.Drop(statusDef)
 	if err != nil {
 		t.Errorf("drop status failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(statusDef, "default")
+	err = o1.Create(statusDef)
 	if err != nil {
 		t.Errorf("create status failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Drop(userDef, "default")
+	err = o1.Drop(userDef)
 	if err != nil {
 		t.Errorf("drop user failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(userDef, "default")
+	err = o1.Create(userDef)
 	if err != nil {
 		t.Errorf("create user failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Drop(groupDef, "default")
+	err = o1.Drop(groupDef)
 	if err != nil {
 		t.Errorf("drop group failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(groupDef, "default")
+	err = o1.Create(groupDef)
 	if err != nil {
 		t.Errorf("create group failed, err:%s", err.Error())
 		return
@@ -130,13 +132,19 @@ func TestRemoteGroup(t *testing.T) {
 		return
 	}
 
-	err = o1.Insert(statusVal, "default")
-	if err != nil {
-		t.Errorf("insert Group1 failed, err:%s", err.Error())
+	statusModel, statusErr := provider.GetEntityModel(statusVal)
+	if statusErr != nil {
+		t.Errorf("GetEntityModel failed, err:%s", statusErr.Error())
 		return
 	}
 
-	err = remote.UpdateEntity(statusVal, status)
+	statusModel, statusErr = o1.Insert(statusModel)
+	if statusErr != nil {
+		t.Errorf("insert Group1 failed, err:%s", statusErr.Error())
+		return
+	}
+
+	err = remote.UpdateEntity(statusModel.Interface(true).(*remote.ObjectValue), status)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -148,13 +156,18 @@ func TestRemoteGroup(t *testing.T) {
 		return
 	}
 
-	err = o1.Insert(group1Val, "default")
-	if err != nil {
-		t.Errorf("insert Group1 failed, err:%s", err.Error())
+	group1Model, group1Err := provider.GetEntityModel(group1Val)
+	if group1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", group1Err.Error())
+		return
+	}
+	group1Model, group1Err = o1.Insert(group1Model)
+	if group1Err != nil {
+		t.Errorf("insert Group1 failed, err:%s", group1Err.Error())
 		return
 	}
 
-	err = remote.UpdateEntity(group1Val, group1)
+	err = remote.UpdateEntity(group1Model.Interface(true).(*remote.ObjectValue), group1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -166,12 +179,17 @@ func TestRemoteGroup(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", qObjErr.Error())
 		return
 	}
-	err = o1.Query(qGroup1Val, "default")
-	if err != nil {
-		t.Errorf("insert Group1 failed, err:%s", err.Error())
+	qGroup1Model, qGroup1Err := provider.GetEntityModel(qGroup1Val)
+	if qGroup1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", qGroup1Err.Error())
 		return
 	}
-	err = remote.UpdateEntity(qGroup1Val, qGroup1)
+	qGroup1Model, qGroup1Err = o1.Query(qGroup1Model)
+	if qGroup1Err != nil {
+		t.Errorf("insert Group1 failed, err:%s", qGroup1Err.Error())
+		return
+	}
+	err = remote.UpdateEntity(qGroup1Model.Interface(true).(*remote.ObjectValue), qGroup1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -183,9 +201,14 @@ func TestRemoteGroup(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(group2Val, "default")
-	if err != nil {
-		t.Errorf("insert Group2 failed, err:%s", err.Error())
+	group2Model, group2Err := provider.GetEntityModel(group2Val)
+	if group2Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", group2Err.Error())
+		return
+	}
+	group2Model, group2Err = o1.Insert(group2Model)
+	if group2Err != nil {
+		t.Errorf("insert Group2 failed, err:%s", group2Err.Error())
 		return
 	}
 	err = remote.UpdateEntity(group2Val, group2)
@@ -200,20 +223,25 @@ func TestRemoteGroup(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(group3Val, "default")
-	if err != nil {
-		t.Errorf("insert Group3 failed, err:%s", err.Error())
+	group3Model, group3Err := provider.GetEntityModel(group3Val)
+	if group3Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", group3Err.Error())
+		return
+	}
+	group3Model, group3Err = o1.Insert(group3Model)
+	if group3Err != nil {
+		t.Errorf("insert Group3 failed, err:%s", group3Err.Error())
 		return
 	}
 
-	err = remote.UpdateEntity(group3Val, group3)
+	err = remote.UpdateEntity(group3Model.Interface(true).(*remote.ObjectValue), group3)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
-	err = o1.Delete(group3Val, "default")
-	if err != nil {
-		t.Errorf("delete Group3 failed, err:%s", err.Error())
+	group3Model, group3Err = o1.Delete(group3Model)
+	if group3Err != nil {
+		t.Errorf("delete Group3 failed, err:%s", group3Err.Error())
 		return
 	}
 
@@ -223,13 +251,18 @@ func TestRemoteGroup(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Query(group4Val, "default")
-	if err != nil {
-		t.Errorf("query Group4 failed, err:%s", err.Error())
+	group4Model, group4Err := provider.GetEntityModel(group4Val)
+	if group4Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", group4Err.Error())
+		return
+	}
+	group4Model, group4Err = o1.Query(group4Model)
+	if group4Err != nil {
+		t.Errorf("query Group4 failed, err:%s", group4Err.Error())
 		return
 	}
 
-	err = remote.UpdateEntity(group4Val, group4)
+	err = remote.UpdateEntity(group4Model.Interface(true).(*remote.ObjectValue), group4)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -241,13 +274,18 @@ func TestRemoteGroup(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Query(group5Val, "default")
-	if err != nil {
-		t.Errorf("query Group5 failed, err:%s", err.Error())
+	group5Model, group5Err := provider.GetEntityModel(group5Val)
+	if group5Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", group5Err.Error())
+		return
+	}
+	group5Model, group5Err = o1.Query(group5Model)
+	if group5Err != nil {
+		t.Errorf("query Group5 failed, err:%s", group5Err.Error())
 		return
 	}
 
-	err = remote.UpdateEntity(group5Val, group5)
+	err = remote.UpdateEntity(group5Model.Interface(true).(*remote.ObjectValue), group5)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -285,47 +323,49 @@ func TestRemoteUser(t *testing.T) {
 	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", false)
 	defer orm.Uninitialize()
 
-	o1, err := orm.NewOrm()
+	o1, err := orm.NewOrm("default")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
 
-	objList := []interface{}{groupDef, userDef, statusDef}
-	registerModel(o1, objList, "default")
+	provider := orm.GetProvider("default")
 
-	err = o1.Drop(statusDef, "default")
+	objList := []interface{}{groupDef, userDef, statusDef}
+	registerModel(provider, objList)
+
+	err = o1.Drop(statusDef)
 	if err != nil {
 		t.Errorf("drop status failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(statusDef, "default")
+	err = o1.Create(statusDef)
 	if err != nil {
 		t.Errorf("create status failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Drop(userDef, "default")
+	err = o1.Drop(userDef)
 	if err != nil {
 		t.Errorf("drop group failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(userDef, "default")
+	err = o1.Create(userDef)
 	if err != nil {
 		t.Errorf("create group failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Drop(groupDef, "default")
+	err = o1.Drop(groupDef)
 	if err != nil {
 		t.Errorf("drop group failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(groupDef, "default")
+	err = o1.Create(groupDef)
 	if err != nil {
 		t.Errorf("create group failed, err:%s", err.Error())
 		return
@@ -337,13 +377,19 @@ func TestRemoteUser(t *testing.T) {
 		return
 	}
 
-	err = o1.Insert(statusVal, "default")
-	if err != nil {
-		t.Errorf("insert Group1 failed, err:%s", err.Error())
+	statusModel, statusErr := provider.GetEntityModel(statusVal)
+	if statusErr != nil {
+		t.Errorf("GetEntityModel failed, err:%s", statusErr.Error())
 		return
 	}
 
-	err = remote.UpdateEntity(statusVal, status)
+	statusModel, statusErr = o1.Insert(statusModel)
+	if statusErr != nil {
+		t.Errorf("insert Group1 failed, err:%s", statusErr.Error())
+		return
+	}
+
+	err = remote.UpdateEntity(statusModel.Interface(true).(*remote.ObjectValue), status)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -355,12 +401,18 @@ func TestRemoteUser(t *testing.T) {
 		return
 	}
 
-	err = o1.Insert(group1Val, "default")
-	if err != nil {
-		t.Errorf("insert Group1 failed, err:%s", err.Error())
+	group1Model, group1Err := provider.GetEntityModel(group1Val)
+	if group1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", group1Err.Error())
 		return
 	}
-	err = remote.UpdateEntity(group1Val, group1)
+
+	group1Model, group1Err = o1.Insert(group1Model)
+	if group1Err != nil {
+		t.Errorf("insert Group1 failed, err:%s", group1Err.Error())
+		return
+	}
+	err = remote.UpdateEntity(group1Model.Interface(true).(*remote.ObjectValue), group1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -371,12 +423,17 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(group2Val, "default")
-	if err != nil {
-		t.Errorf("insert Group2 failed, err:%s", err.Error())
+	group2Model, group2Err := provider.GetEntityModel(group2Val)
+	if group2Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", group2Err.Error())
 		return
 	}
-	err = remote.UpdateEntity(group2Val, group2)
+	group2Model, group2Err = o1.Insert(group2Model)
+	if group2Err != nil {
+		t.Errorf("insert Group2 failed, err:%s", group2Err.Error())
+		return
+	}
+	err = remote.UpdateEntity(group2Model.Interface(true).(*remote.ObjectValue), group2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -387,12 +444,17 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(group3Val, "default")
-	if err != nil {
-		t.Errorf("insert group3 failed, err:%s", err.Error())
+	group3Model, group3Err := provider.GetEntityModel(group3Val)
+	if group3Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", group3Err.Error())
 		return
 	}
-	err = remote.UpdateEntity(group3Val, group3)
+	group3Model, group3Err = o1.Insert(group3Model)
+	if group3Err != nil {
+		t.Errorf("insert Group2 failed, err:%s", group3Err.Error())
+		return
+	}
+	err = remote.UpdateEntity(group3Model.Interface(true).(*remote.ObjectValue), group3)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -407,13 +469,17 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-
-	err = o1.Insert(user1Val, "default")
-	if err != nil {
-		t.Errorf("insert user1 failed, err:%s", err.Error())
+	user1Model, user1Err := provider.GetEntityModel(user1Val)
+	if user1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", user1Err.Error())
 		return
 	}
-	err = remote.UpdateEntity(user1Val, user1)
+	user1Model, user1Err = o1.Insert(user1Model)
+	if user1Err != nil {
+		t.Errorf("insert user1 failed, err:%s", user1Err.Error())
+		return
+	}
+	err = remote.UpdateEntity(user1Model.Interface(true).(*remote.ObjectValue), user1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -425,13 +491,17 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-
-	err = o1.Query(user2Val, "default")
-	if err != nil {
-		t.Errorf("query user2 failed, err:%s", err.Error())
+	user2Model, user2Err := provider.GetEntityModel(user2Val)
+	if user2Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", user2Err.Error())
 		return
 	}
-	err = remote.UpdateEntity(user2Val, user2)
+	user2Model, user2Err = o1.Query(user2Model)
+	if user2Err != nil {
+		t.Errorf("query user2 failed, err:%s", user2Err.Error())
+		return
+	}
+	err = remote.UpdateEntity(user2Model.Interface(true).(*remote.ObjectValue), user2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -448,12 +518,17 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Update(user1Val, "default")
-	if err != nil {
-		t.Errorf("update user1 failed, err:%s", err.Error())
+	user1Model, user1Err = provider.GetEntityModel(user1Val)
+	if user1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", user1Err.Error())
 		return
 	}
-	err = remote.UpdateEntity(user1Val, user1)
+	user1Model, user1Err = o1.Update(user1Model)
+	if user1Err != nil {
+		t.Errorf("update user1 failed, err:%s", user1Err.Error())
+		return
+	}
+	err = remote.UpdateEntity(user1Model.Interface(true).(*remote.ObjectValue), user1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -464,12 +539,17 @@ func TestRemoteUser(t *testing.T) {
 		return
 	}
 
-	err = o1.Query(user2Val, "default")
-	if err != nil {
-		t.Errorf("query user2 failed, err:%s", err.Error())
+	user2Model, user2Err = provider.GetEntityModel(user2Val)
+	if user2Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", user2Err.Error())
 		return
 	}
-	err = remote.UpdateEntity(user2Val, user2)
+	user2Model, user2Err = o1.Query(user2Model)
+	if user2Err != nil {
+		t.Errorf("query user2 failed, err:%s", user2Err.Error())
+		return
+	}
+	err = remote.UpdateEntity(user2Model.Interface(true).(*remote.ObjectValue), user2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -484,26 +564,26 @@ func TestRemoteUser(t *testing.T) {
 		return
 	}
 
-	err = o1.Delete(group1Val, "default")
-	if err != nil {
-		t.Errorf("delete group1 failed, err:%s", err.Error())
+	group1Model, group1Err = o1.Delete(group1Model)
+	if group1Err != nil {
+		t.Errorf("delete group1 failed, err:%s", group1Err.Error())
 		return
 	}
-	err = o1.Delete(group2Val, "default")
-	if err != nil {
-		t.Errorf("delete group2 failed, err:%s", err.Error())
+	group2Model, group2Err = o1.Delete(group2Model)
+	if group2Err != nil {
+		t.Errorf("delete group2 failed, err:%s", group2Err.Error())
 		return
 	}
-	err = o1.Delete(group3Val, "default")
-	if err != nil {
-		t.Errorf("delete group3 failed, err:%s", err.Error())
+	group3Model, group3Err = o1.Delete(group3Model)
+	if group3Err != nil {
+		t.Errorf("delete group3 failed, err:%s", group3Err.Error())
 		return
 	}
-	err = o1.Delete(user2Val, "default")
-	if err != nil {
-		t.Errorf("delete user2 failed, err:%s", err.Error())
+	user2Model, user2Err = o1.Delete(user2Model)
+	if user2Err != nil {
+		t.Errorf("delete user2 failed, err:%s", user2Err.Error())
+		return
 	}
-
 }
 
 func TestRemoteSystem(t *testing.T) {
@@ -541,41 +621,43 @@ func TestRemoteSystem(t *testing.T) {
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
-	o1, err := orm.NewOrm()
+	o1, err := orm.NewOrm("default")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
 
-	objList := []interface{}{groupDef, userDef, statusDef, sysDef}
-	registerModel(o1, objList, "default")
+	provider := orm.GetProvider("default")
 
-	err = o1.Drop(statusDef, "default")
+	objList := []interface{}{groupDef, userDef, statusDef, sysDef}
+	registerModel(provider, objList)
+
+	err = o1.Drop(statusDef)
 	if err != nil {
 		t.Errorf("drop status failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(statusDef, "default")
+	err = o1.Create(statusDef)
 	if err != nil {
 		t.Errorf("create status failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Drop(userDef, "default")
+	err = o1.Drop(userDef)
 	if err != nil {
 		t.Errorf("drop user failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Drop(sysDef, "default")
+	err = o1.Drop(sysDef)
 	if err != nil {
 		t.Errorf("drop system failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(userDef, "default")
+	err = o1.Create(userDef)
 	if err != nil {
 		t.Errorf("create user failed, err:%s", err.Error())
 		return
@@ -587,13 +669,19 @@ func TestRemoteSystem(t *testing.T) {
 		return
 	}
 
-	err = o1.Insert(statusVal, "default")
-	if err != nil {
-		t.Errorf("insert Group1 failed, err:%s", err.Error())
+	statusModel, statusErr := provider.GetEntityModel(statusVal)
+	if statusErr != nil {
+		t.Errorf("GetEntityModel failed, err:%s", statusErr.Error())
 		return
 	}
 
-	err = remote.UpdateEntity(statusVal, status)
+	statusModel, statusErr = o1.Insert(statusModel)
+	if statusErr != nil {
+		t.Errorf("insert Group1 failed, err:%s", statusErr.Error())
+		return
+	}
+
+	err = remote.UpdateEntity(statusModel.Interface(true).(*remote.ObjectValue), status)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -605,28 +693,38 @@ func TestRemoteSystem(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-
-	err = o1.Insert(user1Val, "default")
-	if err != nil {
-		t.Errorf("insert user failed, err:%s", err.Error())
+	user1Model, user1Err := provider.GetEntityModel(user1Val)
+	if user1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", user1Err.Error())
 		return
 	}
-	err = remote.UpdateEntity(user1Val, user1)
+	user1Model, user1Err = o1.Insert(user1Model)
+	if user1Err != nil {
+		t.Errorf("insert user failed, err:%s", user1Err.Error())
+		return
+	}
+	err = remote.UpdateEntity(user1Model.Interface(true).(*remote.ObjectValue), user1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
+
 	user2Val, objErr := getObjectValue(user2)
 	if objErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(user2Val, "default")
-	if err != nil {
-		t.Errorf("insert user failed, err:%s", err.Error())
+	user2Model, user2Err := provider.GetEntityModel(user2Val)
+	if user2Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", user2Err.Error())
 		return
 	}
-	err = remote.UpdateEntity(user2Val, user2)
+	user2Model, user2Err = o1.Insert(user2Model)
+	if user2Err != nil {
+		t.Errorf("insert user failed, err:%s", user2Err.Error())
+		return
+	}
+	err = remote.UpdateEntity(user2Model.Interface(true).(*remote.ObjectValue), user2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -636,7 +734,7 @@ func TestRemoteSystem(t *testing.T) {
 	sys1 := &System{Name: "sys1", Tags: []string{"aab", "ccd"}}
 	sys1.Users = &users
 
-	err = o1.Create(sysDef, "default")
+	err = o1.Create(sysDef)
 	if err != nil {
 		t.Errorf("create system failed, err:%s", err.Error())
 		return
@@ -647,12 +745,17 @@ func TestRemoteSystem(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(sys1Val, "default")
-	if err != nil {
-		t.Errorf("insert system failed, err:%s", err.Error())
+	sys1Model, sys1Err := provider.GetEntityModel(sys1Val)
+	if sys1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", sys1Err.Error())
 		return
 	}
-	err = remote.UpdateEntity(sys1Val, sys1)
+	sys1Model, sys1Err = o1.Insert(sys1Model)
+	if sys1Err != nil {
+		t.Errorf("insert user failed, err:%s", sys1Err.Error())
+		return
+	}
+	err = remote.UpdateEntity(sys1Model.Interface(true).(*remote.ObjectValue), sys1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -666,12 +769,17 @@ func TestRemoteSystem(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Update(sys1Val, "default")
-	if err != nil {
-		t.Errorf("update system failed, err:%s", err.Error())
+	sys1Model, sys1Err = provider.GetEntityModel(sys1Val)
+	if sys1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", sys1Err.Error())
 		return
 	}
-	err = remote.UpdateEntity(sys1Val, sys1)
+	sys1Model, sys1Err = o1.Update(sys1Model)
+	if sys1Err != nil {
+		t.Errorf("update system failed, err:%s", sys1Err.Error())
+		return
+	}
+	err = remote.UpdateEntity(sys1Model.Interface(true).(*remote.ObjectValue), sys1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -683,12 +791,17 @@ func TestRemoteSystem(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Query(sys2Val, "default")
-	if err != nil {
+	sys2Model, sys2Err := provider.GetEntityModel(sys2Val)
+	if sys2Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", sys2Err.Error())
+		return
+	}
+	sys2Model, sys2Err = o1.Query(sys2Model)
+	if sys2Err != nil {
 		t.Errorf("query system failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateEntity(sys2Val, sys2)
+	err = remote.UpdateEntity(sys2Model.Interface(true).(*remote.ObjectValue), sys2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -699,20 +812,19 @@ func TestRemoteSystem(t *testing.T) {
 		return
 	}
 
-	err = o1.Delete(sys2Val, "default")
+	sys2Model, sys2Err = o1.Delete(sys2Model)
 	if err != nil {
 		t.Errorf("delete system failed, err:%s", err.Error())
 		return
 	}
-
-	err = o1.Delete(user1Val, "default")
-	if err != nil {
-		t.Errorf("delete user1 failed, err:%s", err.Error())
+	user1Model, user1Err = o1.Delete(user1Model)
+	if user1Err != nil {
+		t.Errorf("delete user1 failed, err:%s", user1Err.Error())
 		return
 	}
-	err = o1.Delete(user2Val, "default")
-	if err != nil {
-		t.Errorf("delete user2 failed, err:%s", err.Error())
+	user2Model, user2Err = o1.Delete(user2Model)
+	if user2Err != nil {
+		t.Errorf("delete user2 failed, err:%s", user2Err.Error())
 	}
 }
 
@@ -748,34 +860,36 @@ func TestRemoteBatchQuery(t *testing.T) {
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
-	o1, err := orm.NewOrm()
+	o1, err := orm.NewOrm("default")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
 
-	objList := []interface{}{groupDef, userDef, statusDef}
-	registerModel(o1, objList, "default")
+	provider := orm.GetProvider("default")
 
-	err = o1.Drop(statusDef, "default")
+	objList := []interface{}{groupDef, userDef, statusDef}
+	registerModel(provider, objList)
+
+	err = o1.Drop(statusDef)
 	if err != nil {
 		t.Errorf("drop status failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(statusDef, "default")
+	err = o1.Create(statusDef)
 	if err != nil {
 		t.Errorf("create status failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Drop(groupDef, "default")
+	err = o1.Drop(groupDef)
 	if err != nil {
 		t.Errorf("drop group failed, err:%s", err.Error())
 		return
 	}
-	err = o1.Create(groupDef, "default")
+	err = o1.Create(groupDef)
 	if err != nil {
 		t.Errorf("create group failed, err:%s", err.Error())
 		return
@@ -786,12 +900,17 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(group1Val, "default")
-	if err != nil {
-		t.Errorf("insert group failed, err:%s", err.Error())
+	group1Model, group1Err := provider.GetEntityModel(group1Val)
+	if group1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", group1Err.Error())
 		return
 	}
-	err = remote.UpdateEntity(group1Val, group1)
+	group1Model, group1Err = o1.Insert(group1Model)
+	if group1Err != nil {
+		t.Errorf("insert group failed, err:%s", group1Err.Error())
+		return
+	}
+	err = remote.UpdateEntity(group1Model.Interface(true).(*remote.ObjectValue), group1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -802,12 +921,17 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(group2Val, "default")
-	if err != nil {
-		t.Errorf("insert group failed, err:%s", err.Error())
+	group2Model, group2Err := provider.GetEntityModel(group2Val)
+	if group2Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", group2Err.Error())
 		return
 	}
-	err = remote.UpdateEntity(group2Val, group2)
+	group2Model, group2Err = o1.Insert(group2Model)
+	if group2Err != nil {
+		t.Errorf("insert group failed, err:%s", group2Err.Error())
+		return
+	}
+	err = remote.UpdateEntity(group2Model.Interface(true).(*remote.ObjectValue), group2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -817,12 +941,17 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(group3Val, "default")
-	if err != nil {
-		t.Errorf("insert group failed, err:%s", err.Error())
+	group3Model, group3Err := provider.GetEntityModel(group3Val)
+	if group3Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", group3Err.Error())
 		return
 	}
-	err = remote.UpdateEntity(group3Val, group3)
+	group3Model, group3Err = o1.Insert(group3Model)
+	if group3Err != nil {
+		t.Errorf("insert group failed, err:%s", group3Err.Error())
+		return
+	}
+	err = remote.UpdateEntity(group3Model.Interface(true).(*remote.ObjectValue), group3)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -831,13 +960,13 @@ func TestRemoteBatchQuery(t *testing.T) {
 	user1.Group = append(user1.Group, group1)
 	user1.Group = append(user1.Group, group2)
 
-	err = o1.Drop(userDef, "default")
+	err = o1.Drop(userDef)
 	if err != nil {
 		t.Errorf("drop user failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(userDef, "default")
+	err = o1.Create(userDef)
 	if err != nil {
 		t.Errorf("create user failed, err:%s", err.Error())
 		return
@@ -848,12 +977,17 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(user1Val, "default")
-	if err != nil {
-		t.Errorf("insert user failed, err:%s", err.Error())
+	user1Model, user1Err := provider.GetEntityModel(user1Val)
+	if user1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", user1Err.Error())
 		return
 	}
-	err = remote.UpdateEntity(user1Val, user1)
+	user1Model, user1Err = o1.Insert(user1Model)
+	if user1Err != nil {
+		t.Errorf("insert user failed, err:%s", user1Err.Error())
+		return
+	}
+	err = remote.UpdateEntity(user1Model.Interface(true).(*remote.ObjectValue), user1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -866,12 +1000,17 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(user2Val, "default")
-	if err != nil {
-		t.Errorf("insert user failed, err:%s", err.Error())
+	user2Model, user2Err := provider.GetEntityModel(user2Val)
+	if user2Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", user2Err.Error())
 		return
 	}
-	err = remote.UpdateEntity(user2Val, user2)
+	user2Model, user2Err = o1.Insert(user2Model)
+	if user2Err != nil {
+		t.Errorf("insert user failed, err:%s", user2Err.Error())
+		return
+	}
+	err = remote.UpdateEntity(user2Model.Interface(true).(*remote.ObjectValue), user2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -891,7 +1030,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 	}
 
 	userList := &[]User{}
-	filter := o1.QueryFilter("default")
+	filter := orm.GetFilter("default")
 	filter.Equal("Name", &user1.Name)
 	filter.In("Group", groupListVal)
 	filter.Like("EMail", user1.EMail)
@@ -905,21 +1044,19 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	retErr := o1.BatchQuery(userListVal, nil, "default")
-	if retErr != nil {
-		err = retErr
+	userListModel, userListErr := provider.GetEntityModel(userListVal)
+	if userListErr != nil {
+		t.Errorf("GetEntityModel failed, err:%s", userListErr.Error())
+		return
+	}
+	userModelList, userModelErr := o1.BatchQuery(userListModel, nil)
+	if userModelErr != nil {
+		err = userModelErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
 		return
 	}
 
-	retErr = remote.UpdateSliceEntity(userListVal, userList)
-	if retErr != nil {
-		err = retErr
-		t.Errorf("UpdateSliceEntity failed, err:%s", err.Error())
-		return
-	}
-
-	if len(*userList) != 2 {
+	if len(userModelList) != 2 {
 		t.Errorf("batch query user failed")
 		return
 	}
@@ -931,23 +1068,13 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	retErr = o1.BatchQuery(userListVal, filter, "default")
-	if retErr != nil {
-		err = retErr
+	userModelList, userModelErr = o1.BatchQuery(userListModel, filter)
+	if userModelErr != nil {
+		err = userModelErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
 		return
 	}
-	retErr = remote.UpdateSliceEntity(userListVal, userList)
-	if retErr != nil {
-		err = retErr
-		t.Errorf("UpdateSliceEntity failed, err:%s", err.Error())
-		return
-	}
-	if len(*userList) != 1 {
-		t.Errorf("filter query user failed")
-		return
-	}
-	if (*userList)[0].Name != user1.Name || len((*userList)[0].Group) != len(user1.Group) {
+	if len(userModelList) != 1 {
 		t.Errorf("filter query user failed")
 		return
 	}
@@ -958,7 +1085,8 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("GetSliceObjectValue failed, err:%s", groupListErr.Error())
 		return
 	}
-	filter2 := o1.QueryFilter("default")
+
+	filter2 := orm.GetFilter("default")
 	filter2.In("Group", groupListVal)
 	userList = &[]User{}
 	userListVal, objErr = getSliceObjectValue(userList)
@@ -966,19 +1094,13 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	retErr = o1.BatchQuery(userListVal, filter2, "default")
-	if retErr != nil {
-		err = retErr
+	userModelList, userModelErr = o1.BatchQuery(userListModel, filter2)
+	if userModelErr != nil {
+		err = userModelErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
 		return
 	}
-	retErr = remote.UpdateSliceEntity(userListVal, userList)
-	if retErr != nil {
-		err = retErr
-		t.Errorf("UpdateSliceEntity failed, err:%s", err.Error())
-		return
-	}
-	if len(*userList) != 2 {
+	if len(userModelList) != 2 {
 		t.Errorf("filter query user failed")
 		return
 	}
@@ -1016,34 +1138,36 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
-	o1, err := orm.NewOrm()
+	o1, err := orm.NewOrm("default")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
 
-	objList := []interface{}{groupDef, userDef, statusDef}
-	registerModel(o1, objList, "default")
+	provider := orm.GetProvider("default")
 
-	err = o1.Drop(statusDef, "default")
+	objList := []interface{}{groupDef, userDef, statusDef}
+	registerModel(provider, objList)
+
+	err = o1.Drop(statusDef)
 	if err != nil {
 		t.Errorf("drop status failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(statusDef, "default")
+	err = o1.Create(statusDef)
 	if err != nil {
 		t.Errorf("create status failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Drop(groupDef, "default")
+	err = o1.Drop(groupDef)
 	if err != nil {
 		t.Errorf("drop group failed, err:%s", err.Error())
 		return
 	}
-	err = o1.Create(groupDef, "default")
+	err = o1.Create(groupDef)
 	if err != nil {
 		t.Errorf("create group failed, err:%s", err.Error())
 		return
@@ -1054,12 +1178,18 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(statusVal, "default")
-	if err != nil {
-		t.Errorf("insert group failed, err:%s", err.Error())
+	statusModel, statusErr := provider.GetEntityModel(statusVal)
+	if statusErr != nil {
+		t.Errorf("GetEntityModel failed, err:%s", statusErr.Error())
 		return
 	}
-	err = remote.UpdateEntity(statusVal, status)
+
+	statusModel, statusErr = o1.Insert(statusModel)
+	if statusErr != nil {
+		t.Errorf("insert group failed, err:%s", statusErr.Error())
+		return
+	}
+	err = remote.UpdateEntity(statusModel.Interface(true).(*remote.ObjectValue), status)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -1071,12 +1201,18 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(group1Val, "default")
-	if err != nil {
-		t.Errorf("insert group failed, err:%s", err.Error())
+	group1Model, group1Err := provider.GetEntityModel(group1Val)
+	if group1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", group1Err.Error())
 		return
 	}
-	err = remote.UpdateEntity(group1Val, group1)
+
+	group1Model, group1Err = o1.Insert(group1Model)
+	if group1Err != nil {
+		t.Errorf("insert group failed, err:%s", group1Err.Error())
+		return
+	}
+	err = remote.UpdateEntity(group1Model.Interface(true).(*remote.ObjectValue), group1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -1087,12 +1223,18 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(group2Val, "default")
-	if err != nil {
-		t.Errorf("insert group failed, err:%s", err.Error())
+	group2Model, group2Err := provider.GetEntityModel(group2Val)
+	if group2Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", group2Err.Error())
 		return
 	}
-	err = remote.UpdateEntity(group2Val, group2)
+
+	group2Model, group2Err = o1.Insert(group2Model)
+	if group2Err != nil {
+		t.Errorf("insert group failed, err:%s", group2Err.Error())
+		return
+	}
+	err = remote.UpdateEntity(group2Model.Interface(true).(*remote.ObjectValue), group2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -1102,12 +1244,18 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(group3Val, "default")
-	if err != nil {
-		t.Errorf("insert group failed, err:%s", err.Error())
+	group3Model, group3Err := provider.GetEntityModel(group3Val)
+	if group3Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", group3Err.Error())
 		return
 	}
-	err = remote.UpdateEntity(group3Val, group3)
+
+	group3Model, group3Err = o1.Insert(group3Model)
+	if group3Err != nil {
+		t.Errorf("insert group failed, err:%s", group3Err.Error())
+		return
+	}
+	err = remote.UpdateEntity(group3Model.Interface(true).(*remote.ObjectValue), group3)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -1116,13 +1264,13 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	user1.Group = append(user1.Group, group1)
 	user1.Group = append(user1.Group, group2)
 
-	err = o1.Drop(userDef, "default")
+	err = o1.Drop(userDef)
 	if err != nil {
 		t.Errorf("drop user failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(userDef, "default")
+	err = o1.Create(userDef)
 	if err != nil {
 		t.Errorf("create user failed, err:%s", err.Error())
 		return
@@ -1133,12 +1281,18 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(user1Val, "default")
-	if err != nil {
-		t.Errorf("insert user failed, err:%s", err.Error())
+	user1Model, user1Err := provider.GetEntityModel(user1Val)
+	if user1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", user1Err.Error())
 		return
 	}
-	err = remote.UpdateEntity(user1Val, user1)
+
+	user1Model, user1Err = o1.Insert(user1Model)
+	if user1Err != nil {
+		t.Errorf("insert group failed, err:%s", user1Err.Error())
+		return
+	}
+	err = remote.UpdateEntity(user1Model.Interface(true).(*remote.ObjectValue), user1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -1152,12 +1306,18 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	err = o1.Insert(user2Val, "default")
-	if err != nil {
-		t.Errorf("insert user failed, err:%s", err.Error())
+	user2Model, user2Err := provider.GetEntityModel(user2Val)
+	if user2Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", user2Err.Error())
 		return
 	}
-	err = remote.UpdateEntity(user2Val, user2)
+
+	user2Model, user2Err = o1.Insert(user2Model)
+	if user2Err != nil {
+		t.Errorf("insert group failed, err:%s", user2Err.Error())
+		return
+	}
+	err = remote.UpdateEntity(user2Model.Interface(true).(*remote.ObjectValue), user2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -1174,7 +1334,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	}
 
 	userList := &[]*User{}
-	filter := o1.QueryFilter("default")
+	filter := orm.GetFilter("default")
 	filter.Equal("Name", &user1.Name)
 	filter.In("Group", groupListVal)
 	filter.Like("EMail", user1.EMail)
@@ -1188,21 +1348,19 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	retErr := o1.BatchQuery(userListVal, nil, "default")
-	if retErr != nil {
-		err = retErr
+	userListModel, userListErr := provider.GetEntityModel(userListVal)
+	if userListErr != nil {
+		t.Errorf("GetEntityModel failed, err:%s", userListErr.Error())
+		return
+	}
+	userModelList, userModelErr := o1.BatchQuery(userListModel, nil)
+	if userModelErr != nil {
+		err = userModelErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
 		return
 	}
 
-	retErr = remote.UpdateSliceEntity(userListVal, userList)
-	if retErr != nil {
-		err = retErr
-		t.Errorf("UpdateSlicePtrEntity failed, err:%s", err.Error())
-		return
-	}
-
-	if len(*userList) != 2 {
+	if len(userModelList) != 2 {
 		t.Errorf("batch query user failed")
 		return
 	}
@@ -1214,28 +1372,14 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
-	retErr = o1.BatchQuery(userListVal, filter, "default")
-	if retErr != nil {
-		err = retErr
+	userModelList, userModelErr = o1.BatchQuery(userListModel, filter)
+	if userModelErr != nil {
+		err = userModelErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
 		return
 	}
-	retErr = remote.UpdateSliceEntity(userListVal, userList)
-	if retErr != nil {
-		err = retErr
-		t.Errorf("UpdateSliceEntity failed, err:%s", err.Error())
-		return
-	}
-	if len(*userList) != 1 {
+	if len(userModelList) != 1 {
 		t.Errorf("filter query user failed")
-		return
-	}
-	if (*userList)[0].Name != user1.Name || len((*userList)[0].Group) != len(user1.Group) {
-		t.Errorf("filter query user failed")
-		return
-	}
-	if (*userList)[0].Status == nil {
-		t.Errorf("valueMask failed")
 		return
 	}
 
@@ -1246,7 +1390,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
-	filter2 := o1.QueryFilter("default")
+	filter2 := orm.GetFilter("default")
 	filter2.In("Group", groupListVal)
 	userList = &[]*User{}
 	userListVal, objErr = getSliceObjectPtrValue(userList)
@@ -1254,19 +1398,13 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	retErr = o1.BatchQuery(userListVal, filter2, "default")
-	if retErr != nil {
-		err = retErr
+	userModelList, userModelErr = o1.BatchQuery(userListModel, filter2)
+	if userModelErr != nil {
+		err = userModelErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
 		return
 	}
-	retErr = remote.UpdateSliceEntity(userListVal, userList)
-	if retErr != nil {
-		err = retErr
-		t.Errorf("UpdateSlicePtrEntity failed, err:%s", err.Error())
-		return
-	}
-	if len(*userList) != 2 {
+	if len(userModelList) != 2 {
 		t.Errorf("filter query user failed")
 		return
 	}
