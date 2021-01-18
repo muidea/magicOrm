@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"github.com/muidea/magicOrm/provider/local"
 	"testing"
 
 	"github.com/muidea/magicOrm/model"
@@ -510,6 +511,135 @@ func TestUpdateRemoteProvider(t *testing.T) {
 	}
 	if len(ext.Array) != len(extEntity.Array) {
 		t.Error("UpdateEntity failed")
+		return
+	}
+}
+
+func TestCompareProvider(t *testing.T) {
+	remoteProvider := NewRemoteProvider("default")
+	localProvider := NewLocalProvider("default")
+
+	baseEntity := &Base{ID: 123, Name: "test int", Price: 12.35, Addr: []string{"qq", "ar", "yt"}}
+	extEntity := &ExtInfo{ID: 234, Name: "hello", Info: *baseEntity, Ptr: baseEntity, Array: []*Base{baseEntity}}
+
+	baseObject, baseErr := remote.GetObject(baseEntity)
+	if baseErr != nil {
+		t.Errorf("GetObject failed, err:%s", baseErr.Error())
+		return
+	}
+
+	baseVal, baseErr := remote.GetObjectValue(baseEntity)
+	if baseErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", baseErr.Error())
+		return
+	}
+
+	extObject, extErr := remote.GetObject(extEntity)
+	if extErr != nil {
+		t.Errorf("GetObject failed, err:%s", extErr.Error())
+		return
+	}
+
+	extVal, extErr := remote.GetObjectValue(extEntity)
+	if extErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", extErr.Error())
+		return
+	}
+
+	remoteProvider.RegisterModel(baseObject)
+	remoteProvider.RegisterModel(extObject)
+	defer remoteProvider.UnregisterModel(baseObject)
+	defer remoteProvider.UnregisterModel(extObject)
+
+	localProvider.RegisterModel(baseEntity)
+	localProvider.RegisterModel(extEntity)
+	defer localProvider.UnregisterModel(baseEntity)
+	defer localProvider.UnregisterModel(extEntity)
+
+	lBaseModel, lErr := localProvider.GetEntityModel(baseEntity)
+	if lErr != nil {
+		t.Errorf("GetEntityModel from localProvider failed, err:%s", lErr.Error())
+		return
+	}
+
+	lBaseType, lErr := localProvider.GetEntityType(baseEntity)
+	if lErr != nil {
+		t.Errorf("GetEntityType from localProvider failed, err:%s", lErr.Error())
+		return
+	}
+
+	lBaseVal, lErr := localProvider.GetEntityValue(baseEntity)
+	if lErr != nil {
+		t.Errorf("GetEntityValue from localProvider failed, err:%s", lErr.Error())
+		return
+	}
+
+	l2BaseModel, l2Err := localProvider.GetTypeModel(lBaseType)
+	if l2Err != nil {
+		t.Errorf("GetTypeModel from localProvider failed, err:%s", l2Err.Error())
+		return
+	}
+	l2BaseModel, l2Err = local.SetModelValue(l2BaseModel, lBaseVal)
+	if l2Err != nil {
+		t.Errorf("SetModelValue from localProvider failed, err:%s", l2Err.Error())
+		return
+	}
+	if !model.CompareModel(lBaseModel, l2BaseModel) {
+		t.Errorf("compareModel failed")
+		return
+	}
+
+	rBaseModel, rErr := remoteProvider.GetEntityModel(baseVal)
+	if rErr != nil {
+		t.Errorf("GetEntityModel from remoteProvider failed, err:%s", rErr.Error())
+		return
+	}
+
+	if !model.CompareModel(lBaseModel, rBaseModel) {
+		t.Errorf("compareModel failed")
+		return
+	}
+
+	lExtModel, lErr := localProvider.GetEntityModel(extEntity)
+	if lErr != nil {
+		t.Errorf("GetEntityModel from localProvider failed, err:%s", lErr.Error())
+		return
+	}
+
+	rExtModel, rErr := remoteProvider.GetEntityModel(extVal)
+	if rErr != nil {
+		t.Errorf("GetEntityModel from remoteProvider failed, err:%s", rErr.Error())
+		return
+	}
+
+	rExtType, rErr := remoteProvider.GetEntityType(extObject)
+	if rErr != nil {
+		t.Errorf("GetEntityType from remoteProvider failed, err:%s", rErr.Error())
+		return
+	}
+	rExtVal, rErr := remoteProvider.GetEntityValue(extVal)
+	if rErr != nil {
+		t.Errorf("GetEntityValue from remoteProvider failed, err:%s", rErr.Error())
+		return
+	}
+
+	r2ExtModel, r2Err := remoteProvider.GetTypeModel(rExtType)
+	if r2Err != nil {
+		t.Errorf("GetTypeModel from remoteProvider failed, err:%s", r2Err.Error())
+		return
+	}
+	r2ExtModel, r2Err = remote.SetModelValue(r2ExtModel, rExtVal)
+	if r2Err != nil {
+		t.Errorf("SetModelValue from remoteProvider failed, err:%s", r2Err.Error())
+		return
+	}
+	if !model.CompareModel(lExtModel, r2ExtModel) {
+		t.Errorf("compareModel failed")
+		return
+	}
+
+	if !model.CompareModel(lExtModel, rExtModel) {
+		t.Errorf("compareModel failed")
 		return
 	}
 }
