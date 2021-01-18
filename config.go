@@ -52,3 +52,10 @@ func (s *ormConfig) getProvider(owner string) provider.Provider {
 
 	return curProvider
 }
+
+func (s *ormConfig) release() {
+	s.modelProviderLock.Lock()
+	defer s.modelProviderLock.Unlock()
+
+	s.modelProviderMap = nil
+}

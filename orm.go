@@ -11,9 +11,6 @@ import (
 
 var _config *ormConfig
 
-func init() {
-}
-
 // Initialize InitOrm
 func Initialize(maxConnNum int, user, password, address, dbName string, localProvider bool) error {
 	cfg := &serverConfig{user: user, password: password, address: address, dbName: dbName}
@@ -27,6 +24,7 @@ func Initialize(maxConnNum int, user, password, address, dbName string, localPro
 
 // Uninitialize Uninitialize orm
 func Uninitialize() {
+	_config.release()
 	_config = nil
 
 	executor.UninitializePool()
@@ -44,7 +42,7 @@ func NewOrm(owner string) (orm.Orm, error) {
 		return nil, err
 	}
 
-	orm := orm.New(executor, _config.getProvider(owner))
+	orm := orm.NewOrm(executor, _config.getProvider(owner))
 	return orm, nil
 }
 
@@ -55,7 +53,7 @@ func GetOrm(owner string) (orm.Orm, error) {
 		return nil, err
 	}
 
-	orm := orm.New(executor, _config.getProvider(owner))
+	orm := orm.NewOrm(executor, _config.getProvider(owner))
 	return orm, nil
 }
 

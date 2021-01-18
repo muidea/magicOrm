@@ -33,8 +33,8 @@ func NewFilter(modelProvider provider.Provider) model.Filter {
 	return &queryFilter{params: map[string]model.FilterItem{}, modelProvider: modelProvider}
 }
 
-// New create new impl
-func New(executor executor.Executor, modelProvider provider.Provider) Orm {
+// NewOrm create new impl
+func NewOrm(executor executor.Executor, modelProvider provider.Provider) Orm {
 	return &impl{executor: executor, modelProvider: modelProvider}
 }
 
