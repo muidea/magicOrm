@@ -161,12 +161,16 @@ func getFieldValue(fieldName string, itemType *TypeImpl, fieldValue reflect.Valu
 	}
 
 	switch itemType.GetValue() {
-	case util.TypeBooleanField,
-		util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField,
-		util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField,
-		util.TypeFloatField, util.TypeDoubleField,
-		util.TypeStringField:
-		ret = &ItemValue{Name: fieldName, Value: fieldValue.Interface()}
+	case util.TypeBooleanField:
+		ret = &ItemValue{Name: fieldName, Value: fieldValue.Bool()}
+	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
+		ret = &ItemValue{Name: fieldName, Value: float64(fieldValue.Int())}
+	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
+		ret = &ItemValue{Name: fieldName, Value: float64(fieldValue.Uint())}
+	case util.TypeFloatField, util.TypeDoubleField:
+		ret = &ItemValue{Name: fieldName, Value: fieldValue.Float()}
+	case util.TypeStringField:
+		ret = &ItemValue{Name: fieldName, Value: fieldValue.String()}
 	case util.TypeDateTimeField:
 		dtVal, dtErr := encodeDateTime(fieldValue)
 		if dtErr != nil {

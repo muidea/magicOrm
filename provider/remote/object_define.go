@@ -84,6 +84,7 @@ func (s *Object) Interface(ptrValue bool) (ret interface{}) {
 
 	if ptrValue {
 		ret = val
+		return
 	}
 
 	ret = *val

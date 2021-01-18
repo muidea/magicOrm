@@ -15,12 +15,46 @@ type Base struct {
 	Addr  []string `orm:"addr"`
 }
 
+func (s *Base) IsSame(p *Base) bool {
+	if s.ID != p.ID {
+		return false
+	}
+	if s.Name != p.Name {
+		return false
+	}
+	if s.Price != p.Price {
+		return false
+	}
+
+	return len(s.Addr) == len(p.Addr)
+}
+
 type ExtInfo struct {
 	ID    int     `orm:"id key auto"`
 	Name  string  `orm:"name"`
 	Info  Base    `orm:"info"`
 	Ptr   *Base   `orm:"ptr"`
 	Array []*Base `orm:"array"`
+}
+
+func (s *ExtInfo) IsSame(p *ExtInfo) bool {
+	if s.ID != p.ID {
+		return false
+	}
+
+	if s.Name != p.Name {
+		return false
+	}
+
+	if !s.Info.IsSame(&p.Info) {
+		return false
+	}
+
+	if !s.Ptr.IsSame(p.Ptr) {
+		return false
+	}
+
+	return len(s.Array) == len(p.Array)
 }
 
 func checkIntField(t *testing.T, intField model.Field) (ret bool) {
@@ -628,6 +662,19 @@ func TestCompareProvider(t *testing.T) {
 		t.Errorf("GetTypeModel from remoteProvider failed, err:%s", r2Err.Error())
 		return
 	}
+
+	ext2Info := &ExtInfo{Ptr: &Base{}}
+	r2Val := r2ExtModel.Interface(false).(remote.ObjectValue)
+	r2Err = remote.UpdateEntity(&r2Val, ext2Info)
+	if r2Err != nil {
+		t.Errorf("UpdateEntity from remoteProvider failed, err:%s", r2Err.Error())
+		return
+	}
+	if ext2Info.IsSame(extEntity) {
+		t.Errorf("Interface failed")
+		return
+	}
+
 	r2ExtModel, r2Err = remote.SetModelValue(r2ExtModel, rExtVal)
 	if r2Err != nil {
 		t.Errorf("SetModelValue from remoteProvider failed, err:%s", r2Err.Error())
@@ -638,8 +685,25 @@ func TestCompareProvider(t *testing.T) {
 		return
 	}
 
+	r2ValPtr := r2ExtModel.Interface(true).(*remote.ObjectValue)
+	r2Err = remote.UpdateEntity(r2ValPtr, ext2Info)
+	if r2Err != nil {
+		t.Errorf("UpdateEntity from remoteProvider failed, err:%s", r2Err.Error())
+		return
+	}
+	if !ext2Info.IsSame(extEntity) {
+		t.Errorf("Interface failed")
+		return
+	}
+
 	if !model.CompareModel(lExtModel, rExtModel) {
 		t.Errorf("compareModel failed")
+		return
+	}
+
+	extPtr := lExtModel.Interface(true).(*ExtInfo)
+	if !extPtr.IsSame(extEntity) {
+		t.Errorf("Interface failed")
 		return
 	}
 }
