@@ -5,7 +5,7 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *impl) createSchema(modelInfo model.Model) (err error) {
+func (s *impl) createSingle(modelInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	tableName := builder.GetTableName()
 
@@ -28,7 +28,7 @@ func (s *impl) createSchema(modelInfo model.Model) (err error) {
 	return
 }
 
-func (s *impl) createRelationSchema(modelInfo model.Model, fieldName string, relationInfo model.Model) (err error) {
+func (s *impl) createRelation(modelInfo model.Model, fieldName string, relationInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
 	tableName := builder.GetRelationTableName(fieldName, relationInfo)
 
@@ -51,7 +51,7 @@ func (s *impl) createRelationSchema(modelInfo model.Model, fieldName string, rel
 }
 
 func (s *impl) batchCreateSchema(modelInfo model.Model) (err error) {
-	err = s.createSchema(modelInfo)
+	err = s.createSingle(modelInfo)
 	if err != nil {
 		return
 	}
@@ -68,14 +68,15 @@ func (s *impl) batchCreateSchema(modelInfo model.Model) (err error) {
 			return
 		}
 
-		if !fType.IsPtrType() {
-			err = s.createSchema(relationInfo)
+		elemType := fType.Elem()
+		if !elemType.IsPtrType() {
+			err = s.createSingle(relationInfo)
 			if err != nil {
 				return
 			}
 		}
 
-		err = s.createRelationSchema(modelInfo, field.GetName(), relationInfo)
+		err = s.createRelation(modelInfo, field.GetName(), relationInfo)
 		if err != nil {
 			return
 		}

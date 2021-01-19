@@ -351,7 +351,7 @@ func TestLocalUser(t *testing.T) {
 	}
 }
 
-func TestLoalSystem(t *testing.T) {
+func TestLocalSystem(t *testing.T) {
 	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
 	defer orm.Uninitialize()
 

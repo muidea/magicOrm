@@ -1,9 +1,9 @@
 package local
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/local/helper"
@@ -182,13 +182,7 @@ func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache, he
 		items = append(items, strVal)
 	}
 
-	dataVal, dataErr := json.Marshal(items)
-	if dataErr != nil {
-		err = dataErr
-		return
-	}
-
-	ret = string(dataVal)
+	ret = strings.Join(items, ",")
 	return
 }
 

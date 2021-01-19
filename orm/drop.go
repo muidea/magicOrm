@@ -48,6 +48,41 @@ func (s *impl) dropRelation(modelInfo model.Model, fieldName string, relationInf
 	return
 }
 
+func (s *impl) batchDropSchema(modelInfo model.Model) (err error) {
+	err = s.dropSingle(modelInfo)
+	if err != nil {
+		return
+	}
+
+	for _, field := range modelInfo.GetFields() {
+		fType := field.GetType()
+		if fType.IsBasic() {
+			continue
+		}
+
+		relationInfo, relationErr := s.modelProvider.GetTypeModel(fType)
+		if relationErr != nil {
+			err = relationErr
+			return
+		}
+
+		elemType := fType.Elem()
+		if !elemType.IsPtrType() {
+			err = s.dropSingle(relationInfo)
+			if err != nil {
+				return
+			}
+		}
+
+		err = s.dropRelation(modelInfo, field.GetName(), relationInfo)
+		if err != nil {
+			break
+		}
+	}
+
+	return
+}
+
 // Drop drop
 func (s *impl) Drop(entityModel model.Model) (err error) {
 	err = s.executor.BeginTransaction()
@@ -55,40 +90,7 @@ func (s *impl) Drop(entityModel model.Model) (err error) {
 		return
 	}
 
-	for {
-		err = s.dropSingle(entityModel)
-		if err != nil {
-			break
-		}
-
-		for _, field := range entityModel.GetFields() {
-			fType := field.GetType()
-			if fType.IsBasic() {
-				continue
-			}
-
-			relationInfo, relationErr := s.modelProvider.GetTypeModel(fType)
-			if relationErr != nil {
-				err = relationErr
-				break
-			}
-
-			elemType := fType.Elem()
-			if !elemType.IsPtrType() {
-				err = s.dropSingle(relationInfo)
-				if err != nil {
-					break
-				}
-			}
-
-			err = s.dropRelation(entityModel, field.GetName(), relationInfo)
-			if err != nil {
-				break
-			}
-		}
-		break
-	}
-
+	err = s.batchDropSchema(entityModel)
 	if err == nil {
 		cErr := s.executor.CommitTransaction()
 		if cErr != nil {
