@@ -223,6 +223,7 @@ func (s *providerImpl) IsAssigned(vVal model.Value, vType model.Type) (ret bool)
 	originStr, originErr := s.encodeValueFunc(originVal, vType, s.modelCache)
 	if originErr != nil {
 		ret = false
+		return
 	}
 
 	ret = curStr != originStr

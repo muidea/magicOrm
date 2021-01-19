@@ -85,59 +85,56 @@ func updateBasicValue(basicValue interface{}, tType model.Type, value reflect.Va
 		return
 	}
 
+	assignFlag := false
+	rVal := reflect.Indirect(reflect.ValueOf(basicValue))
 	switch tType.GetValue() {
 	case util.TypeBooleanField:
-		bVal, bOK := basicValue.(bool)
-		if !bOK {
-			err = fmt.Errorf("illegal boolean value, val:%v", basicValue)
-			return
+		if util.IsBool(rVal.Type()) {
+			value.SetBool(rVal.Bool())
+			assignFlag = true
 		}
-		value.SetBool(bVal)
 	case util.TypeDateTimeField:
-		strValue, fOK := basicValue.(string)
-		if !fOK {
-			err = fmt.Errorf("illegal dateTime value, val:%v", basicValue)
-			return
+		if util.IsString(rVal.Type()) {
+			dtVal, dtErr := time.Parse("2006-01-02 15:04:05", rVal.String())
+			if dtErr == nil {
+				value.Set(reflect.ValueOf(dtVal))
+				assignFlag = true
+			}
 		}
-		dtVal, dtErr := time.Parse("2006-01-02 15:04:05", strValue)
-		if dtErr != nil {
-			err = fmt.Errorf("illegal dateTime value, val:%v", basicValue)
-			return
-		}
-		value.Set(reflect.ValueOf(dtVal))
 	case util.TypeFloatField, util.TypeDoubleField:
-		fValue, fOK := basicValue.(float64)
-		if !fOK {
-			err = fmt.Errorf("illegal float value, val:%v", basicValue)
-			return
+		if util.IsFloat(rVal.Type()) {
+			value.SetFloat(rVal.Float())
+			assignFlag = true
 		}
-		value.SetFloat(fValue)
 	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
-		fValue, fOK := basicValue.(float64)
-		if !fOK {
-			err = fmt.Errorf("illegal int value, val:%v", basicValue)
-			return
+		if util.IsInteger(rVal.Type()) {
+			value.SetInt(rVal.Int())
+			assignFlag = true
 		}
-		value.SetInt(int64(fValue))
+		if util.IsFloat(rVal.Type()) {
+			value.SetInt(int64(rVal.Float()))
+			assignFlag = true
+		}
 	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
-		fValue, fOK := basicValue.(float64)
-		if !fOK {
-			err = fmt.Errorf("illegal uint value, val:%v", basicValue)
-			return
+		if util.IsUInteger(rVal.Type()) {
+			value.SetUint(rVal.Uint())
+			assignFlag = true
 		}
-		value.SetUint(uint64(fValue))
+		if util.IsFloat(rVal.Type()) {
+			value.SetUint(uint64(rVal.Float()))
+			assignFlag = true
+		}
 	case util.TypeStringField:
-		strValue, fOK := basicValue.(string)
-		if !fOK {
-			err = fmt.Errorf("illegal string value, val:%v", basicValue)
-			return
+		if util.IsString(rVal.Type()) {
+			value.SetString(rVal.String())
+			assignFlag = true
 		}
-		value.SetString(strValue)
 	default:
-		err = fmt.Errorf("illegal basic value type,type:%s", tType.GetName())
+		err = fmt.Errorf("illegal basic value type,type:%s, value type:%s", tType.GetName(), rVal.Type().String())
 	}
 
-	if err != nil {
+	if !assignFlag {
+		err = fmt.Errorf("illegal basic value type,type:%s, value type:%s", tType.GetName(), rVal.Type().String())
 		return
 	}
 
