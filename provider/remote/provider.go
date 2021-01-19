@@ -119,15 +119,23 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 
 func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 	val, ok := vVal.Get().(*SliceObjectValue)
-	if !ok {
-		err = fmt.Errorf("illegal remote model slice value")
+	if ok {
+		for _, item := range val.Values {
+			ret = append(ret, newValue(item))
+		}
 		return
 	}
 
-	for _, item := range val.Values {
-		ret = append(ret, newValue(item))
+	vals, ok := vVal.Get().([]interface{})
+	if ok {
+		for _, v := range vals {
+			ret = append(ret, newValue(v))
+		}
+
+		return
 	}
 
+	err = fmt.Errorf("illegal remote model slice value")
 	return
 }
 

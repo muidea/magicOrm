@@ -93,6 +93,14 @@ func updateBasicValue(basicValue interface{}, tType model.Type, value reflect.Va
 			value.SetBool(rVal.Bool())
 			assignFlag = true
 		}
+		if util.IsInteger(rVal.Type()) {
+			value.SetBool(rVal.Int() > 0)
+			assignFlag = true
+		}
+		if util.IsUInteger(rVal.Type()) {
+			value.SetBool(rVal.Uint() > 0)
+			assignFlag = true
+		}
 	case util.TypeDateTimeField:
 		if util.IsString(rVal.Type()) {
 			dtVal, dtErr := time.Parse("2006-01-02 15:04:05", rVal.String())
@@ -148,131 +156,35 @@ func updateSliceBasicValue(basicValue interface{}, tType model.Type, value refle
 	}
 
 	tType = tType.Elem()
-	sliceValue := reflect.ValueOf(basicValue)
-	for idx := 0; idx < sliceValue.Len(); idx++ {
-		val := sliceValue.Index(idx).Elem()
-		switch tType.GetValue() {
-		case util.TypeBooleanField:
-			bVal := val.Bool()
-			if tType.IsPtrType() {
-				value = reflect.Append(value, reflect.ValueOf(&bVal))
-			} else {
-				value = reflect.Append(value, reflect.ValueOf(bVal))
-			}
-		case util.TypeDateTimeField:
-			strVal := val.String()
-			dtVal, dtErr := time.Parse("2006-01-02 15:04:05", strVal)
-			if dtErr != nil {
-				err = fmt.Errorf("illegal dateTime value, val:%v", strVal)
-			} else {
-				if tType.IsPtrType() {
-					value = reflect.Append(value, reflect.ValueOf(&dtVal))
-				} else {
-					value = reflect.Append(value, reflect.ValueOf(dtVal))
-				}
-			}
-		case util.TypeFloatField:
-			fVal := float32(val.Float())
-			if tType.IsPtrType() {
-				value = reflect.Append(value, reflect.ValueOf(&fVal))
-			} else {
-				value = reflect.Append(value, reflect.ValueOf(fVal))
-			}
-		case util.TypeDoubleField:
-			fVal := val.Float()
-			if tType.IsPtrType() {
-				value = reflect.Append(value, reflect.ValueOf(&fVal))
-			} else {
-				value = reflect.Append(value, reflect.ValueOf(fVal))
-			}
-		case util.TypeBitField:
-			iVal := int8(val.Float())
-			if tType.IsPtrType() {
-				value = reflect.Append(value, reflect.ValueOf(&iVal))
-			} else {
-				value = reflect.Append(value, reflect.ValueOf(iVal))
-			}
-		case util.TypeSmallIntegerField:
-			iVal := int16(val.Float())
-			if tType.IsPtrType() {
-				value = reflect.Append(value, reflect.ValueOf(&iVal))
-			} else {
-				value = reflect.Append(value, reflect.ValueOf(iVal))
-			}
-		case util.TypeInteger32Field:
-			iVal := int32(val.Float())
-			if tType.IsPtrType() {
-				value = reflect.Append(value, reflect.ValueOf(&iVal))
-			} else {
-				value = reflect.Append(value, reflect.ValueOf(iVal))
-			}
-		case util.TypeIntegerField:
-			iVal := int(val.Float())
-			if tType.IsPtrType() {
-				value = reflect.Append(value, reflect.ValueOf(&iVal))
-			} else {
-				value = reflect.Append(value, reflect.ValueOf(iVal))
-			}
-		case util.TypeBigIntegerField:
-			iVal := int64(val.Float())
-			if tType.IsPtrType() {
-				value = reflect.Append(value, reflect.ValueOf(&iVal))
-			} else {
-				value = reflect.Append(value, reflect.ValueOf(iVal))
-			}
-		case util.TypePositiveBitField:
-			uVal := uint8(val.Float())
-			if tType.IsPtrType() {
-				value = reflect.Append(value, reflect.ValueOf(&uVal))
-			} else {
-				value = reflect.Append(value, reflect.ValueOf(uVal))
-			}
-		case util.TypePositiveSmallIntegerField:
-			uVal := uint16(val.Float())
-			if tType.IsPtrType() {
-				value = reflect.Append(value, reflect.ValueOf(&uVal))
-			} else {
-				value = reflect.Append(value, reflect.ValueOf(uVal))
-			}
-		case util.TypePositiveInteger32Field:
-			uVal := uint32(val.Float())
-			if tType.IsPtrType() {
-				value = reflect.Append(value, reflect.ValueOf(&uVal))
-			} else {
-				value = reflect.Append(value, reflect.ValueOf(uVal))
-			}
-		case util.TypePositiveIntegerField:
-			uVal := uint(val.Float())
-			if tType.IsPtrType() {
-				value = reflect.Append(value, reflect.ValueOf(&uVal))
-			} else {
-				value = reflect.Append(value, reflect.ValueOf(uVal))
-			}
-		case util.TypePositiveBigIntegerField:
-			uVal := uint64(val.Float())
-			if tType.IsPtrType() {
-				value = reflect.Append(value, reflect.ValueOf(&uVal))
-			} else {
-				value = reflect.Append(value, reflect.ValueOf(uVal))
-			}
-		case util.TypeStringField:
-			strVal := val.String()
-			if tType.IsPtrType() {
-				value = reflect.Append(value, reflect.ValueOf(&strVal))
-			} else {
-				value = reflect.Append(value, reflect.ValueOf(strVal))
-			}
-		default:
-			err = fmt.Errorf("invalud slice item type, type:%s", tType.GetName())
-		}
-
-		if err != nil {
-			break
-		}
+	sliceVal, sliceOK := basicValue.([]interface{})
+	if !sliceOK {
+		err = fmt.Errorf("illegal basic slice value")
+		return
 	}
 
-	if err != nil {
+	sliceType := reflect.Indirect(value).Type()
+	if sliceType.Kind() != reflect.Slice {
+		err = fmt.Errorf("illegal basic slice value")
 		return
+	}
+	elemType := sliceType.Elem()
+	isElemPtr := elemType.Kind() == reflect.Ptr
+	if isElemPtr {
+		elemType = elemType.Elem()
+	}
+
+	for _, val := range sliceVal {
+		tVal := reflect.New(elemType).Elem()
+		tVal, tErr := updateBasicValue(val, tType, tVal)
+		if tErr != nil {
+			err = tErr
+			return
+		}
+		if isElemPtr {
+			tVal = tVal.Addr()
+		}
+
+		value = reflect.Append(value, tVal)
 	}
 
 	ret = value

@@ -3,7 +3,6 @@ package remote
 import (
 	"encoding/json"
 	"fmt"
-	"math"
 	"reflect"
 	"time"
 
@@ -54,55 +53,58 @@ func (s *ObjectValue) IsPtrValue() bool {
 func (s *ObjectValue) IsAssigned() (ret bool) {
 	ret = false
 	for _, val := range s.Items {
-		if val.Value == nil {
-			continue
+		if val.Value != nil {
+			ret = true
+			break
 		}
 
-		bVal, bOK := val.Value.(bool)
-		if bOK {
-			ret = bVal
-			if ret {
-				return
+		/*
+			bVal, bOK := val.Value.(bool)
+			if bOK {
+				ret = bVal
+				if ret {
+					return
+				}
+
+				continue
 			}
 
-			continue
-		}
+			strVal, strOK := val.Value.(string)
+			if strOK {
+				ret = strVal != ""
+				if ret {
+					return
+				}
 
-		strVal, strOK := val.Value.(string)
-		if strOK {
-			ret = strVal != ""
-			if ret {
-				return
+				continue
 			}
 
-			continue
-		}
+			fltVal, fltOK := val.Value.(float64)
+			if fltOK {
+				ret = math.Abs(fltVal-0.00000) > 0.00001
+				if ret {
+					return
+				}
 
-		fltVal, fltOK := val.Value.(float64)
-		if fltOK {
-			ret = math.Abs(fltVal-0.00000) > 0.00001
-			if ret {
-				return
+				continue
 			}
 
-			continue
-		}
-
-		sliceObjPtrVal, sliceObjPtrOK := val.Value.(*SliceObjectValue)
-		if sliceObjPtrOK {
-			ret = len(sliceObjPtrVal.Values) > 0
-			if ret {
-				return
+			sliceObjPtrVal, sliceObjPtrOK := val.Value.(*SliceObjectValue)
+			if sliceObjPtrOK {
+				ret = len(sliceObjPtrVal.Values) > 0
+				if ret {
+					return
+				}
 			}
-		}
 
-		ptrObjVal, ptrObjOK := val.Value.(*ObjectValue)
-		if ptrObjOK {
-			ret = ptrObjVal.IsAssigned()
-			if ret {
-				return
+			ptrObjVal, ptrObjOK := val.Value.(*ObjectValue)
+			if ptrObjOK {
+				ret = ptrObjVal.IsAssigned()
+				if ret {
+					return
+				}
 			}
-		}
+		*/
 	}
 
 	return
@@ -275,7 +277,7 @@ func getObjectValue(entityVal reflect.Value) (ret *ObjectValue, err error) {
 	ret = &ObjectValue{Name: objType.GetName(), PkgPath: objType.GetPkgPath(), IsPtr: objType.IsPtrType(), Items: []*ItemValue{}}
 	fieldNum := entityVal.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		fieldValue := entityVal.Field(idx)
+		fieldValue := reflect.Indirect(entityVal.Field(idx))
 		fieldType := entityType.Field(idx)
 
 		itemType, itemErr := newType(fieldType.Type)
