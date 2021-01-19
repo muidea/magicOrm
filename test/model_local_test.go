@@ -284,6 +284,7 @@ func TestLocalUser(t *testing.T) {
 		t.Errorf("update user1 failed, err:%s", user1Err.Error())
 		return
 	}
+	user1 = user1Model.Interface(true).(*User)
 
 	user2Model, user2Err = provider.GetEntityModel(user2)
 	if user2Err != nil {
@@ -291,8 +292,8 @@ func TestLocalUser(t *testing.T) {
 		return
 	}
 	user2Model, user2Err = o1.Query(user2Model)
-	if err != nil {
-		t.Errorf("query user2 failed, err:%s", err.Error())
+	if user2Err != nil {
+		t.Errorf("query user2 failed, err:%s", user2Err.Error())
 		return
 	}
 	user2 = user2Model.Interface(true).(*User)

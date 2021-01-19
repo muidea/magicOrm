@@ -6,6 +6,7 @@ import (
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/local"
 	"github.com/muidea/magicOrm/provider/remote"
+	"github.com/muidea/magicOrm/util"
 )
 
 // Provider model provider
@@ -135,6 +136,11 @@ func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err 
 
 	if entityModel.GetPkgPath() != entityType.GetPkgPath() {
 		err = fmt.Errorf("illegal object entity, must register entity first")
+		return
+	}
+
+	if util.IsSliceType(entityType.GetValue()) {
+		ret = entityModel.Copy()
 		return
 	}
 
