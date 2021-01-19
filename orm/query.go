@@ -200,7 +200,13 @@ func (s *impl) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret 
 			return
 		}
 
-		fieldValue.Set(queryVal)
+		modelVal, modelErr := s.modelProvider.GetEntityValue(queryVal.Interface(true))
+		if modelErr != nil {
+			err = modelErr
+			return
+		}
+
+		fieldValue.Set(modelVal.Get())
 	} else if util.IsSliceType(fieldType.GetValue()) {
 		queryVal, queryErr := s.queryRelationSlice(values, fieldModel)
 		if queryErr != nil {
@@ -208,7 +214,19 @@ func (s *impl) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret 
 			return
 		}
 
-		fieldValue.Set(queryVal)
+		for _, v := range queryVal {
+			modelVal, modelErr := s.modelProvider.GetEntityValue(v.Interface(true))
+			if modelErr != nil {
+				err = modelErr
+				return
+			}
+
+			fieldValue, fieldErr = s.modelProvider.AppendSliceValue(fieldValue, modelVal)
+			if fieldErr != nil {
+				err = fieldErr
+				return
+			}
+		}
 	}
 
 	if fieldType.IsPtrType() {

@@ -112,7 +112,6 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 
 func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, err error) {
 	rSliceVal := sliceVal.Get().(reflect.Value)
-	isPtr := rSliceVal.Kind() == reflect.Ptr
 	rSliceVal = reflect.Indirect(rSliceVal)
 	rSliceType := rSliceVal.Type()
 	if rSliceType.Kind() != reflect.Slice {
@@ -137,10 +136,8 @@ func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, e
 		return
 	}
 
-	rSliceVal = reflect.Append(rSliceVal, rVal)
-	if isPtr {
-		rSliceVal = rSliceVal.Addr()
-	}
+	rNewVal := reflect.Append(rSliceVal, rVal)
+	rSliceVal.Set(rNewVal)
 
 	ret = newValue(rSliceVal)
 	return
