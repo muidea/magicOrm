@@ -188,43 +188,46 @@ func (s *impl) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret 
 			values = append(values, v)
 		}
 	}()
-	if err != nil || len(values) == 0 {
+
+	if err != nil {
 		return
 	}
 
 	fieldValue, _ := fieldType.Interface(nil)
-	if util.IsStructType(fieldType.GetValue()) {
-		queryVal, queryErr := s.queryRelationSingle(values[0], fieldModel)
-		if queryErr != nil {
-			err = queryErr
-			return
-		}
+	if len(values) > 0 {
+		if util.IsStructType(fieldType.GetValue()) {
+			queryVal, queryErr := s.queryRelationSingle(values[0], fieldModel)
+			if queryErr != nil {
+				err = queryErr
+				return
+			}
 
-		modelVal, modelErr := s.modelProvider.GetEntityValue(queryVal.Interface(true))
-		if modelErr != nil {
-			err = modelErr
-			return
-		}
-
-		fieldValue.Set(modelVal.Get())
-	} else if util.IsSliceType(fieldType.GetValue()) {
-		queryVal, queryErr := s.queryRelationSlice(values, fieldModel)
-		if queryErr != nil {
-			err = queryErr
-			return
-		}
-
-		for _, v := range queryVal {
-			modelVal, modelErr := s.modelProvider.GetEntityValue(v.Interface(true))
+			modelVal, modelErr := s.modelProvider.GetEntityValue(queryVal.Interface(true))
 			if modelErr != nil {
 				err = modelErr
 				return
 			}
 
-			fieldValue, fieldErr = s.modelProvider.AppendSliceValue(fieldValue, modelVal)
-			if fieldErr != nil {
-				err = fieldErr
+			fieldValue.Set(modelVal.Get())
+		} else if util.IsSliceType(fieldType.GetValue()) {
+			queryVal, queryErr := s.queryRelationSlice(values, fieldModel)
+			if queryErr != nil {
+				err = queryErr
 				return
+			}
+
+			for _, v := range queryVal {
+				modelVal, modelErr := s.modelProvider.GetEntityValue(v.Interface(true))
+				if modelErr != nil {
+					err = modelErr
+					return
+				}
+
+				fieldValue, fieldErr = s.modelProvider.AppendSliceValue(fieldValue, modelVal)
+				if fieldErr != nil {
+					err = fieldErr
+					return
+				}
 			}
 		}
 	}

@@ -10,17 +10,19 @@ import (
 
 func (s *impl) deleteSingle(modelInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
-	sql, err := builder.BuildDelete()
-	if err != nil {
-		return err
+	sqlStr, sqlErr := builder.BuildDelete()
+	if sqlErr != nil {
+		err = sqlErr
+		return
 	}
-	num, numErr := s.executor.Delete(sql)
+
+	numVal, numErr := s.executor.Delete(sqlStr)
 	if numErr != nil {
 		err = numErr
 		return
 	}
 
-	if num != 1 {
+	if numVal != 1 {
 		err = fmt.Errorf("delete %s failed", modelInfo.GetName())
 	}
 
@@ -30,6 +32,10 @@ func (s *impl) deleteSingle(modelInfo model.Model) (err error) {
 func (s *impl) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
 	fType := fieldInfo.GetType()
 	if fType.IsBasic() {
+		return
+	}
+
+	if !s.modelProvider.IsAssigned(fieldInfo.GetValue(), fieldInfo.GetType()) {
 		return
 	}
 
