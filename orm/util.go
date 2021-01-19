@@ -16,6 +16,11 @@ func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, err error) 
 			continue
 		}
 
+		if util.IsSliceType(vType.GetValue()) && !vType.IsBasic() {
+			filter.inInternal(field.GetName(), vVal)
+			continue
+		}
+
 		filter.equalInternal(field.GetName(), vVal)
 	}
 
