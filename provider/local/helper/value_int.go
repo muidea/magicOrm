@@ -92,10 +92,10 @@ func (s *impl) decodeUint(val interface{}, tType model.Type) (ret model.Value, e
 	switch rVal.Kind() {
 	case reflect.String:
 		uVal, err = strconv.ParseUint(rVal.String(), 0, 64)
-	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
 		uVal = rVal.Uint()
 	default:
-		err = fmt.Errorf("illegal int value, val:%v", val)
+		err = fmt.Errorf("illegal uint value, val:%v", val)
 	}
 	if err != nil {
 		return

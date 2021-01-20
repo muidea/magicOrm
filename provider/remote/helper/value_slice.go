@@ -53,7 +53,7 @@ func (s *impl) decodeSliceValue(val string, tType model.Type) (ret model.Value, 
 		sliceVal = append(sliceVal, itemVal.Get())
 	}
 
-	tVal, _ := tType.Interface(sliceVal)
+	tVal, _ := tType.Interface()
 	if tType.IsPtrType() {
 		tVal = tVal.Addr()
 	}

@@ -16,7 +16,7 @@ func (s *impl) encodeDateTime(vVal model.Value) (ret string, err error) {
 	case reflect.Struct:
 		ts, ok := val.Interface().(time.Time)
 		if ok {
-			ret = fmt.Sprintf("%s", ts.Format("2006-01-02 15:04:05.000"))
+			ret = fmt.Sprintf("%s", ts.Format("2006-01-02 15:04:05"))
 			if ret == "0001-01-01 00:00:00" {
 				ret = ""
 			}
@@ -45,7 +45,7 @@ func (s *impl) decodeDateTime(val interface{}, tType model.Type) (ret model.Valu
 		if str == "" {
 			str = "0001-01-01 00:00:00"
 		}
-		dtVal, err = time.Parse("2006-01-02 15:04:05.000", str)
+		dtVal, err = time.Parse("2006-01-02 15:04:05", str)
 	case reflect.Struct:
 		if rVal.Type().String() == "time.Time" {
 			dtVal = rVal.Interface().(time.Time)

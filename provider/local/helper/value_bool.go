@@ -18,6 +18,18 @@ func (s *impl) encodeBool(vVal model.Value) (ret string, err error) {
 		} else {
 			ret = "0"
 		}
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
+		if val.Uint() > 0 {
+			ret = "1"
+		} else {
+			ret = "0"
+		}
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+		if val.Int() > 0 {
+			ret = "1"
+		} else {
+			ret = "0"
+		}
 	default:
 		err = fmt.Errorf("illegal boolean value, type:%s", val.Type().String())
 	}
@@ -43,6 +55,10 @@ func (s *impl) decodeBool(val interface{}, tType model.Type) (ret model.Value, e
 		}
 	case reflect.Bool:
 		bVal = rVal.Bool()
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
+		bVal = rVal.Uint() > 0
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+		bVal = rVal.Int() > 0
 	default:
 		err = fmt.Errorf("illegal boolean value, val:%v", val)
 	}
