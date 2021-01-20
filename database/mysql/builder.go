@@ -72,7 +72,7 @@ func (s *Builder) getModelValue(vModel model.Model) (ret string, err error) {
 		return
 	}
 
-	fStr, fErr := s.modelProvider.GetValueStr(pkField.GetValue(), pkField.GetType())
+	fStr, fErr := s.modelProvider.EncodeValue(pkField.GetValue(), pkField.GetType())
 	if fErr != nil {
 		err = fErr
 		return
@@ -83,7 +83,7 @@ func (s *Builder) getModelValue(vModel model.Model) (ret string, err error) {
 }
 
 func (s *Builder) buildValue(vValue model.Value, vType model.Type) (ret string, err error) {
-	fStr, fErr := s.modelProvider.GetValueStr(vValue, vType)
+	fStr, fErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fErr != nil {
 		err = fErr
 		return

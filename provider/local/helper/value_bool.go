@@ -7,8 +7,8 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-// encodeBoolValue get bool value str
-func (s *impl) encodeBoolValue(vVal model.Value) (ret string, err error) {
+// encodeBool get bool value str
+func (s *impl) encodeBool(vVal model.Value) (ret string, err error) {
 	val := vVal.Get().(reflect.Value)
 	val = reflect.Indirect(val)
 	switch val.Kind() {
@@ -25,16 +25,26 @@ func (s *impl) encodeBoolValue(vVal model.Value) (ret string, err error) {
 	return
 }
 
-// decodeBoolValue decode bool from string
-func (s *impl) decodeBoolValue(val string, tType model.Type) (ret model.Value, err error) {
-	bVal := false
-	switch val {
-	case "1":
-		bVal = true
-	case "0":
-		bVal = false
+// decodeBool decode bool from string
+func (s *impl) decodeBool(val interface{}, tType model.Type) (ret model.Value, err error) {
+	rVal := reflect.ValueOf(val)
+	if rVal.Kind() == reflect.Interface {
+		rVal = rVal.Elem()
+	}
+	rVal = reflect.Indirect(rVal)
+
+	var bVal bool
+	switch rVal.Kind() {
+	case reflect.String:
+		if rVal.String() == "1" {
+			bVal = true
+		} else {
+			bVal = false
+		}
+	case reflect.Bool:
+		bVal = rVal.Bool()
 	default:
-		err = fmt.Errorf("illegal boolean value, val:%s", val)
+		err = fmt.Errorf("illegal boolean value, val:%v", val)
 	}
 
 	if err != nil {
@@ -42,12 +52,5 @@ func (s *impl) decodeBoolValue(val string, tType model.Type) (ret model.Value, e
 	}
 
 	ret, err = s.getValue(&bVal)
-	if err != nil {
-		return
-	}
-
-	if tType.IsPtrType() {
-		ret = ret.Addr()
-	}
 	return
 }

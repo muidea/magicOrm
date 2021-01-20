@@ -20,8 +20,7 @@ func (s *impl) insertSingle(modelInfo model.Model) (err error) {
 	}
 
 	pk := modelInfo.GetPrimaryField()
-
-	tVal, tErr := pk.GetType().Interface(id)
+	tVal, tErr := s.modelProvider.DecodeValue(id, pk.GetType())
 	if tErr != nil {
 		err = tErr
 		return

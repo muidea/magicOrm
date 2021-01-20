@@ -25,7 +25,9 @@ type Provider interface {
 
 	GetTypeModel(vType model.Type) (ret model.Model, err error)
 
-	GetValueStr(vVal model.Value, vType model.Type) (ret string, err error)
+	EncodeValue(vVal model.Value, vType model.Type) (ret string, err error)
+
+	DecodeValue(vVal interface{}, vType model.Type) (ret model.Value, err error)
 
 	ElemDependValue(val model.Value) (ret []model.Value, err error)
 
@@ -50,6 +52,7 @@ type providerImpl struct {
 	elemDependValueFunc  func(model.Value) ([]model.Value, error)
 	appendSliceValueFunc func(model.Value, model.Value) (model.Value, error)
 	encodeValueFunc      func(model.Value, model.Type, model.Cache) (string, error)
+	decodeValueFunc      func(interface{}, model.Type, model.Cache) (model.Value, error)
 }
 
 // RegisterModel RegisterObjectModel
@@ -191,8 +194,13 @@ func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err erro
 }
 
 // GetValueStr GetValueStr
-func (s *providerImpl) GetValueStr(vVal model.Value, vType model.Type) (ret string, err error) {
+func (s *providerImpl) EncodeValue(vVal model.Value, vType model.Type) (ret string, err error) {
 	ret, err = s.encodeValueFunc(vVal, vType, s.modelCache)
+	return
+}
+
+func (s *providerImpl) DecodeValue(vVal interface{}, vType model.Type) (ret model.Value, err error) {
+	ret, err = s.decodeValueFunc(vVal, vType, s.modelCache)
 	return
 }
 
@@ -252,6 +260,7 @@ func NewLocalProvider(owner string) Provider {
 		elemDependValueFunc:  local.ElemDependValue,
 		appendSliceValueFunc: local.AppendSliceValue,
 		encodeValueFunc:      local.EncodeValue,
+		decodeValueFunc:      local.DecodeValue,
 	}
 
 	return ret
@@ -269,6 +278,7 @@ func NewRemoteProvider(owner string) Provider {
 		elemDependValueFunc:  remote.ElemDependValue,
 		appendSliceValueFunc: remote.AppendSliceValue,
 		encodeValueFunc:      remote.EncodeValue,
+		decodeValueFunc:      remote.DecodeValue,
 	}
 
 	return ret

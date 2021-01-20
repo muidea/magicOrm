@@ -9,8 +9,8 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-// encodeFloatValue get float value str
-func (s *impl) encodeFloatValue(vVal model.Value) (ret string, err error) {
+// encodeFloat get float value str
+func (s *impl) encodeFloat(vVal model.Value) (ret string, err error) {
 	val := vVal.Get().(reflect.Value)
 	val = reflect.Indirect(val)
 	switch val.Kind() {
@@ -23,40 +23,33 @@ func (s *impl) encodeFloatValue(vVal model.Value) (ret string, err error) {
 	return
 }
 
-// decodeFloatValue decode float from string
-func (s *impl) decodeFloatValue(val string, tType model.Type) (ret model.Value, err error) {
-	if tType.GetValue() == util.TypeFloatField {
-		fVal, fErr := strconv.ParseFloat(val, 32)
-		if fErr != nil {
-			err = fErr
-			return
-		}
-
-		f32Val := float32(fVal)
-		ret, err = s.getValue(&f32Val)
-		if err != nil {
-			return
-		}
-
-		if tType.IsPtrType() {
-			ret = ret.Addr()
-		}
-		return
+// decodeFloat decode float from string
+func (s *impl) decodeFloat(val interface{}, tType model.Type) (ret model.Value, err error) {
+	rVal := reflect.ValueOf(val)
+	if rVal.Kind() == reflect.Interface {
+		rVal = rVal.Elem()
 	}
+	rVal = reflect.Indirect(rVal)
 
-	fVal, fErr := strconv.ParseFloat(val, 64)
-	if fErr != nil {
-		err = fErr
-		return
+	var fVal float64
+	switch rVal.Kind() {
+	case reflect.String:
+		fVal, err = strconv.ParseFloat(rVal.String(), 64)
+	case reflect.Float32, reflect.Float64:
+		fVal = rVal.Float()
+	default:
+		err = fmt.Errorf("illegal float value, val:%v", val)
 	}
-
-	ret, err = s.getValue(&fVal)
 	if err != nil {
 		return
 	}
 
-	if tType.IsPtrType() {
-		ret = ret.Addr()
+	if tType.GetValue() == util.TypeFloatField {
+		f32Val := float32(fVal)
+		ret, err = s.getValue(&f32Val)
+		return
 	}
+
+	ret, err = s.getValue(&fVal)
 	return
 }

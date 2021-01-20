@@ -126,16 +126,17 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 		return
 	}
 
-	vals, ok := vVal.Get().([]interface{})
-	if ok {
-		for _, v := range vals {
-			ret = append(ret, newValue(v))
-		}
-
+	rsVal := reflect.Indirect(reflect.ValueOf(vVal.Get()))
+	if rsVal.Kind() != reflect.Slice {
+		err = fmt.Errorf("illegal remote slice value, type:%s", rsVal.Type().String())
 		return
 	}
 
-	err = fmt.Errorf("illegal remote model slice value")
+	for idx := 0; idx < rsVal.Len(); idx++ {
+		v := rsVal.Index(idx)
+		ret = append(ret, newValue(v.Interface()))
+	}
+
 	return
 }
 
@@ -222,5 +223,9 @@ func EncodeValue(tVal model.Value, tType model.Type, mCache model.Cache) (ret st
 	}
 
 	ret, err = encodeSliceModel(tVal, tType, mCache, _helper)
+	return
+}
+
+func DecodeValue(tVal interface{}, tType model.Type, mCache model.Cache) (ret model.Value, err error) {
 	return
 }

@@ -9,8 +9,8 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-//encodeIntValue get int value str
-func (s *impl) encodeIntValue(vVal model.Value) (ret string, err error) {
+//encodeInt get int value str
+func (s *impl) encodeInt(vVal model.Value) (ret string, err error) {
 	val := vVal.Get().(reflect.Value)
 	val = reflect.Indirect(val)
 	switch val.Kind() {
@@ -23,11 +23,24 @@ func (s *impl) encodeIntValue(vVal model.Value) (ret string, err error) {
 	return
 }
 
-// decodeIntValue decode int from string
-func (s *impl) decodeIntValue(val string, tType model.Type) (ret model.Value, err error) {
-	iVal, iErr := strconv.ParseInt(val, 0, 64)
-	if iErr != nil {
-		err = iErr
+// decodeInt decode int from string
+func (s *impl) decodeInt(val interface{}, tType model.Type) (ret model.Value, err error) {
+	rVal := reflect.ValueOf(val)
+	if rVal.Kind() == reflect.Interface {
+		rVal = rVal.Elem()
+	}
+	rVal = reflect.Indirect(rVal)
+
+	var iVal int64
+	switch rVal.Kind() {
+	case reflect.String:
+		iVal, err = strconv.ParseInt(rVal.String(), 0, 64)
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+		iVal = rVal.Int()
+	default:
+		err = fmt.Errorf("illegal int value, val:%v", val)
+	}
+	if err != nil {
 		return
 	}
 
@@ -50,18 +63,11 @@ func (s *impl) decodeIntValue(val string, tType model.Type) (ret model.Value, er
 		err = fmt.Errorf("illegal integer type, type:%s", tType.GetName())
 	}
 
-	if err != nil {
-		return
-	}
-
-	if tType.IsPtrType() {
-		ret = ret.Addr()
-	}
 	return
 }
 
-//encodeUintValue get uint value str
-func (s *impl) encodeUintValue(vVal model.Value) (ret string, err error) {
+//encodeUint get uint value str
+func (s *impl) encodeUint(vVal model.Value) (ret string, err error) {
 	val := vVal.Get().(reflect.Value)
 	val = reflect.Indirect(val)
 	switch val.Kind() {
@@ -74,13 +80,27 @@ func (s *impl) encodeUintValue(vVal model.Value) (ret string, err error) {
 	return
 }
 
-// decodeUintValue decode uint from string
-func (s *impl) decodeUintValue(val string, tType model.Type) (ret model.Value, err error) {
-	uVal, uErr := strconv.ParseUint(val, 0, 64)
-	if uErr != nil {
-		err = uErr
+// decodeUint decode uint from string
+func (s *impl) decodeUint(val interface{}, tType model.Type) (ret model.Value, err error) {
+	rVal := reflect.ValueOf(val)
+	if rVal.Kind() == reflect.Interface {
+		rVal = rVal.Elem()
+	}
+	rVal = reflect.Indirect(rVal)
+
+	var uVal uint64
+	switch rVal.Kind() {
+	case reflect.String:
+		uVal, err = strconv.ParseUint(rVal.String(), 0, 64)
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+		uVal = rVal.Uint()
+	default:
+		err = fmt.Errorf("illegal int value, val:%v", val)
+	}
+	if err != nil {
 		return
 	}
+
 	switch tType.GetValue() {
 	case util.TypePositiveBitField:
 		u8Val := uint8(uVal)
@@ -98,14 +118,6 @@ func (s *impl) decodeUintValue(val string, tType model.Type) (ret model.Value, e
 		ret, err = s.getValue(&uVal)
 	default:
 		err = fmt.Errorf("illegal unsigned integer type, type:%s", tType.GetName())
-	}
-
-	if err != nil {
-		return
-	}
-
-	if tType.IsPtrType() {
-		ret = ret.Addr()
 	}
 	return
 }

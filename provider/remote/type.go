@@ -2,11 +2,10 @@ package remote
 
 import (
 	"fmt"
-	"log"
-	"reflect"
-
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
+	"log"
+	"reflect"
 )
 
 var _declareObjectValue ObjectValue
@@ -88,37 +87,32 @@ func (s *TypeImpl) IsPtrType() (ret bool) {
 }
 
 // Interface Interface
-func (s *TypeImpl) Interface(val interface{}) (ret model.Value, err error) {
-	if val != nil {
-		ret = newValue(val)
-		return
-	}
-
-	rawType := s.getType()
-	rVal := reflect.New(rawType).Elem()
+func (s *TypeImpl) Interface() (ret model.Value, err error) {
+	tType := s.getType()
+	tVal := reflect.New(tType).Elem()
 	if s.IsBasic() {
 		if s.IsPtrType() {
-			rVal = rVal.Addr()
+			tVal = tVal.Addr()
 		}
 
-		ret = newValue(rVal.Interface())
+		ret = newValue(tVal.Interface())
 		return
 	}
 
 	if util.IsStructType(s.Value) {
-		rVal.FieldByName("Name").SetString(s.Name)
-		rVal.FieldByName("PkgPath").SetString(s.PkgPath)
-		rVal.FieldByName("IsPtr").SetBool(s.IsPtr)
+		tVal.FieldByName("Name").SetString(s.Name)
+		tVal.FieldByName("PkgPath").SetString(s.PkgPath)
+		tVal.FieldByName("IsPtr").SetBool(s.IsPtr)
 
-		ret = newValue(rVal.Addr().Interface())
+		ret = newValue(tVal.Addr().Interface())
 		return
 	}
 
-	rVal.FieldByName("Name").SetString(s.ElemType.Name)
-	rVal.FieldByName("PkgPath").SetString(s.ElemType.PkgPath)
-	rVal.FieldByName("IsPtr").SetBool(s.ElemType.IsPtr)
+	tVal.FieldByName("Name").SetString(s.ElemType.Name)
+	tVal.FieldByName("PkgPath").SetString(s.ElemType.PkgPath)
+	tVal.FieldByName("IsPtr").SetBool(s.ElemType.IsPtr)
 
-	ret = newValue(rVal.Addr().Interface())
+	ret = newValue(tVal.Addr().Interface())
 	return
 }
 

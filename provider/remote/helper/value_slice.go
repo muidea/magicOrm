@@ -2,7 +2,6 @@ package helper
 
 import (
 	"encoding/json"
-	"reflect"
 
 	"github.com/muidea/magicOrm/model"
 )
@@ -42,9 +41,8 @@ func (s *impl) decodeSliceValue(val string, tType model.Type) (ret model.Value, 
 	if err != nil {
 		return
 	}
-	tVal, _ := tType.Interface(nil)
-	sliceVal := tVal.Get().(reflect.Value)
-	sliceVal = reflect.Indirect(sliceVal)
+
+	sliceVal := []interface{}{}
 	for idx := range items {
 		itemVal, itemErr := s.Decode(items[idx], tType.Elem())
 		if itemErr != nil {
@@ -52,9 +50,10 @@ func (s *impl) decodeSliceValue(val string, tType model.Type) (ret model.Value, 
 			return
 		}
 
-		sliceVal = reflect.Append(sliceVal, itemVal.Get().(reflect.Value))
+		sliceVal = append(sliceVal, itemVal.Get())
 	}
-	tVal.Set(sliceVal)
+
+	tVal, _ := tType.Interface(sliceVal)
 	if tType.IsPtrType() {
 		tVal = tVal.Addr()
 	}

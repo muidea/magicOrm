@@ -8,15 +8,15 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-//encodeDateTimeValue get datetime value str
-func (s *impl) encodeDateTimeValue(vVal model.Value) (ret string, err error) {
+//encodeDateTime get datetime value str
+func (s *impl) encodeDateTime(vVal model.Value) (ret string, err error) {
 	val := vVal.Get().(reflect.Value)
 	val = reflect.Indirect(val)
 	switch val.Kind() {
 	case reflect.Struct:
 		ts, ok := val.Interface().(time.Time)
 		if ok {
-			ret = fmt.Sprintf("%s", ts.Format("2006-01-02 15:04:05"))
+			ret = fmt.Sprintf("%s", ts.Format("2006-01-02 15:04:05.000"))
 			if ret == "0001-01-01 00:00:00" {
 				ret = ""
 			}
@@ -30,25 +30,36 @@ func (s *impl) encodeDateTimeValue(vVal model.Value) (ret string, err error) {
 	return
 }
 
-// decodeDateTimeValue decode datetime from string
-func (s *impl) decodeDateTimeValue(val string, tType model.Type) (ret model.Value, err error) {
-	if val == "" {
-		val = "0001-01-01 00:00:00"
+// decodeDateTime decode datetime from string
+func (s *impl) decodeDateTime(val interface{}, tType model.Type) (ret model.Value, err error) {
+	rVal := reflect.ValueOf(val)
+	if rVal.Kind() == reflect.Interface {
+		rVal = rVal.Elem()
+	}
+	rVal = reflect.Indirect(rVal)
+
+	var dtVal time.Time
+	switch rVal.Kind() {
+	case reflect.String:
+		str := rVal.String()
+		if str == "" {
+			str = "0001-01-01 00:00:00"
+		}
+		dtVal, err = time.Parse("2006-01-02 15:04:05.000", str)
+	case reflect.Struct:
+		if rVal.Type().String() == "time.Time" {
+			dtVal = rVal.Interface().(time.Time)
+		} else {
+			err = fmt.Errorf("illegal dateTime value, val:%v", val)
+		}
+	default:
+		err = fmt.Errorf("illegal dateTime value, val:%v", val)
 	}
 
-	dtVal, dtErr := time.Parse("2006-01-02 15:04:05", val)
-	if dtErr != nil {
-		err = dtErr
-		return
-	}
-
-	ret, err = s.getValue(&dtVal)
 	if err != nil {
 		return
 	}
 
-	if tType.IsPtrType() {
-		ret = ret.Addr()
-	}
+	ret, err = s.getValue(&dtVal)
 	return
 }

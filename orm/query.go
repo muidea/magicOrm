@@ -81,7 +81,7 @@ func (s *impl) assignSingleModel(modelVal model.Model, queryVal resultItems) (re
 		}
 
 		if !fValue.IsNil() {
-			fVal, fErr := fType.Interface(s.stripSlashes(fType, queryVal[offset]))
+			fVal, fErr := s.modelProvider.DecodeValue(s.stripSlashes(fType, queryVal[offset]), fType)
 			if fErr != nil {
 				err = fErr
 				return
@@ -193,7 +193,7 @@ func (s *impl) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret 
 		return
 	}
 
-	fieldValue, _ := fieldType.Interface(nil)
+	fieldValue, _ := fieldType.Interface()
 	if len(values) > 0 {
 		if util.IsStructType(fieldType.GetValue()) {
 			queryVal, queryErr := s.queryRelationSingle(values[0], fieldModel)
