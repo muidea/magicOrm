@@ -25,24 +25,19 @@ func (s *impl) encodeString(vVal model.Value) (ret string, err error) {
 }
 
 //decodeString decode string from string
-func (s *impl) decodeString(val interface{}, tType model.Type) (ret model.Value, err error) {
-	rVal := reflect.ValueOf(val)
-	if rVal.Kind() == reflect.Interface {
-		rVal = rVal.Elem()
-	}
-	rVal = reflect.Indirect(rVal)
-
+func (s *impl) decodeString(tVal reflect.Value, tType model.Type, cVal reflect.Value) (ret reflect.Value, err error) {
 	var strVal string
-	switch rVal.Kind() {
+	switch tVal.Kind() {
 	case reflect.String:
-		strVal = rVal.String()
+		strVal = tVal.String()
 	default:
-		err = fmt.Errorf("illegal string value, val:%v", val)
+		err = fmt.Errorf("illegal string value, value type:%v", tVal.Type().String())
 	}
 	if err != nil {
 		return
 	}
 
-	ret, err = s.getValue(strVal)
+	cVal.SetString(strVal)
+
 	return
 }

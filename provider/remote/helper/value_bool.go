@@ -41,35 +41,30 @@ func (s *impl) encodeBool(vVal model.Value) (ret string, err error) {
 }
 
 // decodeBool decode bool from string
-func (s *impl) decodeBool(val interface{}, tType model.Type) (ret model.Value, err error) {
-	rVal := reflect.ValueOf(val)
-	if rVal.Kind() == reflect.Interface {
-		rVal = rVal.Elem()
-	}
-	rVal = reflect.Indirect(rVal)
-
+func (s *impl) decodeBool(tVal reflect.Value, tType model.Type, cVal reflect.Value) (ret reflect.Value, err error) {
 	var bVal bool
-	switch rVal.Kind() {
+	switch tVal.Kind() {
 	case reflect.String:
-		if rVal.String() == "1" {
+		if tVal.String() == "1" {
 			bVal = true
 		} else {
 			bVal = false
 		}
 	case reflect.Bool:
-		bVal = rVal.Bool()
+		bVal = tVal.Bool()
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
-		bVal = rVal.Uint() > 0
+		bVal = tVal.Uint() > 0
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
-		bVal = rVal.Int() > 0
+		bVal = tVal.Int() > 0
 	default:
-		err = fmt.Errorf("illegal boolean value, val:%v", val)
+		err = fmt.Errorf("illegal boolean value, value type:%v", tVal.Type().String())
 	}
 
 	if err != nil {
 		return
 	}
 
-	ret, err = s.getValue(bVal)
+	cVal.SetBool(bVal)
+	ret = cVal
 	return
 }

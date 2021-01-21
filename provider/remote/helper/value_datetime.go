@@ -24,29 +24,24 @@ func (s *impl) encodeDateTime(vVal model.Value) (ret string, err error) {
 }
 
 // decodeDateTime decode datetime from string
-func (s *impl) decodeDateTime(val interface{}, tType model.Type) (ret model.Value, err error) {
-	rVal := reflect.ValueOf(val)
-	if rVal.Kind() == reflect.Interface {
-		rVal = rVal.Elem()
-	}
-	rVal = reflect.Indirect(rVal)
-
+func (s *impl) decodeDateTime(tVal reflect.Value, tType model.Type, cVal reflect.Value) (ret reflect.Value, err error) {
 	var dtVal string
-	switch rVal.Kind() {
+	switch tVal.Kind() {
 	case reflect.String:
-		str := rVal.String()
+		str := tVal.String()
 		if str == "" {
 			str = "0001-01-01 00:00:00"
 		}
 		dtVal = str
 	default:
-		err = fmt.Errorf("illegal dateTime value, val:%v", val)
+		err = fmt.Errorf("illegal dateTime value, value type:%v", tVal.Type().String())
 	}
 
 	if err != nil {
 		return
 	}
 
-	ret, err = s.getValue(dtVal)
+	cVal.SetString(dtVal)
+	ret = cVal
 	return
 }

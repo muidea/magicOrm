@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
 )
 
 // encodeFloat get float value str
@@ -28,32 +27,21 @@ func (s *impl) encodeFloat(vVal model.Value) (ret string, err error) {
 }
 
 // decodeFloat decode float from string
-func (s *impl) decodeFloat(val interface{}, tType model.Type) (ret model.Value, err error) {
-	rVal := reflect.ValueOf(val)
-	if rVal.Kind() == reflect.Interface {
-		rVal = rVal.Elem()
-	}
-	rVal = reflect.Indirect(rVal)
-
+func (s *impl) decodeFloat(tVal reflect.Value, tType model.Type, cVal reflect.Value) (ret reflect.Value, err error) {
 	var fVal float64
-	switch rVal.Kind() {
+	switch tVal.Kind() {
 	case reflect.String:
-		fVal, err = strconv.ParseFloat(rVal.String(), 64)
+		fVal, err = strconv.ParseFloat(tVal.String(), 64)
 	case reflect.Float32, reflect.Float64:
-		fVal = rVal.Float()
+		fVal = tVal.Float()
 	default:
-		err = fmt.Errorf("illegal float value, val:%v", val)
+		err = fmt.Errorf("illegal float value, value type:%v", tVal.Type().String())
 	}
 	if err != nil {
 		return
 	}
 
-	if tType.GetValue() == util.TypeFloatField {
-		f32Val := float32(fVal)
-		ret, err = s.getValue(f32Val)
-		return
-	}
-
-	ret, err = s.getValue(fVal)
+	cVal.SetFloat(fVal)
+	ret = cVal
 	return
 }

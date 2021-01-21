@@ -393,3 +393,23 @@ func GetType(tType model.Type) (ret reflect.Type, err error) {
 
 	return
 }
+
+func GetTypeValue(tType model.Type) (ret reflect.Value, err error) {
+	cType, cErr := GetType(tType)
+	if cErr != nil {
+		err = cErr
+		return
+	}
+
+	if tType.IsPtrType() {
+		cType = cType.Elem()
+	}
+
+	cValue := reflect.New(cType).Elem()
+	if tType.IsPtrType() {
+		cValue = cValue.Addr()
+	}
+
+	ret = cValue
+	return
+}
