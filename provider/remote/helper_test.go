@@ -353,7 +353,7 @@ func TestSliceHelper(t *testing.T) {
 		t.Errorf("Decode failed, err:%s", vErr.Error())
 		return
 	}
-	vii, vok := vVal.Get().([]int)
+	vii, vok := vVal.Get().([]interface{})
 	if !vok {
 		t.Errorf("Decode failed")
 		return

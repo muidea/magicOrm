@@ -2,31 +2,47 @@ package helper
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/muidea/magicOrm/model"
 )
 
-// encodeStringValue get string value str
-func (s *impl) encodeStringValue(vVal model.Value) (ret string, err error) {
-	val, ok := vVal.Get().(string)
-	if ok {
-		ret = val
-		return
+// encodeString get string value str
+func (s *impl) encodeString(vVal model.Value) (ret string, err error) {
+	val := reflect.ValueOf(vVal.Get())
+	if val.Kind() == reflect.Interface {
+		val = val.Elem()
+	}
+	val = reflect.Indirect(val)
+	switch val.Kind() {
+	case reflect.String:
+		ret = val.String()
+	default:
+		err = fmt.Errorf("illegal string value, type:%s", val.Type().String())
 	}
 
-	err = fmt.Errorf("illegal string value, value:%v", vVal.Get())
 	return
 }
 
-//decodeStringValue decode string from string
-func (s *impl) decodeStringValue(val string, tType model.Type) (ret model.Value, err error) {
-	ret, err = s.getValue(val)
+//decodeString decode string from string
+func (s *impl) decodeString(val interface{}, tType model.Type) (ret model.Value, err error) {
+	rVal := reflect.ValueOf(val)
+	if rVal.Kind() == reflect.Interface {
+		rVal = rVal.Elem()
+	}
+	rVal = reflect.Indirect(rVal)
+
+	var strVal string
+	switch rVal.Kind() {
+	case reflect.String:
+		strVal = rVal.String()
+	default:
+		err = fmt.Errorf("illegal string value, val:%v", val)
+	}
 	if err != nil {
 		return
 	}
 
-	if tType.IsPtrType() {
-		ret = ret.Addr()
-	}
+	ret, err = s.getValue(strVal)
 	return
 }

@@ -3,7 +3,6 @@ package remote
 import (
 	"fmt"
 	"reflect"
-	"time"
 
 	log "github.com/cihub/seelog"
 
@@ -85,107 +84,23 @@ func updateBasicValue(basicValue interface{}, tType model.Type, value reflect.Va
 		return
 	}
 
-	assignFlag := false
-	rVal := reflect.Indirect(reflect.ValueOf(basicValue))
-	switch tType.GetValue() {
-	case util.TypeBooleanField:
-		if util.IsBool(rVal.Type()) {
-			value.SetBool(rVal.Bool())
-			assignFlag = true
-		}
-		if util.IsInteger(rVal.Type()) {
-			value.SetBool(rVal.Int() > 0)
-			assignFlag = true
-		}
-		if util.IsUInteger(rVal.Type()) {
-			value.SetBool(rVal.Uint() > 0)
-			assignFlag = true
-		}
-	case util.TypeDateTimeField:
-		if util.IsString(rVal.Type()) {
-			dtVal, dtErr := time.Parse("2006-01-02 15:04:05", rVal.String())
-			if dtErr == nil {
-				value.Set(reflect.ValueOf(dtVal))
-				assignFlag = true
-			}
-		}
-	case util.TypeFloatField, util.TypeDoubleField:
-		if util.IsFloat(rVal.Type()) {
-			value.SetFloat(rVal.Float())
-			assignFlag = true
-		}
-	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
-		if util.IsInteger(rVal.Type()) {
-			value.SetInt(rVal.Int())
-			assignFlag = true
-		}
-		if util.IsFloat(rVal.Type()) {
-			value.SetInt(int64(rVal.Float()))
-			assignFlag = true
-		}
-	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
-		if util.IsUInteger(rVal.Type()) {
-			value.SetUint(rVal.Uint())
-			assignFlag = true
-		}
-		if util.IsFloat(rVal.Type()) {
-			value.SetUint(uint64(rVal.Float()))
-			assignFlag = true
-		}
-	case util.TypeStringField:
-		if util.IsString(rVal.Type()) {
-			value.SetString(rVal.String())
-			assignFlag = true
-		}
-	default:
-		err = fmt.Errorf("illegal basic value type,type:%s, value type:%s", tType.GetName(), rVal.Type().String())
-	}
-
-	if !assignFlag {
-		err = fmt.Errorf("illegal basic value type,type:%s, value type:%s", tType.GetName(), rVal.Type().String())
+	vVal, vErr := _helper.Decode(basicValue, tType)
+	if vErr != nil {
+		err = vErr
 		return
 	}
+	rVal := reflect.Indirect(reflect.ValueOf(vVal.Get()))
+	if rVal.Kind() == reflect.Interface {
+		rVal = rVal.Elem()
+	}
+	rVal = reflect.Indirect(rVal)
 
-	ret = value
-	return
-}
+	// special for dateTime
+	if util.TypeDateTimeField == tType.GetValue() {
 
-func updateSliceBasicValue(basicValue interface{}, tType model.Type, value reflect.Value) (ret reflect.Value, err error) {
-	if util.IsNil(value) {
-		return
 	}
 
-	tType = tType.Elem()
-	sliceVal, sliceOK := basicValue.([]interface{})
-	if !sliceOK {
-		err = fmt.Errorf("illegal basic slice value")
-		return
-	}
-
-	sliceType := reflect.Indirect(value).Type()
-	if sliceType.Kind() != reflect.Slice {
-		err = fmt.Errorf("illegal basic slice value")
-		return
-	}
-	elemType := sliceType.Elem()
-	isElemPtr := elemType.Kind() == reflect.Ptr
-	if isElemPtr {
-		elemType = elemType.Elem()
-	}
-
-	for _, val := range sliceVal {
-		tVal := reflect.New(elemType).Elem()
-		tVal, tErr := updateBasicValue(val, tType, tVal)
-		if tErr != nil {
-			err = tErr
-			return
-		}
-		if isElemPtr {
-			tVal = tVal.Addr()
-		}
-
-		value = reflect.Append(value, tVal)
-	}
+	value.Set(rVal)
 
 	ret = value
 	return
@@ -220,7 +135,7 @@ func updateStructValue(objectValue *ObjectValue, vType model.Type, value reflect
 
 		for {
 			// for basic type
-			if util.IsBasicType(tType.GetValue()) {
+			if tType.IsBasic() {
 				_, err = updateBasicValue(curItem.Value, tType, curValue)
 				if err != nil {
 					log.Errorf("updateBasicValue failed, fieldName:%s", field.Name)
@@ -236,19 +151,6 @@ func updateStructValue(objectValue *ObjectValue, vType model.Type, value reflect
 					log.Errorf("convertStructItemValue failed, fieldName:%s", field.Name)
 					return
 				}
-				break
-			}
-
-			// for basic slice
-			if tType.IsBasic() {
-				val, valErr := updateSliceBasicValue(curItem.Value, tType, curValue)
-				if valErr != nil {
-					err = valErr
-					log.Errorf("updateSliceBasicValue failed, fieldName:%s", field.Name)
-					return
-				}
-
-				curValue.Set(val)
 				break
 			}
 

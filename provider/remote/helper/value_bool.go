@@ -2,37 +2,68 @@ package helper
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/muidea/magicOrm/model"
 )
 
-// encodeBoolValue get bool value str
-func (s *impl) encodeBoolValue(vVal model.Value) (ret string, err error) {
-	val, ok := vVal.Get().(bool)
-	if ok {
-		if val {
-			ret = "1"
-			return
-		}
-		ret = "0"
-		return
+// encodeBool get bool value str
+func (s *impl) encodeBool(vVal model.Value) (ret string, err error) {
+	val := reflect.ValueOf(vVal.Get())
+	if val.Kind() == reflect.Interface {
+		val = val.Elem()
 	}
-
-	err = fmt.Errorf("illegal boolean value, val:%v", vVal.Get())
+	val = reflect.Indirect(val)
+	switch val.Kind() {
+	case reflect.Bool:
+		if val.Bool() {
+			ret = "1"
+		} else {
+			ret = "0"
+		}
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
+		if val.Uint() > 0 {
+			ret = "1"
+		} else {
+			ret = "0"
+		}
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+		if val.Int() > 0 {
+			ret = "1"
+		} else {
+			ret = "0"
+		}
+	default:
+		err = fmt.Errorf("illegal boolean value, type:%s", val.Type().String())
+	}
 
 	return
 }
 
-// decodeBoolValue decode bool from string
-func (s *impl) decodeBoolValue(val string, tType model.Type) (ret model.Value, err error) {
-	bVal := false
-	switch val {
-	case "1":
-		bVal = true
-	case "0":
-		bVal = false
+// decodeBool decode bool from string
+func (s *impl) decodeBool(val interface{}, tType model.Type) (ret model.Value, err error) {
+	rVal := reflect.ValueOf(val)
+	if rVal.Kind() == reflect.Interface {
+		rVal = rVal.Elem()
+	}
+	rVal = reflect.Indirect(rVal)
+
+	var bVal bool
+	switch rVal.Kind() {
+	case reflect.String:
+		if rVal.String() == "1" {
+			bVal = true
+		} else {
+			bVal = false
+		}
+	case reflect.Bool:
+		bVal = rVal.Bool()
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
+		bVal = rVal.Uint() > 0
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+		bVal = rVal.Int() > 0
 	default:
-		err = fmt.Errorf("illegal boolean value, val:%s", val)
+		err = fmt.Errorf("illegal boolean value, val:%v", val)
 	}
 
 	if err != nil {
@@ -40,12 +71,5 @@ func (s *impl) decodeBoolValue(val string, tType model.Type) (ret model.Value, e
 	}
 
 	ret, err = s.getValue(bVal)
-	if err != nil {
-		return
-	}
-
-	if tType.IsPtrType() {
-		ret = ret.Addr()
-	}
 	return
 }

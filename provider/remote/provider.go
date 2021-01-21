@@ -227,5 +227,11 @@ func EncodeValue(tVal model.Value, tType model.Type, mCache model.Cache) (ret st
 }
 
 func DecodeValue(tVal interface{}, tType model.Type, mCache model.Cache) (ret model.Value, err error) {
+	if tType.IsBasic() {
+		ret, err = _helper.Decode(tVal, tType)
+		return
+	}
+
+	err = fmt.Errorf("unexecption type, type name:%s", tType.GetName())
 	return
 }

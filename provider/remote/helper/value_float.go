@@ -2,58 +2,58 @@ package helper
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
 )
 
-// encodeFloatValue get float value str
-func (s *impl) encodeFloatValue(vVal model.Value) (ret string, err error) {
-	val, ok := vVal.Get().(float64)
-	if ok {
-		ret = fmt.Sprintf("%f", val)
-		return
+// encodeFloat get float value str
+func (s *impl) encodeFloat(vVal model.Value) (ret string, err error) {
+	val := reflect.ValueOf(vVal.Get())
+	if val.Kind() == reflect.Interface {
+		val = val.Elem()
+	}
+	val = reflect.Indirect(val)
+
+	switch val.Kind() {
+	case reflect.Float32, reflect.Float64:
+		ret = fmt.Sprintf("%f", val.Float())
+	default:
+		err = fmt.Errorf("illegal float value, type:%s", val.Type().String())
 	}
 
-	err = fmt.Errorf("illegal float value, val:%v", vVal.Get())
 	return
 }
 
-// decodeFloatValue decode float from string
-func (s *impl) decodeFloatValue(val string, tType model.Type) (ret model.Value, err error) {
-	if tType.GetValue() == util.TypeFloatField {
-		fVal, fErr := strconv.ParseFloat(val, 32)
-		if fErr != nil {
-			err = fErr
-			return
-		}
-
-		f32Val := float32(fVal)
-		ret, err = s.getValue(f32Val)
-		if err != nil {
-			return
-		}
-
-		if tType.IsPtrType() {
-			ret = ret.Addr()
-		}
-		return
+// decodeFloat decode float from string
+func (s *impl) decodeFloat(val interface{}, tType model.Type) (ret model.Value, err error) {
+	rVal := reflect.ValueOf(val)
+	if rVal.Kind() == reflect.Interface {
+		rVal = rVal.Elem()
 	}
+	rVal = reflect.Indirect(rVal)
 
-	fVal, fErr := strconv.ParseFloat(val, 64)
-	if fErr != nil {
-		err = fErr
-		return
+	var fVal float64
+	switch rVal.Kind() {
+	case reflect.String:
+		fVal, err = strconv.ParseFloat(rVal.String(), 64)
+	case reflect.Float32, reflect.Float64:
+		fVal = rVal.Float()
+	default:
+		err = fmt.Errorf("illegal float value, val:%v", val)
 	}
-
-	ret, err = s.getValue(fVal)
 	if err != nil {
 		return
 	}
 
-	if tType.IsPtrType() {
-		ret = ret.Addr()
+	if tType.GetValue() == util.TypeFloatField {
+		f32Val := float32(fVal)
+		ret, err = s.getValue(f32Val)
+		return
 	}
+
+	ret, err = s.getValue(fVal)
 	return
 }

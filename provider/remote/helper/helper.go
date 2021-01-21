@@ -12,7 +12,7 @@ type ElemDependValueFunc func(model.Value) ([]model.Value, error)
 
 type Helper interface {
 	Encode(vVal model.Value, tType model.Type) (ret string, err error)
-	Decode(val string, tType model.Type) (ret model.Value, err error)
+	Decode(val interface{}, tType model.Type) (ret model.Value, err error)
 }
 
 type impl struct {
@@ -32,19 +32,19 @@ func (s *impl) Encode(vVal model.Value, tType model.Type) (ret string, err error
 
 	switch tType.GetValue() {
 	case util.TypeBooleanField:
-		ret, err = s.encodeBoolValue(vVal)
+		ret, err = s.encodeBool(vVal)
 	case util.TypeDateTimeField:
-		ret, err = s.encodeDateTimeValue(vVal)
+		ret, err = s.encodeDateTime(vVal)
 	case util.TypeFloatField, util.TypeDoubleField:
-		ret, err = s.encodeFloatValue(vVal)
+		ret, err = s.encodeFloat(vVal)
 	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
-		ret, err = s.encodeIntValue(vVal)
+		ret, err = s.encodeInt(vVal)
 	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
-		ret, err = s.encodeUintValue(vVal)
+		ret, err = s.encodeUint(vVal)
 	case util.TypeSliceField:
-		ret, err = s.encodeSliceValue(vVal, tType)
+		ret, err = s.encodeSlice(vVal, tType)
 	case util.TypeStringField:
-		ret, err = s.encodeStringValue(vVal)
+		ret, err = s.encodeString(vVal)
 	default:
 		err = fmt.Errorf("illegal type, type:%s", tType.GetName())
 	}
@@ -52,7 +52,7 @@ func (s *impl) Encode(vVal model.Value, tType model.Type) (ret string, err error
 	return
 }
 
-func (s *impl) Decode(val string, tType model.Type) (ret model.Value, err error) {
+func (s *impl) Decode(val interface{}, tType model.Type) (ret model.Value, err error) {
 	if !tType.IsBasic() {
 		err = fmt.Errorf("illegal value type, type:%s", tType.GetName())
 		return
@@ -60,21 +60,25 @@ func (s *impl) Decode(val string, tType model.Type) (ret model.Value, err error)
 
 	switch tType.GetValue() {
 	case util.TypeBooleanField:
-		ret, err = s.decodeBoolValue(val, tType)
+		ret, err = s.decodeBool(val, tType)
 	case util.TypeDateTimeField:
-		ret, err = s.decodeDateTimeValue(val, tType)
+		ret, err = s.decodeDateTime(val, tType)
 	case util.TypeFloatField, util.TypeDoubleField:
-		ret, err = s.decodeFloatValue(val, tType)
+		ret, err = s.decodeFloat(val, tType)
 	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
-		ret, err = s.decodeIntValue(val, tType)
+		ret, err = s.decodeInt(val, tType)
 	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
-		ret, err = s.decodeUintValue(val, tType)
+		ret, err = s.decodeUint(val, tType)
 	case util.TypeSliceField:
-		ret, err = s.decodeSliceValue(val, tType)
+		ret, err = s.decodeSlice(val, tType)
 	case util.TypeStringField:
-		ret, err = s.decodeStringValue(val, tType)
+		ret, err = s.decodeString(val, tType)
 	default:
 		err = fmt.Errorf("illegal type, type:%s", tType.GetName())
+	}
+
+	if tType.IsPtrType() {
+		ret = ret.Addr()
 	}
 
 	return

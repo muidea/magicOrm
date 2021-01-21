@@ -2,156 +2,132 @@ package helper
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
 )
 
-//encodeIntValue get int value str
-func (s *impl) encodeIntValue(vVal model.Value) (ret string, err error) {
-	i8Val, ok := vVal.Get().(int8)
-	if ok {
-		ret = fmt.Sprintf("%d", i8Val)
-		return
+//encodeInt get int value str
+func (s *impl) encodeInt(vVal model.Value) (ret string, err error) {
+	val := reflect.ValueOf(vVal.Get())
+	if val.Kind() == reflect.Interface {
+		val = val.Elem()
 	}
-	i16Val, ok := vVal.Get().(int16)
-	if ok {
-		ret = fmt.Sprintf("%d", i16Val)
-		return
-	}
-	i32Val, ok := vVal.Get().(int32)
-	if ok {
-		ret = fmt.Sprintf("%d", i32Val)
-		return
-	}
-	iVal, ok := vVal.Get().(int)
-	if ok {
-		ret = fmt.Sprintf("%d", iVal)
-		return
-	}
-	i64Val, ok := vVal.Get().(int64)
-	if ok {
-		ret = fmt.Sprintf("%d", i64Val)
-		return
-	}
-	fVal, ok := vVal.Get().(float64)
-	if ok {
-		ret = fmt.Sprintf("%d", int64(fVal))
-		return
+	val = reflect.Indirect(val)
+	switch val.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		ret = fmt.Sprintf("%d", val.Int())
+	case reflect.Float32, reflect.Float64:
+		ret = fmt.Sprintf("%d", int64(val.Float()))
+	default:
+		err = fmt.Errorf("illegal int value, type:%s", val.Type().String())
 	}
 
-	err = fmt.Errorf("illegal int value, val:%v", vVal.Get())
 	return
 }
 
-// decodeIntValue decode int from string
-func (s *impl) decodeIntValue(val string, tType model.Type) (ret model.Value, err error) {
-	fVal, fErr := strconv.ParseFloat(val, 64)
-	if fErr != nil {
-		err = fErr
+// decodeInt decode int from string
+func (s *impl) decodeInt(val interface{}, tType model.Type) (ret model.Value, err error) {
+	rVal := reflect.ValueOf(val)
+	if rVal.Kind() == reflect.Interface {
+		rVal = rVal.Elem()
+	}
+	rVal = reflect.Indirect(rVal)
+
+	var iVal int64
+	switch rVal.Kind() {
+	case reflect.String:
+		iVal, err = strconv.ParseInt(rVal.String(), 0, 64)
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+		iVal = rVal.Int()
+	default:
+		err = fmt.Errorf("illegal int value, val:%v", val)
+	}
+	if err != nil {
 		return
 	}
 
 	switch tType.GetValue() {
 	case util.TypeBitField:
-		i8Val := int8(fVal)
+		i8Val := int8(iVal)
 		ret, err = s.getValue(i8Val)
 	case util.TypeSmallIntegerField:
-		i16Val := int16(fVal)
+		i16Val := int16(iVal)
 		ret, err = s.getValue(i16Val)
 	case util.TypeInteger32Field:
-		i32Val := int32(fVal)
+		i32Val := int32(iVal)
 		ret, err = s.getValue(i32Val)
 	case util.TypeIntegerField:
-		i32Val := int(fVal)
+		i32Val := int(iVal)
 		ret, err = s.getValue(i32Val)
 	case util.TypeBigIntegerField:
-		ret, err = s.getValue(fVal)
+		ret, err = s.getValue(iVal)
 	default:
 		err = fmt.Errorf("illegal integer type, type:%s", tType.GetName())
 	}
 
+	return
+}
+
+//encodeUint get uint value str
+func (s *impl) encodeUint(vVal model.Value) (ret string, err error) {
+	val := reflect.ValueOf(vVal.Get())
+	if val.Kind() == reflect.Interface {
+		val = val.Elem()
+	}
+	val = reflect.Indirect(val)
+	switch val.Kind() {
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		ret = fmt.Sprintf("%d", val.Uint())
+	case reflect.Float32, reflect.Float64:
+		ret = fmt.Sprintf("%d", uint64(val.Float()))
+	default:
+		err = fmt.Errorf("illegal uint value, type:%s", val.Type().String())
+	}
+
+	return
+}
+
+// decodeUint decode uint from string
+func (s *impl) decodeUint(val interface{}, tType model.Type) (ret model.Value, err error) {
+	rVal := reflect.ValueOf(val)
+	if rVal.Kind() == reflect.Interface {
+		rVal = rVal.Elem()
+	}
+	rVal = reflect.Indirect(rVal)
+
+	var uVal uint64
+	switch rVal.Kind() {
+	case reflect.String:
+		uVal, err = strconv.ParseUint(rVal.String(), 0, 64)
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
+		uVal = rVal.Uint()
+	default:
+		err = fmt.Errorf("illegal uint value, val:%v", val)
+	}
 	if err != nil {
 		return
 	}
 
-	if tType.IsPtrType() {
-		ret = ret.Addr()
-	}
-	return
-}
-
-//encodeUintValue get uint value str
-func (s *impl) encodeUintValue(vVal model.Value) (ret string, err error) {
-	u8Val, ok := vVal.Get().(uint8)
-	if ok {
-		ret = fmt.Sprintf("%d", u8Val)
-		return
-	}
-	u16Val, ok := vVal.Get().(uint16)
-	if ok {
-		ret = fmt.Sprintf("%d", u16Val)
-		return
-	}
-	u32Val, ok := vVal.Get().(uint32)
-	if ok {
-		ret = fmt.Sprintf("%d", u32Val)
-		return
-	}
-	uVal, ok := vVal.Get().(uint)
-	if ok {
-		ret = fmt.Sprintf("%d", uVal)
-		return
-	}
-	u64Val, ok := vVal.Get().(uint64)
-	if ok {
-		ret = fmt.Sprintf("%d", u64Val)
-		return
-	}
-	fVal, ok := vVal.Get().(float64)
-	if ok {
-		ret = fmt.Sprintf("%d", uint64(fVal))
-		return
-	}
-
-	err = fmt.Errorf("illegal uint value, value:%v", vVal.Get())
-
-	return
-}
-
-// decodeUintValue decode uint from string
-func (s *impl) decodeUintValue(val string, tType model.Type) (ret model.Value, err error) {
-	fVal, fErr := strconv.ParseFloat(val, 64)
-	if fErr != nil {
-		err = fErr
-		return
-	}
 	switch tType.GetValue() {
 	case util.TypePositiveBitField:
-		u8Val := uint8(fVal)
+		u8Val := uint8(uVal)
 		ret, err = s.getValue(u8Val)
 	case util.TypePositiveSmallIntegerField:
-		u16Val := uint16(fVal)
+		u16Val := uint16(uVal)
 		ret, err = s.getValue(u16Val)
 	case util.TypePositiveInteger32Field:
-		u32Val := uint32(fVal)
+		u32Val := uint32(uVal)
 		ret, err = s.getValue(u32Val)
 	case util.TypePositiveIntegerField:
-		u32Val := uint(fVal)
+		u32Val := uint(uVal)
 		ret, err = s.getValue(u32Val)
 	case util.TypePositiveBigIntegerField:
-		ret, err = s.getValue(fVal)
+		ret, err = s.getValue(uVal)
 	default:
 		err = fmt.Errorf("illegal unsigned integer type, type:%s", tType.GetName())
-	}
-
-	if err != nil {
-		return
-	}
-
-	if tType.IsPtrType() {
-		ret = ret.Addr()
 	}
 	return
 }
