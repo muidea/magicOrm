@@ -37,7 +37,12 @@ func (s *impl) decodeString(tVal reflect.Value, tType model.Type, cVal reflect.V
 		return
 	}
 
+	cVal = reflect.Indirect(cVal)
 	cVal.SetString(strVal)
+	if tType.IsPtrType() {
+		cVal = cVal.Addr()
+	}
 
+	ret = cVal
 	return
 }

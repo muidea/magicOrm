@@ -41,7 +41,11 @@ func (s *impl) decodeDateTime(tVal reflect.Value, tType model.Type, cVal reflect
 		return
 	}
 
+	cVal = reflect.Indirect(cVal)
 	cVal.SetString(dtVal)
+	if tType.IsPtrType() {
+		cVal = cVal.Addr()
+	}
 	ret = cVal
 	return
 }

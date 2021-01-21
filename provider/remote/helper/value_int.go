@@ -44,7 +44,11 @@ func (s *impl) decodeInt(tVal reflect.Value, tType model.Type, cVal reflect.Valu
 		return
 	}
 
+	cVal = reflect.Indirect(cVal)
 	cVal.SetInt(iVal)
+	if tType.IsPtrType() {
+		cVal = cVal.Addr()
+	}
 	ret = cVal
 
 	return
@@ -86,7 +90,11 @@ func (s *impl) decodeUint(tVal reflect.Value, tType model.Type, cVal reflect.Val
 		return
 	}
 
+	cVal = reflect.Indirect(cVal)
 	cVal.SetUint(uVal)
+	if tType.IsPtrType() {
+		cVal = cVal.Addr()
+	}
 	ret = cVal
 	return
 }

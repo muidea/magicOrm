@@ -41,7 +41,11 @@ func (s *impl) decodeFloat(tVal reflect.Value, tType model.Type, cVal reflect.Va
 		return
 	}
 
+	cVal = reflect.Indirect(cVal)
 	cVal.SetFloat(fVal)
+	if tType.IsPtrType() {
+		cVal = cVal.Addr()
+	}
 	ret = cVal
 	return
 }

@@ -64,7 +64,11 @@ func (s *impl) decodeBool(tVal reflect.Value, tType model.Type, cVal reflect.Val
 		return
 	}
 
+	cVal = reflect.Indirect(cVal)
 	cVal.SetBool(bVal)
+	if tType.IsPtrType() {
+		cVal = cVal.Addr()
+	}
 	ret = cVal
 	return
 }
