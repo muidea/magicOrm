@@ -6,7 +6,6 @@ import (
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
 )
 
 // encodeSlice get slice value str
@@ -34,21 +33,6 @@ func (s *impl) encodeSlice(vVal model.Value, tType model.Type) (ret string, err 
 	}
 
 	ret = string(data)
-	return
-}
-
-func getSliceTypeDeclare(tType model.Type) (ret interface{}, err error) {
-	switch tType.GetValue() {
-	case util.TypeBooleanField:
-	case util.TypeDateTimeField:
-	case util.TypeFloatField, util.TypeDoubleField:
-	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
-	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
-	case util.TypeStringField:
-	default:
-		err = fmt.Errorf("illegal type, type:%s", tType.GetName())
-	}
-
 	return
 }
 
