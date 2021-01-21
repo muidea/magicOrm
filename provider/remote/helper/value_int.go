@@ -42,6 +42,8 @@ func (s *impl) decodeInt(val interface{}, tType model.Type) (ret model.Value, er
 		iVal, err = strconv.ParseInt(rVal.String(), 0, 64)
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
 		iVal = rVal.Int()
+	case reflect.Float32, reflect.Float64:
+		iVal = int64(rVal.Float())
 	default:
 		err = fmt.Errorf("illegal int value, val:%v", val)
 	}
@@ -104,6 +106,8 @@ func (s *impl) decodeUint(val interface{}, tType model.Type) (ret model.Value, e
 		uVal, err = strconv.ParseUint(rVal.String(), 0, 64)
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
 		uVal = rVal.Uint()
+	case reflect.Float32, reflect.Float64:
+		uVal = uint64(rVal.Float())
 	default:
 		err = fmt.Errorf("illegal uint value, val:%v", val)
 	}

@@ -8,6 +8,7 @@ import (
 
 	log "github.com/cihub/seelog"
 
+	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
 )
 
@@ -153,6 +154,63 @@ func encodeDateTime(val reflect.Value) (ret string, err error) {
 		err = fmt.Errorf("illegal dateTime value, type:%s", val.Type().String())
 	}
 
+	return
+}
+
+func decodeDateTime(val string, tType model.Type) (ret reflect.Value, err error) {
+	if util.TypeSliceField == tType.GetValue() {
+		if val == "" {
+			return
+		}
+
+		items := []string{}
+		err = json.Unmarshal([]byte(val), &items)
+		if err != nil {
+			return
+		}
+
+		eType := tType.Elem()
+		if eType.IsPtrType() {
+			dtSliceVal := []*time.Time{}
+			for _, v := range items {
+				dtVal, dtErr := time.Parse("2006-01-02 15:04:05", v)
+				if dtErr != nil {
+					err = dtErr
+					return
+				}
+
+				dtSliceVal = append(dtSliceVal, &dtVal)
+			}
+
+			ret = reflect.ValueOf(dtSliceVal)
+			return
+		}
+
+		dtSliceVal := []time.Time{}
+		for _, v := range items {
+			dtVal, dtErr := time.Parse("2006-01-02 15:04:05", v)
+			if dtErr != nil {
+				err = dtErr
+				return
+			}
+
+			dtSliceVal = append(dtSliceVal, dtVal)
+		}
+		ret = reflect.ValueOf(dtSliceVal)
+		return
+	}
+
+	if val == "" {
+		val = "0001-01-01 00:00:00"
+	}
+
+	dtVal, dtErr := time.Parse("2006-01-02 15:04:05", val)
+	if dtErr != nil {
+		err = dtErr
+		return
+	}
+
+	ret = reflect.ValueOf(dtVal)
 	return
 }
 

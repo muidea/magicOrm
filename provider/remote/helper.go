@@ -84,23 +84,35 @@ func updateBasicValue(basicValue interface{}, tType model.Type, value reflect.Va
 		return
 	}
 
-	vVal, vErr := _helper.Decode(basicValue, tType)
-	if vErr != nil {
-		err = vErr
-		return
-	}
-	rVal := reflect.Indirect(reflect.ValueOf(vVal.Get()))
-	if rVal.Kind() == reflect.Interface {
-		rVal = rVal.Elem()
-	}
-	rVal = reflect.Indirect(rVal)
-
 	// special for dateTime
-	if util.TypeDateTimeField == tType.GetValue() {
+	if util.TypeDateTimeField == tType.Elem().GetValue() {
+		strVal, strOK := basicValue.(string)
+		if !strOK {
+			err = fmt.Errorf("illegal dateTime value")
+			return
+		}
 
+		rVal, rErr := decodeDateTime(strVal, tType)
+		if rErr != nil {
+			err = rErr
+			return
+		}
+
+		value.Set(rVal)
+	} else {
+		vVal, vErr := _helper.Decode(basicValue, tType)
+		if vErr != nil {
+			err = vErr
+			return
+		}
+		rVal := reflect.Indirect(reflect.ValueOf(vVal.Get()))
+		if rVal.Kind() == reflect.Interface {
+			rVal = rVal.Elem()
+		}
+
+		rVal = reflect.Indirect(rVal)
+		value.Set(rVal)
 	}
-
-	value.Set(rVal)
 
 	ret = value
 	return
