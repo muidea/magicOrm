@@ -177,7 +177,13 @@ func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, helper 
 	}
 
 	pkField := vModel.GetPrimaryField()
-	ret, err = helper.Encode(pkField.GetValue(), pkField.GetType())
+	tType := pkField.GetType()
+	tVal := pkField.GetValue()
+	if tVal.IsNil() {
+		return
+	}
+
+	ret, err = helper.Encode(tVal, tType)
 	return
 }
 
