@@ -49,6 +49,8 @@ func (s *impl) decodeStringSlice(tVal reflect.Value, tType model.Type, cVal refl
 		return
 	}
 
+	cVal = reflect.Indirect(cVal)
+	sVal = reflect.Indirect(sVal)
 	eType := tType.Elem()
 	for idx := range items {
 		eVal, eErr := GetTypeValue(eType)
@@ -67,7 +69,9 @@ func (s *impl) decodeStringSlice(tVal reflect.Value, tType model.Type, cVal refl
 		sVal = reflect.Append(sVal, eVal)
 	}
 	cVal.Set(sVal)
-
+	if tType.IsPtrType() {
+		cVal = cVal.Addr()
+	}
 	ret = cVal
 	return
 }
@@ -79,6 +83,8 @@ func (s *impl) decodeReflectSlice(tVal reflect.Value, tType model.Type, cVal ref
 		return
 	}
 
+	cVal = reflect.Indirect(cVal)
+	sVal = reflect.Indirect(sVal)
 	eType := tType.Elem()
 	for idx := 0; idx < tVal.Len(); idx++ {
 		eVal, eErr := GetTypeValue(eType)
@@ -96,6 +102,9 @@ func (s *impl) decodeReflectSlice(tVal reflect.Value, tType model.Type, cVal ref
 		sVal = reflect.Append(sVal, eVal)
 	}
 	cVal.Set(sVal)
+	if tType.IsPtrType() {
+		cVal = cVal.Addr()
+	}
 
 	ret = cVal
 	return
