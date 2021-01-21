@@ -239,14 +239,19 @@ func TestRemoteReference(t *testing.T) {
 	fValue2 := float32(0.0)
 	var ts2 time.Time
 	var bVal bool
-	var strArray2 []string
-	var ptrArray2 []*string
+	strArray2 := []string{}
+	ptrArray2 := []*string{}
 	s2 := &Reference{
 		ID:          s1.ID,
 		FValue:      &fValue2,
 		TimeStamp:   &ts2,
 		Flag:        &bVal,
+		IArray:      []int{},
+		FArray:      []float32{},
+		StrArray:    []string{},
+		BArray:      []bool{},
 		PtrArray:    &strArray2,
+		StrPtrArray: []*string{},
 		PtrStrArray: &ptrArray2,
 	}
 	s2Value, s2Err := getObjectValue(s2)
@@ -294,7 +299,7 @@ func TestRemoteReference(t *testing.T) {
 		t.Errorf("query reference failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateEntity(s4Value, s4)
+	err = remote.UpdateEntity(s4Model.Interface(true).(*remote.ObjectValue), s4)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return

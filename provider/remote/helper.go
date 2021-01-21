@@ -86,13 +86,17 @@ func updateBasicValue(basicValue interface{}, tType model.Type, value reflect.Va
 
 	// special for dateTime
 	if util.TypeDateTimeField == tType.Elem().GetValue() {
-		strVal, strOK := basicValue.(string)
-		if !strOK {
+		rValue := reflect.ValueOf(basicValue)
+		rValue = reflect.Indirect(rValue)
+		if rValue.Kind() == reflect.Interface {
+			rValue = rValue.Elem()
+		}
+		rValue = reflect.Indirect(rValue)
+		if rValue.Kind() != reflect.String {
 			err = fmt.Errorf("illegal dateTime value")
 			return
 		}
-
-		rVal, rErr := decodeDateTime(strVal, tType)
+		rVal, rErr := decodeDateTime(rValue.String(), tType)
 		if rErr != nil {
 			err = rErr
 			return

@@ -220,51 +220,73 @@ func getFieldValue(fieldName string, itemType *TypeImpl, fieldValue reflect.Valu
 		return
 	}
 
-	switch itemType.GetValue() {
-	case util.TypeBooleanField:
-		ret = &ItemValue{Name: fieldName, Value: fieldValue.Bool()}
-	case util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField:
-		ret = &ItemValue{Name: fieldName, Value: float64(fieldValue.Int())}
-	case util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField:
-		ret = &ItemValue{Name: fieldName, Value: float64(fieldValue.Uint())}
-	case util.TypeFloatField, util.TypeDoubleField:
-		ret = &ItemValue{Name: fieldName, Value: fieldValue.Float()}
-	case util.TypeStringField:
-		ret = &ItemValue{Name: fieldName, Value: fieldValue.String()}
-	case util.TypeDateTimeField:
-		dtVal, dtErr := encodeDateTime(fieldValue)
-		if dtErr != nil {
-			err = dtErr
-			log.Errorf("encode dateTime failed, err:%s", err.Error())
+	fieldValue = reflect.Indirect(fieldValue)
+	if itemType.IsBasic() {
+		if util.TypeDateTimeField == itemType.GetValue() {
+			dtVal, dtErr := encodeDateTime(fieldValue)
+			if dtErr != nil {
+				err = dtErr
+				log.Errorf("encode dateTime failed, err:%s", err.Error())
+				return
+			}
+
+			if itemType.Elem().IsPtrType() {
+				ret = &ItemValue{Name: fieldName, Value: &dtVal}
+				return
+			}
+			ret = &ItemValue{Name: fieldName, Value: dtVal}
 			return
 		}
 
-		ret = &ItemValue{Name: fieldName, Value: dtVal}
-	case util.TypeStructField:
-		objVal, objErr := GetObjectValue(fieldValue.Interface())
-		if objErr != nil {
-			err = objErr
-			log.Errorf("GetObjectValue failed, raw type:%s, err:%s", fieldValue.Type().String(), err.Error())
-			return
-		}
-
-		ret = &ItemValue{Name: fieldName, Value: objVal}
-	default:
-		err = fmt.Errorf("illegal item type, type:%s", itemType.GetName())
+		ret = &ItemValue{Name: fieldName, Value: fieldValue.Interface()}
+		return
 	}
 
+	objVal, objErr := GetObjectValue(fieldValue.Interface())
+	if objErr != nil {
+		err = objErr
+		log.Errorf("GetObjectValue failed, raw type:%s, err:%s", fieldValue.Type().String(), err.Error())
+		return
+	}
+
+	ret = &ItemValue{Name: fieldName, Value: objVal}
 	return
 }
 
 func getSliceFieldValue(fieldName string, itemType *TypeImpl, fieldValue reflect.Value) (ret *ItemValue, err error) {
-	sliceVal := []interface{}{}
-	sliceObjectVal := []*ObjectValue{}
 	ret = &ItemValue{Name: fieldName}
 	if util.IsNil(fieldValue) {
 		return
 	}
 
 	elemType := itemType.Elem()
+	if elemType.IsBasic() {
+		if util.TypeDateTimeField != elemType.GetValue() {
+			ret.Value = fieldValue.Interface()
+			return
+		}
+
+		sliceVal := []string{}
+		fieldValue = reflect.Indirect(fieldValue)
+		for idx := 0; idx < fieldValue.Len(); idx++ {
+			itemVal := fieldValue.Index(idx)
+			if util.IsNil(itemVal) {
+				continue
+			}
+			dtVal, dtErr := encodeDateTime(itemVal)
+			if dtErr != nil {
+				err = dtErr
+				log.Errorf("encodeDateTime failed, err:%s", err.Error())
+				return
+			}
+			sliceVal = append(sliceVal, dtVal)
+		}
+
+		ret.Value = sliceVal
+		return
+	}
+
+	sliceObjectVal := []*ObjectValue{}
 	fieldValue = reflect.Indirect(fieldValue)
 	for idx := 0; idx < fieldValue.Len(); idx++ {
 		itemVal := fieldValue.Index(idx)
@@ -273,48 +295,16 @@ func getSliceFieldValue(fieldName string, itemType *TypeImpl, fieldValue reflect
 		}
 
 		itemVal = reflect.Indirect(itemVal)
-		switch elemType.GetValue() {
-		case util.TypeBooleanField,
-			util.TypeBitField, util.TypeSmallIntegerField, util.TypeInteger32Field, util.TypeIntegerField, util.TypeBigIntegerField,
-			util.TypePositiveBitField, util.TypePositiveSmallIntegerField, util.TypePositiveInteger32Field, util.TypePositiveIntegerField, util.TypePositiveBigIntegerField,
-			util.TypeFloatField, util.TypeDoubleField,
-			util.TypeStringField:
-			sliceVal = append(sliceVal, itemVal.Interface())
-		case util.TypeDateTimeField:
-			dtVal, dtErr := encodeDateTime(itemVal)
-			if dtErr != nil {
-				err = dtErr
-				log.Errorf("encodeDateTime failed, err:%s", err.Error())
-				return
-			}
-			sliceVal = append(sliceVal, dtVal)
-		case util.TypeStructField:
-			objVal, objErr := GetObjectValue(itemVal.Interface())
-			if objErr != nil {
-				err = objErr
-				log.Errorf("encodeDateTimeValue failed, err:%s", err.Error())
-				return
-			}
-
-			sliceObjectVal = append(sliceObjectVal, objVal)
-		case util.TypeSliceField:
-			err = fmt.Errorf("illegal slice item type, type:%s", elemType.GetName())
-		default:
-			err = fmt.Errorf("illegal slice item type, type:%s", elemType.GetName())
-		}
-
-		if err != nil {
-			log.Errorf("getSliceFieldValue failed, err:%s", err.Error())
+		objVal, objErr := GetObjectValue(itemVal.Interface())
+		if objErr != nil {
+			err = objErr
+			log.Errorf("encodeDateTimeValue failed, err:%s", err.Error())
 			return
 		}
-	}
 
-	if util.IsStructType(elemType.GetValue()) {
-		ret.Value = &SliceObjectValue{Name: elemType.GetName(), PkgPath: elemType.GetPkgPath(), Values: sliceObjectVal}
-		return
+		sliceObjectVal = append(sliceObjectVal, objVal)
 	}
-
-	ret.Value = sliceVal
+	ret.Value = &SliceObjectValue{Name: elemType.GetName(), PkgPath: elemType.GetPkgPath(), Values: sliceObjectVal}
 	return
 }
 

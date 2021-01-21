@@ -89,6 +89,11 @@ func (s *impl) Decode(val interface{}, tType model.Type) (ret model.Value, err e
 }
 
 func (s *impl) decodeInternal(tVal reflect.Value, tType model.Type, cVal reflect.Value) (ret reflect.Value, err error) {
+	if tVal.Kind() == reflect.Interface {
+		tVal = tVal.Elem()
+	}
+
+	tVal = reflect.Indirect(tVal)
 	switch tType.GetValue() {
 	case util.TypeBooleanField:
 		ret, err = s.decodeBool(tVal, tType, cVal)
