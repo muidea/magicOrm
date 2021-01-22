@@ -520,7 +520,7 @@ func TestRemoteCompose(t *testing.T) {
 		return
 	}
 	c3Model, c3Err = o1.Query(c3Model)
-	if err != nil {
+	if c3Err != nil {
 		t.Errorf("query compose failed, err:%s", err.Error())
 		return
 	}

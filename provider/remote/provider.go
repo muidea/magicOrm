@@ -118,11 +118,17 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 }
 
 func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
-	val, ok := vVal.Get().(*SliceObjectValue)
+	sVal, ok := vVal.Get().(*SliceObjectValue)
 	if ok {
-		for _, item := range val.Values {
+		for _, item := range sVal.Values {
 			ret = append(ret, newValue(item))
 		}
+		return
+	}
+
+	val, ok := vVal.Get().(*ObjectValue)
+	if ok {
+		ret = append(ret, newValue(val))
 		return
 	}
 
@@ -180,6 +186,7 @@ func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, helper 
 	tType := pkField.GetType()
 	tVal := pkField.GetValue()
 	if tVal.IsNil() {
+		ret = "0"
 		return
 	}
 
