@@ -140,16 +140,15 @@ func updateStructValue(objectValue *ObjectValue, vType model.Type, value reflect
 		return
 	}
 
-	value = reflect.Indirect(value)
-	entityType := value.Type()
-	entityValue := reflect.New(entityType).Elem()
+	entityValue := reflect.Indirect(value)
+	entityType := entityValue.Type()
 	fieldNum := entityType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		curItem := objectValue.Items[idx]
 		if curItem.Value == nil {
 			continue
 		}
-		curValue := reflect.Indirect(entityValue.Field(idx))
+		curValue := entityValue.Field(idx)
 		if util.IsNil(curValue) {
 			continue
 		}
@@ -201,12 +200,12 @@ func updateStructValue(objectValue *ObjectValue, vType model.Type, value reflect
 			break
 		}
 	}
-	value.Set(entityValue)
+
 	if vType.IsPtrType() {
-		value = value.Addr()
+		entityValue = entityValue.Addr()
 	}
 
-	ret = value
+	ret = entityValue
 	return
 }
 
@@ -217,9 +216,8 @@ func updateSliceStructValue(sliceObjectValue *SliceObjectValue, vType model.Type
 		return
 	}
 
-	value = reflect.Indirect(value)
-	entityType := value.Type()
-	entityValue := reflect.New(entityType).Elem()
+	entityValue := reflect.Indirect(value)
+	entityType := entityValue.Type()
 	elemType := entityType.Elem()
 	isPtr := elemType.Kind() == reflect.Ptr
 	if isPtr {
@@ -236,12 +234,11 @@ func updateSliceStructValue(sliceObjectValue *SliceObjectValue, vType model.Type
 		}
 		entityValue = reflect.Append(entityValue, elemVal)
 	}
-	value.Set(entityValue)
 
 	if vType.IsPtrType() {
-		value = value.Addr()
+		entityValue = entityValue.Addr()
 	}
 
-	ret = value
+	ret = entityValue
 	return
 }

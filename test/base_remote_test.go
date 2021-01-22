@@ -327,28 +327,25 @@ func TestRemoteCompose(t *testing.T) {
 
 	provider := orm.GetProvider(remoteOwner)
 
-	s1 := &Simple{}
-	s1Def, s1Err := remote.GetObject(s1)
-	if s1Err != nil {
-		t.Errorf("GetObject failed, err:%s", s1Err.Error())
+	simpleDef, simpleErr := remote.GetObject(&Simple{})
+	if simpleErr != nil {
+		t.Errorf("GetObject failed, err:%s", simpleErr.Error())
 		return
 	}
 
-	r1 := &Reference{}
-	r1Def, r1Err := remote.GetObject(r1)
-	if r1Err != nil {
-		t.Errorf("GetObject failed, err:%s", r1Err.Error())
+	referenceDef, referenceErr := remote.GetObject(&Reference{})
+	if referenceErr != nil {
+		t.Errorf("GetObject failed, err:%s", referenceErr.Error())
 		return
 	}
 
-	c1 := &Compose{}
-	c1Def, c1Err := remote.GetObject(c1)
-	if c1Err != nil {
-		t.Errorf("GetObject failed, err:%s", c1Err.Error())
+	composeDef, composeErr := remote.GetObject(&Compose{})
+	if composeErr != nil {
+		t.Errorf("GetObject failed, err:%s", composeErr.Error())
 		return
 	}
 
-	objList := []interface{}{s1Def, r1Def, c1Def}
+	objList := []interface{}{simpleDef, referenceDef, composeDef}
 	mList, mErr := registerModel(provider, objList)
 	if mErr != nil {
 		err = mErr
@@ -370,28 +367,29 @@ func TestRemoteCompose(t *testing.T) {
 		}
 	}
 
-	ts, _ := time.Parse("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000")
-	s1 = &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
-	s1Value, s1Err := getObjectValue(s1)
+	ts, _ := time.Parse("2006-01-02 15:04:05", "2018-01-02 15:04:05")
+	s1 := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
+
+	s1Val, s1Err := getObjectValue(s1)
 	if s1Err != nil {
 		t.Errorf("getObjectValue failed, err:%s", s1Err.Error())
 		return
 	}
 
-	s1Model, s1Err := provider.GetEntityModel(s1Value)
+	s1Model, s1Err := provider.GetEntityModel(s1Val)
 	if s1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s1Err.Error())
 		return
 	}
-
-	s1Model, s1Err = o1.Insert(s1Model)
+	s1Model, err = o1.Insert(s1Model)
 	if err != nil {
 		t.Errorf("insert simple failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateEntity(s1Model.Interface(true).(*remote.ObjectValue), s1)
+	s1Val = s1Model.Interface(true).(*remote.ObjectValue)
+	err = remote.UpdateEntity(s1Val, s1)
 	if err != nil {
-		t.Errorf("updateEntity failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
@@ -403,7 +401,7 @@ func TestRemoteCompose(t *testing.T) {
 	strArray := []string{"Abc", "Bcd"}
 	bArray := []bool{true, true, false, false}
 	strPtrArray := []*string{&strValue, &strValue}
-	r1 = &Reference{
+	r1 := &Reference{
 		Name:        strValue,
 		FValue:      &fValue,
 		F64:         23.456,
@@ -417,30 +415,33 @@ func TestRemoteCompose(t *testing.T) {
 		StrPtrArray: strPtrArray,
 		PtrStrArray: &strPtrArray,
 	}
-	r1Value, r1Err := getObjectValue(r1)
+	r1Val, r1Err := getObjectValue(r1)
 	if r1Err != nil {
 		t.Errorf("getObjectValue failed, err:%s", r1Err.Error())
 		return
 	}
-	r1Model, r1Err := provider.GetEntityModel(r1Value)
+
+	r1Model, r1Err := provider.GetEntityModel(r1Val)
 	if r1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", r1Err.Error())
 		return
 	}
-	r1Model, r1Err = o1.Insert(r1Model)
-	if r1Err != nil {
-		err = r1Err
+
+	r1Model, err = o1.Insert(r1Model)
+	if err != nil {
 		t.Errorf("insert reference failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateEntity(r1Model.Interface(true).(*remote.ObjectValue), r1)
+
+	r1Val = r1Model.Interface(true).(*remote.ObjectValue)
+	err = remote.UpdateEntity(r1Val, r1)
 	if err != nil {
-		t.Errorf("updateEntity failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
 	refPtrArray := []*Reference{r1}
-	c1 = &Compose{
+	c1 := &Compose{
 		Name:           strValue,
 		Simple:         *s1,
 		PtrSimple:      s1,
@@ -452,24 +453,25 @@ func TestRemoteCompose(t *testing.T) {
 		RefPtrArray:    refPtrArray,
 		PtrRefArray:    &refPtrArray,
 	}
-	c1Value, c1Err := getObjectValue(c1)
+	c1Val, c1Err := getObjectValue(c1)
 	if c1Err != nil {
 		t.Errorf("getObjectValue failed, err:%s", c1Err.Error())
 		return
 	}
-	c1Model, c1Err := provider.GetEntityModel(c1Value)
+	c1Model, c1Err := provider.GetEntityModel(c1Val)
 	if c1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", c1Err.Error())
 		return
 	}
-	c1Model, c1Err = o1.Insert(c1Model)
-	if c1Err != nil {
-		t.Errorf("insert compose failed, err:%s", c1Err.Error())
+	c1Model, err = o1.Insert(c1Model)
+	if err != nil {
+		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateEntity(c1Model.Interface(true).(*remote.ObjectValue), c1)
+	c1Val = c1Model.Interface(true).(*remote.ObjectValue)
+	err = remote.UpdateEntity(c1Val, c1)
 	if err != nil {
-		t.Errorf("updateEntity failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
@@ -486,55 +488,60 @@ func TestRemoteCompose(t *testing.T) {
 		PtrRefArray:    &refPtrArray,
 		PtrCompose:     c1,
 	}
-	c2Value, c2Err := getObjectValue(c2)
+	c2Val, c2Err := getObjectValue(c2)
 	if c2Err != nil {
 		t.Errorf("getObjectValue failed, err:%s", c2Err.Error())
 		return
 	}
-	c2Model, c2Err := provider.GetEntityModel(c2Value)
+	c2Model, c2Err := provider.GetEntityModel(c2Val)
 	if c2Err != nil {
-		t.Errorf("GetEntityModel failed, err:%s", c2Err.Error())
-		return
-	}
-	c2Model, c2Err = o1.Insert(c2Model)
-	if c2Err != nil {
-		t.Errorf("insert compose failed, err:%s", c2Err.Error())
-		return
-	}
-	err = remote.UpdateEntity(c2Model.Interface(true).(*remote.ObjectValue), c2)
-	if err != nil {
-		t.Errorf("updateEntity failed, err:%s", err.Error())
+		t.Errorf("GetEntityModel failed,err:%s", c2Err.Error())
 		return
 	}
 
-	c3 := &Compose{ID: c2.ID,
+	c2Model, err = o1.Insert(c2Model)
+	if err != nil {
+		t.Errorf("insert compose failed, err:%s", err.Error())
+		return
+	}
+	c2Val = c1Model.Interface(true).(*remote.ObjectValue)
+	err = remote.UpdateEntity(c2Val, c2)
+	if err != nil {
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
+		return
+	}
+
+	c3 := &Compose{
+		ID:             c2.ID,
 		PtrSimple:      &Simple{},
 		SimpleArray:    []Simple{},
 		SimplePtrArray: []*Simple{},
+		PtrSimpleArray: &[]Simple{},
 		PtrReference:   &Reference{},
 		RefArray:       []Reference{},
-		RefPtrArray:    []*Reference{},
 		PtrRefArray:    &[]*Reference{},
-		PtrCompose:     &Compose{}}
-	c3Value, c3Err := getObjectValue(c3)
+		PtrCompose:     &Compose{},
+	}
+	c3Val, c3Err := getObjectValue(c3)
 	if c3Err != nil {
 		t.Errorf("getObjectValue failed, err:%s", c3Err.Error())
 		return
 	}
-
-	c3Model, c3Err := provider.GetEntityModel(c3Value)
+	c3Model, c3Err := provider.GetEntityModel(c3Val)
 	if c3Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", c3Err.Error())
 		return
 	}
-	c3Model, c3Err = o1.Query(c3Model)
-	if c3Err != nil {
+
+	c3Model, err = o1.Query(c3Model)
+	if err != nil {
 		t.Errorf("query compose failed, err:%s", err.Error())
 		return
 	}
-	err = remote.UpdateEntity(c3Model.Interface(true).(*remote.ObjectValue), c3)
+	c3Val = c1Model.Interface(true).(*remote.ObjectValue)
+	err = remote.UpdateEntity(c3Val, c3)
 	if err != nil {
-		t.Errorf("updateEntity failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
