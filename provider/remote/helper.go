@@ -69,13 +69,19 @@ func UpdateSliceEntity(sliceObjectValue *SliceObjectValue, entitySlice interface
 		return
 	}
 
-	entityType, entityErr := newType(entitySliceVal.Type())
-	if entityErr != nil {
-		err = entityErr
+	entitySliceType, entitySliceErr := newType(entitySliceVal.Type())
+	if entitySliceErr != nil {
+		err = entitySliceErr
 		return
 	}
 
-	_, err = updateSliceStructValue(sliceObjectValue, entityType, entitySliceVal)
+	retVal, retErr := updateSliceStructValue(sliceObjectValue, entitySliceType, entitySliceVal)
+	if retErr != nil {
+		err = retErr
+		return
+	}
+
+	entitySliceVal.Set(retVal)
 	return
 }
 
@@ -84,6 +90,7 @@ func updateBasicValue(basicValue interface{}, tType model.Type, value reflect.Va
 		return
 	}
 
+	value = reflect.Indirect(value)
 	// special for dateTime
 	if util.TypeDateTimeField == tType.Elem().GetValue() {
 		rValue := reflect.ValueOf(basicValue)
@@ -118,6 +125,10 @@ func updateBasicValue(basicValue interface{}, tType model.Type, value reflect.Va
 		value.Set(rVal)
 	}
 
+	if tType.IsPtrType() {
+		value = value.Addr()
+	}
+
 	ret = value
 	return
 }
@@ -129,14 +140,16 @@ func updateStructValue(objectValue *ObjectValue, vType model.Type, value reflect
 		return
 	}
 
+	value = reflect.Indirect(value)
 	entityType := value.Type()
+	entityValue := reflect.New(entityType).Elem()
 	fieldNum := entityType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		curItem := objectValue.Items[idx]
 		if curItem.Value == nil {
 			continue
 		}
-		curValue := reflect.Indirect(value.Field(idx))
+		curValue := reflect.Indirect(entityValue.Field(idx))
 		if util.IsNil(curValue) {
 			continue
 		}
@@ -152,21 +165,27 @@ func updateStructValue(objectValue *ObjectValue, vType model.Type, value reflect
 		for {
 			// for basic type
 			if tType.IsBasic() {
-				_, err = updateBasicValue(curItem.Value, tType, curValue)
-				if err != nil {
-					log.Errorf("updateBasicValue failed, fieldName:%s", field.Name)
+				val, valErr := updateBasicValue(curItem.Value, tType, curValue)
+				if valErr != nil {
+					err = valErr
+					log.Errorf("updateBasicValue failed, fieldName:%s, err:%s", field.Name, err.Error())
 					return
 				}
+
+				curValue.Set(val)
 				break
 			}
 
 			// for struct type
 			if util.IsStructType(tType.GetValue()) {
-				_, err = updateStructValue(curItem.Value.(*ObjectValue), tType, curValue)
-				if err != nil {
-					log.Errorf("convertStructItemValue failed, fieldName:%s", field.Name)
+				val, valErr := updateStructValue(curItem.Value.(*ObjectValue), tType, curValue)
+				if valErr != nil {
+					err = valErr
+					log.Errorf("convertStructItemValue failed, fieldName:%s, err:%s", field.Name, err.Error())
 					return
 				}
+
+				curValue.Set(val)
 				break
 			}
 
@@ -174,12 +193,17 @@ func updateStructValue(objectValue *ObjectValue, vType model.Type, value reflect
 			val, valErr := updateSliceStructValue(curItem.Value.(*SliceObjectValue), tType, curValue)
 			if valErr != nil {
 				err = valErr
-				log.Errorf("updateSliceStructValue failed, fieldName:%s", field.Name)
+				log.Errorf("updateSliceStructValue failed, fieldName:%s, err:%s", field.Name, err.Error())
 				return
 			}
+
 			curValue.Set(val)
 			break
 		}
+	}
+	value.Set(entityValue)
+	if vType.IsPtrType() {
+		value = value.Addr()
 	}
 
 	ret = value
@@ -193,7 +217,10 @@ func updateSliceStructValue(sliceObjectValue *SliceObjectValue, vType model.Type
 		return
 	}
 
-	elemType := value.Type().Elem()
+	value = reflect.Indirect(value)
+	entityType := value.Type()
+	entityValue := reflect.New(entityType).Elem()
+	elemType := entityType.Elem()
 	isPtr := elemType.Kind() == reflect.Ptr
 	if isPtr {
 		elemType = elemType.Elem()
@@ -207,11 +234,12 @@ func updateSliceStructValue(sliceObjectValue *SliceObjectValue, vType model.Type
 			log.Errorf("updateStructValue failed, sliceItem type:%s, elemVal type:%s", sliceItem.GetName(), elemVal.Type().String())
 			return
 		}
-		if isPtr {
-			elemVal = elemVal.Addr()
-		}
+		entityValue = reflect.Append(entityValue, elemVal)
+	}
+	value.Set(entityValue)
 
-		value = reflect.Append(value, elemVal)
+	if vType.IsPtrType() {
+		value = value.Addr()
 	}
 
 	ret = value

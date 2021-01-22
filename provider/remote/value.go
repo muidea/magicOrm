@@ -34,7 +34,7 @@ func (s *ValueImpl) Get() (ret interface{}) {
 }
 
 func (s *ValueImpl) Addr() model.Value {
-	impl := &ValueImpl{value: &s.value}
+	impl := &ValueImpl{value: s.value}
 	return impl
 }
 
