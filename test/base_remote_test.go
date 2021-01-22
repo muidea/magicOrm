@@ -507,7 +507,15 @@ func TestRemoteCompose(t *testing.T) {
 		return
 	}
 
-	c3 := &Compose{ID: c2.ID, PtrSimple: &Simple{}, PtrSimpleArray: &[]Simple{}, PtrReference: &Reference{}, PtrRefArray: &[]*Reference{}, PtrCompose: &Compose{}}
+	c3 := &Compose{ID: c2.ID,
+		PtrSimple:      &Simple{},
+		SimpleArray:    []Simple{},
+		SimplePtrArray: []*Simple{},
+		PtrReference:   &Reference{},
+		RefArray:       []Reference{},
+		RefPtrArray:    []*Reference{},
+		PtrRefArray:    &[]*Reference{},
+		PtrCompose:     &Compose{}}
 	c3Value, c3Err := getObjectValue(c3)
 	if c3Err != nil {
 		t.Errorf("getObjectValue failed, err:%s", c3Err.Error())
