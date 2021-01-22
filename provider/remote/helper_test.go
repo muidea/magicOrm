@@ -513,7 +513,7 @@ func TestRemoteSliceHelper(t *testing.T) {
 	tVal := newValue(tt)
 	tType, tErr := newType(reflect.TypeOf(tt))
 	if tErr != nil {
-		t.Errorf("newType failed, err:%s", fErr.Error())
+		t.Errorf("newType failed, err:%s", tErr.Error())
 		return
 	}
 
@@ -524,6 +524,121 @@ func TestRemoteSliceHelper(t *testing.T) {
 	}
 	if valStr != "[\"2006-01-02 15:04:05.000\"]" {
 		t.Errorf("Encode failed,")
+		return
+	}
+}
+
+func TestSpecSliceHelper(t *testing.T) {
+	v := 12
+	ii := []int{v}
+	tVal := newValue(ii)
+	tType, tErr := newType(reflect.TypeOf(ii))
+	if tErr != nil {
+		t.Errorf("newType failed, err:%s", tErr.Error())
+		return
+	}
+	valStr, valErr := _helper.Encode(tVal, tType)
+	if valErr != nil {
+		t.Errorf("encode failed, err:%s", valErr.Error())
+		return
+	}
+	if valStr != "[\"12\"]" {
+		t.Errorf("Encode failed,")
+		return
+	}
+
+	dVal, dErr := _helper.Decode(valStr, tType)
+	if dErr != nil {
+		t.Errorf("decode failed, err:%s", dErr.Error())
+		return
+	}
+	_, ok := dVal.Get().([]int)
+	if !ok {
+		t.Errorf("decode failed, err:%s", dErr.Error())
+		return
+	}
+
+	iPtr := []*int{&v}
+	tVal = newValue(iPtr)
+	tType, tErr = newType(reflect.TypeOf(iPtr))
+	if tErr != nil {
+		t.Errorf("newType failed, err:%s", tErr.Error())
+		return
+	}
+	valStr, valErr = _helper.Encode(tVal, tType)
+	if valErr != nil {
+		t.Errorf("encode failed, err:%s", valErr.Error())
+		return
+	}
+	if valStr != "[\"12\"]" {
+		t.Errorf("Encode failed,")
+		return
+	}
+
+	dVal, dErr = _helper.Decode(valStr, tType)
+	if dErr != nil {
+		t.Errorf("decode failed, err:%s", dErr.Error())
+		return
+	}
+	_, ok = dVal.Get().([]*int)
+	if !ok {
+		t.Errorf("decode failed, err:%s", dErr.Error())
+		return
+	}
+
+	ptrii := &[]int{v}
+	tVal = newValue(ptrii)
+	tType, tErr = newType(reflect.TypeOf(ptrii))
+	if tErr != nil {
+		t.Errorf("newType failed, err:%s", tErr.Error())
+		return
+	}
+	valStr, valErr = _helper.Encode(tVal, tType)
+	if valErr != nil {
+		t.Errorf("encode failed, err:%s", valErr.Error())
+		return
+	}
+	if valStr != "[\"12\"]" {
+		t.Errorf("Encode failed,")
+		return
+	}
+
+	dVal, dErr = _helper.Decode(valStr, tType)
+	if dErr != nil {
+		t.Errorf("decode failed, err:%s", dErr.Error())
+		return
+	}
+	_, ok = dVal.Get().(*[]int)
+	if !ok {
+		t.Errorf("decode failed, err:%s", dErr.Error())
+		return
+	}
+
+	ptriiPtr := &[]*int{&v}
+	tVal = newValue(ptriiPtr)
+	tType, tErr = newType(reflect.TypeOf(ptriiPtr))
+	if tErr != nil {
+		t.Errorf("newType failed, err:%s", tErr.Error())
+		return
+	}
+	valStr, valErr = _helper.Encode(tVal, tType)
+	if valErr != nil {
+		t.Errorf("encode failed, err:%s", valErr.Error())
+		return
+	}
+	if valStr != "[\"12\"]" {
+		t.Errorf("Encode failed,")
+		return
+	}
+
+	dVal, dErr = _helper.Decode(valStr, tType)
+	if dErr != nil {
+		t.Errorf("decode failed, err:%s", dErr.Error())
+		return
+	}
+	_, ok = dVal.Get().(*[]*int)
+	if !ok {
+		t.Errorf("decode failed, err:%s", dErr.Error())
 		return
 	}
 }

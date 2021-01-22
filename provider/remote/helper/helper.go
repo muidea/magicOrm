@@ -81,10 +81,6 @@ func (s *impl) Decode(val interface{}, tType model.Type) (ret model.Value, err e
 		return
 	}
 
-	if tType.IsPtrType() {
-		ret = ret.Addr()
-	}
-
 	return
 }
 
