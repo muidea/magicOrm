@@ -481,6 +481,7 @@ func TestRemoteCompose(t *testing.T) {
 		PtrSimple:      s1,
 		SimpleArray:    []Simple{*s1, *s1},
 		SimplePtrArray: []*Simple{s1, s1},
+		PtrSimpleArray: &[]Simple{},
 		Reference:      *r1,
 		PtrReference:   r1,
 		RefArray:       []Reference{*r1, *r1, *r1},
@@ -504,7 +505,7 @@ func TestRemoteCompose(t *testing.T) {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
-	c2Val = c1Model.Interface(true).(*remote.ObjectValue)
+	c2Val = c2Model.Interface(true).(*remote.ObjectValue)
 	err = remote.UpdateEntity(c2Val, c2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
@@ -538,7 +539,7 @@ func TestRemoteCompose(t *testing.T) {
 		t.Errorf("query compose failed, err:%s", err.Error())
 		return
 	}
-	c3Val = c1Model.Interface(true).(*remote.ObjectValue)
+	c3Val = c3Model.Interface(true).(*remote.ObjectValue)
 	err = remote.UpdateEntity(c3Val, c3)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())

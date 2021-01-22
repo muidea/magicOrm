@@ -216,8 +216,9 @@ func updateSliceStructValue(sliceObjectValue *SliceObjectValue, vType model.Type
 		return
 	}
 
-	entityValue := reflect.Indirect(value)
-	entityType := entityValue.Type()
+	value = reflect.Indirect(value)
+	entityType := value.Type()
+	entityValue := reflect.New(entityType).Elem()
 	elemType := entityType.Elem()
 	isPtr := elemType.Kind() == reflect.Ptr
 	if isPtr {
@@ -235,10 +236,11 @@ func updateSliceStructValue(sliceObjectValue *SliceObjectValue, vType model.Type
 		entityValue = reflect.Append(entityValue, elemVal)
 	}
 
+	value.Set(entityValue)
 	if vType.IsPtrType() {
-		entityValue = entityValue.Addr()
+		value = value.Addr()
 	}
 
-	ret = entityValue
+	ret = value
 	return
 }
