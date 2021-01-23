@@ -1,6 +1,7 @@
 package remote
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -48,7 +49,8 @@ func TestSimpleObjProvider(t *testing.T) {
 		return
 	}
 
-	simpleModel, simpleErr = SetModelValue(simpleModel, newValue(simpleVal))
+	sVal := reflect.ValueOf(simpleVal)
+	simpleModel, simpleErr = SetModelValue(simpleModel, newValue(sVal))
 	if simpleErr != nil {
 		t.Errorf("SetModelValue failed, err:%s", simpleErr.Error())
 		return

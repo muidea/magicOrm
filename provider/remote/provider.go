@@ -115,32 +115,35 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 
 func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 	rVal := vVal.Get()
-	itemsVal := rVal.FieldByName("Items")
-	objectsVal := rVal.FieldByName("Values")
-
-	if !util.IsNil(objectsVal) {
-		for idx := 0; idx < objectsVal.Len(); idx++ {
-			ret = append(ret, newValue(objectsVal.Index(idx)))
+	if rVal.Kind() == reflect.Slice {
+		for idx := 0; idx < rVal.Len(); idx++ {
+			ret = append(ret, newValue(rVal.Index(idx)))
 		}
 
 		return
 	}
 
-	if !util.IsNil(itemsVal) {
-		ret = append(ret, vVal)
-		return
+	if rVal.Type().String() == reflect.TypeOf(_declareObjectSliceValue).String() {
+		objectsVal := rVal.FieldByName("Values")
+		if !util.IsNil(objectsVal) {
+			for idx := 0; idx < objectsVal.Len(); idx++ {
+				ret = append(ret, newValue(objectsVal.Index(idx)))
+			}
+
+			return
+		}
 	}
 
-	rsVal := vVal.Get()
-	if rsVal.Kind() != reflect.Slice {
-		err = fmt.Errorf("illegal remote slice value, type:%s", rsVal.Type().String())
-		return
+	if rVal.Type().String() == reflect.TypeOf(_declareObjectValue).String() {
+		itemsVal := rVal.FieldByName("Items")
+		if !util.IsNil(itemsVal) {
+			ret = append(ret, vVal)
+			return
+		}
+
 	}
 
-	for idx := 0; idx < rsVal.Len(); idx++ {
-		ret = append(ret, newValue(rsVal.Index(idx)))
-	}
-
+	err = fmt.Errorf("illegal remote slice value, type:%s", rVal.Type().String())
 	return
 }
 

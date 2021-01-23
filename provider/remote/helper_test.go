@@ -9,7 +9,7 @@ import (
 
 func TestHelper(t *testing.T) {
 	ii := 123
-	iVal := newValue(ii)
+	iVal := newValue(reflect.ValueOf(ii))
 	iType, iErr := newType(reflect.TypeOf(ii))
 	if iErr != nil {
 		t.Errorf("newType failed, err:%s", iErr.Error())
@@ -21,7 +21,7 @@ func TestHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != fmt.Sprintf("%d", ii) {
+	if fmt.Sprintf("%v", valStr) != fmt.Sprintf("%v", ii) {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -31,7 +31,7 @@ func TestHelper(t *testing.T) {
 		t.Errorf("Decode failed, err:%s", vErr.Error())
 		return
 	}
-	vii, vok := vVal.Get().(int)
+	vii, vok := vVal.Get().Interface().(int)
 	if !vok {
 		t.Errorf("Decode failed")
 		return
@@ -42,7 +42,7 @@ func TestHelper(t *testing.T) {
 	}
 
 	uii := uint16(123)
-	uiVal := newValue(uii)
+	uiVal := newValue(reflect.ValueOf(uii))
 	uiType, uiErr := newType(reflect.TypeOf(uii))
 	if uiErr != nil {
 		t.Errorf("newType failed, err:%s", uiErr.Error())
@@ -54,7 +54,7 @@ func TestHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != fmt.Sprintf("%d", ii) {
+	if fmt.Sprintf("%v", valStr) != fmt.Sprintf("%v", ii) {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -64,7 +64,7 @@ func TestHelper(t *testing.T) {
 		t.Errorf("Decode failed, err:%s", vErr.Error())
 		return
 	}
-	vuii, vok := vVal.Get().(uint16)
+	vuii, vok := vVal.Get().Interface().(uint16)
 	if !vok {
 		t.Errorf("Decode failed")
 		return
@@ -75,7 +75,7 @@ func TestHelper(t *testing.T) {
 	}
 
 	ff := 123.345
-	fVal := newValue(ff)
+	fVal := newValue(reflect.ValueOf(ff))
 	fType, fErr := newType(reflect.TypeOf(ff))
 	if fErr != nil {
 		t.Errorf("newType failed, err:%s", fErr.Error())
@@ -87,7 +87,7 @@ func TestHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != fmt.Sprintf("%f", ff) {
+	if fmt.Sprintf("%v", valStr) != fmt.Sprintf("%v", ff) {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -97,7 +97,7 @@ func TestHelper(t *testing.T) {
 		t.Errorf("Decode failed, err:%s", vErr.Error())
 		return
 	}
-	vff, vok := vVal.Get().(float64)
+	vff, vok := vVal.Get().Interface().(float64)
 	if !vok {
 		t.Errorf("Decode failed")
 		return
@@ -108,7 +108,7 @@ func TestHelper(t *testing.T) {
 	}
 
 	bb := true
-	bVal := newValue(bb)
+	bVal := newValue(reflect.ValueOf(bb))
 	bType, bErr := newType(reflect.TypeOf(bb))
 	if bErr != nil {
 		t.Errorf("newType failed, err:%s", bErr.Error())
@@ -120,7 +120,7 @@ func TestHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != "1" {
+	if fmt.Sprintf("%v", valStr) != "1" {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -129,7 +129,7 @@ func TestHelper(t *testing.T) {
 		t.Errorf("Decode failed, err:%s", vErr.Error())
 		return
 	}
-	vbb, vok := vVal.Get().(bool)
+	vbb, vok := vVal.Get().Interface().(bool)
 	if !vok {
 		t.Errorf("Decode failed")
 		return
@@ -140,7 +140,7 @@ func TestHelper(t *testing.T) {
 	}
 
 	ss := "hello world"
-	sVal := newValue(ss)
+	sVal := newValue(reflect.ValueOf(ss))
 	sType, sErr := newType(reflect.TypeOf(ss))
 	if sErr != nil {
 		t.Errorf("newType failed, err:%s", sErr.Error())
@@ -152,7 +152,7 @@ func TestHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != ss {
+	if valStr.(string) != ss {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -161,7 +161,7 @@ func TestHelper(t *testing.T) {
 		t.Errorf("Decode failed, err:%s", vErr.Error())
 		return
 	}
-	vss, vok := vVal.Get().(string)
+	vss, vok := vVal.Get().Interface().(string)
 	if !vok {
 		t.Errorf("Decode failed")
 		return
@@ -172,7 +172,7 @@ func TestHelper(t *testing.T) {
 	}
 
 	tt := time.Now()
-	tVal := newValue("2006-01-02 15:04:05.000")
+	tVal := newValue(reflect.ValueOf("2006-01-02 15:04:05.000"))
 	tType, tErr := newType(reflect.TypeOf(tt))
 	if tErr != nil {
 		t.Errorf("newType failed, err:%s", fErr.Error())
@@ -184,7 +184,7 @@ func TestHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != "2006-01-02 15:04:05.000" {
+	if valStr.(string) != "2006-01-02 15:04:05.000" {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -194,7 +194,7 @@ func TestHelper(t *testing.T) {
 		t.Errorf("Decode failed, err:%s", vErr.Error())
 		return
 	}
-	vtt, vok := vVal.Get().(string)
+	vtt, vok := vVal.Get().Interface().(string)
 	if !vok {
 		t.Errorf("Decode failed")
 		return
@@ -207,7 +207,7 @@ func TestHelper(t *testing.T) {
 
 func TestRemoteHelper(t *testing.T) {
 	ii := 123
-	iVal := newValue(float64(ii))
+	iVal := newValue(reflect.ValueOf(ii))
 	iType, iErr := newType(reflect.TypeOf(ii))
 	if iErr != nil {
 		t.Errorf("newType failed, err:%s", iErr.Error())
@@ -219,7 +219,7 @@ func TestRemoteHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != fmt.Sprintf("%d", ii) {
+	if fmt.Sprintf("%v", valStr) != fmt.Sprintf("%d", ii) {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -228,7 +228,7 @@ func TestRemoteHelper(t *testing.T) {
 		t.Errorf("Decode failed, err:%s", vErr.Error())
 		return
 	}
-	vii, vok := vVal.Get().(int)
+	vii, vok := vVal.Get().Interface().(int)
 	if !vok {
 		t.Errorf("Decode failed")
 		return
@@ -239,7 +239,7 @@ func TestRemoteHelper(t *testing.T) {
 	}
 
 	uii := uint16(123)
-	uiVal := newValue(float64(uii))
+	uiVal := newValue(reflect.ValueOf(uii))
 	uiType, uiErr := newType(reflect.TypeOf(uii))
 	if uiErr != nil {
 		t.Errorf("newType failed, err:%s", uiErr.Error())
@@ -251,13 +251,13 @@ func TestRemoteHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != fmt.Sprintf("%d", ii) {
+	if fmt.Sprintf("%v", valStr) != fmt.Sprintf("%d", ii) {
 		t.Errorf("Encode failed,")
 		return
 	}
 
 	ff := 123.345
-	fVal := newValue(ff)
+	fVal := newValue(reflect.ValueOf(ff))
 	fType, fErr := newType(reflect.TypeOf(ff))
 	if fErr != nil {
 		t.Errorf("newType failed, err:%s", fErr.Error())
@@ -269,13 +269,13 @@ func TestRemoteHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != fmt.Sprintf("%f", ff) {
+	if fmt.Sprintf("%v", valStr) != fmt.Sprintf("%v", ff) {
 		t.Errorf("Encode failed,")
 		return
 	}
 
 	bb := true
-	bVal := newValue(bb)
+	bVal := newValue(reflect.ValueOf(bb))
 	bType, bErr := newType(reflect.TypeOf(bb))
 	if bErr != nil {
 		t.Errorf("newType failed, err:%s", bErr.Error())
@@ -287,13 +287,13 @@ func TestRemoteHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != "1" {
+	if fmt.Sprintf("%v", valStr) != "1" {
 		t.Errorf("Encode failed,")
 		return
 	}
 
 	ss := "hello world"
-	sVal := newValue(ss)
+	sVal := newValue(reflect.ValueOf(ss))
 	sType, sErr := newType(reflect.TypeOf(ss))
 	if sErr != nil {
 		t.Errorf("newType failed, err:%s", sErr.Error())
@@ -311,7 +311,7 @@ func TestRemoteHelper(t *testing.T) {
 	}
 
 	tt := time.Now()
-	tVal := newValue("2006-01-02 15:04:05.000")
+	tVal := newValue(reflect.ValueOf("2006-01-02 15:04:05.000"))
 	tType, tErr := newType(reflect.TypeOf(tt))
 	if tErr != nil {
 		t.Errorf("newType failed, err:%s", fErr.Error())
@@ -330,8 +330,8 @@ func TestRemoteHelper(t *testing.T) {
 }
 
 func TestSliceHelper(t *testing.T) {
-	ii := []int{123}
-	iVal := newValue(ii)
+	ii := &[]int{123}
+	iVal := newValue(reflect.ValueOf(ii))
 	iType, iErr := newType(reflect.TypeOf(ii))
 	if iErr != nil {
 		t.Errorf("newType failed, err:%s", iErr.Error())
@@ -343,7 +343,7 @@ func TestSliceHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != "[\"123\"]" {
+	if valStr != "[123]" {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -353,18 +353,18 @@ func TestSliceHelper(t *testing.T) {
 		t.Errorf("Decode failed, err:%s", vErr.Error())
 		return
 	}
-	vii, vok := vVal.Get().([]interface{})
+	vii, vok := vVal.Get().Interface().(*[]int)
 	if !vok {
 		t.Errorf("Decode failed")
 		return
 	}
-	if len(vii) != len(ii) {
+	if len(*vii) != len(*ii) {
 		t.Errorf("Decode failed")
 		return
 	}
 
 	ff := []float64{123.345}
-	fVal := newValue(ff)
+	fVal := newValue(reflect.ValueOf(ff))
 	fType, fErr := newType(reflect.TypeOf(ff))
 	if fErr != nil {
 		t.Errorf("newType failed, err:%s", fErr.Error())
@@ -376,13 +376,13 @@ func TestSliceHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != "[\"123.345000\"]" {
+	if valStr != "[123.345]" {
 		t.Errorf("Encode failed,")
 		return
 	}
 
 	bb := []bool{true}
-	bVal := newValue(bb)
+	bVal := newValue(reflect.ValueOf(bb))
 	bType, bErr := newType(reflect.TypeOf(bb))
 	if bErr != nil {
 		t.Errorf("newType failed, err:%s", bErr.Error())
@@ -394,13 +394,13 @@ func TestSliceHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != "[\"1\"]" {
+	if valStr != "[1]" {
 		t.Errorf("Encode failed,")
 		return
 	}
 
 	ss := []string{"hello world"}
-	sVal := newValue(ss)
+	sVal := newValue(reflect.ValueOf(ss))
 	sType, sErr := newType(reflect.TypeOf(ss))
 	if sErr != nil {
 		t.Errorf("newType failed, err:%s", sErr.Error())
@@ -418,7 +418,7 @@ func TestSliceHelper(t *testing.T) {
 	}
 
 	tt := []string{"2006-01-02 15:04:05.000"}
-	tVal := newValue(tt)
+	tVal := newValue(reflect.ValueOf(tt))
 	tType, tErr := newType(reflect.TypeOf(tt))
 	if tErr != nil {
 		t.Errorf("newType failed, err:%s", fErr.Error())
@@ -438,7 +438,7 @@ func TestSliceHelper(t *testing.T) {
 
 func TestRemoteSliceHelper(t *testing.T) {
 	ii := []int{}
-	iVal := newValue([]float64{123})
+	iVal := newValue(reflect.ValueOf([]int{123}))
 	iType, iErr := newType(reflect.TypeOf(ii))
 	if iErr != nil {
 		t.Errorf("newType failed, err:%s", iErr.Error())
@@ -450,13 +450,13 @@ func TestRemoteSliceHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != "[\"123\"]" {
+	if valStr != "[123]" {
 		t.Errorf("Encode failed,")
 		return
 	}
 
 	ff := []float64{123.345}
-	fVal := newValue(ff)
+	fVal := newValue(reflect.ValueOf(ff))
 	fType, fErr := newType(reflect.TypeOf(ff))
 	if fErr != nil {
 		t.Errorf("newType failed, err:%s", fErr.Error())
@@ -468,13 +468,13 @@ func TestRemoteSliceHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != "[\"123.345000\"]" {
+	if valStr != "[123.345]" {
 		t.Errorf("Encode failed,")
 		return
 	}
 
 	bb := []bool{true}
-	bVal := newValue(bb)
+	bVal := newValue(reflect.ValueOf(bb))
 	bType, bErr := newType(reflect.TypeOf(bb))
 	if bErr != nil {
 		t.Errorf("newType failed, err:%s", bErr.Error())
@@ -486,13 +486,13 @@ func TestRemoteSliceHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != "[\"1\"]" {
+	if valStr != "[1]" {
 		t.Errorf("Encode failed,")
 		return
 	}
 
 	ss := []string{"hello world"}
-	sVal := newValue(ss)
+	sVal := newValue(reflect.ValueOf(ss))
 	sType, sErr := newType(reflect.TypeOf(ss))
 	if sErr != nil {
 		t.Errorf("newType failed, err:%s", sErr.Error())
@@ -510,7 +510,7 @@ func TestRemoteSliceHelper(t *testing.T) {
 	}
 
 	tt := []string{"2006-01-02 15:04:05.000"}
-	tVal := newValue(tt)
+	tVal := newValue(reflect.ValueOf(tt))
 	tType, tErr := newType(reflect.TypeOf(tt))
 	if tErr != nil {
 		t.Errorf("newType failed, err:%s", tErr.Error())
@@ -531,7 +531,7 @@ func TestRemoteSliceHelper(t *testing.T) {
 func TestSpecSliceHelper(t *testing.T) {
 	v := 12
 	ii := []int{v}
-	tVal := newValue(ii)
+	tVal := newValue(reflect.ValueOf(ii))
 	tType, tErr := newType(reflect.TypeOf(ii))
 	if tErr != nil {
 		t.Errorf("newType failed, err:%s", tErr.Error())
@@ -542,7 +542,7 @@ func TestSpecSliceHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != "[\"12\"]" {
+	if valStr != "[12]" {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -552,14 +552,14 @@ func TestSpecSliceHelper(t *testing.T) {
 		t.Errorf("decode failed, err:%s", dErr.Error())
 		return
 	}
-	_, ok := dVal.Get().([]int)
+	_, ok := dVal.Get().Interface().([]int)
 	if !ok {
 		t.Errorf("decode failed, err:%s", dErr.Error())
 		return
 	}
 
 	iPtr := []*int{&v}
-	tVal = newValue(iPtr)
+	tVal = newValue(reflect.ValueOf(iPtr))
 	tType, tErr = newType(reflect.TypeOf(iPtr))
 	if tErr != nil {
 		t.Errorf("newType failed, err:%s", tErr.Error())
@@ -570,7 +570,7 @@ func TestSpecSliceHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != "[\"12\"]" {
+	if valStr != "[12]" {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -580,14 +580,14 @@ func TestSpecSliceHelper(t *testing.T) {
 		t.Errorf("decode failed, err:%s", dErr.Error())
 		return
 	}
-	_, ok = dVal.Get().([]*int)
+	_, ok = dVal.Get().Interface().([]*int)
 	if !ok {
 		t.Errorf("decode failed, err:%s", dErr.Error())
 		return
 	}
 
 	ptrii := &[]int{v}
-	tVal = newValue(ptrii)
+	tVal = newValue(reflect.ValueOf(ptrii))
 	tType, tErr = newType(reflect.TypeOf(ptrii))
 	if tErr != nil {
 		t.Errorf("newType failed, err:%s", tErr.Error())
@@ -598,7 +598,7 @@ func TestSpecSliceHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != "[\"12\"]" {
+	if valStr != "[12]" {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -608,14 +608,14 @@ func TestSpecSliceHelper(t *testing.T) {
 		t.Errorf("decode failed, err:%s", dErr.Error())
 		return
 	}
-	_, ok = dVal.Get().(*[]int)
+	_, ok = dVal.Get().Interface().(*[]int)
 	if !ok {
 		t.Errorf("decode failed, err:%s", dErr.Error())
 		return
 	}
 
 	ptriiPtr := &[]*int{&v}
-	tVal = newValue(ptriiPtr)
+	tVal = newValue(reflect.ValueOf(ptriiPtr))
 	tType, tErr = newType(reflect.TypeOf(ptriiPtr))
 	if tErr != nil {
 		t.Errorf("newType failed, err:%s", tErr.Error())
@@ -626,7 +626,7 @@ func TestSpecSliceHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != "[\"12\"]" {
+	if valStr != "[12]" {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -636,7 +636,7 @@ func TestSpecSliceHelper(t *testing.T) {
 		t.Errorf("decode failed, err:%s", dErr.Error())
 		return
 	}
-	_, ok = dVal.Get().(*[]*int)
+	_, ok = dVal.Get().Interface().(*[]*int)
 	if !ok {
 		t.Errorf("decode failed, err:%s", dErr.Error())
 		return
