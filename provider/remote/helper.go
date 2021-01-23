@@ -85,54 +85,6 @@ func UpdateSliceEntity(sliceObjectValue *SliceObjectValue, entitySlice interface
 	return
 }
 
-func updateBasicValue(basicValue interface{}, tType model.Type, value reflect.Value) (ret reflect.Value, err error) {
-	if util.IsNil(value) {
-		return
-	}
-
-	value = reflect.Indirect(value)
-	// special for dateTime
-	if util.TypeDateTimeField == tType.Elem().GetValue() {
-		rValue := reflect.ValueOf(basicValue)
-		rValue = reflect.Indirect(rValue)
-		if rValue.Kind() == reflect.Interface {
-			rValue = rValue.Elem()
-		}
-		rValue = reflect.Indirect(rValue)
-		if rValue.Kind() != reflect.String {
-			err = fmt.Errorf("illegal dateTime value")
-			return
-		}
-		rVal, rErr := decodeDateTime(rValue.String(), tType)
-		if rErr != nil {
-			err = rErr
-			return
-		}
-
-		value.Set(rVal)
-	} else {
-		vVal, vErr := _helper.Decode(basicValue, tType)
-		if vErr != nil {
-			err = vErr
-			return
-		}
-		rVal := reflect.Indirect(reflect.ValueOf(vVal.Get()))
-		if rVal.Kind() == reflect.Interface {
-			rVal = rVal.Elem()
-		}
-
-		rVal = reflect.Indirect(rVal)
-		value.Set(rVal)
-	}
-
-	if tType.IsPtrType() {
-		value = value.Addr()
-	}
-
-	ret = value
-	return
-}
-
 func updateStructValue(objectValue *ObjectValue, vType model.Type, value reflect.Value) (ret reflect.Value, err error) {
 	if vType.GetName() != objectValue.GetName() || vType.GetPkgPath() != objectValue.GetPkgPath() {
 		err = fmt.Errorf("illegal object value, objectValue name:%s, entityType name:%s", objectValue.GetName(), vType.GetName())
@@ -164,14 +116,14 @@ func updateStructValue(objectValue *ObjectValue, vType model.Type, value reflect
 		for {
 			// for basic type
 			if tType.IsBasic() {
-				val, valErr := updateBasicValue(curItem.Value, tType, curValue)
+				val, valErr := _helper.Decode(curItem.Value, tType)
 				if valErr != nil {
 					err = valErr
 					log.Errorf("updateBasicValue failed, fieldName:%s, err:%s", field.Name, err.Error())
 					return
 				}
 
-				curValue.Set(val)
+				curValue.Set(val.Get())
 				break
 			}
 

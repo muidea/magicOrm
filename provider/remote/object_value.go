@@ -4,11 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"time"
 
 	log "github.com/cihub/seelog"
 
-	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
 )
 
@@ -137,115 +135,27 @@ func (s *SliceObjectValue) IsAssigned() (ret bool) {
 	return
 }
 
-func encodeDateTime(val reflect.Value) (ret string, err error) {
-	val = reflect.Indirect(val)
-	switch val.Kind() {
-	case reflect.Struct:
-		ts, ok := val.Interface().(time.Time)
-		if ok {
-			ret = fmt.Sprintf("%s", ts.Format("2006-01-02 15:04:05"))
-			if ret == "0001-01-01 00:00:00" {
-				ret = ""
-			}
-		} else {
-			err = fmt.Errorf("illegal dateTime value, type:%s", val.Type().String())
-		}
-	default:
-		err = fmt.Errorf("illegal dateTime value, type:%s", val.Type().String())
-	}
-
-	return
-}
-
-func decodeDateTime(val string, tType model.Type) (ret reflect.Value, err error) {
-	if util.TypeSliceField == tType.GetValue() {
-		if val == "" {
-			return
-		}
-
-		items := []string{}
-		err = json.Unmarshal([]byte(val), &items)
-		if err != nil {
-			return
-		}
-
-		eType := tType.Elem()
-		if eType.IsPtrType() {
-			dtSliceVal := []*time.Time{}
-			for _, v := range items {
-				dtVal, dtErr := time.Parse("2006-01-02 15:04:05", v)
-				if dtErr != nil {
-					err = dtErr
-					return
-				}
-
-				dtSliceVal = append(dtSliceVal, &dtVal)
-			}
-
-			ret = reflect.ValueOf(dtSliceVal)
-			return
-		}
-
-		dtSliceVal := []time.Time{}
-		for _, v := range items {
-			dtVal, dtErr := time.Parse("2006-01-02 15:04:05", v)
-			if dtErr != nil {
-				err = dtErr
-				return
-			}
-
-			dtSliceVal = append(dtSliceVal, dtVal)
-		}
-		ret = reflect.ValueOf(dtSliceVal)
-		return
-	}
-
-	if val == "" {
-		val = "0001-01-01 00:00:00"
-	}
-
-	dtVal, dtErr := time.Parse("2006-01-02 15:04:05", val)
-	if dtErr != nil {
-		err = dtErr
-		return
-	}
-
-	ret = reflect.ValueOf(dtVal)
-	return
-}
-
-func getFieldValue(fieldName string, itemType *TypeImpl, fieldValue reflect.Value) (ret *ItemValue, err error) {
-	if util.IsNil(fieldValue) {
+func getFieldValue(fieldName string, itemType *TypeImpl, itemValue *ValueImpl) (ret *ItemValue, err error) {
+	if itemValue.IsNil() {
 		ret = &ItemValue{Name: fieldName, Value: nil}
 		return
 	}
 
-	fieldValue = reflect.Indirect(fieldValue)
 	if itemType.IsBasic() {
-		if util.TypeDateTimeField == itemType.GetValue() {
-			dtVal, dtErr := encodeDateTime(fieldValue)
-			if dtErr != nil {
-				err = dtErr
-				log.Errorf("encode dateTime failed, err:%s", err.Error())
-				return
-			}
-
-			if itemType.Elem().IsPtrType() {
-				ret = &ItemValue{Name: fieldName, Value: &dtVal}
-				return
-			}
-			ret = &ItemValue{Name: fieldName, Value: dtVal}
+		encodeVal, encodeErr := _helper.Encode(itemValue, itemType)
+		if encodeErr != nil {
+			err = encodeErr
 			return
 		}
 
-		ret = &ItemValue{Name: fieldName, Value: fieldValue.Interface()}
+		ret = &ItemValue{Name: fieldName, Value: encodeVal}
 		return
 	}
 
-	objVal, objErr := GetObjectValue(fieldValue.Interface())
+	objVal, objErr := getObjectValue(itemValue.Get())
 	if objErr != nil {
 		err = objErr
-		log.Errorf("GetObjectValue failed, raw type:%s, err:%s", fieldValue.Type().String(), err.Error())
+		log.Errorf("GetObjectValue failed, raw type:%s, err:%s", itemType.GetName(), err.Error())
 		return
 	}
 
@@ -253,49 +163,29 @@ func getFieldValue(fieldName string, itemType *TypeImpl, fieldValue reflect.Valu
 	return
 }
 
-func getSliceFieldValue(fieldName string, itemType *TypeImpl, fieldValue reflect.Value) (ret *ItemValue, err error) {
+func getSliceFieldValue(fieldName string, itemType *TypeImpl, itemValue *ValueImpl) (ret *ItemValue, err error) {
 	ret = &ItemValue{Name: fieldName}
-	if util.IsNil(fieldValue) {
+	if itemValue.IsNil() {
+		ret = &ItemValue{Name: fieldName, Value: nil}
 		return
 	}
 
 	elemType := itemType.Elem()
 	if elemType.IsBasic() {
-		if util.TypeDateTimeField != elemType.GetValue() {
-			ret.Value = fieldValue.Interface()
+		encodeVal, encodeErr := _helper.Encode(itemValue, itemType)
+		if encodeErr != nil {
+			err = encodeErr
 			return
 		}
 
-		sliceVal := []string{}
-		fieldValue = reflect.Indirect(fieldValue)
-		for idx := 0; idx < fieldValue.Len(); idx++ {
-			itemVal := fieldValue.Index(idx)
-			if util.IsNil(itemVal) {
-				continue
-			}
-			dtVal, dtErr := encodeDateTime(itemVal)
-			if dtErr != nil {
-				err = dtErr
-				log.Errorf("encodeDateTime failed, err:%s", err.Error())
-				return
-			}
-			sliceVal = append(sliceVal, dtVal)
-		}
-
-		ret.Value = sliceVal
+		ret = &ItemValue{Name: fieldName, Value: encodeVal}
 		return
 	}
 
 	sliceObjectVal := []*ObjectValue{}
-	fieldValue = reflect.Indirect(fieldValue)
-	for idx := 0; idx < fieldValue.Len(); idx++ {
-		itemVal := fieldValue.Index(idx)
-		if util.IsNil(itemVal) {
-			continue
-		}
-
-		itemVal = reflect.Indirect(itemVal)
-		objVal, objErr := GetObjectValue(itemVal.Interface())
+	for idx := 0; idx < itemValue.Get().Len(); idx++ {
+		itemVal := itemValue.Get().Index(idx)
+		objVal, objErr := getObjectValue(itemVal)
 		if objErr != nil {
 			err = objErr
 			log.Errorf("encodeDateTimeValue failed, err:%s", err.Error())
@@ -325,9 +215,9 @@ func getObjectValue(entityVal reflect.Value) (ret *ObjectValue, err error) {
 	ret = &ObjectValue{Name: objType.GetName(), PkgPath: objType.GetPkgPath(), IsPtr: objType.IsPtrType(), Items: []*ItemValue{}}
 	fieldNum := entityVal.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		fieldValue := reflect.Indirect(entityVal.Field(idx))
 		fieldType := entityType.Field(idx)
 
+		itemValue := newValue(entityVal.Field(idx))
 		itemType, itemErr := newType(fieldType.Type)
 		if itemErr != nil {
 			err = itemErr
@@ -336,7 +226,7 @@ func getObjectValue(entityVal reflect.Value) (ret *ObjectValue, err error) {
 		}
 
 		if itemType.GetValue() != util.TypeSliceField {
-			val, valErr := getFieldValue(fieldType.Name, itemType, fieldValue)
+			val, valErr := getFieldValue(fieldType.Name, itemType, itemValue)
 			if valErr != nil {
 				err = valErr
 				log.Errorf("getFieldValue failed, type%s, err:%s", fieldType.Type.String(), err.Error())
@@ -344,7 +234,7 @@ func getObjectValue(entityVal reflect.Value) (ret *ObjectValue, err error) {
 			}
 			ret.Items = append(ret.Items, val)
 		} else {
-			val, valErr := getSliceFieldValue(fieldType.Name, itemType, fieldValue)
+			val, valErr := getSliceFieldValue(fieldType.Name, itemType, itemValue)
 			if valErr != nil {
 				err = valErr
 				log.Errorf("getSliceFieldValue failed, type%s, err:%s", fieldType.Type.String(), err.Error())
