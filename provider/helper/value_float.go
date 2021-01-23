@@ -2,20 +2,16 @@ package helper
 
 import (
 	"fmt"
-	"github.com/muidea/magicOrm/util"
-	"reflect"
-	"strconv"
-
 	"github.com/muidea/magicOrm/model"
+	"reflect"
 )
 
 // encodeFloat get float value str
-func (s *impl) encodeFloat(vVal model.Value) (ret string, err error) {
-	val := vVal.Get().(reflect.Value)
-	val = reflect.Indirect(val)
+func (s *impl) encodeFloat(vVal model.Value) (ret interface{}, err error) {
+	val := vVal.Get()
 	switch val.Kind() {
 	case reflect.Float32, reflect.Float64:
-		ret = fmt.Sprintf("%f", val.Float())
+		ret = val.Float()
 	default:
 		err = fmt.Errorf("illegal float value, type:%s", val.Type().String())
 	}
@@ -33,8 +29,6 @@ func (s *impl) decodeFloat(val interface{}, tType model.Type) (ret model.Value, 
 
 	var fVal float64
 	switch rVal.Kind() {
-	case reflect.String:
-		fVal, err = strconv.ParseFloat(rVal.String(), 64)
 	case reflect.Float32, reflect.Float64:
 		fVal = rVal.Float()
 	default:
@@ -44,12 +38,17 @@ func (s *impl) decodeFloat(val interface{}, tType model.Type) (ret model.Value, 
 		return
 	}
 
-	if tType.GetValue() == util.TypeFloatField {
-		f32Val := float32(fVal)
-		ret, err = s.getValue(&f32Val)
+	tVal, _ := tType.Interface()
+	switch tVal.Get().Kind() {
+	case reflect.Float32, reflect.Float64:
+		tVal.Get().SetFloat(fVal)
+	default:
+		err = fmt.Errorf("illegal float value, type:%s", tVal.Get().Type().String())
+	}
+	if err != nil {
 		return
 	}
 
-	ret, err = s.getValue(&fVal)
+	ret = tVal
 	return
 }

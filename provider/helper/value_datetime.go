@@ -9,9 +9,8 @@ import (
 )
 
 //encodeDateTime get datetime value str
-func (s *impl) encodeDateTime(vVal model.Value) (ret string, err error) {
-	val := vVal.Get().(reflect.Value)
-	val = reflect.Indirect(val)
+func (s *impl) encodeDateTime(vVal model.Value) (ret interface{}, err error) {
+	val := vVal.Get()
 	switch val.Kind() {
 	case reflect.Struct:
 		ts, ok := val.Interface().(time.Time)
@@ -40,20 +39,10 @@ func (s *impl) decodeDateTime(val interface{}, tType model.Type) (ret model.Valu
 	}
 	rVal = reflect.Indirect(rVal)
 
-	var dtVal time.Time
+	var dtVal string
 	switch rVal.Kind() {
 	case reflect.String:
-		str := rVal.String()
-		if str == "" {
-			str = "0001-01-01 00:00:00"
-		}
-		dtVal, err = time.Parse("2006-01-02 15:04:05", str)
-	case reflect.Struct:
-		if rVal.Type().String() == "time.Time" {
-			dtVal = rVal.Interface().(time.Time)
-		} else {
-			err = fmt.Errorf("illegal dateTime value, val:%v", val)
-		}
+		dtVal = rVal.String()
 	default:
 		err = fmt.Errorf("illegal dateTime value, val:%v", val)
 	}
@@ -62,6 +51,28 @@ func (s *impl) decodeDateTime(val interface{}, tType model.Type) (ret model.Valu
 		return
 	}
 
-	ret, err = s.getValue(&dtVal)
+	tVal, _ := tType.Interface()
+	switch tVal.Get().Kind() {
+	case reflect.Struct:
+		if dtVal == "" {
+			dtVal = "0001-01-01 00:00:00"
+		}
+		dtV, dtErr := time.Parse("2006-01-02 15:04:05", dtVal)
+		if dtErr != nil {
+			err = dtErr
+		} else {
+			tVal.Get().Set(reflect.ValueOf(dtV))
+		}
+	case reflect.String:
+		tVal.Get().SetString(dtVal)
+	default:
+		err = fmt.Errorf("illegal dateTime value, type:%s", tVal.Get().Type().String())
+	}
+	if err != nil {
+		return
+	}
+
+	ret = tVal
 	return
+
 }

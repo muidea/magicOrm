@@ -15,7 +15,7 @@ func (s *impl) encodeSlice(vVal model.Value, tType model.Type) (ret string, err 
 		err = valErr
 		return
 	}
-	items := []string{}
+	items := []interface{}{}
 	for _, val := range vals {
 		strVal, strErr := s.Encode(val, tType.Elem())
 		if strErr != nil {
@@ -37,15 +37,14 @@ func (s *impl) encodeSlice(vVal model.Value, tType model.Type) (ret string, err 
 }
 
 func (s *impl) decodeStringSlice(val string, tType model.Type) (ret model.Value, err error) {
-	items := []string{}
+	items := []interface{}{}
 	err = json.Unmarshal([]byte(val), &items)
 	if err != nil {
 		return
 	}
 
 	tVal, _ := tType.Interface()
-	sliceVal := tVal.Get().(reflect.Value)
-	sliceVal = reflect.Indirect(sliceVal)
+	sliceVal := tVal.Get()
 	for idx := range items {
 		itemVal, itemErr := s.Decode(items[idx], tType.Elem())
 		if itemErr != nil {
@@ -53,26 +52,7 @@ func (s *impl) decodeStringSlice(val string, tType model.Type) (ret model.Value,
 			return
 		}
 
-		sliceVal = reflect.Append(sliceVal, itemVal.Get().(reflect.Value))
-	}
-	tVal.Set(sliceVal)
-
-	ret = tVal
-	return
-}
-
-func (s *impl) decodeReflectSlice(val reflect.Value, tType model.Type) (ret model.Value, err error) {
-	tVal, _ := tType.Interface()
-	sliceVal := tVal.Get().(reflect.Value)
-	sliceVal = reflect.Indirect(sliceVal)
-	for idx := 0; idx < val.Len(); idx++ {
-		itemVal, itemErr := s.Decode(val.Index(idx).Interface(), tType.Elem())
-		if itemErr != nil {
-			err = itemErr
-			return
-		}
-
-		sliceVal = reflect.Append(sliceVal, itemVal.Get().(reflect.Value))
+		sliceVal = reflect.Append(sliceVal, itemVal.Get())
 	}
 	tVal.Set(sliceVal)
 
@@ -87,11 +67,10 @@ func (s *impl) decodeSlice(val interface{}, tType model.Type) (ret model.Value, 
 		rVal = rVal.Elem()
 	}
 	rVal = reflect.Indirect(rVal)
+
 	switch rVal.Kind() {
 	case reflect.String:
 		ret, err = s.decodeStringSlice(rVal.String(), tType)
-	case reflect.Slice:
-		ret, err = s.decodeReflectSlice(rVal, tType)
 	default:
 		err = fmt.Errorf("illegal slice value, val:%v", val)
 	}

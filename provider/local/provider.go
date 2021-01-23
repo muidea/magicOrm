@@ -63,8 +63,7 @@ func GetEntityModel(entity interface{}) (ret model.Model, err error) {
 }
 
 func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err error) {
-	rVal := vVal.Get().(reflect.Value)
-	rVal = reflect.Indirect(rVal)
+	rVal := vVal.Get()
 	vType := rVal.Type()
 	if vType.Kind() != reflect.Struct {
 		err = fmt.Errorf("illegal model value, mode name:%s", vModel.GetName())
@@ -90,8 +89,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 }
 
 func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
-	rVal := vVal.Get().(reflect.Value)
-	rVal = reflect.Indirect(rVal)
+	rVal := vVal.Get()
 	if rVal.Kind() == reflect.Struct {
 		ret = append(ret, vVal)
 		return
@@ -111,8 +109,7 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 }
 
 func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, err error) {
-	rSliceVal := sliceVal.Get().(reflect.Value)
-	rSliceVal = reflect.Indirect(rSliceVal)
+	rSliceVal := sliceVal.Get()
 	rSliceType := rSliceVal.Type()
 	if rSliceType.Kind() != reflect.Slice {
 		err = fmt.Errorf("illegal slice value, slice type:%s", rSliceType.String())
@@ -125,7 +122,7 @@ func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, e
 		isElemPtr = true
 	}
 
-	rVal := val.Get().(reflect.Value)
+	rVal := val.Get()
 	if isElemPtr {
 		rVal = rVal.Addr()
 	}

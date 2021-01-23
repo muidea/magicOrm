@@ -1,13 +1,15 @@
 package model
 
+import "reflect"
+
 // Value Value
 type Value interface {
 	// 是否为nil
 	IsNil() bool
 	// 设置值
-	Set(val interface{}) error
+	Set(val reflect.Value) error
 	// 获取值
-	Get() interface{}
+	Get() reflect.Value
 	// 获取指针
 	Addr() Value
 }

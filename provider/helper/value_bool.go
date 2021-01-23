@@ -7,28 +7,26 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
+const (
+	falseVal = iota
+	trueVal
+)
+
 // encodeBool get bool value str
-func (s *impl) encodeBool(vVal model.Value) (ret string, err error) {
-	val := vVal.Get().(reflect.Value)
-	val = reflect.Indirect(val)
+func (s *impl) encodeBool(vVal model.Value) (ret interface{}, err error) {
+	val := vVal.Get()
 	switch val.Kind() {
 	case reflect.Bool:
 		if val.Bool() {
-			ret = "1"
+			ret = trueVal
 		} else {
-			ret = "0"
-		}
-	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
-		if val.Uint() > 0 {
-			ret = "1"
-		} else {
-			ret = "0"
+			ret = falseVal
 		}
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
 		if val.Int() > 0 {
-			ret = "1"
+			ret = trueVal
 		} else {
-			ret = "0"
+			ret = falseVal
 		}
 	default:
 		err = fmt.Errorf("illegal boolean value, type:%s", val.Type().String())
@@ -45,20 +43,12 @@ func (s *impl) decodeBool(val interface{}, tType model.Type) (ret model.Value, e
 	}
 	rVal = reflect.Indirect(rVal)
 
-	var bVal bool
+	var bVal int64
 	switch rVal.Kind() {
-	case reflect.String:
-		if rVal.String() == "1" {
-			bVal = true
-		} else {
-			bVal = false
-		}
-	case reflect.Bool:
-		bVal = rVal.Bool()
-	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
-		bVal = rVal.Uint() > 0
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
-		bVal = rVal.Int() > 0
+		bVal = rVal.Int()
+	case reflect.Float64:
+		bVal = int64(rVal.Float())
 	default:
 		err = fmt.Errorf("illegal boolean value, val:%v", val)
 	}
@@ -67,6 +57,19 @@ func (s *impl) decodeBool(val interface{}, tType model.Type) (ret model.Value, e
 		return
 	}
 
-	ret, err = s.getValue(&bVal)
+	tVal, _ := tType.Interface()
+	switch tVal.Get().Kind() {
+	case reflect.Bool:
+		tVal.Get().SetBool(bVal > 0)
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+		tVal.Get().SetInt(bVal)
+	default:
+		err = fmt.Errorf("illegal boolean value, type:%s", tVal.Get().Type().String())
+	}
+	if err != nil {
+		return
+	}
+
+	ret = tVal
 	return
 }

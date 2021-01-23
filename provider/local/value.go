@@ -1,7 +1,6 @@
 package local
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
@@ -22,28 +21,23 @@ func (s *valueImpl) IsNil() (ret bool) {
 	return
 }
 
-func (s *valueImpl) Set(val interface{}) (err error) {
-	v, ok := val.(reflect.Value)
-	if !ok {
-		err = fmt.Errorf("illegal set value")
-		return
+func (s *valueImpl) Set(val reflect.Value) (err error) {
+	val = reflect.Indirect(val)
+	if val.Kind() == reflect.Interface {
+		val = val.Elem()
+		val = reflect.Indirect(val)
 	}
 
-	if v.Kind() == reflect.Interface {
-		v = v.Elem()
-	}
-
-	v = reflect.Indirect(v)
 	if util.IsNil(s.value) {
-		s.value = v
+		s.value = val
 		return
 	}
 
-	s.value.Set(v)
+	s.value.Set(val)
 	return
 }
 
-func (s *valueImpl) Get() (ret interface{}) {
+func (s *valueImpl) Get() (ret reflect.Value) {
 	ret = s.value
 	return
 }

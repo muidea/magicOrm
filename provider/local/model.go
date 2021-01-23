@@ -67,7 +67,7 @@ func (s *modelImpl) Interface(ptrValue bool) (ret interface{}) {
 			continue
 		}
 
-		val := tVal.Get().(reflect.Value)
+		val := tVal.Get()
 		tType := field.GetType()
 		if tType.IsPtrType() {
 			val = val.Addr()

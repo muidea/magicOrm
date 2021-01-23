@@ -21,8 +21,18 @@ func TestHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != fmt.Sprintf("%d", ii) {
+	if fmt.Sprintf("%v", valStr) != fmt.Sprintf("%v", ii) {
 		t.Errorf("Encode failed,")
+		return
+	}
+
+	dVal, dErr := _helper.Decode(valStr, iType)
+	if dErr != nil {
+		t.Errorf("Decode failed,")
+		return
+	}
+	if dVal.Get().Int() != iVal.Get().Int() {
+		t.Errorf("Decode failed,")
 		return
 	}
 
@@ -39,7 +49,7 @@ func TestHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != fmt.Sprintf("%d", ii) {
+	if fmt.Sprintf("%v", valStr) != fmt.Sprintf("%v", uii) {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -57,7 +67,7 @@ func TestHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != fmt.Sprintf("%f", ff) {
+	if fmt.Sprintf("%v", valStr) != fmt.Sprintf("%v", ff) {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -75,7 +85,7 @@ func TestHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != "1" {
+	if valStr != 1 {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -131,8 +141,18 @@ func TestSliceHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != "[\"123\"]" {
+	if valStr != "[123]" {
 		t.Errorf("Encode failed,")
+		return
+	}
+
+	dVal, dErr := _helper.Decode(valStr, iType)
+	if dErr != nil {
+		t.Errorf("Decode failed,")
+		return
+	}
+	if dVal.Get().Len() != iVal.Get().Len() {
+		t.Errorf("Decode failed,")
 		return
 	}
 
@@ -149,7 +169,7 @@ func TestSliceHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != "[\"123.345000\"]" {
+	if valStr != "[123.345]" {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -167,8 +187,17 @@ func TestSliceHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != "[\"1\"]" {
+	if valStr != "[1]" {
 		t.Errorf("Encode failed,")
+		return
+	}
+	dVal, dErr = _helper.Decode(valStr, bType)
+	if dErr != nil {
+		t.Errorf("Decode failed,")
+		return
+	}
+	if dVal.Get().Len() != bVal.Get().Len() {
+		t.Errorf("Decode failed,")
 		return
 	}
 

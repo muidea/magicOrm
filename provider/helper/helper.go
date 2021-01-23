@@ -11,7 +11,7 @@ type GetValueFunc func(interface{}) (model.Value, error)
 type ElemDependValueFunc func(model.Value) ([]model.Value, error)
 
 type Helper interface {
-	Encode(vVal model.Value, tType model.Type) (ret string, err error)
+	Encode(vVal model.Value, tType model.Type) (ret interface{}, err error)
 	Decode(val interface{}, tType model.Type) (ret model.Value, err error)
 }
 
@@ -28,10 +28,10 @@ func New(getValue GetValueFunc, elemDependValue ElemDependValueFunc) Helper {
 
 local struct -> db field value
 
-remote object value => db field value
+remote object value -> db field value
 
 */
-func (s *impl) Encode(vVal model.Value, tType model.Type) (ret string, err error) {
+func (s *impl) Encode(vVal model.Value, tType model.Type) (ret interface{}, err error) {
 	if !tType.IsBasic() {
 		err = fmt.Errorf("illegal value type, type:%s", tType.GetName())
 		return
