@@ -11,6 +11,16 @@ type typeImpl struct {
 	typeImpl reflect.Type
 }
 
+func getValueType(val reflect.Value) (ret *typeImpl, err error) {
+	if util.IsNil(val) {
+		err = fmt.Errorf("can't get nil value type")
+		return
+	}
+
+	ret, err = newType(val.Type())
+	return
+}
+
 // newType newType
 func newType(val reflect.Type) (ret *typeImpl, err error) {
 	rawType := val

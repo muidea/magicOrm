@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/local/helper"
+	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/util"
 )
 
@@ -17,8 +17,8 @@ func init() {
 }
 
 func GetEntityType(entity interface{}) (ret model.Type, err error) {
-	rType := reflect.TypeOf(entity)
-	vType, vErr := newType(rType)
+	rVal := reflect.ValueOf(entity)
+	vType, vErr := getValueType(rVal)
 	if vErr != nil {
 		err = vErr
 		return
