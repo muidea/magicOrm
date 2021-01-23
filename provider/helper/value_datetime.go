@@ -23,6 +23,8 @@ func (s *impl) encodeDateTime(vVal model.Value) (ret string, err error) {
 		} else {
 			err = fmt.Errorf("illegal dateTime value, type:%s", val.Type().String())
 		}
+	case reflect.String:
+		ret = val.String()
 	default:
 		err = fmt.Errorf("illegal dateTime value, type:%s", val.Type().String())
 	}

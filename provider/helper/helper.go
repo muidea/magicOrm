@@ -24,6 +24,13 @@ func New(getValue GetValueFunc, elemDependValue ElemDependValueFunc) Helper {
 	return &impl{getValue: getValue, elemDependValue: elemDependValue}
 }
 
+/*
+
+local struct -> db field value
+
+remote object value => db field value
+
+*/
 func (s *impl) Encode(vVal model.Value, tType model.Type) (ret string, err error) {
 	if !tType.IsBasic() {
 		err = fmt.Errorf("illegal value type, type:%s", tType.GetName())
@@ -52,6 +59,13 @@ func (s *impl) Encode(vVal model.Value, tType model.Type) (ret string, err error
 	return
 }
 
+/*
+
+db field value -> local struct
+
+db field value -> remote object value
+
+*/
 func (s *impl) Decode(val interface{}, tType model.Type) (ret model.Value, err error) {
 	if !tType.IsBasic() {
 		err = fmt.Errorf("illegal value type, type:%s", tType.GetName())

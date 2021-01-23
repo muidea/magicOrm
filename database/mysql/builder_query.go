@@ -40,7 +40,7 @@ func (s *Builder) BuildQueryRelation(fieldName string, relationInfo model.Model)
 		return
 	}
 
-	ret = fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= %s", s.GetRelationTableName(fieldName, relationInfo), pkfStr)
+	ret = fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= %v", s.GetRelationTableName(fieldName, relationInfo), pkfStr)
 	//log.Print(ret)
 
 	return

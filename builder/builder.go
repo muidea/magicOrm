@@ -34,64 +34,36 @@ func NewBuilder(modelInfo model.Model, modelProvider provider.Provider) Builder 
 }
 
 // EqualOpr EqualOpr
-func EqualOpr(name string, val string) string {
-	if val == "" {
-		return ""
-	}
-
+func EqualOpr(name string, val interface{}) string {
 	return mysql.EqualOpr(name, val)
 }
 
 // NotEqualOpr NotEqualOpr
-func NotEqualOpr(name string, val string) string {
-	if val == "" {
-		return ""
-	}
-
+func NotEqualOpr(name string, val interface{}) string {
 	return mysql.NotEqualOpr(name, val)
 }
 
 // BelowOpr BelowOpr
-func BelowOpr(name string, val string) string {
-	if val == "" {
-		return ""
-	}
-
+func BelowOpr(name string, val interface{}) string {
 	return mysql.BelowOpr(name, val)
 }
 
 // AboveOpr AboveOpr
-func AboveOpr(name string, val string) string {
-	if val == "" {
-		return ""
-	}
-
+func AboveOpr(name string, val interface{}) string {
 	return mysql.AboveOpr(name, val)
 }
 
 // InOpr InOpr
-func InOpr(name string, val string) string {
-	if val == "" {
-		return ""
-	}
-
+func InOpr(name string, val interface{}) string {
 	return mysql.InOpr(name, val)
 }
 
 // NotInOpr NotInOpr
-func NotInOpr(name string, val string) string {
-	if val == "" {
-		return ""
-	}
-
+func NotInOpr(name string, val interface{}) string {
 	return mysql.NotInOpr(name, val)
 }
 
 // LikeOpr LikeOpr
-func LikeOpr(name string, val string) string {
-	if val == "" {
-		return ""
-	}
-
+func LikeOpr(name string, val interface{}) string {
 	return mysql.LikeOpr(name, val)
 }

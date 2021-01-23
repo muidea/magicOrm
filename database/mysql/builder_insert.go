@@ -36,7 +36,7 @@ func (s *Builder) BuildInsertRelation(fieldName string, relationInfo model.Model
 		return
 	}
 
-	ret = fmt.Sprintf("INSERT INTO `%s` (`left`, `right`) VALUES (%s,%s);", s.GetRelationTableName(fieldName, relationInfo), leftVal, rightVal)
+	ret = fmt.Sprintf("INSERT INTO `%s` (`left`, `right`) VALUES (%v,%v);", s.GetRelationTableName(fieldName, relationInfo), leftVal, rightVal)
 	//log.Print(ret)
 
 	return
@@ -88,9 +88,9 @@ func (s *Builder) getFieldInsertValues(info model.Model) (ret string, err error)
 		}
 
 		if str == "" {
-			str = fmt.Sprintf("%s", fStr)
+			str = fmt.Sprintf("%v", fStr)
 		} else {
-			str = fmt.Sprintf("%s,%s", str, fStr)
+			str = fmt.Sprintf("%s,%v", str, fStr)
 		}
 	}
 

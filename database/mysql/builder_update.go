@@ -49,9 +49,9 @@ func (s *Builder) getFieldUpdateValues(info model.Model) (ret string, err error)
 
 		fTag := field.GetTag()
 		if str == "" {
-			str = fmt.Sprintf("`%s`=%s", fTag.GetName(), fStr)
+			str = fmt.Sprintf("`%s`=%v", fTag.GetName(), fStr)
 		} else {
-			str = fmt.Sprintf("%s,`%s`=%s", str, fTag.GetName(), fStr)
+			str = fmt.Sprintf("%s,`%s`=%v", str, fTag.GetName(), fStr)
 		}
 	}
 

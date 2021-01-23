@@ -4,7 +4,7 @@ import (
 	"github.com/muidea/magicCommon/foundation/util"
 )
 
-type OprFunc func(string, string) string
+type OprFunc func(string, interface{}) string
 
 // FilterItem FilterItem
 type FilterItem interface {

@@ -8,7 +8,7 @@ import (
 )
 
 type filterItem struct {
-	oprFun   func(name, value string) string
+	oprFun   func(name string, value interface{}) string
 	oprValue model.Value
 }
 

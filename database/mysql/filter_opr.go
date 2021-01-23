@@ -5,36 +5,41 @@ import (
 )
 
 // EqualOpr EqualOpr
-func EqualOpr(name string, val string) string {
-	return fmt.Sprintf("`%s` = %s", name, val)
+func EqualOpr(name string, val interface{}) string {
+	return fmt.Sprintf("`%s` = %v", name, val)
 }
 
 // NotEqualOpr NotEqualOpr
-func NotEqualOpr(name string, val string) string {
-	return fmt.Sprintf("`%s` != %s", name, val)
+func NotEqualOpr(name string, val interface{}) string {
+	return fmt.Sprintf("`%s` != %v", name, val)
 }
 
 // BelowOpr BelowOpr
-func BelowOpr(name string, val string) string {
-	return fmt.Sprintf("`%s` < %s", name, val)
+func BelowOpr(name string, val interface{}) string {
+	return fmt.Sprintf("`%s` < %v", name, val)
 }
 
 // AboveOpr AboveOpr
-func AboveOpr(name string, val string) string {
-	return fmt.Sprintf("`%s` > %s", name, val)
+func AboveOpr(name string, val interface{}) string {
+	return fmt.Sprintf("`%s` > %v", name, val)
 }
 
 // InOpr InOpr
-func InOpr(name string, val string) string {
+func InOpr(name string, val interface{}) string {
 	return fmt.Sprintf("`%s` in (%v)", name, val)
 }
 
 // NotInOpr NotInOpr
-func NotInOpr(name string, val string) string {
+func NotInOpr(name string, val interface{}) string {
 	return fmt.Sprintf("`%s` not in (%v)", name, val)
 }
 
 // LikeOpr LikeOpr
-func LikeOpr(name string, val string) string {
-	return fmt.Sprintf("`%s` LIKE '%%%s%%'", name, val[1:len(val)-1])
+func LikeOpr(name string, val interface{}) string {
+	valStr, valOK := val.(string)
+	if valOK {
+		return fmt.Sprintf("`%s` LIKE '%%%s%%'", name, valStr[1:len(valStr)-1])
+	}
+
+	return ""
 }

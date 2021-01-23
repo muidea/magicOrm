@@ -44,7 +44,7 @@ func (s *Builder) GetRelationTableName(fieldName string, relationInfo model.Mode
 	return fmt.Sprintf("%s_%s%s2%s", s.modelProvider.Owner(), leftName, fieldName, rightName)
 }
 
-func (s *Builder) getRelationValue(rModel model.Model) (leftVal, rightVal string, err error) {
+func (s *Builder) getRelationValue(rModel model.Model) (leftVal, rightVal interface{}, err error) {
 	infoVal, infoErr := s.getModelValue(s.modelInfo)
 	if infoErr != nil {
 		err = infoErr
@@ -65,7 +65,7 @@ func (s *Builder) GetInitializeValue(field model.Field) (ret interface{}, err er
 	return getFieldInitializeValue(field)
 }
 
-func (s *Builder) getModelValue(vModel model.Model) (ret string, err error) {
+func (s *Builder) getModelValue(vModel model.Model) (ret interface{}, err error) {
 	pkField := vModel.GetPrimaryField()
 	if pkField == nil {
 		err = fmt.Errorf("no define primaryKey")
@@ -82,7 +82,7 @@ func (s *Builder) getModelValue(vModel model.Model) (ret string, err error) {
 	return
 }
 
-func (s *Builder) buildValue(vValue model.Value, vType model.Type) (ret string, err error) {
+func (s *Builder) buildValue(vValue model.Value, vType model.Type) (ret interface{}, err error) {
 	fStr, fErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fErr != nil {
 		err = fErr
@@ -91,7 +91,7 @@ func (s *Builder) buildValue(vValue model.Value, vType model.Type) (ret string, 
 
 	switch vType.GetValue() {
 	case util.TypeStringField, util.TypeDateTimeField, util.TypeSliceField:
-		ret = fmt.Sprintf("'%s'", fStr)
+		ret = fmt.Sprintf("'%v'", fStr)
 	default:
 		ret = fStr
 	}
@@ -107,6 +107,6 @@ func (s *Builder) buildPKFilter(vModel model.Model) (ret string, err error) {
 	}
 
 	pkfTag := vModel.GetPrimaryField().GetTag().GetName()
-	ret = fmt.Sprintf("`%s`=%s", pkfTag, pkfVal)
+	ret = fmt.Sprintf("`%s`=%v", pkfTag, pkfVal)
 	return
 }
