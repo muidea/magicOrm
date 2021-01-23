@@ -13,7 +13,7 @@ import (
 var _helper helper.Helper
 
 func init() {
-	_helper = helper.New(GetEntityValue, ElemDependValue)
+	_helper = helper.New(ElemDependValue)
 }
 
 func isRemoteType(vType model.Type) bool {
@@ -68,19 +68,8 @@ func GetEntityType(entity interface{}) (ret model.Type, err error) {
 }
 
 func GetEntityValue(entity interface{}) (ret model.Value, err error) {
-	valPtr, ok := entity.(*ObjectValue)
-	if ok {
-		ret = newValue(valPtr)
-		return
-	}
-
-	sliceValPtr, ok := entity.(*SliceObjectValue)
-	if ok {
-		ret = newValue(sliceValPtr)
-		return
-	}
-
-	ret = newValue(entity)
+	rVal := reflect.ValueOf(entity)
+	ret = newValue(rVal)
 	return
 }
 
@@ -96,18 +85,25 @@ func GetEntityModel(entity interface{}) (ret model.Model, err error) {
 }
 
 func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err error) {
-	val, ok := vVal.Get().(*ObjectValue)
-	if !ok {
-		err = fmt.Errorf("illegal remote model value")
+	rVal := vVal.Get()
+	nameVal := rVal.FieldByName("Name")
+	pkgVal := rVal.FieldByName("PkgPath")
+	itemsVal := rVal.FieldByName("Items")
+	if util.IsNil(nameVal) || util.IsNil(pkgVal) || util.IsNil(itemsVal) {
+		err = fmt.Errorf("illegal model value")
+		return
+	}
+	if nameVal.String() != vModel.GetName() || pkgVal.String() != vModel.GetPkgPath() {
+		err = fmt.Errorf("illegal model value, mismatch model value")
 		return
 	}
 
-	for _, item := range val.Items {
-		if item.Value == nil {
-			continue
-		}
+	for idx := 0; idx < itemsVal.Len(); idx++ {
+		iVal := itemsVal.Index(idx)
 
-		err = vModel.SetFieldValue(item.Name, newValue(item.Value))
+		iName := iVal.FieldByName("Name").String()
+		iValue := iVal.FieldByName("Value")
+		err = vModel.SetFieldValue(iName, newValue(iValue))
 		if err != nil {
 			return
 		}
@@ -118,54 +114,57 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 }
 
 func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
-	sVal, ok := vVal.Get().(*SliceObjectValue)
-	if ok {
-		for _, item := range sVal.Values {
-			ret = append(ret, newValue(item))
+	rVal := vVal.Get()
+	itemsVal := rVal.FieldByName("Items")
+	objectsVal := rVal.FieldByName("Values")
+
+	if !util.IsNil(objectsVal) {
+		for idx := 0; idx < objectsVal.Len(); idx++ {
+			ret = append(ret, newValue(objectsVal.Index(idx)))
 		}
+
 		return
 	}
 
-	val, ok := vVal.Get().(*ObjectValue)
-	if ok {
-		ret = append(ret, newValue(val))
+	if !util.IsNil(itemsVal) {
+		ret = append(ret, vVal)
 		return
 	}
 
-	rsVal := reflect.Indirect(reflect.ValueOf(vVal.Get()))
+	rsVal := vVal.Get()
 	if rsVal.Kind() != reflect.Slice {
 		err = fmt.Errorf("illegal remote slice value, type:%s", rsVal.Type().String())
 		return
 	}
 
 	for idx := 0; idx < rsVal.Len(); idx++ {
-		v := rsVal.Index(idx)
-		ret = append(ret, newValue(v.Interface()))
+		ret = append(ret, newValue(rsVal.Index(idx)))
 	}
 
 	return
 }
 
 func AppendSliceValue(sliceVal model.Value, vVal model.Value) (ret model.Value, err error) {
-	sVal, ok := sliceVal.Get().(*SliceObjectValue)
-	if !ok {
-		err = fmt.Errorf("illegal remote model slice value")
-		return
-	}
+	sliceName := sliceVal.Get().FieldByName("Name").String()
+	slicePkg := sliceVal.Get().FieldByName("PkgPath").String()
+	objectName := vVal.Get().FieldByName("Name").String()
+	objectPkg := vVal.Get().FieldByName("PkgPath").String()
 
-	val, ok := vVal.Get().(*ObjectValue)
-	if !ok {
-		err = fmt.Errorf("illegal remote model item value")
-		return
-	}
-
-	if sVal.GetName() != val.GetName() || sVal.GetPkgPath() != val.GetPkgPath() {
+	if sliceName != objectName || slicePkg != objectPkg {
 		err = fmt.Errorf("mismatch slice value")
 		return
 	}
 
-	sVal.Values = append(sVal.Values, val)
-	ret = newValue(sVal)
+	sliceObjects := sliceVal.Get().FieldByName("Values")
+	if util.IsNil(sliceObjects) {
+		err = fmt.Errorf("illegal remote model slice value")
+		return
+	}
+
+	sliceObjects = reflect.Append(sliceObjects, vVal.Get())
+	sliceVal.Get().FieldByName("Values").Set(sliceObjects)
+
+	ret = sliceVal
 	return
 }
 

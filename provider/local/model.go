@@ -58,6 +58,17 @@ func (s *modelImpl) GetPrimaryField() (ret model.Field) {
 	return
 }
 
+func (s *modelImpl) GetField(name string) (ret model.Field) {
+	for _, field := range s.fields {
+		if field.GetName() == name {
+			ret = field
+			return
+		}
+	}
+
+	return
+}
+
 func (s *modelImpl) Interface(ptrValue bool) (ret interface{}) {
 	retVal := reflect.New(s.modelType).Elem()
 

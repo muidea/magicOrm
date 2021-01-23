@@ -7,6 +7,7 @@ type Model interface {
 	GetFields() Fields
 	SetFieldValue(name string, val Value) error
 	GetPrimaryField() Field
+	GetField(name string) Field
 	Interface(ptrValue bool) interface{}
 	Copy() Model
 	Dump() string

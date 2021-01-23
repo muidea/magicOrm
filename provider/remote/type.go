@@ -95,7 +95,7 @@ func (s *TypeImpl) Interface() (ret model.Value, err error) {
 			tVal = tVal.Addr()
 		}
 
-		ret = newValue(tVal.Interface())
+		ret = newValue(tVal)
 		return
 	}
 
@@ -104,7 +104,7 @@ func (s *TypeImpl) Interface() (ret model.Value, err error) {
 		tVal.FieldByName("PkgPath").SetString(s.PkgPath)
 		tVal.FieldByName("IsPtr").SetBool(s.IsPtr)
 
-		ret = newValue(tVal.Addr().Interface())
+		ret = newValue(tVal)
 		return
 	}
 
@@ -112,7 +112,7 @@ func (s *TypeImpl) Interface() (ret model.Value, err error) {
 	tVal.FieldByName("PkgPath").SetString(s.ElemType.PkgPath)
 	tVal.FieldByName("IsPtr").SetBool(s.ElemType.IsPtr)
 
-	ret = newValue(tVal.Addr().Interface())
+	ret = newValue(tVal)
 	return
 }
 

@@ -74,6 +74,17 @@ func (s *Object) GetPrimaryField() (ret model.Field) {
 	return
 }
 
+func (s *Object) GetField(name string) (ret model.Field) {
+	for _, v := range s.Items {
+		if v.GetName() == name {
+			ret = v
+			return
+		}
+	}
+
+	return
+}
+
 // Interface Interface
 func (s *Object) Interface(ptrValue bool) (ret interface{}) {
 	val := &ObjectValue{Name: s.Name, PkgPath: s.PkgPath, Items: []*ItemValue{}}
