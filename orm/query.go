@@ -232,10 +232,6 @@ func (s *impl) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret 
 		}
 	}
 
-	if fieldType.IsPtrType() {
-		fieldValue = fieldValue.Addr()
-	}
-
 	ret = fieldValue
 	return
 }
