@@ -25,7 +25,7 @@ type Provider interface {
 
 	GetTypeModel(vType model.Type) (ret model.Model, err error)
 
-	EncodeValue(vVal model.Value, vType model.Type) (ret string, err error)
+	EncodeValue(vVal model.Value, vType model.Type) (ret interface{}, err error)
 
 	DecodeValue(vVal interface{}, vType model.Type) (ret model.Value, err error)
 
@@ -51,7 +51,7 @@ type providerImpl struct {
 	setModelValueFunc    func(model.Model, model.Value) (model.Model, error)
 	elemDependValueFunc  func(model.Value) ([]model.Value, error)
 	appendSliceValueFunc func(model.Value, model.Value) (model.Value, error)
-	encodeValueFunc      func(model.Value, model.Type, model.Cache) (string, error)
+	encodeValueFunc      func(model.Value, model.Type, model.Cache) (interface{}, error)
 	decodeValueFunc      func(interface{}, model.Type, model.Cache) (model.Value, error)
 }
 
@@ -194,7 +194,7 @@ func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err erro
 }
 
 // GetValueStr GetValueStr
-func (s *providerImpl) EncodeValue(vVal model.Value, vType model.Type) (ret string, err error) {
+func (s *providerImpl) EncodeValue(vVal model.Value, vType model.Type) (ret interface{}, err error) {
 	ret, err = s.encodeValueFunc(vVal, vType, s.modelCache)
 	return
 }

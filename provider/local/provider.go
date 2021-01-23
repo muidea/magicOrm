@@ -143,7 +143,7 @@ func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, e
 	return
 }
 
-func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, helper helper.Helper) (ret string, err error) {
+func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, helper helper.Helper) (ret interface{}, err error) {
 	tModel := mCache.Fetch(vType.GetName())
 	if tModel == nil {
 		err = fmt.Errorf("illegal value type,type:%s", vType.GetName())
@@ -179,14 +179,14 @@ func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache, he
 			return
 		}
 
-		items = append(items, strVal)
+		items = append(items, fmt.Sprintf("%v", strVal))
 	}
 
 	ret = strings.Join(items, ",")
 	return
 }
 
-func EncodeValue(tVal model.Value, tType model.Type, mCache model.Cache) (ret string, err error) {
+func EncodeValue(tVal model.Value, tType model.Type, mCache model.Cache) (ret interface{}, err error) {
 	if tType.IsBasic() {
 		ret, err = _helper.Encode(tVal, tType)
 		return

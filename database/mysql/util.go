@@ -116,7 +116,7 @@ func getFieldInitializeValue(field model.Field) (ret interface{}, err error) {
 	fType := field.GetType()
 	switch fType.GetValue() {
 	case util.TypeBooleanField:
-		val := uint8(0)
+		val := int8(0)
 		ret = &val
 		break
 	case util.TypeBitField:
