@@ -2,14 +2,11 @@ package remote
 
 import (
 	"fmt"
+	"reflect"
+
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
-	"log"
-	"reflect"
 )
-
-var _declareObjectValue ObjectValue
-var _declareObjectSliceValue SliceObjectValue
 
 // TypeImpl TypeImpl
 type TypeImpl struct {
@@ -88,29 +85,11 @@ func (s *TypeImpl) IsPtrType() (ret bool) {
 
 // Interface Interface
 func (s *TypeImpl) Interface() (ret model.Value, err error) {
-	tType := s.getType()
-	tVal := reflect.New(tType).Elem()
-	if s.IsBasic() {
-		if s.IsPtrType() {
-			tVal = tVal.Addr()
-		}
-
-		ret = newValue(tVal)
+	tVal, tErr := getInitializeValue(s)
+	if tErr != nil {
+		err = tErr
 		return
 	}
-
-	if util.IsStructType(s.Value) {
-		tVal.FieldByName("Name").SetString(s.Name)
-		tVal.FieldByName("PkgPath").SetString(s.PkgPath)
-		tVal.FieldByName("IsPtr").SetBool(s.IsPtr)
-
-		ret = newValue(tVal)
-		return
-	}
-
-	tVal.FieldByName("Name").SetString(s.ElemType.Name)
-	tVal.FieldByName("PkgPath").SetString(s.ElemType.PkgPath)
-	tVal.FieldByName("IsPtr").SetBool(s.ElemType.IsPtr)
 
 	ret = newValue(tVal)
 	return
@@ -148,120 +127,6 @@ func (s *TypeImpl) copy() (ret *TypeImpl) {
 func (s *TypeImpl) dump() string {
 	val := s.GetValue()
 	return fmt.Sprintf("val:%d,name:%s,pkgPath:%s,isPtr:%v", val, s.GetName(), s.GetPkgPath(), s.IsPtrType())
-}
-
-var declareSliceObject SliceObjectValue
-var declareObject ObjectValue
-
-func (s *TypeImpl) getSliceType() (ret reflect.Type) {
-	switch s.ElemType.GetValue() {
-	case util.TypeBooleanField:
-		var val []bool
-		ret = reflect.TypeOf(val)
-	case util.TypeStringField,
-		util.TypeDateTimeField:
-		var val []string
-		ret = reflect.TypeOf(val)
-	case util.TypeBitField:
-		var val []int8
-		ret = reflect.TypeOf(val)
-	case util.TypeSmallIntegerField:
-		var val []int16
-		ret = reflect.TypeOf(val)
-	case util.TypeInteger32Field:
-		var val []int32
-		ret = reflect.TypeOf(val)
-	case util.TypeIntegerField:
-		var val []int
-		ret = reflect.TypeOf(val)
-	case util.TypeBigIntegerField:
-		var val []int64
-		ret = reflect.TypeOf(val)
-	case util.TypePositiveBitField:
-		var val []uint8
-		ret = reflect.TypeOf(val)
-	case util.TypePositiveSmallIntegerField:
-		var val []uint16
-		ret = reflect.TypeOf(val)
-	case util.TypePositiveInteger32Field:
-		var val []uint32
-		ret = reflect.TypeOf(val)
-	case util.TypePositiveIntegerField:
-		var val []uint
-		ret = reflect.TypeOf(val)
-	case util.TypePositiveBigIntegerField:
-		var val []uint64
-		ret = reflect.TypeOf(val)
-	case util.TypeFloatField:
-		var val []float32
-		ret = reflect.TypeOf(val)
-	case util.TypeDoubleField:
-		var val []float64
-		ret = reflect.TypeOf(val)
-	case util.TypeStructField:
-		ret = reflect.TypeOf(_declareObjectSliceValue)
-	default:
-		log.Fatalf("unexpect slice item type, name:%s, pkgPath:%s, type:%d", s.ElemType.GetName(), s.ElemType.GetPkgPath(), s.ElemType.GetValue())
-	}
-
-	return
-}
-
-// getType GetEntityType
-func (s *TypeImpl) getType() (ret reflect.Type) {
-	switch s.GetValue() {
-	case util.TypeBooleanField:
-		var val bool
-		ret = reflect.TypeOf(val)
-	case util.TypeStringField,
-		util.TypeDateTimeField:
-		var val string
-		ret = reflect.TypeOf(val)
-	case util.TypeBitField:
-		var val int8
-		ret = reflect.TypeOf(val)
-	case util.TypeSmallIntegerField:
-		var val int16
-		ret = reflect.TypeOf(val)
-	case util.TypeInteger32Field:
-		var val int32
-		ret = reflect.TypeOf(val)
-	case util.TypeIntegerField:
-		var val int
-		ret = reflect.TypeOf(val)
-	case util.TypeBigIntegerField:
-		var val int64
-		ret = reflect.TypeOf(val)
-	case util.TypePositiveBitField:
-		var val uint8
-		ret = reflect.TypeOf(val)
-	case util.TypePositiveSmallIntegerField:
-		var val uint16
-		ret = reflect.TypeOf(val)
-	case util.TypePositiveInteger32Field:
-		var val uint32
-		ret = reflect.TypeOf(val)
-	case util.TypePositiveIntegerField:
-		var val uint
-		ret = reflect.TypeOf(val)
-	case util.TypePositiveBigIntegerField:
-		var val uint64
-		ret = reflect.TypeOf(val)
-	case util.TypeFloatField:
-		var val float32
-		ret = reflect.TypeOf(val)
-	case util.TypeDoubleField:
-		var val float64
-		ret = reflect.TypeOf(val)
-	case util.TypeStructField:
-		ret = reflect.TypeOf(_declareObjectValue)
-	case util.TypeSliceField:
-		ret = s.getSliceType()
-	default:
-		log.Fatalf("unexpect item type, name:%s, type:%d", s.Name, s.Value)
-	}
-
-	return
 }
 
 func compareType(l, r *TypeImpl) bool {

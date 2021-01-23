@@ -1,4 +1,4 @@
-package helper
+package remote
 
 import (
 	"fmt"
@@ -7,6 +7,9 @@ import (
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
 )
+
+var _declareObjectSliceValue SliceObjectValue
+var _declareObjectValue ObjectValue
 
 func getSliceType(tType model.Type) (ret reflect.Type, err error) {
 	eType := tType.Elem()
@@ -264,6 +267,8 @@ func getSliceType(tType model.Type) (ret reflect.Type, err error) {
 		}
 		var val []float64
 		ret = reflect.TypeOf(val)
+	case util.TypeStructField:
+		ret = reflect.TypeOf(_declareObjectSliceValue)
 	default:
 		err = fmt.Errorf("unexpect slice item type, name:%s, type:%d", tType.GetName(), tType.GetValue())
 	}
@@ -271,7 +276,7 @@ func getSliceType(tType model.Type) (ret reflect.Type, err error) {
 	return
 }
 
-func GetType(tType model.Type) (ret reflect.Type, err error) {
+func getType(tType model.Type) (ret reflect.Type, err error) {
 	switch tType.GetValue() {
 	case util.TypeBooleanField:
 		if tType.IsPtrType() {
@@ -385,6 +390,8 @@ func GetType(tType model.Type) (ret reflect.Type, err error) {
 		}
 		var val float64
 		ret = reflect.TypeOf(val)
+	case util.TypeStructField:
+		ret = reflect.TypeOf(_declareObjectValue)
 	case util.TypeSliceField:
 		ret, err = getSliceType(tType)
 	default:
@@ -394,8 +401,8 @@ func GetType(tType model.Type) (ret reflect.Type, err error) {
 	return
 }
 
-func GetTypeValue(tType model.Type) (ret reflect.Value, err error) {
-	cType, cErr := GetType(tType)
+func getInitializeValue(tType model.Type) (ret reflect.Value, err error) {
+	cType, cErr := getType(tType)
 	if cErr != nil {
 		err = cErr
 		return
@@ -406,6 +413,15 @@ func GetTypeValue(tType model.Type) (ret reflect.Value, err error) {
 	}
 
 	cValue := reflect.New(cType).Elem()
+	if !tType.IsBasic() {
+		cValue.FieldByName("Name").SetString(tType.GetName())
+		cValue.FieldByName("PkgPath").SetString(tType.GetPkgPath())
+		cValue.FieldByName("IsPtr").SetBool(tType.IsPtrType())
+		if util.IsSliceType(tType.GetValue()) {
+			cValue.FieldByName("IsElemPtr").SetBool(tType.Elem().IsPtrType())
+		}
+	}
+
 	if tType.IsPtrType() {
 		cValue = cValue.Addr()
 	}
