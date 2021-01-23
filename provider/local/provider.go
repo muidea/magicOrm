@@ -13,7 +13,7 @@ import (
 var _helper helper.Helper
 
 func init() {
-	_helper = helper.New(GetEntityValue, ElemDependValue)
+	_helper = helper.New(ElemDependValue)
 }
 
 func GetEntityType(entity interface{}) (ret model.Type, err error) {

@@ -7,7 +7,6 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
-type GetValueFunc func(interface{}) (model.Value, error)
 type ElemDependValueFunc func(model.Value) ([]model.Value, error)
 
 type Helper interface {
@@ -16,12 +15,11 @@ type Helper interface {
 }
 
 type impl struct {
-	getValue        GetValueFunc
 	elemDependValue ElemDependValueFunc
 }
 
-func New(getValue GetValueFunc, elemDependValue ElemDependValueFunc) Helper {
-	return &impl{getValue: getValue, elemDependValue: elemDependValue}
+func New(elemDependValue ElemDependValueFunc) Helper {
+	return &impl{elemDependValue: elemDependValue}
 }
 
 /*
