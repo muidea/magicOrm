@@ -87,18 +87,28 @@ func (s *Object) GetField(name string) (ret model.Field) {
 
 // Interface Interface
 func (s *Object) Interface(ptrValue bool) (ret interface{}) {
-	val := &ObjectValue{Name: s.Name, PkgPath: s.PkgPath, Items: []*ItemValue{}}
+	objVal := &ObjectValue{Name: s.Name, PkgPath: s.PkgPath, Items: []*ItemValue{}}
 
 	for _, v := range s.Items {
-		val.Items = append(val.Items, &ItemValue{Name: v.Name, Value: v.value.Get().Interface()})
+		if v.value.IsNil() {
+			objVal.Items = append(objVal.Items, &ItemValue{Name: v.Name})
+			continue
+		}
+
+		rVal := v.value.Get()
+		if !v.Type.IsBasic() {
+			rVal = rVal.Addr()
+		}
+
+		objVal.Items = append(objVal.Items, &ItemValue{Name: v.Name, Value: rVal.Interface()})
 	}
 
 	if ptrValue {
-		ret = val
+		ret = objVal
 		return
 	}
 
-	ret = *val
+	ret = *objVal
 	return
 }
 

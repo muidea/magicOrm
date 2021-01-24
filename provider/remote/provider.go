@@ -25,6 +25,10 @@ func isRemoteType(vType model.Type) bool {
 	return false
 }
 
+func GetHelper() helper.Helper {
+	return _helper
+}
+
 func GetEntityType(entity interface{}) (ret model.Type, err error) {
 	objPtr, ok := entity.(*Object)
 	if ok {
@@ -105,16 +109,27 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 		iValue := iVal.FieldByName("Value")
 
 		vField := vModel.GetField(iName)
-		if vField == nil {
+		if vField == nil || util.IsNil(iValue) {
 			continue
 		}
 
-		vValue, vErr := _helper.Decode(iValue.Interface(), vField.GetType())
-		if vErr != nil {
-			err = vErr
-			return
+		vType := vField.GetType()
+		if vType.IsBasic() {
+			vValue, vErr := _helper.Decode(iValue.Interface(), vField.GetType())
+			if vErr != nil {
+				err = vErr
+				return
+			}
+
+			err = vField.SetValue(vValue)
+			if err != nil {
+				return
+			}
+
+			continue
 		}
 
+		vValue := newValue(iValue)
 		err = vField.SetValue(vValue)
 		if err != nil {
 			return
@@ -200,8 +215,7 @@ func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, helper 
 	tType := pkField.GetType()
 	tVal := pkField.GetValue()
 	if tVal.IsNil() {
-		ret = "0"
-		return
+		tVal, _ = tType.Interface()
 	}
 
 	ret, err = helper.Encode(tVal, tType)

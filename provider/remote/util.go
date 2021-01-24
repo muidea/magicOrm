@@ -268,7 +268,7 @@ func getSliceType(tType model.Type) (ret reflect.Type, err error) {
 		var val []float64
 		ret = reflect.TypeOf(val)
 	case util.TypeStructField:
-		ret = reflect.TypeOf(_declareObjectSliceValue)
+		ret = reflect.TypeOf(&_declareObjectSliceValue)
 	default:
 		err = fmt.Errorf("unexpect slice item type, name:%s, type:%d", tType.GetName(), tType.GetValue())
 	}
@@ -391,7 +391,7 @@ func getType(tType model.Type) (ret reflect.Type, err error) {
 		var val float64
 		ret = reflect.TypeOf(val)
 	case util.TypeStructField:
-		ret = reflect.TypeOf(_declareObjectValue)
+		ret = reflect.TypeOf(&_declareObjectValue)
 	case util.TypeSliceField:
 		ret, err = getSliceType(tType)
 	default:
@@ -408,7 +408,7 @@ func getInitializeValue(tType model.Type) (ret reflect.Value, err error) {
 		return
 	}
 
-	if tType.IsPtrType() {
+	if tType.IsPtrType() || !tType.IsBasic() {
 		cType = cType.Elem()
 	}
 
@@ -422,7 +422,7 @@ func getInitializeValue(tType model.Type) (ret reflect.Value, err error) {
 		}
 	}
 
-	if tType.IsPtrType() {
+	if tType.IsPtrType() || !tType.IsBasic() {
 		cValue = cValue.Addr()
 	}
 

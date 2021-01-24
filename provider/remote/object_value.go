@@ -507,7 +507,7 @@ func compareItemValue(l, r *ItemValue) bool {
 	return true
 }
 
-func compareObjectValue(l, r *ObjectValue) bool {
+func CompareObjectValue(l, r *ObjectValue) bool {
 	if l.Name != r.Name {
 		return false
 	}
@@ -555,7 +555,7 @@ func compareSliceObjectValue(l, r *SliceObjectValue) bool {
 	for idx := 0; idx < len(l.Values); idx++ {
 		lVal := l.Values[idx]
 		rVal := r.Values[idx]
-		if !compareObjectValue(lVal, rVal) {
+		if !CompareObjectValue(lVal, rVal) {
 			return false
 		}
 	}
