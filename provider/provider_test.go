@@ -515,7 +515,7 @@ func TestUpdateRemoteProvider(t *testing.T) {
 	defer provider.UnregisterModel(extObject)
 
 	base := &Base{}
-	err := remote.UpdateEntity(baseVal, base)
+	err := UpdateEntity(baseVal, base)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
@@ -526,7 +526,7 @@ func TestUpdateRemoteProvider(t *testing.T) {
 	}
 
 	ext := &ExtInfo{Ptr: &Base{}}
-	err = remote.UpdateEntity(extVal, ext)
+	err = UpdateEntity(extVal, ext)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
@@ -665,7 +665,7 @@ func TestCompareProvider(t *testing.T) {
 
 	ext2Info := &ExtInfo{Ptr: &Base{}}
 	r2Val := r2ExtModel.Interface(false).(remote.ObjectValue)
-	r2Err = remote.UpdateEntity(&r2Val, ext2Info)
+	r2Err = UpdateEntity(&r2Val, ext2Info)
 	if r2Err != nil {
 		t.Errorf("UpdateEntity from remoteProvider failed, err:%s", r2Err.Error())
 		return
@@ -686,7 +686,7 @@ func TestCompareProvider(t *testing.T) {
 	}
 
 	r2ValPtr := r2ExtModel.Interface(true).(*remote.ObjectValue)
-	r2Err = remote.UpdateEntity(r2ValPtr, ext2Info)
+	r2Err = UpdateEntity(r2ValPtr, ext2Info)
 	if r2Err != nil {
 		t.Errorf("UpdateEntity from remoteProvider failed, err:%s", r2Err.Error())
 		return

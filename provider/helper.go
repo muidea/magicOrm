@@ -1,4 +1,4 @@
-package remote
+package provider
 
 import (
 	"fmt"
@@ -7,11 +7,13 @@ import (
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider/local"
+	"github.com/muidea/magicOrm/provider/remote"
 	"github.com/muidea/magicOrm/util"
 )
 
 // UpdateEntity update object value -> entity
-func UpdateEntity(objectValue *ObjectValue, entity interface{}) (err error) {
+func UpdateEntity(objectValue *remote.ObjectValue, entity interface{}) (err error) {
 	if !objectValue.IsAssigned() {
 		return
 	}
@@ -32,7 +34,7 @@ func UpdateEntity(objectValue *ObjectValue, entity interface{}) (err error) {
 		return
 	}
 
-	entityType, entityErr := newType(entityValue.Type())
+	entityType, entityErr := local.GetEntityType(entityValue.Interface())
 	if entityErr != nil {
 		err = entityErr
 		return
@@ -49,7 +51,7 @@ func UpdateEntity(objectValue *ObjectValue, entity interface{}) (err error) {
 }
 
 // UpdateSliceEntity update slice object value -> entitySlice
-func UpdateSliceEntity(sliceObjectValue *SliceObjectValue, entitySlice interface{}) (err error) {
+func UpdateSliceEntity(sliceObjectValue *remote.SliceObjectValue, entitySlice interface{}) (err error) {
 	if !sliceObjectValue.IsAssigned() {
 		return
 	}
@@ -69,7 +71,7 @@ func UpdateSliceEntity(sliceObjectValue *SliceObjectValue, entitySlice interface
 		return
 	}
 
-	entitySliceType, entitySliceErr := newType(entitySliceVal.Type())
+	entitySliceType, entitySliceErr := remote.GetEntityType(entitySliceVal.Interface())
 	if entitySliceErr != nil {
 		err = entitySliceErr
 		return
@@ -85,7 +87,7 @@ func UpdateSliceEntity(sliceObjectValue *SliceObjectValue, entitySlice interface
 	return
 }
 
-func updateStructValue(objectValue *ObjectValue, vType model.Type, value reflect.Value) (ret reflect.Value, err error) {
+func updateStructValue(objectValue *remote.ObjectValue, vType model.Type, value reflect.Value) (ret reflect.Value, err error) {
 	if vType.GetName() != objectValue.GetName() || vType.GetPkgPath() != objectValue.GetPkgPath() {
 		err = fmt.Errorf("illegal object value, objectValue name:%s, entityType name:%s", objectValue.GetName(), vType.GetName())
 		log.Errorf("mismatch objectValue for value, err:%s", err)
@@ -100,26 +102,26 @@ func updateStructValue(objectValue *ObjectValue, vType model.Type, value reflect
 		if curItem.Value == nil {
 			continue
 		}
+
 		curValue := entityValue.Field(idx)
 		if util.IsNil(curValue) {
 			continue
 		}
-
-		field := entityType.Field(idx)
-		tType, tErr := newType(field.Type)
-		if tErr != nil {
-			err = tErr
-			log.Errorf("illegal struct field, err:%s", err.Error())
+		curType, curErr := local.GetEntityType(curValue.Interface())
+		if curErr != nil {
+			err = curErr
+			log.Errorf("illegal struct curField, err:%s", err.Error())
 			return
 		}
 
+		curField := entityType.Field(idx)
 		for {
 			// for basic type
-			if tType.IsBasic() {
-				val, valErr := _helper.Decode(curItem.Value, tType)
+			if curType.IsBasic() {
+				val, valErr := local.GetHelper().Decode(curItem.Value, curType)
 				if valErr != nil {
 					err = valErr
-					log.Errorf("updateBasicValue failed, fieldName:%s, err:%s", field.Name, err.Error())
+					log.Errorf("updateBasicValue failed, fieldName:%s, err:%s", curField.Name, err.Error())
 					return
 				}
 
@@ -128,11 +130,12 @@ func updateStructValue(objectValue *ObjectValue, vType model.Type, value reflect
 			}
 
 			// for struct type
-			if util.IsStructType(tType.GetValue()) {
-				val, valErr := updateStructValue(curItem.Value.(*ObjectValue), tType, curValue)
+			if util.IsStructType(curType.GetValue()) {
+				objPtr := curItem.Value.(*remote.ObjectValue)
+				val, valErr := updateStructValue(objPtr, curType, curValue)
 				if valErr != nil {
 					err = valErr
-					log.Errorf("convertStructItemValue failed, fieldName:%s, err:%s", field.Name, err.Error())
+					log.Errorf("convertStructItemValue failed, fieldName:%s, err:%s", curField.Name, err.Error())
 					return
 				}
 
@@ -141,10 +144,11 @@ func updateStructValue(objectValue *ObjectValue, vType model.Type, value reflect
 			}
 
 			// for struct slice
-			val, valErr := updateSliceStructValue(curItem.Value.(*SliceObjectValue), tType, curValue)
+			slicePtr := curItem.Value.(*remote.SliceObjectValue)
+			val, valErr := updateSliceStructValue(slicePtr, curType, curValue)
 			if valErr != nil {
 				err = valErr
-				log.Errorf("updateSliceStructValue failed, fieldName:%s, err:%s", field.Name, err.Error())
+				log.Errorf("updateSliceStructValue failed, fieldName:%s, err:%s", curField.Name, err.Error())
 				return
 			}
 
@@ -161,7 +165,7 @@ func updateStructValue(objectValue *ObjectValue, vType model.Type, value reflect
 	return
 }
 
-func updateSliceStructValue(sliceObjectValue *SliceObjectValue, vType model.Type, value reflect.Value) (ret reflect.Value, err error) {
+func updateSliceStructValue(sliceObjectValue *remote.SliceObjectValue, vType model.Type, value reflect.Value) (ret reflect.Value, err error) {
 	if vType.GetName() != sliceObjectValue.GetName() || vType.GetPkgPath() != sliceObjectValue.GetPkgPath() {
 		err = fmt.Errorf("illegal object value, sliceObjectValue name:%s, entityType name:%s", sliceObjectValue.GetName(), vType.GetName())
 		log.Errorf("mismatch sliceObjectValue for value, err:%s", err)
