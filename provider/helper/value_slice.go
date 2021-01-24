@@ -26,35 +26,39 @@ func (s *impl) encodeSlice(vVal model.Value, tType model.Type) (ret string, err 
 		items = append(items, strVal)
 	}
 
-	data, dataErr := json.Marshal(items)
-	if dataErr != nil {
-		err = dataErr
-		return
-	}
+	if len(items) > 0 {
+		data, dataErr := json.Marshal(items)
+		if dataErr != nil {
+			err = dataErr
+			return
+		}
 
-	ret = string(data)
+		ret = string(data)
+	}
 	return
 }
 
 func (s *impl) decodeStringSlice(val string, tType model.Type) (ret model.Value, err error) {
-	items := []interface{}{}
-	err = json.Unmarshal([]byte(val), &items)
-	if err != nil {
-		return
-	}
-
 	tVal, _ := tType.Interface()
-	sliceVal := tVal.Get()
-	for idx := range items {
-		itemVal, itemErr := s.Decode(items[idx], tType.Elem())
-		if itemErr != nil {
-			err = itemErr
+	if val != "" {
+		items := []interface{}{}
+		err = json.Unmarshal([]byte(val), &items)
+		if err != nil {
 			return
 		}
 
-		sliceVal = reflect.Append(sliceVal, itemVal.Get())
+		sliceVal := tVal.Get()
+		for idx := range items {
+			itemVal, itemErr := s.Decode(items[idx], tType.Elem())
+			if itemErr != nil {
+				err = itemErr
+				return
+			}
+
+			sliceVal = reflect.Append(sliceVal, itemVal.Get())
+		}
+		tVal.Set(sliceVal)
 	}
-	tVal.Set(sliceVal)
 
 	ret = tVal
 	return

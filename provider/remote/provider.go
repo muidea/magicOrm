@@ -99,11 +99,23 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 	}
 
 	for idx := 0; idx < itemsVal.Len(); idx++ {
-		iVal := itemsVal.Index(idx)
+		iVal := reflect.Indirect(itemsVal.Index(idx))
 
 		iName := iVal.FieldByName("Name").String()
 		iValue := iVal.FieldByName("Value")
-		err = vModel.SetFieldValue(iName, newValue(iValue))
+
+		vField := vModel.GetField(iName)
+		if vField == nil {
+			continue
+		}
+
+		vValue, vErr := _helper.Decode(iValue.Interface(), vField.GetType())
+		if vErr != nil {
+			err = vErr
+			return
+		}
+
+		err = vField.SetValue(vValue)
 		if err != nil {
 			return
 		}

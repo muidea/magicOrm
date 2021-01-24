@@ -3,6 +3,7 @@ package remote
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"reflect"
 
 	log "github.com/cihub/seelog"
@@ -52,58 +53,55 @@ func (s *ObjectValue) IsPtrValue() bool {
 func (s *ObjectValue) IsAssigned() (ret bool) {
 	ret = false
 	for _, val := range s.Items {
-		if val.Value != nil {
-			ret = true
-			break
+		if val.Value == nil {
+			continue
 		}
 
-		/*
-			bVal, bOK := val.Value.(bool)
-			if bOK {
-				ret = bVal
-				if ret {
-					return
-				}
-
-				continue
+		bVal, bOK := val.Value.(bool)
+		if bOK {
+			ret = bVal
+			if ret {
+				return
 			}
 
-			strVal, strOK := val.Value.(string)
-			if strOK {
-				ret = strVal != ""
-				if ret {
-					return
-				}
+			continue
+		}
 
-				continue
+		strVal, strOK := val.Value.(string)
+		if strOK {
+			ret = strVal != ""
+			if ret {
+				return
 			}
 
-			fltVal, fltOK := val.Value.(float64)
-			if fltOK {
-				ret = math.Abs(fltVal-0.00000) > 0.00001
-				if ret {
-					return
-				}
+			continue
+		}
 
-				continue
+		fltVal, fltOK := val.Value.(float64)
+		if fltOK {
+			ret = math.Abs(fltVal-0.00000) > 0.00001
+			if ret {
+				return
 			}
 
-			sliceObjPtrVal, sliceObjPtrOK := val.Value.(*SliceObjectValue)
-			if sliceObjPtrOK {
-				ret = len(sliceObjPtrVal.Values) > 0
-				if ret {
-					return
-				}
-			}
+			continue
+		}
 
-			ptrObjVal, ptrObjOK := val.Value.(*ObjectValue)
-			if ptrObjOK {
-				ret = ptrObjVal.IsAssigned()
-				if ret {
-					return
-				}
+		sliceObjPtrVal, sliceObjPtrOK := val.Value.(*SliceObjectValue)
+		if sliceObjPtrOK {
+			ret = len(sliceObjPtrVal.Values) > 0
+			if ret {
+				return
 			}
-		*/
+		}
+
+		ptrObjVal, ptrObjOK := val.Value.(*ObjectValue)
+		if ptrObjOK {
+			ret = ptrObjVal.IsAssigned()
+			if ret {
+				return
+			}
+		}
 	}
 
 	return
