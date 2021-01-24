@@ -101,14 +101,14 @@ func getItemInfo(idx int, fieldType reflect.StructField) (ret *Item, err error) 
 		return
 	}
 
-	var val reflect.Value
+	initVal, _ := typeImpl.Interface()
 
 	item := &Item{}
 	item.Index = idx
 	item.Name = fieldType.Name
 	item.Type = typeImpl
 	item.Tag = tagImpl
-	item.value = newValue(val)
+	item.value = newValue(initVal.Get())
 
 	ret = item
 	return

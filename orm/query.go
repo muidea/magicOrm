@@ -101,7 +101,7 @@ func (s *impl) assignSingleModel(modelVal model.Model, queryVal resultItems) (re
 
 func (s *impl) queryRelationSingle(id int, vModel model.Model) (ret model.Model, err error) {
 	relationModel := vModel.Copy()
-	relationVal, relationErr := s.modelProvider.GetEntityValue(id)
+	relationVal, relationErr := s.modelProvider.GetEntityValue(&id)
 	if relationErr != nil {
 		err = fmt.Errorf("GetEntityValue failed, err:%s", relationErr)
 		return
@@ -129,7 +129,7 @@ func (s *impl) queryRelationSlice(ids []int, vModel model.Model) (ret []model.Mo
 	sliceVal := []model.Model{}
 	for _, item := range ids {
 		relationModel := vModel.Copy()
-		relationVal, relationErr := s.modelProvider.GetEntityValue(item)
+		relationVal, relationErr := s.modelProvider.GetEntityValue(&item)
 		if relationErr != nil {
 			err = fmt.Errorf("GetEntityValue failed, err:%s", relationErr)
 			return
@@ -189,50 +189,48 @@ func (s *impl) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret 
 		}
 	}()
 
-	if err != nil {
+	if err != nil || len(values) == 0 {
 		return
 	}
 
 	fieldValue, _ := fieldType.Interface()
-	if len(values) > 0 {
-		if util.IsStructType(fieldType.GetValue()) {
-			queryVal, queryErr := s.queryRelationSingle(values[0], fieldModel)
-			if queryErr != nil {
-				err = queryErr
-				return
-			}
+	if util.IsStructType(fieldType.GetValue()) {
+		queryVal, queryErr := s.queryRelationSingle(values[0], fieldModel)
+		if queryErr != nil {
+			err = queryErr
+			return
+		}
 
-			modelVal, modelErr := s.modelProvider.GetEntityValue(queryVal.Interface(true))
+		modelVal, modelErr := s.modelProvider.GetEntityValue(queryVal.Interface(true))
+		if modelErr != nil {
+			err = modelErr
+			return
+		}
+
+		fieldValue.Set(modelVal.Get())
+	} else if util.IsSliceType(fieldType.GetValue()) {
+		queryVal, queryErr := s.queryRelationSlice(values, fieldModel)
+		if queryErr != nil {
+			err = queryErr
+			return
+		}
+
+		for _, v := range queryVal {
+			modelVal, modelErr := s.modelProvider.GetEntityValue(v.Interface(true))
 			if modelErr != nil {
 				err = modelErr
 				return
 			}
 
-			fieldValue.Set(modelVal.Get())
-		} else if util.IsSliceType(fieldType.GetValue()) {
-			queryVal, queryErr := s.queryRelationSlice(values, fieldModel)
-			if queryErr != nil {
-				err = queryErr
+			fieldValue, fieldErr = s.modelProvider.AppendSliceValue(fieldValue, modelVal)
+			if fieldErr != nil {
+				err = fieldErr
 				return
-			}
-
-			for _, v := range queryVal {
-				modelVal, modelErr := s.modelProvider.GetEntityValue(v.Interface(true))
-				if modelErr != nil {
-					err = modelErr
-					return
-				}
-
-				fieldValue, fieldErr = s.modelProvider.AppendSliceValue(fieldValue, modelVal)
-				if fieldErr != nil {
-					err = fieldErr
-					return
-				}
 			}
 		}
 	}
-
 	ret = fieldValue
+
 	return
 }
 
