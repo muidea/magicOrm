@@ -116,7 +116,10 @@ func (s *Object) Interface(ptrValue bool) (ret interface{}) {
 func (s *Object) Copy() (ret model.Model) {
 	obj := &Object{Name: s.Name, PkgPath: s.PkgPath, Items: []*Item{}}
 	for _, val := range s.Items {
-		item := &Item{Index: val.Index, Name: val.Name, Tag: val.Tag.copy(), Type: val.Type.copy(), value: val.value.copy()}
+		item := &Item{Index: val.Index, Name: val.Name, Tag: val.Tag.copy(), Type: val.Type.copy()}
+		if val.value != nil {
+			item.value = val.value.copy()
+		}
 
 		obj.Items = append(obj.Items, item)
 	}

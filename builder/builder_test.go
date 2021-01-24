@@ -11,7 +11,7 @@ import (
 type Unit struct {
 	ID        int       `orm:"id key auto"`
 	Name      string    `orm:"name"`
-	Value     float32   `orm:"value"`
+	Value     float64   `orm:"value"`
 	TimeStamp time.Time `orm:"ts"`
 }
 
@@ -50,7 +50,7 @@ func TestBuilderCommon(t *testing.T) {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 		return
 	}
-	if str != "CREATE TABLE `default_Unit` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`value` FLOAT NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\tPRIMARY KEY (`id`)\n)\n" {
+	if str != "CREATE TABLE `default_Unit` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`value` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\tPRIMARY KEY (`id`)\n)\n" {
 		t.Errorf("build create schema failed, str:%s", str)
 		return
 	}
@@ -69,7 +69,7 @@ func TestBuilderCommon(t *testing.T) {
 	if err != nil {
 		t.Errorf("build insert failed, err:%s", err.Error())
 	}
-	if str != "INSERT INTO `default_Unit` (`name`,`value`,`ts`) VALUES ('Hello world',12.345600,'2018-01-02 15:04:05')" {
+	if str != "INSERT INTO `default_Unit` (`name`,`value`,`ts`) VALUES ('Hello world',12.3456,'2018-01-02 15:04:05')" {
 		t.Errorf("build insert failed, str:%s", str)
 		return
 	}
@@ -79,7 +79,7 @@ func TestBuilderCommon(t *testing.T) {
 		t.Errorf("build update failed, err:%s", err.Error())
 		return
 	}
-	if str != "UPDATE `default_Unit` SET `name`='Hello world',`value`=12.345600,`ts`='2018-01-02 15:04:05' WHERE `id`=10" {
+	if str != "UPDATE `default_Unit` SET `name`='Hello world',`value`=12.3456,`ts`='2018-01-02 15:04:05' WHERE `id`=10" {
 		t.Errorf("build update failed, str:%s", str)
 		return
 	}
