@@ -191,7 +191,7 @@ func AppendSliceValue(sliceVal model.Value, vVal model.Value) (ret model.Value, 
 		return
 	}
 
-	sliceObjects = reflect.Append(sliceObjects, vVal.Get())
+	sliceObjects = reflect.Append(sliceObjects, vVal.Get().Addr())
 	sliceVal.Get().FieldByName("Values").Set(sliceObjects)
 
 	ret = sliceVal

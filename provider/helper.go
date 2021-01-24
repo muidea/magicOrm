@@ -97,8 +97,9 @@ func updateStructValue(objectValue *remote.ObjectValue, vType model.Type, value 
 	entityValue := reflect.Indirect(value)
 	entityType := entityValue.Type()
 	fieldNum := entityType.NumField()
+	items := objectValue.Items
 	for idx := 0; idx < fieldNum; idx++ {
-		curItem := objectValue.Items[idx]
+		curItem := items[idx]
 		if curItem.Value == nil {
 			continue
 		}
