@@ -49,6 +49,10 @@ func (s *impl) decodeBool(val interface{}, tType model.Type) (ret model.Value, e
 		bVal = rVal.Int()
 	case reflect.Float64:
 		bVal = int64(rVal.Float())
+	case reflect.Bool:
+		if rVal.Bool() {
+			bVal = 1
+		}
 	default:
 		err = fmt.Errorf("illegal boolean value, val:%v", val)
 	}

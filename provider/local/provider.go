@@ -16,6 +16,10 @@ func init() {
 	_helper = helper.New(ElemDependValue)
 }
 
+func GetHelper() helper.Helper {
+	return _helper
+}
+
 func GetEntityType(entity interface{}) (ret model.Type, err error) {
 	rVal := reflect.ValueOf(entity)
 	vType, vErr := getValueType(rVal)

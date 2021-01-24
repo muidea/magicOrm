@@ -64,6 +64,24 @@ func (s *impl) decodeStringSlice(val string, tType model.Type) (ret model.Value,
 	return
 }
 
+func (s *impl) decodeReflectSlice(val reflect.Value, tType model.Type) (ret model.Value, err error) {
+	tVal, _ := tType.Interface()
+	sliceVal := tVal.Get()
+	for idx := 0; idx < val.Len(); idx++ {
+		v := val.Index(idx)
+		itemVal, itemErr := s.Decode(v.Interface(), tType.Elem())
+		if itemErr != nil {
+			err = itemErr
+			return
+		}
+
+		sliceVal = reflect.Append(sliceVal, itemVal.Get())
+	}
+	tVal.Set(sliceVal)
+	ret = tVal
+	return
+}
+
 // decodeSlice decode slice from string
 func (s *impl) decodeSlice(val interface{}, tType model.Type) (ret model.Value, err error) {
 	rVal := reflect.ValueOf(val)
@@ -75,6 +93,8 @@ func (s *impl) decodeSlice(val interface{}, tType model.Type) (ret model.Value, 
 	switch rVal.Kind() {
 	case reflect.String:
 		ret, err = s.decodeStringSlice(rVal.String(), tType)
+	case reflect.Slice:
+		ret, err = s.decodeReflectSlice(rVal, tType)
 	default:
 		err = fmt.Errorf("illegal slice value, val:%v", val)
 	}

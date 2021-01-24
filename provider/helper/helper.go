@@ -89,7 +89,11 @@ func (s *impl) Decode(val interface{}, tType model.Type) (ret model.Value, err e
 		err = fmt.Errorf("illegal type, type:%s", tType.GetName())
 	}
 
-	if tType.IsPtrType() {
+	if err != nil {
+		return
+	}
+
+	if tType.IsPtrType() && !ret.IsNil() {
 		ret = ret.Addr()
 	}
 
