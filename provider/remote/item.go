@@ -81,6 +81,10 @@ func (s *Item) copy() (ret model.Field) {
 
 func (s *Item) dump() string {
 	str := fmt.Sprintf("index:%d,name:%s,type:[%s],tag:[%s]", s.Index, s.Name, s.Type.dump(), s.Tag.dump())
+	if s.value != nil {
+		str = fmt.Sprintf("%s,value:%v", str, s.value.Get().Interface())
+	}
+
 	return str
 }
 

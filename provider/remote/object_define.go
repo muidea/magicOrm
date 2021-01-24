@@ -90,7 +90,7 @@ func (s *Object) Interface(ptrValue bool) (ret interface{}) {
 	val := &ObjectValue{Name: s.Name, PkgPath: s.PkgPath, Items: []*ItemValue{}}
 
 	for _, v := range s.Items {
-		val.Items = append(val.Items, &ItemValue{Name: v.Name, Value: v.value.Get()})
+		val.Items = append(val.Items, &ItemValue{Name: v.Name, Value: v.value.Get().Interface()})
 	}
 
 	if ptrValue {
