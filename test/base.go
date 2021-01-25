@@ -1,9 +1,11 @@
 package test
 
 import (
-	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider"
 	"time"
+
+	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/orm"
+	"github.com/muidea/magicOrm/provider"
 
 	"github.com/muidea/magicOrm/provider/remote"
 )
@@ -277,15 +279,37 @@ func (l *Compose) IsSame(r *Compose) bool {
 	return true
 }
 
-func registerModel(orm provider.Provider, objList []interface{}) (ret []model.Model, err error) {
+func registerModel(provider provider.Provider, objList []interface{}) (ret []model.Model, err error) {
 	for _, val := range objList {
-		m, mErr := orm.RegisterModel(val)
+		m, mErr := provider.RegisterModel(val)
 		if mErr != nil {
 			err = mErr
 			return
 		}
 
 		ret = append(ret, m)
+	}
+
+	return
+}
+
+func createModel(orm orm.Orm, modelList []model.Model) (err error) {
+	for _, val := range modelList {
+		err = orm.Create(val)
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func dropModel(orm orm.Orm, modelList []model.Model) (err error) {
+	for _, val := range modelList {
+		err = orm.Drop(val)
+		if err != nil {
+			return
+		}
 	}
 
 	return
