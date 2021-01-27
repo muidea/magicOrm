@@ -4,7 +4,7 @@ import (
 	"fmt"
 	orm "github.com/muidea/magicOrm"
 	"github.com/muidea/magicOrm/model"
-	remoteProvider "github.com/muidea/magicOrm/provider"
+	ormProvider "github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/remote"
 	"testing"
 	"time"
@@ -306,7 +306,7 @@ func TestReferenceRemote(t *testing.T) {
 
 		sObjectVal := vModel.Interface(true).(*remote.ObjectValue)
 		sVal := sValList[idx]
-		err = remoteProvider.UpdateEntity(sObjectVal, sVal)
+		err = ormProvider.UpdateEntity(sObjectVal, sVal)
 		if err != nil {
 			t.Errorf("UpdateEntity failed. err:%s", err.Error())
 			return
@@ -347,7 +347,7 @@ func TestReferenceRemote(t *testing.T) {
 
 		sObjectVal := vModel.Interface(true).(*remote.ObjectValue)
 		sVal := sValList[idx]
-		err = remoteProvider.UpdateEntity(sObjectVal, sVal)
+		err = ormProvider.UpdateEntity(sObjectVal, sVal)
 		if err != nil {
 			t.Errorf("UpdateEntity failed. err:%s", err.Error())
 			return
@@ -399,7 +399,7 @@ func TestReferenceRemote(t *testing.T) {
 
 		qObjectVal := qModel.Interface(true).(*remote.ObjectValue)
 		qVal := qValList[idx]
-		err = remoteProvider.UpdateEntity(qObjectVal, qVal)
+		err = ormProvider.UpdateEntity(qObjectVal, qVal)
 		if err != nil {
 			t.Errorf("UpdateEntity failed. err:%s", err.Error())
 			return
