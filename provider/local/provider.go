@@ -20,6 +20,11 @@ func GetHelper() helper.Helper {
 	return _helper
 }
 
+func GetType(vType reflect.Type) (ret model.Type, err error) {
+	ret, err = newType(vType)
+	return
+}
+
 func GetEntityType(entity interface{}) (ret model.Type, err error) {
 	rVal := reflect.ValueOf(entity)
 	vType, vErr := getValueType(rVal)
