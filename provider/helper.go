@@ -104,11 +104,11 @@ func updateStructValue(objectValue *remote.ObjectValue, vType model.Type, value 
 			continue
 		}
 
-		curValue := entityValue.Field(idx)
-		if util.IsNil(curValue) {
+		curFieldValue := entityValue.Field(idx)
+		if util.IsNil(curFieldValue) {
 			continue
 		}
-		curType, curErr := local.GetEntityType(curValue.Interface())
+		curFieldType, curErr := local.GetEntityType(curFieldValue.Interface())
 		if curErr != nil {
 			err = curErr
 			log.Errorf("illegal struct curField, err:%s", err.Error())
@@ -118,42 +118,42 @@ func updateStructValue(objectValue *remote.ObjectValue, vType model.Type, value 
 		curField := entityType.Field(idx)
 		for {
 			// for basic type
-			if curType.IsBasic() {
-				val, valErr := local.GetHelper().Decode(curItem.Value, curType)
+			if curFieldType.IsBasic() {
+				val, valErr := local.GetHelper().Decode(curItem.Value, curFieldType)
 				if valErr != nil {
 					err = valErr
 					log.Errorf("updateBasicValue failed, fieldName:%s, err:%s", curField.Name, err.Error())
 					return
 				}
 
-				curValue.Set(val.Get())
+				curFieldValue.Set(val.Get())
 				break
 			}
 
 			// for struct type
-			if util.IsStructType(curType.GetValue()) {
+			if util.IsStructType(curFieldType.GetValue()) {
 				objPtr := curItem.Value.(*remote.ObjectValue)
-				val, valErr := updateStructValue(objPtr, curType, curValue)
+				val, valErr := updateStructValue(objPtr, curFieldType, curFieldValue)
 				if valErr != nil {
 					err = valErr
 					log.Errorf("convertStructItemValue failed, fieldName:%s, err:%s", curField.Name, err.Error())
 					return
 				}
 
-				curValue.Set(val)
+				curFieldValue.Set(val)
 				break
 			}
 
 			// for struct slice
 			slicePtr := curItem.Value.(*remote.SliceObjectValue)
-			val, valErr := updateSliceStructValue(slicePtr, curType, curValue)
+			val, valErr := updateSliceStructValue(slicePtr, curFieldType, curFieldValue)
 			if valErr != nil {
 				err = valErr
 				log.Errorf("updateSliceStructValue failed, fieldName:%s, err:%s", curField.Name, err.Error())
 				return
 			}
 
-			curValue.Set(val)
+			curFieldValue.Set(val)
 			break
 		}
 	}
