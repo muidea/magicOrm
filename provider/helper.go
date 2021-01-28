@@ -222,18 +222,14 @@ func getSliceStructValue(sliceObjectValue *remote.SliceObjectValue, valueType re
 	}
 
 	entityValue := reflect.New(entityType).Elem()
-	elemType := entityType.Elem()
-	isPtr := elemType.Kind() == reflect.Ptr
-	if isPtr {
-		elemType = elemType.Elem()
-	}
 	sliceValue := sliceObjectValue.Values
 
+	elemType := entityType.Elem()
 	for idx := 0; idx < len(sliceValue); idx++ {
 		sliceItem := sliceValue[idx]
-		elemVal := reflect.New(elemType).Elem()
-		elemVal, err = updateStructValue(sliceItem, vType.Elem(), elemVal)
-		if err != nil {
+		elemVal, elemErr := getObjectValue(sliceItem, elemType)
+		if elemErr != nil {
+			err = elemErr
 			log.Errorf("updateStructValue failed, sliceItem type:%s, elemVal type:%s", sliceItem.GetName(), elemVal.Type().String())
 			return
 		}
