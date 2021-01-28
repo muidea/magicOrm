@@ -11,9 +11,12 @@ import (
 )
 
 var _helper helper.Helper
+var nilValue model.Value
 
 func init() {
 	_helper = helper.New(ElemDependValue)
+
+	nilValue = &ValueImpl{}
 }
 
 func isRemoteType(vType model.Type) bool {
@@ -110,6 +113,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 
 		vField := vModel.GetField(iName)
 		if vField == nil || util.IsNil(iValue) {
+			vField.SetValue(nilValue)
 			continue
 		}
 

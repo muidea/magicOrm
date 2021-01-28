@@ -31,7 +31,7 @@ func (s *ValueImpl) Set(val reflect.Value) (err error) {
 		val = reflect.Indirect(val)
 	}
 
-	if util.IsNil(s.value) {
+	if util.IsNil(s.value) || util.IsNil(val) {
 		s.value = val
 		return
 	}
