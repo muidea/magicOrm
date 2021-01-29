@@ -223,9 +223,13 @@ func getSliceStructValue(sliceObjectValue *remote.SliceObjectValue, valueType re
 
 	entityValue := reflect.New(entityType).Elem()
 	sliceValue := sliceObjectValue.Values
+	sliceSize := len(sliceValue)
+	if sliceSize == 0 {
+		return
+	}
 
 	elemType := entityType.Elem()
-	for idx := 0; idx < len(sliceValue); idx++ {
+	for idx := 0; idx < sliceSize; idx++ {
 		sliceItem := sliceValue[idx]
 		elemVal, elemErr := getObjectValue(sliceItem, elemType)
 		if elemErr != nil {
@@ -265,6 +269,10 @@ func getObjectValue(objectValue *remote.ObjectValue, valueType reflect.Type) (re
 	entityValue := reflect.New(entityType).Elem()
 	items := objectValue.Items
 	fieldNum := len(objectValue.Items)
+	if fieldNum == 0 {
+		return
+	}
+
 	for idx := 0; idx < fieldNum; idx++ {
 		curItem := items[idx]
 		if curItem.Value == nil {
@@ -291,7 +299,9 @@ func getObjectValue(objectValue *remote.ObjectValue, valueType reflect.Type) (re
 					return
 				}
 
-				curFieldValue.Set(val.Get())
+				if !val.IsNil() {
+					curFieldValue.Set(val.Get())
+				}
 				break
 			}
 
@@ -305,7 +315,9 @@ func getObjectValue(objectValue *remote.ObjectValue, valueType reflect.Type) (re
 					return
 				}
 
-				curFieldValue.Set(val)
+				if !util.IsNil(val) {
+					curFieldValue.Set(val)
+				}
 				break
 			}
 
@@ -318,7 +330,9 @@ func getObjectValue(objectValue *remote.ObjectValue, valueType reflect.Type) (re
 				return
 			}
 
-			curFieldValue.Set(val)
+			if !util.IsNil(val) {
+				curFieldValue.Set(val)
+			}
 			break
 		}
 	}
