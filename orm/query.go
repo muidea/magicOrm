@@ -101,7 +101,7 @@ func (s *impl) assignSingleModel(modelVal model.Model, queryVal resultItems) (re
 
 func (s *impl) queryRelationSingle(id int, vModel model.Model) (ret model.Model, err error) {
 	relationModel := vModel.Copy()
-	relationVal, relationErr := s.modelProvider.GetEntityValue(&id)
+	relationVal, relationErr := s.modelProvider.GetEntityValue(id)
 	if relationErr != nil {
 		err = fmt.Errorf("GetEntityValue failed, err:%s", relationErr)
 		return
@@ -129,7 +129,7 @@ func (s *impl) queryRelationSlice(ids []int, vModel model.Model) (ret []model.Mo
 	sliceVal := []model.Model{}
 	for _, item := range ids {
 		relationModel := vModel.Copy()
-		relationVal, relationErr := s.modelProvider.GetEntityValue(&item)
+		relationVal, relationErr := s.modelProvider.GetEntityValue(item)
 		if relationErr != nil {
 			err = fmt.Errorf("GetEntityValue failed, err:%s", relationErr)
 			return
