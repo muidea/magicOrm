@@ -50,8 +50,10 @@ func (s *Item) GetTag() (ret model.Tag) {
 func (s *Item) GetValue() (ret model.Value) {
 	if s.value != nil {
 		ret = s.value
+		return
 	}
 
+	ret, _ = s.Type.Interface()
 	return
 }
 

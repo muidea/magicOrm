@@ -221,7 +221,7 @@ func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, helper 
 	pkField := vModel.GetPrimaryField()
 	tType := pkField.GetType()
 	tVal := pkField.GetValue()
-	if tVal == nil || tVal.IsNil() {
+	if tVal.IsNil() {
 		tVal, _ = tType.Interface()
 	}
 
