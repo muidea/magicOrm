@@ -499,6 +499,23 @@ func ConvertObjectValue(objVal *ObjectValue) (ret *ObjectValue, err error) {
 	return
 }
 
+func ConvertSliceObjectValue(objVal *SliceObjectValue) (ret *SliceObjectValue, err error) {
+	for idx := range objVal.Values {
+		cur := objVal.Values[idx]
+
+		valPtr, valErr := ConvertObjectValue(cur)
+		if valErr != nil {
+			err = valErr
+			return
+		}
+
+		objVal.Values[idx] = valPtr
+	}
+
+	ret = objVal
+	return
+}
+
 func compareItemValue(l, r *ItemValue) bool {
 	if l.Name != r.Name {
 		return false
