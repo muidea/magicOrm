@@ -1,18 +1,26 @@
 package test
 
 import (
-	provider2 "github.com/muidea/magicOrm/provider"
 	"testing"
 	"time"
 
-	orm "github.com/muidea/magicOrm"
+	"github.com/muidea/magicOrm/orm"
+	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
 func TestRemoteExecutor(t *testing.T) {
-
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", false)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
 	defer orm.Uninitialize()
+
+	remoteProvider := provider.NewRemoteProvider("default")
+
+	o1, err := orm.NewOrm(remoteProvider)
+	defer o1.Release()
+	if err != nil {
+		t.Errorf("new Orm failed, err:%s", err.Error())
+		return
+	}
 
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
 	val := &Unit{ID: 10, I8: 1, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
@@ -23,17 +31,8 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	o1, err := orm.NewOrm("default")
-	defer o1.Release()
-	if err != nil {
-		t.Errorf("new Orm failed, err:%s", err.Error())
-		return
-	}
-
-	provider := orm.GetProvider("default")
-
 	objList := []interface{}{objDef}
-	_, err = registerModel(provider, objList)
+	_, err = registerModel(remoteProvider, objList)
 	if err != nil {
 		t.Errorf("register mode failed, err:%s", err.Error())
 		return
@@ -57,7 +56,7 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	objModel, objErr := provider.GetEntityModel(objVal)
+	objModel, objErr := remoteProvider.GetEntityModel(objVal)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -69,7 +68,7 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	err = provider2.UpdateEntity(objModel.Interface(true).(*remote.ObjectValue), val)
+	err = provider.UpdateEntity(objModel.Interface(true).(*remote.ObjectValue), val)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -83,7 +82,7 @@ func TestRemoteExecutor(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	objModel, objErr = provider.GetEntityModel(objVal)
+	objModel, objErr = remoteProvider.GetEntityModel(objVal)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -100,7 +99,7 @@ func TestRemoteExecutor(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	obj2Model, obj2Err := provider.GetEntityModel(obj2Val)
+	obj2Model, obj2Err := remoteProvider.GetEntityModel(obj2Val)
 	if obj2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", obj2Err.Error())
 		return
@@ -112,7 +111,7 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	err = provider2.UpdateEntity(obj2Model.Interface(true).(*remote.ObjectValue), val2)
+	err = provider.UpdateEntity(obj2Model.Interface(true).(*remote.ObjectValue), val2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -131,8 +130,17 @@ func TestRemoteExecutor(t *testing.T) {
 }
 
 func TestRemoteDepends(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", false)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
 	defer orm.Uninitialize()
+
+	remoteProvider := provider.NewRemoteProvider("default")
+
+	o1, err := orm.NewOrm(remoteProvider)
+	defer o1.Release()
+	if err != nil {
+		t.Errorf("new Orm failed, err:%s", err.Error())
+		return
+	}
 
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
 	val := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
@@ -157,17 +165,8 @@ func TestRemoteDepends(t *testing.T) {
 		return
 	}
 
-	o1, err := orm.NewOrm("default")
-	defer o1.Release()
-	if err != nil {
-		t.Errorf("new Orm failed, err:%s", err.Error())
-		return
-	}
-
-	provider := orm.GetProvider("default")
-
 	objList := []interface{}{objDef, extObjDef, ext2ObjDef}
-	registerModel(provider, objList)
+	registerModel(remoteProvider, objList)
 
 	err = o1.Drop(objDef)
 	if err != nil {
@@ -199,7 +198,7 @@ func TestRemoteDepends(t *testing.T) {
 		return
 	}
 
-	extObjModel, extObjErr := provider.GetEntityModel(extObjVal)
+	extObjModel, extObjErr := remoteProvider.GetEntityModel(extObjVal)
 	if extObjErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", extObjErr.Error())
 		return
@@ -230,7 +229,7 @@ func TestRemoteDepends(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", ext2ObjErr.Error())
 		return
 	}
-	ext2ObjModel, ext2ObjErr := provider.GetEntityModel(ext2ObjVal)
+	ext2ObjModel, ext2ObjErr := remoteProvider.GetEntityModel(ext2ObjVal)
 	if ext2ObjErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", ext2ObjErr.Error())
 		return

@@ -4,29 +4,29 @@ import (
 	"testing"
 
 	"github.com/muidea/magicCommon/foundation/util"
-	orm "github.com/muidea/magicOrm"
+	"github.com/muidea/magicOrm/orm"
+	"github.com/muidea/magicOrm/provider"
 )
 
 func TestLocalGroup(t *testing.T) {
-	//orm.Initialize("root", "rootkit", "localhost:9696", "testdb")
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
 	defer orm.Uninitialize()
 
-	group1 := &Group{Name: "testGroup1"}
-	group2 := &Group{Name: "testGroup2"}
-	group3 := &Group{Name: "testGroup3"}
+	provider := provider.NewLocalProvider("default")
 
-	o1, err := orm.NewOrm("default")
+	o1, err := orm.NewOrm(provider)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
 
-	provider := orm.GetProvider("default")
-
 	objList := []interface{}{&Group{}, &User{}, &Status{}}
 	registerModel(provider, objList)
+
+	group1 := &Group{Name: "testGroup1"}
+	group2 := &Group{Name: "testGroup2"}
+	group3 := &Group{Name: "testGroup3"}
 
 	gModel, gErr := provider.GetEntityModel(group1)
 	if gErr != nil {
@@ -135,22 +135,22 @@ func TestLocalGroup(t *testing.T) {
 }
 
 func TestLocalUser(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
 	defer orm.Uninitialize()
 
-	status := &Status{Value: 10}
-	group1 := &Group{Name: "testGroup1"}
-	group2 := &Group{Name: "testGroup2"}
-	group3 := &Group{Name: "testGroup3"}
+	provider := provider.NewLocalProvider("default")
 
-	o1, err := orm.NewOrm("default")
+	o1, err := orm.NewOrm(provider)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
 
-	provider := orm.GetProvider("default")
+	status := &Status{Value: 10}
+	group1 := &Group{Name: "testGroup1"}
+	group2 := &Group{Name: "testGroup2"}
+	group3 := &Group{Name: "testGroup3"}
 
 	objList := []interface{}{&Group{}, &User{}, &Status{}}
 	registerModel(provider, objList)
@@ -352,20 +352,20 @@ func TestLocalUser(t *testing.T) {
 }
 
 func TestLocalSystem(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
 	defer orm.Uninitialize()
 
-	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
-	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
+	provider := provider.NewLocalProvider("default")
 
-	o1, err := orm.NewOrm("default")
+	o1, err := orm.NewOrm(provider)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
 
-	provider := orm.GetProvider("default")
+	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
+	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
 	objList := []interface{}{&Group{}, &User{}, &System{}, &Status{}}
 	registerModel(provider, objList)
@@ -507,8 +507,17 @@ func TestLocalSystem(t *testing.T) {
 }
 
 func TestLocalBatchQuery(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
 	defer orm.Uninitialize()
+
+	provider := provider.NewLocalProvider("default")
+
+	o1, err := orm.NewOrm(provider)
+	defer o1.Release()
+	if err != nil {
+		t.Errorf("new Orm failed, err:%s", err.Error())
+		return
+	}
 
 	status := &Status{Value: 10}
 	group1 := &Group{Name: "testGroup1"}
@@ -516,15 +525,6 @@ func TestLocalBatchQuery(t *testing.T) {
 
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
-
-	o1, err := orm.NewOrm("default")
-	defer o1.Release()
-	if err != nil {
-		t.Errorf("new Orm failed, err:%s", err.Error())
-		return
-	}
-
-	provider := orm.GetProvider("default")
 
 	objList := []interface{}{&Group{}, &User{}, &Status{}}
 	registerModel(provider, objList)
@@ -628,7 +628,7 @@ func TestLocalBatchQuery(t *testing.T) {
 	}
 
 	valueMask := User{Status: &Status{}}
-	filter := orm.GetFilter("default")
+	filter := orm.GetFilter(provider)
 	filter.Equal("Name", &user1.Name)
 	filter.In("Group", user1.Group)
 	filter.Like("EMail", user1.EMail)

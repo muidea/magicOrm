@@ -1,6 +1,7 @@
 package orm
 
 import (
+	"fmt"
 	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
@@ -22,20 +23,59 @@ type Orm interface {
 	Release()
 }
 
+var _config *ormConfig
+
+// Initialize InitOrm
+func Initialize(maxConnNum int, user, password, address, dbName string) error {
+	cfg := &serverConfig{user: user, password: password, address: address, dbName: dbName}
+
+	_config = newConfig()
+
+	_config.updateServerConfig(cfg)
+
+	return executor.InitializePool(maxConnNum, user, password, address, dbName)
+}
+
+// Uninitialize Uninitialize orm
+func Uninitialize() {
+	executor.UninitializePool()
+}
+
+// NewOrm create new Orm
+func NewOrm(provider provider.Provider) (Orm, error) {
+	cfg := _config.getServerConfig()
+	if cfg == nil {
+		return nil, fmt.Errorf("not define databaes server config")
+	}
+
+	executor, err := executor.NewExecutor(cfg.user, cfg.password, cfg.address, cfg.dbName)
+	if err != nil {
+		return nil, err
+	}
+
+	orm := &impl{executor: executor, modelProvider: provider}
+	return orm, nil
+}
+
+// GetOrm get orm from pool
+func GetOrm(provider provider.Provider) (Orm, error) {
+	executor, err := executor.GetExecutor()
+	if err != nil {
+		return nil, err
+	}
+
+	orm := &impl{executor: executor, modelProvider: provider}
+	return orm, nil
+}
+
+func GetFilter(provider provider.Provider) model.Filter {
+	return &queryFilter{params: map[string]model.FilterItem{}, modelProvider: provider}
+}
+
 // impl orm
 type impl struct {
 	executor      executor.Executor
 	modelProvider provider.Provider
-}
-
-// NewFilter create new filter
-func NewFilter(modelProvider provider.Provider) model.Filter {
-	return &queryFilter{params: map[string]model.FilterItem{}, modelProvider: modelProvider}
-}
-
-// NewOrm create new impl
-func NewOrm(executor executor.Executor, modelProvider provider.Provider) Orm {
-	return &impl{executor: executor, modelProvider: modelProvider}
 }
 
 // BeginTransaction begin transaction
@@ -70,9 +110,4 @@ func (s *impl) Release() {
 		s.executor.Release()
 		s.executor = nil
 	}
-}
-
-// NewQueryFilter new query filter
-func (s *impl) NewQueryFilter() model.Filter {
-	return NewFilter(s.modelProvider)
 }

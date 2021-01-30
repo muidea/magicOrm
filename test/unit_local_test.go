@@ -1,28 +1,28 @@
 package test
 
 import (
+	"github.com/muidea/magicOrm/provider"
 	"testing"
 	"time"
 
-	orm "github.com/muidea/magicOrm"
+	"github.com/muidea/magicOrm/orm"
 )
 
 func TestLocalExecutor(t *testing.T) {
-
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
 	defer orm.Uninitialize()
 
-	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
-	obj := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
+	provider := provider.NewLocalProvider("default")
 
-	o1, err := orm.NewOrm("default")
+	o1, err := orm.NewOrm(provider)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
 
-	provider := orm.GetProvider("default")
+	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
+	obj := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
 
 	objList := []interface{}{&Unit{}}
 	registerModel(provider, objList)
@@ -90,21 +90,21 @@ func TestLocalExecutor(t *testing.T) {
 }
 
 func TestLocalDepends(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
 	defer orm.Uninitialize()
 
-	now, _ := time.Parse("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000")
-	obj := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
-	ext := &ExtUnit{Unit: obj}
+	provider := provider.NewLocalProvider("default")
 
-	o1, err := orm.NewOrm("default")
+	o1, err := orm.NewOrm(provider)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
 
-	provider := orm.GetProvider("default")
+	now, _ := time.Parse("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000")
+	obj := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
+	ext := &ExtUnit{Unit: obj}
 
 	objList := []interface{}{&Unit{}, &ExtUnit{}, &ExtUnitList{}}
 	registerModel(provider, objList)

@@ -5,21 +5,20 @@ import (
 	"testing"
 	"time"
 
-	orm "github.com/muidea/magicOrm"
 	"github.com/muidea/magicOrm/model"
-	ormOrm "github.com/muidea/magicOrm/orm"
-	ormProvider "github.com/muidea/magicOrm/provider"
+	"github.com/muidea/magicOrm/orm"
+	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
 const composeLocalOwner = "composeLocal"
 const composeRemoteOwner = "composeRemote"
 
-func prepareLocalData(provider ormProvider.Provider, orm ormOrm.Orm) (sPtr *Simple, rPtr *Reference, cPtr *Compose, err error) {
+func prepareLocalData(localProvider provider.Provider, orm orm.Orm) (sPtr *Simple, rPtr *Reference, cPtr *Compose, err error) {
 	ts, _ := time.Parse("2006-01-02 15:04:05", "2018-01-02 15:04:05")
 	sVal := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
 
-	sModel, sErr := provider.GetEntityModel(sVal)
+	sModel, sErr := localProvider.GetEntityModel(sVal)
 	if sErr != nil {
 		err = sErr
 		return
@@ -55,7 +54,7 @@ func prepareLocalData(provider ormProvider.Provider, orm ormOrm.Orm) (sPtr *Simp
 		PtrStrArray: &strPtrArray,
 	}
 
-	rModel, rErr := provider.GetEntityModel(rVal)
+	rModel, rErr := localProvider.GetEntityModel(rVal)
 	if rErr != nil {
 		err = rErr
 		return
@@ -81,7 +80,7 @@ func prepareLocalData(provider ormProvider.Provider, orm ormOrm.Orm) (sPtr *Simp
 		RefPtrArray:    refPtrArray,
 		PtrRefArray:    &refPtrArray,
 	}
-	cModel, cErr := provider.GetEntityModel(cVal)
+	cModel, cErr := localProvider.GetEntityModel(cVal)
 	if cErr != nil {
 		err = cErr
 		return
@@ -97,12 +96,12 @@ func prepareLocalData(provider ormProvider.Provider, orm ormOrm.Orm) (sPtr *Simp
 	return
 }
 
-func prepareRemoteData(provider ormProvider.Provider, orm ormOrm.Orm) (sPtr *Simple, rPtr *Reference, cPtr *Compose, err error) {
+func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Simple, rPtr *Reference, cPtr *Compose, err error) {
 	ts, _ := time.Parse("2006-01-02 15:04:05", "2018-01-02 15:04:05")
 	sVal := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
 
 	sObjectVal, _ := remote.GetObjectValue(sVal)
-	sModel, sErr := provider.GetEntityModel(sObjectVal)
+	sModel, sErr := remoteProvider.GetEntityModel(sObjectVal)
 	if sErr != nil {
 		err = sErr
 		return
@@ -115,7 +114,7 @@ func prepareRemoteData(provider ormProvider.Provider, orm ormOrm.Orm) (sPtr *Sim
 	}
 	sObjectVal = sModel.Interface(true).(*remote.ObjectValue)
 	sPtr = &Simple{}
-	sErr = ormProvider.UpdateEntity(sObjectVal, sPtr)
+	sErr = provider.UpdateEntity(sObjectVal, sPtr)
 	if sErr != nil {
 		err = sErr
 		return
@@ -145,7 +144,7 @@ func prepareRemoteData(provider ormProvider.Provider, orm ormOrm.Orm) (sPtr *Sim
 	}
 
 	rObjectVal, _ := remote.GetObjectValue(rVal)
-	rModel, rErr := provider.GetEntityModel(rObjectVal)
+	rModel, rErr := remoteProvider.GetEntityModel(rObjectVal)
 	if rErr != nil {
 		err = rErr
 		return
@@ -164,7 +163,7 @@ func prepareRemoteData(provider ormProvider.Provider, orm ormOrm.Orm) (sPtr *Sim
 	ptrStrArray := []*string{}
 
 	rPtr = &Reference{FValue: &fVal, TimeStamp: &ts2, Flag: &flag2, PtrArray: &strArray2, PtrStrArray: &ptrStrArray}
-	rErr = ormProvider.UpdateEntity(rObjectVal, rPtr)
+	rErr = provider.UpdateEntity(rObjectVal, rPtr)
 	if rErr != nil {
 		err = rErr
 		return
@@ -184,7 +183,7 @@ func prepareRemoteData(provider ormProvider.Provider, orm ormOrm.Orm) (sPtr *Sim
 		PtrRefArray:    &refPtrArray,
 	}
 	cObjectVal, _ := remote.GetObjectValue(cVal)
-	cModel, cErr := provider.GetEntityModel(cObjectVal)
+	cModel, cErr := remoteProvider.GetEntityModel(cObjectVal)
 	if cErr != nil {
 		err = cErr
 		return
@@ -207,7 +206,7 @@ func prepareRemoteData(provider ormProvider.Provider, orm ormOrm.Orm) (sPtr *Sim
 		PtrRefArray:    &[]*Reference{},
 		PtrCompose:     &Compose{},
 	}
-	cErr = ormProvider.UpdateEntity(cObjectVal, cVal)
+	cErr = provider.UpdateEntity(cObjectVal, cVal)
 	if cErr != nil {
 		err = cErr
 		return
@@ -217,24 +216,24 @@ func prepareRemoteData(provider ormProvider.Provider, orm ormOrm.Orm) (sPtr *Sim
 }
 
 func TestComposeLocal(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
 	defer orm.Uninitialize()
 
-	o1, err := orm.NewOrm(composeLocalOwner)
+	localProvider := provider.NewLocalProvider(composeLocalOwner)
+
+	o1, err := orm.NewOrm(localProvider)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
 
-	provider := orm.GetProvider(composeLocalOwner)
-
 	simpleDef := &Simple{}
 	referenceDef := &Reference{}
 	composeDef := &Compose{}
 
 	entityList := []interface{}{simpleDef, referenceDef, composeDef}
-	modelList, modelErr := registerModel(provider, entityList)
+	modelList, modelErr := registerModel(localProvider, entityList)
 	if modelErr != nil {
 		err = modelErr
 		t.Errorf("register model failed. err:%s", err.Error())
@@ -256,7 +255,7 @@ func TestComposeLocal(t *testing.T) {
 	sValList := []*Compose{}
 	sModelList := []model.Model{}
 
-	sPtr, rPtr, cPtr, pErr := prepareLocalData(provider, o1)
+	sPtr, rPtr, cPtr, pErr := prepareLocalData(localProvider, o1)
 	if pErr != nil {
 		t.Errorf("prepareLocalData failed. err:%s", pErr.Error())
 		return
@@ -281,7 +280,7 @@ func TestComposeLocal(t *testing.T) {
 		}
 		sValList = append(sValList, sVal)
 
-		sModel, sErr := provider.GetEntityModel(sVal)
+		sModel, sErr := localProvider.GetEntityModel(sVal)
 		if sErr != nil {
 			err = sErr
 			t.Errorf("GetEntityModel failed. err:%s", err.Error())
@@ -307,7 +306,7 @@ func TestComposeLocal(t *testing.T) {
 	for idx := 0; idx < 100; idx++ {
 		sVal := sValList[idx]
 		sVal.Name = "hi"
-		sModel, sErr := provider.GetEntityModel(sVal)
+		sModel, sErr := localProvider.GetEntityModel(sVal)
 		if sErr != nil {
 			err = sErr
 			t.Errorf("GetEntityModel failed. err:%s", err.Error())
@@ -346,7 +345,7 @@ func TestComposeLocal(t *testing.T) {
 		}
 		qValList = append(qValList, qVal)
 
-		qModel, qErr := provider.GetEntityModel(qVal)
+		qModel, qErr := localProvider.GetEntityModel(qVal)
 		if qErr != nil {
 			err = qErr
 			t.Errorf("GetEntityModel failed. err:%s", err.Error())
@@ -379,13 +378,13 @@ func TestComposeLocal(t *testing.T) {
 	}
 
 	bqValList := []*Compose{}
-	bqModel, bqErr := provider.GetEntityModel(&bqValList)
+	bqModel, bqErr := localProvider.GetEntityModel(&bqValList)
 	if bqErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", bqErr.Error())
 		return
 	}
 
-	filter := orm.GetFilter(composeLocalOwner)
+	filter := orm.GetFilter(localProvider)
 	filter.Equal("Name", "hi")
 	filter.ValueMask(&Compose{
 		PtrSimple:      &Simple{},
@@ -419,24 +418,24 @@ func TestComposeLocal(t *testing.T) {
 }
 
 func TestComposeRemote(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", false)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
 	defer orm.Uninitialize()
 
-	o1, err := orm.NewOrm(composeRemoteOwner)
+	remoteProvider := provider.NewRemoteProvider(composeRemoteOwner)
+
+	o1, err := orm.NewOrm(remoteProvider)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
 
-	provider := orm.GetProvider(composeRemoteOwner)
-
 	simpleDef, _ := remote.GetObject(&Simple{})
 	referenceDef, _ := remote.GetObject(&Reference{})
 	composeDef, _ := remote.GetObject(&Compose{})
 
 	entityList := []interface{}{simpleDef, referenceDef, composeDef}
-	modelList, modelErr := registerModel(provider, entityList)
+	modelList, modelErr := registerModel(remoteProvider, entityList)
 	if modelErr != nil {
 		err = modelErr
 		t.Errorf("register model failed. err:%s", err.Error())
@@ -455,7 +454,7 @@ func TestComposeRemote(t *testing.T) {
 		return
 	}
 
-	sPtr, rPtr, cPtr, pErr := prepareRemoteData(provider, o1)
+	sPtr, rPtr, cPtr, pErr := prepareRemoteData(remoteProvider, o1)
 	if pErr != nil {
 		t.Errorf("prepareRemoteData failed. err:%s", pErr.Error())
 		return
@@ -492,7 +491,7 @@ func TestComposeRemote(t *testing.T) {
 		}
 		sObjectValList = append(sObjectValList, sObjectVal)
 
-		sModel, sErr := provider.GetEntityModel(sObjectVal)
+		sModel, sErr := remoteProvider.GetEntityModel(sObjectVal)
 		if sErr != nil {
 			err = sErr
 			t.Errorf("GetEntityModel failed. err:%s", err.Error())
@@ -512,7 +511,7 @@ func TestComposeRemote(t *testing.T) {
 
 		sObjectVal := vModel.Interface(true).(*remote.ObjectValue)
 		sVal := sValList[idx]
-		err = ormProvider.UpdateEntity(sObjectVal, sVal)
+		err = provider.UpdateEntity(sObjectVal, sVal)
 		if err != nil {
 			t.Errorf("UpdateEntity failed. err:%s", err.Error())
 			return
@@ -534,7 +533,7 @@ func TestComposeRemote(t *testing.T) {
 		}
 		sObjectValList[idx] = sObjectVal
 
-		sModel, sErr := provider.GetEntityModel(sObjectVal)
+		sModel, sErr := remoteProvider.GetEntityModel(sObjectVal)
 		if sErr != nil {
 			err = sErr
 			t.Errorf("GetEntityModel failed. err:%s", err.Error())
@@ -553,7 +552,7 @@ func TestComposeRemote(t *testing.T) {
 
 		sObjectVal := vModel.Interface(true).(*remote.ObjectValue)
 		sVal := sValList[idx]
-		err = ormProvider.UpdateEntity(sObjectVal, sVal)
+		err = provider.UpdateEntity(sObjectVal, sVal)
 		if err != nil {
 			t.Errorf("UpdateEntity failed. err:%s", err.Error())
 			return
@@ -590,7 +589,7 @@ func TestComposeRemote(t *testing.T) {
 		}
 		qObjectValList = append(qObjectValList, qObjectVal)
 
-		qModel, qErr := provider.GetEntityModel(qObjectVal)
+		qModel, qErr := remoteProvider.GetEntityModel(qObjectVal)
 		if qErr != nil {
 			err = qErr
 			t.Errorf("GetEntityModel failed. err:%s", err.Error())
@@ -610,7 +609,7 @@ func TestComposeRemote(t *testing.T) {
 
 		qObjectVal := qModel.Interface(true).(*remote.ObjectValue)
 		qVal := qValList[idx]
-		err = ormProvider.UpdateEntity(qObjectVal, qVal)
+		err = provider.UpdateEntity(qObjectVal, qVal)
 		if err != nil {
 			t.Errorf("UpdateEntity failed. err:%s", err.Error())
 			return
@@ -636,13 +635,13 @@ func TestComposeRemote(t *testing.T) {
 		t.Errorf("GetSliceObjectValue failed, err:%s", bqSliceErr.Error())
 		return
 	}
-	bqModel, bqErr := provider.GetEntityModel(bqSliceObject)
+	bqModel, bqErr := remoteProvider.GetEntityModel(bqSliceObject)
 	if bqErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", bqErr.Error())
 		return
 	}
 
-	filter := orm.GetFilter(composeRemoteOwner)
+	filter := orm.GetFilter(remoteProvider)
 	filter.Equal("Name", "hi")
 	filter.ValueMask(&Compose{
 		PtrSimple:      &Simple{},

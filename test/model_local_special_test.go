@@ -1,23 +1,24 @@
 package test
 
 import (
+	"github.com/muidea/magicOrm/provider"
 	"testing"
 
-	orm "github.com/muidea/magicOrm"
+	"github.com/muidea/magicOrm/orm"
 )
 
 func TestKPI(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
 	defer orm.Uninitialize()
 
-	o1, err := orm.NewOrm("default")
+	provider := provider.NewLocalProvider("default")
+
+	o1, err := orm.NewOrm(provider)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
-
-	provider := orm.GetProvider("default")
 
 	objList := []interface{}{&Goal{}, &SpecialGoal{}, &KPI{}}
 	registerModel(provider, objList)
