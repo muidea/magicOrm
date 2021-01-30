@@ -37,7 +37,7 @@ func (s *impl) insertSingle(modelInfo model.Model) (err error) {
 func (s *impl) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
 	fValue := fieldInfo.GetValue()
 	fType := fieldInfo.GetType()
-	if fType.IsBasic() || !s.modelProvider.IsAssigned(fValue, fType) {
+	if fType.IsBasic() || fValue.IsNil() /* || !s.modelProvider.IsAssigned(fValue, fType)*/ {
 		return
 	}
 
