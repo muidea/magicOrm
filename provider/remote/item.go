@@ -72,7 +72,9 @@ func (s *Item) SetValue(val model.Value) (err error) {
 		return
 	}
 
-	s.value = &ValueImpl{value: val.Get()}
+	initVal, _ := s.Type.Interface()
+	initVal.Set(val.Get())
+	s.value = &ValueImpl{value: initVal.Get()}
 	return
 }
 
