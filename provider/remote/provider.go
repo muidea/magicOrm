@@ -110,6 +110,9 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 
 		iName := iVal.FieldByName("Name").String()
 		iValue := iVal.FieldByName("Value")
+		if iValue.Kind() == reflect.Interface {
+			iValue = iValue.Elem()
+		}
 
 		vField := vModel.GetField(iName)
 		if vField == nil || util.IsNil(iValue) {
