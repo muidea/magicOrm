@@ -119,6 +119,9 @@ func (s *Object) Copy() (ret model.Model) {
 		item := &Item{Index: val.Index, Name: val.Name, Tag: val.Tag.copy(), Type: val.Type.copy()}
 		if val.value != nil {
 			item.value = val.value.copy()
+		} else {
+			initVal, _ := val.Type.Interface()
+			item.value = newValue(initVal.Get())
 		}
 
 		obj.Items = append(obj.Items, item)
