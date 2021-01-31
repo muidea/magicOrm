@@ -491,6 +491,7 @@ func TestLocalQuery(t *testing.T) {
 		t.Errorf("insert reference failed, err:%s", err.Error())
 		return
 	}
+	r1 = r1Model.Interface(false).(Reference)
 
 	refPtrArray := []*Reference{&r1}
 	c1 := Compose{
@@ -569,6 +570,7 @@ func TestLocalQuery(t *testing.T) {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
+	c4 = c4Model.Interface(false).(Compose)
 
 	cList := []*Compose{}
 	cModel, cErr := localProvider.GetEntityModel(cList)

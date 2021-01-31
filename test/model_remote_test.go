@@ -797,7 +797,7 @@ func TestRemoteSystem(t *testing.T) {
 	}
 	sys2Model, sys2Err = o1.Query(sys2Model)
 	if sys2Err != nil {
-		t.Errorf("query system failed, err:%s", err.Error())
+		t.Errorf("query system failed, err:%s", sys2Err.Error())
 		return
 	}
 	err = provider.UpdateEntity(sys2Model.Interface(true).(*remote.ObjectValue), sys2)

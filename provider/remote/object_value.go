@@ -3,7 +3,6 @@ package remote
 import (
 	"encoding/json"
 	"fmt"
-	"math"
 	"reflect"
 
 	log "github.com/cihub/seelog"
@@ -77,9 +76,29 @@ func (s *ObjectValue) IsAssigned() (ret bool) {
 			continue
 		}
 
+		i64Val, iOK := val.Value.(int64)
+		if iOK {
+			ret = i64Val != 0
+			if ret {
+				return
+			}
+
+			continue
+		}
+
+		iVal, iOK := val.Value.(int)
+		if iOK {
+			ret = iVal != 0
+			if ret {
+				return
+			}
+
+			continue
+		}
+
 		fltVal, fltOK := val.Value.(float64)
 		if fltOK {
-			ret = math.Abs(fltVal-0.00000) > 0.00001
+			ret = fltVal != 0
 			if ret {
 				return
 			}

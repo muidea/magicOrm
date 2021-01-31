@@ -206,7 +206,7 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 		PtrRefArray:    &[]*Reference{},
 		PtrCompose:     &Compose{},
 	}
-	cErr = provider.UpdateEntity(cObjectVal, cVal)
+	cErr = provider.UpdateEntity(cObjectVal, cPtr)
 	if cErr != nil {
 		err = cErr
 		return

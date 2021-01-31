@@ -177,6 +177,7 @@ func TestLocalUser(t *testing.T) {
 		t.Errorf("insert status failed, err:%s", statusErr.Error())
 		return
 	}
+	status = statusModel.Interface(true).(*Status)
 
 	groupModel, groupErr := provider.GetEntityModel(group1)
 	if groupErr != nil {
@@ -551,6 +552,7 @@ func TestLocalBatchQuery(t *testing.T) {
 		t.Errorf("insert group failed, err:%s", statusErr.Error())
 		return
 	}
+	status = statusModel.Interface(true).(*Status)
 
 	group1Model, group1Err := provider.GetEntityModel(group1)
 	if group1Err != nil {
