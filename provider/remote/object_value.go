@@ -315,6 +315,10 @@ func decodeObjectValueFromMap(mapVal map[string]interface{}) (ret *ObjectValue, 
 		return
 	}
 
+	if itemsVal == nil {
+		return
+	}
+
 	objVal := &ObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), IsPtr: isPtrVal.(bool), Items: []*ItemValue{}}
 	for _, val := range itemsVal.([]interface{}) {
 		item, itemOK := val.(map[string]interface{})
@@ -348,23 +352,25 @@ func decodeSliceObjectValueFromMap(mapVal map[string]interface{}) (ret *SliceObj
 		return
 	}
 
+	if valuesVal == nil {
+		return
+	}
+
 	objVal := &SliceObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), IsPtr: isPtrVal.(bool), IsElemPtr: isElemPtrVal.(bool), Values: []*ObjectValue{}}
-	if valuesVal != nil {
-		for _, val := range valuesVal.([]interface{}) {
-			item, itemOK := val.(map[string]interface{})
-			if !itemOK {
-				err = fmt.Errorf("illegal slice object field item value")
-				return
-			}
-
-			itemVal, itemErr := decodeObjectValueFromMap(item)
-			if itemErr != nil {
-				err = itemErr
-				return
-			}
-
-			objVal.Values = append(objVal.Values, itemVal)
+	for _, val := range valuesVal.([]interface{}) {
+		item, itemOK := val.(map[string]interface{})
+		if !itemOK {
+			err = fmt.Errorf("illegal slice object field item value")
+			return
 		}
+
+		itemVal, itemErr := decodeObjectValueFromMap(item)
+		if itemErr != nil {
+			err = itemErr
+			return
+		}
+
+		objVal.Values = append(objVal.Values, itemVal)
 	}
 
 	ret = objVal
