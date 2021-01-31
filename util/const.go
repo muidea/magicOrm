@@ -156,12 +156,11 @@ func GetTypeEnum(val reflect.Type) (ret int, err error) {
 
 // IsNil check value if nil
 func IsNil(val reflect.Value) (ret bool) {
-	if val.Kind() == reflect.Ptr {
-		ret = val.IsNil()
-		return
+	val = reflect.Indirect(val)
+	if val.Kind() == reflect.Interface {
+		val = reflect.Indirect(val.Elem())
 	}
 
-	val = reflect.Indirect(val)
 	switch val.Kind() {
 	case reflect.Interface:
 		ret = val.IsNil()

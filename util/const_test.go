@@ -59,6 +59,12 @@ func TestNilValue(t *testing.T) {
 		return
 	}
 
+	interfaceVal = nil
+	if !IsNil(reflect.ValueOf(interfaceVal)) {
+		t.Errorf("Check interface is nil failed")
+		return
+	}
+
 	var arrayIntVal []int
 	log.Printf("IsNil(reflect.ValueOf(arrayIntVal)), val:%v", arrayIntVal)
 	if IsNil(reflect.ValueOf(arrayIntVal)) {
