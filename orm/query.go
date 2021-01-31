@@ -190,6 +190,7 @@ func (s *impl) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret 
 	}()
 
 	if err != nil || len(values) == 0 {
+		ret, err = fieldType.Interface()
 		return
 	}
 
