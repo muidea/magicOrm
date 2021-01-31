@@ -95,12 +95,28 @@ func (s *Object) Interface(ptrValue bool) (ret interface{}) {
 			continue
 		}
 
+		var interfaceVal interface{}
 		rVal := v.value.Get()
 		if !v.Type.IsBasic() {
 			rVal = rVal.Addr()
+
+			if util.IsStructType(v.Type.GetValue()) {
+				objectVal := rVal.Interface().(*ObjectValue)
+				if len(objectVal.Items) > 0 {
+					interfaceVal = objectVal
+				}
+			}
+			if util.IsSliceType(v.Type.GetValue()) {
+				sliceObjectVal := rVal.Interface().(*SliceObjectValue)
+				if len(sliceObjectVal.Values) > 0 {
+					interfaceVal = sliceObjectVal
+				}
+			}
+		} else {
+			interfaceVal = rVal.Interface()
 		}
 
-		objVal.Items = append(objVal.Items, &ItemValue{Name: v.Name, Value: rVal.Interface()})
+		objVal.Items = append(objVal.Items, &ItemValue{Name: v.Name, Value: interfaceVal})
 	}
 
 	if ptrValue {
