@@ -35,9 +35,10 @@ func (s *impl) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err
 		return
 	}
 
-	if !s.modelProvider.IsAssigned(fieldInfo.GetValue(), fieldInfo.GetType()) {
-		return
-	}
+	// disable check field value
+	//if !s.modelProvider.IsAssigned(fieldInfo.GetValue(), fieldInfo.GetType()) {
+	//	return
+	//}
 
 	relationInfo, relationErr := s.modelProvider.GetTypeModel(fType)
 	if relationErr != nil {
