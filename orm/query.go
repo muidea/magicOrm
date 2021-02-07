@@ -63,16 +63,18 @@ func (s *impl) assignSingleModel(modelVal model.Model, queryVal resultItems) (re
 	for _, field := range modelVal.GetFields() {
 		fType := field.GetType()
 		fValue := field.GetValue()
-		if !fType.IsBasic() && !fValue.IsNil() {
-			itemVal, itemErr := s.queryRelation(modelVal, field)
-			if itemErr != nil {
-				err = itemErr
-				return
-			}
+		if !fType.IsBasic() {
+			if !fValue.IsNil() {
+				itemVal, itemErr := s.queryRelation(modelVal, field)
+				if itemErr != nil {
+					err = itemErr
+					return
+				}
 
-			err = field.SetValue(itemVal)
-			if err != nil {
-				return
+				err = field.SetValue(itemVal)
+				if err != nil {
+					return
+				}
 			}
 
 			//offset++
