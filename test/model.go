@@ -187,3 +187,28 @@ type KPI struct {
 	SpecialValue  SpecialGoal `json:"specialValue" orm:"specialValue"`   // 特殊地区或产品目标
 	Default       bool        `json:"default" orm:"default"`
 }
+
+type ValueItem struct {
+	ID    int     `json:"id" orm:"id key auto"`
+	Level int     `json:"level" orm:"level"`
+	Type  int     `json:"type" orm:"type"`
+	Value float64 `json:"value" orm:"value"`
+}
+
+type ValueScope struct {
+	ID        int     `json:"id" orm:"id key auto"`
+	LowValue  float64 `json:"lowValue" orm:"lowValue"`
+	HighValue float64 `json:"highValue" orm:"highValue"`
+}
+
+type RewardPolicy struct {
+	ID          int         `json:"id" orm:"id key auto"`
+	Name        string      `json:"name" orm:"name"`
+	Description string      `json:"description" orm:"description"`
+	ValueItem   []ValueItem `json:"item" orm:"item"`
+	ValueScope  ValueScope  `json:"scope" orm:"scope"`
+	Status      *Status     `json:"status" orm:"status"`
+	Creater     int         `json:"creater" orm:"creater"`
+	UpdateTime  int64       `json:"updateTime" orm:"updateTime"`
+	Namespace   string      `json:"namespace" orm:"namespace"`
+}

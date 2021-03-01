@@ -1408,3 +1408,189 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 }
+
+func TestPolicy(t *testing.T) {
+	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
+	defer orm.Uninitialize()
+
+	remoteProvider := provider.NewRemoteProvider("default")
+
+	o1, err := orm.NewOrm(remoteProvider)
+	defer o1.Release()
+	if err != nil {
+		t.Errorf("new Orm failed, err:%s", err.Error())
+		return
+	}
+
+	valueItem := &ValueItem{}
+	valueScope := &ValueScope{}
+	status := &Status{}
+	rewardPolicy := &RewardPolicy{}
+
+	valueItemDef, valueItemErr := remote.GetObject(valueItem)
+	if valueItemErr != nil {
+		t.Errorf("GetObject failed, err:%s", valueItemErr.Error())
+		return
+	}
+	valueScopeDef, valueScopeErr := remote.GetObject(valueScope)
+	if valueScopeErr != nil {
+		t.Errorf("GetObject failed, err:%s", valueScopeErr.Error())
+		return
+	}
+	statusDef, statusErr := remote.GetObject(status)
+	if statusErr != nil {
+		t.Errorf("GetObject failed, err:%s", statusErr.Error())
+		return
+	}
+	rewardPolicyDef, rewardPolicyErr := remote.GetObject(rewardPolicy)
+	if rewardPolicyErr != nil {
+		t.Errorf("GetObject failed, err:%s", rewardPolicyErr.Error())
+		return
+	}
+
+	objList := []interface{}{valueItemDef, valueScopeDef, statusDef, rewardPolicyDef}
+	_, err = registerModel(remoteProvider, objList)
+	if err != nil {
+		t.Errorf("registerModel failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Drop(valueItemDef)
+	if err != nil {
+		t.Errorf("drop reference schema failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Create(valueItemDef)
+	if err != nil {
+		t.Errorf("create reference schema failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Drop(valueScopeDef)
+	if err != nil {
+		t.Errorf("drop reference schema failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Create(valueScopeDef)
+	if err != nil {
+		t.Errorf("create reference schema failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Drop(statusDef)
+	if err != nil {
+		t.Errorf("drop reference schema failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Create(statusDef)
+	if err != nil {
+		t.Errorf("create reference schema failed, err:%s", err.Error())
+		return
+	}
+	err = o1.Drop(rewardPolicyDef)
+	if err != nil {
+		t.Errorf("drop reference schema failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Create(rewardPolicyDef)
+	if err != nil {
+		t.Errorf("create reference schema failed, err:%s", err.Error())
+		return
+	}
+
+	status.Value = 12
+	s1Value, s1Err := getObjectValue(status)
+	if s1Err != nil {
+		t.Errorf("getObjectValue failed, err:%s", s1Err.Error())
+		return
+	}
+	s1Model, s1Err := remoteProvider.GetEntityModel(s1Value)
+	if s1Err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", s1Err.Error())
+		return
+	}
+	s1Model, s1Err = o1.Insert(s1Model)
+	if s1Err != nil {
+		err = s1Err
+		t.Errorf("insert reference failed, err:%s", err.Error())
+		return
+	}
+	err = provider.UpdateEntity(s1Model.Interface(true).(*remote.ObjectValue), status)
+	if err != nil {
+		t.Errorf("updateEntity failed, err:%s", err.Error())
+		return
+	}
+
+	rewardPolicy.Name = "testPolicy"
+	rewardPolicy.Description = "desc"
+	rewardPolicy.ValueItem = append(rewardPolicy.ValueItem, ValueItem{Level: 1, Type: 1, Value: 12.34})
+	rewardPolicy.ValueItem = append(rewardPolicy.ValueItem, ValueItem{Level: 2, Type: 1, Value: 12.34})
+	rewardPolicy.ValueItem = append(rewardPolicy.ValueItem, ValueItem{Level: 3, Type: 1, Value: 12.34})
+	rewardPolicy.ValueScope = ValueScope{LowValue: 12.34, HighValue: 34.56}
+	rewardPolicy.Status = status
+	rewardPolicy.Creater = 12
+	rewardPolicy.UpdateTime = 1234
+	rewardPolicy.Namespace = "test"
+	rewardPolicyValue, rewardPolicyErr := getObjectValue(rewardPolicy)
+	if rewardPolicyErr != nil {
+		t.Errorf("getObjectValue failed, err:%s", rewardPolicyErr.Error())
+		return
+	}
+	rewardPolicyModel, rewardPolicyErr := remoteProvider.GetEntityModel(rewardPolicyValue)
+	if rewardPolicyErr != nil {
+		t.Errorf("GetEntityModel failed, err:%s", rewardPolicyErr.Error())
+		return
+	}
+	rewardPolicyModel, rewardPolicyErr = o1.Insert(rewardPolicyModel)
+	if rewardPolicyErr != nil {
+		err = rewardPolicyErr
+		t.Errorf("insert reference failed, err:%s", err.Error())
+		return
+	}
+	err = provider.UpdateEntity(rewardPolicyModel.Interface(true).(*remote.ObjectValue), rewardPolicy)
+	if err != nil {
+		t.Errorf("updateEntity failed, err:%s", err.Error())
+		return
+	}
+
+	cList := []*RewardPolicy{}
+	cListValue, cListErr := remote.GetSliceObjectValue(&cList)
+	if cListErr != nil {
+		t.Errorf("getSliceObjectValue failed, err:%s", cListErr.Error())
+		return
+	}
+	cListModel, cListErr := remoteProvider.GetEntityModel(cListValue)
+	if cListErr != nil {
+		t.Errorf("GetEntityModel failed, err:%s", cListErr.Error())
+		return
+	}
+
+	maskVal, maskErr := remote.GetObjectValue(&RewardPolicy{Status: &Status{}, ValueItem: []ValueItem{}})
+	if maskErr != nil {
+		t.Errorf("getObjectValue failed, err:%s", maskErr.Error())
+		return
+	}
+
+	statusValue, statusErr := getObjectValue(status)
+	if statusErr != nil {
+		t.Errorf("getObjectValue failed, err:%s", statusErr.Error())
+		return
+	}
+
+	filter := orm.GetFilter(remoteProvider)
+	filter.Equal("Status", statusValue)
+	filter.ValueMask(maskVal)
+	cModelList, cModelErr := o1.BatchQuery(cListModel, filter)
+	if cModelErr != nil {
+		t.Errorf("batch query compose failed, err:%s", cModelErr.Error())
+		return
+	}
+	if len(cModelList) != 1 {
+		t.Errorf("batch query compose failed")
+		return
+	}
+}

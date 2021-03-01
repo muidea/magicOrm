@@ -832,8 +832,8 @@ func TestRemoteQuery(t *testing.T) {
 	filter.Equal("Name", strValue)
 	filter.ValueMask(maskVal)
 	cModelList, cModelErr = o1.BatchQuery(cListModel, filter)
-	if err != nil {
-		t.Errorf("batch query compose failed, err:%s", err.Error())
+	if cModelErr != nil {
+		t.Errorf("batch query compose failed, err:%s", cModelErr.Error())
 		return
 	}
 	if len(cModelList) != 3 {
