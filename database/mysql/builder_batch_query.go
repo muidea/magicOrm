@@ -52,7 +52,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 	}
 
 	filterSQL := ""
-	relationFilterSQL := ""
+	fTag := s.modelInfo.GetPrimaryField().GetTag()
 	for _, field := range s.modelInfo.GetFields() {
 		filterItem := filter.GetFilterItem(field.GetName())
 		if filterItem == nil {
@@ -68,47 +68,40 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 			return
 		}
 
-		if !fType.IsBasic() {
-			fieldModel, fieldErr := s.modelProvider.GetTypeModel(fType)
-			if fieldErr != nil {
-				err = fieldErr
-				return
-			}
+		if fType.IsBasic() {
 
-			if fieldModel != nil {
-				strVal := oprFunc("right", valueStr)
-				relationTable := s.GetRelationTableName(field.GetName(), fieldModel)
-				if relationFilterSQL == "" {
-					relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTable, strVal)
-				} else {
-					relationFilterSQL = fmt.Sprintf("%s UNION SELECT DISTINCT(`left`) `id` FROM `%s` WHERE %s", relationFilterSQL, relationTable, strVal)
-				}
-
-				continue
+			strVal := oprFunc(field.GetName(), valueStr)
+			if filterSQL == "" {
+				filterSQL = fmt.Sprintf("%s", strVal)
+			} else {
+				filterSQL = fmt.Sprintf("%s AND %s", filterSQL, strVal)
 			}
+			continue
 		}
 
-		strVal := oprFunc(field.GetName(), valueStr)
-		if filterSQL == "" {
-			filterSQL = fmt.Sprintf("%s", strVal)
-		} else {
-			filterSQL = fmt.Sprintf("%s AND %s", filterSQL, strVal)
+		fieldModel, fieldErr := s.modelProvider.GetTypeModel(fType)
+		if fieldErr != nil {
+			err = fieldErr
+			return
+		}
+
+		if fieldModel != nil {
+			relationFilterSQL := ""
+			strVal := oprFunc("right", valueStr)
+			relationTable := s.GetRelationTableName(field.GetName(), fieldModel)
+			relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTable, strVal)
+			relationFilterSQL = fmt.Sprintf("`%s` IN (SELECT DISTINCT(`id`) FROM (%s) ids)", fTag.GetName(), relationFilterSQL)
+
+			if filterSQL == "" {
+				filterSQL = fmt.Sprintf("%s", relationFilterSQL)
+			} else {
+				filterSQL = fmt.Sprintf("%s AND %s", filterSQL, relationFilterSQL)
+			}
 		}
 	}
 
-	if relationFilterSQL != "" {
-		fTag := s.modelInfo.GetPrimaryField().GetTag()
-		relationFilterSQL = fmt.Sprintf("`%s` IN (SELECT DISTINCT(`id`) FROM (%s) ids)", fTag.GetName(), relationFilterSQL)
-
-		if filterSQL == "" {
-			ret = fmt.Sprintf("%s", relationFilterSQL)
-		} else {
-			ret = fmt.Sprintf("%s AND %s", filterSQL, relationFilterSQL)
-		}
-	} else {
-		if filterSQL != "" {
-			ret = fmt.Sprintf("%s", filterSQL)
-		}
+	if filterSQL != "" {
+		ret = fmt.Sprintf("%s", filterSQL)
 	}
 
 	return
