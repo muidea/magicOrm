@@ -56,6 +56,11 @@ func (s *Executor) Connect() (err error) {
 
 // Ping ping connection
 func (s *Executor) Ping() (err error) {
+	if s.dbHandle == nil {
+		err = fmt.Errorf("must connect to database first")
+		return
+	}
+
 	err = s.dbHandle.Ping()
 	if err != nil {
 		log.Printf("ping database failed, err:%s", err.Error())
