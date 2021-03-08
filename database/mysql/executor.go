@@ -580,6 +580,14 @@ func (s *Pool) FetchOut() (ret *Executor, err error) {
 		}
 	}
 
+	// if ping error,reconnect...
+	if executor.Ping() != nil {
+		err = executor.Connect()
+		if err != nil {
+			return
+		}
+	}
+
 	ret = executor
 
 	return
