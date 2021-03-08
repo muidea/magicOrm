@@ -470,6 +470,10 @@ type Pool struct {
 	idleExecutor  []*Executor
 }
 
+func NewConfig(user, password, address, dbName string) *Config {
+	return &Config{user: user, password: password, address: address, dbName: dbName}
+}
+
 // NewPool new pool
 func NewPool() *Pool {
 	return &Pool{}
@@ -489,7 +493,7 @@ func (s *Pool) Initialize(maxConnNum int, user, password, address, dbName string
 		initConnNum = initConnCount
 	}
 
-	s.config = &Config{user: user, password: password, address: address, dbName: dbName}
+	s.config = NewConfig(user, password, address, dbName)
 	s.maxSize = maxConnNum
 	s.cacheSize = initConnNum
 	s.curSize = 0

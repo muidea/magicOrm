@@ -60,5 +60,6 @@ func GetExecutor() (ret Executor, err error) {
 
 // NewExecutor NewExecutor
 func NewExecutor(user, password, address, dbName string) (Executor, error) {
-	return mysql.FetchExecutor(user, password, address, dbName)
+	config := mysql.NewConfig(user, password, address, dbName)
+	return mysql.NewExecutor(config)
 }
