@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -467,12 +466,8 @@ type Config struct {
 // Pool executorPool
 type Pool struct {
 	config        *Config
-	maxSize       int
-	cacheSize     int
-	curSize       int
-	executorLock  sync.RWMutex
 	cacheExecutor chan *Executor
-	idleExecutor  []*Executor
+	idleExecutor  chan *Executor
 }
 
 func NewConfig(user, password, address, dbName string) *Config {
@@ -499,17 +494,29 @@ func (s *Pool) Initialize(maxConnNum int, user, password, address, dbName string
 	}
 
 	s.config = NewConfig(user, password, address, dbName)
-	s.maxSize = maxConnNum
-	s.cacheSize = initConnNum
-	s.curSize = 0
+	s.cacheExecutor = make(chan *Executor, initConnNum)
+	if maxConnNum-initConnNum > 0 {
+		s.idleExecutor = make(chan *Executor, maxConnNum-initConnNum)
+	}
 
-	s.cacheExecutor = make(chan *Executor, s.cacheSize)
+	for idx := 0; idx < maxConnNum; idx++ {
+		if idx < initConnNum {
+			executor, executorErr := NewExecutor(s.config)
+			if executorErr == nil {
+				executor.pool = s
+				s.cacheExecutor <- executor
+			} else {
+				err = executorErr
+				return
+			}
 
-	for ; s.curSize < s.cacheSize; s.curSize++ {
+			continue
+		}
+
 		executor, executorErr := NewExecutor(s.config)
 		if executorErr == nil {
 			executor.pool = s
-			s.cacheExecutor <- executor
+			s.idleExecutor <- executor
 		} else {
 			err = executorErr
 			return
@@ -541,39 +548,43 @@ func (s *Pool) Uninitialize() {
 		s.cacheExecutor = nil
 	}
 
-	for _, val := range s.idleExecutor {
-		val.destroy()
-	}
+	if s.idleExecutor != nil {
+		for {
+			var val *Executor
+			var ok bool
+			select {
+			case val, ok = <-s.idleExecutor:
+			default:
+			}
+			if ok && val != nil {
+				val.destroy()
+				continue
+			}
 
-	s.idleExecutor = nil
-	s.curSize = 0
-	s.cacheSize = 0
-	s.maxSize = 0
+			break
+		}
+		close(s.idleExecutor)
+		s.idleExecutor = nil
+	}
 }
 
 // FetchOut fetchOut Executor
 func (s *Pool) FetchOut() (ret *Executor, err error) {
-	defer func() {
-		if ret != nil {
-			ret.startTime = time.Now()
-		}
-	}()
-
-	executorPtr, executorErr := s.getFromCache(false)
+	executor, executorErr := s.getFromCache(false)
 	if executorErr != nil {
 		err = executorErr
 		return
 	}
-	if executorPtr == nil {
-		executorPtr, executorErr = s.getFromIdle()
+	if executor == nil {
+		executor, executorErr = s.getFromIdle()
 		if executorErr != nil {
 			err = executorErr
 			return
 		}
 	}
 
-	if executorPtr == nil {
-		executorPtr, executorErr = s.getFromCache(true)
+	if executor == nil {
+		executor, executorErr = s.getFromCache(true)
 		if executorErr != nil {
 			err = executorErr
 			return
@@ -581,98 +592,64 @@ func (s *Pool) FetchOut() (ret *Executor, err error) {
 	}
 
 	// if ping error,reconnect...
-	if executorPtr.Ping() != nil {
-		err = executorPtr.Connect()
+	if executor.Ping() != nil {
+		err = executor.Connect()
 		if err != nil {
 			return
 		}
 	}
 
-	ret = executorPtr
+	ret = executor
 
 	return
 }
 
 // PutIn putIn Executor
 func (s *Pool) PutIn(val *Executor) {
-	val.finishTime = time.Now()
-
-	s.executorLock.RLock()
-	defer s.executorLock.RUnlock()
-	if s.curSize <= s.cacheSize {
-		s.cacheExecutor <- val
-		return
+	select {
+	case s.cacheExecutor <- val:
+	case s.idleExecutor <- val:
 	}
-
-	go s.putToIdle(val)
-	go s.verifyIdle()
 }
 
 func (s *Pool) getFromCache(blockFlag bool) (ret *Executor, err error) {
 	if !blockFlag {
 		var val *Executor
+		var ok bool
 		select {
-		case val = <-s.cacheExecutor:
+		case val, ok = <-s.cacheExecutor:
 		default:
 		}
 
-		ret = val
+		if ok && val != nil {
+			err = val.Ping()
+			if err == nil {
+				ret = val
+			}
+		}
+
 		return
 	}
 
-	ret = <-s.cacheExecutor
+	val := <-s.cacheExecutor
+	err = val.Ping()
+	if err == nil {
+		ret = val
+	}
 
 	return
 }
 
 func (s *Pool) getFromIdle() (ret *Executor, err error) {
-	s.executorLock.Lock()
-	defer s.executorLock.Unlock()
-	if s.curSize >= s.maxSize {
-		return
-	}
-
-	if len(s.idleExecutor) > 0 {
-		ret = s.idleExecutor[0]
-
-		s.idleExecutor = s.idleExecutor[1:]
-		return
-	}
-
-	executorPtr, executorErr := NewExecutor(s.config)
-	if executorErr != nil {
-		err = executorErr
-		return
-	}
-	s.curSize++
-
-	ret = executorPtr
-	return
-}
-
-func (s *Pool) putToIdle(ptr *Executor) {
-	if ptr != nil {
-		return
-	}
-
-	s.executorLock.Lock()
-	defer s.executorLock.Unlock()
-	s.idleExecutor = append(s.idleExecutor, ptr)
-}
-
-func (s *Pool) verifyIdle() {
-	s.executorLock.Lock()
-	defer s.executorLock.Unlock()
-
-	newList := []*Executor{}
-	for _, val := range s.idleExecutor {
-		if !val.idle() {
-			newList = append(newList, val)
-			continue
+	val, ok := <-s.idleExecutor
+	if ok {
+		err = val.Connect()
+		if err == nil {
+			ret = val
 		}
 
-		s.curSize--
-		val.destroy()
+		return
 	}
-	s.idleExecutor = newList
+
+	return
 }
