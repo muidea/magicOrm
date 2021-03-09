@@ -473,9 +473,6 @@ type Pool struct {
 	executorLock  sync.RWMutex
 	cacheExecutor chan *Executor
 	idleExecutor  []*Executor
-
-	fetchOutCount int
-	putInCount    int
 }
 
 func NewConfig(user, password, address, dbName string) *Config {
@@ -560,10 +557,6 @@ func (s *Pool) FetchOut() (ret *Executor, err error) {
 		if ret != nil {
 			ret.startTime = time.Now()
 		}
-
-		s.fetchOutCount++
-
-		log.Printf("fetchOutCount:%d, putInCount:%d", s.fetchOutCount, s.putInCount)
 	}()
 
 	executorPtr, executorErr := s.getFromCache(false)
@@ -602,11 +595,6 @@ func (s *Pool) FetchOut() (ret *Executor, err error) {
 
 // PutIn putIn Executor
 func (s *Pool) PutIn(val *Executor) {
-	defer func() {
-		s.putInCount++
-
-		log.Printf("fetchOutCount:%d, putInCount:%d", s.fetchOutCount, s.putInCount)
-	}()
 	val.finishTime = time.Now()
 
 	s.executorLock.RLock()
@@ -663,10 +651,11 @@ func (s *Pool) getFromIdle() (ret *Executor, err error) {
 }
 
 func (s *Pool) putToIdle(ptr *Executor) {
-	if ptr != nil {
+	if ptr == nil {
 		return
 	}
 
+	s.curSize--
 	s.executorLock.Lock()
 	defer s.executorLock.Unlock()
 	s.idleExecutor = append(s.idleExecutor, ptr)
@@ -683,7 +672,6 @@ func (s *Pool) verifyIdle() {
 			continue
 		}
 
-		s.curSize--
 		val.destroy()
 	}
 	s.idleExecutor = newList
