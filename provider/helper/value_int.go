@@ -12,6 +12,8 @@ func (s *impl) encodeInt(vVal model.Value) (ret interface{}, err error) {
 	switch val.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		ret = val.Int()
+	case reflect.Float32, reflect.Float64:
+		ret = int64(val.Float())
 	default:
 		err = fmt.Errorf("illegal int value, type:%s", val.Type().String())
 	}
