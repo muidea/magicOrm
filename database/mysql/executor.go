@@ -476,8 +476,6 @@ type Pool struct {
 	maxSize       int
 	cacheSize     int
 	curSize       int
-	allocCount    int
-	deallocCount  int
 	executorLock  sync.RWMutex
 	cacheExecutor chan *Executor
 	idleExecutor  []*Executor
