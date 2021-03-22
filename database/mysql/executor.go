@@ -29,7 +29,13 @@ type Executor struct {
 func NewExecutor(config *Config) (ret *Executor, err error) {
 	connectStr := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8", config.user, config.password, config.address, config.dbName)
 
-	ret = &Executor{connectStr: connectStr, dbHandle: nil, dbTx: nil, rowsHandle: nil, dbName: config.dbName}
+	executorPtr := &Executor{connectStr: connectStr, dbHandle: nil, dbTx: nil, rowsHandle: nil, dbName: config.dbName}
+	err = executorPtr.Connect()
+	if err != nil {
+		return
+	}
+
+	ret = executorPtr
 	return
 }
 
