@@ -476,6 +476,8 @@ type Pool struct {
 	maxSize       int
 	cacheSize     int
 	curSize       int
+	allocCount    int
+	deallocCount  int
 	executorLock  sync.RWMutex
 	cacheExecutor chan *Executor
 	idleExecutor  []*Executor
@@ -661,9 +663,10 @@ func (s *Pool) putToIdle(ptr *Executor) {
 		return
 	}
 
-	s.curSize--
 	s.executorLock.Lock()
 	defer s.executorLock.Unlock()
+	s.curSize--
+
 	s.idleExecutor = append(s.idleExecutor, ptr)
 }
 
