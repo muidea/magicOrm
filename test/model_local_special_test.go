@@ -8,12 +8,13 @@ import (
 )
 
 func TestKPI(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
+	orm.Initialize()
 	defer orm.Uninitialize()
 
+	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
 	provider := provider.NewLocalProvider("default")
 
-	o1, err := orm.NewOrm(provider)
+	o1, err := orm.NewOrm(provider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())

@@ -9,8 +9,8 @@ import (
 
 func TestNewPool(t *testing.T) {
 	pool := NewPool()
-
-	pool.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
+	config := NewConfig("root", "rootkit", "localhost:3306", "testdb")
+	pool.Initialize(50, config)
 	defer pool.Uninitialize()
 
 	wg := &sync.WaitGroup{}
@@ -24,14 +24,14 @@ func TestNewPool(t *testing.T) {
 }
 
 func pickExecutor(pool *Pool, wg *sync.WaitGroup) {
-	executorPtr, executorErr := pool.FetchOut()
+	executorPtr, executorErr := pool.fetchOut()
 	if executorErr != nil {
 		return
 	}
 
 	time.Sleep(time.Duration(rand.Int()%10) + time.Second)
 
-	pool.PutIn(executorPtr)
+	pool.putIn(executorPtr)
 
 	wg.Done()
 }

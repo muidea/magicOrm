@@ -10,12 +10,13 @@ import (
 )
 
 func TestRemoteExecutor(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
+	orm.Initialize()
 	defer orm.Uninitialize()
 
+	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
 	remoteProvider := provider.NewRemoteProvider("default")
 
-	o1, err := orm.NewOrm(remoteProvider)
+	o1, err := orm.NewOrm(remoteProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -130,12 +131,13 @@ func TestRemoteExecutor(t *testing.T) {
 }
 
 func TestRemoteDepends(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
+	orm.Initialize()
 	defer orm.Uninitialize()
 
+	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
 	remoteProvider := provider.NewRemoteProvider("default")
 
-	o1, err := orm.NewOrm(remoteProvider)
+	o1, err := orm.NewOrm(remoteProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())

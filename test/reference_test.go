@@ -14,12 +14,13 @@ const referenceLocalOwner = "referenceLocal"
 const referenceRemoteOwner = "referenceRemote"
 
 func TestReferenceLocal(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
+	orm.Initialize()
 	defer orm.Uninitialize()
 
+	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
 	localProvider := provider.NewLocalProvider(referenceLocalOwner)
 
-	o1, err := orm.NewOrm(localProvider)
+	o1, err := orm.NewOrm(localProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -210,12 +211,13 @@ func TestReferenceLocal(t *testing.T) {
 }
 
 func TestReferenceRemote(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
+	orm.Initialize()
 	defer orm.Uninitialize()
 
+	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
 	remoteProvider := provider.NewRemoteProvider(referenceRemoteOwner)
 
-	o1, err := orm.NewOrm(remoteProvider)
+	o1, err := orm.NewOrm(remoteProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())

@@ -2,9 +2,11 @@ package orm
 
 import (
 	"fmt"
+	"github.com/muidea/magicOrm/database/mysql"
 	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
+	"sync"
 )
 
 // Orm orm interface
@@ -23,32 +25,65 @@ type Orm interface {
 	Release()
 }
 
-var _config *ormConfig
+var name2Pool sync.Map
+
+// NewPool new executor pool
+func NewPool() executor.Pool {
+	return mysql.NewPool()
+}
+
+// NewExecutor NewExecutor
+func NewExecutor(cfgPtr executor.Config) (executor.Executor, error) {
+	return mysql.NewExecutor(cfgPtr)
+}
+
+func NewConfig(user, password, address, dbName string) executor.Config {
+	return mysql.NewConfig(user, password, address, dbName)
+}
 
 // Initialize InitOrm
-func Initialize(maxConnNum int, user, password, address, dbName string) error {
-	cfg := &serverConfig{user: user, password: password, address: address, dbName: dbName}
-
-	_config = newConfig()
-
-	_config.updateServerConfig(cfg)
-
-	return executor.InitializePool(maxConnNum, user, password, address, dbName)
+func Initialize() {
+	name2Pool = sync.Map{}
 }
 
 // Uninitialize Uninitialize orm
 func Uninitialize() {
-	executor.UninitializePool()
+	name2Pool.Range(func(_, val interface{}) bool {
+		pool := val.(executor.Pool)
+		pool.Uninitialize()
+
+		return true
+	})
+
+	name2Pool = sync.Map{}
+}
+
+func AddInstance(owner string, maxConnNum int, username, password, dbServer, dbName string) (err error) {
+	config := NewConfig(username, password, dbServer, dbName)
+	executorPool := NewPool()
+	err = executorPool.Initialize(maxConnNum, config)
+	if err != nil {
+		return
+	}
+
+	name2Pool.Store(owner, executorPool)
+	return
+}
+
+func DelInstance(owner string) {
+	val, ok := name2Pool.Load(owner)
+	if !ok {
+		return
+	}
+
+	pool := val.(executor.Pool)
+	pool.Uninitialize()
+	name2Pool.Delete(owner)
 }
 
 // NewOrm create new Orm
-func NewOrm(provider provider.Provider) (Orm, error) {
-	cfg := _config.getServerConfig()
-	if cfg == nil {
-		return nil, fmt.Errorf("not define databaes server config")
-	}
-
-	executor, err := executor.NewExecutor(cfg.user, cfg.password, cfg.address, cfg.dbName)
+func NewOrm(provider provider.Provider, cfg executor.Config) (Orm, error) {
+	executor, err := NewExecutor(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -58,14 +93,22 @@ func NewOrm(provider provider.Provider) (Orm, error) {
 }
 
 // GetOrm get orm from pool
-func GetOrm(provider provider.Provider) (Orm, error) {
-	executor, err := executor.GetExecutor()
-	if err != nil {
-		return nil, err
+func GetOrm(provider provider.Provider) (ret Orm, err error) {
+	val, ok := name2Pool.Load(provider.Owner())
+	if !ok {
+		err = fmt.Errorf("can't find orm,name:%s", provider.Owner())
+		return
 	}
 
-	orm := &impl{executor: executor, modelProvider: provider}
-	return orm, nil
+	pool := val.(executor.Pool)
+	executorVal, executorErr := pool.GetExecutor()
+	if executorErr != nil {
+		err = executorErr
+		return
+	}
+
+	ret = &impl{executor: executorVal, modelProvider: provider}
+	return
 }
 
 func GetFilter(provider provider.Provider) model.Filter {

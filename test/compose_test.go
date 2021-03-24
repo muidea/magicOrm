@@ -216,12 +216,13 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 }
 
 func TestComposeLocal(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
+	orm.Initialize()
 	defer orm.Uninitialize()
 
+	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
 	localProvider := provider.NewLocalProvider(composeLocalOwner)
 
-	o1, err := orm.NewOrm(localProvider)
+	o1, err := orm.NewOrm(localProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -418,12 +419,13 @@ func TestComposeLocal(t *testing.T) {
 }
 
 func TestComposeRemote(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
-	defer orm.Uninitialize()
 
+	orm.Initialize()
+	defer orm.Uninitialize()
+	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
 	remoteProvider := provider.NewRemoteProvider(composeRemoteOwner)
 
-	o1, err := orm.NewOrm(remoteProvider)
+	o1, err := orm.NewOrm(remoteProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())

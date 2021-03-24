@@ -52,12 +52,13 @@ func getSliceObjectPtrValue(val interface{}) (ret *remote.SliceObjectValue, err 
 }
 
 func TestRemoteGroup(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
+	orm.Initialize()
 	defer orm.Uninitialize()
 
+	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
 	remoteProvider := provider.NewRemoteProvider("default")
 
-	o1, err := orm.NewOrm(remoteProvider)
+	o1, err := orm.NewOrm(remoteProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -319,12 +320,13 @@ func TestRemoteUser(t *testing.T) {
 		return
 	}
 
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
+	orm.Initialize()
 	defer orm.Uninitialize()
 
+	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
 	remoteProvider := provider.NewRemoteProvider("default")
 
-	o1, err := orm.NewOrm(remoteProvider)
+	o1, err := orm.NewOrm(remoteProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -586,12 +588,13 @@ func TestRemoteUser(t *testing.T) {
 }
 
 func TestRemoteSystem(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
+	orm.Initialize()
 	defer orm.Uninitialize()
 
+	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
 	remoteProvider := provider.NewRemoteProvider("default")
 
-	o1, err := orm.NewOrm(remoteProvider)
+	o1, err := orm.NewOrm(remoteProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -828,12 +831,13 @@ func TestRemoteSystem(t *testing.T) {
 }
 
 func TestRemoteBatchQuery(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
+	orm.Initialize()
 	defer orm.Uninitialize()
 
+	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
 	remoteProvider := provider.NewRemoteProvider("default")
 
-	o1, err := orm.NewOrm(remoteProvider)
+	o1, err := orm.NewOrm(remoteProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -1106,12 +1110,13 @@ func TestRemoteBatchQuery(t *testing.T) {
 }
 
 func TestRemoteBatchQueryPtr(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
+	orm.Initialize()
 	defer orm.Uninitialize()
 
+	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
 	remoteProvider := provider.NewRemoteProvider("default")
 
-	o1, err := orm.NewOrm(remoteProvider)
+	o1, err := orm.NewOrm(remoteProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -1410,12 +1415,13 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 }
 
 func TestPolicy(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
+	orm.Initialize()
 	defer orm.Uninitialize()
 
+	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
 	remoteProvider := provider.NewRemoteProvider("default")
 
-	o1, err := orm.NewOrm(remoteProvider)
+	o1, err := orm.NewOrm(remoteProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())

@@ -10,12 +10,13 @@ import (
 const localOwner = "local"
 
 func TestLocalSimple(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
+	orm.Initialize()
 	defer orm.Uninitialize()
 
+	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
 	localProvider := provider.NewLocalProvider(localOwner)
 
-	o1, err := orm.NewOrm(localProvider)
+	o1, err := orm.NewOrm(localProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -90,12 +91,13 @@ func TestLocalSimple(t *testing.T) {
 }
 
 func TestLocalReference(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
+	orm.Initialize()
 	defer orm.Uninitialize()
 
+	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
 	localProvider := provider.NewLocalProvider(localOwner)
 
-	o1, err := orm.NewOrm(localProvider)
+	o1, err := orm.NewOrm(localProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -240,12 +242,13 @@ func TestLocalReference(t *testing.T) {
 }
 
 func TestLocalCompose(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
+	orm.Initialize()
 	defer orm.Uninitialize()
 
+	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
 	localProvider := provider.NewLocalProvider(localOwner)
 
-	o1, err := orm.NewOrm(localProvider)
+	o1, err := orm.NewOrm(localProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -411,12 +414,13 @@ func TestLocalCompose(t *testing.T) {
 }
 
 func TestLocalQuery(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
+	orm.Initialize()
 	defer orm.Uninitialize()
 
+	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
 	localProvider := provider.NewLocalProvider(localOwner)
 
-	o1, err := orm.NewOrm(localProvider)
+	o1, err := orm.NewOrm(localProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())

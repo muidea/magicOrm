@@ -1,10 +1,11 @@
 package executor
 
-import (
-	"fmt"
-
-	"github.com/muidea/magicOrm/database/mysql"
-)
+type Config interface {
+	HostAddress() string
+	UserName() string
+	Password() string
+	Database() string
+}
 
 // Executor 数据库访问对象
 type Executor interface {
@@ -16,7 +17,6 @@ type Executor interface {
 	Next() bool
 	Finish()
 	GetField(value ...interface{}) error
-	// return auto increment id
 	Insert(sql string) (int64, error)
 	Delete(sql string) (int64, error)
 	Update(sql string) (int64, error)
@@ -24,42 +24,8 @@ type Executor interface {
 	CheckTableExist(tableName string) (bool, error)
 }
 
-var executorPool *mysql.Pool
-
-// InitializePool initialize pool
-func InitializePool(maxConnNum int, user, password, address, dbName string) (err error) {
-	if executorPool == nil {
-		executorPool = mysql.NewPool()
-
-		err = executorPool.Initialize(maxConnNum, user, password, address, dbName)
-	}
-
-	return
-}
-
-// UninitializePool uninitialize pool
-func UninitializePool() {
-	if executorPool == nil {
-		return
-	}
-
-	executorPool.Uninitialize()
-	executorPool = nil
-}
-
-// GetExecutor Get executor
-func GetExecutor() (ret Executor, err error) {
-	if executorPool == nil {
-		err = fmt.Errorf("must initialze executor poll first")
-		return
-	}
-
-	ret, err = executorPool.FetchOut()
-	return
-}
-
-// NewExecutor NewExecutor
-func NewExecutor(user, password, address, dbName string) (Executor, error) {
-	config := mysql.NewConfig(user, password, address, dbName)
-	return mysql.NewExecutor(config)
+type Pool interface {
+	Initialize(maxConnNum int, cfgPtr Config) error
+	Uninitialize()
+	GetExecutor() (Executor, error)
 }

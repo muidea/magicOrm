@@ -9,7 +9,36 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql" //引入Mysql驱动
+
+	"github.com/muidea/magicOrm/executor"
 )
+
+type Config struct {
+	user     string
+	password string
+	address  string
+	dbName   string
+}
+
+func (s *Config) UserName() string {
+	return s.user
+}
+
+func (s *Config) Password() string {
+	return s.password
+}
+
+func (s *Config) HostAddress() string {
+	return s.address
+}
+
+func (s *Config) Database() string {
+	return s.dbName
+}
+
+func NewConfig(user, password, address, dbName string) *Config {
+	return &Config{user: user, password: password, address: address, dbName: dbName}
+}
 
 // Executor Executor
 type Executor struct {
@@ -26,10 +55,10 @@ type Executor struct {
 }
 
 // NewExecutor 新建一个数据访问对象
-func NewExecutor(config *Config) (ret *Executor, err error) {
-	connectStr := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8", config.user, config.password, config.address, config.dbName)
+func NewExecutor(config executor.Config) (ret *Executor, err error) {
+	connectStr := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8", config.UserName(), config.Password(), config.HostAddress(), config.Database())
 
-	executorPtr := &Executor{connectStr: connectStr, dbHandle: nil, dbTx: nil, rowsHandle: nil, dbName: config.dbName}
+	executorPtr := &Executor{connectStr: connectStr, dbHandle: nil, dbTx: nil, rowsHandle: nil, dbName: config.Database()}
 	err = executorPtr.Connect()
 	if err != nil {
 		return
@@ -96,7 +125,7 @@ func (s *Executor) Release() {
 		return
 	}
 
-	s.pool.PutIn(s)
+	s.pool.putIn(s)
 }
 
 func (s *Executor) destroy() {
@@ -463,16 +492,9 @@ const (
 	defaultMaxConnNum = 1024
 )
 
-type Config struct {
-	user     string
-	password string
-	address  string
-	dbName   string
-}
-
 // Pool executorPool
 type Pool struct {
-	config        *Config
+	config        executor.Config
 	maxSize       int
 	cacheSize     int
 	curSize       int
@@ -481,17 +503,13 @@ type Pool struct {
 	idleExecutor  []*Executor
 }
 
-func NewConfig(user, password, address, dbName string) *Config {
-	return &Config{user: user, password: password, address: address, dbName: dbName}
-}
-
 // NewPool new pool
 func NewPool() *Pool {
 	return &Pool{}
 }
 
 // Initialize initialize executor pool
-func (s *Pool) Initialize(maxConnNum int, user, password, address, dbName string) (err error) {
+func (s *Pool) Initialize(maxConnNum int, cfgPtr executor.Config) (err error) {
 	initConnNum := 0
 	if 0 < maxConnNum {
 		if maxConnNum < 16 {
@@ -504,7 +522,7 @@ func (s *Pool) Initialize(maxConnNum int, user, password, address, dbName string
 		initConnNum = initConnCount
 	}
 
-	s.config = NewConfig(user, password, address, dbName)
+	s.config = cfgPtr
 	s.maxSize = maxConnNum
 	s.cacheSize = initConnNum
 	s.curSize = 0
@@ -557,8 +575,19 @@ func (s *Pool) Uninitialize() {
 	s.maxSize = 0
 }
 
-// FetchOut fetchOut Executor
-func (s *Pool) FetchOut() (ret *Executor, err error) {
+func (s *Pool) GetExecutor() (ret executor.Executor, err error) {
+	executorPtr, executorErr := s.fetchOut()
+	if executorErr != nil {
+		err = executorErr
+		return
+	}
+
+	ret = executorPtr
+	return
+}
+
+// fetchOut fetchOut Executor
+func (s *Pool) fetchOut() (ret *Executor, err error) {
 	defer func() {
 		if ret != nil {
 			ret.startTime = time.Now()
@@ -599,8 +628,8 @@ func (s *Pool) FetchOut() (ret *Executor, err error) {
 	return
 }
 
-// PutIn putIn Executor
-func (s *Pool) PutIn(val *Executor) {
+// putIn putIn Executor
+func (s *Pool) putIn(val *Executor) {
 	val.finishTime = time.Now()
 
 	s.executorLock.RLock()

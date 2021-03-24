@@ -11,12 +11,13 @@ import (
 const remoteOwner = "remote"
 
 func TestRemoteSimple(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
+	orm.Initialize()
 	defer orm.Uninitialize()
 
+	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
 	remoteProvider := provider.NewRemoteProvider(remoteOwner)
 
-	o1, err := orm.NewOrm(remoteProvider)
+	o1, err := orm.NewOrm(remoteProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -128,12 +129,13 @@ func TestRemoteSimple(t *testing.T) {
 }
 
 func TestRemoteReference(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
+	orm.Initialize()
 	defer orm.Uninitialize()
 
+	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
 	remoteProvider := provider.NewRemoteProvider(remoteOwner)
 
-	o1, err := orm.NewOrm(remoteProvider)
+	o1, err := orm.NewOrm(remoteProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -316,12 +318,13 @@ func TestRemoteReference(t *testing.T) {
 }
 
 func TestRemoteCompose(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
+	orm.Initialize()
 	defer orm.Uninitialize()
 
+	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
 	remoteProvider := provider.NewRemoteProvider(remoteOwner)
 
-	o1, err := orm.NewOrm(remoteProvider)
+	o1, err := orm.NewOrm(remoteProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -558,12 +561,13 @@ func TestRemoteCompose(t *testing.T) {
 }
 
 func TestRemoteQuery(t *testing.T) {
-	orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb")
+	orm.Initialize()
 	defer orm.Uninitialize()
 
+	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
 	remoteProvider := provider.NewRemoteProvider(remoteOwner)
 
-	o1, err := orm.NewOrm(remoteProvider)
+	o1, err := orm.NewOrm(remoteProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
