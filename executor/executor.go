@@ -5,6 +5,7 @@ type Config interface {
 	UserName() string
 	Password() string
 	Database() string
+	Same(config Config) bool
 }
 
 // Executor 数据库访问对象
@@ -28,4 +29,5 @@ type Pool interface {
 	Initialize(maxConnNum int, cfgPtr Config) error
 	Uninitialize()
 	GetExecutor() (Executor, error)
+	CheckConfig(cfgPtr Config) error
 }

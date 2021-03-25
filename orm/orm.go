@@ -60,6 +60,13 @@ func Uninitialize() {
 
 func AddInstance(owner string, maxConnNum int, username, password, dbServer, dbName string) (err error) {
 	config := NewConfig(username, password, dbServer, dbName)
+
+	val, ok := name2Pool.Load(owner)
+	if ok {
+		pool := val.(executor.Pool)
+		return pool.CheckConfig(config)
+	}
+
 	executorPool := NewPool()
 	err = executorPool.Initialize(maxConnNum, config)
 	if err != nil {

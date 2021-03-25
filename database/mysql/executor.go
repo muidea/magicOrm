@@ -36,6 +36,13 @@ func (s *Config) Database() string {
 	return s.dbName
 }
 
+func (s *Config) Same(cfg executor.Config) bool {
+	return s.address == cfg.HostAddress() &&
+		s.dbName == cfg.Database() &&
+		s.user == cfg.UserName() &&
+		s.password == cfg.Password()
+}
+
 func NewConfig(user, password, address, dbName string) *Config {
 	return &Config{user: user, password: password, address: address, dbName: dbName}
 }
@@ -584,6 +591,14 @@ func (s *Pool) GetExecutor() (ret executor.Executor, err error) {
 
 	ret = executorPtr
 	return
+}
+
+func (s *Pool) CheckConfig(cfgPtr executor.Config) error {
+	if s.config.Same(cfgPtr) {
+		return nil
+	}
+
+	return fmt.Errorf("mismatch database config")
 }
 
 // fetchOut fetchOut Executor
