@@ -37,8 +37,8 @@ func NewExecutor(cfgPtr executor.Config) (executor.Executor, error) {
 	return mysql.NewExecutor(cfgPtr)
 }
 
-func NewConfig(user, password, address, dbName string) executor.Config {
-	return mysql.NewConfig(user, password, address, dbName)
+func NewConfig(dbAddress, dbName, username, password string) executor.Config {
+	return mysql.NewConfig(dbAddress, dbName, username, password)
 }
 
 // Initialize InitOrm
@@ -58,8 +58,8 @@ func Uninitialize() {
 	name2Pool = sync.Map{}
 }
 
-func AddInstance(owner string, maxConnNum int, username, password, dbServer, dbName string) (err error) {
-	config := NewConfig(username, password, dbServer, dbName)
+func AddInstance(owner string, maxConnNum int, dbServer, dbName, username, password string) (err error) {
+	config := NewConfig(dbServer, dbName, username, password)
 
 	val, ok := name2Pool.Load(owner)
 	if ok {

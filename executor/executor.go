@@ -2,7 +2,7 @@ package executor
 
 type Config interface {
 	HostAddress() string
-	UserName() string
+	Username() string
 	Password() string
 	Database() string
 	Same(config Config) bool
