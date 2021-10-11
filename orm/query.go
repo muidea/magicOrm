@@ -263,6 +263,6 @@ func (s *impl) Query(entityModel model.Model) (ret model.Model, err error) {
 		return
 	}
 
-	ret = entityModel
+	err = fmt.Errorf("not exist model")
 	return
 }
