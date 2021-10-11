@@ -219,7 +219,7 @@ func TestComposeLocal(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialize()
 
-	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	localProvider := provider.NewLocalProvider(composeLocalOwner)
 
 	o1, err := orm.NewOrm(localProvider, config)
@@ -422,7 +422,7 @@ func TestComposeRemote(t *testing.T) {
 
 	orm.Initialize()
 	defer orm.Uninitialize()
-	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	remoteProvider := provider.NewRemoteProvider(composeRemoteOwner)
 
 	o1, err := orm.NewOrm(remoteProvider, config)

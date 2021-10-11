@@ -27,7 +27,6 @@ func (s *impl) querySingle(vModel model.Model, filter model.Filter) (ret model.M
 
 		defer s.executor.Finish()
 		if !s.executor.Next() {
-			err = fmt.Errorf("query %s failed, no found object", vModel.GetName())
 			return
 		}
 
@@ -44,7 +43,7 @@ func (s *impl) querySingle(vModel model.Model, filter model.Filter) (ret model.M
 
 		queryValue = items
 	}()
-	if err != nil {
+	if err != nil || len(queryValue) == 0 {
 		return
 	}
 
@@ -150,7 +149,9 @@ func (s *impl) queryRelationSlice(ids []int, vModel model.Model) (ret []model.Mo
 			return
 		}
 
-		sliceVal = append(sliceVal, queryVal)
+		if queryVal != nil {
+			sliceVal = append(sliceVal, queryVal)
+		}
 	}
 
 	ret = sliceVal
@@ -203,14 +204,21 @@ func (s *impl) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret 
 			return
 		}
 
-		modelVal, modelErr := s.modelProvider.GetEntityValue(queryVal.Interface(true))
-		if modelErr != nil {
-			err = modelErr
-			return
+		if queryVal != nil {
+			modelVal, modelErr := s.modelProvider.GetEntityValue(queryVal.Interface(true))
+			if modelErr != nil {
+				err = modelErr
+				return
+			}
+
+			fieldValue.Set(modelVal.Get())
 		}
 
-		fieldValue.Set(modelVal.Get())
-	} else if util.IsSliceType(fieldType.GetValue()) {
+		ret = fieldValue
+		return
+	}
+
+	if util.IsSliceType(fieldType.GetValue()) {
 		queryVal, queryErr := s.queryRelationSlice(values, fieldModel)
 		if queryErr != nil {
 			err = queryErr
@@ -250,6 +258,11 @@ func (s *impl) Query(entityModel model.Model) (ret model.Model, err error) {
 		return
 	}
 
-	ret = queryVal
+	if queryVal != nil {
+		ret = queryVal
+		return
+	}
+
+	ret = entityModel
 	return
 }

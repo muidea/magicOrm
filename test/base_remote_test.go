@@ -14,7 +14,7 @@ func TestRemoteSimple(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialize()
 
-	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	remoteProvider := provider.NewRemoteProvider(remoteOwner)
 
 	o1, err := orm.NewOrm(remoteProvider, config)
@@ -132,7 +132,7 @@ func TestRemoteReference(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialize()
 
-	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	remoteProvider := provider.NewRemoteProvider(remoteOwner)
 
 	o1, err := orm.NewOrm(remoteProvider, config)
@@ -321,7 +321,7 @@ func TestRemoteCompose(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialize()
 
-	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	remoteProvider := provider.NewRemoteProvider(remoteOwner)
 
 	o1, err := orm.NewOrm(remoteProvider, config)
@@ -564,7 +564,7 @@ func TestRemoteQuery(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialize()
 
-	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	remoteProvider := provider.NewRemoteProvider(remoteOwner)
 
 	o1, err := orm.NewOrm(remoteProvider, config)

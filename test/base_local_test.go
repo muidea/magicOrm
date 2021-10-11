@@ -13,7 +13,7 @@ func TestLocalSimple(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialize()
 
-	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	localProvider := provider.NewLocalProvider(localOwner)
 
 	o1, err := orm.NewOrm(localProvider, config)
@@ -94,7 +94,7 @@ func TestLocalReference(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialize()
 
-	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	localProvider := provider.NewLocalProvider(localOwner)
 
 	o1, err := orm.NewOrm(localProvider, config)
@@ -245,7 +245,7 @@ func TestLocalCompose(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialize()
 
-	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	localProvider := provider.NewLocalProvider(localOwner)
 
 	o1, err := orm.NewOrm(localProvider, config)
@@ -417,7 +417,7 @@ func TestLocalQuery(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialize()
 
-	config := orm.NewConfig("root", "rootkit", "localhost:3306", "testdb")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	localProvider := provider.NewLocalProvider(localOwner)
 
 	o1, err := orm.NewOrm(localProvider, config)
