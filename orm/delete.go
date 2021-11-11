@@ -149,5 +149,9 @@ func (s *impl) Delete(entityModel model.Model) (ret model.Model, err error) {
 		}
 	}
 
+	if err == nil {
+		ret = entityModel
+	}
+
 	return
 }
