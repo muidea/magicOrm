@@ -2,11 +2,12 @@ package orm
 
 import (
 	"fmt"
+	"sync"
+
 	"github.com/muidea/magicOrm/database/mysql"
 	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
-	"sync"
 )
 
 // Orm orm interface
@@ -58,7 +59,7 @@ func Uninitialize() {
 	name2Pool = sync.Map{}
 }
 
-func AddInstance(owner string, maxConnNum int, dbServer, dbName, username, password string) (err error) {
+func AddInstance(dbServer, dbName, username, password string, maxConnNum int, owner string) (err error) {
 	config := NewConfig(dbServer, dbName, username, password)
 
 	val, ok := name2Pool.Load(owner)
