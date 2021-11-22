@@ -160,7 +160,7 @@ func (s *impl) queryRelationSlice(ids []int, vModel model.Model, deepLevel int) 
 
 func (s *impl) queryRelation(modelInfo model.Model, fieldInfo model.Field, deepLevel int) (ret model.Value, err error) {
 	fieldType := fieldInfo.GetType()
-	if deepLevel > 2 {
+	if deepLevel > 3 {
 		ret, err = fieldType.Interface()
 		return
 	}
