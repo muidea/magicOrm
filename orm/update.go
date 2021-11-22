@@ -24,7 +24,7 @@ func (s *impl) updateRelation(modelInfo model.Model, fieldInfo model.Field) (err
 		return
 	}
 
-	err = s.deleteRelation(modelInfo, fieldInfo)
+	err = s.deleteRelation(modelInfo, fieldInfo, 0)
 	if err != nil {
 		return
 	}

@@ -29,7 +29,7 @@ func (s *impl) deleteSingle(modelInfo model.Model) (err error) {
 	return
 }
 
-func (s *impl) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
+func (s *impl) deleteRelation(modelInfo model.Model, fieldInfo model.Field, deepLevel int) (err error) {
 	fType := fieldInfo.GetType()
 	if fType.IsBasic() {
 		return
@@ -55,7 +55,7 @@ func (s *impl) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err
 
 	elemType := fType.Elem()
 	if !elemType.IsPtrType() {
-		fieldVal, fieldErr := s.queryRelation(modelInfo, fieldInfo)
+		fieldVal, fieldErr := s.queryRelation(modelInfo, fieldInfo, deepLevel)
 		if fieldErr == nil && !fieldVal.IsNil() {
 			if util.IsStructType(fType.GetValue()) {
 				relationModel, relationErr := s.modelProvider.GetValueModel(fieldVal, fType)
@@ -70,7 +70,7 @@ func (s *impl) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err
 				}
 
 				for _, field := range relationModel.GetFields() {
-					err = s.deleteRelation(relationModel, field)
+					err = s.deleteRelation(relationModel, field, deepLevel+1)
 					if err != nil {
 						break
 					}
@@ -94,7 +94,7 @@ func (s *impl) deleteRelation(modelInfo model.Model, fieldInfo model.Field) (err
 					}
 
 					for _, field := range relationModel.GetFields() {
-						err = s.deleteRelation(relationModel, field)
+						err = s.deleteRelation(relationModel, field, deepLevel+1)
 						if err != nil {
 							break
 						}
@@ -128,7 +128,7 @@ func (s *impl) Delete(entityModel model.Model) (ret model.Model, err error) {
 		}
 
 		for _, field := range entityModel.GetFields() {
-			err = s.deleteRelation(entityModel, field)
+			err = s.deleteRelation(entityModel, field, 0)
 			if err != nil {
 				break
 			}

@@ -159,11 +159,12 @@ func (s *impl) queryRelationSlice(ids []int, vModel model.Model, deepLevel int) 
 }
 
 func (s *impl) queryRelation(modelInfo model.Model, fieldInfo model.Field, deepLevel int) (ret model.Value, err error) {
+	fieldType := fieldInfo.GetType()
 	if deepLevel > 1 {
+		ret, err = fieldType.Interface()
 		return
 	}
 
-	fieldType := fieldInfo.GetType()
 	fieldModel, fieldErr := s.modelProvider.GetTypeModel(fieldType)
 	if fieldErr != nil {
 		err = fieldErr
@@ -223,7 +224,7 @@ func (s *impl) queryRelation(modelInfo model.Model, fieldInfo model.Field, deepL
 	}
 
 	if util.IsSliceType(fieldType.GetValue()) {
-		queryVal, queryErr := s.queryRelationSlice(values, fieldModel, deepLevel)
+		queryVal, queryErr := s.queryRelationSlice(values, fieldModel, deepLevel+1)
 		if queryErr != nil {
 			err = queryErr
 			return
