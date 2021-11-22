@@ -49,7 +49,7 @@ func (s *impl) queryBatch(elemModel model.Model, filter model.Filter) (ret []mod
 
 	sliceValue := []model.Model{}
 	for idx := 0; idx < len(queryValueList); idx++ {
-		modelVal, modelErr := s.assignSingleModel(maskModel.Copy(), queryValueList[idx])
+		modelVal, modelErr := s.assignSingleModel(maskModel.Copy(), queryValueList[idx], 0)
 		if modelErr != nil {
 			err = modelErr
 			return

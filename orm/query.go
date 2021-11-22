@@ -10,7 +10,7 @@ import (
 
 type resultItems []interface{}
 
-func (s *impl) querySingle(vModel model.Model, filter model.Filter) (ret model.Model, err error) {
+func (s *impl) querySingle(vModel model.Model, filter model.Filter, deepLevel int) (ret model.Model, err error) {
 	var queryValue resultItems
 	func() {
 		builder := builder.NewBuilder(vModel, s.modelProvider)
@@ -47,7 +47,7 @@ func (s *impl) querySingle(vModel model.Model, filter model.Filter) (ret model.M
 		return
 	}
 
-	modelVal, modelErr := s.assignSingleModel(vModel, queryValue)
+	modelVal, modelErr := s.assignSingleModel(vModel, queryValue, deepLevel)
 	if modelErr != nil {
 		err = modelErr
 		return
@@ -57,14 +57,14 @@ func (s *impl) querySingle(vModel model.Model, filter model.Filter) (ret model.M
 	return
 }
 
-func (s *impl) assignSingleModel(modelVal model.Model, queryVal resultItems) (ret model.Model, err error) {
+func (s *impl) assignSingleModel(modelVal model.Model, queryVal resultItems, deepLevel int) (ret model.Model, err error) {
 	offset := 0
 	for _, field := range modelVal.GetFields() {
 		fType := field.GetType()
 		fValue := field.GetValue()
 		if !fType.IsBasic() {
 			if !fValue.IsNil() {
-				itemVal, itemErr := s.queryRelation(modelVal, field)
+				itemVal, itemErr := s.queryRelation(modelVal, field, deepLevel+1)
 				if itemErr != nil {
 					err = itemErr
 					return
@@ -99,7 +99,7 @@ func (s *impl) assignSingleModel(modelVal model.Model, queryVal resultItems) (re
 	return
 }
 
-func (s *impl) queryRelationSingle(id int, vModel model.Model) (ret model.Model, err error) {
+func (s *impl) queryRelationSingle(id int, vModel model.Model, deepLevel int) (ret model.Model, err error) {
 	relationModel := vModel.Copy()
 	relationVal, relationErr := s.modelProvider.GetEntityValue(id)
 	if relationErr != nil {
@@ -115,7 +115,7 @@ func (s *impl) queryRelationSingle(id int, vModel model.Model) (ret model.Model,
 		return
 	}
 
-	queryVal, queryErr := s.querySingle(relationModel, relationFilter)
+	queryVal, queryErr := s.querySingle(relationModel, relationFilter, deepLevel)
 	if queryErr != nil {
 		err = queryErr
 		return
@@ -125,7 +125,7 @@ func (s *impl) queryRelationSingle(id int, vModel model.Model) (ret model.Model,
 	return
 }
 
-func (s *impl) queryRelationSlice(ids []int, vModel model.Model) (ret []model.Model, err error) {
+func (s *impl) queryRelationSlice(ids []int, vModel model.Model, deepLevel int) (ret []model.Model, err error) {
 	sliceVal := []model.Model{}
 	for _, item := range ids {
 		relationModel := vModel.Copy()
@@ -143,7 +143,7 @@ func (s *impl) queryRelationSlice(ids []int, vModel model.Model) (ret []model.Mo
 			return
 		}
 
-		queryVal, queryErr := s.querySingle(relationModel, relationFilter)
+		queryVal, queryErr := s.querySingle(relationModel, relationFilter, deepLevel)
 		if queryErr != nil {
 			err = queryErr
 			return
@@ -158,7 +158,11 @@ func (s *impl) queryRelationSlice(ids []int, vModel model.Model) (ret []model.Mo
 	return
 }
 
-func (s *impl) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret model.Value, err error) {
+func (s *impl) queryRelation(modelInfo model.Model, fieldInfo model.Field, deepLevel int) (ret model.Value, err error) {
+	if deepLevel > 1 {
+		return
+	}
+
 	fieldType := fieldInfo.GetType()
 	fieldModel, fieldErr := s.modelProvider.GetTypeModel(fieldType)
 	if fieldErr != nil {
@@ -198,7 +202,7 @@ func (s *impl) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret 
 
 	fieldValue, _ := fieldType.Interface()
 	if util.IsStructType(fieldType.GetValue()) {
-		queryVal, queryErr := s.queryRelationSingle(values[0], fieldModel)
+		queryVal, queryErr := s.queryRelationSingle(values[0], fieldModel, deepLevel+1)
 		if queryErr != nil {
 			err = queryErr
 			return
@@ -219,7 +223,7 @@ func (s *impl) queryRelation(modelInfo model.Model, fieldInfo model.Field) (ret 
 	}
 
 	if util.IsSliceType(fieldType.GetValue()) {
-		queryVal, queryErr := s.queryRelationSlice(values, fieldModel)
+		queryVal, queryErr := s.queryRelationSlice(values, fieldModel, deepLevel)
 		if queryErr != nil {
 			err = queryErr
 			return
@@ -252,7 +256,7 @@ func (s *impl) Query(entityModel model.Model) (ret model.Model, err error) {
 		return
 	}
 
-	queryVal, queryErr := s.querySingle(entityModel, entityFilter)
+	queryVal, queryErr := s.querySingle(entityModel, entityFilter, 0)
 	if queryErr != nil {
 		err = queryErr
 		return
