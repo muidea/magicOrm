@@ -24,7 +24,7 @@ func (s *filterItem) OprValue() model.Value {
 type queryFilter struct {
 	params        map[string]model.FilterItem
 	maskValue     model.Model
-	pageFilter    *util.PageFilter
+	pageFilter    *util.Pagination
 	sortFilter    *util.SortFilter
 	modelProvider provider.Provider
 }
@@ -152,7 +152,7 @@ func (s *queryFilter) ValueMask(val interface{}) (err error) {
 	return
 }
 
-func (s *queryFilter) Page(filter *util.PageFilter) {
+func (s *queryFilter) Page(filter *util.Pagination) {
 	s.pageFilter = filter
 }
 

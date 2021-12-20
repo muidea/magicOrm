@@ -28,7 +28,7 @@ type Filter interface {
 	NotIn(key string, val interface{}) error
 	Like(key string, val interface{}) error
 	ValueMask(val interface{}) error
-	Page(filter *util.PageFilter)
+	Page(filter *util.Pagination)
 	Sort(sorter *util.SortFilter)
 
 	GetFilterItem(name string) FilterItem
