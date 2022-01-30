@@ -1039,7 +1039,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 	filter.Like("EMail", user1.EMail)
 	filter.ValueMask(maskVal)
 
-	pageFilter := &util.PageFilter{PageNum: 0, PageSize: 100}
+	pageFilter := &util.Pagination{PageNum: 0, PageSize: 100}
 	filter.Page(pageFilter)
 
 	userListVal, objErr := getSliceObjectValue(userList)
@@ -1344,7 +1344,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	filter.Like("EMail", user1.EMail)
 	filter.ValueMask(maskVal)
 
-	pageFilter := &util.PageFilter{PageNum: 0, PageSize: 100}
+	pageFilter := &util.Pagination{PageNum: 0, PageSize: 100}
 	filter.Page(pageFilter)
 
 	userListVal, objErr := getSliceObjectPtrValue(userList)

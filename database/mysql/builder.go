@@ -32,16 +32,17 @@ func (s *Builder) GetTableName() string {
 
 // getHostTableName getHostTableName
 func (s *Builder) getHostTableName(info model.Model) string {
-	tableName := s.constructTableName(info)
-	return fmt.Sprintf("%s_%s", s.modelProvider.Owner(), tableName)
+	//tableName := s.constructTableName(info)
+	//return fmt.Sprintf("%s_%s", s.modelProvider.Owner(), tableName)
+	return s.constructTableName(info)
 }
 
-// GetRelationTableName GetRelationTableName
 func (s *Builder) GetRelationTableName(fieldName string, relationInfo model.Model) string {
 	leftName := s.constructTableName(s.modelInfo)
 	rightName := s.constructTableName(relationInfo)
 
-	return fmt.Sprintf("%s_%s%s2%s", s.modelProvider.Owner(), leftName, fieldName, rightName)
+	//return fmt.Sprintf("%s_%s%s2%s", s.modelProvider.Owner(), leftName, fieldName, rightName)
+	return fmt.Sprintf("%s%s2%s", leftName, fieldName, rightName)
 }
 
 func (s *Builder) getRelationValue(rModel model.Model) (leftVal, rightVal interface{}, err error) {

@@ -641,7 +641,7 @@ func TestLocalBatchQuery(t *testing.T) {
 	filter.Equal("Status", status)
 	filter.ValueMask(valueMask)
 
-	pageFilter := &util.PageFilter{PageNum: 0, PageSize: 100}
+	pageFilter := &util.Pagination{PageNum: 0, PageSize: 100}
 	filter.Page(pageFilter)
 
 	userModelList, userModelErr := o1.BatchQuery(user1Model, filter)
