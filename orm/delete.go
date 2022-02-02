@@ -1,8 +1,6 @@
 package orm
 
 import (
-	"fmt"
-
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
@@ -16,15 +14,16 @@ func (s *impl) deleteSingle(modelInfo model.Model) (err error) {
 		return
 	}
 
-	numVal, numErr := s.executor.Delete(sqlStr)
+	_, numErr := s.executor.Delete(sqlStr)
 	if numErr != nil {
 		err = numErr
 		return
 	}
 
-	if numVal != 1 {
-		err = fmt.Errorf("delete %s failed", modelInfo.GetName())
-	}
+	// not need check affect items
+	//if numVal != 1 {
+	//	err = fmt.Errorf("delete %s failed", modelInfo.GetName())
+	//}
 
 	return
 }
