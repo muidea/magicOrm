@@ -41,9 +41,9 @@ func (s *Builder) BuildCreateSchema() (ret string, err error) {
 	return
 }
 
-// BuildCreateRelationSchema BuildCreateRelationSchema
+// BuildCreateRelationSchema Build CreateRelation Schema
 func (s *Builder) BuildCreateRelationSchema(fieldName string, relationInfo model.Model) (string, error) {
-	str := "\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`left` INT NOT NULL,\n\t`right` INT NOT NULL,\n\tPRIMARY KEY (`id`)"
+	str := "\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`left` INT NOT NULL,\n\t`right` INT NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`)"
 	str = fmt.Sprintf("CREATE TABLE `%s` (\n%s\n)\n", s.GetRelationTableName(fieldName, relationInfo), str)
 	//log.Print(str)
 

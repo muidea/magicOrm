@@ -14,7 +14,7 @@ func (s *Builder) BuildDropSchema() (string, error) {
 	return str, nil
 }
 
-// BuildDropRelationSchema BuildDropRelationSchema
+// BuildDropRelationSchema Build DropRelation Schema
 func (s *Builder) BuildDropRelationSchema(fieldName string, relationInfo model.Model) (string, error) {
 	str := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", s.GetRelationTableName(fieldName, relationInfo))
 	//log.Print(str)
