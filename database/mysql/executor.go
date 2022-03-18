@@ -63,7 +63,7 @@ type Executor struct {
 
 // NewExecutor 新建一个数据访问对象
 func NewExecutor(config executor.Config) (ret *Executor, err error) {
-	connectStr := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8", config.Username(), config.Password(), config.HostAddress(), config.Database())
+	connectStr := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4", config.Username(), config.Password(), config.HostAddress(), config.Database())
 
 	executorPtr := &Executor{connectStr: connectStr, dbHandle: nil, dbTx: nil, rowsHandle: nil, dbName: config.Database()}
 	err = executorPtr.Connect()
