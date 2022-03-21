@@ -268,6 +268,6 @@ func (s *impl) Query(entityModel model.Model) (ret model.Model, err error) {
 		return
 	}
 
-	err = fmt.Errorf("not exist model，name:%s,pkgPath:%s", entityModel.GetName(), entityModel.GetPkgPath())
+	err = fmt.Errorf("not exist model,name:%s,pkgPath:%s", entityModel.GetName(), entityModel.GetPkgPath())
 	return
 }
