@@ -442,6 +442,7 @@ func TestReferenceRemote(t *testing.T) {
 	filter := orm.GetFilter(remoteProvider)
 	filter.Equal("Name", "hi")
 	filter.ValueMask(&Reference{FValue: &fVal, TimeStamp: &ts2, Flag: &flag2, PtrArray: &strArray2, PtrStrArray: &ptrStrArray})
+	filter.Like("StrArray", "Abc")
 	bqModelList, bqModelErr := o1.BatchQuery(bqModel, filter)
 	if bqModelErr != nil {
 		t.Errorf("BatchQuery failed, err:%s", bqModelErr.Error())

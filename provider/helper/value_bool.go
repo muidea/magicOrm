@@ -53,6 +53,10 @@ func (s *impl) decodeBool(val interface{}, tType model.Type) (ret model.Value, e
 		if rVal.Bool() {
 			bVal = 1
 		}
+	case reflect.String:
+		if rVal.String() == "1" {
+			bVal = 1
+		}
 	default:
 		err = fmt.Errorf("illegal boolean value, val:%v", val)
 	}

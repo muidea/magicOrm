@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/muidea/magicOrm/model"
 	"reflect"
+	"strconv"
 )
 
 // encodeFloat get float value str
@@ -31,6 +32,8 @@ func (s *impl) decodeFloat(val interface{}, tType model.Type) (ret model.Value, 
 	switch rVal.Kind() {
 	case reflect.Float32, reflect.Float64:
 		fVal = rVal.Float()
+	case reflect.String:
+		fVal, err = strconv.ParseFloat(rVal.String(), 64)
 	default:
 		err = fmt.Errorf("illegal float value, val:%v", val)
 	}

@@ -141,7 +141,7 @@ func TestSliceHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != "[123]" {
+	if valStr != "123" {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -169,7 +169,7 @@ func TestSliceHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != "[123.345]" {
+	if valStr != "123.345" {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -187,7 +187,7 @@ func TestSliceHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != "[1]" {
+	if valStr != "1" {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -214,7 +214,7 @@ func TestSliceHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != "[\"hello world\"]" {
+	if valStr != "hello world" {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -238,7 +238,7 @@ func TestSliceHelper(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != "[\"2006-01-02 15:04:05\"]" {
+	if valStr != "2006-01-02 15:04:05" {
 		t.Errorf("Encode failed,")
 		return
 	}

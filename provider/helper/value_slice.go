@@ -15,6 +15,20 @@ func (s *impl) encodeSlice(vVal model.Value, tType model.Type) (ret string, err 
 		err = valErr
 		return
 	}
+	if len(vals) == 0 {
+		return
+	}
+	if len(vals) == 1 {
+		strVal, strErr := s.Encode(vals[0], tType.Elem())
+		if strErr != nil {
+			err = strErr
+			return
+		}
+
+		ret = fmt.Sprintf("%v", strVal)
+		return
+	}
+
 	items := []interface{}{}
 	for _, val := range vals {
 		strVal, strErr := s.Encode(val, tType.Elem())
@@ -41,21 +55,31 @@ func (s *impl) encodeSlice(vVal model.Value, tType model.Type) (ret string, err 
 func (s *impl) decodeStringSlice(val string, tType model.Type) (ret model.Value, err error) {
 	tVal, _ := tType.Interface()
 	if val != "" {
-		items := []interface{}{}
-		err = json.Unmarshal([]byte(val), &items)
-		if err != nil {
-			return
-		}
-
 		sliceVal := tVal.Get()
-		for idx := range items {
-			itemVal, itemErr := s.Decode(items[idx], tType.Elem())
+		if val[0] != '[' {
+			itemVal, itemErr := s.Decode(val, tType.Elem())
 			if itemErr != nil {
 				err = itemErr
 				return
 			}
 
 			sliceVal = reflect.Append(sliceVal, itemVal.Get())
+		} else {
+			items := []interface{}{}
+			err = json.Unmarshal([]byte(val), &items)
+			if err != nil {
+				return
+			}
+
+			for idx := range items {
+				itemVal, itemErr := s.Decode(items[idx], tType.Elem())
+				if itemErr != nil {
+					err = itemErr
+					return
+				}
+
+				sliceVal = reflect.Append(sliceVal, itemVal.Get())
+			}
 		}
 		tVal.Set(sliceVal)
 	}

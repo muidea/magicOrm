@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/muidea/magicOrm/model"
 	"reflect"
+	"strconv"
 )
 
 //encodeInt get int value str
@@ -35,6 +36,8 @@ func (s *impl) decodeInt(val interface{}, tType model.Type) (ret model.Value, er
 		iVal = rVal.Int()
 	case reflect.Float64: // only for json unmarshal
 		iVal = int64(rVal.Float())
+	case reflect.String:
+		iVal, err = strconv.ParseInt(rVal.String(), 0, 64)
 	default:
 		err = fmt.Errorf("illegal int value, val:%v", val)
 	}
@@ -84,6 +87,8 @@ func (s *impl) decodeUint(val interface{}, tType model.Type) (ret model.Value, e
 		uVal = rVal.Uint()
 	case reflect.Float64: // only for json unmarshal
 		uVal = uint64(rVal.Float())
+	case reflect.String:
+		uVal, err = strconv.ParseUint(rVal.String(), 0, 64)
 	default:
 		err = fmt.Errorf("illegal uint value, val:%v", val)
 	}
