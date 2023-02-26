@@ -386,7 +386,7 @@ func TestComposeLocal(t *testing.T) {
 	}
 
 	filter := orm.GetFilter(localProvider)
-	filter.Equal("Name", "hi")
+	filter.Equal("name", "hi")
 	filter.ValueMask(&Compose{
 		PtrSimple:      &Simple{},
 		SimpleArray:    []Simple{},
@@ -644,7 +644,7 @@ func TestComposeRemote(t *testing.T) {
 	}
 
 	filter := orm.GetFilter(remoteProvider)
-	filter.Equal("Name", "hi")
+	filter.Equal("name", "hi")
 	filter.ValueMask(&Compose{
 		PtrSimple:      &Simple{},
 		SimpleArray:    []Simple{},

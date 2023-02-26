@@ -17,11 +17,11 @@ func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, err error) 
 		}
 
 		if util.IsSliceType(vType.GetValue()) && !vType.IsBasic() {
-			filter.inInternal(field.GetName(), vVal)
+			filter.inInternal(field.GetTag().GetName(), vVal)
 			continue
 		}
 
-		filter.equalInternal(field.GetName(), vVal)
+		filter.equalInternal(field.GetTag().GetName(), vVal)
 	}
 
 	ret = filter
@@ -32,7 +32,7 @@ func (s *impl) getFieldFilter(vField model.Field) (ret model.Filter, err error) 
 	filter := &queryFilter{params: map[string]model.FilterItem{}, modelProvider: s.modelProvider}
 	vVal := vField.GetValue()
 	if !vVal.IsNil() {
-		filter.equalInternal(vField.GetName(), vField.GetValue())
+		filter.equalInternal(vField.GetTag().GetName(), vField.GetValue())
 	}
 
 	ret = filter

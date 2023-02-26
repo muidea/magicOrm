@@ -594,7 +594,7 @@ func TestLocalQuery(t *testing.T) {
 
 	cList = []*Compose{}
 	filter := orm.GetFilter(localProvider)
-	filter.Equal("Name", c2.Name)
+	filter.Equal("name", c2.Name)
 	filter.ValueMask(&Compose{PtrSimple: &Simple{}})
 	cModelList, cModelErr = o1.BatchQuery(cModel, filter)
 	if cModelErr != nil {

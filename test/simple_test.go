@@ -155,7 +155,7 @@ func TestSimpleLocal(t *testing.T) {
 	}
 
 	filter := orm.GetFilter(localProvider)
-	filter.Equal("Name", "hi")
+	filter.Equal("name", "hi")
 	filter.ValueMask(&Simple{})
 	bqModelList, bqModelErr := o1.BatchQuery(bqModel, filter)
 	if bqModelErr != nil {
@@ -374,7 +374,7 @@ func TestSimpleRemote(t *testing.T) {
 	}
 
 	filter := orm.GetFilter(remoteProvider)
-	filter.Equal("Name", "hi")
+	filter.Equal("name", "hi")
 	filter.ValueMask(&Simple{})
 	bqModelList, bqModelErr := o1.BatchQuery(bqModel, filter)
 	if bqModelErr != nil {

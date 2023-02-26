@@ -635,10 +635,10 @@ func TestLocalBatchQuery(t *testing.T) {
 
 	valueMask := User{Status: &Status{}}
 	filter := orm.GetFilter(provider)
-	filter.Equal("Name", &user1.Name)
-	filter.In("Group", user1.Group)
-	filter.Like("EMail", user1.EMail)
-	filter.Equal("Status", status)
+	filter.Equal("name", &user1.Name)
+	filter.In("group", user1.Group)
+	filter.Like("email", user1.EMail)
+	filter.Equal("status", status)
 	filter.ValueMask(valueMask)
 
 	pageFilter := &util.Pagination{PageNum: 0, PageSize: 100}

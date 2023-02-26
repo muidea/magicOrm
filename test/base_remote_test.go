@@ -833,7 +833,7 @@ func TestRemoteQuery(t *testing.T) {
 	}
 
 	filter := orm.GetFilter(remoteProvider)
-	filter.Equal("Name", strValue)
+	filter.Equal("name", strValue)
 	filter.ValueMask(maskVal)
 	cModelList, cModelErr = o1.BatchQuery(cListModel, filter)
 	if cModelErr != nil {

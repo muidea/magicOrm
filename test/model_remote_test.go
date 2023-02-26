@@ -1034,9 +1034,9 @@ func TestRemoteBatchQuery(t *testing.T) {
 
 	userList := &[]User{}
 	filter := orm.GetFilter(remoteProvider)
-	filter.Equal("Name", &user1.Name)
-	filter.In("Group", groupListVal)
-	filter.Like("EMail", user1.EMail)
+	filter.Equal("name", &user1.Name)
+	filter.In("group", groupListVal)
+	filter.Like("email", user1.EMail)
 	filter.ValueMask(maskVal)
 
 	pageFilter := &util.Pagination{PageNum: 0, PageSize: 100}
@@ -1090,7 +1090,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 	}
 
 	filter2 := orm.GetFilter(remoteProvider)
-	filter2.In("Group", groupListVal)
+	filter2.In("group", groupListVal)
 	userList = &[]User{}
 	userListVal, objErr = getSliceObjectValue(userList)
 	if objErr != nil {
@@ -1339,9 +1339,9 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 
 	userList := &[]*User{}
 	filter := orm.GetFilter(remoteProvider)
-	filter.Equal("Name", &user1.Name)
-	filter.In("Group", groupListVal)
-	filter.Like("EMail", user1.EMail)
+	filter.Equal("name", &user1.Name)
+	filter.In("group", groupListVal)
+	filter.Like("email", user1.EMail)
 	filter.ValueMask(maskVal)
 
 	pageFilter := &util.Pagination{PageNum: 0, PageSize: 100}
@@ -1395,7 +1395,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	}
 
 	filter2 := orm.GetFilter(remoteProvider)
-	filter2.In("Group", groupListVal)
+	filter2.In("group", groupListVal)
 	userList = &[]*User{}
 	userListVal, objErr = getSliceObjectPtrValue(userList)
 	if objErr != nil {
@@ -1588,7 +1588,7 @@ func TestPolicy(t *testing.T) {
 	}
 
 	filter := orm.GetFilter(remoteProvider)
-	filter.Equal("Status", statusValue)
+	filter.Equal("status", statusValue)
 	filter.ValueMask(maskVal)
 	cModelList, cModelErr := o1.BatchQuery(cListModel, filter)
 	if cModelErr != nil {

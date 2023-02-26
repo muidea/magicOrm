@@ -54,7 +54,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 	filterSQL := ""
 	fTag := s.modelInfo.GetPrimaryField().GetTag()
 	for _, field := range s.modelInfo.GetFields() {
-		filterItem := filter.GetFilterItem(field.GetName())
+		filterItem := filter.GetFilterItem(field.GetTag().GetName())
 		if filterItem == nil {
 			continue
 		}
@@ -69,7 +69,6 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 		}
 
 		if fType.IsBasic() {
-
 			strVal := oprFunc(field.GetName(), valueStr)
 			if filterSQL == "" {
 				filterSQL = fmt.Sprintf("%s", strVal)
