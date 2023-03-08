@@ -51,6 +51,14 @@ func (s *ValueImpl) Addr() model.Value {
 	return impl
 }
 
+func (s *ValueImpl) IsBasic() bool {
+	if util.IsNil(s.value) {
+		return false
+	}
+
+	return !util.IsStruct(s.value.Type())
+}
+
 // Copy Copy
 func (s *ValueImpl) copy() (ret *ValueImpl) {
 	if !util.IsNil(s.value) {

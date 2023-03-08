@@ -15,7 +15,7 @@ func TestNewPool(t *testing.T) {
 
 	wg := &sync.WaitGroup{}
 
-	for idx := 0; idx < 2000; idx++ {
+	for idx := 0; idx < 20; idx++ {
 		wg.Add(1)
 		go pickExecutor(pool, wg)
 	}

@@ -47,6 +47,14 @@ func (s *valueImpl) Addr() model.Value {
 	return impl
 }
 
+func (s *valueImpl) IsBasic() bool {
+	if util.IsNil(s.value) {
+		return false
+	}
+
+	return !util.IsStruct(s.value.Type())
+}
+
 func (s *valueImpl) copy() (ret *valueImpl) {
 	if !util.IsNil(s.value) {
 		ret = &valueImpl{value: reflect.New(s.value.Type()).Elem()}

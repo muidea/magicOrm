@@ -12,6 +12,8 @@ type Value interface {
 	Get() reflect.Value
 	// 获取指针
 	Addr() Value
+	// 判断值是否是基础类型
+	IsBasic() bool
 }
 
 func CompareValue(l, r Value) bool {

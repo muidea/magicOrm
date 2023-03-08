@@ -221,6 +221,13 @@ func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, helper 
 		return
 	}
 
+	if vVal.IsBasic() {
+		pkField := tModel.GetPrimaryField()
+		vType := pkField.GetType()
+		ret, err = helper.Encode(vVal, vType)
+		return
+	}
+
 	vModel, vErr := SetModelValue(tModel.Copy(), vVal)
 	if vErr != nil {
 		err = vErr
