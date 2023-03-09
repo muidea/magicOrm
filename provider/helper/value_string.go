@@ -17,7 +17,7 @@ func (s *impl) encodeString(vVal model.Value) (ret interface{}, err error) {
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
 		ret = fmt.Sprintf("%d", val.Uint())
 	case reflect.Float32, reflect.Float64:
-		ret = fmt.Sprintf("%f", val.Float())
+		ret = fmt.Sprintf("%g", val.Float())
 	case reflect.Bool:
 		ret = fmt.Sprintf("%t", val.Bool())
 	default:
