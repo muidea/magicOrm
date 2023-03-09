@@ -15,7 +15,7 @@ type FilterItem interface {
 // Sorter sort Item
 type Sorter interface {
 	Name() string
-	SortStr(tagName string) string
+	AscSort() bool
 }
 
 // Filter orm query filter

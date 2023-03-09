@@ -4,6 +4,8 @@ go 1.14
 
 require (
 	github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575
-	github.com/go-sql-driver/mysql v1.6.0
-	github.com/muidea/magicCommon v0.0.0-20211220111617-3b3da39d31ba
+	github.com/go-sql-driver/mysql v1.7.0
+	github.com/leodido/go-urn v1.2.2 // indirect
+	github.com/muidea/magicCommon v0.0.0-20230309140401-af16a770717d
+	golang.org/x/crypto v0.7.0 // indirect
 )

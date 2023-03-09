@@ -113,7 +113,7 @@ func (s *Builder) buildSortFilter(filter model.Sorter) (ret string, err error) {
 
 	for _, val := range s.modelInfo.GetFields() {
 		if val.GetTag().GetName() == filter.Name() {
-			ret = filter.SortStr(val.GetTag().GetName())
+			ret = SortOpr(filter.Name(), filter.AscSort())
 			return
 		}
 	}
