@@ -13,13 +13,13 @@ func (s *impl) encodeString(vVal model.Value) (ret interface{}, err error) {
 	case reflect.String:
 		ret = val.String()
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
-		ret = fmt.Sprintf("%v", val.Int())
+		ret = fmt.Sprintf("%d", val.Int())
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
-		ret = fmt.Sprintf("%v", val.Uint())
+		ret = fmt.Sprintf("%d", val.Uint())
 	case reflect.Float32, reflect.Float64:
-		ret = fmt.Sprintf("%v", val.Float())
+		ret = fmt.Sprintf("%f", val.Float())
 	case reflect.Bool:
-		ret = fmt.Sprintf("%v", val.Bool())
+		ret = fmt.Sprintf("%t", val.Bool())
 	default:
 		err = fmt.Errorf("illegal string value, type:%s", val.Type().String())
 	}
