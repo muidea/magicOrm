@@ -33,7 +33,7 @@ func (s *Builder) BuildBatchQuery(filter model.Filter) (ret string, err error) {
 		}
 
 		if sortVal != "" {
-			ret = fmt.Sprintf("%s order by %s", ret, sortVal)
+			ret = fmt.Sprintf("%s ORDER BY %s", ret, sortVal)
 		}
 
 		limit, offset, paging := filter.Pagination()

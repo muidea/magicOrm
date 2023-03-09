@@ -47,8 +47,8 @@ func LikeOpr(name string, val interface{}) string {
 // SortOpr sort opr
 func SortOpr(name string, ascSort bool) string {
 	if ascSort {
-		return fmt.Sprintf("`%s` asc", name)
+		return fmt.Sprintf("`%s` ASC", name)
 	}
 
-	return fmt.Sprintf("`%s` desc", name)
+	return fmt.Sprintf("`%s` DESC", name)
 }
