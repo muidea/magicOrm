@@ -56,7 +56,11 @@ func (s *ValueImpl) IsBasic() bool {
 		return false
 	}
 
-	return !util.IsStruct(s.value.Type())
+	trueType := s.value.Type()
+	if s.value.Kind() == reflect.Interface {
+		trueType = s.value.Elem().Type()
+	}
+	return !util.IsStruct(trueType)
 }
 
 // Copy Copy
