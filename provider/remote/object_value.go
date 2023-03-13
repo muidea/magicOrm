@@ -264,6 +264,21 @@ func getObjectValue(entityVal reflect.Value) (ret *ObjectValue, err error) {
 	return
 }
 
+func GetMapValue(entity interface{}) (ret interface{}, err error) {
+	mVal, mOK := entity.(map[string]interface{})
+	if !mOK {
+		err = fmt.Errorf("illegal map value")
+		return
+	}
+	ret, mOK = mVal["id"]
+	if !mOK {
+		err = fmt.Errorf("illegal map value, miss id")
+		return
+	}
+
+	return
+}
+
 // GetObjectValue get object value
 func GetObjectValue(entity interface{}) (ret *ObjectValue, err error) {
 	entityVal := reflect.ValueOf(entity)
