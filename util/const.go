@@ -43,6 +43,8 @@ const (
 	TypeStructField
 	// slice
 	TypeSliceField
+	// map
+	TypeMapField
 )
 
 func IsInteger(tType reflect.Type) bool {
@@ -92,6 +94,10 @@ func IsStruct(tType reflect.Type) bool {
 	return tType.Kind() == reflect.Struct
 }
 
+func IsMap(tType reflect.Type) bool {
+	return tType.Kind() == reflect.Map
+}
+
 // IsBasicType IsBasicType
 func IsBasicType(typeValue int) bool {
 	return typeValue < TypeStructField
@@ -105,6 +111,10 @@ func IsStructType(typeValue int) bool {
 // IsSliceType IsSliceType
 func IsSliceType(typeValue int) bool {
 	return typeValue == TypeSliceField
+}
+
+func IsMapType(typeVal int) bool {
+	return typeVal == TypeMapField
 }
 
 // GetTypeEnum return field type as type constant from reflect.Value
