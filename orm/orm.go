@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"sync"
 
+	log "github.com/cihub/seelog"
+
 	"github.com/muidea/magicOrm/database/mysql"
+
 	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
@@ -47,8 +50,8 @@ func Initialize() {
 	name2Pool = sync.Map{}
 }
 
-// Uninitialize Uninitialize orm
-func Uninitialize() {
+// Uninitialized orm
+func Uninitialized() {
 	name2Pool.Range(func(_, val interface{}) bool {
 		pool := val.(executor.Pool)
 		pool.Uninitialized()
@@ -105,6 +108,7 @@ func GetOrm(provider provider.Provider) (ret Orm, err error) {
 	val, ok := name2Pool.Load(provider.Owner())
 	if !ok {
 		err = fmt.Errorf("can't find orm,name:%s", provider.Owner())
+		log.Errorf("get orm failed, err:%s", err.Error())
 		return
 	}
 

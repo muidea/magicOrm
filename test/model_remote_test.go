@@ -53,7 +53,7 @@ func getSliceObjectPtrValue(val interface{}) (ret *remote.SliceObjectValue, err 
 
 func TestRemoteGroup(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	remoteProvider := provider.NewRemoteProvider("default")
@@ -321,7 +321,7 @@ func TestRemoteUser(t *testing.T) {
 	}
 
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	remoteProvider := provider.NewRemoteProvider("default")
@@ -589,7 +589,7 @@ func TestRemoteUser(t *testing.T) {
 
 func TestRemoteSystem(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	remoteProvider := provider.NewRemoteProvider("default")
@@ -832,7 +832,7 @@ func TestRemoteSystem(t *testing.T) {
 
 func TestRemoteBatchQuery(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	remoteProvider := provider.NewRemoteProvider("default")
@@ -1111,7 +1111,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 
 func TestRemoteBatchQueryPtr(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	remoteProvider := provider.NewRemoteProvider("default")
@@ -1416,7 +1416,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 
 func TestPolicy(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	remoteProvider := provider.NewRemoteProvider("default")

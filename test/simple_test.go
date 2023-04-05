@@ -15,7 +15,7 @@ const simpleRemoteOwner = "simpleRemote"
 
 func TestSimpleLocal(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	localProvider := provider.NewLocalProvider(simpleLocalOwner)
@@ -179,7 +179,7 @@ func TestSimpleLocal(t *testing.T) {
 
 func TestSimpleRemote(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	remoteProvider := provider.NewRemoteProvider(simpleRemoteOwner)

@@ -12,7 +12,7 @@ const remoteOwner = "remote"
 
 func TestRemoteSimple(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	remoteProvider := provider.NewRemoteProvider(remoteOwner)
@@ -130,7 +130,7 @@ func TestRemoteSimple(t *testing.T) {
 
 func TestRemoteReference(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	remoteProvider := provider.NewRemoteProvider(remoteOwner)
@@ -319,7 +319,7 @@ func TestRemoteReference(t *testing.T) {
 
 func TestRemoteCompose(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	remoteProvider := provider.NewRemoteProvider(remoteOwner)
@@ -562,7 +562,7 @@ func TestRemoteCompose(t *testing.T) {
 
 func TestRemoteQuery(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	remoteProvider := provider.NewRemoteProvider(remoteOwner)

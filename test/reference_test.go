@@ -15,7 +15,7 @@ const referenceRemoteOwner = "referenceRemote"
 
 func TestReferenceLocal(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	localProvider := provider.NewLocalProvider(referenceLocalOwner)
@@ -212,7 +212,7 @@ func TestReferenceLocal(t *testing.T) {
 
 func TestReferenceRemote(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	remoteProvider := provider.NewRemoteProvider(referenceRemoteOwner)

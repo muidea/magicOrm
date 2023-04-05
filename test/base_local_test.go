@@ -11,7 +11,7 @@ const localOwner = "local"
 
 func TestLocalSimple(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	localProvider := provider.NewLocalProvider(localOwner)
@@ -92,7 +92,7 @@ func TestLocalSimple(t *testing.T) {
 
 func TestLocalReference(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	localProvider := provider.NewLocalProvider(localOwner)
@@ -243,7 +243,7 @@ func TestLocalReference(t *testing.T) {
 
 func TestLocalCompose(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	localProvider := provider.NewLocalProvider(localOwner)
@@ -415,7 +415,7 @@ func TestLocalCompose(t *testing.T) {
 
 func TestLocalQuery(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	localProvider := provider.NewLocalProvider(localOwner)

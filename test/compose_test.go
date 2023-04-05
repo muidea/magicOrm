@@ -217,7 +217,7 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 
 func TestComposeLocal(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	localProvider := provider.NewLocalProvider(composeLocalOwner)
@@ -421,7 +421,7 @@ func TestComposeLocal(t *testing.T) {
 func TestComposeRemote(t *testing.T) {
 
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	remoteProvider := provider.NewRemoteProvider(composeRemoteOwner)
 

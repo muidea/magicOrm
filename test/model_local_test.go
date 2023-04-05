@@ -10,7 +10,7 @@ import (
 
 func TestLocalGroup(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	provider := provider.NewLocalProvider("default")
@@ -137,7 +137,7 @@ func TestLocalGroup(t *testing.T) {
 
 func TestLocalUser(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	provider := provider.NewLocalProvider("default")
@@ -356,7 +356,7 @@ func TestLocalUser(t *testing.T) {
 
 func TestLocalSystem(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	provider := provider.NewLocalProvider("default")
@@ -512,7 +512,7 @@ func TestLocalSystem(t *testing.T) {
 
 func TestLocalBatchQuery(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	provider := provider.NewLocalProvider("default")
