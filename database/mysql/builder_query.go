@@ -133,9 +133,10 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 
 			if filterSQL == "" {
 				filterSQL = fmt.Sprintf("%s", basicSQL)
-			} else {
-				filterSQL = fmt.Sprintf("%s AND %s", filterSQL, basicSQL)
+				continue
 			}
+
+			filterSQL = fmt.Sprintf("%s AND %s", filterSQL, basicSQL)
 			continue
 		}
 
@@ -144,11 +145,13 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 			err = relationErr
 			return
 		}
+
 		if filterSQL == "" {
 			filterSQL = fmt.Sprintf("%s", relationSQL)
-		} else {
-			filterSQL = fmt.Sprintf("%s AND %s", filterSQL, relationSQL)
+			continue
 		}
+
+		filterSQL = fmt.Sprintf("%s AND %s", filterSQL, relationSQL)
 	}
 
 	ret = filterSQL
