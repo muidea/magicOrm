@@ -8,7 +8,6 @@ import (
 
 // Builder orm builder
 type Builder interface {
-	GetTableName() string
 	BuildCreateSchema() (string, error)
 	BuildDropSchema() (string, error)
 	BuildInsert() (string, error)
@@ -16,15 +15,15 @@ type Builder interface {
 	BuildDelete() (string, error)
 	BuildQuery(filter model.Filter) (string, error)
 	BuildCount(filter model.Filter) (string, error)
-	BuildBatchQuery(filter model.Filter) (string, error)
 
-	GetRelationTableName(fieldName string, relationInfo model.Model) string
-	BuildCreateRelationSchema(fieldName string, relationInfo model.Model) (string, error)
-	BuildDropRelationSchema(fieldName string, relationInfo model.Model) (string, error)
-	BuildInsertRelation(fieldName string, relationInfo model.Model) (string, error)
-	BuildDeleteRelation(fieldName string, relationInfo model.Model) (string, string, error)
-	BuildQueryRelation(fieldName string, relationInfo model.Model) (string, error)
+	BuildCreateRelationSchema(relationSchema string) (string, error)
+	BuildDropRelationSchema(relationSchema string) (string, error)
+	BuildInsertRelation(field model.Field, relationInfo model.Model) (string, error)
+	BuildDeleteRelation(field model.Field, relationInfo model.Model) (string, string, error)
+	BuildQueryRelation(field model.Field, relationInfo model.Model) (string, error)
 
+	GetTableName() string
+	GetRelationTableName(field model.Field, relationInfo model.Model) string
 	GetInitializeValue(field model.Field) (interface{}, error)
 }
 
@@ -33,37 +32,37 @@ func NewBuilder(modelInfo model.Model, modelProvider provider.Provider) Builder 
 	return mysql.New(modelInfo, modelProvider)
 }
 
-// EqualOpr EqualOpr
+// EqualOpr Equal Opr =
 func EqualOpr(name string, val interface{}) string {
 	return mysql.EqualOpr(name, val)
 }
 
-// NotEqualOpr NotEqualOpr
+// NotEqualOpr NotEqual Opr !=
 func NotEqualOpr(name string, val interface{}) string {
 	return mysql.NotEqualOpr(name, val)
 }
 
-// BelowOpr BelowOpr
+// BelowOpr Below Opr <
 func BelowOpr(name string, val interface{}) string {
 	return mysql.BelowOpr(name, val)
 }
 
-// AboveOpr AboveOpr
+// AboveOpr Above Opr >
 func AboveOpr(name string, val interface{}) string {
 	return mysql.AboveOpr(name, val)
 }
 
-// InOpr InOpr
+// InOpr In Opr in
 func InOpr(name string, val interface{}) string {
 	return mysql.InOpr(name, val)
 }
 
-// NotInOpr NotInOpr
+// NotInOpr NotIn Opr not in
 func NotInOpr(name string, val interface{}) string {
 	return mysql.NotInOpr(name, val)
 }
 
-// LikeOpr LikeOpr
+// LikeOpr Like Opr like
 func LikeOpr(name string, val interface{}) string {
 	return mysql.LikeOpr(name, val)
 }

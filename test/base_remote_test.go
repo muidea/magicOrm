@@ -446,16 +446,16 @@ func TestRemoteCompose(t *testing.T) {
 
 	refPtrArray := []*Reference{r1}
 	c1 := &Compose{
-		Name:           strValue,
-		Simple:         *s1,
-		PtrSimple:      s1,
-		SimpleArray:    []Simple{*s1, *s1},
-		SimplePtrArray: []*Simple{s1, s1},
-		Reference:      *r1,
-		PtrReference:   r1,
-		RefArray:       []Reference{*r1, *r1, *r1},
-		RefPtrArray:    refPtrArray,
-		PtrRefArray:    &refPtrArray,
+		Name:         strValue,
+		H1:           *s1,
+		R3:           s1,
+		H2:           []Simple{*s1, *s1},
+		R4:           []*Simple{s1, s1},
+		Reference:    *r1,
+		PtrReference: r1,
+		RefArray:     []Reference{*r1, *r1, *r1},
+		RefPtrArray:  refPtrArray,
+		PtrRefArray:  &refPtrArray,
 	}
 	c1Val, c1Err := getObjectValue(c1)
 	if c1Err != nil {
@@ -480,18 +480,18 @@ func TestRemoteCompose(t *testing.T) {
 	}
 
 	c2 := &Compose{
-		Name:           strValue,
-		Simple:         *s1,
-		PtrSimple:      s1,
-		SimpleArray:    []Simple{*s1, *s1},
-		SimplePtrArray: []*Simple{s1, s1},
-		PtrSimpleArray: &[]Simple{},
-		Reference:      *r1,
-		PtrReference:   r1,
-		RefArray:       []Reference{*r1, *r1, *r1},
-		RefPtrArray:    refPtrArray,
-		PtrRefArray:    &refPtrArray,
-		PtrCompose:     c1,
+		Name:         strValue,
+		H1:           *s1,
+		R3:           s1,
+		H2:           []Simple{*s1, *s1},
+		R4:           []*Simple{s1, s1},
+		PR4:          &[]Simple{},
+		Reference:    *r1,
+		PtrReference: r1,
+		RefArray:     []Reference{*r1, *r1, *r1},
+		RefPtrArray:  refPtrArray,
+		PtrRefArray:  &refPtrArray,
+		PtrCompose:   c1,
 	}
 	c2Val, c2Err := getObjectValue(c2)
 	if c2Err != nil {
@@ -517,15 +517,15 @@ func TestRemoteCompose(t *testing.T) {
 	}
 
 	c3 := &Compose{
-		ID:             c2.ID,
-		PtrSimple:      &Simple{},
-		SimpleArray:    []Simple{},
-		SimplePtrArray: []*Simple{},
-		PtrSimpleArray: &[]Simple{},
-		PtrReference:   &Reference{},
-		RefArray:       []Reference{},
-		PtrRefArray:    &[]*Reference{},
-		PtrCompose:     &Compose{},
+		ID:           c2.ID,
+		R3:           &Simple{},
+		H2:           []Simple{},
+		R4:           []*Simple{},
+		PR4:          &[]Simple{},
+		PtrReference: &Reference{},
+		RefArray:     []Reference{},
+		PtrRefArray:  &[]*Reference{},
+		PtrCompose:   &Compose{},
 	}
 	c3Val, c3Err := getObjectValue(c3)
 	if c3Err != nil {
@@ -686,16 +686,16 @@ func TestRemoteQuery(t *testing.T) {
 
 	refPtrArray := []*Reference{r1}
 	c1 = &Compose{
-		Name:           strValue,
-		Simple:         *s1,
-		PtrSimple:      s1,
-		SimpleArray:    []Simple{*s1, *s1},
-		SimplePtrArray: []*Simple{s1, s1},
-		Reference:      *r1,
-		PtrReference:   r1,
-		RefArray:       []Reference{*r1, *r1, *r1},
-		RefPtrArray:    refPtrArray,
-		PtrRefArray:    &refPtrArray,
+		Name:         strValue,
+		H1:           *s1,
+		R3:           s1,
+		H2:           []Simple{*s1, *s1},
+		R4:           []*Simple{s1, s1},
+		Reference:    *r1,
+		PtrReference: r1,
+		RefArray:     []Reference{*r1, *r1, *r1},
+		RefPtrArray:  refPtrArray,
+		PtrRefArray:  &refPtrArray,
 	}
 	c1Value, c1Err := getObjectValue(c1)
 	if c1Err != nil {
@@ -722,17 +722,17 @@ func TestRemoteQuery(t *testing.T) {
 
 	strValue = "123"
 	c2 := &Compose{
-		Name:           strValue,
-		Simple:         *s1,
-		PtrSimple:      s1,
-		SimpleArray:    []Simple{*s1, *s1},
-		SimplePtrArray: []*Simple{s1, s1},
-		Reference:      *r1,
-		PtrReference:   r1,
-		RefArray:       []Reference{*r1, *r1, *r1},
-		RefPtrArray:    refPtrArray,
-		PtrRefArray:    &refPtrArray,
-		PtrCompose:     c1,
+		Name:         strValue,
+		H1:           *s1,
+		R3:           s1,
+		H2:           []Simple{*s1, *s1},
+		R4:           []*Simple{s1, s1},
+		Reference:    *r1,
+		PtrReference: r1,
+		RefArray:     []Reference{*r1, *r1, *r1},
+		RefPtrArray:  refPtrArray,
+		PtrRefArray:  &refPtrArray,
+		PtrCompose:   c1,
 	}
 	c2Value, c2Err := getObjectValue(c2)
 	if c2Err != nil {
@@ -756,7 +756,7 @@ func TestRemoteQuery(t *testing.T) {
 		return
 	}
 
-	c3 := &Compose{ID: c2.ID, PtrSimple: &Simple{}, PtrSimpleArray: &[]Simple{}, PtrReference: &Reference{}, PtrRefArray: &[]*Reference{}, PtrCompose: &Compose{}}
+	c3 := &Compose{ID: c2.ID, R3: &Simple{}, PR4: &[]Simple{}, PtrReference: &Reference{}, PtrRefArray: &[]*Reference{}, PtrCompose: &Compose{}}
 	c3Value := c2Value
 	c3Model, c3Err := remoteProvider.GetEntityModel(c3Value)
 	if c3Err != nil {
@@ -826,7 +826,7 @@ func TestRemoteQuery(t *testing.T) {
 		return
 	}
 
-	maskVal, maskErr := remote.GetObjectValue(&Compose{PtrSimple: &Simple{}})
+	maskVal, maskErr := remote.GetObjectValue(&Compose{R3: &Simple{}})
 	if maskErr != nil {
 		t.Errorf("getObjectValue failed, err:%s", maskErr.Error())
 		return

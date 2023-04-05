@@ -3,51 +3,65 @@ package orm
 import (
 	"fmt"
 
+	log "github.com/cihub/seelog"
+
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
 )
 
 type resultItems []interface{}
+type resultItemsList []resultItems
 
-func (s *impl) querySingle(vModel model.Model, filter model.Filter, deepLevel int) (ret model.Model, err error) {
-	var queryValue resultItems
-	func() {
-		builder := builder.NewBuilder(vModel, s.modelProvider)
-		sqlStr, sqlErr := builder.BuildQuery(filter)
-		if sqlErr != nil {
-			err = sqlErr
-			return
-		}
-
-		err = s.executor.Query(sqlStr)
-		if err != nil {
-			return
-		}
-
-		defer s.executor.Finish()
-		if !s.executor.Next() {
-			return
-		}
-
-		items, itemErr := s.getInitializeValue(vModel, builder)
-		if itemErr != nil {
-			err = itemErr
-			return
-		}
-
-		err = s.executor.GetField(items...)
-		if err != nil {
-			return
-		}
-
-		queryValue = items
-	}()
-	if err != nil || len(queryValue) == 0 {
+func (s *impl) innerQuery(elemModel model.Model, filter model.Filter) (ret resultItemsList, err error) {
+	builder := builder.NewBuilder(elemModel, s.modelProvider)
+	sqlStr, sqlErr := builder.BuildQuery(filter)
+	if sqlErr != nil {
+		err = sqlErr
+		log.Errorf("build query sql failed, err:%s", err.Error())
 		return
 	}
 
-	modelVal, modelErr := s.assignSingleModel(vModel, queryValue, deepLevel)
+	err = s.executor.Query(sqlStr)
+	if err != nil {
+		return
+	}
+	defer s.executor.Finish()
+	for s.executor.Next() {
+		itemValues, itemErr := s.getInitializeValue(elemModel, builder)
+		if itemErr != nil {
+			err = itemErr
+			log.Errorf("getInitializeValue failed, err:%s", err.Error())
+			return
+		}
+
+		err = s.executor.GetField(itemValues...)
+		if err != nil {
+			return
+		}
+
+		ret = append(ret, itemValues)
+	}
+
+	return
+}
+
+func (s *impl) querySingle(vModel model.Model, filter model.Filter, deepLevel int) (ret model.Model, err error) {
+	queryValueList, queryErr := s.innerQuery(vModel, filter)
+	if queryErr != nil {
+		err = queryErr
+		return
+	}
+
+	resultSize := len(queryValueList)
+	if resultSize == 0 {
+		return
+	}
+	if resultSize > 1 {
+		return
+	}
+
+	modelVal, modelErr := s.assignSingleModel(vModel, queryValueList[0], deepLevel)
 	if modelErr != nil {
 		err = modelErr
 		return
@@ -172,7 +186,7 @@ func (s *impl) queryRelation(modelInfo model.Model, fieldInfo model.Field, deepL
 	}
 
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
-	relationSQL, relationErr := builder.BuildQueryRelation(fieldInfo.GetName(), fieldModel)
+	relationSQL, relationErr := builder.BuildQueryRelation(fieldInfo, fieldModel)
 	if relationErr != nil {
 		err = relationErr
 		return

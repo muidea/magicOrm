@@ -38,7 +38,7 @@ func newType(itemType reflect.Type) (ret *TypeImpl, err error) {
 			sliceType = sliceType.Elem()
 			slicePtr = true
 		}
-		ret = &TypeImpl{Name: sliceType.String(), Value: typeVal, PkgPath: sliceType.PkgPath(), IsPtr: isPtr}
+		ret = &TypeImpl{Name: sliceType.Name(), Value: typeVal, PkgPath: sliceType.PkgPath(), IsPtr: isPtr}
 
 		sliceVal, sliceErr := util.GetTypeEnum(sliceType)
 		if sliceErr != nil {
@@ -50,12 +50,12 @@ func newType(itemType reflect.Type) (ret *TypeImpl, err error) {
 			return
 		}
 
-		ret.ElemType = &TypeImpl{Name: sliceType.String(), Value: sliceVal, PkgPath: sliceType.PkgPath(), IsPtr: slicePtr}
+		ret.ElemType = &TypeImpl{Name: sliceType.Name(), Value: sliceVal, PkgPath: sliceType.PkgPath(), IsPtr: slicePtr}
 		return
 	}
 
-	ret = &TypeImpl{Name: itemType.String(), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
-	ret.ElemType = &TypeImpl{Name: itemType.String(), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
+	ret = &TypeImpl{Name: itemType.Name(), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
+	ret.ElemType = &TypeImpl{Name: itemType.Name(), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
 	return
 }
 

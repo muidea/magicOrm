@@ -69,16 +69,16 @@ func prepareLocalData(localProvider provider.Provider, orm orm.Orm) (sPtr *Simpl
 
 	refPtrArray := []*Reference{rPtr}
 	cVal := &Compose{
-		Name:           strValue,
-		Simple:         *sPtr,
-		PtrSimple:      sPtr,
-		SimpleArray:    []Simple{*sPtr, *sPtr},
-		SimplePtrArray: []*Simple{sPtr, sPtr},
-		Reference:      *rPtr,
-		PtrReference:   rPtr,
-		RefArray:       []Reference{*rPtr, *rPtr, *rPtr},
-		RefPtrArray:    refPtrArray,
-		PtrRefArray:    &refPtrArray,
+		Name:         strValue,
+		H1:           *sPtr,
+		R3:           sPtr,
+		H2:           []Simple{*sPtr, *sPtr},
+		R4:           []*Simple{sPtr, sPtr},
+		Reference:    *rPtr,
+		PtrReference: rPtr,
+		RefArray:     []Reference{*rPtr, *rPtr, *rPtr},
+		RefPtrArray:  refPtrArray,
+		PtrRefArray:  &refPtrArray,
 	}
 	cModel, cErr := localProvider.GetEntityModel(cVal)
 	if cErr != nil {
@@ -171,16 +171,16 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 
 	refPtrArray := []*Reference{rPtr}
 	cVal := &Compose{
-		Name:           strValue,
-		Simple:         *sPtr,
-		PtrSimple:      sPtr,
-		SimpleArray:    []Simple{*sPtr, *sPtr},
-		SimplePtrArray: []*Simple{sPtr, sPtr},
-		Reference:      *rPtr,
-		PtrReference:   rPtr,
-		RefArray:       []Reference{*rPtr, *rPtr, *rPtr},
-		RefPtrArray:    refPtrArray,
-		PtrRefArray:    &refPtrArray,
+		Name:         strValue,
+		H1:           *sPtr,
+		R3:           sPtr,
+		H2:           []Simple{*sPtr, *sPtr},
+		R4:           []*Simple{sPtr, sPtr},
+		Reference:    *rPtr,
+		PtrReference: rPtr,
+		RefArray:     []Reference{*rPtr, *rPtr, *rPtr},
+		RefPtrArray:  refPtrArray,
+		PtrRefArray:  &refPtrArray,
 	}
 	cObjectVal, _ := remote.GetObjectValue(cVal)
 	cModel, cErr := remoteProvider.GetEntityModel(cObjectVal)
@@ -196,15 +196,15 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 	}
 	cObjectVal = cModel.Interface(true).(*remote.ObjectValue)
 	cPtr = &Compose{
-		PtrSimple:      &Simple{},
-		SimpleArray:    []Simple{},
-		SimplePtrArray: []*Simple{},
-		PtrSimpleArray: &[]Simple{},
-		PtrReference:   &Reference{},
-		RefArray:       []Reference{},
-		RefPtrArray:    []*Reference{},
-		PtrRefArray:    &[]*Reference{},
-		PtrCompose:     &Compose{},
+		R3:           &Simple{},
+		H2:           []Simple{},
+		R4:           []*Simple{},
+		PR4:          &[]Simple{},
+		PtrReference: &Reference{},
+		RefArray:     []Reference{},
+		RefPtrArray:  []*Reference{},
+		PtrRefArray:  &[]*Reference{},
+		PtrCompose:   &Compose{},
 	}
 	cErr = provider.UpdateEntity(cObjectVal, cPtr)
 	if cErr != nil {
@@ -267,17 +267,17 @@ func TestComposeLocal(t *testing.T) {
 	for idx := 0; idx < 100; idx++ {
 		refPtrArray := []*Reference{rPtr}
 		sVal := &Compose{
-			Name:           strValue,
-			Simple:         *sPtr,
-			PtrSimple:      sPtr,
-			SimpleArray:    []Simple{*sPtr, *sPtr},
-			SimplePtrArray: []*Simple{sPtr, sPtr},
-			Reference:      *rPtr,
-			PtrReference:   rPtr,
-			RefArray:       []Reference{*rPtr, *rPtr, *rPtr},
-			RefPtrArray:    refPtrArray,
-			PtrRefArray:    &refPtrArray,
-			PtrCompose:     cPtr,
+			Name:         strValue,
+			H1:           *sPtr,
+			R3:           sPtr,
+			H2:           []Simple{*sPtr, *sPtr},
+			R4:           []*Simple{sPtr, sPtr},
+			Reference:    *rPtr,
+			PtrReference: rPtr,
+			RefArray:     []Reference{*rPtr, *rPtr, *rPtr},
+			RefPtrArray:  refPtrArray,
+			PtrRefArray:  &refPtrArray,
+			PtrCompose:   cPtr,
 		}
 		sValList = append(sValList, sVal)
 
@@ -333,16 +333,16 @@ func TestComposeLocal(t *testing.T) {
 	qModelList := []model.Model{}
 	for idx := 0; idx < 100; idx++ {
 		qVal := &Compose{
-			ID:             sValList[idx].ID,
-			PtrSimple:      &Simple{},
-			SimpleArray:    []Simple{},
-			SimplePtrArray: []*Simple{},
-			PtrSimpleArray: &[]Simple{},
-			PtrReference:   &Reference{},
-			RefArray:       []Reference{},
-			RefPtrArray:    []*Reference{},
-			PtrRefArray:    &[]*Reference{},
-			PtrCompose:     &Compose{},
+			ID:           sValList[idx].ID,
+			R3:           &Simple{},
+			H2:           []Simple{},
+			R4:           []*Simple{},
+			PR4:          &[]Simple{},
+			PtrReference: &Reference{},
+			RefArray:     []Reference{},
+			RefPtrArray:  []*Reference{},
+			PtrRefArray:  &[]*Reference{},
+			PtrCompose:   &Compose{},
 		}
 		qValList = append(qValList, qVal)
 
@@ -360,7 +360,7 @@ func TestComposeLocal(t *testing.T) {
 		qModel, qErr := o1.Query(qModelList[idx])
 		if qErr != nil {
 			err = qErr
-			t.Errorf("Query failed. err:%s", err.Error())
+			t.Errorf("Query failed, idx:%d. err:%s", idx, err.Error())
 			return
 		}
 
@@ -388,15 +388,15 @@ func TestComposeLocal(t *testing.T) {
 	filter := orm.GetFilter(localProvider)
 	filter.Equal("name", "hi")
 	filter.ValueMask(&Compose{
-		PtrSimple:      &Simple{},
-		SimpleArray:    []Simple{},
-		SimplePtrArray: []*Simple{},
-		PtrSimpleArray: &[]Simple{},
-		PtrReference:   &Reference{},
-		RefArray:       []Reference{},
-		RefPtrArray:    []*Reference{},
-		PtrRefArray:    &[]*Reference{},
-		PtrCompose:     &Compose{},
+		R3:           &Simple{},
+		H2:           []Simple{},
+		R4:           []*Simple{},
+		PR4:          &[]Simple{},
+		PtrReference: &Reference{},
+		RefArray:     []Reference{},
+		RefPtrArray:  []*Reference{},
+		PtrRefArray:  &[]*Reference{},
+		PtrCompose:   &Compose{},
 	})
 	bqModelList, bqModelErr := o1.BatchQuery(bqModel, filter)
 	if bqModelErr != nil {
@@ -471,17 +471,17 @@ func TestComposeRemote(t *testing.T) {
 	for idx := 0; idx < 100; idx++ {
 		refPtrArray := []*Reference{rPtr}
 		sVal := &Compose{
-			Name:           strValue,
-			Simple:         *sPtr,
-			PtrSimple:      sPtr,
-			SimpleArray:    []Simple{*sPtr, *sPtr},
-			SimplePtrArray: []*Simple{sPtr, sPtr},
-			Reference:      *rPtr,
-			PtrReference:   rPtr,
-			RefArray:       []Reference{*rPtr, *rPtr, *rPtr},
-			RefPtrArray:    refPtrArray,
-			PtrRefArray:    &refPtrArray,
-			PtrCompose:     cPtr,
+			Name:         strValue,
+			H1:           *sPtr,
+			R3:           sPtr,
+			H2:           []Simple{*sPtr, *sPtr},
+			R4:           []*Simple{sPtr, sPtr},
+			Reference:    *rPtr,
+			PtrReference: rPtr,
+			RefArray:     []Reference{*rPtr, *rPtr, *rPtr},
+			RefPtrArray:  refPtrArray,
+			PtrRefArray:  &refPtrArray,
+			PtrCompose:   cPtr,
 		}
 		sValList = append(sValList, sVal)
 
@@ -570,16 +570,16 @@ func TestComposeRemote(t *testing.T) {
 	qModelList := []model.Model{}
 	for idx := 0; idx < 100; idx++ {
 		qVal := &Compose{
-			ID:             sValList[idx].ID,
-			PtrSimple:      &Simple{},
-			SimpleArray:    []Simple{},
-			SimplePtrArray: []*Simple{},
-			PtrSimpleArray: &[]Simple{},
-			PtrReference:   &Reference{},
-			RefArray:       []Reference{},
-			RefPtrArray:    []*Reference{},
-			PtrRefArray:    &[]*Reference{},
-			PtrCompose:     &Compose{},
+			ID:           sValList[idx].ID,
+			R3:           &Simple{},
+			H2:           []Simple{},
+			R4:           []*Simple{},
+			PR4:          &[]Simple{},
+			PtrReference: &Reference{},
+			RefArray:     []Reference{},
+			RefPtrArray:  []*Reference{},
+			PtrRefArray:  &[]*Reference{},
+			PtrCompose:   &Compose{},
 		}
 		qValList = append(qValList, qVal)
 
@@ -646,15 +646,15 @@ func TestComposeRemote(t *testing.T) {
 	filter := orm.GetFilter(remoteProvider)
 	filter.Equal("name", "hi")
 	filter.ValueMask(&Compose{
-		PtrSimple:      &Simple{},
-		SimpleArray:    []Simple{},
-		SimplePtrArray: []*Simple{},
-		PtrSimpleArray: &[]Simple{},
-		PtrReference:   &Reference{},
-		RefArray:       []Reference{},
-		RefPtrArray:    []*Reference{},
-		PtrRefArray:    &[]*Reference{},
-		PtrCompose:     &Compose{},
+		R3:           &Simple{},
+		H2:           []Simple{},
+		R4:           []*Simple{},
+		PR4:          &[]Simple{},
+		PtrReference: &Reference{},
+		RefArray:     []Reference{},
+		RefPtrArray:  []*Reference{},
+		PtrRefArray:  &[]*Reference{},
+		PtrCompose:   &Compose{},
 	})
 	bqModelList, bqModelErr := o1.BatchQuery(bqModel, filter)
 	if bqModelErr != nil {

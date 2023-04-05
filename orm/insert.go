@@ -70,7 +70,7 @@ func (s *impl) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err
 		}
 
 		builder := builder.NewBuilder(modelInfo, s.modelProvider)
-		relationSQL, relationErr := builder.BuildInsertRelation(fieldInfo.GetName(), relationInfo)
+		relationSQL, relationErr := builder.BuildInsertRelation(fieldInfo, relationInfo)
 		if relationErr != nil {
 			err = relationErr
 			return err

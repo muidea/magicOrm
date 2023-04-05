@@ -2,26 +2,28 @@ package mysql
 
 import (
 	"fmt"
+
+	log "github.com/cihub/seelog"
+
 	"github.com/muidea/magicOrm/model"
-	"log"
 )
 
-// BuildUpdate  BuildUpdate
+// BuildUpdate  Build Update
 func (s *Builder) BuildUpdate() (ret string, err error) {
-	updateStr, updateErr := s.getFieldUpdateValues(s.modelInfo)
+	updateStr, updateErr := s.getFieldUpdateValues(s.entityModel)
 	if updateErr != nil {
 		err = updateErr
-		log.Printf("getFieldUpdateValues failed, err:%s", err.Error())
+		log.Errorf("getFieldUpdateValues failed, err:%s", err.Error())
 		return
 	}
-	filterStr, filterErr := s.buildPKFilter(s.modelInfo)
+	filterStr, filterErr := s.buildModelFilter(s.entityModel)
 	if filterErr != nil {
 		err = filterErr
-		log.Printf("buildPKFilter failed, err:%s", err.Error())
+		log.Errorf("buildModelFilter failed, err:%s", err.Error())
 		return
 	}
 
-	str := fmt.Sprintf("UPDATE `%s` SET %s WHERE %s", s.getHostTableName(s.modelInfo), updateStr, filterStr)
+	str := fmt.Sprintf("UPDATE `%s` SET %s WHERE %s", s.GetTableName(), updateStr, filterStr)
 	//log.Print(str)
 	ret = str
 
@@ -41,7 +43,7 @@ func (s *Builder) getFieldUpdateValues(info model.Model) (ret string, err error)
 			continue
 		}
 
-		fStr, fErr := s.buildValue(fValue, fType)
+		fStr, fErr := s.encodeValue(fValue, fType)
 		if fErr != nil {
 			err = fErr
 			return

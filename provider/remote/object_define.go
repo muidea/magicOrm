@@ -85,7 +85,31 @@ func (s *Object) GetField(name string) (ret model.Field) {
 	return
 }
 
-// Interface Interface
+func (s *Object) itemInterface(valPtr *Item) (ret interface{}) {
+	rVal := valPtr.value.Get()
+	if !valPtr.Type.IsBasic() {
+		rVal = rVal.Addr()
+		if util.IsStructType(valPtr.Type.GetValue()) {
+			objectVal := rVal.Interface().(*ObjectValue)
+			if len(objectVal.Items) > 0 {
+				ret = objectVal
+			}
+		}
+		if util.IsSliceType(valPtr.Type.GetValue()) {
+			sliceObjectVal := rVal.Interface().(*SliceObjectValue)
+			if len(sliceObjectVal.Values) > 0 {
+				ret = sliceObjectVal
+			}
+		}
+
+		return
+	}
+
+	ret = rVal.Interface()
+	return
+}
+
+// Interface object value
 func (s *Object) Interface(ptrValue bool) (ret interface{}) {
 	objVal := &ObjectValue{Name: s.Name, PkgPath: s.PkgPath, Items: []*ItemValue{}}
 
@@ -95,27 +119,7 @@ func (s *Object) Interface(ptrValue bool) (ret interface{}) {
 			continue
 		}
 
-		var interfaceVal interface{}
-		rVal := v.value.Get()
-		if !v.Type.IsBasic() {
-			rVal = rVal.Addr()
-
-			if util.IsStructType(v.Type.GetValue()) {
-				objectVal := rVal.Interface().(*ObjectValue)
-				if len(objectVal.Items) > 0 {
-					interfaceVal = objectVal
-				}
-			}
-			if util.IsSliceType(v.Type.GetValue()) {
-				sliceObjectVal := rVal.Interface().(*SliceObjectValue)
-				if len(sliceObjectVal.Values) > 0 {
-					interfaceVal = sliceObjectVal
-				}
-			}
-		} else {
-			interfaceVal = rVal.Interface()
-		}
-
+		interfaceVal := s.itemInterface(v)
 		objVal.Items = append(objVal.Items, &ItemValue{Name: v.Name, Value: interfaceVal})
 	}
 
@@ -196,8 +200,7 @@ func type2Object(entityType reflect.Type) (ret *Object, err error) {
 	}
 
 	impl := &Object{}
-	//!! must be String, not Name
-	impl.Name = entityType.String()
+	impl.Name = entityType.Name()
 	impl.PkgPath = entityType.PkgPath()
 	impl.IsPtr = isPtr
 	impl.Items = []*Item{}

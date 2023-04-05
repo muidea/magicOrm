@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	log "github.com/cihub/seelog"
+
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/util"
@@ -11,79 +13,88 @@ import (
 
 // Builder Builder
 type Builder struct {
-	modelInfo     model.Model
+	entityModel   model.Model
 	modelProvider provider.Provider
+
+	// temp value, for performance optimization
+	entityTableName string
+	entityValue     interface{}
 }
 
 // New create builder
 func New(vModel model.Model, modelProvider provider.Provider) *Builder {
-	return &Builder{modelInfo: vModel, modelProvider: modelProvider}
+	return &Builder{entityModel: vModel, modelProvider: modelProvider}
 }
 
-func (s *Builder) constructTableName(info model.Model) string {
-	items := strings.Split(info.GetName(), ".")
-	return items[len(items)-1]
+func (s *Builder) constructTableName(vModel model.Model) string {
+	//items := strings.Split(vModel.GetName(), ".")
+	//return items[len(items)-1]
+	return vModel.GetName()
 }
 
 // GetTableName GetTableName
 func (s *Builder) GetTableName() string {
-	return s.getHostTableName(s.modelInfo)
+	if s.entityTableName == "" {
+		s.entityTableName = s.getHostTableName(s.entityModel)
+	}
+
+	return s.entityTableName
 }
 
 // getHostTableName getHostTableName
-func (s *Builder) getHostTableName(info model.Model) string {
-	//tableName := s.constructTableName(info)
+func (s *Builder) getHostTableName(vModel model.Model) string {
+	//tableName := s.constructTableName(vModel)
 	//return fmt.Sprintf("%s_%s", s.modelProvider.Owner(), tableName)
-	return s.constructTableName(info)
+	return s.constructTableName(vModel)
 }
 
-func (s *Builder) GetRelationTableName(fieldName string, relationInfo model.Model) string {
-	leftName := s.constructTableName(s.modelInfo)
-	rightName := s.constructTableName(relationInfo)
+func (s *Builder) GetRelationTableName(vField model.Field, rModel model.Model) string {
+	leftName := s.constructTableName(s.entityModel)
+	rightName := s.constructTableName(rModel)
 
 	//return fmt.Sprintf("%s_%s%s2%s", s.modelProvider.Owner(), leftName, fieldName, rightName)
-	return fmt.Sprintf("%s%s2%s", leftName, fieldName, rightName)
+	return fmt.Sprintf("%s%s%s%s", leftName, vField.GetName(), getFieldRelation(vField), rightName)
+}
+
+func (s *Builder) getModelValue() (ret interface{}, err error) {
+	if s.entityValue == nil {
+		entityVal, entityErr := s.encodeModelValue(s.entityModel)
+		if entityErr != nil {
+			err = entityErr
+			return
+		}
+		s.entityValue = entityVal
+	}
+
+	ret = s.entityValue
+	return
 }
 
 func (s *Builder) getRelationValue(rModel model.Model) (leftVal, rightVal interface{}, err error) {
-	infoVal, infoErr := s.getModelValue(s.modelInfo)
-	if infoErr != nil {
-		err = infoErr
-		return
-	}
-	relationVal, relationErr := s.getModelValue(rModel)
-	if relationErr != nil {
-		err = relationErr
+	entityVal, entityErr := s.getModelValue()
+	if entityErr != nil {
+		err = entityErr
+		log.Errorf("get entity model value failed, err:%s", err.Error())
 		return
 	}
 
-	leftVal = infoVal
+	relationVal, relationErr := s.encodeModelValue(rModel)
+	if relationErr != nil {
+		err = relationErr
+		log.Errorf("get relation model value failed, err:%s", err.Error())
+		return
+	}
+
+	leftVal = entityVal
 	rightVal = relationVal
 	return
 }
 
-func (s *Builder) GetInitializeValue(field model.Field) (ret interface{}, err error) {
-	return getFieldInitializeValue(field)
+func (s *Builder) GetInitializeValue(vField model.Field) (ret interface{}, err error) {
+	return getFieldInitializeValue(vField)
 }
 
-func (s *Builder) getModelValue(vModel model.Model) (ret interface{}, err error) {
-	pkField := vModel.GetPrimaryField()
-	if pkField == nil {
-		err = fmt.Errorf("no define primaryKey")
-		return
-	}
-
-	fStr, fErr := s.modelProvider.EncodeValue(pkField.GetValue(), pkField.GetType())
-	if fErr != nil {
-		err = fErr
-		return
-	}
-
-	ret = fStr
-	return
-}
-
-func (s *Builder) buildValue(vValue model.Value, vType model.Type) (ret interface{}, err error) {
+func (s *Builder) encodeValue(vValue model.Value, vType model.Type) (ret interface{}, err error) {
 	fStr, fErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fErr != nil {
 		err = fErr
@@ -100,8 +111,21 @@ func (s *Builder) buildValue(vValue model.Value, vType model.Type) (ret interfac
 	return
 }
 
-func (s *Builder) buildPKFilter(vModel model.Model) (ret string, err error) {
-	pkfVal, pkfErr := s.getModelValue(vModel)
+func (s *Builder) encodeModelValue(vModel model.Model) (ret interface{}, err error) {
+	pkField := vModel.GetPrimaryField()
+	fStr, fErr := s.encodeValue(pkField.GetValue(), pkField.GetType())
+	if fErr != nil {
+		err = fErr
+		log.Errorf("encode pkField value failed, pkField name:%s, err:%s", pkField.GetName(), err.Error())
+		return
+	}
+
+	ret = fStr
+	return
+}
+
+func (s *Builder) buildModelFilter(vModel model.Model) (ret string, err error) {
+	pkfVal, pkfErr := s.encodeModelValue(vModel)
 	if pkfErr != nil {
 		err = pkfErr
 		return

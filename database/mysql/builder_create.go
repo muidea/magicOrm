@@ -2,14 +2,12 @@ package mysql
 
 import (
 	"fmt"
-
-	"github.com/muidea/magicOrm/model"
 )
 
 // BuildCreateSchema  BuildCreateSchema
 func (s *Builder) BuildCreateSchema() (ret string, err error) {
 	str := ""
-	for _, val := range s.modelInfo.GetFields() {
+	for _, val := range s.entityModel.GetFields() {
 		fType := val.GetType()
 		if !fType.IsBasic() {
 			continue
@@ -28,12 +26,12 @@ func (s *Builder) BuildCreateSchema() (ret string, err error) {
 		}
 	}
 
-	if s.modelInfo.GetPrimaryField() != nil {
-		fTag := s.modelInfo.GetPrimaryField().GetTag()
+	if s.entityModel.GetPrimaryField() != nil {
+		fTag := s.entityModel.GetPrimaryField().GetTag()
 		str = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", str, fTag.GetName())
 	}
 
-	str = fmt.Sprintf("CREATE TABLE `%s` (\n%s\n)\n", s.getHostTableName(s.modelInfo), str)
+	str = fmt.Sprintf("CREATE TABLE `%s` (\n%s\n)\n", s.GetTableName(), str)
 	//log.Print(str)
 
 	ret = str
@@ -42,9 +40,9 @@ func (s *Builder) BuildCreateSchema() (ret string, err error) {
 }
 
 // BuildCreateRelationSchema Build CreateRelation Schema
-func (s *Builder) BuildCreateRelationSchema(fieldName string, relationInfo model.Model) (string, error) {
+func (s *Builder) BuildCreateRelationSchema(relationSchema string) (string, error) {
 	str := "\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`left` INT NOT NULL,\n\t`right` INT NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`)"
-	str = fmt.Sprintf("CREATE TABLE `%s` (\n%s\n)\n", s.GetRelationTableName(fieldName, relationInfo), str)
+	str = fmt.Sprintf("CREATE TABLE `%s` (\n%s\n)\n", relationSchema, str)
 	//log.Print(str)
 
 	return str, nil

@@ -28,18 +28,18 @@ func (s *impl) createSingle(modelInfo model.Model) (err error) {
 	return
 }
 
-func (s *impl) createRelation(modelInfo model.Model, fieldName string, relationInfo model.Model) (err error) {
+func (s *impl) createRelation(modelInfo model.Model, field model.Field, relationInfo model.Model) (err error) {
 	builder := builder.NewBuilder(modelInfo, s.modelProvider)
-	tableName := builder.GetRelationTableName(fieldName, relationInfo)
+	relationSchema := builder.GetRelationTableName(field, relationInfo)
 
-	existFlag, existErr := s.executor.CheckTableExist(tableName)
+	existFlag, existErr := s.executor.CheckTableExist(relationSchema)
 	if existErr != nil {
 		err = existErr
 		return
 	}
 	if !existFlag {
 		// no exist
-		sql, err := builder.BuildCreateRelationSchema(fieldName, relationInfo)
+		sql, err := builder.BuildCreateRelationSchema(relationSchema)
 		if err != nil {
 			return err
 		}
@@ -76,7 +76,7 @@ func (s *impl) batchCreateSchema(modelInfo model.Model) (err error) {
 			}
 		}
 
-		err = s.createRelation(modelInfo, field.GetName(), relationInfo)
+		err = s.createRelation(modelInfo, field, relationInfo)
 		if err != nil {
 			return
 		}

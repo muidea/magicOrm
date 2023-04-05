@@ -169,19 +169,23 @@ func (l *Reference) IsSame(r *Reference) bool {
 }
 
 type Compose struct {
-	ID             int           `orm:"id key auto"`
-	Name           string        `orm:"name"`
-	Simple         Simple        `orm:"simple"`
-	PtrSimple      *Simple       `orm:"ptrSimple"`
-	SimpleArray    []Simple      `orm:"simpleArray"`
-	SimplePtrArray []*Simple     `orm:"simplePtrArray"`
-	PtrSimpleArray *[]Simple     `orm:"ptrSimpleArray"`
-	Reference      Reference     `orm:"reference"`
-	PtrReference   *Reference    `orm:"ptrReference"`
-	RefArray       []Reference   `orm:"refArray"`
-	RefPtrArray    []*Reference  `orm:"refPtrArray"`
-	PtrRefArray    *[]*Reference `orm:"ptrRefArray"`
-	PtrCompose     *Compose      `orm:"ptrCompose"`
+	ID   int    `orm:"id key auto"`
+	Name string `orm:"name"`
+	// 1
+	H1 Simple `orm:"simple"`
+	// 3
+	R3 *Simple `orm:"ptrSimple"`
+	// 2
+	H2 []Simple `orm:"simpleArray"`
+	// 4
+	R4           []*Simple     `orm:"simplePtrArray"`
+	PR4          *[]Simple     `orm:"ptrSimpleArray"`
+	Reference    Reference     `orm:"reference"`
+	PtrReference *Reference    `orm:"ptrReference"`
+	RefArray     []Reference   `orm:"refArray"`
+	RefPtrArray  []*Reference  `orm:"refPtrArray"`
+	PtrRefArray  *[]*Reference `orm:"ptrRefArray"`
+	PtrCompose   *Compose      `orm:"ptrCompose"`
 }
 
 func (l *Compose) IsSame(r *Compose) bool {
@@ -191,38 +195,38 @@ func (l *Compose) IsSame(r *Compose) bool {
 	if l.Name != r.Name {
 		return false
 	}
-	if l.Simple.ID != r.Simple.ID {
+	if l.H1.ID != r.H1.ID {
 		return false
 	}
-	if l.PtrSimple != nil {
-		if r.PtrSimple == nil {
+	if l.R3 != nil {
+		if r.R3 == nil {
 			return false
 		}
-		if l.PtrSimple.ID != r.PtrSimple.ID {
-			return false
-		}
-	}
-	if l.PtrSimple == nil {
-		if r.PtrSimple != nil {
+		if l.R3.ID != r.R3.ID {
 			return false
 		}
 	}
-	if len(l.SimpleArray) != len(r.SimpleArray) {
+	if l.R3 == nil {
+		if r.R3 != nil {
+			return false
+		}
+	}
+	if len(l.H2) != len(r.H2) {
 		return false
 	}
-	if len(l.SimplePtrArray) != len(r.SimplePtrArray) {
+	if len(l.R4) != len(r.R4) {
 		return false
 	}
-	if l.PtrSimpleArray != nil && len(*l.PtrSimpleArray) > 0 {
-		if r.PtrSimpleArray == nil {
+	if l.PR4 != nil && len(*l.PR4) > 0 {
+		if r.PR4 == nil {
 			return false
 		}
-		if len(*l.PtrSimpleArray) != len(*r.PtrSimpleArray) {
+		if len(*l.PR4) != len(*r.PR4) {
 			return false
 		}
 	}
-	if l.PtrSimpleArray == nil {
-		if r.PtrSimpleArray != nil && len(*r.PtrSimpleArray) > 0 {
+	if l.PR4 == nil {
+		if r.PR4 != nil && len(*r.PR4) > 0 {
 			return false
 		}
 	}

@@ -45,7 +45,7 @@ func (s *typeImpl) GetName() string {
 		tType = tType.Elem()
 	}
 
-	return tType.String()
+	return tType.Name()
 }
 
 func (s *typeImpl) GetValue() (ret int) {

@@ -330,16 +330,16 @@ func TestLocalCompose(t *testing.T) {
 
 	refPtrArray := []*Reference{&r1}
 	c1 := &Compose{
-		Name:           strValue,
-		Simple:         s1,
-		PtrSimple:      &s1,
-		SimpleArray:    []Simple{s1, s1},
-		SimplePtrArray: []*Simple{&s1, &s1},
-		Reference:      r1,
-		PtrReference:   &r1,
-		RefArray:       []Reference{r1, r1, r1},
-		RefPtrArray:    refPtrArray,
-		PtrRefArray:    &refPtrArray,
+		Name:         strValue,
+		H1:           s1,
+		R3:           &s1,
+		H2:           []Simple{s1, s1},
+		R4:           []*Simple{&s1, &s1},
+		Reference:    r1,
+		PtrReference: &r1,
+		RefArray:     []Reference{r1, r1, r1},
+		RefPtrArray:  refPtrArray,
+		PtrRefArray:  &refPtrArray,
 	}
 	c1Model, c1Err := localProvider.GetEntityModel(c1)
 	if c1Err != nil {
@@ -354,17 +354,17 @@ func TestLocalCompose(t *testing.T) {
 	c1 = c1Model.Interface(true).(*Compose)
 
 	c2 := Compose{
-		Name:           strValue,
-		Simple:         s1,
-		PtrSimple:      &s1,
-		SimpleArray:    []Simple{s1, s1},
-		SimplePtrArray: []*Simple{&s1, &s1},
-		Reference:      r1,
-		PtrReference:   &r1,
-		RefArray:       []Reference{r1, r1, r1},
-		RefPtrArray:    refPtrArray,
-		PtrRefArray:    &refPtrArray,
-		PtrCompose:     c1,
+		Name:         strValue,
+		H1:           s1,
+		R3:           &s1,
+		H2:           []Simple{s1, s1},
+		R4:           []*Simple{&s1, &s1},
+		Reference:    r1,
+		PtrReference: &r1,
+		RefArray:     []Reference{r1, r1, r1},
+		RefPtrArray:  refPtrArray,
+		PtrRefArray:  &refPtrArray,
+		PtrCompose:   c1,
 	}
 	c2Model, c2Err := localProvider.GetEntityModel(c2)
 	if c2Err != nil {
@@ -380,15 +380,15 @@ func TestLocalCompose(t *testing.T) {
 	c2 = c2Model.Interface(false).(Compose)
 
 	c3 := Compose{
-		ID:             c2.ID,
-		PtrSimple:      &Simple{},
-		SimpleArray:    []Simple{},
-		SimplePtrArray: []*Simple{},
-		PtrSimpleArray: &[]Simple{},
-		PtrReference:   &Reference{},
-		RefArray:       []Reference{},
-		PtrRefArray:    &[]*Reference{},
-		PtrCompose:     &Compose{},
+		ID:           c2.ID,
+		R3:           &Simple{},
+		H2:           []Simple{},
+		R4:           []*Simple{},
+		PR4:          &[]Simple{},
+		PtrReference: &Reference{},
+		RefArray:     []Reference{},
+		PtrRefArray:  &[]*Reference{},
+		PtrCompose:   &Compose{},
 	}
 	c3Model, c3Err := localProvider.GetEntityModel(c3)
 	if c3Err != nil {
@@ -499,16 +499,16 @@ func TestLocalQuery(t *testing.T) {
 
 	refPtrArray := []*Reference{&r1}
 	c1 := Compose{
-		Name:           strValue,
-		Simple:         s1,
-		PtrSimple:      &s1,
-		SimpleArray:    []Simple{s1, s1},
-		SimplePtrArray: []*Simple{&s1, &s1},
-		Reference:      r1,
-		PtrReference:   &r1,
-		RefArray:       []Reference{r1, r1, r1},
-		RefPtrArray:    refPtrArray,
-		PtrRefArray:    &refPtrArray,
+		Name:         strValue,
+		H1:           s1,
+		R3:           &s1,
+		H2:           []Simple{s1, s1},
+		R4:           []*Simple{&s1, &s1},
+		Reference:    r1,
+		PtrReference: &r1,
+		RefArray:     []Reference{r1, r1, r1},
+		RefPtrArray:  refPtrArray,
+		PtrRefArray:  &refPtrArray,
 	}
 	c1Model, c1Err := localProvider.GetEntityModel(c1)
 	if c1Err != nil {
@@ -525,17 +525,17 @@ func TestLocalQuery(t *testing.T) {
 
 	strValue = "123"
 	c2 := Compose{
-		Name:           strValue,
-		Simple:         s1,
-		PtrSimple:      &s1,
-		SimpleArray:    []Simple{s1, s1},
-		SimplePtrArray: []*Simple{&s1, &s1},
-		Reference:      r1,
-		PtrReference:   &r1,
-		RefArray:       []Reference{r1, r1, r1},
-		RefPtrArray:    refPtrArray,
-		PtrRefArray:    &refPtrArray,
-		PtrCompose:     &c1,
+		Name:         strValue,
+		H1:           s1,
+		R3:           &s1,
+		H2:           []Simple{s1, s1},
+		R4:           []*Simple{&s1, &s1},
+		Reference:    r1,
+		PtrReference: &r1,
+		RefArray:     []Reference{r1, r1, r1},
+		RefPtrArray:  refPtrArray,
+		PtrRefArray:  &refPtrArray,
+		PtrCompose:   &c1,
 	}
 	c2Model, c2Err := localProvider.GetEntityModel(c2)
 	if c2Err != nil {
@@ -595,7 +595,7 @@ func TestLocalQuery(t *testing.T) {
 	cList = []*Compose{}
 	filter := orm.GetFilter(localProvider)
 	filter.Equal("name", c2.Name)
-	filter.ValueMask(&Compose{PtrSimple: &Simple{}})
+	filter.ValueMask(&Compose{R3: &Simple{}})
 	cModelList, cModelErr = o1.BatchQuery(cModel, filter)
 	if cModelErr != nil {
 		t.Errorf("batch query compose failed, err:%s", cModelErr.Error())

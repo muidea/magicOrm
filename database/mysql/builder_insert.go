@@ -6,37 +6,37 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-// BuildInsert  BuildInsert
+// BuildInsert  Build Insert
 func (s *Builder) BuildInsert() (ret string, err error) {
 	sql := ""
-	fieldNames, fieldErr := s.getFieldInsertNames(s.modelInfo)
+	fieldNames, fieldErr := s.getFieldInsertNames(s.entityModel)
 	if fieldErr != nil {
 		err = fieldErr
 		return
 	}
 
-	fieldValues, fieldErr := s.getFieldInsertValues(s.modelInfo)
+	fieldValues, fieldErr := s.getFieldInsertValues(s.entityModel)
 	if fieldErr != nil {
 		err = fieldErr
 		return
 	}
 
-	sql = fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.getHostTableName(s.modelInfo), fieldNames, fieldValues)
+	sql = fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.GetTableName(), fieldNames, fieldValues)
 	//log.Print(sql)
 	ret = sql
 
 	return
 }
 
-// BuildInsertRelation BuildInsertRelation
-func (s *Builder) BuildInsertRelation(fieldName string, relationInfo model.Model) (ret string, err error) {
+// BuildInsertRelation Build Insert Relation
+func (s *Builder) BuildInsertRelation(field model.Field, relationInfo model.Model) (ret string, err error) {
 	leftVal, rightVal, valErr := s.getRelationValue(relationInfo)
 	if valErr != nil {
 		err = valErr
 		return
 	}
-
-	ret = fmt.Sprintf("INSERT INTO `%s` (`left`, `right`) VALUES (%v,%v);", s.GetRelationTableName(fieldName, relationInfo), leftVal, rightVal)
+	relationSchema := s.GetRelationTableName(field, relationInfo)
+	ret = fmt.Sprintf("INSERT INTO `%s` (`left`, `right`) VALUES (%v,%v);", relationSchema, leftVal, rightVal)
 	//log.Print(ret)
 
 	return
@@ -81,7 +81,7 @@ func (s *Builder) getFieldInsertValues(info model.Model) (ret string, err error)
 			continue
 		}
 
-		fStr, fErr := s.buildValue(fValue, fType)
+		fStr, fErr := s.encodeValue(fValue, fType)
 		if fErr != nil {
 			err = fErr
 			return

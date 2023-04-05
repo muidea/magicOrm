@@ -1,13 +1,14 @@
 package orm
 
 import (
+	log "github.com/cihub/seelog"
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
 )
 
-func (s *impl) deleteSingle(modelInfo model.Model) (err error) {
-	builder := builder.NewBuilder(modelInfo, s.modelProvider)
+func (s *impl) deleteSingle(entityModel model.Model) (err error) {
+	builder := builder.NewBuilder(entityModel, s.modelProvider)
 	sqlStr, sqlErr := builder.BuildDelete()
 	if sqlErr != nil {
 		err = sqlErr
@@ -22,42 +23,43 @@ func (s *impl) deleteSingle(modelInfo model.Model) (err error) {
 
 	// not need check affect items
 	//if numVal != 1 {
-	//	err = fmt.Errorf("delete %s failed", modelInfo.GetName())
+	//	err = fmt.Errorf("delete %s failed", entityModel.GetName())
 	//}
 
 	return
 }
 
-func (s *impl) deleteRelation(modelInfo model.Model, fieldInfo model.Field, deepLevel int) (err error) {
-	fType := fieldInfo.GetType()
-	if fType.IsBasic() {
+func (s *impl) deleteRelation(entityModel model.Model, relationField model.Field, deepLevel int) (err error) {
+	relationType := relationField.GetType()
+	if relationType.IsBasic() {
 		return
 	}
 
 	// disable check field value
-	//if !s.modelProvider.IsAssigned(fieldInfo.GetValue(), fieldInfo.GetType()) {
+	//if !s.modelProvider.IsAssigned(relationField.GetValue(), relationField.GetType()) {
 	//	return
 	//}
 
-	relationInfo, relationErr := s.modelProvider.GetTypeModel(fType)
+	relationModel, relationErr := s.modelProvider.GetTypeModel(relationType)
 	if relationErr != nil {
 		err = relationErr
+		log.Errorf("get relation field model failed, err:%s", err.Error())
 		return
 	}
 
-	builder := builder.NewBuilder(modelInfo, s.modelProvider)
-	rightSQL, relationSQL, relationErr := builder.BuildDeleteRelation(fieldInfo.GetName(), relationInfo)
-	if relationErr != nil {
-		err = relationErr
+	builder := builder.NewBuilder(entityModel, s.modelProvider)
+	rightSQL, relationSQL, buildErr := builder.BuildDeleteRelation(relationField, relationModel)
+	if buildErr != nil {
+		err = buildErr
 		return
 	}
 
-	elemType := fType.Elem()
+	elemType := relationType.Elem()
 	if !elemType.IsPtrType() {
-		fieldVal, fieldErr := s.queryRelation(modelInfo, fieldInfo, deepLevel)
+		fieldVal, fieldErr := s.queryRelation(entityModel, relationField, deepLevel)
 		if fieldErr == nil && !fieldVal.IsNil() {
-			if util.IsStructType(fType.GetValue()) {
-				relationModel, relationErr := s.modelProvider.GetValueModel(fieldVal, fType)
+			if util.IsStructType(relationType.GetValue()) {
+				relationModel, relationErr := s.modelProvider.GetValueModel(fieldVal, relationType)
 				if relationErr != nil {
 					err = relationErr
 					return
@@ -74,14 +76,14 @@ func (s *impl) deleteRelation(modelInfo model.Model, fieldInfo model.Field, deep
 						break
 					}
 				}
-			} else if util.IsSliceType(fType.GetValue()) {
-				elemVals, elemErr := s.modelProvider.ElemDependValue(fieldVal)
+			} else if util.IsSliceType(relationType.GetValue()) {
+				elemVal, elemErr := s.modelProvider.ElemDependValue(fieldVal)
 				if elemErr != nil {
 					err = elemErr
 					return
 				}
-				for idx := 0; idx < len(elemVals); idx++ {
-					relationModel, relationErr := s.modelProvider.GetValueModel(elemVals[idx], fType.Elem())
+				for idx := 0; idx < len(elemVal); idx++ {
+					relationModel, relationErr := s.modelProvider.GetValueModel(elemVal[idx], relationType.Elem())
 					if relationErr != nil {
 						err = relationErr
 						return

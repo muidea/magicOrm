@@ -112,7 +112,7 @@ func checkSliceField(t *testing.T, sliceField model.Field) (ret bool) {
 func checkSliceStructField(t *testing.T, sliceField model.Field) (ret bool) {
 	fType := sliceField.GetType()
 
-	ret = checkFieldType(t, fType, "provider.Base", "provider.Base")
+	ret = checkFieldType(t, fType, "Base", "Base")
 	if !ret {
 		t.Errorf("check field type failed")
 		return
@@ -125,7 +125,7 @@ func checkSliceStructField(t *testing.T, sliceField model.Field) (ret bool) {
 func checkStructField(t *testing.T, structField model.Field) (ret bool) {
 	fType := structField.GetType()
 
-	ret = checkFieldType(t, fType, "provider.Base", "provider.Base")
+	ret = checkFieldType(t, fType, "Base", "Base")
 	if !ret {
 		t.Errorf("check field type failed")
 		return
@@ -138,7 +138,7 @@ func checkStructField(t *testing.T, structField model.Field) (ret bool) {
 func checkStructPtrField(t *testing.T, structField model.Field) (ret bool) {
 	fType := structField.GetType()
 
-	ret = checkFieldType(t, fType, "provider.Base", "provider.Base")
+	ret = checkFieldType(t, fType, "Base", "Base")
 	if !ret {
 		t.Errorf("check field type failed")
 		return
@@ -173,16 +173,16 @@ func checkFieldType(t *testing.T, fType model.Type, typeName, typeDepend string)
 }
 
 /*
-type Base struct {
-	ID    int      `orm:"id key auto"`
-	Name  string   `orm:"name"`
-	Price float32  `orm:"price"`
-	Addr  []string `orm:"addr"`
-}
+	type Base struct {
+		ID    int      `orm:"id key auto"`
+		Name  string   `orm:"name"`
+		Price float32  `orm:"price"`
+		Addr  []string `orm:"addr"`
+	}
 */
 func checkBaseModel(t *testing.T, baseEntityModel model.Model) {
 	modelName := baseEntityModel.GetName()
-	if modelName != "provider.Base" {
+	if modelName != "Base" {
 		t.Errorf("get model name failed, curName:%s", modelName)
 		return
 	}
@@ -233,17 +233,17 @@ func checkBaseModel(t *testing.T, baseEntityModel model.Model) {
 }
 
 /*
-type ExtInfo struct {
-	ID    int     `orm:"id key auto"`
-	Name  string  `orm:"name"`
-	Info  Base    `orm:"info"`
-	Ptr   *Base   `orm:"ptr"`
-	Array []*Base `orm:"array"`
-}
+	type ExtInfo struct {
+		ID    int     `orm:"id key auto"`
+		Name  string  `orm:"name"`
+		Info  Base    `orm:"info"`
+		Ptr   *Base   `orm:"ptr"`
+		Array []*Base `orm:"array"`
+	}
 */
 func checkExtModel(t *testing.T, extEntityModel model.Model) {
 	modelName := extEntityModel.GetName()
-	if modelName != "provider.ExtInfo" {
+	if modelName != "ExtInfo" {
 		t.Errorf("get model name failed, curName:%s", modelName)
 		return
 	}

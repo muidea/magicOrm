@@ -7,6 +7,20 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
+type relationType int
+
+const (
+	relationInvalid = 0
+	relationHas1v1  = 1
+	relationHas1vn  = 2
+	relationRef1v1  = 3
+	relationRef1vn  = 4
+)
+
+func (s relationType) String() string {
+	return fmt.Sprintf("%d", s)
+}
+
 func verifyField(info model.Field) error {
 	fTag := info.GetTag()
 	if IsKeyWord(fTag.GetName()) {
@@ -182,5 +196,33 @@ func getFieldInitializeValue(field model.Field) (ret interface{}, err error) {
 		err = fmt.Errorf("no support fileType, name:%s, type:%d", field.GetName(), fType.GetValue())
 	}
 
+	return
+}
+
+func getFieldRelation(info model.Field) (ret relationType) {
+	fType := info.GetType()
+	if fType.IsBasic() {
+		return
+	}
+
+	isPtr := fType.Elem().IsPtrType() || fType.IsPtrType()
+	isSlice := util.IsSliceType(fType.GetValue())
+
+	if !isPtr && !isSlice {
+		ret = relationHas1v1
+		return
+	}
+
+	if !isPtr && isSlice {
+		ret = relationHas1vn
+		return
+	}
+
+	if isPtr && !isSlice {
+		ret = relationRef1v1
+		return
+	}
+
+	ret = relationRef1vn
 	return
 }

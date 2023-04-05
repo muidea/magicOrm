@@ -3,18 +3,20 @@ package mysql
 import (
 	"fmt"
 
+	log "github.com/cihub/seelog"
+
 	"github.com/muidea/magicOrm/model"
 )
 
-// BuildCount BuildCount
+// BuildCount build count
 func (s *Builder) BuildCount(filter model.Filter) (ret string, err error) {
-	pkField := s.modelInfo.GetPrimaryField()
-
-	ret = fmt.Sprintf("SELECT COUNT(%s) FROM `%s`", pkField.GetTag().GetName(), s.getHostTableName(s.modelInfo))
+	pkField := s.entityModel.GetPrimaryField()
+	ret = fmt.Sprintf("SELECT COUNT(%s) FROM `%s`", pkField.GetTag().GetName(), s.GetTableName())
 	if filter != nil {
 		filterSQL, filterErr := s.buildFilter(filter)
 		if filterErr != nil {
 			err = filterErr
+			log.Errorf("buildModelFilter failed, err:%s", err.Error())
 			return
 		}
 

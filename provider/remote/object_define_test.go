@@ -32,7 +32,7 @@ func TestSimpleObjInfo(t *testing.T) {
 		t.Errorf("GetObject failed, err:%s", err.Error())
 		return
 	}
-	if info.GetName() != "remote.Simple" {
+	if info.GetName() != "Simple" {
 		t.Errorf("GetObject failed")
 	}
 
@@ -66,7 +66,7 @@ func TestExtObjInfo(t *testing.T) {
 		return
 	}
 
-	if info.GetName() != "remote.ExtInfo" {
+	if info.GetName() != "ExtInfo" {
 		t.Errorf("get object failed")
 		return
 	}
