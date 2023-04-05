@@ -6,8 +6,6 @@ import (
 
 	log "github.com/cihub/seelog"
 
-	"github.com/muidea/magicOrm/database/mysql"
-
 	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
@@ -33,16 +31,16 @@ var name2Pool sync.Map
 
 // NewPool new executor pool
 func NewPool() executor.Pool {
-	return mysql.NewPool()
+	return executor.NewPool()
 }
 
 // NewExecutor NewExecutor
-func NewExecutor(cfgPtr executor.Config) (executor.Executor, error) {
-	return mysql.NewExecutor(cfgPtr)
+func NewExecutor(config executor.Config) (executor.Executor, error) {
+	return executor.NewExecutor(config)
 }
 
 func NewConfig(dbAddress, dbName, username, password string) executor.Config {
-	return mysql.NewConfig(dbAddress, dbName, username, password)
+	return executor.NewConfig(dbAddress, dbName, username, password)
 }
 
 // Initialize InitOrm

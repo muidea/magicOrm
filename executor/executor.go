@@ -1,11 +1,12 @@
 package executor
 
+import "github.com/muidea/magicOrm/database/mysql"
+
 type Config interface {
 	HostAddress() string
 	Username() string
 	Password() string
 	Database() string
-	Same(config Config) bool
 }
 
 // Executor 数据库访问对象
@@ -23,8 +24,41 @@ type Executor interface {
 }
 
 type Pool interface {
-	Initialize(maxConnNum int, cfgPtr Config) error
+	Initialize(maxConnNum int, config Config) error
 	Uninitialized()
 	GetExecutor() (Executor, error)
-	CheckConfig(cfgPtr Config) error
+	CheckConfig(config Config) error
+}
+
+func NewConfig(dbAddress, dbName, username, password string) Config {
+	return mysql.NewConfig(dbAddress, dbName, username, password)
+}
+
+func NewExecutor(config Config) (Executor, error) {
+	return mysql.NewExecutor(mysql.NewConfig(config.HostAddress(), config.Database(), config.Username(), config.Password()))
+}
+
+func NewPool() Pool {
+	return &poolImpl{}
+}
+
+type poolImpl struct {
+	mysql.Pool
+}
+
+func (s *poolImpl) Initialize(maxConnNum int, config Config) error {
+	return s.Pool.Initialize(maxConnNum,
+		mysql.NewConfig(config.HostAddress(), config.Database(), config.Username(), config.Password()))
+}
+
+func (s *poolImpl) Uninitialized() {
+	s.Pool.Uninitialized()
+}
+
+func (s *poolImpl) GetExecutor() (Executor, error) {
+	return s.Pool.GetExecutor()
+}
+
+func (s *poolImpl) CheckConfig(config Config) error {
+	return s.Pool.CheckConfig(mysql.NewConfig(config.HostAddress(), config.Database(), config.Username(), config.Password()))
 }

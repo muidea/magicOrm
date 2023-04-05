@@ -10,8 +10,6 @@ import (
 	_ "github.com/go-sql-driver/mysql" //引入Mysql驱动
 
 	log "github.com/cihub/seelog"
-
-	"github.com/muidea/magicOrm/executor"
 )
 
 type Config struct {
@@ -37,7 +35,7 @@ func (s *Config) Password() string {
 	return s.password
 }
 
-func (s *Config) Same(cfg executor.Config) bool {
+func (s *Config) Same(cfg *Config) bool {
 	return s.dbAddress == cfg.HostAddress() &&
 		s.dbName == cfg.Database() &&
 		s.username == cfg.Username() &&
@@ -63,7 +61,7 @@ type Executor struct {
 }
 
 // NewExecutor 新建一个数据访问对象
-func NewExecutor(config executor.Config) (ret *Executor, err error) {
+func NewExecutor(config *Config) (ret *Executor, err error) {
 	connectStr := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4", config.Username(), config.Password(), config.HostAddress(), config.Database())
 
 	executorPtr := &Executor{connectStr: connectStr, dbHandle: nil, dbTx: nil, rowsHandle: nil, dbName: config.Database()}
@@ -346,7 +344,7 @@ const (
 
 // Pool executorPool
 type Pool struct {
-	config        executor.Config
+	config        *Config
 	maxSize       int
 	cacheSize     int
 	curSize       int
@@ -361,7 +359,7 @@ func NewPool() *Pool {
 }
 
 // Initialize initialize executor pool
-func (s *Pool) Initialize(maxConnNum int, cfgPtr executor.Config) (err error) {
+func (s *Pool) Initialize(maxConnNum int, configPtr *Config) (err error) {
 	initConnNum := 0
 	if 0 < maxConnNum {
 		if maxConnNum < 16 {
@@ -374,7 +372,7 @@ func (s *Pool) Initialize(maxConnNum int, cfgPtr executor.Config) (err error) {
 		initConnNum = initConnCount
 	}
 
-	s.config = cfgPtr
+	s.config = configPtr
 	s.maxSize = maxConnNum
 	s.cacheSize = initConnNum
 	s.curSize = 0
@@ -427,7 +425,7 @@ func (s *Pool) Uninitialized() {
 	s.maxSize = 0
 }
 
-func (s *Pool) GetExecutor() (ret executor.Executor, err error) {
+func (s *Pool) GetExecutor() (ret *Executor, err error) {
 	executorPtr, executorErr := s.fetchOut()
 	if executorErr != nil {
 		err = executorErr
@@ -438,7 +436,7 @@ func (s *Pool) GetExecutor() (ret executor.Executor, err error) {
 	return
 }
 
-func (s *Pool) CheckConfig(cfgPtr executor.Config) error {
+func (s *Pool) CheckConfig(cfgPtr *Config) error {
 	if s.config.Same(cfgPtr) {
 		return nil
 	}
