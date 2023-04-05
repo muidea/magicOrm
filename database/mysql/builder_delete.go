@@ -10,7 +10,7 @@ import (
 
 // BuildDelete  BuildDelete
 func (s *Builder) BuildDelete() (ret string, err error) {
-	filterStr, filterErr := s.buildModelFilter(s.entityModel)
+	filterStr, filterErr := s.buildModelFilter()
 	if filterErr != nil {
 		err = filterErr
 		log.Errorf("buildModelFilter failed, err:%s", err.Error())
@@ -24,14 +24,14 @@ func (s *Builder) BuildDelete() (ret string, err error) {
 }
 
 // BuildDeleteRelation BuildDeleteRelation
-func (s *Builder) BuildDeleteRelation(field model.Field, relationInfo model.Model) (delRight, delRelation string, err error) {
-	leftVal, leftErr := s.getModelValue()
+func (s *Builder) BuildDeleteRelation(vField model.Field, rModel model.Model) (delRight, delRelation string, err error) {
+	leftVal, leftErr := s.GetModelValue()
 	if leftErr != nil {
 		err = leftErr
 		return
 	}
-	relationSchema := s.GetRelationTableName(field, relationInfo)
-	delRight = fmt.Sprintf("DELETE FROM `%s` WHERE `id` in (SELECT `right` FROM `%s` WHERE `left`=%v)", s.getHostTableName(relationInfo), relationSchema, leftVal)
+	relationSchema := s.GetRelationTableName(vField, rModel)
+	delRight = fmt.Sprintf("DELETE FROM `%s` WHERE `id` in (SELECT `right` FROM `%s` WHERE `left`=%v)", s.GetHostTableName(rModel), relationSchema, leftVal)
 	//log.Print(delRight)
 
 	delRelation = fmt.Sprintf("DELETE FROM `%s` WHERE `left`=%v", relationSchema, leftVal)

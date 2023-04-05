@@ -4,19 +4,17 @@ import (
 	"fmt"
 
 	log "github.com/cihub/seelog"
-
-	"github.com/muidea/magicOrm/model"
 )
 
 // BuildUpdate  Build Update
 func (s *Builder) BuildUpdate() (ret string, err error) {
-	updateStr, updateErr := s.getFieldUpdateValues(s.entityModel)
+	updateStr, updateErr := s.getFieldUpdateValues()
 	if updateErr != nil {
 		err = updateErr
 		log.Errorf("getFieldUpdateValues failed, err:%s", err.Error())
 		return
 	}
-	filterStr, filterErr := s.buildModelFilter(s.entityModel)
+	filterStr, filterErr := s.buildModelFilter()
 	if filterErr != nil {
 		err = filterErr
 		log.Errorf("buildModelFilter failed, err:%s", err.Error())
@@ -30,9 +28,9 @@ func (s *Builder) BuildUpdate() (ret string, err error) {
 	return
 }
 
-func (s *Builder) getFieldUpdateValues(info model.Model) (ret string, err error) {
+func (s *Builder) getFieldUpdateValues() (ret string, err error) {
 	str := ""
-	for _, field := range info.GetFields() {
+	for _, field := range s.GetFields() {
 		if field.IsPrimary() {
 			continue
 		}
@@ -43,7 +41,7 @@ func (s *Builder) getFieldUpdateValues(info model.Model) (ret string, err error)
 			continue
 		}
 
-		fStr, fErr := s.encodeValue(fValue, fType)
+		fStr, fErr := s.EncodeValue(fValue, fType)
 		if fErr != nil {
 			err = fErr
 			return

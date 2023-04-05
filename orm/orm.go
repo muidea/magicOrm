@@ -51,7 +51,7 @@ func Initialize() {
 func Uninitialize() {
 	name2Pool.Range(func(_, val interface{}) bool {
 		pool := val.(executor.Pool)
-		pool.Uninitialize()
+		pool.Uninitialized()
 
 		return true
 	})
@@ -85,7 +85,7 @@ func DelInstance(owner string) {
 	}
 
 	pool := val.(executor.Pool)
-	pool.Uninitialize()
+	pool.Uninitialized()
 	name2Pool.Delete(owner)
 }
 

@@ -11,7 +11,7 @@ func TestNewPool(t *testing.T) {
 	pool := NewPool()
 	config := NewConfig("localhost:3306", "testdb", "root", "rootkit")
 	pool.Initialize(50, config)
-	defer pool.Uninitialize()
+	defer pool.Uninitialized()
 
 	wg := &sync.WaitGroup{}
 

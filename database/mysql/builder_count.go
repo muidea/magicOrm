@@ -10,7 +10,7 @@ import (
 
 // BuildCount build count
 func (s *Builder) BuildCount(filter model.Filter) (ret string, err error) {
-	pkField := s.entityModel.GetPrimaryField()
+	pkField := s.GetPrimaryKeyField()
 	ret = fmt.Sprintf("SELECT COUNT(%s) FROM `%s`", pkField.GetTag().GetName(), s.GetTableName())
 	if filter != nil {
 		filterSQL, filterErr := s.buildFilter(filter)

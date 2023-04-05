@@ -13,7 +13,7 @@ func (s *impl) insertSingle(modelInfo model.Model) (err error) {
 		return err
 	}
 
-	id, idErr := s.executor.Insert(sqlStr)
+	_, id, idErr := s.executor.Execute(sqlStr)
 	if idErr != nil {
 		err = idErr
 		return
@@ -76,7 +76,7 @@ func (s *impl) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err
 			return err
 		}
 
-		_, err = s.executor.Insert(relationSQL)
+		_, _, err = s.executor.Execute(relationSQL)
 		if err != nil {
 			return
 		}

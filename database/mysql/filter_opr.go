@@ -4,37 +4,37 @@ import (
 	"fmt"
 )
 
-// EqualOpr EqualOpr
+// EqualOpr Equal Opr
 func EqualOpr(name string, val interface{}) string {
 	return fmt.Sprintf("`%s` = %v", name, val)
 }
 
-// NotEqualOpr NotEqualOpr
+// NotEqualOpr NotEqual Opr
 func NotEqualOpr(name string, val interface{}) string {
 	return fmt.Sprintf("`%s` != %v", name, val)
 }
 
-// BelowOpr BelowOpr
+// BelowOpr Below Opr
 func BelowOpr(name string, val interface{}) string {
 	return fmt.Sprintf("`%s` < %v", name, val)
 }
 
-// AboveOpr AboveOpr
+// AboveOpr Above Opr
 func AboveOpr(name string, val interface{}) string {
 	return fmt.Sprintf("`%s` > %v", name, val)
 }
 
-// InOpr InOpr
+// InOpr In Opr
 func InOpr(name string, val interface{}) string {
 	return fmt.Sprintf("`%s` in (%v)", name, val)
 }
 
-// NotInOpr NotInOpr
+// NotInOpr NotIn Opr
 func NotInOpr(name string, val interface{}) string {
 	return fmt.Sprintf("`%s` not in (%v)", name, val)
 }
 
-// LikeOpr LikeOpr
+// LikeOpr Like Opr
 func LikeOpr(name string, val interface{}) string {
 	valStr, valOK := val.(string)
 	if valOK {

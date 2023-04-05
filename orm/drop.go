@@ -21,7 +21,7 @@ func (s *impl) dropSingle(modelInfo model.Model) (err error) {
 			return err
 		}
 
-		_, err = s.executor.Execute(sql)
+		_, _, err = s.executor.Execute(sql)
 	}
 
 	return
@@ -42,7 +42,7 @@ func (s *impl) dropRelation(modelInfo model.Model, field model.Field, relationIn
 			return err
 		}
 
-		_, err = s.executor.Execute(sql)
+		_, _, err = s.executor.Execute(sql)
 	}
 
 	return

@@ -3,12 +3,13 @@ package mysql
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql" //引入Mysql驱动
+
+	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/executor"
 )
@@ -79,7 +80,7 @@ func NewExecutor(config executor.Config) (ret *Executor, err error) {
 func (s *Executor) Connect() (err error) {
 	db, err := sql.Open("mysql", s.connectStr)
 	if err != nil {
-		log.Printf("open database exception, err:%s", err.Error())
+		log.Errorf("open database exception, err:%s", err.Error())
 		return err
 	}
 
@@ -88,7 +89,7 @@ func (s *Executor) Connect() (err error) {
 
 	err = db.Ping()
 	if err != nil {
-		log.Printf("ping database failed, err:%s", err.Error())
+		log.Errorf("ping database failed, err:%s", err.Error())
 		return err
 	}
 
@@ -105,7 +106,7 @@ func (s *Executor) Ping() (err error) {
 
 	err = s.dbHandle.Ping()
 	if err != nil {
-		log.Printf("ping database failed, err:%s", err.Error())
+		log.Errorf("ping database failed, err:%s", err.Error())
 	}
 
 	return
@@ -157,7 +158,7 @@ func (s *Executor) BeginTransaction() (err error) {
 		tx, txErr := s.dbHandle.Begin()
 		if txErr != nil {
 			err = txErr
-			log.Printf("begin transaction failed, err:%s", err.Error())
+			log.Errorf("begin transaction failed, err:%s", err.Error())
 			return
 		}
 
@@ -176,7 +177,7 @@ func (s *Executor) CommitTransaction() (err error) {
 		if err != nil {
 			s.dbTx = nil
 
-			log.Printf("commit transaction failed, err:%s", err.Error())
+			log.Errorf("commit transaction failed, err:%s", err.Error())
 			return
 		}
 
@@ -195,7 +196,7 @@ func (s *Executor) RollbackTransaction() (err error) {
 		if err != nil {
 			s.dbTx = nil
 
-			log.Printf("rollback transaction failed, err:%s", err.Error())
+			log.Errorf("rollback transaction failed, err:%s", err.Error())
 
 			return
 		}
@@ -209,7 +210,7 @@ func (s *Executor) RollbackTransaction() (err error) {
 
 // Query Query
 func (s *Executor) Query(sql string) (err error) {
-	//log.Printf("Query, sql:%s", sql)
+	//log.Errorf("Query, sql:%s", sql)
 	if s.dbTx == nil {
 		if s.dbHandle == nil {
 			panic("dbHanlde is nil")
@@ -222,7 +223,7 @@ func (s *Executor) Query(sql string) (err error) {
 		rows, rowErr := s.dbHandle.Query(sql)
 		if rowErr != nil {
 			err = rowErr
-			log.Printf("query failed, sql:%s, err:%s", sql, err.Error())
+			log.Errorf("query failed, sql:%s, err:%s", sql, err.Error())
 			return
 		}
 		s.rowsHandle = rows
@@ -235,7 +236,7 @@ func (s *Executor) Query(sql string) (err error) {
 		rows, rowErr := s.dbTx.Query(sql)
 		if rowErr != nil {
 			err = rowErr
-			log.Printf("query failed, sql:%s, err:%s", sql, err.Error())
+			log.Errorf("query failed, sql:%s, err:%s", sql, err.Error())
 			return
 		}
 
@@ -277,158 +278,14 @@ func (s *Executor) GetField(value ...interface{}) (err error) {
 
 	err = s.rowsHandle.Scan(value...)
 	if err != nil {
-		log.Printf("scan failed, err:%s", err.Error())
+		log.Errorf("scan failed, err:%s", err.Error())
 	}
-
-	return
-}
-
-// Insert Insert
-func (s *Executor) Insert(sql string) (ret int64, err error) {
-	if s.rowsHandle != nil {
-		s.rowsHandle.Close()
-	}
-	s.rowsHandle = nil
-
-	if s.dbTx == nil {
-		if s.dbHandle == nil {
-			panic("dbHandle is nil")
-		}
-
-		result, resultErr := s.dbHandle.Exec(sql)
-		if resultErr != nil {
-			err = resultErr
-			log.Printf("exec failed, sql:%s, err:%s", sql, err.Error())
-			return
-		}
-
-		idNum, idErr := result.LastInsertId()
-		if idErr != nil {
-			err = idErr
-			log.Printf("get lastInsertId failed, sql:%s, err:%s", sql, err.Error())
-			return
-		}
-		ret = idNum
-
-		return
-	}
-
-	result, resultErr := s.dbTx.Exec(sql)
-	if resultErr != nil {
-		err = resultErr
-		log.Printf("exec failed, sql:%s, err:%s", sql, err.Error())
-		return
-	}
-
-	idNum, idErr := result.LastInsertId()
-	if idErr != nil {
-		err = idErr
-		log.Printf("get lastInsertId failed, sql:%s, err:%s", sql, err.Error())
-		return
-	}
-
-	ret = idNum
-
-	return
-}
-
-// Update Update
-func (s *Executor) Update(sql string) (ret int64, err error) {
-	if s.rowsHandle != nil {
-		s.rowsHandle.Close()
-	}
-	s.rowsHandle = nil
-
-	if s.dbTx == nil {
-		if s.dbHandle == nil {
-			panic("dbHandle is nil")
-		}
-
-		result, resultErr := s.dbHandle.Exec(sql)
-		if resultErr != nil {
-			err = resultErr
-			log.Printf("exec failed, sql:%s, err:%s", sql, err.Error())
-			return
-		}
-
-		num, numErr := result.RowsAffected()
-		if numErr != nil {
-			err = numErr
-			log.Printf("get affected rows number failed, sql:%s, err:%s", sql, err.Error())
-		}
-		ret = num
-
-		return
-	}
-
-	result, resultErr := s.dbTx.Exec(sql)
-	if resultErr != nil {
-		err = resultErr
-		log.Printf("exec failed, sql:%s, err:%s", sql, err.Error())
-		return
-	}
-
-	num, numErr := result.RowsAffected()
-	if numErr != nil {
-		err = numErr
-		log.Printf("get affected rows number failed, sql:%s, err:%s", sql, err.Error())
-		return
-	}
-	ret = num
-
-	return
-}
-
-// Delete Delete
-func (s *Executor) Delete(sql string) (ret int64, err error) {
-	if s.rowsHandle != nil {
-		s.rowsHandle.Close()
-	}
-	s.rowsHandle = nil
-
-	if s.dbTx == nil {
-		if s.dbHandle == nil {
-			panic("dbHandle is nil")
-		}
-
-		result, resultErr := s.dbHandle.Exec(sql)
-		if resultErr != nil {
-			err = resultErr
-			log.Printf("exec failed, sql:%s, err:%s", sql, err.Error())
-			return
-		}
-
-		num, numErr := result.RowsAffected()
-		if numErr != nil {
-			err = numErr
-			log.Printf("get affected rows number failed, sql:%s, err:%s", sql, err.Error())
-			return
-		}
-		ret = num
-
-		return
-	}
-
-	result, resultErr := s.dbTx.Exec(sql)
-	if resultErr != nil {
-		err = resultErr
-		log.Printf("exec failed, sql:%s, err:%s", sql, err.Error())
-		return
-	}
-
-	num, numErr := result.RowsAffected()
-	if numErr != nil {
-		err = numErr
-		log.Printf("get affected rows number failed, sql:%s, err:%s", sql, err.Error())
-		return
-	}
-	ret = num
 
 	return
 }
 
 // Execute Execute
-func (s *Executor) Execute(sql string) (ret int64, err error) {
+func (s *Executor) Execute(sql string) (rowsAffected int64, lastInsertID int64, err error) {
 	if s.rowsHandle != nil {
 		s.rowsHandle.Close()
 	}
@@ -442,40 +299,28 @@ func (s *Executor) Execute(sql string) (ret int64, err error) {
 		result, resultErr := s.dbHandle.Exec(sql)
 		if resultErr != nil {
 			err = resultErr
-			log.Printf("exec failed, sql:%s, err:%s", sql, err.Error())
+			log.Errorf("exec failed, sql:%s, err:%s", sql, err.Error())
 			return
 		}
 
-		num, numErr := result.RowsAffected()
-		if numErr != nil {
-			err = numErr
-			log.Printf("get affected rows number failed, sql:%s, err:%s", sql, err.Error())
-			return
-		}
-		ret = num
-
+		rowsAffected, _ = result.RowsAffected()
+		lastInsertID, _ = result.LastInsertId()
 		return
 	}
 
 	result, resultErr := s.dbTx.Exec(sql)
 	if resultErr != nil {
 		err = resultErr
-		log.Printf("exec failed, sql:%s, err:%s", sql, err.Error())
+		log.Errorf("exec failed, sql:%s, err:%s", sql, err.Error())
 		return
 	}
 
-	num, numErr := result.RowsAffected()
-	if numErr != nil {
-		err = numErr
-		log.Printf("get affected rows number failed, sql:%s, err:%s", sql, err.Error())
-		return
-	}
-	ret = num
-
+	rowsAffected, _ = result.RowsAffected()
+	lastInsertID, _ = result.LastInsertId()
 	return
 }
 
-// CheckTableExist CheckTableExist
+// CheckTableExist Check Table Exist
 func (s *Executor) CheckTableExist(tableName string) (ret bool, err error) {
 	sql := fmt.Sprintf("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_NAME ='%s' and TABLE_SCHEMA ='%s'", tableName, s.dbName)
 
@@ -550,8 +395,8 @@ func (s *Pool) Initialize(maxConnNum int, cfgPtr executor.Config) (err error) {
 	return
 }
 
-// Uninitialize uninitialize executor pool
-func (s *Pool) Uninitialize() {
+// Uninitialized uninitialized executor pool
+func (s *Pool) Uninitialized() {
 	if s.cacheExecutor != nil {
 		for {
 			var val *Executor

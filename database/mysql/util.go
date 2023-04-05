@@ -7,22 +7,8 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
-type relationType int
-
-const (
-	relationInvalid = 0
-	relationHas1v1  = 1
-	relationHas1vn  = 2
-	relationRef1v1  = 3
-	relationRef1vn  = 4
-)
-
-func (s relationType) String() string {
-	return fmt.Sprintf("%d", s)
-}
-
-func verifyField(info model.Field) error {
-	fTag := info.GetTag()
+func verifyField(vField model.Field) error {
+	fTag := vField.GetTag()
 	if IsKeyWord(fTag.GetName()) {
 		return fmt.Errorf("illegal fieldTag, is a key word.[%s]", fTag)
 	}
@@ -30,13 +16,13 @@ func verifyField(info model.Field) error {
 	return nil
 }
 
-func verifyModel(info model.Model) error {
-	name := info.GetName()
+func verifyModel(vModel model.Model) error {
+	name := vModel.GetName()
 	if IsKeyWord(name) {
 		return fmt.Errorf("illegal structName, is a key word.[%s]", name)
 	}
 
-	for _, val := range info.GetFields() {
+	for _, val := range vModel.GetFields() {
 		err := verifyField(val)
 		if err != nil {
 			return err
@@ -46,33 +32,33 @@ func verifyModel(info model.Model) error {
 	return nil
 }
 
-func declareFieldInfo(info model.Field) (ret string, err error) {
+func declareFieldInfo(vField model.Field) (ret string, err error) {
 	autoIncrement := ""
-	fTag := info.GetTag()
+	fTag := vField.GetTag()
 	if fTag.IsAutoIncrement() {
 		autoIncrement = "AUTO_INCREMENT"
 	}
 
 	allowNull := "NOT NULL"
-	fType := info.GetType()
+	fType := vField.GetType()
 	if fType.IsPtrType() {
 		allowNull = ""
 	}
 
-	infoVal, infoErr := getFieldType(info)
-	if infoErr != nil {
-		err = infoErr
+	typeVal, typeErr := getFieldType(vField)
+	if typeErr != nil {
+		err = typeErr
 		return
 	}
 
-	ret = fmt.Sprintf("`%s` %s %s %s", fTag.GetName(), infoVal, allowNull, autoIncrement)
+	ret = fmt.Sprintf("`%s` %s %s %s", fTag.GetName(), typeVal, allowNull, autoIncrement)
 	return
 }
 
 func getFieldType(info model.Field) (ret string, err error) {
 	fType := info.GetType()
 	switch fType.GetValue() {
-	case util.TypeBooleanField:
+	case util.TypeBooleanField, util.TypeBitField:
 		ret = "TINYINT"
 		break
 	case util.TypeStringField:
@@ -81,34 +67,13 @@ func getFieldType(info model.Field) (ret string, err error) {
 	case util.TypeDateTimeField:
 		ret = "DATETIME"
 		break
-	case util.TypeBitField:
-		ret = "TINYINT"
-		break
-	case util.TypeSmallIntegerField:
+	case util.TypeSmallIntegerField, util.TypePositiveBitField:
 		ret = "SMALLINT"
 		break
-	case util.TypeIntegerField:
+	case util.TypeIntegerField, util.TypeInteger32Field, util.TypePositiveSmallIntegerField:
 		ret = "INT"
 		break
-	case util.TypeInteger32Field:
-		ret = "INT"
-		break
-	case util.TypeBigIntegerField:
-		ret = "BIGINT"
-		break
-	case util.TypePositiveBitField:
-		ret = "SMALLINT"
-		break
-	case util.TypePositiveSmallIntegerField:
-		ret = "INT"
-		break
-	case util.TypePositiveIntegerField:
-		ret = "BIGINT"
-		break
-	case util.TypePositiveInteger32Field:
-		ret = "BIGINT"
-		break
-	case util.TypePositiveBigIntegerField:
+	case util.TypeBigIntegerField, util.TypePositiveIntegerField, util.TypePositiveInteger32Field, util.TypePositiveBigIntegerField:
 		ret = "BIGINT"
 		break
 	case util.TypeFloatField:
@@ -123,106 +88,5 @@ func getFieldType(info model.Field) (ret string, err error) {
 		err = fmt.Errorf("no support fileType, name:%s, type:%d", info.GetName(), fType.GetValue())
 	}
 
-	return
-}
-
-func getFieldInitializeValue(field model.Field) (ret interface{}, err error) {
-	fType := field.GetType()
-	switch fType.GetValue() {
-	case util.TypeBooleanField:
-		val := int8(0)
-		ret = &val
-		break
-	case util.TypeBitField:
-		val := int8(0)
-		ret = &val
-		break
-	case util.TypeSmallIntegerField:
-		val := int16(0)
-		ret = &val
-		break
-	case util.TypeIntegerField:
-		val := int(0)
-		ret = &val
-		break
-	case util.TypeInteger32Field:
-		val := int32(0)
-		ret = &val
-		break
-	case util.TypeBigIntegerField:
-		val := int64(0)
-		ret = &val
-		break
-	case util.TypePositiveBitField:
-		val := uint8(0)
-		ret = &val
-		break
-	case util.TypePositiveSmallIntegerField:
-		val := uint16(0)
-		ret = &val
-		break
-	case util.TypePositiveIntegerField:
-		val := uint(0)
-		ret = &val
-		break
-	case util.TypePositiveInteger32Field:
-		val := uint32(0)
-		ret = &val
-		break
-	case util.TypePositiveBigIntegerField:
-		val := uint64(0)
-		ret = &val
-		break
-	case util.TypeFloatField:
-		val := float32(0.00)
-		ret = &val
-		break
-	case util.TypeDoubleField:
-		val := 0.0000
-		ret = &val
-		break
-	case util.TypeStringField, util.TypeDateTimeField:
-		val := ""
-		ret = &val
-		break
-	case util.TypeSliceField:
-		if fType.IsBasic() {
-			val := ""
-			ret = &val
-		} else {
-			err = fmt.Errorf("no support fileType, name:%s, type:%d", field.GetName(), fType.GetValue())
-		}
-	default:
-		err = fmt.Errorf("no support fileType, name:%s, type:%d", field.GetName(), fType.GetValue())
-	}
-
-	return
-}
-
-func getFieldRelation(info model.Field) (ret relationType) {
-	fType := info.GetType()
-	if fType.IsBasic() {
-		return
-	}
-
-	isPtr := fType.Elem().IsPtrType() || fType.IsPtrType()
-	isSlice := util.IsSliceType(fType.GetValue())
-
-	if !isPtr && !isSlice {
-		ret = relationHas1v1
-		return
-	}
-
-	if !isPtr && isSlice {
-		ret = relationHas1vn
-		return
-	}
-
-	if isPtr && !isSlice {
-		ret = relationRef1v1
-		return
-	}
-
-	ret = relationRef1vn
 	return
 }

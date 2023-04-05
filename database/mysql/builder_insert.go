@@ -9,15 +9,15 @@ import (
 // BuildInsert  Build Insert
 func (s *Builder) BuildInsert() (ret string, err error) {
 	sql := ""
-	fieldNames, fieldErr := s.getFieldInsertNames(s.entityModel)
-	if fieldErr != nil {
-		err = fieldErr
+	fieldNames, nameErr := s.getFieldInsertNames()
+	if nameErr != nil {
+		err = nameErr
 		return
 	}
 
-	fieldValues, fieldErr := s.getFieldInsertValues(s.entityModel)
-	if fieldErr != nil {
-		err = fieldErr
+	fieldValues, valueErr := s.getFieldInsertValues()
+	if valueErr != nil {
+		err = valueErr
 		return
 	}
 
@@ -29,22 +29,22 @@ func (s *Builder) BuildInsert() (ret string, err error) {
 }
 
 // BuildInsertRelation Build Insert Relation
-func (s *Builder) BuildInsertRelation(field model.Field, relationInfo model.Model) (ret string, err error) {
-	leftVal, rightVal, valErr := s.getRelationValue(relationInfo)
+func (s *Builder) BuildInsertRelation(vField model.Field, rModel model.Model) (ret string, err error) {
+	leftVal, rightVal, valErr := s.GetRelationValue(rModel)
 	if valErr != nil {
 		err = valErr
 		return
 	}
-	relationSchema := s.GetRelationTableName(field, relationInfo)
+	relationSchema := s.GetRelationTableName(vField, rModel)
 	ret = fmt.Sprintf("INSERT INTO `%s` (`left`, `right`) VALUES (%v,%v);", relationSchema, leftVal, rightVal)
 	//log.Print(ret)
 
 	return
 }
 
-func (s *Builder) getFieldInsertNames(info model.Model) (ret string, err error) {
+func (s *Builder) getFieldInsertNames() (ret string, err error) {
 	str := ""
-	for _, field := range info.GetFields() {
+	for _, field := range s.GetFields() {
 		fTag := field.GetTag()
 		if fTag.IsAutoIncrement() {
 			continue
@@ -67,9 +67,9 @@ func (s *Builder) getFieldInsertNames(info model.Model) (ret string, err error) 
 	return
 }
 
-func (s *Builder) getFieldInsertValues(info model.Model) (ret string, err error) {
+func (s *Builder) getFieldInsertValues() (ret string, err error) {
 	str := ""
-	for _, field := range info.GetFields() {
+	for _, field := range s.GetFields() {
 		fTag := field.GetTag()
 		if fTag.IsAutoIncrement() {
 			continue
@@ -81,7 +81,7 @@ func (s *Builder) getFieldInsertValues(info model.Model) (ret string, err error)
 			continue
 		}
 
-		fStr, fErr := s.encodeValue(fValue, fType)
+		fStr, fErr := s.EncodeValue(fValue, fType)
 		if fErr != nil {
 			err = fErr
 			return

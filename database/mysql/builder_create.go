@@ -7,7 +7,7 @@ import (
 // BuildCreateSchema  BuildCreateSchema
 func (s *Builder) BuildCreateSchema() (ret string, err error) {
 	str := ""
-	for _, val := range s.entityModel.GetFields() {
+	for _, val := range s.GetFields() {
 		fType := val.GetType()
 		if !fType.IsBasic() {
 			continue
@@ -26,8 +26,9 @@ func (s *Builder) BuildCreateSchema() (ret string, err error) {
 		}
 	}
 
-	if s.entityModel.GetPrimaryField() != nil {
-		fTag := s.entityModel.GetPrimaryField().GetTag()
+	pkField := s.GetPrimaryKeyField()
+	if pkField != nil {
+		fTag := pkField.GetTag()
 		str = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", str, fTag.GetName())
 	}
 

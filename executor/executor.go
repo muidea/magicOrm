@@ -18,16 +18,13 @@ type Executor interface {
 	Next() bool
 	Finish()
 	GetField(value ...interface{}) error
-	Insert(sql string) (int64, error)
-	Delete(sql string) (int64, error)
-	Update(sql string) (int64, error)
-	Execute(sql string) (int64, error)
+	Execute(sql string) (rowsAffected int64, lastInsertID int64, err error)
 	CheckTableExist(tableName string) (bool, error)
 }
 
 type Pool interface {
 	Initialize(maxConnNum int, cfgPtr Config) error
-	Uninitialize()
+	Uninitialized()
 	GetExecutor() (Executor, error)
 	CheckConfig(cfgPtr Config) error
 }

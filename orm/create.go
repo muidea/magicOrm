@@ -22,7 +22,7 @@ func (s *impl) createSingle(modelInfo model.Model) (err error) {
 			return err
 		}
 
-		_, err = s.executor.Execute(sql)
+		_, _, err = s.executor.Execute(sql)
 	}
 
 	return
@@ -44,7 +44,7 @@ func (s *impl) createRelation(modelInfo model.Model, field model.Field, relation
 			return err
 		}
 
-		_, err = s.executor.Execute(sql)
+		_, _, err = s.executor.Execute(sql)
 	}
 
 	return

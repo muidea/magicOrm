@@ -10,7 +10,7 @@ import (
 
 // BuildQuery build query sql
 func (s *Builder) BuildQuery(filter model.Filter) (ret string, err error) {
-	namesVal, nameErr := s.getFieldQueryNames(s.entityModel)
+	namesVal, nameErr := s.getFieldQueryNames()
 	if nameErr != nil {
 		err = nameErr
 		return
@@ -49,61 +49,61 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret string, err error) {
 }
 
 // BuildQueryRelation build query relation sql
-func (s *Builder) BuildQueryRelation(field model.Field, relationInfo model.Model) (ret string, err error) {
-	pkfStr, pkfErr := s.getModelValue()
-	if pkfErr != nil {
-		err = pkfErr
+func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (ret string, err error) {
+	leftVal, leftErr := s.GetModelValue()
+	if leftErr != nil {
+		err = leftErr
 		return
 	}
 
-	relationSchema := s.GetRelationTableName(field, relationInfo)
-	ret = fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= %v", relationSchema, pkfStr)
+	relationSchema := s.GetRelationTableName(vField, rModel)
+	ret = fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= %v", relationSchema, leftVal)
 	//log.Print(ret)
 
 	return
 }
 
-func (s *Builder) buildBasicItem(field model.Field, filterItem model.FilterItem) (ret string, err error) {
-	fType := field.GetType()
+func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem) (ret string, err error) {
+	fType := vField.GetType()
 	oprValue := filterItem.OprValue()
 	oprFunc := filterItem.OprFunc()
-	valueStr, valueErr := s.encodeValue(oprValue, fType)
+	valueStr, valueErr := s.EncodeValue(oprValue, fType)
 	if valueErr != nil {
 		err = valueErr
-		log.Errorf("encodeValue failed, field name:%s, err:%s", field.GetName(), err.Error())
+		log.Errorf("encodeValue failed, vField name:%s, err:%s", vField.GetName(), err.Error())
 		return
 	}
 
 	if fType.IsBasic() {
-		ret = oprFunc(field.GetName(), valueStr)
+		ret = oprFunc(vField.GetName(), valueStr)
 		return
 	}
 
-	err = fmt.Errorf("illegal item type, name:%s", field.GetName())
+	err = fmt.Errorf("illegal item type, name:%s", vField.GetName())
 	return
 }
 
-func (s *Builder) buildRelationItem(pkField model.Field, field model.Field, filterItem model.FilterItem) (ret string, err error) {
-	fType := field.GetType()
+func (s *Builder) buildRelationItem(pkField model.Field, rField model.Field, filterItem model.FilterItem) (ret string, err error) {
+	fType := rField.GetType()
 	oprValue := filterItem.OprValue()
 	oprFunc := filterItem.OprFunc()
-	valueStr, valueErr := s.encodeValue(oprValue, fType)
+	valueStr, valueErr := s.EncodeValue(oprValue, fType)
 	if valueErr != nil {
 		err = valueErr
-		log.Errorf("encodeValue failed, field name:%s, err:%s", field.GetName(), err.Error())
+		log.Errorf("encodeValue failed, rField name:%s, err:%s", rField.GetName(), err.Error())
 		return
 	}
 
-	fieldModel, fieldErr := s.modelProvider.GetTypeModel(fType)
+	fieldModel, fieldErr := s.GetTypeModel(fType)
 	if fieldErr != nil {
 		err = fieldErr
-		log.Errorf("GetTypeModel failed, field name:%s, err:%s", field.GetName(), err.Error())
+		log.Errorf("GetTypeModel failed, rField name:%s, err:%s", rField.GetName(), err.Error())
 		return
 	}
 
 	relationFilterSQL := ""
 	strVal := oprFunc("right", valueStr)
-	relationTable := s.GetRelationTableName(field, fieldModel)
+	relationTable := s.GetRelationTableName(rField, fieldModel)
 	relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTable, strVal)
 	relationFilterSQL = fmt.Sprintf("`%s` IN (SELECT DISTINCT(`id`) FROM (%s) ids)", pkField.GetTag().GetName(), relationFilterSQL)
 	ret = relationFilterSQL
@@ -116,8 +116,8 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 	}
 
 	filterSQL := ""
-	pkField := s.entityModel.GetPrimaryField()
-	for _, field := range s.entityModel.GetFields() {
+	pkField := s.GetPrimaryKeyField()
+	for _, field := range s.GetFields() {
 		filterItem := filter.GetFilterItem(field.GetTag().GetName())
 		if filterItem == nil {
 			continue
@@ -160,7 +160,7 @@ func (s *Builder) buildSortFilter(filter model.Sorter) (ret string, err error) {
 		return
 	}
 
-	for _, val := range s.entityModel.GetFields() {
+	for _, val := range s.GetFields() {
 		if val.GetTag().GetName() == filter.Name() {
 			ret = SortOpr(filter.Name(), filter.AscSort())
 			return
@@ -172,9 +172,9 @@ func (s *Builder) buildSortFilter(filter model.Sorter) (ret string, err error) {
 	return
 }
 
-func (s *Builder) getFieldQueryNames(info model.Model) (ret string, err error) {
+func (s *Builder) getFieldQueryNames() (ret string, err error) {
 	str := ""
-	for _, field := range info.GetFields() {
+	for _, field := range s.GetFields() {
 		fType := field.GetType()
 		if !fType.IsBasic() {
 			continue

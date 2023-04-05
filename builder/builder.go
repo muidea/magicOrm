@@ -23,6 +23,7 @@ type Builder interface {
 	BuildQueryRelation(field model.Field, relationInfo model.Model) (string, error)
 
 	GetTableName() string
+	GetHostTableName(vModel model.Model) string
 	GetRelationTableName(field model.Field, relationInfo model.Model) string
 	GetInitializeValue(field model.Field) (interface{}, error)
 }

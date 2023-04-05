@@ -13,7 +13,7 @@ func (s *impl) updateSingle(modelInfo model.Model) (err error) {
 		return err
 	}
 
-	_, err = s.executor.Update(sqlStr)
+	_, _, err = s.executor.Execute(sqlStr)
 
 	return err
 }

@@ -15,7 +15,7 @@ func (s *impl) deleteSingle(entityModel model.Model) (err error) {
 		return
 	}
 
-	_, numErr := s.executor.Delete(sqlStr)
+	_, _, numErr := s.executor.Execute(sqlStr)
 	if numErr != nil {
 		err = numErr
 		return
@@ -104,13 +104,13 @@ func (s *impl) deleteRelation(entityModel model.Model, relationField model.Field
 			}
 		}
 
-		_, err = s.executor.Delete(rightSQL)
+		_, _, err = s.executor.Execute(rightSQL)
 		if err != nil {
 			return
 		}
 	}
 
-	_, err = s.executor.Delete(relationSQL)
+	_, _, err = s.executor.Execute(relationSQL)
 
 	return
 }
