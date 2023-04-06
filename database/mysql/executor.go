@@ -13,14 +13,14 @@ import (
 )
 
 type Config struct {
-	dbAddress string
-	dbName    string
-	username  string
-	password  string
+	dbServer string
+	dbName   string
+	username string
+	password string
 }
 
-func (s *Config) HostAddress() string {
-	return s.dbAddress
+func (s *Config) Server() string {
+	return s.dbServer
 }
 
 func (s *Config) Database() string {
@@ -36,14 +36,14 @@ func (s *Config) Password() string {
 }
 
 func (s *Config) Same(cfg *Config) bool {
-	return s.dbAddress == cfg.HostAddress() &&
-		s.dbName == cfg.Database() &&
-		s.username == cfg.Username() &&
-		s.password == cfg.Password()
+	return s.dbServer == cfg.dbServer &&
+		s.dbName == cfg.dbName &&
+		s.username == cfg.username &&
+		s.password == cfg.password
 }
 
-func NewConfig(dbAddress, dbName, username, password string) *Config {
-	return &Config{dbAddress: dbAddress, dbName: dbName, username: username, password: password}
+func NewConfig(dbServer, dbName, username, password string) *Config {
+	return &Config{dbServer: dbServer, dbName: dbName, username: username, password: password}
 }
 
 // Executor Executor
@@ -62,7 +62,7 @@ type Executor struct {
 
 // NewExecutor 新建一个数据访问对象
 func NewExecutor(config *Config) (ret *Executor, err error) {
-	connectStr := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4", config.Username(), config.Password(), config.HostAddress(), config.Database())
+	connectStr := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4", config.Username(), config.Password(), config.Server(), config.Database())
 
 	executorPtr := &Executor{connectStr: connectStr, dbHandle: nil, dbTx: nil, rowsHandle: nil, dbName: config.Database()}
 	err = executorPtr.Connect()

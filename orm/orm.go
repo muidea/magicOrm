@@ -39,8 +39,8 @@ func NewExecutor(config executor.Config) (executor.Executor, error) {
 	return executor.NewExecutor(config)
 }
 
-func NewConfig(dbAddress, dbName, username, password string) executor.Config {
-	return executor.NewConfig(dbAddress, dbName, username, password)
+func NewConfig(dbServer, dbName, username, password string) executor.Config {
+	return executor.NewConfig(dbServer, dbName, username, password)
 }
 
 // Initialize InitOrm

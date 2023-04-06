@@ -3,7 +3,7 @@ package executor
 import "github.com/muidea/magicOrm/database/mysql"
 
 type Config interface {
-	HostAddress() string
+	Server() string
 	Username() string
 	Password() string
 	Database() string
@@ -30,12 +30,12 @@ type Pool interface {
 	CheckConfig(config Config) error
 }
 
-func NewConfig(dbAddress, dbName, username, password string) Config {
-	return mysql.NewConfig(dbAddress, dbName, username, password)
+func NewConfig(dbServer, dbName, username, password string) Config {
+	return mysql.NewConfig(dbServer, dbName, username, password)
 }
 
 func NewExecutor(config Config) (Executor, error) {
-	return mysql.NewExecutor(mysql.NewConfig(config.HostAddress(), config.Database(), config.Username(), config.Password()))
+	return mysql.NewExecutor(mysql.NewConfig(config.Server(), config.Database(), config.Username(), config.Password()))
 }
 
 func NewPool() Pool {
@@ -48,7 +48,7 @@ type poolImpl struct {
 
 func (s *poolImpl) Initialize(maxConnNum int, config Config) error {
 	return s.Pool.Initialize(maxConnNum,
-		mysql.NewConfig(config.HostAddress(), config.Database(), config.Username(), config.Password()))
+		mysql.NewConfig(config.Server(), config.Database(), config.Username(), config.Password()))
 }
 
 func (s *poolImpl) Uninitialized() {
@@ -60,5 +60,5 @@ func (s *poolImpl) GetExecutor() (Executor, error) {
 }
 
 func (s *poolImpl) CheckConfig(config Config) error {
-	return s.Pool.CheckConfig(mysql.NewConfig(config.HostAddress(), config.Database(), config.Username(), config.Password()))
+	return s.Pool.CheckConfig(mysql.NewConfig(config.Server(), config.Database(), config.Username(), config.Password()))
 }
