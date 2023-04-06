@@ -69,13 +69,13 @@ func AddInstance(dbServer, dbName, username, password string, maxConnNum int, ow
 		return pool.CheckConfig(config)
 	}
 
-	executorPool := NewPool()
-	err = executorPool.Initialize(maxConnNum, config)
+	pool := NewPool()
+	err = pool.Initialize(maxConnNum, config)
 	if err != nil {
 		return
 	}
 
-	name2Pool.Store(owner, executorPool)
+	name2Pool.Store(owner, pool)
 	return
 }
 
