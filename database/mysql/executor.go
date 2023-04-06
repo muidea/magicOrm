@@ -74,7 +74,6 @@ func NewExecutor(config *Config) (ret *Executor, err error) {
 	return
 }
 
-// Connect connect database
 func (s *Executor) Connect() (err error) {
 	db, err := sql.Open("mysql", s.connectStr)
 	if err != nil {
@@ -95,7 +94,6 @@ func (s *Executor) Connect() (err error) {
 	return
 }
 
-// Ping ping connection
 func (s *Executor) Ping() (err error) {
 	if s.dbHandle == nil {
 		err = fmt.Errorf("must connect to database first")
@@ -110,7 +108,6 @@ func (s *Executor) Ping() (err error) {
 	return
 }
 
-// Release Release
 func (s *Executor) Release() {
 	if s.dbTx != nil {
 		panic("dbTx isn't nil")
@@ -144,7 +141,6 @@ func (s *Executor) idle() bool {
 	return time.Now().Sub(s.finishTime) > 10*time.Minute
 }
 
-// BeginTransaction Begin Transaction
 func (s *Executor) BeginTransaction() (err error) {
 	atomic.AddInt32(&s.dbTxCount, 1)
 	if s.dbTx == nil && s.dbTxCount == 1 {
@@ -167,7 +163,6 @@ func (s *Executor) BeginTransaction() (err error) {
 	return
 }
 
-// CommitTransaction Commit Transaction
 func (s *Executor) CommitTransaction() (err error) {
 	atomic.AddInt32(&s.dbTxCount, -1)
 	if s.dbTx != nil && s.dbTxCount == 0 {
@@ -186,7 +181,6 @@ func (s *Executor) CommitTransaction() (err error) {
 	return
 }
 
-// RollbackTransaction Rollback Transaction
 func (s *Executor) RollbackTransaction() (err error) {
 	atomic.AddInt32(&s.dbTxCount, -1)
 	if s.dbTx != nil && s.dbTxCount == 0 {
@@ -195,7 +189,6 @@ func (s *Executor) RollbackTransaction() (err error) {
 			s.dbTx = nil
 
 			log.Errorf("rollback transaction failed, err:%s", err.Error())
-
 			return
 		}
 
@@ -206,9 +199,20 @@ func (s *Executor) RollbackTransaction() (err error) {
 	return
 }
 
-// Query Query
 func (s *Executor) Query(sql string) (err error) {
-	//log.Errorf("Query, sql:%s", sql)
+	//log.Infof("Query, sql:%s", sql)
+	startTime := time.Now()
+	defer func() {
+		endTime := time.Now()
+		elapse := endTime.Sub(startTime)
+		if err != nil {
+			log.Errorf("query failed, sql:%s, err:%s", sql, err.Error())
+			return
+		}
+
+		log.Infof("query ok, elapse:%v", elapse)
+	}()
+
 	if s.dbTx == nil {
 		if s.dbHandle == nil {
 			panic("dbHanlde is nil")
@@ -221,7 +225,6 @@ func (s *Executor) Query(sql string) (err error) {
 		rows, rowErr := s.dbHandle.Query(sql)
 		if rowErr != nil {
 			err = rowErr
-			log.Errorf("query failed, sql:%s, err:%s", sql, err.Error())
 			return
 		}
 		s.rowsHandle = rows
@@ -234,7 +237,6 @@ func (s *Executor) Query(sql string) (err error) {
 		rows, rowErr := s.dbTx.Query(sql)
 		if rowErr != nil {
 			err = rowErr
-			log.Errorf("query failed, sql:%s, err:%s", sql, err.Error())
 			return
 		}
 
@@ -244,7 +246,6 @@ func (s *Executor) Query(sql string) (err error) {
 	return
 }
 
-// Next Next
 func (s *Executor) Next() bool {
 	if s.rowsHandle == nil {
 		panic("rowsHandle is nil")
@@ -260,7 +261,6 @@ func (s *Executor) Next() bool {
 	return ret
 }
 
-// Finish Finish
 func (s *Executor) Finish() {
 	if s.rowsHandle != nil {
 		s.rowsHandle.Close()
@@ -268,7 +268,6 @@ func (s *Executor) Finish() {
 	}
 }
 
-// GetField GetField
 func (s *Executor) GetField(value ...interface{}) (err error) {
 	if s.rowsHandle == nil {
 		panic("rowsHandle is nil")
@@ -282,8 +281,19 @@ func (s *Executor) GetField(value ...interface{}) (err error) {
 	return
 }
 
-// Execute Execute
 func (s *Executor) Execute(sql string) (rowsAffected int64, lastInsertID int64, err error) {
+	startTime := time.Now()
+	defer func() {
+		endTime := time.Now()
+		elapse := endTime.Sub(startTime)
+		if err != nil {
+			log.Errorf("execute failed, sql:%s, err:%s", sql, err.Error())
+			return
+		}
+
+		log.Infof("execute ok, elapse:%v", elapse)
+	}()
+
 	if s.rowsHandle != nil {
 		s.rowsHandle.Close()
 	}
@@ -297,7 +307,6 @@ func (s *Executor) Execute(sql string) (rowsAffected int64, lastInsertID int64, 
 		result, resultErr := s.dbHandle.Exec(sql)
 		if resultErr != nil {
 			err = resultErr
-			log.Errorf("exec failed, sql:%s, err:%s", sql, err.Error())
 			return
 		}
 
@@ -309,7 +318,6 @@ func (s *Executor) Execute(sql string) (rowsAffected int64, lastInsertID int64, 
 	result, resultErr := s.dbTx.Exec(sql)
 	if resultErr != nil {
 		err = resultErr
-		log.Errorf("exec failed, sql:%s, err:%s", sql, err.Error())
 		return
 	}
 
@@ -488,6 +496,10 @@ func (s *Pool) fetchOut() (ret *Executor, err error) {
 
 // putIn putIn Executor
 func (s *Pool) putIn(val *Executor) {
+	if val == nil {
+		return
+	}
+
 	val.finishTime = time.Now()
 
 	s.executorLock.RLock()
