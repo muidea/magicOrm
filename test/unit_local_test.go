@@ -23,7 +23,7 @@ func TestLocalExecutor(t *testing.T) {
 	}
 
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
-	obj := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
+	obj := &Unit{ID: 10, I8: 8, I16: 1600, I32: 323200, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, F64: 12.45678, TimeStamp: now, Flag: true}
 
 	objList := []interface{}{&Unit{}}
 	registerModel(provider, objList)

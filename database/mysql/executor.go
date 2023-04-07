@@ -128,7 +128,7 @@ func (s *Executor) Release() {
 		return
 	}
 
-	s.pool.putIn(s)
+	s.pool.PutIn(s)
 }
 
 func (s *Executor) destroy() {
@@ -434,7 +434,7 @@ func (s *Pool) Uninitialized() {
 }
 
 func (s *Pool) GetExecutor() (ret *Executor, err error) {
-	executorPtr, executorErr := s.fetchOut()
+	executorPtr, executorErr := s.FetchOut()
 	if executorErr != nil {
 		err = executorErr
 		return
@@ -452,8 +452,8 @@ func (s *Pool) CheckConfig(cfgPtr *Config) error {
 	return fmt.Errorf("mismatch database config")
 }
 
-// fetchOut fetchOut Executor
-func (s *Pool) fetchOut() (ret *Executor, err error) {
+// FetchOut FetchOut Executor
+func (s *Pool) FetchOut() (ret *Executor, err error) {
 	defer func() {
 		if ret != nil {
 			ret.startTime = time.Now()
@@ -494,8 +494,8 @@ func (s *Pool) fetchOut() (ret *Executor, err error) {
 	return
 }
 
-// putIn putIn Executor
-func (s *Pool) putIn(val *Executor) {
+// PutIn PutIn Executor
+func (s *Pool) PutIn(val *Executor) {
 	if val == nil {
 		return
 	}
