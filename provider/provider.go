@@ -68,14 +68,14 @@ func (s *providerImpl) RegisterModel(entity interface{}) (ret model.Model, err e
 	}
 
 	modelType = modelType.Elem()
-	curModel := s.modelCache.Fetch(modelType.GetName())
+	curModel := s.modelCache.Fetch(modelType.GetPkgKey())
 	if curModel != nil {
 		if curModel.GetPkgPath() == modelType.GetPkgPath() {
 			ret = curModel
 			return
 		}
 
-		err = fmt.Errorf("confluct object model, name:%s,pkgPath:%s", modelType.GetName(), modelType.GetPkgPath())
+		err = fmt.Errorf("confluct object model, name:%s,pkgKey:%s", modelType.GetName(), modelType.GetPkgKey())
 		return
 	}
 
@@ -85,7 +85,7 @@ func (s *providerImpl) RegisterModel(entity interface{}) (ret model.Model, err e
 		return
 	}
 
-	s.modelCache.Put(entityModel.GetName(), entityModel)
+	s.modelCache.Put(entityModel.GetPkgKey(), entityModel)
 	ret = entityModel
 	return
 }
@@ -101,13 +101,13 @@ func (s *providerImpl) UnregisterModel(entity interface{}) {
 	}
 
 	modelType = modelType.Elem()
-	curModel := s.modelCache.Fetch(modelType.GetName())
+	curModel := s.modelCache.Fetch(modelType.GetPkgKey())
 	if curModel != nil {
 		if curModel.GetPkgPath() != modelType.GetPkgPath() {
 			return
 		}
 
-		s.modelCache.Remove(curModel.GetName())
+		s.modelCache.Remove(curModel.GetPkgKey())
 	}
 	return
 }
@@ -131,9 +131,9 @@ func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err 
 	}
 
 	// must check if register already
-	entityModel := s.modelCache.Fetch(entityType.GetName())
+	entityModel := s.modelCache.Fetch(entityType.GetPkgKey())
 	if entityModel == nil {
-		err = fmt.Errorf("can't fetch entity model, must register entity first, entity Name:%s", entityType.GetName())
+		err = fmt.Errorf("can't fetch entity model, must register entity first, entity PkgKey:%s", entityType.GetPkgKey())
 		return
 	}
 
@@ -159,7 +159,7 @@ func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err 
 
 // GetValueModel GetValueModel
 func (s *providerImpl) GetValueModel(vVal model.Value, vType model.Type) (ret model.Model, err error) {
-	typeModel := s.modelCache.Fetch(vType.GetName())
+	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
 	if typeModel == nil {
 		err = fmt.Errorf("can't fetch type model, must register type entity first")
 		return
@@ -179,9 +179,9 @@ func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err erro
 		return
 	}
 	vType = vType.Elem()
-	typeModel := s.modelCache.Fetch(vType.GetName())
+	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
 	if typeModel == nil {
-		err = fmt.Errorf("can't fetch type model, must register type entity first, name:%s", vType.GetName())
+		err = fmt.Errorf("can't fetch type model, must register type entity first, PkgKey:%s", vType.GetPkgKey())
 		return
 	}
 	if typeModel.GetPkgPath() != vType.GetPkgPath() {

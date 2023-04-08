@@ -4,6 +4,7 @@ package model
 type Model interface {
 	GetName() string
 	GetPkgPath() string
+	GetPkgKey() string
 	GetFields() Fields
 	SetFieldValue(name string, val Value) error
 	GetPrimaryField() Field

@@ -2,6 +2,7 @@ package remote
 
 import (
 	"fmt"
+	"path"
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
@@ -75,6 +76,10 @@ func (s *TypeImpl) GetValue() (ret int) {
 func (s *TypeImpl) GetPkgPath() (ret string) {
 	ret = s.PkgPath
 	return
+}
+
+func (s *TypeImpl) GetPkgKey() string {
+	return path.Join(s.GetPkgPath(), s.GetName())
 }
 
 // IsPtrType IsPtrType

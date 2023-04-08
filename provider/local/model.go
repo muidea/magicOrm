@@ -3,6 +3,7 @@ package local
 import (
 	"fmt"
 	"log"
+	"path"
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
@@ -22,6 +23,10 @@ func (s *modelImpl) GetName() string {
 // GetPkgPath GetPkgPath
 func (s *modelImpl) GetPkgPath() string {
 	return s.modelType.PkgPath()
+}
+
+func (s *modelImpl) GetPkgKey() string {
+	return path.Join(s.GetPkgPath(), s.GetName())
 }
 
 // GetFields GetFields

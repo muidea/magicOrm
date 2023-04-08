@@ -2,9 +2,11 @@ package local
 
 import (
 	"fmt"
+	"path"
+	"reflect"
+
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
-	"reflect"
 )
 
 type typeImpl struct {
@@ -64,6 +66,10 @@ func (s *typeImpl) GetPkgPath() string {
 	}
 
 	return tType.PkgPath()
+}
+
+func (s *typeImpl) GetPkgKey() string {
+	return path.Join(s.GetPkgPath(), s.GetName())
 }
 
 func (s *typeImpl) IsPtrType() bool {

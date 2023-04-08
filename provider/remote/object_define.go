@@ -3,6 +3,7 @@ package remote
 import (
 	"encoding/json"
 	"fmt"
+	"path"
 	"reflect"
 
 	log "github.com/cihub/seelog"
@@ -29,6 +30,10 @@ func (s *Object) GetName() (ret string) {
 func (s *Object) GetPkgPath() (ret string) {
 	ret = s.PkgPath
 	return
+}
+
+func (s *Object) GetPkgKey() string {
+	return path.Join(s.GetPkgPath(), s.GetName())
 }
 
 // IsPtrValue isPtrValue
