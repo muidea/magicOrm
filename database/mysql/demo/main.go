@@ -2,10 +2,11 @@ package main
 
 import (
 	"flag"
-	log "github.com/cihub/seelog"
 	"math/rand"
 	"sync"
 	"time"
+
+	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/database/mysql"
 )
@@ -146,7 +147,7 @@ func createSchema(executor *mysql.Executor) (err error) {
 }
 
 func dropSchema(executor *mysql.Executor) (err error) {
-	sql := "DROP TABLE `Unit`"
+	sql := "DROP TABLE IF EXISTS `Unit`"
 	_, _, err = executor.Execute(sql)
 	return
 }
@@ -197,7 +198,7 @@ func createSchemaDDL(executor *mysql.Executor) (err error) {
 }
 
 func dropSchemaDDL(executor *mysql.Executor) (err error) {
-	sql := "DROP TABLE `Unit002`, ALGORITHM=DEFAULT, LOCK=NONE"
+	sql := "DROP TABLE IF EXISTS `Unit002`, ALGORITHM=DEFAULT, LOCK=NONE"
 	_, _, err = executor.Execute(sql)
 	return
 }
