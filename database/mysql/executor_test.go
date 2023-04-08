@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	onceDML   = 0
-	onceDDL   = 1
-	monkeyDDL = 2
+	onceDML   = 1
+	onceDDL   = 2
+	monkeyDDL = 3
 )
 
 var databaseServer = "localhost:3306"
@@ -20,7 +20,7 @@ var databaseName = "testdb"
 var databaseUsername = "root"
 var databasePassword = "rootkit"
 var threadSize = 20
-var itemSize = 10000000
+var itemSize = 100
 var mode = 0
 
 var finishFlag = false
@@ -133,7 +133,7 @@ func createSchema(executor *Executor) (err error) {
 }
 
 func dropSchema(executor *Executor) (err error) {
-	sql := "DROP TABLE `Unit`"
+	sql := "DROP TABLE IF EXISTS `Unit`"
 	_, _, err = executor.Execute(sql)
 	return
 }
@@ -184,7 +184,7 @@ func createSchemaDDL(executor *Executor) (err error) {
 }
 
 func dropSchemaDDL(executor *Executor) (err error) {
-	sql := "DROP TABLE `Unit002`"
+	sql := "DROP TABLE IF EXISTS `Unit002`"
 	_, _, err = executor.Execute(sql)
 	return
 }
