@@ -52,11 +52,11 @@ func main() {
 		endTime := time.Now()
 		elapse := endTime.Sub(startTime)
 		if err := recover(); err != nil {
-			log.Errorf("execute failed, elapse:%v, err:%v", elapse, err)
+			log.Errorf("execute terminated, elapse:%v, err:%v", elapse, err)
 			return
 		}
 
-		log.Infof("execute ok, elapse:%v", elapse)
+		log.Infof("execute finished, elapse:%v", elapse)
 	}()
 
 	wg := &sync.WaitGroup{}
