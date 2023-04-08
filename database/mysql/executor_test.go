@@ -21,7 +21,7 @@ var databaseUsername = "root"
 var databasePassword = "rootkit"
 var threadSize = 20
 var itemSize = 100
-var mode = 0
+var mode = 1
 
 var finishFlag = false
 
