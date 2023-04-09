@@ -56,7 +56,7 @@ func TestRemoteGroup(t *testing.T) {
 	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	remoteProvider := provider.NewRemoteProvider("default")
+	remoteProvider := provider.NewRemoteProvider("default", "abc")
 
 	o1, err := orm.NewOrm(remoteProvider, config)
 	defer o1.Release()
@@ -324,7 +324,7 @@ func TestRemoteUser(t *testing.T) {
 	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	remoteProvider := provider.NewRemoteProvider("default")
+	remoteProvider := provider.NewRemoteProvider("default", "abc")
 
 	o1, err := orm.NewOrm(remoteProvider, config)
 	defer o1.Release()
@@ -592,7 +592,7 @@ func TestRemoteSystem(t *testing.T) {
 	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	remoteProvider := provider.NewRemoteProvider("default")
+	remoteProvider := provider.NewRemoteProvider("default", "abc")
 
 	o1, err := orm.NewOrm(remoteProvider, config)
 	defer o1.Release()
@@ -835,7 +835,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	remoteProvider := provider.NewRemoteProvider("default")
+	remoteProvider := provider.NewRemoteProvider("default", "abc")
 
 	o1, err := orm.NewOrm(remoteProvider, config)
 	defer o1.Release()
@@ -1114,7 +1114,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	remoteProvider := provider.NewRemoteProvider("default")
+	remoteProvider := provider.NewRemoteProvider("default", "abc")
 
 	o1, err := orm.NewOrm(remoteProvider, config)
 	defer o1.Release()
@@ -1419,7 +1419,7 @@ func TestPolicy(t *testing.T) {
 	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	remoteProvider := provider.NewRemoteProvider("default")
+	remoteProvider := provider.NewRemoteProvider("default", "abc")
 
 	o1, err := orm.NewOrm(remoteProvider, config)
 	defer o1.Release()

@@ -14,7 +14,7 @@ func TestRemoteExecutor(t *testing.T) {
 	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	remoteProvider := provider.NewRemoteProvider("default")
+	remoteProvider := provider.NewRemoteProvider("default", "abc")
 
 	o1, err := orm.NewOrm(remoteProvider, config)
 	defer o1.Release()
@@ -135,7 +135,7 @@ func TestRemoteDepends(t *testing.T) {
 	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	remoteProvider := provider.NewRemoteProvider("default")
+	remoteProvider := provider.NewRemoteProvider("default", "abc")
 
 	o1, err := orm.NewOrm(remoteProvider, config)
 	defer o1.Release()

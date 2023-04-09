@@ -69,27 +69,27 @@ localProvider:
 orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
 defer orm.Uninitialize()
 
-o1, err := orm.NewOrm(localOwner)
+o1, err := orm.NewOrm(localOwner,"abc")
 defer o1.Release()
 if err != nil {
     t.Errorf("new Orm failed, err:%s", err.Error())
     return
 }
 
-provider := orm.GetProvider(localOwner)
+provider := orm.GetProvider(localOwner,"abc")
 
 remoteProvider:
 orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", false)
 defer orm.Uninitialize()
 
-o1, err := orm.NewOrm(localOwner)
+o1, err := orm.NewOrm(localOwner,"abc")
 defer o1.Release()
 if err != nil {
     t.Errorf("new Orm failed, err:%s", err.Error())
     return
 }
 
-provider := orm.GetProvider(localOwner)
+provider := orm.GetProvider(localOwner,"abc")
 
 ```
 
@@ -240,7 +240,7 @@ if bqErr != nil {
     return
 }
 
-filter := orm.GetFilter(localOwner)
+filter := orm.GetFilter(localOwner,"abc")
 filter.Equal("Name", "hi")
 filter.ValueMask(&Simple{})
 bqModelList, bqModelErr := o1.BatchQuery(bqModel, filter)

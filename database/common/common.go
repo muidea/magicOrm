@@ -41,7 +41,13 @@ func (s *Common) GetTableName() string {
 func (s *Common) GetHostTableName(vModel model.Model) string {
 	//tableName := s.constructTableName(vModel)
 	//return fmt.Sprintf("%s_%s", s.modelProvider.Owner(), tableName)
-	return s.constructTableName(vModel)
+	tableName := s.constructTableName(vModel)
+	prefix := s.modelProvider.Prefix()
+	if prefix != "" {
+		tableName = fmt.Sprintf("%s_%s", prefix, tableName)
+	}
+
+	return tableName
 }
 
 func (s *Common) GetRelationTableName(vField model.Field, rModel model.Model) string {
@@ -49,7 +55,13 @@ func (s *Common) GetRelationTableName(vField model.Field, rModel model.Model) st
 	rightName := s.constructTableName(rModel)
 
 	//return fmt.Sprintf("%s_%s%s2%s", s.modelProvider.Owner(), leftName, fieldName, rightName)
-	return fmt.Sprintf("%s%s%s%s", leftName, vField.GetName(), getFieldRelation(vField), rightName)
+	tableName := fmt.Sprintf("%s%s%s%s", leftName, vField.GetName(), getFieldRelation(vField), rightName)
+	prefix := s.modelProvider.Prefix()
+	if prefix != "" {
+		tableName = fmt.Sprintf("%s_%s", prefix, tableName)
+	}
+
+	return tableName
 }
 
 func (s *Common) GetPrimaryKeyField() model.Field {

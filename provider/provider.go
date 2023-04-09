@@ -37,11 +37,14 @@ type Provider interface {
 
 	Owner() string
 
+	Prefix() string
+
 	Reset()
 }
 
 type providerImpl struct {
-	owner string
+	owner  string
+	prefix string
 
 	modelCache model.Cache
 
@@ -238,9 +241,12 @@ func (s *providerImpl) IsAssigned(vVal model.Value, vType model.Type) (ret bool)
 	return
 }
 
-// Owner owner
 func (s *providerImpl) Owner() string {
 	return s.owner
+}
+
+func (s *providerImpl) Prefix() string {
+	return s.prefix
 }
 
 // Reset Reset
@@ -249,9 +255,10 @@ func (s *providerImpl) Reset() {
 }
 
 // NewLocalProvider model provider
-func NewLocalProvider(owner string) Provider {
+func NewLocalProvider(owner, prefix string) Provider {
 	ret := &providerImpl{
 		owner:                owner,
+		prefix:               prefix,
 		modelCache:           model.NewCache(),
 		getTypeFunc:          local.GetEntityType,
 		getValueFunc:         local.GetEntityValue,
@@ -267,9 +274,10 @@ func NewLocalProvider(owner string) Provider {
 }
 
 // NewRemoteProvider model provider
-func NewRemoteProvider(owner string) Provider {
+func NewRemoteProvider(owner, prefix string) Provider {
 	ret := &providerImpl{
 		owner:                owner,
+		prefix:               prefix,
 		modelCache:           model.NewCache(),
 		getTypeFunc:          remote.GetEntityType,
 		getValueFunc:         remote.GetEntityValue,

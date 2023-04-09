@@ -303,7 +303,7 @@ func checkExtModel(t *testing.T, extEntityModel model.Model) {
 }
 
 func TestLocalProvider(t *testing.T) {
-	provider := NewLocalProvider("default")
+	provider := NewLocalProvider("default", "abc")
 
 	baseEntity := &Base{}
 	extEntity := &ExtInfo{}
@@ -340,7 +340,7 @@ func TestLocalProvider(t *testing.T) {
 }
 
 func TestRemoteProvider(t *testing.T) {
-	provider := NewRemoteProvider("default")
+	provider := NewRemoteProvider("default", "abc")
 
 	baseEntity := &Base{}
 	extEntity := &ExtInfo{}
@@ -436,7 +436,7 @@ func TestRemoteProvider(t *testing.T) {
 }
 
 func TestUpdateRemoteProvider(t *testing.T) {
-	provider := NewRemoteProvider("default")
+	provider := NewRemoteProvider("default", "abc")
 
 	baseEntity := &Base{ID: 123, Name: "test int", Price: 12.35, Addr: []string{"qq", "ar", "yt"}}
 	extEntity := &ExtInfo{ID: 234, Name: "hello", Info: *baseEntity, Ptr: baseEntity, Array: []*Base{baseEntity}}
@@ -550,8 +550,8 @@ func TestUpdateRemoteProvider(t *testing.T) {
 }
 
 func TestCompareProvider(t *testing.T) {
-	remoteProvider := NewRemoteProvider("default")
-	localProvider := NewLocalProvider("default")
+	remoteProvider := NewRemoteProvider("default", "abc")
+	localProvider := NewLocalProvider("default", "abc")
 
 	baseEntity := &Base{ID: 123, Name: "test int", Price: 12.35, Addr: []string{"qq", "ar", "yt"}}
 	extEntity := &ExtInfo{ID: 234, Name: "hello", Info: *baseEntity, Ptr: baseEntity, Array: []*Base{baseEntity}}

@@ -12,7 +12,7 @@ func TestKPI(t *testing.T) {
 	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	provider := provider.NewLocalProvider("default")
+	provider := provider.NewLocalProvider("default", "abc")
 
 	o1, err := orm.NewOrm(provider, config)
 	defer o1.Release()
