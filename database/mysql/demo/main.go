@@ -22,7 +22,7 @@ var databaseName = "testdb"
 var databaseUsername = "root"
 var databasePassword = "rootkit"
 var threadSize = 20
-var itemSize = 10000000
+var itemSize = 18000000
 var mode = 0
 var finishFlag = false
 
@@ -60,6 +60,7 @@ func main() {
 	}()
 
 	wg := &sync.WaitGroup{}
+	finishFlag = false
 
 	switch mode {
 	case onceDML:
@@ -71,10 +72,10 @@ func main() {
 	}
 
 	wg.Wait()
+	finishFlag = true
 }
 
 func testDML(wg *sync.WaitGroup, pool *mysql.Pool) {
-	finishFlag = false
 	wg.Add(1)
 	pickExecutor(pool, wg, dropSchema)
 
@@ -85,7 +86,6 @@ func testDML(wg *sync.WaitGroup, pool *mysql.Pool) {
 		wg.Add(1)
 		go pickExecutor(pool, wg, insertValue)
 	}
-	finishFlag = true
 }
 
 func testDDL(wg *sync.WaitGroup, pool *mysql.Pool) {
@@ -108,6 +108,10 @@ func testMonkey(wg *sync.WaitGroup, pool *mysql.Pool) {
 	go func() {
 		for !finishFlag {
 			time.Sleep(time.Duration(rand.Int()%10) + time.Second*20)
+
+			if finishFlag {
+				break
+			}
 			randomDDL(wg, pool)
 		}
 	}()
@@ -192,13 +196,13 @@ func alterSchemaOlnDDLDrop(executor *mysql.Executor) (err error) {
 }
 
 func createSchemaDDL(executor *mysql.Executor) (err error) {
-	sql := "CREATE TABLE `Unit002` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`i8` TINYINT NOT NULL ,\n\t`i16` SMALLINT NOT NULL ,\n\t`i32` INT NOT NULL ,\n\t`i64` BIGINT NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` FLOAT NOT NULL ,\n\t`f64` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\t`flag` TINYINT NOT NULL ,\n\t`iArray` TEXT NOT NULL ,\n\t`fArray` TEXT NOT NULL ,\n\t`strArray` TEXT NOT NULL ,\n\tPRIMARY KEY (`id`)\n), ALGORITHM=DEFAULT, LOCK=NONE"
+	sql := "CREATE TABLE `Unit002` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`i8` TINYINT NOT NULL ,\n\t`i16` SMALLINT NOT NULL ,\n\t`i32` INT NOT NULL ,\n\t`i64` BIGINT NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` FLOAT NOT NULL ,\n\t`f64` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\t`flag` TINYINT NOT NULL ,\n\t`iArray` TEXT NOT NULL ,\n\t`fArray` TEXT NOT NULL ,\n\t`strArray` TEXT NOT NULL ,\n\tPRIMARY KEY (`id`)\n)"
 	_, _, err = executor.Execute(sql)
 	return
 }
 
 func dropSchemaDDL(executor *mysql.Executor) (err error) {
-	sql := "DROP TABLE IF EXISTS `Unit002`, ALGORITHM=DEFAULT, LOCK=NONE"
+	sql := "DROP TABLE IF EXISTS `Unit002`"
 	_, _, err = executor.Execute(sql)
 	return
 }

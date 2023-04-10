@@ -47,6 +47,7 @@ func TestNewPool(t *testing.T) {
 
 	wg := &sync.WaitGroup{}
 
+	finishFlag = false
 	switch mode {
 	case onceDML:
 		testDML(wg, pool)
@@ -57,10 +58,10 @@ func TestNewPool(t *testing.T) {
 	}
 
 	wg.Wait()
+	finishFlag = true
 }
 
 func testDML(wg *sync.WaitGroup, pool *Pool) {
-	finishFlag = false
 	wg.Add(1)
 	pickExecutor(pool, wg, dropSchema)
 
@@ -71,7 +72,6 @@ func testDML(wg *sync.WaitGroup, pool *Pool) {
 		wg.Add(1)
 		go pickExecutor(pool, wg, insertValue)
 	}
-	finishFlag = true
 }
 
 func testDDL(wg *sync.WaitGroup, pool *Pool) {
@@ -94,6 +94,10 @@ func testMonkey(wg *sync.WaitGroup, pool *Pool) {
 	go func() {
 		for !finishFlag {
 			time.Sleep(time.Duration(rand.Int()%10) + time.Second*20)
+			if finishFlag {
+				break
+			}
+
 			randomDDL(wg, pool)
 		}
 	}()
