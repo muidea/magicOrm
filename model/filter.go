@@ -27,12 +27,12 @@ type Filter interface {
 	In(key string, val interface{}) error
 	NotIn(key string, val interface{}) error
 	Like(key string, val interface{}) error
-	ValueMask(val interface{}) error
 	Page(filter *util.Pagination)
 	Sort(sorter *util.SortFilter)
+	ValueMask(val interface{}) error
 
 	GetFilterItem(name string) FilterItem
 	Pagination() (limit, offset int, paging bool)
-	MaskModel() Model
 	Sorter() Sorter
+	MaskModel() Model
 }

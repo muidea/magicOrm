@@ -17,7 +17,7 @@ func TestModel(t *testing.T) {
 		I16 int16  `orm:"i16"`
 		I32 int32  `orm:"i32"`
 		I64 uint64 `orm:"i64"`
-		// Name 名称
+		// name 名称
 		Name      string    `orm:"name"`
 		Value     float32   `orm:"value"`
 		F64       float64   `orm:"f64"`

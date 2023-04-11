@@ -9,7 +9,7 @@ type tagImpl struct {
 	tagImpl string
 }
 
-//newTag name[key][auto]
+// newTag name[key][auto]
 func newTag(val string) (ret *tagImpl, err error) {
 	items := strings.Split(val, " ")
 	if len(items) < 1 {
@@ -29,7 +29,6 @@ func (s *tagImpl) GetName() (ret string) {
 	return
 }
 
-// IsPrimaryKey IsPrimaryKey
 func (s *tagImpl) IsPrimaryKey() (ret bool) {
 	items := strings.Split(s.tagImpl, " ")
 	if len(items) <= 1 {
@@ -79,7 +78,6 @@ func (s *tagImpl) IsAutoIncrement() (ret bool) {
 	return
 }
 
-// Copy Copy
 func (s *tagImpl) copy() (ret *tagImpl) {
 	ret = &tagImpl{tagImpl: s.tagImpl}
 	return

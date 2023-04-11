@@ -12,81 +12,76 @@ import (
 
 // field single field impl
 type field struct {
-	Index int
-	Name  string
+	index int
+	name  string
 
-	Type  *typeImpl
-	Tag   *tagImpl
-	value *valueImpl
+	typePtr  *typeImpl
+	tagPtr   *tagImpl
+	valuePtr *valueImpl
 }
 
 func (s *field) GetIndex() int {
-	return s.Index
+	return s.index
 }
 
-// GetName GetName
 func (s *field) GetName() string {
-	return s.Name
+	return s.name
 }
 
-// GetEntityType GetEntityType
 func (s *field) GetType() (ret model.Type) {
-	if s.Type != nil {
-		ret = s.Type
+	if s.typePtr != nil {
+		ret = s.typePtr
 	}
 
 	return
 }
 
-// GetTag GetTag
 func (s *field) GetTag() (ret model.Tag) {
-	if s.Tag != nil {
-		ret = s.Tag
+	if s.tagPtr != nil {
+		ret = s.tagPtr
 	}
 
 	return
 }
 
-// GetEntityValue GetEntityValue
 func (s *field) GetValue() (ret model.Value) {
-	if s.value != nil {
-		ret = s.value
+	if s.valuePtr != nil {
+		ret = s.valuePtr
 	}
 
 	return
 }
 
 func (s *field) SetValue(val model.Value) (err error) {
-	err = s.value.Set(val.Get())
+	err = s.valuePtr.Set(val.Get())
 	if err != nil {
-		log.Errorf("set field value failed, name:%s, err:%s", s.Name, err.Error())
+		log.Errorf("set field valuePtr failed, name:%s, err:%s", s.name, err.Error())
 	}
 
 	return
 }
 
 func (s *field) IsPrimary() bool {
-	return s.Tag.IsPrimaryKey()
+	return s.tagPtr.IsPrimaryKey()
 }
 
 func (s *field) copy() *field {
 	return &field{
-		Index: s.Index,
-		Name:  s.Name,
-		Type:  s.Type.copy(),
-		Tag:   s.Tag.copy(),
-		value: s.value.copy(),
+		index:    s.index,
+		name:     s.name,
+		typePtr:  s.typePtr.copy(),
+		tagPtr:   s.tagPtr.copy(),
+		valuePtr: s.valuePtr.copy(),
 	}
 }
 
-// verify verify
 func (s *field) verify() error {
-	if s.Tag.GetName() == "" {
+	if s.tagPtr.GetName() == "" {
 		return fmt.Errorf("no define field tag")
 	}
 
-	val := s.Type.GetValue()
-	if s.Tag.IsAutoIncrement() {
+	val := s.typePtr.GetValue()
+	if s.tagPtr.IsAutoIncrement() {
 		switch val {
 		case util.TypeBooleanField,
 			util.TypeStringField,
@@ -95,15 +90,15 @@ func (s *field) verify() error {
 			util.TypeDoubleField,
 			util.TypeStructField,
 			util.TypeSliceField:
-			return fmt.Errorf("illegal auto_increment field type, type:%s", s.Type.dump())
+			return fmt.Errorf("illegal auto_increment field type, type:%s", s.typePtr.dump())
 		default:
 		}
 	}
 
-	if s.Tag.IsPrimaryKey() {
+	if s.tagPtr.IsPrimaryKey() {
 		switch val {
 		case util.TypeStructField, util.TypeSliceField:
-			return fmt.Errorf("illegal primary key field type, type:%s", s.Type.dump())
+			return fmt.Errorf("illegal primary key field type, type:%s", s.typePtr.dump())
 		default:
 		}
 	}
@@ -111,9 +106,8 @@ func (s *field) verify() error {
 	return nil
 }
 
-// dump dump
 func (s *field) dump() string {
-	str := fmt.Sprintf("index:%d,name:%s,type:[%s],tag:[%s]", s.Index, s.Name, s.Type.dump(), s.Tag.dump())
+	str := fmt.Sprintf("index:%d,name:%s,type:[%s],tag:[%s]", s.index, s.name, s.typePtr.dump(), s.tagPtr.dump())
 	return str
 }
 
@@ -133,11 +127,11 @@ func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Val
 	valueImpl := newValue(fieldValue)
 
 	field := &field{}
-	field.Index = idx
-	field.Name = fieldType.Name
-	field.Type = typeImpl
-	field.Tag = tagImpl
-	field.value = valueImpl
+	field.index = idx
+	field.name = fieldType.Name
+	field.typePtr = typeImpl
+	field.tagPtr = tagImpl
+	field.valuePtr = valueImpl
 
 	err = field.verify()
 	if err != nil {

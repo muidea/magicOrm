@@ -9,34 +9,18 @@ import (
 	ou "github.com/muidea/magicOrm/util"
 )
 
-// SortItem 排序项
-type SortItem struct {
-	// true:升序,false:降序
-	Asc bool `json:"asc"`
-	// 排序字段
-	Name string `json:"name"`
-}
-
-// Pagination 页面过滤器
-type Pagination struct {
-	// 单页条目数
-	Size int `json:"size"`
-	// 页码
-	Num int `json:"num"`
-}
-
 // QueryFilter value filter
 type QueryFilter struct {
-	EqualFilter    []*ItemValue `json:"equal"`
-	NotEqualFilter []*ItemValue `json:"noEqual"`
-	BelowFilter    []*ItemValue `json:"below"`
-	AboveFilter    []*ItemValue `json:"above"`
-	InFilter       []*ItemValue `json:"in"`
-	NotInFilter    []*ItemValue `json:"notIn"`
-	LikeFilter     []*ItemValue `json:"like"`
-	PageFilter     *Pagination  `json:"page"`
-	SortFilter     *SortItem    `json:"sort"`
-	MaskValue      *ObjectValue `json:"maskValue"`
+	EqualFilter    []*ItemValue     `json:"equal"`
+	NotEqualFilter []*ItemValue     `json:"noEqual"`
+	BelowFilter    []*ItemValue     `json:"below"`
+	AboveFilter    []*ItemValue     `json:"above"`
+	InFilter       []*ItemValue     `json:"in"`
+	NotInFilter    []*ItemValue     `json:"notIn"`
+	LikeFilter     []*ItemValue     `json:"like"`
+	PageFilter     *util.Pagination `json:"page"`
+	SortFilter     *util.SortFilter `json:"sort"`
+	MaskValue      *ObjectValue     `json:"maskValue"`
 }
 
 // NewFilter new query filter
@@ -300,25 +284,11 @@ func (s *QueryFilter) Like(key string, val interface{}) (err error) {
 }
 
 func (s *QueryFilter) Page(filter *util.Pagination) {
-	if filter == nil {
-		return
-	}
-
-	s.PageFilter = &Pagination{
-		Num:  filter.PageNum,
-		Size: filter.PageSize,
-	}
+	s.PageFilter = filter
 }
 
 func (s *QueryFilter) Sort(sorter *util.SortFilter) {
-	if sorter == nil {
-		return
-	}
-
-	s.SortFilter = &SortItem{
-		Name: sorter.FieldName,
-		Asc:  sorter.AscFlag,
-	}
+	s.SortFilter = sorter
 }
 
 // ValueMask assign mask value
