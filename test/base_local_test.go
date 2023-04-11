@@ -1,10 +1,12 @@
 package test
 
 import (
-	"github.com/muidea/magicOrm/orm"
-	"github.com/muidea/magicOrm/provider"
 	"testing"
 	"time"
+
+	"github.com/muidea/magicCommon/foundation/util"
+	"github.com/muidea/magicOrm/orm"
+	"github.com/muidea/magicOrm/provider"
 )
 
 const localOwner = "local"
@@ -30,7 +32,7 @@ func TestLocalSimple(t *testing.T) {
 		return
 	}
 
-	ts, _ := time.Parse("2006-01-02 15:04:05", "2018-01-02 15:04:05")
+	ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	s1 := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
 
 	s1Model, s1Err := localProvider.GetEntityModel(s1)
@@ -111,7 +113,7 @@ func TestLocalReference(t *testing.T) {
 		return
 	}
 
-	ts, _ := time.Parse("2006-01-02 15:04:05", "2018-01-02 15:04:05")
+	ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	strValue := "test code"
 	fValue := float32(12.34)
 	flag := true
@@ -277,7 +279,7 @@ func TestLocalCompose(t *testing.T) {
 		}
 	}
 
-	ts, _ := time.Parse("2006-01-02 15:04:05", "2018-01-02 15:04:05")
+	ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	s1 := Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
 	s1Model, s1Err := localProvider.GetEntityModel(s1)
 	if s1Err != nil {
@@ -448,7 +450,7 @@ func TestLocalQuery(t *testing.T) {
 		}
 	}
 
-	ts, _ := time.ParseInLocation("2006-01-02 15:04:05", "2018-01-02 15:04:05", time.Local)
+	ts, _ := time.ParseInLocation(util.CSTLayout, "2018-01-02 15:04:05", time.Local)
 	s1 := Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
 	s1Model, s1Err := localProvider.GetEntityModel(s1)
 	if s1Err != nil {

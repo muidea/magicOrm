@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/muidea/magicCommon/foundation/util"
+
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
@@ -15,7 +17,7 @@ const composeLocalOwner = "composeLocal"
 const composeRemoteOwner = "composeRemote"
 
 func prepareLocalData(localProvider provider.Provider, orm orm.Orm) (sPtr *Simple, rPtr *Reference, cPtr *Compose, err error) {
-	ts, _ := time.Parse("2006-01-02 15:04:05", "2018-01-02 15:04:05")
+	ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	sVal := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
 
 	sModel, sErr := localProvider.GetEntityModel(sVal)
@@ -97,7 +99,7 @@ func prepareLocalData(localProvider provider.Provider, orm orm.Orm) (sPtr *Simpl
 }
 
 func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Simple, rPtr *Reference, cPtr *Compose, err error) {
-	ts, _ := time.Parse("2006-01-02 15:04:05", "2018-01-02 15:04:05")
+	ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	sVal := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
 
 	sObjectVal, _ := remote.GetObjectValue(sVal)

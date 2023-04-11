@@ -5,17 +5,19 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/muidea/magicCommon/foundation/util"
+
 	"github.com/muidea/magicOrm/model"
 )
 
-//encodeDateTime get datetime value str
+// encodeDateTime get datetime value str
 func (s *impl) encodeDateTime(vVal model.Value) (ret interface{}, err error) {
 	val := vVal.Get()
 	switch val.Kind() {
 	case reflect.Struct:
 		ts, ok := val.Interface().(time.Time)
 		if ok {
-			ret = fmt.Sprintf("%s", ts.Format("2006-01-02 15:04:05"))
+			ret = fmt.Sprintf("%s", ts.Format(util.CSTLayout))
 			if ret == "0001-01-01 00:00:00" {
 				ret = ""
 			}
@@ -57,7 +59,7 @@ func (s *impl) decodeDateTime(val interface{}, tType model.Type) (ret model.Valu
 		if dtVal == "" {
 			dtVal = "0001-01-01 00:00:00"
 		}
-		dtV, dtErr := time.Parse("2006-01-02 15:04:05", dtVal)
+		dtV, dtErr := time.Parse(util.CSTLayout, dtVal)
 		if dtErr != nil {
 			err = dtErr
 		} else {

@@ -60,7 +60,7 @@ func Uninitialized() {
 	name2Pool = sync.Map{}
 }
 
-func AddInstance(dbServer, dbName, username, password string, maxConnNum int, owner string) (err error) {
+func AddDatabase(dbServer, dbName, username, password string, maxConnNum int, owner string) (err error) {
 	config := NewConfig(dbServer, dbName, username, password)
 
 	val, ok := name2Pool.Load(owner)
@@ -79,7 +79,7 @@ func AddInstance(dbServer, dbName, username, password string, maxConnNum int, ow
 	return
 }
 
-func DelInstance(owner string) {
+func DelDatabase(owner string) {
 	val, ok := name2Pool.Load(owner)
 	if !ok {
 		return

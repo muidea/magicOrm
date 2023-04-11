@@ -2,11 +2,10 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"math/rand"
 	"sync"
 	"time"
-
-	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/database/mysql"
 )
@@ -22,8 +21,11 @@ var databaseName = "testdb"
 var databaseUsername = "root"
 var databasePassword = "rootkit"
 var threadSize = 20
-var itemSize = 18000000
-var mode = 0
+
+// var itemSize = 18000000
+var itemSize = 1800
+var mode = 3
+var disableStatic = true
 var finishFlag = false
 
 type funcPtr func(executor *mysql.Executor) error
@@ -36,28 +38,29 @@ func main() {
 	flag.IntVar(&threadSize, "ThreadSize", threadSize, "database access thread size")
 	flag.IntVar(&itemSize, "ItemSize", itemSize, "database insert item size")
 	flag.IntVar(&mode, "Mode", mode, "database access mode, 1=onceDML,2=onceDDL,3=monkeyDDL")
+	flag.BoolVar(&disableStatic, "DisableStatic", disableStatic, "disable static ddl,only online ddl")
 	flag.Parse()
 	if mode == 0 {
 		flag.PrintDefaults()
 		return
 	}
 
-	pool := mysql.NewPool()
-	config := mysql.NewConfig(databaseServer, databaseName, databaseUsername, databasePassword)
-	pool.Initialize(50, config)
-	defer pool.Uninitialized()
-
 	startTime := time.Now()
 	defer func() {
 		endTime := time.Now()
 		elapse := endTime.Sub(startTime)
 		if err := recover(); err != nil {
-			log.Errorf("execute terminated, elapse:%v, err:%v", elapse, err)
+			fmt.Printf("execute terminated, elapse:%v, err:%v", elapse, err)
 			return
 		}
 
-		log.Infof("execute finished, elapse:%v", elapse)
+		fmt.Printf("execute finished, elapse:%v", elapse)
 	}()
+
+	pool := mysql.NewPool()
+	config := mysql.NewConfig(databaseServer, databaseName, databaseUsername, databasePassword)
+	pool.Initialize(50, config)
+	defer pool.Uninitialized()
 
 	wg := &sync.WaitGroup{}
 	finishFlag = false
@@ -69,6 +72,7 @@ func main() {
 		testDDL(wg, pool)
 	case monkeyDDL:
 		testMonkey(wg, pool)
+	default:
 	}
 
 	wg.Wait()
@@ -89,14 +93,18 @@ func testDML(wg *sync.WaitGroup, pool *mysql.Pool) {
 }
 
 func testDDL(wg *sync.WaitGroup, pool *mysql.Pool) {
-	wg.Add(1)
-	pickExecutor(pool, wg, alterSchemaAdd)
+	if disableStatic {
+		wg.Add(1)
+		pickExecutor(pool, wg, alterSchemaAdd)
+	}
 
 	wg.Add(1)
 	pickExecutor(pool, wg, alterSchemaOlnDDLAdd)
 
-	wg.Add(1)
-	pickExecutor(pool, wg, alterSchemaDrop)
+	if disableStatic {
+		wg.Add(1)
+		pickExecutor(pool, wg, alterSchemaDrop)
+	}
 
 	wg.Add(1)
 	pickExecutor(pool, wg, alterSchemaOlnDDLDrop)

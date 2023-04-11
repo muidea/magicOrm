@@ -137,7 +137,7 @@ if err != nil {
 ## 简单对象CURD
 
 ```go
-ts, _ := time.Parse("2006-01-02 15:04:05", "2018-01-02 15:04:05")
+ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 sVal := Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
 sValList := []*Simple{}
 sModelList := []model.Model{}

@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/muidea/magicCommon/foundation/util"
 )
 
 func TestHelper(t *testing.T) {
@@ -219,7 +221,7 @@ func TestSliceHelper(t *testing.T) {
 		return
 	}
 
-	tv, tErr := time.Parse("2006-01-02 15:04:05", "2006-01-02 15:04:05")
+	tv, tErr := time.Parse(util.CSTLayout, "2006-01-02 15:04:05")
 	if tErr != nil {
 		t.Errorf("parse time failed, err:%s", tErr.Error())
 		return

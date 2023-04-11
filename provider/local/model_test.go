@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/muidea/magicCommon/foundation/util"
 )
 
 // Unit 单元信息
@@ -36,7 +38,7 @@ type Test struct {
 }
 
 func TestModelValue(t *testing.T) {
-	now, _ := time.Parse("2006-01-02 15:04:05", "2018-01-02 15:04:05")
+	now, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	unit := Unit{Name: "AA", T1: Test{Val: 123}, TimeStamp: now}
 	unitVal := reflect.ValueOf(&unit).Elem()
 	unitInfo, unitErr := getTypeModel(unitVal.Type())

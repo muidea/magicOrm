@@ -2,12 +2,14 @@ package test
 
 import (
 	"fmt"
+	"testing"
+	"time"
+
+	"github.com/muidea/magicCommon/foundation/util"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/remote"
-	"testing"
-	"time"
 )
 
 const simpleLocalOwner = "simpleLocal"
@@ -51,7 +53,7 @@ func TestSimpleLocal(t *testing.T) {
 		return
 	}
 
-	ts, _ := time.Parse("2006-01-02 15:04:05", "2018-01-02 15:04:05")
+	ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	sValList := []*Simple{}
 	sModelList := []model.Model{}
 
@@ -215,7 +217,7 @@ func TestSimpleRemote(t *testing.T) {
 		return
 	}
 
-	ts, _ := time.Parse("2006-01-02 15:04:05", "2018-01-02 15:04:05")
+	ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	sValList := []*Simple{}
 	sObjectValList := []*remote.ObjectValue{}
 	sModelList := []model.Model{}
