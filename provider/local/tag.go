@@ -6,31 +6,31 @@ import (
 )
 
 type tagImpl struct {
-	tagImpl string
+	tagVal string
 }
 
 // newTag name[key][auto]
 func newTag(val string) (ret *tagImpl, err error) {
 	items := strings.Split(val, " ")
 	if len(items) < 1 {
-		err = fmt.Errorf("illegal tagImpl value, value:%s", val)
+		err = fmt.Errorf("illegal tagVal value, value:%s", val)
 		return
 	}
 
-	ret = &tagImpl{tagImpl: val}
+	ret = &tagImpl{tagVal: val}
 	return
 }
 
 // GetName Name
 func (s *tagImpl) GetName() (ret string) {
-	items := strings.Split(s.tagImpl, " ")
+	items := strings.Split(s.tagVal, " ")
 	ret = items[0]
 
 	return
 }
 
 func (s *tagImpl) IsPrimaryKey() (ret bool) {
-	items := strings.Split(s.tagImpl, " ")
+	items := strings.Split(s.tagVal, " ")
 	if len(items) <= 1 {
 		return false
 	}
@@ -55,7 +55,7 @@ func (s *tagImpl) IsPrimaryKey() (ret bool) {
 
 // IsAutoIncrement IsAutoIncrement
 func (s *tagImpl) IsAutoIncrement() (ret bool) {
-	items := strings.Split(s.tagImpl, " ")
+	items := strings.Split(s.tagVal, " ")
 	if len(items) <= 1 {
 		return false
 	}
@@ -79,7 +79,7 @@ func (s *tagImpl) IsAutoIncrement() (ret bool) {
 }
 
 func (s *tagImpl) copy() (ret *tagImpl) {
-	ret = &tagImpl{tagImpl: s.tagImpl}
+	ret = &tagImpl{tagVal: s.tagVal}
 	return
 }
 

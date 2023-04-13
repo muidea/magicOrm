@@ -10,7 +10,7 @@ import (
 )
 
 type typeImpl struct {
-	typeImpl reflect.Type
+	typeVal reflect.Type
 }
 
 func getValueType(val reflect.Value) (ret *typeImpl, err error) {
@@ -34,7 +34,7 @@ func newType(val reflect.Type) (ret *typeImpl, err error) {
 		return
 	}
 
-	ret = &typeImpl{typeImpl: val}
+	ret = &typeImpl{typeVal: val}
 	return
 }
 
@@ -73,7 +73,7 @@ func (s *typeImpl) GetPkgKey() string {
 }
 
 func (s *typeImpl) IsPtrType() bool {
-	return s.typeImpl.Kind() == reflect.Ptr
+	return s.typeVal.Kind() == reflect.Ptr
 }
 
 func (s *typeImpl) Interface() (ret model.Value, err error) {
@@ -87,10 +87,10 @@ func (s *typeImpl) Interface() (ret model.Value, err error) {
 func (s *typeImpl) Elem() model.Type {
 	tType := s.getType()
 	if tType.Kind() == reflect.Slice {
-		return &typeImpl{typeImpl: tType.Elem()}
+		return &typeImpl{typeVal: tType.Elem()}
 	}
 
-	return &typeImpl{typeImpl: s.typeImpl}
+	return &typeImpl{typeVal: s.typeVal}
 }
 
 func (s *typeImpl) IsBasic() bool {
@@ -100,16 +100,16 @@ func (s *typeImpl) IsBasic() bool {
 }
 
 func (s *typeImpl) getType() reflect.Type {
-	if s.typeImpl.Kind() == reflect.Ptr {
-		return s.typeImpl.Elem()
+	if s.typeVal.Kind() == reflect.Ptr {
+		return s.typeVal.Elem()
 	}
 
-	return s.typeImpl
+	return s.typeVal
 }
 
 func (s *typeImpl) copy() (ret *typeImpl) {
 	ret = &typeImpl{
-		typeImpl: s.typeImpl,
+		typeVal: s.typeVal,
 	}
 
 	return

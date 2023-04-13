@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"reflect"
 
+	log "github.com/cihub/seelog"
+
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
-
-	log "github.com/cihub/seelog"
 )
 
 // field single field impl
@@ -112,29 +112,30 @@ func (s *field) dump() string {
 }
 
 func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Value) (ret *field, err error) {
-	typeImpl, typeErr := newType(fieldType.Type)
+	typePtr, typeErr := newType(fieldType.Type)
 	if typeErr != nil {
 		err = typeErr
 		return
 	}
 
-	tagImpl, tagErr := newTag(fieldType.Tag.Get("orm"))
+	tagPtr, tagErr := newTag(fieldType.Tag.Get("orm"))
 	if tagErr != nil {
 		err = tagErr
 		return
 	}
 
-	valueImpl := newValue(fieldValue)
+	valuePtr := newValue(fieldValue)
 
 	field := &field{}
 	field.index = idx
 	field.name = fieldType.Name
-	field.typePtr = typeImpl
-	field.tagPtr = tagImpl
-	field.valuePtr = valueImpl
+	field.typePtr = typePtr
+	field.tagPtr = tagPtr
+	field.valuePtr = valuePtr
 
 	err = field.verify()
 	if err != nil {
+		log.Errorf("illegal field info, err:%s", err.Error())
 		return
 	}
 
