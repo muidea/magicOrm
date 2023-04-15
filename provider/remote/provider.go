@@ -60,6 +60,15 @@ func GetEntityType(entity interface{}) (ret model.Type, err error) {
 		return
 	}
 
+	filterPtr, ok := entity.(*ObjectFilter)
+	if ok {
+		impl := &TypeImpl{Name: filterPtr.GetName(), Value: util.TypeStructField, PkgPath: filterPtr.GetPkgPath(), IsPtr: true}
+		impl.ElemType = &TypeImpl{Name: filterPtr.GetName(), Value: util.TypeStructField, PkgPath: filterPtr.GetPkgPath(), IsPtr: true}
+
+		ret = impl
+		return
+	}
+
 	typeImpl, typeErr := newType(reflect.TypeOf(entity))
 	if typeErr != nil {
 		err = typeErr
@@ -91,12 +100,45 @@ func GetEntityModel(entity interface{}) (ret model.Model, err error) {
 	return
 }
 
+func setFieldValue(iVal reflect.Value, vModel model.Model) (err error) {
+	iName := iVal.FieldByName("Name").String()
+	iValue := iVal.FieldByName("Value")
+	if iValue.Kind() == reflect.Interface {
+		iValue = iValue.Elem()
+	}
+
+	vField := vModel.GetField(iName)
+	if util.IsNil(iValue) {
+		vField.SetValue(nilValue)
+		return
+	}
+
+	vType := vField.GetType()
+	if vType.IsBasic() {
+		vValue, vErr := _helper.Decode(iValue.Interface(), vField.GetType())
+		if vErr != nil {
+			err = vErr
+			return
+		}
+
+		err = vField.SetValue(vValue)
+		if err != nil {
+			return
+		}
+		return
+	}
+
+	vValue := newValue(iValue)
+	err = vField.SetValue(vValue)
+	return
+}
+
 func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err error) {
 	rVal := vVal.Get()
 	nameVal := rVal.FieldByName("Name")
 	pkgVal := rVal.FieldByName("PkgPath")
 	itemsVal := rVal.FieldByName("Items")
-	if util.IsNil(nameVal) || util.IsNil(pkgVal) || util.IsNil(itemsVal) {
+	if util.IsNil(nameVal) || util.IsNil(pkgVal) {
 		err = fmt.Errorf("illegal model value")
 		return
 	}
@@ -105,41 +147,13 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 		return
 	}
 
-	for idx := 0; idx < itemsVal.Len(); idx++ {
-		iVal := reflect.Indirect(itemsVal.Index(idx))
-
-		iName := iVal.FieldByName("Name").String()
-		iValue := iVal.FieldByName("Value")
-		if iValue.Kind() == reflect.Interface {
-			iValue = iValue.Elem()
-		}
-
-		vField := vModel.GetField(iName)
-		if util.IsNil(iValue) {
-			vField.SetValue(nilValue)
-			continue
-		}
-
-		vType := vField.GetType()
-		if vType.IsBasic() {
-			vValue, vErr := _helper.Decode(iValue.Interface(), vField.GetType())
-			if vErr != nil {
-				err = vErr
-				return
-			}
-
-			err = vField.SetValue(vValue)
+	if !util.IsNil(itemsVal) {
+		for idx := 0; idx < itemsVal.Len(); idx++ {
+			iVal := reflect.Indirect(itemsVal.Index(idx))
+			err = setFieldValue(iVal, vModel)
 			if err != nil {
 				return
 			}
-
-			continue
-		}
-
-		vValue := newValue(iValue)
-		err = vField.SetValue(vValue)
-		if err != nil {
-			return
 		}
 	}
 

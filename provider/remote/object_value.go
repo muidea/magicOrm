@@ -146,7 +146,6 @@ func (s *SliceObjectValue) IsPtrValue() bool {
 	return s.IsPtr
 }
 
-// IsElemPtr isPtrValue
 func (s *SliceObjectValue) IsElemPtrValue() bool {
 	return s.IsElemPtr
 }
