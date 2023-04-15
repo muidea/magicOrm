@@ -4,16 +4,9 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *impl) queryBatch(elemModel model.Model, filter model.Filter) (ret []model.Model, err error) {
-	var maskModel model.Model
-	if filter != nil {
-		maskModel = filter.MaskModel()
-	}
-	if maskModel == nil {
-		maskModel = elemModel
-	}
-
-	queryValueList, queryErr := s.innerQuery(maskModel, filter)
+func (s *impl) queryBatch(vFilter model.Filter) (ret []model.Model, err error) {
+	vModel := vFilter.MaskModel()
+	queryValueList, queryErr := s.innerQuery(vModel, vFilter)
 	if queryErr != nil {
 		err = queryErr
 		return
@@ -21,7 +14,7 @@ func (s *impl) queryBatch(elemModel model.Model, filter model.Filter) (ret []mod
 
 	sliceValue := []model.Model{}
 	for idx := 0; idx < len(queryValueList); idx++ {
-		modelVal, modelErr := s.assignSingleModel(maskModel.Copy(), queryValueList[idx], 0)
+		modelVal, modelErr := s.assignSingleModel(vModel.Copy(), queryValueList[idx], 0)
 		if modelErr != nil {
 			err = modelErr
 			return
@@ -35,8 +28,8 @@ func (s *impl) queryBatch(elemModel model.Model, filter model.Filter) (ret []mod
 }
 
 // BatchQuery batch query
-func (s *impl) BatchQuery(entityModel model.Model, filter model.Filter) (ret []model.Model, err error) {
-	queryVal, queryErr := s.queryBatch(entityModel, filter)
+func (s *impl) BatchQuery(filter model.Filter) (ret []model.Model, err error) {
+	queryVal, queryErr := s.queryBatch(filter)
 	if queryErr != nil {
 		err = queryErr
 		return

@@ -1,20 +1,12 @@
 package model
 
-// Field Field
 type Field interface {
-	//@GetIndex Index
 	GetIndex() int
-	//@GetName Name
 	GetName() string
-	//@GetType Type
 	GetType() Type
-	//@GetTag Tag
 	GetTag() Tag
-	//@GetValue Value
 	GetValue() Value
-	//@SetValue 更新值
 	SetValue(val Value) error
-	//@IsPrimary 是否主键
 	IsPrimary() bool
 }
 

@@ -37,7 +37,6 @@ func (s *impl) updateRelation(modelInfo model.Model, fieldInfo model.Field) (err
 	return
 }
 
-// Update update
 func (s *impl) Update(entityModel model.Model) (ret model.Model, err error) {
 	err = s.executor.BeginTransaction()
 	if err != nil {

@@ -85,7 +85,6 @@ func (s *impl) batchCreateSchema(modelInfo model.Model) (err error) {
 	return
 }
 
-// Create create
 func (s *impl) Create(entityModel model.Model) (err error) {
 	err = s.executor.BeginTransaction()
 	if err != nil {

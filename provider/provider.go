@@ -160,7 +160,6 @@ func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err 
 	return
 }
 
-// GetValueModel GetValueModel
 func (s *providerImpl) GetValueModel(vVal model.Value, vType model.Type) (ret model.Model, err error) {
 	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
 	if typeModel == nil {
@@ -176,7 +175,6 @@ func (s *providerImpl) GetValueModel(vVal model.Value, vType model.Type) (ret mo
 	return
 }
 
-// GetTypeModel GetTypeModel
 func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err error) {
 	if vType.IsBasic() {
 		return
@@ -192,11 +190,10 @@ func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err erro
 		return
 	}
 
-	ret = typeModel
+	ret = typeModel.Copy()
 	return
 }
 
-// GetValueStr GetValueStr
 func (s *providerImpl) EncodeValue(vVal model.Value, vType model.Type) (ret interface{}, err error) {
 	ret, err = s.encodeValueFunc(vVal, vType, s.modelCache)
 	return
@@ -207,7 +204,6 @@ func (s *providerImpl) DecodeValue(vVal interface{}, vType model.Type) (ret mode
 	return
 }
 
-// GetValueDepend GetEntityValue depend values
 func (s *providerImpl) ElemDependValue(val model.Value) (ret []model.Value, err error) {
 	ret, err = s.elemDependValueFunc(val)
 	return

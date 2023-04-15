@@ -19,8 +19,8 @@ type Orm interface {
 	Update(entity model.Model) (model.Model, error)
 	Delete(entity model.Model) (model.Model, error)
 	Query(entity model.Model) (model.Model, error)
-	Count(entity model.Model, filter model.Filter) (int64, error)
-	BatchQuery(entity model.Model, filter model.Filter) ([]model.Model, error)
+	Count(filter model.Filter) (int64, error)
+	BatchQuery(filter model.Filter) ([]model.Model, error)
 	BeginTransaction() error
 	CommitTransaction() error
 	RollbackTransaction() error
@@ -122,7 +122,10 @@ func GetOrm(provider provider.Provider) (ret Orm, err error) {
 }
 
 func GetFilter(provider provider.Provider) model.Filter {
-	return &queryFilter{params: map[string]model.FilterItem{}, modelProvider: provider}
+	return &queryFilter{
+		params:        map[string]model.FilterItem{},
+		modelProvider: provider,
+	}
 }
 
 // impl orm

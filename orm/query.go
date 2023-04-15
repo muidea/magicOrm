@@ -263,7 +263,6 @@ func (s *impl) queryRelation(modelInfo model.Model, fieldInfo model.Field, deepL
 	return
 }
 
-// Query query
 func (s *impl) Query(entityModel model.Model) (ret model.Model, err error) {
 	entityFilter, entityErr := s.getModelFilter(entityModel)
 	if entityErr != nil {

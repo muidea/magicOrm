@@ -20,10 +20,10 @@ func (s *filterItem) OprValue() model.Value {
 	return s.oprValue
 }
 
-// queryFilter queryFilter
 type queryFilter struct {
+	bindModel     model.Model
 	params        map[string]model.FilterItem
-	maskValue     model.Model
+	maskModel     model.Model
 	pageFilter    *util.Pagination
 	sortFilter    *util.SortFilter
 	modelProvider provider.Provider
@@ -148,7 +148,7 @@ func (s *queryFilter) ValueMask(val interface{}) (err error) {
 		return
 	}
 
-	s.maskValue = vModel
+	s.maskModel = vModel
 	return
 }
 
@@ -189,7 +189,7 @@ func (s *queryFilter) Pagination() (limit, offset int, paging bool) {
 }
 
 func (s *queryFilter) MaskModel() (ret model.Model) {
-	ret = s.maskValue
+	ret = s.maskModel
 	return
 }
 

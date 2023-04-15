@@ -1,6 +1,5 @@
 package model
 
-// Type Type
 type Type interface {
 	GetName() string
 	GetValue() int

@@ -7,9 +7,9 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *impl) queryCount(modelInfo model.Model, filter model.Filter) (ret int64, err error) {
-	builder := builder.NewBuilder(modelInfo, s.modelProvider)
-	sqlStr, sqlErr := builder.BuildCount(filter)
+func (s *impl) queryCount(vFilter model.Filter) (ret int64, err error) {
+	builder := builder.NewBuilder(vFilter.MaskModel(), s.modelProvider)
+	sqlStr, sqlErr := builder.BuildCount(vFilter)
 	if sqlErr != nil {
 		err = sqlErr
 		return
@@ -34,9 +34,8 @@ func (s *impl) queryCount(modelInfo model.Model, filter model.Filter) (ret int64
 	return
 }
 
-// Count count entity
-func (s *impl) Count(entityModel model.Model, filter model.Filter) (ret int64, err error) {
-	queryVal, queryErr := s.queryCount(entityModel, filter)
+func (s *impl) Count(vFilter model.Filter) (ret int64, err error) {
+	queryVal, queryErr := s.queryCount(vFilter)
 	if queryErr != nil {
 		err = queryErr
 		return

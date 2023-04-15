@@ -1,6 +1,5 @@
 package model
 
-// Model Model
 type Model interface {
 	GetName() string
 	GetPkgPath() string
