@@ -584,7 +584,9 @@ func TestLocalQuery(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", cErr.Error())
 		return
 	}
-	cModelList, cModelErr := o1.BatchQuery(cModel, nil)
+
+	filter := orm.GetFilter(cModel, localProvider)
+	cModelList, cModelErr := o1.BatchQuery(filter)
 	if cModelErr != nil {
 		t.Errorf("batch query compose failed, err:%s", cModelErr.Error())
 		return
@@ -595,10 +597,9 @@ func TestLocalQuery(t *testing.T) {
 	}
 
 	cList = []*Compose{}
-	filter := orm.GetFilter(localProvider)
 	filter.Equal("name", c2.Name)
 	filter.ValueMask(&Compose{R3: &Simple{}})
-	cModelList, cModelErr = o1.BatchQuery(cModel, filter)
+	cModelList, cModelErr = o1.BatchQuery(filter)
 	if cModelErr != nil {
 		t.Errorf("batch query compose failed, err:%s", cModelErr.Error())
 		return

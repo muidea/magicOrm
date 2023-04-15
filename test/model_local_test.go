@@ -634,7 +634,7 @@ func TestLocalBatchQuery(t *testing.T) {
 	}
 
 	valueMask := User{Status: &Status{}}
-	filter := orm.GetFilter(provider)
+	filter := orm.GetFilter(user1Model, provider)
 	filter.Equal("name", &user1.Name)
 	filter.In("group", user1.Group)
 	filter.Like("email", user1.EMail)
@@ -644,7 +644,7 @@ func TestLocalBatchQuery(t *testing.T) {
 	pageFilter := &util.Pagination{PageNum: 0, PageSize: 100}
 	filter.Page(pageFilter)
 
-	userModelList, userModelErr := o1.BatchQuery(user1Model, filter)
+	userModelList, userModelErr := o1.BatchQuery(filter)
 	if userModelErr != nil {
 		err = userModelErr
 		t.Errorf("batch query user failed, err:%s", err.Error())

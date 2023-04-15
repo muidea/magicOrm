@@ -387,7 +387,7 @@ func TestComposeLocal(t *testing.T) {
 		return
 	}
 
-	filter := orm.GetFilter(localProvider)
+	filter := orm.GetFilter(bqModel, localProvider)
 	filter.Equal("name", "hi")
 	filter.ValueMask(&Compose{
 		R3:           &Simple{},
@@ -400,7 +400,7 @@ func TestComposeLocal(t *testing.T) {
 		PtrRefArray:  &[]*Reference{},
 		PtrCompose:   &Compose{},
 	})
-	bqModelList, bqModelErr := o1.BatchQuery(bqModel, filter)
+	bqModelList, bqModelErr := o1.BatchQuery(filter)
 	if bqModelErr != nil {
 		t.Errorf("BatchQuery failed, err:%s", bqModelErr.Error())
 		return
@@ -645,7 +645,7 @@ func TestComposeRemote(t *testing.T) {
 		return
 	}
 
-	filter := orm.GetFilter(remoteProvider)
+	filter := orm.GetFilter(bqModel, remoteProvider)
 	filter.Equal("name", "hi")
 	filter.ValueMask(&Compose{
 		R3:           &Simple{},
@@ -658,7 +658,7 @@ func TestComposeRemote(t *testing.T) {
 		PtrRefArray:  &[]*Reference{},
 		PtrCompose:   &Compose{},
 	})
-	bqModelList, bqModelErr := o1.BatchQuery(bqModel, filter)
+	bqModelList, bqModelErr := o1.BatchQuery(filter)
 	if bqModelErr != nil {
 		t.Errorf("BatchQuery failed, err:%s", bqModelErr.Error())
 		return

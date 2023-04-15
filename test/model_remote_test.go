@@ -1033,15 +1033,6 @@ func TestRemoteBatchQuery(t *testing.T) {
 	}
 
 	userList := &[]User{}
-	filter := orm.GetFilter(remoteProvider)
-	filter.Equal("name", &user1.Name)
-	filter.In("group", groupListVal)
-	filter.Like("email", user1.EMail)
-	filter.ValueMask(maskVal)
-
-	pageFilter := &util.Pagination{PageNum: 0, PageSize: 100}
-	filter.Page(pageFilter)
-
 	userListVal, objErr := getSliceObjectValue(userList)
 	if objErr != nil {
 		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
@@ -1052,7 +1043,9 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", userListErr.Error())
 		return
 	}
-	userModelList, userModelErr := o1.BatchQuery(userListModel, nil)
+
+	filter := orm.GetFilter(userListModel, remoteProvider)
+	userModelList, userModelErr := o1.BatchQuery(filter)
 	if userModelErr != nil {
 		err = userModelErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
@@ -1071,7 +1064,14 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	userModelList, userModelErr = o1.BatchQuery(userListModel, filter)
+	filter.Equal("name", &user1.Name)
+	filter.In("group", groupListVal)
+	filter.Like("email", user1.EMail)
+	filter.ValueMask(maskVal)
+
+	pageFilter := &util.Pagination{PageNum: 0, PageSize: 100}
+	filter.Page(pageFilter)
+	userModelList, userModelErr = o1.BatchQuery(filter)
 	if userModelErr != nil {
 		err = userModelErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
@@ -1089,15 +1089,16 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	filter2 := orm.GetFilter(remoteProvider)
-	filter2.In("group", groupListVal)
 	userList = &[]User{}
 	userListVal, objErr = getSliceObjectValue(userList)
 	if objErr != nil {
 		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	userModelList, userModelErr = o1.BatchQuery(userListModel, filter2)
+
+	filter2 := orm.GetFilter(userListModel, remoteProvider)
+	filter2.In("group", groupListVal)
+	userModelList, userModelErr = o1.BatchQuery(filter2)
 	if userModelErr != nil {
 		err = userModelErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
@@ -1338,15 +1339,6 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	}
 
 	userList := &[]*User{}
-	filter := orm.GetFilter(remoteProvider)
-	filter.Equal("name", &user1.Name)
-	filter.In("group", groupListVal)
-	filter.Like("email", user1.EMail)
-	filter.ValueMask(maskVal)
-
-	pageFilter := &util.Pagination{PageNum: 0, PageSize: 100}
-	filter.Page(pageFilter)
-
 	userListVal, objErr := getSliceObjectPtrValue(userList)
 	if objErr != nil {
 		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
@@ -1357,7 +1349,11 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", userListErr.Error())
 		return
 	}
-	userModelList, userModelErr := o1.BatchQuery(userListModel, nil)
+
+	filter := orm.GetFilter(userListModel, remoteProvider)
+	pageFilter := &util.Pagination{PageNum: 0, PageSize: 100}
+	filter.Page(pageFilter)
+	userModelList, userModelErr := o1.BatchQuery(filter)
 	if userModelErr != nil {
 		err = userModelErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
@@ -1376,7 +1372,12 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
-	userModelList, userModelErr = o1.BatchQuery(userListModel, filter)
+	filter.Equal("name", &user1.Name)
+	filter.In("group", groupListVal)
+	filter.Like("email", user1.EMail)
+	filter.ValueMask(maskVal)
+
+	userModelList, userModelErr = o1.BatchQuery(filter)
 	if userModelErr != nil {
 		err = userModelErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
@@ -1394,7 +1395,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
-	filter2 := orm.GetFilter(remoteProvider)
+	filter2 := orm.GetFilter(userListModel, remoteProvider)
 	filter2.In("group", groupListVal)
 	userList = &[]*User{}
 	userListVal, objErr = getSliceObjectPtrValue(userList)
@@ -1402,7 +1403,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	userModelList, userModelErr = o1.BatchQuery(userListModel, filter2)
+	userModelList, userModelErr = o1.BatchQuery(filter2)
 	if userModelErr != nil {
 		err = userModelErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
@@ -1587,10 +1588,10 @@ func TestPolicy(t *testing.T) {
 		return
 	}
 
-	filter := orm.GetFilter(remoteProvider)
+	filter := orm.GetFilter(cListModel, remoteProvider)
 	filter.Equal("status", statusValue)
 	filter.ValueMask(maskVal)
-	cModelList, cModelErr := o1.BatchQuery(cListModel, filter)
+	cModelList, cModelErr := o1.BatchQuery(filter)
 	if cModelErr != nil {
 		t.Errorf("batch query compose failed, err:%s", cModelErr.Error())
 		return

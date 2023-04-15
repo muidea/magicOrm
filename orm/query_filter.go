@@ -189,7 +189,12 @@ func (s *queryFilter) Pagination() (limit, offset int, paging bool) {
 }
 
 func (s *queryFilter) MaskModel() (ret model.Model) {
-	ret = s.maskModel
+	if s.maskModel != nil {
+		ret = s.maskModel
+		return
+	}
+
+	ret = s.bindModel
 	return
 }
 

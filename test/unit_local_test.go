@@ -77,7 +77,8 @@ func TestLocalExecutor(t *testing.T) {
 		return
 	}
 
-	_, countErr := o1.Count(obj2Model, nil)
+	filter := orm.GetFilter(objModel, provider)
+	_, countErr := o1.Count(filter)
 	if countErr != nil {
 		t.Errorf("count object failed, err:%s", countErr.Error())
 		return

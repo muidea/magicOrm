@@ -189,10 +189,10 @@ func TestReferenceLocal(t *testing.T) {
 	strArray2 := []string{}
 	ptrStrArray := []*string{}
 
-	filter := orm.GetFilter(localProvider)
+	filter := orm.GetFilter(bqModel, localProvider)
 	filter.Equal("name", "hi")
 	filter.ValueMask(&Reference{FValue: &fVal, TimeStamp: &ts2, Flag: &flag2, PtrArray: &strArray2, PtrStrArray: &ptrStrArray})
-	bqModelList, bqModelErr := o1.BatchQuery(bqModel, filter)
+	bqModelList, bqModelErr := o1.BatchQuery(filter)
 	if bqModelErr != nil {
 		t.Errorf("BatchQuery failed, err:%s", bqModelErr.Error())
 		return
@@ -441,11 +441,11 @@ func TestReferenceRemote(t *testing.T) {
 	strArray2 := []string{}
 	ptrStrArray := []*string{}
 
-	filter := orm.GetFilter(remoteProvider)
+	filter := orm.GetFilter(bqModel, remoteProvider)
 	filter.Equal("name", "hi")
 	filter.ValueMask(&Reference{FValue: &fVal, TimeStamp: &ts2, Flag: &flag2, PtrArray: &strArray2, PtrStrArray: &ptrStrArray})
 	filter.Like("strArray", "Abc")
-	bqModelList, bqModelErr := o1.BatchQuery(bqModel, filter)
+	bqModelList, bqModelErr := o1.BatchQuery(filter)
 	if bqModelErr != nil {
 		t.Errorf("BatchQuery failed, err:%s", bqModelErr.Error())
 		return
