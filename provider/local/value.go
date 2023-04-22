@@ -22,29 +22,40 @@ func (s *valueImpl) IsNil() (ret bool) {
 }
 
 func (s *valueImpl) Set(val reflect.Value) (err error) {
-	val = reflect.Indirect(val)
-	if val.Kind() == reflect.Interface {
-		val = val.Elem()
-		val = reflect.Indirect(val)
+	rVal := reflect.Indirect(val)
+	if rVal.Kind() == reflect.Interface {
+		rVal = rVal.Elem()
+		rVal = reflect.Indirect(rVal)
 	}
 
-	if util.IsNil(s.value) {
-		s.value = val
+	if util.IsNil(s.value) || util.IsNil(rVal) {
+		s.value = rVal
 		return
 	}
 
-	s.value.Set(val)
+	s.value.Set(rVal)
 	return
 }
 
-func (s *valueImpl) Get() (ret reflect.Value) {
-	ret = s.value
-	return
+func (s *valueImpl) Get() reflect.Value {
+	return s.value
 }
 
 func (s *valueImpl) Addr() model.Value {
+	if !s.value.CanAddr() {
+		panic("illegal value")
+	}
+
 	impl := &valueImpl{value: s.value.Addr()}
 	return impl
+}
+
+func (s *valueImpl) Interface() any {
+	if util.IsNil(s.value) {
+		return nil
+	}
+
+	return s.value.Interface()
 }
 
 func (s *valueImpl) IsBasic() bool {
@@ -52,11 +63,15 @@ func (s *valueImpl) IsBasic() bool {
 		return false
 	}
 
-	trueType := s.value.Type()
+	rType := s.value.Type()
 	if s.value.Kind() == reflect.Interface {
-		trueType = s.value.Elem().Type()
+		rType = s.value.Elem().Type()
 	}
-	return !util.IsStruct(trueType)
+	if util.IsSlice(rType) {
+		rType = rType.Elem()
+	}
+
+	return !util.IsStruct(rType)
 }
 
 func (s *valueImpl) copy() (ret *valueImpl) {

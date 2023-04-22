@@ -53,7 +53,7 @@ func (s *impl) decodeDateTime(val interface{}, tType model.Type) (ret model.Valu
 		return
 	}
 
-	tVal, _ := tType.Interface()
+	tVal := tType.Interface()
 	switch tVal.Get().Kind() {
 	case reflect.Struct:
 		if dtVal == "" {

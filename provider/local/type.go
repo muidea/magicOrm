@@ -23,7 +23,6 @@ func getValueType(val reflect.Value) (ret *typeImpl, err error) {
 	return
 }
 
-// newType newType
 func newType(val reflect.Type) (ret *typeImpl, err error) {
 	rawType := val
 	if rawType.Kind() == reflect.Ptr {
@@ -76,7 +75,7 @@ func (s *typeImpl) IsPtrType() bool {
 	return s.typeVal.Kind() == reflect.Ptr
 }
 
-func (s *typeImpl) Interface() (ret model.Value, err error) {
+func (s *typeImpl) Interface() (ret model.Value) {
 	tType := s.getType()
 	tVal := reflect.New(tType).Elem()
 

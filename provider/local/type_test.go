@@ -21,7 +21,7 @@ func TestIntType(t *testing.T) {
 		return
 	}
 
-	nVal, _ := iType.Interface()
+	nVal := iType.Interface()
 	newVal := nVal.Get()
 	riType, riErr := newType(newVal.Type())
 	if riErr != nil {
@@ -60,7 +60,7 @@ func TestFloatType(t *testing.T) {
 		return
 	}
 
-	nVal, _ := fType.Interface()
+	nVal := fType.Interface()
 	newVal := nVal.Get()
 	rfType, rfErr := newType(newVal.Type())
 	if rfErr != nil {
@@ -99,7 +99,7 @@ func TestBoolType(t *testing.T) {
 		return
 	}
 
-	nVal, _ := bType.Interface()
+	nVal := bType.Interface()
 	newVal := nVal.Get()
 	rbType, rbErr := newType(newVal.Type())
 	if rbErr != nil {
@@ -138,7 +138,7 @@ func TestStringType(t *testing.T) {
 		return
 	}
 
-	nVal, _ := strType.Interface()
+	nVal := strType.Interface()
 	newVal := nVal.Get()
 	rstrType, rstrErr := newType(newVal.Type())
 	if rstrErr != nil {
@@ -177,7 +177,7 @@ func TestDateTimeType(t *testing.T) {
 		return
 	}
 
-	nVal, _ := dtType.Interface()
+	nVal := dtType.Interface()
 	newVal := nVal.Get()
 	rdtType, rdtErr := newType(newVal.Type())
 	if rdtErr != nil {
@@ -220,7 +220,7 @@ func TestStructType(t *testing.T) {
 		return
 	}
 
-	nVal, _ := structType.Interface()
+	nVal := structType.Interface()
 	newVal := nVal.Get()
 	rstructType, rstructErr := newType(newVal.Type())
 	if rstructErr != nil {
@@ -264,7 +264,7 @@ func TestSliceType(t *testing.T) {
 		return
 	}
 
-	nVal, _ := sliceType.Interface()
+	nVal := sliceType.Interface()
 	newVal := nVal.Get()
 	rsliceType, rsliceErr := newType(newVal.Type())
 	if rsliceErr != nil {
@@ -340,7 +340,7 @@ func TestPtrSliceType(t *testing.T) {
 		return
 	}
 
-	nVal, _ := sliceType.Interface()
+	nVal := sliceType.Interface()
 	newVal := nVal.Get()
 	rsliceType, rsliceErr := newType(newVal.Type())
 	if rsliceErr != nil {
@@ -419,7 +419,7 @@ func TestSliceStructType(t *testing.T) {
 		return
 	}
 
-	nVal, _ := sliceType.Interface()
+	nVal := sliceType.Interface()
 	newVal := nVal.Get()
 	rsliceType, rsliceErr := newType(newVal.Type())
 	if rsliceErr != nil {

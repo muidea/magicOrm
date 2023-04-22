@@ -515,9 +515,9 @@ func TestLocalBatchQuery(t *testing.T) {
 	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	provider := provider.NewLocalProvider("default", "abc")
+	localProvider := provider.NewLocalProvider("default", "abc")
 
-	o1, err := orm.NewOrm(provider, config)
+	o1, err := orm.NewOrm(localProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -532,9 +532,9 @@ func TestLocalBatchQuery(t *testing.T) {
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
 	objList := []interface{}{&Group{}, &User{}, &Status{}}
-	registerModel(provider, objList)
+	registerModel(localProvider, objList)
 
-	statusModel, statusErr := provider.GetEntityModel(status)
+	statusModel, statusErr := localProvider.GetEntityModel(status)
 	if statusErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", statusErr.Error())
 		return
@@ -558,7 +558,7 @@ func TestLocalBatchQuery(t *testing.T) {
 	}
 	status = statusModel.Interface(true).(*Status)
 
-	group1Model, group1Err := provider.GetEntityModel(group1)
+	group1Model, group1Err := localProvider.GetEntityModel(group1)
 	if group1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", group1Err.Error())
 		return
@@ -581,7 +581,7 @@ func TestLocalBatchQuery(t *testing.T) {
 	}
 	group1 = group1Model.Interface(true).(*Group)
 
-	group2Model, group2Err := provider.GetEntityModel(group2)
+	group2Model, group2Err := localProvider.GetEntityModel(group2)
 	if group2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", group2Err.Error())
 		return
@@ -597,7 +597,7 @@ func TestLocalBatchQuery(t *testing.T) {
 	user1.Group = append(user1.Group, group2)
 	user1.Status = status
 
-	user1Model, user1Err := provider.GetEntityModel(user1)
+	user1Model, user1Err := localProvider.GetEntityModel(user1)
 	if user1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", user1Err.Error())
 		return
@@ -622,7 +622,7 @@ func TestLocalBatchQuery(t *testing.T) {
 	}
 	user1 = user1Model.Interface(true).(*User)
 
-	user2Model, user2Err := provider.GetEntityModel(user2)
+	user2Model, user2Err := localProvider.GetEntityModel(user2)
 	if user2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", user2Err.Error())
 		return
@@ -634,7 +634,11 @@ func TestLocalBatchQuery(t *testing.T) {
 	}
 
 	valueMask := User{Status: &Status{}}
-	filter := orm.GetFilter(user1Model, provider)
+	filter, err := localProvider.GetEntityFilter(&User{})
+	if err != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
+		return
+	}
 	filter.Equal("name", &user1.Name)
 	filter.In("group", user1.Group)
 	filter.Like("email", user1.EMail)

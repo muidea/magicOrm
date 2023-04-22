@@ -2,101 +2,54 @@ package remote
 
 import (
 	"fmt"
-	"net/http"
 	"reflect"
 	"time"
 
 	"github.com/muidea/magicCommon/foundation/util"
+	om "github.com/muidea/magicOrm/model"
 	ou "github.com/muidea/magicOrm/util"
 )
 
-// ObjectFilter value filter
+type filterItem struct {
+	oprCode om.OprCode
+	value   *valueImpl
+}
+
+func (s *filterItem) OprCode() om.OprCode {
+	return s.oprCode
+}
+
+func (s *filterItem) OprValue() om.Value {
+	return s.value
+}
+
 type ObjectFilter struct {
 	Name           string           `json:"name"`
 	PkgPath        string           `json:"pkgPath"`
-	EqualFilter    []*ItemValue     `json:"equal"`
-	NotEqualFilter []*ItemValue     `json:"noEqual"`
-	BelowFilter    []*ItemValue     `json:"below"`
-	AboveFilter    []*ItemValue     `json:"above"`
-	InFilter       []*ItemValue     `json:"in"`
-	NotInFilter    []*ItemValue     `json:"notIn"`
-	LikeFilter     []*ItemValue     `json:"like"`
+	EqualFilter    []*FieldValue    `json:"equal"`
+	NotEqualFilter []*FieldValue    `json:"noEqual"`
+	BelowFilter    []*FieldValue    `json:"below"`
+	AboveFilter    []*FieldValue    `json:"above"`
+	InFilter       []*FieldValue    `json:"in"`
+	NotInFilter    []*FieldValue    `json:"notIn"`
+	LikeFilter     []*FieldValue    `json:"like"`
 	MaskValue      *ObjectValue     `json:"maskValue"`
 	PageFilter     *util.Pagination `json:"page"`
 	SortFilter     *util.SortFilter `json:"sort"`
 }
 
-// NewFilter new query filter
-func NewFilter() *ObjectFilter {
+func NewFilter(name, pkgPath string) *ObjectFilter {
 	return &ObjectFilter{
-		EqualFilter:    []*ItemValue{},
-		NotEqualFilter: []*ItemValue{},
-		BelowFilter:    []*ItemValue{},
-		AboveFilter:    []*ItemValue{},
-		InFilter:       []*ItemValue{},
-		NotInFilter:    []*ItemValue{},
-		LikeFilter:     []*ItemValue{},
+		Name:           name,
+		PkgPath:        pkgPath,
+		EqualFilter:    []*FieldValue{},
+		NotEqualFilter: []*FieldValue{},
+		BelowFilter:    []*FieldValue{},
+		AboveFilter:    []*FieldValue{},
+		InFilter:       []*FieldValue{},
+		NotInFilter:    []*FieldValue{},
+		LikeFilter:     []*FieldValue{},
 	}
-}
-
-func (s *ObjectFilter) FromHttpRequest(req *http.Request) {
-	filter := util.NewFilter()
-	filter.Decode(req)
-
-	s.FromContentFilter(filter)
-}
-
-func (s *ObjectFilter) FromContentFilter(filter *util.ContentFilter) {
-	if filter == nil {
-		return
-	}
-
-	if filter.ParamItems != nil {
-		for k, _ := range filter.ParamItems.Items {
-			val := filter.ParamItems.GetEqual(k)
-			if val != nil {
-				s.Equal(k, val)
-				continue
-			}
-			val = filter.ParamItems.GetNotEqual(k)
-			if val != nil {
-				s.NotEqual(k, val)
-				continue
-			}
-			val = filter.ParamItems.GetBelow(k)
-			if val != nil {
-				s.Below(k, val)
-				continue
-			}
-			val = filter.ParamItems.GetAbove(k)
-			if val != nil {
-				s.Above(k, val)
-				continue
-			}
-			val = filter.ParamItems.GetIn(k)
-			if val != nil {
-				s.In(k, val)
-				continue
-			}
-			val = filter.ParamItems.GetNotIn(k)
-			if val != nil {
-				s.NotIn(k, val)
-				continue
-			}
-			val = filter.ParamItems.GetLike(k)
-			if val != nil {
-				s.Like(k, val)
-				continue
-			}
-		}
-	}
-
-	if filter.Pagination != nil {
-		s.PageFilter = filter.Pagination
-		return
-	}
-
-	s.PageFilter = util.DefaultPagination()
 }
 
 func (s *ObjectFilter) GetName() string {
@@ -135,15 +88,6 @@ func (s *ObjectFilter) GetInt(key string) (ret int, ok bool) {
 	return
 }
 
-func (s *ObjectFilter) Pagination(pageFilter *util.Pagination) {
-	if pageFilter == nil {
-		return
-	}
-
-	s.PageFilter = pageFilter
-}
-
-// Equal assign equal filter value
 func (s *ObjectFilter) Equal(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	qvType, qvErr := ou.GetTypeEnum(qv.Type())
@@ -161,7 +105,7 @@ func (s *ObjectFilter) Equal(key string, val interface{}) (err error) {
 	}
 
 	if ou.IsBasicType(qvType) {
-		item := &ItemValue{Name: key, Value: val}
+		item := &FieldValue{Name: key, Value: val}
 		s.EqualFilter = append(s.EqualFilter, item)
 		return
 	}
@@ -173,7 +117,7 @@ func (s *ObjectFilter) Equal(key string, val interface{}) (err error) {
 			return
 		}
 
-		item := &ItemValue{Name: key, Value: mVal}
+		item := &FieldValue{Name: key, Value: mVal}
 		s.EqualFilter = append(s.EqualFilter, item)
 		return
 	}
@@ -184,13 +128,12 @@ func (s *ObjectFilter) Equal(key string, val interface{}) (err error) {
 		return
 	}
 
-	item := &ItemValue{Name: key, Value: objVal}
+	item := &FieldValue{Name: key, Value: objVal}
 	s.EqualFilter = append(s.EqualFilter, item)
 
 	return
 }
 
-// NotEqual  assign no equal filter value
 func (s *ObjectFilter) NotEqual(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	qvType, qvErr := ou.GetTypeEnum(qv.Type())
@@ -208,7 +151,7 @@ func (s *ObjectFilter) NotEqual(key string, val interface{}) (err error) {
 	}
 
 	if ou.IsBasicType(qvType) {
-		item := &ItemValue{Name: key, Value: val}
+		item := &FieldValue{Name: key, Value: val}
 		s.NotEqualFilter = append(s.NotEqualFilter, item)
 		return
 	}
@@ -219,12 +162,11 @@ func (s *ObjectFilter) NotEqual(key string, val interface{}) (err error) {
 		return
 	}
 
-	item := &ItemValue{Name: key, Value: objVal}
+	item := &FieldValue{Name: key, Value: objVal}
 	s.NotEqualFilter = append(s.NotEqualFilter, item)
 	return nil
 }
 
-// Below assign below filter value
 func (s *ObjectFilter) Below(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	qvType, qvErr := ou.GetTypeEnum(qv.Type())
@@ -241,13 +183,12 @@ func (s *ObjectFilter) Below(key string, val interface{}) (err error) {
 		val = qv.Interface().(time.Time).Format(util.CSTLayout)
 	}
 
-	item := &ItemValue{Name: key, Value: val}
+	item := &FieldValue{Name: key, Value: val}
 	s.BelowFilter = append(s.BelowFilter, item)
 
 	return nil
 }
 
-// Above assign above filter value
 func (s *ObjectFilter) Above(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	qvType, qvErr := ou.GetTypeEnum(qv.Type())
@@ -264,7 +205,7 @@ func (s *ObjectFilter) Above(key string, val interface{}) (err error) {
 		val = qv.Interface().(time.Time).Format("2006-01-02 15:04:05")
 	}
 
-	item := &ItemValue{Name: key, Value: val}
+	item := &FieldValue{Name: key, Value: val}
 	s.AboveFilter = append(s.AboveFilter, item)
 
 	return nil
@@ -307,7 +248,7 @@ func (s *ObjectFilter) getSliceValue(sliceVal interface{}) (ret interface{}, err
 	for idx := 0; idx < sliceReVal.Len(); idx++ {
 		subV := reflect.Indirect(sliceReVal.Index(idx))
 		if ou.TypeDateTimeField == subType {
-			dtVal := subV.Interface().(time.Time).Format("2006-01-02 15:04:05")
+			dtVal := subV.Interface().(time.Time).Format(util.CSTLayout)
 			retVal = append(retVal, dtVal)
 
 			continue
@@ -320,7 +261,6 @@ func (s *ObjectFilter) getSliceValue(sliceVal interface{}) (ret interface{}, err
 	return
 }
 
-// In assign in filter value
 func (s *ObjectFilter) In(key string, val interface{}) (err error) {
 	sliceVal, sliceErr := s.getSliceValue(val)
 	if sliceErr != nil {
@@ -328,13 +268,12 @@ func (s *ObjectFilter) In(key string, val interface{}) (err error) {
 		return
 	}
 
-	item := &ItemValue{Name: key, Value: sliceVal}
+	item := &FieldValue{Name: key, Value: sliceVal}
 	s.InFilter = append(s.InFilter, item)
 
 	return
 }
 
-// NotIn assign notIn filter value
 func (s *ObjectFilter) NotIn(key string, val interface{}) (err error) {
 	sliceVal, sliceErr := s.getSliceValue(val)
 	if sliceErr != nil {
@@ -342,13 +281,12 @@ func (s *ObjectFilter) NotIn(key string, val interface{}) (err error) {
 		return
 	}
 
-	item := &ItemValue{Name: key, Value: sliceVal}
+	item := &FieldValue{Name: key, Value: sliceVal}
 	s.NotInFilter = append(s.NotInFilter, item)
 
 	return nil
 }
 
-// Like assign like filter value
 func (s *ObjectFilter) Like(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	if qv.Kind() != reflect.String {
@@ -356,24 +294,21 @@ func (s *ObjectFilter) Like(key string, val interface{}) (err error) {
 		return
 	}
 
-	item := &ItemValue{Name: key, Value: val}
+	item := &FieldValue{Name: key, Value: val}
 	s.LikeFilter = append(s.LikeFilter, item)
 
 	return nil
 }
 
-func (s *ObjectFilter) ValueMask(val interface{}) (err error) {
-	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ou.GetTypeEnum(qv.Type())
-	if qvErr != nil {
-		err = qvErr
-		return
-	}
-	if !ou.IsStructType(qvType) {
-		err = fmt.Errorf("illegal mask value, type:%s", qv.Type().String())
-		return
-	}
+func (s *ObjectFilter) Page(filter *util.Pagination) {
+	s.PageFilter = filter
+}
 
+func (s *ObjectFilter) Sort(sorter *util.SortFilter) {
+	s.SortFilter = sorter
+}
+
+func (s *ObjectFilter) ValueMask(val interface{}) (err error) {
 	objVal, objErr := GetObjectValue(val)
 	if objErr != nil {
 		err = objErr
@@ -384,10 +319,108 @@ func (s *ObjectFilter) ValueMask(val interface{}) (err error) {
 	return
 }
 
-func (s *ObjectFilter) Page(filter *util.Pagination) {
-	s.PageFilter = filter
+func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
+	itemVal, itemErr := s.getFilterValue(key, s.EqualFilter)
+	if itemErr != nil {
+		return nil
+	}
+	if itemVal != nil {
+		return &filterItem{oprCode: om.Equal, value: newValue(itemVal.Get())}
+	}
+
+	itemVal, itemErr = s.getFilterValue(key, s.NotEqualFilter)
+	if itemErr != nil {
+		return nil
+	}
+	if itemVal != nil {
+		return &filterItem{oprCode: om.NotEqual, value: newValue(itemVal.Get())}
+	}
+
+	itemVal, itemErr = s.getFilterValue(key, s.BelowFilter)
+	if itemErr != nil {
+		return nil
+	}
+	if itemVal != nil {
+		return &filterItem{oprCode: om.Below, value: newValue(itemVal.Get())}
+	}
+
+	itemVal, itemErr = s.getFilterValue(key, s.AboveFilter)
+	if itemErr != nil {
+		return nil
+	}
+	if itemVal != nil {
+		return &filterItem{oprCode: om.Above, value: newValue(itemVal.Get())}
+	}
+
+	itemVal, itemErr = s.getFilterValue(key, s.InFilter)
+	if itemErr != nil {
+		return nil
+	}
+	if itemVal != nil {
+		return &filterItem{oprCode: om.In, value: newValue(itemVal.Get())}
+	}
+
+	itemVal, itemErr = s.getFilterValue(key, s.NotInFilter)
+	if itemErr != nil {
+		return nil
+	}
+	if itemVal != nil {
+		return &filterItem{oprCode: om.NotIn, value: newValue(itemVal.Get())}
+	}
+
+	itemVal, itemErr = s.getFilterValue(key, s.LikeFilter)
+	if itemErr != nil {
+		return nil
+	}
+	if itemVal != nil {
+		return &filterItem{oprCode: om.Like, value: newValue(itemVal.Get())}
+	}
+
+	return nil
 }
 
-func (s *ObjectFilter) Sort(sorter *util.SortFilter) {
-	s.SortFilter = sorter
+func (s *ObjectFilter) getFilterValue(key string, items []*FieldValue) (ret *FieldValue, err error) {
+	for _, val := range items {
+		if key == val.Name {
+			ret = val
+			break
+		}
+	}
+
+	if ret != nil {
+		ret, err = ConvertItem(ret)
+	}
+	return
+}
+
+func (s *ObjectFilter) Pagination() (limit, offset int, paging bool) {
+	paging = false
+	if s.PageFilter == nil {
+		return
+	}
+
+	paging = true
+	limit = s.PageFilter.PageSize
+	offset = s.PageFilter.PageSize * (s.PageFilter.PageNum - 1)
+	if offset < 0 {
+		offset = 0
+	}
+	if limit <= 0 {
+		limit = 100
+	}
+
+	return
+}
+
+func (s *ObjectFilter) Sorter() om.Sorter {
+	if s.SortFilter == nil {
+		return nil
+	}
+
+	return s.SortFilter
+}
+
+func (s *ObjectFilter) MaskModel() om.Model {
+
+	return nil
 }

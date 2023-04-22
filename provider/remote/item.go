@@ -9,36 +9,31 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-// Item Item
-type Item struct {
+type Field struct {
 	Index int    `json:"index"`
 	Name  string `json:"name"`
 
-	Tag   *TagImpl  `json:"tag"`
 	Type  *TypeImpl `json:"type"`
-	value *ValueImpl
+	Tag   *TagImpl  `json:"tag"`
+	value *valueImpl
 }
 
-// GetIndex GetIndex
-func (s *Item) GetIndex() (ret int) {
+func (s *Field) GetIndex() (ret int) {
 	return s.Index
 }
 
-// GetName GetName
-func (s *Item) GetName() string {
+func (s *Field) GetName() string {
 	return s.Name
 }
 
-// GetEntityType GetEntityType
-func (s *Item) GetType() (ret model.Type) {
+func (s *Field) GetType() (ret model.Type) {
 	if s.Type != nil {
 		ret = s.Type
 	}
 	return
 }
 
-// GetTag GetTag
-func (s *Item) GetTag() (ret model.Tag) {
+func (s *Field) GetTag() (ret model.Tag) {
 	if s.Tag != nil {
 		ret = s.Tag
 	}
@@ -46,24 +41,21 @@ func (s *Item) GetTag() (ret model.Tag) {
 	return
 }
 
-// GetEntityValue GetEntityValue
-func (s *Item) GetValue() (ret model.Value) {
+func (s *Field) GetValue() (ret model.Value) {
 	if s.value != nil {
 		ret = s.value
 		return
 	}
 
-	ret, _ = s.Type.Interface()
+	ret = s.Type.Interface()
 	return
 }
 
-// IsPrimary IsPrimary
-func (s *Item) IsPrimary() bool {
+func (s *Field) IsPrimary() bool {
 	return s.Tag.IsPrimaryKey()
 }
 
-// SetValue SetValue
-func (s *Item) SetValue(val model.Value) (err error) {
+func (s *Field) SetValue(val model.Value) (err error) {
 	if s.value != nil {
 		err = s.value.Set(val.Get())
 		if err != nil {
@@ -72,27 +64,26 @@ func (s *Item) SetValue(val model.Value) (err error) {
 		return
 	}
 
-	initVal, _ := s.Type.Interface()
+	initVal := s.Type.Interface()
 	initVal.Set(val.Get())
-	s.value = &ValueImpl{value: initVal.Get()}
+	s.value = &valueImpl{value: initVal.Get()}
 	return
 }
 
-// copy copy
-func (s *Item) copy() (ret model.Field) {
-	return &Item{Index: s.Index, Name: s.Name, Tag: s.Tag, Type: s.Type, value: s.value}
+func (s *Field) copy() (ret model.Field) {
+	return &Field{Index: s.Index, Name: s.Name, Tag: s.Tag, Type: s.Type, value: s.value}
 }
 
-func (s *Item) dump() string {
+func (s *Field) dump() string {
 	str := fmt.Sprintf("index:%d,name:%s,type:[%s],tag:[%s]", s.Index, s.Name, s.Type.dump(), s.Tag.dump())
 	if s.value != nil {
-		str = fmt.Sprintf("%s,value:%v", str, s.value.Get().Interface())
+		str = fmt.Sprintf("%s,value:%v", str, s.value.Interface())
 	}
 
 	return str
 }
 
-func getItemInfo(idx int, fieldType reflect.StructField) (ret *Item, err error) {
+func getItemInfo(idx int, fieldType reflect.StructField) (ret *Field, err error) {
 	typeImpl, typeErr := newType(fieldType.Type)
 	if typeErr != nil {
 		err = typeErr
@@ -105,9 +96,9 @@ func getItemInfo(idx int, fieldType reflect.StructField) (ret *Item, err error) 
 		return
 	}
 
-	initVal, _ := typeImpl.Interface()
+	initVal := typeImpl.Interface()
 
-	item := &Item{}
+	item := &Field{}
 	item.Index = idx
 	item.Name = fieldType.Name
 	item.Type = typeImpl
@@ -118,7 +109,7 @@ func getItemInfo(idx int, fieldType reflect.StructField) (ret *Item, err error) 
 	return
 }
 
-func compareItem(l, r *Item) bool {
+func compareItem(l, r *Field) bool {
 	if l.Index != r.Index {
 		return false
 	}

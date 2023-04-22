@@ -10,27 +10,24 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
-// modelImpl single model
-type modelImpl struct {
-	modelType reflect.Type
-	fields    []*field
+type objectImpl struct {
+	objectType reflect.Type
+	fields     []*field
 }
 
-func (s *modelImpl) GetName() string {
-	return s.modelType.Name()
+func (s *objectImpl) GetName() string {
+	return s.objectType.Name()
 }
 
-// GetPkgPath GetPkgPath
-func (s *modelImpl) GetPkgPath() string {
-	return s.modelType.PkgPath()
+func (s *objectImpl) GetPkgPath() string {
+	return s.objectType.PkgPath()
 }
 
-func (s *modelImpl) GetPkgKey() string {
+func (s *objectImpl) GetPkgKey() string {
 	return path.Join(s.GetPkgPath(), s.GetName())
 }
 
-// GetFields GetFields
-func (s *modelImpl) GetFields() (ret model.Fields) {
+func (s *objectImpl) GetFields() (ret model.Fields) {
 	for _, field := range s.fields {
 		ret = append(ret, field)
 	}
@@ -38,8 +35,7 @@ func (s *modelImpl) GetFields() (ret model.Fields) {
 	return
 }
 
-// SetFieldValue SetFieldValue
-func (s *modelImpl) SetFieldValue(name string, val model.Value) (err error) {
+func (s *objectImpl) SetFieldValue(name string, val model.Value) (err error) {
 	for _, field := range s.fields {
 		if field.GetName() == name {
 			err = field.SetValue(val)
@@ -51,8 +47,7 @@ func (s *modelImpl) SetFieldValue(name string, val model.Value) (err error) {
 	return
 }
 
-// GetPrimaryField GetPrimaryField
-func (s *modelImpl) GetPrimaryField() (ret model.Field) {
+func (s *objectImpl) GetPrimaryField() (ret model.Field) {
 	for _, field := range s.fields {
 		if field.IsPrimary() {
 			ret = field
@@ -63,7 +58,7 @@ func (s *modelImpl) GetPrimaryField() (ret model.Field) {
 	return
 }
 
-func (s *modelImpl) GetField(name string) (ret model.Field) {
+func (s *objectImpl) GetField(name string) (ret model.Field) {
 	for _, field := range s.fields {
 		if field.GetName() == name {
 			ret = field
@@ -74,8 +69,8 @@ func (s *modelImpl) GetField(name string) (ret model.Field) {
 	return
 }
 
-func (s *modelImpl) Interface(ptrValue bool) (ret interface{}) {
-	retVal := reflect.New(s.modelType).Elem()
+func (s *objectImpl) Interface(ptrValue bool) (ret interface{}) {
+	retVal := reflect.New(s.objectType).Elem()
 
 	for _, field := range s.fields {
 		tVal := field.GetValue()
@@ -100,17 +95,16 @@ func (s *modelImpl) Interface(ptrValue bool) (ret interface{}) {
 	return
 }
 
-func (s *modelImpl) Copy() model.Model {
-	modelInfo := &modelImpl{modelType: s.modelType, fields: []*field{}}
+func (s *objectImpl) Copy() model.Model {
+	objectPtr := &objectImpl{objectType: s.objectType, fields: []*field{}}
 	for _, field := range s.fields {
-		modelInfo.fields = append(modelInfo.fields, field.copy())
+		objectPtr.fields = append(objectPtr.fields, field.copy())
 	}
 
-	return modelInfo
+	return objectPtr
 }
 
-// Dump Dump
-func (s *modelImpl) Dump() (ret string) {
+func (s *objectImpl) Dump() (ret string) {
 	ret = fmt.Sprintf("\nmodelImpl:\n")
 	ret = fmt.Sprintf("%s\tname:%s, pkgPath:%s\n", ret, s.GetName(), s.GetPkgPath())
 
@@ -122,7 +116,7 @@ func (s *modelImpl) Dump() (ret string) {
 	return
 }
 
-func getTypeModel(entityType reflect.Type) (ret *modelImpl, err error) {
+func getTypeModel(entityType reflect.Type) (ret *objectImpl, err error) {
 	if entityType.Kind() == reflect.Ptr {
 		entityType = entityType.Elem()
 	}
@@ -144,7 +138,7 @@ func getTypeModel(entityType reflect.Type) (ret *modelImpl, err error) {
 	}
 
 	hasPrimaryKey := false
-	impl := &modelImpl{modelType: entityType, fields: make([]*field, 0)}
+	impl := &objectImpl{objectType: entityType, fields: make([]*field, 0)}
 	fieldNum := entityType.NumField()
 	var fieldValue reflect.Value
 	for idx := 0; idx < fieldNum; idx++ {
@@ -181,12 +175,11 @@ func getTypeModel(entityType reflect.Type) (ret *modelImpl, err error) {
 	return
 }
 
-// getValueModel getValueModel
-func getValueModel(modelVal reflect.Value) (ret *modelImpl, err error) {
+func getValueModel(modelVal reflect.Value) (ret *objectImpl, err error) {
 	hasPrimaryKey := false
 	modelVal = reflect.Indirect(modelVal)
 	entityType := modelVal.Type()
-	impl := &modelImpl{modelType: entityType, fields: make([]*field, 0)}
+	impl := &objectImpl{objectType: entityType, fields: make([]*field, 0)}
 	fieldNum := entityType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		fieldVal := modelVal.Field(idx)

@@ -65,7 +65,7 @@ func (s *impl) decodeBool(val interface{}, tType model.Type) (ret model.Value, e
 		return
 	}
 
-	tVal, _ := tType.Interface()
+	tVal := tType.Interface()
 	switch tVal.Get().Kind() {
 	case reflect.Bool:
 		tVal.Get().SetBool(bVal > 0)

@@ -1,76 +1,140 @@
 package remote
 
 import (
+	"reflect"
+
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
-	"reflect"
 )
 
-// ValueImpl ValueImpl
-type ValueImpl struct {
-	value reflect.Value
+type FieldValue struct {
+	Name  string `json:"name"`
+	Value any    `json:"value"`
 }
 
-func newValue(val reflect.Value) (ret *ValueImpl) {
-	ret = &ValueImpl{value: reflect.Indirect(val)}
-	return
+func (s *FieldValue) IsNil() bool {
+	return s.Value == nil
 }
 
-// IsNil IsNil
-func (s *ValueImpl) IsNil() (ret bool) {
-	ret = util.IsNil(s.value)
-
-	return
+func (s *FieldValue) Set(val reflect.Value) error {
+	s.Value = val.Interface()
+	return nil
 }
 
-// Set Set
-func (s *ValueImpl) Set(val reflect.Value) (err error) {
-	val = reflect.Indirect(val)
-	if val.Kind() == reflect.Interface {
-		val = val.Elem()
-		val = reflect.Indirect(val)
-	}
-
-	if util.IsNil(s.value) || util.IsNil(val) {
-		s.value = val
-		return
-	}
-
-	s.value.Set(val)
-	return
+func (s *FieldValue) Get() reflect.Value {
+	return reflect.ValueOf(s.Value)
 }
 
-// Get Get
-func (s *ValueImpl) Get() (ret reflect.Value) {
-	ret = s.value
-	return
-}
-
-func (s *ValueImpl) Addr() model.Value {
-	impl := &ValueImpl{value: s.value.Addr()}
+func (s *FieldValue) Addr() model.Value {
+	impl := &FieldValue{Value: &s.Value}
 	return impl
 }
 
-func (s *ValueImpl) IsBasic() bool {
+func (s *FieldValue) Interface() any {
+	return s.Value
+}
+
+func (s *FieldValue) IsBasic() bool {
+	if s.Value == nil {
+		return false
+	}
+
+	rValue := reflect.ValueOf(s.Value)
+	if rValue.Kind() == reflect.Interface {
+		rValue = rValue.Elem()
+	}
+	rType := rValue.Type()
+	if util.IsSlice(rType) {
+		rType = rType.Elem()
+	}
+
+	return !util.IsStruct(rType)
+}
+
+func (s *FieldValue) copy() (ret *FieldValue) {
+	if s.Value == nil {
+		ret = &FieldValue{}
+		return
+	}
+
+	ret = &FieldValue{Value: s.Value}
+	return
+}
+
+type valueImpl struct {
+	value reflect.Value
+}
+
+func newValue(val reflect.Value) (ret *valueImpl) {
+	ret = &valueImpl{value: reflect.Indirect(val)}
+	return
+}
+
+func (s *valueImpl) IsNil() (ret bool) {
+	ret = util.IsNil(s.value)
+	return
+}
+
+func (s *valueImpl) Set(val reflect.Value) (err error) {
+	rVal := reflect.Indirect(val)
+	if rVal.Kind() == reflect.Interface {
+		rVal = rVal.Elem()
+		rVal = reflect.Indirect(rVal)
+	}
+
+	if util.IsNil(s.value) || util.IsNil(rVal) {
+		s.value = rVal
+		return
+	}
+
+	s.value.Set(rVal)
+	return
+}
+
+func (s *valueImpl) Get() reflect.Value {
+	return s.value
+}
+
+func (s *valueImpl) Addr() model.Value {
+	if !s.value.CanAddr() {
+		panic("illegal value")
+	}
+
+	impl := &valueImpl{value: s.value.Addr()}
+	return impl
+}
+
+func (s *valueImpl) Interface() any {
+	if util.IsNil(s.value) {
+		return nil
+	}
+
+	return s.value.Interface()
+}
+
+func (s *valueImpl) IsBasic() bool {
 	if util.IsNil(s.value) {
 		return false
 	}
 
-	trueType := s.value.Type()
+	rType := s.value.Type()
 	if s.value.Kind() == reflect.Interface {
-		trueType = s.value.Elem().Type()
+		rType = s.value.Elem().Type()
 	}
-	return !util.IsStruct(trueType)
+	if util.IsSlice(rType) {
+		rType = rType.Elem()
+	}
+
+	return !util.IsStruct(rType)
 }
 
-// Copy Copy
-func (s *ValueImpl) copy() (ret *ValueImpl) {
+func (s *valueImpl) copy() (ret *valueImpl) {
 	if !util.IsNil(s.value) {
-		ret = &ValueImpl{value: reflect.New(s.value.Type()).Elem()}
+		ret = &valueImpl{value: reflect.New(s.value.Type()).Elem()}
 		ret.value.Set(s.value)
 		return
 	}
 
-	ret = &ValueImpl{}
+	ret = &valueImpl{}
 	return
 }

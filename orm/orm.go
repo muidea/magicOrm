@@ -121,14 +121,6 @@ func GetOrm(provider provider.Provider) (ret Orm, err error) {
 	return
 }
 
-func GetFilter(vModel model.Model, provider provider.Provider) model.Filter {
-	return &queryFilter{
-		bindModel:     vModel,
-		params:        map[string]model.FilterItem{},
-		modelProvider: provider,
-	}
-}
-
 // impl orm
 type impl struct {
 	executor      executor.Executor

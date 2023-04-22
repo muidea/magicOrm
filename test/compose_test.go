@@ -380,14 +380,12 @@ func TestComposeLocal(t *testing.T) {
 		}
 	}
 
-	bqValList := []*Compose{}
-	bqModel, bqErr := localProvider.GetEntityModel(&bqValList)
-	if bqErr != nil {
-		t.Errorf("GetEntityModel failed, err:%s", bqErr.Error())
+	filter, err := localProvider.GetEntityFilter(&Compose{})
+	if err != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
 	}
 
-	filter := orm.GetFilter(bqModel, localProvider)
 	filter.Equal("name", "hi")
 	filter.ValueMask(&Compose{
 		R3:           &Simple{},
@@ -639,13 +637,12 @@ func TestComposeRemote(t *testing.T) {
 		t.Errorf("GetSliceObjectValue failed, err:%s", bqSliceErr.Error())
 		return
 	}
-	bqModel, bqErr := remoteProvider.GetEntityModel(bqSliceObject)
-	if bqErr != nil {
-		t.Errorf("GetEntityModel failed, err:%s", bqErr.Error())
+	filter, err := remoteProvider.GetEntityFilter(bqSliceObject)
+	if err != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
 	}
 
-	filter := orm.GetFilter(bqModel, remoteProvider)
 	filter.Equal("name", "hi")
 	filter.ValueMask(&Compose{
 		R3:           &Simple{},

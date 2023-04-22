@@ -43,7 +43,7 @@ func TestValue(t *testing.T) {
 		return
 	}
 
-	valueErr := value2Ptr.Set(iReflect)
+	valueErr := value2Ptr.Set(valuePtr.Get())
 	if valueErr != nil {
 		t.Errorf("set failed, err:%s", valueErr.Error())
 		return

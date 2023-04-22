@@ -16,7 +16,7 @@ var nilValue model.Value
 func init() {
 	_helper = helper.New(ElemDependValue)
 
-	nilValue = &ValueImpl{}
+	nilValue = &valueImpl{}
 }
 
 func isRemoteType(vType model.Type) bool {
@@ -100,6 +100,16 @@ func GetEntityModel(entity interface{}) (ret model.Model, err error) {
 	return
 }
 
+func GetTypeFilter(vType model.Type) (ret model.Filter, err error) {
+	if !util.IsStructType(vType.GetValue()) {
+		err = fmt.Errorf("illegal type, must be a struct type")
+		return
+	}
+
+	ret = NewFilter(vType.GetName(), vType.GetPkgPath())
+	return
+}
+
 func setFieldValue(iVal reflect.Value, vModel model.Model) (err error) {
 	iName := iVal.FieldByName("Name").String()
 	iValue := iVal.FieldByName("Value")
@@ -137,7 +147,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 	rVal := vVal.Get()
 	nameVal := rVal.FieldByName("Name")
 	pkgVal := rVal.FieldByName("PkgPath")
-	itemsVal := rVal.FieldByName("Items")
+	itemsVal := rVal.FieldByName("Fields")
 	if util.IsNil(nameVal) || util.IsNil(pkgVal) {
 		err = fmt.Errorf("illegal model value")
 		return
@@ -175,7 +185,7 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 	}
 
 	if rVal.Type().String() == reflect.TypeOf(_declareObjectValue).String() {
-		itemsVal := rVal.FieldByName("Items")
+		itemsVal := rVal.FieldByName("Fields")
 		if !util.IsNil(itemsVal) {
 			ret = append(ret, vVal)
 			return
@@ -252,7 +262,7 @@ func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, helper 
 	tType := pkField.GetType()
 	tVal := pkField.GetValue()
 	if tVal.IsNil() {
-		tVal, _ = tType.Interface()
+		tVal = tType.Interface()
 	}
 
 	ret, err = helper.Encode(tVal, tType)

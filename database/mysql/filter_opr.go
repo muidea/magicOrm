@@ -2,7 +2,31 @@ package mysql
 
 import (
 	"fmt"
+	"github.com/muidea/magicOrm/model"
 )
+
+type OprFunc func(string, interface{}) string
+
+func getOprFunc(filterItem model.FilterItem) (ret OprFunc) {
+	switch filterItem.OprCode() {
+	case model.Equal:
+		return EqualOpr
+	case model.NotEqual:
+		return NotEqualOpr
+	case model.Below:
+		return BelowOpr
+	case model.Above:
+		return AboveOpr
+	case model.In:
+		return InOpr
+	case model.NotIn:
+		return NotInOpr
+	case model.Like:
+		return LikeOpr
+	}
+
+	return nil
+}
 
 // EqualOpr Equal Opr
 func EqualOpr(name string, val interface{}) string {

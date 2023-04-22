@@ -11,18 +11,12 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
-// ItemValue item value
-type ItemValue struct {
-	Name  string      `json:"name"`
-	Value interface{} `json:"value"`
-}
-
 // ObjectValue Object value
 type ObjectValue struct {
-	Name    string       `json:"name"`
-	PkgPath string       `json:"pkgPath"`
-	IsPtr   bool         `json:"isPtr"`
-	Items   []*ItemValue `json:"items"`
+	Name    string        `json:"name"`
+	PkgPath string        `json:"pkgPath"`
+	IsPtr   bool          `json:"isPtr"`
+	Fields  []*FieldValue `json:"fields"`
 }
 
 // SliceObjectValue slice object value
@@ -56,7 +50,7 @@ func (s *ObjectValue) IsPtrValue() bool {
 // IsAssigned is assigned value
 func (s *ObjectValue) IsAssigned() (ret bool) {
 	ret = false
-	for _, val := range s.Items {
+	for _, val := range s.Fields {
 		if val.Value == nil {
 			continue
 		}
@@ -156,9 +150,9 @@ func (s *SliceObjectValue) IsAssigned() (ret bool) {
 	return
 }
 
-func getFieldValue(fieldName string, itemType *TypeImpl, itemValue *ValueImpl) (ret *ItemValue, err error) {
+func getFieldValue(fieldName string, itemType *TypeImpl, itemValue *valueImpl) (ret *FieldValue, err error) {
 	if itemValue.IsNil() {
-		ret = &ItemValue{Name: fieldName, Value: nil}
+		ret = &FieldValue{Name: fieldName, Value: nil}
 		return
 	}
 
@@ -169,7 +163,7 @@ func getFieldValue(fieldName string, itemType *TypeImpl, itemValue *ValueImpl) (
 			return
 		}
 
-		ret = &ItemValue{Name: fieldName, Value: encodeVal}
+		ret = &FieldValue{Name: fieldName, Value: encodeVal}
 		return
 	}
 
@@ -180,14 +174,14 @@ func getFieldValue(fieldName string, itemType *TypeImpl, itemValue *ValueImpl) (
 		return
 	}
 
-	ret = &ItemValue{Name: fieldName, Value: objVal}
+	ret = &FieldValue{Name: fieldName, Value: objVal}
 	return
 }
 
-func getSliceFieldValue(fieldName string, itemType *TypeImpl, itemValue *ValueImpl) (ret *ItemValue, err error) {
-	ret = &ItemValue{Name: fieldName}
+func getSliceFieldValue(fieldName string, itemType *TypeImpl, itemValue *valueImpl) (ret *FieldValue, err error) {
+	ret = &FieldValue{Name: fieldName}
 	if itemValue.IsNil() {
-		ret = &ItemValue{Name: fieldName, Value: nil}
+		ret = &FieldValue{Name: fieldName, Value: nil}
 		return
 	}
 
@@ -199,13 +193,14 @@ func getSliceFieldValue(fieldName string, itemType *TypeImpl, itemValue *ValueIm
 			return
 		}
 
-		ret = &ItemValue{Name: fieldName, Value: encodeVal}
+		ret = &FieldValue{Name: fieldName, Value: encodeVal}
 		return
 	}
 
 	sliceObjectVal := []*ObjectValue{}
-	for idx := 0; idx < itemValue.Get().Len(); idx++ {
-		itemVal := itemValue.Get().Index(idx)
+	rawVal := itemValue.Get()
+	for idx := 0; idx < rawVal.Len(); idx++ {
+		itemVal := rawVal.Index(idx)
 		objVal, objErr := getObjectValue(itemVal)
 		if objErr != nil {
 			err = objErr
@@ -233,7 +228,7 @@ func getObjectValue(entityVal reflect.Value) (ret *ObjectValue, err error) {
 	}
 
 	//!! must be String, not Name
-	ret = &ObjectValue{Name: objType.GetName(), PkgPath: objType.GetPkgPath(), IsPtr: objType.IsPtrType(), Items: []*ItemValue{}}
+	ret = &ObjectValue{Name: objType.GetName(), PkgPath: objType.GetPkgPath(), IsPtr: objType.IsPtrType(), Fields: []*FieldValue{}}
 	fieldNum := entityVal.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		fieldType := entityType.Field(idx)
@@ -253,7 +248,7 @@ func getObjectValue(entityVal reflect.Value) (ret *ObjectValue, err error) {
 				log.Errorf("getFieldValue failed, type%s, err:%s", fieldType.Type.String(), err.Error())
 				return
 			}
-			ret.Items = append(ret.Items, val)
+			ret.Fields = append(ret.Fields, val)
 		} else {
 			val, valErr := getSliceFieldValue(fieldType.Name, itemType, itemValue)
 			if valErr != nil {
@@ -261,7 +256,7 @@ func getObjectValue(entityVal reflect.Value) (ret *ObjectValue, err error) {
 				log.Errorf("getSliceFieldValue failed, type%s, err:%s", fieldType.Type.String(), err.Error())
 				return
 			}
-			ret.Items = append(ret.Items, val)
+			ret.Fields = append(ret.Fields, val)
 		}
 	}
 
@@ -347,7 +342,7 @@ func decodeObjectValueFromMap(mapVal map[string]interface{}) (ret *ObjectValue, 
 	nameVal, nameOK := mapVal["name"]
 	pkgPathVal, pkgPathOK := mapVal["pkgPath"]
 	isPtrVal, isPtrOK := mapVal["isPtr"]
-	itemsVal, itemsOK := mapVal["items"]
+	itemsVal, itemsOK := mapVal["fields"]
 	if !nameOK || !pkgPathOK || !itemsOK || !isPtrOK {
 		err = fmt.Errorf("illegal ObjectValue")
 		return
@@ -357,7 +352,7 @@ func decodeObjectValueFromMap(mapVal map[string]interface{}) (ret *ObjectValue, 
 		return
 	}
 
-	objVal := &ObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), IsPtr: isPtrVal.(bool), Items: []*ItemValue{}}
+	objVal := &ObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), IsPtr: isPtrVal.(bool), Fields: []*FieldValue{}}
 	for _, val := range itemsVal.([]interface{}) {
 		item, itemOK := val.(map[string]interface{})
 		if !itemOK {
@@ -371,7 +366,7 @@ func decodeObjectValueFromMap(mapVal map[string]interface{}) (ret *ObjectValue, 
 			return
 		}
 
-		objVal.Items = append(objVal.Items, itemVal)
+		objVal.Fields = append(objVal.Fields, itemVal)
 	}
 
 	ret = objVal
@@ -415,26 +410,26 @@ func decodeSliceObjectValueFromMap(mapVal map[string]interface{}) (ret *SliceObj
 	return
 }
 
-func decodeItemValue(itemVal map[string]interface{}) (ret *ItemValue, err error) {
+func decodeItemValue(itemVal map[string]interface{}) (ret *FieldValue, err error) {
 	nameVal, nameOK := itemVal["name"]
 	valVal, valOK := itemVal["value"]
 	if !nameOK || !valOK {
 		err = fmt.Errorf("illegal item value")
 	}
 
-	ret = &ItemValue{Name: nameVal.(string), Value: valVal}
+	ret = &FieldValue{Name: nameVal.(string), Value: valVal}
 	ret, err = ConvertItem(ret)
 	return
 }
 
-// ConvertItem convert ItemValue
-func ConvertItem(val *ItemValue) (ret *ItemValue, err error) {
+// ConvertItem convert FieldValue
+func ConvertItem(val *FieldValue) (ret *FieldValue, err error) {
 	objVal, objOK := val.Value.(map[string]interface{})
 	// for struct or slice struct
 	if objOK {
-		_, itemsOK := objVal["items"]
+		_, itemsOK := objVal["fields"]
 		if itemsOK {
-			ret = &ItemValue{Name: val.Name}
+			ret = &FieldValue{Name: val.Name}
 
 			oVal, oErr := decodeObjectValueFromMap(objVal)
 			if oErr != nil {
@@ -448,7 +443,7 @@ func ConvertItem(val *ItemValue) (ret *ItemValue, err error) {
 
 		_, valuesOK := objVal["values"]
 		if valuesOK {
-			ret = &ItemValue{Name: val.Name}
+			ret = &FieldValue{Name: val.Name}
 
 			oVal, oErr := decodeSliceObjectValueFromMap(objVal)
 			if oErr != nil {
@@ -467,7 +462,7 @@ func ConvertItem(val *ItemValue) (ret *ItemValue, err error) {
 	// for basic slice
 	sliceVal, sliceOK := val.Value.([]interface{})
 	if sliceOK {
-		ret = &ItemValue{Name: val.Name, Value: sliceVal}
+		ret = &FieldValue{Name: val.Name, Value: sliceVal}
 		return
 	}
 
@@ -484,8 +479,8 @@ func DecodeObjectValue(data []byte) (ret *ObjectValue, err error) {
 		return
 	}
 
-	for idx := range val.Items {
-		cur := val.Items[idx]
+	for idx := range val.Fields {
+		cur := val.Fields[idx]
 
 		item, itemErr := ConvertItem(cur)
 		if itemErr != nil {
@@ -526,8 +521,8 @@ func DecodeSliceObjectValue(data []byte) (ret *SliceObjectValue, err error) {
 
 // ConvertObjectValue convert object value
 func ConvertObjectValue(objVal *ObjectValue) (ret *ObjectValue, err error) {
-	for idx := range objVal.Items {
-		cur := objVal.Items[idx]
+	for idx := range objVal.Fields {
+		cur := objVal.Fields[idx]
 
 		item, itemErr := ConvertItem(cur)
 		if itemErr != nil {
@@ -560,7 +555,7 @@ func ConvertSliceObjectValue(objVal *SliceObjectValue) (ret *SliceObjectValue, e
 	return
 }
 
-func compareItemValue(l, r *ItemValue) bool {
+func compareItemValue(l, r *FieldValue) bool {
 	if l.Name != r.Name {
 		return false
 	}
@@ -581,13 +576,13 @@ func CompareObjectValue(l, r *ObjectValue) bool {
 		return false
 	}
 
-	if len(l.Items) != len(r.Items) {
+	if len(l.Fields) != len(r.Fields) {
 		return false
 	}
 
-	for idx := 0; idx < len(l.Items); idx++ {
-		lVal := l.Items[idx]
-		rVal := r.Items[idx]
+	for idx := 0; idx < len(l.Fields); idx++ {
+		lVal := l.Fields[idx]
+		rVal := r.Fields[idx]
 		if !compareItemValue(lVal, rVal) {
 			return false
 		}

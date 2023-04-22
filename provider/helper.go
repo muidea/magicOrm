@@ -12,28 +12,28 @@ import (
 )
 
 // UpdateEntity update object value -> entity
-func UpdateEntity(objectValue *remote.ObjectValue, entity interface{}) (err error) {
-	if !objectValue.IsAssigned() {
+func UpdateEntity(remoteValue *remote.ObjectValue, localEntity interface{}) (err error) {
+	if !remoteValue.IsAssigned() {
 		return
 	}
 
-	entityValue := reflect.ValueOf(entity)
+	entityValue := reflect.ValueOf(localEntity)
 	if entityValue.Kind() != reflect.Ptr {
-		err = fmt.Errorf("illegal entity value, must be a pointer entity")
+		err = fmt.Errorf("illegal localEntity value, must be a pointer localEntity")
 		return
 	}
 
 	entityValue = reflect.Indirect(entityValue)
 	if entityValue.Kind() != reflect.Struct {
-		err = fmt.Errorf("illegal entity, must be a struct entity")
+		err = fmt.Errorf("illegal localEntity, must be a struct localEntity")
 		return
 	}
 	if !entityValue.CanSet() {
-		err = fmt.Errorf("illegal entity value, can't be set")
+		err = fmt.Errorf("illegal localEntity value, can't be set")
 		return
 	}
 
-	retVal, retErr := getObjectValue(objectValue, entityValue.Type())
+	retVal, retErr := getObjectValue(remoteValue, entityValue.Type())
 	if retErr != nil {
 		err = retErr
 		return
@@ -138,8 +138,8 @@ func getObjectValue(objectValue *remote.ObjectValue, valueType reflect.Type) (re
 	}
 
 	entityValue := reflect.New(entityType).Elem()
-	items := objectValue.Items
-	fieldNum := len(objectValue.Items)
+	items := objectValue.Fields
+	fieldNum := len(objectValue.Fields)
 	if fieldNum == 0 {
 		return
 	}

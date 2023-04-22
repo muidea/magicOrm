@@ -41,7 +41,7 @@ func (s *impl) decodeFloat(val interface{}, tType model.Type) (ret model.Value, 
 		return
 	}
 
-	tVal, _ := tType.Interface()
+	tVal := tType.Interface()
 	switch tVal.Get().Kind() {
 	case reflect.Float32, reflect.Float64:
 		tVal.Get().SetFloat(fVal)

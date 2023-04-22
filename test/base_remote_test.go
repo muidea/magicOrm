@@ -804,13 +804,12 @@ func TestRemoteQuery(t *testing.T) {
 		t.Errorf("getSliceObjectValue failed, err:%s", cListErr.Error())
 		return
 	}
-	cListModel, cListErr := remoteProvider.GetEntityModel(cListValue)
-	if cListErr != nil {
-		t.Errorf("GetEntityModel failed, err:%s", cListErr.Error())
+	filter, err := remoteProvider.GetEntityFilter(cListValue)
+	if err != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
 	}
 
-	filter := orm.GetFilter(cListModel, remoteProvider)
 	cModelList, cModelErr := o1.BatchQuery(filter)
 	if cModelErr != nil {
 		err = cModelErr

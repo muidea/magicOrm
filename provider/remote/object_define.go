@@ -12,21 +12,18 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
-// Object Object
 type Object struct {
-	Name    string  `json:"name"`
-	PkgPath string  `json:"pkgPath"`
-	IsPtr   bool    `json:"isPtr"`
-	Items   []*Item `json:"items"`
+	Name    string   `json:"name"`
+	PkgPath string   `json:"pkgPath"`
+	IsPtr   bool     `json:"isPtr"`
+	Fields  []*Field `json:"fields"`
 }
 
-// GetName GetName
 func (s *Object) GetName() (ret string) {
 	ret = s.Name
 	return
 }
 
-// GetPkgPath GetPkgPath
 func (s *Object) GetPkgPath() (ret string) {
 	ret = s.PkgPath
 	return
@@ -36,23 +33,20 @@ func (s *Object) GetPkgKey() string {
 	return path.Join(s.GetPkgPath(), s.GetName())
 }
 
-// IsPtrValue isPtrValue
 func (s *Object) IsPtrValue() bool {
 	return s.IsPtr
 }
 
-// GetFields GetFields
 func (s *Object) GetFields() (ret model.Fields) {
-	for _, val := range s.Items {
+	for _, val := range s.Fields {
 		ret = append(ret, val)
 	}
 
 	return
 }
 
-// UpdateFieldValue UpdateFieldValue
 func (s *Object) SetFieldValue(name string, val model.Value) (err error) {
-	for _, item := range s.Items {
+	for _, item := range s.Fields {
 		if item.Name == name {
 			err = item.SetValue(val)
 			if err != nil {
@@ -67,9 +61,8 @@ func (s *Object) SetFieldValue(name string, val model.Value) (err error) {
 	return
 }
 
-// GetPrimaryField GetPrimaryField
 func (s *Object) GetPrimaryField() (ret model.Field) {
-	for _, v := range s.Items {
+	for _, v := range s.Fields {
 		if v.IsPrimary() {
 			ret = v
 			return
@@ -80,7 +73,7 @@ func (s *Object) GetPrimaryField() (ret model.Field) {
 }
 
 func (s *Object) GetField(name string) (ret model.Field) {
-	for _, v := range s.Items {
+	for _, v := range s.Fields {
 		if v.GetName() == name {
 			ret = v
 			return
@@ -90,13 +83,13 @@ func (s *Object) GetField(name string) (ret model.Field) {
 	return
 }
 
-func (s *Object) itemInterface(valPtr *Item) (ret interface{}) {
+func (s *Object) itemInterface(valPtr *Field) (ret interface{}) {
 	rVal := valPtr.value.Get()
 	if !valPtr.Type.IsBasic() {
 		rVal = rVal.Addr()
 		if util.IsStructType(valPtr.Type.GetValue()) {
 			objectVal := rVal.Interface().(*ObjectValue)
-			if len(objectVal.Items) > 0 {
+			if len(objectVal.Fields) > 0 {
 				ret = objectVal
 			}
 		}
@@ -116,16 +109,16 @@ func (s *Object) itemInterface(valPtr *Item) (ret interface{}) {
 
 // Interface object value
 func (s *Object) Interface(ptrValue bool) (ret interface{}) {
-	objVal := &ObjectValue{Name: s.Name, PkgPath: s.PkgPath, Items: []*ItemValue{}}
+	objVal := &ObjectValue{Name: s.Name, PkgPath: s.PkgPath, Fields: []*FieldValue{}}
 
-	for _, v := range s.Items {
+	for _, v := range s.Fields {
 		if v.value.IsNil() {
-			objVal.Items = append(objVal.Items, &ItemValue{Name: v.Name})
+			objVal.Fields = append(objVal.Fields, &FieldValue{Name: v.Name})
 			continue
 		}
 
 		interfaceVal := s.itemInterface(v)
-		objVal.Items = append(objVal.Items, &ItemValue{Name: v.Name, Value: interfaceVal})
+		objVal.Fields = append(objVal.Fields, &FieldValue{Name: v.Name, Value: interfaceVal})
 	}
 
 	if ptrValue {
@@ -139,17 +132,17 @@ func (s *Object) Interface(ptrValue bool) (ret interface{}) {
 
 // Copy Copy
 func (s *Object) Copy() (ret model.Model) {
-	obj := &Object{Name: s.Name, PkgPath: s.PkgPath, Items: []*Item{}}
-	for _, val := range s.Items {
-		item := &Item{Index: val.Index, Name: val.Name, Tag: val.Tag.copy(), Type: val.Type.copy()}
+	obj := &Object{Name: s.Name, PkgPath: s.PkgPath, Fields: []*Field{}}
+	for _, val := range s.Fields {
+		item := &Field{Index: val.Index, Name: val.Name, Tag: val.Tag.copy(), Type: val.Type.copy()}
 		if val.value != nil {
 			item.value = val.value.copy()
 		} else {
-			initVal, _ := val.Type.Interface()
+			initVal := val.Type.Interface()
 			item.value = newValue(initVal.Get())
 		}
 
-		obj.Items = append(obj.Items, item)
+		obj.Fields = append(obj.Fields, item)
 	}
 
 	ret = obj
@@ -161,7 +154,7 @@ func (s *Object) Dump() (ret string) {
 	ret = fmt.Sprintf("%s\tname:%s, pkgPath:%s\n", ret, s.GetName(), s.GetPkgPath())
 
 	ret = fmt.Sprintf("%sfields:\n", ret)
-	for _, field := range s.Items {
+	for _, field := range s.Fields {
 		ret = fmt.Sprintf("%s\t%s\n", ret, field.dump())
 	}
 
@@ -208,7 +201,7 @@ func type2Object(entityType reflect.Type) (ret *Object, err error) {
 	impl.Name = entityType.Name()
 	impl.PkgPath = entityType.PkgPath()
 	impl.IsPtr = isPtr
-	impl.Items = []*Item{}
+	impl.Fields = []*Field{}
 
 	hasPrimaryKey := false
 	fieldNum := entityType.NumField()
@@ -228,10 +221,10 @@ func type2Object(entityType reflect.Type) (ret *Object, err error) {
 			hasPrimaryKey = true
 		}
 
-		impl.Items = append(impl.Items, fItem)
+		impl.Fields = append(impl.Fields, fItem)
 	}
 
-	if len(impl.Items) == 0 {
+	if len(impl.Fields) == 0 {
 		err = fmt.Errorf("no define orm field, struct name:%s", impl.GetName())
 		return
 	}
@@ -270,13 +263,13 @@ func compareObject(l, r *Object) bool {
 		return false
 	}
 
-	if len(l.Items) != len(r.Items) {
+	if len(l.Fields) != len(r.Fields) {
 		return false
 	}
 
-	for idx := 0; idx < len(l.Items); idx++ {
-		lVal := l.Items[idx]
-		rVal := r.Items[idx]
+	for idx := 0; idx < len(l.Fields); idx++ {
+		lVal := l.Fields[idx]
+		rVal := r.Fields[idx]
 		if !compareItem(lVal, rVal) {
 			return false
 		}

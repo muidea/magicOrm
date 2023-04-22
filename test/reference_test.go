@@ -176,20 +176,18 @@ func TestReferenceLocal(t *testing.T) {
 		}
 	}
 
-	bqValList := []*Reference{}
-	bqModel, bqErr := localProvider.GetEntityModel(&bqValList)
-	if bqErr != nil {
-		t.Errorf("GetEntityModel failed, err:%s", bqErr.Error())
-		return
-	}
-
 	var fVal float32
 	var ts2 time.Time
 	var flag2 bool
 	strArray2 := []string{}
 	ptrStrArray := []*string{}
 
-	filter := orm.GetFilter(bqModel, localProvider)
+	filter, err := localProvider.GetEntityFilter(&Reference{})
+	if err != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
+		return
+	}
+
 	filter.Equal("name", "hi")
 	filter.ValueMask(&Reference{FValue: &fVal, TimeStamp: &ts2, Flag: &flag2, PtrArray: &strArray2, PtrStrArray: &ptrStrArray})
 	bqModelList, bqModelErr := o1.BatchQuery(filter)
@@ -429,11 +427,6 @@ func TestReferenceRemote(t *testing.T) {
 		t.Errorf("GetSliceObjectValue failed, err:%s", bqSliceErr.Error())
 		return
 	}
-	bqModel, bqErr := remoteProvider.GetEntityModel(bqSliceObject)
-	if bqErr != nil {
-		t.Errorf("GetEntityModel failed, err:%s", bqErr.Error())
-		return
-	}
 
 	var fVal float32
 	var ts2 time.Time
@@ -441,7 +434,12 @@ func TestReferenceRemote(t *testing.T) {
 	strArray2 := []string{}
 	ptrStrArray := []*string{}
 
-	filter := orm.GetFilter(bqModel, remoteProvider)
+	filter, err := remoteProvider.GetEntityFilter(bqSliceObject)
+	if err != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
+		return
+	}
+
 	filter.Equal("name", "hi")
 	filter.ValueMask(&Reference{FValue: &fVal, TimeStamp: &ts2, Flag: &flag2, PtrArray: &strArray2, PtrStrArray: &ptrStrArray})
 	filter.Like("strArray", "Abc")

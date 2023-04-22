@@ -8,6 +8,7 @@ type Value interface {
 	Set(val reflect.Value) error
 	Get() reflect.Value
 	Addr() Value
+	Interface() any
 	IsBasic() bool
 }
 

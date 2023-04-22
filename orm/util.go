@@ -7,35 +7,12 @@ import (
 )
 
 func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, err error) {
-	filter := &queryFilter{params: map[string]model.FilterItem{}, modelProvider: s.modelProvider}
-
-	for _, field := range vModel.GetFields() {
-		vVal := field.GetValue()
-		vType := field.GetType()
-		if !s.modelProvider.IsAssigned(vVal, vType) {
-			continue
-		}
-
-		if util.IsSliceType(vType.GetValue()) && !vType.IsBasic() {
-			filter.inInternal(field.GetTag().GetName(), vVal)
-			continue
-		}
-
-		filter.equalInternal(field.GetTag().GetName(), vVal)
-	}
-
-	ret = filter
+	ret, err = s.modelProvider.GetEntityFilter(vModel.Interface(true))
 	return
 }
 
 func (s *impl) getFieldFilter(vField model.Field) (ret model.Filter, err error) {
-	filter := &queryFilter{params: map[string]model.FilterItem{}, modelProvider: s.modelProvider}
-	vVal := vField.GetValue()
-	if !vVal.IsNil() {
-		filter.equalInternal(vField.GetTag().GetName(), vField.GetValue())
-	}
-
-	ret = filter
+	ret, err = s.modelProvider.GetTypeFilter(vField.GetType())
 	return
 }
 

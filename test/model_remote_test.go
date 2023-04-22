@@ -1038,13 +1038,12 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	userListModel, userListErr := remoteProvider.GetEntityModel(userListVal)
-	if userListErr != nil {
-		t.Errorf("GetEntityModel failed, err:%s", userListErr.Error())
+	filter, err := remoteProvider.GetEntityFilter(userListVal)
+	if err != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
 	}
 
-	filter := orm.GetFilter(userListModel, remoteProvider)
 	userModelList, userModelErr := o1.BatchQuery(filter)
 	if userModelErr != nil {
 		err = userModelErr
@@ -1096,7 +1095,12 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	filter2 := orm.GetFilter(userListModel, remoteProvider)
+	filter2, err := remoteProvider.GetEntityFilter(groupListVal)
+	if err != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
+		return
+	}
+
 	filter2.In("group", groupListVal)
 	userModelList, userModelErr = o1.BatchQuery(filter2)
 	if userModelErr != nil {
@@ -1344,13 +1348,12 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	userListModel, userListErr := remoteProvider.GetEntityModel(userListVal)
-	if userListErr != nil {
-		t.Errorf("GetEntityModel failed, err:%s", userListErr.Error())
+	filter, err := remoteProvider.GetEntityFilter(userListVal)
+	if err != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
 	}
 
-	filter := orm.GetFilter(userListModel, remoteProvider)
 	pageFilter := &util.Pagination{PageNum: 0, PageSize: 100}
 	filter.Page(pageFilter)
 	userModelList, userModelErr := o1.BatchQuery(filter)
@@ -1395,7 +1398,12 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
-	filter2 := orm.GetFilter(userListModel, remoteProvider)
+	filter2, err := remoteProvider.GetEntityFilter(groupList)
+	if err != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
+		return
+	}
+
 	filter2.In("group", groupListVal)
 	userList = &[]*User{}
 	userListVal, objErr = getSliceObjectPtrValue(userList)
@@ -1564,18 +1572,6 @@ func TestPolicy(t *testing.T) {
 		return
 	}
 
-	cList := []*RewardPolicy{}
-	cListValue, cListErr := remote.GetSliceObjectValue(&cList)
-	if cListErr != nil {
-		t.Errorf("getSliceObjectValue failed, err:%s", cListErr.Error())
-		return
-	}
-	cListModel, cListErr := remoteProvider.GetEntityModel(cListValue)
-	if cListErr != nil {
-		t.Errorf("GetEntityModel failed, err:%s", cListErr.Error())
-		return
-	}
-
 	maskVal, maskErr := remote.GetObjectValue(&RewardPolicy{Status: &Status{}, ValueItem: []ValueItem{}})
 	if maskErr != nil {
 		t.Errorf("getObjectValue failed, err:%s", maskErr.Error())
@@ -1587,8 +1583,12 @@ func TestPolicy(t *testing.T) {
 		t.Errorf("getObjectValue failed, err:%s", statusErr.Error())
 		return
 	}
+	filter, err := remoteProvider.GetEntityFilter(statusValue)
+	if err != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
+		return
+	}
 
-	filter := orm.GetFilter(cListModel, remoteProvider)
 	filter.Equal("status", statusValue)
 	filter.ValueMask(maskVal)
 	cModelList, cModelErr := o1.BatchQuery(filter)

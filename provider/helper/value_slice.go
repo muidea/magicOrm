@@ -53,7 +53,7 @@ func (s *impl) encodeSlice(vVal model.Value, tType model.Type) (ret string, err 
 }
 
 func (s *impl) decodeStringSlice(val string, tType model.Type) (ret model.Value, err error) {
-	tVal, _ := tType.Interface()
+	tVal := tType.Interface()
 	if val != "" {
 		sliceVal := tVal.Get()
 		if val[0] != '[' {
@@ -89,7 +89,7 @@ func (s *impl) decodeStringSlice(val string, tType model.Type) (ret model.Value,
 }
 
 func (s *impl) decodeReflectSlice(val reflect.Value, tType model.Type) (ret model.Value, err error) {
-	tVal, _ := tType.Interface()
+	tVal := tType.Interface()
 	sliceVal := tVal.Get()
 	for idx := 0; idx < val.Len(); idx++ {
 		v := val.Index(idx)

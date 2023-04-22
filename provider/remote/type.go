@@ -9,7 +9,6 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
-// TypeImpl TypeImpl
 type TypeImpl struct {
 	Name     string    `json:"name"`
 	Value    int       `json:"value"`
@@ -18,7 +17,6 @@ type TypeImpl struct {
 	ElemType *TypeImpl `json:"elemType"`
 }
 
-// newType new typeImpl
 func newType(itemType reflect.Type) (ret *TypeImpl, err error) {
 	isPtr := false
 	if itemType.Kind() == reflect.Ptr {
@@ -60,19 +58,16 @@ func newType(itemType reflect.Type) (ret *TypeImpl, err error) {
 	return
 }
 
-// GetName GetName
 func (s *TypeImpl) GetName() (ret string) {
 	ret = s.Name
 	return
 }
 
-// GetEntityValue GetEntityValue
 func (s *TypeImpl) GetValue() (ret int) {
 	ret = s.Value
 	return
 }
 
-// GetPkgPath GetPkgPath
 func (s *TypeImpl) GetPkgPath() (ret string) {
 	ret = s.PkgPath
 	return
@@ -82,20 +77,13 @@ func (s *TypeImpl) GetPkgKey() string {
 	return path.Join(s.GetPkgPath(), s.GetName())
 }
 
-// IsPtrType IsPtrType
 func (s *TypeImpl) IsPtrType() (ret bool) {
 	ret = s.IsPtr
 	return
 }
 
-// Interface Interface
-func (s *TypeImpl) Interface() (ret model.Value, err error) {
-	tVal, tErr := getInitializeValue(s)
-	if tErr != nil {
-		err = tErr
-		return
-	}
-
+func (s *TypeImpl) Interface() (ret model.Value) {
+	tVal := getInitializeValue(s)
 	ret = newValue(tVal)
 	return
 }

@@ -401,13 +401,8 @@ func getType(tType model.Type) (ret reflect.Type, err error) {
 	return
 }
 
-func getInitializeValue(tType model.Type) (ret reflect.Value, err error) {
-	cType, cErr := getType(tType)
-	if cErr != nil {
-		err = cErr
-		return
-	}
-
+func getInitializeValue(tType model.Type) (ret reflect.Value) {
+	cType, _ := getType(tType)
 	if tType.IsPtrType() || !tType.IsBasic() {
 		cType = cType.Elem()
 	}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/muidea/magicOrm/database/mysql"
@@ -22,13 +23,16 @@ var databaseUsername = "root"
 var databasePassword = "rootkit"
 var threadSize = 20
 
-// var itemSize = 18000000
-var itemSize = 1800
+var itemSize = 18000000
 var mode = 3
 var disableStatic = true
 var finishFlag = false
 
 type funcPtr func(executor *mysql.Executor) error
+
+var currentSize atomic.Int64
+
+const truncateSize = 10000000
 
 func main() {
 	flag.StringVar(&databaseServer, "Server", databaseServer, "database server address")
@@ -80,33 +84,26 @@ func main() {
 }
 
 func testDML(wg *sync.WaitGroup, pool *mysql.Pool) {
-	wg.Add(1)
 	pickExecutor(pool, wg, dropSchema)
 
-	wg.Add(1)
 	pickExecutor(pool, wg, createSchema)
 
 	for idx := 0; idx < threadSize; idx++ {
-		wg.Add(1)
 		go pickExecutor(pool, wg, insertValue)
 	}
 }
 
 func testDDL(wg *sync.WaitGroup, pool *mysql.Pool) {
 	if disableStatic {
-		wg.Add(1)
 		pickExecutor(pool, wg, alterSchemaAdd)
 	}
 
-	wg.Add(1)
 	pickExecutor(pool, wg, alterSchemaOlnDDLAdd)
 
 	if disableStatic {
-		wg.Add(1)
 		pickExecutor(pool, wg, alterSchemaDrop)
 	}
 
-	wg.Add(1)
 	pickExecutor(pool, wg, alterSchemaOlnDDLDrop)
 }
 
@@ -127,29 +124,37 @@ func testMonkey(wg *sync.WaitGroup, pool *mysql.Pool) {
 
 func randomDDL(wg *sync.WaitGroup, pool *mysql.Pool) {
 	testDDL(wg, pool)
-	wg.Add(1)
-	pickExecutor(pool, wg, createSchemaDDL)
 
-	wg.Add(1)
+	if currentSize.Load() > truncateSize {
+		pickExecutor(pool, wg, truncateSchema)
+	}
+
+	pickExecutor(pool, wg, specialCheck)
+	pickExecutor(pool, wg, createSchemaDDL)
 	pickExecutor(pool, wg, dropSchemaDDL)
 }
 
 func pickExecutor(pool *mysql.Pool, wg *sync.WaitGroup, fPtr funcPtr) {
-	executorPtr, executorErr := pool.FetchOut()
-	if executorErr != nil {
-		return
-	}
+	var err error
+	func() {
+		wg.Add(1)
+		defer wg.Done()
 
-	if fPtr != nil {
-		err := fPtr(executorPtr)
-		if err != nil {
-			panic(err)
+		executorPtr, executorErr := pool.FetchOut()
+		if executorErr != nil {
+			return
 		}
+
+		if fPtr != nil {
+			err = fPtr(executorPtr)
+		}
+
+		pool.PutIn(executorPtr)
+	}()
+
+	if err != nil {
+		panic(err)
 	}
-
-	pool.PutIn(executorPtr)
-
-	wg.Done()
 }
 
 func createSchema(executor *mysql.Executor) (err error) {
@@ -164,18 +169,41 @@ func dropSchema(executor *mysql.Executor) (err error) {
 	return
 }
 
-func checkSchema(executor *mysql.Executor) (ret bool, err error) {
-	ret, err = executor.CheckTableExist(`Unit`)
+func checkSchema(tableName string, executor *mysql.Executor) (ret bool, err error) {
+	ret, err = executor.CheckTableExist(tableName)
 	return
 }
 
 func insertValue(executor *mysql.Executor) (err error) {
 	sql := "INSERT INTO `Unit` (`i8`,`i16`,`i32`,`i64`,`name`,`value`,`f64`,`ts`,`flag`,`iArray`,`fArray`,`strArray`) VALUES (8,1600,323200,78962222222,'Hello world',12.345600128173828,12.45678,'2018-01-02 15:04:05',1,'12','12.34','abcdef')"
 	idx := 0
+	if itemSize == -1 {
+		for {
+			_, _, err = executor.Execute(sql)
+			if err == nil {
+				currentSize.Add(1)
+			}
+		}
+
+		return
+	}
+
 	for idx < itemSize/threadSize {
 		_, _, err = executor.Execute(sql)
+		if err == nil {
+			currentSize.Add(1)
+		}
 		idx++
 	}
+	return
+}
+
+func truncateSchema(executor *mysql.Executor) (err error) {
+	sql := "TRUNCATE TABLE `Unit`"
+	_, _, err = executor.Execute(sql)
+
+	currentSize.Swap(0)
+
 	return
 }
 
@@ -211,6 +239,28 @@ func createSchemaDDL(executor *mysql.Executor) (err error) {
 
 func dropSchemaDDL(executor *mysql.Executor) (err error) {
 	sql := "DROP TABLE IF EXISTS `Unit002`"
+	_, _, err = executor.Execute(sql)
+	return
+}
+
+func specialCheck(executor *mysql.Executor) (err error) {
+	ok, _ := checkSchema("rbac_menuinfo", executor)
+	if ok {
+		alterSpecialSchemaOlnDDLAdd(executor)
+		alterSpecialSchemaOlnDDLDrop(executor)
+	}
+
+	return
+}
+
+func alterSpecialSchemaOlnDDLAdd(executor *mysql.Executor) (err error) {
+	sql := "ALTER TABLE `rbac_menuinfo` ADD dVal200 DATE, ALGORITHM=DEFAULT, LOCK=NONE"
+	_, _, err = executor.Execute(sql)
+	return
+}
+
+func alterSpecialSchemaOlnDDLDrop(executor *mysql.Executor) (err error) {
+	sql := "ALTER TABLE `rbac_menuinfo` DROP dVal200, ALGORITHM=DEFAULT, LOCK=NONE"
 	_, _, err = executor.Execute(sql)
 	return
 }

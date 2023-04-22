@@ -13,9 +13,9 @@ func TestLocalExecutor(t *testing.T) {
 	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	provider := provider.NewLocalProvider("default", "abc")
+	localProvider := provider.NewLocalProvider("default", "abc")
 
-	o1, err := orm.NewOrm(provider, config)
+	o1, err := orm.NewOrm(localProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -26,9 +26,9 @@ func TestLocalExecutor(t *testing.T) {
 	obj := &Unit{ID: 10, I8: 8, I16: 1600, I32: 323200, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, F64: 12.45678, TimeStamp: now, Flag: true}
 
 	objList := []interface{}{&Unit{}}
-	registerModel(provider, objList)
+	registerModel(localProvider, objList)
 
-	objModel, objErr := provider.GetEntityModel(obj)
+	objModel, objErr := localProvider.GetEntityModel(obj)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -49,7 +49,7 @@ func TestLocalExecutor(t *testing.T) {
 
 	obj.Name = "abababa"
 	obj.Value = 100.000
-	objModel, objErr = provider.GetEntityModel(obj)
+	objModel, objErr = localProvider.GetEntityModel(obj)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -61,7 +61,7 @@ func TestLocalExecutor(t *testing.T) {
 	}
 
 	obj2 := &Unit{ID: obj.ID}
-	obj2Model, obj2Err := provider.GetEntityModel(obj2)
+	obj2Model, obj2Err := localProvider.GetEntityModel(obj2)
 	if obj2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", obj2Err.Error())
 		return
@@ -77,7 +77,12 @@ func TestLocalExecutor(t *testing.T) {
 		return
 	}
 
-	filter := orm.GetFilter(objModel, provider)
+	filter, err := localProvider.GetEntityFilter(&Unit{})
+	if err != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
+		return
+	}
+
 	_, countErr := o1.Count(filter)
 	if countErr != nil {
 		t.Errorf("count object failed, err:%s", countErr.Error())

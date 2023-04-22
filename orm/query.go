@@ -175,7 +175,7 @@ func (s *impl) queryRelationSlice(ids []int, vModel model.Model, deepLevel int) 
 func (s *impl) queryRelation(modelInfo model.Model, fieldInfo model.Field, deepLevel int) (ret model.Value, err error) {
 	fieldType := fieldInfo.GetType()
 	if deepLevel > 3 {
-		ret, err = fieldType.Interface()
+		ret = fieldType.Interface()
 		return
 	}
 
@@ -211,11 +211,11 @@ func (s *impl) queryRelation(modelInfo model.Model, fieldInfo model.Field, deepL
 	}()
 
 	if err != nil || len(values) == 0 {
-		ret, err = fieldType.Interface()
+		ret = fieldType.Interface()
 		return
 	}
 
-	fieldValue, _ := fieldType.Interface()
+	fieldValue := fieldType.Interface()
 	if util.IsStructType(fieldType.GetValue()) {
 		queryVal, queryErr := s.queryRelationSingle(values[0], fieldModel, deepLevel+1)
 		if queryErr != nil {
@@ -268,6 +268,16 @@ func (s *impl) Query(entityModel model.Model) (ret model.Model, err error) {
 	if entityErr != nil {
 		err = entityErr
 		return
+	}
+
+	for _, val := range entityModel.GetFields() {
+		vType := val.GetType()
+		vValue := val.GetValue()
+		if !s.modelProvider.IsAssigned(vValue, vType) {
+			continue
+		}
+
+		entityFilter.Equal(val.GetTag().GetName(), val.GetValue().Interface())
 	}
 
 	queryVal, queryErr := s.querySingle(entityModel, entityFilter, 0)

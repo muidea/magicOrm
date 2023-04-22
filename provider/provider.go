@@ -9,7 +9,6 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
-// Provider model provider
 type Provider interface {
 	RegisterModel(entity interface{}) (ret model.Model, err error)
 
@@ -21,9 +20,13 @@ type Provider interface {
 
 	GetEntityModel(entity interface{}) (ret model.Model, err error)
 
+	GetEntityFilter(entity interface{}) (ret model.Filter, err error)
+
 	GetValueModel(vVal model.Value, vType model.Type) (ret model.Model, err error)
 
 	GetTypeModel(vType model.Type) (ret model.Model, err error)
+
+	GetTypeFilter(vType model.Type) (ret model.Filter, err error)
 
 	EncodeValue(vVal model.Value, vType model.Type) (ret interface{}, err error)
 
@@ -51,6 +54,7 @@ type providerImpl struct {
 	getTypeFunc          func(interface{}) (model.Type, error)
 	getValueFunc         func(interface{}) (model.Value, error)
 	getModelFunc         func(interface{}) (model.Model, error)
+	getFilterFunc        func(p model.Type) (model.Filter, error)
 	setModelValueFunc    func(model.Model, model.Value) (model.Model, error)
 	elemDependValueFunc  func(model.Value) ([]model.Value, error)
 	appendSliceValueFunc func(model.Value, model.Value) (model.Value, error)
@@ -58,7 +62,6 @@ type providerImpl struct {
 	decodeValueFunc      func(interface{}, model.Type, model.Cache) (model.Value, error)
 }
 
-// RegisterModel RegisterObjectModel
 func (s *providerImpl) RegisterModel(entity interface{}) (ret model.Model, err error) {
 	modelType, modelErr := s.getTypeFunc(entity)
 	if modelErr != nil {
@@ -93,7 +96,6 @@ func (s *providerImpl) RegisterModel(entity interface{}) (ret model.Model, err e
 	return
 }
 
-// UnregisterModel register model
 func (s *providerImpl) UnregisterModel(entity interface{}) {
 	modelType, modelErr := s.getTypeFunc(entity)
 	if modelErr != nil {
@@ -125,7 +127,6 @@ func (s *providerImpl) GetEntityValue(entity interface{}) (ret model.Value, err 
 	return
 }
 
-// GetEntityModel GetEntityModel
 func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err error) {
 	entityType, entityErr := s.getTypeFunc(entity)
 	if entityErr != nil || entityType.IsBasic() {
@@ -157,6 +158,17 @@ func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err 
 	}
 
 	ret, err = s.setModelValueFunc(entityModel.Copy(), entityValue)
+	return
+}
+
+func (s *providerImpl) GetEntityFilter(entity interface{}) (ret model.Filter, err error) {
+	vType, vErr := s.getTypeFunc(entity)
+	if vErr != nil {
+		err = vErr
+		return
+	}
+
+	ret, err = s.GetTypeFilter(vType)
 	return
 }
 
@@ -194,6 +206,25 @@ func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err erro
 	return
 }
 
+func (s *providerImpl) GetTypeFilter(vType model.Type) (ret model.Filter, err error) {
+	if vType.IsBasic() {
+		return
+	}
+	vType = vType.Elem()
+	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
+	if typeModel == nil {
+		err = fmt.Errorf("can't fetch type model, must register type entity first, PkgKey:%s", vType.GetPkgKey())
+		return
+	}
+	if typeModel.GetPkgPath() != vType.GetPkgPath() {
+		err = fmt.Errorf("illegal object entity, must register entity first")
+		return
+	}
+
+	ret, err = s.getFilterFunc(vType)
+	return
+}
+
 func (s *providerImpl) EncodeValue(vVal model.Value, vType model.Type) (ret interface{}, err error) {
 	ret, err = s.encodeValueFunc(vVal, vType, s.modelCache)
 	return
@@ -221,7 +252,7 @@ func (s *providerImpl) IsAssigned(vVal model.Value, vType model.Type) (ret bool)
 	}
 
 	curVal := vVal
-	originVal, _ := vType.Interface()
+	originVal := vType.Interface()
 	curStr, curErr := s.encodeValueFunc(curVal, vType, s.modelCache)
 	if curErr != nil {
 		ret = false
@@ -259,6 +290,7 @@ func NewLocalProvider(owner, prefix string) Provider {
 		getTypeFunc:          local.GetEntityType,
 		getValueFunc:         local.GetEntityValue,
 		getModelFunc:         local.GetEntityModel,
+		getFilterFunc:        local.GetTypeFilter,
 		setModelValueFunc:    local.SetModelValue,
 		elemDependValueFunc:  local.ElemDependValue,
 		appendSliceValueFunc: local.AppendSliceValue,
@@ -278,6 +310,7 @@ func NewRemoteProvider(owner, prefix string) Provider {
 		getTypeFunc:          remote.GetEntityType,
 		getValueFunc:         remote.GetEntityValue,
 		getModelFunc:         remote.GetEntityModel,
+		getFilterFunc:        remote.GetTypeFilter,
 		setModelValueFunc:    remote.SetModelValue,
 		elemDependValueFunc:  remote.ElemDependValue,
 		appendSliceValueFunc: remote.AppendSliceValue,

@@ -66,7 +66,7 @@ func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (re
 func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem) (ret string, err error) {
 	fType := vField.GetType()
 	oprValue := filterItem.OprValue()
-	oprFunc := filterItem.OprFunc()
+	oprFunc := getOprFunc(filterItem)
 	valueStr, valueErr := s.EncodeValue(oprValue, fType)
 	if valueErr != nil {
 		err = valueErr
@@ -75,7 +75,7 @@ func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem
 	}
 
 	if fType.IsBasic() {
-		ret = oprFunc(vField.GetName(), valueStr)
+		ret = oprFunc(vField.GetTag().GetName(), valueStr)
 		return
 	}
 
@@ -86,7 +86,7 @@ func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem
 func (s *Builder) buildRelationItem(pkField model.Field, rField model.Field, filterItem model.FilterItem) (ret string, err error) {
 	fType := rField.GetType()
 	oprValue := filterItem.OprValue()
-	oprFunc := filterItem.OprFunc()
+	oprFunc := getOprFunc(filterItem)
 	valueStr, valueErr := s.EncodeValue(oprValue, fType)
 	if valueErr != nil {
 		err = valueErr

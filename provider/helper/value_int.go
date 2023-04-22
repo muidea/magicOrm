@@ -7,7 +7,6 @@ import (
 	"strconv"
 )
 
-//encodeInt get int value str
 func (s *impl) encodeInt(vVal model.Value) (ret interface{}, err error) {
 	val := vVal.Get()
 	switch val.Kind() {
@@ -45,7 +44,7 @@ func (s *impl) decodeInt(val interface{}, tType model.Type) (ret model.Value, er
 		return
 	}
 
-	tVal, _ := tType.Interface()
+	tVal := tType.Interface()
 	switch tVal.Get().Kind() {
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
 		tVal.Get().SetInt(iVal)
@@ -60,7 +59,7 @@ func (s *impl) decodeInt(val interface{}, tType model.Type) (ret model.Value, er
 	return
 }
 
-//encodeUint get uint value str
+// encodeUint get uint value str
 func (s *impl) encodeUint(vVal model.Value) (ret interface{}, err error) {
 	val := vVal.Get()
 	switch val.Kind() {
@@ -96,7 +95,7 @@ func (s *impl) decodeUint(val interface{}, tType model.Type) (ret model.Value, e
 		return
 	}
 
-	tVal, _ := tType.Interface()
+	tVal := tType.Interface()
 	switch tVal.Get().Kind() {
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
 		tVal.Get().SetUint(uVal)

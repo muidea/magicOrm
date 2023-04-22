@@ -4,11 +4,21 @@ import (
 	"github.com/muidea/magicCommon/foundation/util"
 )
 
-type OprFunc func(string, interface{}) string
+const (
+	Equal = iota
+	NotEqual
+	Below
+	Above
+	In
+	NotIn
+	Like
+)
+
+type OprCode int
 
 // FilterItem FilterItem
 type FilterItem interface {
-	OprFunc() OprFunc
+	OprCode() OprCode
 	OprValue() Value
 }
 
@@ -31,7 +41,7 @@ type Filter interface {
 	Sort(sorter *util.SortFilter)
 	ValueMask(val interface{}) error
 
-	GetFilterItem(name string) FilterItem
+	GetFilterItem(key string) FilterItem
 	Pagination() (limit, offset int, paging bool)
 	Sorter() Sorter
 	MaskModel() Model
