@@ -38,7 +38,7 @@ func (s *valueImpl) Set(val reflect.Value) (err error) {
 }
 
 func (s *valueImpl) Get() reflect.Value {
-	return s.value
+	return reflect.Indirect(s.value)
 }
 
 func (s *valueImpl) Addr() model.Value {

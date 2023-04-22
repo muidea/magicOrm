@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/helper"
+	"github.com/muidea/magicOrm/provider/remote/helper"
 	"github.com/muidea/magicOrm/util"
 )
 
@@ -75,7 +75,7 @@ func GetEntityType(entity interface{}) (ret model.Type, err error) {
 		return
 	}
 	if !isRemoteType(typeImpl.Elem()) {
-		err = fmt.Errorf("illegal entity type, name:%s", typeImpl.GetName())
+		err = fmt.Errorf("illegal entity type, name:%s", typeImpl.GetPkgKey())
 		return
 	}
 
