@@ -130,7 +130,6 @@ func (s *Object) Interface(ptrValue bool) (ret interface{}) {
 	return
 }
 
-// Copy Copy
 func (s *Object) Copy() (ret model.Model) {
 	obj := &Object{Name: s.Name, PkgPath: s.PkgPath, Fields: []*Field{}}
 	for _, val := range s.Fields {

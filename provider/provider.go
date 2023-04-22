@@ -54,7 +54,7 @@ type providerImpl struct {
 	getTypeFunc          func(interface{}) (model.Type, error)
 	getValueFunc         func(interface{}) (model.Value, error)
 	getModelFunc         func(interface{}) (model.Model, error)
-	getFilterFunc        func(p model.Type) (model.Filter, error)
+	getFilterFunc        func(model.Model) (model.Filter, error)
 	setModelValueFunc    func(model.Model, model.Value) (model.Model, error)
 	elemDependValueFunc  func(model.Value) ([]model.Value, error)
 	appendSliceValueFunc func(model.Value, model.Value) (model.Value, error)
@@ -221,7 +221,7 @@ func (s *providerImpl) GetTypeFilter(vType model.Type) (ret model.Filter, err er
 		return
 	}
 
-	ret, err = s.getFilterFunc(vType)
+	ret, err = s.getFilterFunc(typeModel.Copy())
 	return
 }
 
@@ -290,7 +290,7 @@ func NewLocalProvider(owner, prefix string) Provider {
 		getTypeFunc:          local.GetEntityType,
 		getValueFunc:         local.GetEntityValue,
 		getModelFunc:         local.GetEntityModel,
-		getFilterFunc:        local.GetTypeFilter,
+		getFilterFunc:        local.GetModelFilter,
 		setModelValueFunc:    local.SetModelValue,
 		elemDependValueFunc:  local.ElemDependValue,
 		appendSliceValueFunc: local.AppendSliceValue,
@@ -310,7 +310,7 @@ func NewRemoteProvider(owner, prefix string) Provider {
 		getTypeFunc:          remote.GetEntityType,
 		getValueFunc:         remote.GetEntityValue,
 		getModelFunc:         remote.GetEntityModel,
-		getFilterFunc:        remote.GetTypeFilter,
+		getFilterFunc:        remote.GetModelFilter,
 		setModelValueFunc:    remote.SetModelValue,
 		elemDependValueFunc:  remote.ElemDependValue,
 		appendSliceValueFunc: remote.AppendSliceValue,

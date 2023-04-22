@@ -23,15 +23,15 @@ func (s *filterItem) OprValue() om.Value {
 }
 
 type filter struct {
-	bindType   *typeImpl
+	bindValue  *valueImpl
 	params     map[string]*filterItem
 	maskValue  *valueImpl
 	pageFilter *util.Pagination
 	sortFilter *util.SortFilter
 }
 
-func NewFilter(typePtr *typeImpl) *filter {
-	return &filter{bindType: typePtr, params: map[string]*filterItem{}}
+func NewFilter(valuePtr *valueImpl) *filter {
+	return &filter{bindValue: valuePtr, params: map[string]*filterItem{}}
 }
 
 func (s *filter) Equal(key string, val interface{}) (err error) {
@@ -158,17 +158,7 @@ func (s *filter) Sort(sorter *util.SortFilter) {
 
 func (s *filter) ValueMask(val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ou.GetTypeEnum(qv.Type())
-	if qvErr != nil {
-		err = qvErr
-		return
-	}
-	if !ou.IsStructType(qvType) {
-		err = fmt.Errorf("illegal mask value, type:%s", qv.Type().String())
-		return
-	}
-
-	bindType := s.bindType.getType().String()
+	bindType := reflect.Indirect(s.bindValue.Get()).Type().String()
 	maskType := reflect.Indirect(qv).Type().String()
 	if bindType != maskType {
 		err = fmt.Errorf("miscmatch mask value, bindType:%v, maskType:%v", bindType, maskType)
@@ -216,7 +206,7 @@ func (s *filter) Sorter() om.Sorter {
 }
 
 func (s *filter) MaskModel() (ret om.Model) {
-	maskVal := s.bindType.Interface()
+	maskVal := s.bindValue
 	if s.maskValue != nil {
 		maskVal = s.maskValue
 	}

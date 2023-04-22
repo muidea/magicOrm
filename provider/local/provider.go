@@ -71,19 +71,9 @@ func GetEntityModel(entity interface{}) (ret model.Model, err error) {
 	return
 }
 
-func GetTypeFilter(vType model.Type) (ret model.Filter, err error) {
-	if !util.IsStructType(vType.GetValue()) {
-		err = fmt.Errorf("illegal type, must be a struct type")
-		return
-	}
-
-	typeImpl, typeOK := vType.(*typeImpl)
-	if !typeOK {
-		err = fmt.Errorf("illegal type, must be a struct type")
-		return
-	}
-
-	ret = NewFilter(typeImpl)
+func GetModelFilter(vModel model.Model) (ret model.Filter, err error) {
+	valueImpl := newValue(reflect.ValueOf(vModel.Interface(false)))
+	ret = NewFilter(valueImpl)
 	return
 }
 

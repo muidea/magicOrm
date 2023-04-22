@@ -36,12 +36,14 @@ type ObjectFilter struct {
 	MaskValue      *ObjectValue     `json:"maskValue"`
 	PageFilter     *util.Pagination `json:"page"`
 	SortFilter     *util.SortFilter `json:"sort"`
+
+	bindObject *Object
 }
 
-func NewFilter(name, pkgPath string) *ObjectFilter {
+func NewFilter(objectPtr *Object) *ObjectFilter {
 	return &ObjectFilter{
-		Name:           name,
-		PkgPath:        pkgPath,
+		Name:           objectPtr.GetName(),
+		PkgPath:        objectPtr.GetPkgPath(),
 		EqualFilter:    []*FieldValue{},
 		NotEqualFilter: []*FieldValue{},
 		BelowFilter:    []*FieldValue{},
@@ -49,6 +51,7 @@ func NewFilter(name, pkgPath string) *ObjectFilter {
 		InFilter:       []*FieldValue{},
 		NotInFilter:    []*FieldValue{},
 		LikeFilter:     []*FieldValue{},
+		bindObject:     objectPtr,
 	}
 }
 
@@ -421,6 +424,12 @@ func (s *ObjectFilter) Sorter() om.Sorter {
 }
 
 func (s *ObjectFilter) MaskModel() om.Model {
+	maskObject := s.bindObject.Copy()
+	if s.MaskValue != nil {
+		for _, val := range s.MaskValue.Fields {
+			maskObject.SetFieldValue(val.Name, val)
+		}
+	}
 
-	return nil
+	return maskObject
 }
