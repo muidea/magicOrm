@@ -7,12 +7,23 @@ import (
 )
 
 func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, err error) {
-	ret, err = s.modelProvider.GetEntityFilter(vModel.Interface(true))
-	return
-}
+	filterVal, filterErr := s.modelProvider.GetEntityFilter(vModel.Interface(true))
+	if filterErr != nil {
+		err = filterErr
+		return
+	}
 
-func (s *impl) getFieldFilter(vField model.Field) (ret model.Filter, err error) {
-	ret, err = s.modelProvider.GetTypeFilter(vField.GetType())
+	for _, val := range vModel.GetFields() {
+		vType := val.GetType()
+		vValue := val.GetValue()
+		if !s.modelProvider.IsAssigned(vValue, vType) {
+			continue
+		}
+
+		filterVal.Equal(val.GetTag().GetName(), val.GetValue().Interface())
+	}
+
+	ret = filterVal
 	return
 }
 

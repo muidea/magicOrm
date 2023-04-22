@@ -123,7 +123,8 @@ func (s *impl) queryRelationSingle(id int, vModel model.Model, deepLevel int) (r
 
 	pkField := relationModel.GetPrimaryField()
 	pkField.SetValue(relationVal)
-	relationFilter, relationErr := s.getFieldFilter(pkField)
+	//relationFilter, relationErr := s.getFieldFilter(pkField)
+	relationFilter, relationErr := s.getModelFilter(relationModel)
 	if relationErr != nil {
 		err = fmt.Errorf("GetEntityValue failed, err:%s", relationErr)
 		return
@@ -151,7 +152,8 @@ func (s *impl) queryRelationSlice(ids []int, vModel model.Model, deepLevel int) 
 
 		pkField := relationModel.GetPrimaryField()
 		pkField.SetValue(relationVal)
-		relationFilter, relationErr := s.getFieldFilter(pkField)
+		//relationFilter, relationErr := s.getFieldFilter(pkField)
+		relationFilter, relationErr := s.getModelFilter(relationModel)
 		if relationErr != nil {
 			err = fmt.Errorf("GetEntityValue failed, err:%s", relationErr)
 			return
@@ -268,16 +270,6 @@ func (s *impl) Query(entityModel model.Model) (ret model.Model, err error) {
 	if entityErr != nil {
 		err = entityErr
 		return
-	}
-
-	for _, val := range entityModel.GetFields() {
-		vType := val.GetType()
-		vValue := val.GetValue()
-		if !s.modelProvider.IsAssigned(vValue, vType) {
-			continue
-		}
-
-		entityFilter.Equal(val.GetTag().GetName(), val.GetValue().Interface())
 	}
 
 	queryVal, queryErr := s.querySingle(entityModel, entityFilter, 0)
