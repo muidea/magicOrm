@@ -9,7 +9,7 @@ import (
 
 // encodeString get string value str
 func (s *impl) encodeString(vVal model.Value) (ret interface{}, err error) {
-	val := vVal.Get()
+	val := reflect.Indirect(vVal.Get())
 
 	var byteVal []byte
 	switch val.Kind() {

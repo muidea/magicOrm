@@ -8,7 +8,7 @@ import (
 )
 
 func (s *impl) encodeInt(vVal model.Value) (ret interface{}, err error) {
-	val := vVal.Get()
+	val := reflect.Indirect(vVal.Get())
 	switch val.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		ret = val.Int()
@@ -61,7 +61,7 @@ func (s *impl) decodeInt(val interface{}, tType model.Type) (ret model.Value, er
 
 // encodeUint get uint value str
 func (s *impl) encodeUint(vVal model.Value) (ret interface{}, err error) {
-	val := vVal.Get()
+	val := reflect.Indirect(vVal.Get())
 	switch val.Kind() {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		ret = val.Uint()

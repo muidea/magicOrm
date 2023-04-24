@@ -77,7 +77,10 @@ func (s *typeImpl) IsPtrType() bool {
 
 func (s *typeImpl) Interface() (ret model.Value) {
 	tType := s.getType()
-	tVal := reflect.New(tType).Elem()
+	tVal := reflect.New(tType)
+	if !s.IsPtrType() {
+		tVal = tVal.Elem()
+	}
 
 	ret = newValue(tVal)
 	return

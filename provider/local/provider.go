@@ -78,7 +78,7 @@ func GetModelFilter(vModel model.Model) (ret model.Filter, err error) {
 }
 
 func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err error) {
-	rVal := vVal.Get()
+	rVal := reflect.Indirect(vVal.Get())
 	vType := rVal.Type()
 	if vType.Kind() != reflect.Struct {
 		err = fmt.Errorf("illegal model value, mode name:%s", vModel.GetName())
@@ -104,7 +104,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 }
 
 func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
-	rVal := vVal.Get()
+	rVal := reflect.Indirect(vVal.Get())
 	if rVal.Kind() == reflect.Struct {
 		ret = append(ret, vVal)
 		return

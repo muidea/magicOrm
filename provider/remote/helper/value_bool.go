@@ -33,7 +33,7 @@ func (s *impl) encodeBool(vVal model.Value) (ret interface{}, err error) {
 				}
 		*/
 	default:
-		err = fmt.Errorf("illegal boolean value, type:%s", val.Type().String())
+		err = fmt.Errorf("encodeBool failed,illegal boolean value, type:%s", val.Type().String())
 	}
 
 	return
@@ -52,7 +52,7 @@ func (s *impl) decodeBool(val interface{}, tType model.Type) (ret model.Value, e
 	case string: // only for slice element
 		tVal.Get().SetBool(val.(string) == "1")
 	default:
-		err = fmt.Errorf("illegal boolean value, type:%s", tVal.Get().Type().String())
+		err = fmt.Errorf("decodeBool failed, illegal boolean value, type:%s", tVal.Get().Type().String())
 	}
 	if err != nil {
 		return

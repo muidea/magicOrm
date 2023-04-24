@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -48,7 +49,21 @@ func TestModel(t *testing.T) {
 		t.Errorf("remote.GetObjectValue failed, err:%s", baseErr.Error())
 		return
 	}
-	rVal, rErr := remote.GetEntityValue(baseObjectVal)
+
+	byteVal, byteErr := json.Marshal(baseObjectVal)
+	if byteErr != nil {
+		t.Errorf("marshal object value failed")
+		return
+	}
+
+	rawObjectVal := &remote.ObjectValue{}
+	byteErr = json.Unmarshal(byteVal, rawObjectVal)
+	if byteErr != nil {
+		t.Errorf("unmarshal object value failed")
+		return
+	}
+
+	rVal, rErr := remote.GetEntityValue(rawObjectVal)
 	if rErr != nil {
 		t.Errorf("remote.GetEntityValue failed. err:%s", rErr.Error())
 		return

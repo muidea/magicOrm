@@ -14,7 +14,7 @@ const (
 
 // encodeBool get bool value str
 func (s *impl) encodeBool(vVal model.Value) (ret interface{}, err error) {
-	val := vVal.Get()
+	val := reflect.Indirect(vVal.Get())
 	switch val.Kind() {
 	case reflect.Bool:
 		if val.Bool() {

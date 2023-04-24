@@ -15,7 +15,7 @@ func (s *impl) encodeFloat(vVal model.Value) (ret interface{}, err error) {
 	case reflect.Float32, reflect.Float64:
 		ret = val.Float()
 	default:
-		err = fmt.Errorf("illegal float value, type:%s", val.Type().String())
+		err = fmt.Errorf("encodeFloat failed, illegal float value, type:%s", val.Type().String())
 	}
 
 	return
@@ -38,7 +38,7 @@ func (s *impl) decodeFloat(val interface{}, tType model.Type) (ret model.Value, 
 		}
 		tVal.Get().SetFloat(fVal)
 	default:
-		err = fmt.Errorf("illegal float value, type:%s", tVal.Get().Type().String())
+		err = fmt.Errorf("decodeFloat failed, illegal float value, type:%s", tVal.Get().Type().String())
 	}
 	if err != nil {
 		return

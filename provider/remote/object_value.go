@@ -157,13 +157,14 @@ func getFieldValue(fieldName string, itemType *TypeImpl, itemValue *valueImpl) (
 	}
 
 	if itemType.IsBasic() {
-		encodeVal, encodeErr := _helper.Encode(itemValue, itemType)
-		if encodeErr != nil {
-			err = encodeErr
-			return
-		}
-
-		ret = &FieldValue{Name: fieldName, Value: encodeVal}
+		/*
+			encodeVal, encodeErr := _helper.Encode(itemValue, itemType)
+			if encodeErr != nil {
+				err = encodeErr
+				return
+			}
+		*/
+		ret = &FieldValue{Name: fieldName, Value: itemValue.Interface()}
 		return
 	}
 
@@ -187,13 +188,14 @@ func getSliceFieldValue(fieldName string, itemType *TypeImpl, itemValue *valueIm
 
 	elemType := itemType.Elem()
 	if elemType.IsBasic() {
-		encodeVal, encodeErr := _helper.Encode(itemValue, itemType)
-		if encodeErr != nil {
-			err = encodeErr
-			return
-		}
-
-		ret = &FieldValue{Name: fieldName, Value: encodeVal}
+		/*
+			encodeVal, encodeErr := _helper.Encode(itemValue, itemType)
+			if encodeErr != nil {
+				err = encodeErr
+				return
+			}
+		*/
+		ret = &FieldValue{Name: fieldName, Value: itemValue.Interface()}
 		return
 	}
 

@@ -26,7 +26,7 @@ func (s *impl) encodeDateTime(vVal model.Value) (ret interface{}, err error) {
 	case reflect.String:
 		ret = val.String()
 	default:
-		err = fmt.Errorf("illegal dateTime value, type:%s", val.Type().String())
+		err = fmt.Errorf("encodeDateTime failed,illegal dateTime value, type:%s", val.Type().String())
 	}
 
 	return
@@ -41,7 +41,7 @@ func (s *impl) decodeDateTime(val interface{}, tType model.Type) (ret model.Valu
 	case string:
 		tVal.Get().SetString(val.(string))
 	default:
-		err = fmt.Errorf("illegal dateTime value, type:%s", tVal.Get().Type().String())
+		err = fmt.Errorf("decodeDateTime failed,illegal dateTime value, type:%s", tVal.Get().Type().String())
 	}
 	if err != nil {
 		return

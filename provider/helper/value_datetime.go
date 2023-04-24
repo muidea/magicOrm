@@ -12,7 +12,7 @@ import (
 
 // encodeDateTime get datetime value str
 func (s *impl) encodeDateTime(vVal model.Value) (ret interface{}, err error) {
-	val := vVal.Get()
+	val := reflect.Indirect(vVal.Get())
 	switch val.Kind() {
 	case reflect.Struct:
 		ts, ok := val.Interface().(time.Time)

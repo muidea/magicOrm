@@ -9,7 +9,7 @@ import (
 
 // encodeFloat get float value str
 func (s *impl) encodeFloat(vVal model.Value) (ret interface{}, err error) {
-	val := vVal.Get()
+	val := reflect.Indirect(vVal.Get())
 	switch val.Kind() {
 	case reflect.Float32, reflect.Float64:
 		ret = val.Float()
