@@ -340,7 +340,7 @@ func TestLocalProvider(t *testing.T) {
 }
 
 func TestRemoteProvider(t *testing.T) {
-	provider := NewRemoteProvider("default", "abc")
+	remoteProvider := NewRemoteProvider("default", "abc")
 
 	baseEntity := &Base{}
 	extEntity := &ExtInfo{}
@@ -413,12 +413,12 @@ func TestRemoteProvider(t *testing.T) {
 		return
 	}
 
-	provider.RegisterModel(baseObject)
-	provider.RegisterModel(extObject)
-	defer provider.UnregisterModel(baseObject)
-	defer provider.UnregisterModel(extObject)
+	remoteProvider.RegisterModel(baseObject)
+	remoteProvider.RegisterModel(extObject)
+	defer remoteProvider.UnregisterModel(baseObject)
+	defer remoteProvider.UnregisterModel(extObject)
 
-	baseEntityModel, baseEntityErr := provider.GetEntityModel(baseVal)
+	baseEntityModel, baseEntityErr := remoteProvider.GetEntityModel(baseVal)
 	if baseEntityErr != nil {
 		t.Errorf("get remote entity model failed, err:%s", baseEntityErr.Error())
 		return
@@ -426,7 +426,7 @@ func TestRemoteProvider(t *testing.T) {
 
 	checkBaseModel(t, baseEntityModel)
 
-	extEntityModel, extEntityErr := provider.GetEntityModel(extVal)
+	extEntityModel, extEntityErr := remoteProvider.GetEntityModel(extVal)
 	if extEntityErr != nil {
 		t.Errorf("get remote entity model failed, err:%s", extEntityErr.Error())
 		return
