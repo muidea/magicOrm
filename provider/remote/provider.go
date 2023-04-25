@@ -145,7 +145,7 @@ func setFieldValue(iVal reflect.Value, vModel model.Model) (err error) {
 }
 
 func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err error) {
-	rVal := vVal.Get()
+	rVal := reflect.Indirect(vVal.Get())
 	nameVal := rVal.FieldByName("Name")
 	pkgVal := rVal.FieldByName("PkgPath")
 	itemsVal := rVal.FieldByName("Fields")

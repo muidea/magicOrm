@@ -66,7 +66,7 @@ type valueImpl struct {
 }
 
 func newValue(val reflect.Value) (ret *valueImpl) {
-	ret = &valueImpl{value: reflect.Indirect(val)}
+	ret = &valueImpl{value: val}
 	return
 }
 
@@ -76,23 +76,24 @@ func (s *valueImpl) IsNil() (ret bool) {
 }
 
 func (s *valueImpl) Set(val reflect.Value) (err error) {
-	rVal := reflect.Indirect(val)
-	if rVal.Kind() == reflect.Interface {
-		rVal = rVal.Elem()
-		rVal = reflect.Indirect(rVal)
+	//rVal := reflect.Indirect(val)
+	if val.Kind() == reflect.Interface {
+		val = val.Elem()
+		//rVal = reflect.Indirect(rVal)
 	}
 
-	if util.IsNil(s.value) || util.IsNil(rVal) {
-		s.value = rVal
+	if util.IsNil(s.value) || util.IsNil(val) {
+		s.value = val
 		return
 	}
 
-	s.value.Set(rVal)
+	s.value.Set(val)
 	return
 }
 
 func (s *valueImpl) Get() reflect.Value {
-	return reflect.Indirect(s.value)
+	//return reflect.Indirect(s.value)
+	return s.value
 }
 
 func (s *valueImpl) Addr() model.Value {

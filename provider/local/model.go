@@ -79,11 +79,6 @@ func (s *objectImpl) Interface(ptrValue bool) (ret interface{}) {
 		}
 
 		val := tVal.Get()
-		tType := field.GetType()
-		if tType.IsPtrType() {
-			val = val.Addr()
-		}
-
 		retVal.Field(field.GetIndex()).Set(val)
 	}
 
