@@ -66,11 +66,12 @@ func (s *impl) decodeBool(val interface{}, tType model.Type) (ret model.Value, e
 	}
 
 	tVal := tType.Interface()
-	switch tVal.Get().Kind() {
+	rVal = reflect.Indirect(tVal.Get())
+	switch rVal.Kind() {
 	case reflect.Bool:
-		tVal.Get().SetBool(bVal > 0)
+		rVal.SetBool(bVal > 0)
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
-		tVal.Get().SetInt(bVal)
+		rVal.SetInt(bVal)
 	default:
 		err = fmt.Errorf("illegal boolean value, type:%s", tVal.Get().Type().String())
 	}

@@ -23,11 +23,9 @@ func New(elemDependValue ElemDependValueFunc) Helper {
 }
 
 /*
-
 local struct -> db field value
 
 remote object value -> db field value
-
 */
 func (s *impl) Encode(vVal model.Value, tType model.Type) (ret interface{}, err error) {
 	if !tType.IsBasic() {
@@ -58,11 +56,9 @@ func (s *impl) Encode(vVal model.Value, tType model.Type) (ret interface{}, err 
 }
 
 /*
-
 db field value -> local struct
 
 db field value -> remote object value
-
 */
 func (s *impl) Decode(val interface{}, tType model.Type) (ret model.Value, err error) {
 	if !tType.IsBasic() {
@@ -93,9 +89,9 @@ func (s *impl) Decode(val interface{}, tType model.Type) (ret model.Value, err e
 		return
 	}
 
-	if tType.IsPtrType() && !ret.IsNil() {
-		ret = ret.Addr()
-	}
+	//if tType.IsPtrType() && !ret.IsNil() {
+	//	ret = ret.Addr()
+	//}
 
 	return
 }

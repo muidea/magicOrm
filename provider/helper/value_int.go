@@ -45,9 +45,10 @@ func (s *impl) decodeInt(val interface{}, tType model.Type) (ret model.Value, er
 	}
 
 	tVal := tType.Interface()
-	switch tVal.Get().Kind() {
+	rVal = reflect.Indirect(tVal.Get())
+	switch rVal.Kind() {
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
-		tVal.Get().SetInt(iVal)
+		rVal.SetInt(iVal)
 	default:
 		err = fmt.Errorf("illegal int value, type:%s", tVal.Get().Type().String())
 	}
@@ -96,9 +97,10 @@ func (s *impl) decodeUint(val interface{}, tType model.Type) (ret model.Value, e
 	}
 
 	tVal := tType.Interface()
-	switch tVal.Get().Kind() {
+	rVal = reflect.Indirect(tVal.Get())
+	switch rVal.Kind() {
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
-		tVal.Get().SetUint(uVal)
+		rVal.SetUint(uVal)
 	default:
 		err = fmt.Errorf("illegal uint value, type:%s", tVal.Get().Type().String())
 	}

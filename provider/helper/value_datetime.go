@@ -54,7 +54,8 @@ func (s *impl) decodeDateTime(val interface{}, tType model.Type) (ret model.Valu
 	}
 
 	tVal := tType.Interface()
-	switch tVal.Get().Kind() {
+	rVal = reflect.Indirect(tVal.Get())
+	switch rVal.Kind() {
 	case reflect.Struct:
 		if dtVal == "" {
 			dtVal = "0001-01-01 00:00:00"
@@ -63,10 +64,10 @@ func (s *impl) decodeDateTime(val interface{}, tType model.Type) (ret model.Valu
 		if dtErr != nil {
 			err = dtErr
 		} else {
-			tVal.Get().Set(reflect.ValueOf(dtV))
+			rVal.Set(reflect.ValueOf(dtV))
 		}
 	case reflect.String:
-		tVal.Get().SetString(dtVal)
+		rVal.SetString(dtVal)
 	default:
 		err = fmt.Errorf("illegal dateTime value, type:%s", tVal.Get().Type().String())
 	}

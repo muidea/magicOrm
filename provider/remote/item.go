@@ -56,6 +56,12 @@ func (s *Field) IsPrimary() bool {
 }
 
 func (s *Field) SetValue(val model.Value) (err error) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Errorf("unexpect field:%v, err:%v", s.Name, err)
+		}
+	}()
+
 	if s.value != nil {
 		err = s.value.Set(val.Get())
 		if err != nil {

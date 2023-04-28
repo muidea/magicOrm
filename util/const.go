@@ -153,9 +153,18 @@ func GetTypeEnum(val reflect.Type) (ret int, err error) {
 			ret = TypeStructField
 		}
 	case reflect.Slice:
+		eType := val.Elem()
+		if eType.Kind() == reflect.Ptr {
+			eType = eType.Elem()
+		}
+		_, err = GetTypeEnum(eType)
+		if err != nil {
+			return
+		}
+
 		ret = TypeSliceField
 	default:
-		err = fmt.Errorf("unsupport field type:%v", val.String())
+		err = fmt.Errorf("unsupport type:%v", val.String())
 	}
 
 	return

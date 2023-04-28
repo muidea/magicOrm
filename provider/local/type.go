@@ -24,11 +24,11 @@ func getValueType(val reflect.Value) (ret *typeImpl, err error) {
 }
 
 func newType(val reflect.Type) (ret *typeImpl, err error) {
-	rawType := val
-	if rawType.Kind() == reflect.Ptr {
-		rawType = rawType.Elem()
+	rType := val
+	if rType.Kind() == reflect.Ptr {
+		rType = rType.Elem()
 	}
-	_, err = util.GetTypeEnum(rawType)
+	_, err = util.GetTypeEnum(rType)
 	if err != nil {
 		return
 	}
@@ -38,37 +38,24 @@ func newType(val reflect.Type) (ret *typeImpl, err error) {
 }
 
 func (s *typeImpl) GetName() string {
-	tType := s.getType()
-	if tType.Kind() == reflect.Slice {
-		tType = tType.Elem()
-	}
-	if tType.Kind() == reflect.Ptr {
-		tType = tType.Elem()
-	}
-
-	return tType.Name()
+	rType := s.getElemType()
+	return rType.Name()
 }
 
 func (s *typeImpl) GetValue() (ret int) {
-	tType := s.getType()
-	ret, _ = util.GetTypeEnum(tType)
+	rType := s.getRawType()
+	ret, _ = util.GetTypeEnum(rType)
 	return
 }
 
 func (s *typeImpl) GetPkgPath() string {
-	tType := s.getType()
-	if tType.Kind() == reflect.Slice {
-		tType = tType.Elem()
-	}
-	if tType.Kind() == reflect.Ptr {
-		tType = tType.Elem()
-	}
-
-	return tType.PkgPath()
+	rType := s.getElemType()
+	return rType.PkgPath()
 }
 
 func (s *typeImpl) GetPkgKey() string {
-	return path.Join(s.GetPkgPath(), s.GetName())
+	rType := s.getElemType()
+	return path.Join(rType.PkgPath(), rType.Name())
 }
 
 func (s *typeImpl) IsPtrType() bool {
@@ -76,10 +63,10 @@ func (s *typeImpl) IsPtrType() bool {
 }
 
 func (s *typeImpl) Interface() (ret model.Value) {
-	tType := s.getType()
-	tVal := reflect.New(tType)
-	if !s.IsPtrType() {
-		tVal = tVal.Elem()
+	tVal := reflect.New(s.typeVal).Elem()
+	if s.IsPtrType() {
+		rVal := reflect.New(s.getRawType())
+		tVal.Set(rVal)
 	}
 
 	ret = newValue(tVal)
@@ -87,7 +74,7 @@ func (s *typeImpl) Interface() (ret model.Value) {
 }
 
 func (s *typeImpl) Elem() model.Type {
-	tType := s.getType()
+	tType := s.getRawType()
 	if tType.Kind() == reflect.Slice {
 		return &typeImpl{typeVal: tType.Elem()}
 	}
@@ -101,12 +88,23 @@ func (s *typeImpl) IsBasic() bool {
 	return util.IsBasicType(elemType.GetValue())
 }
 
-func (s *typeImpl) getType() reflect.Type {
+func (s *typeImpl) getRawType() reflect.Type {
 	if s.typeVal.Kind() == reflect.Ptr {
 		return s.typeVal.Elem()
 	}
 
 	return s.typeVal
+}
+
+func (s *typeImpl) getElemType() reflect.Type {
+	rType := s.getRawType()
+	if rType.Kind() == reflect.Slice {
+		rType = rType.Elem()
+	}
+	if rType.Kind() == reflect.Ptr {
+		rType = rType.Elem()
+	}
+	return rType
 }
 
 func (s *typeImpl) copy() (ret *typeImpl) {

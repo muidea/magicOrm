@@ -173,7 +173,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 }
 
 func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
-	rVal := vVal.Get()
+	rVal := reflect.Indirect(vVal.Get())
 	if rVal.Type().String() == reflect.TypeOf(_declareObjectSliceValue).String() {
 		objectsVal := rVal.FieldByName("Values")
 		if !util.IsNil(objectsVal) {

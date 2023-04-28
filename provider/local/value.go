@@ -28,10 +28,13 @@ func (s *valueImpl) Set(val reflect.Value) (err error) {
 		//rVal = reflect.Indirect(rVal)
 	}
 
-	if util.IsNil(s.value) || util.IsNil(val) {
-		s.value = val
-		return
+	if !s.value.IsValid() {
+		s.value = reflect.New(val.Type()).Elem()
 	}
+	//if !s.value.IsValid() || util.IsNil(s.value) || util.IsNil(val) {
+	//	s.value = val
+	//	return
+	//}
 
 	s.value.Set(val)
 	return

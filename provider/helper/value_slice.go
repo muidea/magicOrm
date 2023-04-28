@@ -56,6 +56,10 @@ func (s *impl) decodeStringSlice(val string, tType model.Type) (ret model.Value,
 	tVal := tType.Interface()
 	if val != "" {
 		sliceVal := tVal.Get()
+		if tType.IsPtrType() {
+			sliceVal = sliceVal.Elem()
+		}
+		rawVal := sliceVal
 		if val[0] != '[' {
 			itemVal, itemErr := s.Decode(val, tType.Elem())
 			if itemErr != nil {
@@ -63,7 +67,7 @@ func (s *impl) decodeStringSlice(val string, tType model.Type) (ret model.Value,
 				return
 			}
 
-			sliceVal = reflect.Append(sliceVal, itemVal.Get())
+			rawVal = reflect.Append(rawVal, itemVal.Get())
 		} else {
 			items := []interface{}{}
 			err = json.Unmarshal([]byte(val), &items)
@@ -78,9 +82,15 @@ func (s *impl) decodeStringSlice(val string, tType model.Type) (ret model.Value,
 					return
 				}
 
-				sliceVal = reflect.Append(sliceVal, itemVal.Get())
+				rawVal = reflect.Append(rawVal, itemVal.Get())
 			}
 		}
+
+		sliceVal.Set(rawVal)
+		if tType.IsPtrType() {
+			sliceVal = sliceVal.Addr()
+		}
+
 		tVal.Set(sliceVal)
 	}
 
@@ -91,6 +101,9 @@ func (s *impl) decodeStringSlice(val string, tType model.Type) (ret model.Value,
 func (s *impl) decodeReflectSlice(val reflect.Value, tType model.Type) (ret model.Value, err error) {
 	tVal := tType.Interface()
 	sliceVal := tVal.Get()
+	if tType.IsPtrType() {
+		sliceVal = sliceVal.Elem()
+	}
 	for idx := 0; idx < val.Len(); idx++ {
 		v := val.Index(idx)
 		itemVal, itemErr := s.Decode(v.Interface(), tType.Elem())
@@ -101,6 +114,10 @@ func (s *impl) decodeReflectSlice(val reflect.Value, tType model.Type) (ret mode
 
 		sliceVal = reflect.Append(sliceVal, itemVal.Get())
 	}
+	if tType.IsPtrType() {
+		sliceVal = sliceVal.Addr()
+	}
+
 	tVal.Set(sliceVal)
 	ret = tVal
 	return

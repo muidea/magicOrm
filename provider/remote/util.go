@@ -556,26 +556,42 @@ func getType(tType model.Type) (ret reflect.Type, err error) {
 	return
 }
 
-func getInitializeValue(tType model.Type) (ret reflect.Value) {
+func getBasicValue(tType model.Type) (ret reflect.Value) {
 	cType, _ := getType(tType)
-	if tType.IsPtrType() || !tType.IsBasic() {
+	cValue := reflect.New(cType).Elem()
+	if tType.IsPtrType() {
+		rVal := reflect.New(cType.Elem())
+		cValue.Set(rVal)
+	}
+
+	ret = cValue
+	return
+}
+
+func getStructValue(tType model.Type) (ret reflect.Value) {
+	cType, _ := getType(tType)
+	if cType.Kind() == reflect.Ptr {
 		cType = cType.Elem()
 	}
 
 	cValue := reflect.New(cType).Elem()
-	if !tType.IsBasic() {
-		cValue.FieldByName("Name").SetString(tType.GetName())
-		cValue.FieldByName("PkgPath").SetString(tType.GetPkgPath())
-		cValue.FieldByName("IsPtr").SetBool(tType.IsPtrType())
-		if util.IsSliceType(tType.GetValue()) {
-			cValue.FieldByName("IsElemPtr").SetBool(tType.Elem().IsPtrType())
-		}
-	}
-
-	if tType.IsPtrType() || !tType.IsBasic() {
-		cValue = cValue.Addr()
+	cValue.FieldByName("Name").SetString(tType.GetName())
+	cValue.FieldByName("PkgPath").SetString(tType.GetPkgPath())
+	cValue.FieldByName("IsPtr").SetBool(tType.IsPtrType())
+	if util.IsSliceType(tType.GetValue()) {
+		cValue.FieldByName("IsElemPtr").SetBool(tType.Elem().IsPtrType())
 	}
 
 	ret = cValue
+	return
+}
+
+func getInitializeValue(tType model.Type) (ret reflect.Value) {
+	if !tType.IsBasic() {
+		ret = getStructValue(tType)
+		return
+	}
+
+	ret = getBasicValue(tType)
 	return
 }

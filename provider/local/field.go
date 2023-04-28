@@ -53,6 +53,12 @@ func (s *field) GetValue() (ret model.Value) {
 }
 
 func (s *field) SetValue(val model.Value) (err error) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Errorf("unexpect field:%v, err:%v", s.name, err)
+		}
+	}()
+
 	err = s.valuePtr.Set(val.Get())
 	if err != nil {
 		log.Errorf("set field valuePtr failed, name:%s, err:%s", s.name, err.Error())

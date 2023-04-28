@@ -42,9 +42,10 @@ func (s *impl) decodeFloat(val interface{}, tType model.Type) (ret model.Value, 
 	}
 
 	tVal := tType.Interface()
-	switch tVal.Get().Kind() {
+	rVal = reflect.Indirect(tVal.Get())
+	switch rVal.Kind() {
 	case reflect.Float32, reflect.Float64:
-		tVal.Get().SetFloat(fVal)
+		rVal.SetFloat(fVal)
 	default:
 		err = fmt.Errorf("illegal float value, type:%s", tVal.Get().Type().String())
 	}

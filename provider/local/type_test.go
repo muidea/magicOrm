@@ -480,3 +480,38 @@ func TestSliceStructType(t *testing.T) {
 		return
 	}
 }
+
+func TestTypeImpl_Interface(t *testing.T) {
+	var iVal int
+	iType, iErr := newType(reflect.TypeOf(iVal))
+	if iErr != nil {
+		t.Errorf("newType failed, err:%s", iErr.Error())
+		return
+	}
+
+	tVal := iType.Interface()
+	if !tVal.Get().CanSet() || !tVal.Get().CanAddr() {
+		t.Errorf("Interface value failed")
+		return
+	}
+	if tVal.Get().Type().String() != "int" {
+		t.Errorf("Interface value failed")
+		return
+	}
+
+	iValPtr := &iVal
+	iType, iErr = newType(reflect.TypeOf(iValPtr))
+	if iErr != nil {
+		t.Errorf("newType failed, err:%s", iErr.Error())
+		return
+	}
+
+	tValPtr := iType.Interface()
+	if !tValPtr.Get().CanSet() || !tValPtr.Get().CanAddr() {
+		t.Errorf("Interface value failed")
+	}
+	if tValPtr.Get().Type().String() != "*int" {
+		t.Errorf("Interface value failed")
+		return
+	}
+}

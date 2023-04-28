@@ -153,7 +153,7 @@ func TestSliceHelper(t *testing.T) {
 		t.Errorf("Decode failed,")
 		return
 	}
-	if dVal.Get().Len() != iVal.Get().Len() {
+	if reflect.Indirect(dVal.Get()).Len() != reflect.Indirect(iVal.Get()).Len() {
 		t.Errorf("Decode failed,")
 		return
 	}

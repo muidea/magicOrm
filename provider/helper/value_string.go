@@ -62,9 +62,10 @@ func (s *impl) decodeString(val interface{}, tType model.Type) (ret model.Value,
 	}
 
 	tVal := tType.Interface()
-	switch tVal.Get().Kind() {
+	rVal = reflect.Indirect(tVal.Get())
+	switch rVal.Kind() {
 	case reflect.String:
-		tVal.Get().SetString(strVal)
+		rVal.SetString(strVal)
 	default:
 		err = fmt.Errorf("illegal string value, type:%s", tVal.Get().Type().String())
 	}
