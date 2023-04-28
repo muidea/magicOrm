@@ -157,14 +157,12 @@ func getFieldValue(fieldName string, itemType *TypeImpl, itemValue *valueImpl) (
 	}
 
 	if itemType.IsBasic() {
-		/*
-			encodeVal, encodeErr := _helper.Encode(itemValue, itemType)
-			if encodeErr != nil {
-				err = encodeErr
-				return
-			}
-		*/
-		ret = &FieldValue{Name: fieldName, Value: itemValue.Interface()}
+		encodeVal, encodeErr := _helper.Encode(itemValue, itemType)
+		if encodeErr != nil {
+			err = encodeErr
+			return
+		}
+		ret = &FieldValue{Name: fieldName, Value: encodeVal}
 		return
 	}
 

@@ -104,7 +104,7 @@ func (s *ObjectFilter) Equal(key string, val interface{}) (err error) {
 	}
 
 	if qvType == ou.TypeDateTimeField {
-		val = qv.Interface().(time.Time).Format(time.RFC3339)
+		val = qv.Interface().(time.Time).Format(util.CSTLayout)
 	}
 
 	if ou.IsBasicType(qvType) {

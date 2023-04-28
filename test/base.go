@@ -178,14 +178,14 @@ type Compose struct {
 	// 2
 	H2 []Simple `orm:"simpleArray"`
 	// 4
-	R4           []*Simple     `orm:"simplePtrArray"`
-	PR4          *[]Simple     `orm:"ptrSimpleArray"`
-	Reference    Reference     `orm:"reference"`
-	PtrReference *Reference    `orm:"ptrReference"`
-	RefArray     []Reference   `orm:"refArray"`
-	RefPtrArray  []*Reference  `orm:"refPtrArray"`
-	PtrRefArray  *[]*Reference `orm:"ptrRefArray"`
-	PtrCompose   *Compose      `orm:"ptrCompose"`
+	R4           []*Simple    `orm:"simplePtrArray"`
+	PR4          *[]Simple    `orm:"ptrSimpleArray"`
+	Reference    Reference    `orm:"reference"`
+	PtrReference *Reference   `orm:"ptrReference"`
+	RefArray     []Reference  `orm:"refArray"`
+	RefPtrArray  []*Reference `orm:"refPtrArray"`
+	PtrRefArray  []*Reference `orm:"ptrRefArray"`
+	PtrCompose   *Compose     `orm:"ptrCompose"`
 }
 
 func (l *Compose) IsSame(r *Compose) bool {
@@ -252,16 +252,16 @@ func (l *Compose) IsSame(r *Compose) bool {
 	if len(l.RefPtrArray) != len(r.RefPtrArray) {
 		return false
 	}
-	if l.PtrRefArray != nil && len(*l.PtrRefArray) > 0 {
+	if l.PtrRefArray != nil && len(l.PtrRefArray) > 0 {
 		if r.PtrRefArray == nil {
 			return false
 		}
-		if len(*l.PtrRefArray) != len(*r.PtrRefArray) {
+		if len(l.PtrRefArray) != len(r.PtrRefArray) {
 			return false
 		}
 	}
 	if l.PtrRefArray == nil {
-		if r.PtrRefArray != nil && len(*r.PtrRefArray) > 0 {
+		if r.PtrRefArray != nil && len(r.PtrRefArray) > 0 {
 			return false
 		}
 	}

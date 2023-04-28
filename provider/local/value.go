@@ -36,6 +36,11 @@ func (s *valueImpl) Set(val reflect.Value) (err error) {
 	//	return
 	//}
 
+	// special for struct value
+	if s.value.Kind() == reflect.Struct {
+		val = reflect.Indirect(val)
+	}
+
 	s.value.Set(val)
 	return
 }

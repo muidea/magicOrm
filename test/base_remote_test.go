@@ -457,7 +457,7 @@ func TestRemoteCompose(t *testing.T) {
 		PtrReference: r1,
 		RefArray:     []Reference{*r1, *r1, *r1},
 		RefPtrArray:  refPtrArray,
-		PtrRefArray:  &refPtrArray,
+		PtrRefArray:  refPtrArray,
 	}
 	c1Val, c1Err := getObjectValue(c1)
 	if c1Err != nil {
@@ -492,7 +492,7 @@ func TestRemoteCompose(t *testing.T) {
 		PtrReference: r1,
 		RefArray:     []Reference{*r1, *r1, *r1},
 		RefPtrArray:  refPtrArray,
-		PtrRefArray:  &refPtrArray,
+		PtrRefArray:  refPtrArray,
 		PtrCompose:   c1,
 	}
 	c2Val, c2Err := getObjectValue(c2)
@@ -526,7 +526,7 @@ func TestRemoteCompose(t *testing.T) {
 		PR4:          &[]Simple{},
 		PtrReference: &Reference{},
 		RefArray:     []Reference{},
-		PtrRefArray:  &[]*Reference{},
+		PtrRefArray:  []*Reference{},
 		PtrCompose:   &Compose{},
 	}
 	c3Val, c3Err := getObjectValue(c3)
@@ -697,7 +697,7 @@ func TestRemoteQuery(t *testing.T) {
 		PtrReference: r1,
 		RefArray:     []Reference{*r1, *r1, *r1},
 		RefPtrArray:  refPtrArray,
-		PtrRefArray:  &refPtrArray,
+		PtrRefArray:  refPtrArray,
 	}
 	c1Value, c1Err := getObjectValue(c1)
 	if c1Err != nil {
@@ -733,7 +733,7 @@ func TestRemoteQuery(t *testing.T) {
 		PtrReference: r1,
 		RefArray:     []Reference{*r1, *r1, *r1},
 		RefPtrArray:  refPtrArray,
-		PtrRefArray:  &refPtrArray,
+		PtrRefArray:  refPtrArray,
 		PtrCompose:   c1,
 	}
 	c2Value, c2Err := getObjectValue(c2)
@@ -758,7 +758,7 @@ func TestRemoteQuery(t *testing.T) {
 		return
 	}
 
-	c3 := &Compose{ID: c2.ID, R3: &Simple{}, PR4: &[]Simple{}, PtrReference: &Reference{}, PtrRefArray: &[]*Reference{}, PtrCompose: &Compose{}}
+	c3 := &Compose{ID: c2.ID, R3: &Simple{}, PR4: &[]Simple{}, PtrReference: &Reference{}, PtrRefArray: []*Reference{}, PtrCompose: &Compose{}}
 	c3Value := c2Value
 	c3Model, c3Err := remoteProvider.GetEntityModel(c3Value)
 	if c3Err != nil {

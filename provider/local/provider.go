@@ -138,8 +138,8 @@ func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, e
 	}
 
 	rVal := val.Get()
-	if isElemPtr {
-		rVal = rVal.Addr()
+	if !isElemPtr {
+		rVal = reflect.Indirect(rVal)
 	}
 
 	rType := rVal.Type()

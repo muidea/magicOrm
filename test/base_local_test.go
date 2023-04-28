@@ -341,7 +341,7 @@ func TestLocalCompose(t *testing.T) {
 		PtrReference: &r1,
 		RefArray:     []Reference{r1, r1, r1},
 		RefPtrArray:  refPtrArray,
-		PtrRefArray:  &refPtrArray,
+		PtrRefArray:  refPtrArray,
 	}
 	c1Model, c1Err := localProvider.GetEntityModel(c1)
 	if c1Err != nil {
@@ -365,7 +365,7 @@ func TestLocalCompose(t *testing.T) {
 		PtrReference: &r1,
 		RefArray:     []Reference{r1, r1, r1},
 		RefPtrArray:  refPtrArray,
-		PtrRefArray:  &refPtrArray,
+		PtrRefArray:  refPtrArray,
 		PtrCompose:   c1,
 	}
 	c2Model, c2Err := localProvider.GetEntityModel(c2)
@@ -389,7 +389,7 @@ func TestLocalCompose(t *testing.T) {
 		PR4:          &[]Simple{},
 		PtrReference: &Reference{},
 		RefArray:     []Reference{},
-		PtrRefArray:  &[]*Reference{},
+		PtrRefArray:  []*Reference{},
 		PtrCompose:   &Compose{},
 	}
 	c3Model, c3Err := localProvider.GetEntityModel(c3)
@@ -510,7 +510,7 @@ func TestLocalQuery(t *testing.T) {
 		PtrReference: &r1,
 		RefArray:     []Reference{r1, r1, r1},
 		RefPtrArray:  refPtrArray,
-		PtrRefArray:  &refPtrArray,
+		PtrRefArray:  refPtrArray,
 	}
 	c1Model, c1Err := localProvider.GetEntityModel(c1)
 	if c1Err != nil {
@@ -536,7 +536,7 @@ func TestLocalQuery(t *testing.T) {
 		PtrReference: &r1,
 		RefArray:     []Reference{r1, r1, r1},
 		RefPtrArray:  refPtrArray,
-		PtrRefArray:  &refPtrArray,
+		PtrRefArray:  refPtrArray,
 		PtrCompose:   &c1,
 	}
 	c2Model, c2Err := localProvider.GetEntityModel(c2)
