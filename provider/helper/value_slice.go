@@ -104,6 +104,7 @@ func (s *impl) decodeReflectSlice(val reflect.Value, tType model.Type) (ret mode
 	if tType.IsPtrType() {
 		sliceVal = sliceVal.Elem()
 	}
+	rawVal := sliceVal
 	for idx := 0; idx < val.Len(); idx++ {
 		v := val.Index(idx)
 		itemVal, itemErr := s.Decode(v.Interface(), tType.Elem())
@@ -112,8 +113,9 @@ func (s *impl) decodeReflectSlice(val reflect.Value, tType model.Type) (ret mode
 			return
 		}
 
-		sliceVal = reflect.Append(sliceVal, itemVal.Get())
+		rawVal = reflect.Append(rawVal, itemVal.Get())
 	}
+	sliceVal.Set(rawVal)
 	if tType.IsPtrType() {
 		sliceVal = sliceVal.Addr()
 	}

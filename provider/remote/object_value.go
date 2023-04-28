@@ -198,7 +198,7 @@ func getSliceFieldValue(fieldName string, itemType *TypeImpl, itemValue *valueIm
 	}
 
 	sliceObjectVal := []*ObjectValue{}
-	rawVal := itemValue.Get()
+	rawVal := reflect.Indirect(itemValue.Get())
 	for idx := 0; idx < rawVal.Len(); idx++ {
 		itemVal := rawVal.Index(idx)
 		objVal, objErr := getObjectValue(itemVal)

@@ -113,6 +113,7 @@ func TestLocalGroup(t *testing.T) {
 		t.Errorf("query Group42 failed, err:%s", group42Err.Error())
 		return
 	}
+	group42 = group42Model.Interface(true).(*Group)
 	if !group42.Equal(group2) {
 		t.Errorf("query Group42 failed")
 		return

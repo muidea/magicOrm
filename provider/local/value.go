@@ -28,7 +28,12 @@ func (s *valueImpl) Set(val reflect.Value) (err error) {
 		//rVal = reflect.Indirect(rVal)
 	}
 
-	if !s.value.IsValid() {
+	if !val.IsValid() {
+		s.value = val
+		return
+	}
+
+	if !s.value.IsValid() || s.value.IsZero() {
 		s.value = reflect.New(val.Type()).Elem()
 	}
 	//if !s.value.IsValid() || util.IsNil(s.value) || util.IsNil(val) {
@@ -73,6 +78,9 @@ func (s *valueImpl) IsBasic() bool {
 	}
 
 	rType := s.value.Type()
+	if rType.Kind() == reflect.Ptr {
+		rType = rType.Elem()
+	}
 	if s.value.Kind() == reflect.Interface {
 		rType = s.value.Elem().Type()
 	}

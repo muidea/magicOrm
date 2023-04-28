@@ -216,10 +216,11 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 }
 
 func AppendSliceValue(sliceVal model.Value, vVal model.Value) (ret model.Value, err error) {
+	rvVal := reflect.Indirect(vVal.Get())
 	sliceName := sliceVal.Get().FieldByName("Name").String()
 	slicePkg := sliceVal.Get().FieldByName("PkgPath").String()
-	objectName := vVal.Get().FieldByName("Name").String()
-	objectPkg := vVal.Get().FieldByName("PkgPath").String()
+	objectName := rvVal.FieldByName("Name").String()
+	objectPkg := rvVal.FieldByName("PkgPath").String()
 
 	if sliceName != objectName || slicePkg != objectPkg {
 		err = fmt.Errorf("mismatch slice value")
