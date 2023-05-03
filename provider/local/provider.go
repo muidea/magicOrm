@@ -124,7 +124,8 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 }
 
 func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, err error) {
-	rSliceVal := sliceVal.Get()
+	// *[]xx , []xx
+	rSliceVal := reflect.Indirect(sliceVal.Get())
 	rSliceType := rSliceVal.Type()
 	if rSliceType.Kind() != reflect.Slice {
 		err = fmt.Errorf("append slice value failed, illegal slice value, slice type:%s", rSliceType.String())
