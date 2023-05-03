@@ -360,9 +360,9 @@ func TestLocalSystem(t *testing.T) {
 	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	provider := provider.NewLocalProvider("default", "abc")
+	localProvider := provider.NewLocalProvider("default", "abc")
 
-	o1, err := orm.NewOrm(provider, config)
+	o1, err := orm.NewOrm(localProvider, config)
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -373,9 +373,9 @@ func TestLocalSystem(t *testing.T) {
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
 	objList := []interface{}{&Group{}, &User{}, &System{}, &Status{}}
-	registerModel(provider, objList)
+	registerModel(localProvider, objList)
 
-	userModel, userErr := provider.GetEntityModel(User{})
+	userModel, userErr := localProvider.GetEntityModel(User{})
 	if userErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", userErr.Error())
 		return
@@ -387,7 +387,7 @@ func TestLocalSystem(t *testing.T) {
 		return
 	}
 
-	sysModel, sysErr := provider.GetEntityModel(System{})
+	sysModel, sysErr := localProvider.GetEntityModel(System{})
 	if sysErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", sysErr.Error())
 		return
@@ -415,7 +415,7 @@ func TestLocalSystem(t *testing.T) {
 		return
 	}
 
-	user1Model, user1Err := provider.GetEntityModel(user1)
+	user1Model, user1Err := localProvider.GetEntityModel(user1)
 	if user1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", user1Err.Error())
 		return
@@ -427,7 +427,7 @@ func TestLocalSystem(t *testing.T) {
 	}
 	user1 = user1Model.Interface(true).(*User)
 
-	user2Model, user2Err := provider.GetEntityModel(user2)
+	user2Model, user2Err := localProvider.GetEntityModel(user2)
 	if user2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", user2Err.Error())
 		return
@@ -443,7 +443,7 @@ func TestLocalSystem(t *testing.T) {
 
 	users := []User{*user1, *user2}
 	sys1.Users = &users
-	sys1Model, sys1Err := provider.GetEntityModel(sys1)
+	sys1Model, sys1Err := localProvider.GetEntityModel(sys1)
 	if sys1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", sys1Err.Error())
 		return
@@ -458,7 +458,7 @@ func TestLocalSystem(t *testing.T) {
 	users = append(users, *user1)
 	users = append(users, *user2)
 	sys1.Users = &users
-	sys1Model, sys1Err = provider.GetEntityModel(sys1)
+	sys1Model, sys1Err = localProvider.GetEntityModel(sys1)
 	if sys1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", sys1Err.Error())
 		return
@@ -471,14 +471,14 @@ func TestLocalSystem(t *testing.T) {
 	sys1 = sys1Model.Interface(true).(*System)
 
 	sys2 := &System{ID: sys1.ID, Users: &[]User{}}
-	sys2Model, sys2Err := provider.GetEntityModel(sys2)
+	sys2Model, sys2Err := localProvider.GetEntityModel(sys2)
 	if sys2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", sys2Err.Error())
 		return
 	}
 	sys2Model, sys2Err = o1.Query(sys2Model)
 	if sys2Err != nil {
-		t.Errorf("insert user failed, err:%s", sys2Err.Error())
+		t.Errorf("query user failed, err:%s", sys2Err.Error())
 		return
 	}
 	sys2 = sys2Model.Interface(true).(*System)
@@ -488,7 +488,7 @@ func TestLocalSystem(t *testing.T) {
 		return
 	}
 
-	sys2Model, sys2Err = provider.GetEntityModel(sys2)
+	sys2Model, sys2Err = localProvider.GetEntityModel(sys2)
 	if sys2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", sys2Err.Error())
 		return

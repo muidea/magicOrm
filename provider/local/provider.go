@@ -127,7 +127,7 @@ func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, e
 	rSliceVal := sliceVal.Get()
 	rSliceType := rSliceVal.Type()
 	if rSliceType.Kind() != reflect.Slice {
-		err = fmt.Errorf("illegal slice value, slice type:%s", rSliceType.String())
+		err = fmt.Errorf("append slice value failed, illegal slice value, slice type:%s", rSliceType.String())
 		return
 	}
 
@@ -144,7 +144,7 @@ func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, e
 
 	rType := rVal.Type()
 	if rSliceType.Elem().String() != rType.String() {
-		err = fmt.Errorf("illegal slice item value, slice type:%s, item type:%s", rSliceType.String(), rType.String())
+		err = fmt.Errorf("append slice value failed, illegal slice item value, slice type:%s, item type:%s", rSliceType.String(), rType.String())
 		return
 	}
 
