@@ -47,78 +47,61 @@ func (s *ObjectValue) IsPtrValue() bool {
 	return s.IsPtr
 }
 
+func (s *ObjectValue) isFieldAssigned(val *FieldValue) (ret bool) {
+	if val.Value == nil {
+		return
+	}
+
+	bVal, bOK := val.Value.(bool)
+	if bOK {
+		ret = bVal
+		return
+	}
+
+	strVal, strOK := val.Value.(string)
+	if strOK {
+		ret = strVal != ""
+		return
+	}
+
+	i64Val, iOK := val.Value.(int64)
+	if iOK {
+		ret = i64Val != 0
+		return
+	}
+
+	iVal, iOK := val.Value.(int)
+	if iOK {
+		ret = iVal != 0
+		return
+	}
+
+	fltVal, fltOK := val.Value.(float64)
+	if fltOK {
+		ret = fltVal != 0
+		return
+	}
+
+	sliceObjPtrVal, sliceObjPtrOK := val.Value.(*SliceObjectValue)
+	if sliceObjPtrOK {
+		ret = len(sliceObjPtrVal.Values) > 0
+		return
+	}
+
+	ptrObjVal, ptrObjOK := val.Value.(*ObjectValue)
+	if ptrObjOK {
+		ret = ptrObjVal.IsAssigned()
+	}
+	return
+}
+
 // IsAssigned is assigned value
 func (s *ObjectValue) IsAssigned() (ret bool) {
 	ret = false
 	for _, val := range s.Fields {
-		if val.Value == nil {
-			continue
-		}
-
-		bVal, bOK := val.Value.(bool)
-		if bOK {
-			ret = bVal
-			if ret {
-				return
-			}
-
-			continue
-		}
-
-		strVal, strOK := val.Value.(string)
-		if strOK {
-			ret = strVal != ""
-			if ret {
-				return
-			}
-
-			continue
-		}
-
-		i64Val, iOK := val.Value.(int64)
-		if iOK {
-			ret = i64Val != 0
-			if ret {
-				return
-			}
-
-			continue
-		}
-
-		iVal, iOK := val.Value.(int)
-		if iOK {
-			ret = iVal != 0
-			if ret {
-				return
-			}
-
-			continue
-		}
-
-		fltVal, fltOK := val.Value.(float64)
-		if fltOK {
-			ret = fltVal != 0
-			if ret {
-				return
-			}
-
-			continue
-		}
-
-		sliceObjPtrVal, sliceObjPtrOK := val.Value.(*SliceObjectValue)
-		if sliceObjPtrOK {
-			ret = len(sliceObjPtrVal.Values) > 0
-			if ret {
-				return
-			}
-		}
-
-		ptrObjVal, ptrObjOK := val.Value.(*ObjectValue)
-		if ptrObjOK {
-			ret = ptrObjVal.IsAssigned()
-			if ret {
-				return
-			}
+		ret = s.isFieldAssigned(val)
+		if ret {
+			return
 		}
 	}
 
@@ -186,14 +169,12 @@ func getSliceFieldValue(fieldName string, itemType *TypeImpl, itemValue *valueIm
 
 	elemType := itemType.Elem()
 	if elemType.IsBasic() {
-		/*
-			encodeVal, encodeErr := _helper.Encode(itemValue, itemType)
-			if encodeErr != nil {
-				err = encodeErr
-				return
-			}
-		*/
-		ret = &FieldValue{Name: fieldName, Value: itemValue.Interface()}
+		encodeVal, encodeErr := _helper.Encode(itemValue, itemType)
+		if encodeErr != nil {
+			err = encodeErr
+			return
+		}
+		ret = &FieldValue{Name: fieldName, Value: encodeVal}
 		return
 	}
 
