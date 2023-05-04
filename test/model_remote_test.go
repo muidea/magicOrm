@@ -1095,14 +1095,14 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	filter2, err := remoteProvider.GetEntityFilter(groupListVal)
+	userFilter, err := remoteProvider.GetEntityFilter(userListVal)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
 	}
 
-	filter2.In("group", groupListVal)
-	userModelList, userModelErr = o1.BatchQuery(filter2)
+	userFilter.In("group", groupListVal)
+	userModelList, userModelErr = o1.BatchQuery(userFilter)
 	if userModelErr != nil {
 		err = userModelErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
@@ -1398,7 +1398,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
-	filter2, err := remoteProvider.GetEntityFilter(groupList)
+	filter2, err := remoteProvider.GetEntityFilter(userListVal)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return

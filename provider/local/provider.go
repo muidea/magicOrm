@@ -27,6 +27,9 @@ func GetType(vType reflect.Type) (ret model.Type, err error) {
 
 func GetEntityType(entity interface{}) (ret model.Type, err error) {
 	rVal := reflect.ValueOf(entity)
+	if rVal.Kind() == reflect.Interface {
+		rVal = rVal.Elem()
+	}
 	vType, vErr := getValueType(rVal)
 	if vErr != nil {
 		err = vErr
@@ -39,12 +42,20 @@ func GetEntityType(entity interface{}) (ret model.Type, err error) {
 
 func GetEntityValue(entity interface{}) (ret model.Value, err error) {
 	rVal := reflect.ValueOf(entity)
+	if rVal.Kind() == reflect.Interface {
+		rVal = rVal.Elem()
+	}
+
 	ret = newValue(rVal)
 	return
 }
 
 func GetEntityModel(entity interface{}) (ret model.Model, err error) {
 	rVal := reflect.ValueOf(entity)
+	if rVal.Kind() == reflect.Interface {
+		rVal = rVal.Elem()
+	}
+
 	if rVal.Kind() != reflect.Ptr {
 		err = fmt.Errorf("must be a pointer entity")
 		return
@@ -72,22 +83,28 @@ func GetEntityModel(entity interface{}) (ret model.Model, err error) {
 }
 
 func GetModelFilter(vModel model.Model) (ret model.Filter, err error) {
-	valueImpl := newValue(reflect.ValueOf(vModel.Interface(false)))
-	ret = NewFilter(valueImpl)
+	valuePtr := newValue(reflect.ValueOf(vModel.Interface(true)))
+	ret = NewFilter(valuePtr)
 	return
 }
 
 func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err error) {
 	rVal := reflect.Indirect(vVal.Get())
-	vType := rVal.Type()
-	if vType.Kind() != reflect.Struct {
-		err = fmt.Errorf("illegal model value, mode name:%s", vModel.GetName())
+	vType, vErr := newType(rVal.Type())
+	if vErr != nil {
+		err = vErr
 		return
 	}
 
-	fieldNum := vType.NumField()
+	if !util.IsStructType(vType.GetValue()) || vType.GetPkgKey() != vModel.GetPkgKey() {
+		err = fmt.Errorf("illegal model value, mode PkgKey:%s, value PkgKey:%s", vModel.GetPkgKey(), vType.GetPkgKey())
+		return
+	}
+
+	rType := vType.getRawType()
+	fieldNum := rType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		fieldType := vType.Field(idx)
+		fieldType := rType.Field(idx)
 		fieldVal := newValue(rVal.Field(idx))
 		if fieldVal.IsNil() {
 			continue
@@ -165,8 +182,7 @@ func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, helper 
 
 	if vVal.IsBasic() {
 		pkField := tModel.GetPrimaryField()
-		vType := pkField.GetType()
-		ret, err = helper.Encode(vVal, vType)
+		ret, err = helper.Encode(vVal, pkField.GetType())
 		return
 	}
 

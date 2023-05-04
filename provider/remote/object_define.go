@@ -160,6 +160,10 @@ func (s *Object) Dump() (ret string) {
 	return
 }
 
+func (s *Object) Verify() (err error) {
+	return
+}
+
 // GetObject GetObject
 func GetObject(entity interface{}) (ret *Object, err error) {
 	entityType := reflect.ValueOf(entity).Type()

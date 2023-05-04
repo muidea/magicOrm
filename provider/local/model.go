@@ -2,9 +2,10 @@ package local
 
 import (
 	"fmt"
-	"log"
 	"path"
 	"reflect"
+
+	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
@@ -114,13 +115,18 @@ func (s *objectImpl) Dump() (ret string) {
 	return
 }
 
+func (s *objectImpl) Verify() (err error) {
+	for _, val := range s.fields {
+		err = val.verify()
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
 func getTypeModel(entityType reflect.Type) (ret *objectImpl, err error) {
-	if entityType.Kind() == reflect.Ptr {
-		entityType = entityType.Elem()
-	}
-	if entityType.Kind() == reflect.Interface {
-		entityType = entityType.Elem()
-	}
 	if entityType.Kind() == reflect.Ptr {
 		entityType = entityType.Elem()
 	}
@@ -128,10 +134,12 @@ func getTypeModel(entityType reflect.Type) (ret *objectImpl, err error) {
 	typeImpl, typeErr := newType(entityType)
 	if typeErr != nil {
 		err = fmt.Errorf("illegal type, must be a struct entity, type:%s", entityType.String())
+		log.Errorf("getTypeModel failed, err:%s", err.Error())
 		return
 	}
 	if typeImpl.GetValue() != util.TypeStructValue {
 		err = fmt.Errorf("illegal type, must be a struct entity, type:%s", entityType.String())
+		log.Errorf("getTypeModel failed, err:%s", err.Error())
 		return
 	}
 
@@ -144,13 +152,15 @@ func getTypeModel(entityType reflect.Type) (ret *objectImpl, err error) {
 		tField, tErr := getFieldInfo(idx, fieldInfo, fieldValue)
 		if tErr != nil {
 			err = tErr
-			log.Printf("getFieldInfo failed, field idx:%d, field name:%s, struct name:%s, err:%s", idx, fieldInfo.Name, impl.GetName(), err.Error())
+			log.Errorf("getTypeModel failed, field idx:%d, field name:%s, struct name:%s, err:%s", idx, fieldInfo.Name, impl.GetName(), err.Error())
 			return
 		}
 
 		if tField.IsPrimary() {
 			if hasPrimaryKey {
 				err = fmt.Errorf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldInfo.Name, impl.GetName())
+
+				log.Errorf("getTypeModel failed, check primary key err:%s", err.Error())
 				return
 			}
 
@@ -162,10 +172,12 @@ func getTypeModel(entityType reflect.Type) (ret *objectImpl, err error) {
 
 	if len(impl.fields) == 0 {
 		err = fmt.Errorf("no define orm field, struct name:%s", impl.GetName())
+		log.Errorf("getTypeModel failed, check fields err:%s", err.Error())
 		return
 	}
 	if !hasPrimaryKey {
 		err = fmt.Errorf("no define primary key field, struct name:%s", impl.GetName())
+		log.Errorf("getTypeModel failed, check primary key err:%s", err.Error())
 		return
 	}
 
@@ -177,7 +189,7 @@ func getValueModel(modelVal reflect.Value) (ret *objectImpl, err error) {
 	hasPrimaryKey := false
 	modelVal = reflect.Indirect(modelVal)
 	entityType := modelVal.Type()
-	impl := &objectImpl{objectType: entityType, fields: make([]*field, 0)}
+	impl := &objectImpl{objectType: entityType, fields: []*field{}}
 	fieldNum := entityType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		fieldVal := modelVal.Field(idx)
@@ -185,13 +197,14 @@ func getValueModel(modelVal reflect.Value) (ret *objectImpl, err error) {
 		tField, tErr := getFieldInfo(idx, fieldInfo, fieldVal)
 		if tErr != nil {
 			err = tErr
-			log.Printf("getFieldInfo failed, field idx:%d, field name:%s, struct name:%s, err:%s", idx, fieldInfo.Name, impl.GetName(), err.Error())
+			log.Errorf("getValueModel failed, field idx:%d, field name:%s, struct name:%s, err:%s", idx, fieldInfo.Name, impl.GetName(), err.Error())
 			return
 		}
 
 		if tField.IsPrimary() {
 			if hasPrimaryKey {
 				err = fmt.Errorf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldInfo.Name, impl.GetName())
+				log.Errorf("getValueModel failed, check primary key err:%s", err.Error())
 				return
 			}
 
@@ -205,10 +218,12 @@ func getValueModel(modelVal reflect.Value) (ret *objectImpl, err error) {
 
 	if len(impl.fields) == 0 {
 		err = fmt.Errorf("no define orm field, struct name:%s", impl.GetName())
+		log.Errorf("getValueModel failed, check fields err:%s", err.Error())
 		return
 	}
 	if !hasPrimaryKey {
 		err = fmt.Errorf("no define primary key field, struct name:%s", impl.GetName())
+		log.Errorf("getValueModel failed, check primary key err:%s", err.Error())
 		return
 	}
 
