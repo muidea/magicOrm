@@ -11,6 +11,8 @@ import (
 	"github.com/muidea/magicOrm/provider"
 )
 
+const maxDeepLevel = 3
+
 // Orm orm interface
 type Orm interface {
 	Create(entity model.Model) error
