@@ -9,19 +9,19 @@ type OprFunc func(string, interface{}) string
 
 func getOprFunc(filterItem model.FilterItem) (ret OprFunc) {
 	switch filterItem.OprCode() {
-	case model.Equal:
+	case model.EqualOpr:
 		return EqualOpr
-	case model.NotEqual:
+	case model.NotEqualOpr:
 		return NotEqualOpr
-	case model.Below:
+	case model.BelowOpr:
 		return BelowOpr
-	case model.Above:
+	case model.AboveOpr:
 		return AboveOpr
-	case model.In:
+	case model.InOpr:
 		return InOpr
-	case model.NotIn:
+	case model.NotInOpr:
 		return NotInOpr
-	case model.Like:
+	case model.LikeOpr:
 		return LikeOpr
 	}
 

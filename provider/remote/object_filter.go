@@ -99,7 +99,7 @@ func (s *ObjectFilter) Equal(key string, val interface{}) (err error) {
 		return
 	}
 	if ou.IsSliceType(qvType) {
-		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
+		err = fmt.Errorf("equal failed, illegal value type, type:%s", qv.Type().String())
 		return
 	}
 
@@ -145,7 +145,7 @@ func (s *ObjectFilter) NotEqual(key string, val interface{}) (err error) {
 		return
 	}
 	if ou.IsSliceType(qvType) {
-		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
+		err = fmt.Errorf("notEqual failed, illegal value type, type:%s", qv.Type().String())
 		return
 	}
 
@@ -178,7 +178,7 @@ func (s *ObjectFilter) Below(key string, val interface{}) (err error) {
 		return
 	}
 	if !ou.IsBasicType(qvType) {
-		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
+		err = fmt.Errorf("below failed, illegal value type, type:%s", qv.Type().String())
 		return
 	}
 
@@ -200,7 +200,7 @@ func (s *ObjectFilter) Above(key string, val interface{}) (err error) {
 		return
 	}
 	if !ou.IsBasicType(qvType) {
-		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
+		err = fmt.Errorf("above failed, illegal value type, type:%s", qv.Type().String())
 		return
 	}
 
@@ -338,7 +338,7 @@ func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: om.Equal, value: newValue(itemVal.Get())}
+		return &filterItem{oprCode: om.EqualOpr, value: newValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.NotEqualFilter)
@@ -346,7 +346,7 @@ func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: om.NotEqual, value: newValue(itemVal.Get())}
+		return &filterItem{oprCode: om.NotEqualOpr, value: newValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.BelowFilter)
@@ -354,7 +354,7 @@ func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: om.Below, value: newValue(itemVal.Get())}
+		return &filterItem{oprCode: om.BelowOpr, value: newValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.AboveFilter)
@@ -362,7 +362,7 @@ func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: om.Above, value: newValue(itemVal.Get())}
+		return &filterItem{oprCode: om.AboveOpr, value: newValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.InFilter)
@@ -370,7 +370,7 @@ func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: om.In, value: newValue(itemVal.Get())}
+		return &filterItem{oprCode: om.InOpr, value: newValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.NotInFilter)
@@ -378,7 +378,7 @@ func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: om.NotIn, value: newValue(itemVal.Get())}
+		return &filterItem{oprCode: om.NotInOpr, value: newValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.LikeFilter)
@@ -386,7 +386,7 @@ func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: om.Like, value: newValue(itemVal.Get())}
+		return &filterItem{oprCode: om.LikeOpr, value: newValue(itemVal.Get())}
 	}
 
 	return nil

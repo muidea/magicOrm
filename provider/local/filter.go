@@ -42,12 +42,12 @@ func (s *filter) Equal(key string, val interface{}) (err error) {
 		return
 	}
 	if ou.IsSliceType(qvType) {
-		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
+		err = fmt.Errorf("equal failed, illegal value type, type:%s", qv.Type().String())
 		return
 	}
 
 	//s.equalFilter = append(s.equalFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: om.Equal, value: newValue(qv)}
+	s.params[key] = &filterItem{oprCode: om.EqualOpr, value: newValue(qv)}
 	return
 }
 
@@ -59,12 +59,12 @@ func (s *filter) NotEqual(key string, val interface{}) (err error) {
 		return
 	}
 	if ou.IsSliceType(qvType) {
-		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
+		err = fmt.Errorf("notEqual failed, illegal value type, type:%s", qv.Type().String())
 		return
 	}
 
 	//s.notEqualFilter = append(s.notEqualFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: om.NotEqual, value: newValue(qv)}
+	s.params[key] = &filterItem{oprCode: om.NotEqualOpr, value: newValue(qv)}
 	return
 }
 
@@ -76,12 +76,12 @@ func (s *filter) Below(key string, val interface{}) (err error) {
 		return
 	}
 	if !ou.IsBasicType(qvType) {
-		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
+		err = fmt.Errorf("below failed, illegal value type, type:%s", qv.Type().String())
 		return
 	}
 
 	//s.belowFilter = append(s.belowFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: om.Below, value: newValue(qv)}
+	s.params[key] = &filterItem{oprCode: om.BelowOpr, value: newValue(qv)}
 	return
 }
 
@@ -93,12 +93,12 @@ func (s *filter) Above(key string, val interface{}) (err error) {
 		return
 	}
 	if !ou.IsBasicType(qvType) {
-		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
+		err = fmt.Errorf("above failed, illegal value type, type:%s", qv.Type().String())
 		return
 	}
 
 	//s.aboveFilter = append(s.aboveFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: om.Above, value: newValue(qv)}
+	s.params[key] = &filterItem{oprCode: om.AboveOpr, value: newValue(qv)}
 	return
 }
 
@@ -110,12 +110,12 @@ func (s *filter) In(key string, val interface{}) (err error) {
 		return
 	}
 	if !ou.IsSliceType(qvType) {
-		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
+		err = fmt.Errorf("in failed, illegal value type, type:%s", qv.Type().String())
 		return
 	}
 
 	//s.inFilter = append(s.inFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: om.In, value: newValue(qv)}
+	s.params[key] = &filterItem{oprCode: om.InOpr, value: newValue(qv)}
 	return
 }
 
@@ -127,24 +127,24 @@ func (s *filter) NotIn(key string, val interface{}) (err error) {
 		return
 	}
 	if !ou.IsSliceType(qvType) {
-		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
+		err = fmt.Errorf("notIn failed, illegal value type, type:%s", qv.Type().String())
 		return
 	}
 
 	//s.notInFilter = append(s.notInFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: om.NotIn, value: newValue(qv)}
+	s.params[key] = &filterItem{oprCode: om.NotInOpr, value: newValue(qv)}
 	return
 }
 
 func (s *filter) Like(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	if qv.Kind() != reflect.String {
-		err = fmt.Errorf("illegal value type, type:%s", qv.Type().String())
+		err = fmt.Errorf("like failed, illegal value type, type:%s", qv.Type().String())
 		return
 	}
 
 	//s.likeFilter = append(s.likeFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: om.Like, value: newValue(qv)}
+	s.params[key] = &filterItem{oprCode: om.LikeOpr, value: newValue(qv)}
 	return
 }
 
