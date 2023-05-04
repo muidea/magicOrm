@@ -71,42 +71,27 @@ func (s *impl) querySingleModel(vModel model.Model, filter model.Filter, deepLev
 	return
 }
 
-func (s *impl) assignField(vModel model.Model, vField model.Field, queryVal resultItems, deepLevel int) (ret resultItems, err error) {
-	fType := vField.GetType()
-	fValue := vField.GetValue()
-	if !fType.IsBasic() {
-		if !fValue.IsNil() {
-			itemVal, itemErr := s.queryRelation(vModel, vField, deepLevel+1)
-			if itemErr != nil {
-				err = itemErr
-				return
-			}
-
-			err = vField.SetValue(itemVal)
-			if err != nil {
-				return
-			}
-		}
-
-		ret = queryVal
+func (s *impl) assignModelField(vModel model.Model, vField model.Field, deepLevel int) (err error) {
+	itemVal, itemErr := s.queryRelation(vModel, vField, deepLevel+1)
+	if itemErr != nil {
+		err = itemErr
 		return
 	}
 
-	if !fValue.IsNil() {
-		fVal, fErr := s.modelProvider.DecodeValue(s.stripSlashes(fType, queryVal[0]), fType)
-		if fErr != nil {
-			err = fErr
-			return
-		}
-		err = vField.SetValue(fVal)
-		if err != nil {
-			return
-		}
-
-		ret = queryVal[1:]
+	err = vField.SetValue(itemVal)
+	if err != nil {
+		return
 	}
+	return
+}
 
-	ret = queryVal
+func (s *impl) assignBasicField(fType model.Type, vField model.Field, val interface{}) (err error) {
+	fVal, fErr := s.modelProvider.DecodeValue(s.stripSlashes(fType, val), fType)
+	if fErr != nil {
+		err = fErr
+		return
+	}
+	err = vField.SetValue(fVal)
 	return
 }
 
@@ -117,13 +102,7 @@ func (s *impl) assignSingleModel(modelVal model.Model, queryVal resultItems, dee
 		fValue := field.GetValue()
 		if !fType.IsBasic() {
 			if !fValue.IsNil() {
-				itemVal, itemErr := s.queryRelation(modelVal, field, deepLevel+1)
-				if itemErr != nil {
-					err = itemErr
-					return
-				}
-
-				err = field.SetValue(itemVal)
+				err = s.assignModelField(modelVal, field, deepLevel+1)
 				if err != nil {
 					return
 				}
@@ -134,17 +113,11 @@ func (s *impl) assignSingleModel(modelVal model.Model, queryVal resultItems, dee
 		}
 
 		if !fValue.IsNil() {
-			fVal, fErr := s.modelProvider.DecodeValue(s.stripSlashes(fType, queryVal[offset]), fType)
-			if fErr != nil {
-				err = fErr
-				return
-			}
-			err = field.SetValue(fVal)
+			err = s.assignBasicField(fType, field, queryVal[offset])
 			if err != nil {
 				return
 			}
 		}
-
 		offset++
 	}
 
