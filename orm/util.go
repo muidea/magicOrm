@@ -50,7 +50,7 @@ func (s *impl) getInitializeValue(vModel model.Model, builder builder.Builder) (
 
 func (s *impl) needStripSlashes(fType model.Type) bool {
 	switch fType.GetValue() {
-	case util.TypeStringField, util.TypeDateTimeField:
+	case util.TypeStringValue, util.TypeDateTimeValue:
 		return true
 	}
 

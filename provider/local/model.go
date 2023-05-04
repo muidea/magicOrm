@@ -130,7 +130,7 @@ func getTypeModel(entityType reflect.Type) (ret *objectImpl, err error) {
 		err = fmt.Errorf("illegal type, must be a struct entity, type:%s", entityType.String())
 		return
 	}
-	if typeImpl.GetValue() != util.TypeStructField {
+	if typeImpl.GetValue() != util.TypeStructValue {
 		err = fmt.Errorf("illegal type, must be a struct entity, type:%s", entityType.String())
 		return
 	}

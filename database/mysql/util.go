@@ -58,31 +58,31 @@ func declareFieldInfo(vField model.Field) (ret string, err error) {
 func getFieldType(info model.Field) (ret string, err error) {
 	fType := info.GetType()
 	switch fType.GetValue() {
-	case util.TypeBooleanField, util.TypeBitField:
+	case util.TypeBooleanValue, util.TypeBitValue:
 		ret = "TINYINT"
 		break
-	case util.TypeStringField:
+	case util.TypeStringValue:
 		ret = "TEXT"
 		break
-	case util.TypeDateTimeField:
+	case util.TypeDateTimeValue:
 		ret = "DATETIME"
 		break
-	case util.TypeSmallIntegerField, util.TypePositiveBitField:
+	case util.TypeSmallIntegerValue, util.TypePositiveBitValue:
 		ret = "SMALLINT"
 		break
-	case util.TypeIntegerField, util.TypeInteger32Field, util.TypePositiveSmallIntegerField:
+	case util.TypeIntegerValue, util.TypeInteger32Value, util.TypePositiveSmallIntegerValue:
 		ret = "INT"
 		break
-	case util.TypeBigIntegerField, util.TypePositiveIntegerField, util.TypePositiveInteger32Field, util.TypePositiveBigIntegerField:
+	case util.TypeBigIntegerValue, util.TypePositiveIntegerValue, util.TypePositiveInteger32Value, util.TypePositiveBigIntegerValue:
 		ret = "BIGINT"
 		break
-	case util.TypeFloatField:
+	case util.TypeFloatValue:
 		ret = "FLOAT"
 		break
-	case util.TypeDoubleField:
+	case util.TypeDoubleValue:
 		ret = "DOUBLE"
 		break
-	case util.TypeSliceField:
+	case util.TypeSliceValue:
 		ret = "TEXT"
 	default:
 		err = fmt.Errorf("no support fileType, name:%s, type:%d", info.GetName(), fType.GetValue())

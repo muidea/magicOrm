@@ -21,7 +21,7 @@ func init() {
 
 func isRemoteType(vType model.Type) bool {
 	switch vType.GetValue() {
-	case util.TypeDoubleField, util.TypeBooleanField, util.TypeStringField:
+	case util.TypeDoubleValue, util.TypeBooleanValue, util.TypeStringValue:
 		return true
 	}
 
@@ -35,8 +35,8 @@ func GetHelper() helper.Helper {
 func GetEntityType(entity interface{}) (ret model.Type, err error) {
 	objPtr, ok := entity.(*Object)
 	if ok {
-		impl := &TypeImpl{Name: objPtr.GetName(), Value: util.TypeStructField, PkgPath: objPtr.GetPkgPath(), IsPtr: objPtr.IsPtr}
-		impl.ElemType = &TypeImpl{Name: objPtr.GetName(), Value: util.TypeStructField, PkgPath: objPtr.GetPkgPath(), IsPtr: objPtr.IsPtr}
+		impl := &TypeImpl{Name: objPtr.GetName(), Value: util.TypeStructValue, PkgPath: objPtr.GetPkgPath(), IsPtr: objPtr.IsPtr}
+		impl.ElemType = &TypeImpl{Name: objPtr.GetName(), Value: util.TypeStructValue, PkgPath: objPtr.GetPkgPath(), IsPtr: objPtr.IsPtr}
 
 		ret = impl
 		return
@@ -44,8 +44,8 @@ func GetEntityType(entity interface{}) (ret model.Type, err error) {
 
 	valPtr, ok := entity.(*ObjectValue)
 	if ok {
-		impl := &TypeImpl{Name: valPtr.GetName(), Value: util.TypeStructField, PkgPath: valPtr.GetPkgPath(), IsPtr: valPtr.IsPtr}
-		impl.ElemType = &TypeImpl{Name: valPtr.GetName(), Value: util.TypeStructField, PkgPath: valPtr.GetPkgPath(), IsPtr: valPtr.IsPtr}
+		impl := &TypeImpl{Name: valPtr.GetName(), Value: util.TypeStructValue, PkgPath: valPtr.GetPkgPath(), IsPtr: valPtr.IsPtr}
+		impl.ElemType = &TypeImpl{Name: valPtr.GetName(), Value: util.TypeStructValue, PkgPath: valPtr.GetPkgPath(), IsPtr: valPtr.IsPtr}
 
 		ret = impl
 		return
@@ -53,8 +53,8 @@ func GetEntityType(entity interface{}) (ret model.Type, err error) {
 
 	sValPtr, ok := entity.(*SliceObjectValue)
 	if ok {
-		impl := &TypeImpl{Name: sValPtr.GetName(), Value: util.TypeSliceField, PkgPath: sValPtr.GetPkgPath(), IsPtr: sValPtr.IsPtr}
-		impl.ElemType = &TypeImpl{Name: sValPtr.GetName(), Value: util.TypeStructField, PkgPath: sValPtr.GetPkgPath(), IsPtr: sValPtr.IsElemPtr}
+		impl := &TypeImpl{Name: sValPtr.GetName(), Value: util.TypeSliceValue, PkgPath: sValPtr.GetPkgPath(), IsPtr: sValPtr.IsPtr}
+		impl.ElemType = &TypeImpl{Name: sValPtr.GetName(), Value: util.TypeStructValue, PkgPath: sValPtr.GetPkgPath(), IsPtr: sValPtr.IsElemPtr}
 
 		ret = impl
 		return
@@ -62,8 +62,8 @@ func GetEntityType(entity interface{}) (ret model.Type, err error) {
 
 	filterPtr, ok := entity.(*ObjectFilter)
 	if ok {
-		impl := &TypeImpl{Name: filterPtr.GetName(), Value: util.TypeStructField, PkgPath: filterPtr.GetPkgPath(), IsPtr: true}
-		impl.ElemType = &TypeImpl{Name: filterPtr.GetName(), Value: util.TypeStructField, PkgPath: filterPtr.GetPkgPath(), IsPtr: true}
+		impl := &TypeImpl{Name: filterPtr.GetName(), Value: util.TypeStructValue, PkgPath: filterPtr.GetPkgPath(), IsPtr: true}
+		impl.ElemType = &TypeImpl{Name: filterPtr.GetName(), Value: util.TypeStructValue, PkgPath: filterPtr.GetPkgPath(), IsPtr: true}
 
 		ret = impl
 		return

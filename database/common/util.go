@@ -23,59 +23,59 @@ func (s relationType) String() string {
 func getFieldInitializeValue(field model.Field) (ret interface{}, err error) {
 	fType := field.GetType()
 	switch fType.GetValue() {
-	case util.TypeBooleanField, util.TypeBitField:
+	case util.TypeBooleanValue, util.TypeBitValue:
 		val := int8(0)
 		ret = &val
 		break
-	case util.TypeSmallIntegerField:
+	case util.TypeSmallIntegerValue:
 		val := int16(0)
 		ret = &val
 		break
-	case util.TypeIntegerField:
+	case util.TypeIntegerValue:
 		val := int(0)
 		ret = &val
 		break
-	case util.TypeInteger32Field:
+	case util.TypeInteger32Value:
 		val := int32(0)
 		ret = &val
 		break
-	case util.TypeBigIntegerField:
+	case util.TypeBigIntegerValue:
 		val := int64(0)
 		ret = &val
 		break
-	case util.TypePositiveBitField:
+	case util.TypePositiveBitValue:
 		val := uint8(0)
 		ret = &val
 		break
-	case util.TypePositiveSmallIntegerField:
+	case util.TypePositiveSmallIntegerValue:
 		val := uint16(0)
 		ret = &val
 		break
-	case util.TypePositiveIntegerField:
+	case util.TypePositiveIntegerValue:
 		val := uint(0)
 		ret = &val
 		break
-	case util.TypePositiveInteger32Field:
+	case util.TypePositiveInteger32Value:
 		val := uint32(0)
 		ret = &val
 		break
-	case util.TypePositiveBigIntegerField:
+	case util.TypePositiveBigIntegerValue:
 		val := uint64(0)
 		ret = &val
 		break
-	case util.TypeFloatField:
+	case util.TypeFloatValue:
 		val := float32(0.00)
 		ret = &val
 		break
-	case util.TypeDoubleField:
+	case util.TypeDoubleValue:
 		val := 0.0000
 		ret = &val
 		break
-	case util.TypeStringField, util.TypeDateTimeField:
+	case util.TypeStringValue, util.TypeDateTimeValue:
 		val := ""
 		ret = &val
 		break
-	case util.TypeSliceField:
+	case util.TypeSliceValue:
 		if fType.IsBasic() {
 			val := ""
 			ret = &val

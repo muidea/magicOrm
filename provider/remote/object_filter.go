@@ -103,7 +103,7 @@ func (s *ObjectFilter) Equal(key string, val interface{}) (err error) {
 		return
 	}
 
-	if qvType == ou.TypeDateTimeField {
+	if qvType == ou.TypeDateTimeValue {
 		val = qv.Interface().(time.Time).Format(util.CSTLayout)
 	}
 
@@ -149,7 +149,7 @@ func (s *ObjectFilter) NotEqual(key string, val interface{}) (err error) {
 		return
 	}
 
-	if qvType == ou.TypeDateTimeField {
+	if qvType == ou.TypeDateTimeValue {
 		val = qv.Interface().(time.Time).Format(util.CSTLayout)
 	}
 
@@ -182,7 +182,7 @@ func (s *ObjectFilter) Below(key string, val interface{}) (err error) {
 		return
 	}
 
-	if qvType == ou.TypeDateTimeField {
+	if qvType == ou.TypeDateTimeValue {
 		val = qv.Interface().(time.Time).Format(util.CSTLayout)
 	}
 
@@ -204,7 +204,7 @@ func (s *ObjectFilter) Above(key string, val interface{}) (err error) {
 		return
 	}
 
-	if qvType == ou.TypeDateTimeField {
+	if qvType == ou.TypeDateTimeValue {
 		val = qv.Interface().(time.Time).Format("2006-01-02 15:04:05")
 	}
 
@@ -250,7 +250,7 @@ func (s *ObjectFilter) getSliceValue(sliceVal interface{}) (ret interface{}, err
 	retVal := []interface{}{}
 	for idx := 0; idx < sliceReVal.Len(); idx++ {
 		subV := reflect.Indirect(sliceReVal.Index(idx))
-		if ou.TypeDateTimeField == subType {
+		if ou.TypeDateTimeValue == subType {
 			dtVal := subV.Interface().(time.Time).Format(util.CSTLayout)
 			retVal = append(retVal, dtVal)
 

@@ -16,7 +16,7 @@ func TestIntType(t *testing.T) {
 		return
 	}
 
-	if iType.GetValue() != util.TypeIntegerField {
+	if iType.GetValue() != util.TypeIntegerValue {
 		t.Errorf("get int type value failed.")
 		return
 	}
@@ -29,7 +29,7 @@ func TestIntType(t *testing.T) {
 		return
 	}
 
-	if riType.GetValue() != util.TypeIntegerField {
+	if riType.GetValue() != util.TypeIntegerValue {
 		t.Errorf("get int type value failed.")
 		return
 	}
@@ -55,7 +55,7 @@ func TestFloatType(t *testing.T) {
 		return
 	}
 
-	if fType.GetValue() != util.TypeFloatField {
+	if fType.GetValue() != util.TypeFloatValue {
 		t.Errorf("get float type value failed.")
 		return
 	}
@@ -68,7 +68,7 @@ func TestFloatType(t *testing.T) {
 		return
 	}
 
-	if rfType.GetValue() != util.TypeFloatField {
+	if rfType.GetValue() != util.TypeFloatValue {
 		t.Errorf("get float type value failed.")
 		return
 	}
@@ -94,7 +94,7 @@ func TestBoolType(t *testing.T) {
 		return
 	}
 
-	if bType.GetValue() != util.TypeBooleanField {
+	if bType.GetValue() != util.TypeBooleanValue {
 		t.Errorf("get bool type value failed.")
 		return
 	}
@@ -107,7 +107,7 @@ func TestBoolType(t *testing.T) {
 		return
 	}
 
-	if rbType.GetValue() != util.TypeBooleanField {
+	if rbType.GetValue() != util.TypeBooleanValue {
 		t.Errorf("get bool type value failed.")
 		return
 	}
@@ -133,7 +133,7 @@ func TestStringType(t *testing.T) {
 		return
 	}
 
-	if strType.GetValue() != util.TypeStringField {
+	if strType.GetValue() != util.TypeStringValue {
 		t.Errorf("get string type value failed.")
 		return
 	}
@@ -146,7 +146,7 @@ func TestStringType(t *testing.T) {
 		return
 	}
 
-	if rstrType.GetValue() != util.TypeStringField {
+	if rstrType.GetValue() != util.TypeStringValue {
 		t.Errorf("get string type value failed.")
 		return
 	}
@@ -172,7 +172,7 @@ func TestDateTimeType(t *testing.T) {
 		return
 	}
 
-	if dtType.GetValue() != util.TypeDateTimeField {
+	if dtType.GetValue() != util.TypeDateTimeValue {
 		t.Errorf("get DateTime type value failed.")
 		return
 	}
@@ -185,7 +185,7 @@ func TestDateTimeType(t *testing.T) {
 		return
 	}
 
-	if rdtType.GetValue() != util.TypeDateTimeField {
+	if rdtType.GetValue() != util.TypeDateTimeValue {
 		t.Errorf("get DateTime type value failed.")
 		return
 	}
@@ -215,7 +215,7 @@ func TestStructType(t *testing.T) {
 		return
 	}
 
-	if structType.GetValue() != util.TypeStructField {
+	if structType.GetValue() != util.TypeStructValue {
 		t.Errorf("get DateTime type value failed.")
 		return
 	}
@@ -228,7 +228,7 @@ func TestStructType(t *testing.T) {
 		return
 	}
 
-	if rstructType.GetValue() != util.TypeStructField {
+	if rstructType.GetValue() != util.TypeStructValue {
 		t.Errorf("get DateTime type value failed.")
 		return
 	}
@@ -259,7 +259,7 @@ func TestSliceType(t *testing.T) {
 		return
 	}
 
-	if sliceType.GetValue() != util.TypeSliceField {
+	if sliceType.GetValue() != util.TypeSliceValue {
 		t.Errorf("get Slice type value failed.")
 		return
 	}
@@ -272,7 +272,7 @@ func TestSliceType(t *testing.T) {
 		return
 	}
 
-	if rsliceType.GetValue() != util.TypeSliceField {
+	if rsliceType.GetValue() != util.TypeSliceValue {
 		t.Errorf("get Slice type value failed.")
 		return
 	}
@@ -295,7 +295,7 @@ func TestSliceType(t *testing.T) {
 		return
 	}
 
-	if dependType.GetValue() != util.TypePositiveSmallIntegerField {
+	if dependType.GetValue() != util.TypePositiveSmallIntegerValue {
 		t.Errorf("illegal depend type value")
 		return
 	}
@@ -311,7 +311,7 @@ func TestSliceType(t *testing.T) {
 		return
 	}
 
-	if elemType.GetValue() != util.TypePositiveSmallIntegerField {
+	if elemType.GetValue() != util.TypePositiveSmallIntegerValue {
 		t.Errorf("illegal elem type value")
 		return
 	}
@@ -335,7 +335,7 @@ func TestPtrSliceType(t *testing.T) {
 		return
 	}
 
-	if sliceType.GetValue() != util.TypeSliceField {
+	if sliceType.GetValue() != util.TypeSliceValue {
 		t.Errorf("get Slice type value failed.")
 		return
 	}
@@ -348,7 +348,7 @@ func TestPtrSliceType(t *testing.T) {
 		return
 	}
 
-	if rsliceType.GetValue() != util.TypeSliceField {
+	if rsliceType.GetValue() != util.TypeSliceValue {
 		t.Errorf("get Slice type value failed.")
 		return
 	}
@@ -371,7 +371,7 @@ func TestPtrSliceType(t *testing.T) {
 		return
 	}
 
-	if dependType.GetValue() != util.TypePositiveSmallIntegerField {
+	if dependType.GetValue() != util.TypePositiveSmallIntegerValue {
 		t.Errorf("illegal depend type value")
 		return
 	}
@@ -387,7 +387,7 @@ func TestPtrSliceType(t *testing.T) {
 		return
 	}
 
-	if elemType.GetValue() != util.TypePositiveSmallIntegerField {
+	if elemType.GetValue() != util.TypePositiveSmallIntegerValue {
 		t.Errorf("illegal elem type value")
 		return
 	}
@@ -414,7 +414,7 @@ func TestSliceStructType(t *testing.T) {
 		return
 	}
 
-	if sliceType.GetValue() != util.TypeSliceField {
+	if sliceType.GetValue() != util.TypeSliceValue {
 		t.Errorf("get Slice type value failed.")
 		return
 	}
@@ -427,7 +427,7 @@ func TestSliceStructType(t *testing.T) {
 		return
 	}
 
-	if rsliceType.GetValue() != util.TypeSliceField {
+	if rsliceType.GetValue() != util.TypeSliceValue {
 		t.Errorf("get Slice type value failed.")
 		return
 	}
@@ -450,7 +450,7 @@ func TestSliceStructType(t *testing.T) {
 		return
 	}
 
-	if dependType.GetValue() != util.TypeStructField {
+	if dependType.GetValue() != util.TypeStructValue {
 		t.Errorf("illegal depend type value")
 		return
 	}
@@ -466,7 +466,7 @@ func TestSliceStructType(t *testing.T) {
 		return
 	}
 
-	if elemType.GetValue() != util.TypeStructField {
+	if elemType.GetValue() != util.TypeStructValue {
 		t.Errorf("illegal elem type value")
 		return
 	}

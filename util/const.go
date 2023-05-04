@@ -10,41 +10,41 @@ import (
 // Define the Type enum
 const (
 	// bool
-	TypeBooleanField = 1 << iota
+	TypeBooleanValue = 1 << iota
 	// string
-	TypeStringField
+	TypeStringValue
 	// time.Time
-	TypeDateTimeField
+	TypeDateTimeValue
 	// int8
-	TypeBitField
+	TypeBitValue
 	// int16
-	TypeSmallIntegerField
+	TypeSmallIntegerValue
 	// int32
-	TypeInteger32Field
+	TypeInteger32Value
 	// int
-	TypeIntegerField
+	TypeIntegerValue
 	// int64
-	TypeBigIntegerField
+	TypeBigIntegerValue
 	// uint8
-	TypePositiveBitField
+	TypePositiveBitValue
 	// uint16
-	TypePositiveSmallIntegerField
+	TypePositiveSmallIntegerValue
 	// uint32
-	TypePositiveInteger32Field
+	TypePositiveInteger32Value
 	// uint
-	TypePositiveIntegerField
+	TypePositiveIntegerValue
 	// uint64
-	TypePositiveBigIntegerField
+	TypePositiveBigIntegerValue
 	// float32
-	TypeFloatField
+	TypeFloatValue
 	// float64
-	TypeDoubleField
+	TypeDoubleValue
 	// struct
-	TypeStructField
+	TypeStructValue
 	// slice
-	TypeSliceField
+	TypeSliceValue
 	// map
-	TypeMapField
+	TypeMapValue
 )
 
 func IsInteger(tType reflect.Type) bool {
@@ -99,58 +99,58 @@ func IsMap(tType reflect.Type) bool {
 }
 
 func IsBasicType(typeValue int) bool {
-	return typeValue < TypeStructField
+	return typeValue < TypeStructValue
 }
 
 func IsStructType(typeValue int) bool {
-	return typeValue == TypeStructField
+	return typeValue == TypeStructValue
 }
 
 func IsSliceType(typeValue int) bool {
-	return typeValue == TypeSliceField
+	return typeValue == TypeSliceValue
 }
 
 func IsMapType(typeVal int) bool {
-	return typeVal == TypeMapField
+	return typeVal == TypeMapValue
 }
 
 // GetTypeEnum return field type as type constant from reflect.Value
 func GetTypeEnum(val reflect.Type) (ret int, err error) {
 	switch val.Kind() {
 	case reflect.Int8:
-		ret = TypeBitField
+		ret = TypeBitValue
 	case reflect.Uint8:
-		ret = TypePositiveBitField
+		ret = TypePositiveBitValue
 	case reflect.Int16:
-		ret = TypeSmallIntegerField
+		ret = TypeSmallIntegerValue
 	case reflect.Uint16:
-		ret = TypePositiveSmallIntegerField
+		ret = TypePositiveSmallIntegerValue
 	case reflect.Int32:
-		ret = TypeInteger32Field
+		ret = TypeInteger32Value
 	case reflect.Uint32:
-		ret = TypePositiveInteger32Field
+		ret = TypePositiveInteger32Value
 	case reflect.Int64:
-		ret = TypeBigIntegerField
+		ret = TypeBigIntegerValue
 	case reflect.Uint64:
-		ret = TypePositiveBigIntegerField
+		ret = TypePositiveBigIntegerValue
 	case reflect.Int:
-		ret = TypeIntegerField
+		ret = TypeIntegerValue
 	case reflect.Uint:
-		ret = TypePositiveIntegerField
+		ret = TypePositiveIntegerValue
 	case reflect.Float32:
-		ret = TypeFloatField
+		ret = TypeFloatValue
 	case reflect.Float64:
-		ret = TypeDoubleField
+		ret = TypeDoubleValue
 	case reflect.Bool:
-		ret = TypeBooleanField
+		ret = TypeBooleanValue
 	case reflect.String:
-		ret = TypeStringField
+		ret = TypeStringValue
 	case reflect.Struct:
 		switch val.String() {
 		case "time.Time":
-			ret = TypeDateTimeField
+			ret = TypeDateTimeValue
 		default:
-			ret = TypeStructField
+			ret = TypeStructValue
 		}
 	case reflect.Slice:
 		eType := val.Elem()
@@ -162,7 +162,7 @@ func GetTypeEnum(val reflect.Type) (ret int, err error) {
 			return
 		}
 
-		ret = TypeSliceField
+		ret = TypeSliceValue
 	default:
 		err = fmt.Errorf("unsupport type:%v", val.String())
 	}
@@ -247,17 +247,17 @@ func IsSameVal(firstVal, secondVal reflect.Value) (ret bool, err error) {
 
 	if IsBasicType(typeVal) {
 		switch typeVal {
-		case TypeBooleanField:
+		case TypeBooleanValue:
 			ret = firstVal.Bool() == secondVal.Bool()
-		case TypeStringField:
+		case TypeStringValue:
 			ret = firstVal.String() == secondVal.String()
-		case TypeBitField, TypeSmallIntegerField, TypeInteger32Field, TypeIntegerField, TypeBigIntegerField:
+		case TypeBitValue, TypeSmallIntegerValue, TypeInteger32Value, TypeIntegerValue, TypeBigIntegerValue:
 			ret = firstVal.Int() == secondVal.Int()
-		case TypePositiveBitField, TypePositiveSmallIntegerField, TypePositiveInteger32Field, TypePositiveIntegerField, TypePositiveBigIntegerField:
+		case TypePositiveBitValue, TypePositiveSmallIntegerValue, TypePositiveInteger32Value, TypePositiveIntegerValue, TypePositiveBigIntegerValue:
 			ret = firstVal.Uint() == secondVal.Uint()
-		case TypeFloatField, TypeDoubleField:
+		case TypeFloatValue, TypeDoubleValue:
 			ret = math.Abs(firstVal.Float()-secondVal.Float()) <= 0.0001
-		case TypeDateTimeField:
+		case TypeDateTimeValue:
 			ret = firstVal.Interface().(time.Time).Sub(secondVal.Interface().(time.Time)) == 0
 		default:
 			ret = false

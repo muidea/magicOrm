@@ -89,13 +89,13 @@ func (s *field) verify() error {
 	val := s.typePtr.GetValue()
 	if s.tagPtr.IsAutoIncrement() {
 		switch val {
-		case util.TypeBooleanField,
-			util.TypeStringField,
-			util.TypeDateTimeField,
-			util.TypeFloatField,
-			util.TypeDoubleField,
-			util.TypeStructField,
-			util.TypeSliceField:
+		case util.TypeBooleanValue,
+			util.TypeStringValue,
+			util.TypeDateTimeValue,
+			util.TypeFloatValue,
+			util.TypeDoubleValue,
+			util.TypeStructValue,
+			util.TypeSliceValue:
 			return fmt.Errorf("illegal auto_increment field type, type:%s", s.typePtr.dump())
 		default:
 		}
@@ -103,7 +103,7 @@ func (s *field) verify() error {
 
 	if s.tagPtr.IsPrimaryKey() {
 		switch val {
-		case util.TypeStructField, util.TypeSliceField:
+		case util.TypeStructValue, util.TypeSliceValue:
 			return fmt.Errorf("illegal primary key field type, type:%s", s.typePtr.dump())
 		default:
 		}

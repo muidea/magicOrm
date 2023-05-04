@@ -241,7 +241,7 @@ func getObjectValue(entityVal reflect.Value) (ret *ObjectValue, err error) {
 			return
 		}
 
-		if itemType.GetValue() != util.TypeSliceField {
+		if itemType.GetValue() != util.TypeSliceValue {
 			val, valErr := getFieldValue(fieldType.Name, itemType, itemValue)
 			if valErr != nil {
 				err = valErr

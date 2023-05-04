@@ -19,8 +19,8 @@ func TestType(t *testing.T) {
 		t.Errorf("illegal type name, name:%s, expect name:%s", itemType.Name, "int")
 		return
 	}
-	if itemType.Value != util.TypeIntegerField {
-		t.Errorf("illegal type value, value:%d, expect value:%d", itemType.Value, util.TypeIntegerField)
+	if itemType.Value != util.TypeIntegerValue {
+		t.Errorf("illegal type value, value:%d, expect value:%d", itemType.Value, util.TypeIntegerValue)
 		return
 	}
 }

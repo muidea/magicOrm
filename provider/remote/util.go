@@ -322,36 +322,36 @@ func getFloat64Slice(tType model.Type) (ret reflect.Type, err error) {
 func getSliceType(tType model.Type) (ret reflect.Type, err error) {
 	eType := tType.Elem()
 	switch eType.GetValue() {
-	case util.TypeBooleanField:
+	case util.TypeBooleanValue:
 		ret, err = getBoolSlice(tType)
-	case util.TypeStringField,
-		util.TypeDateTimeField:
+	case util.TypeStringValue,
+		util.TypeDateTimeValue:
 		ret, err = getStringSlice(tType)
-	case util.TypeBitField:
+	case util.TypeBitValue:
 		ret, err = getInt8Slice(tType)
-	case util.TypeSmallIntegerField:
+	case util.TypeSmallIntegerValue:
 		ret, err = getInt16Slice(tType)
-	case util.TypeInteger32Field:
+	case util.TypeInteger32Value:
 		ret, err = getInt32Slice(tType)
-	case util.TypeIntegerField:
+	case util.TypeIntegerValue:
 		ret, err = getIntSlice(tType)
-	case util.TypeBigIntegerField:
+	case util.TypeBigIntegerValue:
 		ret, err = getInt64Slice(tType)
-	case util.TypePositiveBitField:
+	case util.TypePositiveBitValue:
 		ret, err = getUInt8Slice(tType)
-	case util.TypePositiveSmallIntegerField:
+	case util.TypePositiveSmallIntegerValue:
 		ret, err = getUInt16Slice(tType)
-	case util.TypePositiveInteger32Field:
+	case util.TypePositiveInteger32Value:
 		ret, err = getUInt32Slice(tType)
-	case util.TypePositiveIntegerField:
+	case util.TypePositiveIntegerValue:
 		ret, err = getUIntSlice(tType)
-	case util.TypePositiveBigIntegerField:
+	case util.TypePositiveBigIntegerValue:
 		ret, err = getUInt64Slice(tType)
-	case util.TypeFloatField:
+	case util.TypeFloatValue:
 		ret, err = getFloat32Slice(tType)
-	case util.TypeDoubleField:
+	case util.TypeDoubleValue:
 		ret, err = getFloat64Slice(tType)
-	case util.TypeStructField:
+	case util.TypeStructValue:
 		ret = reflect.TypeOf(&_declareObjectSliceValue)
 	default:
 		err = fmt.Errorf("unexpect slice item type, name:%s, type:%d", tType.GetName(), tType.GetValue())
@@ -516,38 +516,38 @@ func getFloat64(tType model.Type) (ret reflect.Type, err error) {
 
 func getType(tType model.Type) (ret reflect.Type, err error) {
 	switch tType.GetValue() {
-	case util.TypeBooleanField:
+	case util.TypeBooleanValue:
 		ret, err = getBool(tType)
-	case util.TypeStringField,
-		util.TypeDateTimeField:
+	case util.TypeStringValue,
+		util.TypeDateTimeValue:
 		ret, err = getSting(tType)
-	case util.TypeBitField:
+	case util.TypeBitValue:
 		ret, err = getInt8(tType)
-	case util.TypeSmallIntegerField:
+	case util.TypeSmallIntegerValue:
 		ret, err = getInt16(tType)
-	case util.TypeInteger32Field:
+	case util.TypeInteger32Value:
 		ret, err = getInt32(tType)
-	case util.TypeIntegerField:
+	case util.TypeIntegerValue:
 		ret, err = getInt(tType)
-	case util.TypeBigIntegerField:
+	case util.TypeBigIntegerValue:
 		ret, err = getInt64(tType)
-	case util.TypePositiveBitField:
+	case util.TypePositiveBitValue:
 		ret, err = getUInt8(tType)
-	case util.TypePositiveSmallIntegerField:
+	case util.TypePositiveSmallIntegerValue:
 		ret, err = getUInt16(tType)
-	case util.TypePositiveInteger32Field:
+	case util.TypePositiveInteger32Value:
 		ret, err = getUInt32(tType)
-	case util.TypePositiveIntegerField:
+	case util.TypePositiveIntegerValue:
 		ret, err = getUInt(tType)
-	case util.TypePositiveBigIntegerField:
+	case util.TypePositiveBigIntegerValue:
 		ret, err = getUInt64(tType)
-	case util.TypeFloatField:
+	case util.TypeFloatValue:
 		ret, err = getFloat32(tType)
-	case util.TypeDoubleField:
+	case util.TypeDoubleValue:
 		ret, err = getFloat64(tType)
-	case util.TypeStructField:
+	case util.TypeStructValue:
 		ret = reflect.TypeOf(&_declareObjectValue)
-	case util.TypeSliceField:
+	case util.TypeSliceValue:
 		ret, err = getSliceType(tType)
 	default:
 		err = fmt.Errorf("unexpect item type, name:%s, type:%d", tType.GetName(), tType.GetValue())

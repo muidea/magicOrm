@@ -118,7 +118,7 @@ func (s *Common) EncodeValue(vValue model.Value, vType model.Type) (ret interfac
 	}
 
 	switch vType.GetValue() {
-	case util.TypeStringField, util.TypeDateTimeField, util.TypeSliceField:
+	case util.TypeStringValue, util.TypeDateTimeValue, util.TypeSliceValue:
 		ret = fmt.Sprintf("'%v'", strings.ReplaceAll(fmt.Sprintf("%v", fStr), "'", "''"))
 	default:
 		ret = fStr
