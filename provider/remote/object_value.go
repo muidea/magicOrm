@@ -237,7 +237,7 @@ func getObjectValue(entityVal reflect.Value) (ret *ObjectValue, err error) {
 		itemType, itemErr := newType(fieldType.Type)
 		if itemErr != nil {
 			err = itemErr
-			log.Errorf("get entity field type failed, type%s, err:%s", fieldType.Type.String(), err.Error())
+			log.Errorf("get entity field type failed, type:%s, err:%s", fieldType.Type.String(), err.Error())
 			return
 		}
 

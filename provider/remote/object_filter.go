@@ -312,13 +312,23 @@ func (s *ObjectFilter) Sort(sorter *util.SortFilter) {
 }
 
 func (s *ObjectFilter) ValueMask(val interface{}) (err error) {
-	objVal, objErr := GetObjectValue(val)
-	if objErr != nil {
-		err = objErr
+	if val == nil {
+		err = fmt.Errorf("illegal mask value")
 		return
 	}
 
-	s.MaskValue = objVal
+	objectMask, objectOK := val.(*ObjectValue)
+	if !objectOK {
+		objVal, objErr := GetObjectValue(val)
+		if objErr != nil {
+			err = objErr
+			return
+		}
+
+		objectMask = objVal
+	}
+
+	s.MaskValue = objectMask
 	return
 }
 

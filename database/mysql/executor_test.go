@@ -20,7 +20,7 @@ var databaseName = "testdb"
 var databaseUsername = "root"
 var databasePassword = "rootkit"
 var threadSize = 20
-var itemSize = 100
+var itemSize = 1
 var mode = 1
 
 var finishFlag = false
