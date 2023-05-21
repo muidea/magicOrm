@@ -30,16 +30,16 @@ func TestBuilderCommon(t *testing.T) {
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
 	unit := &Unit{ID: 10, Name: "Hello world", Value: 12.3456, TimeStamp: now}
 
-	provider := provider.NewLocalProvider("default", "abc")
-	provider.RegisterModel(unit)
+	localProvider := provider.NewLocalProvider("default", "abc")
+	localProvider.RegisterModel(unit)
 
-	info, err := provider.GetEntityModel(unit)
+	info, err := localProvider.GetEntityModel(unit)
 	if err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", err.Error())
 		return
 	}
 
-	builder := NewBuilder(info, provider)
+	builder := NewBuilder(info, localProvider)
 	if builder == nil {
 		t.Error("new Builder failed")
 		return
@@ -111,16 +111,16 @@ func TestBuilderReference(t *testing.T) {
 	ext := &Ext{}
 	unit := &Unit{}
 
-	provider := provider.NewLocalProvider("default", "abc")
-	provider.RegisterModel(ext)
-	provider.RegisterModel(unit)
-	info, err := provider.GetEntityModel(ext)
+	localProvider := provider.NewLocalProvider("default", "abc")
+	localProvider.RegisterModel(ext)
+	localProvider.RegisterModel(unit)
+	info, err := localProvider.GetEntityModel(ext)
 	if err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", err.Error())
 		return
 	}
 
-	builder := NewBuilder(info, provider)
+	builder := NewBuilder(info, localProvider)
 	if builder == nil {
 		t.Error("new Builder failed")
 	}
@@ -179,16 +179,16 @@ func TestBuilderReference2(t *testing.T) {
 	ext := &Ext{Description: &desc}
 	unit := &Unit{}
 
-	provider := provider.NewLocalProvider("default", "abc")
-	provider.RegisterModel(ext)
-	provider.RegisterModel(unit)
-	info, err := provider.GetEntityModel(ext)
+	localProvider := provider.NewLocalProvider("default", "abc")
+	localProvider.RegisterModel(ext)
+	localProvider.RegisterModel(unit)
+	info, err := localProvider.GetEntityModel(ext)
 	if err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", err.Error())
 		return
 	}
 
-	builder := NewBuilder(info, provider)
+	builder := NewBuilder(info, localProvider)
 	if builder == nil {
 		t.Error("new Builder failed")
 	}
