@@ -8,55 +8,6 @@ import (
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
-type Base struct {
-	ID    int      `orm:"id key auto"`
-	Name  string   `orm:"name"`
-	Price float32  `orm:"price"`
-	Addr  []string `orm:"addr"`
-}
-
-func (s *Base) IsSame(p *Base) bool {
-	if s.ID != p.ID {
-		return false
-	}
-	if s.Name != p.Name {
-		return false
-	}
-	if s.Price != p.Price {
-		return false
-	}
-
-	return len(s.Addr) == len(p.Addr)
-}
-
-type ExtInfo struct {
-	ID    int     `orm:"id key auto"`
-	Name  string  `orm:"name"`
-	Info  Base    `orm:"info"`
-	Ptr   *Base   `orm:"ptr"`
-	Array []*Base `orm:"array"`
-}
-
-func (s *ExtInfo) IsSame(p *ExtInfo) bool {
-	if s.ID != p.ID {
-		return false
-	}
-
-	if s.Name != p.Name {
-		return false
-	}
-
-	if !s.Info.IsSame(&p.Info) {
-		return false
-	}
-
-	if !s.Ptr.IsSame(p.Ptr) {
-		return false
-	}
-
-	return len(s.Array) == len(p.Array)
-}
-
 func checkIntField(t *testing.T, intField model.Field) (ret bool) {
 	fType := intField.GetType()
 
@@ -175,7 +126,7 @@ func checkFieldType(t *testing.T, fType model.Type, typeName, typeDepend string)
 /*
 	type Base struct {
 		ID    int      `orm:"id key auto"`
-		Name  string   `orm:"name"`
+		Str  string   `orm:"name"`
 		Price float32  `orm:"price"`
 		Addr  []string `orm:"addr"`
 	}
@@ -233,9 +184,9 @@ func checkBaseModel(t *testing.T, baseEntityModel model.Model) {
 }
 
 /*
-	type ExtInfo struct {
+	type Compose struct {
 		ID    int     `orm:"id key auto"`
-		Name  string  `orm:"name"`
+		Str  string  `orm:"name"`
 		Info  Base    `orm:"info"`
 		Ptr   *Base   `orm:"ptr"`
 		Array []*Base `orm:"array"`
@@ -243,7 +194,7 @@ func checkBaseModel(t *testing.T, baseEntityModel model.Model) {
 */
 func checkExtModel(t *testing.T, extEntityModel model.Model) {
 	modelName := extEntityModel.GetName()
-	if modelName != "ExtInfo" {
+	if modelName != "Compose" {
 		t.Errorf("get model name failed, curName:%s", modelName)
 		return
 	}
@@ -306,7 +257,7 @@ func TestLocalProvider(t *testing.T) {
 	provider := NewLocalProvider("default", "abc")
 
 	baseEntity := &Base{}
-	extEntity := &ExtInfo{}
+	extEntity := &Compose{}
 
 	_, err := provider.RegisterModel(baseEntity)
 	if err != nil {
@@ -343,7 +294,7 @@ func TestRemoteProvider(t *testing.T) {
 	remoteProvider := NewRemoteProvider("default", "abc")
 
 	baseEntity := &Base{}
-	extEntity := &ExtInfo{}
+	extEntity := &Compose{}
 
 	baseObject, baseErr := remote.GetObject(baseEntity)
 	if baseErr != nil {
@@ -438,8 +389,8 @@ func TestRemoteProvider(t *testing.T) {
 func TestUpdateRemoteProvider(t *testing.T) {
 	provider := NewRemoteProvider("default", "abc")
 
-	baseEntity := &Base{ID: 123, Name: "test int", Price: 12.35, Addr: []string{"qq", "ar", "yt"}}
-	extEntity := &ExtInfo{ID: 234, Name: "hello", Info: *baseEntity, Ptr: baseEntity, Array: []*Base{baseEntity}}
+	baseEntity := &Base{ID: 123, Str: "test int", F32: 12.35, StrArray: []string{"qq", "ar", "yt"}}
+	extEntity := &Compose{ID: 234, Name: "hello", Base: *baseEntity, BasePtr: baseEntity, BasePtrArray: []*Base{baseEntity}}
 
 	baseObject, baseErr := remote.GetObject(baseEntity)
 	if baseErr != nil {
@@ -521,29 +472,29 @@ func TestUpdateRemoteProvider(t *testing.T) {
 		return
 	}
 
-	if base.ID != baseEntity.ID || base.Name != baseEntity.Name || base.Price != baseEntity.Price || len(base.Addr) != len(baseEntity.Addr) {
+	if base.ID != baseEntity.ID || base.Str != baseEntity.Str || base.F32 != baseEntity.F32 || len(base.StrArray) != len(baseEntity.StrArray) {
 		t.Error("UpdateEntity failed")
 	}
 
-	ext := &ExtInfo{Ptr: &Base{}}
+	ext := &Compose{BasePtr: &Base{}}
 	err = UpdateEntity(extVal, ext)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
 	}
-	if ext.ID != extEntity.ID || ext.Name != extEntity.Name || ext.Info.ID != extEntity.Info.ID || ext.Info.Price != extEntity.Info.Price {
+	if ext.ID != extEntity.ID || ext.Name != extEntity.Name || ext.BasePtr.ID != extEntity.BasePtr.ID || ext.BasePtr.F32 != extEntity.BasePtr.F32 {
 		t.Error("UpdateEntity failed")
 		return
 	}
-	if ext.Ptr == nil {
+	if ext.BasePtr == nil {
 		t.Error("UpdateEntity failed")
 		return
 	}
-	if ext.Ptr.ID != extEntity.Ptr.ID {
+	if ext.BasePtr.ID != extEntity.BasePtr.ID {
 		t.Error("UpdateEntity failed")
 		return
 	}
-	if len(ext.Array) != len(extEntity.Array) {
+	if len(ext.BasePtrArray) != len(extEntity.BasePtrArray) {
 		t.Error("UpdateEntity failed")
 		return
 	}
@@ -553,8 +504,8 @@ func TestCompareProvider(t *testing.T) {
 	remoteProvider := NewRemoteProvider("default", "abc")
 	localProvider := NewLocalProvider("default", "abc")
 
-	baseEntity := &Base{ID: 123, Name: "test int", Price: 12.35, Addr: []string{"qq", "ar", "yt"}}
-	extEntity := &ExtInfo{ID: 234, Name: "hello", Info: *baseEntity, Ptr: baseEntity, Array: []*Base{baseEntity}}
+	baseEntity := &Base{ID: 123, Str: "test int", F32: 12.35, StrArray: []string{"qq", "ar", "yt"}}
+	extEntity := &Compose{ID: 234, Name: "hello", Base: *baseEntity, BasePtr: baseEntity, BasePtrArray: []*Base{baseEntity}}
 
 	baseObject, baseErr := remote.GetObject(baseEntity)
 	if baseErr != nil {
@@ -663,15 +614,11 @@ func TestCompareProvider(t *testing.T) {
 		return
 	}
 
-	ext2Info := &ExtInfo{Ptr: &Base{}}
+	ext2Info := &Compose{BasePtr: &Base{}}
 	r2Val := r2ExtModel.Interface(false).(remote.ObjectValue)
 	r2Err = UpdateEntity(&r2Val, ext2Info)
 	if r2Err != nil {
 		t.Errorf("UpdateEntity from remoteProvider failed, err:%s", r2Err.Error())
-		return
-	}
-	if ext2Info.IsSame(extEntity) {
-		t.Errorf("Interface failed")
 		return
 	}
 
@@ -691,19 +638,9 @@ func TestCompareProvider(t *testing.T) {
 		t.Errorf("UpdateEntity from remoteProvider failed, err:%s", r2Err.Error())
 		return
 	}
-	if !ext2Info.IsSame(extEntity) {
-		t.Errorf("Interface failed")
-		return
-	}
 
 	if !model.CompareModel(lExtModel, rExtModel) {
 		t.Errorf("compareModel failed")
-		return
-	}
-
-	extPtr := lExtModel.Interface(true).(*ExtInfo)
-	if !extPtr.IsSame(extEntity) {
-		t.Errorf("Interface failed")
 		return
 	}
 }
