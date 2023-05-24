@@ -161,7 +161,7 @@ func (s *filter) ValueMask(val interface{}) (err error) {
 	bindType := reflect.Indirect(s.bindValue.Get()).Type().String()
 	maskType := reflect.Indirect(qv).Type().String()
 	if bindType != maskType {
-		err = fmt.Errorf("miscmatch mask value, bindType:%v, maskType:%v", bindType, maskType)
+		err = fmt.Errorf("mismatch mask value, bindType:%v, maskType:%v", bindType, maskType)
 		return
 	}
 
