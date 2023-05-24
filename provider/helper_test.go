@@ -6,30 +6,11 @@ import (
 )
 
 func TestUpdateExtObjValue(t *testing.T) {
-	type Simple struct {
-		//ID 唯一标示单元
-		ID   int64   `orm:"id key"`
-		Name string  `orm:"name"`
-		Desc *string `orm:"desc"`
-		Age  uint8   `orm:"age"`
-		Flag bool    `orm:"flag"`
-		Add  []int   `orm:"add"`
+	newVal := &Compose{
+		//BasePtrArrayPtr: &[]*Base{},
 	}
-
-	type ExtInfo struct {
-		ID       int64     `orm:"id key"`
-		Name     string    `orm:"name"`
-		Obj      Simple    `orm:"obj"`
-		ObjPtr   *Simple   `orm:"objPtr"`
-		ObjArray []*Simple `orm:"array"`
-	}
-
-	desc := "obj_desc"
-	obj := Simple{Name: "obj", Desc: &desc, Add: []int{12, 223, 456}}
-	ext1 := &ExtInfo{ObjArray: []*Simple{}}
-	ext2 := &ExtInfo{Name: "extObj", Obj: obj, ObjArray: []*Simple{&obj, &obj}}
-
-	objVal, objErr := remote.GetObjectValue(ext2)
+	rawVal := composeVal
+	objVal, objErr := remote.GetObjectValue(rawVal)
 	if objErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
@@ -52,19 +33,30 @@ func TestUpdateExtObjValue(t *testing.T) {
 		return
 	}
 
-	err = UpdateEntity(objInfo, ext1)
+	err = UpdateEntity(objInfo, newVal)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
-	if ext1.Name != ext2.Name {
+	if newVal.Name != rawVal.Name {
 		t.Errorf("updateEntity failed")
+		return
 	}
-	if ext1.Obj.Name != ext2.Obj.Name {
+	if newVal.Base.ID != rawVal.Base.ID {
 		t.Errorf("updateEntity failed")
+		return
 	}
-	if len(ext1.ObjArray) != len(ext2.ObjArray) {
+	if newVal.BasePtr == nil {
 		t.Errorf("updateEntity failed")
+		return
+	}
+	if len(newVal.BasePtrArray) != len(rawVal.BasePtrArray) {
+		t.Errorf("updateEntity failed")
+		return
+	}
+	if len(*newVal.BasePtrArrayPtr) != len(*rawVal.BasePtrArrayPtr) {
+		t.Errorf("updateEntity failed")
+		return
 	}
 }

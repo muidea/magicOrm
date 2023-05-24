@@ -22,7 +22,7 @@ var ui32Val = uint32(132)
 var ui64Val = uint64(164)
 var uiVal = uint(400)
 var f32Val = float32(12.34)
-var f64Val = float64(23.45)
+var f64Val = 23.45
 var strVal = "hello world"
 var tsVal = time.Now()
 var bVal = true
@@ -35,6 +35,42 @@ var tsPtr = &tsVal
 var iArrayPtr = &iArray
 var iPtrArray = []*int{iPtr, iPtr}
 var iPtrArrayPtr = &iPtrArray
+
+var emptyBase = &Base{}
+var baseVal = &Base{
+	ID:        idVal,
+	I8:        i8Val,
+	I16:       i16Val,
+	I32:       i32Val,
+	I64:       i64Val,
+	IVal:      iVal,
+	UI8:       ui8Val,
+	UI16:      ui16Val,
+	UI32:      ui32Val,
+	UI64:      ui64Val,
+	UIVal:     uiVal,
+	Str:       strVal,
+	TimeStamp: tsVal,
+	Flag:      bVal,
+	IArray:    iArray,
+	StrArray:  strArray,
+	TsArray:   tsArray,
+	BArray:    bArray,
+	IPtr:      iPtr,
+	TSPtr:     tsPtr,
+}
+
+var emptyCompose = &Compose{}
+var basePtrArrayVal = []*Base{baseVal, baseVal}
+var composeVal = &Compose{
+	ID:              idVal,
+	Name:            strVal,
+	Base:            *baseVal,
+	BasePtr:         baseVal,
+	BaseArray:       []Base{*baseVal, *baseVal},
+	BasePtrArray:    basePtrArrayVal,
+	BasePtrArrayPtr: &basePtrArrayVal,
+}
 
 type Base struct {
 	ID           int         `orm:"id key auto"`
@@ -75,56 +111,28 @@ type Compose struct {
 }
 
 func TestModel(t *testing.T) {
-	base1 := &Base{}
+	base1 := emptyBase
 	err := testValue(t, base1)
 	if err != nil {
 		t.Error("test base1 failed")
 		return
 	}
 
-	base2 := &Base{
-		ID:        idVal,
-		I8:        i8Val,
-		I16:       i16Val,
-		I32:       i32Val,
-		I64:       i64Val,
-		IVal:      iVal,
-		UI8:       ui8Val,
-		UI16:      ui16Val,
-		UI32:      ui32Val,
-		UI64:      ui64Val,
-		UIVal:     uiVal,
-		Str:       strVal,
-		TimeStamp: tsVal,
-		Flag:      bVal,
-		IArray:    iArray,
-		StrArray:  strArray,
-		TsArray:   tsArray,
-		BArray:    bArray,
-		IPtr:      iPtr,
-		TSPtr:     tsPtr,
-	}
+	base2 := baseVal
 	err = testValue(t, base2)
 	if err != nil {
 		t.Error("test base2 failed")
 		return
 	}
 
-	compose1 := &Compose{}
+	compose1 := emptyCompose
 	err = testValue(t, compose1)
 	if err != nil {
 		t.Error("test compose1 failed")
 		return
 	}
 
-	compose2 := &Compose{
-		ID:           idVal,
-		Name:         strVal,
-		Base:         *base1,
-		BasePtr:      base2,
-		BaseArray:    []Base{*base1, *base2},
-		BasePtrArray: []*Base{base1, base2},
-	}
+	compose2 := composeVal
 	err = testValue(t, compose2)
 	if err != nil {
 		t.Error("test compose2 failed")

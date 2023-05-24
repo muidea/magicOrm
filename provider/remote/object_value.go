@@ -540,6 +540,9 @@ func compareItemValue(l, r *FieldValue) bool {
 	if l.Name != r.Name {
 		return false
 	}
+	if l.IsNil() != r.IsNil() {
+		return false
+	}
 
 	return true
 }

@@ -50,7 +50,7 @@ func checkStringField(t *testing.T, strField model.Field) (ret bool) {
 func checkSliceField(t *testing.T, sliceField model.Field) (ret bool) {
 	fType := sliceField.GetType()
 
-	ret = checkFieldType(t, fType, "string", "string")
+	ret = checkFieldType(t, fType, "int", "int")
 	if !ret {
 		t.Errorf("check field type failed")
 		return
@@ -123,14 +123,6 @@ func checkFieldType(t *testing.T, fType model.Type, typeName, typeDepend string)
 	return true
 }
 
-/*
-	type Base struct {
-		ID    int      `orm:"id key auto"`
-		Str  string   `orm:"name"`
-		Price float32  `orm:"price"`
-		Addr  []string `orm:"addr"`
-	}
-*/
 func checkBaseModel(t *testing.T, baseEntityModel model.Model) {
 	modelName := baseEntityModel.GetName()
 	if modelName != "Base" {
@@ -139,7 +131,7 @@ func checkBaseModel(t *testing.T, baseEntityModel model.Model) {
 	}
 
 	fields := baseEntityModel.GetFields()
-	if len(fields) != 4 {
+	if len(fields) != 25 {
 		t.Errorf("get model fields failed")
 		return
 	}
@@ -157,7 +149,7 @@ func checkBaseModel(t *testing.T, baseEntityModel model.Model) {
 	}
 
 	for _, val := range fields {
-		if val.GetIndex() == 1 {
+		if val.GetIndex() == 13 {
 			ret = checkStringField(t, val)
 			if !ret {
 				t.Errorf("checkStringField failed")
@@ -165,7 +157,7 @@ func checkBaseModel(t *testing.T, baseEntityModel model.Model) {
 			}
 		}
 
-		if val.GetIndex() == 2 {
+		if val.GetIndex() == 11 {
 			ret = checkFloat32Field(t, val)
 			if !ret {
 				t.Errorf("checkFloatField failed")
@@ -173,7 +165,7 @@ func checkBaseModel(t *testing.T, baseEntityModel model.Model) {
 			}
 		}
 
-		if val.GetIndex() == 3 {
+		if val.GetIndex() == 16 {
 			ret = checkSliceField(t, val)
 			if !ret {
 				t.Errorf("checkSliceField failed")
@@ -183,16 +175,7 @@ func checkBaseModel(t *testing.T, baseEntityModel model.Model) {
 	}
 }
 
-/*
-	type Compose struct {
-		ID    int     `orm:"id key auto"`
-		Str  string  `orm:"name"`
-		Info  Base    `orm:"info"`
-		Ptr   *Base   `orm:"ptr"`
-		Array []*Base `orm:"array"`
-	}
-*/
-func checkExtModel(t *testing.T, extEntityModel model.Model) {
+func checkComposeModel(t *testing.T, extEntityModel model.Model) {
 	modelName := extEntityModel.GetName()
 	if modelName != "Compose" {
 		t.Errorf("get model name failed, curName:%s", modelName)
@@ -200,7 +183,7 @@ func checkExtModel(t *testing.T, extEntityModel model.Model) {
 	}
 
 	fields := extEntityModel.GetFields()
-	if len(fields) != 5 {
+	if len(fields) != 7 {
 		t.Errorf("get model fields failed")
 		return
 	}
@@ -254,26 +237,26 @@ func checkExtModel(t *testing.T, extEntityModel model.Model) {
 }
 
 func TestLocalProvider(t *testing.T) {
-	provider := NewLocalProvider("default", "abc")
+	localProvider := NewLocalProvider("default", "abc")
 
-	baseEntity := &Base{}
-	extEntity := &Compose{}
+	baseEntity := emptyBase
+	composeEntity := emptyCompose
 
-	_, err := provider.RegisterModel(baseEntity)
+	_, err := localProvider.RegisterModel(baseEntity)
 	if err != nil {
 		t.Errorf("registerModel failed, err:%s", err.Error())
 		return
 	}
-	_, err = provider.RegisterModel(extEntity)
+	_, err = localProvider.RegisterModel(composeEntity)
 	if err != nil {
 		t.Errorf("registerModel failed, err:%s", err.Error())
 		return
 	}
 
-	defer provider.UnregisterModel(baseEntity)
-	defer provider.UnregisterModel(extEntity)
+	defer localProvider.UnregisterModel(baseEntity)
+	defer localProvider.UnregisterModel(composeEntity)
 
-	baseEntityModel, baseEntityErr := provider.GetEntityModel(baseEntity)
+	baseEntityModel, baseEntityErr := localProvider.GetEntityModel(baseEntity)
 	if baseEntityErr != nil {
 		t.Errorf("get local entity model failed, err:%s", baseEntityErr.Error())
 		return
@@ -281,20 +264,20 @@ func TestLocalProvider(t *testing.T) {
 
 	checkBaseModel(t, baseEntityModel)
 
-	extEntityModel, extEntityErr := provider.GetEntityModel(extEntity)
-	if extEntityErr != nil {
-		t.Errorf("get local entity model failed, err:%s", extEntityErr.Error())
+	composeEntityModel, composeEntityErr := localProvider.GetEntityModel(composeEntity)
+	if composeEntityErr != nil {
+		t.Errorf("get local entity model failed, err:%s", composeEntityErr.Error())
 		return
 	}
 
-	checkExtModel(t, extEntityModel)
+	checkComposeModel(t, composeEntityModel)
 }
 
 func TestRemoteProvider(t *testing.T) {
 	remoteProvider := NewRemoteProvider("default", "abc")
 
-	baseEntity := &Base{}
-	extEntity := &Compose{}
+	baseEntity := baseVal
+	composeEntity := composeVal
 
 	baseObject, baseErr := remote.GetObject(baseEntity)
 	if baseErr != nil {
@@ -308,15 +291,15 @@ func TestRemoteProvider(t *testing.T) {
 		return
 	}
 
-	extObject, extErr := remote.GetObject(extEntity)
-	if extErr != nil {
-		t.Errorf("GetObject failed, err:%s", extErr.Error())
+	composeObject, composeErr := remote.GetObject(composeEntity)
+	if composeErr != nil {
+		t.Errorf("GetObject failed, err:%s", composeErr.Error())
 		return
 	}
 
-	extVal, extErr := remote.GetObjectValue(extEntity)
-	if extErr != nil {
-		t.Errorf("GetObjectValue failed, err:%s", extErr.Error())
+	composeVal, composeErr := remote.GetObjectValue(composeEntity)
+	if composeErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", composeErr.Error())
 		return
 	}
 
@@ -331,12 +314,12 @@ func TestRemoteProvider(t *testing.T) {
 		return
 	}
 
-	extData, extErr := remote.EncodeObject(extObject)
-	if extErr != nil {
-		t.Errorf("encode object faield, err:%s", extErr.Error())
+	composeData, composeErr := remote.EncodeObject(composeObject)
+	if composeErr != nil {
+		t.Errorf("encode object faield, err:%s", composeErr.Error())
 		return
 	}
-	extObject, extErr = remote.DecodeObject(extData)
+	composeObject, composeErr = remote.DecodeObject(composeData)
 	if baseErr != nil {
 		t.Errorf("decode object faield, err:%s", baseErr.Error())
 		return
@@ -353,21 +336,21 @@ func TestRemoteProvider(t *testing.T) {
 		return
 	}
 
-	extValData, extValErr := remote.EncodeObjectValue(extVal)
-	if extValErr != nil {
-		t.Errorf("encode object faield, err:%s", extValErr.Error())
+	composeValData, composeValErr := remote.EncodeObjectValue(composeVal)
+	if composeValErr != nil {
+		t.Errorf("encode object faield, err:%s", composeValErr.Error())
 		return
 	}
-	extVal, extValErr = remote.DecodeObjectValue(extValData)
-	if extValErr != nil {
-		t.Errorf("decode object faield, err:%s", extValErr.Error())
+	composeVal, composeValErr = remote.DecodeObjectValue(composeValData)
+	if composeValErr != nil {
+		t.Errorf("decode object faield, err:%s", composeValErr.Error())
 		return
 	}
 
 	remoteProvider.RegisterModel(baseObject)
-	remoteProvider.RegisterModel(extObject)
+	remoteProvider.RegisterModel(composeObject)
 	defer remoteProvider.UnregisterModel(baseObject)
-	defer remoteProvider.UnregisterModel(extObject)
+	defer remoteProvider.UnregisterModel(composeObject)
 
 	baseEntityModel, baseEntityErr := remoteProvider.GetEntityModel(baseVal)
 	if baseEntityErr != nil {
@@ -377,20 +360,20 @@ func TestRemoteProvider(t *testing.T) {
 
 	checkBaseModel(t, baseEntityModel)
 
-	extEntityModel, extEntityErr := remoteProvider.GetEntityModel(extVal)
-	if extEntityErr != nil {
-		t.Errorf("get remote entity model failed, err:%s", extEntityErr.Error())
+	composeEntityModel, composeEntityErr := remoteProvider.GetEntityModel(composeVal)
+	if composeEntityErr != nil {
+		t.Errorf("get remote entity model failed, err:%s", composeEntityErr.Error())
 		return
 	}
 
-	checkExtModel(t, extEntityModel)
+	checkComposeModel(t, composeEntityModel)
 }
 
 func TestUpdateRemoteProvider(t *testing.T) {
-	provider := NewRemoteProvider("default", "abc")
+	remoteProvider := NewRemoteProvider("default", "abc")
 
-	baseEntity := &Base{ID: 123, Str: "test int", F32: 12.35, StrArray: []string{"qq", "ar", "yt"}}
-	extEntity := &Compose{ID: 234, Name: "hello", Base: *baseEntity, BasePtr: baseEntity, BasePtrArray: []*Base{baseEntity}}
+	baseEntity := baseVal
+	composeEntity := composeVal
 
 	baseObject, baseErr := remote.GetObject(baseEntity)
 	if baseErr != nil {
@@ -404,15 +387,15 @@ func TestUpdateRemoteProvider(t *testing.T) {
 		return
 	}
 
-	extObject, extErr := remote.GetObject(extEntity)
-	if extErr != nil {
-		t.Errorf("GetObject failed, err:%s", extErr.Error())
+	composeObject, composeErr := remote.GetObject(composeEntity)
+	if composeErr != nil {
+		t.Errorf("GetObject failed, err:%s", composeErr.Error())
 		return
 	}
 
-	extVal, extErr := remote.GetObjectValue(extEntity)
-	if extErr != nil {
-		t.Errorf("GetObjectValue failed, err:%s", extErr.Error())
+	composeVal, composeErr := remote.GetObjectValue(composeEntity)
+	if composeErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", composeErr.Error())
 		return
 	}
 
@@ -427,12 +410,12 @@ func TestUpdateRemoteProvider(t *testing.T) {
 		return
 	}
 
-	extData, extErr := remote.EncodeObject(extObject)
-	if extErr != nil {
-		t.Errorf("encode object faield, err:%s", extErr.Error())
+	composeData, composeErr := remote.EncodeObject(composeObject)
+	if composeErr != nil {
+		t.Errorf("encode object faield, err:%s", composeErr.Error())
 		return
 	}
-	extObject, extErr = remote.DecodeObject(extData)
+	composeObject, composeErr = remote.DecodeObject(composeData)
 	if baseErr != nil {
 		t.Errorf("decode object faield, err:%s", baseErr.Error())
 		return
@@ -449,21 +432,21 @@ func TestUpdateRemoteProvider(t *testing.T) {
 		return
 	}
 
-	extValData, extValErr := remote.EncodeObjectValue(extVal)
-	if extValErr != nil {
-		t.Errorf("encode object faield, err:%s", extValErr.Error())
+	composeValData, composeValErr := remote.EncodeObjectValue(composeVal)
+	if composeValErr != nil {
+		t.Errorf("encode object faield, err:%s", composeValErr.Error())
 		return
 	}
-	extVal, extValErr = remote.DecodeObjectValue(extValData)
-	if extValErr != nil {
-		t.Errorf("decode object faield, err:%s", extValErr.Error())
+	composeVal, composeValErr = remote.DecodeObjectValue(composeValData)
+	if composeValErr != nil {
+		t.Errorf("decode object faield, err:%s", composeValErr.Error())
 		return
 	}
 
-	provider.RegisterModel(baseObject)
-	provider.RegisterModel(extObject)
-	defer provider.UnregisterModel(baseObject)
-	defer provider.UnregisterModel(extObject)
+	remoteProvider.RegisterModel(baseObject)
+	remoteProvider.RegisterModel(composeObject)
+	defer remoteProvider.UnregisterModel(baseObject)
+	defer remoteProvider.UnregisterModel(composeObject)
 
 	base := &Base{}
 	err := UpdateEntity(baseVal, base)
@@ -476,25 +459,25 @@ func TestUpdateRemoteProvider(t *testing.T) {
 		t.Error("UpdateEntity failed")
 	}
 
-	ext := &Compose{BasePtr: &Base{}}
-	err = UpdateEntity(extVal, ext)
+	compose := &Compose{BasePtr: &Base{}}
+	err = UpdateEntity(composeVal, compose)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
 	}
-	if ext.ID != extEntity.ID || ext.Name != extEntity.Name || ext.BasePtr.ID != extEntity.BasePtr.ID || ext.BasePtr.F32 != extEntity.BasePtr.F32 {
+	if compose.ID != composeEntity.ID || compose.Name != composeEntity.Name || compose.BasePtr.ID != composeEntity.BasePtr.ID || compose.BasePtr.F32 != composeEntity.BasePtr.F32 {
 		t.Error("UpdateEntity failed")
 		return
 	}
-	if ext.BasePtr == nil {
+	if compose.BasePtr == nil {
 		t.Error("UpdateEntity failed")
 		return
 	}
-	if ext.BasePtr.ID != extEntity.BasePtr.ID {
+	if compose.BasePtr.ID != composeEntity.BasePtr.ID {
 		t.Error("UpdateEntity failed")
 		return
 	}
-	if len(ext.BasePtrArray) != len(extEntity.BasePtrArray) {
+	if len(compose.BasePtrArray) != len(composeEntity.BasePtrArray) {
 		t.Error("UpdateEntity failed")
 		return
 	}
@@ -504,8 +487,8 @@ func TestCompareProvider(t *testing.T) {
 	remoteProvider := NewRemoteProvider("default", "abc")
 	localProvider := NewLocalProvider("default", "abc")
 
-	baseEntity := &Base{ID: 123, Str: "test int", F32: 12.35, StrArray: []string{"qq", "ar", "yt"}}
-	extEntity := &Compose{ID: 234, Name: "hello", Base: *baseEntity, BasePtr: baseEntity, BasePtrArray: []*Base{baseEntity}}
+	baseEntity := baseVal
+	composeEntity := composeVal
 
 	baseObject, baseErr := remote.GetObject(baseEntity)
 	if baseErr != nil {
@@ -513,33 +496,33 @@ func TestCompareProvider(t *testing.T) {
 		return
 	}
 
-	baseVal, baseErr := remote.GetObjectValue(baseEntity)
+	baseObjectVal, baseErr := remote.GetObjectValue(baseEntity)
 	if baseErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", baseErr.Error())
 		return
 	}
 
-	extObject, extErr := remote.GetObject(extEntity)
-	if extErr != nil {
-		t.Errorf("GetObject failed, err:%s", extErr.Error())
+	composeObject, composeErr := remote.GetObject(composeEntity)
+	if composeErr != nil {
+		t.Errorf("GetObject failed, err:%s", composeErr.Error())
 		return
 	}
 
-	extVal, extErr := remote.GetObjectValue(extEntity)
-	if extErr != nil {
-		t.Errorf("GetObjectValue failed, err:%s", extErr.Error())
+	composeObjectVal, composeErr := remote.GetObjectValue(composeEntity)
+	if composeErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", composeErr.Error())
 		return
 	}
 
 	remoteProvider.RegisterModel(baseObject)
-	remoteProvider.RegisterModel(extObject)
+	remoteProvider.RegisterModel(composeObject)
 	defer remoteProvider.UnregisterModel(baseObject)
-	defer remoteProvider.UnregisterModel(extObject)
+	defer remoteProvider.UnregisterModel(composeObject)
 
 	localProvider.RegisterModel(baseEntity)
-	localProvider.RegisterModel(extEntity)
+	localProvider.RegisterModel(composeEntity)
 	defer localProvider.UnregisterModel(baseEntity)
-	defer localProvider.UnregisterModel(extEntity)
+	defer localProvider.UnregisterModel(composeEntity)
 
 	lBaseModel, lErr := localProvider.GetEntityModel(baseEntity)
 	if lErr != nil {
@@ -564,6 +547,7 @@ func TestCompareProvider(t *testing.T) {
 		t.Errorf("GetTypeModel from localProvider failed, err:%s", l2Err.Error())
 		return
 	}
+
 	l2BaseModel, l2Err = local.SetModelValue(l2BaseModel, lBaseVal)
 	if l2Err != nil {
 		t.Errorf("SetModelValue from localProvider failed, err:%s", l2Err.Error())
@@ -574,7 +558,7 @@ func TestCompareProvider(t *testing.T) {
 		return
 	}
 
-	rBaseModel, rErr := remoteProvider.GetEntityModel(baseVal)
+	rBaseModel, rErr := remoteProvider.GetEntityModel(baseObjectVal)
 	if rErr != nil {
 		t.Errorf("GetEntityModel from remoteProvider failed, err:%s", rErr.Error())
 		return
@@ -585,61 +569,55 @@ func TestCompareProvider(t *testing.T) {
 		return
 	}
 
-	lExtModel, lErr := localProvider.GetEntityModel(extEntity)
+	lComposeModel, lErr := localProvider.GetEntityModel(composeEntity)
 	if lErr != nil {
 		t.Errorf("GetEntityModel from localProvider failed, err:%s", lErr.Error())
 		return
 	}
 
-	rExtModel, rErr := remoteProvider.GetEntityModel(extVal)
+	rComposeModel, rErr := remoteProvider.GetEntityModel(composeObjectVal)
 	if rErr != nil {
 		t.Errorf("GetEntityModel from remoteProvider failed, err:%s", rErr.Error())
 		return
 	}
 
-	rExtType, rErr := remoteProvider.GetEntityType(extObject)
+	rComposeType, rErr := remoteProvider.GetEntityType(composeObject)
 	if rErr != nil {
 		t.Errorf("GetEntityType from remoteProvider failed, err:%s", rErr.Error())
 		return
 	}
-	rExtVal, rErr := remoteProvider.GetEntityValue(extVal)
+	rComposeVal, rErr := remoteProvider.GetEntityValue(composeObjectVal)
 	if rErr != nil {
 		t.Errorf("GetEntityValue from remoteProvider failed, err:%s", rErr.Error())
 		return
 	}
 
-	r2ExtModel, r2Err := remoteProvider.GetTypeModel(rExtType)
+	r2ComposeModel, r2Err := remoteProvider.GetTypeModel(rComposeType)
 	if r2Err != nil {
 		t.Errorf("GetTypeModel from remoteProvider failed, err:%s", r2Err.Error())
 		return
 	}
 
-	ext2Info := &Compose{BasePtr: &Base{}}
-	r2Val := r2ExtModel.Interface(false).(remote.ObjectValue)
-	r2Err = UpdateEntity(&r2Val, ext2Info)
-	if r2Err != nil {
-		t.Errorf("UpdateEntity from remoteProvider failed, err:%s", r2Err.Error())
-		return
-	}
-
-	r2ExtModel, r2Err = remote.SetModelValue(r2ExtModel, rExtVal)
+	r2ComposeModel, r2Err = remote.SetModelValue(r2ComposeModel, rComposeVal)
 	if r2Err != nil {
 		t.Errorf("SetModelValue from remoteProvider failed, err:%s", r2Err.Error())
 		return
 	}
-	if !model.CompareModel(lExtModel, r2ExtModel) {
+
+	if !model.CompareModel(lComposeModel, r2ComposeModel) {
 		t.Errorf("compareModel failed")
 		return
 	}
 
-	r2ValPtr := r2ExtModel.Interface(true).(*remote.ObjectValue)
-	r2Err = UpdateEntity(r2ValPtr, ext2Info)
+	compose2Info := &Compose{BasePtr: &Base{}}
+	r2ValPtr := r2ComposeModel.Interface(true).(*remote.ObjectValue)
+	r2Err = UpdateEntity(r2ValPtr, compose2Info)
 	if r2Err != nil {
 		t.Errorf("UpdateEntity from remoteProvider failed, err:%s", r2Err.Error())
 		return
 	}
 
-	if !model.CompareModel(lExtModel, rExtModel) {
+	if !model.CompareModel(lComposeModel, rComposeModel) {
 		t.Errorf("compareModel failed")
 		return
 	}
