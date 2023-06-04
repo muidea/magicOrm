@@ -308,9 +308,9 @@ func TestReferenceRemote(t *testing.T) {
 
 		sObjectVal := vModel.Interface(true).(*remote.ObjectValue)
 		sVal := sValList[idx]
-		err = provider.UpdateEntity(sObjectVal, sVal)
+		err = provider.UpdateLocalEntity(sObjectVal, sVal)
 		if err != nil {
-			t.Errorf("UpdateEntity failed. err:%s", err.Error())
+			t.Errorf("UpdateLocalEntity failed. err:%s", err.Error())
 			return
 		}
 		sValList[idx] = sVal
@@ -349,9 +349,9 @@ func TestReferenceRemote(t *testing.T) {
 
 		sObjectVal := vModel.Interface(true).(*remote.ObjectValue)
 		sVal := sValList[idx]
-		err = provider.UpdateEntity(sObjectVal, sVal)
+		err = provider.UpdateLocalEntity(sObjectVal, sVal)
 		if err != nil {
-			t.Errorf("UpdateEntity failed. err:%s", err.Error())
+			t.Errorf("UpdateLocalEntity failed. err:%s", err.Error())
 			return
 		}
 		sValList[idx] = sVal
@@ -401,9 +401,9 @@ func TestReferenceRemote(t *testing.T) {
 
 		qObjectVal := qModel.Interface(true).(*remote.ObjectValue)
 		qVal := qValList[idx]
-		err = provider.UpdateEntity(qObjectVal, qVal)
+		err = provider.UpdateLocalEntity(qObjectVal, qVal)
 		if err != nil {
-			t.Errorf("UpdateEntity failed. err:%s", err.Error())
+			t.Errorf("UpdateLocalEntity failed. err:%s", err.Error())
 			return
 		}
 		qValList[idx] = qVal

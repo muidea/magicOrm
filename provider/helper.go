@@ -11,8 +11,8 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
-// UpdateEntity update object value -> entity
-func UpdateEntity(remoteValue *remote.ObjectValue, localEntity interface{}) (err error) {
+// UpdateLocalEntity update object value -> entity
+func UpdateLocalEntity(remoteValue *remote.ObjectValue, localEntity interface{}) (err error) {
 	if !remoteValue.IsAssigned() {
 		return
 	}
@@ -43,34 +43,34 @@ func UpdateEntity(remoteValue *remote.ObjectValue, localEntity interface{}) (err
 	return
 }
 
-// UpdateSliceEntity update slice object value -> entitySlice
-func UpdateSliceEntity(sliceObjectValue *remote.SliceObjectValue, entitySlice interface{}) (err error) {
+// UpdateLocalSliceEntity update slice object value -> entitySlice
+func UpdateLocalSliceEntity(sliceObjectValue *remote.SliceObjectValue, sliceEntity interface{}) (err error) {
 	if !sliceObjectValue.IsAssigned() {
 		return
 	}
 
-	entitySliceVal := reflect.ValueOf(entitySlice)
-	if entitySliceVal.Kind() != reflect.Ptr {
+	entityVal := reflect.ValueOf(sliceEntity)
+	if entityVal.Kind() != reflect.Ptr {
 		err = fmt.Errorf("illegal slice entity value")
 		return
 	}
-	entitySliceVal = reflect.Indirect(entitySliceVal)
-	if entitySliceVal.Kind() != reflect.Slice {
-		err = fmt.Errorf("illegal entitySlice")
+	entityVal = reflect.Indirect(entityVal)
+	if entityVal.Kind() != reflect.Slice {
+		err = fmt.Errorf("illegal sliceEntity")
 		return
 	}
-	if !entitySliceVal.CanSet() {
-		err = fmt.Errorf("illegal entitySlice value, can't be set")
+	if !entityVal.CanSet() {
+		err = fmt.Errorf("illegal sliceEntity value, can't be set")
 		return
 	}
 
-	retVal, retErr := getSliceStructValue(sliceObjectValue, entitySliceVal.Type())
+	retVal, retErr := getSliceStructValue(sliceObjectValue, entityVal.Type())
 	if retErr != nil {
 		err = retErr
 		return
 	}
 
-	entitySliceVal.Set(retVal)
+	entityVal.Set(retVal)
 	return
 }
 

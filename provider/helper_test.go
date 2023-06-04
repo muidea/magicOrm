@@ -33,9 +33,9 @@ func TestUpdateExtObjValue(t *testing.T) {
 		return
 	}
 
-	err = UpdateEntity(objInfo, newVal)
+	err = UpdateLocalEntity(objInfo, newVal)
 	if err != nil {
-		t.Errorf("UpdateEntity failed, err:%s", err.Error())
+		t.Errorf("UpdateLocalEntity failed, err:%s", err.Error())
 		return
 	}
 

@@ -448,36 +448,36 @@ func TestUpdateRemoteProvider(t *testing.T) {
 	defer remoteProvider.UnregisterModel(composeObject)
 
 	base := &Base{}
-	err := UpdateEntity(baseVal, base)
+	err := UpdateLocalEntity(baseVal, base)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
 	}
 
 	if base.ID != baseEntity.ID || base.Str != baseEntity.Str || base.F32 != baseEntity.F32 || len(base.StrArray) != len(baseEntity.StrArray) {
-		t.Error("UpdateEntity failed")
+		t.Error("UpdateLocalEntity failed")
 	}
 
 	compose := &Compose{BasePtr: &Base{}}
-	err = UpdateEntity(composeVal, compose)
+	err = UpdateLocalEntity(composeVal, compose)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
 	}
 	if compose.ID != composeEntity.ID || compose.Name != composeEntity.Name || compose.BasePtr.ID != composeEntity.BasePtr.ID || compose.BasePtr.F32 != composeEntity.BasePtr.F32 {
-		t.Error("UpdateEntity failed")
+		t.Error("UpdateLocalEntity failed")
 		return
 	}
 	if compose.BasePtr == nil {
-		t.Error("UpdateEntity failed")
+		t.Error("UpdateLocalEntity failed")
 		return
 	}
 	if compose.BasePtr.ID != composeEntity.BasePtr.ID {
-		t.Error("UpdateEntity failed")
+		t.Error("UpdateLocalEntity failed")
 		return
 	}
 	if len(compose.BasePtrArray) != len(composeEntity.BasePtrArray) {
-		t.Error("UpdateEntity failed")
+		t.Error("UpdateLocalEntity failed")
 		return
 	}
 }
@@ -610,9 +610,9 @@ func TestCompareProvider(t *testing.T) {
 
 	compose2Info := &Compose{BasePtr: &Base{}}
 	r2ValPtr := r2ComposeModel.Interface(true).(*remote.ObjectValue)
-	r2Err = UpdateEntity(r2ValPtr, compose2Info)
+	r2Err = UpdateLocalEntity(r2ValPtr, compose2Info)
 	if r2Err != nil {
-		t.Errorf("UpdateEntity from remoteProvider failed, err:%s", r2Err.Error())
+		t.Errorf("UpdateLocalEntity from remoteProvider failed, err:%s", r2Err.Error())
 		return
 	}
 
