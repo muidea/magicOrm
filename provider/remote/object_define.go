@@ -160,7 +160,14 @@ func (s *Object) Dump() (ret string) {
 	return
 }
 
-func (s *Object) Verify() (err error) {
+func (s *Object) verify() (err error) {
+	for _, val := range s.Fields {
+		err = val.verify()
+		if err != nil {
+			log.Errorf("verify field failed, idx:%d, name:%s, err:%s", val.Index, val.Name, err.Error())
+			return
+		}
+	}
 	return
 }
 

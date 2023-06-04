@@ -11,7 +11,6 @@ type Model interface {
 	Interface(ptrValue bool) interface{}
 	Copy() Model
 	Dump() string
-	Verify() error
 }
 
 func CompareModel(l, r Model) bool {

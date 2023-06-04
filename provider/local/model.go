@@ -115,10 +115,11 @@ func (s *objectImpl) Dump() (ret string) {
 	return
 }
 
-func (s *objectImpl) Verify() (err error) {
+func (s *objectImpl) verify() (err error) {
 	for _, val := range s.fields {
 		err = val.verify()
 		if err != nil {
+			log.Errorf("verify field failed, idx:%d, name:%s, err:%s", val.index, val.name, err.Error())
 			return
 		}
 	}
@@ -224,6 +225,12 @@ func getValueModel(modelVal reflect.Value) (ret *objectImpl, err error) {
 	if !hasPrimaryKey {
 		err = fmt.Errorf("no define primary key field, struct name:%s", impl.GetName())
 		log.Errorf("getValueModel failed, check primary key err:%s", err.Error())
+		return
+	}
+
+	err = impl.verify()
+	if err != nil {
+		log.Errorf("verify model failed, err:%s", err.Error())
 		return
 	}
 

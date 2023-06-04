@@ -143,11 +143,11 @@ func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Val
 	field.tagPtr = tagPtr
 	field.valuePtr = valuePtr
 
-	err = field.verify()
-	if err != nil {
-		log.Errorf("illegal field info, err:%s", err.Error())
-		return
-	}
+	//err = field.verify()
+	//if err != nil {
+	//	log.Errorf("illegal field info, err:%s", err.Error())
+	//	return
+	//}
 
 	ret = field
 	return

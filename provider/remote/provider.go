@@ -91,12 +91,17 @@ func GetEntityValue(entity interface{}) (ret model.Value, err error) {
 
 func GetEntityModel(entity interface{}) (ret model.Model, err error) {
 	objPtr, ok := entity.(*Object)
-	if ok {
-		ret = objPtr
+	if !ok {
+		err = fmt.Errorf("illegal entity value, not object")
 		return
 	}
 
-	err = fmt.Errorf("illegal value, not object")
+	err = objPtr.verify()
+	if err != nil {
+		return
+	}
+
+	ret = objPtr
 	return
 }
 

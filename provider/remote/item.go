@@ -7,6 +7,7 @@ import (
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/util"
 )
 
 type Field struct {
@@ -78,6 +79,41 @@ func (s *Field) SetValue(val model.Value) (err error) {
 
 func (s *Field) copy() (ret model.Field) {
 	return &Field{Index: s.Index, Name: s.Name, Tag: s.Tag, Type: s.Type, value: s.value}
+}
+
+func (s *Field) verify() (err error) {
+	if s.Tag.GetName() == "" {
+		return fmt.Errorf("no define field tag")
+	}
+
+	val := s.Type.GetValue()
+	if s.Tag.IsAutoIncrement() {
+		switch val {
+		case util.TypeBooleanValue,
+			util.TypeStringValue,
+			util.TypeDateTimeValue,
+			util.TypeFloatValue,
+			util.TypeDoubleValue,
+			util.TypeStructValue,
+			util.TypeSliceValue:
+			return fmt.Errorf("illegal auto_increment field type, type:%s", s.Type.dump())
+		default:
+		}
+	}
+
+	if s.Tag.IsPrimaryKey() {
+		switch val {
+		case util.TypeStructValue, util.TypeSliceValue:
+			return fmt.Errorf("illegal primary key field type, type:%s", s.Type.dump())
+		default:
+		}
+	}
+
+	if s.value == nil || s.value.IsNil() {
+		return nil
+	}
+
+	return s.value.verify()
 }
 
 func (s *Field) dump() string {
