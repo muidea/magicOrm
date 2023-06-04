@@ -109,7 +109,11 @@ func (s *field) verify() error {
 		}
 	}
 
-	return nil
+	if s.valuePtr == nil || s.valuePtr.IsNil() {
+		return nil
+	}
+
+	return s.valuePtr.verify()
 }
 
 func (s *field) dump() string {

@@ -233,7 +233,6 @@ func checkComposeModel(t *testing.T, extEntityModel model.Model) {
 			}
 		}
 	}
-
 }
 
 func TestLocalProvider(t *testing.T) {

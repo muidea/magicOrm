@@ -1,6 +1,7 @@
 package remote
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
@@ -147,6 +148,18 @@ func (s *valueImpl) IsBasic() bool {
 	}
 
 	return !util.IsStruct(rType)
+}
+
+func (s *valueImpl) verify() error {
+	if s.IsNil() {
+		return nil
+	}
+
+	if !s.value.CanAddr() || !s.value.CanSet() {
+		return fmt.Errorf("illegal vlaue")
+	}
+
+	return nil
 }
 
 func (s *valueImpl) copy() (ret *valueImpl) {

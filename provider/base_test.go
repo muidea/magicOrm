@@ -146,6 +146,11 @@ func testValue(t *testing.T, valPtr interface{}) error {
 		t.Errorf("local.GetEntityModel failed. err:%s", lErr.Error())
 		return lErr
 	}
+	lErr = lModel.Verify()
+	if lErr != nil {
+		t.Errorf("verify model failed. err:%s", lErr.Error())
+		return lErr
+	}
 
 	baseObject, baseErr := remote.GetObject(valPtr)
 	if baseErr != nil {
@@ -155,6 +160,11 @@ func testValue(t *testing.T, valPtr interface{}) error {
 	rModel, rErr := remote.GetEntityModel(baseObject)
 	if rErr != nil {
 		t.Errorf("remote.GetEntityModel failed. err:%s", rErr.Error())
+		return rErr
+	}
+	rErr = rModel.Verify()
+	if rErr != nil {
+		t.Errorf("verify model failed. err:%s", rErr.Error())
 		return rErr
 	}
 
