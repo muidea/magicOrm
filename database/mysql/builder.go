@@ -13,8 +13,8 @@ type Builder struct {
 }
 
 // New create builder
-func New(vModel model.Model, modelProvider provider.Provider) *Builder {
-	return &Builder{Common: common.New(vModel, modelProvider)}
+func New(vModel model.Model, modelProvider provider.Provider, prefix string) *Builder {
+	return &Builder{Common: common.New(vModel, modelProvider, prefix)}
 }
 
 func (s *Builder) buildModelFilter() (ret string, err error) {

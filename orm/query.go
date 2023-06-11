@@ -14,7 +14,7 @@ type resultItems []interface{}
 type resultItemsList []resultItems
 
 func (s *impl) innerQuery(elemModel model.Model, filter model.Filter) (ret resultItemsList, err error) {
-	builder := builder.NewBuilder(elemModel, s.modelProvider)
+	builder := builder.NewBuilder(elemModel, s.modelProvider, s.specialPrefix)
 	sqlStr, sqlErr := builder.BuildQuery(filter)
 	if sqlErr != nil {
 		err = sqlErr
@@ -187,7 +187,7 @@ func (s *impl) queryRelationSliceModel(ids []int, vModel model.Model, deepLevel 
 }
 
 func (s *impl) queryRelationIDs(vModel model.Model, rModel model.Model, vField model.Field) (ret []int, err error) {
-	builder := builder.NewBuilder(vModel, s.modelProvider)
+	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
 	relationSQL, relationErr := builder.BuildQueryRelation(vField, rModel)
 	if relationErr != nil {
 		err = relationErr

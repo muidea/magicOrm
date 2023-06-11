@@ -11,9 +11,9 @@ func TestDefine(t *testing.T) {
 	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	localProvider := provider.NewLocalProvider(localOwner, "abc")
+	localProvider := provider.NewLocalProvider(localOwner)
 
-	o1, err := orm.NewOrm(localProvider, config)
+	o1, err := orm.NewOrm(localProvider, config, "abc")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())

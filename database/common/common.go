@@ -14,14 +14,15 @@ import (
 type Common struct {
 	entityModel   model.Model
 	modelProvider provider.Provider
+	specialPrefix string
 
 	// temp value, for performance optimization
 	entityTableName string
 	entityValue     interface{}
 }
 
-func New(vModel model.Model, modelProvider provider.Provider) Common {
-	return Common{entityModel: vModel, modelProvider: modelProvider}
+func New(vModel model.Model, modelProvider provider.Provider, prefix string) Common {
+	return Common{entityModel: vModel, modelProvider: modelProvider, specialPrefix: prefix}
 }
 
 func (s *Common) constructTableName(vModel model.Model) string {
@@ -42,9 +43,8 @@ func (s *Common) GetHostTableName(vModel model.Model) string {
 	//tableName := s.constructTableName(vModel)
 	//return fmt.Sprintf("%s_%s", s.modelProvider.Owner(), tableName)
 	tableName := s.constructTableName(vModel)
-	prefix := s.modelProvider.Prefix()
-	if prefix != "" {
-		tableName = fmt.Sprintf("%s_%s", prefix, tableName)
+	if s.specialPrefix != "" {
+		tableName = fmt.Sprintf("%s_%s", s.specialPrefix, tableName)
 	}
 
 	return tableName
@@ -56,9 +56,8 @@ func (s *Common) GetRelationTableName(vField model.Field, rModel model.Model) st
 
 	//return fmt.Sprintf("%s_%s%s2%s", s.modelProvider.Owner(), leftName, fieldName, rightName)
 	tableName := fmt.Sprintf("%s%s%s%s", leftName, vField.GetName(), getFieldRelation(vField), rightName)
-	prefix := s.modelProvider.Prefix()
-	if prefix != "" {
-		tableName = fmt.Sprintf("%s_%s", prefix, tableName)
+	if s.specialPrefix != "" {
+		tableName = fmt.Sprintf("%s_%s", s.specialPrefix, tableName)
 	}
 
 	return tableName

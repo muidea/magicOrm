@@ -20,9 +20,9 @@ func TestSimpleLocal(t *testing.T) {
 	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	localProvider := provider.NewLocalProvider(simpleLocalOwner, "abc")
+	localProvider := provider.NewLocalProvider(simpleLocalOwner)
 
-	o1, err := orm.NewOrm(localProvider, config)
+	o1, err := orm.NewOrm(localProvider, config, "abc")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -182,9 +182,9 @@ func TestSimpleRemote(t *testing.T) {
 	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	remoteProvider := provider.NewRemoteProvider(simpleRemoteOwner, "abc")
+	remoteProvider := provider.NewRemoteProvider(simpleRemoteOwner)
 
-	o1, err := orm.NewOrm(remoteProvider, config)
+	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())

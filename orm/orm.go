@@ -93,18 +93,19 @@ func DelDatabase(owner string) {
 }
 
 // NewOrm create new Orm
-func NewOrm(provider provider.Provider, cfg executor.Config) (Orm, error) {
+func NewOrm(provider provider.Provider, cfg executor.Config, prefix string) (Orm, error) {
 	executor, err := NewExecutor(cfg)
 	if err != nil {
+		log.Errorf("new orm failed, err:%s", err.Error())
 		return nil, err
 	}
 
-	orm := &impl{executor: executor, modelProvider: provider}
+	orm := &impl{executor: executor, modelProvider: provider, specialPrefix: prefix}
 	return orm, nil
 }
 
 // GetOrm get orm from pool
-func GetOrm(provider provider.Provider) (ret Orm, err error) {
+func GetOrm(provider provider.Provider, prefix string) (ret Orm, err error) {
 	val, ok := name2Pool.Load(provider.Owner())
 	if !ok {
 		err = fmt.Errorf("can't find orm,name:%s", provider.Owner())
@@ -119,7 +120,7 @@ func GetOrm(provider provider.Provider) (ret Orm, err error) {
 		return
 	}
 
-	ret = &impl{executor: executorVal, modelProvider: provider}
+	ret = &impl{executor: executorVal, modelProvider: provider, specialPrefix: prefix}
 	return
 }
 
@@ -127,6 +128,7 @@ func GetOrm(provider provider.Provider) (ret Orm, err error) {
 type impl struct {
 	executor      executor.Executor
 	modelProvider provider.Provider
+	specialPrefix string
 }
 
 // BeginTransaction begin transaction

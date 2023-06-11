@@ -222,9 +222,9 @@ func TestComposeLocal(t *testing.T) {
 	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	localProvider := provider.NewLocalProvider(composeLocalOwner, "abc")
+	localProvider := provider.NewLocalProvider(composeLocalOwner)
 
-	o1, err := orm.NewOrm(localProvider, config)
+	o1, err := orm.NewOrm(localProvider, config, "abc")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -423,9 +423,9 @@ func TestComposeRemote(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	remoteProvider := provider.NewRemoteProvider(composeRemoteOwner, "abc")
+	remoteProvider := provider.NewRemoteProvider(composeRemoteOwner)
 
-	o1, err := orm.NewOrm(remoteProvider, config)
+	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())

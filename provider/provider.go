@@ -3,9 +3,10 @@ package provider
 import (
 	"fmt"
 
-	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/local"
 	"github.com/muidea/magicOrm/provider/remote"
+
+	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
 )
 
@@ -40,14 +41,49 @@ type Provider interface {
 
 	Owner() string
 
-	Prefix() string
-
 	Reset()
 }
 
+// NewLocalProvider model provider
+func NewLocalProvider(owner string) Provider {
+	ret := &providerImpl{
+		owner:                owner,
+		modelCache:           model.NewCache(),
+		getTypeFunc:          local.GetEntityType,
+		getValueFunc:         local.GetEntityValue,
+		getModelFunc:         local.GetEntityModel,
+		getFilterFunc:        local.GetModelFilter,
+		setModelValueFunc:    local.SetModelValue,
+		elemDependValueFunc:  local.ElemDependValue,
+		appendSliceValueFunc: local.AppendSliceValue,
+		encodeValueFunc:      local.EncodeValue,
+		decodeValueFunc:      local.DecodeValue,
+	}
+
+	return ret
+}
+
+// NewRemoteProvider model provider
+func NewRemoteProvider(owner string) Provider {
+	ret := &providerImpl{
+		owner:                owner,
+		modelCache:           model.NewCache(),
+		getTypeFunc:          remote.GetEntityType,
+		getValueFunc:         remote.GetEntityValue,
+		getModelFunc:         remote.GetEntityModel,
+		getFilterFunc:        remote.GetModelFilter,
+		setModelValueFunc:    remote.SetModelValue,
+		elemDependValueFunc:  remote.ElemDependValue,
+		appendSliceValueFunc: remote.AppendSliceValue,
+		encodeValueFunc:      remote.EncodeValue,
+		decodeValueFunc:      remote.DecodeValue,
+	}
+
+	return ret
+}
+
 type providerImpl struct {
-	owner  string
-	prefix string
+	owner string
 
 	modelCache model.Cache
 
@@ -272,51 +308,6 @@ func (s *providerImpl) Owner() string {
 	return s.owner
 }
 
-func (s *providerImpl) Prefix() string {
-	return s.prefix
-}
-
-// Reset Reset
 func (s *providerImpl) Reset() {
 	s.modelCache.Reset()
-}
-
-// NewLocalProvider model provider
-func NewLocalProvider(owner, prefix string) Provider {
-	ret := &providerImpl{
-		owner:                owner,
-		prefix:               prefix,
-		modelCache:           model.NewCache(),
-		getTypeFunc:          local.GetEntityType,
-		getValueFunc:         local.GetEntityValue,
-		getModelFunc:         local.GetEntityModel,
-		getFilterFunc:        local.GetModelFilter,
-		setModelValueFunc:    local.SetModelValue,
-		elemDependValueFunc:  local.ElemDependValue,
-		appendSliceValueFunc: local.AppendSliceValue,
-		encodeValueFunc:      local.EncodeValue,
-		decodeValueFunc:      local.DecodeValue,
-	}
-
-	return ret
-}
-
-// NewRemoteProvider model provider
-func NewRemoteProvider(owner, prefix string) Provider {
-	ret := &providerImpl{
-		owner:                owner,
-		prefix:               prefix,
-		modelCache:           model.NewCache(),
-		getTypeFunc:          remote.GetEntityType,
-		getValueFunc:         remote.GetEntityValue,
-		getModelFunc:         remote.GetEntityModel,
-		getFilterFunc:        remote.GetModelFilter,
-		setModelValueFunc:    remote.SetModelValue,
-		elemDependValueFunc:  remote.ElemDependValue,
-		appendSliceValueFunc: remote.AppendSliceValue,
-		encodeValueFunc:      remote.EncodeValue,
-		decodeValueFunc:      remote.DecodeValue,
-	}
-
-	return ret
 }

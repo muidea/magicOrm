@@ -30,7 +30,7 @@ func TestBuilderCommon(t *testing.T) {
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
 	unit := &Unit{ID: 10, Name: "Hello world", Value: 12.3456, TimeStamp: now}
 
-	localProvider := provider.NewLocalProvider("default", "abc")
+	localProvider := provider.NewLocalProvider("default")
 	localProvider.RegisterModel(unit)
 
 	info, err := localProvider.GetEntityModel(unit)
@@ -39,7 +39,7 @@ func TestBuilderCommon(t *testing.T) {
 		return
 	}
 
-	builder := NewBuilder(info, localProvider)
+	builder := NewBuilder(info, localProvider, "abc")
 	if builder == nil {
 		t.Error("new Builder failed")
 		return
@@ -111,7 +111,7 @@ func TestBuilderReference(t *testing.T) {
 	ext := &Ext{}
 	unit := &Unit{}
 
-	localProvider := provider.NewLocalProvider("default", "abc")
+	localProvider := provider.NewLocalProvider("default")
 	localProvider.RegisterModel(ext)
 	localProvider.RegisterModel(unit)
 	info, err := localProvider.GetEntityModel(ext)
@@ -120,7 +120,7 @@ func TestBuilderReference(t *testing.T) {
 		return
 	}
 
-	builder := NewBuilder(info, localProvider)
+	builder := NewBuilder(info, localProvider, "abc")
 	if builder == nil {
 		t.Error("new Builder failed")
 	}
@@ -179,7 +179,7 @@ func TestBuilderReference2(t *testing.T) {
 	ext := &Ext{Description: &desc}
 	unit := &Unit{}
 
-	localProvider := provider.NewLocalProvider("default", "abc")
+	localProvider := provider.NewLocalProvider("default")
 	localProvider.RegisterModel(ext)
 	localProvider.RegisterModel(unit)
 	info, err := localProvider.GetEntityModel(ext)
@@ -188,7 +188,7 @@ func TestBuilderReference2(t *testing.T) {
 		return
 	}
 
-	builder := NewBuilder(info, localProvider)
+	builder := NewBuilder(info, localProvider, "abc")
 	if builder == nil {
 		t.Error("new Builder failed")
 	}

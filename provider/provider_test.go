@@ -236,7 +236,7 @@ func checkComposeModel(t *testing.T, extEntityModel model.Model) {
 }
 
 func TestLocalProvider(t *testing.T) {
-	localProvider := NewLocalProvider("default", "abc")
+	localProvider := NewLocalProvider("default")
 
 	baseEntity := emptyBase
 	composeEntity := emptyCompose
@@ -273,7 +273,7 @@ func TestLocalProvider(t *testing.T) {
 }
 
 func TestRemoteProvider(t *testing.T) {
-	remoteProvider := NewRemoteProvider("default", "abc")
+	remoteProvider := NewRemoteProvider("default")
 
 	baseEntity := baseVal
 	composeEntity := composeVal
@@ -369,7 +369,7 @@ func TestRemoteProvider(t *testing.T) {
 }
 
 func TestUpdateRemoteProvider(t *testing.T) {
-	remoteProvider := NewRemoteProvider("default", "abc")
+	remoteProvider := NewRemoteProvider("default")
 
 	baseEntity := baseVal
 	composeEntity := composeVal
@@ -483,8 +483,8 @@ func TestUpdateRemoteProvider(t *testing.T) {
 }
 
 func TestCompareProvider(t *testing.T) {
-	remoteProvider := NewRemoteProvider("default", "abc")
-	localProvider := NewLocalProvider("default", "abc")
+	remoteProvider := NewRemoteProvider("default")
+	localProvider := NewLocalProvider("default")
 
 	baseEntity := baseVal
 	composeEntity := composeVal

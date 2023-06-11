@@ -6,7 +6,7 @@ import (
 )
 
 func (s *impl) insertSingle(modelInfo model.Model) (err error) {
-	builder := builder.NewBuilder(modelInfo, s.modelProvider)
+	builder := builder.NewBuilder(modelInfo, s.modelProvider, s.specialPrefix)
 	sqlStr, sqlErr := builder.BuildInsert()
 	if sqlErr != nil {
 		err = sqlErr
@@ -69,7 +69,7 @@ func (s *impl) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err
 			}
 		}
 
-		builder := builder.NewBuilder(modelInfo, s.modelProvider)
+		builder := builder.NewBuilder(modelInfo, s.modelProvider, s.specialPrefix)
 		relationSQL, relationErr := builder.BuildInsertRelation(fieldInfo, relationInfo)
 		if relationErr != nil {
 			err = relationErr

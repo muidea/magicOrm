@@ -17,9 +17,9 @@ func TestRemoteSimple(t *testing.T) {
 	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	remoteProvider := provider.NewRemoteProvider(remoteOwner, "abc")
+	remoteProvider := provider.NewRemoteProvider(remoteOwner)
 
-	o1, err := orm.NewOrm(remoteProvider, config)
+	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -135,9 +135,9 @@ func TestRemoteReference(t *testing.T) {
 	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	remoteProvider := provider.NewRemoteProvider(remoteOwner, "abc")
+	remoteProvider := provider.NewRemoteProvider(remoteOwner)
 
-	o1, err := orm.NewOrm(remoteProvider, config)
+	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -324,9 +324,9 @@ func TestRemoteCompose(t *testing.T) {
 	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	remoteProvider := provider.NewRemoteProvider(remoteOwner, "abc")
+	remoteProvider := provider.NewRemoteProvider(remoteOwner)
 
-	o1, err := orm.NewOrm(remoteProvider, config)
+	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -567,9 +567,9 @@ func TestRemoteQuery(t *testing.T) {
 	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	remoteProvider := provider.NewRemoteProvider(remoteOwner, "abc")
+	remoteProvider := provider.NewRemoteProvider(remoteOwner)
 
-	o1, err := orm.NewOrm(remoteProvider, config)
+	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())

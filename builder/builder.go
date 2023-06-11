@@ -29,8 +29,8 @@ type Builder interface {
 }
 
 // NewBuilder new builder
-func NewBuilder(modelInfo model.Model, modelProvider provider.Provider) Builder {
-	return mysql.New(modelInfo, modelProvider)
+func NewBuilder(modelInfo model.Model, modelProvider provider.Provider, prefix string) Builder {
+	return mysql.New(modelInfo, modelProvider, prefix)
 }
 
 // EqualOpr Equal Opr =

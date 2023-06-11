@@ -6,7 +6,7 @@ import (
 )
 
 func (s *impl) updateSingle(modelInfo model.Model) (err error) {
-	builder := builder.NewBuilder(modelInfo, s.modelProvider)
+	builder := builder.NewBuilder(modelInfo, s.modelProvider, s.specialPrefix)
 	sqlStr, sqlErr := builder.BuildUpdate()
 	if sqlErr != nil {
 		err = sqlErr

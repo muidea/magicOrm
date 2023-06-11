@@ -8,7 +8,7 @@ import (
 )
 
 func (s *impl) queryCount(vFilter model.Filter) (ret int64, err error) {
-	builder := builder.NewBuilder(vFilter.MaskModel(), s.modelProvider)
+	builder := builder.NewBuilder(vFilter.MaskModel(), s.modelProvider, s.specialPrefix)
 	sqlStr, sqlErr := builder.BuildCount(vFilter)
 	if sqlErr != nil {
 		err = sqlErr

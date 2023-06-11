@@ -13,9 +13,9 @@ func TestLocalExecutor(t *testing.T) {
 	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	localProvider := provider.NewLocalProvider("default", "abc")
+	localProvider := provider.NewLocalProvider("default")
 
-	o1, err := orm.NewOrm(localProvider, config)
+	o1, err := orm.NewOrm(localProvider, config, "abc")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -101,9 +101,9 @@ func TestLocalDepends(t *testing.T) {
 	defer orm.Uninitialized()
 
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	provider := provider.NewLocalProvider("default", "abc")
+	provider := provider.NewLocalProvider("default")
 
-	o1, err := orm.NewOrm(provider, config)
+	o1, err := orm.NewOrm(provider, config, "abc")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
