@@ -5,13 +5,13 @@ import (
 )
 
 const (
-	EqualOpr = iota
-	NotEqualOpr
-	BelowOpr
-	AboveOpr
-	InOpr
-	NotInOpr
-	LikeOpr
+	EqualOpr    = iota // =
+	NotEqualOpr        // !=
+	BelowOpr           // <
+	AboveOpr           // >
+	InOpr              // in
+	NotInOpr           // not in
+	LikeOpr            // like
 )
 
 type OprCode int
