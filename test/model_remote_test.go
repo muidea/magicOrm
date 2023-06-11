@@ -55,7 +55,7 @@ func TestRemoteGroup(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	remoteProvider := provider.NewRemoteProvider("default")
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
@@ -323,7 +323,7 @@ func TestRemoteUser(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	remoteProvider := provider.NewRemoteProvider("default")
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
@@ -591,7 +591,7 @@ func TestRemoteSystem(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	remoteProvider := provider.NewRemoteProvider("default")
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
@@ -834,7 +834,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	remoteProvider := provider.NewRemoteProvider("default")
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
@@ -1118,7 +1118,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	remoteProvider := provider.NewRemoteProvider("default")
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
@@ -1427,7 +1427,7 @@ func TestPolicy(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	remoteProvider := provider.NewRemoteProvider("default")
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")

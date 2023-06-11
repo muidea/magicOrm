@@ -12,7 +12,7 @@ func TestLocalGroup(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	provider := provider.NewLocalProvider("default")
 
 	o1, err := orm.NewOrm(provider, config, "abc")
@@ -140,7 +140,7 @@ func TestLocalUser(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	provider := provider.NewLocalProvider("default")
 
 	o1, err := orm.NewOrm(provider, config, "abc")
@@ -359,7 +359,7 @@ func TestLocalSystem(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	localProvider := provider.NewLocalProvider("default")
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")
@@ -515,7 +515,7 @@ func TestLocalBatchQuery(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	localProvider := provider.NewLocalProvider("default")
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")

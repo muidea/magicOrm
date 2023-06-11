@@ -19,7 +19,7 @@ func TestReferenceLocal(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	localProvider := provider.NewLocalProvider(referenceLocalOwner)
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")
@@ -214,7 +214,7 @@ func TestReferenceRemote(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	remoteProvider := provider.NewRemoteProvider(referenceRemoteOwner)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")

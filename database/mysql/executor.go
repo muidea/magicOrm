@@ -12,11 +12,14 @@ import (
 	log "github.com/cihub/seelog"
 )
 
+const defaultCharSet = "utf8mb4"
+
 type Config struct {
 	dbServer string
 	dbName   string
 	username string
 	password string
+	charSet  string
 }
 
 func (s *Config) Server() string {
@@ -35,6 +38,14 @@ func (s *Config) Password() string {
 	return s.password
 }
 
+func (s *Config) CharSet() string {
+	if s.charSet == "" {
+		return defaultCharSet
+	}
+
+	return s.charSet
+}
+
 func (s *Config) Same(cfg *Config) bool {
 	return s.dbServer == cfg.dbServer &&
 		s.dbName == cfg.dbName &&
@@ -42,8 +53,8 @@ func (s *Config) Same(cfg *Config) bool {
 		s.password == cfg.password
 }
 
-func NewConfig(dbServer, dbName, username, password string) *Config {
-	return &Config{dbServer: dbServer, dbName: dbName, username: username, password: password}
+func NewConfig(dbServer, dbName, username, password, charSet string) *Config {
+	return &Config{dbServer: dbServer, dbName: dbName, username: username, password: password, charSet: charSet}
 }
 
 // Executor Executor
@@ -62,7 +73,7 @@ type Executor struct {
 
 // NewExecutor 新建一个数据访问对象
 func NewExecutor(config *Config) (ret *Executor, err error) {
-	connectStr := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4", config.Username(), config.Password(), config.Server(), config.Database())
+	connectStr := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=%s", config.Username(), config.Password(), config.Server(), config.Database(), config.CharSet())
 
 	executorPtr := &Executor{connectStr: connectStr, dbHandle: nil, dbTx: nil, rowsHandle: nil, dbName: config.Database()}
 	err = executorPtr.Connect()

@@ -10,7 +10,7 @@ func TestDefine(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	localProvider := provider.NewLocalProvider(localOwner)
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")

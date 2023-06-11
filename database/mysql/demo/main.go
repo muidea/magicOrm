@@ -62,7 +62,7 @@ func main() {
 	}()
 
 	pool := mysql.NewPool()
-	config := mysql.NewConfig(databaseServer, databaseName, databaseUsername, databasePassword)
+	config := mysql.NewConfig(databaseServer, databaseName, databaseUsername, databasePassword, "")
 	pool.Initialize(50, config)
 	defer pool.Uninitialized()
 

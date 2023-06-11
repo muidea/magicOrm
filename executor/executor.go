@@ -7,6 +7,7 @@ type Config interface {
 	Username() string
 	Password() string
 	Database() string
+	CharSet() string
 }
 
 // Executor 数据库访问对象
@@ -30,12 +31,12 @@ type Pool interface {
 	CheckConfig(config Config) error
 }
 
-func NewConfig(dbServer, dbName, username, password string) Config {
-	return mysql.NewConfig(dbServer, dbName, username, password)
+func NewConfig(dbServer, dbName, username, password, charSet string) Config {
+	return mysql.NewConfig(dbServer, dbName, username, password, charSet)
 }
 
 func NewExecutor(config Config) (Executor, error) {
-	return mysql.NewExecutor(mysql.NewConfig(config.Server(), config.Database(), config.Username(), config.Password()))
+	return mysql.NewExecutor(mysql.NewConfig(config.Server(), config.Database(), config.Username(), config.Password(), config.CharSet()))
 }
 
 func NewPool() Pool {
@@ -48,7 +49,7 @@ type poolImpl struct {
 
 func (s *poolImpl) Initialize(maxConnNum int, config Config) error {
 	return s.Pool.Initialize(maxConnNum,
-		mysql.NewConfig(config.Server(), config.Database(), config.Username(), config.Password()))
+		mysql.NewConfig(config.Server(), config.Database(), config.Username(), config.Password(), config.CharSet()))
 }
 
 func (s *poolImpl) Uninitialized() {
@@ -60,5 +61,5 @@ func (s *poolImpl) GetExecutor() (Executor, error) {
 }
 
 func (s *poolImpl) CheckConfig(config Config) error {
-	return s.Pool.CheckConfig(mysql.NewConfig(config.Server(), config.Database(), config.Username(), config.Password()))
+	return s.Pool.CheckConfig(mysql.NewConfig(config.Server(), config.Database(), config.Username(), config.Password(), config.CharSet()))
 }
