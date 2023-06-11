@@ -177,11 +177,6 @@ func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err 
 		return
 	}
 
-	if entityModel.GetPkgPath() != entityType.GetPkgPath() {
-		err = fmt.Errorf("illegal object entity, must register entity first")
-		return
-	}
-
 	if util.IsSliceType(entityType.GetValue()) {
 		ret = entityModel.Copy()
 		return
@@ -214,10 +209,6 @@ func (s *providerImpl) GetValueModel(vVal model.Value, vType model.Type) (ret mo
 		err = fmt.Errorf("can't fetch type model, must register type entity first")
 		return
 	}
-	if typeModel.GetPkgPath() != vType.GetPkgPath() {
-		err = fmt.Errorf("illegal object entity, must register entity first")
-		return
-	}
 
 	ret, err = s.setModelValueFunc(typeModel.Copy(), vVal)
 	return
@@ -233,10 +224,6 @@ func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err erro
 		err = fmt.Errorf("can't fetch type model, must register type entity first, PkgKey:%s", vType.GetPkgKey())
 		return
 	}
-	if typeModel.GetPkgPath() != vType.GetPkgPath() {
-		err = fmt.Errorf("illegal object entity, must register entity first")
-		return
-	}
 
 	ret = typeModel.Copy()
 	return
@@ -250,10 +237,6 @@ func (s *providerImpl) GetTypeFilter(vType model.Type) (ret model.Filter, err er
 	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
 	if typeModel == nil {
 		err = fmt.Errorf("can't fetch type model, must register type entity first, PkgKey:%s", vType.GetPkgKey())
-		return
-	}
-	if typeModel.GetPkgPath() != vType.GetPkgPath() {
-		err = fmt.Errorf("illegal object entity, must register entity first")
 		return
 	}
 
