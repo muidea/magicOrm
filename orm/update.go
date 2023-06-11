@@ -42,6 +42,7 @@ func (s *impl) Update(entityModel model.Model) (ret model.Model, err error) {
 	if err != nil {
 		return
 	}
+	defer s.finalTransaction(err)
 
 	for {
 		err = s.updateSingle(entityModel)
@@ -57,18 +58,6 @@ func (s *impl) Update(entityModel model.Model) (ret model.Model, err error) {
 		}
 
 		break
-	}
-
-	if err == nil {
-		cErr := s.executor.CommitTransaction()
-		if cErr != nil {
-			err = cErr
-		}
-	} else {
-		rErr := s.executor.RollbackTransaction()
-		if rErr != nil {
-			err = rErr
-		}
 	}
 
 	if err != nil {

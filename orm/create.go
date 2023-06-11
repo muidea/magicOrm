@@ -90,19 +90,8 @@ func (s *impl) Create(entityModel model.Model) (err error) {
 	if err != nil {
 		return
 	}
+	defer s.finalTransaction(err)
 
 	err = s.batchCreateSchema(entityModel)
-	if err == nil {
-		cErr := s.executor.CommitTransaction()
-		if cErr != nil {
-			err = cErr
-		}
-	} else {
-		rErr := s.executor.RollbackTransaction()
-		if rErr != nil {
-			err = rErr
-		}
-	}
-
 	return
 }

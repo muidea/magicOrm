@@ -83,25 +83,13 @@ func (s *impl) batchDropSchema(modelInfo model.Model) (err error) {
 	return
 }
 
-// Drop drop
 func (s *impl) Drop(entityModel model.Model) (err error) {
 	err = s.executor.BeginTransaction()
 	if err != nil {
 		return
 	}
+	defer s.finalTransaction(err)
 
 	err = s.batchDropSchema(entityModel)
-	if err == nil {
-		cErr := s.executor.CommitTransaction()
-		if cErr != nil {
-			err = cErr
-		}
-	} else {
-		rErr := s.executor.RollbackTransaction()
-		if rErr != nil {
-			err = rErr
-		}
-	}
-
 	return
 }

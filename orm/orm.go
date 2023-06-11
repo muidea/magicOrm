@@ -158,6 +158,13 @@ func (s *impl) RollbackTransaction() (err error) {
 	return
 }
 
+func (s *impl) finalTransaction(err error) error {
+	if err == nil {
+		return s.executor.CommitTransaction()
+	}
+	return s.executor.RollbackTransaction()
+}
+
 func (s *impl) Release() {
 	if s.executor != nil {
 		s.executor.Release()

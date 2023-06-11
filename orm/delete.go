@@ -57,8 +57,10 @@ func (s *impl) deleteRelationSliceInner(fieldVal model.Value, relationType model
 		err = elemErr
 		return
 	}
+
+	elemType := relationType.Elem()
 	for idx := 0; idx < len(elemVal); idx++ {
-		relationModel, relationErr := s.modelProvider.GetValueModel(elemVal[idx], relationType.Elem())
+		relationModel, relationErr := s.modelProvider.GetValueModel(elemVal[idx], elemType)
 		if relationErr != nil {
 			err = relationErr
 			return
@@ -139,6 +141,7 @@ func (s *impl) Delete(entityModel model.Model) (ret model.Model, err error) {
 	if err != nil {
 		return
 	}
+	defer s.finalTransaction(err)
 
 	for {
 		err = s.deleteSingle(entityModel)
@@ -156,21 +159,10 @@ func (s *impl) Delete(entityModel model.Model) (ret model.Model, err error) {
 		break
 	}
 
-	if err == nil {
-		cErr := s.executor.CommitTransaction()
-		if cErr != nil {
-			err = cErr
-		}
-	} else {
-		rErr := s.executor.RollbackTransaction()
-		if rErr != nil {
-			err = rErr
-		}
+	if err != nil {
+		return
 	}
 
-	if err == nil {
-		ret = entityModel
-	}
-
+	ret = entityModel
 	return
 }
