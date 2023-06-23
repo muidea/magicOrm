@@ -60,15 +60,6 @@ func GetEntityType(entity interface{}) (ret model.Type, err error) {
 		return
 	}
 
-	filterPtr, ok := entity.(*ObjectFilter)
-	if ok {
-		impl := &TypeImpl{Name: filterPtr.GetName(), Value: util.TypeStructValue, PkgPath: filterPtr.GetPkgPath(), IsPtr: true}
-		impl.ElemType = &TypeImpl{Name: filterPtr.GetName(), Value: util.TypeStructValue, PkgPath: filterPtr.GetPkgPath(), IsPtr: true}
-
-		ret = impl
-		return
-	}
-
 	typeImpl, typeErr := newType(reflect.TypeOf(entity))
 	if typeErr != nil {
 		err = typeErr
