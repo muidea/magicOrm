@@ -15,7 +15,6 @@ import (
 type ObjectValue struct {
 	Name    string        `json:"name"`
 	PkgPath string        `json:"pkgPath"`
-	IsPtr   bool          `json:"isPtr"`
 	Fields  []*FieldValue `json:"fields"`
 }
 
@@ -23,7 +22,6 @@ type ObjectValue struct {
 type SliceObjectValue struct {
 	Name      string         `json:"name"`
 	PkgPath   string         `json:"pkgPath"`
-	IsPtr     bool           `json:"isPtr"`
 	IsElemPtr bool           `json:"isElemPtr"`
 	Values    []*ObjectValue `json:"values"`
 }
@@ -40,11 +38,6 @@ func (s *ObjectValue) GetPkgPath() string {
 
 func (s *ObjectValue) GetPkgKey() string {
 	return path.Join(s.GetPkgPath(), s.GetName())
-}
-
-// IsPtrValue isPtrValue
-func (s *ObjectValue) IsPtrValue() bool {
-	return s.IsPtr
 }
 
 func (s *ObjectValue) isFieldAssigned(val *FieldValue) (ret bool) {
@@ -116,11 +109,6 @@ func (s *SliceObjectValue) GetName() string {
 // GetPkgPath get pkg path
 func (s *SliceObjectValue) GetPkgPath() string {
 	return s.PkgPath
-}
-
-// IsPtrValue isPtrValue
-func (s *SliceObjectValue) IsPtrValue() bool {
-	return s.IsPtr
 }
 
 func (s *SliceObjectValue) IsElemPtrValue() bool {
@@ -209,7 +197,7 @@ func getObjectValue(entityVal reflect.Value) (ret *ObjectValue, err error) {
 	}
 
 	//!! must be String, not Name
-	ret = &ObjectValue{Name: objType.GetName(), PkgPath: objType.GetPkgPath(), IsPtr: objType.IsPtrType(), Fields: []*FieldValue{}}
+	ret = &ObjectValue{Name: objType.GetName(), PkgPath: objType.GetPkgPath(), Fields: []*FieldValue{}}
 	fieldNum := entityVal.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		fieldType := entityType.Field(idx)
@@ -289,7 +277,7 @@ func GetSliceObjectValue(sliceEntity interface{}) (ret *SliceObjectValue, err er
 		return
 	}
 
-	ret = &SliceObjectValue{Name: elemType.GetName(), PkgPath: elemType.GetPkgPath(), IsPtr: sliceType.IsPtrType(), IsElemPtr: elemType.IsPtrType(), Values: []*ObjectValue{}}
+	ret = &SliceObjectValue{Name: elemType.GetName(), PkgPath: elemType.GetPkgPath(), IsElemPtr: elemType.IsPtrType(), Values: []*ObjectValue{}}
 	sliceValue = reflect.Indirect(sliceValue)
 	for idx := 0; idx < sliceValue.Len(); idx++ {
 		val := sliceValue.Index(idx)
@@ -322,9 +310,8 @@ func EncodeSliceObjectValue(objVal *SliceObjectValue) (ret []byte, err error) {
 func decodeObjectValueFromMap(mapVal map[string]interface{}) (ret *ObjectValue, err error) {
 	nameVal, nameOK := mapVal["name"]
 	pkgPathVal, pkgPathOK := mapVal["pkgPath"]
-	isPtrVal, isPtrOK := mapVal["isPtr"]
 	itemsVal, itemsOK := mapVal["fields"]
-	if !nameOK || !pkgPathOK || !itemsOK || !isPtrOK {
+	if !nameOK || !pkgPathOK || !itemsOK {
 		err = fmt.Errorf("illegal ObjectValue")
 		return
 	}
@@ -333,7 +320,7 @@ func decodeObjectValueFromMap(mapVal map[string]interface{}) (ret *ObjectValue, 
 		return
 	}
 
-	objVal := &ObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), IsPtr: isPtrVal.(bool), Fields: []*FieldValue{}}
+	objVal := &ObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), Fields: []*FieldValue{}}
 	for _, val := range itemsVal.([]interface{}) {
 		item, itemOK := val.(map[string]interface{})
 		if !itemOK {
@@ -358,10 +345,9 @@ func decodeObjectValueFromMap(mapVal map[string]interface{}) (ret *ObjectValue, 
 func decodeSliceObjectValueFromMap(mapVal map[string]interface{}) (ret *SliceObjectValue, err error) {
 	nameVal, nameOK := mapVal["name"]
 	pkgPathVal, pkgPathOK := mapVal["pkgPath"]
-	isPtrVal, isPtrOK := mapVal["isPtr"]
 	isElemPtrVal, isElemPtrOK := mapVal["isElemPtr"]
 	valuesVal, valuesOK := mapVal["values"]
-	if !nameOK || !pkgPathOK || !valuesOK || !isPtrOK || !isElemPtrOK {
+	if !nameOK || !pkgPathOK || !valuesOK || !isElemPtrOK {
 		err = fmt.Errorf("illegal SliceObjectValue")
 		return
 	}
@@ -370,7 +356,7 @@ func decodeSliceObjectValueFromMap(mapVal map[string]interface{}) (ret *SliceObj
 		return
 	}
 
-	objVal := &SliceObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), IsPtr: isPtrVal.(bool), IsElemPtr: isElemPtrVal.(bool), Values: []*ObjectValue{}}
+	objVal := &SliceObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), IsElemPtr: isElemPtrVal.(bool), Values: []*ObjectValue{}}
 	for _, val := range valuesVal.([]interface{}) {
 		item, itemOK := val.(map[string]interface{})
 		if !itemOK {
@@ -556,10 +542,6 @@ func CompareObjectValue(l, r *ObjectValue) bool {
 		return false
 	}
 
-	if l.IsPtr != r.IsPtr {
-		return false
-	}
-
 	if len(l.Fields) != len(r.Fields) {
 		return false
 	}
@@ -580,9 +562,6 @@ func compareSliceObjectValue(l, r *SliceObjectValue) bool {
 		return false
 	}
 	if l.PkgPath != r.PkgPath {
-		return false
-	}
-	if l.IsPtr != r.IsPtr {
 		return false
 	}
 	if l.IsElemPtr != r.IsElemPtr {

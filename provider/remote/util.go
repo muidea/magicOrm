@@ -577,7 +577,6 @@ func getStructValue(tType model.Type) (ret reflect.Value) {
 	cValue := reflect.New(cType).Elem()
 	cValue.FieldByName("Name").SetString(tType.GetName())
 	cValue.FieldByName("PkgPath").SetString(tType.GetPkgPath())
-	cValue.FieldByName("IsPtr").SetBool(tType.IsPtrType())
 	if util.IsSliceType(tType.GetValue()) {
 		cValue.FieldByName("IsElemPtr").SetBool(tType.Elem().IsPtrType())
 	}
