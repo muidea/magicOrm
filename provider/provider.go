@@ -104,10 +104,6 @@ func (s *providerImpl) RegisterModel(entity interface{}) (ret model.Model, err e
 		err = modelErr
 		return
 	}
-	if modelType.IsBasic() {
-		err = fmt.Errorf("illegal entity model, name:%s", modelType.GetName())
-		return
-	}
 
 	modelType = modelType.Elem()
 	curModel := s.modelCache.Fetch(modelType.GetPkgKey())
@@ -137,9 +133,6 @@ func (s *providerImpl) UnregisterModel(entity interface{}) {
 	if modelErr != nil {
 		return
 	}
-	if modelType.IsBasic() {
-		return
-	}
 
 	modelType = modelType.Elem()
 	curModel := s.modelCache.Fetch(modelType.GetPkgKey())
@@ -165,7 +158,7 @@ func (s *providerImpl) GetEntityValue(entity interface{}) (ret model.Value, err 
 
 func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err error) {
 	entityType, entityErr := s.getTypeFunc(entity)
-	if entityErr != nil || entityType.IsBasic() {
+	if entityErr != nil {
 		err = fmt.Errorf("illegal entity, must be struct entity")
 		return
 	}
@@ -198,8 +191,14 @@ func (s *providerImpl) GetEntityFilter(entity interface{}) (ret model.Filter, er
 		err = vErr
 		return
 	}
+	vType = vType.Elem()
+	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
+	if typeModel == nil {
+		err = fmt.Errorf("can't fetch type model, must register type entity first, PkgKey:%s", vType.GetPkgKey())
+		return
+	}
 
-	ret, err = s.GetTypeFilter(vType)
+	ret, err = s.getFilterFunc(typeModel.Copy())
 	return
 }
 
@@ -236,7 +235,7 @@ func (s *providerImpl) GetTypeFilter(vType model.Type) (ret model.Filter, err er
 	vType = vType.Elem()
 	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
 	if typeModel == nil {
-		err = fmt.Errorf("can't fetch type model, must register type entity first, PkgKey:%s", vType.GetPkgKey())
+		err = fmt.Errorf("can't fetch type filter, must register type entity first, PkgKey:%s", vType.GetPkgKey())
 		return
 	}
 
