@@ -14,8 +14,8 @@ github.com/go-sql-driver/mysql v1.7.0 h1:ueSltNNllEqE3qcWBTD0iQd3IpL/6U+mJxLkazJ
 github.com/go-sql-driver/mysql v1.7.0/go.mod h1:OXbVy3sEdcQ2Doequ6Z5BW6fXNQTmx+9S1MCJN5yJMI=
 github.com/leodido/go-urn v1.2.3 h1:6BE2vPT0lqoz3fmOesHZiaiFh7889ssCo2GMvLCfiuA=
 github.com/leodido/go-urn v1.2.3/go.mod h1:7ZrI8mTSeBSHl/UaRyKQW1qZeMgak41ANeCNaVckg+4=
-github.com/muidea/magicCommon v1.2.2 h1:FxQ8/UbgBDrhijRudCl7Ikm0apTJ4sngBBHYRvIJ5Iw=
-github.com/muidea/magicCommon v1.2.2/go.mod h1:S4/555g08qYkOiEV4B/lCCip+LyqhbmVC8a+BBgcwYg=
+github.com/muidea/magicCommon v1.2.5 h1:eW3T7uZUK/iQYAhZOOvBaICuaY7CMmbh5gV4n/lrEgg=
+github.com/muidea/magicCommon v1.2.5/go.mod h1:S4/555g08qYkOiEV4B/lCCip+LyqhbmVC8a+BBgcwYg=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
