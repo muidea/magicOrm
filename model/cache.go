@@ -33,8 +33,8 @@ func (s *impl) Put(name string, info Model) {
 }
 
 func (s *impl) Fetch(name string) Model {
-	obj, ok := s.kvCache.Fetch(name)
-	if !ok {
+	obj := s.kvCache.Fetch(name)
+	if obj == nil {
 		return nil
 	}
 
