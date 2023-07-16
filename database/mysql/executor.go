@@ -298,11 +298,11 @@ func (s *Executor) Execute(sql string) (rowsAffected int64, lastInsertID int64, 
 		endTime := time.Now()
 		elapse := endTime.Sub(startTime)
 		if err != nil {
-			log.Errorf("execute failed, sql:%s, err:%s", sql, err.Error())
+			log.Errorf("execute failed, execute time:%v, elapose:%v, sql:%s, err:%s", startTime.Local().String(), elapse, sql, err.Error())
 			return
 		}
 
-		log.Infof("execute ok, elapse:%v", elapse)
+		//log.Infof("execute ok, elapse:%v", elapse)
 	}()
 
 	if s.rowsHandle != nil {
