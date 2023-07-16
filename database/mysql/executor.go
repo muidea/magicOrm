@@ -217,11 +217,11 @@ func (s *Executor) Query(sql string) (err error) {
 		endTime := time.Now()
 		elapse := endTime.Sub(startTime)
 		if err != nil {
-			log.Errorf("query failed, sql:%s, err:%s", sql, err.Error())
+			log.Errorf("query failed, execute time:%v, elapse:%v, sql:%s, err:%s", startTime.Local().String(), elapse, sql, err.Error())
 			return
 		}
 
-		log.Infof("query ok, elapse:%v", elapse)
+		//log.Infof("query ok, elapse:%v", elapse)
 	}()
 
 	if s.dbTx == nil {
@@ -298,7 +298,7 @@ func (s *Executor) Execute(sql string) (rowsAffected int64, lastInsertID int64, 
 		endTime := time.Now()
 		elapse := endTime.Sub(startTime)
 		if err != nil {
-			log.Errorf("execute failed, execute time:%v, elapose:%v, sql:%s, err:%s", startTime.Local().String(), elapse, sql, err.Error())
+			log.Errorf("execute failed, execute time:%v, elapse:%v, sql:%s, err:%s", startTime.Local().String(), elapse, sql, err.Error())
 			return
 		}
 
