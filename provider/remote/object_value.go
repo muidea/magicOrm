@@ -294,6 +294,21 @@ func GetSliceObjectValue(sliceEntity interface{}) (ret *SliceObjectValue, err er
 	return
 }
 
+func TransferObjectValue(vals []*ObjectValue) (ret *SliceObjectValue, err error) {
+	if len(vals) == 0 {
+		err = fmt.Errorf("empty object value slice")
+		return
+	}
+
+	ret = &SliceObjectValue{
+		Name:    vals[0].Name,
+		PkgPath: vals[0].PkgPath,
+		Values:  vals,
+	}
+
+	return
+}
+
 // EncodeObjectValue encode objectValue to []byte
 func EncodeObjectValue(objVal *ObjectValue) (ret []byte, err error) {
 	ret, err = json.Marshal(objVal)
