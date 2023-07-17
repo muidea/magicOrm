@@ -294,15 +294,10 @@ func GetSliceObjectValue(sliceEntity interface{}) (ret *SliceObjectValue, err er
 	return
 }
 
-func TransferObjectValue(vals []*ObjectValue) (ret *SliceObjectValue, err error) {
-	if len(vals) == 0 {
-		err = fmt.Errorf("empty object value slice")
-		return
-	}
-
+func TransferObjectValue(name, pkgPath string, vals []*ObjectValue) (ret *SliceObjectValue) {
 	ret = &SliceObjectValue{
-		Name:    vals[0].Name,
-		PkgPath: vals[0].PkgPath,
+		Name:    name,
+		PkgPath: pkgPath,
 		Values:  vals,
 	}
 
