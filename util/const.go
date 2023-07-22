@@ -9,41 +9,41 @@ import (
 
 // Define the Type enum
 const (
-	// bool
-	TypeBooleanValue = 1 << iota
-	// string
-	TypeStringValue
-	// time.Time
-	TypeDateTimeValue
-	// int8
+	// TypeBooleanValue bool
+	TypeBooleanValue = iota + 100
+	// TypeBitValue int8
 	TypeBitValue
-	// int16
+	// TypeSmallIntegerValue int16
 	TypeSmallIntegerValue
-	// int32
+	// TypeInteger32Value int32
 	TypeInteger32Value
-	// int
+	// TypeIntegerValue int
 	TypeIntegerValue
-	// int64
+	// TypeBigIntegerValue int64
 	TypeBigIntegerValue
-	// uint8
+	// TypePositiveBitValue uint8
 	TypePositiveBitValue
-	// uint16
+	// TypePositiveSmallIntegerValue uint16
 	TypePositiveSmallIntegerValue
-	// uint32
+	// TypePositiveInteger32Value uint32
 	TypePositiveInteger32Value
-	// uint
+	// TypePositiveIntegerValue uint
 	TypePositiveIntegerValue
-	// uint64
+	// TypePositiveBigIntegerValue uint64
 	TypePositiveBigIntegerValue
-	// float32
+	// TypeFloatValue float32
 	TypeFloatValue
-	// float64
+	// TypeDoubleValue float64
 	TypeDoubleValue
-	// struct
+	// TypeStringValue string
+	TypeStringValue
+	// TypeDateTimeValue time.Time
+	TypeDateTimeValue
+	// TypeStructValue struct
 	TypeStructValue
-	// slice
+	// TypeSliceValue slice
 	TypeSliceValue
-	// map
+	// TypeMapValue map
 	TypeMapValue
 )
 
