@@ -87,7 +87,7 @@ func GetEntityModel(entity interface{}) (ret model.Model, err error) {
 		return
 	}
 
-	err = objPtr.verify()
+	err = objPtr.Verify()
 	if err != nil {
 		return
 	}

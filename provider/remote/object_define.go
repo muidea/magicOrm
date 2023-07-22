@@ -160,11 +160,16 @@ func (s *Object) Dump() (ret string) {
 	return
 }
 
-func (s *Object) verify() (err error) {
+func (s *Object) Verify() (err error) {
+	if s.Name == "" || s.PkgPath == "" {
+		err = fmt.Errorf("illegal object declare informain")
+		return
+	}
+
 	for _, val := range s.Fields {
 		err = val.verify()
 		if err != nil {
-			log.Errorf("verify field failed, idx:%d, name:%s, err:%s", val.Index, val.Name, err.Error())
+			log.Errorf("Verify field failed, idx:%d, name:%s, err:%s", val.Index, val.Name, err.Error())
 			return
 		}
 	}
