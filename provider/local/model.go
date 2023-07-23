@@ -116,6 +116,11 @@ func (s *objectImpl) Dump() (ret string) {
 }
 
 func (s *objectImpl) verify() (err error) {
+	if s.GetName() == "" || s.GetPkgPath() == "" {
+		err = fmt.Errorf("illegal object declare informain")
+		return
+	}
+
 	for _, val := range s.fields {
 		err = val.verify()
 		if err != nil {
