@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
+	log "github.com/cihub/seelog"
+
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/util"
 )
@@ -557,7 +559,11 @@ func getType(tType model.Type) (ret reflect.Type, err error) {
 }
 
 func getBasicValue(tType model.Type) (ret reflect.Value) {
-	cType, _ := getType(tType)
+	cType, cErr := getType(tType)
+	if cErr != nil {
+		log.Errorf("getBasicValue failed, err:%s", cErr.Error())
+		return
+	}
 	cValue := reflect.New(cType).Elem()
 	if tType.IsPtrType() {
 		rVal := reflect.New(cType.Elem())
@@ -569,7 +575,12 @@ func getBasicValue(tType model.Type) (ret reflect.Value) {
 }
 
 func getStructValue(tType model.Type) (ret reflect.Value) {
-	cType, _ := getType(tType)
+	cType, cErr := getType(tType)
+	if cErr != nil {
+		log.Errorf("getStructValue failed, err:%s", cErr.Error())
+		return
+	}
+
 	if cType.Kind() == reflect.Ptr {
 		cType = cType.Elem()
 	}
