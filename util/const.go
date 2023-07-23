@@ -44,7 +44,7 @@ const (
 	// TypeSliceValue slice
 	TypeSliceValue
 	// TypeMapValue map
-	TypeMapValue
+	TypeMapValue = 500
 )
 
 func IsInteger(tType reflect.Type) bool {
