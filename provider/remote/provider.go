@@ -115,6 +115,11 @@ func setFieldValue(iVal reflect.Value, vModel model.Model) (err error) {
 	}
 
 	vField := vModel.GetField(iName)
+	if vField == nil {
+		// if no found field, no need set value
+		return
+	}
+
 	if util.IsNil(iValue) {
 		vField.SetValue(nilValue)
 		return
