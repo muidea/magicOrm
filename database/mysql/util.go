@@ -35,7 +35,7 @@ func verifyModel(vModel model.Model) error {
 func declareFieldInfo(vField model.Field) (ret string, err error) {
 	autoIncrement := ""
 	fSpec := vField.GetSpec()
-	if fSpec.IsAutoIncrement() {
+	if fSpec != nil && fSpec.IsAutoIncrement() {
 		autoIncrement = "AUTO_INCREMENT"
 	}
 
