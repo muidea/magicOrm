@@ -133,7 +133,10 @@ func (s *Object) Interface(ptrValue bool) (ret interface{}) {
 func (s *Object) Copy() (ret model.Model) {
 	obj := &Object{Name: s.Name, PkgPath: s.PkgPath, Fields: []*Field{}}
 	for _, val := range s.Fields {
-		item := &Field{Index: val.Index, Name: val.Name, Spec: val.Spec.copy(), Type: val.Type.copy()}
+		item := &Field{Index: val.Index, Name: val.Name, Type: val.Type.copy()}
+		if val.Spec != nil {
+			item.Spec = val.Spec.copy()
+		}
 		if val.value != nil {
 			item.value = val.value.copy()
 		} else {
