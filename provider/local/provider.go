@@ -105,12 +105,18 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 	fieldNum := rType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		fieldType := rType.Field(idx)
+		fieldName, fieldErr := getFieldName(fieldType)
+		if fieldErr != nil {
+			err = fieldErr
+			return
+		}
+
 		fieldVal := newValue(rVal.Field(idx))
 		if fieldVal.IsNil() {
 			continue
 		}
 
-		err = vModel.SetFieldValue(fieldType.Name, fieldVal)
+		err = vModel.SetFieldValue(fieldName, fieldVal)
 		if err != nil {
 			return
 		}

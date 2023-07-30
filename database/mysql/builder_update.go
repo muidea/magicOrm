@@ -47,11 +47,10 @@ func (s *Builder) getFieldUpdateValues() (ret string, err error) {
 			return
 		}
 
-		fTag := field.GetTag()
 		if str == "" {
-			str = fmt.Sprintf("`%s`=%v", fTag.GetName(), fStr)
+			str = fmt.Sprintf("`%s`=%v", field.GetName(), fStr)
 		} else {
-			str = fmt.Sprintf("%s,`%s`=%v", str, fTag.GetName(), fStr)
+			str = fmt.Sprintf("%s,`%s`=%v", str, field.GetName(), fStr)
 		}
 	}
 

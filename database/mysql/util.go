@@ -8,9 +8,9 @@ import (
 )
 
 func verifyField(vField model.Field) error {
-	fTag := vField.GetTag()
-	if IsKeyWord(fTag.GetName()) {
-		return fmt.Errorf("illegal fieldTag, is a key word.[%s]", fTag)
+	fName := vField.GetName()
+	if IsKeyWord(fName) {
+		return fmt.Errorf("illegal fieldSpec, is a key word.[%s]", fName)
 	}
 
 	return nil
@@ -34,8 +34,8 @@ func verifyModel(vModel model.Model) error {
 
 func declareFieldInfo(vField model.Field) (ret string, err error) {
 	autoIncrement := ""
-	fTag := vField.GetTag()
-	if fTag.IsAutoIncrement() {
+	fSpec := vField.GetSpec()
+	if fSpec.IsAutoIncrement() {
 		autoIncrement = "AUTO_INCREMENT"
 	}
 
@@ -51,7 +51,7 @@ func declareFieldInfo(vField model.Field) (ret string, err error) {
 		return
 	}
 
-	ret = fmt.Sprintf("`%s` %s %s %s", fTag.GetName(), typeVal, allowNull, autoIncrement)
+	ret = fmt.Sprintf("`%s` %s %s %s", vField.GetName(), typeVal, allowNull, autoIncrement)
 	return
 }
 

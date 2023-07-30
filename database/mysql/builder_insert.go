@@ -45,8 +45,8 @@ func (s *Builder) BuildInsertRelation(vField model.Field, rModel model.Model) (r
 func (s *Builder) getFieldInsertNames() (ret string, err error) {
 	str := ""
 	for _, field := range s.GetFields() {
-		fTag := field.GetTag()
-		if fTag.IsAutoIncrement() {
+		fSpec := field.GetSpec()
+		if fSpec.IsAutoIncrement() {
 			continue
 		}
 
@@ -57,9 +57,9 @@ func (s *Builder) getFieldInsertNames() (ret string, err error) {
 		}
 
 		if str == "" {
-			str = fmt.Sprintf("`%s`", fTag.GetName())
+			str = fmt.Sprintf("`%s`", field.GetName())
 		} else {
-			str = fmt.Sprintf("%s,`%s`", str, fTag.GetName())
+			str = fmt.Sprintf("%s,`%s`", str, field.GetName())
 		}
 	}
 
@@ -70,8 +70,8 @@ func (s *Builder) getFieldInsertNames() (ret string, err error) {
 func (s *Builder) getFieldInsertValues() (ret string, err error) {
 	str := ""
 	for _, field := range s.GetFields() {
-		fTag := field.GetTag()
-		if fTag.IsAutoIncrement() {
+		fSpec := field.GetSpec()
+		if fSpec.IsAutoIncrement() {
 			continue
 		}
 

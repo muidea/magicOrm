@@ -75,7 +75,7 @@ func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem
 	}
 
 	if fType.IsBasic() {
-		ret = oprFunc(vField.GetTag().GetName(), valueStr)
+		ret = oprFunc(vField.GetName(), valueStr)
 		return
 	}
 
@@ -105,7 +105,7 @@ func (s *Builder) buildRelationItem(pkField model.Field, rField model.Field, fil
 	strVal := oprFunc("right", valueStr)
 	relationTable := s.GetRelationTableName(rField, fieldModel)
 	relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTable, strVal)
-	relationFilterSQL = fmt.Sprintf("`%s` IN (SELECT DISTINCT(`id`) FROM (%s) ids)", pkField.GetTag().GetName(), relationFilterSQL)
+	relationFilterSQL = fmt.Sprintf("`%s` IN (SELECT DISTINCT(`id`) FROM (%s) ids)", pkField.GetName(), relationFilterSQL)
 	ret = relationFilterSQL
 	return
 }
@@ -118,7 +118,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 	filterSQL := ""
 	pkField := s.GetPrimaryKeyField()
 	for _, field := range s.GetFields() {
-		filterItem := filter.GetFilterItem(field.GetTag().GetName())
+		filterItem := filter.GetFilterItem(field.GetName())
 		if filterItem == nil {
 			continue
 		}
@@ -164,7 +164,7 @@ func (s *Builder) buildSortFilter(filter model.Sorter) (ret string, err error) {
 	}
 
 	for _, val := range s.GetFields() {
-		if val.GetTag().GetName() == filter.Name() {
+		if val.GetName() == filter.Name() {
 			ret = SortOpr(filter.Name(), filter.AscSort())
 			return
 		}
@@ -183,11 +183,10 @@ func (s *Builder) getFieldQueryNames() (ret string, err error) {
 			continue
 		}
 
-		fTag := field.GetTag()
 		if str == "" {
-			str = fmt.Sprintf("`%s`", fTag.GetName())
+			str = fmt.Sprintf("`%s`", field.GetName())
 		} else {
-			str = fmt.Sprintf("%s,`%s`", str, fTag.GetName())
+			str = fmt.Sprintf("%s,`%s`", str, field.GetName())
 		}
 	}
 

@@ -25,7 +25,7 @@ func (s *Builder) buildModelFilter() (ret string, err error) {
 		return
 	}
 
-	pkfTag := pkField.GetTag().GetName()
-	ret = fmt.Sprintf("`%s`=%v", pkfTag, pkfVal)
+	pkfName := pkField.GetName()
+	ret = fmt.Sprintf("`%s`=%v", pkfName, pkfVal)
 	return
 }

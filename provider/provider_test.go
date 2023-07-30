@@ -137,7 +137,7 @@ func checkBaseModel(t *testing.T, baseEntityModel model.Model) {
 	}
 
 	pkField := baseEntityModel.GetPrimaryField()
-	if pkField.GetName() != "ID" {
+	if pkField.GetName() != "id" {
 		t.Errorf("get pk field failed")
 		return
 	}
@@ -189,7 +189,7 @@ func checkComposeModel(t *testing.T, extEntityModel model.Model) {
 	}
 
 	pkField := extEntityModel.GetPrimaryField()
-	if pkField.GetName() != "ID" {
+	if pkField.GetName() != "id" {
 		t.Errorf("get pk field failed")
 		return
 	}

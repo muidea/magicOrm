@@ -28,8 +28,7 @@ func (s *Builder) BuildCreateSchema() (ret string, err error) {
 
 	pkField := s.GetPrimaryKeyField()
 	if pkField != nil {
-		fTag := pkField.GetTag()
-		str = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", str, fTag.GetName())
+		str = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", str, pkField.GetName())
 	}
 
 	str = fmt.Sprintf("CREATE TABLE `%s` (\n%s\n)\n", s.GetTableName(), str)

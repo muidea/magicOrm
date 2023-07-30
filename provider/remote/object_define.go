@@ -133,7 +133,7 @@ func (s *Object) Interface(ptrValue bool) (ret interface{}) {
 func (s *Object) Copy() (ret model.Model) {
 	obj := &Object{Name: s.Name, PkgPath: s.PkgPath, Fields: []*Field{}}
 	for _, val := range s.Fields {
-		item := &Field{Index: val.Index, Name: val.Name, Tag: val.Tag.copy(), Type: val.Type.copy()}
+		item := &Field{Index: val.Index, Name: val.Name, Spec: val.Spec.copy(), Type: val.Type.copy()}
 		if val.value != nil {
 			item.value = val.value.copy()
 		} else {
@@ -221,15 +221,15 @@ func type2Object(entityType reflect.Type) (ret *Object, err error) {
 	hasPrimaryKey := false
 	fieldNum := entityType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		fieldInfo := entityType.Field(idx)
-		fItem, fErr := getItemInfo(idx, fieldInfo)
+		fieldType := entityType.Field(idx)
+		fItem, fErr := getItemInfo(idx, fieldType)
 		if fErr != nil {
 			err = fErr
 			return
 		}
 		if fItem.IsPrimary() {
 			if hasPrimaryKey {
-				err = fmt.Errorf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldInfo.Name, impl.GetName())
+				err = fmt.Errorf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldType.Name, impl.GetName())
 				return
 			}
 

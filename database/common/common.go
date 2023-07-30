@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/model"
@@ -28,7 +31,12 @@ func New(vModel model.Model, modelProvider provider.Provider, prefix string) Com
 func (s *Common) constructTableName(vModel model.Model) string {
 	//items := strings.Split(vModel.GetName(), ".")
 	//return items[len(items)-1]
-	return vModel.GetName()
+	return cases.Title(language.English).String(vModel.GetName())
+}
+
+func (s *Common) constructInfix(vFiled model.Field) string {
+	return cases.Title(language.English).String(vFiled.GetName())
+	//return strings.Title(vFiled.GetName())
 }
 
 func (s *Common) GetTableName() string {
@@ -53,9 +61,10 @@ func (s *Common) GetHostTableName(vModel model.Model) string {
 func (s *Common) GetRelationTableName(vField model.Field, rModel model.Model) string {
 	leftName := s.constructTableName(s.entityModel)
 	rightName := s.constructTableName(rModel)
+	infixVal := s.constructInfix(vField)
 
 	//return fmt.Sprintf("%s_%s%s2%s", s.modelProvider.Owner(), leftName, fieldName, rightName)
-	tableName := fmt.Sprintf("%s%s%s%s", leftName, vField.GetName(), getFieldRelation(vField), rightName)
+	tableName := fmt.Sprintf("%s%s%s%s", leftName, infixVal, getFieldRelation(vField), rightName)
 	if s.specialPrefix != "" {
 		tableName = fmt.Sprintf("%s_%s", s.specialPrefix, tableName)
 	}

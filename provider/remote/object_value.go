@@ -201,28 +201,34 @@ func getObjectValue(entityVal reflect.Value) (ret *ObjectValue, err error) {
 	fieldNum := entityVal.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		fieldType := entityType.Field(idx)
-
-		itemValue := newValue(entityVal.Field(idx))
-		itemType, itemErr := newType(fieldType.Type)
-		if itemErr != nil {
-			err = itemErr
-			log.Errorf("get entity field type failed, type:%s, err:%s", fieldType.Type.String(), err.Error())
+		fieldName, fieldErr := getFieldName(fieldType)
+		if fieldErr != nil {
+			err = fieldErr
+			log.Errorf("get entity failed, field name:%s, err:%s", fieldType.Name, err.Error())
 			return
 		}
 
-		if itemType.GetValue() != util.TypeSliceValue {
-			val, valErr := getFieldValue(fieldType.Name, itemType, itemValue)
+		valuePtr := newValue(entityVal.Field(idx))
+		typePtr, typeErr := newType(fieldType.Type)
+		if typeErr != nil {
+			err = typeErr
+			log.Errorf("get entity type failed, field name:%s, err:%s", fieldType.Name, err.Error())
+			return
+		}
+
+		if typePtr.GetValue() != util.TypeSliceValue {
+			val, valErr := getFieldValue(fieldName, typePtr, valuePtr)
 			if valErr != nil {
 				err = valErr
-				log.Errorf("getFieldValue failed, type%s, err:%s", fieldType.Type.String(), err.Error())
+				log.Errorf("getFieldValue failed, field name:%s, err:%s", fieldType.Name, err.Error())
 				return
 			}
 			ret.Fields = append(ret.Fields, val)
 		} else {
-			val, valErr := getSliceFieldValue(fieldType.Name, itemType, itemValue)
+			val, valErr := getSliceFieldValue(fieldName, typePtr, valuePtr)
 			if valErr != nil {
 				err = valErr
-				log.Errorf("getSliceFieldValue failed, type%s, err:%s", fieldType.Type.String(), err.Error())
+				log.Errorf("getSliceFieldValue failed, field name:%s, err:%s", fieldType.Name, err.Error())
 				return
 			}
 			ret.Fields = append(ret.Fields, val)

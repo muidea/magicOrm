@@ -62,7 +62,7 @@ func TestModelValue(t *testing.T) {
 
 	name := "abcdfrfe"
 	nVal := newValue(reflect.ValueOf(name))
-	unitErr = unitInfo.SetFieldValue("Name", nVal)
+	unitErr = unitInfo.SetFieldValue("name", nVal)
 	if unitErr != nil {
 		t.Errorf("UpdateField value failed, unitErr:%s", unitErr.Error())
 		return
@@ -70,7 +70,7 @@ func TestModelValue(t *testing.T) {
 
 	now = time.Now()
 	tsVal := newValue(reflect.ValueOf(now))
-	unitErr = unitInfo.SetFieldValue("TimeStamp", tsVal)
+	unitErr = unitInfo.SetFieldValue("timeStamp", tsVal)
 	if unitErr != nil {
 		t.Errorf("UpdateField value failed, unitErr:%s", unitErr.Error())
 		return

@@ -4,7 +4,7 @@ type Field interface {
 	GetIndex() int
 	GetName() string
 	GetType() Type
-	GetTag() Tag
+	GetSpec() Spec
 	GetValue() Value
 	SetValue(val Value) error
 	IsPrimary() bool
@@ -15,7 +15,7 @@ func CompareField(l, r Field) bool {
 		l.GetName() == r.GetName() &&
 		l.IsPrimary() == r.IsPrimary() &&
 		CompareType(l.GetType(), r.GetType()) &&
-		CompareTag(l.GetTag(), r.GetTag()) &&
+		CompareSpec(l.GetSpec(), r.GetSpec()) &&
 		CompareValue(l.GetValue(), r.GetValue())
 }
 
@@ -25,10 +25,10 @@ type Fields []Field
 // Append Append
 func (s *Fields) Append(fieldInfo Field) bool {
 	exist := false
-	newField := fieldInfo.GetTag()
+	newName := fieldInfo.GetName()
 	for _, val := range *s {
-		curField := val.GetTag()
-		if curField.GetName() == newField.GetName() {
+		curName := val.GetName()
+		if curName == newName {
 			exist = true
 			break
 		}

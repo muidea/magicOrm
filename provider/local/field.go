@@ -16,7 +16,7 @@ type field struct {
 	name  string
 
 	typePtr  *typeImpl
-	tagPtr   *tagImpl
+	specPtr  *specImpl
 	valuePtr *valueImpl
 }
 
@@ -36,9 +36,9 @@ func (s *field) GetType() (ret model.Type) {
 	return
 }
 
-func (s *field) GetTag() (ret model.Tag) {
-	if s.tagPtr != nil {
-		ret = s.tagPtr
+func (s *field) GetSpec() (ret model.Spec) {
+	if s.specPtr != nil {
+		ret = s.specPtr
 	}
 
 	return
@@ -68,44 +68,59 @@ func (s *field) SetValue(val model.Value) (err error) {
 }
 
 func (s *field) IsPrimary() bool {
-	return s.tagPtr.IsPrimaryKey()
+	if s.specPtr == nil {
+		return false
+	}
+
+	return s.specPtr.IsPrimaryKey()
 }
 
 func (s *field) copy() *field {
-	return &field{
-		index:    s.index,
-		name:     s.name,
-		typePtr:  s.typePtr.copy(),
-		tagPtr:   s.tagPtr.copy(),
-		valuePtr: s.valuePtr.copy(),
+	val := &field{
+		index: s.index,
+		name:  s.name,
 	}
+
+	if s.typePtr != nil {
+		val.typePtr = s.typePtr.copy()
+	}
+	if s.specPtr != nil {
+		val.specPtr = s.specPtr.copy()
+	}
+	if s.valuePtr != nil {
+		val.valuePtr = s.valuePtr.copy()
+	}
+
+	return val
 }
 
 func (s *field) verify() error {
-	if s.tagPtr.GetName() == "" {
-		return fmt.Errorf("no define field tag")
+	if s.typePtr == nil {
+		return fmt.Errorf("illegal filed")
 	}
 
-	val := s.typePtr.GetValue()
-	if s.tagPtr.IsAutoIncrement() {
-		switch val {
-		case util.TypeBooleanValue,
-			util.TypeStringValue,
-			util.TypeDateTimeValue,
-			util.TypeFloatValue,
-			util.TypeDoubleValue,
-			util.TypeStructValue,
-			util.TypeSliceValue:
-			return fmt.Errorf("illegal auto_increment field type, type:%s", s.typePtr.dump())
-		default:
+	if s.specPtr != nil {
+		val := s.typePtr.GetValue()
+		if s.specPtr.IsAutoIncrement() {
+			switch val {
+			case util.TypeBooleanValue,
+				util.TypeStringValue,
+				util.TypeDateTimeValue,
+				util.TypeFloatValue,
+				util.TypeDoubleValue,
+				util.TypeStructValue,
+				util.TypeSliceValue:
+				return fmt.Errorf("illegal auto_increment field type, type:%s", s.typePtr.dump())
+			default:
+			}
 		}
-	}
 
-	if s.tagPtr.IsPrimaryKey() {
-		switch val {
-		case util.TypeStructValue, util.TypeSliceValue:
-			return fmt.Errorf("illegal primary key field type, type:%s", s.typePtr.dump())
-		default:
+		if s.specPtr.IsPrimaryKey() {
+			switch val {
+			case util.TypeStructValue, util.TypeSliceValue:
+				return fmt.Errorf("illegal primary key field type, type:%s", s.typePtr.dump())
+			default:
+			}
 		}
 	}
 
@@ -117,8 +132,24 @@ func (s *field) verify() error {
 }
 
 func (s *field) dump() string {
-	str := fmt.Sprintf("index:%d,name:%s,type:[%s],tag:[%s]", s.index, s.name, s.typePtr.dump(), s.tagPtr.dump())
+	str := fmt.Sprintf("index:%d,name:%s,type:[%s],spec:[%s]", s.index, s.name, s.typePtr.dump(), s.specPtr.dump())
 	return str
+}
+
+func getFieldName(fieldType reflect.StructField) (ret string, err error) {
+	specPtr, specErr := newSpec(fieldType.Tag)
+	if specErr != nil {
+		err = specErr
+		return
+	}
+
+	fieldName := fieldType.Name
+	if specPtr.GetFieldName() != "" {
+		fieldName = specPtr.GetFieldName()
+	}
+
+	ret = fieldName
+	return
 }
 
 func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Value) (ret *field, err error) {
@@ -128,27 +159,32 @@ func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Val
 		return
 	}
 
-	tagPtr, tagErr := newTag(fieldType.Tag.Get("orm"))
-	if tagErr != nil {
-		err = tagErr
+	specPtr, specErr := newSpec(fieldType.Tag)
+	if specErr != nil {
+		err = specErr
 		return
 	}
 
 	valuePtr := newValue(fieldValue)
 
-	field := &field{}
-	field.index = idx
-	field.name = fieldType.Name
-	field.typePtr = typePtr
-	field.tagPtr = tagPtr
-	field.valuePtr = valuePtr
+	fieldPtr := &field{}
+	fieldPtr.index = idx
 
-	//err = field.verify()
+	fieldPtr.name = fieldType.Name
+	if specPtr.GetFieldName() != "" {
+		fieldPtr.name = specPtr.GetFieldName()
+	}
+
+	fieldPtr.typePtr = typePtr
+	fieldPtr.specPtr = specPtr
+	fieldPtr.valuePtr = valuePtr
+
+	//err = fieldPtr.verify()
 	//if err != nil {
-	//	log.Errorf("illegal field info, err:%s", err.Error())
+	//	log.Errorf("illegal fieldPtr info, err:%s", err.Error())
 	//	return
 	//}
 
-	ret = field
+	ret = fieldPtr
 	return
 }

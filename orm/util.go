@@ -20,7 +20,7 @@ func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, err error) 
 			continue
 		}
 
-		filterVal.Equal(val.GetTag().GetName(), val.GetValue().Interface())
+		filterVal.Equal(val.GetName(), val.GetValue().Interface())
 	}
 
 	ret = filterVal

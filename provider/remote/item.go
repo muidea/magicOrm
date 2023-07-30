@@ -15,7 +15,7 @@ type Field struct {
 	Name  string `json:"name"`
 
 	Type  *TypeImpl `json:"type"`
-	Tag   *TagImpl  `json:"tag"`
+	Spec  *SpecImpl `json:"spec"`
 	value *valueImpl
 }
 
@@ -34,9 +34,9 @@ func (s *Field) GetType() (ret model.Type) {
 	return
 }
 
-func (s *Field) GetTag() (ret model.Tag) {
-	if s.Tag != nil {
-		ret = s.Tag
+func (s *Field) GetSpec() (ret model.Spec) {
+	if s.Spec != nil {
+		ret = s.Spec
 	}
 
 	return
@@ -53,7 +53,7 @@ func (s *Field) GetValue() (ret model.Value) {
 }
 
 func (s *Field) IsPrimary() bool {
-	return s.Tag.IsPrimaryKey()
+	return s.Spec.IsPrimaryKey()
 }
 
 func (s *Field) SetValue(val model.Value) (err error) {
@@ -78,16 +78,12 @@ func (s *Field) SetValue(val model.Value) (err error) {
 }
 
 func (s *Field) copy() (ret model.Field) {
-	return &Field{Index: s.Index, Name: s.Name, Tag: s.Tag, Type: s.Type, value: s.value}
+	return &Field{Index: s.Index, Name: s.Name, Spec: s.Spec, Type: s.Type, value: s.value}
 }
 
 func (s *Field) verify() (err error) {
-	if s.Tag.GetName() == "" {
-		return fmt.Errorf("no define field tag")
-	}
-
 	val := s.Type.GetValue()
-	if s.Tag.IsAutoIncrement() {
+	if s.Spec.IsAutoIncrement() {
 		switch val {
 		case util.TypeBooleanValue,
 			util.TypeStringValue,
@@ -101,7 +97,7 @@ func (s *Field) verify() (err error) {
 		}
 	}
 
-	if s.Tag.IsPrimaryKey() {
+	if s.Spec.IsPrimaryKey() {
 		switch val {
 		case util.TypeStructValue, util.TypeSliceValue:
 			return fmt.Errorf("illegal primary key field type, type:%s", s.Type.dump())
@@ -117,12 +113,28 @@ func (s *Field) verify() (err error) {
 }
 
 func (s *Field) dump() string {
-	str := fmt.Sprintf("index:%d,name:%s,type:[%s],tag:[%s]", s.Index, s.Name, s.Type.dump(), s.Tag.dump())
+	str := fmt.Sprintf("index:%d,name:%s,type:[%s],spec:[%s]", s.Index, s.Name, s.Type.dump(), s.Spec.dump())
 	if s.value != nil {
 		str = fmt.Sprintf("%s,value:%v", str, s.value.Interface())
 	}
 
 	return str
+}
+
+func getFieldName(fieldType reflect.StructField) (ret string, err error) {
+	specPtr, specErr := newSpec(fieldType.Tag)
+	if specErr != nil {
+		err = specErr
+		return
+	}
+
+	fieldName := fieldType.Name
+	if specPtr.GetFieldName() != "" {
+		fieldName = specPtr.GetFieldName()
+	}
+
+	ret = fieldName
+	return
 }
 
 func getItemInfo(idx int, fieldType reflect.StructField) (ret *Field, err error) {
@@ -132,9 +144,9 @@ func getItemInfo(idx int, fieldType reflect.StructField) (ret *Field, err error)
 		return
 	}
 
-	tagImpl, tagErr := newTag(fieldType.Tag.Get("orm"))
-	if tagErr != nil {
-		err = tagErr
+	specImpl, specErr := newSpec(fieldType.Tag)
+	if specErr != nil {
+		err = specErr
 		return
 	}
 
@@ -143,8 +155,11 @@ func getItemInfo(idx int, fieldType reflect.StructField) (ret *Field, err error)
 	item := &Field{}
 	item.Index = idx
 	item.Name = fieldType.Name
+	if specImpl.GetFieldName() != "" {
+		item.Name = specImpl.GetFieldName()
+	}
 	item.Type = typeImpl
-	item.Tag = tagImpl
+	item.Spec = specImpl
 	item.value = newValue(initVal.Get())
 
 	ret = item
@@ -162,7 +177,7 @@ func compareItem(l, r *Field) bool {
 	if !compareType(l.Type, r.Type) {
 		return false
 	}
-	if !compareTag(l.Tag, r.Tag) {
+	if !compareSpec(l.Spec, r.Spec) {
 		return false
 	}
 
