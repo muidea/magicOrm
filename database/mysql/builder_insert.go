@@ -46,7 +46,7 @@ func (s *Builder) getFieldInsertNames() (ret string, err error) {
 	str := ""
 	for _, field := range s.GetFields() {
 		fSpec := field.GetSpec()
-		if fSpec.IsAutoIncrement() {
+		if fSpec != nil && fSpec.IsAutoIncrement() {
 			continue
 		}
 
@@ -71,7 +71,7 @@ func (s *Builder) getFieldInsertValues() (ret string, err error) {
 	str := ""
 	for _, field := range s.GetFields() {
 		fSpec := field.GetSpec()
-		if fSpec.IsAutoIncrement() {
+		if fSpec != nil && fSpec.IsAutoIncrement() {
 			continue
 		}
 

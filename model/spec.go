@@ -6,5 +6,12 @@ type Spec interface {
 }
 
 func CompareSpec(l, r Spec) bool {
-	return l.IsPrimaryKey() == r.IsPrimaryKey() && l.IsAutoIncrement() == r.IsAutoIncrement()
+	if l == nil && r == nil {
+		return true
+	}
+	if l != nil && r != nil {
+		return l.IsPrimaryKey() == r.IsPrimaryKey() && l.IsAutoIncrement() == r.IsAutoIncrement()
+	}
+
+	return false
 }
