@@ -53,6 +53,10 @@ func (s *Field) GetValue() (ret model.Value) {
 }
 
 func (s *Field) IsPrimary() bool {
+	if s.Spec == nil {
+		return false
+	}
+
 	return s.Spec.IsPrimaryKey()
 }
 
@@ -82,26 +86,28 @@ func (s *Field) copy() (ret model.Field) {
 }
 
 func (s *Field) verify() (err error) {
-	val := s.Type.GetValue()
-	if s.Spec.IsAutoIncrement() {
-		switch val {
-		case util.TypeBooleanValue,
-			util.TypeStringValue,
-			util.TypeDateTimeValue,
-			util.TypeFloatValue,
-			util.TypeDoubleValue,
-			util.TypeStructValue,
-			util.TypeSliceValue:
-			return fmt.Errorf("illegal auto_increment field type, type:%s", s.Type.dump())
-		default:
+	if s.Spec != nil {
+		val := s.Type.GetValue()
+		if s.Spec.IsAutoIncrement() {
+			switch val {
+			case util.TypeBooleanValue,
+				util.TypeStringValue,
+				util.TypeDateTimeValue,
+				util.TypeFloatValue,
+				util.TypeDoubleValue,
+				util.TypeStructValue,
+				util.TypeSliceValue:
+				return fmt.Errorf("illegal auto_increment field type, type:%s", s.Type.dump())
+			default:
+			}
 		}
-	}
 
-	if s.Spec.IsPrimaryKey() {
-		switch val {
-		case util.TypeStructValue, util.TypeSliceValue:
-			return fmt.Errorf("illegal primary key field type, type:%s", s.Type.dump())
-		default:
+		if s.Spec.IsPrimaryKey() {
+			switch val {
+			case util.TypeStructValue, util.TypeSliceValue:
+				return fmt.Errorf("illegal primary key field type, type:%s", s.Type.dump())
+			default:
+			}
 		}
 	}
 
@@ -113,7 +119,10 @@ func (s *Field) verify() (err error) {
 }
 
 func (s *Field) dump() string {
-	str := fmt.Sprintf("index:%d,name:%s,type:[%s],spec:[%s]", s.Index, s.Name, s.Type.dump(), s.Spec.dump())
+	str := fmt.Sprintf("index:%d,name:%s,type:[%s]", s.Index, s.Name, s.Type.dump())
+	if s.Spec != nil {
+		str = fmt.Sprintf("%s,spec:[%s]", str, s.Spec.dump())
+	}
 	if s.value != nil {
 		str = fmt.Sprintf("%s,value:%v", str, s.value.Interface())
 	}

@@ -89,12 +89,20 @@ func getSpec(spec string) (ret SpecImpl, err error) {
 }
 
 func compareSpec(l, r *SpecImpl) bool {
-	for k, v := range *l {
-		rv, rk := (*r)[k]
-		if !rk || rv != v {
-			return false
-		}
+	if l == nil && r == nil {
+		return true
 	}
 
-	return true
+	if l != nil && r != nil {
+		for k, v := range *l {
+			rv, rk := (*r)[k]
+			if !rk || rv != v {
+				return false
+			}
+		}
+
+		return true
+	}
+
+	return false
 }
