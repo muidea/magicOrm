@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
 )
 
 func verifyField(vField model.Field) error {
@@ -58,31 +57,31 @@ func declareFieldInfo(vField model.Field) (ret string, err error) {
 func getFieldType(info model.Field) (ret string, err error) {
 	fType := info.GetType()
 	switch fType.GetValue() {
-	case util.TypeBooleanValue, util.TypeBitValue:
+	case model.TypeBooleanValue, model.TypeBitValue:
 		ret = "TINYINT"
 		break
-	case util.TypeStringValue:
+	case model.TypeStringValue:
 		ret = "TEXT"
 		break
-	case util.TypeDateTimeValue:
+	case model.TypeDateTimeValue:
 		ret = "DATETIME"
 		break
-	case util.TypeSmallIntegerValue, util.TypePositiveBitValue:
+	case model.TypeSmallIntegerValue, model.TypePositiveBitValue:
 		ret = "SMALLINT"
 		break
-	case util.TypeIntegerValue, util.TypeInteger32Value, util.TypePositiveSmallIntegerValue:
+	case model.TypeIntegerValue, model.TypeInteger32Value, model.TypePositiveSmallIntegerValue:
 		ret = "INT"
 		break
-	case util.TypeBigIntegerValue, util.TypePositiveIntegerValue, util.TypePositiveInteger32Value, util.TypePositiveBigIntegerValue:
+	case model.TypeBigIntegerValue, model.TypePositiveIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue:
 		ret = "BIGINT"
 		break
-	case util.TypeFloatValue:
+	case model.TypeFloatValue:
 		ret = "FLOAT"
 		break
-	case util.TypeDoubleValue:
+	case model.TypeDoubleValue:
 		ret = "DOUBLE"
 		break
-	case util.TypeSliceValue:
+	case model.TypeSliceValue:
 		ret = "TEXT"
 	default:
 		err = fmt.Errorf("no support fileType, name:%s, type:%d", info.GetName(), fType.GetValue())

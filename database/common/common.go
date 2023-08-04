@@ -11,7 +11,6 @@ import (
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
-	"github.com/muidea/magicOrm/util"
 )
 
 type Common struct {
@@ -126,7 +125,7 @@ func (s *Common) EncodeValue(vValue model.Value, vType model.Type) (ret interfac
 	}
 
 	switch vType.GetValue() {
-	case util.TypeStringValue, util.TypeDateTimeValue, util.TypeSliceValue:
+	case model.TypeStringValue, model.TypeDateTimeValue, model.TypeSliceValue:
 		ret = fmt.Sprintf("'%v'", strings.ReplaceAll(fmt.Sprintf("%v", fStr), "'", "''"))
 	default:
 		ret = fStr

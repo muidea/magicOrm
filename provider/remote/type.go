@@ -30,7 +30,7 @@ func newType(itemType reflect.Type) (ret *TypeImpl, err error) {
 		return
 	}
 
-	if util.IsSliceType(typeVal) {
+	if model.IsSliceType(typeVal) {
 		sliceType := itemType.Elem()
 		slicePtr := false
 		if sliceType.Kind() == reflect.Ptr {
@@ -44,7 +44,7 @@ func newType(itemType reflect.Type) (ret *TypeImpl, err error) {
 			err = sliceErr
 			return
 		}
-		if util.IsSliceType(sliceVal) {
+		if model.IsSliceType(sliceVal) {
 			err = fmt.Errorf("illegal slice type, type:%s", sliceType.String())
 			return
 		}
@@ -102,10 +102,10 @@ func (s *TypeImpl) Elem() model.Type {
 
 func (s *TypeImpl) IsBasic() bool {
 	if s.ElemType != nil {
-		return util.IsBasicType(s.ElemType.Value)
+		return model.IsBasicType(s.ElemType.Value)
 	}
 
-	return util.IsBasicType(s.Value)
+	return model.IsBasicType(s.Value)
 }
 
 func (s *TypeImpl) copy() (ret *TypeImpl) {

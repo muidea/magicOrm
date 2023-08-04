@@ -9,7 +9,6 @@ import (
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
 )
 
 type Object struct {
@@ -87,13 +86,13 @@ func (s *Object) itemInterface(valPtr *Field) (ret interface{}) {
 	rVal := valPtr.value.Get()
 	if !valPtr.Type.IsBasic() {
 		rVal = rVal.Addr()
-		if util.IsStructType(valPtr.Type.GetValue()) {
+		if model.IsStructType(valPtr.Type.GetValue()) {
 			objectVal := rVal.Interface().(*ObjectValue)
 			if len(objectVal.Fields) > 0 {
 				ret = objectVal
 			}
 		}
-		if util.IsSliceType(valPtr.Type.GetValue()) {
+		if model.IsSliceType(valPtr.Type.GetValue()) {
 			sliceObjectVal := rVal.Interface().(*SliceObjectValue)
 			if len(sliceObjectVal.Values) > 0 {
 				ret = sliceObjectVal
@@ -210,7 +209,7 @@ func type2Object(entityType reflect.Type) (ret *Object, err error) {
 		err = fmt.Errorf("illegal entity type, must be a struct obj, type:%s", entityType.String())
 		return
 	}
-	if !util.IsStructType(typeImpl.GetValue()) {
+	if !model.IsStructType(typeImpl.GetValue()) {
 		err = fmt.Errorf("illegal obj type, must be a struct obj, type:%s", entityType.String())
 		return
 	}

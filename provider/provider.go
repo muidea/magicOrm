@@ -7,7 +7,6 @@ import (
 	"github.com/muidea/magicOrm/provider/remote"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
 )
 
 type Provider interface {
@@ -170,7 +169,7 @@ func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err 
 		return
 	}
 
-	if util.IsSliceType(entityType.GetValue()) {
+	if model.IsSliceType(entityType.GetValue()) {
 		ret = entityModel.Copy()
 		return
 	}

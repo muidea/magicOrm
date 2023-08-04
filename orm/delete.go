@@ -4,7 +4,6 @@ import (
 	log "github.com/cihub/seelog"
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
 )
 
 func (s *impl) deleteSingle(entityModel model.Model) (err error) {
@@ -111,12 +110,12 @@ func (s *impl) deleteRelation(entityModel model.Model, relationField model.Field
 	if !elemType.IsPtrType() {
 		fieldVal, fieldErr := s.queryRelation(entityModel, relationField, deepLevel)
 		if fieldErr == nil && !fieldVal.IsNil() {
-			if util.IsStructType(relationType.GetValue()) {
+			if model.IsStructType(relationType.GetValue()) {
 				err = s.deleteRelationStructInner(fieldVal, relationType, deepLevel)
 				if err != nil {
 					return
 				}
-			} else if util.IsSliceType(relationType.GetValue()) {
+			} else if model.IsSliceType(relationType.GetValue()) {
 				err = s.deleteRelationSliceInner(fieldVal, relationType, deepLevel)
 				if err != nil {
 					return

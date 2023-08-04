@@ -3,6 +3,8 @@ package model
 type Spec interface {
 	IsPrimaryKey() bool
 	IsAutoIncrement() bool
+	//IsUUID() bool
+	//IsSnowFlake() bool
 }
 
 func CompareSpec(l, r Spec) bool {

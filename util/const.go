@@ -2,49 +2,10 @@ package util
 
 import (
 	"fmt"
+	"github.com/muidea/magicOrm/model"
 	"math"
 	"reflect"
 	"time"
-)
-
-// Define the Type enum
-const (
-	// TypeBooleanValue bool
-	TypeBooleanValue = iota + 100
-	// TypeBitValue int8
-	TypeBitValue
-	// TypeSmallIntegerValue int16
-	TypeSmallIntegerValue
-	// TypeInteger32Value int32
-	TypeInteger32Value
-	// TypeIntegerValue int
-	TypeIntegerValue
-	// TypeBigIntegerValue int64
-	TypeBigIntegerValue
-	// TypePositiveBitValue uint8
-	TypePositiveBitValue
-	// TypePositiveSmallIntegerValue uint16
-	TypePositiveSmallIntegerValue
-	// TypePositiveInteger32Value uint32
-	TypePositiveInteger32Value
-	// TypePositiveIntegerValue uint
-	TypePositiveIntegerValue
-	// TypePositiveBigIntegerValue uint64
-	TypePositiveBigIntegerValue
-	// TypeFloatValue float32
-	TypeFloatValue
-	// TypeDoubleValue float64
-	TypeDoubleValue
-	// TypeStringValue string
-	TypeStringValue
-	// TypeDateTimeValue time.Time
-	TypeDateTimeValue
-	// TypeStructValue struct
-	TypeStructValue
-	// TypeSliceValue slice
-	TypeSliceValue
-	// TypeMapValue map
-	TypeMapValue = 500
 )
 
 func IsInteger(tType reflect.Type) bool {
@@ -98,59 +59,43 @@ func IsMap(tType reflect.Type) bool {
 	return tType.Kind() == reflect.Map
 }
 
-func IsBasicType(typeValue int) bool {
-	return typeValue < TypeStructValue
-}
-
-func IsStructType(typeValue int) bool {
-	return typeValue == TypeStructValue
-}
-
-func IsSliceType(typeValue int) bool {
-	return typeValue == TypeSliceValue
-}
-
-func IsMapType(typeVal int) bool {
-	return typeVal == TypeMapValue
-}
-
 // GetTypeEnum return field type as type constant from reflect.Value
 func GetTypeEnum(val reflect.Type) (ret int, err error) {
 	switch val.Kind() {
 	case reflect.Int8:
-		ret = TypeBitValue
+		ret = model.TypeBitValue
 	case reflect.Uint8:
-		ret = TypePositiveBitValue
+		ret = model.TypePositiveBitValue
 	case reflect.Int16:
-		ret = TypeSmallIntegerValue
+		ret = model.TypeSmallIntegerValue
 	case reflect.Uint16:
-		ret = TypePositiveSmallIntegerValue
+		ret = model.TypePositiveSmallIntegerValue
 	case reflect.Int32:
-		ret = TypeInteger32Value
+		ret = model.TypeInteger32Value
 	case reflect.Uint32:
-		ret = TypePositiveInteger32Value
+		ret = model.TypePositiveInteger32Value
 	case reflect.Int64:
-		ret = TypeBigIntegerValue
+		ret = model.TypeBigIntegerValue
 	case reflect.Uint64:
-		ret = TypePositiveBigIntegerValue
+		ret = model.TypePositiveBigIntegerValue
 	case reflect.Int:
-		ret = TypeIntegerValue
+		ret = model.TypeIntegerValue
 	case reflect.Uint:
-		ret = TypePositiveIntegerValue
+		ret = model.TypePositiveIntegerValue
 	case reflect.Float32:
-		ret = TypeFloatValue
+		ret = model.TypeFloatValue
 	case reflect.Float64:
-		ret = TypeDoubleValue
+		ret = model.TypeDoubleValue
 	case reflect.Bool:
-		ret = TypeBooleanValue
+		ret = model.TypeBooleanValue
 	case reflect.String:
-		ret = TypeStringValue
+		ret = model.TypeStringValue
 	case reflect.Struct:
 		switch val.String() {
 		case "time.Time":
-			ret = TypeDateTimeValue
+			ret = model.TypeDateTimeValue
 		default:
-			ret = TypeStructValue
+			ret = model.TypeStructValue
 		}
 	case reflect.Slice:
 		eType := val.Elem()
@@ -162,7 +107,7 @@ func GetTypeEnum(val reflect.Type) (ret int, err error) {
 			return
 		}
 
-		ret = TypeSliceValue
+		ret = model.TypeSliceValue
 	default:
 		err = fmt.Errorf("unsupport type:%v", val.String())
 	}
@@ -240,24 +185,24 @@ func IsSameVal(firstVal, secondVal reflect.Value) (ret bool, err error) {
 		return
 	}
 
-	if IsStructType(typeVal) {
+	if model.IsStructType(typeVal) {
 		ret, err = isSameStruct(firstVal, secondVal)
 		return
 	}
 
-	if IsBasicType(typeVal) {
+	if model.IsBasicType(typeVal) {
 		switch typeVal {
-		case TypeBooleanValue:
+		case model.TypeBooleanValue:
 			ret = firstVal.Bool() == secondVal.Bool()
-		case TypeStringValue:
+		case model.TypeStringValue:
 			ret = firstVal.String() == secondVal.String()
-		case TypeBitValue, TypeSmallIntegerValue, TypeInteger32Value, TypeIntegerValue, TypeBigIntegerValue:
+		case model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeIntegerValue, model.TypeBigIntegerValue:
 			ret = firstVal.Int() == secondVal.Int()
-		case TypePositiveBitValue, TypePositiveSmallIntegerValue, TypePositiveInteger32Value, TypePositiveIntegerValue, TypePositiveBigIntegerValue:
+		case model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveIntegerValue, model.TypePositiveBigIntegerValue:
 			ret = firstVal.Uint() == secondVal.Uint()
-		case TypeFloatValue, TypeDoubleValue:
+		case model.TypeFloatValue, model.TypeDoubleValue:
 			ret = math.Abs(firstVal.Float()-secondVal.Float()) <= 0.0001
-		case TypeDateTimeValue:
+		case model.TypeDateTimeValue:
 			ret = firstVal.Interface().(time.Time).Sub(secondVal.Interface().(time.Time)) == 0
 		default:
 			ret = false

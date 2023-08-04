@@ -7,7 +7,6 @@ import (
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
 )
 
 type Field struct {
@@ -90,13 +89,13 @@ func (s *Field) verify() (err error) {
 		val := s.Type.GetValue()
 		if s.Spec.IsAutoIncrement() {
 			switch val {
-			case util.TypeBooleanValue,
-				util.TypeStringValue,
-				util.TypeDateTimeValue,
-				util.TypeFloatValue,
-				util.TypeDoubleValue,
-				util.TypeStructValue,
-				util.TypeSliceValue:
+			case model.TypeBooleanValue,
+				model.TypeStringValue,
+				model.TypeDateTimeValue,
+				model.TypeFloatValue,
+				model.TypeDoubleValue,
+				model.TypeStructValue,
+				model.TypeSliceValue:
 				return fmt.Errorf("illegal auto_increment field type, type:%s", s.Type.dump())
 			default:
 			}
@@ -104,7 +103,7 @@ func (s *Field) verify() (err error) {
 
 		if s.Spec.IsPrimaryKey() {
 			switch val {
-			case util.TypeStructValue, util.TypeSliceValue:
+			case model.TypeStructValue, model.TypeSliceValue:
 				return fmt.Errorf("illegal primary key field type, type:%s", s.Type.dump())
 			default:
 			}

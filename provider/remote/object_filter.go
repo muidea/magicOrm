@@ -98,22 +98,22 @@ func (s *ObjectFilter) Equal(key string, val interface{}) (err error) {
 		err = qvErr
 		return
 	}
-	if ou.IsSliceType(qvType) {
+	if om.IsSliceType(qvType) {
 		err = fmt.Errorf("equal failed, illegal value type, type:%s", qv.Type().String())
 		return
 	}
 
-	if qvType == ou.TypeDateTimeValue {
+	if qvType == om.TypeDateTimeValue {
 		val = qv.Interface().(time.Time).Format(util.CSTLayout)
 	}
 
-	if ou.IsBasicType(qvType) {
+	if om.IsBasicType(qvType) {
 		item := &FieldValue{Name: key, Value: val}
 		s.EqualFilter = append(s.EqualFilter, item)
 		return
 	}
 
-	if ou.IsMapType(qvType) {
+	if om.IsMapType(qvType) {
 		mVal, mErr := GetMapValue(val)
 		if mErr != nil {
 			err = mErr
@@ -144,16 +144,16 @@ func (s *ObjectFilter) NotEqual(key string, val interface{}) (err error) {
 		err = qvErr
 		return
 	}
-	if ou.IsSliceType(qvType) {
+	if om.IsSliceType(qvType) {
 		err = fmt.Errorf("notEqual failed, illegal value type, type:%s", qv.Type().String())
 		return
 	}
 
-	if qvType == ou.TypeDateTimeValue {
+	if qvType == om.TypeDateTimeValue {
 		val = qv.Interface().(time.Time).Format(util.CSTLayout)
 	}
 
-	if ou.IsBasicType(qvType) {
+	if om.IsBasicType(qvType) {
 		item := &FieldValue{Name: key, Value: val}
 		s.NotEqualFilter = append(s.NotEqualFilter, item)
 		return
@@ -177,12 +177,12 @@ func (s *ObjectFilter) Below(key string, val interface{}) (err error) {
 		err = qvErr
 		return
 	}
-	if !ou.IsBasicType(qvType) {
+	if !om.IsBasicType(qvType) {
 		err = fmt.Errorf("below failed, illegal value type, type:%s", qv.Type().String())
 		return
 	}
 
-	if qvType == ou.TypeDateTimeValue {
+	if qvType == om.TypeDateTimeValue {
 		val = qv.Interface().(time.Time).Format(util.CSTLayout)
 	}
 
@@ -199,12 +199,12 @@ func (s *ObjectFilter) Above(key string, val interface{}) (err error) {
 		err = qvErr
 		return
 	}
-	if !ou.IsBasicType(qvType) {
+	if !om.IsBasicType(qvType) {
 		err = fmt.Errorf("above failed, illegal value type, type:%s", qv.Type().String())
 		return
 	}
 
-	if qvType == ou.TypeDateTimeValue {
+	if qvType == om.TypeDateTimeValue {
 		val = qv.Interface().(time.Time).Format("2006-01-02 15:04:05")
 	}
 
@@ -222,7 +222,7 @@ func (s *ObjectFilter) getSliceValue(sliceVal interface{}) (ret interface{}, err
 		return
 	}
 
-	if !ou.IsSliceType(sliceValType) {
+	if !om.IsSliceType(sliceValType) {
 		err = fmt.Errorf("illegal value type, type:%s", sliceReVal.Type().String())
 		return
 	}
@@ -242,7 +242,7 @@ func (s *ObjectFilter) getSliceValue(sliceVal interface{}) (ret interface{}, err
 		return
 	}
 
-	if ou.IsStructType(subType) {
+	if om.IsStructType(subType) {
 		ret, err = GetSliceObjectValue(sliceVal)
 		return
 	}
@@ -250,7 +250,7 @@ func (s *ObjectFilter) getSliceValue(sliceVal interface{}) (ret interface{}, err
 	retVal := []interface{}{}
 	for idx := 0; idx < sliceReVal.Len(); idx++ {
 		subV := reflect.Indirect(sliceReVal.Index(idx))
-		if ou.TypeDateTimeValue == subType {
+		if om.TypeDateTimeValue == subType {
 			dtVal := subV.Interface().(time.Time).Format(util.CSTLayout)
 			retVal = append(retVal, dtVal)
 

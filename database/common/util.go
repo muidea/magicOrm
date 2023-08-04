@@ -3,7 +3,6 @@ package common
 import (
 	"fmt"
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
 )
 
 type relationType int
@@ -23,59 +22,59 @@ func (s relationType) String() string {
 func getFieldInitializeValue(field model.Field) (ret interface{}, err error) {
 	fType := field.GetType()
 	switch fType.GetValue() {
-	case util.TypeBooleanValue, util.TypeBitValue:
+	case model.TypeBooleanValue, model.TypeBitValue:
 		val := int8(0)
 		ret = &val
 		break
-	case util.TypeSmallIntegerValue:
+	case model.TypeSmallIntegerValue:
 		val := int16(0)
 		ret = &val
 		break
-	case util.TypeIntegerValue:
+	case model.TypeIntegerValue:
 		val := int(0)
 		ret = &val
 		break
-	case util.TypeInteger32Value:
+	case model.TypeInteger32Value:
 		val := int32(0)
 		ret = &val
 		break
-	case util.TypeBigIntegerValue:
+	case model.TypeBigIntegerValue:
 		val := int64(0)
 		ret = &val
 		break
-	case util.TypePositiveBitValue:
+	case model.TypePositiveBitValue:
 		val := uint8(0)
 		ret = &val
 		break
-	case util.TypePositiveSmallIntegerValue:
+	case model.TypePositiveSmallIntegerValue:
 		val := uint16(0)
 		ret = &val
 		break
-	case util.TypePositiveIntegerValue:
+	case model.TypePositiveIntegerValue:
 		val := uint(0)
 		ret = &val
 		break
-	case util.TypePositiveInteger32Value:
+	case model.TypePositiveInteger32Value:
 		val := uint32(0)
 		ret = &val
 		break
-	case util.TypePositiveBigIntegerValue:
+	case model.TypePositiveBigIntegerValue:
 		val := uint64(0)
 		ret = &val
 		break
-	case util.TypeFloatValue:
+	case model.TypeFloatValue:
 		val := float32(0.00)
 		ret = &val
 		break
-	case util.TypeDoubleValue:
+	case model.TypeDoubleValue:
 		val := 0.0000
 		ret = &val
 		break
-	case util.TypeStringValue, util.TypeDateTimeValue:
+	case model.TypeStringValue, model.TypeDateTimeValue:
 		val := ""
 		ret = &val
 		break
-	case util.TypeSliceValue:
+	case model.TypeSliceValue:
 		if fType.IsBasic() {
 			val := ""
 			ret = &val
@@ -96,7 +95,7 @@ func getFieldRelation(info model.Field) (ret relationType) {
 	}
 
 	isPtr := fType.Elem().IsPtrType() || fType.IsPtrType()
-	isSlice := util.IsSliceType(fType.GetValue())
+	isSlice := model.IsSliceType(fType.GetValue())
 
 	if !isPtr && !isSlice {
 		ret = relationHas1v1

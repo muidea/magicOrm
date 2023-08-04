@@ -1,10 +1,9 @@
 package remote
 
 import (
+	"github.com/muidea/magicOrm/model"
 	"reflect"
 	"testing"
-
-	"github.com/muidea/magicOrm/util"
 )
 
 func TestType(t *testing.T) {
@@ -19,8 +18,8 @@ func TestType(t *testing.T) {
 		t.Errorf("illegal type name, name:%s, expect name:%s", itemType.Name, "int")
 		return
 	}
-	if itemType.Value != util.TypeIntegerValue {
-		t.Errorf("illegal type value, value:%d, expect value:%d", itemType.Value, util.TypeIntegerValue)
+	if itemType.Value != model.TypeIntegerValue {
+		t.Errorf("illegal type value, value:%d, expect value:%d", itemType.Value, model.TypeIntegerValue)
 		return
 	}
 }

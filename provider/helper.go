@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"github.com/muidea/magicOrm/model"
 	"reflect"
 
 	log "github.com/cihub/seelog"
@@ -177,7 +178,7 @@ func getObjectValue(objectValue *remote.ObjectValue, valueType reflect.Type) (re
 			}
 
 			// for struct type
-			if util.IsStructType(vFieldType.GetValue()) {
+			if model.IsStructType(vFieldType.GetValue()) {
 				objPtr := curItem.Value.(*remote.ObjectValue)
 				val, valErr := getObjectValue(objPtr, curFieldType)
 				if valErr != nil {

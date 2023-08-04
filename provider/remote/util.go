@@ -7,7 +7,6 @@ import (
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
 )
 
 var _declareObjectSliceValue SliceObjectValue
@@ -324,36 +323,36 @@ func getFloat64Slice(tType model.Type) (ret reflect.Type, err error) {
 func getSliceType(tType model.Type) (ret reflect.Type, err error) {
 	eType := tType.Elem()
 	switch eType.GetValue() {
-	case util.TypeBooleanValue:
+	case model.TypeBooleanValue:
 		ret, err = getBoolSlice(tType)
-	case util.TypeStringValue,
-		util.TypeDateTimeValue:
+	case model.TypeStringValue,
+		model.TypeDateTimeValue:
 		ret, err = getStringSlice(tType)
-	case util.TypeBitValue:
+	case model.TypeBitValue:
 		ret, err = getInt8Slice(tType)
-	case util.TypeSmallIntegerValue:
+	case model.TypeSmallIntegerValue:
 		ret, err = getInt16Slice(tType)
-	case util.TypeInteger32Value:
+	case model.TypeInteger32Value:
 		ret, err = getInt32Slice(tType)
-	case util.TypeIntegerValue:
+	case model.TypeIntegerValue:
 		ret, err = getIntSlice(tType)
-	case util.TypeBigIntegerValue:
+	case model.TypeBigIntegerValue:
 		ret, err = getInt64Slice(tType)
-	case util.TypePositiveBitValue:
+	case model.TypePositiveBitValue:
 		ret, err = getUInt8Slice(tType)
-	case util.TypePositiveSmallIntegerValue:
+	case model.TypePositiveSmallIntegerValue:
 		ret, err = getUInt16Slice(tType)
-	case util.TypePositiveInteger32Value:
+	case model.TypePositiveInteger32Value:
 		ret, err = getUInt32Slice(tType)
-	case util.TypePositiveIntegerValue:
+	case model.TypePositiveIntegerValue:
 		ret, err = getUIntSlice(tType)
-	case util.TypePositiveBigIntegerValue:
+	case model.TypePositiveBigIntegerValue:
 		ret, err = getUInt64Slice(tType)
-	case util.TypeFloatValue:
+	case model.TypeFloatValue:
 		ret, err = getFloat32Slice(tType)
-	case util.TypeDoubleValue:
+	case model.TypeDoubleValue:
 		ret, err = getFloat64Slice(tType)
-	case util.TypeStructValue:
+	case model.TypeStructValue:
 		ret = reflect.TypeOf(&_declareObjectSliceValue)
 	default:
 		err = fmt.Errorf("unexpect slice item type, name:%s, type:%d", tType.GetName(), tType.GetValue())
@@ -518,38 +517,38 @@ func getFloat64(tType model.Type) (ret reflect.Type, err error) {
 
 func getType(tType model.Type) (ret reflect.Type, err error) {
 	switch tType.GetValue() {
-	case util.TypeBooleanValue:
+	case model.TypeBooleanValue:
 		ret, err = getBool(tType)
-	case util.TypeStringValue,
-		util.TypeDateTimeValue:
+	case model.TypeStringValue,
+		model.TypeDateTimeValue:
 		ret, err = getSting(tType)
-	case util.TypeBitValue:
+	case model.TypeBitValue:
 		ret, err = getInt8(tType)
-	case util.TypeSmallIntegerValue:
+	case model.TypeSmallIntegerValue:
 		ret, err = getInt16(tType)
-	case util.TypeInteger32Value:
+	case model.TypeInteger32Value:
 		ret, err = getInt32(tType)
-	case util.TypeIntegerValue:
+	case model.TypeIntegerValue:
 		ret, err = getInt(tType)
-	case util.TypeBigIntegerValue:
+	case model.TypeBigIntegerValue:
 		ret, err = getInt64(tType)
-	case util.TypePositiveBitValue:
+	case model.TypePositiveBitValue:
 		ret, err = getUInt8(tType)
-	case util.TypePositiveSmallIntegerValue:
+	case model.TypePositiveSmallIntegerValue:
 		ret, err = getUInt16(tType)
-	case util.TypePositiveInteger32Value:
+	case model.TypePositiveInteger32Value:
 		ret, err = getUInt32(tType)
-	case util.TypePositiveIntegerValue:
+	case model.TypePositiveIntegerValue:
 		ret, err = getUInt(tType)
-	case util.TypePositiveBigIntegerValue:
+	case model.TypePositiveBigIntegerValue:
 		ret, err = getUInt64(tType)
-	case util.TypeFloatValue:
+	case model.TypeFloatValue:
 		ret, err = getFloat32(tType)
-	case util.TypeDoubleValue:
+	case model.TypeDoubleValue:
 		ret, err = getFloat64(tType)
-	case util.TypeStructValue:
+	case model.TypeStructValue:
 		ret = reflect.TypeOf(&_declareObjectValue)
-	case util.TypeSliceValue:
+	case model.TypeSliceValue:
 		ret, err = getSliceType(tType)
 	default:
 		err = fmt.Errorf("unexpect item type, name:%s, type:%d", tType.GetName(), tType.GetValue())
@@ -588,7 +587,7 @@ func getStructValue(tType model.Type) (ret reflect.Value) {
 	cValue := reflect.New(cType).Elem()
 	cValue.FieldByName("Name").SetString(tType.GetName())
 	cValue.FieldByName("PkgPath").SetString(tType.GetPkgPath())
-	if util.IsSliceType(tType.GetValue()) {
+	if model.IsSliceType(tType.GetValue()) {
 		cValue.FieldByName("IsElemPtr").SetBool(tType.Elem().IsPtrType())
 	}
 

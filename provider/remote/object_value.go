@@ -3,12 +3,11 @@ package remote
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/muidea/magicOrm/model"
 	"path"
 	"reflect"
 
 	log "github.com/cihub/seelog"
-
-	"github.com/muidea/magicOrm/util"
 )
 
 // ObjectValue Object value
@@ -191,7 +190,7 @@ func getObjectValue(entityVal reflect.Value) (ret *ObjectValue, err error) {
 		err = objErr
 		return
 	}
-	if !util.IsStructType(objType.GetValue()) {
+	if !model.IsStructType(objType.GetValue()) {
 		err = fmt.Errorf("illegal entity, entity type:%s", entityType.String())
 		return
 	}
@@ -216,7 +215,7 @@ func getObjectValue(entityVal reflect.Value) (ret *ObjectValue, err error) {
 			return
 		}
 
-		if typePtr.GetValue() != util.TypeSliceValue {
+		if typePtr.GetValue() != model.TypeSliceValue {
 			val, valErr := getFieldValue(fieldName, typePtr, valuePtr)
 			if valErr != nil {
 				err = valErr
@@ -270,14 +269,14 @@ func GetSliceObjectValue(sliceEntity interface{}) (ret *SliceObjectValue, err er
 		return
 	}
 
-	if !util.IsSliceType(sliceType.GetValue()) {
+	if !model.IsSliceType(sliceType.GetValue()) {
 		err = fmt.Errorf("illegal slice object value")
 		log.Errorf("illegal slice type, slice type name:%s", sliceType.GetName())
 		return
 	}
 
 	elemType := sliceType.Elem()
-	if !util.IsStructType(elemType.GetValue()) {
+	if !model.IsStructType(elemType.GetValue()) {
 		err = fmt.Errorf("illegal slice item type")
 		log.Errorf("illegal slice elem type, type%s", elemType.GetName())
 		return

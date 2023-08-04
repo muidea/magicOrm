@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
 )
 
 type ElemDependValueFunc func(model.Value) ([]model.Value, error)
@@ -34,19 +33,19 @@ func (s *impl) Encode(vVal model.Value, tType model.Type) (ret interface{}, err 
 	}
 
 	switch tType.GetValue() {
-	case util.TypeBooleanValue:
+	case model.TypeBooleanValue:
 		ret, err = s.encodeBool(vVal)
-	case util.TypeDateTimeValue:
+	case model.TypeDateTimeValue:
 		ret, err = s.encodeDateTime(vVal)
-	case util.TypeFloatValue, util.TypeDoubleValue:
+	case model.TypeFloatValue, model.TypeDoubleValue:
 		ret, err = s.encodeFloat(vVal)
-	case util.TypeBitValue, util.TypeSmallIntegerValue, util.TypeInteger32Value, util.TypeIntegerValue, util.TypeBigIntegerValue:
+	case model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeIntegerValue, model.TypeBigIntegerValue:
 		ret, err = s.encodeInt(vVal)
-	case util.TypePositiveBitValue, util.TypePositiveSmallIntegerValue, util.TypePositiveInteger32Value, util.TypePositiveIntegerValue, util.TypePositiveBigIntegerValue:
+	case model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveIntegerValue, model.TypePositiveBigIntegerValue:
 		ret, err = s.encodeUint(vVal)
-	case util.TypeSliceValue:
+	case model.TypeSliceValue:
 		ret, err = s.encodeSlice(vVal, tType)
-	case util.TypeStringValue:
+	case model.TypeStringValue:
 		ret, err = s.encodeString(vVal)
 	default:
 		err = fmt.Errorf("illegal type, type:%s", tType.GetName())
@@ -67,19 +66,19 @@ func (s *impl) Decode(val interface{}, tType model.Type) (ret model.Value, err e
 	}
 
 	switch tType.GetValue() {
-	case util.TypeBooleanValue:
+	case model.TypeBooleanValue:
 		ret, err = s.decodeBool(val, tType)
-	case util.TypeDateTimeValue:
+	case model.TypeDateTimeValue:
 		ret, err = s.decodeDateTime(val, tType)
-	case util.TypeFloatValue, util.TypeDoubleValue:
+	case model.TypeFloatValue, model.TypeDoubleValue:
 		ret, err = s.decodeFloat(val, tType)
-	case util.TypeBitValue, util.TypeSmallIntegerValue, util.TypeInteger32Value, util.TypeIntegerValue, util.TypeBigIntegerValue:
+	case model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeIntegerValue, model.TypeBigIntegerValue:
 		ret, err = s.decodeInt(val, tType)
-	case util.TypePositiveBitValue, util.TypePositiveSmallIntegerValue, util.TypePositiveInteger32Value, util.TypePositiveIntegerValue, util.TypePositiveBigIntegerValue:
+	case model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveIntegerValue, model.TypePositiveBigIntegerValue:
 		ret, err = s.decodeUint(val, tType)
-	case util.TypeSliceValue:
+	case model.TypeSliceValue:
 		ret, err = s.decodeSlice(val, tType)
-	case util.TypeStringValue:
+	case model.TypeStringValue:
 		ret, err = s.decodeString(val, tType)
 	default:
 		err = fmt.Errorf("illegal type, type:%s", tType.GetName())

@@ -7,7 +7,6 @@ import (
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/helper"
-	"github.com/muidea/magicOrm/util"
 )
 
 var _helper helper.Helper
@@ -67,7 +66,7 @@ func GetEntityModel(entity interface{}) (ret model.Model, err error) {
 		err = vErr
 		return
 	}
-	if !util.IsStructType(vType.GetValue()) {
+	if !model.IsStructType(vType.GetValue()) {
 		err = fmt.Errorf("illegal entity, must be a struct entity")
 		return
 	}
@@ -96,7 +95,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 		return
 	}
 
-	if !util.IsStructType(vType.GetValue()) || vType.GetPkgKey() != vModel.GetPkgKey() {
+	if !model.IsStructType(vType.GetValue()) || vType.GetPkgKey() != vModel.GetPkgKey() {
 		err = fmt.Errorf("illegal model value, mode PkgKey:%s, value PkgKey:%s", vModel.GetPkgKey(), vType.GetPkgKey())
 		return
 	}
@@ -233,7 +232,7 @@ func EncodeValue(tVal model.Value, tType model.Type, mCache model.Cache) (ret in
 		ret, err = _helper.Encode(tVal, tType)
 		return
 	}
-	if util.IsStructType(tType.GetValue()) {
+	if model.IsStructType(tType.GetValue()) {
 		ret, err = encodeModel(tVal, tType, mCache, _helper)
 		return
 	}

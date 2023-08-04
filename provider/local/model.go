@@ -8,7 +8,6 @@ import (
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
 )
 
 type objectImpl struct {
@@ -143,7 +142,7 @@ func getTypeModel(entityType reflect.Type) (ret *objectImpl, err error) {
 		log.Errorf("getTypeModel failed, err:%s", err.Error())
 		return
 	}
-	if typeImpl.GetValue() != util.TypeStructValue {
+	if typeImpl.GetValue() != model.TypeStructValue {
 		err = fmt.Errorf("illegal type, must be a struct entity, type:%s", entityType.String())
 		log.Errorf("getTypeModel failed, err:%s", err.Error())
 		return

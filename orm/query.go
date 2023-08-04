@@ -7,7 +7,6 @@ import (
 
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
 )
 
 type resultItems []interface{}
@@ -300,12 +299,12 @@ func (s *impl) queryRelation(vModel model.Model, vField model.Field, deepLevel i
 		return
 	}
 
-	if util.IsStructType(fieldType.GetValue()) {
+	if model.IsStructType(fieldType.GetValue()) {
 		ret, err = s.querySingleRelation(vModel, vField, deepLevel)
 		return
 	}
 
-	if util.IsSliceType(fieldType.GetValue()) {
+	if model.IsSliceType(fieldType.GetValue()) {
 		ret, err = s.querySliceRelation(vModel, vField, deepLevel)
 		return
 	}

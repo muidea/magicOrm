@@ -21,7 +21,7 @@ func init() {
 
 func isRemoteType(vType model.Type) bool {
 	switch vType.GetValue() {
-	case util.TypeDoubleValue, util.TypeBooleanValue, util.TypeStringValue:
+	case model.TypeDoubleValue, model.TypeBooleanValue, model.TypeStringValue:
 		return true
 	}
 
@@ -35,8 +35,8 @@ func GetHelper() helper.Helper {
 func GetEntityType(entity interface{}) (ret model.Type, err error) {
 	objPtr, ok := entity.(*Object)
 	if ok {
-		impl := &TypeImpl{Name: objPtr.GetName(), Value: util.TypeStructValue, PkgPath: objPtr.GetPkgPath(), IsPtr: objPtr.IsPtr}
-		impl.ElemType = &TypeImpl{Name: objPtr.GetName(), Value: util.TypeStructValue, PkgPath: objPtr.GetPkgPath(), IsPtr: objPtr.IsPtr}
+		impl := &TypeImpl{Name: objPtr.GetName(), Value: model.TypeStructValue, PkgPath: objPtr.GetPkgPath(), IsPtr: objPtr.IsPtr}
+		impl.ElemType = &TypeImpl{Name: objPtr.GetName(), Value: model.TypeStructValue, PkgPath: objPtr.GetPkgPath(), IsPtr: objPtr.IsPtr}
 
 		ret = impl
 		return
@@ -44,8 +44,8 @@ func GetEntityType(entity interface{}) (ret model.Type, err error) {
 
 	valPtr, ok := entity.(*ObjectValue)
 	if ok {
-		impl := &TypeImpl{Name: valPtr.GetName(), Value: util.TypeStructValue, PkgPath: valPtr.GetPkgPath()}
-		impl.ElemType = &TypeImpl{Name: valPtr.GetName(), Value: util.TypeStructValue, PkgPath: valPtr.GetPkgPath()}
+		impl := &TypeImpl{Name: valPtr.GetName(), Value: model.TypeStructValue, PkgPath: valPtr.GetPkgPath()}
+		impl.ElemType = &TypeImpl{Name: valPtr.GetName(), Value: model.TypeStructValue, PkgPath: valPtr.GetPkgPath()}
 
 		ret = impl
 		return
@@ -53,8 +53,8 @@ func GetEntityType(entity interface{}) (ret model.Type, err error) {
 
 	sValPtr, ok := entity.(*SliceObjectValue)
 	if ok {
-		impl := &TypeImpl{Name: sValPtr.GetName(), Value: util.TypeSliceValue, PkgPath: sValPtr.GetPkgPath()}
-		impl.ElemType = &TypeImpl{Name: sValPtr.GetName(), Value: util.TypeStructValue, PkgPath: sValPtr.GetPkgPath(), IsPtr: sValPtr.IsElemPtr}
+		impl := &TypeImpl{Name: sValPtr.GetName(), Value: model.TypeSliceValue, PkgPath: sValPtr.GetPkgPath()}
+		impl.ElemType = &TypeImpl{Name: sValPtr.GetName(), Value: model.TypeStructValue, PkgPath: sValPtr.GetPkgPath(), IsPtr: sValPtr.IsElemPtr}
 
 		ret = impl
 		return
@@ -200,14 +200,14 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 		return
 	}
 
-	if util.IsSliceType(tVal) {
+	if model.IsSliceType(tVal) {
 		for idx := 0; idx < rVal.Len(); idx++ {
 			ret = append(ret, newValue(rVal.Index(idx)))
 		}
 		return
 	}
 
-	if util.IsBasicType(tVal) {
+	if model.IsBasicType(tVal) {
 		ret = append(ret, vVal)
 		return
 	}
@@ -302,7 +302,7 @@ func EncodeValue(tVal model.Value, tType model.Type, mCache model.Cache) (ret in
 		ret, err = _helper.Encode(tVal, tType)
 		return
 	}
-	if util.IsStructType(tType.GetValue()) {
+	if model.IsStructType(tType.GetValue()) {
 		ret, err = encodeModel(tVal, tType, mCache, _helper)
 		return
 	}

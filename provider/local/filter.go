@@ -41,7 +41,7 @@ func (s *filter) Equal(key string, val interface{}) (err error) {
 		err = qvErr
 		return
 	}
-	if ou.IsSliceType(qvType) {
+	if om.IsSliceType(qvType) {
 		err = fmt.Errorf("equal failed, illegal value type, type:%s", qv.Type().String())
 		return
 	}
@@ -58,7 +58,7 @@ func (s *filter) NotEqual(key string, val interface{}) (err error) {
 		err = qvErr
 		return
 	}
-	if ou.IsSliceType(qvType) {
+	if om.IsSliceType(qvType) {
 		err = fmt.Errorf("notEqual failed, illegal value type, type:%s", qv.Type().String())
 		return
 	}
@@ -75,7 +75,7 @@ func (s *filter) Below(key string, val interface{}) (err error) {
 		err = qvErr
 		return
 	}
-	if !ou.IsBasicType(qvType) {
+	if !om.IsBasicType(qvType) {
 		err = fmt.Errorf("below failed, illegal value type, type:%s", qv.Type().String())
 		return
 	}
@@ -92,7 +92,7 @@ func (s *filter) Above(key string, val interface{}) (err error) {
 		err = qvErr
 		return
 	}
-	if !ou.IsBasicType(qvType) {
+	if !om.IsBasicType(qvType) {
 		err = fmt.Errorf("above failed, illegal value type, type:%s", qv.Type().String())
 		return
 	}
@@ -109,7 +109,7 @@ func (s *filter) In(key string, val interface{}) (err error) {
 		err = qvErr
 		return
 	}
-	if !ou.IsSliceType(qvType) {
+	if !om.IsSliceType(qvType) {
 		err = fmt.Errorf("in failed, illegal value type, type:%s", qv.Type().String())
 		return
 	}
@@ -126,7 +126,7 @@ func (s *filter) NotIn(key string, val interface{}) (err error) {
 		err = qvErr
 		return
 	}
-	if !ou.IsSliceType(qvType) {
+	if !om.IsSliceType(qvType) {
 		err = fmt.Errorf("notIn failed, illegal value type, type:%s", qv.Type().String())
 		return
 	}

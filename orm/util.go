@@ -50,11 +50,11 @@ func (s *impl) getInitializeValue(vModel model.Model, builder builder.Builder) (
 
 func (s *impl) needStripSlashes(fType model.Type) bool {
 	switch fType.GetValue() {
-	case util.TypeStringValue, util.TypeDateTimeValue:
+	case model.TypeStringValue, model.TypeDateTimeValue:
 		return true
 	}
 
-	if !util.IsSliceType(fType.GetValue()) {
+	if !model.IsSliceType(fType.GetValue()) {
 		return false
 	}
 

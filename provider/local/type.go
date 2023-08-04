@@ -85,7 +85,7 @@ func (s *typeImpl) Elem() model.Type {
 func (s *typeImpl) IsBasic() bool {
 	elemType := s.Elem()
 
-	return util.IsBasicType(elemType.GetValue())
+	return model.IsBasicType(elemType.GetValue())
 }
 
 func (s *typeImpl) getRawType() reflect.Type {
