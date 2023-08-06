@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+
+	"github.com/muidea/magicOrm/model"
 )
 
 type specImpl struct {
@@ -60,6 +62,14 @@ func (s *specImpl) IsPrimaryKey() (ret bool) {
 	return
 }
 
+func (s *specImpl) GetValueDeclare() model.ValueDeclare {
+	if s.IsAutoIncrement() {
+		return model.AutoIncrement
+	}
+
+	return model.Customer
+}
+
 // IsAutoIncrement IsAutoIncrement
 func (s *specImpl) IsAutoIncrement() (ret bool) {
 	items := strings.Split(s.specVal, " ")
@@ -85,11 +95,60 @@ func (s *specImpl) IsAutoIncrement() (ret bool) {
 	return
 }
 
+func (s *specImpl) IsUUID() (ret bool) {
+	items := strings.Split(s.specVal, " ")
+	if len(items) <= 1 {
+		return false
+	}
+
+	isUUID := false
+	if len(items) >= 2 {
+		switch items[1] {
+		case "uuid":
+			isUUID = true
+		}
+	}
+	if len(items) >= 3 {
+		switch items[2] {
+		case "uuid":
+			isUUID = true
+		}
+	}
+
+	ret = isUUID
+	return
+}
+
+func (s *specImpl) IsSnowFlake() (ret bool) {
+	items := strings.Split(s.specVal, " ")
+	if len(items) <= 1 {
+		return false
+	}
+
+	isSnowFlake := false
+	if len(items) >= 2 {
+		switch items[1] {
+		case "snowflake":
+			isSnowFlake = true
+		}
+	}
+	if len(items) >= 3 {
+		switch items[2] {
+		case "snowflake":
+			isSnowFlake = true
+		}
+	}
+
+	ret = isSnowFlake
+	return
+}
+
 func (s *specImpl) copy() (ret *specImpl) {
 	ret = &specImpl{specVal: s.specVal}
 	return
 }
 
 func (s *specImpl) dump() (ret string) {
-	return fmt.Sprintf("name=%s key=%v auto=%v", s.GetFieldName(), s.IsPrimaryKey(), s.IsAutoIncrement())
+	return fmt.Sprintf("name=%s key=%v auto=%v, uuid=%v, snowFlake=%v",
+		s.GetFieldName(), s.IsPrimaryKey(), s.IsAutoIncrement(), s.IsUUID(), s.IsSnowFlake())
 }

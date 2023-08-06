@@ -2,7 +2,7 @@ package model
 
 type Type interface {
 	GetName() string
-	GetValue() int
+	GetValue() TypeDeclare
 	GetPkgPath() string
 	GetPkgKey() string
 	IsPtrType() bool

@@ -1,5 +1,9 @@
 package model
 
+import "fmt"
+
+type TypeDeclare int
+
 // Define the Type enum
 const (
 	// TypeBooleanValue bool
@@ -40,18 +44,31 @@ const (
 	TypeMapValue = 500
 )
 
-func IsBasicType(typeValue int) bool {
+type ValueDeclare int
+
+const (
+	Customer ValueDeclare = iota
+	AutoIncrement
+	UUID
+	SnowFlake
+)
+
+func (s ValueDeclare) String() string {
+	return fmt.Sprintf("%d", s)
+}
+
+func IsBasicType(typeValue TypeDeclare) bool {
 	return typeValue < TypeStructValue
 }
 
-func IsStructType(typeValue int) bool {
+func IsStructType(typeValue TypeDeclare) bool {
 	return typeValue == TypeStructValue
 }
 
-func IsSliceType(typeValue int) bool {
+func IsSliceType(typeValue TypeDeclare) bool {
 	return typeValue == TypeSliceValue
 }
 
-func IsMapType(typeVal int) bool {
+func IsMapType(typeVal TypeDeclare) bool {
 	return typeVal == TypeMapValue
 }

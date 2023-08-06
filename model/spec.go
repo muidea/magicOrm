@@ -2,6 +2,7 @@ package model
 
 type Spec interface {
 	IsPrimaryKey() bool
+	GetValueDeclare() ValueDeclare
 	IsAutoIncrement() bool
 	//IsUUID() bool
 	//IsSnowFlake() bool

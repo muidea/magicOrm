@@ -60,7 +60,7 @@ func IsMap(tType reflect.Type) bool {
 }
 
 // GetTypeEnum return field type as type constant from reflect.Value
-func GetTypeEnum(val reflect.Type) (ret int, err error) {
+func GetTypeEnum(val reflect.Type) (ret model.TypeDeclare, err error) {
 	switch val.Kind() {
 	case reflect.Int8:
 		ret = model.TypeBitValue

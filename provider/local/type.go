@@ -42,7 +42,7 @@ func (s *typeImpl) GetName() string {
 	return rType.Name()
 }
 
-func (s *typeImpl) GetValue() (ret int) {
+func (s *typeImpl) GetValue() (ret model.TypeDeclare) {
 	rType := s.getRawType()
 	ret, _ = util.GetTypeEnum(rType)
 	return

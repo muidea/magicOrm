@@ -10,11 +10,11 @@ import (
 )
 
 type TypeImpl struct {
-	Name     string    `json:"name"`
-	Value    int       `json:"value"`
-	PkgPath  string    `json:"pkgPath"`
-	IsPtr    bool      `json:"isPtr"`
-	ElemType *TypeImpl `json:"elemType"`
+	Name     string            `json:"name"`
+	Value    model.TypeDeclare `json:"value"`
+	PkgPath  string            `json:"pkgPath"`
+	IsPtr    bool              `json:"isPtr"`
+	ElemType *TypeImpl         `json:"elemType"`
 }
 
 func newType(itemType reflect.Type) (ret *TypeImpl, err error) {
@@ -63,7 +63,7 @@ func (s *TypeImpl) GetName() (ret string) {
 	return
 }
 
-func (s *TypeImpl) GetValue() (ret int) {
+func (s *TypeImpl) GetValue() (ret model.TypeDeclare) {
 	ret = s.Value
 	return
 }
