@@ -3,9 +3,6 @@ package model
 type Spec interface {
 	IsPrimaryKey() bool
 	GetValueDeclare() ValueDeclare
-	IsAutoIncrement() bool
-	//IsUUID() bool
-	//IsSnowFlake() bool
 }
 
 func CompareSpec(l, r Spec) bool {
@@ -13,7 +10,7 @@ func CompareSpec(l, r Spec) bool {
 		return true
 	}
 	if l != nil && r != nil {
-		return l.IsPrimaryKey() == r.IsPrimaryKey() && l.IsAutoIncrement() == r.IsAutoIncrement()
+		return l.IsPrimaryKey() == r.IsPrimaryKey() && l.GetValueDeclare() == r.GetValueDeclare()
 	}
 
 	return false

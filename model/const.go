@@ -51,10 +51,31 @@ const (
 	AutoIncrement
 	UUID
 	SnowFlake
+	DateTime
 )
 
 func (s ValueDeclare) String() string {
 	return fmt.Sprintf("%d", s)
+}
+
+func IsCustomer(val ValueDeclare) bool {
+	return val == Customer
+}
+
+func IsAutoIncrement(val ValueDeclare) bool {
+	return val == AutoIncrement
+}
+
+func IsUUID(val ValueDeclare) bool {
+	return val == UUID
+}
+
+func IsSnowFlake(val ValueDeclare) bool {
+	return val == SnowFlake
+}
+
+func IsDateTime(val ValueDeclare) bool {
+	return val == DateTime
 }
 
 func IsBasicType(typeValue TypeDeclare) bool {
