@@ -10,6 +10,7 @@ import (
 	"github.com/muidea/magicCommon/foundation/util"
 	"github.com/muidea/magicOrm/model"
 	pu "github.com/muidea/magicOrm/provider/util"
+	ou "github.com/muidea/magicOrm/util"
 )
 
 type Field struct {
@@ -19,6 +20,11 @@ type Field struct {
 	Type  *TypeImpl `json:"type"`
 	Spec  *SpecImpl `json:"spec"`
 	value *pu.ValueImpl
+}
+
+type FieldValue struct {
+	Name  string `json:"name"`
+	Value any    `json:"value"`
 }
 
 func (s *Field) GetIndex() (ret int) {
@@ -205,4 +211,53 @@ func compareItem(l, r *Field) bool {
 	}
 
 	return true
+}
+
+func (s *FieldValue) IsNil() bool {
+	return s.Value == nil
+}
+
+func (s *FieldValue) Set(val reflect.Value) error {
+	s.Value = val.Interface()
+	return nil
+}
+
+func (s *FieldValue) Get() reflect.Value {
+	return reflect.ValueOf(s.Value)
+}
+
+func (s *FieldValue) Addr() model.Value {
+	impl := &FieldValue{Value: &s.Value}
+	return impl
+}
+
+func (s *FieldValue) Interface() any {
+	return s.Value
+}
+
+func (s *FieldValue) IsBasic() bool {
+	if s.Value == nil {
+		return false
+	}
+
+	rValue := reflect.ValueOf(s.Value)
+	if rValue.Kind() == reflect.Interface {
+		rValue = rValue.Elem()
+	}
+	rType := rValue.Type()
+	if ou.IsSlice(rType) {
+		rType = rType.Elem()
+	}
+
+	return !ou.IsStruct(rType)
+}
+
+func (s *FieldValue) copy() (ret *FieldValue) {
+	if s.Value == nil {
+		ret = &FieldValue{}
+		return
+	}
+
+	ret = &FieldValue{Value: s.Value}
+	return
 }
