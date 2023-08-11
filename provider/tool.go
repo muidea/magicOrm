@@ -34,7 +34,7 @@ func UpdateLocalEntity(remoteValue *remote.ObjectValue, localEntity interface{})
 		return
 	}
 
-	retVal, retErr := getObjectValue(remoteValue, entityValue.Type())
+	retVal, retErr := getLocalValue(remoteValue, entityValue.Type())
 	if retErr != nil {
 		err = retErr
 		return
@@ -44,84 +44,7 @@ func UpdateLocalEntity(remoteValue *remote.ObjectValue, localEntity interface{})
 	return
 }
 
-// UpdateLocalSliceEntity update slice object value -> entitySlice
-func UpdateLocalSliceEntity(sliceObjectValue *remote.SliceObjectValue, sliceEntity interface{}) (err error) {
-	if !sliceObjectValue.IsAssigned() {
-		return
-	}
-
-	entityVal := reflect.ValueOf(sliceEntity)
-	if entityVal.Kind() != reflect.Ptr {
-		err = fmt.Errorf("illegal slice entity value")
-		return
-	}
-	entityVal = reflect.Indirect(entityVal)
-	if entityVal.Kind() != reflect.Slice {
-		err = fmt.Errorf("illegal sliceEntity")
-		return
-	}
-	if !entityVal.CanSet() {
-		err = fmt.Errorf("illegal sliceEntity value, can't be set")
-		return
-	}
-
-	retVal, retErr := getSliceStructValue(sliceObjectValue, entityVal.Type())
-	if retErr != nil {
-		err = retErr
-		return
-	}
-
-	entityVal.Set(retVal)
-	return
-}
-
-func getSliceStructValue(sliceObjectValue *remote.SliceObjectValue, valueType reflect.Type) (ret reflect.Value, err error) {
-	vType, vErr := local.GetType(valueType)
-	if vErr != nil {
-		err = vErr
-		return
-	}
-
-	if vType.GetName() != sliceObjectValue.GetName() || vType.GetPkgPath() != sliceObjectValue.GetPkgPath() {
-		err = fmt.Errorf("illegal object value, sliceObjectValue name:%s, entityType name:%s", sliceObjectValue.GetName(), vType.GetName())
-		log.Errorf("mismatch sliceObjectValue for value, err:%s", err)
-		return
-	}
-
-	entityType := valueType
-	if vType.IsPtrType() {
-		entityType = entityType.Elem()
-	}
-
-	entityValue := reflect.New(entityType).Elem()
-	sliceValue := sliceObjectValue.Values
-	sliceSize := len(sliceValue)
-	if sliceSize == 0 {
-		return
-	}
-
-	elemType := entityType.Elem()
-	for idx := 0; idx < sliceSize; idx++ {
-		sliceItem := sliceValue[idx]
-		elemVal, elemErr := getObjectValue(sliceItem, elemType)
-		if elemErr != nil {
-			err = elemErr
-			log.Errorf("updateStructValue failed, sliceItem type:%s, elemVal type:%s", sliceItem.GetName(), elemVal.Type().String())
-			return
-		}
-		entityValue = reflect.Append(entityValue, elemVal)
-	}
-
-	ret = reflect.New(entityType).Elem()
-	ret.Set(entityValue)
-	if vType.IsPtrType() {
-		ret = ret.Addr()
-	}
-
-	return
-}
-
-func getObjectValue(objectValue *remote.ObjectValue, valueType reflect.Type) (ret reflect.Value, err error) {
+func getLocalValue(objectValue *remote.ObjectValue, valueType reflect.Type) (ret reflect.Value, err error) {
 	vType, vErr := local.GetType(valueType)
 	if vErr != nil {
 		err = vErr
@@ -180,7 +103,7 @@ func getObjectValue(objectValue *remote.ObjectValue, valueType reflect.Type) (re
 			// for struct type
 			if model.IsStructType(vFieldType.GetValue()) {
 				objPtr := curItem.Value.(*remote.ObjectValue)
-				val, valErr := getObjectValue(objPtr, curFieldType)
+				val, valErr := getLocalValue(objPtr, curFieldType)
 				if valErr != nil {
 					err = valErr
 					log.Errorf("convertStructItemValue failed, fieldName:%s, err:%s", curField.Name, err.Error())
@@ -195,7 +118,7 @@ func getObjectValue(objectValue *remote.ObjectValue, valueType reflect.Type) (re
 
 			// for struct slice
 			slicePtr := curItem.Value.(*remote.SliceObjectValue)
-			val, valErr := getSliceStructValue(slicePtr, curFieldType)
+			val, valErr := getLocalSliceValue(slicePtr, curFieldType)
 			if valErr != nil {
 				err = valErr
 				log.Errorf("updateSliceStructValue failed, fieldName:%s, err:%s", curField.Name, err.Error())
@@ -214,5 +137,82 @@ func getObjectValue(objectValue *remote.ObjectValue, valueType reflect.Type) (re
 	}
 
 	ret = entityValue
+	return
+}
+
+// UpdateLocalSliceEntity update slice object value -> entitySlice
+func UpdateLocalSliceEntity(sliceObjectValue *remote.SliceObjectValue, sliceEntity interface{}) (err error) {
+	if !sliceObjectValue.IsAssigned() {
+		return
+	}
+
+	entityVal := reflect.ValueOf(sliceEntity)
+	if entityVal.Kind() != reflect.Ptr {
+		err = fmt.Errorf("illegal slice entity value")
+		return
+	}
+	entityVal = reflect.Indirect(entityVal)
+	if entityVal.Kind() != reflect.Slice {
+		err = fmt.Errorf("illegal sliceEntity")
+		return
+	}
+	if !entityVal.CanSet() {
+		err = fmt.Errorf("illegal sliceEntity value, can't be set")
+		return
+	}
+
+	retVal, retErr := getLocalSliceValue(sliceObjectValue, entityVal.Type())
+	if retErr != nil {
+		err = retErr
+		return
+	}
+
+	entityVal.Set(retVal)
+	return
+}
+
+func getLocalSliceValue(sliceObjectValue *remote.SliceObjectValue, valueType reflect.Type) (ret reflect.Value, err error) {
+	vType, vErr := local.GetType(valueType)
+	if vErr != nil {
+		err = vErr
+		return
+	}
+
+	if vType.GetName() != sliceObjectValue.GetName() || vType.GetPkgPath() != sliceObjectValue.GetPkgPath() {
+		err = fmt.Errorf("illegal object value, sliceObjectValue name:%s, entityType name:%s", sliceObjectValue.GetName(), vType.GetName())
+		log.Errorf("mismatch sliceObjectValue for value, err:%s", err)
+		return
+	}
+
+	entityType := valueType
+	if vType.IsPtrType() {
+		entityType = entityType.Elem()
+	}
+
+	entityValue := reflect.New(entityType).Elem()
+	sliceValue := sliceObjectValue.Values
+	sliceSize := len(sliceValue)
+	if sliceSize == 0 {
+		return
+	}
+
+	elemType := entityType.Elem()
+	for idx := 0; idx < sliceSize; idx++ {
+		sliceItem := sliceValue[idx]
+		elemVal, elemErr := getLocalValue(sliceItem, elemType)
+		if elemErr != nil {
+			err = elemErr
+			log.Errorf("updateStructValue failed, sliceItem type:%s, elemVal type:%s", sliceItem.GetName(), elemVal.Type().String())
+			return
+		}
+		entityValue = reflect.Append(entityValue, elemVal)
+	}
+
+	ret = reflect.New(entityType).Elem()
+	ret.Set(entityValue)
+	if vType.IsPtrType() {
+		ret = ret.Addr()
+	}
+
 	return
 }
