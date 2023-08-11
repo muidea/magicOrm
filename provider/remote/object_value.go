@@ -3,11 +3,13 @@ package remote
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/muidea/magicOrm/model"
 	"path"
 	"reflect"
 
 	log "github.com/cihub/seelog"
+
+	"github.com/muidea/magicOrm/model"
+	pu "github.com/muidea/magicOrm/provider/util"
 )
 
 // ObjectValue Object value
@@ -120,7 +122,7 @@ func (s *SliceObjectValue) IsAssigned() (ret bool) {
 	return
 }
 
-func getFieldValue(fieldName string, itemType *TypeImpl, itemValue *valueImpl) (ret *FieldValue, err error) {
+func getFieldValue(fieldName string, itemType *TypeImpl, itemValue *pu.ValueImpl) (ret *FieldValue, err error) {
 	if itemValue.IsNil() {
 		ret = &FieldValue{Name: fieldName, Value: nil}
 		return
@@ -147,7 +149,7 @@ func getFieldValue(fieldName string, itemType *TypeImpl, itemValue *valueImpl) (
 	return
 }
 
-func getSliceFieldValue(fieldName string, itemType *TypeImpl, itemValue *valueImpl) (ret *FieldValue, err error) {
+func getSliceFieldValue(fieldName string, itemType *TypeImpl, itemValue *pu.ValueImpl) (ret *FieldValue, err error) {
 	ret = &FieldValue{Name: fieldName}
 	if itemValue.IsNil() {
 		ret = &FieldValue{Name: fieldName, Value: nil}
@@ -207,7 +209,7 @@ func getObjectValue(entityVal reflect.Value) (ret *ObjectValue, err error) {
 			return
 		}
 
-		valuePtr := newValue(entityVal.Field(idx))
+		valuePtr := pu.NewValue(entityVal.Field(idx))
 		typePtr, typeErr := newType(fieldType.Type)
 		if typeErr != nil {
 			err = typeErr

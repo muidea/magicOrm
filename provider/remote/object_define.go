@@ -9,6 +9,7 @@ import (
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/model"
+	pu "github.com/muidea/magicOrm/provider/util"
 )
 
 type Object struct {
@@ -137,10 +138,10 @@ func (s *Object) Copy() (ret model.Model) {
 			item.Spec = val.Spec.copy()
 		}
 		if val.value != nil {
-			item.value = val.value.copy()
+			item.value = val.value.Copy()
 		} else {
 			initVal := val.Type.Interface()
-			item.value = newValue(initVal.Get())
+			item.value = pu.NewValue(initVal.Get())
 		}
 
 		obj.Fields = append(obj.Fields, item)

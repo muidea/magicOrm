@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider/util"
 )
 
 type specImpl struct {
@@ -47,13 +48,13 @@ func (s *specImpl) IsPrimaryKey() (ret bool) {
 	isPrimaryKey := false
 	if len(items) >= 2 {
 		switch items[1] {
-		case "key":
+		case util.Key:
 			isPrimaryKey = true
 		}
 	}
 	if len(items) >= 3 {
 		switch items[2] {
-		case "key":
+		case util.Key:
 			isPrimaryKey = true
 		}
 	}
@@ -80,13 +81,13 @@ func (s *specImpl) IsAutoIncrement() (ret bool) {
 	isAutoIncrement := false
 	if len(items) >= 2 {
 		switch items[1] {
-		case "auto":
+		case util.Auto:
 			isAutoIncrement = true
 		}
 	}
 	if len(items) >= 3 {
 		switch items[2] {
-		case "auto":
+		case util.Auto:
 			isAutoIncrement = true
 		}
 	}
@@ -104,13 +105,13 @@ func (s *specImpl) IsUUID() (ret bool) {
 	isUUID := false
 	if len(items) >= 2 {
 		switch items[1] {
-		case "uuid":
+		case util.UUID:
 			isUUID = true
 		}
 	}
 	if len(items) >= 3 {
 		switch items[2] {
-		case "uuid":
+		case util.UUID:
 			isUUID = true
 		}
 	}
@@ -128,13 +129,13 @@ func (s *specImpl) IsSnowFlake() (ret bool) {
 	isSnowFlake := false
 	if len(items) >= 2 {
 		switch items[1] {
-		case "snowflake":
+		case util.SnowFlake:
 			isSnowFlake = true
 		}
 	}
 	if len(items) >= 3 {
 		switch items[2] {
-		case "snowflake":
+		case util.SnowFlake:
 			isSnowFlake = true
 		}
 	}

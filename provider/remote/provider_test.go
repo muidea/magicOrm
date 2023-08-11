@@ -3,6 +3,8 @@ package remote
 import (
 	"reflect"
 	"testing"
+
+	pu "github.com/muidea/magicOrm/provider/util"
 )
 
 func TestSimpleObjProvider(t *testing.T) {
@@ -50,7 +52,7 @@ func TestSimpleObjProvider(t *testing.T) {
 	}
 
 	sVal := reflect.ValueOf(simpleVal)
-	simpleModel, simpleErr = SetModelValue(simpleModel, newValue(sVal))
+	simpleModel, simpleErr = SetModelValue(simpleModel, pu.NewValue(sVal))
 	if simpleErr != nil {
 		t.Errorf("SetModelValue failed, err:%s", simpleErr.Error())
 		return

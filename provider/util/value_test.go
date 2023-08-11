@@ -1,4 +1,4 @@
-package local
+package util
 
 import (
 	"reflect"
@@ -8,9 +8,9 @@ import (
 func TestValue(t *testing.T) {
 	var v reflect.Value
 
-	valuePtr := newValue(v)
+	valuePtr := NewValue(v)
 	if !valuePtr.IsNil() {
-		t.Errorf("newValue failed")
+		t.Errorf("NewValue failed")
 		return
 	}
 
@@ -21,9 +21,9 @@ func TestValue(t *testing.T) {
 
 	iVal := 10
 	iReflect := reflect.ValueOf(&iVal).Elem()
-	valuePtr = newValue(iReflect)
+	valuePtr = NewValue(iReflect)
 	if valuePtr.IsNil() {
-		t.Errorf("newValue failed")
+		t.Errorf("NewValue failed")
 	}
 
 	if !valuePtr.IsBasic() {
@@ -33,9 +33,9 @@ func TestValue(t *testing.T) {
 
 	var nulValue interface{} = nil
 	nReflect := reflect.ValueOf(nulValue)
-	value2Ptr := newValue(nReflect)
+	value2Ptr := NewValue(nReflect)
 	if !value2Ptr.IsNil() {
-		t.Errorf("newValue failed")
+		t.Errorf("NewValue failed")
 		return
 	}
 	if value2Ptr.IsBasic() {
@@ -49,7 +49,7 @@ func TestValue(t *testing.T) {
 		return
 	}
 	if value2Ptr.IsNil() {
-		t.Errorf("newValue failed")
+		t.Errorf("NewValue failed")
 		return
 	}
 	if !value2Ptr.IsBasic() {

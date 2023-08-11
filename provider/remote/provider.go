@@ -7,6 +7,7 @@ import (
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/helper"
+	pu "github.com/muidea/magicOrm/provider/util"
 	"github.com/muidea/magicOrm/util"
 )
 
@@ -16,7 +17,7 @@ var nilValue model.Value
 func init() {
 	_helper = helper.New(ElemDependValue)
 
-	nilValue = &valueImpl{}
+	nilValue = &pu.ValueImpl{}
 }
 
 func isRemoteType(vType model.Type) bool {
@@ -76,7 +77,7 @@ func GetEntityType(entity interface{}) (ret model.Type, err error) {
 
 func GetEntityValue(entity interface{}) (ret model.Value, err error) {
 	rVal := reflect.ValueOf(entity)
-	ret = newValue(rVal)
+	ret = pu.NewValue(rVal)
 	return
 }
 
@@ -140,7 +141,7 @@ func setFieldValue(iVal reflect.Value, vModel model.Model) (err error) {
 		return
 	}
 
-	vValue := newValue(iValue)
+	vValue := pu.NewValue(iValue)
 	err = vField.SetValue(vValue)
 	return
 }
@@ -179,7 +180,7 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 		objectsVal := rVal.FieldByName("Values")
 		if !util.IsNil(objectsVal) {
 			for idx := 0; idx < objectsVal.Len(); idx++ {
-				ret = append(ret, newValue(objectsVal.Index(idx)))
+				ret = append(ret, pu.NewValue(objectsVal.Index(idx)))
 			}
 
 			return
@@ -202,7 +203,7 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 
 	if model.IsSliceType(tVal) {
 		for idx := 0; idx < rVal.Len(); idx++ {
-			ret = append(ret, newValue(rVal.Index(idx)))
+			ret = append(ret, pu.NewValue(rVal.Index(idx)))
 		}
 		return
 	}

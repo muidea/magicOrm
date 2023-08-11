@@ -5,13 +5,15 @@ import (
 	"reflect"
 
 	"github.com/muidea/magicCommon/foundation/util"
+
 	om "github.com/muidea/magicOrm/model"
+	pu "github.com/muidea/magicOrm/provider/util"
 	ou "github.com/muidea/magicOrm/util"
 )
 
 type filterItem struct {
 	oprCode om.OprCode
-	value   *valueImpl
+	value   *pu.ValueImpl
 }
 
 func (s *filterItem) OprCode() om.OprCode {
@@ -23,14 +25,14 @@ func (s *filterItem) OprValue() om.Value {
 }
 
 type filter struct {
-	bindValue  *valueImpl
+	bindValue  *pu.ValueImpl
 	params     map[string]*filterItem
-	maskValue  *valueImpl
+	maskValue  *pu.ValueImpl
 	pageFilter *util.Pagination
 	sortFilter *util.SortFilter
 }
 
-func NewFilter(valuePtr *valueImpl) *filter {
+func NewFilter(valuePtr *pu.ValueImpl) *filter {
 	return &filter{bindValue: valuePtr, params: map[string]*filterItem{}}
 }
 
@@ -47,7 +49,7 @@ func (s *filter) Equal(key string, val interface{}) (err error) {
 	}
 
 	//s.equalFilter = append(s.equalFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: om.EqualOpr, value: newValue(qv)}
+	s.params[key] = &filterItem{oprCode: om.EqualOpr, value: pu.NewValue(qv)}
 	return
 }
 
@@ -64,7 +66,7 @@ func (s *filter) NotEqual(key string, val interface{}) (err error) {
 	}
 
 	//s.notEqualFilter = append(s.notEqualFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: om.NotEqualOpr, value: newValue(qv)}
+	s.params[key] = &filterItem{oprCode: om.NotEqualOpr, value: pu.NewValue(qv)}
 	return
 }
 
@@ -81,7 +83,7 @@ func (s *filter) Below(key string, val interface{}) (err error) {
 	}
 
 	//s.belowFilter = append(s.belowFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: om.BelowOpr, value: newValue(qv)}
+	s.params[key] = &filterItem{oprCode: om.BelowOpr, value: pu.NewValue(qv)}
 	return
 }
 
@@ -98,7 +100,7 @@ func (s *filter) Above(key string, val interface{}) (err error) {
 	}
 
 	//s.aboveFilter = append(s.aboveFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: om.AboveOpr, value: newValue(qv)}
+	s.params[key] = &filterItem{oprCode: om.AboveOpr, value: pu.NewValue(qv)}
 	return
 }
 
@@ -115,7 +117,7 @@ func (s *filter) In(key string, val interface{}) (err error) {
 	}
 
 	//s.inFilter = append(s.inFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: om.InOpr, value: newValue(qv)}
+	s.params[key] = &filterItem{oprCode: om.InOpr, value: pu.NewValue(qv)}
 	return
 }
 
@@ -132,7 +134,7 @@ func (s *filter) NotIn(key string, val interface{}) (err error) {
 	}
 
 	//s.notInFilter = append(s.notInFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: om.NotInOpr, value: newValue(qv)}
+	s.params[key] = &filterItem{oprCode: om.NotInOpr, value: pu.NewValue(qv)}
 	return
 }
 
@@ -144,7 +146,7 @@ func (s *filter) Like(key string, val interface{}) (err error) {
 	}
 
 	//s.likeFilter = append(s.likeFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: om.LikeOpr, value: newValue(qv)}
+	s.params[key] = &filterItem{oprCode: om.LikeOpr, value: pu.NewValue(qv)}
 	return
 }
 
@@ -165,7 +167,7 @@ func (s *filter) ValueMask(val interface{}) (err error) {
 		return
 	}
 
-	s.maskValue = newValue(qv)
+	s.maskValue = pu.NewValue(qv)
 	return
 }
 

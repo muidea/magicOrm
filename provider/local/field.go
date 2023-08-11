@@ -7,6 +7,7 @@ import (
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider/util"
 )
 
 // field single field impl
@@ -16,7 +17,7 @@ type field struct {
 
 	typePtr  *typeImpl
 	specPtr  *specImpl
-	valuePtr *valueImpl
+	valuePtr *util.ValueImpl
 }
 
 func (s *field) GetIndex() int {
@@ -87,7 +88,7 @@ func (s *field) copy() *field {
 		val.specPtr = s.specPtr.copy()
 	}
 	if s.valuePtr != nil {
-		val.valuePtr = s.valuePtr.copy()
+		val.valuePtr = s.valuePtr.Copy()
 	}
 
 	return val
@@ -127,7 +128,7 @@ func (s *field) verify() error {
 		return nil
 	}
 
-	return s.valuePtr.verify()
+	return s.valuePtr.Verify()
 }
 
 func (s *field) dump() string {
@@ -164,7 +165,7 @@ func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Val
 		return
 	}
 
-	valuePtr := newValue(fieldValue)
+	valuePtr := util.NewValue(fieldValue)
 
 	fieldPtr := &field{}
 	fieldPtr.index = idx

@@ -7,12 +7,13 @@ import (
 
 	"github.com/muidea/magicCommon/foundation/util"
 	om "github.com/muidea/magicOrm/model"
+	pu "github.com/muidea/magicOrm/provider/util"
 	ou "github.com/muidea/magicOrm/util"
 )
 
 type filterItem struct {
 	oprCode om.OprCode
-	value   *valueImpl
+	value   *pu.ValueImpl
 }
 
 func (s *filterItem) OprCode() om.OprCode {
@@ -338,7 +339,7 @@ func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: om.EqualOpr, value: newValue(itemVal.Get())}
+		return &filterItem{oprCode: om.EqualOpr, value: pu.NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.NotEqualFilter)
@@ -346,7 +347,7 @@ func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: om.NotEqualOpr, value: newValue(itemVal.Get())}
+		return &filterItem{oprCode: om.NotEqualOpr, value: pu.NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.BelowFilter)
@@ -354,7 +355,7 @@ func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: om.BelowOpr, value: newValue(itemVal.Get())}
+		return &filterItem{oprCode: om.BelowOpr, value: pu.NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.AboveFilter)
@@ -362,7 +363,7 @@ func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: om.AboveOpr, value: newValue(itemVal.Get())}
+		return &filterItem{oprCode: om.AboveOpr, value: pu.NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.InFilter)
@@ -370,7 +371,7 @@ func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: om.InOpr, value: newValue(itemVal.Get())}
+		return &filterItem{oprCode: om.InOpr, value: pu.NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.NotInFilter)
@@ -378,7 +379,7 @@ func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: om.NotInOpr, value: newValue(itemVal.Get())}
+		return &filterItem{oprCode: om.NotInOpr, value: pu.NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.LikeFilter)
@@ -386,7 +387,7 @@ func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: om.LikeOpr, value: newValue(itemVal.Get())}
+		return &filterItem{oprCode: om.LikeOpr, value: pu.NewValue(itemVal.Get())}
 	}
 
 	return nil

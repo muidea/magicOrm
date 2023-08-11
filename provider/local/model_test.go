@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/muidea/magicCommon/foundation/util"
+	pu "github.com/muidea/magicOrm/provider/util"
 )
 
 // Unit 单元信息
@@ -48,7 +49,7 @@ func TestModelValue(t *testing.T) {
 	}
 
 	id := int64(123320)
-	iVal := newValue(reflect.ValueOf(id))
+	iVal := pu.NewValue(reflect.ValueOf(id))
 	pk := unitInfo.GetPrimaryField()
 	if pk == nil {
 		t.Errorf("GetPrimaryField faield")
@@ -61,7 +62,7 @@ func TestModelValue(t *testing.T) {
 	}
 
 	name := "abcdfrfe"
-	nVal := newValue(reflect.ValueOf(name))
+	nVal := pu.NewValue(reflect.ValueOf(name))
 	unitErr = unitInfo.SetFieldValue("name", nVal)
 	if unitErr != nil {
 		t.Errorf("UpdateField value failed, unitErr:%s", unitErr.Error())
@@ -69,7 +70,7 @@ func TestModelValue(t *testing.T) {
 	}
 
 	now = time.Now()
-	tsVal := newValue(reflect.ValueOf(now))
+	tsVal := pu.NewValue(reflect.ValueOf(now))
 	unitErr = unitInfo.SetFieldValue("timeStamp", tsVal)
 	if unitErr != nil {
 		t.Errorf("UpdateField value failed, unitErr:%s", unitErr.Error())

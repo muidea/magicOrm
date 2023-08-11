@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
+	pu "github.com/muidea/magicOrm/provider/util"
 	"github.com/muidea/magicOrm/util"
 )
 
@@ -69,7 +70,7 @@ func (s *typeImpl) Interface() (ret model.Value) {
 		tVal.Set(rVal)
 	}
 
-	ret = newValue(tVal)
+	ret = pu.NewValue(tVal)
 	return
 }
 

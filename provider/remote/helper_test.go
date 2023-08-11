@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+
+	pu "github.com/muidea/magicOrm/provider/util"
 )
 
 func TestHelper(t *testing.T) {
@@ -13,7 +15,7 @@ func TestHelper(t *testing.T) {
 		string
 	*/
 	ii := 123.00
-	iVal := newValue(reflect.ValueOf(ii))
+	iVal := pu.NewValue(reflect.ValueOf(ii))
 	iType, iErr := newType(reflect.TypeOf(ii))
 	if iErr != nil {
 		t.Errorf("newType failed, err:%s", iErr.Error())
@@ -46,7 +48,7 @@ func TestHelper(t *testing.T) {
 	}
 
 	ff := 123.345
-	fVal := newValue(reflect.ValueOf(ff))
+	fVal := pu.NewValue(reflect.ValueOf(ff))
 	fType, fErr := newType(reflect.TypeOf(ff))
 	if fErr != nil {
 		t.Errorf("newType failed, err:%s", fErr.Error())
@@ -79,7 +81,7 @@ func TestHelper(t *testing.T) {
 	}
 
 	bb := true
-	bVal := newValue(reflect.ValueOf(bb))
+	bVal := pu.NewValue(reflect.ValueOf(bb))
 	bType, bErr := newType(reflect.TypeOf(bb))
 	if bErr != nil {
 		t.Errorf("newType failed, err:%s", bErr.Error())
@@ -111,7 +113,7 @@ func TestHelper(t *testing.T) {
 	}
 
 	ss := "hello world"
-	sVal := newValue(reflect.ValueOf(ss))
+	sVal := pu.NewValue(reflect.ValueOf(ss))
 	sType, sErr := newType(reflect.TypeOf(ss))
 	if sErr != nil {
 		t.Errorf("newType failed, err:%s", sErr.Error())
@@ -145,7 +147,7 @@ func TestHelper(t *testing.T) {
 
 func TestSliceHelper(t *testing.T) {
 	ii := &[]float64{123}
-	iVal := newValue(reflect.ValueOf(ii))
+	iVal := pu.NewValue(reflect.ValueOf(ii))
 	iType, iErr := newType(reflect.TypeOf(ii))
 	if iErr != nil {
 		t.Errorf("newType failed, err:%s", iErr.Error())
@@ -178,7 +180,7 @@ func TestSliceHelper(t *testing.T) {
 	}
 
 	ff := []float64{123.345}
-	fVal := newValue(reflect.ValueOf(ff))
+	fVal := pu.NewValue(reflect.ValueOf(ff))
 	fType, fErr := newType(reflect.TypeOf(ff))
 	if fErr != nil {
 		t.Errorf("newType failed, err:%s", fErr.Error())
@@ -196,7 +198,7 @@ func TestSliceHelper(t *testing.T) {
 	}
 
 	bb := []bool{true}
-	bVal := newValue(reflect.ValueOf(bb))
+	bVal := pu.NewValue(reflect.ValueOf(bb))
 	bType, bErr := newType(reflect.TypeOf(bb))
 	if bErr != nil {
 		t.Errorf("newType failed, err:%s", bErr.Error())
@@ -214,7 +216,7 @@ func TestSliceHelper(t *testing.T) {
 	}
 
 	bb = []bool{true, false, true}
-	bVal = newValue(reflect.ValueOf(bb))
+	bVal = pu.NewValue(reflect.ValueOf(bb))
 	bType, bErr = newType(reflect.TypeOf(bb))
 	if bErr != nil {
 		t.Errorf("newType failed, err:%s", bErr.Error())
@@ -232,7 +234,7 @@ func TestSliceHelper(t *testing.T) {
 	}
 
 	ss := []string{"hello world"}
-	sVal := newValue(reflect.ValueOf(ss))
+	sVal := pu.NewValue(reflect.ValueOf(ss))
 	sType, sErr := newType(reflect.TypeOf(ss))
 	if sErr != nil {
 		t.Errorf("newType failed, err:%s", sErr.Error())
@@ -250,7 +252,7 @@ func TestSliceHelper(t *testing.T) {
 	}
 
 	tt := []string{"2006-01-02 15:04:05.000"}
-	tVal := newValue(reflect.ValueOf(tt))
+	tVal := pu.NewValue(reflect.ValueOf(tt))
 	tType, tErr := newType(reflect.TypeOf(tt))
 	if tErr != nil {
 		t.Errorf("newType failed, err:%s", fErr.Error())
@@ -270,7 +272,7 @@ func TestSliceHelper(t *testing.T) {
 
 func TestRemoteSliceHelper(t *testing.T) {
 	ii := []float64{}
-	iVal := newValue(reflect.ValueOf([]float64{123}))
+	iVal := pu.NewValue(reflect.ValueOf([]float64{123}))
 	iType, iErr := newType(reflect.TypeOf(ii))
 	if iErr != nil {
 		t.Errorf("newType failed, err:%s", iErr.Error())
@@ -288,7 +290,7 @@ func TestRemoteSliceHelper(t *testing.T) {
 	}
 
 	ff := []float64{123.345}
-	fVal := newValue(reflect.ValueOf(ff))
+	fVal := pu.NewValue(reflect.ValueOf(ff))
 	fType, fErr := newType(reflect.TypeOf(ff))
 	if fErr != nil {
 		t.Errorf("newType failed, err:%s", fErr.Error())
@@ -306,7 +308,7 @@ func TestRemoteSliceHelper(t *testing.T) {
 	}
 
 	bb := []bool{true}
-	bVal := newValue(reflect.ValueOf(bb))
+	bVal := pu.NewValue(reflect.ValueOf(bb))
 	bType, bErr := newType(reflect.TypeOf(bb))
 	if bErr != nil {
 		t.Errorf("newType failed, err:%s", bErr.Error())
@@ -324,7 +326,7 @@ func TestRemoteSliceHelper(t *testing.T) {
 	}
 
 	ss := []string{"hello world", "hello world"}
-	sVal := newValue(reflect.ValueOf(ss))
+	sVal := pu.NewValue(reflect.ValueOf(ss))
 	sType, sErr := newType(reflect.TypeOf(ss))
 	if sErr != nil {
 		t.Errorf("newType failed, err:%s", sErr.Error())
@@ -342,7 +344,7 @@ func TestRemoteSliceHelper(t *testing.T) {
 	}
 
 	tt := []string{"2006-01-02 15:04:05.000"}
-	tVal := newValue(reflect.ValueOf(tt))
+	tVal := pu.NewValue(reflect.ValueOf(tt))
 	tType, tErr := newType(reflect.TypeOf(tt))
 	if tErr != nil {
 		t.Errorf("newType failed, err:%s", tErr.Error())
@@ -363,7 +365,7 @@ func TestRemoteSliceHelper(t *testing.T) {
 func TestSpecSliceHelper(t *testing.T) {
 	v := float64(12)
 	ii := []float64{v}
-	tVal := newValue(reflect.ValueOf(ii))
+	tVal := pu.NewValue(reflect.ValueOf(ii))
 	tType, tErr := newType(reflect.TypeOf(ii))
 	if tErr != nil {
 		t.Errorf("newType failed, err:%s", tErr.Error())
@@ -391,7 +393,7 @@ func TestSpecSliceHelper(t *testing.T) {
 	}
 
 	iPtr := []*float64{&v}
-	tVal = newValue(reflect.ValueOf(iPtr))
+	tVal = pu.NewValue(reflect.ValueOf(iPtr))
 	tType, tErr = newType(reflect.TypeOf(iPtr))
 	if tErr != nil {
 		t.Errorf("newType failed, err:%s", tErr.Error())
@@ -419,7 +421,7 @@ func TestSpecSliceHelper(t *testing.T) {
 	}
 
 	ptrii := &[]float64{v}
-	tVal = newValue(reflect.ValueOf(ptrii))
+	tVal = pu.NewValue(reflect.ValueOf(ptrii))
 	tType, tErr = newType(reflect.TypeOf(ptrii))
 	if tErr != nil {
 		t.Errorf("newType failed, err:%s", tErr.Error())
@@ -447,7 +449,7 @@ func TestSpecSliceHelper(t *testing.T) {
 	}
 
 	ptriiPtr := &[]*float64{&v}
-	tVal = newValue(reflect.ValueOf(ptriiPtr))
+	tVal = pu.NewValue(reflect.ValueOf(ptriiPtr))
 	tType, tErr = newType(reflect.TypeOf(ptriiPtr))
 	if tErr != nil {
 		t.Errorf("newType failed, err:%s", tErr.Error())

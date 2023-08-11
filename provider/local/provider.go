@@ -7,6 +7,7 @@ import (
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/helper"
+	"github.com/muidea/magicOrm/provider/util"
 )
 
 var _helper helper.Helper
@@ -45,7 +46,7 @@ func GetEntityValue(entity interface{}) (ret model.Value, err error) {
 		rVal = rVal.Elem()
 	}
 
-	ret = newValue(rVal)
+	ret = util.NewValue(rVal)
 	return
 }
 
@@ -82,7 +83,7 @@ func GetEntityModel(entity interface{}) (ret model.Model, err error) {
 }
 
 func GetModelFilter(vModel model.Model) (ret model.Filter, err error) {
-	valuePtr := newValue(reflect.ValueOf(vModel.Interface(true)))
+	valuePtr := util.NewValue(reflect.ValueOf(vModel.Interface(true)))
 	ret = NewFilter(valuePtr)
 	return
 }
@@ -110,7 +111,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 			return
 		}
 
-		fieldVal := newValue(rVal.Field(idx))
+		fieldVal := util.NewValue(rVal.Field(idx))
 		if fieldVal.IsNil() {
 			continue
 		}
@@ -138,7 +139,7 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 	}
 
 	for idx := 0; idx < rVal.Len(); idx++ {
-		val := newValue(rVal.Index(idx))
+		val := util.NewValue(rVal.Index(idx))
 		ret = append(ret, val)
 	}
 
@@ -174,7 +175,7 @@ func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, e
 	rNewVal := reflect.Append(rSliceVal, rVal)
 	rSliceVal.Set(rNewVal)
 
-	ret = newValue(rSliceVal)
+	ret = util.NewValue(rSliceVal)
 	return
 }
 

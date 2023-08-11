@@ -6,16 +6,13 @@ import (
 	"strings"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider/util"
 )
 
 const (
-	fieldName      = "fieldName"
-	fieldType      = "fieldType"
-	valueDeclare   = "valueDeclare"
-	fieldKey       = "key"
-	fieldAuto      = "auto"
-	fieldUUID      = "uuid"
-	fieldSnowFlake = "snowflake"
+	fieldName    = "fieldName"
+	fieldType    = "fieldType"
+	valueDeclare = "valueDeclare"
 )
 
 type SpecImpl map[string]string
@@ -32,7 +29,7 @@ func (s SpecImpl) GetFieldName() string {
 func (s SpecImpl) IsPrimaryKey() (ret bool) {
 	val, ok := s[fieldType]
 	if ok {
-		return val == fieldKey
+		return val == util.Key
 	}
 
 	return false
@@ -51,6 +48,8 @@ func (s SpecImpl) GetValueDeclare() model.ValueDeclare {
 		return model.UUID
 	case model.SnowFlake.String():
 		return model.SnowFlake
+	case model.DateTime.String():
+		return model.DateTime
 	}
 
 	return model.Customer
@@ -98,18 +97,19 @@ func getSpec(spec string) (ret SpecImpl, err error) {
 	}
 
 	ret = SpecImpl{}
-
 	ret[fieldName] = items[0]
 	for idx := 1; idx < len(items); idx++ {
 		switch items[idx] {
-		case fieldAuto:
+		case util.Auto:
 			ret[valueDeclare] = model.AutoIncrement.String()
-		case fieldUUID:
+		case util.UUID:
 			ret[valueDeclare] = model.UUID.String()
-		case fieldSnowFlake:
+		case util.SnowFlake:
 			ret[valueDeclare] = model.SnowFlake.String()
-		case fieldKey:
-			ret[fieldType] = fieldKey
+		case util.DateTime:
+			ret[valueDeclare] = model.DateTime.String()
+		case util.Key:
+			ret[fieldType] = util.Key
 		}
 	}
 

@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
+	pu "github.com/muidea/magicOrm/provider/util"
 	"github.com/muidea/magicOrm/util"
 )
 
@@ -84,7 +85,7 @@ func (s *TypeImpl) IsPtrType() (ret bool) {
 
 func (s *TypeImpl) Interface() (ret model.Value) {
 	tVal := getInitializeValue(s)
-	ret = newValue(tVal)
+	ret = pu.NewValue(tVal)
 	return
 }
 

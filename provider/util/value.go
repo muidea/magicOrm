@@ -1,4 +1,4 @@
-package local
+package util
 
 import (
 	"fmt"
@@ -8,21 +8,21 @@ import (
 	"github.com/muidea/magicOrm/util"
 )
 
-type valueImpl struct {
+type ValueImpl struct {
 	value reflect.Value
 }
 
-func newValue(val reflect.Value) (ret *valueImpl) {
-	ret = &valueImpl{value: val}
+func NewValue(val reflect.Value) (ret *ValueImpl) {
+	ret = &ValueImpl{value: val}
 	return
 }
 
-func (s *valueImpl) IsNil() (ret bool) {
+func (s *ValueImpl) IsNil() (ret bool) {
 	ret = util.IsNil(s.value)
 	return
 }
 
-func (s *valueImpl) Set(val reflect.Value) (err error) {
+func (s *ValueImpl) Set(val reflect.Value) (err error) {
 	//rVal := reflect.Indirect(val)
 	if val.Kind() == reflect.Interface {
 		val = val.Elem()
@@ -55,21 +55,21 @@ func (s *valueImpl) Set(val reflect.Value) (err error) {
 	return
 }
 
-func (s *valueImpl) Get() reflect.Value {
+func (s *ValueImpl) Get() reflect.Value {
 	//return reflect.Indirect(s.value)
 	return s.value
 }
 
-func (s *valueImpl) Addr() model.Value {
+func (s *ValueImpl) Addr() model.Value {
 	if !s.value.CanAddr() {
 		panic("illegal value")
 	}
 
-	impl := &valueImpl{value: s.value.Addr()}
+	impl := &ValueImpl{value: s.value.Addr()}
 	return impl
 }
 
-func (s *valueImpl) Interface() any {
+func (s *ValueImpl) Interface() any {
 	if util.IsNil(s.value) {
 		return nil
 	}
@@ -77,7 +77,7 @@ func (s *valueImpl) Interface() any {
 	return s.value.Interface()
 }
 
-func (s *valueImpl) IsBasic() bool {
+func (s *ValueImpl) IsBasic() bool {
 	if util.IsNil(s.value) {
 		return false
 	}
@@ -96,7 +96,7 @@ func (s *valueImpl) IsBasic() bool {
 	return !util.IsStruct(rType)
 }
 
-func (s *valueImpl) verify() error {
+func (s *ValueImpl) Verify() error {
 	if s.IsNil() {
 		return nil
 	}
@@ -108,13 +108,13 @@ func (s *valueImpl) verify() error {
 	return nil
 }
 
-func (s *valueImpl) copy() (ret *valueImpl) {
+func (s *ValueImpl) Copy() (ret *ValueImpl) {
 	if !util.IsNil(s.value) {
-		ret = &valueImpl{value: reflect.New(s.value.Type()).Elem()}
+		ret = &ValueImpl{value: reflect.New(s.value.Type()).Elem()}
 		ret.value.Set(s.value)
 		return
 	}
 
-	ret = &valueImpl{}
+	ret = &ValueImpl{}
 	return
 }

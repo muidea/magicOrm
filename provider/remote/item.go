@@ -3,10 +3,13 @@ package remote
 import (
 	"fmt"
 	"reflect"
+	"time"
 
 	log "github.com/cihub/seelog"
 
+	"github.com/muidea/magicCommon/foundation/util"
 	"github.com/muidea/magicOrm/model"
+	pu "github.com/muidea/magicOrm/provider/util"
 )
 
 type Field struct {
@@ -15,7 +18,7 @@ type Field struct {
 
 	Type  *TypeImpl `json:"type"`
 	Spec  *SpecImpl `json:"spec"`
-	value *valueImpl
+	value *pu.ValueImpl
 }
 
 func (s *Field) GetIndex() (ret int) {
@@ -48,6 +51,18 @@ func (s *Field) GetValue() (ret model.Value) {
 	}
 
 	ret = s.Type.Interface()
+	var rVal interface{}
+	if s.Spec != nil {
+		switch s.Spec.GetValueDeclare() {
+		case model.UUID:
+		case model.SnowFlake:
+		case model.DateTime:
+			rVal = time.Now().UTC().Format(util.CSTLayout)
+		}
+
+		ret.Set(reflect.ValueOf(rVal))
+	}
+
 	return
 }
 
@@ -76,7 +91,7 @@ func (s *Field) SetValue(val model.Value) (err error) {
 
 	initVal := s.Type.Interface()
 	initVal.Set(val.Get())
-	s.value = &valueImpl{value: initVal.Get()}
+	s.value = pu.NewValue(initVal.Get())
 	return
 }
 
@@ -114,7 +129,7 @@ func (s *Field) verify() (err error) {
 		return nil
 	}
 
-	return s.value.verify()
+	return s.value.Verify()
 }
 
 func (s *Field) dump() string {
@@ -168,7 +183,7 @@ func getItemInfo(idx int, fieldType reflect.StructField) (ret *Field, err error)
 	}
 	item.Type = typeImpl
 	item.Spec = specImpl
-	item.value = newValue(initVal.Get())
+	item.value = pu.NewValue(initVal.Get())
 
 	ret = item
 	return
