@@ -10,7 +10,7 @@ import (
 	pu "github.com/muidea/magicOrm/provider/util"
 )
 
-func TestHelper(t *testing.T) {
+func TestCodec(t *testing.T) {
 	ii := 123
 	iVal := pu.NewValue(reflect.ValueOf(ii))
 	iType, iErr := newType(reflect.TypeOf(ii))
@@ -19,7 +19,7 @@ func TestHelper(t *testing.T) {
 		return
 	}
 
-	valStr, valErr := _helper.Encode(iVal, iType)
+	valStr, valErr := _codec.Encode(iVal, iType)
 	if valErr != nil {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
@@ -29,7 +29,7 @@ func TestHelper(t *testing.T) {
 		return
 	}
 
-	dVal, dErr := _helper.Decode(valStr, iType)
+	dVal, dErr := _codec.Decode(valStr, iType)
 	if dErr != nil {
 		t.Errorf("Decode failed,")
 		return
@@ -47,7 +47,7 @@ func TestHelper(t *testing.T) {
 		return
 	}
 
-	valStr, valErr = _helper.Encode(uiVal, uiType)
+	valStr, valErr = _codec.Encode(uiVal, uiType)
 	if valErr != nil {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
@@ -65,7 +65,7 @@ func TestHelper(t *testing.T) {
 		return
 	}
 
-	valStr, valErr = _helper.Encode(fVal, fType)
+	valStr, valErr = _codec.Encode(fVal, fType)
 	if valErr != nil {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
@@ -83,7 +83,7 @@ func TestHelper(t *testing.T) {
 		return
 	}
 
-	valStr, valErr = _helper.Encode(bVal, bType)
+	valStr, valErr = _codec.Encode(bVal, bType)
 	if valErr != nil {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
@@ -101,7 +101,7 @@ func TestHelper(t *testing.T) {
 		return
 	}
 
-	valStr, valErr = _helper.Encode(sVal, sType)
+	valStr, valErr = _codec.Encode(sVal, sType)
 	if valErr != nil {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
@@ -119,7 +119,7 @@ func TestHelper(t *testing.T) {
 		return
 	}
 
-	valStr, valErr = _helper.Encode(tVal, tType)
+	valStr, valErr = _codec.Encode(tVal, tType)
 	if valErr != nil {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
@@ -130,7 +130,7 @@ func TestHelper(t *testing.T) {
 	}
 }
 
-func TestSliceHelper(t *testing.T) {
+func TestSliceCodec(t *testing.T) {
 	ii := []int{123}
 	iVal := pu.NewValue(reflect.ValueOf(ii))
 	iType, iErr := newType(reflect.TypeOf(ii))
@@ -139,7 +139,7 @@ func TestSliceHelper(t *testing.T) {
 		return
 	}
 
-	valStr, valErr := _helper.Encode(iVal, iType)
+	valStr, valErr := _codec.Encode(iVal, iType)
 	if valErr != nil {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
@@ -149,7 +149,7 @@ func TestSliceHelper(t *testing.T) {
 		return
 	}
 
-	dVal, dErr := _helper.Decode(valStr, iType)
+	dVal, dErr := _codec.Decode(valStr, iType)
 	if dErr != nil {
 		t.Errorf("Decode failed,")
 		return
@@ -167,7 +167,7 @@ func TestSliceHelper(t *testing.T) {
 		return
 	}
 
-	valStr, valErr = _helper.Encode(fVal, fType)
+	valStr, valErr = _codec.Encode(fVal, fType)
 	if valErr != nil {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
@@ -185,7 +185,7 @@ func TestSliceHelper(t *testing.T) {
 		return
 	}
 
-	valStr, valErr = _helper.Encode(bVal, bType)
+	valStr, valErr = _codec.Encode(bVal, bType)
 	if valErr != nil {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
@@ -194,7 +194,7 @@ func TestSliceHelper(t *testing.T) {
 		t.Errorf("Encode failed,")
 		return
 	}
-	dVal, dErr = _helper.Decode(valStr, bType)
+	dVal, dErr = _codec.Decode(valStr, bType)
 	if dErr != nil {
 		t.Errorf("Decode failed,")
 		return
@@ -212,7 +212,7 @@ func TestSliceHelper(t *testing.T) {
 		return
 	}
 
-	valStr, valErr = _helper.Encode(sVal, sType)
+	valStr, valErr = _codec.Encode(sVal, sType)
 	if valErr != nil {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
@@ -236,7 +236,7 @@ func TestSliceHelper(t *testing.T) {
 		return
 	}
 
-	valStr, valErr = _helper.Encode(tVal, tType)
+	valStr, valErr = _codec.Encode(tVal, tType)
 	if valErr != nil {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return

@@ -1,4 +1,4 @@
-package helper
+package codec
 
 import (
 	"fmt"
@@ -27,7 +27,7 @@ func (s *impl) encodeDateTime(vVal model.Value) (ret interface{}, err error) {
 	case reflect.String:
 		ret = val.String()
 	default:
-		err = fmt.Errorf("illegal dateTime value, type:%s", val.Type().String())
+		err = fmt.Errorf("illegal dateTime type, type:%s", val.Type().String())
 	}
 
 	return

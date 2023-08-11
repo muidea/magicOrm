@@ -6,18 +6,18 @@ import (
 	"strings"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/helper"
+	"github.com/muidea/magicOrm/provider/codec"
 	"github.com/muidea/magicOrm/provider/util"
 )
 
-var _helper helper.Helper
+var _codec codec.Codec
 
 func init() {
-	_helper = helper.New(ElemDependValue)
+	_codec = codec.New(ElemDependValue)
 }
 
-func GetHelper() helper.Helper {
-	return _helper
+func GetCodec() codec.Codec {
+	return _codec
 }
 
 func GetType(vType reflect.Type) (ret model.Type, err error) {
@@ -179,7 +179,7 @@ func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, e
 	return
 }
 
-func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, helper helper.Helper) (ret interface{}, err error) {
+func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, codec codec.Codec) (ret interface{}, err error) {
 	tModel := mCache.Fetch(vType.GetPkgKey())
 	if tModel == nil {
 		err = fmt.Errorf("illegal value type,type:%s", vType.GetName())
@@ -188,7 +188,7 @@ func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, helper 
 
 	if vVal.IsBasic() {
 		pkField := tModel.GetPrimaryField()
-		ret, err = helper.Encode(vVal, pkField.GetType())
+		ret, err = codec.Encode(vVal, pkField.GetType())
 		return
 	}
 
@@ -199,11 +199,11 @@ func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, helper 
 	}
 
 	pkField := vModel.GetPrimaryField()
-	ret, err = helper.Encode(pkField.GetValue(), pkField.GetType())
+	ret, err = codec.Encode(pkField.GetValue(), pkField.GetType())
 	return
 }
 
-func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache, helper helper.Helper) (ret string, err error) {
+func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache, codec codec.Codec) (ret string, err error) {
 	vVals, vErr := ElemDependValue(tVal)
 	if vErr != nil {
 		err = vErr
@@ -215,7 +215,7 @@ func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache, he
 
 	items := []string{}
 	for _, v := range vVals {
-		strVal, strErr := encodeModel(v, tType.Elem(), mCache, helper)
+		strVal, strErr := encodeModel(v, tType.Elem(), mCache, codec)
 		if strErr != nil {
 			err = strErr
 			return
@@ -230,21 +230,21 @@ func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache, he
 
 func EncodeValue(tVal model.Value, tType model.Type, mCache model.Cache) (ret interface{}, err error) {
 	if tType.IsBasic() {
-		ret, err = _helper.Encode(tVal, tType)
+		ret, err = _codec.Encode(tVal, tType)
 		return
 	}
 	if model.IsStructType(tType.GetValue()) {
-		ret, err = encodeModel(tVal, tType, mCache, _helper)
+		ret, err = encodeModel(tVal, tType, mCache, _codec)
 		return
 	}
 
-	ret, err = encodeSliceModel(tVal, tType, mCache, _helper)
+	ret, err = encodeSliceModel(tVal, tType, mCache, _codec)
 	return
 }
 
 func DecodeValue(tVal interface{}, tType model.Type, mCache model.Cache) (ret model.Value, err error) {
 	if tType.IsBasic() {
-		ret, err = _helper.Decode(tVal, tType)
+		ret, err = _codec.Decode(tVal, tType)
 		return
 	}
 

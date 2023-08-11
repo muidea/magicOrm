@@ -1,4 +1,4 @@
-package helper
+package codec
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 
 type ElemDependValueFunc func(model.Value) ([]model.Value, error)
 
-type Helper interface {
+type Codec interface {
 	Encode(vVal model.Value, tType model.Type) (ret interface{}, err error)
 	Decode(val interface{}, tType model.Type) (ret model.Value, err error)
 }
@@ -17,15 +17,10 @@ type impl struct {
 	elemDependValue ElemDependValueFunc
 }
 
-func New(elemDependValue ElemDependValueFunc) Helper {
+func New(elemDependValue ElemDependValueFunc) Codec {
 	return &impl{elemDependValue: elemDependValue}
 }
 
-/*
-local struct -> db field value
-
-remote object value -> db field value
-*/
 func (s *impl) Encode(vVal model.Value, tType model.Type) (ret interface{}, err error) {
 	if !tType.IsBasic() {
 		err = fmt.Errorf("illegal value type, type:%s", tType.GetName())
@@ -54,11 +49,6 @@ func (s *impl) Encode(vVal model.Value, tType model.Type) (ret interface{}, err 
 	return
 }
 
-/*
-db field value -> local struct
-
-db field value -> remote object value
-*/
 func (s *impl) Decode(val interface{}, tType model.Type) (ret model.Value, err error) {
 	if !tType.IsBasic() {
 		err = fmt.Errorf("illegal value type, type:%s", tType.GetName())

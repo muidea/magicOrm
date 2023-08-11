@@ -413,7 +413,7 @@ func getFieldValue(fieldName string, itemType *TypeImpl, itemValue *pu.ValueImpl
 	}
 
 	if itemType.IsBasic() {
-		encodeVal, encodeErr := _helper.Encode(itemValue, itemType)
+		encodeVal, encodeErr := _codec.Encode(itemValue, itemType)
 		if encodeErr != nil {
 			err = encodeErr
 			return
@@ -442,7 +442,7 @@ func getSliceFieldValue(fieldName string, itemType *TypeImpl, itemValue *pu.Valu
 
 	elemType := itemType.Elem()
 	if elemType.IsBasic() {
-		encodeVal, encodeErr := _helper.Encode(itemValue, itemType)
+		encodeVal, encodeErr := _codec.Encode(itemValue, itemType)
 		if encodeErr != nil {
 			err = encodeErr
 			return

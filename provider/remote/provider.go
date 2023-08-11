@@ -6,16 +6,16 @@ import (
 	"strings"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/helper"
+	"github.com/muidea/magicOrm/provider/codec"
 	pu "github.com/muidea/magicOrm/provider/util"
 	"github.com/muidea/magicOrm/util"
 )
 
-var _helper helper.Helper
+var _codec codec.Codec
 var nilValue model.Value
 
 func init() {
-	_helper = helper.New(ElemDependValue)
+	_codec = codec.New(ElemDependValue)
 
 	nilValue = &pu.ValueImpl{}
 }
@@ -29,8 +29,8 @@ func isRemoteType(vType model.Type) bool {
 	return false
 }
 
-func GetHelper() helper.Helper {
-	return _helper
+func GetCodec() codec.Codec {
+	return _codec
 }
 
 func GetEntityType(entity interface{}) (ret model.Type, err error) {
@@ -128,7 +128,7 @@ func setFieldValue(iVal reflect.Value, vModel model.Model) (err error) {
 
 	vType := vField.GetType()
 	if vType.IsBasic() {
-		vValue, vErr := _helper.Decode(iValue.Interface(), vField.GetType())
+		vValue, vErr := _codec.Decode(iValue.Interface(), vField.GetType())
 		if vErr != nil {
 			err = vErr
 			return
@@ -242,7 +242,7 @@ func AppendSliceValue(sliceVal model.Value, vVal model.Value) (ret model.Value, 
 	return
 }
 
-func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, helper helper.Helper) (ret interface{}, err error) {
+func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, codec codec.Codec) (ret interface{}, err error) {
 	tModel := mCache.Fetch(vType.GetPkgKey())
 	if tModel == nil {
 		err = fmt.Errorf("illegal value type,type:%s", vType.GetName())
@@ -252,7 +252,7 @@ func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, helper 
 	if vVal.IsBasic() {
 		pkField := tModel.GetPrimaryField()
 		vType := pkField.GetType()
-		ret, err = helper.Encode(vVal, vType)
+		ret, err = codec.Encode(vVal, vType)
 		return
 	}
 
@@ -269,11 +269,11 @@ func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, helper 
 		tVal = tType.Interface()
 	}
 
-	ret, err = helper.Encode(tVal, tType)
+	ret, err = codec.Encode(tVal, tType)
 	return
 }
 
-func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache, helper helper.Helper) (ret string, err error) {
+func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache, codec codec.Codec) (ret string, err error) {
 	vVals, vErr := ElemDependValue(tVal)
 	if vErr != nil {
 		err = vErr
@@ -285,7 +285,7 @@ func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache, he
 
 	items := []string{}
 	for _, v := range vVals {
-		strVal, strErr := encodeModel(v, tType.Elem(), mCache, helper)
+		strVal, strErr := encodeModel(v, tType.Elem(), mCache, codec)
 		if strErr != nil {
 			err = strErr
 			return
@@ -300,21 +300,21 @@ func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache, he
 
 func EncodeValue(tVal model.Value, tType model.Type, mCache model.Cache) (ret interface{}, err error) {
 	if tType.IsBasic() {
-		ret, err = _helper.Encode(tVal, tType)
+		ret, err = _codec.Encode(tVal, tType)
 		return
 	}
 	if model.IsStructType(tType.GetValue()) {
-		ret, err = encodeModel(tVal, tType, mCache, _helper)
+		ret, err = encodeModel(tVal, tType, mCache, _codec)
 		return
 	}
 
-	ret, err = encodeSliceModel(tVal, tType, mCache, _helper)
+	ret, err = encodeSliceModel(tVal, tType, mCache, _codec)
 	return
 }
 
 func DecodeValue(tVal interface{}, tType model.Type, mCache model.Cache) (ret model.Value, err error) {
 	if tType.IsBasic() {
-		ret, err = _helper.Decode(tVal, tType)
+		ret, err = _codec.Decode(tVal, tType)
 		return
 	}
 

@@ -87,7 +87,7 @@ func getLocalValue(objectValue *remote.ObjectValue, valueType reflect.Type) (ret
 		for {
 			// for basic type
 			if vFieldType.IsBasic() {
-				val, valErr := local.GetHelper().Decode(curItem.Value, vFieldType)
+				val, valErr := local.GetCodec().Decode(curItem.Value, vFieldType)
 				if valErr != nil {
 					err = valErr
 					log.Errorf("updateBasicValue failed, fieldName:%s, err:%s", curField.Name, err.Error())
