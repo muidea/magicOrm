@@ -2,11 +2,36 @@ package util
 
 import (
 	"fmt"
-	"github.com/muidea/magicOrm/model"
 	"math"
 	"reflect"
 	"time"
+
+	fu "github.com/muidea/magicCommon/foundation/util"
+
+	"github.com/muidea/magicOrm/model"
 )
+
+const (
+	Key       = "key"
+	Auto      = "auto"
+	UUID      = "uuid"
+	SnowFlake = "snowflake"
+	DateTime  = "dateTime"
+)
+
+func GetDateTime() (ret time.Time) {
+	ret = time.Now().UTC()
+	return
+}
+
+func GetUUID() (ret string) {
+	ret = fu.NewUUID()
+	return
+}
+
+func GetSnowFlake() (ret int) {
+	return
+}
 
 func IsInteger(tType reflect.Type) bool {
 	switch tType.Kind() {

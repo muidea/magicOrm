@@ -3,11 +3,9 @@ package remote
 import (
 	"fmt"
 	"reflect"
-	"time"
 
 	log "github.com/cihub/seelog"
 
-	"github.com/muidea/magicCommon/foundation/util"
 	"github.com/muidea/magicOrm/model"
 	pu "github.com/muidea/magicOrm/provider/util"
 )
@@ -60,9 +58,11 @@ func (s *Field) GetValue() (ret model.Value) {
 	if s.Spec != nil {
 		switch s.Spec.GetValueDeclare() {
 		case model.UUID:
+			rVal = pu.GetUUID()
 		case model.SnowFlake:
+			rVal = pu.GetSnowFlake()
 		case model.DateTime:
-			rVal = time.Now().UTC().Format(util.CSTLayout)
+			rVal = pu.GetDateTime()
 		}
 
 		ret.Set(reflect.ValueOf(rVal))

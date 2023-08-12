@@ -33,6 +33,7 @@ func NewBuilder(modelInfo model.Model, modelProvider provider.Provider, prefix s
 	return mysql.New(modelInfo, modelProvider, prefix)
 }
 
+/*
 // EqualOpr Equal Opr =
 func EqualOpr(name string, val interface{}) string {
 	return mysql.EqualOpr(name, val)
@@ -67,3 +68,4 @@ func NotInOpr(name string, val interface{}) string {
 func LikeOpr(name string, val interface{}) string {
 	return mysql.LikeOpr(name, val)
 }
+*/

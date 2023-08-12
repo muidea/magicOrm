@@ -55,7 +55,6 @@ func (s *ValueImpl) Set(val reflect.Value) (err error) {
 }
 
 func (s *ValueImpl) Get() reflect.Value {
-	//return reflect.Indirect(s.value)
 	return s.value
 }
 

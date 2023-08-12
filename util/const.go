@@ -1,6 +1,6 @@
 package util
 
-// AddSlashes() 函数返回在预定义字符之前添加反斜杠的字符串。
+// AddSlashes 函数返回在预定义字符之前添加反斜杠的字符串。
 // 预定义字符是：
 // 单引号（'）
 // 双引号（"）
@@ -20,7 +20,7 @@ func AddSlashes(str string) string {
 	return string(tmpRune)
 }
 
-// StripSlashes() 函数删除由 AddSlashes() 函数添加的反斜杠。
+// StripSlashes 函数删除由 AddSlashes() 函数添加的反斜杠。
 func StripSlashes(str string) string {
 	dstRune := []rune{}
 	strRune := []rune(str)
