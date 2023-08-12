@@ -7,7 +7,6 @@ import (
 
 	"github.com/muidea/magicOrm/model"
 	pu "github.com/muidea/magicOrm/provider/util"
-	"github.com/muidea/magicOrm/util"
 )
 
 type typeImpl struct {
@@ -15,7 +14,7 @@ type typeImpl struct {
 }
 
 func getValueType(val reflect.Value) (ret *typeImpl, err error) {
-	if util.IsNil(val) {
+	if pu.IsNil(val) {
 		err = fmt.Errorf("can't get nil value type")
 		return
 	}
@@ -29,7 +28,7 @@ func newType(val reflect.Type) (ret *typeImpl, err error) {
 	if rType.Kind() == reflect.Ptr {
 		rType = rType.Elem()
 	}
-	_, err = util.GetTypeEnum(rType)
+	_, err = pu.GetTypeEnum(rType)
 	if err != nil {
 		return
 	}
@@ -45,7 +44,7 @@ func (s *typeImpl) GetName() string {
 
 func (s *typeImpl) GetValue() (ret model.TypeDeclare) {
 	rType := s.getRawType()
-	ret, _ = util.GetTypeEnum(rType)
+	ret, _ = pu.GetTypeEnum(rType)
 	return
 }
 

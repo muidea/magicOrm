@@ -8,7 +8,6 @@ import (
 	"github.com/muidea/magicCommon/foundation/util"
 	om "github.com/muidea/magicOrm/model"
 	pu "github.com/muidea/magicOrm/provider/util"
-	ou "github.com/muidea/magicOrm/util"
 )
 
 type filterItem struct {
@@ -94,7 +93,7 @@ func (s *ObjectFilter) GetInt(key string) (ret int, ok bool) {
 
 func (s *ObjectFilter) Equal(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ou.GetTypeEnum(qv.Type())
+	qvType, qvErr := pu.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
@@ -140,7 +139,7 @@ func (s *ObjectFilter) Equal(key string, val interface{}) (err error) {
 
 func (s *ObjectFilter) NotEqual(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ou.GetTypeEnum(qv.Type())
+	qvType, qvErr := pu.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
@@ -173,7 +172,7 @@ func (s *ObjectFilter) NotEqual(key string, val interface{}) (err error) {
 
 func (s *ObjectFilter) Below(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ou.GetTypeEnum(qv.Type())
+	qvType, qvErr := pu.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
@@ -195,7 +194,7 @@ func (s *ObjectFilter) Below(key string, val interface{}) (err error) {
 
 func (s *ObjectFilter) Above(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ou.GetTypeEnum(qv.Type())
+	qvType, qvErr := pu.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
@@ -206,7 +205,7 @@ func (s *ObjectFilter) Above(key string, val interface{}) (err error) {
 	}
 
 	if qvType == om.TypeDateTimeValue {
-		val = qv.Interface().(time.Time).Format("2006-01-02 15:04:05")
+		val = qv.Interface().(time.Time).Format(util.CSTLayout)
 	}
 
 	item := &FieldValue{Name: key, Value: val}
@@ -217,7 +216,7 @@ func (s *ObjectFilter) Above(key string, val interface{}) (err error) {
 
 func (s *ObjectFilter) getSliceValue(sliceVal interface{}) (ret interface{}, err error) {
 	sliceReVal := reflect.Indirect(reflect.ValueOf(sliceVal))
-	sliceValType, sliceValErr := ou.GetTypeEnum(sliceReVal.Type())
+	sliceValType, sliceValErr := pu.GetTypeEnum(sliceReVal.Type())
 	if sliceValErr != nil {
 		err = sliceValErr
 		return
@@ -237,7 +236,7 @@ func (s *ObjectFilter) getSliceValue(sliceVal interface{}) (ret interface{}, err
 		svType = svType.Elem()
 	}
 
-	subType, subErr := ou.GetTypeEnum(svType)
+	subType, subErr := pu.GetTypeEnum(svType)
 	if subErr != nil {
 		err = subErr
 		return

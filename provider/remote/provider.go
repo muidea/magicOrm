@@ -8,7 +8,6 @@ import (
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/codec"
 	pu "github.com/muidea/magicOrm/provider/util"
-	"github.com/muidea/magicOrm/util"
 )
 
 var _codec codec.Codec
@@ -121,7 +120,7 @@ func setFieldValue(iVal reflect.Value, vModel model.Model) (err error) {
 		return
 	}
 
-	if util.IsNil(iValue) {
+	if pu.IsNil(iValue) {
 		vField.SetValue(nilValue)
 		return
 	}
@@ -151,7 +150,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 	nameVal := rVal.FieldByName("Name")
 	pkgVal := rVal.FieldByName("PkgPath")
 	itemsVal := rVal.FieldByName("Fields")
-	if util.IsNil(nameVal) || util.IsNil(pkgVal) {
+	if pu.IsNil(nameVal) || pu.IsNil(pkgVal) {
 		err = fmt.Errorf("illegal model value")
 		return
 	}
@@ -160,7 +159,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 		return
 	}
 
-	if !util.IsNil(itemsVal) {
+	if !pu.IsNil(itemsVal) {
 		for idx := 0; idx < itemsVal.Len(); idx++ {
 			iVal := reflect.Indirect(itemsVal.Index(idx))
 			err = setFieldValue(iVal, vModel)
@@ -178,7 +177,7 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 	rVal := reflect.Indirect(vVal.Get())
 	if rVal.Type().String() == reflect.TypeOf(_declareObjectSliceValue).String() {
 		objectsVal := rVal.FieldByName("Values")
-		if !util.IsNil(objectsVal) {
+		if !pu.IsNil(objectsVal) {
 			for idx := 0; idx < objectsVal.Len(); idx++ {
 				ret = append(ret, pu.NewValue(objectsVal.Index(idx)))
 			}
@@ -189,13 +188,13 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 
 	if rVal.Type().String() == reflect.TypeOf(_declareObjectValue).String() {
 		itemsVal := rVal.FieldByName("Fields")
-		if !util.IsNil(itemsVal) {
+		if !pu.IsNil(itemsVal) {
 			ret = append(ret, vVal)
 			return
 		}
 	}
 
-	tVal, tErr := util.GetTypeEnum(rVal.Type())
+	tVal, tErr := pu.GetTypeEnum(rVal.Type())
 	if tErr != nil {
 		err = tErr
 		return
@@ -230,7 +229,7 @@ func AppendSliceValue(sliceVal model.Value, vVal model.Value) (ret model.Value, 
 	}
 
 	sliceObjects := sliceVal.Get().FieldByName("Values")
-	if util.IsNil(sliceObjects) {
+	if pu.IsNil(sliceObjects) {
 		err = fmt.Errorf("illegal remote model slice value")
 		return
 	}

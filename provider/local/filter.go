@@ -8,7 +8,6 @@ import (
 
 	om "github.com/muidea/magicOrm/model"
 	pu "github.com/muidea/magicOrm/provider/util"
-	ou "github.com/muidea/magicOrm/util"
 )
 
 type filterItem struct {
@@ -38,7 +37,7 @@ func NewFilter(valuePtr *pu.ValueImpl) *filter {
 
 func (s *filter) Equal(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ou.GetTypeEnum(qv.Type())
+	qvType, qvErr := pu.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
@@ -55,7 +54,7 @@ func (s *filter) Equal(key string, val interface{}) (err error) {
 
 func (s *filter) NotEqual(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ou.GetTypeEnum(qv.Type())
+	qvType, qvErr := pu.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
@@ -72,7 +71,7 @@ func (s *filter) NotEqual(key string, val interface{}) (err error) {
 
 func (s *filter) Below(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ou.GetTypeEnum(qv.Type())
+	qvType, qvErr := pu.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
@@ -89,7 +88,7 @@ func (s *filter) Below(key string, val interface{}) (err error) {
 
 func (s *filter) Above(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ou.GetTypeEnum(qv.Type())
+	qvType, qvErr := pu.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
@@ -106,7 +105,7 @@ func (s *filter) Above(key string, val interface{}) (err error) {
 
 func (s *filter) In(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ou.GetTypeEnum(qv.Type())
+	qvType, qvErr := pu.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return
@@ -123,7 +122,7 @@ func (s *filter) In(key string, val interface{}) (err error) {
 
 func (s *filter) NotIn(key string, val interface{}) (err error) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := ou.GetTypeEnum(qv.Type())
+	qvType, qvErr := pu.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		return

@@ -2,14 +2,14 @@ package provider
 
 import (
 	"fmt"
-	"github.com/muidea/magicOrm/model"
 	"reflect"
 
 	log "github.com/cihub/seelog"
 
+	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/local"
 	"github.com/muidea/magicOrm/provider/remote"
-	"github.com/muidea/magicOrm/util"
+	"github.com/muidea/magicOrm/provider/util"
 )
 
 // UpdateLocalEntity update object value -> entity

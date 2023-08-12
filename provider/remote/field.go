@@ -10,7 +10,6 @@ import (
 	"github.com/muidea/magicCommon/foundation/util"
 	"github.com/muidea/magicOrm/model"
 	pu "github.com/muidea/magicOrm/provider/util"
-	ou "github.com/muidea/magicOrm/util"
 )
 
 type Field struct {
@@ -245,11 +244,11 @@ func (s *FieldValue) IsBasic() bool {
 		rValue = rValue.Elem()
 	}
 	rType := rValue.Type()
-	if ou.IsSlice(rType) {
+	if pu.IsSlice(rType) {
 		rType = rType.Elem()
 	}
 
-	return !ou.IsStruct(rType)
+	return !pu.IsStruct(rType)
 }
 
 func (s *FieldValue) copy() (ret *FieldValue) {

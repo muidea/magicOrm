@@ -7,7 +7,6 @@ import (
 
 	"github.com/muidea/magicOrm/model"
 	pu "github.com/muidea/magicOrm/provider/util"
-	"github.com/muidea/magicOrm/util"
 )
 
 type TypeImpl struct {
@@ -25,7 +24,7 @@ func newType(itemType reflect.Type) (ret *TypeImpl, err error) {
 		itemType = itemType.Elem()
 	}
 
-	typeVal, typeErr := util.GetTypeEnum(itemType)
+	typeVal, typeErr := pu.GetTypeEnum(itemType)
 	if typeErr != nil {
 		err = typeErr
 		return
@@ -40,7 +39,7 @@ func newType(itemType reflect.Type) (ret *TypeImpl, err error) {
 		}
 		ret = &TypeImpl{Name: sliceType.Name(), Value: typeVal, PkgPath: sliceType.PkgPath(), IsPtr: isPtr}
 
-		sliceVal, sliceErr := util.GetTypeEnum(sliceType)
+		sliceVal, sliceErr := pu.GetTypeEnum(sliceType)
 		if sliceErr != nil {
 			err = sliceErr
 			return

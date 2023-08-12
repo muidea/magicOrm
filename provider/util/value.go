@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
 )
 
 type ValueImpl struct {
@@ -18,7 +17,7 @@ func NewValue(val reflect.Value) (ret *ValueImpl) {
 }
 
 func (s *ValueImpl) IsNil() (ret bool) {
-	ret = util.IsNil(s.value)
+	ret = IsNil(s.value)
 	return
 }
 
@@ -70,7 +69,7 @@ func (s *ValueImpl) Addr() model.Value {
 }
 
 func (s *ValueImpl) Interface() any {
-	if util.IsNil(s.value) {
+	if IsNil(s.value) {
 		return nil
 	}
 
@@ -78,7 +77,7 @@ func (s *ValueImpl) Interface() any {
 }
 
 func (s *ValueImpl) IsBasic() bool {
-	if util.IsNil(s.value) {
+	if IsNil(s.value) {
 		return false
 	}
 
@@ -89,11 +88,11 @@ func (s *ValueImpl) IsBasic() bool {
 	if s.value.Kind() == reflect.Interface {
 		rType = s.value.Elem().Type()
 	}
-	if util.IsSlice(rType) {
+	if IsSlice(rType) {
 		rType = rType.Elem()
 	}
 
-	return !util.IsStruct(rType)
+	return !IsStruct(rType)
 }
 
 func (s *ValueImpl) Verify() error {
@@ -109,7 +108,7 @@ func (s *ValueImpl) Verify() error {
 }
 
 func (s *ValueImpl) Copy() (ret *ValueImpl) {
-	if !util.IsNil(s.value) {
+	if !IsNil(s.value) {
 		ret = &ValueImpl{value: reflect.New(s.value.Type()).Elem()}
 		ret.value.Set(s.value)
 		return
