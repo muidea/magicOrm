@@ -22,8 +22,8 @@ func New(elemDependValue ElemDependValueFunc) Codec {
 }
 
 func (s *impl) Encode(vVal model.Value, tType model.Type) (ret interface{}, err error) {
-	if !tType.IsBasic() {
-		err = fmt.Errorf("illegal value type, type:%s", tType.GetName())
+	if !tType.IsBasic() || vVal.IsNil() {
+		err = fmt.Errorf("encode value failed, illegal value or type")
 		return
 	}
 

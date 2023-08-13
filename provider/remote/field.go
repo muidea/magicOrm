@@ -33,17 +33,17 @@ func (s *Field) GetName() string {
 }
 
 func (s *Field) GetType() (ret model.Type) {
-	if s.Type != nil {
-		ret = s.Type
-	}
+	ret = s.Type
 	return
 }
 
 func (s *Field) GetSpec() (ret model.Spec) {
 	if s.Spec != nil {
 		ret = s.Spec
+		return
 	}
 
+	ret = &emptySpec
 	return
 }
 
@@ -53,21 +53,7 @@ func (s *Field) GetValue() (ret model.Value) {
 		return
 	}
 
-	ret = s.Type.Interface()
-	var rVal interface{}
-	if s.Spec != nil {
-		switch s.Spec.GetValueDeclare() {
-		case model.UUID:
-			rVal = pu.GetUUID()
-		case model.SnowFlake:
-			rVal = pu.GetSnowFlake()
-		case model.DateTime:
-			rVal = pu.GetDateTime()
-		}
-
-		ret.Set(reflect.ValueOf(rVal))
-	}
-
+	ret = &pu.NilValue
 	return
 }
 
@@ -105,9 +91,13 @@ func (s *Field) copy() (ret model.Field) {
 }
 
 func (s *Field) verify() (err error) {
+	if s.Type == nil {
+		return fmt.Errorf("illegal filed, field type is null, index:%d, name:%v", s.Index, s.Name)
+	}
+
 	if s.Spec != nil {
 		val := s.Type.GetValue()
-		if s.Spec.IsAutoIncrement() {
+		if s.Spec.GetValueDeclare() == model.AutoIncrement {
 			switch val {
 			case model.TypeBooleanValue,
 				model.TypeStringValue,
@@ -119,6 +109,17 @@ func (s *Field) verify() (err error) {
 				return fmt.Errorf("illegal auto_increment field type, type:%s", s.Type.dump())
 			default:
 			}
+		}
+		if s.Spec.GetValueDeclare() == model.UUID && val != model.TypeStringValue {
+			return fmt.Errorf("illegal uuid field type, type:%s", s.Type.dump())
+		}
+
+		if s.Spec.GetValueDeclare() == model.SnowFlake && val != model.TypeBigIntegerValue {
+			return fmt.Errorf("illegal snowflake field type, type:%s", s.Type.dump())
+		}
+
+		if s.Spec.GetValueDeclare() == model.DateTime && val != model.TypeDateTimeValue {
+			return fmt.Errorf("illegal dateTime field type, type:%s", s.Type.dump())
 		}
 
 		if s.Spec.IsPrimaryKey() {
@@ -213,6 +214,10 @@ func compareItem(l, r *Field) bool {
 }
 
 func (s *FieldValue) IsNil() bool {
+	return s.Value == nil
+}
+
+func (s *FieldValue) IsZero() bool {
 	return s.Value == nil
 }
 

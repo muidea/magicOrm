@@ -9,67 +9,33 @@ import (
 	"github.com/muidea/magicOrm/provider/util"
 )
 
-const (
-	fieldName    = "fieldName"
-	fieldType    = "fieldType"
-	valueDeclare = "valueDeclare"
-)
-
-type SpecImpl map[string]string
-
-func (s SpecImpl) GetFieldName() string {
-	val, ok := s[fieldName]
-	if ok {
-		return val
-	}
-
-	return ""
+type SpecImpl struct {
+	FieldName    string             `json:"fieldName"`
+	PrimaryKey   bool               `json:"primaryKey"`
+	ValueDeclare model.ValueDeclare `json:"valueDeclare"`
 }
 
-func (s SpecImpl) IsPrimaryKey() (ret bool) {
-	val, ok := s[fieldType]
-	if ok {
-		return val == util.Key
-	}
+var emptySpec = SpecImpl{PrimaryKey: false, ValueDeclare: model.Customer}
 
-	return false
+func (s SpecImpl) GetFieldName() string {
+	return s.FieldName
+}
+
+func (s SpecImpl) IsPrimaryKey() bool {
+	return s.PrimaryKey
 }
 
 func (s SpecImpl) GetValueDeclare() model.ValueDeclare {
-	val, ok := s[valueDeclare]
-	if !ok {
-		return model.Customer
-	}
-
-	switch val {
-	case model.AutoIncrement.String():
-		return model.AutoIncrement
-	case model.UUID.String():
-		return model.UUID
-	case model.SnowFlake.String():
-		return model.SnowFlake
-	case model.DateTime.String():
-		return model.DateTime
-	}
-
-	return model.Customer
-}
-
-func (s SpecImpl) IsAutoIncrement() (ret bool) {
-	val, ok := s[valueDeclare]
-	if !ok {
-		return false
-	}
-
-	return val == model.AutoIncrement.String()
+	return s.ValueDeclare
 }
 
 func (s SpecImpl) copy() *SpecImpl {
-	ret := SpecImpl{}
-
-	for k, v := range s {
-		ret[k] = v
+	ret := SpecImpl{
+		FieldName:    s.FieldName,
+		PrimaryKey:   s.PrimaryKey,
+		ValueDeclare: s.ValueDeclare,
 	}
+
 	return &ret
 }
 
@@ -96,20 +62,20 @@ func getSpec(spec string) (ret SpecImpl, err error) {
 		return
 	}
 
-	ret = SpecImpl{}
-	ret[fieldName] = items[0]
+	ret = SpecImpl{PrimaryKey: false, ValueDeclare: model.Customer}
+	ret.FieldName = items[0]
 	for idx := 1; idx < len(items); idx++ {
 		switch items[idx] {
 		case util.Auto:
-			ret[valueDeclare] = model.AutoIncrement.String()
+			ret.ValueDeclare = model.AutoIncrement
 		case util.UUID:
-			ret[valueDeclare] = model.UUID.String()
+			ret.ValueDeclare = model.UUID
 		case util.SnowFlake:
-			ret[valueDeclare] = model.SnowFlake.String()
+			ret.ValueDeclare = model.SnowFlake
 		case util.DateTime:
-			ret[valueDeclare] = model.DateTime.String()
+			ret.ValueDeclare = model.DateTime
 		case util.Key:
-			ret[fieldType] = util.Key
+			ret.PrimaryKey = true
 		}
 	}
 
@@ -122,14 +88,9 @@ func compareSpec(l, r *SpecImpl) bool {
 	}
 
 	if l != nil && r != nil {
-		for k, v := range *l {
-			rv, rk := (*r)[k]
-			if !rk || rv != v {
-				return false
-			}
-		}
-
-		return true
+		return l.FieldName == r.FieldName &&
+			l.PrimaryKey == r.PrimaryKey &&
+			l.ValueDeclare == r.ValueDeclare
 	}
 
 	return false

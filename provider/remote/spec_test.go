@@ -1,6 +1,10 @@
 package remote
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/muidea/magicOrm/model"
+)
 
 func TestSpec(t *testing.T) {
 	spec := ""
@@ -24,7 +28,7 @@ func TestSpec(t *testing.T) {
 		t.Errorf("illegal spec define")
 		return
 	}
-	if itemSpec.IsAutoIncrement() {
+	if itemSpec.GetValueDeclare() == model.AutoIncrement {
 		t.Errorf("illegal spec define")
 		return
 	}
@@ -43,7 +47,7 @@ func TestSpec(t *testing.T) {
 		t.Errorf("illegal spec define")
 		return
 	}
-	if !itemSpec.IsAutoIncrement() {
+	if itemSpec.GetValueDeclare() != model.AutoIncrement {
 		t.Errorf("illegal spec define")
 		return
 	}

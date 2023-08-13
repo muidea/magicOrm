@@ -29,18 +29,17 @@ func (s *field) GetName() string {
 }
 
 func (s *field) GetType() (ret model.Type) {
-	if s.typePtr != nil {
-		ret = s.typePtr
-	}
-
+	ret = s.typePtr
 	return
 }
 
 func (s *field) GetSpec() (ret model.Spec) {
 	if s.specPtr != nil {
 		ret = s.specPtr
+		return
 	}
 
+	ret = &emptySpec
 	return
 }
 
@@ -50,21 +49,7 @@ func (s *field) GetValue() (ret model.Value) {
 		return
 	}
 
-	ret = s.typePtr.Interface()
-	var rVal interface{}
-	if s.specPtr != nil {
-		switch s.specPtr.GetValueDeclare() {
-		case model.UUID:
-			rVal = pu.GetUUID()
-		case model.SnowFlake:
-			rVal = pu.GetSnowFlake()
-		case model.DateTime:
-			rVal = pu.GetDateTime()
-		}
-
-		ret.Set(reflect.ValueOf(rVal))
-	}
-
+	ret = &pu.NilValue
 	return
 }
 
@@ -112,12 +97,12 @@ func (s *field) copy() *field {
 
 func (s *field) verify() error {
 	if s.typePtr == nil {
-		return fmt.Errorf("illegal filed")
+		return fmt.Errorf("illegal filed, field type is null, index:%d, name:%v", s.index, s.name)
 	}
 
 	if s.specPtr != nil {
 		val := s.typePtr.GetValue()
-		if s.specPtr.IsAutoIncrement() {
+		if s.specPtr.GetValueDeclare() == model.AutoIncrement {
 			switch val {
 			case model.TypeBooleanValue,
 				model.TypeStringValue,
@@ -129,6 +114,17 @@ func (s *field) verify() error {
 				return fmt.Errorf("illegal auto_increment field type, type:%s", s.typePtr.dump())
 			default:
 			}
+		}
+		if s.specPtr.GetValueDeclare() == model.UUID && val != model.TypeStringValue {
+			return fmt.Errorf("illegal uuid field type, type:%s", s.typePtr.dump())
+		}
+
+		if s.specPtr.GetValueDeclare() == model.SnowFlake && val != model.TypeBigIntegerValue {
+			return fmt.Errorf("illegal snowflake field type, type:%s", s.typePtr.dump())
+		}
+
+		if s.specPtr.GetValueDeclare() == model.DateTime && val != model.TypeDateTimeValue {
+			return fmt.Errorf("illegal dateTime field type, type:%s", s.typePtr.dump())
 		}
 
 		if s.specPtr.IsPrimaryKey() {
@@ -194,12 +190,6 @@ func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Val
 	fieldPtr.typePtr = typePtr
 	fieldPtr.specPtr = specPtr
 	fieldPtr.valuePtr = valuePtr
-
-	//err = fieldPtr.verify()
-	//if err != nil {
-	//	log.Errorf("illegal fieldPtr info, err:%s", err.Error())
-	//	return
-	//}
 
 	ret = fieldPtr
 	return

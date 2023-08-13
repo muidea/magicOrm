@@ -10,8 +10,12 @@ import (
 )
 
 type specImpl struct {
-	specVal string
+	fieldName    string
+	primaryKey   bool
+	valueDeclare model.ValueDeclare
 }
+
+var emptySpec = specImpl{primaryKey: false, valueDeclare: model.Customer}
 
 // newSpec name[key][auto]
 func newSpec(tag reflect.StructTag) (ret *specImpl, err error) {
@@ -21,135 +25,55 @@ func newSpec(tag reflect.StructTag) (ret *specImpl, err error) {
 }
 
 func getSpec(spec string) (ret *specImpl, err error) {
-	items := strings.Split(spec, "")
+	items := strings.Split(spec, " ")
 	if len(items) < 1 {
 		err = fmt.Errorf("illegal spec value, val:%s", spec)
 		return
 	}
 
-	ret = &specImpl{specVal: spec}
+	ret = &specImpl{primaryKey: false, valueDeclare: model.Customer}
+	ret.fieldName = items[0]
+	for idx := 1; idx < len(items); idx++ {
+		switch items[idx] {
+		case util.Auto:
+			ret.valueDeclare = model.AutoIncrement
+		case util.UUID:
+			ret.valueDeclare = model.UUID
+		case util.SnowFlake:
+			ret.valueDeclare = model.SnowFlake
+		case util.DateTime:
+			ret.valueDeclare = model.DateTime
+		case util.Key:
+			ret.primaryKey = true
+		}
+	}
+
 	return
 }
 
 // GetFieldName Name
-func (s *specImpl) GetFieldName() (ret string) {
-	items := strings.Split(s.specVal, " ")
-	ret = items[0]
-
-	return
+func (s *specImpl) GetFieldName() string {
+	return s.fieldName
 }
 
-func (s *specImpl) IsPrimaryKey() (ret bool) {
-	items := strings.Split(s.specVal, " ")
-	if len(items) <= 1 {
-		return false
-	}
-
-	isPrimaryKey := false
-	if len(items) >= 2 {
-		switch items[1] {
-		case util.Key:
-			isPrimaryKey = true
-		}
-	}
-	if len(items) >= 3 {
-		switch items[2] {
-		case util.Key:
-			isPrimaryKey = true
-		}
-	}
-
-	ret = isPrimaryKey
-	return
+func (s *specImpl) IsPrimaryKey() bool {
+	return s.primaryKey
 }
 
 func (s *specImpl) GetValueDeclare() model.ValueDeclare {
-	if s.IsAutoIncrement() {
-		return model.AutoIncrement
-	}
-
-	return model.Customer
-}
-
-// IsAutoIncrement IsAutoIncrement
-func (s *specImpl) IsAutoIncrement() (ret bool) {
-	items := strings.Split(s.specVal, " ")
-	if len(items) <= 1 {
-		return false
-	}
-
-	isAutoIncrement := false
-	if len(items) >= 2 {
-		switch items[1] {
-		case util.Auto:
-			isAutoIncrement = true
-		}
-	}
-	if len(items) >= 3 {
-		switch items[2] {
-		case util.Auto:
-			isAutoIncrement = true
-		}
-	}
-
-	ret = isAutoIncrement
-	return
-}
-
-func (s *specImpl) IsUUID() (ret bool) {
-	items := strings.Split(s.specVal, " ")
-	if len(items) <= 1 {
-		return false
-	}
-
-	isUUID := false
-	if len(items) >= 2 {
-		switch items[1] {
-		case util.UUID:
-			isUUID = true
-		}
-	}
-	if len(items) >= 3 {
-		switch items[2] {
-		case util.UUID:
-			isUUID = true
-		}
-	}
-
-	ret = isUUID
-	return
-}
-
-func (s *specImpl) IsSnowFlake() (ret bool) {
-	items := strings.Split(s.specVal, " ")
-	if len(items) <= 1 {
-		return false
-	}
-
-	isSnowFlake := false
-	if len(items) >= 2 {
-		switch items[1] {
-		case util.SnowFlake:
-			isSnowFlake = true
-		}
-	}
-	if len(items) >= 3 {
-		switch items[2] {
-		case util.SnowFlake:
-			isSnowFlake = true
-		}
-	}
-
-	ret = isSnowFlake
-	return
+	return s.valueDeclare
 }
 
 func (s *specImpl) copy() (ret *specImpl) {
-	ret = &specImpl{specVal: s.specVal}
+	ret = &specImpl{
+		fieldName:    s.fieldName,
+		primaryKey:   s.primaryKey,
+		valueDeclare: s.valueDeclare,
+	}
+
 	return
 }
 
 func (s *specImpl) dump() (ret string) {
-	return fmt.Sprintf("name=%s key=%v auto=%v, uuid=%v, snowFlake=%v",
-		s.GetFieldName(), s.IsPrimaryKey(), s.IsAutoIncrement(), s.IsUUID(), s.IsSnowFlake())
+	return fmt.Sprintf("name=%s key=%v value=%v", s.GetFieldName(), s.IsPrimaryKey(), s.GetValueDeclare())
 }

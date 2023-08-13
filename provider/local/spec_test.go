@@ -1,6 +1,10 @@
 package local
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/muidea/magicOrm/model"
+)
 
 func TestSpec(t *testing.T) {
 	spec1 := "spec"
@@ -12,7 +16,7 @@ func TestSpec(t *testing.T) {
 	if specPtr.GetFieldName() != "spec" {
 		t.Errorf("newSpec failed,current:%s, expect:%s", specPtr.GetFieldName(), "spec")
 	}
-	if specPtr.IsAutoIncrement() || specPtr.IsPrimaryKey() {
+	if specPtr.GetValueDeclare() == model.AutoIncrement || specPtr.IsPrimaryKey() {
 		t.Errorf("newSpec failed")
 		return
 	}
@@ -26,7 +30,7 @@ func TestSpec(t *testing.T) {
 	if specPtr.GetFieldName() != "spec" {
 		t.Errorf("newSpec failed,current:%s, expect:%s", specPtr.GetFieldName(), "spec")
 	}
-	if !specPtr.IsAutoIncrement() || specPtr.IsPrimaryKey() {
+	if specPtr.GetValueDeclare() != model.AutoIncrement || specPtr.IsPrimaryKey() {
 		t.Errorf("newSpec failed")
 		return
 	}
@@ -40,7 +44,7 @@ func TestSpec(t *testing.T) {
 	if specPtr.GetFieldName() != "spec" {
 		t.Errorf("newSpec failed,current:%s, expect:%s", specPtr.GetFieldName(), "spec")
 	}
-	if !specPtr.IsAutoIncrement() || !specPtr.IsPrimaryKey() {
+	if specPtr.GetValueDeclare() != model.AutoIncrement || !specPtr.IsPrimaryKey() {
 		t.Errorf("newSpec failed")
 		return
 	}
@@ -54,7 +58,7 @@ func TestSpec(t *testing.T) {
 	if specPtr.GetFieldName() != "spec" {
 		t.Errorf("newSpec failed,current:%s, expect:%s", specPtr.GetFieldName(), "spec")
 	}
-	if !specPtr.IsAutoIncrement() || !specPtr.IsPrimaryKey() {
+	if specPtr.GetValueDeclare() != model.AutoIncrement || !specPtr.IsPrimaryKey() {
 		t.Errorf("newSpec failed")
 		return
 	}

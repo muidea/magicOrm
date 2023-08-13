@@ -11,6 +11,8 @@ type ValueImpl struct {
 	value reflect.Value
 }
 
+var NilValue = ValueImpl{}
+
 func NewValue(val reflect.Value) (ret *ValueImpl) {
 	ret = &ValueImpl{value: val}
 	return
@@ -18,6 +20,11 @@ func NewValue(val reflect.Value) (ret *ValueImpl) {
 
 func (s *ValueImpl) IsNil() (ret bool) {
 	ret = IsNil(s.value)
+	return
+}
+
+func (s *ValueImpl) IsZero() (ret bool) {
+	ret = IsNil(s.value) || IsZero(s.value)
 	return
 }
 

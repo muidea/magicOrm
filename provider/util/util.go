@@ -3,7 +3,10 @@ package util
 import (
 	"fmt"
 	"math"
+	"os"
 	"reflect"
+	"strconv"
+	"sync"
 	"time"
 
 	fu "github.com/muidea/magicCommon/foundation/util"
@@ -19,18 +22,22 @@ const (
 	DateTime  = "dateTime"
 )
 
-func GetDateTime() (ret time.Time) {
-	ret = time.Now().UTC()
-	return
-}
+var snowFlakeNodePtr *fu.SnowFlakeNode
+var snowFlakeOnce sync.Once
 
-func GetUUID() (ret string) {
-	ret = fu.NewUUID()
-	return
-}
+func init() {
+	snowFlakeOnce.Do(func() {
+		strNodeID := os.Getenv("node_id")
+		if strNodeID == "" {
+			strNodeID = "1"
+		}
+		nodeID, nodeErr := strconv.ParseInt(strNodeID, 10, 64)
+		if nodeErr != nil {
+			nodeID = 1
+		}
 
-func GetSnowFlake() (ret int) {
-	return
+		snowFlakeNodePtr, _ = fu.NewSnowFlakeNode(nodeID)
+	})
 }
 
 func IsInteger(tType reflect.Type) bool {
@@ -142,6 +149,12 @@ func GetTypeEnum(val reflect.Type) (ret model.TypeDeclare, err error) {
 
 // IsNil check value if nil
 func IsNil(val reflect.Value) (ret bool) {
+	defer func() {
+		if err := recover(); err != nil {
+			ret = true
+		}
+	}()
+
 	val = reflect.Indirect(val)
 	if val.Kind() == reflect.Interface {
 		val = reflect.Indirect(val.Elem())
@@ -158,6 +171,22 @@ func IsNil(val reflect.Value) (ret bool) {
 		ret = false
 	}
 
+	return
+}
+
+func IsZero(val reflect.Value) (ret bool) {
+	defer func() {
+		if err := recover(); err != nil {
+			ret = true
+		}
+	}()
+
+	val = reflect.Indirect(val)
+	if val.Kind() == reflect.Interface {
+		val = reflect.Indirect(val.Elem())
+	}
+
+	ret = val.IsZero()
 	return
 }
 

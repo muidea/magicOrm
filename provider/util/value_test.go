@@ -8,6 +8,16 @@ import (
 func TestValue(t *testing.T) {
 	var v reflect.Value
 
+	if !NilValue.IsNil() {
+		t.Errorf("illegal nilValue")
+		return
+	}
+
+	if !NilValue.IsZero() {
+		t.Errorf("illegal nilValue")
+		return
+	}
+
 	valuePtr := NewValue(v)
 	if !valuePtr.IsNil() {
 		t.Errorf("NewValue failed")
