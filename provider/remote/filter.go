@@ -216,51 +216,13 @@ func (s *ObjectFilter) Above(key string, val interface{}) (err error) {
 
 func (s *ObjectFilter) getSliceValue(sliceVal interface{}) (ret interface{}, err error) {
 	sliceReVal := reflect.Indirect(reflect.ValueOf(sliceVal))
-	sliceValType, sliceValErr := pu.GetTypeEnum(sliceReVal.Type())
-	if sliceValErr != nil {
-		err = sliceValErr
+
+	if sliceReVal.Type().String() == reflect.TypeOf(_declareObjectSliceValue).String() {
+		ret = sliceVal
 		return
 	}
 
-	if !om.IsSliceType(sliceValType) {
-		err = fmt.Errorf("illegal value type, type:%s", sliceReVal.Type().String())
-		return
-	}
-
-	if sliceReVal.Len() == 0 {
-		return
-	}
-
-	svType := sliceReVal.Type().Elem()
-	if svType.Kind() == reflect.Ptr {
-		svType = svType.Elem()
-	}
-
-	subType, subErr := pu.GetTypeEnum(svType)
-	if subErr != nil {
-		err = subErr
-		return
-	}
-
-	if om.IsStructType(subType) {
-		ret, err = GetSliceObjectValue(sliceVal)
-		return
-	}
-
-	retVal := []interface{}{}
-	for idx := 0; idx < sliceReVal.Len(); idx++ {
-		subV := reflect.Indirect(sliceReVal.Index(idx))
-		if om.TypeDateTimeValue == subType {
-			dtVal := subV.Interface().(time.Time).Format(util.CSTLayout)
-			retVal = append(retVal, dtVal)
-
-			continue
-		}
-
-		retVal = append(retVal, subV.Interface())
-	}
-	ret = retVal
-
+	err = fmt.Errorf("illegal value type, type:%s", sliceReVal.Type().String())
 	return
 }
 

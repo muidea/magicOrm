@@ -1,16 +1,19 @@
 package orm
 
 import (
+	log "github.com/cihub/seelog"
+
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *impl) insertSingle(modelInfo model.Model) (err error) {
-	builder := builder.NewBuilder(modelInfo, s.modelProvider, s.specialPrefix)
+func (s *impl) innerInsert(vModel model.Model) (ret interface{}, err error) {
+	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
 	sqlStr, sqlErr := builder.BuildInsert()
 	if sqlErr != nil {
 		err = sqlErr
-		return err
+		log.Errorf("build insert sql failed, err:%s", err.Error())
+		return
 	}
 
 	_, id, idErr := s.executor.Execute(sqlStr)
@@ -19,24 +22,58 @@ func (s *impl) insertSingle(modelInfo model.Model) (err error) {
 		return
 	}
 
-	pk := modelInfo.GetPrimaryField()
-	tVal, tErr := s.modelProvider.DecodeValue(id, pk.GetType())
-	if tErr != nil {
-		err = tErr
-		return
-	}
-
-	err = pk.SetValue(tVal)
-	if err != nil {
-		return err
-	}
-
+	ret = id
 	return
 }
 
-func (s *impl) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
-	fValue := fieldInfo.GetValue()
-	fType := fieldInfo.GetType()
+func (s *impl) insertSingle(vModel model.Model) (ret model.Model, err error) {
+	autoIncrementFlag := false
+	for _, field := range vModel.GetFields() {
+		fType := field.GetType()
+		if !fType.IsBasic() {
+			continue
+		}
+
+		fSpec := field.GetSpec()
+		fValue := field.GetValue()
+		if fValue.IsZero() {
+			fValue = s.modelProvider.GetValue(fSpec.GetValueDeclare())
+			if !fValue.IsNil() {
+				field.SetValue(fValue)
+			}
+		}
+		if fSpec.GetValueDeclare() == model.AutoIncrement {
+			autoIncrementFlag = true
+		}
+	}
+
+	insertVal, insertErr := s.innerInsert(vModel)
+	if insertErr != nil {
+		err = insertErr
+		return
+	}
+
+	if insertVal != nil && autoIncrementFlag {
+		pkField := vModel.GetPrimaryField()
+		tVal, tErr := s.modelProvider.DecodeValue(insertVal, pkField.GetType())
+		if tErr != nil {
+			err = tErr
+			return
+		}
+
+		err = pkField.SetValue(tVal)
+		if err != nil {
+			return
+		}
+	}
+
+	ret = vModel
+	return
+}
+
+func (s *impl) insertRelation(vModel model.Model, vField model.Field) (err error) {
+	fValue := vField.GetValue()
+	fType := vField.GetType()
 	if fType.IsBasic() || fValue.IsNil() /* || !s.modelProvider.IsAssigned(fValue, fType)*/ {
 		return
 	}
@@ -48,29 +85,30 @@ func (s *impl) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err
 	}
 
 	for _, fVal := range fSliceValue {
-		relationInfo, relationErr := s.modelProvider.GetValueModel(fVal, fType)
-		if relationErr != nil {
-			err = relationErr
+		rModel, rErr := s.modelProvider.GetValueModel(fVal, fType)
+		if rErr != nil {
+			err = rErr
 			return
 		}
 
 		elemType := fType.Elem()
 		if !elemType.IsPtrType() {
-			err = s.insertSingle(relationInfo)
-			if err != nil {
+			rModel, rErr = s.insertSingle(rModel)
+			if rErr != nil {
+				err = rErr
 				return
 			}
 
-			for _, subField := range relationInfo.GetFields() {
-				err = s.insertRelation(relationInfo, subField)
+			for _, subField := range rModel.GetFields() {
+				err = s.insertRelation(rModel, subField)
 				if err != nil {
 					return
 				}
 			}
 		}
 
-		builder := builder.NewBuilder(modelInfo, s.modelProvider, s.specialPrefix)
-		relationSQL, relationErr := builder.BuildInsertRelation(fieldInfo, relationInfo)
+		builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+		relationSQL, relationErr := builder.BuildInsertRelation(vField, rModel)
 		if relationErr != nil {
 			err = relationErr
 			return err
@@ -81,7 +119,7 @@ func (s *impl) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err
 			return
 		}
 
-		rVal, _ := s.modelProvider.GetEntityValue(relationInfo.Interface(true))
+		rVal, _ := s.modelProvider.GetEntityValue(rModel.Interface(true))
 		fVal.Set(rVal.Get())
 	}
 
@@ -89,33 +127,30 @@ func (s *impl) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err
 }
 
 // Insert insert
-func (s *impl) Insert(entityModel model.Model) (ret model.Model, err error) {
+func (s *impl) Insert(vModel model.Model) (ret model.Model, err error) {
 	err = s.executor.BeginTransaction()
 	if err != nil {
 		return
 	}
 	defer s.finalTransaction(err)
 
-	for {
-		err = s.insertSingle(entityModel)
+	insertVal, insertErr := s.insertSingle(vModel)
+	if insertErr != nil {
+		err = insertErr
+		return
+	}
+
+	for _, field := range insertVal.GetFields() {
+		err = s.insertRelation(insertVal, field)
 		if err != nil {
 			break
 		}
-
-		for _, field := range entityModel.GetFields() {
-			err = s.insertRelation(entityModel, field)
-			if err != nil {
-				break
-			}
-		}
-
-		break
 	}
 
 	if err != nil {
 		return
 	}
 
-	ret = entityModel
+	ret = insertVal
 	return
 }

@@ -6,8 +6,8 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *impl) deleteSingle(entityModel model.Model) (err error) {
-	builder := builder.NewBuilder(entityModel, s.modelProvider, s.specialPrefix)
+func (s *impl) deleteSingle(vModel model.Model) (err error) {
+	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
 	sqlStr, sqlErr := builder.BuildDelete()
 	if sqlErr != nil {
 		err = sqlErr
@@ -19,11 +19,6 @@ func (s *impl) deleteSingle(entityModel model.Model) (err error) {
 		err = numErr
 		return
 	}
-
-	// not need check affect items
-	//if numVal != 1 {
-	//	err = fmt.Errorf("delete %s failed", entityModel.GetName())
-	//}
 
 	return
 }
@@ -135,7 +130,7 @@ func (s *impl) deleteRelation(entityModel model.Model, relationField model.Field
 }
 
 // Delete delete
-func (s *impl) Delete(entityModel model.Model) (ret model.Model, err error) {
+func (s *impl) Delete(vModel model.Model) (ret model.Model, err error) {
 	err = s.executor.BeginTransaction()
 	if err != nil {
 		return
@@ -143,13 +138,13 @@ func (s *impl) Delete(entityModel model.Model) (ret model.Model, err error) {
 	defer s.finalTransaction(err)
 
 	for {
-		err = s.deleteSingle(entityModel)
+		err = s.deleteSingle(vModel)
 		if err != nil {
 			break
 		}
 
-		for _, field := range entityModel.GetFields() {
-			err = s.deleteRelation(entityModel, field, 0)
+		for _, field := range vModel.GetFields() {
+			err = s.deleteRelation(vModel, field, 0)
 			if err != nil {
 				break
 			}
@@ -162,6 +157,6 @@ func (s *impl) Delete(entityModel model.Model) (ret model.Model, err error) {
 		return
 	}
 
-	ret = entityModel
+	ret = vModel
 	return
 }

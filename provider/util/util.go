@@ -40,6 +40,21 @@ func init() {
 	})
 }
 
+func GetCurrentDateTime() (ret time.Time) {
+	ret = time.Now().UTC()
+	return
+}
+
+func GetNewUUID() (ret string) {
+	ret = fu.NewUUID()
+	return
+}
+
+func GetNewSnowFlakeID() (ret int64) {
+	ret = snowFlakeNodePtr.Generate().Int64()
+	return
+}
+
 func IsInteger(tType reflect.Type) bool {
 	switch tType.Kind() {
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:

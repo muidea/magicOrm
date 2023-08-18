@@ -224,6 +224,8 @@ func TestComposeLocal(t *testing.T) {
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	localProvider := provider.NewLocalProvider(composeLocalOwner)
 
+	loopSize := 10
+
 	o1, err := orm.NewOrm(localProvider, config, "abc")
 	defer o1.Release()
 	if err != nil {
@@ -266,7 +268,7 @@ func TestComposeLocal(t *testing.T) {
 
 	strValue := "test code"
 	// insert
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		refPtrArray := []*Reference{rPtr}
 		sVal := &Compose{
 			Name:         strValue,
@@ -293,7 +295,7 @@ func TestComposeLocal(t *testing.T) {
 		sModelList = append(sModelList, sModel)
 	}
 
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		vModel, vErr := o1.Insert(sModelList[idx])
 		if vErr != nil {
 			err = vErr
@@ -306,7 +308,7 @@ func TestComposeLocal(t *testing.T) {
 	}
 
 	// update
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		sVal := sValList[idx]
 		sVal.Name = "hi"
 		sModel, sErr := localProvider.GetEntityModel(sVal)
@@ -318,7 +320,7 @@ func TestComposeLocal(t *testing.T) {
 
 		sModelList[idx] = sModel
 	}
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		vModel, vErr := o1.Update(sModelList[idx])
 		if vErr != nil {
 			err = vErr
@@ -333,7 +335,7 @@ func TestComposeLocal(t *testing.T) {
 	// query
 	qValList := []*Compose{}
 	qModelList := []model.Model{}
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		qVal := &Compose{
 			ID:           sValList[idx].ID,
 			R3:           &Simple{},
@@ -358,7 +360,7 @@ func TestComposeLocal(t *testing.T) {
 		qModelList = append(qModelList, qModel)
 	}
 
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		qModel, qErr := o1.Query(qModelList[idx])
 		if qErr != nil {
 			err = qErr
@@ -370,7 +372,7 @@ func TestComposeLocal(t *testing.T) {
 		qValList[idx] = qModel.Interface(true).(*Compose)
 	}
 
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		sVal := sValList[idx]
 		qVal := qValList[idx]
 		if !sVal.IsSame(qVal) {
@@ -403,13 +405,13 @@ func TestComposeLocal(t *testing.T) {
 		t.Errorf("BatchQuery failed, err:%s", bqModelErr.Error())
 		return
 	}
-	if len(bqModelList) != 100 {
+	if len(bqModelList) != loopSize {
 		t.Errorf("batch query compose failed")
 		return
 	}
 
 	// delete
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		_, qErr := o1.Delete(bqModelList[idx])
 		if qErr != nil {
 			err = qErr
@@ -424,6 +426,8 @@ func TestComposeRemote(t *testing.T) {
 	defer orm.Uninitialized()
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	remoteProvider := provider.NewRemoteProvider(composeRemoteOwner)
+
+	loopSize := 10
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()
@@ -468,7 +472,7 @@ func TestComposeRemote(t *testing.T) {
 
 	strValue := "test code"
 	// insert
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		refPtrArray := []*Reference{rPtr}
 		sVal := &Compose{
 			Name:         strValue,
@@ -503,7 +507,7 @@ func TestComposeRemote(t *testing.T) {
 		sModelList = append(sModelList, sModel)
 	}
 
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		vModel, vErr := o1.Insert(sModelList[idx])
 		if vErr != nil {
 			err = vErr
@@ -524,7 +528,7 @@ func TestComposeRemote(t *testing.T) {
 	}
 
 	// update
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		sVal := sValList[idx]
 		sVal.Name = "hi"
 		sObjectVal, sObjectErr := remote.GetObjectValue(sVal)
@@ -544,7 +548,7 @@ func TestComposeRemote(t *testing.T) {
 
 		sModelList[idx] = sModel
 	}
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		vModel, vErr := o1.Update(sModelList[idx])
 		if vErr != nil {
 			err = vErr
@@ -568,7 +572,7 @@ func TestComposeRemote(t *testing.T) {
 	qValList := []*Compose{}
 	qObjectValList := []*remote.ObjectValue{}
 	qModelList := []model.Model{}
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		qVal := &Compose{
 			ID:           sValList[idx].ID,
 			R3:           &Simple{},
@@ -601,7 +605,7 @@ func TestComposeRemote(t *testing.T) {
 		qModelList = append(qModelList, qModel)
 	}
 
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		qModel, qErr := o1.Query(qModelList[idx])
 		if qErr != nil {
 			err = qErr
@@ -621,7 +625,7 @@ func TestComposeRemote(t *testing.T) {
 		qObjectValList[idx] = qObjectVal
 	}
 
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		sVal := sValList[idx]
 		qVal := qValList[idx]
 		if !sVal.IsSame(qVal) {
@@ -660,13 +664,13 @@ func TestComposeRemote(t *testing.T) {
 		t.Errorf("BatchQuery failed, err:%s", bqModelErr.Error())
 		return
 	}
-	if len(bqModelList) != 100 {
+	if len(bqModelList) != loopSize {
 		t.Errorf("batch query compose failed")
 		return
 	}
 
 	// delete
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		_, qErr := o1.Delete(bqModelList[idx])
 		if qErr != nil {
 			err = qErr

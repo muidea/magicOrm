@@ -124,7 +124,7 @@ func TestCodec(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != tt.Format("2006-01-02 15:04:05") {
+	if valStr != tt.Format(util.CSTLayout) {
 		t.Errorf("Encode failed,")
 		return
 	}

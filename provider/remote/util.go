@@ -355,7 +355,7 @@ func getSliceType(tType model.Type) (ret reflect.Type, err error) {
 	case model.TypeStructValue:
 		ret = reflect.TypeOf(&_declareObjectSliceValue)
 	default:
-		err = fmt.Errorf("unexpect slice item type, name:%s, type:%d", tType.GetName(), tType.GetValue())
+		err = fmt.Errorf("unexpected slice item type, name:%s, type:%d", tType.GetName(), tType.GetValue())
 	}
 
 	return
@@ -551,7 +551,7 @@ func getType(tType model.Type) (ret reflect.Type, err error) {
 	case model.TypeSliceValue:
 		ret, err = getSliceType(tType)
 	default:
-		err = fmt.Errorf("unexpect item type, name:%s, type:%d", tType.GetName(), tType.GetValue())
+		err = fmt.Errorf("unexpected item type, name:%s, type:%d", tType.GetName(), tType.GetValue())
 	}
 
 	return
@@ -587,9 +587,6 @@ func getStructValue(tType model.Type) (ret reflect.Value) {
 	cValue := reflect.New(cType).Elem()
 	cValue.FieldByName("Name").SetString(tType.GetName())
 	cValue.FieldByName("PkgPath").SetString(tType.GetPkgPath())
-	if model.IsSliceType(tType.GetValue()) {
-		cValue.FieldByName("IsElemPtr").SetBool(tType.Elem().IsPtrType())
-	}
 
 	ret = cValue
 	return

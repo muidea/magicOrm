@@ -56,7 +56,7 @@ func (s *field) GetValue() (ret model.Value) {
 func (s *field) SetValue(val model.Value) (err error) {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Errorf("SetValue failed, unexpect field:%v, err:%v", s.name, err)
+			log.Errorf("SetValue failed, unexpected field:%v, err:%v", s.name, err)
 		}
 	}()
 

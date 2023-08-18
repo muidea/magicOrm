@@ -8,20 +8,36 @@ import (
 
 // BuildInsert  Build Insert
 func (s *Builder) BuildInsert() (ret string, err error) {
-	sql := ""
-	fieldNames, nameErr := s.getFieldInsertNames()
-	if nameErr != nil {
-		err = nameErr
-		return
+	fieldNames := ""
+	fieldValues := ""
+	for _, field := range s.GetFields() {
+		fType := field.GetType()
+		fSpec := field.GetSpec()
+		fValue := field.GetValue()
+		if !fType.IsBasic() || fValue.IsNil() || fSpec.GetValueDeclare() == model.AutoIncrement {
+			continue
+		}
+
+		valStr, valErr := s.EncodeValue(fValue, fType)
+		if valErr != nil {
+			err = valErr
+			return
+		}
+
+		if fieldNames == "" {
+			fieldNames = fmt.Sprintf("`%s`", field.GetName())
+		} else {
+			fieldNames = fmt.Sprintf("%s,`%s`", fieldNames, field.GetName())
+		}
+
+		if fieldValues == "" {
+			fieldValues = fmt.Sprintf("%v", valStr)
+		} else {
+			fieldValues = fmt.Sprintf("%s,%v", fieldValues, valStr)
+		}
 	}
 
-	fieldValues, valueErr := s.getFieldInsertValues()
-	if valueErr != nil {
-		err = valueErr
-		return
-	}
-
-	sql = fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.GetTableName(), fieldNames, fieldValues)
+	sql := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.GetTableName(), fieldNames, fieldValues)
 	//log.Print(sql)
 	ret = sql
 
@@ -38,63 +54,6 @@ func (s *Builder) BuildInsertRelation(vField model.Field, rModel model.Model) (r
 	relationSchema := s.GetRelationTableName(vField, rModel)
 	ret = fmt.Sprintf("INSERT INTO `%s` (`left`, `right`) VALUES (%v,%v);", relationSchema, leftVal, rightVal)
 	//log.Print(ret)
-
-	return
-}
-
-func (s *Builder) getFieldInsertNames() (ret string, err error) {
-	str := ""
-	for _, field := range s.GetFields() {
-		fSpec := field.GetSpec()
-		if fSpec != nil && model.IsAutoIncrement(fSpec.GetValueDeclare()) {
-			continue
-		}
-
-		fType := field.GetType()
-		fValue := field.GetValue()
-		if !fType.IsBasic() || fValue.IsNil() {
-			continue
-		}
-
-		if str == "" {
-			str = fmt.Sprintf("`%s`", field.GetName())
-		} else {
-			str = fmt.Sprintf("%s,`%s`", str, field.GetName())
-		}
-	}
-
-	ret = str
-	return
-}
-
-func (s *Builder) getFieldInsertValues() (ret string, err error) {
-	str := ""
-	for _, field := range s.GetFields() {
-		fSpec := field.GetSpec()
-		if fSpec != nil && model.IsAutoIncrement(fSpec.GetValueDeclare()) {
-			continue
-		}
-
-		fType := field.GetType()
-		fValue := field.GetValue()
-		if !fType.IsBasic() || fValue.IsNil() {
-			continue
-		}
-
-		fStr, fErr := s.EncodeValue(fValue, fType)
-		if fErr != nil {
-			err = fErr
-			return
-		}
-
-		if str == "" {
-			str = fmt.Sprintf("%v", fStr)
-		} else {
-			str = fmt.Sprintf("%s,%v", str, fStr)
-		}
-	}
-
-	ret = str
 
 	return
 }

@@ -5,6 +5,7 @@ import "reflect"
 // Value Value
 type Value interface {
 	IsNil() bool
+	IsZero() bool
 	Set(val reflect.Value) error
 	Get() reflect.Value
 	Addr() Value

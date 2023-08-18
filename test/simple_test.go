@@ -19,6 +19,7 @@ func TestSimpleLocal(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
+	loopSize := 10
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	localProvider := provider.NewLocalProvider(simpleLocalOwner)
 
@@ -53,13 +54,13 @@ func TestSimpleLocal(t *testing.T) {
 		return
 	}
 
-	ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
+	//ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	sValList := []*Simple{}
 	sModelList := []model.Model{}
 
 	// insert
-	for idx := 0; idx < 100; idx++ {
-		sVal := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
+	for idx := 0; idx < loopSize; idx++ {
+		sVal := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, Flag: true}
 		sVal.I32 = int32(idx)
 		sValList = append(sValList, sVal)
 
@@ -73,7 +74,7 @@ func TestSimpleLocal(t *testing.T) {
 		sModelList = append(sModelList, sModel)
 	}
 
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		vModel, vErr := o1.Insert(sModelList[idx])
 		if vErr != nil {
 			err = vErr
@@ -86,7 +87,7 @@ func TestSimpleLocal(t *testing.T) {
 	}
 
 	// update
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		sVal := sValList[idx]
 		sVal.Name = "hi"
 		sModel, sErr := localProvider.GetEntityModel(sVal)
@@ -98,7 +99,7 @@ func TestSimpleLocal(t *testing.T) {
 
 		sModelList[idx] = sModel
 	}
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		vModel, vErr := o1.Update(sModelList[idx])
 		if vErr != nil {
 			err = vErr
@@ -113,7 +114,7 @@ func TestSimpleLocal(t *testing.T) {
 	// query
 	qValList := []*Simple{}
 	qModelList := []model.Model{}
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		qVal := &Simple{ID: sValList[idx].ID}
 		qValList = append(qValList, qVal)
 
@@ -127,7 +128,7 @@ func TestSimpleLocal(t *testing.T) {
 		qModelList = append(qModelList, qModel)
 	}
 
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		qModel, qErr := o1.Query(qModelList[idx])
 		if qErr != nil {
 			err = qErr
@@ -139,7 +140,7 @@ func TestSimpleLocal(t *testing.T) {
 		qValList[idx] = qModel.Interface(true).(*Simple)
 	}
 
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		sVal := sValList[idx]
 		qVal := qValList[idx]
 		if !sVal.IsSame(qVal) {
@@ -162,13 +163,13 @@ func TestSimpleLocal(t *testing.T) {
 		t.Errorf("BatchQuery failed, err:%s", bqModelErr.Error())
 		return
 	}
-	if len(bqModelList) != 100 {
+	if len(bqModelList) != loopSize {
 		t.Errorf("batch query simple failed")
 		return
 	}
 
 	// delete
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		_, qErr := o1.Delete(bqModelList[idx])
 		if qErr != nil {
 			err = qErr

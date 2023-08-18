@@ -5,8 +5,8 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *impl) updateSingle(modelInfo model.Model) (err error) {
-	builder := builder.NewBuilder(modelInfo, s.modelProvider, s.specialPrefix)
+func (s *impl) updateSingle(vModel model.Model) (err error) {
+	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
 	sqlStr, sqlErr := builder.BuildUpdate()
 	if sqlErr != nil {
 		err = sqlErr
@@ -18,18 +18,18 @@ func (s *impl) updateSingle(modelInfo model.Model) (err error) {
 	return err
 }
 
-func (s *impl) updateRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
-	fType := fieldInfo.GetType()
+func (s *impl) updateRelation(vModel model.Model, vField model.Field) (err error) {
+	fType := vField.GetType()
 	if fType.IsBasic() {
 		return
 	}
 
-	err = s.deleteRelation(modelInfo, fieldInfo, 0)
+	err = s.deleteRelation(vModel, vField, 0)
 	if err != nil {
 		return
 	}
 
-	err = s.insertRelation(modelInfo, fieldInfo)
+	err = s.insertRelation(vModel, vField)
 	if err != nil {
 		return
 	}
@@ -37,7 +37,7 @@ func (s *impl) updateRelation(modelInfo model.Model, fieldInfo model.Field) (err
 	return
 }
 
-func (s *impl) Update(entityModel model.Model) (ret model.Model, err error) {
+func (s *impl) Update(vModel model.Model) (ret model.Model, err error) {
 	err = s.executor.BeginTransaction()
 	if err != nil {
 		return
@@ -45,13 +45,13 @@ func (s *impl) Update(entityModel model.Model) (ret model.Model, err error) {
 	defer s.finalTransaction(err)
 
 	for {
-		err = s.updateSingle(entityModel)
+		err = s.updateSingle(vModel)
 		if err != nil {
 			break
 		}
 
-		for _, field := range entityModel.GetFields() {
-			err = s.updateRelation(entityModel, field)
+		for _, field := range vModel.GetFields() {
+			err = s.updateRelation(vModel, field)
 			if err != nil {
 				break
 			}
@@ -64,6 +64,6 @@ func (s *impl) Update(entityModel model.Model) (ret model.Model, err error) {
 		return
 	}
 
-	ret = entityModel
+	ret = vModel
 	return
 }

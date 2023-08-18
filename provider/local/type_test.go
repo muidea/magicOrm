@@ -245,7 +245,7 @@ func TestStructType(t *testing.T) {
 	}
 
 	if structType.IsPtrType() {
-		t.Errorf("unexpect isPtrType")
+		t.Errorf("unexpected isPtrType")
 		return
 	}
 }
@@ -321,7 +321,7 @@ func TestSliceType(t *testing.T) {
 	}
 
 	if sliceType.IsPtrType() {
-		t.Errorf("unexpect isPtrType")
+		t.Errorf("unexpected isPtrType")
 		return
 	}
 }
@@ -397,7 +397,7 @@ func TestPtrSliceType(t *testing.T) {
 	}
 
 	if !sliceType.IsPtrType() {
-		t.Errorf("unexpect isPtrType")
+		t.Errorf("unexpected isPtrType")
 		return
 	}
 }
@@ -475,7 +475,7 @@ func TestSliceStructType(t *testing.T) {
 		return
 	}
 	if sliceType.IsPtrType() {
-		t.Errorf("unexpect isPtrType")
+		t.Errorf("unexpected isPtrType")
 		return
 	}
 }

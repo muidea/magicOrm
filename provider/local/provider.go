@@ -7,7 +7,7 @@ import (
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/codec"
-	"github.com/muidea/magicOrm/provider/util"
+	pu "github.com/muidea/magicOrm/provider/util"
 )
 
 var _codec codec.Codec
@@ -46,7 +46,7 @@ func GetEntityValue(entity interface{}) (ret model.Value, err error) {
 		rVal = rVal.Elem()
 	}
 
-	ret = util.NewValue(rVal)
+	ret = pu.NewValue(rVal)
 	return
 }
 
@@ -83,7 +83,7 @@ func GetEntityModel(entity interface{}) (ret model.Model, err error) {
 }
 
 func GetModelFilter(vModel model.Model) (ret model.Filter, err error) {
-	valuePtr := util.NewValue(reflect.ValueOf(vModel.Interface(true)))
+	valuePtr := pu.NewValue(reflect.ValueOf(vModel.Interface(true)))
 	ret = NewFilter(valuePtr)
 	return
 }
@@ -111,7 +111,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 			return
 		}
 
-		fieldVal := util.NewValue(rVal.Field(idx))
+		fieldVal := pu.NewValue(rVal.Field(idx))
 		if fieldVal.IsNil() {
 			continue
 		}
@@ -139,7 +139,7 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 	}
 
 	for idx := 0; idx < rVal.Len(); idx++ {
-		val := util.NewValue(rVal.Index(idx))
+		val := pu.NewValue(rVal.Index(idx))
 		ret = append(ret, val)
 	}
 
@@ -175,7 +175,7 @@ func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, e
 	rNewVal := reflect.Append(rSliceVal, rVal)
 	rSliceVal.Set(rNewVal)
 
-	ret = util.NewValue(rSliceVal)
+	ret = pu.NewValue(rSliceVal)
 	return
 }
 
@@ -248,6 +248,25 @@ func DecodeValue(tVal interface{}, tType model.Type, mCache model.Cache) (ret mo
 		return
 	}
 
-	err = fmt.Errorf("unexecption type, type name:%s", tType.GetName())
+	err = fmt.Errorf("unexpected type, type name:%s", tType.GetName())
+	return
+}
+
+func GetValue(valueDeclare model.ValueDeclare) (ret model.Value) {
+	var rVal interface{}
+	switch valueDeclare {
+	case model.SnowFlake:
+		rVal = pu.GetNewSnowFlakeID()
+	case model.UUID:
+		rVal = pu.GetNewUUID()
+	case model.DateTime:
+		rVal = pu.GetCurrentDateTime()
+	}
+	if rVal != nil {
+		ret = pu.NewValue(reflect.ValueOf(rVal))
+		return
+	}
+
+	ret = &pu.NilValue
 	return
 }

@@ -5,8 +5,8 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *impl) createSingle(modelInfo model.Model) (err error) {
-	builder := builder.NewBuilder(modelInfo, s.modelProvider, s.specialPrefix)
+func (s *impl) createSingle(vModel model.Model) (err error) {
+	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
 	tableName := builder.GetTableName()
 
 	existFlag, existErr := s.executor.CheckTableExist(tableName)
@@ -28,9 +28,9 @@ func (s *impl) createSingle(modelInfo model.Model) (err error) {
 	return
 }
 
-func (s *impl) createRelation(modelInfo model.Model, field model.Field, relationInfo model.Model) (err error) {
-	builder := builder.NewBuilder(modelInfo, s.modelProvider, s.specialPrefix)
-	relationSchema := builder.GetRelationTableName(field, relationInfo)
+func (s *impl) createRelation(vModel model.Model, vField model.Field, rModel model.Model) (err error) {
+	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+	relationSchema := builder.GetRelationTableName(vField, rModel)
 
 	existFlag, existErr := s.executor.CheckTableExist(relationSchema)
 	if existErr != nil {
@@ -50,19 +50,19 @@ func (s *impl) createRelation(modelInfo model.Model, field model.Field, relation
 	return
 }
 
-func (s *impl) batchCreateSchema(modelInfo model.Model) (err error) {
-	err = s.createSingle(modelInfo)
+func (s *impl) batchCreateSchema(vModel model.Model) (err error) {
+	err = s.createSingle(vModel)
 	if err != nil {
 		return
 	}
 
-	for _, field := range modelInfo.GetFields() {
+	for _, field := range vModel.GetFields() {
 		fType := field.GetType()
 		if fType.IsBasic() {
 			continue
 		}
 
-		relationInfo, relationErr := s.modelProvider.GetTypeModel(fType)
+		relationModel, relationErr := s.modelProvider.GetTypeModel(fType)
 		if relationErr != nil {
 			err = relationErr
 			return
@@ -70,13 +70,13 @@ func (s *impl) batchCreateSchema(modelInfo model.Model) (err error) {
 
 		elemType := fType.Elem()
 		if !elemType.IsPtrType() {
-			err = s.createSingle(relationInfo)
+			err = s.createSingle(relationModel)
 			if err != nil {
 				return
 			}
 		}
 
-		err = s.createRelation(modelInfo, field, relationInfo)
+		err = s.createRelation(vModel, field, relationModel)
 		if err != nil {
 			return
 		}
@@ -85,13 +85,13 @@ func (s *impl) batchCreateSchema(modelInfo model.Model) (err error) {
 	return
 }
 
-func (s *impl) Create(entityModel model.Model) (err error) {
+func (s *impl) Create(vModel model.Model) (err error) {
 	err = s.executor.BeginTransaction()
 	if err != nil {
 		return
 	}
 	defer s.finalTransaction(err)
 
-	err = s.batchCreateSchema(entityModel)
+	err = s.batchCreateSchema(vModel)
 	return
 }

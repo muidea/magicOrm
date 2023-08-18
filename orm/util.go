@@ -16,11 +16,39 @@ func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, err error) 
 	for _, val := range vModel.GetFields() {
 		vType := val.GetType()
 		vValue := val.GetValue()
+		//if vValue.IsZero() {
+		//	continue
+		//}
+
 		if !s.modelProvider.IsAssigned(vValue, vType) {
 			continue
 		}
 
-		filterVal.Equal(val.GetName(), val.GetValue().Interface())
+		// if basic
+		if model.IsBasicType(vType.Elem().GetValue()) {
+			err = filterVal.Equal(val.GetName(), val.GetValue().Interface())
+			if err != nil {
+				return
+			}
+
+			continue
+		}
+
+		// if struct
+		if model.IsStructType(vType.GetValue()) {
+			err = filterVal.Equal(val.GetName(), val.GetValue().Interface())
+			if err != nil {
+				return
+			}
+
+			continue
+		}
+
+		// if struct slice
+		err = filterVal.In(val.GetName(), val.GetValue().Interface())
+		if err != nil {
+			return
+		}
 	}
 
 	ret = filterVal

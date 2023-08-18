@@ -1,8 +1,8 @@
 package test
 
 type Sub struct {
-	ID int  `orm:"id key auto"`
-	I8 int8 `orm:"i8"`
+	ID int64 `orm:"id key snowflake"`
+	I8 int8  `orm:"i8"`
 }
 
 type Parent struct {

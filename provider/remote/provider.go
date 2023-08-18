@@ -54,7 +54,7 @@ func GetEntityType(entity interface{}) (ret model.Type, err error) {
 	sValPtr, ok := entity.(*SliceObjectValue)
 	if ok {
 		impl := &TypeImpl{Name: sValPtr.GetName(), Value: model.TypeSliceValue, PkgPath: sValPtr.GetPkgPath()}
-		impl.ElemType = &TypeImpl{Name: sValPtr.GetName(), Value: model.TypeStructValue, PkgPath: sValPtr.GetPkgPath(), IsPtr: sValPtr.IsElemPtr}
+		impl.ElemType = &TypeImpl{Name: sValPtr.GetName(), Value: model.TypeStructValue, PkgPath: sValPtr.GetPkgPath(), IsPtr: true}
 
 		ret = impl
 		return
@@ -175,6 +175,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 
 func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 	rVal := reflect.Indirect(vVal.Get())
+	// check if SliceObjectValue
 	if rVal.Type().String() == reflect.TypeOf(_declareObjectSliceValue).String() {
 		objectsVal := rVal.FieldByName("Values")
 		if !pu.IsNil(objectsVal) {
@@ -186,6 +187,7 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 		}
 	}
 
+	// check if ObjectValue
 	if rVal.Type().String() == reflect.TypeOf(_declareObjectValue).String() {
 		itemsVal := rVal.FieldByName("Fields")
 		if !pu.IsNil(itemsVal) {
@@ -317,6 +319,25 @@ func DecodeValue(tVal interface{}, tType model.Type, mCache model.Cache) (ret mo
 		return
 	}
 
-	err = fmt.Errorf("unexecption type, type name:%s", tType.GetName())
+	err = fmt.Errorf("unexpected type, type name:%s", tType.GetName())
+	return
+}
+
+func GetValue(valueDeclare model.ValueDeclare) (ret model.Value) {
+	var rVal interface{}
+	switch valueDeclare {
+	case model.SnowFlake:
+		rVal = pu.GetNewSnowFlakeID()
+	case model.UUID:
+		rVal = pu.GetNewUUID()
+	case model.DateTime:
+		rVal = pu.GetCurrentDateTime()
+	}
+	if rVal != nil {
+		ret = pu.NewValue(reflect.ValueOf(rVal))
+		return
+	}
+
+	ret = &pu.NilValue
 	return
 }

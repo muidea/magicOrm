@@ -28,10 +28,9 @@ type ObjectValue struct {
 
 // SliceObjectValue slice object value
 type SliceObjectValue struct {
-	Name      string         `json:"name"`
-	PkgPath   string         `json:"pkgPath"`
-	IsElemPtr bool           `json:"isElemPtr"`
-	Values    []*ObjectValue `json:"values"`
+	Name    string         `json:"name"`
+	PkgPath string         `json:"pkgPath"`
+	Values  []*ObjectValue `json:"values"`
 }
 
 func (s *Object) GetName() (ret string) {
@@ -396,10 +395,6 @@ func (s *SliceObjectValue) GetPkgPath() string {
 	return s.PkgPath
 }
 
-func (s *SliceObjectValue) IsElemPtrValue() bool {
-	return s.IsElemPtr
-}
-
 // IsAssigned is assigned value
 func (s *SliceObjectValue) IsAssigned() (ret bool) {
 	ret = len(s.Values) > 0
@@ -568,7 +563,7 @@ func GetSliceObjectValue(sliceEntity interface{}) (ret *SliceObjectValue, err er
 		return
 	}
 
-	ret = &SliceObjectValue{Name: elemType.GetName(), PkgPath: elemType.GetPkgPath(), IsElemPtr: elemType.IsPtrType(), Values: []*ObjectValue{}}
+	ret = &SliceObjectValue{Name: elemType.GetName(), PkgPath: elemType.GetPkgPath(), Values: []*ObjectValue{}}
 	sliceValue = reflect.Indirect(sliceValue)
 	for idx := 0; idx < sliceValue.Len(); idx++ {
 		val := sliceValue.Index(idx)
@@ -646,9 +641,8 @@ func decodeObjectValueFromMap(mapVal map[string]interface{}) (ret *ObjectValue, 
 func decodeSliceObjectValueFromMap(mapVal map[string]interface{}) (ret *SliceObjectValue, err error) {
 	nameVal, nameOK := mapVal["name"]
 	pkgPathVal, pkgPathOK := mapVal["pkgPath"]
-	isElemPtrVal, isElemPtrOK := mapVal["isElemPtr"]
 	valuesVal, valuesOK := mapVal["values"]
-	if !nameOK || !pkgPathOK || !valuesOK || !isElemPtrOK {
+	if !nameOK || !pkgPathOK || !valuesOK {
 		err = fmt.Errorf("illegal SliceObjectValue")
 		return
 	}
@@ -657,7 +651,7 @@ func decodeSliceObjectValueFromMap(mapVal map[string]interface{}) (ret *SliceObj
 		return
 	}
 
-	objVal := &SliceObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), IsElemPtr: isElemPtrVal.(bool), Values: []*ObjectValue{}}
+	objVal := &SliceObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), Values: []*ObjectValue{}}
 	for _, val := range valuesVal.([]interface{}) {
 		item, itemOK := val.(map[string]interface{})
 		if !itemOK {
@@ -863,9 +857,6 @@ func compareSliceObjectValue(l, r *SliceObjectValue) bool {
 		return false
 	}
 	if l.PkgPath != r.PkgPath {
-		return false
-	}
-	if l.IsElemPtr != r.IsElemPtr {
 		return false
 	}
 	if len(l.Values) != len(r.Values) {

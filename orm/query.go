@@ -12,8 +12,8 @@ import (
 type resultItems []interface{}
 type resultItemsList []resultItems
 
-func (s *impl) innerQuery(elemModel model.Model, filter model.Filter) (ret resultItemsList, err error) {
-	builder := builder.NewBuilder(elemModel, s.modelProvider, s.specialPrefix)
+func (s *impl) innerQuery(vModel model.Model, filter model.Filter) (ret resultItemsList, err error) {
+	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
 	sqlStr, sqlErr := builder.BuildQuery(filter)
 	if sqlErr != nil {
 		err = sqlErr
@@ -27,7 +27,7 @@ func (s *impl) innerQuery(elemModel model.Model, filter model.Filter) (ret resul
 	}
 	defer s.executor.Finish()
 	for s.executor.Next() {
-		itemValues, itemErr := s.getInitializeValue(elemModel, builder)
+		itemValues, itemErr := s.getInitializeValue(vModel, builder)
 		if itemErr != nil {
 			err = itemErr
 			log.Errorf("getInitializeValue failed, err:%s", err.Error())
@@ -45,8 +45,14 @@ func (s *impl) innerQuery(elemModel model.Model, filter model.Filter) (ret resul
 	return
 }
 
-func (s *impl) querySingleModel(vModel model.Model, filter model.Filter, deepLevel int) (ret model.Model, err error) {
-	queryValueList, queryErr := s.innerQuery(vModel, filter)
+func (s *impl) querySingle(vModel model.Model, deepLevel int) (ret model.Model, err error) {
+	vFilter, vErr := s.getModelFilter(vModel)
+	if vErr != nil {
+		err = vErr
+		return
+	}
+
+	queryValueList, queryErr := s.innerQuery(vModel, vFilter)
 	if queryErr != nil {
 		err = queryErr
 		return
@@ -124,24 +130,17 @@ func (s *impl) assignSingleModel(modelVal model.Model, queryVal resultItems, dee
 	return
 }
 
-func (s *impl) queryRelationSingleModel(id int, vModel model.Model, deepLevel int) (ret model.Model, err error) {
+func (s *impl) queryRelationSingle(id int, vModel model.Model, deepLevel int) (ret model.Model, err error) {
 	relationModel := vModel.Copy()
 	relationVal, relationErr := s.modelProvider.GetEntityValue(id)
 	if relationErr != nil {
-		err = fmt.Errorf("queryRelationSingleModel failed, GetEntityValue err:%s", relationErr)
+		err = fmt.Errorf("queryRelationSingle failed, GetEntityValue err:%s", relationErr)
 		return
 	}
 
 	pkField := relationModel.GetPrimaryField()
 	pkField.SetValue(relationVal)
-	//relationFilter, relationErr := s.getFieldFilter(pkField)
-	relationFilter, relationErr := s.getModelFilter(relationModel)
-	if relationErr != nil {
-		err = fmt.Errorf("queryRelationSingleModel failed, getModelFilter err:%s", relationErr)
-		return
-	}
-
-	queryVal, queryErr := s.querySingleModel(relationModel, relationFilter, deepLevel)
+	queryVal, queryErr := s.querySingle(relationModel, deepLevel)
 	if queryErr != nil {
 		err = queryErr
 		return
@@ -151,7 +150,7 @@ func (s *impl) queryRelationSingleModel(id int, vModel model.Model, deepLevel in
 	return
 }
 
-func (s *impl) queryRelationSliceModel(ids []int, vModel model.Model, deepLevel int) (ret []model.Model, err error) {
+func (s *impl) queryRelationSlice(ids []int, vModel model.Model, deepLevel int) (ret []model.Model, err error) {
 	sliceVal := []model.Model{}
 	for _, item := range ids {
 		relationModel := vModel.Copy()
@@ -163,14 +162,7 @@ func (s *impl) queryRelationSliceModel(ids []int, vModel model.Model, deepLevel 
 
 		pkField := relationModel.GetPrimaryField()
 		pkField.SetValue(relationVal)
-		//relationFilter, relationErr := s.getFieldFilter(pkField)
-		relationFilter, relationErr := s.getModelFilter(relationModel)
-		if relationErr != nil {
-			err = fmt.Errorf("GetEntityValue failed, err:%s", relationErr)
-			return
-		}
-
-		queryVal, queryErr := s.querySingleModel(relationModel, relationFilter, deepLevel)
+		queryVal, queryErr := s.querySingle(relationModel, deepLevel)
 		if queryErr != nil {
 			err = queryErr
 			return
@@ -234,7 +226,7 @@ func (s *impl) querySingleRelation(vModel model.Model, vField model.Field, deepL
 	}
 
 	fieldValue := fieldType.Interface()
-	queryVal, queryErr := s.queryRelationSingleModel(valuesList[0], fieldModel, deepLevel+1)
+	queryVal, queryErr := s.queryRelationSingle(valuesList[0], fieldModel, deepLevel+1)
 	if queryErr != nil {
 		err = queryErr
 		return
@@ -269,7 +261,7 @@ func (s *impl) querySliceRelation(vModel model.Model, vField model.Field, deepLe
 	}
 
 	fieldValue := fieldType.Interface()
-	queryVal, queryErr := s.queryRelationSliceModel(valuesList, fieldModel, deepLevel+1)
+	queryVal, queryErr := s.queryRelationSlice(valuesList, fieldModel, deepLevel+1)
 	if queryErr != nil {
 		err = queryErr
 		return
@@ -312,14 +304,8 @@ func (s *impl) queryRelation(vModel model.Model, vField model.Field, deepLevel i
 	return
 }
 
-func (s *impl) Query(entityModel model.Model) (ret model.Model, err error) {
-	entityFilter, entityErr := s.getModelFilter(entityModel)
-	if entityErr != nil {
-		err = entityErr
-		return
-	}
-
-	queryVal, queryErr := s.querySingleModel(entityModel, entityFilter, 0)
+func (s *impl) Query(vModel model.Model) (ret model.Model, err error) {
+	queryVal, queryErr := s.querySingle(vModel, 0)
 	if queryErr != nil {
 		err = queryErr
 		return
@@ -330,6 +316,6 @@ func (s *impl) Query(entityModel model.Model) (ret model.Model, err error) {
 		return
 	}
 
-	err = fmt.Errorf("not exist model,name:%s,pkgPath:%s", entityModel.GetName(), entityModel.GetPkgPath())
+	err = fmt.Errorf("not exist model,name:%s,pkgPath:%s", vModel.GetName(), vModel.GetPkgPath())
 	return
 }

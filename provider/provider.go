@@ -38,6 +38,8 @@ type Provider interface {
 
 	IsAssigned(vVal model.Value, vType model.Type) bool
 
+	GetValue(valueDeclare model.ValueDeclare) (ret model.Value)
+
 	Owner() string
 
 	Reset()
@@ -57,6 +59,7 @@ func NewLocalProvider(owner string) Provider {
 		appendSliceValueFunc: local.AppendSliceValue,
 		encodeValueFunc:      local.EncodeValue,
 		decodeValueFunc:      local.DecodeValue,
+		getValue:             local.GetValue,
 	}
 
 	return ret
@@ -76,6 +79,7 @@ func NewRemoteProvider(owner string) Provider {
 		appendSliceValueFunc: remote.AppendSliceValue,
 		encodeValueFunc:      remote.EncodeValue,
 		decodeValueFunc:      remote.DecodeValue,
+		getValue:             remote.GetValue,
 	}
 
 	return ret
@@ -95,6 +99,7 @@ type providerImpl struct {
 	appendSliceValueFunc func(model.Value, model.Value) (model.Value, error)
 	encodeValueFunc      func(model.Value, model.Type, model.Cache) (interface{}, error)
 	decodeValueFunc      func(interface{}, model.Type, model.Cache) (model.Value, error)
+	getValue             func(declare model.ValueDeclare) model.Value
 }
 
 func (s *providerImpl) RegisterModel(entity interface{}) (ret model.Model, err error) {
@@ -282,6 +287,11 @@ func (s *providerImpl) IsAssigned(vVal model.Value, vType model.Type) (ret bool)
 	}
 
 	ret = curStr != originStr
+	return
+}
+
+func (s *providerImpl) GetValue(valueDeclare model.ValueDeclare) (ret model.Value) {
+	ret = s.getValue(valueDeclare)
 	return
 }
 

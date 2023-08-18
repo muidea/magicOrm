@@ -19,7 +19,7 @@ type Simple struct {
 	Name      string    `orm:"name"`
 	Value     float32   `orm:"value"`
 	F64       float64   `orm:"f64"`
-	TimeStamp time.Time `orm:"ts"`
+	TimeStamp time.Time `orm:"ts dateTime"`
 	Flag      bool      `orm:"flag"`
 }
 
@@ -48,7 +48,7 @@ func (l *Simple) IsSame(r *Simple) bool {
 	if l.F64 != r.F64 {
 		return false
 	}
-	if l.TimeStamp.Sub(r.TimeStamp) != 0 {
+	if l.TimeStamp.Sub(r.TimeStamp) >= time.Second {
 		return false
 	}
 	if l.Flag != r.Flag {

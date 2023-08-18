@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/muidea/magicCommon/foundation/util"
+
 	"github.com/muidea/magicOrm/provider"
 )
 
@@ -27,7 +29,7 @@ type Ext struct {
 }
 
 func TestBuilderCommon(t *testing.T) {
-	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
+	now, _ := time.ParseInLocation(util.CSTLayout, "2018-01-02 15:04:05", time.Local)
 	unit := &Unit{ID: 10, Name: "Hello world", Value: 12.3456, TimeStamp: now}
 
 	localProvider := provider.NewLocalProvider("default")
@@ -108,8 +110,8 @@ func TestBuilderCommon(t *testing.T) {
 }
 
 func TestBuilderReference(t *testing.T) {
-	ext := &Ext{}
-	unit := &Unit{}
+	ext := &Ext{ID: 10}
+	unit := &Unit{ID: 10}
 
 	localProvider := provider.NewLocalProvider("default")
 	localProvider.RegisterModel(ext)
@@ -130,7 +132,7 @@ func TestBuilderReference(t *testing.T) {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 	}
 	if str != "CREATE TABLE `abc_Ext` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`description` TEXT  ,\n\tPRIMARY KEY (`id`)\n)\n" {
-		t.Error("build create schema failed")
+		t.Errorf("build create schema failed, str:%s", str)
 	}
 
 	str, err = builder.BuildDropSchema()
@@ -138,7 +140,7 @@ func TestBuilderReference(t *testing.T) {
 		t.Errorf("build drop schema failed, err:%s", err.Error())
 	}
 	if str != "DROP TABLE IF EXISTS `abc_Ext`" {
-		t.Error("build drop schema failed")
+		t.Errorf("build drop schema failed, str:%s", str)
 	}
 
 	str, err = builder.BuildInsert()
@@ -146,23 +148,23 @@ func TestBuilderReference(t *testing.T) {
 		t.Errorf("build insert failed, err:%s", err.Error())
 	}
 	if str != "INSERT INTO `abc_Ext` (`name`) VALUES ('')" {
-		t.Error("build insert failed")
+		t.Errorf("build insert failed, str:%v", str)
 	}
 
 	str, err = builder.BuildUpdate()
 	if err != nil {
 		t.Errorf("build update failed, err:%s", err.Error())
 	}
-	if str != "UPDATE `abc_Ext` SET `name`='' WHERE `id`=0" {
-		t.Error("build update failed")
+	if str != "UPDATE `abc_Ext` SET `name`='' WHERE `id`=10" {
+		t.Errorf("build update failed, str:%s", str)
 	}
 
 	str, err = builder.BuildDelete()
 	if err != nil {
 		t.Errorf("build delete failed, err:%s", err.Error())
 	}
-	if str != "DELETE FROM `abc_Ext` WHERE `id`=0" {
-		t.Error("build delete failed")
+	if str != "DELETE FROM `abc_Ext` WHERE `id`=10" {
+		t.Errorf("build delete failed, str:%s", str)
 	}
 
 	str, err = builder.BuildQuery(nil)
@@ -176,8 +178,8 @@ func TestBuilderReference(t *testing.T) {
 
 func TestBuilderReference2(t *testing.T) {
 	desc := "Desc"
-	ext := &Ext{Description: &desc}
-	unit := &Unit{}
+	ext := &Ext{ID: 10, Description: &desc}
+	unit := &Unit{ID: 10}
 
 	localProvider := provider.NewLocalProvider("default")
 	localProvider.RegisterModel(ext)
@@ -221,7 +223,7 @@ func TestBuilderReference2(t *testing.T) {
 	if err != nil {
 		t.Errorf("build update failed, err:%s", err.Error())
 	}
-	if str != "UPDATE `abc_Ext` SET `name`='',`description`='Desc' WHERE `id`=0" {
+	if str != "UPDATE `abc_Ext` SET `name`='',`description`='Desc' WHERE `id`=10" {
 		t.Error("build update failed")
 	}
 
@@ -229,7 +231,7 @@ func TestBuilderReference2(t *testing.T) {
 	if err != nil {
 		t.Errorf("build delete failed, err:%s", err.Error())
 	}
-	if str != "DELETE FROM `abc_Ext` WHERE `id`=0" {
+	if str != "DELETE FROM `abc_Ext` WHERE `id`=10" {
 		t.Error("build delete failed")
 	}
 
