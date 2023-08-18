@@ -22,7 +22,7 @@ func (s relationType) String() string {
 func getFieldInitializeValue(field model.Field) (ret interface{}, err error) {
 	fType := field.GetType()
 	switch fType.GetValue() {
-	case model.TypeBooleanValue, model.TypeBitValue:
+	case model.TypeBitValue:
 		val := int8(0)
 		ret = &val
 		break
@@ -30,7 +30,7 @@ func getFieldInitializeValue(field model.Field) (ret interface{}, err error) {
 		val := int16(0)
 		ret = &val
 		break
-	case model.TypeIntegerValue:
+	case model.TypeBooleanValue, model.TypeIntegerValue:
 		val := int(0)
 		ret = &val
 		break

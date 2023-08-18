@@ -196,7 +196,7 @@ func TestSliceCodec(t *testing.T) {
 	}
 	dVal, dErr = _codec.Decode(valStr, bType)
 	if dErr != nil {
-		t.Errorf("Decode failed,")
+		t.Errorf("Decode failed, err:%s", dErr.Error())
 		return
 	}
 	if dVal.Get().Len() != bVal.Get().Len() {

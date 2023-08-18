@@ -22,7 +22,7 @@ func (s *impl) encodeBool(vVal model.Value) (ret interface{}, err error) {
 		} else {
 			ret = falseVal
 		}
-	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+	case reflect.Int:
 		if val.Int() > 0 {
 			ret = trueVal
 		} else {
@@ -45,7 +45,7 @@ func (s *impl) decodeBool(val interface{}, tType model.Type) (ret model.Value, e
 
 	var bVal int64
 	switch rVal.Kind() {
-	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+	case reflect.Int:
 		bVal = rVal.Int()
 	case reflect.Float64:
 		bVal = int64(rVal.Float())
@@ -58,7 +58,7 @@ func (s *impl) decodeBool(val interface{}, tType model.Type) (ret model.Value, e
 			bVal = 1
 		}
 	default:
-		err = fmt.Errorf("illegal boolean value, val:%v", val)
+		err = fmt.Errorf("illegal boolean value, val:%v, type:%v", val, rVal.Kind())
 	}
 
 	if err != nil {

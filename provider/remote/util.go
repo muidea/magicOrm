@@ -372,7 +372,7 @@ func getBool(tType model.Type) (ret reflect.Type, err error) {
 	return
 }
 
-func getSting(tType model.Type) (ret reflect.Type, err error) {
+func getString(tType model.Type) (ret reflect.Type, err error) {
 	if tType.IsPtrType() {
 		var val *string
 		ret = reflect.TypeOf(val)
@@ -521,7 +521,7 @@ func getType(tType model.Type) (ret reflect.Type, err error) {
 		ret, err = getBool(tType)
 	case model.TypeStringValue,
 		model.TypeDateTimeValue:
-		ret, err = getSting(tType)
+		ret, err = getString(tType)
 	case model.TypeBitValue:
 		ret, err = getInt8(tType)
 	case model.TypeSmallIntegerValue:
