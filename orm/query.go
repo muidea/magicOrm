@@ -91,7 +91,7 @@ func (s *impl) assignModelField(vModel model.Model, vField model.Field, deepLeve
 }
 
 func (s *impl) assignBasicField(fType model.Type, vField model.Field, val interface{}) (err error) {
-	fVal, fErr := s.modelProvider.DecodeValue(s.stripSlashes(fType, val), fType)
+	fVal, fErr := s.modelProvider.DecodeValue(val, fType)
 	if fErr != nil {
 		err = fErr
 		return

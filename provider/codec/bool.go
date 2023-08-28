@@ -12,7 +12,10 @@ const (
 	trueVal
 )
 
-// encodeBool get bool value str
+// encodeBool encode bool to int
+// bool: from local
+// int: from database
+// float64: from remote
 func (s *impl) encodeBool(vVal model.Value) (ret interface{}, err error) {
 	val := reflect.Indirect(vVal.Get())
 	switch val.Kind() {
@@ -24,6 +27,12 @@ func (s *impl) encodeBool(vVal model.Value) (ret interface{}, err error) {
 		}
 	case reflect.Int:
 		if val.Int() > 0 {
+			ret = trueVal
+		} else {
+			ret = falseVal
+		}
+	case reflect.Float64:
+		if val.Float() > 0 {
 			ret = trueVal
 		} else {
 			ret = falseVal

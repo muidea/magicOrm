@@ -3,7 +3,6 @@ package orm
 import (
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
 )
 
 func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, err error) {
@@ -74,31 +73,4 @@ func (s *impl) getInitializeValue(vModel model.Model, builder builder.Builder) (
 	ret = items
 
 	return
-}
-
-func (s *impl) needStripSlashes(fType model.Type) bool {
-	switch fType.GetValue() {
-	case model.TypeStringValue, model.TypeDateTimeValue:
-		return true
-	}
-
-	if !model.IsSliceType(fType.GetValue()) {
-		return false
-	}
-
-	return fType.IsBasic()
-}
-
-func (s *impl) stripSlashes(fType model.Type, val interface{}) interface{} {
-	if !s.needStripSlashes(fType) {
-		return val
-	}
-
-	strPtr, strOK := val.(*string)
-	if !strOK {
-		return val
-	}
-
-	strVal := util.StripSlashes(*strPtr)
-	return &strVal
 }

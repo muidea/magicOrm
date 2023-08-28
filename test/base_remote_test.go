@@ -61,6 +61,17 @@ func TestRemoteSimple(t *testing.T) {
 		return
 	}
 
+	byteVal, byteErr := remote.EncodeObjectValue(s1Value)
+	if byteErr != nil {
+		t.Errorf("encode object value failed, err:%s", byteErr.Error())
+		return
+	}
+
+	s1Value, s1Err = remote.DecodeObjectValue(byteVal)
+	if s1Err != nil {
+		t.Errorf("decode object value failed, err:%s", s1Err.Error())
+		return
+	}
 	s1Model, s1Err := remoteProvider.GetEntityModel(s1Value)
 	if s1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s1Err.Error())

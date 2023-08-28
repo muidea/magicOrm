@@ -47,15 +47,15 @@ func (s *impl) insertSingle(vModel model.Model) (ret model.Model, err error) {
 		}
 	}
 
-	insertVal, insertErr := s.innerInsert(vModel)
-	if insertErr != nil {
-		err = insertErr
+	pkVal, pkErr := s.innerInsert(vModel)
+	if pkErr != nil {
+		err = pkErr
 		return
 	}
 
-	if insertVal != nil && autoIncrementFlag {
+	if pkVal != nil && autoIncrementFlag {
 		pkField := vModel.GetPrimaryField()
-		tVal, tErr := s.modelProvider.DecodeValue(insertVal, pkField.GetType())
+		tVal, tErr := s.modelProvider.DecodeValue(pkVal, pkField.GetType())
 		if tErr != nil {
 			err = tErr
 			return
