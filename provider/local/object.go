@@ -23,6 +23,10 @@ func (s *objectImpl) GetPkgPath() string {
 	return s.objectType.PkgPath()
 }
 
+func (s *objectImpl) GetDescription() string {
+	return ""
+}
+
 func (s *objectImpl) GetPkgKey() string {
 	return path.Join(s.GetPkgPath(), s.GetName())
 }

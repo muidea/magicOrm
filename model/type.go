@@ -2,8 +2,9 @@ package model
 
 type Type interface {
 	GetName() string
-	GetValue() TypeDeclare
 	GetPkgPath() string
+	GetDescription() string
+	GetValue() TypeDeclare
 	GetPkgKey() string
 	IsPtrType() bool
 	Interface() Value

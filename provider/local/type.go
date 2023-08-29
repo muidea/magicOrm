@@ -42,15 +42,19 @@ func (s *typeImpl) GetName() string {
 	return rType.Name()
 }
 
+func (s *typeImpl) GetPkgPath() string {
+	rType := s.getElemType()
+	return rType.PkgPath()
+}
+
+func (s *typeImpl) GetDescription() string {
+	return ""
+}
+
 func (s *typeImpl) GetValue() (ret model.TypeDeclare) {
 	rType := s.getRawType()
 	ret, _ = pu.GetTypeEnum(rType)
 	return
-}
-
-func (s *typeImpl) GetPkgPath() string {
-	rType := s.getElemType()
-	return rType.PkgPath()
 }
 
 func (s *typeImpl) GetPkgKey() string {

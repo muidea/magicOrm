@@ -28,6 +28,10 @@ func (s *field) GetName() string {
 	return s.name
 }
 
+func (s *field) GetDescription() string {
+	return ""
+}
+
 func (s *field) GetType() (ret model.Type) {
 	ret = s.typePtr
 	return

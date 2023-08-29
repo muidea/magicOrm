@@ -3,6 +3,7 @@ package model
 type Field interface {
 	GetIndex() int
 	GetName() string
+	GetDescription() string
 	GetType() Type
 	GetSpec() Spec
 	GetValue() Value

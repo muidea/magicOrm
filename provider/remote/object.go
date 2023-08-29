@@ -13,10 +13,11 @@ import (
 )
 
 type Object struct {
-	Name    string   `json:"name"`
-	PkgPath string   `json:"pkgPath"`
-	IsPtr   bool     `json:"isPtr"`
-	Fields  []*Field `json:"fields"`
+	Name        string   `json:"name"`
+	PkgPath     string   `json:"pkgPath"`
+	Description string   `json:"description"`
+	IsPtr       bool     `json:"isPtr"`
+	Fields      []*Field `json:"fields"`
 }
 
 // ObjectValue Object value
@@ -40,6 +41,11 @@ func (s *Object) GetName() (ret string) {
 
 func (s *Object) GetPkgPath() (ret string) {
 	ret = s.PkgPath
+	return
+}
+
+func (s *Object) GetDescription() (ret string) {
+	ret = s.Description
 	return
 }
 

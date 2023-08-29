@@ -11,12 +11,12 @@ import (
 )
 
 type Field struct {
-	Index int    `json:"index"`
-	Name  string `json:"name"`
-
-	Type  *TypeImpl `json:"type"`
-	Spec  *SpecImpl `json:"spec"`
-	value *pu.ValueImpl
+	Index       int       `json:"index"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Type        *TypeImpl `json:"type"`
+	Spec        *SpecImpl `json:"spec"`
+	value       *pu.ValueImpl
 }
 
 type FieldValue struct {
@@ -30,6 +30,10 @@ func (s *Field) GetIndex() (ret int) {
 
 func (s *Field) GetName() string {
 	return s.Name
+}
+
+func (s *Field) GetDescription() string {
+	return s.Description
 }
 
 func (s *Field) GetType() (ret model.Type) {
