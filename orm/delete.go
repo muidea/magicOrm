@@ -23,8 +23,8 @@ func (s *impl) deleteSingle(vModel model.Model) (err error) {
 	return
 }
 
-func (s *impl) deleteRelationStructInner(fieldVal model.Value, relationType model.Type, deepLevel int) (err error) {
-	relationModel, relationErr := s.modelProvider.GetValueModel(fieldVal, relationType)
+func (s *impl) deleteRelationStructInner(rVal model.Value, rType model.Type, deepLevel int) (err error) {
+	relationModel, relationErr := s.modelProvider.GetValueModel(rVal, rType)
 	if relationErr != nil {
 		err = relationErr
 		return
@@ -45,14 +45,14 @@ func (s *impl) deleteRelationStructInner(fieldVal model.Value, relationType mode
 	return
 }
 
-func (s *impl) deleteRelationSliceInner(fieldVal model.Value, relationType model.Type, deepLevel int) (err error) {
-	elemVal, elemErr := s.modelProvider.ElemDependValue(fieldVal)
+func (s *impl) deleteRelationSliceInner(rVal model.Value, rType model.Type, deepLevel int) (err error) {
+	elemVal, elemErr := s.modelProvider.ElemDependValue(rVal)
 	if elemErr != nil {
 		err = elemErr
 		return
 	}
 
-	elemType := relationType.Elem()
+	elemType := rType.Elem()
 	for idx := 0; idx < len(elemVal); idx++ {
 		relationModel, relationErr := s.modelProvider.GetValueModel(elemVal[idx], elemType)
 		if relationErr != nil {
@@ -76,42 +76,42 @@ func (s *impl) deleteRelationSliceInner(fieldVal model.Value, relationType model
 	return
 }
 
-func (s *impl) deleteRelation(entityModel model.Model, relationField model.Field, deepLevel int) (err error) {
-	relationType := relationField.GetType()
-	if relationType.IsBasic() {
+func (s *impl) deleteRelation(vModel model.Model, rField model.Field, deepLevel int) (err error) {
+	rType := rField.GetType()
+	if rType.IsBasic() {
 		return
 	}
 
 	// disable check field value
-	//if !s.modelProvider.IsAssigned(relationField.GetValue(), relationField.GetType()) {
+	//if !s.modelProvider.IsAssigned(rField.GetValue(), rField.GetType()) {
 	//	return
 	//}
 
-	relationModel, relationErr := s.modelProvider.GetTypeModel(relationType)
+	relationModel, relationErr := s.modelProvider.GetTypeModel(rType)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("get relation field model failed, err:%s", err.Error())
 		return
 	}
 
-	builder := builder.NewBuilder(entityModel, s.modelProvider, s.specialPrefix)
-	rightSQL, relationSQL, buildErr := builder.BuildDeleteRelation(relationField, relationModel)
+	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+	rightSQL, relationSQL, buildErr := builder.BuildDeleteRelation(rField, relationModel)
 	if buildErr != nil {
 		err = buildErr
 		return
 	}
 
-	elemType := relationType.Elem()
+	elemType := rType.Elem()
 	if !elemType.IsPtrType() {
-		fieldVal, fieldErr := s.queryRelation(entityModel, relationField, deepLevel)
+		fieldVal, fieldErr := s.queryRelation(vModel, rField, deepLevel)
 		if fieldErr == nil && !fieldVal.IsNil() {
-			if model.IsStructType(relationType.GetValue()) {
-				err = s.deleteRelationStructInner(fieldVal, relationType, deepLevel)
+			if model.IsStructType(rType.GetValue()) {
+				err = s.deleteRelationStructInner(fieldVal, rType, deepLevel)
 				if err != nil {
 					return
 				}
-			} else if model.IsSliceType(relationType.GetValue()) {
-				err = s.deleteRelationSliceInner(fieldVal, relationType, deepLevel)
+			} else if model.IsSliceType(rType.GetValue()) {
+				err = s.deleteRelationSliceInner(fieldVal, rType, deepLevel)
 				if err != nil {
 					return
 				}

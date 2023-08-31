@@ -27,10 +27,10 @@ func (s *impl) innerQuery(vModel model.Model, filter model.Filter) (ret resultIt
 	}
 	defer s.executor.Finish()
 	for s.executor.Next() {
-		itemValues, itemErr := s.getInitializeValue(vModel, builder)
+		itemValues, itemErr := s.getFieldInitializeValue(vModel, builder)
 		if itemErr != nil {
 			err = itemErr
-			log.Errorf("getInitializeValue failed, err:%s", err.Error())
+			log.Errorf("getFieldInitializeValue failed, err:%s", err.Error())
 			return
 		}
 
@@ -63,6 +63,7 @@ func (s *impl) querySingle(vModel model.Model, deepLevel int) (ret model.Model, 
 		return
 	}
 	if resultSize > 1 {
+		err = fmt.Errorf("illegal query model, matched to many enties")
 		return
 	}
 
@@ -96,6 +97,7 @@ func (s *impl) assignBasicField(fType model.Type, vField model.Field, val interf
 		err = fErr
 		return
 	}
+
 	err = vField.SetValue(fVal)
 	return
 }

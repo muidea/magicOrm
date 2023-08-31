@@ -72,7 +72,7 @@ func (s *field) SetValue(val model.Value) (err error) {
 	return
 }
 
-func (s *field) IsPrimary() bool {
+func (s *field) IsPrimaryKey() bool {
 	if s.specPtr == nil {
 		return false
 	}

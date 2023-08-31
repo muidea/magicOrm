@@ -54,7 +54,7 @@ func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, err error) 
 	return
 }
 
-func (s *impl) getInitializeValue(vModel model.Model, builder builder.Builder) (ret []interface{}, err error) {
+func (s *impl) getFieldInitializeValue(vModel model.Model, builder builder.Builder) (ret []interface{}, err error) {
 	var items []interface{}
 	for _, field := range vModel.GetFields() {
 		fType := field.GetType()
@@ -62,7 +62,7 @@ func (s *impl) getInitializeValue(vModel model.Model, builder builder.Builder) (
 			continue
 		}
 
-		itemVal, itemErr := builder.GetInitializeValue(field)
+		itemVal, itemErr := builder.GetFieldInitializeValue(field)
 		if itemErr != nil {
 			err = itemErr
 			return

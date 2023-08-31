@@ -113,7 +113,7 @@ func (s *Common) GetRelationValue(rModel model.Model) (leftVal, rightVal interfa
 	return
 }
 
-func (s *Common) GetInitializeValue(vField model.Field) (ret interface{}, err error) {
+func (s *Common) GetFieldInitializeValue(vField model.Field) (ret interface{}, err error) {
 	return getFieldInitializeValue(vField)
 }
 

@@ -9,7 +9,7 @@ type Model interface {
 	SetFieldValue(name string, val Value) error
 	GetPrimaryField() Field
 	GetField(name string) Field
-	Interface(ptrValue bool) interface{}
+	Interface(isPtr bool) interface{}
 	Copy() Model
 	Dump() string
 }

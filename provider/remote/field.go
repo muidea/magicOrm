@@ -61,7 +61,7 @@ func (s *Field) GetValue() (ret model.Value) {
 	return
 }
 
-func (s *Field) IsPrimary() bool {
+func (s *Field) IsPrimaryKey() bool {
 	if s.Spec == nil {
 		return false
 	}

@@ -83,7 +83,7 @@ func (s *Object) SetFieldValue(name string, val model.Value) (err error) {
 
 func (s *Object) GetPrimaryField() (ret model.Field) {
 	for _, v := range s.Fields {
-		if v.IsPrimary() {
+		if v.IsPrimaryKey() {
 			ret = v
 			return
 		}
@@ -250,7 +250,7 @@ func type2Object(entityType reflect.Type) (ret *Object, err error) {
 			err = fErr
 			return
 		}
-		if fItem.IsPrimary() {
+		if fItem.IsPrimaryKey() {
 			if hasPrimaryKey {
 				err = fmt.Errorf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldType.Name, impl.GetName())
 				return

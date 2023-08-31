@@ -17,7 +17,7 @@ func (s *impl) createSingle(vModel model.Model) (err error) {
 
 	if !existFlag {
 		// no exist
-		sql, err := builder.BuildCreateSchema()
+		sql, err := builder.BuildCreateTable()
 		if err != nil {
 			return err
 		}
@@ -30,21 +30,22 @@ func (s *impl) createSingle(vModel model.Model) (err error) {
 
 func (s *impl) createRelation(vModel model.Model, vField model.Field, rModel model.Model) (err error) {
 	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	relationSchema := builder.GetRelationTableName(vField, rModel)
+	relationTableName := builder.GetRelationTableName(vField, rModel)
 
-	existFlag, existErr := s.executor.CheckTableExist(relationSchema)
+	existFlag, existErr := s.executor.CheckTableExist(relationTableName)
 	if existErr != nil {
 		err = existErr
 		return
 	}
 	if !existFlag {
 		// no exist
-		sql, err := builder.BuildCreateRelationSchema(relationSchema)
-		if err != nil {
-			return err
+		relationSQL, relationErr := builder.BuildCreateRelationTable(relationTableName)
+		if relationErr != nil {
+			err = relationErr
+			return
 		}
 
-		_, _, err = s.executor.Execute(sql)
+		_, _, err = s.executor.Execute(relationSQL)
 	}
 
 	return

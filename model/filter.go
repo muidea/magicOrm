@@ -37,7 +37,7 @@ type Filter interface {
 	In(key string, val interface{}) error
 	NotIn(key string, val interface{}) error
 	Like(key string, val interface{}) error
-	Page(filter *util.Pagination)
+	Page(page *util.Pagination)
 	Sort(sorter *util.SortFilter)
 	ValueMask(val interface{}) error
 

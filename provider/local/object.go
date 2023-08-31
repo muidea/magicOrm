@@ -53,7 +53,7 @@ func (s *objectImpl) SetFieldValue(name string, val model.Value) (err error) {
 
 func (s *objectImpl) GetPrimaryField() (ret model.Field) {
 	for _, field := range s.fields {
-		if field.IsPrimary() {
+		if field.IsPrimaryKey() {
 			ret = field
 			return
 		}
@@ -165,7 +165,7 @@ func getTypeModel(entityType reflect.Type) (ret *objectImpl, err error) {
 			return
 		}
 
-		if tField.IsPrimary() {
+		if tField.IsPrimaryKey() {
 			if hasPrimaryKey {
 				err = fmt.Errorf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldInfo.Name, impl.GetName())
 
@@ -210,7 +210,7 @@ func getValueModel(modelVal reflect.Value) (ret *objectImpl, err error) {
 			return
 		}
 
-		if tField.IsPrimary() {
+		if tField.IsPrimaryKey() {
 			if hasPrimaryKey {
 				err = fmt.Errorf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldInfo.Name, impl.GetName())
 				log.Errorf("getValueModel failed, check primary key err:%s", err.Error())

@@ -8,13 +8,13 @@ type Field interface {
 	GetSpec() Spec
 	GetValue() Value
 	SetValue(val Value) error
-	IsPrimary() bool
+	IsPrimaryKey() bool
 }
 
 func CompareField(l, r Field) bool {
 	return l.GetIndex() == r.GetIndex() &&
 		l.GetName() == r.GetName() &&
-		l.IsPrimary() == r.IsPrimary() &&
+		l.IsPrimaryKey() == r.IsPrimaryKey() &&
 		CompareType(l.GetType(), r.GetType()) &&
 		CompareSpec(l.GetSpec(), r.GetSpec()) &&
 		CompareValue(l.GetValue(), r.GetValue())
@@ -24,9 +24,9 @@ func CompareField(l, r Field) bool {
 type Fields []Field
 
 // Append Append
-func (s *Fields) Append(fieldInfo Field) bool {
+func (s *Fields) Append(vField Field) bool {
 	exist := false
-	newName := fieldInfo.GetName()
+	newName := vField.GetName()
 	for _, val := range *s {
 		curName := val.GetName()
 		if curName == newName {
@@ -38,14 +38,14 @@ func (s *Fields) Append(fieldInfo Field) bool {
 		return false
 	}
 
-	*s = append(*s, fieldInfo)
+	*s = append(*s, vField)
 	return true
 }
 
 // GetPrimaryField get primary key field
 func (s *Fields) GetPrimaryField() Field {
 	for _, val := range *s {
-		if val.IsPrimary() {
+		if val.IsPrimaryKey() {
 			return val
 		}
 	}

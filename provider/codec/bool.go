@@ -13,9 +13,8 @@ const (
 )
 
 // encodeBool encode bool to int
-// bool: from local
-// int: from database
-// float64/int: from remote
+// local: bool(true/false)
+// remote: bool(true/false)
 func (s *impl) encodeBool(vVal model.Value) (ret interface{}, err error) {
 	val := reflect.Indirect(vVal.Get())
 	switch val.Kind() {

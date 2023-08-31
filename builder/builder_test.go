@@ -47,7 +47,7 @@ func TestBuilderCommon(t *testing.T) {
 		return
 	}
 
-	str, err := builder.BuildCreateSchema()
+	str, err := builder.BuildCreateTable()
 	if err != nil {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 		return
@@ -57,7 +57,7 @@ func TestBuilderCommon(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildDropSchema()
+	str, err = builder.BuildDropTable()
 	if err != nil {
 		t.Errorf("build drop schema failed, err:%s", err.Error())
 		return
@@ -127,7 +127,7 @@ func TestBuilderReference(t *testing.T) {
 		t.Error("new Builder failed")
 	}
 
-	str, err := builder.BuildCreateSchema()
+	str, err := builder.BuildCreateTable()
 	if err != nil {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 	}
@@ -135,7 +135,7 @@ func TestBuilderReference(t *testing.T) {
 		t.Errorf("build create schema failed, str:%s", str)
 	}
 
-	str, err = builder.BuildDropSchema()
+	str, err = builder.BuildDropTable()
 	if err != nil {
 		t.Errorf("build drop schema failed, err:%s", err.Error())
 	}
@@ -195,7 +195,7 @@ func TestBuilderReference2(t *testing.T) {
 		t.Error("new Builder failed")
 	}
 
-	str, err := builder.BuildCreateSchema()
+	str, err := builder.BuildCreateTable()
 	if err != nil {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 	}
@@ -203,7 +203,7 @@ func TestBuilderReference2(t *testing.T) {
 		t.Error("build create schema failed")
 	}
 
-	str, err = builder.BuildDropSchema()
+	str, err = builder.BuildDropTable()
 	if err != nil {
 		t.Errorf("build drop schema failed, err:%s", err.Error())
 	}

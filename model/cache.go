@@ -8,7 +8,7 @@ import (
 type Cache interface {
 	Reset()
 
-	Put(name string, info Model)
+	Put(name string, vModel Model)
 
 	Fetch(name string) Model
 
@@ -28,17 +28,24 @@ func (s *impl) Reset() {
 	s.kvCache.ClearAll()
 }
 
-func (s *impl) Put(name string, info Model) {
-	s.kvCache.Put(name, info, cache.MaxAgeValue)
+func (s *impl) Put(name string, vModel Model) {
+	s.kvCache.Put(name, vModel, cache.MaxAgeValue)
 }
 
-func (s *impl) Fetch(name string) Model {
-	obj := s.kvCache.Fetch(name)
-	if obj == nil {
+func (s *impl) Fetch(name string) (ret Model) {
+	defer func() {
+		if err := recover(); err != nil {
+			ret = nil
+		}
+	}()
+
+	val := s.kvCache.Fetch(name)
+	if val == nil {
 		return nil
 	}
 
-	return obj.(Model)
+	ret = val.(Model)
+	return
 }
 
 func (s *impl) Remove(name string) {

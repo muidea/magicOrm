@@ -31,7 +31,7 @@ func (s *Builder) BuildUpdate() (ret string, err error) {
 func (s *Builder) getFieldUpdateValues() (ret string, err error) {
 	str := ""
 	for _, field := range s.GetFields() {
-		if field.IsPrimary() {
+		if field.IsPrimaryKey() {
 			continue
 		}
 

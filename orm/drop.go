@@ -16,7 +16,7 @@ func (s *impl) dropSingle(vModel model.Model) (err error) {
 	}
 
 	if existFlag {
-		sql, err := builder.BuildDropSchema()
+		sql, err := builder.BuildDropTable()
 		if err != nil {
 			return err
 		}
@@ -29,15 +29,15 @@ func (s *impl) dropSingle(vModel model.Model) (err error) {
 
 func (s *impl) dropRelation(vModel model.Model, field model.Field, rModel model.Model) (err error) {
 	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	relationSchema := builder.GetRelationTableName(field, rModel)
+	relationTableName := builder.GetRelationTableName(field, rModel)
 
-	existFlag, existErr := s.executor.CheckTableExist(relationSchema)
+	existFlag, existErr := s.executor.CheckTableExist(relationTableName)
 	if existErr != nil {
 		err = existErr
 		return
 	}
 	if existFlag {
-		sql, err := builder.BuildDropRelationSchema(relationSchema)
+		sql, err := builder.BuildDropRelationTable(relationTableName)
 		if err != nil {
 			return err
 		}

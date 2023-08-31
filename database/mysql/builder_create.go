@@ -4,8 +4,8 @@ import (
 	"fmt"
 )
 
-// BuildCreateSchema  BuildCreateSchema
-func (s *Builder) BuildCreateSchema() (ret string, err error) {
+// BuildCreateTable  BuildCreateSchema
+func (s *Builder) BuildCreateTable() (ret string, err error) {
 	str := ""
 	for _, val := range s.GetFields() {
 		fType := val.GetType()
@@ -39,10 +39,10 @@ func (s *Builder) BuildCreateSchema() (ret string, err error) {
 	return
 }
 
-// BuildCreateRelationSchema Build CreateRelation Schema
-func (s *Builder) BuildCreateRelationSchema(relationSchema string) (string, error) {
+// BuildCreateRelationTable Build CreateRelation Schema
+func (s *Builder) BuildCreateRelationTable(relationTableName string) (string, error) {
 	str := "\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`left` INT NOT NULL,\n\t`right` INT NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`)"
-	str = fmt.Sprintf("CREATE TABLE `%s` (\n%s\n)\n", relationSchema, str)
+	str = fmt.Sprintf("CREATE TABLE `%s` (\n%s\n)\n", relationTableName, str)
 	//log.Print(str)
 
 	return str, nil
