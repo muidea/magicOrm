@@ -7,43 +7,26 @@ import (
 
 func (s *impl) dropSingle(vModel model.Model) (err error) {
 	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	tableName := builder.GetTableName()
-
-	existFlag, existErr := s.executor.CheckTableExist(tableName)
-	if existErr != nil {
-		err = existErr
+	dropSQL, dropErr := builder.BuildDropTable()
+	if dropErr != nil {
+		err = dropErr
 		return
 	}
 
-	if existFlag {
-		sql, err := builder.BuildDropTable()
-		if err != nil {
-			return err
-		}
-
-		_, _, err = s.executor.Execute(sql)
-	}
+	_, _, err = s.executor.Execute(dropSQL)
 
 	return
 }
 
-func (s *impl) dropRelation(vModel model.Model, field model.Field, rModel model.Model) (err error) {
+func (s *impl) dropRelation(vModel model.Model, vField model.Field, rModel model.Model) (err error) {
 	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	relationTableName := builder.GetRelationTableName(field, rModel)
-
-	existFlag, existErr := s.executor.CheckTableExist(relationTableName)
-	if existErr != nil {
-		err = existErr
+	relationSQL, relationErr := builder.BuildDropRelationTable(vField, rModel)
+	if relationErr != nil {
+		err = relationErr
 		return
 	}
-	if existFlag {
-		sql, err := builder.BuildDropRelationTable(relationTableName)
-		if err != nil {
-			return err
-		}
 
-		_, _, err = s.executor.Execute(sql)
-	}
+	_, _, err = s.executor.Execute(relationSQL)
 
 	return
 }

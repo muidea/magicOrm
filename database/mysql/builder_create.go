@@ -2,6 +2,8 @@ package mysql
 
 import (
 	"fmt"
+
+	"github.com/muidea/magicOrm/model"
 )
 
 // BuildCreateTable  BuildCreateSchema
@@ -31,7 +33,7 @@ func (s *Builder) BuildCreateTable() (ret string, err error) {
 		str = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", str, pkField.GetName())
 	}
 
-	str = fmt.Sprintf("CREATE TABLE `%s` (\n%s\n)\n", s.GetTableName(), str)
+	str = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", s.GetTableName(), str)
 	//log.Print(str)
 
 	ret = str
@@ -40,9 +42,10 @@ func (s *Builder) BuildCreateTable() (ret string, err error) {
 }
 
 // BuildCreateRelationTable Build CreateRelation Schema
-func (s *Builder) BuildCreateRelationTable(relationTableName string) (string, error) {
+func (s *Builder) BuildCreateRelationTable(field model.Field, rModel model.Model) (string, error) {
+	relationTableName := s.GetRelationTableName(field, rModel)
 	str := "\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`left` INT NOT NULL,\n\t`right` INT NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`)"
-	str = fmt.Sprintf("CREATE TABLE `%s` (\n%s\n)\n", relationTableName, str)
+	str = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", relationTableName, str)
 	//log.Print(str)
 
 	return str, nil

@@ -52,7 +52,7 @@ func TestBuilderCommon(t *testing.T) {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 		return
 	}
-	if str != "CREATE TABLE `abc_Unit` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`value` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\tPRIMARY KEY (`id`)\n)\n" {
+	if str != "CREATE TABLE IF NOT EXISTS `abc_Unit` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`value` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\tPRIMARY KEY (`id`)\n)\n" {
 		t.Errorf("build create schema failed, str:%s", str)
 		return
 	}
@@ -131,7 +131,7 @@ func TestBuilderReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 	}
-	if str != "CREATE TABLE `abc_Ext` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`description` TEXT  ,\n\tPRIMARY KEY (`id`)\n)\n" {
+	if str != "CREATE TABLE IF NOT EXISTS `abc_Ext` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`description` TEXT  ,\n\tPRIMARY KEY (`id`)\n)\n" {
 		t.Errorf("build create schema failed, str:%s", str)
 	}
 
@@ -199,7 +199,7 @@ func TestBuilderReference2(t *testing.T) {
 	if err != nil {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 	}
-	if str != "CREATE TABLE `abc_Ext` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`description` TEXT  ,\n\tPRIMARY KEY (`id`)\n)\n" {
+	if str != "CREATE TABLE IF NOT EXISTS `abc_Ext` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`description` TEXT  ,\n\tPRIMARY KEY (`id`)\n)\n" {
 		t.Error("build create schema failed")
 	}
 

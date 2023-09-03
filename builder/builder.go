@@ -16,15 +16,12 @@ type Builder interface {
 	BuildQuery(filter model.Filter) (string, error)
 	BuildCount(filter model.Filter) (string, error)
 
-	BuildCreateRelationTable(relationTableName string) (string, error)
-	BuildDropRelationTable(relationTableName string) (string, error)
+	BuildCreateRelationTable(field model.Field, rModel model.Model) (string, error)
+	BuildDropRelationTable(field model.Field, rModel model.Model) (string, error)
 	BuildInsertRelation(field model.Field, rModel model.Model) (string, error)
 	BuildDeleteRelation(field model.Field, rModel model.Model) (string, string, error)
 	BuildQueryRelation(field model.Field, rModel model.Model) (string, error)
 
-	GetTableName() string
-	GetHostTableName(vModel model.Model) string
-	GetRelationTableName(field model.Field, rModel model.Model) string
 	GetFieldInitializeValue(field model.Field) (interface{}, error)
 }
 

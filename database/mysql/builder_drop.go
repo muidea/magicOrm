@@ -2,6 +2,8 @@ package mysql
 
 import (
 	"fmt"
+
+	"github.com/muidea/magicOrm/model"
 )
 
 // BuildDropTable  BuildDropSchema
@@ -13,7 +15,8 @@ func (s *Builder) BuildDropTable() (string, error) {
 }
 
 // BuildDropRelationTable Build DropRelation Schema
-func (s *Builder) BuildDropRelationTable(relationTableName string) (string, error) {
+func (s *Builder) BuildDropRelationTable(field model.Field, rModel model.Model) (string, error) {
+	relationTableName := s.GetRelationTableName(field, rModel)
 	str := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", relationTableName)
 	//log.Print(str)
 

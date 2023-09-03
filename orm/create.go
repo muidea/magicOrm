@@ -7,46 +7,25 @@ import (
 
 func (s *impl) createSingle(vModel model.Model) (err error) {
 	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	tableName := builder.GetTableName()
-
-	existFlag, existErr := s.executor.CheckTableExist(tableName)
-	if existErr != nil {
-		err = existErr
+	createSQL, createErr := builder.BuildCreateTable()
+	if createErr != nil {
+		err = createErr
 		return
 	}
 
-	if !existFlag {
-		// no exist
-		sql, err := builder.BuildCreateTable()
-		if err != nil {
-			return err
-		}
-
-		_, _, err = s.executor.Execute(sql)
-	}
-
+	_, _, err = s.executor.Execute(createSQL)
 	return
 }
 
 func (s *impl) createRelation(vModel model.Model, vField model.Field, rModel model.Model) (err error) {
 	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	relationTableName := builder.GetRelationTableName(vField, rModel)
-
-	existFlag, existErr := s.executor.CheckTableExist(relationTableName)
-	if existErr != nil {
-		err = existErr
+	relationSQL, relationErr := builder.BuildCreateRelationTable(vField, rModel)
+	if relationErr != nil {
+		err = relationErr
 		return
 	}
-	if !existFlag {
-		// no exist
-		relationSQL, relationErr := builder.BuildCreateRelationTable(relationTableName)
-		if relationErr != nil {
-			err = relationErr
-			return
-		}
 
-		_, _, err = s.executor.Execute(relationSQL)
-	}
+	_, _, err = s.executor.Execute(relationSQL)
 
 	return
 }
