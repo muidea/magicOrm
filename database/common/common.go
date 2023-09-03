@@ -113,10 +113,6 @@ func (s *Common) GetRelationValue(rModel model.Model) (leftVal, rightVal interfa
 	return
 }
 
-func (s *Common) GetFieldInitializeValue(vField model.Field) (ret interface{}, err error) {
-	return getFieldInitializeValue(vField)
-}
-
 func (s *Common) EncodeValue(vValue model.Value, vType model.Type) (ret interface{}, err error) {
 	fStr, fErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fErr != nil {

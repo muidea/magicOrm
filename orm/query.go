@@ -27,10 +27,10 @@ func (s *impl) innerQuery(vModel model.Model, filter model.Filter) (ret resultIt
 	}
 	defer s.executor.Finish()
 	for s.executor.Next() {
-		itemValues, itemErr := s.getFieldInitializeValue(vModel, builder)
+		itemValues, itemErr := s.getFieldScanDestPtr(vModel, builder)
 		if itemErr != nil {
 			err = itemErr
-			log.Errorf("getFieldInitializeValue failed, err:%s", err.Error())
+			log.Errorf("getFieldScanDestPtr failed, err:%s", err.Error())
 			return
 		}
 

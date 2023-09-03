@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	falseVal = iota
+	falseVal = int8(iota)
 	trueVal
 )
 
@@ -24,7 +24,7 @@ func (s *impl) encodeBool(vVal model.Value) (ret interface{}, err error) {
 		} else {
 			ret = falseVal
 		}
-	case reflect.Int:
+	case reflect.Int8:
 		if val.Int() > 0 {
 			ret = trueVal
 		} else {
@@ -37,7 +37,7 @@ func (s *impl) encodeBool(vVal model.Value) (ret interface{}, err error) {
 			ret = falseVal
 		}
 	default:
-		err = fmt.Errorf("illegal boolean value, type:%s", val.Type().String())
+		err = fmt.Errorf("encodeBool failed, illegal boolean value, type:%s", val.Type().String())
 	}
 
 	return
@@ -53,7 +53,7 @@ func (s *impl) decodeBool(val interface{}, tType model.Type) (ret model.Value, e
 
 	var bVal int64
 	switch rVal.Kind() {
-	case reflect.Int:
+	case reflect.Int8:
 		bVal = rVal.Int()
 	case reflect.Float64:
 		bVal = int64(rVal.Float())
@@ -66,7 +66,7 @@ func (s *impl) decodeBool(val interface{}, tType model.Type) (ret model.Value, e
 			bVal = 1
 		}
 	default:
-		err = fmt.Errorf("illegal boolean value, val:%v, type:%v", val, rVal.Kind())
+		err = fmt.Errorf("decodeBool failed, illegal source boolean value, val:%v, type:%v", val, rVal.Kind())
 	}
 
 	if err != nil {
@@ -81,7 +81,7 @@ func (s *impl) decodeBool(val interface{}, tType model.Type) (ret model.Value, e
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
 		rVal.SetInt(bVal)
 	default:
-		err = fmt.Errorf("illegal boolean value, type:%s", tVal.Get().Type().String())
+		err = fmt.Errorf("decodeBool faield, illegal boolean value, type:%s", tVal.Get().Type().String())
 	}
 	if err != nil {
 		return

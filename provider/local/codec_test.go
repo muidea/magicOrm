@@ -88,8 +88,8 @@ func TestCodec(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != 1 {
-		t.Errorf("Encode failed,")
+	if fmt.Sprintf("%v", valStr) != fmt.Sprintf("%v", 1) {
+		t.Errorf("Encode failed, valStr:%v", valStr)
 		return
 	}
 
@@ -106,7 +106,7 @@ func TestCodec(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != ss {
+	if fmt.Sprintf("%v", valStr) != fmt.Sprintf("%v", ss) {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -124,7 +124,7 @@ func TestCodec(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if valStr != tt.Format(util.CSTLayout) {
+	if fmt.Sprintf("%v", valStr) != fmt.Sprintf("%v", tt.Format(util.CSTLayout)) {
 		t.Errorf("Encode failed,")
 		return
 	}

@@ -193,3 +193,7 @@ func (s *Builder) getFieldQueryNames() (ret string, err error) {
 	ret = str
 	return
 }
+
+func (s *Builder) GetFieldScanDestPtr(vField model.Field) (ret interface{}, err error) {
+	return getFieldScanDestPtr(vField)
+}

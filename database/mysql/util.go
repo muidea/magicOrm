@@ -57,7 +57,7 @@ func declareFieldInfo(vField model.Field) (ret string, err error) {
 func getFieldType(info model.Field) (ret string, err error) {
 	fType := info.GetType()
 	switch fType.GetValue() {
-	case model.TypeBooleanValue, model.TypeBitValue:
+	case model.TypeBooleanValue:
 		ret = "TINYINT"
 		break
 	case model.TypeStringValue:
@@ -65,6 +65,9 @@ func getFieldType(info model.Field) (ret string, err error) {
 		break
 	case model.TypeDateTimeValue:
 		ret = "DATETIME"
+		break
+	case model.TypeBitValue:
+		ret = "TINYINT"
 		break
 	case model.TypeSmallIntegerValue, model.TypePositiveBitValue:
 		ret = "SMALLINT"
@@ -85,6 +88,79 @@ func getFieldType(info model.Field) (ret string, err error) {
 		ret = "TEXT"
 	default:
 		err = fmt.Errorf("no support fileType, name:%s, type:%d", info.GetName(), fType.GetValue())
+	}
+
+	return
+}
+
+func getFieldScanDestPtr(field model.Field) (ret interface{}, err error) {
+	fType := field.GetType()
+	switch fType.GetValue() {
+	case model.TypeBooleanValue:
+		val := int8(0)
+		ret = &val
+		break
+	case model.TypeStringValue, model.TypeDateTimeValue:
+		val := ""
+		ret = &val
+		break
+	case model.TypeBitValue:
+		val := int8(0)
+		ret = &val
+		break
+	case model.TypeSmallIntegerValue:
+		val := int16(0)
+		ret = &val
+		break
+	case model.TypePositiveBitValue:
+		val := uint8(0)
+		ret = &val
+		break
+	case model.TypeIntegerValue:
+		val := int(0)
+		ret = &val
+		break
+	case model.TypeInteger32Value:
+		val := int32(0)
+		ret = &val
+		break
+	case model.TypePositiveSmallIntegerValue:
+		val := uint16(0)
+		ret = &val
+		break
+	case model.TypeBigIntegerValue:
+		val := int64(0)
+		ret = &val
+		break
+	case model.TypePositiveIntegerValue:
+		val := uint(0)
+		ret = &val
+		break
+	case model.TypePositiveInteger32Value:
+		val := uint32(0)
+		ret = &val
+		break
+	case model.TypePositiveBigIntegerValue:
+		val := uint64(0)
+		ret = &val
+		break
+	case model.TypeFloatValue:
+		val := float32(0.00)
+		ret = &val
+		break
+	case model.TypeDoubleValue:
+		val := 0.0000
+		ret = &val
+		break
+	case model.TypeSliceValue:
+		if fType.IsBasic() {
+			val := ""
+			ret = &val
+		} else {
+			err = fmt.Errorf("no support fileType, name:%s, type:%d", field.GetName(), fType.GetValue())
+		}
+	default:
+		err = fmt.Errorf("no support fileType, name:%s, type:%d", field.GetName(), fType.GetValue())
 	}
 
 	return
