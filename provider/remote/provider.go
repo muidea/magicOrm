@@ -35,8 +35,8 @@ func GetCodec() codec.Codec {
 func GetEntityType(entity interface{}) (ret model.Type, err error) {
 	objPtr, ok := entity.(*Object)
 	if ok {
-		impl := &TypeImpl{Name: objPtr.GetName(), Value: model.TypeStructValue, PkgPath: objPtr.GetPkgPath(), IsPtr: objPtr.IsPtr}
-		impl.ElemType = &TypeImpl{Name: objPtr.GetName(), Value: model.TypeStructValue, PkgPath: objPtr.GetPkgPath(), IsPtr: objPtr.IsPtr}
+		impl := &TypeImpl{Name: objPtr.GetName(), Value: model.TypeStructValue, PkgPath: objPtr.GetPkgPath(), IsPtr: true /*objPtr.IsPtr*/}
+		impl.ElemType = &TypeImpl{Name: objPtr.GetName(), Value: model.TypeStructValue, PkgPath: objPtr.GetPkgPath(), IsPtr: true /*objPtr.IsPtr*/}
 
 		ret = impl
 		return

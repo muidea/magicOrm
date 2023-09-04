@@ -16,7 +16,6 @@ type Object struct {
 	Name        string   `json:"name"`
 	PkgPath     string   `json:"pkgPath"`
 	Description string   `json:"description"`
-	IsPtr       bool     `json:"isPtr"`
 	Fields      []*Field `json:"fields"`
 }
 
@@ -51,10 +50,6 @@ func (s *Object) GetDescription() (ret string) {
 
 func (s *Object) GetPkgKey() string {
 	return path.Join(s.GetPkgPath(), s.GetName())
-}
-
-func (s *Object) IsPtrValue() bool {
-	return s.IsPtr
 }
 
 func (s *Object) GetFields() (ret model.Fields) {
@@ -212,17 +207,14 @@ func GetObject(entity interface{}) (ret *Object, err error) {
 
 // type2Object type2Object
 func type2Object(entityType reflect.Type) (ret *Object, err error) {
-	isPtr := false
 	if entityType.Kind() == reflect.Ptr {
 		entityType = entityType.Elem()
-		isPtr = true
 	}
 	if entityType.Kind() == reflect.Interface {
 		entityType = entityType.Elem()
 	}
 	if entityType.Kind() == reflect.Ptr {
 		entityType = entityType.Elem()
-		isPtr = true
 	}
 
 	typeImpl, typeErr := newType(entityType)
@@ -238,7 +230,6 @@ func type2Object(entityType reflect.Type) (ret *Object, err error) {
 	impl := &Object{}
 	impl.Name = entityType.Name()
 	impl.PkgPath = entityType.PkgPath()
-	impl.IsPtr = isPtr
 	impl.Fields = []*Field{}
 
 	hasPrimaryKey := false
