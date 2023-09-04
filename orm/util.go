@@ -62,7 +62,7 @@ func (s *impl) getFieldScanDestPtr(vModel model.Model, builder builder.Builder) 
 			continue
 		}
 
-		itemVal, itemErr := builder.GetFieldScanDestPtr(field)
+		itemVal, itemErr := builder.GetFieldScanDest(field)
 		if itemErr != nil {
 			err = itemErr
 			return

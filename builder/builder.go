@@ -22,7 +22,7 @@ type Builder interface {
 	BuildDeleteRelation(field model.Field, rModel model.Model) (string, string, error)
 	BuildQueryRelation(field model.Field, rModel model.Model) (string, error)
 
-	GetFieldScanDestPtr(field model.Field) (interface{}, error)
+	GetFieldScanDest(field model.Field) (interface{}, error)
 }
 
 // NewBuilder new builder

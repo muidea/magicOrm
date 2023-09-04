@@ -30,11 +30,11 @@ func (s *Builder) BuildDeleteRelation(vField model.Field, rModel model.Model) (d
 		err = leftErr
 		return
 	}
-	relationSchema := s.GetRelationTableName(vField, rModel)
-	delRight = fmt.Sprintf("DELETE FROM `%s` WHERE `id` in (SELECT `right` FROM `%s` WHERE `left`=%v)", s.GetHostTableName(rModel), relationSchema, leftVal)
+	relationTableName := s.GetRelationTableName(vField, rModel)
+	delRight = fmt.Sprintf("DELETE FROM `%s` WHERE `id` in (SELECT `right` FROM `%s` WHERE `left`=%v)", s.GetHostTableName(rModel), relationTableName, leftVal)
 	//log.Print(delRight)
 
-	delRelation = fmt.Sprintf("DELETE FROM `%s` WHERE `left`=%v", relationSchema, leftVal)
+	delRelation = fmt.Sprintf("DELETE FROM `%s` WHERE `left`=%v", relationTableName, leftVal)
 	//log.Print(delRelation)
 
 	return

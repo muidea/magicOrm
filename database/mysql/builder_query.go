@@ -56,8 +56,8 @@ func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (re
 		return
 	}
 
-	relationSchema := s.GetRelationTableName(vField, rModel)
-	ret = fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= %v", relationSchema, leftVal)
+	relationTableName := s.GetRelationTableName(vField, rModel)
+	ret = fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= %v", relationTableName, leftVal)
 	//log.Print(ret)
 
 	return
@@ -103,8 +103,8 @@ func (s *Builder) buildRelationItem(pkField model.Field, rField model.Field, fil
 
 	relationFilterSQL := ""
 	strVal := oprFunc("right", valueStr)
-	relationTable := s.GetRelationTableName(rField, fieldModel)
-	relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTable, strVal)
+	relationTableName := s.GetRelationTableName(rField, fieldModel)
+	relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTableName, strVal)
 	relationFilterSQL = fmt.Sprintf("`%s` IN (SELECT DISTINCT(`id`) FROM (%s) ids)", pkField.GetName(), relationFilterSQL)
 	ret = relationFilterSQL
 	return
@@ -116,7 +116,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 	}
 
 	filterSQL := ""
-	pkField := s.GetPrimaryKeyField()
+	pkField := s.GetPrimaryKeyField(nil)
 	for _, field := range s.GetFields() {
 		filterItem := filter.GetFilterItem(field.GetName())
 		if filterItem == nil {
@@ -194,6 +194,6 @@ func (s *Builder) getFieldQueryNames() (ret string, err error) {
 	return
 }
 
-func (s *Builder) GetFieldScanDestPtr(vField model.Field) (ret interface{}, err error) {
+func (s *Builder) GetFieldScanDest(vField model.Field) (ret interface{}, err error) {
 	return getFieldScanDestPtr(vField)
 }

@@ -20,7 +20,7 @@ type Common struct {
 
 	// temp value, for performance optimization
 	entityTableName string
-	entityValue     interface{}
+	entityValue     string
 }
 
 func New(vModel model.Model, modelProvider provider.Provider, prefix string) Common {
@@ -71,21 +71,26 @@ func (s *Common) GetRelationTableName(vField model.Field, rModel model.Model) st
 	return tableName
 }
 
-func (s *Common) GetPrimaryKeyField() model.Field {
-	return s.entityModel.GetPrimaryField()
+func (s *Common) GetPrimaryKeyField(vModel model.Model) model.Field {
+	if vModel == nil {
+		return s.entityModel.GetPrimaryField()
+	}
+
+	return vModel.GetPrimaryField()
 }
 
 func (s *Common) GetFields() model.Fields {
 	return s.entityModel.GetFields()
 }
 
-func (s *Common) GetModelValue() (ret interface{}, err error) {
-	if s.entityValue == nil {
+func (s *Common) GetModelValue() (ret string, err error) {
+	if s.entityValue == "" {
 		entityVal, entityErr := s.EncodeModelValue(s.entityModel)
 		if entityErr != nil {
 			err = entityErr
 			return
 		}
+
 		s.entityValue = entityVal
 	}
 
@@ -93,7 +98,7 @@ func (s *Common) GetModelValue() (ret interface{}, err error) {
 	return
 }
 
-func (s *Common) GetRelationValue(rModel model.Model) (leftVal, rightVal interface{}, err error) {
+func (s *Common) GetRelationValue(rModel model.Model) (leftVal, rightVal string, err error) {
 	entityVal, entityErr := s.GetModelValue()
 	if entityErr != nil {
 		err = entityErr
@@ -113,7 +118,13 @@ func (s *Common) GetRelationValue(rModel model.Model) (leftVal, rightVal interfa
 	return
 }
 
-func (s *Common) EncodeValue(vValue model.Value, vType model.Type) (ret interface{}, err error) {
+func (s *Common) EncodeValue(vValue model.Value, vType model.Type) (ret string, err error) {
+	defer func() {
+		if eErr := recover(); eErr != nil {
+			err = fmt.Errorf("encode value failed, type:%v, err:%v", vType.GetPkgKey(), eErr)
+		}
+	}()
+
 	fStr, fErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fErr != nil {
 		err = fErr
@@ -122,15 +133,15 @@ func (s *Common) EncodeValue(vValue model.Value, vType model.Type) (ret interfac
 
 	switch vType.GetValue() {
 	case model.TypeStringValue, model.TypeDateTimeValue, model.TypeSliceValue:
-		ret = fmt.Sprintf("'%v'", strings.ReplaceAll(fmt.Sprintf("%v", fStr), "'", "''"))
+		ret = fmt.Sprintf("'%v'", strings.ReplaceAll(fStr.(string), "'", "''"))
 	default:
-		ret = fStr
+		ret = fmt.Sprintf("%v", fStr)
 	}
 
 	return
 }
 
-func (s *Common) EncodeModelValue(vModel model.Model) (ret interface{}, err error) {
+func (s *Common) EncodeModelValue(vModel model.Model) (ret string, err error) {
 	pkField := vModel.GetPrimaryField()
 	fStr, fErr := s.EncodeValue(pkField.GetValue(), pkField.GetType())
 	if fErr != nil {
