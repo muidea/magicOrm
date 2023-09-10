@@ -56,6 +56,7 @@ func getLocalValue(objectValue *remote.ObjectValue, valueType reflect.Type) (ret
 		log.Errorf("mismatch objectValue for value, err:%s", err)
 		return
 	}
+
 	entityType := valueType
 	if vType.IsPtrType() {
 		entityType = entityType.Elem()
@@ -87,16 +88,22 @@ func getLocalValue(objectValue *remote.ObjectValue, valueType reflect.Type) (ret
 		for {
 			// for basic type
 			if vFieldType.IsBasic() {
-				val, valErr := local.GetCodec().Decode(curItem.Value, vFieldType)
-				if valErr != nil {
-					err = valErr
-					log.Errorf("updateBasicValue failed, fieldName:%s, err:%s", curField.Name, err.Error())
-					return
+				/*
+					val, valErr := local.GetCodec().Decode(curItem.Value, vFieldType)
+					if valErr != nil {
+						err = valErr
+						log.Errorf("updateBasicValue failed, fieldName:%s, err:%s", curField.Name, err.Error())
+						return
+					}
+					if !val.IsNil() {
+						curFieldValue.Set(val.Get().(reflect.Value))
+					}
+				*/
+				if curItem.IsNil() {
+					continue
 				}
 
-				if !val.IsNil() {
-					curFieldValue.Set(val.Get())
-				}
+				curFieldValue.Set(reflect.ValueOf(curItem.Value))
 				break
 			}
 

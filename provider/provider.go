@@ -3,10 +3,11 @@ package provider
 import (
 	"fmt"
 
-	"github.com/muidea/magicOrm/provider/local"
-	"github.com/muidea/magicOrm/provider/remote"
+	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider/local"
+	"github.com/muidea/magicOrm/provider/remote"
 )
 
 type Provider interface {
@@ -163,14 +164,16 @@ func (s *providerImpl) GetEntityValue(entity interface{}) (ret model.Value, err 
 func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err error) {
 	entityType, entityErr := s.getTypeFunc(entity)
 	if entityErr != nil {
-		err = fmt.Errorf("illegal entity, must be struct entity")
+		err = fmt.Errorf("GetEntityModel failed, getTypeFunc error, err:%s", entityErr.Error())
+		log.Error(err)
 		return
 	}
 
 	// must check if register already
 	entityModel := s.modelCache.Fetch(entityType.GetPkgKey())
 	if entityModel == nil {
-		err = fmt.Errorf("can't fetch entity model, must register entity first, entity PkgKey:%s", entityType.GetPkgKey())
+		err = fmt.Errorf("GetEntityModel failed, can't fetch entity model, must register entity first, entity PkgKey:%s", entityType.GetPkgKey())
+		log.Error(err)
 		return
 	}
 
@@ -181,39 +184,57 @@ func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err 
 
 	entityValue, entityErr := s.getValueFunc(entity)
 	if entityErr != nil {
-		err = entityErr
+		err = fmt.Errorf("GetEntityModel failed, getValueFunc error, err:%s", entityErr.Error())
+		log.Error(err)
 		return
 	}
 
 	ret, err = s.setModelValueFunc(entityModel.Copy(), entityValue)
+	if err != nil {
+		err = fmt.Errorf("GetEntityModel failed, setModelValueFunc error, err:%s", err.Error())
+		log.Error(err)
+	}
 	return
 }
 
 func (s *providerImpl) GetEntityFilter(entity interface{}) (ret model.Filter, err error) {
 	vType, vErr := s.getTypeFunc(entity)
 	if vErr != nil {
-		err = vErr
+		err = fmt.Errorf("GetEntityFilter failed, getTypeFunc error, err:%s", vErr.Error())
+		log.Error(err)
 		return
 	}
 	vType = vType.Elem()
 	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
 	if typeModel == nil {
-		err = fmt.Errorf("can't fetch type model, must register type entity first, PkgKey:%s", vType.GetPkgKey())
+		err = fmt.Errorf("GetEntityFilter failed, can't fetch type model, must register type entity first, PkgKey:%s", vType.GetPkgKey())
 		return
 	}
 
 	ret, err = s.getFilterFunc(typeModel.Copy())
+	if err != nil {
+		err = fmt.Errorf("GetEntityFilter failed, getFilterFunc error, err:%s", err.Error())
+		log.Error(err)
+		return
+	}
+
 	return
 }
 
 func (s *providerImpl) GetValueModel(vVal model.Value, vType model.Type) (ret model.Model, err error) {
 	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
 	if typeModel == nil {
-		err = fmt.Errorf("can't fetch type model, must register type entity first")
+		err = fmt.Errorf("GetValueModel failed, can't fetch type model, must register type entity first")
 		return
 	}
 
 	ret, err = s.setModelValueFunc(typeModel.Copy(), vVal)
+	if err != nil {
+		err = fmt.Errorf("GetValueModel failed, setModelValueFunc error, err:%s", err.Error())
+		log.Error(err)
+		return
+	}
+
 	return
 }
 
@@ -221,10 +242,11 @@ func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err erro
 	if vType.IsBasic() {
 		return
 	}
+
 	vType = vType.Elem()
 	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
 	if typeModel == nil {
-		err = fmt.Errorf("can't fetch type model, must register type entity first, PkgKey:%s", vType.GetPkgKey())
+		err = fmt.Errorf("GetTypeModel failed, can't fetch type model, must register type entity first, PkgKey:%s", vType.GetPkgKey())
 		return
 	}
 
@@ -239,31 +261,61 @@ func (s *providerImpl) GetTypeFilter(vType model.Type) (ret model.Filter, err er
 	vType = vType.Elem()
 	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
 	if typeModel == nil {
-		err = fmt.Errorf("can't fetch type filter, must register type entity first, PkgKey:%s", vType.GetPkgKey())
+		err = fmt.Errorf("GetTypeFilter failed, can't fetch type filter, must register type entity first, PkgKey:%s", vType.GetPkgKey())
 		return
 	}
 
 	ret, err = s.getFilterFunc(typeModel.Copy())
+	if err != nil {
+		err = fmt.Errorf("GetTypeFilter failed, getFilterFunc error, err:%s", err.Error())
+		log.Error(err)
+		return
+	}
+
 	return
 }
 
 func (s *providerImpl) EncodeValue(vVal model.Value, vType model.Type) (ret interface{}, err error) {
 	ret, err = s.encodeValueFunc(vVal, vType, s.modelCache)
+	if err != nil {
+		err = fmt.Errorf("EncodeValue failed, encodeValueFunc error, err:%s", err.Error())
+		log.Error(err)
+		return
+	}
+
 	return
 }
 
 func (s *providerImpl) DecodeValue(vVal interface{}, vType model.Type) (ret model.Value, err error) {
 	ret, err = s.decodeValueFunc(vVal, vType, s.modelCache)
+	if err != nil {
+		err = fmt.Errorf("DecodeValue failed, decodeValueFunc error, err:%s", err.Error())
+		log.Error(err)
+		return
+	}
+
 	return
 }
 
 func (s *providerImpl) ElemDependValue(val model.Value) (ret []model.Value, err error) {
 	ret, err = s.elemDependValueFunc(val)
+	if err != nil {
+		err = fmt.Errorf("ElemDependValue failed, elemDependValueFunc error, err:%s", err.Error())
+		log.Error(err)
+		return
+	}
+
 	return
 }
 
 func (s *providerImpl) AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, err error) {
 	ret, err = s.appendSliceValueFunc(sliceVal, val)
+	if err != nil {
+		err = fmt.Errorf("AppendSliceValue failed, appendSliceValueFunc error, err:%s", err.Error())
+		log.Error(err)
+		return
+	}
+
 	return
 }
 
@@ -277,11 +329,17 @@ func (s *providerImpl) IsAssigned(vVal model.Value, vType model.Type) (ret bool)
 	originVal := vType.Interface()
 	curStr, curErr := s.encodeValueFunc(curVal, vType, s.modelCache)
 	if curErr != nil {
+		err := fmt.Errorf("IsAssigned, encodeValueFunc error, err:%s", curErr.Error())
+		log.Error(err)
+
 		ret = false
 		return
 	}
 	originStr, originErr := s.encodeValueFunc(originVal, vType, s.modelCache)
 	if originErr != nil {
+		err := fmt.Errorf("IsAssigned, encodeValueFunc error, err:%s", originErr.Error())
+		log.Error(err)
+
 		ret = false
 		return
 	}

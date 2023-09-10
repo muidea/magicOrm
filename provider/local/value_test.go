@@ -1,4 +1,4 @@
-package util
+package local
 
 import (
 	"reflect"
@@ -8,47 +8,73 @@ import (
 func TestValue(t *testing.T) {
 	var v reflect.Value
 
+	// nil
 	if !NilValue.IsNil() {
-		t.Errorf("illegal nilValue")
+		t.Errorf("illegal nilValue, is nil")
 		return
 	}
 
+	// zero
 	if !NilValue.IsZero() {
-		t.Errorf("illegal nilValue")
+		t.Errorf("illegal nilValue, is zero")
 		return
 	}
 
 	valuePtr := NewValue(v)
+	// nil
 	if !valuePtr.IsNil() {
-		t.Errorf("NewValue failed")
+		t.Errorf("NewValue failed, is nil")
 		return
 	}
 
+	// zero
+	if !valuePtr.IsZero() {
+		t.Errorf("NewValue failed, is zero")
+		return
+	}
+
+	// not basic
 	if valuePtr.IsBasic() {
-		t.Errorf("IsBasic failed")
+		t.Errorf("IsBasic failed, is not basic")
 		return
 	}
 
 	iVal := 10
-	iReflect := reflect.ValueOf(&iVal).Elem()
+	iReflect := reflect.ValueOf(&iVal)
 	valuePtr = NewValue(iReflect)
+	// not nil
 	if valuePtr.IsNil() {
-		t.Errorf("NewValue failed")
+		t.Errorf("NewValue failed, is not nil")
 	}
 
+	// not zero
+	if valuePtr.IsZero() {
+		t.Errorf("NewValue failed, is not zero")
+	}
+
+	// basic
 	if !valuePtr.IsBasic() {
 		t.Errorf("IsBasic failed")
 		return
 	}
 
-	var nulValue interface{} = nil
-	nReflect := reflect.ValueOf(nulValue)
+	var nulValue int
+	nReflect := reflect.ValueOf(&nulValue)
 	value2Ptr := NewValue(nReflect)
-	if !value2Ptr.IsNil() {
-		t.Errorf("NewValue failed")
+	// not nil
+	if value2Ptr.IsNil() {
+		t.Errorf("NewValue failed, IsNil false")
 		return
 	}
-	if value2Ptr.IsBasic() {
+
+	// not zero
+	if value2Ptr.IsZero() {
+		t.Errorf("NewValue failed, IsZero true")
+		return
+	}
+
+	// basic
+	if !value2Ptr.IsBasic() {
 		t.Errorf("IsBasic failed")
 		return
 	}
@@ -58,10 +84,17 @@ func TestValue(t *testing.T) {
 		t.Errorf("set failed, err:%s", valueErr.Error())
 		return
 	}
+	// not nil
 	if value2Ptr.IsNil() {
-		t.Errorf("NewValue failed")
+		t.Errorf("is not nil")
 		return
 	}
+	// not zero
+	if value2Ptr.IsZero() {
+		t.Errorf("not zero")
+	}
+
+	// basic
 	if !value2Ptr.IsBasic() {
 		t.Errorf("IsBasic failed")
 		return

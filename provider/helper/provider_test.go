@@ -1,10 +1,9 @@
-package remote
+package helper
 
 import (
-	"reflect"
 	"testing"
 
-	pu "github.com/muidea/magicOrm/provider/util"
+	"github.com/muidea/magicOrm/provider/remote"
 )
 
 func TestSimpleObjProvider(t *testing.T) {
@@ -17,13 +16,13 @@ func TestSimpleObjProvider(t *testing.T) {
 		return
 	}
 
-	data, dataErr := EncodeObject(simpleObj)
+	data, dataErr := remote.EncodeObject(simpleObj)
 	if dataErr != nil {
 		t.Errorf("marshal failed, err:%s", dataErr.Error())
 		return
 	}
-	simpleInfo := &Object{}
-	simpleInfo, simpleErr = DecodeObject(data)
+	simpleInfo := &remote.Object{}
+	simpleInfo, simpleErr = remote.DecodeObject(data)
 	if simpleErr != nil {
 		t.Errorf("unmarshal failed, err:%s", simpleErr.Error())
 		return
@@ -34,25 +33,24 @@ func TestSimpleObjProvider(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", simpleErr.Error())
 		return
 	}
-	data, dataErr = EncodeObjectValue(simpleVal)
+	data, dataErr = remote.EncodeObjectValue(simpleVal)
 	if dataErr != nil {
 		t.Errorf("marshal failed, err:%s", dataErr.Error())
 		return
 	}
-	simpleVal, simpleErr = DecodeObjectValue(data)
+	simpleVal, simpleErr = remote.DecodeObjectValue(data)
 	if simpleErr != nil {
 		t.Errorf("unmarshal failed, err:%s", simpleErr.Error())
 		return
 	}
 
-	simpleModel, simpleErr := GetEntityModel(simpleInfo)
+	simpleModel, simpleErr := remote.GetEntityModel(simpleInfo)
 	if simpleErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", simpleErr.Error())
 		return
 	}
 
-	sVal := reflect.ValueOf(simpleVal)
-	simpleModel, simpleErr = SetModelValue(simpleModel, pu.NewValue(sVal))
+	simpleModel, simpleErr = remote.SetModelValue(simpleModel, remote.NewValue(simpleVal))
 	if simpleErr != nil {
 		t.Errorf("SetModelValue failed, err:%s", simpleErr.Error())
 		return
@@ -79,7 +77,7 @@ func TestInterface(t *testing.T) {
 		return
 	}
 
-	_, objErr := GetEntityModel(bbVal)
+	_, objErr := remote.GetEntityModel(bbVal)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return

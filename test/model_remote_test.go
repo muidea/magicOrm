@@ -1,16 +1,17 @@
 package test
 
 import (
-	"github.com/muidea/magicOrm/provider"
 	"testing"
 
 	"github.com/muidea/magicCommon/foundation/util"
 	"github.com/muidea/magicOrm/orm"
+	"github.com/muidea/magicOrm/provider"
+	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
 func getSliceObjectValue(val interface{}) (ret *remote.SliceObjectValue, err error) {
-	objVal, objErr := remote.GetSliceObjectValue(val)
+	objVal, objErr := helper.GetSliceObjectValue(val)
 	if objErr != nil {
 		err = objErr
 		return
@@ -31,7 +32,7 @@ func getSliceObjectValue(val interface{}) (ret *remote.SliceObjectValue, err err
 }
 
 func getSliceObjectPtrValue(val interface{}) (ret *remote.SliceObjectValue, err error) {
-	objVal, objErr := remote.GetSliceObjectValue(val)
+	objVal, objErr := helper.GetSliceObjectValue(val)
 	if objErr != nil {
 		err = objErr
 		return
@@ -66,13 +67,13 @@ func TestRemoteGroup(t *testing.T) {
 	}
 
 	status := &Status{Value: 10}
-	statusDef, objErr := remote.GetObject(status)
+	statusDef, objErr := helper.GetObject(status)
 	if objErr != nil {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
 	}
 
-	userDef, objErr := remote.GetObject(&User{})
+	userDef, objErr := helper.GetObject(&User{})
 	if objErr != nil {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
@@ -81,7 +82,7 @@ func TestRemoteGroup(t *testing.T) {
 	group2 := &Group{Name: "testGroup2"}
 	group3 := &Group{Name: "testGroup3"}
 
-	groupDef, objErr := remote.GetObject(&Group{})
+	groupDef, objErr := helper.GetObject(&Group{})
 	if objErr != nil {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
@@ -297,7 +298,7 @@ func TestRemoteGroup(t *testing.T) {
 
 func TestRemoteUser(t *testing.T) {
 	status := &Status{Value: 10}
-	statusDef, objErr := remote.GetObject(status)
+	statusDef, objErr := helper.GetObject(status)
 	if objErr != nil {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
@@ -308,13 +309,13 @@ func TestRemoteUser(t *testing.T) {
 	group3 := &Group{Name: "testGroup3"}
 
 	user0 := &User{}
-	userDef, objErr := remote.GetObject(user0)
+	userDef, objErr := helper.GetObject(user0)
 	if objErr != nil {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
 	}
 
-	groupDef, objErr := remote.GetObject(group1)
+	groupDef, objErr := helper.GetObject(group1)
 	if objErr != nil {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
@@ -602,28 +603,28 @@ func TestRemoteSystem(t *testing.T) {
 	}
 
 	status := &Status{Value: 10}
-	statusDef, objErr := remote.GetObject(status)
+	statusDef, objErr := helper.GetObject(status)
 	if objErr != nil {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
 	}
 
 	user0 := &User{}
-	userDef, objErr := remote.GetObject(user0)
+	userDef, objErr := helper.GetObject(user0)
 	if objErr != nil {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
 	}
 
 	group0 := &Group{}
-	groupDef, objErr := remote.GetObject(group0)
+	groupDef, objErr := helper.GetObject(group0)
 	if objErr != nil {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
 	}
 
 	sys0 := &System{}
-	sysDef, objErr := remote.GetObject(sys0)
+	sysDef, objErr := helper.GetObject(sys0)
 	if objErr != nil {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
@@ -845,21 +846,21 @@ func TestRemoteBatchQuery(t *testing.T) {
 	}
 
 	status := &Status{Value: 10}
-	statusDef, objErr := remote.GetObject(status)
+	statusDef, objErr := helper.GetObject(status)
 	if objErr != nil {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
 	}
 
 	user0 := &User{}
-	userDef, objErr := remote.GetObject(user0)
+	userDef, objErr := helper.GetObject(user0)
 	if objErr != nil {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
 	}
 
 	group0 := &Group{}
-	groupDef, objErr := remote.GetObject(group0)
+	groupDef, objErr := helper.GetObject(group0)
 	if objErr != nil {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
@@ -1019,14 +1020,14 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	maskVal, maskErr := remote.GetObjectValue(&User{Group: []*Group{}})
+	maskVal, maskErr := helper.GetObjectValue(&User{Group: []*Group{}})
 	if maskErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", maskErr.Error())
 		return
 	}
 
 	groupList := []*Group{group1, group2}
-	groupListVal, groupListErr := remote.GetSliceObjectValue(groupList)
+	groupListVal, groupListErr := helper.GetSliceObjectValue(groupList)
 	if groupListErr != nil {
 		t.Errorf("GetSliceObjectValue failed, err:%s", groupListErr.Error())
 		return
@@ -1082,7 +1083,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 	}
 
 	groupList = []*Group{group1}
-	groupListVal, groupListErr = remote.GetSliceObjectValue(groupList)
+	groupListVal, groupListErr = helper.GetSliceObjectValue(groupList)
 	if groupListErr != nil {
 		t.Errorf("GetSliceObjectValue failed, err:%s", groupListErr.Error())
 		return
@@ -1129,21 +1130,21 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	}
 
 	status := &Status{Value: 10}
-	statusDef, objErr := remote.GetObject(status)
+	statusDef, objErr := helper.GetObject(status)
 	if objErr != nil {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
 	}
 
 	user0 := &User{}
-	userDef, objErr := remote.GetObject(user0)
+	userDef, objErr := helper.GetObject(user0)
 	if objErr != nil {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
 	}
 
 	group0 := &Group{}
-	groupDef, objErr := remote.GetObject(group0)
+	groupDef, objErr := helper.GetObject(group0)
 	if objErr != nil {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
@@ -1336,7 +1337,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 
 	maskVal, _ := getObjectValue(maskValue)
 	groupList := []*Group{group1, group2}
-	groupListVal, groupListErr := remote.GetSliceObjectValue(groupList)
+	groupListVal, groupListErr := helper.GetSliceObjectValue(groupList)
 	if groupListErr != nil {
 		t.Errorf("GetSliceObjectValue failed, err:%s", groupListErr.Error())
 		return
@@ -1392,7 +1393,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	}
 
 	groupList = []*Group{group1}
-	groupListVal, groupListErr = remote.GetSliceObjectValue(groupList)
+	groupListVal, groupListErr = helper.GetSliceObjectValue(groupList)
 	if groupListErr != nil {
 		t.Errorf("GetSliceObjectValue failed, err:%s", groupListErr.Error())
 		return
@@ -1442,22 +1443,22 @@ func TestPolicy(t *testing.T) {
 	status := &Status{}
 	rewardPolicy := &RewardPolicy{}
 
-	valueItemDef, valueItemErr := remote.GetObject(valueItem)
+	valueItemDef, valueItemErr := helper.GetObject(valueItem)
 	if valueItemErr != nil {
 		t.Errorf("GetObject failed, err:%s", valueItemErr.Error())
 		return
 	}
-	valueScopeDef, valueScopeErr := remote.GetObject(valueScope)
+	valueScopeDef, valueScopeErr := helper.GetObject(valueScope)
 	if valueScopeErr != nil {
 		t.Errorf("GetObject failed, err:%s", valueScopeErr.Error())
 		return
 	}
-	statusDef, statusErr := remote.GetObject(status)
+	statusDef, statusErr := helper.GetObject(status)
 	if statusErr != nil {
 		t.Errorf("GetObject failed, err:%s", statusErr.Error())
 		return
 	}
-	rewardPolicyDef, rewardPolicyErr := remote.GetObject(rewardPolicy)
+	rewardPolicyDef, rewardPolicyErr := helper.GetObject(rewardPolicy)
 	if rewardPolicyErr != nil {
 		t.Errorf("GetObject failed, err:%s", rewardPolicyErr.Error())
 		return
@@ -1572,7 +1573,7 @@ func TestPolicy(t *testing.T) {
 		return
 	}
 
-	maskVal, maskErr := remote.GetObjectValue(&RewardPolicy{Status: &Status{}, ValueItem: []ValueItem{}})
+	maskVal, maskErr := helper.GetObjectValue(&RewardPolicy{Status: &Status{}, ValueItem: []ValueItem{}})
 	if maskErr != nil {
 		t.Errorf("getObjectValue failed, err:%s", maskErr.Error())
 		return

@@ -7,7 +7,6 @@ import (
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/model"
-	pu "github.com/muidea/magicOrm/provider/util"
 )
 
 // field single field impl
@@ -15,9 +14,9 @@ type field struct {
 	index int
 	name  string
 
-	typePtr  *typeImpl
-	specPtr  *specImpl
-	valuePtr *pu.ValueImpl
+	typePtr  *TypeImpl
+	specPtr  *SpecImpl
+	valuePtr *ValueImpl
 }
 
 func (s *field) GetIndex() int {
@@ -53,14 +52,15 @@ func (s *field) GetValue() (ret model.Value) {
 		return
 	}
 
-	ret = &pu.NilValue
+	ret = &NilValue
 	return
 }
 
 func (s *field) SetValue(val model.Value) (err error) {
 	defer func() {
-		if err := recover(); err != nil {
-			log.Errorf("SetValue failed, unexpected field:%v, err:%v", s.name, err)
+		if errInfo := recover(); errInfo != nil {
+			err = fmt.Errorf("SetValue failed, unexpected field:%v, err:%v", s.name, errInfo)
+			log.Error(err.Error())
 		}
 	}()
 
@@ -140,11 +140,7 @@ func (s *field) verify() error {
 		}
 	}
 
-	if s.valuePtr == nil || s.valuePtr.IsNil() {
-		return nil
-	}
-
-	return s.valuePtr.Verify()
+	return nil
 }
 
 func (s *field) dump() string {
@@ -153,13 +149,13 @@ func (s *field) dump() string {
 }
 
 func getFieldName(fieldType reflect.StructField) (ret string, err error) {
-	specPtr, specErr := newSpec(fieldType.Tag)
+	fieldName := fieldType.Name
+	specPtr, specErr := NewSpec(fieldType.Tag)
 	if specErr != nil {
 		err = specErr
 		return
 	}
 
-	fieldName := fieldType.Name
 	if specPtr.GetFieldName() != "" {
 		fieldName = specPtr.GetFieldName()
 	}
@@ -169,19 +165,19 @@ func getFieldName(fieldType reflect.StructField) (ret string, err error) {
 }
 
 func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Value) (ret *field, err error) {
-	typePtr, typeErr := newType(fieldType.Type)
+	typePtr, typeErr := NewType(fieldType.Type)
 	if typeErr != nil {
 		err = typeErr
 		return
 	}
 
-	specPtr, specErr := newSpec(fieldType.Tag)
+	specPtr, specErr := NewSpec(fieldType.Tag)
 	if specErr != nil {
 		err = specErr
 		return
 	}
 
-	valuePtr := pu.NewValue(fieldValue)
+	valuePtr := NewValue(fieldValue)
 
 	fieldPtr := &field{}
 	fieldPtr.index = idx

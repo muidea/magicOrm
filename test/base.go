@@ -6,7 +6,7 @@ import (
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
-
+	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
@@ -320,7 +320,7 @@ func dropModel(orm orm.Orm, modelList []model.Model) (err error) {
 }
 
 func getObjectValue(val interface{}) (ret *remote.ObjectValue, err error) {
-	objVal, objErr := remote.GetObjectValue(val)
+	objVal, objErr := helper.GetObjectValue(val)
 	if objErr != nil {
 		err = objErr
 		return

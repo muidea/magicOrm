@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/muidea/magicCommon/foundation/util"
-	pu "github.com/muidea/magicOrm/provider/util"
 )
 
 // Unit 单元信息
@@ -49,7 +48,7 @@ func TestModelValue(t *testing.T) {
 	}
 
 	id := int64(123320)
-	iVal := pu.NewValue(reflect.ValueOf(id))
+	iVal := NewValue(reflect.ValueOf(id))
 	pk := unitInfo.GetPrimaryField()
 	if pk == nil {
 		t.Errorf("GetPrimaryField faield")
@@ -62,7 +61,7 @@ func TestModelValue(t *testing.T) {
 	}
 
 	name := "abcdfrfe"
-	nVal := pu.NewValue(reflect.ValueOf(name))
+	nVal := NewValue(reflect.ValueOf(name))
 	unitErr = unitInfo.SetFieldValue("name", nVal)
 	if unitErr != nil {
 		t.Errorf("UpdateField value failed, unitErr:%s", unitErr.Error())
@@ -70,7 +69,7 @@ func TestModelValue(t *testing.T) {
 	}
 
 	now = time.Now()
-	tsVal := pu.NewValue(reflect.ValueOf(now))
+	tsVal := NewValue(reflect.ValueOf(now))
 	unitErr = unitInfo.SetFieldValue("timeStamp", tsVal)
 	if unitErr != nil {
 		t.Errorf("UpdateField value failed, unitErr:%s", unitErr.Error())
@@ -79,7 +78,7 @@ func TestModelValue(t *testing.T) {
 
 	unit = unitInfo.Interface(false).(Unit)
 	if unit.ID != int64(id) {
-		t.Errorf("update id field failed")
+		t.Errorf("update id field failed, ID:%v, id:%v", unit.ID, id)
 		return
 	}
 	if unit.Name != name {

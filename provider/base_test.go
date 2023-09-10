@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/provider/local"
 	"github.com/muidea/magicOrm/provider/remote"
 )
@@ -147,7 +148,7 @@ func testValue(t *testing.T, valPtr interface{}) error {
 		return lErr
 	}
 
-	baseObject, baseErr := remote.GetObject(valPtr)
+	baseObject, baseErr := helper.GetObject(valPtr)
 	if baseErr != nil {
 		t.Errorf("remote.GetObject failed, err:%s", baseErr.Error())
 		return baseErr
@@ -158,7 +159,7 @@ func testValue(t *testing.T, valPtr interface{}) error {
 		return rErr
 	}
 
-	baseObjectVal, baseValErr := remote.GetObjectValue(valPtr)
+	baseObjectVal, baseValErr := helper.GetObjectValue(valPtr)
 	if baseValErr != nil {
 		t.Errorf("remote.GetObjectValue failed, err:%s", baseErr.Error())
 		return baseValErr

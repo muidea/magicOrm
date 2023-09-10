@@ -6,14 +6,17 @@ import (
 	"strings"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/codec"
-	pu "github.com/muidea/magicOrm/provider/util"
+	"github.com/muidea/magicOrm/provider/local/codec"
+	"github.com/muidea/magicOrm/provider/util"
 )
 
 var _codec codec.Codec
+var nilValue model.Value
 
 func init() {
 	_codec = codec.New(ElemDependValue)
+
+	nilValue = &ValueImpl{}
 }
 
 func GetCodec() codec.Codec {
@@ -21,7 +24,7 @@ func GetCodec() codec.Codec {
 }
 
 func GetType(vType reflect.Type) (ret model.Type, err error) {
-	ret, err = newType(vType)
+	ret, err = NewType(vType)
 	return
 }
 
@@ -46,7 +49,7 @@ func GetEntityValue(entity interface{}) (ret model.Value, err error) {
 		rVal = rVal.Elem()
 	}
 
-	ret = pu.NewValue(rVal)
+	ret = NewValue(rVal)
 	return
 }
 
@@ -62,7 +65,7 @@ func GetEntityModel(entity interface{}) (ret model.Model, err error) {
 	}
 	rVal = rVal.Elem()
 
-	vType, vErr := newType(rVal.Type())
+	vType, vErr := NewType(rVal.Type())
 	if vErr != nil {
 		err = vErr
 		return
@@ -83,14 +86,18 @@ func GetEntityModel(entity interface{}) (ret model.Model, err error) {
 }
 
 func GetModelFilter(vModel model.Model) (ret model.Filter, err error) {
-	valuePtr := pu.NewValue(reflect.ValueOf(vModel.Interface(true)))
+	valuePtr := NewValue(reflect.ValueOf(vModel.Interface(true)))
 	ret = NewFilter(valuePtr)
 	return
 }
 
 func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err error) {
-	rVal := reflect.Indirect(vVal.Get())
-	vType, vErr := newType(rVal.Type())
+	if vVal.IsZero() {
+		return
+	}
+
+	rVal := reflect.Indirect(vVal.Get().(reflect.Value))
+	vType, vErr := NewType(rVal.Type())
 	if vErr != nil {
 		err = vErr
 		return
@@ -111,7 +118,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 			return
 		}
 
-		fieldVal := pu.NewValue(rVal.Field(idx))
+		fieldVal := NewValue(rVal.Field(idx))
 		if fieldVal.IsNil() {
 			continue
 		}
@@ -127,7 +134,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 }
 
 func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
-	rVal := reflect.Indirect(vVal.Get())
+	rVal := reflect.Indirect(vVal.Get().(reflect.Value))
 	if rVal.Kind() == reflect.Struct {
 		ret = append(ret, vVal)
 		return
@@ -139,7 +146,7 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 	}
 
 	for idx := 0; idx < rVal.Len(); idx++ {
-		val := pu.NewValue(rVal.Index(idx))
+		val := NewValue(rVal.Index(idx))
 		ret = append(ret, val)
 	}
 
@@ -148,7 +155,7 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 
 func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, err error) {
 	// *[]xx , []xx
-	rSliceVal := reflect.Indirect(sliceVal.Get())
+	rSliceVal := reflect.Indirect(sliceVal.Get().(reflect.Value))
 	rSliceType := rSliceVal.Type()
 	if rSliceType.Kind() != reflect.Slice {
 		err = fmt.Errorf("append slice value failed, illegal slice value, slice type:%s", rSliceType.String())
@@ -161,7 +168,7 @@ func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, e
 		isElemPtr = true
 	}
 
-	rVal := val.Get()
+	rVal := val.Get().(reflect.Value)
 	if !isElemPtr {
 		rVal = reflect.Indirect(rVal)
 	}
@@ -175,7 +182,7 @@ func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, e
 	rNewVal := reflect.Append(rSliceVal, rVal)
 	rSliceVal.Set(rNewVal)
 
-	ret = pu.NewValue(rSliceVal)
+	ret = NewValue(rSliceVal)
 	return
 }
 
@@ -256,17 +263,17 @@ func GetValue(valueDeclare model.ValueDeclare) (ret model.Value) {
 	var rVal interface{}
 	switch valueDeclare {
 	case model.SnowFlake:
-		rVal = pu.GetNewSnowFlakeID()
+		rVal = util.GetNewSnowFlakeID()
 	case model.UUID:
-		rVal = pu.GetNewUUID()
+		rVal = util.GetNewUUID()
 	case model.DateTime:
-		rVal = pu.GetCurrentDateTime()
+		rVal = util.GetCurrentDateTime()
 	}
 	if rVal != nil {
-		ret = pu.NewValue(reflect.ValueOf(rVal))
+		ret = NewValue(reflect.ValueOf(rVal))
 		return
 	}
 
-	ret = &pu.NilValue
+	ret = &NilValue
 	return
 }

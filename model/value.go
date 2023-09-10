@@ -1,13 +1,11 @@
 package model
 
-import "reflect"
-
 // Value Value
 type Value interface {
 	IsNil() bool
 	IsZero() bool
-	Set(val reflect.Value) error
-	Get() reflect.Value
+	Set(val any) error
+	Get() any
 	Addr() Value
 	Interface() any
 	IsBasic() bool

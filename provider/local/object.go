@@ -82,10 +82,11 @@ func (s *objectImpl) Interface(ptrValue bool) (ret interface{}) {
 			continue
 		}
 
-		val := tVal.Get()
+		val := tVal.Get().(reflect.Value)
 		if !field.GetType().IsPtrType() {
 			val = reflect.Indirect(val)
 		}
+
 		retVal.Field(field.GetIndex()).Set(val)
 	}
 
@@ -110,7 +111,7 @@ func (s *objectImpl) Dump() (ret string) {
 	ret = fmt.Sprintf("\nmodelImpl:\n")
 	ret = fmt.Sprintf("%s\tname:%s, pkgPath:%s\n", ret, s.GetName(), s.GetPkgPath())
 
-	ret = fmt.Sprintf("%sfields:\n", ret)
+	ret = fmt.Sprintf("%s fields:\n", ret)
 	for _, field := range s.fields {
 		ret = fmt.Sprintf("%s\t%s\n", ret, field.dump())
 	}
@@ -140,7 +141,7 @@ func getTypeModel(entityType reflect.Type) (ret *objectImpl, err error) {
 		entityType = entityType.Elem()
 	}
 
-	typeImpl, typeErr := newType(entityType)
+	typeImpl, typeErr := NewType(entityType)
 	if typeErr != nil {
 		err = fmt.Errorf("illegal type, must be a struct entity, type:%s", entityType.String())
 		log.Errorf("getTypeModel failed, err:%s", err.Error())
@@ -190,14 +191,32 @@ func getTypeModel(entityType reflect.Type) (ret *objectImpl, err error) {
 		return
 	}
 
+	err = impl.verify()
+	if err != nil {
+		log.Errorf("verify model failed, err:%s", err.Error())
+		return
+	}
+
 	ret = impl
 	return
 }
 
 func getValueModel(modelVal reflect.Value) (ret *objectImpl, err error) {
-	hasPrimaryKey := false
 	modelVal = reflect.Indirect(modelVal)
 	entityType := modelVal.Type()
+	typeImpl, typeErr := NewType(entityType)
+	if typeErr != nil {
+		err = fmt.Errorf("illegal type, must be a struct entity, type:%s", entityType.String())
+		log.Errorf("getValueModel failed, err:%s", err.Error())
+		return
+	}
+	if typeImpl.GetValue() != model.TypeStructValue {
+		err = fmt.Errorf("illegal type, must be a struct entity, type:%s", entityType.String())
+		log.Errorf("getValueModel failed, err:%s", err.Error())
+		return
+	}
+
+	hasPrimaryKey := false
 	impl := &objectImpl{objectType: entityType, fields: []*field{}}
 	fieldNum := entityType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
@@ -220,9 +239,7 @@ func getValueModel(modelVal reflect.Value) (ret *objectImpl, err error) {
 			hasPrimaryKey = true
 		}
 
-		if tField != nil {
-			impl.fields = append(impl.fields, tField)
-		}
+		impl.fields = append(impl.fields, tField)
 	}
 
 	if len(impl.fields) == 0 {

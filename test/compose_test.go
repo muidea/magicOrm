@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/muidea/magicCommon/foundation/util"
-
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
+	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
@@ -102,7 +102,7 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 	ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	sVal := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
 
-	sObjectVal, _ := remote.GetObjectValue(sVal)
+	sObjectVal, _ := helper.GetObjectValue(sVal)
 	sModel, sErr := remoteProvider.GetEntityModel(sObjectVal)
 	if sErr != nil {
 		err = sErr
@@ -145,7 +145,7 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 		PtrStrArray: &strPtrArray,
 	}
 
-	rObjectVal, _ := remote.GetObjectValue(rVal)
+	rObjectVal, _ := helper.GetObjectValue(rVal)
 	rModel, rErr := remoteProvider.GetEntityModel(rObjectVal)
 	if rErr != nil {
 		err = rErr
@@ -184,7 +184,7 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 		RefPtrArray:  refPtrArray,
 		PtrRefArray:  refPtrArray,
 	}
-	cObjectVal, _ := remote.GetObjectValue(cVal)
+	cObjectVal, _ := helper.GetObjectValue(cVal)
 	cModel, cErr := remoteProvider.GetEntityModel(cObjectVal)
 	if cErr != nil {
 		err = cErr
@@ -436,9 +436,9 @@ func TestComposeRemote(t *testing.T) {
 		return
 	}
 
-	simpleDef, _ := remote.GetObject(&Simple{})
-	referenceDef, _ := remote.GetObject(&Reference{})
-	composeDef, _ := remote.GetObject(&Compose{})
+	simpleDef, _ := helper.GetObject(&Simple{})
+	referenceDef, _ := helper.GetObject(&Reference{})
+	composeDef, _ := helper.GetObject(&Compose{})
 
 	entityList := []interface{}{simpleDef, referenceDef, composeDef}
 	modelList, modelErr := registerModel(remoteProvider, entityList)
@@ -489,7 +489,7 @@ func TestComposeRemote(t *testing.T) {
 		}
 		sValList = append(sValList, sVal)
 
-		sObjectVal, sObjectErr := remote.GetObjectValue(sVal)
+		sObjectVal, sObjectErr := helper.GetObjectValue(sVal)
 		if sObjectErr != nil {
 			err = sObjectErr
 			t.Errorf("GetObjectValue failed. err:%s", err.Error())
@@ -531,7 +531,7 @@ func TestComposeRemote(t *testing.T) {
 	for idx := 0; idx < loopSize; idx++ {
 		sVal := sValList[idx]
 		sVal.Name = "hi"
-		sObjectVal, sObjectErr := remote.GetObjectValue(sVal)
+		sObjectVal, sObjectErr := helper.GetObjectValue(sVal)
 		if sObjectErr != nil {
 			err = sObjectErr
 			t.Errorf("GetObjectValue failed. err:%s", err.Error())
@@ -587,7 +587,7 @@ func TestComposeRemote(t *testing.T) {
 		}
 		qValList = append(qValList, qVal)
 
-		qObjectVal, qObjectErr := remote.GetObjectValue(qVal)
+		qObjectVal, qObjectErr := helper.GetObjectValue(qVal)
 		if qObjectErr != nil {
 			err = qObjectErr
 			t.Errorf("GetObjectValue failed. err:%s", err.Error())
@@ -636,7 +636,7 @@ func TestComposeRemote(t *testing.T) {
 	}
 
 	bqValList := []*Compose{}
-	bqSliceObject, bqSliceErr := remote.GetSliceObjectValue(&bqValList)
+	bqSliceObject, bqSliceErr := helper.GetSliceObjectValue(&bqValList)
 	if bqSliceErr != nil {
 		t.Errorf("GetSliceObjectValue failed, err:%s", bqSliceErr.Error())
 		return

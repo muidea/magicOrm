@@ -2,12 +2,11 @@ package remote
 
 import (
 	"fmt"
-	"reflect"
 	"strings"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/codec"
-	pu "github.com/muidea/magicOrm/provider/util"
+	"github.com/muidea/magicOrm/provider/remote/codec"
+	"github.com/muidea/magicOrm/provider/util"
 )
 
 var _codec codec.Codec
@@ -16,16 +15,7 @@ var nilValue model.Value
 func init() {
 	_codec = codec.New(ElemDependValue)
 
-	nilValue = &pu.ValueImpl{}
-}
-
-func isRemoteType(vType model.Type) bool {
-	switch vType.GetValue() {
-	case model.TypeDoubleValue, model.TypeBooleanValue, model.TypeStringValue:
-		return true
-	}
-
-	return false
+	nilValue = &NilValue
 }
 
 func GetCodec() codec.Codec {
@@ -33,57 +23,58 @@ func GetCodec() codec.Codec {
 }
 
 func GetEntityType(entity interface{}) (ret model.Type, err error) {
-	objPtr, ok := entity.(*Object)
-	if ok {
-		impl := &TypeImpl{Name: objPtr.GetName(), Value: model.TypeStructValue, PkgPath: objPtr.GetPkgPath(), IsPtr: true /*objPtr.IsPtr*/}
-		impl.ElemType = &TypeImpl{Name: objPtr.GetName(), Value: model.TypeStructValue, PkgPath: objPtr.GetPkgPath(), IsPtr: true /*objPtr.IsPtr*/}
+	objPtr, objOK := entity.(*Object)
+	if objOK {
+		impl := &TypeImpl{Name: objPtr.GetName(), Value: model.TypeStructValue, PkgPath: objPtr.GetPkgPath(), IsPtr: true}
+		impl.ElemType = &TypeImpl{Name: objPtr.GetName(), Value: model.TypeStructValue, PkgPath: objPtr.GetPkgPath(), IsPtr: true}
 
 		ret = impl
 		return
 	}
 
-	valPtr, ok := entity.(*ObjectValue)
-	if ok {
-		impl := &TypeImpl{Name: valPtr.GetName(), Value: model.TypeStructValue, PkgPath: valPtr.GetPkgPath()}
-		impl.ElemType = &TypeImpl{Name: valPtr.GetName(), Value: model.TypeStructValue, PkgPath: valPtr.GetPkgPath()}
+	valPtr, valOK := entity.(*ObjectValue)
+	if valOK {
+		impl := &TypeImpl{Name: valPtr.GetName(), Value: model.TypeStructValue, PkgPath: valPtr.GetPkgPath(), IsPtr: true}
+		impl.ElemType = &TypeImpl{Name: valPtr.GetName(), Value: model.TypeStructValue, PkgPath: valPtr.GetPkgPath(), IsPtr: true}
 
 		ret = impl
 		return
 	}
 
-	sValPtr, ok := entity.(*SliceObjectValue)
-	if ok {
-		impl := &TypeImpl{Name: sValPtr.GetName(), Value: model.TypeSliceValue, PkgPath: sValPtr.GetPkgPath()}
+	sValPtr, sValOK := entity.(*SliceObjectValue)
+	if sValOK {
+		impl := &TypeImpl{Name: sValPtr.GetName(), Value: model.TypeSliceValue, PkgPath: sValPtr.GetPkgPath(), IsPtr: true}
 		impl.ElemType = &TypeImpl{Name: sValPtr.GetName(), Value: model.TypeStructValue, PkgPath: sValPtr.GetPkgPath(), IsPtr: true}
 
 		ret = impl
 		return
 	}
 
-	typeImpl, typeErr := newType(reflect.TypeOf(entity))
-	if typeErr != nil {
-		err = typeErr
-		return
-	}
-	if !isRemoteType(typeImpl.Elem()) {
-		err = fmt.Errorf("illegal entity type, name:%s", typeImpl.GetPkgKey())
+	typePtr, typeOK := entity.(*TypeImpl)
+	if typeOK {
+		ret = typePtr
 		return
 	}
 
-	ret = typeImpl
+	err = fmt.Errorf("illegal entity, entity:%v", entity)
 	return
 }
 
 func GetEntityValue(entity interface{}) (ret model.Value, err error) {
-	rVal := reflect.ValueOf(entity)
-	ret = pu.NewValue(rVal)
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = fmt.Errorf("%v", errInfo)
+		}
+	}()
+
+	ret = NewValue(entity)
 	return
 }
 
 func GetEntityModel(entity interface{}) (ret model.Model, err error) {
 	objPtr, ok := entity.(*Object)
 	if !ok {
-		err = fmt.Errorf("illegal entity value, not object")
+		err = fmt.Errorf("illegal entity value, not object entity")
 		return
 	}
 
@@ -99,7 +90,7 @@ func GetEntityModel(entity interface{}) (ret model.Model, err error) {
 func GetModelFilter(vModel model.Model) (ret model.Filter, err error) {
 	objectImpl, objectOK := vModel.(*Object)
 	if !objectOK {
-		err = fmt.Errorf("illegal model type")
+		err = fmt.Errorf("invalid model value")
 		return
 	}
 
@@ -107,139 +98,108 @@ func GetModelFilter(vModel model.Model) (ret model.Filter, err error) {
 	return
 }
 
-func setFieldValue(iVal reflect.Value, vModel model.Model) (err error) {
-	iName := iVal.FieldByName("Name").String()
-	iValue := iVal.FieldByName("Value")
-	if iValue.Kind() == reflect.Interface {
-		iValue = iValue.Elem()
-	}
-
-	vField := vModel.GetField(iName)
-	if vField == nil {
-		// if no found field, no need set value
-		return
-	}
-
-	if pu.IsNil(iValue) {
-		vField.SetValue(nilValue)
-		return
-	}
-
-	vType := vField.GetType()
-	if vType.IsBasic() {
-		vValue, vErr := _codec.Decode(iValue.Interface(), vField.GetType())
-		if vErr != nil {
-			err = vErr
-			return
-		}
-
-		err = vField.SetValue(vValue)
-		if err != nil {
-			return
-		}
-		return
-	}
-
-	vValue := pu.NewValue(iValue)
-	err = vField.SetValue(vValue)
-	return
-}
-
 func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err error) {
-	rVal := reflect.Indirect(vVal.Get())
-	nameVal := rVal.FieldByName("Name")
-	pkgVal := rVal.FieldByName("PkgPath")
-	itemsVal := rVal.FieldByName("Fields")
-	if pu.IsNil(nameVal) || pu.IsNil(pkgVal) {
-		err = fmt.Errorf("illegal model value")
-		return
-	}
-	if nameVal.String() != vModel.GetName() || pkgVal.String() != vModel.GetPkgPath() {
-		err = fmt.Errorf("illegal model value, mismatch model value")
-		return
-	}
-
-	if !pu.IsNil(itemsVal) {
-		for idx := 0; idx < itemsVal.Len(); idx++ {
-			iVal := reflect.Indirect(itemsVal.Index(idx))
-			err = setFieldValue(iVal, vModel)
-			if err != nil {
-				return
-			}
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = fmt.Errorf("SetModelValue failed, illegal value, err:%v", errInfo)
+			return
 		}
+	}()
+
+	if vVal.IsZero() {
+		return
+	}
+	rVal := vVal.Interface().(*ObjectValue)
+	if rVal.GetPkgKey() != vModel.GetPkgKey() {
+		err = fmt.Errorf("illegal model value, mode PkgKey:%s, value PkgKey:%s", vModel.GetPkgKey(), rVal.GetPkgKey())
+		return
+	}
+	for idx := 0; idx < len(rVal.Fields); idx++ {
+		fieldVal := rVal.Fields[idx]
+		if fieldVal.IsNil() {
+			continue
+		}
+
+		err = vModel.SetFieldValue(fieldVal.GetName(), fieldVal.GetValue())
 	}
 
 	ret = vModel
 	return
 }
 
+func elemSlice[T any](valSlice []T) (ret []model.Value) {
+	for idx := 0; idx < len(valSlice); idx++ {
+		ret = append(ret, NewValue(valSlice[idx]))
+	}
+
+	return
+}
+
 func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
-	rVal := reflect.Indirect(vVal.Get())
-	// check if SliceObjectValue
-	if rVal.Type().String() == reflect.TypeOf(_declareObjectSliceValue).String() {
-		objectsVal := rVal.FieldByName("Values")
-		if !pu.IsNil(objectsVal) {
-			for idx := 0; idx < objectsVal.Len(); idx++ {
-				ret = append(ret, pu.NewValue(objectsVal.Index(idx)))
-			}
-
-			return
-		}
-	}
-
-	// check if ObjectValue
-	if rVal.Type().String() == reflect.TypeOf(_declareObjectValue).String() {
-		itemsVal := rVal.FieldByName("Fields")
-		if !pu.IsNil(itemsVal) {
-			ret = append(ret, vVal)
-			return
-		}
-	}
-
-	tVal, tErr := pu.GetTypeEnum(rVal.Type())
-	if tErr != nil {
-		err = tErr
+	if vVal.IsNil() {
+		err = fmt.Errorf("illegal value")
 		return
 	}
 
-	if model.IsSliceType(tVal) {
-		for idx := 0; idx < rVal.Len(); idx++ {
-			ret = append(ret, pu.NewValue(rVal.Index(idx)))
+	sliceObjectValue, sliceOK := vVal.Get().(*SliceObjectValue)
+	if sliceOK {
+		for idx := 0; idx < len(sliceObjectValue.Values); idx++ {
+			ret = append(ret, NewValue(sliceObjectValue.Values[idx]))
 		}
 		return
 	}
 
-	if model.IsBasicType(tVal) {
-		ret = append(ret, vVal)
+	objectValue, objectOK := vVal.Get().(*ObjectValue)
+	if objectOK {
+		ret = append(ret, NewValue(objectValue))
 		return
 	}
 
-	err = fmt.Errorf("illegal remote slice value, type:%s", rVal.Type().String())
+	switch vVal.Get().(type) {
+	case bool,
+		int8, int16, int32, int, int64,
+		uint8, uint16, uint32, uint, uint64,
+		float32, float64,
+		string:
+		ret = append(ret, NewValue(vVal.Get()))
+	case []bool:
+		ret = elemSlice(vVal.Get().([]bool))
+	case []int8, []int16, []int32, []int, []int64:
+		ret = elemSlice(vVal.Get().([]int64))
+	case []uint8, []uint16, []uint32, []uint, []uint64:
+		ret = elemSlice(vVal.Get().([]uint64))
+	case []float32, []float64:
+		ret = elemSlice(vVal.Get().([]float64))
+	case []string:
+		ret = elemSlice(vVal.Get().([]string))
+	default:
+		err := fmt.Errorf("illegal value, val:%v", vVal.Get())
+		panic(err.Error())
+	}
+
 	return
 }
 
 func AppendSliceValue(sliceVal model.Value, vVal model.Value) (ret model.Value, err error) {
-	rvVal := reflect.Indirect(vVal.Get())
-	sliceName := sliceVal.Get().FieldByName("Name").String()
-	slicePkg := sliceVal.Get().FieldByName("PkgPath").String()
-	objectName := rvVal.FieldByName("Name").String()
-	objectPkg := rvVal.FieldByName("PkgPath").String()
-
-	if sliceName != objectName || slicePkg != objectPkg {
-		err = fmt.Errorf("mismatch slice value")
+	sliceValuePtr, sliceValueOK := sliceVal.Get().(*SliceObjectValue)
+	if !sliceValueOK {
+		err = fmt.Errorf("illegal slice value")
 		return
 	}
 
-	sliceObjects := sliceVal.Get().FieldByName("Values")
-	if pu.IsNil(sliceObjects) {
-		err = fmt.Errorf("illegal remote model slice value")
+	valuePtr, valueOK := vVal.Get().(*ObjectValue)
+	if !valueOK {
+		err = fmt.Errorf("illegal item value")
+		return
+
+	}
+	if sliceValuePtr.GetPkgKey() != valuePtr.GetPkgKey() {
+		err = fmt.Errorf("mismatch slice value, slice pkgKey:%v, item pkgkey:%v", sliceValuePtr.GetPkgKey(), valuePtr.GetPkgKey())
 		return
 	}
 
-	sliceObjects = reflect.Append(sliceObjects, vVal.Get())
-	sliceVal.Get().FieldByName("Values").Set(sliceObjects)
-
-	ret = sliceVal
+	sliceValuePtr.Values = append(sliceValuePtr.Values, valuePtr)
+	ret = NewValue(sliceValuePtr)
 	return
 }
 
@@ -252,8 +212,8 @@ func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, codec c
 
 	if vVal.IsBasic() {
 		pkField := tModel.GetPrimaryField()
-		vType := pkField.GetType()
-		ret, err = codec.Encode(vVal, vType)
+		pkType := pkField.GetType()
+		ret, err = codec.Encode(vVal, pkType)
 		return
 	}
 
@@ -274,7 +234,7 @@ func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, codec c
 	return
 }
 
-func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache, codec codec.Codec) (ret string, err error) {
+func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache, codec codec.Codec) (ret interface{}, err error) {
 	vVals, vErr := ElemDependValue(tVal)
 	if vErr != nil {
 		err = vErr
@@ -319,6 +279,22 @@ func DecodeValue(tVal interface{}, tType model.Type, mCache model.Cache) (ret mo
 		return
 	}
 
+	objPtr, objOK := tVal.(*ObjectValue)
+	if objOK {
+		if objPtr.GetPkgKey() == tType.GetPkgKey() && model.IsStructType(tType.GetValue()) {
+			ret, err = GetEntityValue(tVal)
+			return
+		}
+	}
+
+	sObjPtr, sObjOK := tVal.(*SliceObjectValue)
+	if sObjOK {
+		if sObjPtr.GetPkgKey() == tType.GetPkgKey() && model.IsSliceType(tType.GetValue()) {
+			ret, err = GetEntityValue(tVal)
+			return
+		}
+	}
+
 	err = fmt.Errorf("unexpected type, type name:%s", tType.GetName())
 	return
 }
@@ -327,17 +303,17 @@ func GetValue(valueDeclare model.ValueDeclare) (ret model.Value) {
 	var rVal interface{}
 	switch valueDeclare {
 	case model.SnowFlake:
-		rVal = pu.GetNewSnowFlakeID()
+		rVal = util.GetNewSnowFlakeID()
 	case model.UUID:
-		rVal = pu.GetNewUUID()
+		rVal = util.GetNewUUID()
 	case model.DateTime:
-		rVal = pu.GetCurrentDateTime()
+		rVal = util.GetCurrentDateTime()
 	}
 	if rVal != nil {
-		ret = pu.NewValue(reflect.ValueOf(rVal))
+		ret = NewValue(rVal)
 		return
 	}
 
-	ret = &pu.NilValue
+	ret = &NilValue
 	return
 }

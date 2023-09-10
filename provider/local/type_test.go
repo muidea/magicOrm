@@ -1,17 +1,18 @@
 package local
 
 import (
-	"github.com/muidea/magicOrm/model"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/muidea/magicOrm/model"
 )
 
 func TestIntType(t *testing.T) {
 	var iVal int
-	iType, iErr := newType(reflect.TypeOf(iVal))
+	iType, iErr := NewType(reflect.TypeOf(iVal))
 	if iErr != nil {
-		t.Errorf("newType failed, err:%s", iErr.Error())
+		t.Errorf("NewType failed, err:%s", iErr.Error())
 		return
 	}
 
@@ -21,10 +22,10 @@ func TestIntType(t *testing.T) {
 	}
 
 	nVal := iType.Interface()
-	newVal := nVal.Get()
-	riType, riErr := newType(newVal.Type())
+	newVal := nVal.Get().(reflect.Value)
+	riType, riErr := NewType(newVal.Type())
 	if riErr != nil {
-		t.Errorf("newType failed, err:%s", riErr.Error())
+		t.Errorf("NewType failed, err:%s", riErr.Error())
 		return
 	}
 
@@ -33,24 +34,24 @@ func TestIntType(t *testing.T) {
 		return
 	}
 	if iType.GetName() != riType.GetName() {
-		t.Errorf("newType faild. illegal type name")
+		t.Errorf("NewType faild. illegal type name")
 		return
 	}
 	if iType.GetPkgPath() != riType.GetPkgPath() {
-		t.Errorf("newType faild. illegal type pkgPath")
+		t.Errorf("NewType faild. illegal type pkgPath")
 		return
 	}
 	if iType.GetValue() != riType.GetValue() {
-		t.Errorf("newType faild. illegal type value")
+		t.Errorf("NewType faild. illegal type value")
 		return
 	}
 }
 
 func TestFloatType(t *testing.T) {
 	var fVal float32
-	fType, fErr := newType(reflect.TypeOf(fVal))
+	fType, fErr := NewType(reflect.TypeOf(fVal))
 	if fErr != nil {
-		t.Errorf("newType failed, err:%s", fErr.Error())
+		t.Errorf("NewType failed, err:%s", fErr.Error())
 		return
 	}
 
@@ -60,10 +61,10 @@ func TestFloatType(t *testing.T) {
 	}
 
 	nVal := fType.Interface()
-	newVal := nVal.Get()
-	rfType, rfErr := newType(newVal.Type())
+	newVal := nVal.Get().(reflect.Value)
+	rfType, rfErr := NewType(newVal.Type())
 	if rfErr != nil {
-		t.Errorf("newType failed, err:%s", rfErr.Error())
+		t.Errorf("NewType failed, err:%s", rfErr.Error())
 		return
 	}
 
@@ -72,24 +73,24 @@ func TestFloatType(t *testing.T) {
 		return
 	}
 	if fType.GetName() != rfType.GetName() {
-		t.Errorf("newType faild. illegal type name")
+		t.Errorf("NewType faild. illegal type name")
 		return
 	}
 	if fType.GetPkgPath() != rfType.GetPkgPath() {
-		t.Errorf("newType faild. illegal type pkgPath")
+		t.Errorf("NewType faild. illegal type pkgPath")
 		return
 	}
 	if fType.GetValue() != rfType.GetValue() {
-		t.Errorf("newType faild. illegal type value")
+		t.Errorf("NewType faild. illegal type value")
 		return
 	}
 }
 
 func TestBoolType(t *testing.T) {
 	var bVal bool
-	bType, bErr := newType(reflect.TypeOf(bVal))
+	bType, bErr := NewType(reflect.TypeOf(bVal))
 	if bErr != nil {
-		t.Errorf("newType failed, err:%s", bErr.Error())
+		t.Errorf("NewType failed, err:%s", bErr.Error())
 		return
 	}
 
@@ -99,10 +100,10 @@ func TestBoolType(t *testing.T) {
 	}
 
 	nVal := bType.Interface()
-	newVal := nVal.Get()
-	rbType, rbErr := newType(newVal.Type())
+	newVal := nVal.Get().(reflect.Value)
+	rbType, rbErr := NewType(newVal.Type())
 	if rbErr != nil {
-		t.Errorf("newType failed, err:%s", rbErr.Error())
+		t.Errorf("NewType failed, err:%s", rbErr.Error())
 		return
 	}
 
@@ -111,24 +112,24 @@ func TestBoolType(t *testing.T) {
 		return
 	}
 	if bType.GetName() != rbType.GetName() {
-		t.Errorf("newType faild. illegal type name")
+		t.Errorf("NewType faild. illegal type name")
 		return
 	}
 	if bType.GetPkgPath() != rbType.GetPkgPath() {
-		t.Errorf("newType faild. illegal type pkgPath")
+		t.Errorf("NewType faild. illegal type pkgPath")
 		return
 	}
 	if bType.GetValue() != rbType.GetValue() {
-		t.Errorf("newType faild. illegal type value")
+		t.Errorf("NewType faild. illegal type value")
 		return
 	}
 }
 
 func TestStringType(t *testing.T) {
 	var strVal string
-	strType, strErr := newType(reflect.TypeOf(strVal))
+	strType, strErr := NewType(reflect.TypeOf(strVal))
 	if strErr != nil {
-		t.Errorf("newType failed, err:%s", strErr.Error())
+		t.Errorf("NewType failed, err:%s", strErr.Error())
 		return
 	}
 
@@ -138,10 +139,10 @@ func TestStringType(t *testing.T) {
 	}
 
 	nVal := strType.Interface()
-	newVal := nVal.Get()
-	rstrType, rstrErr := newType(newVal.Type())
+	newVal := nVal.Get().(reflect.Value)
+	rstrType, rstrErr := NewType(newVal.Type())
 	if rstrErr != nil {
-		t.Errorf("newType failed, err:%s", rstrErr.Error())
+		t.Errorf("NewType failed, err:%s", rstrErr.Error())
 		return
 	}
 
@@ -150,24 +151,24 @@ func TestStringType(t *testing.T) {
 		return
 	}
 	if strType.GetName() != rstrType.GetName() {
-		t.Errorf("newType faild. illegal type name")
+		t.Errorf("NewType faild. illegal type name")
 		return
 	}
 	if strType.GetPkgPath() != rstrType.GetPkgPath() {
-		t.Errorf("newType faild. illegal type pkgPath")
+		t.Errorf("NewType faild. illegal type pkgPath")
 		return
 	}
 	if strType.GetValue() != rstrType.GetValue() {
-		t.Errorf("newType faild. illegal type value")
+		t.Errorf("NewType faild. illegal type value")
 		return
 	}
 }
 
 func TestDateTimeType(t *testing.T) {
 	var dtVal time.Time
-	dtType, dtErr := newType(reflect.TypeOf(dtVal))
+	dtType, dtErr := NewType(reflect.TypeOf(dtVal))
 	if dtErr != nil {
-		t.Errorf("newType failed, err:%s", dtErr.Error())
+		t.Errorf("NewType failed, err:%s", dtErr.Error())
 		return
 	}
 
@@ -177,10 +178,10 @@ func TestDateTimeType(t *testing.T) {
 	}
 
 	nVal := dtType.Interface()
-	newVal := nVal.Get()
-	rdtType, rdtErr := newType(newVal.Type())
+	newVal := nVal.Get().(reflect.Value)
+	rdtType, rdtErr := NewType(newVal.Type())
 	if rdtErr != nil {
-		t.Errorf("newType failed, err:%s", rdtErr.Error())
+		t.Errorf("NewType failed, err:%s", rdtErr.Error())
 		return
 	}
 
@@ -189,15 +190,15 @@ func TestDateTimeType(t *testing.T) {
 		return
 	}
 	if dtType.GetName() != rdtType.GetName() {
-		t.Errorf("newType faild. illegal type name")
+		t.Errorf("NewType faild. illegal type name")
 		return
 	}
 	if dtType.GetPkgPath() != rdtType.GetPkgPath() {
-		t.Errorf("newType faild. illegal type pkgPath")
+		t.Errorf("NewType faild. illegal type pkgPath")
 		return
 	}
 	if dtType.GetValue() != rdtType.GetValue() {
-		t.Errorf("newType faild. illegal type value")
+		t.Errorf("NewType faild. illegal type value")
 		return
 	}
 }
@@ -208,9 +209,9 @@ func TestStructType(t *testing.T) {
 	}
 
 	var structVal Base
-	structType, structErr := newType(reflect.TypeOf(structVal))
+	structType, structErr := NewType(reflect.TypeOf(structVal))
 	if structErr != nil {
-		t.Errorf("newType failed, err:%s", structErr.Error())
+		t.Errorf("NewType failed, err:%s", structErr.Error())
 		return
 	}
 
@@ -220,10 +221,10 @@ func TestStructType(t *testing.T) {
 	}
 
 	nVal := structType.Interface()
-	newVal := nVal.Get()
-	rstructType, rstructErr := newType(newVal.Type())
+	newVal := nVal.Get().(reflect.Value)
+	rstructType, rstructErr := NewType(newVal.Type())
 	if rstructErr != nil {
-		t.Errorf("newType failed, err:%s", rstructErr.Error())
+		t.Errorf("NewType failed, err:%s", rstructErr.Error())
 		return
 	}
 
@@ -232,15 +233,15 @@ func TestStructType(t *testing.T) {
 		return
 	}
 	if structType.GetName() != rstructType.GetName() {
-		t.Errorf("newType faild. illegal type name")
+		t.Errorf("NewType faild. illegal type name")
 		return
 	}
 	if structType.GetPkgPath() != rstructType.GetPkgPath() {
-		t.Errorf("newType faild. illegal type pkgPath")
+		t.Errorf("NewType faild. illegal type pkgPath")
 		return
 	}
 	if structType.GetValue() != rstructType.GetValue() {
-		t.Errorf("newType faild. illegal type value")
+		t.Errorf("NewType faild. illegal type value")
 		return
 	}
 
@@ -252,9 +253,9 @@ func TestStructType(t *testing.T) {
 
 func TestSliceType(t *testing.T) {
 	var sliceVal []*uint16
-	sliceType, sliceErr := newType(reflect.TypeOf(sliceVal))
+	sliceType, sliceErr := NewType(reflect.TypeOf(sliceVal))
 	if sliceErr != nil {
-		t.Errorf("newType failed, err:%s", sliceErr.Error())
+		t.Errorf("NewType failed, err:%s", sliceErr.Error())
 		return
 	}
 
@@ -264,10 +265,10 @@ func TestSliceType(t *testing.T) {
 	}
 
 	nVal := sliceType.Interface()
-	newVal := nVal.Get()
-	rsliceType, rsliceErr := newType(newVal.Type())
+	newVal := nVal.Get().(reflect.Value)
+	rsliceType, rsliceErr := NewType(newVal.Type())
 	if rsliceErr != nil {
-		t.Errorf("newType failed, err:%s", rsliceErr.Error())
+		t.Errorf("NewType failed, err:%s", rsliceErr.Error())
 		return
 	}
 
@@ -276,15 +277,15 @@ func TestSliceType(t *testing.T) {
 		return
 	}
 	if sliceType.GetName() != rsliceType.GetName() {
-		t.Errorf("newType faild. illegal type name")
+		t.Errorf("NewType faild. illegal type name")
 		return
 	}
 	if sliceType.GetPkgPath() != rsliceType.GetPkgPath() {
-		t.Errorf("newType faild. illegal type pkgPath")
+		t.Errorf("NewType faild. illegal type pkgPath")
 		return
 	}
 	if sliceType.GetValue() != rsliceType.GetValue() {
-		t.Errorf("newType faild. illegal type value")
+		t.Errorf("NewType faild. illegal type value")
 		return
 	}
 
@@ -328,9 +329,9 @@ func TestSliceType(t *testing.T) {
 
 func TestPtrSliceType(t *testing.T) {
 	var sliceVal *[]*uint16
-	sliceType, sliceErr := newType(reflect.TypeOf(sliceVal))
+	sliceType, sliceErr := NewType(reflect.TypeOf(sliceVal))
 	if sliceErr != nil {
-		t.Errorf("newType failed, err:%s", sliceErr.Error())
+		t.Errorf("NewType failed, err:%s", sliceErr.Error())
 		return
 	}
 
@@ -340,10 +341,10 @@ func TestPtrSliceType(t *testing.T) {
 	}
 
 	nVal := sliceType.Interface()
-	newVal := nVal.Get()
-	rsliceType, rsliceErr := newType(newVal.Type())
+	newVal := nVal.Get().(reflect.Value)
+	rsliceType, rsliceErr := NewType(newVal.Type())
 	if rsliceErr != nil {
-		t.Errorf("newType failed, err:%s", rsliceErr.Error())
+		t.Errorf("NewType failed, err:%s", rsliceErr.Error())
 		return
 	}
 
@@ -352,15 +353,15 @@ func TestPtrSliceType(t *testing.T) {
 		return
 	}
 	if sliceType.GetName() != rsliceType.GetName() {
-		t.Errorf("newType faild. illegal type name")
+		t.Errorf("NewType faild. illegal type name")
 		return
 	}
 	if sliceType.GetPkgPath() != rsliceType.GetPkgPath() {
-		t.Errorf("newType faild. illegal type pkgPath")
+		t.Errorf("NewType faild. illegal type pkgPath")
 		return
 	}
 	if sliceType.GetValue() != rsliceType.GetValue() {
-		t.Errorf("newType faild. illegal type value")
+		t.Errorf("NewType faild. illegal type value")
 		return
 	}
 
@@ -407,9 +408,9 @@ func TestSliceStructType(t *testing.T) {
 		iVal int
 	}
 	var sliceVal []*Base
-	sliceType, sliceErr := newType(reflect.TypeOf(sliceVal))
+	sliceType, sliceErr := NewType(reflect.TypeOf(sliceVal))
 	if sliceErr != nil {
-		t.Errorf("newType failed, err:%s", sliceErr.Error())
+		t.Errorf("NewType failed, err:%s", sliceErr.Error())
 		return
 	}
 
@@ -419,10 +420,10 @@ func TestSliceStructType(t *testing.T) {
 	}
 
 	nVal := sliceType.Interface()
-	newVal := nVal.Get()
-	rsliceType, rsliceErr := newType(newVal.Type())
+	newVal := nVal.Get().(reflect.Value)
+	rsliceType, rsliceErr := NewType(newVal.Type())
 	if rsliceErr != nil {
-		t.Errorf("newType failed, err:%s", rsliceErr.Error())
+		t.Errorf("NewType failed, err:%s", rsliceErr.Error())
 		return
 	}
 
@@ -431,15 +432,15 @@ func TestSliceStructType(t *testing.T) {
 		return
 	}
 	if sliceType.GetName() != rsliceType.GetName() {
-		t.Errorf("newType faild. illegal type name")
+		t.Errorf("NewType faild. illegal type name")
 		return
 	}
 	if sliceType.GetPkgPath() != rsliceType.GetPkgPath() {
-		t.Errorf("newType faild. illegal type pkgPath")
+		t.Errorf("NewType faild. illegal type pkgPath")
 		return
 	}
 	if sliceType.GetValue() != rsliceType.GetValue() {
-		t.Errorf("newType faild. illegal type value")
+		t.Errorf("NewType faild. illegal type value")
 		return
 	}
 
@@ -482,34 +483,34 @@ func TestSliceStructType(t *testing.T) {
 
 func TestTypeImpl_Interface(t *testing.T) {
 	var iVal int
-	iType, iErr := newType(reflect.TypeOf(iVal))
+	iType, iErr := NewType(reflect.TypeOf(iVal))
 	if iErr != nil {
-		t.Errorf("newType failed, err:%s", iErr.Error())
+		t.Errorf("NewType failed, err:%s", iErr.Error())
 		return
 	}
 
-	tVal := iType.Interface()
-	if !tVal.Get().CanSet() || !tVal.Get().CanAddr() {
+	tVal := iType.Interface().Get().(reflect.Value)
+	if !tVal.CanSet() || !tVal.CanAddr() {
 		t.Errorf("Interface value failed")
 		return
 	}
-	if tVal.Get().Type().String() != "int" {
+	if tVal.Type().String() != "int" {
 		t.Errorf("Interface value failed")
 		return
 	}
 
 	iValPtr := &iVal
-	iType, iErr = newType(reflect.TypeOf(iValPtr))
+	iType, iErr = NewType(reflect.TypeOf(iValPtr))
 	if iErr != nil {
-		t.Errorf("newType failed, err:%s", iErr.Error())
+		t.Errorf("NewType failed, err:%s", iErr.Error())
 		return
 	}
 
-	tValPtr := iType.Interface()
-	if !tValPtr.Get().CanSet() || !tValPtr.Get().CanAddr() {
+	tValPtr := iType.Interface().Get().(reflect.Value)
+	if !tValPtr.CanSet() || !tValPtr.CanAddr() {
 		t.Errorf("Interface value failed")
 	}
-	if tValPtr.Get().Type().String() != "*int" {
+	if tValPtr.Type().String() != "*int" {
 		t.Errorf("Interface value failed")
 		return
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
+	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
@@ -224,9 +225,9 @@ func TestReferenceRemote(t *testing.T) {
 		return
 	}
 
-	simpleDef, _ := remote.GetObject(&Simple{})
-	referenceDef, _ := remote.GetObject(&Reference{})
-	composeDef, _ := remote.GetObject(&Compose{})
+	simpleDef, _ := helper.GetObject(&Simple{})
+	referenceDef, _ := helper.GetObject(&Reference{})
+	composeDef, _ := helper.GetObject(&Compose{})
 
 	entityList := []interface{}{simpleDef, referenceDef, composeDef}
 	modelList, modelErr := registerModel(remoteProvider, entityList)
@@ -280,7 +281,7 @@ func TestReferenceRemote(t *testing.T) {
 		}
 		sValList = append(sValList, sVal)
 
-		sObjectVal, sObjectErr := remote.GetObjectValue(sVal)
+		sObjectVal, sObjectErr := helper.GetObjectValue(sVal)
 		if sObjectErr != nil {
 			err = sObjectErr
 			t.Errorf("GetObjectValue failed. err:%s", err.Error())
@@ -322,7 +323,7 @@ func TestReferenceRemote(t *testing.T) {
 	for idx := 0; idx < 100; idx++ {
 		sVal := sValList[idx]
 		sVal.Name = "hi"
-		sObjectVal, sObjectErr := remote.GetObjectValue(sVal)
+		sObjectVal, sObjectErr := helper.GetObjectValue(sVal)
 		if sObjectErr != nil {
 			err = sObjectErr
 			t.Errorf("GetObjectValue failed. err:%s", err.Error())
@@ -373,7 +374,7 @@ func TestReferenceRemote(t *testing.T) {
 		qVal := &Reference{ID: sValList[idx].ID, FValue: &fVal, TimeStamp: &ts, Flag: &flag, PtrArray: &strArray, PtrStrArray: &ptrStrArray}
 		qValList = append(qValList, qVal)
 
-		qObjectVal, qObjectErr := remote.GetObjectValue(qVal)
+		qObjectVal, qObjectErr := helper.GetObjectValue(qVal)
 		if qObjectErr != nil {
 			err = qObjectErr
 			t.Errorf("GetObjectValue failed. err:%s", err.Error())
@@ -422,7 +423,7 @@ func TestReferenceRemote(t *testing.T) {
 	}
 
 	bqValList := []*Reference{}
-	bqSliceObject, bqSliceErr := remote.GetSliceObjectValue(&bqValList)
+	bqSliceObject, bqSliceErr := helper.GetSliceObjectValue(&bqValList)
 	if bqSliceErr != nil {
 		t.Errorf("GetSliceObjectValue failed, err:%s", bqSliceErr.Error())
 		return

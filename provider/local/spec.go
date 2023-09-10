@@ -9,29 +9,29 @@ import (
 	"github.com/muidea/magicOrm/provider/util"
 )
 
-type specImpl struct {
+type SpecImpl struct {
 	fieldName    string
 	primaryKey   bool
 	valueDeclare model.ValueDeclare
 }
 
-var emptySpec = specImpl{primaryKey: false, valueDeclare: model.Customer}
+var emptySpec = SpecImpl{primaryKey: false, valueDeclare: model.Customer}
 
-// newSpec name[key][auto]
-func newSpec(tag reflect.StructTag) (ret *specImpl, err error) {
+// NewSpec name[key][auto]
+func NewSpec(tag reflect.StructTag) (ret *SpecImpl, err error) {
 	spec := tag.Get("orm")
 	ret, err = getSpec(spec)
 	return
 }
 
-func getSpec(spec string) (ret *specImpl, err error) {
+func getSpec(spec string) (ret *SpecImpl, err error) {
 	items := strings.Split(spec, " ")
 	if len(items) < 1 {
 		err = fmt.Errorf("illegal spec value, val:%s", spec)
 		return
 	}
 
-	ret = &specImpl{primaryKey: false, valueDeclare: model.Customer}
+	ret = &SpecImpl{primaryKey: false, valueDeclare: model.Customer}
 	ret.fieldName = items[0]
 	for idx := 1; idx < len(items); idx++ {
 		switch items[idx] {
@@ -52,20 +52,20 @@ func getSpec(spec string) (ret *specImpl, err error) {
 }
 
 // GetFieldName Name
-func (s *specImpl) GetFieldName() string {
+func (s *SpecImpl) GetFieldName() string {
 	return s.fieldName
 }
 
-func (s *specImpl) IsPrimaryKey() bool {
+func (s *SpecImpl) IsPrimaryKey() bool {
 	return s.primaryKey
 }
 
-func (s *specImpl) GetValueDeclare() model.ValueDeclare {
+func (s *SpecImpl) GetValueDeclare() model.ValueDeclare {
 	return s.valueDeclare
 }
 
-func (s *specImpl) copy() (ret *specImpl) {
-	ret = &specImpl{
+func (s *SpecImpl) copy() (ret *SpecImpl) {
+	ret = &SpecImpl{
 		fieldName:    s.fieldName,
 		primaryKey:   s.primaryKey,
 		valueDeclare: s.valueDeclare,
@@ -74,6 +74,6 @@ func (s *specImpl) copy() (ret *specImpl) {
 	return
 }
 
-func (s *specImpl) dump() (ret string) {
+func (s *SpecImpl) dump() (ret string) {
 	return fmt.Sprintf("name=%s key=%v value=%v", s.GetFieldName(), s.IsPrimaryKey(), s.GetValueDeclare())
 }

@@ -6,93 +6,93 @@ import (
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
-	pu "github.com/muidea/magicOrm/provider/util"
+	"github.com/muidea/magicOrm/provider/util"
 )
 
-type typeImpl struct {
+type TypeImpl struct {
 	typeVal reflect.Type
 }
 
-func getValueType(val reflect.Value) (ret *typeImpl, err error) {
-	if pu.IsNil(val) {
+func getValueType(val reflect.Value) (ret *TypeImpl, err error) {
+	if util.IsNil(val) {
 		err = fmt.Errorf("can't get nil value type")
 		return
 	}
 
-	ret, err = newType(val.Type())
+	ret, err = NewType(val.Type())
 	return
 }
 
-func newType(val reflect.Type) (ret *typeImpl, err error) {
+func NewType(val reflect.Type) (ret *TypeImpl, err error) {
 	rType := val
 	if rType.Kind() == reflect.Ptr {
 		rType = rType.Elem()
 	}
-	_, err = pu.GetTypeEnum(rType)
+	_, err = util.GetTypeEnum(rType)
 	if err != nil {
 		return
 	}
 
-	ret = &typeImpl{typeVal: val}
+	ret = &TypeImpl{typeVal: val}
 	return
 }
 
-func (s *typeImpl) GetName() string {
+func (s *TypeImpl) GetName() string {
 	rType := s.getElemType()
 	return rType.Name()
 }
 
-func (s *typeImpl) GetPkgPath() string {
+func (s *TypeImpl) GetPkgPath() string {
 	rType := s.getElemType()
 	return rType.PkgPath()
 }
 
-func (s *typeImpl) GetDescription() string {
+func (s *TypeImpl) GetDescription() string {
 	return ""
 }
 
-func (s *typeImpl) GetValue() (ret model.TypeDeclare) {
+func (s *TypeImpl) GetValue() (ret model.TypeDeclare) {
 	rType := s.getRawType()
-	ret, _ = pu.GetTypeEnum(rType)
+	ret, _ = util.GetTypeEnum(rType)
 	return
 }
 
-func (s *typeImpl) GetPkgKey() string {
+func (s *TypeImpl) GetPkgKey() string {
 	rType := s.getElemType()
 	return path.Join(rType.PkgPath(), rType.Name())
 }
 
-func (s *typeImpl) IsPtrType() bool {
+func (s *TypeImpl) IsPtrType() bool {
 	return s.typeVal.Kind() == reflect.Ptr
 }
 
-func (s *typeImpl) Interface() (ret model.Value) {
+func (s *TypeImpl) Interface() (ret model.Value) {
 	tVal := reflect.New(s.typeVal).Elem()
 	if s.IsPtrType() {
 		rVal := reflect.New(s.getRawType())
 		tVal.Set(rVal)
 	}
 
-	ret = pu.NewValue(tVal)
+	ret = NewValue(tVal)
 	return
 }
 
-func (s *typeImpl) Elem() model.Type {
+func (s *TypeImpl) Elem() model.Type {
 	tType := s.getRawType()
 	if tType.Kind() == reflect.Slice {
-		return &typeImpl{typeVal: tType.Elem()}
+		return &TypeImpl{typeVal: tType.Elem()}
 	}
 
-	return &typeImpl{typeVal: s.typeVal}
+	return &TypeImpl{typeVal: s.typeVal}
 }
 
-func (s *typeImpl) IsBasic() bool {
+func (s *TypeImpl) IsBasic() bool {
 	elemType := s.Elem()
 
 	return model.IsBasicType(elemType.GetValue())
 }
 
-func (s *typeImpl) getRawType() reflect.Type {
+func (s *TypeImpl) getRawType() reflect.Type {
 	if s.typeVal.Kind() == reflect.Ptr {
 		return s.typeVal.Elem()
 	}
@@ -100,7 +100,7 @@ func (s *typeImpl) getRawType() reflect.Type {
 	return s.typeVal
 }
 
-func (s *typeImpl) getElemType() reflect.Type {
+func (s *TypeImpl) getElemType() reflect.Type {
 	rType := s.getRawType()
 	if rType.Kind() == reflect.Slice {
 		rType = rType.Elem()
@@ -111,15 +111,15 @@ func (s *typeImpl) getElemType() reflect.Type {
 	return rType
 }
 
-func (s *typeImpl) copy() (ret *typeImpl) {
-	ret = &typeImpl{
+func (s *TypeImpl) copy() (ret *TypeImpl) {
+	ret = &TypeImpl{
 		typeVal: s.typeVal,
 	}
 
 	return
 }
 
-func (s *typeImpl) dump() string {
+func (s *TypeImpl) dump() string {
 	val := s.GetValue()
 	return fmt.Sprintf("val:%d,name:%s,pkgPath:%s,isPtr:%v", val, s.GetName(), s.GetPkgPath(), s.IsPtrType())
 }

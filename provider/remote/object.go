@@ -4,12 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"path"
-	"reflect"
 
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/model"
-	pu "github.com/muidea/magicOrm/provider/util"
 )
 
 type Object struct {
@@ -98,32 +96,8 @@ func (s *Object) GetField(name string) (ret model.Field) {
 	return
 }
 
-func (s *Object) itemInterface(valPtr *Field) (ret interface{}) {
-	rVal := valPtr.value.Get()
-	if !valPtr.Type.IsBasic() {
-		rVal = rVal.Addr()
-		if model.IsStructType(valPtr.Type.GetValue()) {
-			objectVal := rVal.Interface().(*ObjectValue)
-			if len(objectVal.Fields) > 0 {
-				ret = objectVal
-			}
-		}
-		if model.IsSliceType(valPtr.Type.GetValue()) {
-			sliceObjectVal := rVal.Interface().(*SliceObjectValue)
-			if len(sliceObjectVal.Values) > 0 {
-				ret = sliceObjectVal
-			}
-		}
-
-		return
-	}
-
-	ret = rVal.Interface()
-	return
-}
-
 // Interface object value
-func (s *Object) Interface(ptrValue bool) (ret interface{}) {
+func (s *Object) Interface(ptrValue bool) (ret any) {
 	objVal := &ObjectValue{Name: s.Name, PkgPath: s.PkgPath, Fields: []*FieldValue{}}
 
 	for _, v := range s.Fields {
@@ -132,8 +106,7 @@ func (s *Object) Interface(ptrValue bool) (ret interface{}) {
 			continue
 		}
 
-		interfaceVal := s.itemInterface(v)
-		objVal.Fields = append(objVal.Fields, &FieldValue{Name: v.Name, Value: interfaceVal})
+		objVal.Fields = append(objVal.Fields, &FieldValue{Name: v.Name, Value: v.value.Get()})
 	}
 
 	if ptrValue {
@@ -156,7 +129,7 @@ func (s *Object) Copy() (ret model.Model) {
 			item.value = val.value.Copy()
 		} else {
 			initVal := val.Type.Interface()
-			item.value = pu.NewValue(initVal.Get())
+			item.value = initVal.(*ValueImpl)
 		}
 
 		obj.Fields = append(obj.Fields, item)
@@ -194,79 +167,6 @@ func (s *Object) Verify() (err error) {
 	return
 }
 
-// GetObject GetObject
-func GetObject(entity interface{}) (ret *Object, err error) {
-	entityType := reflect.ValueOf(entity).Type()
-	ret, err = type2Object(entityType)
-	if err != nil {
-		log.Errorf("type2Object failed, raw type:%s, err:%s", entityType.String(), err.Error())
-	}
-
-	return
-}
-
-// type2Object type2Object
-func type2Object(entityType reflect.Type) (ret *Object, err error) {
-	if entityType.Kind() == reflect.Ptr {
-		entityType = entityType.Elem()
-	}
-	if entityType.Kind() == reflect.Interface {
-		entityType = entityType.Elem()
-	}
-	if entityType.Kind() == reflect.Ptr {
-		entityType = entityType.Elem()
-	}
-
-	typeImpl, typeErr := newType(entityType)
-	if typeErr != nil {
-		err = fmt.Errorf("illegal entity type, must be a struct obj, type:%s", entityType.String())
-		return
-	}
-	if !model.IsStructType(typeImpl.GetValue()) {
-		err = fmt.Errorf("illegal obj type, must be a struct obj, type:%s", entityType.String())
-		return
-	}
-
-	impl := &Object{}
-	impl.Name = entityType.Name()
-	impl.PkgPath = entityType.PkgPath()
-	impl.Fields = []*Field{}
-
-	hasPrimaryKey := false
-	fieldNum := entityType.NumField()
-	for idx := 0; idx < fieldNum; idx++ {
-		fieldType := entityType.Field(idx)
-		fItem, fErr := getItemInfo(idx, fieldType)
-		if fErr != nil {
-			err = fErr
-			return
-		}
-		if fItem.IsPrimaryKey() {
-			if hasPrimaryKey {
-				err = fmt.Errorf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldType.Name, impl.GetName())
-				return
-			}
-
-			hasPrimaryKey = true
-		}
-
-		impl.Fields = append(impl.Fields, fItem)
-	}
-
-	if len(impl.Fields) == 0 {
-		err = fmt.Errorf("no define orm field, struct name:%s", impl.GetName())
-		return
-	}
-
-	if !hasPrimaryKey {
-		err = fmt.Errorf("no define primary key field, struct name:%s", impl.GetName())
-		return
-	}
-
-	ret = impl
-	return
-}
-
 func EncodeObject(objPtr *Object) (ret []byte, err error) {
 	ret, err = json.Marshal(objPtr)
 	return
@@ -283,7 +183,7 @@ func DecodeObject(data []byte) (ret *Object, err error) {
 	return
 }
 
-func compareObject(l, r *Object) bool {
+func CompareObject(l, r *Object) bool {
 	if l.Name != r.Name {
 		return false
 	}
@@ -322,50 +222,14 @@ func (s *ObjectValue) GetPkgKey() string {
 }
 
 func (s *ObjectValue) isFieldAssigned(val *FieldValue) (ret bool) {
-	if val.Value == nil {
-		return
-	}
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			log.Errorf("check isFieldAssigned unexpected, name:%s, err:%v", val.GetName(), errInfo)
+		}
+	}()
 
-	bVal, bOK := val.Value.(bool)
-	if bOK {
-		ret = bVal
-		return
-	}
-
-	strVal, strOK := val.Value.(string)
-	if strOK {
-		ret = strVal != ""
-		return
-	}
-
-	i64Val, iOK := val.Value.(int64)
-	if iOK {
-		ret = i64Val != 0
-		return
-	}
-
-	iVal, iOK := val.Value.(int)
-	if iOK {
-		ret = iVal != 0
-		return
-	}
-
-	fltVal, fltOK := val.Value.(float64)
-	if fltOK {
-		ret = fltVal != 0
-		return
-	}
-
-	sliceObjPtrVal, sliceObjPtrOK := val.Value.(*SliceObjectValue)
-	if sliceObjPtrOK {
-		ret = len(sliceObjPtrVal.Values) > 0
-		return
-	}
-
-	ptrObjVal, ptrObjOK := val.Value.(*ObjectValue)
-	if ptrObjOK {
-		ret = ptrObjVal.IsAssigned()
-	}
+	valPtr := NewValue(val.Value)
+	ret = !valPtr.IsZero()
 	return
 }
 
@@ -382,6 +246,20 @@ func (s *ObjectValue) IsAssigned() (ret bool) {
 	return
 }
 
+func (s *ObjectValue) Copy() (ret *ObjectValue) {
+	ptr := &ObjectValue{
+		Name:    s.Name,
+		PkgPath: s.PkgPath,
+	}
+
+	for idx := 0; idx < len(s.Fields); idx++ {
+		ptr.Fields = append(ptr.Fields, s.Fields[idx].copy())
+	}
+
+	ret = ptr
+	return
+}
+
 // GetName get object name
 func (s *SliceObjectValue) GetName() string {
 	return s.Name
@@ -392,126 +270,31 @@ func (s *SliceObjectValue) GetPkgPath() string {
 	return s.PkgPath
 }
 
+func (s *SliceObjectValue) GetPkgKey() string {
+	return path.Join(s.GetPkgPath(), s.GetName())
+}
+
 // IsAssigned is assigned value
 func (s *SliceObjectValue) IsAssigned() (ret bool) {
 	ret = len(s.Values) > 0
 	return
 }
 
-func getFieldValue(fieldName string, itemType *TypeImpl, itemValue *pu.ValueImpl) (ret *FieldValue, err error) {
-	if itemValue.IsNil() {
-		ret = &FieldValue{Name: fieldName, Value: nil}
-		return
+func (s *SliceObjectValue) Copy() (ret *SliceObjectValue) {
+	ptr := &SliceObjectValue{
+		Name:    s.Name,
+		PkgPath: s.PkgPath,
 	}
 
-	if itemType.IsBasic() {
-		encodeVal, encodeErr := _codec.Encode(itemValue, itemType)
-		if encodeErr != nil {
-			err = encodeErr
-			return
-		}
-		ret = &FieldValue{Name: fieldName, Value: encodeVal}
-		return
+	for idx := 0; idx < len(s.Values); idx++ {
+		sv := s.Values[idx].Copy()
+		sv.Name = s.Name
+		sv.PkgPath = s.PkgPath
+
+		ptr.Values = append(ptr.Values, sv)
 	}
 
-	objVal, objErr := getObjectValue(itemValue.Get())
-	if objErr != nil {
-		err = objErr
-		log.Errorf("GetObjectValue failed, raw type:%s, err:%s", itemType.GetName(), err.Error())
-		return
-	}
-
-	ret = &FieldValue{Name: fieldName, Value: objVal}
-	return
-}
-
-func getSliceFieldValue(fieldName string, itemType *TypeImpl, itemValue *pu.ValueImpl) (ret *FieldValue, err error) {
-	ret = &FieldValue{Name: fieldName}
-	if itemValue.IsNil() {
-		ret = &FieldValue{Name: fieldName, Value: nil}
-		return
-	}
-
-	elemType := itemType.Elem()
-	if elemType.IsBasic() {
-		encodeVal, encodeErr := _codec.Encode(itemValue, itemType)
-		if encodeErr != nil {
-			err = encodeErr
-			return
-		}
-		ret = &FieldValue{Name: fieldName, Value: encodeVal}
-		return
-	}
-
-	sliceObjectVal := []*ObjectValue{}
-	rawVal := reflect.Indirect(itemValue.Get())
-	for idx := 0; idx < rawVal.Len(); idx++ {
-		itemVal := rawVal.Index(idx)
-		objVal, objErr := getObjectValue(itemVal)
-		if objErr != nil {
-			err = objErr
-			log.Errorf("encodeDateTimeValue failed, err:%s", err.Error())
-			return
-		}
-
-		sliceObjectVal = append(sliceObjectVal, objVal)
-	}
-	ret.Value = &SliceObjectValue{Name: elemType.GetName(), PkgPath: elemType.GetPkgPath(), Values: sliceObjectVal}
-	return
-}
-
-func getObjectValue(entityVal reflect.Value) (ret *ObjectValue, err error) {
-	entityVal = reflect.Indirect(entityVal)
-	entityType := entityVal.Type()
-	objType, objErr := newType(entityType)
-	if objErr != nil {
-		err = objErr
-		return
-	}
-	if !model.IsStructType(objType.GetValue()) {
-		err = fmt.Errorf("illegal entity, entity type:%s", entityType.String())
-		return
-	}
-
-	//!! must be String, not Name
-	ret = &ObjectValue{Name: objType.GetName(), PkgPath: objType.GetPkgPath(), Fields: []*FieldValue{}}
-	fieldNum := entityVal.NumField()
-	for idx := 0; idx < fieldNum; idx++ {
-		fieldType := entityType.Field(idx)
-		fieldName, fieldErr := getFieldName(fieldType)
-		if fieldErr != nil {
-			err = fieldErr
-			log.Errorf("get entity failed, field name:%s, err:%s", fieldType.Name, err.Error())
-			return
-		}
-
-		valuePtr := pu.NewValue(entityVal.Field(idx))
-		typePtr, typeErr := newType(fieldType.Type)
-		if typeErr != nil {
-			err = typeErr
-			log.Errorf("get entity type failed, field name:%s, err:%s", fieldType.Name, err.Error())
-			return
-		}
-
-		if typePtr.GetValue() != model.TypeSliceValue {
-			val, valErr := getFieldValue(fieldName, typePtr, valuePtr)
-			if valErr != nil {
-				err = valErr
-				log.Errorf("getFieldValue failed, field name:%s, err:%s", fieldType.Name, err.Error())
-				return
-			}
-			ret.Fields = append(ret.Fields, val)
-		} else {
-			val, valErr := getSliceFieldValue(fieldName, typePtr, valuePtr)
-			if valErr != nil {
-				err = valErr
-				log.Errorf("getSliceFieldValue failed, field name:%s, err:%s", fieldType.Name, err.Error())
-				return
-			}
-			ret.Fields = append(ret.Fields, val)
-		}
-	}
-
+	ret = ptr
 	return
 }
 
@@ -525,53 +308,6 @@ func GetMapValue(entity interface{}) (ret interface{}, err error) {
 	if !mOK {
 		err = fmt.Errorf("illegal map value, miss id")
 		return
-	}
-
-	return
-}
-
-// GetObjectValue get object value
-func GetObjectValue(entity interface{}) (ret *ObjectValue, err error) {
-	entityVal := reflect.ValueOf(entity)
-	ret, err = getObjectValue(entityVal)
-	return
-}
-
-// GetSliceObjectValue get slice object value
-func GetSliceObjectValue(sliceEntity interface{}) (ret *SliceObjectValue, err error) {
-	sliceValue := reflect.ValueOf(sliceEntity)
-	sliceType, sliceErr := newType(sliceValue.Type())
-	if sliceErr != nil {
-		err = fmt.Errorf("get slice object type failed, err:%s", err.Error())
-		log.Errorf("GetSliceObjectValue failed, slice type name:%s", sliceType.GetName())
-		return
-	}
-
-	if !model.IsSliceType(sliceType.GetValue()) {
-		err = fmt.Errorf("illegal slice object value")
-		log.Errorf("illegal slice type, slice type name:%s", sliceType.GetName())
-		return
-	}
-
-	elemType := sliceType.Elem()
-	if !model.IsStructType(elemType.GetValue()) {
-		err = fmt.Errorf("illegal slice item type")
-		log.Errorf("illegal slice elem type, type%s", elemType.GetName())
-		return
-	}
-
-	ret = &SliceObjectValue{Name: elemType.GetName(), PkgPath: elemType.GetPkgPath(), Values: []*ObjectValue{}}
-	sliceValue = reflect.Indirect(sliceValue)
-	for idx := 0; idx < sliceValue.Len(); idx++ {
-		val := sliceValue.Index(idx)
-		objVal, objErr := getObjectValue(val)
-		if objErr != nil {
-			err = objErr
-			log.Errorf("GetObjectValue failed, type%s, err:%s", val.Type().String(), err.Error())
-			return
-		}
-
-		ret.Values = append(ret.Values, objVal)
 	}
 
 	return
@@ -849,7 +585,7 @@ func CompareObjectValue(l, r *ObjectValue) bool {
 	return true
 }
 
-func compareSliceObjectValue(l, r *SliceObjectValue) bool {
+func CompareSliceObjectValue(l, r *SliceObjectValue) bool {
 	if l.Name != r.Name {
 		return false
 	}

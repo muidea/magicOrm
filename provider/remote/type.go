@@ -3,10 +3,8 @@ package remote
 import (
 	"fmt"
 	"path"
-	"reflect"
 
 	"github.com/muidea/magicOrm/model"
-	pu "github.com/muidea/magicOrm/provider/util"
 )
 
 type TypeImpl struct {
@@ -16,47 +14,6 @@ type TypeImpl struct {
 	Value       model.TypeDeclare `json:"value"`
 	IsPtr       bool              `json:"isPtr"`
 	ElemType    *TypeImpl         `json:"elemType"`
-}
-
-func newType(itemType reflect.Type) (ret *TypeImpl, err error) {
-	isPtr := false
-	if itemType.Kind() == reflect.Ptr {
-		isPtr = true
-		itemType = itemType.Elem()
-	}
-
-	typeVal, typeErr := pu.GetTypeEnum(itemType)
-	if typeErr != nil {
-		err = typeErr
-		return
-	}
-
-	if model.IsSliceType(typeVal) {
-		sliceType := itemType.Elem()
-		slicePtr := false
-		if sliceType.Kind() == reflect.Ptr {
-			sliceType = sliceType.Elem()
-			slicePtr = true
-		}
-		ret = &TypeImpl{Name: sliceType.Name(), Value: typeVal, PkgPath: sliceType.PkgPath(), IsPtr: isPtr}
-
-		sliceVal, sliceErr := pu.GetTypeEnum(sliceType)
-		if sliceErr != nil {
-			err = sliceErr
-			return
-		}
-		if model.IsSliceType(sliceVal) {
-			err = fmt.Errorf("illegal slice type, type:%s", sliceType.String())
-			return
-		}
-
-		ret.ElemType = &TypeImpl{Name: sliceType.Name(), Value: sliceVal, PkgPath: sliceType.PkgPath(), IsPtr: slicePtr}
-		return
-	}
-
-	ret = &TypeImpl{Name: itemType.Name(), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
-	//ret.ElemType = &TypeImpl{Name: itemType.Name(), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
-	return
 }
 
 func (s *TypeImpl) GetName() (ret string) {
@@ -90,7 +47,7 @@ func (s *TypeImpl) IsPtrType() (ret bool) {
 
 func (s *TypeImpl) Interface() (ret model.Value) {
 	tVal := getInitializeValue(s)
-	ret = pu.NewValue(tVal)
+	ret = NewValue(tVal)
 	return
 }
 

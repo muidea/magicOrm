@@ -1,18 +1,21 @@
-package remote
+package helper
 
 import (
 	"encoding/json"
 	"testing"
+
+	"github.com/muidea/magicOrm/provider/remote"
 )
 
 type Simple struct {
 	//ID 唯一标示单元
-	ID   int64   `orm:"id key"`
-	Name string  `orm:"name"`
-	Desc *string `orm:"desc"`
-	Age  uint8   `orm:"age"`
-	Flag bool    `orm:"flag"`
-	Add  []int   `orm:"add"`
+	ID     int64   `orm:"id key"`
+	Name   string  `orm:"name"`
+	Desc   *string `orm:"desc"`
+	Age    uint8   `orm:"age"`
+	Flag   bool    `orm:"flag"`
+	Add    []int   `orm:"add"`
+	AddPtr []*int  `orm:"addPtr"`
 }
 
 type ExtInfo struct {
@@ -42,14 +45,14 @@ func TestSimpleObjInfo(t *testing.T) {
 		return
 	}
 
-	info2 := &Object{}
+	info2 := &remote.Object{}
 	err = json.Unmarshal(data, info2)
 	if err != nil {
 		t.Errorf("marshal info failed, err:%s", err.Error())
 		return
 	}
 
-	if !compareObject(info, info2) {
+	if !remote.CompareObject(info, info2) {
 		t.Errorf("unmarshal failed")
 		return
 	}
@@ -77,14 +80,14 @@ func TestExtObjInfo(t *testing.T) {
 		return
 	}
 
-	eInfo := &Object{}
+	eInfo := &remote.Object{}
 	err = json.Unmarshal(data, eInfo)
 	if err != nil {
 		t.Errorf("unmarshal ext failed, err:%s", err.Error())
 		return
 	}
 
-	if !compareObject(info, eInfo) {
+	if !remote.CompareObject(info, eInfo) {
 		t.Errorf("unmarshal faile")
 		return
 	}
@@ -92,7 +95,8 @@ func TestExtObjInfo(t *testing.T) {
 
 func TestSimpleValue(t *testing.T) {
 	desc := "obj_desc"
-	obj := Simple{Name: "obj", Desc: &desc, Age: 240, Add: []int{12, 34, 45}}
+	iVal := 123
+	obj := Simple{Name: "obj", Desc: &desc, Age: 240, Add: []int{12, 34, 45}, AddPtr: []*int{&iVal, &iVal}}
 
 	rawVal, rawErr := GetObjectValue(obj)
 	if rawErr != nil {
@@ -105,20 +109,20 @@ func TestSimpleValue(t *testing.T) {
 		return
 	}
 
-	data, err := EncodeObjectValue(rawVal)
+	data, err := remote.EncodeObjectValue(rawVal)
 	if err != nil {
 		t.Errorf("encode object value failed, err:%s", err.Error())
 		return
 	}
 
-	curVal, curErr := DecodeObjectValue(data)
+	curVal, curErr := remote.DecodeObjectValue(data)
 	if curErr != nil {
 		t.Errorf("decode obj failed, err:%s", curErr.Error())
 		return
 	}
 
-	if !CompareObjectValue(rawVal, curVal) {
-		t.Errorf("CompareObjectValue failed")
+	if !remote.CompareObjectValue(rawVal, curVal) {
+		t.Errorf("compareObjectValue failed")
 		return
 	}
 
@@ -146,20 +150,20 @@ func TestExtObjValue(t *testing.T) {
 		return
 	}
 
-	data, err := EncodeObjectValue(objVal)
+	data, err := remote.EncodeObjectValue(objVal)
 	if err != nil {
 		t.Errorf("encode object value failed, err:%s", err.Error())
 		return
 	}
 
-	objInfo, objErr := DecodeObjectValue(data)
+	objInfo, objErr := remote.DecodeObjectValue(data)
 	if objErr != nil {
 		t.Errorf("DecodeObjectValue failed, err:%s", objErr.Error())
 		return
 	}
 
-	if !CompareObjectValue(objVal, objInfo) {
-		t.Errorf("CompareObjectValue failed")
+	if !remote.CompareObjectValue(objVal, objInfo) {
+		t.Errorf("compareObjectValue failed")
 		return
 	}
 }

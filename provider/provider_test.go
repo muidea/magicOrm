@@ -1,10 +1,11 @@
 package provider
 
 import (
-	"github.com/muidea/magicOrm/provider/local"
 	"testing"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider/helper"
+	"github.com/muidea/magicOrm/provider/local"
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
@@ -278,25 +279,25 @@ func TestRemoteProvider(t *testing.T) {
 	baseEntity := baseVal
 	composeEntity := composeVal
 
-	baseObject, baseErr := remote.GetObject(baseEntity)
+	baseObject, baseErr := helper.GetObject(baseEntity)
 	if baseErr != nil {
 		t.Errorf("GetObject failed, err:%s", baseErr.Error())
 		return
 	}
 
-	baseVal, baseErr := remote.GetObjectValue(baseEntity)
+	baseVal, baseErr := helper.GetObjectValue(baseEntity)
 	if baseErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", baseErr.Error())
 		return
 	}
 
-	composeObject, composeErr := remote.GetObject(composeEntity)
+	composeObject, composeErr := helper.GetObject(composeEntity)
 	if composeErr != nil {
 		t.Errorf("GetObject failed, err:%s", composeErr.Error())
 		return
 	}
 
-	composeVal, composeErr := remote.GetObjectValue(composeEntity)
+	composeVal, composeErr := helper.GetObjectValue(composeEntity)
 	if composeErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", composeErr.Error())
 		return
@@ -374,25 +375,25 @@ func TestUpdateRemoteProvider(t *testing.T) {
 	baseEntity := baseVal
 	composeEntity := composeVal
 
-	baseObject, baseErr := remote.GetObject(baseEntity)
+	baseObject, baseErr := helper.GetObject(baseEntity)
 	if baseErr != nil {
 		t.Errorf("GetObject failed, err:%s", baseErr.Error())
 		return
 	}
 
-	baseVal, baseErr := remote.GetObjectValue(baseEntity)
+	baseVal, baseErr := helper.GetObjectValue(baseEntity)
 	if baseErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", baseErr.Error())
 		return
 	}
 
-	composeObject, composeErr := remote.GetObject(composeEntity)
+	composeObject, composeErr := helper.GetObject(composeEntity)
 	if composeErr != nil {
 		t.Errorf("GetObject failed, err:%s", composeErr.Error())
 		return
 	}
 
-	composeVal, composeErr := remote.GetObjectValue(composeEntity)
+	composeVal, composeErr := helper.GetObjectValue(composeEntity)
 	if composeErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", composeErr.Error())
 		return
@@ -489,25 +490,25 @@ func TestCompareProvider(t *testing.T) {
 	baseEntity := baseVal
 	composeEntity := composeVal
 
-	baseObject, baseErr := remote.GetObject(baseEntity)
+	baseObject, baseErr := helper.GetObject(baseEntity)
 	if baseErr != nil {
 		t.Errorf("GetObject failed, err:%s", baseErr.Error())
 		return
 	}
 
-	baseObjectVal, baseErr := remote.GetObjectValue(baseEntity)
+	baseObjectVal, baseErr := helper.GetObjectValue(baseEntity)
 	if baseErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", baseErr.Error())
 		return
 	}
 
-	composeObject, composeErr := remote.GetObject(composeEntity)
+	composeObject, composeErr := helper.GetObject(composeEntity)
 	if composeErr != nil {
 		t.Errorf("GetObject failed, err:%s", composeErr.Error())
 		return
 	}
 
-	composeObjectVal, composeErr := remote.GetObjectValue(composeEntity)
+	composeObjectVal, composeErr := helper.GetObjectValue(composeEntity)
 	if composeErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", composeErr.Error())
 		return

@@ -103,9 +103,9 @@ referenceDef := &Reference{}
 composeDef := &Compose{}
 
 remoteProvider:
-simpleDef := remote.GetObject(&Simple{})
-referenceDef := remote.GetObject(&Reference{})
-composeDef := remote.GetObject(&Compose{})
+simpleDef := helper.GetObject(&Simple{})
+referenceDef := helper.GetObject(&Reference{})
+composeDef := helper.GetObject(&Compose{})
 
 ```
 

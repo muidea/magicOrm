@@ -82,6 +82,10 @@ func IsBasicType(typeValue TypeDeclare) bool {
 	return typeValue < TypeStructValue
 }
 
+func IsDateTimeType(typeValue TypeDeclare) bool {
+	return typeValue == TypeDateTimeValue
+}
+
 func IsStructType(typeValue TypeDeclare) bool {
 	return typeValue == TypeStructValue
 }

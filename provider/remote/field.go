@@ -7,7 +7,7 @@ import (
 	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/model"
-	pu "github.com/muidea/magicOrm/provider/util"
+	"github.com/muidea/magicOrm/provider/util"
 )
 
 type Field struct {
@@ -16,7 +16,7 @@ type Field struct {
 	Description string    `json:"description"`
 	Type        *TypeImpl `json:"type"`
 	Spec        *SpecImpl `json:"spec"`
-	value       *pu.ValueImpl
+	value       *ValueImpl
 }
 
 type FieldValue struct {
@@ -57,7 +57,33 @@ func (s *Field) GetValue() (ret model.Value) {
 		return
 	}
 
-	ret = &pu.NilValue
+	ret = &NilValue
+	return
+}
+
+func (s *Field) SetValue(val model.Value) (err error) {
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			log.Errorf("SetValue failed, unexpected field, name:%v, err:%v", s.Name, errInfo)
+			err = fmt.Errorf("illegal value")
+		}
+	}()
+
+	valPtr, valOK := val.(*ValueImpl)
+	if !valOK {
+		err = fmt.Errorf("illegal value, val:%v", val.Get())
+		return
+	}
+
+	if s.value != nil {
+		err = s.value.Set(val.Get())
+		if err != nil {
+			log.Errorf("SetValue failed, name:%s, err:%s", s.Name, err.Error())
+		}
+		return
+	}
+
+	s.value = valPtr
 	return
 }
 
@@ -67,27 +93,6 @@ func (s *Field) IsPrimaryKey() bool {
 	}
 
 	return s.Spec.IsPrimaryKey()
-}
-
-func (s *Field) SetValue(val model.Value) (err error) {
-	defer func() {
-		if err := recover(); err != nil {
-			log.Errorf("SetValue failed, unexpected field:%v, err:%v", s.Name, err)
-		}
-	}()
-
-	if s.value != nil {
-		err = s.value.Set(val.Get())
-		if err != nil {
-			log.Errorf("set field value failed, name:%s, err:%s", s.Name, err.Error())
-		}
-		return
-	}
-
-	initVal := s.Type.Interface()
-	initVal.Set(val.Get())
-	s.value = pu.NewValue(initVal.Get())
-	return
 }
 
 func (s *Field) copy() (ret model.Field) {
@@ -135,11 +140,7 @@ func (s *Field) verify() (err error) {
 		}
 	}
 
-	if s.value == nil || s.value.IsNil() {
-		return nil
-	}
-
-	return s.value.Verify()
+	return
 }
 
 func (s *Field) dump() string {
@@ -152,51 +153,6 @@ func (s *Field) dump() string {
 	}
 
 	return str
-}
-
-func getFieldName(fieldType reflect.StructField) (ret string, err error) {
-	specPtr, specErr := newSpec(fieldType.Tag)
-	if specErr != nil {
-		err = specErr
-		return
-	}
-
-	fieldName := fieldType.Name
-	if specPtr.GetFieldName() != "" {
-		fieldName = specPtr.GetFieldName()
-	}
-
-	ret = fieldName
-	return
-}
-
-func getItemInfo(idx int, fieldType reflect.StructField) (ret *Field, err error) {
-	typeImpl, typeErr := newType(fieldType.Type)
-	if typeErr != nil {
-		err = typeErr
-		return
-	}
-
-	specImpl, specErr := newSpec(fieldType.Tag)
-	if specErr != nil {
-		err = specErr
-		return
-	}
-
-	initVal := typeImpl.Interface()
-
-	item := &Field{}
-	item.Index = idx
-	item.Name = fieldType.Name
-	if specImpl.GetFieldName() != "" {
-		item.Name = specImpl.GetFieldName()
-	}
-	item.Type = typeImpl
-	item.Spec = specImpl
-	item.value = pu.NewValue(initVal.Get())
-
-	ret = item
-	return
 }
 
 func compareItem(l, r *Field) bool {
@@ -225,17 +181,17 @@ func (s *FieldValue) IsZero() bool {
 	return s.Value == nil
 }
 
-func (s *FieldValue) Set(val reflect.Value) error {
-	s.Value = val.Interface()
+func (s *FieldValue) Set(val any) error {
+	s.Value = val
 	return nil
 }
 
-func (s *FieldValue) Get() reflect.Value {
-	return reflect.ValueOf(s.Value)
+func (s *FieldValue) Get() any {
+	return s.Value
 }
 
 func (s *FieldValue) Addr() model.Value {
-	impl := &FieldValue{Value: &s.Value}
+	impl := &ValueImpl{value: &s.Value}
 	return impl
 }
 
@@ -253,11 +209,19 @@ func (s *FieldValue) IsBasic() bool {
 		rValue = rValue.Elem()
 	}
 	rType := rValue.Type()
-	if pu.IsSlice(rType) {
+	if util.IsSlice(rType) {
 		rType = rType.Elem()
 	}
 
-	return !pu.IsStruct(rType)
+	return !util.IsStruct(rType)
+}
+
+func (s *FieldValue) GetName() string {
+	return s.Name
+}
+
+func (s *FieldValue) GetValue() model.Value {
+	return &ValueImpl{value: &s.Value}
 }
 
 func (s *FieldValue) copy() (ret *FieldValue) {

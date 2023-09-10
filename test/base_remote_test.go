@@ -7,6 +7,7 @@ import (
 	"github.com/muidea/magicCommon/foundation/util"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
+	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
@@ -27,7 +28,7 @@ func TestRemoteSimple(t *testing.T) {
 	}
 
 	reference := &Simple{}
-	simpleDef, simpleErr := remote.GetObject(reference)
+	simpleDef, simpleErr := helper.GetObject(reference)
 	if simpleErr != nil {
 		t.Errorf("GetObject failed, err:%s", simpleErr.Error())
 		return
@@ -156,7 +157,7 @@ func TestRemoteReference(t *testing.T) {
 	}
 
 	ref := &Reference{}
-	refDef, refErr := remote.GetObject(ref)
+	refDef, refErr := helper.GetObject(ref)
 	if refErr != nil {
 		t.Errorf("GetObject failed, err:%s", refErr.Error())
 		return
@@ -344,19 +345,19 @@ func TestRemoteCompose(t *testing.T) {
 		return
 	}
 
-	simpleDef, simpleErr := remote.GetObject(&Simple{})
+	simpleDef, simpleErr := helper.GetObject(&Simple{})
 	if simpleErr != nil {
 		t.Errorf("GetObject failed, err:%s", simpleErr.Error())
 		return
 	}
 
-	referenceDef, referenceErr := remote.GetObject(&Reference{})
+	referenceDef, referenceErr := helper.GetObject(&Reference{})
 	if referenceErr != nil {
 		t.Errorf("GetObject failed, err:%s", referenceErr.Error())
 		return
 	}
 
-	composeDef, composeErr := remote.GetObject(&Compose{})
+	composeDef, composeErr := helper.GetObject(&Compose{})
 	if composeErr != nil {
 		t.Errorf("GetObject failed, err:%s", composeErr.Error())
 		return
@@ -588,21 +589,21 @@ func TestRemoteQuery(t *testing.T) {
 	}
 
 	s1 := &Simple{}
-	s1Def, s1Err := remote.GetObject(s1)
+	s1Def, s1Err := helper.GetObject(s1)
 	if s1Err != nil {
 		t.Errorf("GetObject failed, err:%s", s1Err.Error())
 		return
 	}
 
 	r1 := &Reference{}
-	r1Def, r1Err := remote.GetObject(r1)
+	r1Def, r1Err := helper.GetObject(r1)
 	if r1Err != nil {
 		t.Errorf("GetObject failed, err:%s", r1Err.Error())
 		return
 	}
 
 	c1 := &Compose{}
-	c1Def, c1Err := remote.GetObject(c1)
+	c1Def, c1Err := helper.GetObject(c1)
 	if c1Err != nil {
 		t.Errorf("GetObject failed, err:%s", c1Err.Error())
 		return
@@ -810,7 +811,7 @@ func TestRemoteQuery(t *testing.T) {
 	}
 
 	cList := []*Compose{}
-	cListValue, cListErr := remote.GetSliceObjectValue(&cList)
+	cListValue, cListErr := helper.GetSliceObjectValue(&cList)
 	if cListErr != nil {
 		t.Errorf("getSliceObjectValue failed, err:%s", cListErr.Error())
 		return
@@ -833,13 +834,13 @@ func TestRemoteQuery(t *testing.T) {
 	}
 
 	cList = []*Compose{}
-	cListValue, cListErr = remote.GetSliceObjectValue(&cList)
+	cListValue, cListErr = helper.GetSliceObjectValue(&cList)
 	if cListErr != nil {
 		t.Errorf("getSliceObjectValue failed, err:%s", c2Err.Error())
 		return
 	}
 
-	maskVal, maskErr := remote.GetObjectValue(&Compose{R3: &Simple{}})
+	maskVal, maskErr := helper.GetObjectValue(&Compose{R3: &Simple{}})
 	if maskErr != nil {
 		t.Errorf("getObjectValue failed, err:%s", maskErr.Error())
 		return

@@ -2,9 +2,6 @@ package remote
 
 import (
 	"fmt"
-	"reflect"
-
-	log "github.com/cihub/seelog"
 
 	"github.com/muidea/magicOrm/model"
 )
@@ -12,587 +9,108 @@ import (
 var _declareObjectSliceValue SliceObjectValue
 var _declareObjectValue ObjectValue
 
-func getBoolSlice(tType model.Type) (ret reflect.Type, err error) {
-	eType := tType.Elem()
-	if tType.IsPtrType() {
-		if eType.IsPtrType() {
-			var val *[]*bool
-			ret = reflect.TypeOf(val)
-			return
-		}
-		var val *[]bool
-		ret = reflect.TypeOf(val)
-		return
-	}
-	if eType.IsPtrType() {
-		var val []*bool
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val []bool
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getStringSlice(tType model.Type) (ret reflect.Type, err error) {
-	eType := tType.Elem()
-	if tType.IsPtrType() {
-		if eType.IsPtrType() {
-			var val *[]*string
-			ret = reflect.TypeOf(val)
-			return
-		}
-		var val *[]string
-		ret = reflect.TypeOf(val)
-		return
-	}
-	if eType.IsPtrType() {
-		var val []*string
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val []string
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getInt8Slice(tType model.Type) (ret reflect.Type, err error) {
-	eType := tType.Elem()
-	if tType.IsPtrType() {
-		if eType.IsPtrType() {
-			var val *[]*int8
-			ret = reflect.TypeOf(val)
-			return
-		}
-		var val *[]int8
-		ret = reflect.TypeOf(val)
-		return
-	}
-	if eType.IsPtrType() {
-		var val []*int8
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val []int8
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getInt16Slice(tType model.Type) (ret reflect.Type, err error) {
-	eType := tType.Elem()
-	if tType.IsPtrType() {
-		if eType.IsPtrType() {
-			var val *[]*int16
-			ret = reflect.TypeOf(val)
-			return
-		}
-		var val *[]int16
-		ret = reflect.TypeOf(val)
-		return
-	}
-	if eType.IsPtrType() {
-		var val []*int16
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val []int16
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getInt32Slice(tType model.Type) (ret reflect.Type, err error) {
-	eType := tType.Elem()
-	if tType.IsPtrType() {
-		if eType.IsPtrType() {
-			var val *[]*int32
-			ret = reflect.TypeOf(val)
-			return
-		}
-		var val *[]int32
-		ret = reflect.TypeOf(val)
-		return
-	}
-	if eType.IsPtrType() {
-		var val []*int32
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val []int32
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getIntSlice(tType model.Type) (ret reflect.Type, err error) {
-	eType := tType.Elem()
-	if tType.IsPtrType() {
-		if eType.IsPtrType() {
-			var val *[]*int
-			ret = reflect.TypeOf(val)
-			return
-		}
-		var val *[]int
-		ret = reflect.TypeOf(val)
-		return
-	}
-	if eType.IsPtrType() {
-		var val []*int
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val []int
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getInt64Slice(tType model.Type) (ret reflect.Type, err error) {
-	eType := tType.Elem()
-	if tType.IsPtrType() {
-		if eType.IsPtrType() {
-			var val *[]*int64
-			ret = reflect.TypeOf(val)
-			return
-		}
-		var val *[]int64
-		ret = reflect.TypeOf(val)
-		return
-	}
-	if eType.IsPtrType() {
-		var val []*int64
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val []int64
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getUInt8Slice(tType model.Type) (ret reflect.Type, err error) {
-	eType := tType.Elem()
-	if tType.IsPtrType() {
-		if eType.IsPtrType() {
-			var val *[]*uint8
-			ret = reflect.TypeOf(val)
-			return
-		}
-		var val *[]uint8
-		ret = reflect.TypeOf(val)
-		return
-	}
-	if eType.IsPtrType() {
-		var val []*uint8
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val []uint8
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getUInt16Slice(tType model.Type) (ret reflect.Type, err error) {
-	eType := tType.Elem()
-	if tType.IsPtrType() {
-		if eType.IsPtrType() {
-			var val *[]*uint16
-			ret = reflect.TypeOf(val)
-			return
-		}
-		var val *[]uint16
-		ret = reflect.TypeOf(val)
-		return
-	}
-	if eType.IsPtrType() {
-		var val []*uint16
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val []uint16
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getUInt32Slice(tType model.Type) (ret reflect.Type, err error) {
-	eType := tType.Elem()
-	if tType.IsPtrType() {
-		if eType.IsPtrType() {
-			var val *[]*uint32
-			ret = reflect.TypeOf(val)
-			return
-		}
-		var val *[]uint32
-		ret = reflect.TypeOf(val)
-		return
-	}
-	if eType.IsPtrType() {
-		var val []*uint32
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val []uint32
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getUIntSlice(tType model.Type) (ret reflect.Type, err error) {
-	eType := tType.Elem()
-	if tType.IsPtrType() {
-		if eType.IsPtrType() {
-			var val *[]*uint
-			ret = reflect.TypeOf(val)
-			return
-		}
-		var val *[]uint
-		ret = reflect.TypeOf(val)
-		return
-	}
-	if eType.IsPtrType() {
-		var val []*uint
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val []uint
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getUInt64Slice(tType model.Type) (ret reflect.Type, err error) {
-	eType := tType.Elem()
-	if tType.IsPtrType() {
-		if eType.IsPtrType() {
-			var val *[]*uint64
-			ret = reflect.TypeOf(val)
-			return
-		}
-		var val *[]uint64
-		ret = reflect.TypeOf(val)
-		return
-	}
-	if eType.IsPtrType() {
-		var val []*uint64
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val []uint64
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getFloat32Slice(tType model.Type) (ret reflect.Type, err error) {
-	eType := tType.Elem()
-	if tType.IsPtrType() {
-		if eType.IsPtrType() {
-			var val *[]*float32
-			ret = reflect.TypeOf(val)
-			return
-		}
-		var val *[]float32
-		ret = reflect.TypeOf(val)
-		return
-	}
-	if eType.IsPtrType() {
-		var val []*float32
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val []float32
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getFloat64Slice(tType model.Type) (ret reflect.Type, err error) {
-	eType := tType.Elem()
-	if tType.IsPtrType() {
-		if eType.IsPtrType() {
-			var val *[]*float64
-			ret = reflect.TypeOf(val)
-			return
-		}
-		var val *[]float64
-		ret = reflect.TypeOf(val)
-		return
-	}
-	if eType.IsPtrType() {
-		var val []*float64
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val []float64
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getSliceType(tType model.Type) (ret reflect.Type, err error) {
+func getSliceType(tType model.Type) (ret any) {
 	eType := tType.Elem()
 	switch eType.GetValue() {
 	case model.TypeBooleanValue:
-		ret, err = getBoolSlice(tType)
+		ret = []bool{}
 	case model.TypeStringValue,
 		model.TypeDateTimeValue:
-		ret, err = getStringSlice(tType)
+		ret = []string{}
 	case model.TypeBitValue:
-		ret, err = getInt8Slice(tType)
+		ret = []int8{}
 	case model.TypeSmallIntegerValue:
-		ret, err = getInt16Slice(tType)
+		ret = []int16{}
 	case model.TypeInteger32Value:
-		ret, err = getInt32Slice(tType)
+		ret = []int32{}
 	case model.TypeIntegerValue:
-		ret, err = getIntSlice(tType)
+		ret = []int{}
 	case model.TypeBigIntegerValue:
-		ret, err = getInt64Slice(tType)
+		ret = []int64{}
 	case model.TypePositiveBitValue:
-		ret, err = getUInt8Slice(tType)
+		ret = []uint8{}
 	case model.TypePositiveSmallIntegerValue:
-		ret, err = getUInt16Slice(tType)
+		ret = []uint16{}
 	case model.TypePositiveInteger32Value:
-		ret, err = getUInt32Slice(tType)
+		ret = []uint32{}
 	case model.TypePositiveIntegerValue:
-		ret, err = getUIntSlice(tType)
+		ret = []uint{}
 	case model.TypePositiveBigIntegerValue:
-		ret, err = getUInt64Slice(tType)
+		ret = []uint64{}
 	case model.TypeFloatValue:
-		ret, err = getFloat32Slice(tType)
+		ret = []float32{}
 	case model.TypeDoubleValue:
-		ret, err = getFloat64Slice(tType)
+		ret = []float64{}
 	case model.TypeStructValue:
-		ret = reflect.TypeOf(&_declareObjectSliceValue)
+		ret = &_declareObjectSliceValue
 	default:
-		err = fmt.Errorf("unexpected slice item type, name:%s, type:%d", tType.GetName(), tType.GetValue())
+		err := fmt.Errorf("unexpected slice item type, name:%s, type:%d", tType.GetName(), tType.GetValue())
+		panic(err)
 	}
 
 	return
 }
 
-func getBool(tType model.Type) (ret reflect.Type, err error) {
-	if tType.IsPtrType() {
-		var val *bool
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val bool
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getString(tType model.Type) (ret reflect.Type, err error) {
-	if tType.IsPtrType() {
-		var val *string
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val string
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getInt8(tType model.Type) (ret reflect.Type, err error) {
-	if tType.IsPtrType() {
-		var val *int8
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val int8
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getInt16(tType model.Type) (ret reflect.Type, err error) {
-	if tType.IsPtrType() {
-		var val *int16
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val int16
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getInt32(tType model.Type) (ret reflect.Type, err error) {
-	if tType.IsPtrType() {
-		var val *int32
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val int32
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getInt(tType model.Type) (ret reflect.Type, err error) {
-	if tType.IsPtrType() {
-		var val *int
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val int
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getInt64(tType model.Type) (ret reflect.Type, err error) {
-	if tType.IsPtrType() {
-		var val *int64
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val int64
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getUInt8(tType model.Type) (ret reflect.Type, err error) {
-	if tType.IsPtrType() {
-		var val *uint8
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val uint8
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getUInt16(tType model.Type) (ret reflect.Type, err error) {
-	if tType.IsPtrType() {
-		var val *uint16
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val uint16
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getUInt32(tType model.Type) (ret reflect.Type, err error) {
-	if tType.IsPtrType() {
-		var val *uint32
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val uint32
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getUInt(tType model.Type) (ret reflect.Type, err error) {
-	if tType.IsPtrType() {
-		var val *uint
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val uint
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getUInt64(tType model.Type) (ret reflect.Type, err error) {
-	if tType.IsPtrType() {
-		var val *uint64
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val uint64
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getFloat32(tType model.Type) (ret reflect.Type, err error) {
-	if tType.IsPtrType() {
-		var val *float32
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val float32
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getFloat64(tType model.Type) (ret reflect.Type, err error) {
-	if tType.IsPtrType() {
-		var val *float64
-		ret = reflect.TypeOf(val)
-		return
-	}
-	var val float64
-	ret = reflect.TypeOf(val)
-	return
-}
-
-func getType(tType model.Type) (ret reflect.Type, err error) {
+func getBasicValue(tType model.Type) (ret any) {
 	switch tType.GetValue() {
 	case model.TypeBooleanValue:
-		ret, err = getBool(tType)
+		ret = false
 	case model.TypeStringValue,
 		model.TypeDateTimeValue:
-		ret, err = getString(tType)
+		ret = ""
 	case model.TypeBitValue:
-		ret, err = getInt8(tType)
+		ret = int8(0)
 	case model.TypeSmallIntegerValue:
-		ret, err = getInt16(tType)
+		ret = int16(0)
 	case model.TypeInteger32Value:
-		ret, err = getInt32(tType)
+		ret = int32(0)
 	case model.TypeIntegerValue:
-		ret, err = getInt(tType)
+		ret = 0
 	case model.TypeBigIntegerValue:
-		ret, err = getInt64(tType)
+		ret = int64(0)
 	case model.TypePositiveBitValue:
-		ret, err = getUInt8(tType)
+		ret = uint8(0)
 	case model.TypePositiveSmallIntegerValue:
-		ret, err = getUInt16(tType)
+		ret = uint16(0)
 	case model.TypePositiveInteger32Value:
-		ret, err = getUInt32(tType)
+		ret = uint32(0)
 	case model.TypePositiveIntegerValue:
-		ret, err = getUInt(tType)
+		ret = uint(0)
 	case model.TypePositiveBigIntegerValue:
-		ret, err = getUInt64(tType)
+		ret = uint64(0)
 	case model.TypeFloatValue:
-		ret, err = getFloat32(tType)
+		ret = float32(0.00)
 	case model.TypeDoubleValue:
-		ret, err = getFloat64(tType)
-	case model.TypeStructValue:
-		ret = reflect.TypeOf(&_declareObjectValue)
+		ret = 0.00
 	case model.TypeSliceValue:
-		ret, err = getSliceType(tType)
+		ret = getSliceType(tType)
 	default:
-		err = fmt.Errorf("unexpected item type, name:%s, type:%d", tType.GetName(), tType.GetValue())
+		err := fmt.Errorf("unexpected basic item type, name:%s, type:%d", tType.GetName(), tType.GetValue())
+		panic(err)
 	}
 
 	return
 }
 
-func getBasicValue(tType model.Type) (ret reflect.Value) {
-	cType, cErr := getType(tType)
-	if cErr != nil {
-		log.Errorf("getBasicValue failed, err:%s", cErr.Error())
+func getStructValue(tType model.Type) (ret any) {
+	if model.IsSliceType(tType.GetValue()) {
+		_declareObjectSliceValue.Name = tType.GetName()
+		_declareObjectSliceValue.PkgPath = tType.GetPkgPath()
+
+		ret = _declareObjectSliceValue.Copy()
 		return
 	}
-	cValue := reflect.New(cType).Elem()
-	if tType.IsPtrType() {
-		rVal := reflect.New(cType.Elem())
-		cValue.Set(rVal)
-	}
-
-	ret = cValue
-	return
-}
-
-func getStructValue(tType model.Type) (ret reflect.Value) {
-	cType, cErr := getType(tType)
-	if cErr != nil {
-		log.Errorf("getStructValue failed, err:%s", cErr.Error())
+	if model.IsStructType(tType.GetValue()) {
+		_declareObjectValue.Name = tType.GetName()
+		_declareObjectValue.PkgPath = tType.GetPkgPath()
+		ret = _declareObjectValue.Copy()
 		return
 	}
 
-	if cType.Kind() == reflect.Ptr {
-		cType = cType.Elem()
-	}
-
-	cValue := reflect.New(cType).Elem()
-	cValue.FieldByName("Name").SetString(tType.GetName())
-	cValue.FieldByName("PkgPath").SetString(tType.GetPkgPath())
-
-	ret = cValue
 	return
 }
 
-func getInitializeValue(tType model.Type) (ret reflect.Value) {
+func getInitializeValue(tType model.Type) (ret any) {
 	if !tType.IsBasic() {
 		ret = getStructValue(tType)
 		return

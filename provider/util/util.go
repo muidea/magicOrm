@@ -9,9 +9,19 @@ import (
 	"sync"
 	"time"
 
+	log "github.com/cihub/seelog"
+
 	fu "github.com/muidea/magicCommon/foundation/util"
 
 	"github.com/muidea/magicOrm/model"
+)
+
+const (
+	NameTag    = "Name"
+	ValueTag   = "Value"
+	PkgPathTag = "PkgPath"
+	FieldsTag  = "Fields"
+	ValuesTag  = "Values"
 )
 
 const (
@@ -82,6 +92,17 @@ func IsFloat(tType reflect.Type) bool {
 	return false
 }
 
+func IsNumber(tType reflect.Type) bool {
+	switch tType.Kind() {
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64,
+		reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64,
+		reflect.Float32, reflect.Float64:
+		return true
+	}
+
+	return false
+}
+
 func IsBool(tType reflect.Type) bool {
 	return tType.Kind() == reflect.Bool
 }
@@ -99,6 +120,10 @@ func IsSlice(tType reflect.Type) bool {
 }
 
 func IsStruct(tType reflect.Type) bool {
+	if IsDateTime(tType) {
+		return false
+	}
+
 	return tType.Kind() == reflect.Struct
 }
 
@@ -156,7 +181,7 @@ func GetTypeEnum(val reflect.Type) (ret model.TypeDeclare, err error) {
 
 		ret = model.TypeSliceValue
 	default:
-		err = fmt.Errorf("unsupport type:%v", val.String())
+		err = fmt.Errorf("unsupported type:%v", val.String())
 	}
 
 	return
@@ -166,22 +191,21 @@ func GetTypeEnum(val reflect.Type) (ret model.TypeDeclare, err error) {
 func IsNil(val reflect.Value) (ret bool) {
 	defer func() {
 		if err := recover(); err != nil {
+			log.Errorf("check isNil failed, err:%v", err)
 			ret = true
 		}
 	}()
 
-	val = reflect.Indirect(val)
-	if val.Kind() == reflect.Interface {
-		val = reflect.Indirect(val.Elem())
+	if !val.IsValid() {
+		ret = true
+		return
 	}
 
 	switch val.Kind() {
-	case reflect.Interface:
-		ret = val.IsNil()
-	case reflect.Slice, reflect.Map:
-		ret = false
 	case reflect.Invalid:
 		ret = true
+	case reflect.Interface, reflect.Slice, reflect.Map, reflect.Pointer:
+		ret = val.IsNil()
 	default:
 		ret = false
 	}
@@ -192,13 +216,14 @@ func IsNil(val reflect.Value) (ret bool) {
 func IsZero(val reflect.Value) (ret bool) {
 	defer func() {
 		if err := recover(); err != nil {
+			log.Errorf("check isZero failed, err:%v", err)
 			ret = true
 		}
 	}()
 
-	val = reflect.Indirect(val)
-	if val.Kind() == reflect.Interface {
-		val = reflect.Indirect(val.Elem())
+	if IsNil(val) {
+		ret = true
+		return
 	}
 
 	ret = val.IsZero()
@@ -275,7 +300,6 @@ func IsSameVal(firstVal, secondVal reflect.Value) (ret bool, err error) {
 			ret = firstVal.Interface().(time.Time).Sub(secondVal.Interface().(time.Time)) == 0
 		default:
 			ret = false
-			err = fmt.Errorf("illegal value, is a struct value")
 		}
 
 		return
