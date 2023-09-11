@@ -1,9 +1,8 @@
-package provider
+package helper
 
 import (
 	"testing"
 
-	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
@@ -12,7 +11,7 @@ func TestUpdateExtObjValue(t *testing.T) {
 		//BasePtrArrayPtr: &[]*Base{},
 	}
 	rawVal := composeVal
-	objVal, objErr := helper.GetObjectValue(rawVal)
+	objVal, objErr := GetObjectValue(rawVal)
 	if objErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
@@ -35,16 +34,17 @@ func TestUpdateExtObjValue(t *testing.T) {
 		return
 	}
 
-	err = UpdateLocalEntity(objInfo, newVal)
+	err = UpdateEntity(objInfo, newVal)
 	if err != nil {
-		t.Errorf("UpdateLocalEntity failed, err:%s", err.Error())
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
 
 	if newVal.Name != rawVal.Name {
-		t.Errorf("updateEntity failed")
+		t.Errorf("updateEntity failed, newVal.Name:%s, rawVal.Name:%s", newVal.Name, rawVal.Name)
 		return
 	}
+
 	if newVal.Base.ID != rawVal.Base.ID {
 		t.Errorf("updateEntity failed")
 		return

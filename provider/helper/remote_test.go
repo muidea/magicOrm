@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
@@ -24,6 +25,53 @@ type ExtInfo struct {
 	Obj      Simple    `orm:"obj"`
 	ObjPtr   *Simple   `orm:"objPtr"`
 	ObjArray []*Simple `orm:"array"`
+}
+
+func TestSpec(t *testing.T) {
+	spec := ""
+	_, err := getSpec(spec)
+	if err != nil {
+		t.Errorf("illegal spec value")
+		return
+	}
+
+	spec = "test"
+	itemSpec, err := getSpec(spec)
+	if err != nil {
+		t.Errorf("illegal spec value")
+		return
+	}
+	if itemSpec.GetFieldName() != "test" {
+		t.Errorf("illegal spec name")
+		return
+	}
+	if itemSpec.IsPrimaryKey() {
+		t.Errorf("illegal spec define")
+		return
+	}
+	if itemSpec.GetValueDeclare() == model.AutoIncrement {
+		t.Errorf("illegal spec define")
+		return
+	}
+
+	spec = "test auto key"
+	itemSpec, err = getSpec(spec)
+	if err != nil {
+		t.Errorf("illegal spec value")
+		return
+	}
+	if itemSpec.GetFieldName() != "test" {
+		t.Errorf("illegal spec name")
+		return
+	}
+	if !itemSpec.IsPrimaryKey() {
+		t.Errorf("illegal spec define")
+		return
+	}
+	if itemSpec.GetValueDeclare() != model.AutoIncrement {
+		t.Errorf("illegal spec define")
+		return
+	}
 }
 
 func TestSimpleObjInfo(t *testing.T) {

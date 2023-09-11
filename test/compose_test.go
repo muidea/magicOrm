@@ -116,7 +116,7 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 	}
 	sObjectVal = sModel.Interface(true).(*remote.ObjectValue)
 	sPtr = &Simple{}
-	sErr = provider.UpdateLocalEntity(sObjectVal, sPtr)
+	sErr = helper.UpdateEntity(sObjectVal, sPtr)
 	if sErr != nil {
 		err = sErr
 		return
@@ -165,7 +165,7 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 	ptrStrArray := []*string{}
 
 	rPtr = &Reference{FValue: &fVal, TimeStamp: &ts2, Flag: &flag2, PtrArray: &strArray2, PtrStrArray: &ptrStrArray}
-	rErr = provider.UpdateLocalEntity(rObjectVal, rPtr)
+	rErr = helper.UpdateEntity(rObjectVal, rPtr)
 	if rErr != nil {
 		err = rErr
 		return
@@ -208,7 +208,7 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 		PtrRefArray:  []*Reference{},
 		PtrCompose:   &Compose{},
 	}
-	cErr = provider.UpdateLocalEntity(cObjectVal, cPtr)
+	cErr = helper.UpdateEntity(cObjectVal, cPtr)
 	if cErr != nil {
 		err = cErr
 		return
@@ -517,9 +517,9 @@ func TestComposeRemote(t *testing.T) {
 
 		sObjectVal := vModel.Interface(true).(*remote.ObjectValue)
 		sVal := sValList[idx]
-		err = provider.UpdateLocalEntity(sObjectVal, sVal)
+		err = helper.UpdateEntity(sObjectVal, sVal)
 		if err != nil {
-			t.Errorf("UpdateLocalEntity failed. err:%s", err.Error())
+			t.Errorf("UpdateEntity failed. err:%s", err.Error())
 			return
 		}
 		sValList[idx] = sVal
@@ -558,9 +558,9 @@ func TestComposeRemote(t *testing.T) {
 
 		sObjectVal := vModel.Interface(true).(*remote.ObjectValue)
 		sVal := sValList[idx]
-		err = provider.UpdateLocalEntity(sObjectVal, sVal)
+		err = helper.UpdateEntity(sObjectVal, sVal)
 		if err != nil {
-			t.Errorf("UpdateLocalEntity failed. err:%s", err.Error())
+			t.Errorf("UpdateEntity failed. err:%s", err.Error())
 			return
 		}
 		sValList[idx] = sVal
@@ -615,9 +615,9 @@ func TestComposeRemote(t *testing.T) {
 
 		qObjectVal := qModel.Interface(true).(*remote.ObjectValue)
 		qVal := qValList[idx]
-		err = provider.UpdateLocalEntity(qObjectVal, qVal)
+		err = helper.UpdateEntity(qObjectVal, qVal)
 		if err != nil {
-			t.Errorf("UpdateLocalEntity failed. err:%s", err.Error())
+			t.Errorf("UpdateEntity failed. err:%s", err.Error())
 			return
 		}
 		qValList[idx] = qVal

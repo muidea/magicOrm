@@ -11,12 +11,9 @@ import (
 )
 
 var _codec codec.Codec
-var nilValue model.Value
 
 func init() {
 	_codec = codec.New(ElemDependValue)
-
-	nilValue = &ValueImpl{}
 }
 
 func GetCodec() codec.Codec {

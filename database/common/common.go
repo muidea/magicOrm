@@ -28,14 +28,11 @@ func New(vModel model.Model, modelProvider provider.Provider, prefix string) Com
 }
 
 func (s *Common) constructTableName(vModel model.Model) string {
-	//items := strings.Split(vModel.GetName(), ".")
-	//return items[len(items)-1]
 	return cases.Title(language.English).String(vModel.GetName())
 }
 
 func (s *Common) constructInfix(vFiled model.Field) string {
 	return cases.Title(language.English).String(vFiled.GetName())
-	//return strings.Title(vFiled.GetName())
 }
 
 func (s *Common) GetTableName() string {
@@ -47,8 +44,6 @@ func (s *Common) GetTableName() string {
 }
 
 func (s *Common) GetHostTableName(vModel model.Model) string {
-	//tableName := s.constructTableName(vModel)
-	//return fmt.Sprintf("%s_%s", s.modelProvider.Owner(), tableName)
 	tableName := s.constructTableName(vModel)
 	if s.specialPrefix != "" {
 		tableName = fmt.Sprintf("%s_%s", s.specialPrefix, tableName)
@@ -62,7 +57,6 @@ func (s *Common) GetRelationTableName(vField model.Field, rModel model.Model) st
 	rightName := s.constructTableName(rModel)
 	infixVal := s.constructInfix(vField)
 
-	//return fmt.Sprintf("%s_%s%s2%s", s.modelProvider.Owner(), leftName, fieldName, rightName)
 	tableName := fmt.Sprintf("%s%s%s%s", leftName, infixVal, getFieldRelation(vField), rightName)
 	if s.specialPrefix != "" {
 		tableName = fmt.Sprintf("%s_%s", s.specialPrefix, tableName)
