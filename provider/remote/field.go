@@ -99,45 +99,96 @@ func (s *Field) copy() (ret model.Field) {
 	return &Field{Index: s.Index, Name: s.Name, Spec: s.Spec, Type: s.Type, value: s.value}
 }
 
+func (s *Field) verifyAutoIncrement(typeVal model.TypeDeclare) error {
+	switch typeVal {
+	case model.TypeBooleanValue,
+		model.TypeStringValue,
+		model.TypeDateTimeValue,
+		model.TypeFloatValue,
+		model.TypeDoubleValue,
+		model.TypeStructValue,
+		model.TypeSliceValue:
+		return fmt.Errorf("illegal auto_increment field type, type:%v", typeVal)
+	default:
+	}
+
+	return nil
+}
+
+func (s *Field) verifyUUID(typeVal model.TypeDeclare) error {
+	if typeVal != model.TypeStringValue {
+		return fmt.Errorf("illegal uuid field type, type:%v", typeVal)
+	}
+
+	return nil
+}
+
+func (s *Field) verifySnowFlake(typeVal model.TypeDeclare) error {
+	if typeVal != model.TypeBigIntegerValue {
+		return fmt.Errorf("illegal snowflake field type, type:%v", typeVal)
+	}
+
+	return nil
+}
+
+func (s *Field) verifyDateTime(typeVal model.TypeDeclare) error {
+	if typeVal != model.TypeDateTimeValue {
+		return fmt.Errorf("illegal dateTime field type, type:%s", s.Type.dump())
+	}
+
+	return nil
+}
+
+func (s *Field) verifyPK(typeVal model.TypeDeclare) error {
+	switch typeVal {
+	case model.TypeStructValue, model.TypeSliceValue:
+		return fmt.Errorf("illegal primary key field type, type:%s", s.Type.dump())
+	default:
+	}
+
+	return nil
+}
+
 func (s *Field) verify() (err error) {
 	if s.Type == nil {
 		return fmt.Errorf("illegal filed, field type is null, index:%d, name:%v", s.Index, s.Name)
 	}
 
-	if s.Spec != nil {
-		val := s.Type.GetValue()
-		if s.Spec.GetValueDeclare() == model.AutoIncrement {
-			switch val {
-			case model.TypeBooleanValue,
-				model.TypeStringValue,
-				model.TypeDateTimeValue,
-				model.TypeFloatValue,
-				model.TypeDoubleValue,
-				model.TypeStructValue,
-				model.TypeSliceValue:
-				return fmt.Errorf("illegal auto_increment field type, type:%s", s.Type.dump())
-			default:
-			}
-		}
-		if s.Spec.GetValueDeclare() == model.UUID && val != model.TypeStringValue {
-			return fmt.Errorf("illegal uuid field type, type:%s", s.Type.dump())
-		}
+	if s.Spec == nil {
+		return
+	}
 
-		if s.Spec.GetValueDeclare() == model.SnowFlake && val != model.TypeBigIntegerValue {
-			return fmt.Errorf("illegal snowflake field type, type:%s", s.Type.dump())
+	val := s.Type.GetValue()
+	if s.Spec.GetValueDeclare() == model.AutoIncrement {
+		err = s.verifyAutoIncrement(val)
+		if err != nil {
+			return
 		}
+	}
 
-		if s.Spec.GetValueDeclare() == model.DateTime && val != model.TypeDateTimeValue {
-			return fmt.Errorf("illegal dateTime field type, type:%s", s.Type.dump())
+	if s.Spec.GetValueDeclare() == model.UUID {
+		err = s.verifyUUID(val)
+		if err != nil {
+			return
 		}
+	}
 
-		if s.Spec.IsPrimaryKey() {
-			switch val {
-			case model.TypeStructValue, model.TypeSliceValue:
-				return fmt.Errorf("illegal primary key field type, type:%s", s.Type.dump())
-			default:
-			}
+	if s.Spec.GetValueDeclare() == model.SnowFlake {
+		err = s.verifySnowFlake(val)
+		if err != nil {
+			return
 		}
+	}
+
+	if s.Spec.GetValueDeclare() == model.DateTime {
+		err = s.verifyDateTime(val)
+		if err != nil {
+			return
+		}
+	}
+
+	if s.Spec.IsPrimaryKey() {
+		err = s.verifyPK(val)
 	}
 
 	return
@@ -221,7 +272,7 @@ func (s *FieldValue) GetName() string {
 }
 
 func (s *FieldValue) GetValue() model.Value {
-	return &ValueImpl{value: &s.Value}
+	return &ValueImpl{value: s.Value}
 }
 
 func (s *FieldValue) copy() (ret *FieldValue) {
