@@ -62,12 +62,7 @@ func toLocalValue(objectValue *remote.ObjectValue, valueType reflect.Type) (ret 
 	}
 
 	entityValue := reflect.New(entityType).Elem()
-	fieldNum := len(objectValue.Fields)
-	if fieldNum == 0 {
-		return
-	}
-
-	for idx := 0; idx < fieldNum; idx++ {
+	for idx := 0; idx < len(objectValue.Fields); idx++ {
 		curItem := objectValue.Fields[idx]
 		if curItem.Get() == nil {
 			continue
@@ -185,15 +180,9 @@ func toLocalSliceValue(sliceObjectValue *remote.SliceObjectValue, valueType refl
 	}
 
 	sliceEntityValue := reflect.New(sliceEntityType).Elem()
-	sliceValue := sliceObjectValue.Values
-	sliceSize := len(sliceValue)
-	if sliceSize == 0 {
-		return
-	}
-
 	elemType := sliceEntityType.Elem()
-	for idx := 0; idx < sliceSize; idx++ {
-		sliceItem := sliceValue[idx]
+	for idx := 0; idx < len(sliceObjectValue.Values); idx++ {
+		sliceItem := sliceObjectValue.Values[idx]
 		elemVal, elemErr := toLocalValue(sliceItem, elemType)
 		if elemErr != nil {
 			err = fmt.Errorf("toLocalValue error [%v]", elemErr.Error())
