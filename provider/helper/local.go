@@ -11,6 +11,91 @@ import (
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
+func toBasicValue(rVal model.Value, lType model.Type) (ret model.Value, err error) {
+	lVal := lType.Interface()
+	lRawVal := reflect.Indirect(lVal.Get().(reflect.Value))
+	switch lType.GetValue() {
+	case model.TypeBooleanValue:
+		lRawVal.SetBool(rVal.Get().(bool))
+	case model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeIntegerValue, model.TypeBigIntegerValue:
+		lRawVal.SetInt(rVal.Get().(int64))
+	case model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveIntegerValue, model.TypePositiveBigIntegerValue:
+		lRawVal.SetUint(rVal.Get().(uint64))
+	case model.TypeFloatValue, model.TypeDoubleValue:
+		lRawVal.SetFloat(rVal.Get().(float64))
+	case model.TypeStringValue:
+		lRawVal.SetString(rVal.Get().(string))
+	default:
+		err = fmt.Errorf("illegal basic local type, type:%s", lType.GetPkgKey())
+	}
+
+	if err != nil {
+		return
+	}
+
+	ret = lVal
+	return
+}
+
+func toBasicSliceValue(rVal model.Value, lType model.Type) (ret model.Value, err error) {
+	if !model.IsSliceType(lType.GetValue()) {
+		err = fmt.Errorf("illegal local type value, type pkgKey:%v", lType.GetPkgKey())
+		log.Error(err)
+		return
+	}
+
+	lVal := lType.Interface()
+	rValList, rErr := remote.ElemDependValue(rVal)
+	if rErr != nil {
+		err = rErr
+		return
+	}
+
+	for idx := 0; idx < len(rValList); idx++ {
+		lSubVal, lSubErr := toBasicValue(rValList[idx], lType.Elem())
+		if lSubErr != nil {
+			err = lSubErr
+			return
+		}
+
+		lVal, err = local.AppendSliceValue(lVal, lSubVal)
+		if err != nil {
+			return
+		}
+	}
+
+	ret = lVal
+	return
+}
+
+func toStructValue(rVal model.Value, lType model.Type) (ret model.Value, err error) {
+	lModel, lErr := local.GetEntityModel(lType.Interface().Interface())
+	if lErr != nil {
+		err = lErr
+		log.Error(err)
+		return
+	}
+
+	objectValuePtr, objectValueOK := rVal.Get().(*remote.ObjectValue)
+	if objectValueOK {
+		ret, err = toLocalValue(objectValuePtr, lModel)
+		return
+	}
+
+	err = fmt.Errorf("illegal remote value")
+	return
+}
+
+func toStructSliceValue(rVal model.Value, lType model.Type) (ret model.Value, err error) {
+	sliceObjectValuePtr, sliceObjectValueOK := rVal.Get().(*remote.SliceObjectValue)
+	if sliceObjectValueOK {
+		ret, err = toLocalSliceValue(sliceObjectValuePtr, lType)
+	}
+
+	err = fmt.Errorf("illegal remote slice value")
+	return
+}
+
 // UpdateEntity update object value -> entity
 func UpdateEntity(remoteValue *remote.ObjectValue, localEntity any) (err error) {
 	if !remoteValue.IsAssigned() {
@@ -33,99 +118,88 @@ func UpdateEntity(remoteValue *remote.ObjectValue, localEntity any) (err error) 
 		return
 	}
 
-	retVal, retErr := toLocalValue(remoteValue, entityValue.Type())
+	localModel, localErr := local.GetEntityModel(localEntity)
+	if localErr != nil {
+		err = localErr
+		return
+	}
+
+	retVal, retErr := toLocalValue(remoteValue, localModel)
 	if retErr != nil {
 		err = retErr
 		return
 	}
 
-	entityValue.Set(retVal)
+	entityValue.Set(retVal.Get().(reflect.Value))
 	return
 }
 
-func toLocalValue(objectValue *remote.ObjectValue, valueType reflect.Type) (ret reflect.Value, err error) {
-	vType, vErr := local.GetType(valueType)
-	if vErr != nil {
-		err = vErr
-		return
-	}
-
-	if objectValue.GetPkgKey() != vType.GetPkgKey() {
-		err = fmt.Errorf("illegal object value, objectValue pkgKey:%s, entityType pkgKey:%s", objectValue.GetPkgKey(), vType.GetPkgKey())
-		log.Errorf("toLocalValue failed, mismatch objectValue for value, err:%s", err)
-		return
-	}
-
-	entityType := valueType
-	if vType.IsPtrType() {
-		entityType = entityType.Elem()
-	}
-
-	entityValue := reflect.New(entityType).Elem()
-	for idx := 0; idx < len(objectValue.Fields); idx++ {
-		curItem := objectValue.Fields[idx]
-		if curItem.Get() == nil {
-			continue
-		}
-
-		curField, curOK := entityType.FieldByName(curItem.GetName())
-		if !curOK {
-			continue
-		}
-
-		curFieldValue := entityValue.FieldByName(curItem.GetName())
-		curFieldType := curField.Type
-		vFieldType, vFieldErr := local.GetType(curFieldType)
-		if vFieldErr != nil {
-			err = vFieldErr
-			log.Errorf("toLocalValue failed, field name:%s, local.GetType error, err:%s", curItem.GetName(), err.Error())
+func toLocalFieldValue(fieldVal *remote.FieldValue, lField model.Field) (err error) {
+	lType := lField.GetType()
+	if lType.IsBasic() && model.IsSliceType(lType.GetValue()) {
+		lVal, lErr := toBasicSliceValue(fieldVal.GetValue(), lType)
+		if lErr != nil {
+			err = lErr
 			return
 		}
+		err = lField.SetValue(lVal)
+		return
+	}
 
-		for {
-			if vFieldType.IsPtrType() {
-				curFieldValue = reflect.Indirect(curFieldValue)
-			}
+	if lType.IsBasic() {
+		lVal, lErr := toBasicValue(fieldVal.GetValue(), lType)
+		if lErr != nil {
+			err = lErr
+			return
+		}
+		err = lField.SetValue(lVal)
+		return
+	}
 
-			// for basic type
-			if vFieldType.IsBasic() {
-				curFieldValue.Set(reflect.ValueOf(curItem.Get()))
-				break
-			}
+	if model.IsSliceType(lType.GetValue()) {
+		lVal, lErr := toStructSliceValue(fieldVal.GetValue(), lType)
+		if lErr != nil {
+			err = lErr
+			return
+		}
+		err = lField.SetValue(lVal)
+		return
+	}
 
-			// for struct type
-			if model.IsStructType(vFieldType.GetValue()) {
-				objPtr := curItem.Get().(*remote.ObjectValue)
-				val, valErr := toLocalValue(objPtr, curFieldType)
-				if valErr != nil {
-					err = valErr
-					log.Errorf("toLocalValue failed, field name:%s, err:%s", curItem.GetName(), err.Error())
-					return
-				}
+	lVal, lErr := toStructValue(fieldVal.GetValue(), lType)
+	if lErr != nil {
+		err = lErr
+		return
+	}
 
-				curFieldValue.Set(val)
-				break
-			}
+	err = lField.SetValue(lVal)
+	return
+}
 
-			// for struct slice
-			slicePtr := curItem.Get().(*remote.SliceObjectValue)
-			val, valErr := toLocalSliceValue(slicePtr, curFieldType)
-			if valErr != nil {
-				err = valErr
-				log.Errorf("toLocalSliceValue failed, field name:%s, err:%s", curItem.GetName(), err.Error())
-				return
-			}
+func toLocalValue(rVal *remote.ObjectValue, lModel model.Model) (ret model.Value, err error) {
+	if rVal.GetPkgKey() != lModel.GetPkgKey() {
+		err = fmt.Errorf("mismatch pkgKey, remote value pkgKey:%s, local model pkgKey:%s", rVal.GetPkgKey(), lModel.GetPkgKey())
+		return
+	}
 
-			curFieldValue.Set(val)
-			break
+	for idx := 0; idx < len(rVal.Fields); idx++ {
+		fieldVal := rVal.Fields[idx]
+		if fieldVal.IsNil() {
+			continue
+		}
+
+		lField := lModel.GetField(fieldVal.GetName())
+		if lField == nil {
+			continue
+		}
+
+		err = toLocalFieldValue(fieldVal, lField)
+		if err != nil {
+			return
 		}
 	}
 
-	if vType.IsPtrType() {
-		entityValue = entityValue.Addr()
-	}
-
-	ret = entityValue
+	ret = local.NewValue(reflect.ValueOf(lModel.Interface(false)))
 	return
 }
 
@@ -141,6 +215,12 @@ func UpdateSliceEntity(remoteValue *remote.SliceObjectValue, localEntity any) (e
 		return
 	}
 
+	vType, vErr := local.GetType(entityValue.Type())
+	if vErr != nil {
+		err = vErr
+		return
+	}
+
 	entityValue = reflect.Indirect(entityValue)
 	if entityValue.Kind() != reflect.Slice {
 		err = fmt.Errorf("illegal localEntity, must be a struct localEntity")
@@ -151,53 +231,46 @@ func UpdateSliceEntity(remoteValue *remote.SliceObjectValue, localEntity any) (e
 		return
 	}
 
-	retVal, retErr := toLocalSliceValue(remoteValue, entityValue.Type())
+	retVal, retErr := toLocalSliceValue(remoteValue, vType)
 	if retErr != nil {
 		err = retErr
 		return
 	}
 
-	entityValue.Set(retVal)
+	entityValue.Set(retVal.Get().(reflect.Value))
 	return
 }
 
-func toLocalSliceValue(sliceObjectValue *remote.SliceObjectValue, valueType reflect.Type) (ret reflect.Value, err error) {
-	vType, vErr := local.GetType(valueType)
-	if vErr != nil {
-		err = vErr
-		return
-	}
-
-	if sliceObjectValue.GetPkgKey() != vType.GetPkgKey() {
-		err = fmt.Errorf("illegal slice object value, sliceObjectValue pkgKey:%s, sliceEntityType pkgKey:%s", sliceObjectValue.GetPkgKey(), vType.GetPkgKey())
+func toLocalSliceValue(sliceObjectValue *remote.SliceObjectValue, lType model.Type) (ret model.Value, err error) {
+	if sliceObjectValue.GetPkgKey() != lType.GetPkgKey() {
+		err = fmt.Errorf("illegal slice object value, sliceObjectValue pkgKey:%s, sliceEntityType pkgKey:%s", sliceObjectValue.GetPkgKey(), lType.GetPkgKey())
 		log.Errorf("toLocalSliceValue failed, mismatch objectValue for value, err:%s", err)
 		return
 	}
 
-	sliceEntityType := valueType
-	if vType.IsPtrType() {
-		sliceEntityType = sliceEntityType.Elem()
+	sliceEntityValue := lType.Interface()
+	elemVal := lType.Elem().Interface().Interface()
+	lModel, lErr := local.GetEntityModel(elemVal)
+	if lErr != nil {
+		err = lErr
+		return
 	}
 
-	sliceEntityValue := reflect.New(sliceEntityType).Elem()
-	elemType := sliceEntityType.Elem()
 	for idx := 0; idx < len(sliceObjectValue.Values); idx++ {
 		sliceItem := sliceObjectValue.Values[idx]
-		elemVal, elemErr := toLocalValue(sliceItem, elemType)
-		if elemErr != nil {
-			err = fmt.Errorf("toLocalValue error [%v]", elemErr.Error())
-			log.Errorf("toLocalSliceValue failed, sliceItem type:%s, elemVal type:%s, err:%s", sliceItem.GetName(), elemVal.Type().String(), err.Error())
+		lVal, lErr := toLocalValue(sliceItem, lModel)
+		if lErr != nil {
+			err = fmt.Errorf("toLocalValue error [%v]", lErr.Error())
+			log.Errorf("toLocalSliceValue failed, err:%s", sliceItem.GetName(), err.Error())
 			return
 		}
 
-		sliceEntityValue = reflect.Append(sliceEntityValue, elemVal)
+		sliceEntityValue, err = local.AppendSliceValue(sliceEntityValue, lVal)
+		if err != nil {
+			return
+		}
 	}
 
-	ret = reflect.New(sliceEntityType).Elem()
-	ret.Set(sliceEntityValue)
-	if vType.IsPtrType() {
-		ret = ret.Addr()
-	}
-
+	ret = sliceEntityValue
 	return
 }
