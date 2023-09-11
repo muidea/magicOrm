@@ -196,7 +196,7 @@ func type2Object(entityType reflect.Type) (ret *remote.Object, err error) {
 	return
 }
 
-// GetObject GetObject
+// GetObject get object
 func GetObject(entity interface{}) (ret *remote.Object, err error) {
 	entityType := reflect.ValueOf(entity).Type()
 	ret, err = type2Object(entityType)
