@@ -14,12 +14,7 @@ func (s *impl) deleteSingle(vModel model.Model) (err error) {
 		return
 	}
 
-	_, _, numErr := s.executor.Execute(sqlStr)
-	if numErr != nil {
-		err = numErr
-		return
-	}
-
+	_, _, err = s.executor.Execute(sqlStr)
 	return
 }
 
@@ -81,11 +76,6 @@ func (s *impl) deleteRelation(vModel model.Model, rField model.Field, deepLevel 
 	if rType.IsBasic() {
 		return
 	}
-
-	// disable check field value
-	//if !s.modelProvider.IsAssigned(rField.GetValue(), rField.GetType()) {
-	//	return
-	//}
 
 	relationModel, relationErr := s.modelProvider.GetTypeModel(rType)
 	if relationErr != nil {

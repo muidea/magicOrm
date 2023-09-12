@@ -14,7 +14,6 @@ func (s *impl) updateSingle(vModel model.Model) (err error) {
 	}
 
 	_, _, err = s.executor.Execute(sqlStr)
-
 	return err
 }
 
@@ -30,10 +29,6 @@ func (s *impl) updateRelation(vModel model.Model, vField model.Field) (err error
 	}
 
 	err = s.insertRelation(vModel, vField)
-	if err != nil {
-		return
-	}
-
 	return
 }
 

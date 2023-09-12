@@ -26,7 +26,6 @@ func (s *impl) createRelation(vModel model.Model, vField model.Field, rModel mod
 	}
 
 	_, _, err = s.executor.Execute(relationSQL)
-
 	return
 }
 

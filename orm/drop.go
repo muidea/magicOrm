@@ -14,7 +14,6 @@ func (s *impl) dropSingle(vModel model.Model) (err error) {
 	}
 
 	_, _, err = s.executor.Execute(dropSQL)
-
 	return
 }
 
@@ -27,7 +26,6 @@ func (s *impl) dropRelation(vModel model.Model, vField model.Field, rModel model
 	}
 
 	_, _, err = s.executor.Execute(relationSQL)
-
 	return
 }
 
