@@ -77,16 +77,12 @@ func (s *objectImpl) Interface(ptrValue bool) (ret interface{}) {
 	retVal := reflect.New(s.objectType).Elem()
 
 	for _, field := range s.fields {
-		tVal := field.GetValue()
-		if tVal.IsNil() {
+		fVal := field.GetValue()
+		if fVal.IsNil() {
 			continue
 		}
 
-		val := tVal.Get().(reflect.Value)
-		if !field.GetType().IsPtrType() {
-			val = reflect.Indirect(val)
-		}
-
+		val := fVal.Get().(reflect.Value)
 		retVal.Field(field.GetIndex()).Set(val)
 	}
 

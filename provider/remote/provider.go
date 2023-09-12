@@ -169,6 +169,8 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 		ret = elemSlice(vVal.Get().([]float64))
 	case []string:
 		ret = elemSlice(vVal.Get().([]string))
+	case []any:
+		ret = elemSlice(vVal.Get().([]any))
 	default:
 		err := fmt.Errorf("illegal value, val:%v", vVal.Get())
 		panic(err.Error())

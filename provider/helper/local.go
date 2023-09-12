@@ -3,8 +3,11 @@ package helper
 import (
 	"fmt"
 	"reflect"
+	"time"
 
 	log "github.com/cihub/seelog"
+
+	"github.com/muidea/magicCommon/foundation/util"
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/local"
@@ -14,22 +17,50 @@ import (
 func toBasicValue(rVal model.Value, lType model.Type) (ret model.Value, err error) {
 	lVal := lType.Interface()
 	lRawVal := reflect.Indirect(lVal.Get().(reflect.Value))
+	rRawVal := reflect.Indirect(reflect.ValueOf(rVal.Get()))
 	switch lType.GetValue() {
 	case model.TypeBooleanValue:
-		lRawVal.SetBool(rVal.Get().(bool))
+		lRawVal.SetBool(rRawVal.Bool())
 	case model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeIntegerValue, model.TypeBigIntegerValue:
-		lRawVal.SetInt(rVal.Get().(int64))
+		switch rVal.Get().(type) {
+		case int8, int16, int32, int, int64:
+			lRawVal.SetInt(rRawVal.Int())
+		case float64:
+			lRawVal.SetInt(int64(rRawVal.Float()))
+		default:
+			err = fmt.Errorf("illegal int, value:%v", rVal.Get())
+		}
 	case model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveIntegerValue, model.TypePositiveBigIntegerValue:
-		lRawVal.SetUint(rVal.Get().(uint64))
+		switch rVal.Get().(type) {
+		case uint8, uint16, uint32, uint, uint64:
+			lRawVal.SetUint(rRawVal.Uint())
+		case float64:
+			lRawVal.SetUint(uint64(rRawVal.Float()))
+		default:
+			err = fmt.Errorf("illegal uint, value:%v", rVal.Get())
+		}
 	case model.TypeFloatValue, model.TypeDoubleValue:
-		lRawVal.SetFloat(rVal.Get().(float64))
+		lRawVal.SetFloat(rRawVal.Float())
 	case model.TypeStringValue:
-		lRawVal.SetString(rVal.Get().(string))
+		lRawVal.SetString(rRawVal.String())
+	case model.TypeDateTimeValue:
+		switch rVal.Get().(type) {
+		case string:
+			dtVal, _ := time.Parse(util.CSTLayout, rRawVal.String())
+			lRawVal.Set(reflect.ValueOf(dtVal))
+		default:
+			err = fmt.Errorf("illegal dateTime, value:%v", rVal.Get())
+		}
 	default:
 		err = fmt.Errorf("illegal basic local type, type:%s", lType.GetPkgKey())
 	}
 
 	if err != nil {
+		return
+	}
+
+	if lType.IsPtrType() {
+		ret = lVal.Addr()
 		return
 	}
 
@@ -64,12 +95,17 @@ func toBasicSliceValue(rVal model.Value, lType model.Type) (ret model.Value, err
 		}
 	}
 
+	if lType.IsPtrType() {
+		ret = lVal.Addr()
+		return
+	}
+
 	ret = lVal
 	return
 }
 
 func toStructValue(rVal model.Value, lType model.Type) (ret model.Value, err error) {
-	lModel, lErr := local.GetEntityModel(lType.Interface().Interface())
+	lModel, lErr := local.GetEntityModel(lType.Interface().Addr().Interface())
 	if lErr != nil {
 		err = lErr
 		log.Error(err)
@@ -78,7 +114,7 @@ func toStructValue(rVal model.Value, lType model.Type) (ret model.Value, err err
 
 	objectValuePtr, objectValueOK := rVal.Get().(*remote.ObjectValue)
 	if objectValueOK {
-		ret, err = toLocalValue(objectValuePtr, lModel)
+		ret, err = toLocalValue(objectValuePtr, lModel, lType.IsPtrType())
 		return
 	}
 
@@ -90,6 +126,7 @@ func toStructSliceValue(rVal model.Value, lType model.Type) (ret model.Value, er
 	sliceObjectValuePtr, sliceObjectValueOK := rVal.Get().(*remote.SliceObjectValue)
 	if sliceObjectValueOK {
 		ret, err = toLocalSliceValue(sliceObjectValuePtr, lType)
+		return
 	}
 
 	err = fmt.Errorf("illegal remote slice value")
@@ -124,7 +161,7 @@ func UpdateEntity(remoteValue *remote.ObjectValue, localEntity any) (err error) 
 		return
 	}
 
-	retVal, retErr := toLocalValue(remoteValue, localModel)
+	retVal, retErr := toLocalValue(remoteValue, localModel, true)
 	if retErr != nil {
 		err = retErr
 		return
@@ -176,7 +213,7 @@ func toLocalFieldValue(fieldVal *remote.FieldValue, lField model.Field) (err err
 	return
 }
 
-func toLocalValue(rVal *remote.ObjectValue, lModel model.Model) (ret model.Value, err error) {
+func toLocalValue(rVal *remote.ObjectValue, lModel model.Model, ptrValue bool) (ret model.Value, err error) {
 	if rVal.GetPkgKey() != lModel.GetPkgKey() {
 		err = fmt.Errorf("mismatch pkgKey, remote value pkgKey:%s, local model pkgKey:%s", rVal.GetPkgKey(), lModel.GetPkgKey())
 		return
@@ -199,7 +236,7 @@ func toLocalValue(rVal *remote.ObjectValue, lModel model.Model) (ret model.Value
 		}
 	}
 
-	ret = local.NewValue(reflect.ValueOf(lModel.Interface(false)))
+	ret = local.NewValue(reflect.ValueOf(lModel.Interface(ptrValue)))
 	return
 }
 
@@ -249,7 +286,7 @@ func toLocalSliceValue(sliceObjectValue *remote.SliceObjectValue, lType model.Ty
 	}
 
 	sliceEntityValue := lType.Interface()
-	elemVal := lType.Elem().Interface().Interface()
+	elemVal := lType.Elem().Interface().Addr().Interface()
 	lModel, lErr := local.GetEntityModel(elemVal)
 	if lErr != nil {
 		err = lErr
@@ -258,7 +295,7 @@ func toLocalSliceValue(sliceObjectValue *remote.SliceObjectValue, lType model.Ty
 
 	for idx := 0; idx < len(sliceObjectValue.Values); idx++ {
 		sliceItem := sliceObjectValue.Values[idx]
-		lVal, lErr := toLocalValue(sliceItem, lModel)
+		lVal, lErr := toLocalValue(sliceItem, lModel, lType.Elem().IsPtrType())
 		if lErr != nil {
 			err = fmt.Errorf("toLocalValue error [%v]", lErr.Error())
 			log.Errorf("toLocalSliceValue failed, err:%s", sliceItem.GetName(), err.Error())
@@ -269,6 +306,11 @@ func toLocalSliceValue(sliceObjectValue *remote.SliceObjectValue, lType model.Ty
 		if err != nil {
 			return
 		}
+	}
+
+	if lType.IsPtrType() {
+		ret = sliceEntityValue.Addr()
+		return
 	}
 
 	ret = sliceEntityValue
