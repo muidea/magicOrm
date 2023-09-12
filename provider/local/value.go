@@ -1,6 +1,7 @@
 package local
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
@@ -29,7 +30,17 @@ func (s *ValueImpl) IsZero() (ret bool) {
 }
 
 func (s *ValueImpl) Set(val any) (err error) {
-	s.value = val.(reflect.Value)
+	rVal := val.(reflect.Value)
+	if !s.value.IsValid() {
+		s.value = rVal
+		return
+	}
+	if s.value.Type().String() != rVal.Type().String() {
+		err = fmt.Errorf("mismatch value type,  s.value type:%v, val type:%v", s.value.Type().String(), rVal.Type().String())
+		return
+	}
+
+	s.value = rVal
 	return
 }
 

@@ -221,8 +221,14 @@ func IsZero(val reflect.Value) (ret bool) {
 		}
 	}()
 
+	val = reflect.Indirect(val)
 	if IsNil(val) {
 		ret = true
+		return
+	}
+
+	if val.Kind() == reflect.Slice {
+		ret = val.Len() == 0
 		return
 	}
 

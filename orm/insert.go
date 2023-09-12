@@ -74,7 +74,7 @@ func (s *impl) insertSingle(vModel model.Model) (ret model.Model, err error) {
 func (s *impl) insertRelation(vModel model.Model, vField model.Field) (err error) {
 	fValue := vField.GetValue()
 	fType := vField.GetType()
-	if fType.IsBasic() || !s.modelProvider.IsAssigned(fValue, fType) {
+	if fType.IsBasic() || fValue.IsZero() {
 		return
 	}
 

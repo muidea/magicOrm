@@ -25,7 +25,7 @@ func (s *impl) decodeFloat(val interface{}, vType model.Type) (ret model.Value, 
 	var fVal float64
 	switch val.(type) {
 	case float32, float64:
-		fVal = val.(float64)
+		fVal = reflect.ValueOf(val).Float()
 	case string: // only for []float32/[]float64
 		fVal, err = strconv.ParseFloat(val.(string), 64)
 	default:

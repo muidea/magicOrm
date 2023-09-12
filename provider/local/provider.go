@@ -56,12 +56,6 @@ func GetEntityModel(entity interface{}) (ret model.Model, err error) {
 		rVal = rVal.Elem()
 	}
 
-	if rVal.Kind() != reflect.Ptr {
-		err = fmt.Errorf("must be a pointer entity")
-		return
-	}
-	rVal = rVal.Elem()
-
 	vType, vErr := NewType(rVal.Type())
 	if vErr != nil {
 		err = vErr
@@ -152,8 +146,9 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 
 func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, err error) {
 	// *[]xx , []xx
-	rSliceVal := reflect.Indirect(sliceVal.Get().(reflect.Value))
-	rSliceType := rSliceVal.Type()
+	rSliceVal := sliceVal.Get().(reflect.Value)
+	riSliceVal := reflect.Indirect(rSliceVal)
+	rSliceType := riSliceVal.Type()
 	if rSliceType.Kind() != reflect.Slice {
 		err = fmt.Errorf("append slice value failed, illegal slice value, slice type:%s", rSliceType.String())
 		return
@@ -176,8 +171,8 @@ func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, e
 		return
 	}
 
-	rNewVal := reflect.Append(rSliceVal, rVal)
-	rSliceVal.Set(rNewVal)
+	rNewVal := reflect.Append(riSliceVal, rVal)
+	riSliceVal.Set(rNewVal)
 
 	ret = NewValue(rSliceVal)
 	return

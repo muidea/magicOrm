@@ -22,6 +22,13 @@ func TestIntType(t *testing.T) {
 	}
 
 	nVal := iType.Interface()
+	switch nVal.Get().(reflect.Value).Interface().(type) {
+	case int:
+	default:
+		t.Errorf("get int type value failed. type:%s", nVal.Get().(reflect.Value).Type().String())
+		return
+	}
+
 	newVal := nVal.Get().(reflect.Value)
 	riType, riErr := NewType(newVal.Type())
 	if riErr != nil {
@@ -43,6 +50,33 @@ func TestIntType(t *testing.T) {
 	}
 	if iType.GetValue() != riType.GetValue() {
 		t.Errorf("NewType faild. illegal type value")
+		return
+	}
+
+	var iValPtr *int
+	iPtrType, iPtrErr := NewType(reflect.TypeOf(iValPtr))
+	if iPtrErr != nil {
+		t.Errorf("NewType failed, err:%s", iPtrErr.Error())
+		return
+	}
+	if iPtrType.GetValue() != model.TypeIntegerValue {
+		t.Errorf("get int type value failed. is integer value")
+		return
+	}
+	if !iPtrType.IsPtrType() {
+		t.Errorf("get int type value failed. is ptr")
+		return
+	}
+	if !iPtrType.IsBasic() {
+		t.Errorf("get int type value failed. is base")
+		return
+	}
+
+	valPtr := iPtrType.Interface()
+	switch valPtr.Get().(reflect.Value).Interface().(type) {
+	case *int:
+	default:
+		t.Errorf("get int type value failed. type:%s", valPtr.Get().(reflect.Value).Type().String())
 		return
 	}
 }

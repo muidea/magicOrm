@@ -386,7 +386,7 @@ func TestBaseBoolPtrCodec(t *testing.T) {
 		t.Errorf("decode bool false, is not nil")
 		return
 	}
-	if dVal.IsZero() {
+	if !dVal.IsZero() {
 		t.Errorf("decode bool false, is zero")
 		return
 	}
@@ -827,7 +827,7 @@ func TestBaseIntPtrCodec(t *testing.T) {
 		t.Errorf("decode int16 0, is not nil")
 		return
 	}
-	if dVal.IsZero() {
+	if !dVal.IsZero() {
 		t.Errorf("decode int16 0, is zero")
 		return
 	}

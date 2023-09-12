@@ -133,7 +133,7 @@ func (s *Field) verifySnowFlake(typeVal model.TypeDeclare) error {
 
 func (s *Field) verifyDateTime(typeVal model.TypeDeclare) error {
 	if typeVal != model.TypeDateTimeValue {
-		return fmt.Errorf("illegal dateTime field type, type:%s", s.Type.dump())
+		return fmt.Errorf("illegal dateTime field type, type:%v", typeVal)
 	}
 
 	return nil
@@ -142,7 +142,7 @@ func (s *Field) verifyDateTime(typeVal model.TypeDeclare) error {
 func (s *Field) verifyPK(typeVal model.TypeDeclare) error {
 	switch typeVal {
 	case model.TypeStructValue, model.TypeSliceValue:
-		return fmt.Errorf("illegal primary key field type, type:%s", s.Type.dump())
+		return fmt.Errorf("illegal primary key field type, type:%v", typeVal)
 	default:
 	}
 
@@ -151,7 +151,8 @@ func (s *Field) verifyPK(typeVal model.TypeDeclare) error {
 
 func (s *Field) verify() (err error) {
 	if s.Type == nil {
-		return fmt.Errorf("illegal filed, field type is null, index:%d, name:%v", s.Index, s.Name)
+		err = fmt.Errorf("illegal filed, field type is null, index:%d, name:%v", s.Index, s.Name)
+		return
 	}
 
 	if s.Spec == nil {

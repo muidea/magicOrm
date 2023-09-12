@@ -185,7 +185,12 @@ func TestLocalReference(t *testing.T) {
 		FValue:      &fValue2,
 		TimeStamp:   &ts2,
 		Flag:        &bVal,
+		IArray:      []int{},
+		FArray:      []float32{},
+		StrArray:    []string{},
+		BArray:      []bool{},
 		PtrArray:    &strArray2,
+		StrPtrArray: []*string{},
 		PtrStrArray: &ptrArray2,
 	}
 

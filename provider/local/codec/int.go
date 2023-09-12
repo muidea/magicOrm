@@ -24,7 +24,7 @@ func (s *impl) decodeInt(val interface{}, vType model.Type) (ret model.Value, er
 	var iVal int64
 	switch val.(type) {
 	case int, int8, int16, int32, int64:
-		iVal = val.(int64)
+		iVal = reflect.ValueOf(val).Int()
 	case float64: // only for []int
 		iVal = int64(val.(float64))
 	case string: // only for []int
@@ -69,7 +69,7 @@ func (s *impl) decodeUint(val interface{}, vType model.Type) (ret model.Value, e
 	var uiVal uint64
 	switch val.(type) {
 	case uint, uint8, uint16, uint32, uint64:
-		uiVal = val.(uint64)
+		uiVal = reflect.ValueOf(val).Uint()
 	case float64: // only for []uint
 		uiVal = uint64(val.(float64))
 	case string: // only for []uint

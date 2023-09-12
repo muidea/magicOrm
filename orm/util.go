@@ -15,16 +15,12 @@ func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, err error) 
 	for _, val := range vModel.GetFields() {
 		vType := val.GetType()
 		vValue := val.GetValue()
-		//if vValue.IsZero() {
-		//	continue
-		//}
-
-		if !s.modelProvider.IsAssigned(vValue, vType) {
+		if vValue.IsZero() {
 			continue
 		}
 
 		// if basic
-		if model.IsBasicType(vType.Elem().GetValue()) {
+		if model.IsBasicType(vType.GetValue()) && !model.IsSliceType(vType.GetValue()) {
 			err = filterVal.Equal(val.GetName(), val.GetValue().Interface())
 			if err != nil {
 				return

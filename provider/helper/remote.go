@@ -4,12 +4,15 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	log "github.com/cihub/seelog"
 
+	"github.com/muidea/magicCommon/foundation/util"
+
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/remote"
-	"github.com/muidea/magicOrm/provider/util"
+	pu "github.com/muidea/magicOrm/provider/util"
 )
 
 func newType(itemType reflect.Type) (ret *remote.TypeImpl, err error) {
@@ -19,7 +22,7 @@ func newType(itemType reflect.Type) (ret *remote.TypeImpl, err error) {
 		itemType = itemType.Elem()
 	}
 
-	typeVal, typeErr := util.GetTypeEnum(itemType)
+	typeVal, typeErr := pu.GetTypeEnum(itemType)
 	if typeErr != nil {
 		err = typeErr
 		return
@@ -34,7 +37,7 @@ func newType(itemType reflect.Type) (ret *remote.TypeImpl, err error) {
 		}
 		ret = &remote.TypeImpl{Name: sliceType.Name(), Value: typeVal, PkgPath: sliceType.PkgPath(), IsPtr: isPtr}
 
-		sliceVal, sliceErr := util.GetTypeEnum(sliceType)
+		sliceVal, sliceErr := pu.GetTypeEnum(sliceType)
 		if sliceErr != nil {
 			err = sliceErr
 			return
@@ -76,15 +79,15 @@ func getSpec(spec string) (ret remote.SpecImpl, err error) {
 	ret.FieldName = items[0]
 	for idx := 1; idx < len(items); idx++ {
 		switch items[idx] {
-		case util.Auto:
+		case pu.Auto:
 			ret.ValueDeclare = model.AutoIncrement
-		case util.UUID:
+		case pu.UUID:
 			ret.ValueDeclare = model.UUID
-		case util.SnowFlake:
+		case pu.SnowFlake:
 			ret.ValueDeclare = model.SnowFlake
-		case util.DateTime:
+		case pu.DateTime:
 			ret.ValueDeclare = model.DateTime
-		case util.Key:
+		case pu.Key:
 			ret.PrimaryKey = true
 		}
 	}
@@ -207,55 +210,108 @@ func GetObject(entity interface{}) (ret *remote.Object, err error) {
 	return
 }
 
+func getBasicValue(itemValue reflect.Value) (ret any, err error) {
+	itemValue = reflect.Indirect(itemValue)
+	switch itemValue.Kind() {
+	case reflect.Bool,
+		reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64,
+		reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64,
+		reflect.Float32, reflect.Float64,
+		reflect.String:
+		ret = itemValue.Interface()
+	case reflect.Struct:
+		dtVal, dtOK := itemValue.Interface().(time.Time)
+		if dtOK {
+			ret = dtVal.Format(util.CSTLayout)
+		} else {
+			err = fmt.Errorf("illegal basic value, value type:%v", itemValue.Type().String())
+		}
+	default:
+		err = fmt.Errorf("illegal basic value, value type:%v", itemValue.Type().String())
+	}
+
+	return
+}
+
+func getBasicSliceValue(itemValue reflect.Value) (ret any, err error) {
+	itemValue = reflect.Indirect(itemValue)
+	switch itemValue.Kind() {
+	case reflect.Slice:
+	default:
+		err = fmt.Errorf("illegal basic slice value, value type:%v", itemValue.Type().String())
+	}
+	if err != nil {
+		return
+	}
+
+	itemSize := itemValue.Len()
+	if itemSize == 0 {
+		return
+	}
+
+	subValList := []any{}
+	for idx := 0; idx < itemValue.Len(); idx++ {
+		subVal, subErr := getBasicValue(itemValue.Index(idx))
+		if subErr != nil {
+			err = subErr
+			return
+		}
+
+		subValList = append(subValList, subVal)
+	}
+
+	ret = subValList
+	return
+}
+
 func getFieldValue(fieldName string, itemType *remote.TypeImpl, itemValue reflect.Value) (ret *remote.FieldValue, err error) {
 	if itemType.IsPtrType() && itemValue.IsNil() {
 		ret = &remote.FieldValue{Name: fieldName, Value: nil}
 		return
 	}
 
-	if itemType.IsBasic() {
-		ret = &remote.FieldValue{Name: fieldName, Value: itemValue.Interface()}
+	if !model.IsSliceType(itemType.GetValue()) {
+		if itemType.IsBasic() {
+			itemVal, itemErr := getBasicValue(itemValue)
+			if itemErr != nil {
+				err = itemErr
+				return
+			}
+
+			ret = &remote.FieldValue{Name: fieldName, Value: itemVal}
+			return
+		}
+
+		objVal, objErr := getObjectValue(itemValue)
+		if objErr != nil {
+			err = objErr
+			log.Errorf("GetObjectValue failed, raw type:%s, err:%s", itemType.GetName(), err.Error())
+			return
+		}
+
+		ret = &remote.FieldValue{Name: fieldName, Value: objVal}
 		return
 	}
 
-	objVal, objErr := getObjectValue(itemValue)
+	if itemType.IsBasic() {
+		itemVal, itemErr := getBasicSliceValue(itemValue)
+		if itemErr != nil {
+			err = itemErr
+			return
+		}
+
+		ret = &remote.FieldValue{Name: fieldName, Value: itemVal}
+		return
+	}
+
+	objVal, objErr := getSliceObjectValue(itemValue)
 	if objErr != nil {
 		err = objErr
-		log.Errorf("GetObjectValue failed, raw type:%s, err:%s", itemType.GetName(), err.Error())
+		log.Errorf("getSliceObjectValue failed, raw type:%s, err:%s", itemType.GetName(), err.Error())
 		return
 	}
 
 	ret = &remote.FieldValue{Name: fieldName, Value: objVal}
-	return
-}
-
-func getSliceFieldValue(fieldName string, itemType *remote.TypeImpl, itemValue reflect.Value) (ret *remote.FieldValue, err error) {
-	ret = &remote.FieldValue{Name: fieldName}
-	if itemValue.IsNil() {
-		ret = &remote.FieldValue{Name: fieldName, Value: nil}
-		return
-	}
-
-	elemType := itemType.Elem()
-	if elemType.IsBasic() {
-		ret = &remote.FieldValue{Name: fieldName, Value: itemValue.Interface()}
-		return
-	}
-
-	sliceObjectVal := []*remote.ObjectValue{}
-	rawVal := reflect.Indirect(itemValue)
-	for idx := 0; idx < rawVal.Len(); idx++ {
-		itemVal := rawVal.Index(idx)
-		objVal, objErr := getObjectValue(itemVal)
-		if objErr != nil {
-			err = objErr
-			log.Errorf("encodeDateTimeValue failed, err:%s", err.Error())
-			return
-		}
-
-		sliceObjectVal = append(sliceObjectVal, objVal)
-	}
-	ret.Value = &remote.SliceObjectValue{Name: elemType.GetName(), PkgPath: elemType.GetPkgPath(), Values: sliceObjectVal}
 	return
 }
 
@@ -291,23 +347,14 @@ func getObjectValue(entityVal reflect.Value) (ret *remote.ObjectValue, err error
 			return
 		}
 
-		if typePtr.GetValue() != model.TypeSliceValue {
-			val, valErr := getFieldValue(fieldName, typePtr, entityVal.Field(idx))
-			if valErr != nil {
-				err = valErr
-				log.Errorf("getFieldValue failed, field name:%s, err:%s", fieldType.Name, err.Error())
-				return
-			}
-			ret.Fields = append(ret.Fields, val)
-		} else {
-			val, valErr := getSliceFieldValue(fieldName, typePtr, entityVal.Field(idx))
-			if valErr != nil {
-				err = valErr
-				log.Errorf("getSliceFieldValue failed, field name:%s, err:%s", fieldType.Name, err.Error())
-				return
-			}
-			ret.Fields = append(ret.Fields, val)
+		val, valErr := getFieldValue(fieldName, typePtr, entityVal.Field(idx))
+		if valErr != nil {
+			err = valErr
+			log.Errorf("getFieldValue failed, field name:%s, err:%s", fieldType.Name, err.Error())
+			return
 		}
+
+		ret.Fields = append(ret.Fields, val)
 	}
 
 	return
@@ -320,10 +367,8 @@ func GetObjectValue(entity interface{}) (ret *remote.ObjectValue, err error) {
 	return
 }
 
-// GetSliceObjectValue get slice object value
-func GetSliceObjectValue(sliceEntity interface{}) (ret *remote.SliceObjectValue, err error) {
-	sliceValue := reflect.ValueOf(sliceEntity)
-	sliceType, sliceErr := newType(sliceValue.Type())
+func getSliceObjectValue(sliceVal reflect.Value) (ret *remote.SliceObjectValue, err error) {
+	sliceType, sliceErr := newType(sliceVal.Type())
 	if sliceErr != nil {
 		err = fmt.Errorf("get slice object type failed, err:%s", err.Error())
 		log.Errorf("GetSliceObjectValue failed, slice type name:%s", sliceType.GetName())
@@ -343,10 +388,14 @@ func GetSliceObjectValue(sliceEntity interface{}) (ret *remote.SliceObjectValue,
 		return
 	}
 
+	sliceVal = reflect.Indirect(sliceVal)
+	if sliceVal.Len() == 0 {
+		return
+	}
+
 	ret = &remote.SliceObjectValue{Name: elemType.GetName(), PkgPath: elemType.GetPkgPath(), Values: []*remote.ObjectValue{}}
-	sliceValue = reflect.Indirect(sliceValue)
-	for idx := 0; idx < sliceValue.Len(); idx++ {
-		val := sliceValue.Index(idx)
+	for idx := 0; idx < sliceVal.Len(); idx++ {
+		val := sliceVal.Index(idx)
 		objVal, objErr := getObjectValue(val)
 		if objErr != nil {
 			err = objErr
@@ -357,5 +406,12 @@ func GetSliceObjectValue(sliceEntity interface{}) (ret *remote.SliceObjectValue,
 		ret.Values = append(ret.Values, objVal)
 	}
 
+	return
+}
+
+// GetSliceObjectValue get slice object value
+func GetSliceObjectValue(sliceEntity interface{}) (ret *remote.SliceObjectValue, err error) {
+	sliceValue := reflect.ValueOf(sliceEntity)
+	ret, err = getSliceObjectValue(sliceValue)
 	return
 }

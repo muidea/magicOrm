@@ -57,13 +57,6 @@ func (s *field) GetValue() (ret model.Value) {
 }
 
 func (s *field) SetValue(val model.Value) (err error) {
-	defer func() {
-		if errInfo := recover(); errInfo != nil {
-			err = fmt.Errorf("SetValue failed, unexpected field:%v, err:%v", s.name, errInfo)
-			log.Error(err.Error())
-		}
-	}()
-
 	err = s.valuePtr.Set(val.Get())
 	if err != nil {
 		log.Errorf("set field valuePtr failed, name:%s, err:%s", s.name, err.Error())
@@ -99,48 +92,98 @@ func (s *field) copy() *field {
 	return val
 }
 
-func (s *field) verify() error {
-	if s.typePtr == nil {
-		return fmt.Errorf("illegal filed, field type is null, index:%d, name:%v", s.index, s.name)
-	}
-
-	if s.specPtr != nil {
-		val := s.typePtr.GetValue()
-		if s.specPtr.GetValueDeclare() == model.AutoIncrement {
-			switch val {
-			case model.TypeBooleanValue,
-				model.TypeStringValue,
-				model.TypeDateTimeValue,
-				model.TypeFloatValue,
-				model.TypeDoubleValue,
-				model.TypeStructValue,
-				model.TypeSliceValue:
-				return fmt.Errorf("illegal auto_increment field type, type:%s", s.typePtr.dump())
-			default:
-			}
-		}
-		if s.specPtr.GetValueDeclare() == model.UUID && val != model.TypeStringValue {
-			return fmt.Errorf("illegal uuid field type, type:%s", s.typePtr.dump())
-		}
-
-		if s.specPtr.GetValueDeclare() == model.SnowFlake && val != model.TypeBigIntegerValue {
-			return fmt.Errorf("illegal snowflake field type, type:%s", s.typePtr.dump())
-		}
-
-		if s.specPtr.GetValueDeclare() == model.DateTime && val != model.TypeDateTimeValue {
-			return fmt.Errorf("illegal dateTime field type, type:%s", s.typePtr.dump())
-		}
-
-		if s.specPtr.IsPrimaryKey() {
-			switch val {
-			case model.TypeStructValue, model.TypeSliceValue:
-				return fmt.Errorf("illegal primary key field type, type:%s", s.typePtr.dump())
-			default:
-			}
-		}
+func (s *field) verifyAutoIncrement(typeVal model.TypeDeclare) error {
+	switch typeVal {
+	case model.TypeBooleanValue,
+		model.TypeStringValue,
+		model.TypeDateTimeValue,
+		model.TypeFloatValue,
+		model.TypeDoubleValue,
+		model.TypeStructValue,
+		model.TypeSliceValue:
+		return fmt.Errorf("illegal auto_increment field type, type:%v", typeVal)
+	default:
 	}
 
 	return nil
+}
+
+func (s *field) verifyUUID(typeVal model.TypeDeclare) error {
+	if typeVal != model.TypeStringValue {
+		return fmt.Errorf("illegal uuid field type, type:%v", typeVal)
+	}
+
+	return nil
+}
+
+func (s *field) verifySnowFlake(typeVal model.TypeDeclare) error {
+	if typeVal != model.TypeBigIntegerValue {
+		return fmt.Errorf("illegal snowflake field type, type:%v", typeVal)
+	}
+
+	return nil
+}
+
+func (s *field) verifyDateTime(typeVal model.TypeDeclare) error {
+	if typeVal != model.TypeDateTimeValue {
+		return fmt.Errorf("illegal dateTime field type, type:%v", typeVal)
+	}
+
+	return nil
+}
+
+func (s *field) verifyPK(typeVal model.TypeDeclare) error {
+	switch typeVal {
+	case model.TypeStructValue, model.TypeSliceValue:
+		return fmt.Errorf("illegal primary key field type, type:%v", typeVal)
+	default:
+	}
+
+	return nil
+}
+
+func (s *field) verify() (err error) {
+	if s.typePtr == nil {
+		err = fmt.Errorf("illegal filed, field type is null, index:%d, name:%v", s.index, s.name)
+		return
+	}
+
+	if s.specPtr == nil {
+		return
+	}
+	val := s.typePtr.GetValue()
+	if s.specPtr.GetValueDeclare() == model.AutoIncrement {
+		err = s.verifyAutoIncrement(val)
+		if err != nil {
+			return
+		}
+	}
+	if s.specPtr.GetValueDeclare() == model.UUID {
+		err = s.verifyUUID(val)
+		if err != nil {
+			return
+		}
+	}
+
+	if s.specPtr.GetValueDeclare() == model.SnowFlake {
+		err = s.verifySnowFlake(val)
+		if err != nil {
+			return
+		}
+	}
+
+	if s.specPtr.GetValueDeclare() == model.DateTime {
+		err = s.verifyDateTime(val)
+		if err != nil {
+			return
+		}
+	}
+
+	if s.specPtr.IsPrimaryKey() {
+		err = s.verifyPK(val)
+	}
+
+	return
 }
 
 func (s *field) dump() string {

@@ -67,8 +67,8 @@ func TestValue(t *testing.T) {
 		return
 	}
 
-	// not zero
-	if value2Ptr.IsZero() {
+	// zero
+	if !value2Ptr.IsZero() {
 		t.Errorf("NewValue failed, IsZero true")
 		return
 	}
@@ -100,7 +100,8 @@ func TestValue(t *testing.T) {
 		return
 	}
 
-	iReflect2 := reflect.ValueOf(12)
+	iVal = 12
+	iReflect2 := reflect.ValueOf(&iVal)
 	value2Err := value2Ptr.Set(iReflect2)
 	if value2Err != nil {
 		t.Errorf("update failed, err:%s", value2Err.Error())

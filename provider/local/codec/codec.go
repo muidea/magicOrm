@@ -2,6 +2,7 @@ package codec
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/muidea/magicOrm/model"
 )
@@ -55,6 +56,7 @@ func (s *impl) Decode(val interface{}, vType model.Type) (ret model.Value, err e
 		return
 	}
 
+	val = reflect.Indirect(reflect.ValueOf(val)).Interface()
 	switch vType.GetValue() {
 	case model.TypeBooleanValue:
 		ret, err = s.decodeBool(val, vType)
