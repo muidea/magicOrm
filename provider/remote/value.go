@@ -61,15 +61,16 @@ func (s *ValueImpl) IsZero() (ret bool) {
 	case uint8, uint16, uint32, uint, uint64:
 		return rVal.Uint() == 0
 	case float32, float64:
-		return math.Abs(rVal.Float()-0.0000001) == 0
+		return math.Float64bits(rVal.Float()) == 0
 	case string:
 		return rVal.String() == ""
 	case []bool,
 		[]int8, []int16, []int32, []int, []int64,
 		[]uint8, []uint16, []uint32, []uint, []uint64,
 		[]float32, []float64,
-		[]string:
-		return rVal.Len() > 0
+		[]string,
+		[]any:
+		return rVal.Len() == 0
 	case *ObjectValue:
 		return !s.value.(*ObjectValue).IsAssigned()
 	case *SliceObjectValue:
@@ -99,6 +100,7 @@ func (s *ValueImpl) Set(val any) (err error) {
 		[]uint8, []uint16, []uint32, []uint, []uint64,
 		[]float32, []float64,
 		[]string,
+		[]any,
 		*ObjectValue, *SliceObjectValue:
 		s.value = val
 	default:

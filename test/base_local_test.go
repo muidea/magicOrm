@@ -394,6 +394,7 @@ func TestLocalCompose(t *testing.T) {
 		PR4:          &[]Simple{},
 		PtrReference: &Reference{},
 		RefArray:     []Reference{},
+		RefPtrArray:  []*Reference{},
 		PtrRefArray:  []*Reference{},
 		PtrCompose:   &Compose{},
 	}

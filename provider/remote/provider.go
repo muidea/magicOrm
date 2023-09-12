@@ -2,6 +2,7 @@ package remote
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/muidea/magicOrm/model"
@@ -103,9 +104,11 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 		}
 	}()
 
-	if vVal.IsZero() {
+	if vVal.IsNil() {
+		ret = vModel
 		return
 	}
+
 	rVal := vVal.Interface().(*ObjectValue)
 	if rVal.GetPkgKey() != vModel.GetPkgKey() {
 		err = fmt.Errorf("illegal model value, mode PkgKey:%s, value PkgKey:%s", vModel.GetPkgKey(), rVal.GetPkgKey())
@@ -152,30 +155,15 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 		return
 	}
 
-	switch vVal.Get().(type) {
-	case bool,
-		int8, int16, int32, int, int64,
-		uint8, uint16, uint32, uint, uint64,
-		float32, float64,
-		string:
+	rVal := reflect.ValueOf(vVal.Get())
+	if rVal.Kind() != reflect.Slice {
 		ret = append(ret, NewValue(vVal.Get()))
-	case []bool:
-		ret = elemSlice(vVal.Get().([]bool))
-	case []int8, []int16, []int32, []int, []int64:
-		ret = elemSlice(vVal.Get().([]int64))
-	case []uint8, []uint16, []uint32, []uint, []uint64:
-		ret = elemSlice(vVal.Get().([]uint64))
-	case []float32, []float64:
-		ret = elemSlice(vVal.Get().([]float64))
-	case []string:
-		ret = elemSlice(vVal.Get().([]string))
-	case []any:
-		ret = elemSlice(vVal.Get().([]any))
-	default:
-		err := fmt.Errorf("illegal value, val:%v", vVal.Get())
-		panic(err.Error())
+		return
 	}
 
+	for idx := 0; idx < rVal.Len(); idx++ {
+		ret = append(ret, NewValue(rVal.Index(idx).Interface()))
+	}
 	return
 }
 

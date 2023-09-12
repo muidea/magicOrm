@@ -12,6 +12,8 @@ func (s *impl) encodeInt(vVal model.Value, vType model.Type) (ret interface{}, e
 	switch vVal.Get().(type) {
 	case int8, int16, int32, int, int64:
 		ret = reflect.ValueOf(vVal.Get()).Int()
+	case float32, float64:
+		ret = int64(reflect.ValueOf(vVal.Get()).Float())
 	default:
 		err = fmt.Errorf("encodeInt failed, illegal int value, value:%v", vVal.Get())
 	}
@@ -47,6 +49,8 @@ func (s *impl) encodeUint(vVal model.Value, vType model.Type) (ret interface{}, 
 	switch vVal.Get().(type) {
 	case uint8, uint16, uint32, uint, uint64:
 		ret = reflect.ValueOf(vVal.Get()).Uint()
+	case float32, float64:
+		ret = uint64(reflect.ValueOf(vVal.Get()).Float())
 	default:
 		err = fmt.Errorf("encodeInt failed, illegal uint value, value:%v", vVal.Get())
 	}

@@ -81,6 +81,7 @@ func (s *impl) insertRelation(vModel model.Model, vField model.Field) (err error
 	fSliceValue, fSliceErr := s.modelProvider.ElemDependValue(fValue)
 	if fSliceErr != nil {
 		err = fSliceErr
+		log.Errorf("insertRelation failed, s.modelProvider.ElemDependValue error, err:%s", err.Error())
 		return
 	}
 
@@ -88,6 +89,7 @@ func (s *impl) insertRelation(vModel model.Model, vField model.Field) (err error
 		rModel, rErr := s.modelProvider.GetValueModel(fVal, fType)
 		if rErr != nil {
 			err = rErr
+			log.Errorf("insertRelation failed, s.modelProvider.GetValueModel error, err:%s", err.Error())
 			return
 		}
 
@@ -96,12 +98,14 @@ func (s *impl) insertRelation(vModel model.Model, vField model.Field) (err error
 			rModel, rErr = s.insertSingle(rModel)
 			if rErr != nil {
 				err = rErr
+				log.Errorf("insertRelation failed, s.insertSingle error, err:%s", err.Error())
 				return
 			}
 
 			for _, subField := range rModel.GetFields() {
 				err = s.insertRelation(rModel, subField)
 				if err != nil {
+					log.Errorf("insertRelation failed, s.insertRelation error, err:%s", err.Error())
 					return
 				}
 			}
@@ -111,16 +115,22 @@ func (s *impl) insertRelation(vModel model.Model, vField model.Field) (err error
 		relationSQL, relationErr := builder.BuildInsertRelation(vField, rModel)
 		if relationErr != nil {
 			err = relationErr
+			log.Errorf("insertRelation failed, builder.BuildInsertRelation error, err:%s", err.Error())
 			return err
 		}
 
 		_, _, err = s.executor.Execute(relationSQL)
 		if err != nil {
+			log.Errorf("insertRelation failed, s.executor.Execute error, err:%s", err.Error())
 			return
 		}
 
-		rVal, _ := s.modelProvider.GetEntityValue(rModel.Interface(true))
-		fVal.Set(rVal.Get())
+		rVal, _ := s.modelProvider.GetEntityValue(rModel.Interface(elemType.IsPtrType()))
+		err = fVal.Set(rVal.Get())
+		if err != nil {
+			log.Errorf("insertRelation failed, fVal.Set error, err:%s", err.Error())
+			return
+		}
 	}
 
 	return

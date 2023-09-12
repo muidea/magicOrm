@@ -220,11 +220,13 @@ func getBasicValue(itemValue reflect.Value) (ret any, err error) {
 		reflect.String:
 		ret = itemValue.Interface()
 	case reflect.Struct:
-		dtVal, dtOK := itemValue.Interface().(time.Time)
-		if dtOK {
-			ret = dtVal.Format(util.CSTLayout)
-		} else {
-			err = fmt.Errorf("illegal basic value, value type:%v", itemValue.Type().String())
+		if !itemValue.IsZero() {
+			dtVal, dtOK := itemValue.Interface().(time.Time)
+			if dtOK {
+				ret = dtVal.Format(util.CSTLayout)
+			} else {
+				err = fmt.Errorf("illegal basic value, value type:%v", itemValue.Type().String())
+			}
 		}
 	default:
 		err = fmt.Errorf("illegal basic value, value type:%v", itemValue.Type().String())
