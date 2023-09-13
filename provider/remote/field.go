@@ -69,21 +69,13 @@ func (s *Field) SetValue(val model.Value) (err error) {
 		}
 	}()
 
-	valPtr, valOK := val.(*ValueImpl)
-	if !valOK {
-		err = fmt.Errorf("illegal value, val:%v", val.Get())
+	valPtr, valErr := s.Type.Interface(val.Interface())
+	if valErr != nil {
+		err = valErr
 		return
 	}
 
-	if s.value != nil {
-		err = s.value.Set(val.Get())
-		if err != nil {
-			log.Errorf("SetValue failed, name:%s, err:%s", s.Name, err.Error())
-		}
-		return
-	}
-
-	s.value = valPtr
+	s.value = valPtr.(*ValueImpl)
 	return
 }
 

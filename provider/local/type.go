@@ -86,6 +86,9 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err error) {
 		case model.TypeStringValue:
 			initVal, err = util.GetString(initVal)
 			tVal.SetString(initVal.(string))
+		case model.TypeDateTimeValue:
+			initVal, err = util.GetDateTimeDt(initVal)
+			tVal.Set(reflect.ValueOf(initVal))
 		default:
 			initVal = nil
 		}

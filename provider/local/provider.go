@@ -111,10 +111,11 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 		}
 
 		fieldVal := NewValue(rVal.Field(idx))
-		if fieldVal.IsNil() {
-			continue
-		}
-
+		/*
+			if fieldVal.IsNil() {
+				continue
+			}
+		*/
 		err = vModel.SetFieldValue(fieldName, fieldVal)
 		if err != nil {
 			return

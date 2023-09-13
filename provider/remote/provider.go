@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"strings"
 
+	fu "github.com/muidea/magicCommon/foundation/util"
+
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/remote/codec"
 	"github.com/muidea/magicOrm/provider/util"
@@ -116,9 +118,9 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 	}
 	for idx := 0; idx < len(rVal.Fields); idx++ {
 		fieldVal := rVal.Fields[idx]
-		if fieldVal.IsNil() {
-			continue
-		}
+		//if fieldVal.IsNil() {
+		//	continue
+		//}
 
 		err = vModel.SetFieldValue(fieldVal.GetName(), fieldVal.GetValue())
 	}
@@ -294,7 +296,7 @@ func GetValue(valueDeclare model.ValueDeclare) (ret model.Value) {
 	case model.UUID:
 		rVal = util.GetNewUUID()
 	case model.DateTime:
-		rVal = util.GetCurrentDateTime()
+		rVal = util.GetCurrentDateTime().Format(fu.CSTLayout)
 	}
 	if rVal != nil {
 		ret = NewValue(rVal)

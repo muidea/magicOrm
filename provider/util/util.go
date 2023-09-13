@@ -414,3 +414,43 @@ func GetString(val any) (ret string, err error) {
 
 	return
 }
+
+func GetDateTimeStr(val any) (ret string, err error) {
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = fmt.Errorf("illegal dateTime value, val:%v", val)
+		}
+	}()
+
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	switch rVal.Kind() {
+	case reflect.String:
+		ret = rVal.String()
+	case reflect.Struct:
+		ret = rVal.Interface().(time.Time).Format(fu.CSTLayout)
+	default:
+		err = fmt.Errorf("illegal dateTime value, val type:%v", rVal.Type().String())
+	}
+
+	return
+}
+
+func GetDateTimeDt(val any) (ret time.Time, err error) {
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = fmt.Errorf("illegal dateTime value, val:%v", val)
+		}
+	}()
+
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	switch rVal.Kind() {
+	case reflect.String:
+		ret, err = time.Parse(fu.CSTLayout, rVal.String())
+	case reflect.Struct:
+		ret = rVal.Interface().(time.Time)
+	default:
+		err = fmt.Errorf("illegal dateTime value, val type:%v", rVal.Type().String())
+	}
+
+	return
+}
