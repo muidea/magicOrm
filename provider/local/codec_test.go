@@ -928,6 +928,7 @@ func TestSliceIntCodec(t *testing.T) {
 		t.Errorf("encode []int16{123} failed, val:%v", eVal)
 		return
 	}
+
 	dVal, dErr := _codec.Decode(eVal, typePtr)
 	if dErr != nil {
 		t.Errorf("decode  []int16{123}, err:%s", dErr.Error())

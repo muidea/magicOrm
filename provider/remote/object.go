@@ -128,7 +128,7 @@ func (s *Object) Copy() (ret model.Model) {
 		if val.value != nil {
 			item.value = val.value.Copy()
 		} else {
-			initVal := val.Type.Interface()
+			initVal, _ := val.Type.Interface(nil)
 			item.value = initVal.(*ValueImpl)
 		}
 

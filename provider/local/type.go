@@ -66,11 +66,33 @@ func (s *TypeImpl) IsPtrType() bool {
 	return s.typeVal.Kind() == reflect.Ptr
 }
 
-func (s *TypeImpl) Interface() (ret model.Value) {
-	tVal := reflect.New(s.typeVal).Elem()
+func (s *TypeImpl) Interface(initVal any) (ret model.Value, err error) {
+	tVal := reflect.New(s.getRawType()).Elem()
+
+	if initVal != nil {
+		switch s.GetValue() {
+		case model.TypeBooleanValue:
+			initVal, err = util.GetBool(initVal)
+			tVal.SetBool(initVal.(bool))
+		case model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeIntegerValue, model.TypeBigIntegerValue:
+			initVal, err = util.GetInt(initVal)
+			tVal.SetInt(initVal.(int64))
+		case model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveIntegerValue, model.TypePositiveBigIntegerValue:
+			initVal, err = util.GetUint(initVal)
+			tVal.SetUint(initVal.(uint64))
+		case model.TypeFloatValue, model.TypeDoubleValue:
+			initVal, err = util.GetFloat(initVal)
+			tVal.SetFloat(initVal.(float64))
+		case model.TypeStringValue:
+			initVal, err = util.GetString(initVal)
+			tVal.SetString(initVal.(string))
+		default:
+			initVal = nil
+		}
+	}
+
 	if s.IsPtrType() {
-		rVal := reflect.New(s.getRawType())
-		tVal.Set(rVal)
+		tVal = tVal.Addr()
 	}
 
 	ret = NewValue(tVal)

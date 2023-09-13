@@ -2,6 +2,7 @@ package remote
 
 import (
 	"fmt"
+	"github.com/muidea/magicOrm/provider/util"
 	"path"
 
 	"github.com/muidea/magicOrm/model"
@@ -45,9 +46,33 @@ func (s *TypeImpl) IsPtrType() (ret bool) {
 	return
 }
 
-func (s *TypeImpl) Interface() (ret model.Value) {
-	tVal := getInitializeValue(s)
-	ret = NewValue(tVal)
+func (s *TypeImpl) Interface(initVal any) (ret model.Value, err error) {
+	if initVal != nil {
+		switch s.GetValue() {
+		case model.TypeBooleanValue:
+			initVal, err = util.GetBool(initVal)
+		case model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeIntegerValue, model.TypeBigIntegerValue:
+			initVal, err = util.GetInt(initVal)
+		case model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveIntegerValue, model.TypePositiveBigIntegerValue:
+			initVal, err = util.GetUint(initVal)
+		case model.TypeFloatValue, model.TypeDoubleValue:
+			initVal, err = util.GetFloat(initVal)
+		case model.TypeStringValue:
+			initVal, err = util.GetString(initVal)
+		default:
+			initVal = nil
+		}
+	}
+	if err != nil {
+		return
+	}
+
+	if initVal != nil {
+		ret = NewValue(initVal)
+		return
+	}
+
+	ret = NewValue(getInitializeValue(s))
 	return
 }
 

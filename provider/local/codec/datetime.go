@@ -2,6 +2,7 @@ package codec
 
 import (
 	"fmt"
+	pu "github.com/muidea/magicOrm/provider/util"
 	"reflect"
 	"time"
 
@@ -33,15 +34,9 @@ func (s *impl) encodeDateTime(vVal model.Value, vType model.Type) (ret interface
 
 // decodeDateTime decode datetime from string
 func (s *impl) decodeDateTime(val interface{}, vType model.Type) (ret model.Value, err error) {
-	strVal := ""
-	switch val.(type) {
-	case string:
-		strVal = val.(string)
-	default:
-		err = fmt.Errorf("decodeDateTime failed, illegal dateTime value, val:%v", val)
-	}
-
-	if err != nil {
+	strVal, strErr := pu.GetString(val)
+	if strErr != nil {
+		err = strErr
 		return
 	}
 
@@ -50,7 +45,7 @@ func (s *impl) decodeDateTime(val interface{}, vType model.Type) (ret model.Valu
 		err = fmt.Errorf("decodeDateTime failed, illegal dateTime value, val:%v", strVal)
 	}
 
-	tVal := vType.Interface()
+	tVal, _ := vType.Interface(nil)
 	if vType.IsPtrType() {
 		err = tVal.Set(reflect.ValueOf(&dtVal))
 	} else {

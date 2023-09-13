@@ -259,7 +259,7 @@ func TestLocalUser(t *testing.T) {
 	}
 	user1 = userModel.Interface(true).(*User)
 
-	user2 := &User{ID: user1.ID, Status: &Status{}}
+	user2 := &User{ID: user1.ID, Status: &Status{}, Group: []*Group{}}
 	user2Model, user2Err := provider.GetEntityModel(user2)
 	if user2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", user2Err.Error())

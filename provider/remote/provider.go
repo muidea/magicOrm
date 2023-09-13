@@ -214,7 +214,7 @@ func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, codec c
 	tType := pkField.GetType()
 	tVal := pkField.GetValue()
 	if tVal.IsNil() {
-		tVal = tType.Interface()
+		tVal, _ = tType.Interface(nil)
 	}
 
 	ret, err = codec.Encode(tVal, tType)

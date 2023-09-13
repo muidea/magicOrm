@@ -100,6 +100,7 @@ func getStructValue(tType model.Type) (ret any) {
 		ret = _declareObjectSliceValue.Copy()
 		return
 	}
+
 	if model.IsStructType(tType.GetValue()) {
 		_declareObjectValue.Name = tType.GetName()
 		_declareObjectValue.PkgPath = tType.GetPkgPath()

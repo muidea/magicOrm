@@ -9,7 +9,7 @@ import (
 )
 
 func TestIntType(t *testing.T) {
-	var iVal int
+	var iVal int = 100
 	iType, iErr := NewType(reflect.TypeOf(iVal))
 	if iErr != nil {
 		t.Errorf("NewType failed, err:%s", iErr.Error())
@@ -21,7 +21,7 @@ func TestIntType(t *testing.T) {
 		return
 	}
 
-	nVal := iType.Interface()
+	nVal, _ := iType.Interface(nil)
 	switch nVal.Get().(reflect.Value).Interface().(type) {
 	case int:
 	default:
@@ -72,13 +72,56 @@ func TestIntType(t *testing.T) {
 		return
 	}
 
-	valPtr := iPtrType.Interface()
+	valPtr, _ := iPtrType.Interface(nil)
 	switch valPtr.Get().(reflect.Value).Interface().(type) {
 	case *int:
 	default:
 		t.Errorf("get int type value failed. type:%s", valPtr.Get().(reflect.Value).Type().String())
 		return
 	}
+
+	valPtr, _ = iPtrType.Interface(100)
+	switch valPtr.Get().(reflect.Value).Interface().(type) {
+	case *int:
+	default:
+		t.Errorf("get int type value failed. type:%s", valPtr.Get().(reflect.Value).Type().String())
+		return
+	}
+
+	var iAny any
+	iAny = 123
+	valPtr, _ = iPtrType.Interface(iAny)
+	switch valPtr.Get().(reflect.Value).Interface().(type) {
+	case *int:
+	default:
+		t.Errorf("get int type value failed. type:%s", valPtr.Get().(reflect.Value).Type().String())
+		return
+	}
+
+	valErr := valPtr.Set(reflect.ValueOf(&iVal))
+	if valErr != nil {
+		t.Errorf("valPtr set failed ,err:%s", valErr.Error())
+		return
+	}
+
+	iAny = valPtr.Interface()
+	switch iAny.(type) {
+	case *int:
+	default:
+		t.Errorf("get int type value failed. type:%s", valPtr.Get().(reflect.Value).Type().String())
+		return
+	}
+
+	intPtr, intOK := iAny.(*int)
+	if !intOK {
+		t.Errorf("get int type value failed. type:%s", valPtr.Get().(reflect.Value).Type().String())
+		return
+	}
+	if *intPtr != iVal {
+		t.Errorf("get int type value failed. type:%s", valPtr.Get().(reflect.Value).Type().String())
+		return
+	}
+
 }
 
 func TestFloatType(t *testing.T) {
@@ -94,7 +137,7 @@ func TestFloatType(t *testing.T) {
 		return
 	}
 
-	nVal := fType.Interface()
+	nVal, _ := fType.Interface(nil)
 	newVal := nVal.Get().(reflect.Value)
 	rfType, rfErr := NewType(newVal.Type())
 	if rfErr != nil {
@@ -133,7 +176,7 @@ func TestBoolType(t *testing.T) {
 		return
 	}
 
-	nVal := bType.Interface()
+	nVal, _ := bType.Interface(nil)
 	newVal := nVal.Get().(reflect.Value)
 	rbType, rbErr := NewType(newVal.Type())
 	if rbErr != nil {
@@ -172,7 +215,7 @@ func TestStringType(t *testing.T) {
 		return
 	}
 
-	nVal := strType.Interface()
+	nVal, _ := strType.Interface(nil)
 	newVal := nVal.Get().(reflect.Value)
 	rstrType, rstrErr := NewType(newVal.Type())
 	if rstrErr != nil {
@@ -211,7 +254,7 @@ func TestDateTimeType(t *testing.T) {
 		return
 	}
 
-	nVal := dtType.Interface()
+	nVal, _ := dtType.Interface(nil)
 	newVal := nVal.Get().(reflect.Value)
 	rdtType, rdtErr := NewType(newVal.Type())
 	if rdtErr != nil {
@@ -254,7 +297,7 @@ func TestStructType(t *testing.T) {
 		return
 	}
 
-	nVal := structType.Interface()
+	nVal, _ := structType.Interface(nil)
 	newVal := nVal.Get().(reflect.Value)
 	rstructType, rstructErr := NewType(newVal.Type())
 	if rstructErr != nil {
@@ -298,7 +341,7 @@ func TestSliceType(t *testing.T) {
 		return
 	}
 
-	nVal := sliceType.Interface()
+	nVal, _ := sliceType.Interface(nil)
 	newVal := nVal.Get().(reflect.Value)
 	rsliceType, rsliceErr := NewType(newVal.Type())
 	if rsliceErr != nil {
@@ -374,7 +417,7 @@ func TestPtrSliceType(t *testing.T) {
 		return
 	}
 
-	nVal := sliceType.Interface()
+	nVal, _ := sliceType.Interface(nil)
 	newVal := nVal.Get().(reflect.Value)
 	rsliceType, rsliceErr := NewType(newVal.Type())
 	if rsliceErr != nil {
@@ -453,7 +496,7 @@ func TestSliceStructType(t *testing.T) {
 		return
 	}
 
-	nVal := sliceType.Interface()
+	nVal, _ := sliceType.Interface(nil)
 	newVal := nVal.Get().(reflect.Value)
 	rsliceType, rsliceErr := NewType(newVal.Type())
 	if rsliceErr != nil {
@@ -523,12 +566,12 @@ func TestTypeImpl_Interface(t *testing.T) {
 		return
 	}
 
-	tVal := iType.Interface().Get().(reflect.Value)
-	if !tVal.CanSet() || !tVal.CanAddr() {
+	tVal, _ := iType.Interface(nil)
+	if !tVal.Get().(reflect.Value).CanSet() || !tVal.Get().(reflect.Value).CanAddr() {
 		t.Errorf("Interface value failed")
 		return
 	}
-	if tVal.Type().String() != "int" {
+	if tVal.Get().(reflect.Value).Type().String() != "int" {
 		t.Errorf("Interface value failed")
 		return
 	}
@@ -540,11 +583,8 @@ func TestTypeImpl_Interface(t *testing.T) {
 		return
 	}
 
-	tValPtr := iType.Interface().Get().(reflect.Value)
-	if !tValPtr.CanSet() || !tValPtr.CanAddr() {
-		t.Errorf("Interface value failed")
-	}
-	if tValPtr.Type().String() != "*int" {
+	tValPtr, _ := iType.Interface(nil)
+	if tValPtr.Get().(reflect.Value).Type().String() != "*int" {
 		t.Errorf("Interface value failed")
 		return
 	}

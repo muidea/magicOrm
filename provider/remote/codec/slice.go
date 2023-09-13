@@ -3,6 +3,7 @@ package codec
 import (
 	"encoding/json"
 	"fmt"
+	pu "github.com/muidea/magicOrm/provider/util"
 	"reflect"
 
 	"github.com/muidea/magicOrm/model"
@@ -54,7 +55,7 @@ func (s *impl) encodeSlice(vVal model.Value, vType model.Type) (ret string, err 
 }
 
 func (s *impl) decodeStringSlice(val string, vType model.Type) (ret model.Value, err error) {
-	tVal := vType.Interface()
+	tVal, _ := vType.Interface(nil)
 	if val != "" {
 		sliceVal := reflect.ValueOf(tVal.Get())
 		if val[0] != '[' {
@@ -83,7 +84,10 @@ func (s *impl) decodeStringSlice(val string, vType model.Type) (ret model.Value,
 			}
 		}
 
-		tVal.Set(sliceVal.Interface())
+		err = tVal.Set(sliceVal.Interface())
+		if err != nil {
+			return
+		}
 	}
 
 	ret = tVal
@@ -92,14 +96,9 @@ func (s *impl) decodeStringSlice(val string, vType model.Type) (ret model.Value,
 
 // decodeSlice decode slice from string
 func (s *impl) decodeSlice(val interface{}, vType model.Type) (ret model.Value, err error) {
-	var strVal string
-	switch val.(type) {
-	case string:
-		strVal = val.(string)
-	default:
-		err = fmt.Errorf("decodeSlice failed, illegal slice value, val:%v", val)
-	}
-	if err != nil {
+	strVal, strErr := pu.GetString(val)
+	if strErr != nil {
+		err = strErr
 		return
 	}
 

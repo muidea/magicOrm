@@ -89,6 +89,13 @@ func (s *ValueImpl) Set(val any) (err error) {
 		return
 	}
 
+	sValueType := reflect.TypeOf(s.value).String()
+	vType := reflect.TypeOf(val).String()
+	if sValueType != vType {
+		err = fmt.Errorf("mismatch value type,  s.value type:%v, val type:%v", sValueType, vType)
+		return
+	}
+
 	switch val.(type) {
 	case bool,
 		int8, int16, int32, int, int64,

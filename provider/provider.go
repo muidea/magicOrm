@@ -326,7 +326,7 @@ func (s *providerImpl) IsAssigned(vVal model.Value, vType model.Type) (ret bool)
 	}
 
 	curVal := vVal
-	originVal := vType.Interface()
+	originVal, _ := vType.Interface(nil)
 	curStr, curErr := s.encodeValueFunc(curVal, vType, s.modelCache)
 	if curErr != nil {
 		err := fmt.Errorf("IsAssigned, encodeValueFunc error, err:%s", curErr.Error())

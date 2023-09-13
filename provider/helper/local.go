@@ -27,11 +27,7 @@ func toBoolValue(rVal model.Value, lType model.Type) (ret model.Value, err error
 		return
 	}
 
-	lVal := lType.Interface()
-	lRawVal := reflect.Indirect(lVal.Get().(reflect.Value))
-	lRawVal.SetBool(bVal)
-
-	ret = lVal
+	ret, err = lType.Interface(bVal)
 	return
 }
 
@@ -50,11 +46,7 @@ func toIntValue(rVal model.Value, lType model.Type) (ret model.Value, err error)
 		return
 	}
 
-	lVal := lType.Interface()
-	lRawVal := reflect.Indirect(lVal.Get().(reflect.Value))
-	lRawVal.SetInt(iVal)
-
-	ret = lVal
+	ret, err = lType.Interface(iVal)
 	return
 }
 
@@ -73,11 +65,7 @@ func toUintValue(rVal model.Value, lType model.Type) (ret model.Value, err error
 		return
 	}
 
-	lVal := lType.Interface()
-	lRawVal := reflect.Indirect(lVal.Get().(reflect.Value))
-	lRawVal.SetUint(uiVal)
-
-	ret = lVal
+	ret, err = lType.Interface(uiVal)
 	return
 }
 
@@ -94,11 +82,7 @@ func toFloatValue(rVal model.Value, lType model.Type) (ret model.Value, err erro
 		return
 	}
 
-	lVal := lType.Interface()
-	lRawVal := reflect.Indirect(lVal.Get().(reflect.Value))
-	lRawVal.SetFloat(fVal)
-
-	ret = lVal
+	ret, err = lType.Interface(fVal)
 	return
 }
 
@@ -115,11 +99,7 @@ func toStringValue(rVal model.Value, lType model.Type) (ret model.Value, err err
 		return
 	}
 
-	lVal := lType.Interface()
-	lRawVal := reflect.Indirect(lVal.Get().(reflect.Value))
-	lRawVal.SetString(strVal)
-
-	ret = lVal
+	ret, err = lType.Interface(strVal)
 	return
 }
 
@@ -136,7 +116,7 @@ func toDateTimeValue(rVal model.Value, lType model.Type) (ret model.Value, err e
 		return
 	}
 
-	lVal := lType.Interface()
+	lVal, _ := lType.Interface(nil)
 	lRawVal := reflect.Indirect(lVal.Get().(reflect.Value))
 	lRawVal.Set(reflect.ValueOf(dtVal))
 
@@ -172,7 +152,7 @@ func toBasicSliceValue(rVal model.Value, lType model.Type) (ret model.Value, err
 		return
 	}
 
-	lVal := lType.Interface()
+	lVal, _ := lType.Interface(nil)
 	rValList, rErr := remote.ElemDependValue(rVal)
 	if rErr != nil {
 		err = rErr
@@ -300,7 +280,8 @@ func toLocalFieldValue(fieldVal *remote.FieldValue, lField model.Field) (err err
 }
 
 func toLocalValue(rVal *remote.ObjectValue, lType model.Type) (ret model.Value, err error) {
-	lModel, lErr := local.GetEntityModel(lType.Interface().Interface())
+	lVal, _ := lType.Interface(nil)
+	lModel, lErr := local.GetEntityModel(lVal.Interface())
 	if lErr != nil {
 		err = lErr
 		log.Error(err)
@@ -378,7 +359,7 @@ func toLocalSliceValue(sliceObjectValue *remote.SliceObjectValue, lType model.Ty
 		return
 	}
 
-	sliceEntityValue := lType.Interface()
+	sliceEntityValue, _ := lType.Interface(nil)
 	for idx := 0; idx < len(sliceObjectValue.Values); idx++ {
 		sliceItem := sliceObjectValue.Values[idx]
 		lVal, lErr := toLocalValue(sliceItem, lType.Elem())

@@ -227,11 +227,11 @@ func (s *impl) querySingleRelation(vModel model.Model, vField model.Field, deepL
 
 	valuesList, valueErr := s.queryRelationIDs(vModel, fieldModel, vField)
 	if valueErr != nil || len(valuesList) == 0 {
-		ret = fieldType.Interface()
+		ret, _ = fieldType.Interface(nil)
 		return
 	}
 
-	fieldValue := fieldType.Interface()
+	fieldValue, _ := fieldType.Interface(nil)
 	queryVal, queryErr := s.queryRelationSingle(valuesList[0], fieldModel, deepLevel+1)
 	if queryErr != nil {
 		err = queryErr
@@ -268,11 +268,11 @@ func (s *impl) querySliceRelation(vModel model.Model, vField model.Field, deepLe
 
 	valuesList, valueErr := s.queryRelationIDs(vModel, fieldModel, vField)
 	if valueErr != nil || len(valuesList) == 0 {
-		ret = fieldType.Interface()
+		ret, _ = fieldType.Interface(nil)
 		return
 	}
 
-	fieldValue := fieldType.Interface()
+	fieldValue, _ := fieldType.Interface(nil)
 	queryVal, queryErr := s.queryRelationSlice(valuesList, fieldModel, deepLevel+1)
 	if queryErr != nil {
 		err = queryErr
@@ -300,7 +300,7 @@ func (s *impl) querySliceRelation(vModel model.Model, vField model.Field, deepLe
 func (s *impl) queryRelation(vModel model.Model, vField model.Field, deepLevel int) (ret model.Value, err error) {
 	fieldType := vField.GetType()
 	if deepLevel > maxDeepLevel {
-		ret = fieldType.Interface()
+		ret, _ = fieldType.Interface(nil)
 		return
 	}
 

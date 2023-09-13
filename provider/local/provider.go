@@ -84,6 +84,7 @@ func GetModelFilter(vModel model.Model) (ret model.Filter, err error) {
 
 func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err error) {
 	if vVal.IsZero() {
+		ret = vModel
 		return
 	}
 

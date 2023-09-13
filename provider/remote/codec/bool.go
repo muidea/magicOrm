@@ -29,24 +29,6 @@ func (s *impl) encodeBool(vVal model.Value, vType model.Type) (ret interface{}, 
 
 // decodeBool decode bool from string
 func (s *impl) decodeBool(val interface{}, vType model.Type) (ret model.Value, err error) {
-	bVal := false
-	switch val.(type) {
-	case int8:
-		bVal = val.(int8) > 0
-	case string: // only for []bool decode
-		bVal = val.(string) == "1"
-	case float64: // only for []bool decode
-		bVal = val.(float64) == 1
-	default:
-		err = fmt.Errorf("decodeBool failed, illegal source boolean value, val:%v", val)
-	}
-	if err != nil {
-		return
-	}
-
-	tVal := vType.Interface()
-	tVal.Set(bVal)
-
-	ret = tVal
+	ret, err = vType.Interface(val)
 	return
 }

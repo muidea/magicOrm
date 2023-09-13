@@ -40,8 +40,12 @@ func (s *impl) decodeDateTime(val interface{}, vType model.Type) (ret model.Valu
 		err = fmt.Errorf("decodeDateTime failed, illegal dateTime value, val:%v", strVal)
 	}
 
-	tVal := vType.Interface()
-	tVal.Set(strVal)
+	tVal, _ := vType.Interface(nil)
+	err = tVal.Set(strVal)
+	if err != nil {
+		return
+	}
+
 	ret = tVal
 	return
 }

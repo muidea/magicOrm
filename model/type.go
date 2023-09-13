@@ -7,7 +7,7 @@ type Type interface {
 	GetValue() TypeDeclare
 	GetPkgKey() string
 	IsPtrType() bool
-	Interface() Value
+	Interface(initVal any) (Value, error)
 	// Elem 获取要素类型(如果非slice，则返回的是本身，如果是slice,则返回slice的elem类型)
 	Elem() Type
 	IsBasic() bool

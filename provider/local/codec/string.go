@@ -21,29 +21,6 @@ func (s *impl) encodeString(vVal model.Value, tType model.Type) (ret interface{}
 
 // decodeString decode string from string
 func (s *impl) decodeString(val interface{}, tType model.Type) (ret model.Value, err error) {
-	var strVal string
-	switch val.(type) {
-	case string:
-		strVal = val.(string)
-	default:
-		err = fmt.Errorf("decodeString failed, illegal string value, val:%v", val)
-	}
-	if err != nil {
-		return
-	}
-
-	tVal := tType.Interface()
-	rVal := reflect.Indirect(tVal.Get().(reflect.Value))
-	rVal.SetString(strVal)
-	if tType.IsPtrType() {
-		err = tVal.Set(rVal.Addr())
-	} else {
-		err = tVal.Set(rVal)
-	}
-
-	if err != nil {
-		return
-	}
-	ret = tVal
+	ret, err = tType.Interface(val)
 	return
 }
