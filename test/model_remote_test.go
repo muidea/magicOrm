@@ -1064,7 +1064,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	filter.Equal("name", &user1.Name)
+	filter.Equal("name", user1.Name)
 	filter.In("group", groupListVal)
 	filter.Like("email", user1.EMail)
 	filter.ValueMask(maskVal)
@@ -1376,7 +1376,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
-	filter.Equal("name", &user1.Name)
+	filter.Equal("name", user1.Name)
 	filter.In("group", groupListVal)
 	filter.Like("email", user1.EMail)
 	filter.ValueMask(maskVal)

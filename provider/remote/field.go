@@ -2,10 +2,7 @@ package remote
 
 import (
 	"fmt"
-	"reflect"
-
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/util"
 )
 
 type Field struct {
@@ -231,32 +228,6 @@ func (s *FieldValue) Set(val any) error {
 
 func (s *FieldValue) Get() any {
 	return s.Value
-}
-
-func (s *FieldValue) Addr() model.Value {
-	impl := &ValueImpl{value: &s.Value}
-	return impl
-}
-
-func (s *FieldValue) Interface() any {
-	return s.Value
-}
-
-func (s *FieldValue) IsBasic() bool {
-	if s.Value == nil {
-		return false
-	}
-
-	rValue := reflect.ValueOf(s.Value)
-	if rValue.Kind() == reflect.Interface {
-		rValue = rValue.Elem()
-	}
-	rType := rValue.Type()
-	if util.IsSlice(rType) {
-		rType = rType.Elem()
-	}
-
-	return !util.IsStruct(rType)
 }
 
 func (s *FieldValue) GetName() string {

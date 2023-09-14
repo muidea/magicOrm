@@ -111,17 +111,24 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 		return
 	}
 
-	rVal := vVal.Interface().(*ObjectValue)
-	if rVal.GetPkgKey() != vModel.GetPkgKey() {
-		err = fmt.Errorf("illegal model value, mode PkgKey:%s, value PkgKey:%s", vModel.GetPkgKey(), rVal.GetPkgKey())
+	val := vVal.Interface()
+	rValPtr, rValOK := val.(*ObjectValue)
+	if !rValOK {
+		rVal, rOK := val.(ObjectValue)
+		if !rOK {
+			err = fmt.Errorf("illegal model value")
+			return
+		}
+
+		rValPtr = &rVal
+	}
+
+	if rValPtr.GetPkgKey() != vModel.GetPkgKey() {
+		err = fmt.Errorf("illegal model value, mode PkgKey:%s, value PkgKey:%s", vModel.GetPkgKey(), rValPtr.GetPkgKey())
 		return
 	}
-	for idx := 0; idx < len(rVal.Fields); idx++ {
-		fieldVal := rVal.Fields[idx]
-		//if fieldVal.IsNil() {
-		//	continue
-		//}
-
+	for idx := 0; idx < len(rValPtr.Fields); idx++ {
+		fieldVal := rValPtr.Fields[idx]
 		err = vModel.SetFieldValue(fieldVal.GetName(), fieldVal.GetValue())
 	}
 
@@ -143,7 +150,21 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 		return
 	}
 
-	sliceObjectValue, sliceOK := vVal.Get().(*SliceObjectValue)
+	sliceObjectPtrValue, slicePtrOK := vVal.Get().(*SliceObjectValue)
+	if slicePtrOK {
+		for idx := 0; idx < len(sliceObjectPtrValue.Values); idx++ {
+			ret = append(ret, NewValue(sliceObjectPtrValue.Values[idx]))
+		}
+		return
+	}
+
+	objectPtrValue, objectPtrOK := vVal.Get().(*ObjectValue)
+	if objectPtrOK {
+		ret = append(ret, NewValue(objectPtrValue))
+		return
+	}
+
+	sliceObjectValue, sliceOK := vVal.Get().(SliceObjectValue)
 	if sliceOK {
 		for idx := 0; idx < len(sliceObjectValue.Values); idx++ {
 			ret = append(ret, NewValue(sliceObjectValue.Values[idx]))
@@ -151,7 +172,7 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 		return
 	}
 
-	objectValue, objectOK := vVal.Get().(*ObjectValue)
+	objectValue, objectOK := vVal.Get().(ObjectValue)
 	if objectOK {
 		ret = append(ret, NewValue(objectValue))
 		return

@@ -391,10 +391,6 @@ func getSliceObjectValue(sliceVal reflect.Value) (ret *remote.SliceObjectValue, 
 	}
 
 	sliceVal = reflect.Indirect(sliceVal)
-	if sliceVal.Len() == 0 {
-		return
-	}
-
 	ret = &remote.SliceObjectValue{Name: elemType.GetName(), PkgPath: elemType.GetPkgPath(), Values: []*remote.ObjectValue{}}
 	for idx := 0; idx < sliceVal.Len(); idx++ {
 		val := sliceVal.Index(idx)

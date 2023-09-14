@@ -125,8 +125,14 @@ func (s *impl) insertRelation(vModel model.Model, vField model.Field) (err error
 			return
 		}
 
-		rVal, _ := s.modelProvider.GetEntityValue(rModel.Interface(elemType.IsPtrType()))
-		err = fVal.Set(rVal.Get())
+		entityVal, entityErr := s.modelProvider.GetEntityValue(rModel.Interface(elemType.IsPtrType()))
+		if entityErr != nil {
+			log.Errorf("insertRelation failed, s.modelProvider.GetEntityValue error, err:%s", err.Error())
+			err = entityErr
+			return
+		}
+
+		err = fVal.Set(entityVal.Get())
 		if err != nil {
 			log.Errorf("insertRelation failed, fVal.Set error, err:%s", err.Error())
 			return

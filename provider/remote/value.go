@@ -31,7 +31,8 @@ func NewValue(val any) (ret *ValueImpl) {
 		[]uint8, []uint16, []uint32, []uint, []uint64,
 		[]float32, []float64,
 		[]string,
-		*ObjectValue, *SliceObjectValue:
+		*ObjectValue, *SliceObjectValue,
+		ObjectValue, SliceObjectValue:
 		valPtr.value = val
 	default:
 		err := fmt.Errorf("illegal value, val:%v", val)

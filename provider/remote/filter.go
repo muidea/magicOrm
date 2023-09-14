@@ -95,7 +95,8 @@ func (s *ObjectFilter) Equal(key string, val interface{}) (err error) {
 		uint8, uint16, uint32, uint, uint64,
 		float32, float64,
 		string,
-		*ObjectValue:
+		*ObjectValue,
+		ObjectValue:
 		item := &FieldValue{Name: key, Value: val}
 		s.EqualFilter = append(s.EqualFilter, item)
 	default:
@@ -330,7 +331,7 @@ func (s *ObjectFilter) MaskModel() model.Model {
 	maskObject := s.bindObject.Copy()
 	if s.MaskValue != nil {
 		for _, val := range s.MaskValue.Fields {
-			maskObject.SetFieldValue(val.Name, val)
+			maskObject.SetFieldValue(val.Name, val.GetValue())
 		}
 	}
 
