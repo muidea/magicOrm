@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"reflect"
 
-	log "github.com/cihub/seelog"
-
 	"github.com/muidea/magicOrm/model"
 )
 
@@ -57,11 +55,7 @@ func (s *field) GetValue() (ret model.Value) {
 }
 
 func (s *field) SetValue(val model.Value) (err error) {
-	err = s.valuePtr.Set(val.Get())
-	if err != nil {
-		log.Errorf("set field valuePtr failed, name:%s, err:%s", s.name, err.Error())
-	}
-
+	s.valuePtr = val.(*ValueImpl)
 	return
 }
 
@@ -85,10 +79,6 @@ func (s *field) copy() *field {
 	if s.specPtr != nil {
 		val.specPtr = s.specPtr.copy()
 	}
-	if s.valuePtr != nil {
-		val.valuePtr = s.valuePtr.Copy()
-	}
-
 	return val
 }
 

@@ -99,7 +99,13 @@ func (s *TypeImpl) IsBasic() bool {
 }
 
 func (s *TypeImpl) copy() (ret *TypeImpl) {
-	ret = &TypeImpl{Name: s.Name, Value: s.Value, PkgPath: s.PkgPath, IsPtr: s.IsPtr}
+	ret = &TypeImpl{
+		Name:        s.Name,
+		PkgPath:     s.PkgPath,
+		Description: s.Description,
+		Value:       s.Value,
+		IsPtr:       s.IsPtr,
+	}
 	if s.ElemType != nil {
 		ret.ElemType = s.ElemType.copy()
 	}

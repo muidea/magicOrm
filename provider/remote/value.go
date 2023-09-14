@@ -84,37 +84,7 @@ func (s *ValueImpl) IsZero() (ret bool) {
 }
 
 func (s *ValueImpl) Set(val any) (err error) {
-	if val == nil {
-		s.value = nil
-		return
-	}
-
-	sValueType := reflect.TypeOf(s.value).String()
-	vType := reflect.TypeOf(val).String()
-	if sValueType != vType {
-		err = fmt.Errorf("mismatch value type,  s.value type:%v, val type:%v", sValueType, vType)
-		return
-	}
-
-	switch val.(type) {
-	case bool,
-		int8, int16, int32, int, int64,
-		uint8, uint16, uint32, uint, uint64,
-		float32, float64,
-		string,
-		[]bool,
-		[]int8, []int16, []int32, []int, []int64,
-		[]uint8, []uint16, []uint32, []uint, []uint64,
-		[]float32, []float64,
-		[]string,
-		[]any,
-		*ObjectValue, *SliceObjectValue:
-		s.value = val
-	default:
-		err := fmt.Errorf("illegal value, val:%v", val)
-		panic(err.Error())
-	}
-
+	s.value = val
 	return
 }
 

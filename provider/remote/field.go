@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"reflect"
 
-	log "github.com/cihub/seelog"
-
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/util"
 )
@@ -62,20 +60,7 @@ func (s *Field) GetValue() (ret model.Value) {
 }
 
 func (s *Field) SetValue(val model.Value) (err error) {
-	defer func() {
-		if errInfo := recover(); errInfo != nil {
-			log.Errorf("SetValue failed, unexpected field, name:%v, err:%v", s.Name, errInfo)
-			err = fmt.Errorf("illegal value")
-		}
-	}()
-
-	valPtr, valErr := s.Type.Interface(val.Interface())
-	if valErr != nil {
-		err = valErr
-		return
-	}
-
-	s.value = valPtr.(*ValueImpl)
+	s.value = val.(*ValueImpl)
 	return
 }
 
@@ -87,8 +72,22 @@ func (s *Field) IsPrimaryKey() bool {
 	return s.Spec.IsPrimaryKey()
 }
 
-func (s *Field) copy() (ret model.Field) {
-	return &Field{Index: s.Index, Name: s.Name, Spec: s.Spec, Type: s.Type, value: s.value}
+func (s *Field) copy() (ret *Field) {
+	fPtr := &Field{
+		Index:       s.Index,
+		Name:        s.Name,
+		Description: s.Description,
+	}
+
+	if s.Spec != nil {
+		fPtr.Spec = s.Spec.copy()
+	}
+	if s.Type != nil {
+		fPtr.Type = s.Type.copy()
+	}
+
+	ret = fPtr
+	return
 }
 
 func (s *Field) verifyAutoIncrement(typeVal model.TypeDeclare) error {
