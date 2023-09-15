@@ -81,7 +81,7 @@ func (s *impl) querySingle(vModel model.Model, deepLevel int) (ret model.Model, 
 }
 
 func (s *impl) assignModelField(vModel model.Model, vField model.Field, deepLevel int) (err error) {
-	itemVal, itemErr := s.queryRelation(vModel, vField, deepLevel+1)
+	itemVal, itemErr := s.queryRelation(vModel, vField, deepLevel)
 	if itemErr != nil {
 		err = itemErr
 		return
@@ -112,7 +112,7 @@ func (s *impl) assignSingleModel(modelVal model.Model, queryVal resultItems, dee
 		fValue := field.GetValue()
 		if !fType.IsBasic() {
 			if !fValue.IsNil() {
-				err = s.assignModelField(modelVal, field, deepLevel+1)
+				err = s.assignModelField(modelVal, field, deepLevel)
 				if err != nil {
 					return
 				}
@@ -145,7 +145,7 @@ func (s *impl) queryRelationSingle(id int, vModel model.Model, deepLevel int) (r
 
 	pkField := relationModel.GetPrimaryField()
 	pkField.SetValue(relationVal)
-	queryVal, queryErr := s.querySingle(relationModel, deepLevel)
+	queryVal, queryErr := s.querySingle(relationModel, deepLevel+1)
 	if queryErr != nil {
 		err = queryErr
 		return
@@ -232,7 +232,7 @@ func (s *impl) querySingleRelation(vModel model.Model, vField model.Field, deepL
 	}
 
 	fieldValue, _ := fieldType.Interface(nil)
-	queryVal, queryErr := s.queryRelationSingle(valuesList[0], fieldModel, deepLevel+1)
+	queryVal, queryErr := s.queryRelationSingle(valuesList[0], fieldModel, deepLevel)
 	if queryErr != nil {
 		err = queryErr
 		log.Errorf("querySingleRelation failed, queryRelationSingle err:%v", err.Error())
