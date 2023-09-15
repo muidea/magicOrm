@@ -57,16 +57,13 @@ func declareFieldInfo(vField model.Field) (ret string, err error) {
 func getFieldType(info model.Field) (ret string, err error) {
 	fType := info.GetType()
 	switch fType.GetValue() {
-	case model.TypeBooleanValue:
-		ret = "TINYINT"
-		break
 	case model.TypeStringValue:
 		ret = "TEXT"
 		break
 	case model.TypeDateTimeValue:
 		ret = "DATETIME"
 		break
-	case model.TypeBitValue:
+	case model.TypeBooleanValue, model.TypeBitValue:
 		ret = "TINYINT"
 		break
 	case model.TypeSmallIntegerValue, model.TypePositiveBitValue:
@@ -96,24 +93,16 @@ func getFieldType(info model.Field) (ret string, err error) {
 func getFieldScanDestPtr(field model.Field) (ret interface{}, err error) {
 	fType := field.GetType()
 	switch fType.GetValue() {
-	case model.TypeBooleanValue:
-		val := int8(0)
-		ret = &val
-		break
 	case model.TypeStringValue, model.TypeDateTimeValue:
 		val := ""
 		ret = &val
 		break
-	case model.TypeBitValue:
+	case model.TypeBooleanValue, model.TypeBitValue:
 		val := int8(0)
 		ret = &val
 		break
 	case model.TypeSmallIntegerValue:
 		val := int16(0)
-		ret = &val
-		break
-	case model.TypePositiveBitValue:
-		val := uint8(0)
 		ret = &val
 		break
 	case model.TypeIntegerValue:
@@ -124,12 +113,16 @@ func getFieldScanDestPtr(field model.Field) (ret interface{}, err error) {
 		val := int32(0)
 		ret = &val
 		break
-	case model.TypePositiveSmallIntegerValue:
-		val := uint16(0)
-		ret = &val
-		break
 	case model.TypeBigIntegerValue:
 		val := int64(0)
+		ret = &val
+		break
+	case model.TypePositiveBitValue:
+		val := uint8(0)
+		ret = &val
+		break
+	case model.TypePositiveSmallIntegerValue:
+		val := uint16(0)
 		ret = &val
 		break
 	case model.TypePositiveIntegerValue:
