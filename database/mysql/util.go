@@ -39,12 +39,7 @@ func declareFieldInfo(vField model.Field) (ret string, err error) {
 	}
 
 	allowNull := "NOT NULL"
-	fType := vField.GetType()
-	if fType.IsPtrType() {
-		allowNull = ""
-	}
-
-	typeVal, typeErr := getFieldType(vField)
+	typeVal, typeErr := getTypeDeclare(vField.GetType())
 	if typeErr != nil {
 		err = typeErr
 		return
@@ -54,8 +49,7 @@ func declareFieldInfo(vField model.Field) (ret string, err error) {
 	return
 }
 
-func getFieldType(info model.Field) (ret string, err error) {
-	fType := info.GetType()
+func getTypeDeclare(fType model.Type) (ret string, err error) {
 	switch fType.GetValue() {
 	case model.TypeStringValue:
 		ret = "TEXT"
@@ -84,7 +78,27 @@ func getFieldType(info model.Field) (ret string, err error) {
 	case model.TypeSliceValue:
 		ret = "TEXT"
 	default:
-		err = fmt.Errorf("no support fileType, name:%s, type:%d", info.GetName(), fType.GetValue())
+		err = fmt.Errorf("no support field type, type:%v", fType.GetPkgKey())
+	}
+
+	return
+}
+
+func getTypeDefaultValue(fType model.Type) (ret string, err error) {
+	switch fType.GetValue() {
+	case model.TypeBooleanValue, model.TypeBitValue,
+		model.TypeSmallIntegerValue, model.TypePositiveBitValue,
+		model.TypeIntegerValue, model.TypeInteger32Value, model.TypePositiveSmallIntegerValue,
+		model.TypeBigIntegerValue, model.TypePositiveIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue,
+		model.TypeFloatValue, model.TypeDoubleValue:
+		ret = "0"
+		break
+	case model.TypeStringValue,
+		model.TypeDateTimeValue,
+		model.TypeSliceValue:
+		ret = "''"
+	default:
+		err = fmt.Errorf("no support field type, type:%v", fType.GetPkgKey())
 	}
 
 	return
@@ -150,10 +164,10 @@ func getFieldScanDestPtr(field model.Field) (ret interface{}, err error) {
 			val := ""
 			ret = &val
 		} else {
-			err = fmt.Errorf("no support fileType, name:%s, type:%d", field.GetName(), fType.GetValue())
+			err = fmt.Errorf("no support fileType, name:%s, type:%v", field.GetName(), fType.GetPkgKey())
 		}
 	default:
-		err = fmt.Errorf("no support fileType, name:%s, type:%d", field.GetName(), fType.GetValue())
+		err = fmt.Errorf("no support fileType, name:%s, type:%v", field.GetName(), fType.GetPkgKey())
 	}
 
 	return

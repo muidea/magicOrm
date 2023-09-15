@@ -131,7 +131,7 @@ func TestBuilderReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 	}
-	if str != "CREATE TABLE IF NOT EXISTS `abc_Ext` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`description` TEXT  ,\n\tPRIMARY KEY (`id`)\n)\n" {
+	if str != "CREATE TABLE IF NOT EXISTS `abc_Ext` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`description` TEXT NOT NULL ,\n\tPRIMARY KEY (`id`)\n)\n" {
 		t.Errorf("build create schema failed, str:%s", str)
 	}
 
@@ -147,7 +147,7 @@ func TestBuilderReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build insert failed, err:%s", err.Error())
 	}
-	if str != "INSERT INTO `abc_Ext` (`name`) VALUES ('')" {
+	if str != "INSERT INTO `abc_Ext` (`name`,`description`) VALUES ('','')" {
 		t.Errorf("build insert failed, str:%v", str)
 	}
 
@@ -199,8 +199,8 @@ func TestBuilderReference2(t *testing.T) {
 	if err != nil {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 	}
-	if str != "CREATE TABLE IF NOT EXISTS `abc_Ext` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`description` TEXT  ,\n\tPRIMARY KEY (`id`)\n)\n" {
-		t.Error("build create schema failed")
+	if str != "CREATE TABLE IF NOT EXISTS `abc_Ext` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`description` TEXT NOT NULL ,\n\tPRIMARY KEY (`id`)\n)\n" {
+		t.Errorf("build create schema failed, str:%v", str)
 	}
 
 	str, err = builder.BuildDropTable()
@@ -208,7 +208,7 @@ func TestBuilderReference2(t *testing.T) {
 		t.Errorf("build drop schema failed, err:%s", err.Error())
 	}
 	if str != "DROP TABLE IF EXISTS `abc_Ext`" {
-		t.Error("build drop schema failed")
+		t.Errorf("build drop schema failed, str:%v", str)
 	}
 
 	str, err = builder.BuildInsert()
@@ -216,7 +216,7 @@ func TestBuilderReference2(t *testing.T) {
 		t.Errorf("build insert failed, err:%s", err.Error())
 	}
 	if str != "INSERT INTO `abc_Ext` (`name`,`description`) VALUES ('','Desc')" {
-		t.Error("build insert failed")
+		t.Errorf("build insert failed, str:%v", str)
 	}
 
 	str, err = builder.BuildUpdate()
@@ -224,7 +224,7 @@ func TestBuilderReference2(t *testing.T) {
 		t.Errorf("build update failed, err:%s", err.Error())
 	}
 	if str != "UPDATE `abc_Ext` SET `name`='',`description`='Desc' WHERE `id`=10" {
-		t.Error("build update failed")
+		t.Errorf("build update failed, str:%v", str)
 	}
 
 	str, err = builder.BuildDelete()
@@ -232,7 +232,7 @@ func TestBuilderReference2(t *testing.T) {
 		t.Errorf("build delete failed, err:%s", err.Error())
 	}
 	if str != "DELETE FROM `abc_Ext` WHERE `id`=10" {
-		t.Error("build delete failed")
+		t.Errorf("build delete failed, str:%v", str)
 	}
 
 	str, err = builder.BuildQuery(nil)

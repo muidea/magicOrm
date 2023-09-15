@@ -44,14 +44,14 @@ func (s *Builder) BuildCreateTable() (ret string, err error) {
 // BuildCreateRelationTable Build CreateRelation Schema
 func (s *Builder) BuildCreateRelationTable(field model.Field, rModel model.Model) (ret string, err error) {
 	lPKField := s.GetPrimaryKeyField(nil)
-	lPKType, lErr := getFieldType(lPKField)
+	lPKType, lErr := getTypeDeclare(lPKField.GetType())
 	if lErr != nil {
 		err = lErr
 		return
 	}
 
 	rPKField := s.GetPrimaryKeyField(rModel)
-	rPKType, rErr := getFieldType(rPKField)
+	rPKType, rErr := getTypeDeclare(rPKField.GetType())
 	if rErr != nil {
 		err = rErr
 		return

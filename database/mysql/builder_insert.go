@@ -14,11 +14,17 @@ func (s *Builder) BuildInsert() (ret string, err error) {
 		fType := field.GetType()
 		fSpec := field.GetSpec()
 		fValue := field.GetValue()
-		if !fType.IsBasic() || fValue.IsNil() || fSpec.GetValueDeclare() == model.AutoIncrement {
+		if !fType.IsBasic() || fSpec.GetValueDeclare() == model.AutoIncrement {
 			continue
 		}
 
-		valStr, valErr := s.EncodeValue(fValue, fType)
+		var valStr string
+		var valErr error
+		if !fValue.IsNil() {
+			valStr, valErr = s.EncodeValue(fValue, fType)
+		} else {
+			valStr, valErr = getTypeDefaultValue(fType)
+		}
 		if valErr != nil {
 			err = valErr
 			return
