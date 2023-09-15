@@ -227,6 +227,8 @@ func getBasicValue(itemValue reflect.Value) (ret any, err error) {
 			} else {
 				err = fmt.Errorf("illegal basic value, value type:%v", itemValue.Type().String())
 			}
+		} else {
+			ret = ""
 		}
 	default:
 		err = fmt.Errorf("illegal basic value, value type:%v", itemValue.Type().String())
@@ -370,6 +372,10 @@ func GetObjectValue(entity interface{}) (ret *remote.ObjectValue, err error) {
 }
 
 func getSliceObjectValue(sliceVal reflect.Value) (ret *remote.SliceObjectValue, err error) {
+	if pu.IsNil(sliceVal) {
+		return
+	}
+
 	sliceType, sliceErr := newType(sliceVal.Type())
 	if sliceErr != nil {
 		err = fmt.Errorf("get slice object type failed, err:%s", err.Error())

@@ -132,6 +132,14 @@ func TestNilValue(t *testing.T) {
 		t.Errorf("Check mapVal ptr is nil failed")
 		return
 	}
+
+	intSlice := []int64{}
+	log.Printf("IsNil(reflect.ValueOf(intSlice)), val:%v", &intSlice)
+	// not nil
+	if IsNil(reflect.ValueOf(intSlice)) {
+		t.Errorf("Check intSlice ptr is nil failed")
+		return
+	}
 }
 
 func TestStructNilValue(t *testing.T) {
