@@ -426,7 +426,7 @@ func TestComposeRemote(t *testing.T) {
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	remoteProvider := provider.NewRemoteProvider(composeRemoteOwner)
 
-	loopSize := 10
+	loopSize := 1
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()

@@ -73,9 +73,26 @@ func (s *ValueImpl) IsZero() (ret bool) {
 		[]any:
 		return rVal.Len() == 0
 	case *ObjectValue:
-		return !s.value.(*ObjectValue).IsAssigned()
+		valuePtr, valueOK := s.value.(*ObjectValue)
+		if valueOK {
+			if valuePtr != nil {
+				return !valuePtr.IsAssigned()
+			}
+			return true
+		}
+
+		err := fmt.Errorf("illegal value, val:%v", s.value)
+		panic(err.Error())
 	case *SliceObjectValue:
-		return !s.value.(*SliceObjectValue).IsAssigned()
+		valuePtr, valueOK := s.value.(*SliceObjectValue)
+		if valueOK {
+			if valuePtr != nil {
+				return !valuePtr.IsAssigned()
+			}
+			return true
+		}
+		err := fmt.Errorf("illegal value, val:%v", s.value)
+		panic(err.Error())
 	default:
 		err := fmt.Errorf("illegal value, val:%v", s.value)
 		panic(err.Error())
