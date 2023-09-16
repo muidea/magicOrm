@@ -269,7 +269,7 @@ func getBasicSliceValue(itemValue reflect.Value) (ret any, err error) {
 }
 
 func getFieldValue(fieldName string, itemType *remote.TypeImpl, itemValue reflect.Value) (ret *remote.FieldValue, err error) {
-	if itemType.IsPtrType() && itemValue.IsNil() {
+	if itemType.IsPtrType() && itemValue.IsZero() {
 		ret = &remote.FieldValue{Name: fieldName, Value: nil}
 		return
 	}

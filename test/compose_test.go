@@ -421,7 +421,6 @@ func TestComposeLocal(t *testing.T) {
 }
 
 func TestComposeRemote(t *testing.T) {
-
 	orm.Initialize()
 	defer orm.Uninitialized()
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
