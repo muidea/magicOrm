@@ -156,22 +156,6 @@ func (s *Object) Verify() (err error) {
 	return
 }
 
-func EncodeObject(objPtr *Object) (ret []byte, err error) {
-	ret, err = json.Marshal(objPtr)
-	return
-}
-
-func DecodeObject(data []byte) (ret *Object, err error) {
-	objPtr := &Object{}
-	err = json.Unmarshal(data, objPtr)
-	if err != nil {
-		return
-	}
-
-	ret = objPtr
-	return
-}
-
 func CompareObject(l, r *Object) bool {
 	if l.Name != r.Name {
 		return false

@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
@@ -334,8 +335,7 @@ func getObjectValue(entityVal reflect.Value) (ret *remote.ObjectValue, err error
 
 	//!! must be String, not Name
 	ret = &remote.ObjectValue{Name: objType.GetName(), PkgPath: objType.GetPkgPath(), Fields: []*remote.FieldValue{}}
-	fieldNum := entityVal.NumField()
-	for idx := 0; idx < fieldNum; idx++ {
+	for idx := 0; idx < entityVal.NumField(); idx++ {
 		fieldType := entityType.Field(idx)
 		fieldName, fieldErr := getFieldName(fieldType)
 		if fieldErr != nil {
@@ -417,5 +417,21 @@ func getSliceObjectValue(sliceVal reflect.Value) (ret *remote.SliceObjectValue, 
 func GetSliceObjectValue(sliceEntity interface{}) (ret *remote.SliceObjectValue, err error) {
 	sliceValue := reflect.ValueOf(sliceEntity)
 	ret, err = getSliceObjectValue(sliceValue)
+	return
+}
+
+func EncodeObject(objPtr *remote.Object) (ret []byte, err error) {
+	ret, err = json.Marshal(objPtr)
+	return
+}
+
+func DecodeObject(data []byte) (ret *remote.Object, err error) {
+	objPtr := &remote.Object{}
+	err = json.Unmarshal(data, objPtr)
+	if err != nil {
+		return
+	}
+
+	ret = objPtr
 	return
 }
