@@ -109,12 +109,7 @@ func (s *Object) Interface(ptrValue bool) (ret any) {
 		objVal.Fields = append(objVal.Fields, &FieldValue{Name: v.Name, Value: v.value.Get()})
 	}
 
-	if ptrValue {
-		ret = objVal
-		return
-	}
-
-	ret = *objVal
+	ret = objVal
 	return
 }
 

@@ -131,8 +131,8 @@ func (s *impl) insertSingleRelation(vModel model.Model, vField model.Field) (err
 
 	entityVal, entityErr := s.modelProvider.GetEntityValue(rModel.Interface(elemType.IsPtrType()))
 	if entityErr != nil {
-		log.Errorf("insertSingleRelation failed, s.modelProvider.GetEntityValue error, err:%s", err.Error())
 		err = entityErr
+		log.Errorf("insertSingleRelation failed, s.modelProvider.GetEntityValue error, err:%s", err.Error())
 		return
 	}
 
@@ -193,8 +193,8 @@ func (s *impl) insertSliceRelation(vModel model.Model, vField model.Field) (err 
 
 		entityVal, entityErr := s.modelProvider.GetEntityValue(rModel.Interface(elemType.IsPtrType()))
 		if entityErr != nil {
-			log.Errorf("insertSliceRelation failed, s.modelProvider.GetEntityValue error, err:%s", err.Error())
 			err = entityErr
+			log.Errorf("insertSliceRelation failed, s.modelProvider.GetEntityValue error, err:%s", err.Error())
 			return
 		}
 

@@ -32,8 +32,7 @@ func NewValue(val any) (ret *ValueImpl) {
 		[]float32, []float64,
 		[]string,
 		[]any,
-		*ObjectValue, *SliceObjectValue,
-		ObjectValue, SliceObjectValue:
+		*ObjectValue, *SliceObjectValue:
 		valPtr.value = val
 	default:
 		err := fmt.Errorf("illegal value, val:%v", val)
@@ -75,12 +74,8 @@ func (s *ValueImpl) IsZero() (ret bool) {
 		return rVal.Len() == 0
 	case *ObjectValue:
 		return !s.value.(*ObjectValue).IsAssigned()
-	case ObjectValue:
-		return !s.value.(ObjectValue).IsAssigned()
 	case *SliceObjectValue:
 		return !s.value.(*SliceObjectValue).IsAssigned()
-	case SliceObjectValue:
-		return !s.value.(SliceObjectValue).IsAssigned()
 	default:
 		err := fmt.Errorf("illegal value, val:%v", s.value)
 		panic(err.Error())
