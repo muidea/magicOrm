@@ -12,7 +12,7 @@ func (s *impl) encodeString(vVal model.Value, tType model.Type) (ret interface{}
 	case string:
 		ret = vVal.Get().(string)
 	default:
-		err = fmt.Errorf("encodeSting failed, illegal string value, value:%s", vVal.Get())
+		err = fmt.Errorf("encodeSting failed, illegal string value, value:%v", vVal.Get())
 	}
 
 	return

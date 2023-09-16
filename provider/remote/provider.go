@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"strings"
 
+	log "github.com/cihub/seelog"
+
 	fu "github.com/muidea/magicCommon/foundation/util"
 
 	"github.com/muidea/magicOrm/model"
@@ -102,6 +104,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
 			err = fmt.Errorf("SetModelValue failed, illegal value, err:%v", errInfo)
+			log.Errorf("SetModelValue failed, err:%s", err.Error())
 			return
 		}
 	}()
@@ -114,39 +117,32 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 	val := vVal.Interface()
 	rValPtr, rValOK := val.(*ObjectValue)
 	if !rValOK {
-		rVal, rOK := val.(ObjectValue)
-		if !rOK {
-			err = fmt.Errorf("illegal model value")
-			return
-		}
-
-		rValPtr = &rVal
+		err = fmt.Errorf("illegal model value")
+		log.Errorf("SetModelValue failed, err:%s", err.Error())
+		return
 	}
 
 	if rValPtr.GetPkgKey() != vModel.GetPkgKey() {
 		err = fmt.Errorf("illegal model value, mode PkgKey:%s, value PkgKey:%s", vModel.GetPkgKey(), rValPtr.GetPkgKey())
+		log.Errorf("SetModelValue failed, err:%s", err.Error())
 		return
 	}
 	for idx := 0; idx < len(rValPtr.Fields); idx++ {
 		fieldVal := rValPtr.Fields[idx]
 		err = vModel.SetFieldValue(fieldVal.GetName(), fieldVal.GetValue())
+		if err != nil {
+			log.Errorf("SetModelValue failed, vModel.SetFieldValue err:%s", err.Error())
+		}
 	}
 
 	ret = vModel
 	return
 }
 
-func elemSlice[T any](valSlice []T) (ret []model.Value) {
-	for idx := 0; idx < len(valSlice); idx++ {
-		ret = append(ret, NewValue(valSlice[idx]))
-	}
-
-	return
-}
-
 func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 	if vVal.IsNil() {
-		err = fmt.Errorf("illegal value")
+		err = fmt.Errorf("vVal is nil")
+		log.Errorf("ElemDependValue failed, er:%s", err.Error())
 		return
 	}
 
@@ -157,27 +153,13 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 		}
 		return
 	}
-
-	objectPtrValue, objectPtrOK := vVal.Get().(*ObjectValue)
-	if objectPtrOK {
-		ret = append(ret, NewValue(objectPtrValue))
-		return
-	}
-
-	sliceObjectValue, sliceOK := vVal.Get().(SliceObjectValue)
-	if sliceOK {
-		for idx := 0; idx < len(sliceObjectValue.Values); idx++ {
-			ret = append(ret, NewValue(sliceObjectValue.Values[idx]))
+	/*
+		objectPtrValue, objectPtrOK := vVal.Get().(*ObjectValue)
+		if objectPtrOK {
+			ret = append(ret, NewValue(objectPtrValue))
+			return
 		}
-		return
-	}
-
-	objectValue, objectOK := vVal.Get().(ObjectValue)
-	if objectOK {
-		ret = append(ret, NewValue(objectValue))
-		return
-	}
-
+	*/
 	rVal := reflect.ValueOf(vVal.Get())
 	if rVal.Kind() != reflect.Slice {
 		ret = append(ret, NewValue(vVal.Get()))
@@ -191,36 +173,23 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 }
 
 func AppendSliceValue(sliceVal model.Value, vVal model.Value) (ret model.Value, err error) {
-	var sliceObjectValuePtr *SliceObjectValue
-	var objectValuePtr *ObjectValue
-	sliceValuePtr, sliceValuePtrOK := sliceVal.Get().(*SliceObjectValue)
-	if sliceValuePtrOK {
-		sliceObjectValuePtr = sliceValuePtr
-	}
-	sliceValue, sliceValueOK := sliceVal.Get().(SliceObjectValue)
-	if sliceValueOK {
-		sliceObjectValuePtr = &sliceValue
-	}
-	if sliceObjectValuePtr == nil {
+	sliceObjectValuePtr, sliceObjectValueOK := sliceVal.Get().(*SliceObjectValue)
+	if sliceObjectValuePtr == nil || !sliceObjectValueOK {
 		err = fmt.Errorf("illegal slice item value")
+		log.Errorf("AppendSliceValue failed, err:%s", err.Error())
 		return
 	}
 
-	valuePtr, valuePtrOK := vVal.Get().(*ObjectValue)
-	if valuePtrOK {
-		objectValuePtr = valuePtr
-	}
-	value, valueOK := vVal.Get().(ObjectValue)
-	if valueOK {
-		objectValuePtr = &value
-	}
-	if objectValuePtr == nil {
+	objectValuePtr, objectValueOK := vVal.Get().(*ObjectValue)
+	if objectValuePtr == nil || !objectValueOK {
 		err = fmt.Errorf("illegal item value")
+		log.Errorf("AppendSliceValue failed, err:%s", err.Error())
 		return
 	}
 
 	if sliceObjectValuePtr.GetPkgKey() != objectValuePtr.GetPkgKey() {
 		err = fmt.Errorf("mismatch slice value, slice pkgKey:%v, item pkgkey:%v", sliceObjectValuePtr.GetPkgKey(), objectValuePtr.GetPkgKey())
+		log.Errorf("AppendSliceValue failed, err:%s", err.Error())
 		return
 	}
 
@@ -233,6 +202,7 @@ func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, codec c
 	tModel := mCache.Fetch(vType.GetPkgKey())
 	if tModel == nil {
 		err = fmt.Errorf("illegal value type,type:%s", vType.GetName())
+		log.Errorf("encodeModel failed, err:%s", err.Error())
 		return
 	}
 

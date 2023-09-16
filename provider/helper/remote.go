@@ -245,13 +245,13 @@ func getBasicSliceValue(itemValue reflect.Value) (ret any, err error) {
 		err = fmt.Errorf("illegal basic slice value, value type:%v", itemValue.Type().String())
 	}
 	if err != nil {
+		log.Errorf("getBasicSliceValue failed, err:%s", err.Error())
 		return
 	}
 
-	//itemSize := itemValue.Len()
-	//if itemSize == 0 {
-	//	return
-	//}
+	if itemValue.IsNil() {
+		return
+	}
 
 	subValList := []any{}
 	for idx := 0; idx < itemValue.Len(); idx++ {
