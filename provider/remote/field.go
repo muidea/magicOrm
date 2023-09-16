@@ -82,6 +82,9 @@ func (s *Field) copy() (ret *Field) {
 	if s.Type != nil {
 		fPtr.Type = s.Type.copy()
 	}
+	if s.value != nil {
+		fPtr.value = s.value.Copy()
+	}
 
 	ret = fPtr
 	return

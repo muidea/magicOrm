@@ -2,10 +2,6 @@ package codec
 
 import (
 	"fmt"
-	"time"
-
-	"github.com/muidea/magicCommon/foundation/util"
-
 	"github.com/muidea/magicOrm/model"
 )
 
@@ -23,29 +19,6 @@ func (s *impl) encodeDateTime(vVal model.Value, vType model.Type) (ret interface
 
 // decodeDateTime decode datetime from string
 func (s *impl) decodeDateTime(val interface{}, vType model.Type) (ret model.Value, err error) {
-	strVal := ""
-	switch val.(type) {
-	case string:
-		strVal = val.(string)
-	default:
-		err = fmt.Errorf("decodeDateTime failed, illegal dateTime value, val:%v", val)
-	}
-
-	if err != nil {
-		return
-	}
-
-	_, dtErr := time.Parse(util.CSTLayout, strVal)
-	if dtErr != nil {
-		err = fmt.Errorf("decodeDateTime failed, illegal dateTime value, val:%v", strVal)
-	}
-
-	tVal, _ := vType.Interface(nil)
-	err = tVal.Set(strVal)
-	if err != nil {
-		return
-	}
-
-	ret = tVal
+	ret, err = vType.Interface(val)
 	return
 }

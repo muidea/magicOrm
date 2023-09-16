@@ -122,7 +122,7 @@ func (s *impl) assignSingleModel(modelVal model.Model, queryVal resultItems, dee
 			continue
 		}
 
-		if !fValue.IsNil() {
+		if !fType.IsPtrType() || !fValue.IsNil() {
 			err = s.assignBasicField(fType, field, queryVal[offset])
 			if err != nil {
 				return

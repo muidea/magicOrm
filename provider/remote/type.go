@@ -2,10 +2,10 @@ package remote
 
 import (
 	"fmt"
-	"github.com/muidea/magicOrm/provider/util"
 	"path"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider/util"
 )
 
 type TypeImpl struct {
@@ -51,12 +51,30 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err error) {
 		switch s.GetValue() {
 		case model.TypeBooleanValue:
 			initVal, err = util.GetBool(initVal)
-		case model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeIntegerValue, model.TypeBigIntegerValue:
+		case model.TypeBitValue:
+			initVal, err = util.GetInt8(initVal)
+		case model.TypeSmallIntegerValue:
+			initVal, err = util.GetInt16(initVal)
+		case model.TypeInteger32Value:
+			initVal, err = util.GetInt32(initVal)
+		case model.TypeIntegerValue:
 			initVal, err = util.GetInt(initVal)
-		case model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveIntegerValue, model.TypePositiveBigIntegerValue:
+		case model.TypeBigIntegerValue:
+			initVal, err = util.GetInt64(initVal)
+		case model.TypePositiveBitValue:
+			initVal, err = util.GetUint8(initVal)
+		case model.TypePositiveSmallIntegerValue:
+			initVal, err = util.GetUint16(initVal)
+		case model.TypePositiveInteger32Value:
+			initVal, err = util.GetUint32(initVal)
+		case model.TypePositiveIntegerValue:
 			initVal, err = util.GetUint(initVal)
-		case model.TypeFloatValue, model.TypeDoubleValue:
-			initVal, err = util.GetFloat(initVal)
+		case model.TypePositiveBigIntegerValue:
+			initVal, err = util.GetUint64(initVal)
+		case model.TypeFloatValue:
+			initVal, err = util.GetFloat32(initVal)
+		case model.TypeDoubleValue:
+			initVal, err = util.GetFloat64(initVal)
 		case model.TypeStringValue:
 			initVal, err = util.GetString(initVal)
 		case model.TypeDateTimeValue:

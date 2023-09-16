@@ -79,6 +79,9 @@ func (s *field) copy() *field {
 	if s.specPtr != nil {
 		val.specPtr = s.specPtr.copy()
 	}
+	if s.valuePtr != nil {
+		val.valuePtr = s.valuePtr.Copy()
+	}
 	return val
 }
 

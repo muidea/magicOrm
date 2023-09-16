@@ -248,10 +248,10 @@ func getBasicSliceValue(itemValue reflect.Value) (ret any, err error) {
 		return
 	}
 
-	itemSize := itemValue.Len()
-	if itemSize == 0 {
-		return
-	}
+	//itemSize := itemValue.Len()
+	//if itemSize == 0 {
+	//	return
+	//}
 
 	subValList := []any{}
 	for idx := 0; idx < itemValue.Len(); idx++ {

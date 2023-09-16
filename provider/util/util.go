@@ -349,7 +349,103 @@ func GetBool(val any) (ret bool, err error) {
 	return
 }
 
-func GetInt(val any) (ret int64, err error) {
+func GetInt(val any) (ret int, err error) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	switch rVal.Kind() {
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+		ret = int(rVal.Int())
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
+		ret = int(rVal.Uint())
+	case reflect.Float32, reflect.Float64:
+		ret = int(rVal.Float())
+	case reflect.String:
+		i64, iErr := strconv.ParseInt(rVal.String(), 0, 64)
+		if iErr != nil {
+			err = iErr
+			return
+		}
+
+		ret = int(i64)
+	default:
+		err = fmt.Errorf("illegal int value, val type:%v", rVal.Type().String())
+	}
+
+	return
+}
+
+func GetInt8(val any) (ret int8, err error) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	switch rVal.Kind() {
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+		ret = int8(rVal.Int())
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
+		ret = int8(rVal.Uint())
+	case reflect.Float32, reflect.Float64:
+		ret = int8(rVal.Float())
+	case reflect.String:
+		i64, iErr := strconv.ParseInt(rVal.String(), 0, 64)
+		if iErr != nil {
+			err = iErr
+			return
+		}
+
+		ret = int8(i64)
+	default:
+		err = fmt.Errorf("illegal int8 value, val type:%v", rVal.Type().String())
+	}
+
+	return
+}
+
+func GetInt16(val any) (ret int16, err error) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	switch rVal.Kind() {
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+		ret = int16(rVal.Int())
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
+		ret = int16(rVal.Uint())
+	case reflect.Float32, reflect.Float64:
+		ret = int16(rVal.Float())
+	case reflect.String:
+		i64, iErr := strconv.ParseInt(rVal.String(), 0, 64)
+		if iErr != nil {
+			err = iErr
+			return
+		}
+
+		ret = int16(i64)
+	default:
+		err = fmt.Errorf("illegal int16 value, val type:%v", rVal.Type().String())
+	}
+
+	return
+}
+
+func GetInt32(val any) (ret int32, err error) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	switch rVal.Kind() {
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+		ret = int32(rVal.Int())
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
+		ret = int32(rVal.Uint())
+	case reflect.Float32, reflect.Float64:
+		ret = int32(rVal.Float())
+	case reflect.String:
+		i64, iErr := strconv.ParseInt(rVal.String(), 0, 64)
+		if iErr != nil {
+			err = iErr
+			return
+		}
+
+		ret = int32(i64)
+	default:
+		err = fmt.Errorf("illegal int32 value, val type:%v", rVal.Type().String())
+	}
+
+	return
+}
+
+func GetInt64(val any) (ret int64, err error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	switch rVal.Kind() {
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
@@ -359,9 +455,15 @@ func GetInt(val any) (ret int64, err error) {
 	case reflect.Float32, reflect.Float64:
 		ret = int64(rVal.Float())
 	case reflect.String:
-		ret, err = strconv.ParseInt(rVal.String(), 0, 64)
+		i64, iErr := strconv.ParseInt(rVal.String(), 0, 64)
+		if iErr != nil {
+			err = iErr
+			return
+		}
+
+		ret = i64
 	default:
-		err = fmt.Errorf("illegal int value, val type:%v", rVal.Type().String())
+		err = fmt.Errorf("illegal int64 value, val type:%v", rVal.Type().String())
 	}
 
 	return
@@ -385,6 +487,98 @@ func GetUint(val any) (ret uint64, err error) {
 	return
 }
 
+func GetUint8(val any) (ret uint8, err error) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	switch rVal.Kind() {
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+		ret = uint8(rVal.Int())
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
+		ret = uint8(rVal.Uint())
+	case reflect.Float32, reflect.Float64:
+		ret = uint8(rVal.Float())
+	case reflect.String:
+		uiVal, uiErr := strconv.ParseUint(rVal.String(), 0, 64)
+		if uiErr != nil {
+			err = uiErr
+			return
+		}
+		ret = uint8(uiVal)
+	default:
+		err = fmt.Errorf("illegal uint8 value, val type:%v", rVal.Type().String())
+	}
+
+	return
+}
+
+func GetUint16(val any) (ret uint16, err error) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	switch rVal.Kind() {
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+		ret = uint16(rVal.Int())
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
+		ret = uint16(rVal.Uint())
+	case reflect.Float32, reflect.Float64:
+		ret = uint16(rVal.Float())
+	case reflect.String:
+		uiVal, uiErr := strconv.ParseUint(rVal.String(), 0, 64)
+		if uiErr != nil {
+			err = uiErr
+			return
+		}
+		ret = uint16(uiVal)
+	default:
+		err = fmt.Errorf("illegal uint16 value, val type:%v", rVal.Type().String())
+	}
+
+	return
+}
+
+func GetUint32(val any) (ret uint32, err error) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	switch rVal.Kind() {
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+		ret = uint32(rVal.Int())
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
+		ret = uint32(rVal.Uint())
+	case reflect.Float32, reflect.Float64:
+		ret = uint32(rVal.Float())
+	case reflect.String:
+		uiVal, uiErr := strconv.ParseUint(rVal.String(), 0, 64)
+		if uiErr != nil {
+			err = uiErr
+			return
+		}
+		ret = uint32(uiVal)
+	default:
+		err = fmt.Errorf("illegal uint32 value, val type:%v", rVal.Type().String())
+	}
+
+	return
+}
+
+func GetUint64(val any) (ret uint64, err error) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	switch rVal.Kind() {
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+		ret = uint64(rVal.Int())
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
+		ret = rVal.Uint()
+	case reflect.Float32, reflect.Float64:
+		ret = uint64(rVal.Float())
+	case reflect.String:
+		uiVal, uiErr := strconv.ParseUint(rVal.String(), 0, 64)
+		if uiErr != nil {
+			err = uiErr
+			return
+		}
+		ret = uiVal
+	default:
+		err = fmt.Errorf("illegal uint64 value, val type:%v", rVal.Type().String())
+	}
+
+	return
+}
+
 func GetFloat(val any) (ret float64, err error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	switch rVal.Kind() {
@@ -398,6 +592,54 @@ func GetFloat(val any) (ret float64, err error) {
 		ret, err = strconv.ParseFloat(rVal.String(), 64)
 	default:
 		err = fmt.Errorf("illegal float value, val type:%v", rVal.Type().String())
+	}
+
+	return
+}
+
+func GetFloat32(val any) (ret float32, err error) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	switch rVal.Kind() {
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+		ret = float32(rVal.Int())
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
+		ret = float32(rVal.Uint())
+	case reflect.Float32, reflect.Float64:
+		ret = float32(rVal.Float())
+	case reflect.String:
+		fVal, fErr := strconv.ParseFloat(rVal.String(), 32)
+		if fErr != nil {
+			err = fErr
+			return
+		}
+
+		ret = float32(fVal)
+	default:
+		err = fmt.Errorf("illegal float32 value, val type:%v", rVal.Type().String())
+	}
+
+	return
+}
+
+func GetFloat64(val any) (ret float64, err error) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	switch rVal.Kind() {
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+		ret = float64(rVal.Int())
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
+		ret = float64(rVal.Uint())
+	case reflect.Float32, reflect.Float64:
+		ret = rVal.Float()
+	case reflect.String:
+		fVal, fErr := strconv.ParseFloat(rVal.String(), 64)
+		if fErr != nil {
+			err = fErr
+			return
+		}
+
+		ret = fVal
+	default:
+		err = fmt.Errorf("illegal float64 value, val type:%v", rVal.Type().String())
 	}
 
 	return

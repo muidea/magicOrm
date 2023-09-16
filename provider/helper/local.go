@@ -43,26 +43,43 @@ func toBasicSliceValue(rVal model.Value, lType model.Type) (ret model.Value, err
 }
 
 func toStructValue(rVal model.Value, lType model.Type) (ret model.Value, err error) {
-	objectValuePtr, objectValueOK := rVal.Get().(*remote.ObjectValue)
-	if objectValueOK {
-		ret, err = toLocalValue(objectValuePtr, lType)
+	var objectValuePtr *remote.ObjectValue
+	valuePtr, valuePtrOK := rVal.Get().(*remote.ObjectValue)
+	if valuePtrOK {
+		objectValuePtr = valuePtr
+	}
+	value, valueOK := rVal.Get().(remote.ObjectValue)
+	if valueOK {
+		objectValuePtr = &value
+	}
+	if objectValuePtr == nil {
+		err = fmt.Errorf("illegal remote object value")
+		log.Error(err)
 		return
 	}
 
-	err = fmt.Errorf("illegal remote object value")
-	log.Error(err)
+	ret, err = toLocalValue(objectValuePtr, lType)
 	return
 }
 
 func toStructSliceValue(rVal model.Value, lType model.Type) (ret model.Value, err error) {
-	sliceObjectValuePtr, sliceObjectValueOK := rVal.Get().(*remote.SliceObjectValue)
-	if sliceObjectValueOK {
-		ret, err = toLocalSliceValue(sliceObjectValuePtr, lType)
+	var sliceObjectValuePtr *remote.SliceObjectValue
+	valuePtr, valuePtrOK := rVal.Get().(*remote.SliceObjectValue)
+	if valuePtrOK {
+		sliceObjectValuePtr = valuePtr
+	}
+	value, valueOK := rVal.Get().(remote.SliceObjectValue)
+	if valueOK {
+		sliceObjectValuePtr = &value
+	}
+	if sliceObjectValuePtr == nil {
+		err = fmt.Errorf("illegal remote slice value")
 		return
 	}
 
-	err = fmt.Errorf("illegal remote slice value")
+	ret, err = toLocalSliceValue(sliceObjectValuePtr, lType)
 	return
+
 }
 
 // UpdateEntity update object value -> entity

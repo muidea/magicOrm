@@ -470,7 +470,7 @@ func TestLocalSystem(t *testing.T) {
 	}
 	sys1 = sys1Model.Interface(true).(*System)
 
-	sys2 := &System{ID: sys1.ID, Users: &[]User{}}
+	sys2 := &System{ID: sys1.ID, Users: &[]User{}, Tags: []string{}}
 	sys2Model, sys2Err := localProvider.GetEntityModel(sys2)
 	if sys2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", sys2Err.Error())

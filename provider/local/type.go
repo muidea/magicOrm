@@ -75,13 +75,13 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err error) {
 			initVal, err = util.GetBool(initVal)
 			tVal.SetBool(initVal.(bool))
 		case model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeIntegerValue, model.TypeBigIntegerValue:
-			initVal, err = util.GetInt(initVal)
+			initVal, err = util.GetInt64(initVal)
 			tVal.SetInt(initVal.(int64))
 		case model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveIntegerValue, model.TypePositiveBigIntegerValue:
-			initVal, err = util.GetUint(initVal)
+			initVal, err = util.GetUint64(initVal)
 			tVal.SetUint(initVal.(uint64))
 		case model.TypeFloatValue, model.TypeDoubleValue:
-			initVal, err = util.GetFloat(initVal)
+			initVal, err = util.GetFloat64(initVal)
 			tVal.SetFloat(initVal.(float64))
 		case model.TypeStringValue:
 			initVal, err = util.GetString(initVal)

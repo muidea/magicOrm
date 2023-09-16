@@ -191,25 +191,41 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 }
 
 func AppendSliceValue(sliceVal model.Value, vVal model.Value) (ret model.Value, err error) {
-	sliceValuePtr, sliceValueOK := sliceVal.Get().(*SliceObjectValue)
-	if !sliceValueOK {
-		err = fmt.Errorf("illegal slice value")
+	var sliceObjectValuePtr *SliceObjectValue
+	var objectValuePtr *ObjectValue
+	sliceValuePtr, sliceValuePtrOK := sliceVal.Get().(*SliceObjectValue)
+	if sliceValuePtrOK {
+		sliceObjectValuePtr = sliceValuePtr
+	}
+	sliceValue, sliceValueOK := sliceVal.Get().(SliceObjectValue)
+	if sliceValueOK {
+		sliceObjectValuePtr = &sliceValue
+	}
+	if sliceObjectValuePtr == nil {
+		err = fmt.Errorf("illegal slice item value")
 		return
 	}
 
-	valuePtr, valueOK := vVal.Get().(*ObjectValue)
-	if !valueOK {
+	valuePtr, valuePtrOK := vVal.Get().(*ObjectValue)
+	if valuePtrOK {
+		objectValuePtr = valuePtr
+	}
+	value, valueOK := vVal.Get().(ObjectValue)
+	if valueOK {
+		objectValuePtr = &value
+	}
+	if objectValuePtr == nil {
 		err = fmt.Errorf("illegal item value")
 		return
-
 	}
-	if sliceValuePtr.GetPkgKey() != valuePtr.GetPkgKey() {
-		err = fmt.Errorf("mismatch slice value, slice pkgKey:%v, item pkgkey:%v", sliceValuePtr.GetPkgKey(), valuePtr.GetPkgKey())
+
+	if sliceObjectValuePtr.GetPkgKey() != objectValuePtr.GetPkgKey() {
+		err = fmt.Errorf("mismatch slice value, slice pkgKey:%v, item pkgkey:%v", sliceObjectValuePtr.GetPkgKey(), objectValuePtr.GetPkgKey())
 		return
 	}
 
-	sliceValuePtr.Values = append(sliceValuePtr.Values, valuePtr)
-	ret = NewValue(sliceValuePtr)
+	sliceObjectValuePtr.Values = append(sliceObjectValuePtr.Values, objectValuePtr)
+	ret = NewValue(sliceObjectValuePtr)
 	return
 }
 

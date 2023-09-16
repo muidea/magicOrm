@@ -228,7 +228,7 @@ func (s *ObjectValue) isFieldAssigned(val *FieldValue) (ret bool) {
 }
 
 // IsAssigned is assigned value
-func (s *ObjectValue) IsAssigned() (ret bool) {
+func (s ObjectValue) IsAssigned() (ret bool) {
 	ret = false
 	for _, val := range s.Fields {
 		ret = s.isFieldAssigned(val)
@@ -269,7 +269,7 @@ func (s *SliceObjectValue) GetPkgKey() string {
 }
 
 // IsAssigned is assigned value
-func (s *SliceObjectValue) IsAssigned() (ret bool) {
+func (s SliceObjectValue) IsAssigned() (ret bool) {
 	ret = len(s.Values) > 0
 	return
 }

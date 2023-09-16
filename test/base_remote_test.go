@@ -538,6 +538,7 @@ func TestRemoteCompose(t *testing.T) {
 		PR4:          &[]Simple{},
 		PtrReference: &Reference{},
 		RefArray:     []Reference{},
+		RefPtrArray:  []*Reference{},
 		PtrRefArray:  []*Reference{},
 		PtrCompose:   &Compose{},
 	}

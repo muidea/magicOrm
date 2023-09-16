@@ -487,7 +487,7 @@ func TestRemoteUser(t *testing.T) {
 		return
 	}
 
-	user2 := &User{ID: user1.ID}
+	user2 := &User{ID: user1.ID, Group: []*Group{}}
 	user2Val, objErr := getObjectValue(user2)
 	if objErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
