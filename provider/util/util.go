@@ -17,14 +17,6 @@ import (
 )
 
 const (
-	NameTag    = "Name"
-	ValueTag   = "Value"
-	PkgPathTag = "PkgPath"
-	FieldsTag  = "Fields"
-	ValuesTag  = "Values"
-)
-
-const (
 	Key       = "key"
 	Auto      = "auto"
 	UUID      = "uuid"
@@ -129,6 +121,10 @@ func IsStruct(tType reflect.Type) bool {
 
 func IsMap(tType reflect.Type) bool {
 	return tType.Kind() == reflect.Map
+}
+
+func IsPtr(tType reflect.Type) bool {
+	return tType.Kind() == reflect.Ptr
 }
 
 // GetTypeEnum return field type as type constant from reflect.Value

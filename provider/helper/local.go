@@ -46,7 +46,7 @@ func toStructValue(rVal model.Value, lType model.Type) (ret model.Value, err err
 	objectValuePtr, objectValueOK := rVal.Get().(*remote.ObjectValue)
 	if objectValuePtr == nil || !objectValueOK {
 		err = fmt.Errorf("illegal remote object value")
-		log.Errorf("toStructValue failed, erro:%s", err.Error())
+		log.Errorf("toStructValue failed, error:%s", err.Error())
 		return
 	}
 
