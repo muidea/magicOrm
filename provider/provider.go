@@ -13,7 +13,7 @@ import (
 type Provider interface {
 	RegisterModel(entity interface{}) (ret model.Model, err error)
 
-	UnregisterModel(entity interface{})
+	UnregisterModel(entity interface{}) (ret model.Model, err error)
 
 	GetEntityType(entity interface{}) (ret model.Type, err error)
 
@@ -133,9 +133,10 @@ func (s *providerImpl) RegisterModel(entity interface{}) (ret model.Model, err e
 	return
 }
 
-func (s *providerImpl) UnregisterModel(entity interface{}) {
+func (s *providerImpl) UnregisterModel(entity interface{}) (ret model.Model, err error) {
 	modelType, modelErr := s.getTypeFunc(entity)
 	if modelErr != nil {
+		err = modelErr
 		return
 	}
 
@@ -148,6 +149,7 @@ func (s *providerImpl) UnregisterModel(entity interface{}) {
 
 		s.modelCache.Remove(curModel.GetPkgKey())
 	}
+	ret = curModel
 	return
 }
 
