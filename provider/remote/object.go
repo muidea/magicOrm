@@ -273,6 +273,16 @@ func (s *SliceObjectValue) Copy() (ret *SliceObjectValue) {
 	return
 }
 
+func TransferObjectValue(name, pkgPath string, vals []*ObjectValue) (ret *SliceObjectValue) {
+	ret = &SliceObjectValue{
+		Name:    name,
+		PkgPath: pkgPath,
+		Values:  vals,
+	}
+
+	return
+}
+
 // EncodeObjectValue encode objectValue to []byte
 func EncodeObjectValue(objVal *ObjectValue) (ret []byte, err error) {
 	ret, err = json.Marshal(objVal)
