@@ -7,8 +7,6 @@ import (
 
 	log "github.com/cihub/seelog"
 
-	fu "github.com/muidea/magicCommon/foundation/util"
-
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/remote/codec"
 	"github.com/muidea/magicOrm/provider/util"
@@ -303,7 +301,7 @@ func GetValue(valueDeclare model.ValueDeclare) (ret model.Value) {
 	case model.UUID:
 		rVal = util.GetNewUUID()
 	case model.DateTime:
-		rVal = util.GetCurrentDateTime().Format(fu.CSTLayout)
+		rVal = util.GetCurrentDateTimeStr()
 	}
 	if rVal != nil {
 		ret = NewValue(rVal)

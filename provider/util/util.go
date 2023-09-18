@@ -47,6 +47,11 @@ func GetCurrentDateTime() (ret time.Time) {
 	return
 }
 
+func GetCurrentDateTimeStr() (ret string) {
+	ret = time.Now().UTC().Format(fu.CSTLayout)
+	return
+}
+
 func GetNewUUID() (ret string) {
 	ret = fu.NewUUID()
 	return
@@ -570,24 +575,6 @@ func GetUint64(val any) (ret uint64, err error) {
 		ret = uiVal
 	default:
 		err = fmt.Errorf("illegal uint64 value, val type:%v", rVal.Type().String())
-	}
-
-	return
-}
-
-func GetFloat(val any) (ret float64, err error) {
-	rVal := reflect.Indirect(reflect.ValueOf(val))
-	switch rVal.Kind() {
-	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
-		ret = float64(rVal.Int())
-	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
-		ret = float64(rVal.Uint())
-	case reflect.Float32, reflect.Float64:
-		ret = rVal.Float()
-	case reflect.String:
-		ret, err = strconv.ParseFloat(rVal.String(), 64)
-	default:
-		err = fmt.Errorf("illegal float value, val type:%v", rVal.Type().String())
 	}
 
 	return
