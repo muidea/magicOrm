@@ -10,6 +10,14 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
+const (
+	nameTag    = "name"
+	pkgPathTag = "pkgPath"
+	fieldsTag  = "fields"
+	valuesTag  = "values"
+	valueTag   = "value"
+)
+
 type Object struct {
 	Name        string   `json:"name"`
 	PkgPath     string   `json:"pkgPath"`
@@ -180,12 +188,10 @@ func CompareObject(l, r *Object) bool {
 	return true
 }
 
-// GetName get object name
 func (s *ObjectValue) GetName() string {
 	return s.Name
 }
 
-// GetPkgPath get pkg path
 func (s *ObjectValue) GetPkgPath() string {
 	return s.PkgPath
 }
@@ -206,7 +212,6 @@ func (s *ObjectValue) isFieldAssigned(val *FieldValue) (ret bool) {
 	return
 }
 
-// IsAssigned is assigned value
 func (s *ObjectValue) IsAssigned() (ret bool) {
 	ret = false
 	for _, val := range s.Fields {
@@ -233,12 +238,10 @@ func (s *ObjectValue) Copy() (ret *ObjectValue) {
 	return
 }
 
-// GetName get object name
 func (s *SliceObjectValue) GetName() string {
 	return s.Name
 }
 
-// GetPkgPath get pkg path
 func (s *SliceObjectValue) GetPkgPath() string {
 	return s.PkgPath
 }
@@ -247,7 +250,6 @@ func (s *SliceObjectValue) GetPkgKey() string {
 	return path.Join(s.GetPkgPath(), s.GetName())
 }
 
-// IsAssigned is assigned value
 func (s *SliceObjectValue) IsAssigned() (ret bool) {
 	ret = len(s.Values) > 0
 	return
@@ -285,9 +287,9 @@ func EncodeSliceObjectValue(objVal *SliceObjectValue) (ret []byte, err error) {
 
 // decodeObjectValueFromMap decode object value from map
 func decodeObjectValueFromMap(mapVal map[string]interface{}) (ret *ObjectValue, err error) {
-	nameVal, nameOK := mapVal["name"]
-	pkgPathVal, pkgPathOK := mapVal["pkgPath"]
-	itemsVal, itemsOK := mapVal["fields"]
+	nameVal, nameOK := mapVal[nameTag]
+	pkgPathVal, pkgPathOK := mapVal[pkgPathTag]
+	itemsVal, itemsOK := mapVal[fieldsTag]
 	if !nameOK || !pkgPathOK || !itemsOK {
 		err = fmt.Errorf("illegal ObjectValue")
 		return
@@ -320,9 +322,9 @@ func decodeObjectValueFromMap(mapVal map[string]interface{}) (ret *ObjectValue, 
 
 // decodeSliceObjectValueFromMap decode slice object value from map
 func decodeSliceObjectValueFromMap(mapVal map[string]interface{}) (ret *SliceObjectValue, err error) {
-	nameVal, nameOK := mapVal["name"]
-	pkgPathVal, pkgPathOK := mapVal["pkgPath"]
-	valuesVal, valuesOK := mapVal["values"]
+	nameVal, nameOK := mapVal[nameTag]
+	pkgPathVal, pkgPathOK := mapVal[pkgPathTag]
+	valuesVal, valuesOK := mapVal[valuesTag]
 	if !nameOK || !pkgPathOK || !valuesOK {
 		err = fmt.Errorf("illegal SliceObjectValue")
 		return
@@ -354,9 +356,9 @@ func decodeSliceObjectValueFromMap(mapVal map[string]interface{}) (ret *SliceObj
 }
 
 func decodeItemValue(itemVal map[string]interface{}) (ret *FieldValue, err error) {
-	nameVal, nameOK := itemVal["name"]
-	valVal, valOK := itemVal["value"]
-	if !nameOK || !valOK {
+	nameVal, nameOK := itemVal[nameTag]
+	valVal, _ := itemVal[valueTag]
+	if !nameOK {
 		err = fmt.Errorf("illegal item value")
 	}
 
@@ -365,12 +367,11 @@ func decodeItemValue(itemVal map[string]interface{}) (ret *FieldValue, err error
 	return
 }
 
-// ConvertItem convert FieldValue
 func ConvertItem(val *FieldValue) (ret *FieldValue, err error) {
 	objVal, objOK := val.Value.(map[string]interface{})
 	// for struct or slice struct
 	if objOK {
-		_, itemsOK := objVal["fields"]
+		_, itemsOK := objVal[fieldsTag]
 		if itemsOK {
 			ret = &FieldValue{Name: val.Name}
 
@@ -384,7 +385,7 @@ func ConvertItem(val *FieldValue) (ret *FieldValue, err error) {
 			return
 		}
 
-		_, valuesOK := objVal["values"]
+		_, valuesOK := objVal[valuesTag]
 		if valuesOK {
 			ret = &FieldValue{Name: val.Name}
 
