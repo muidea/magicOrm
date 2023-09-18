@@ -138,7 +138,6 @@ func getFieldName(fieldType reflect.StructField) (ret string, err error) {
 	return
 }
 
-// type2Object type2Object
 func type2Object(entityType reflect.Type) (ret *remote.Object, err error) {
 	if entityType.Kind() == reflect.Ptr {
 		entityType = entityType.Elem()
@@ -153,10 +152,13 @@ func type2Object(entityType reflect.Type) (ret *remote.Object, err error) {
 	typeImpl, typeErr := newType(entityType)
 	if typeErr != nil {
 		err = fmt.Errorf("illegal entity type, must be a struct obj, type:%s", entityType.String())
+		log.Errorf("type2Object failed, check entity type err:%s", err.Error())
 		return
 	}
+
 	if !model.IsStructType(typeImpl.GetValue()) {
-		err = fmt.Errorf("illegal obj type, must be a struct obj, type:%s", entityType.String())
+		err = fmt.Errorf("illegal object type, must be a struct obj, type:%s", entityType.String())
+		log.Errorf("type2Object failed, check object type err:%s", err.Error())
 		return
 	}
 
@@ -172,11 +174,13 @@ func type2Object(entityType reflect.Type) (ret *remote.Object, err error) {
 		fItem, fErr := getItemInfo(idx, fieldType)
 		if fErr != nil {
 			err = fErr
+			log.Errorf("type2Object failed, getItemInfo err:%s", err.Error())
 			return
 		}
 		if fItem.IsPrimaryKey() {
 			if hasPrimaryKey {
 				err = fmt.Errorf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldType.Name, impl.GetName())
+				log.Errorf("type2Object failed, check primary key err:%s", err.Error())
 				return
 			}
 
@@ -188,11 +192,13 @@ func type2Object(entityType reflect.Type) (ret *remote.Object, err error) {
 
 	if len(impl.Fields) == 0 {
 		err = fmt.Errorf("no define orm field, struct name:%s", impl.GetName())
+		log.Errorf("type2Object failed, check fields err:%s", err.Error())
 		return
 	}
 
 	if !hasPrimaryKey {
 		err = fmt.Errorf("no define primary key field, struct name:%s", impl.GetName())
+		log.Errorf("type2Object failed, check primary key err:%s", err.Error())
 		return
 	}
 
@@ -205,13 +211,20 @@ func GetObject(entity interface{}) (ret *remote.Object, err error) {
 	entityType := reflect.ValueOf(entity).Type()
 	ret, err = type2Object(entityType)
 	if err != nil {
-		log.Errorf("type2Object failed, raw type:%s, err:%s", entityType.String(), err.Error())
+		log.Errorf("GetObject failed, type2Object err:%s", err.Error())
 	}
 
 	return
 }
 
 func getBasicValue(itemValue reflect.Value) (ret any, err error) {
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = fmt.Errorf("illegal item value, %v", errInfo)
+			log.Errorf("getBasicValue failed, err:%v", err.Error())
+		}
+	}()
+
 	itemValue = reflect.Indirect(itemValue)
 	switch itemValue.Kind() {
 	case reflect.Bool,
@@ -239,6 +252,13 @@ func getBasicValue(itemValue reflect.Value) (ret any, err error) {
 }
 
 func getBasicSliceValue(itemValue reflect.Value) (ret any, err error) {
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = fmt.Errorf("illegal item value, %v", errInfo)
+			log.Errorf("getBasicSliceValue failed, err:%v", err.Error())
+		}
+	}()
+
 	itemValue = reflect.Indirect(itemValue)
 	switch itemValue.Kind() {
 	case reflect.Slice:
@@ -259,6 +279,7 @@ func getBasicSliceValue(itemValue reflect.Value) (ret any, err error) {
 		subVal, subErr := getBasicValue(itemValue.Index(idx))
 		if subErr != nil {
 			err = subErr
+			log.Errorf("getBasicSliceValue failed, getBasicValue err:%s", err.Error())
 			return
 		}
 
@@ -280,6 +301,7 @@ func getFieldValue(fieldName string, itemType *remote.TypeImpl, itemValue reflec
 			itemVal, itemErr := getBasicValue(itemValue)
 			if itemErr != nil {
 				err = itemErr
+				log.Errorf("getFieldValue failed, getBasicValue err:%s", err.Error())
 				return
 			}
 
@@ -290,7 +312,7 @@ func getFieldValue(fieldName string, itemType *remote.TypeImpl, itemValue reflec
 		objVal, objErr := getObjectValue(itemValue)
 		if objErr != nil {
 			err = objErr
-			log.Errorf("GetObjectValue failed, raw type:%s, err:%s", itemType.GetName(), err.Error())
+			log.Errorf("getFieldValue failed, getObjectValue err:%s", err.Error())
 			return
 		}
 
@@ -302,6 +324,7 @@ func getFieldValue(fieldName string, itemType *remote.TypeImpl, itemValue reflec
 		itemVal, itemErr := getBasicSliceValue(itemValue)
 		if itemErr != nil {
 			err = itemErr
+			log.Errorf("getFieldValue failed, getBasicSliceValue err:%s", err.Error())
 			return
 		}
 
@@ -312,7 +335,7 @@ func getFieldValue(fieldName string, itemType *remote.TypeImpl, itemValue reflec
 	objVal, objErr := getSliceObjectValue(itemValue)
 	if objErr != nil {
 		err = objErr
-		log.Errorf("getSliceObjectValue failed, raw type:%s, err:%s", itemType.GetName(), err.Error())
+		log.Errorf("getFieldValue failed, getSliceObjectValue err:%s", err.Error())
 		return
 	}
 
@@ -326,10 +349,12 @@ func getObjectValue(entityVal reflect.Value) (ret *remote.ObjectValue, err error
 	objType, objErr := newType(entityType)
 	if objErr != nil {
 		err = objErr
+		log.Errorf("getObjectValue failed, newType err:%s", err.Error())
 		return
 	}
 	if !model.IsStructType(objType.GetValue()) {
-		err = fmt.Errorf("illegal entity, entity type:%s", entityType.String())
+		err = fmt.Errorf("illegal entity value, entity type:%s", entityType.String())
+		log.Errorf("getObjectValue failed, check object type err:%s", err.Error())
 		return
 	}
 
@@ -379,20 +404,20 @@ func getSliceObjectValue(sliceVal reflect.Value) (ret *remote.SliceObjectValue, 
 	sliceType, sliceErr := newType(sliceVal.Type())
 	if sliceErr != nil {
 		err = fmt.Errorf("get slice object type failed, err:%s", err.Error())
-		log.Errorf("GetSliceObjectValue failed, slice type name:%s", sliceType.GetName())
+		log.Errorf("getSliceObjectValue failed, newType err:%v", err.Error())
 		return
 	}
 
 	if !model.IsSliceType(sliceType.GetValue()) {
 		err = fmt.Errorf("illegal slice object value")
-		log.Errorf("illegal slice type, slice type name:%s", sliceType.GetName())
+		log.Errorf("getSliceObjectValue failed, check slice type err:%s", err.Error())
 		return
 	}
 
 	elemType := sliceType.Elem()
 	if !model.IsStructType(elemType.GetValue()) {
 		err = fmt.Errorf("illegal slice item type")
-		log.Errorf("illegal slice elem type, type%s", elemType.GetName())
+		log.Errorf("getSliceObjectValue failed, check slice item err:%s", err.Error())
 		return
 	}
 
@@ -403,7 +428,7 @@ func getSliceObjectValue(sliceVal reflect.Value) (ret *remote.SliceObjectValue, 
 		objVal, objErr := getObjectValue(val)
 		if objErr != nil {
 			err = objErr
-			log.Errorf("GetObjectValue failed, type%s, err:%s", val.Type().String(), err.Error())
+			log.Errorf("getSliceObjectValue failed, getObjectValue err:%s", err.Error())
 			return
 		}
 
