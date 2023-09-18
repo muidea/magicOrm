@@ -43,10 +43,10 @@ func (s *Builder) BuildInsert() (ret string, err error) {
 		}
 	}
 
-	sql := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.GetTableName(), fieldNames, fieldValues)
-	//log.Print(sql)
-	ret = sql
+	str := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.GetTableName(), fieldNames, fieldValues)
+	//log.Print(str)
 
+	ret = str
 	return
 }
 
@@ -58,8 +58,9 @@ func (s *Builder) BuildInsertRelation(vField model.Field, rModel model.Model) (r
 		return
 	}
 	relationTableName := s.GetRelationTableName(vField, rModel)
-	ret = fmt.Sprintf("INSERT INTO `%s` (`left`, `right`) VALUES (%v,%v);", relationTableName, leftVal, rightVal)
+	str := fmt.Sprintf("INSERT INTO `%s` (`left`, `right`) VALUES (%v,%v);", relationTableName, leftVal, rightVal)
 	//log.Print(ret)
 
+	ret = str
 	return
 }

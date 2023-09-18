@@ -37,23 +37,22 @@ func (s *Builder) BuildCreateTable() (ret string, err error) {
 	//log.Print(str)
 
 	ret = str
-
 	return
 }
 
 // BuildCreateRelationTable Build CreateRelation Schema
 func (s *Builder) BuildCreateRelationTable(field model.Field, rModel model.Model) (ret string, err error) {
 	lPKField := s.GetPrimaryKeyField(nil)
-	lPKType, lErr := getTypeDeclare(lPKField.GetType())
-	if lErr != nil {
-		err = lErr
+	lPKType, lPKErr := getTypeDeclare(lPKField.GetType())
+	if lPKErr != nil {
+		err = lPKErr
 		return
 	}
 
 	rPKField := s.GetPrimaryKeyField(rModel)
-	rPKType, rErr := getTypeDeclare(rPKField.GetType())
-	if rErr != nil {
-		err = rErr
+	rPKType, rPKErr := getTypeDeclare(rPKField.GetType())
+	if rPKErr != nil {
+		err = rPKErr
 		return
 	}
 
@@ -61,7 +60,7 @@ func (s *Builder) BuildCreateRelationTable(field model.Field, rModel model.Model
 	str := fmt.Sprintf("\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`left` %s NOT NULL,\n\t`right` %s NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`)", lPKType, rPKType)
 	str = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", relationTableName, str)
 	//log.Print(str)
-	ret = str
 
+	ret = str
 	return
 }

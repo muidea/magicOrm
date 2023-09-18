@@ -7,18 +7,20 @@ import (
 )
 
 // BuildDropTable  BuildDropSchema
-func (s *Builder) BuildDropTable() (string, error) {
+func (s *Builder) BuildDropTable() (ret string, err error) {
 	str := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", s.GetTableName())
 	//log.Print(str)
 
-	return str, nil
+	ret = str
+	return
 }
 
 // BuildDropRelationTable Build DropRelation Schema
-func (s *Builder) BuildDropRelationTable(field model.Field, rModel model.Model) (string, error) {
+func (s *Builder) BuildDropRelationTable(field model.Field, rModel model.Model) (ret string, err error) {
 	relationTableName := s.GetRelationTableName(field, rModel)
 	str := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", relationTableName)
 	//log.Print(str)
 
-	return str, nil
+	ret = str
+	return
 }

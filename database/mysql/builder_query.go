@@ -28,7 +28,7 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret string, err error) {
 			ret = fmt.Sprintf("%s WHERE %s", ret, filterSQL)
 		}
 
-		sortVal, sortErr := s.buildSortFilter(filter.Sorter())
+		sortVal, sortErr := s.buildSorter(filter.Sorter())
 		if sortErr != nil {
 			err = sortErr
 			return
@@ -158,7 +158,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 	return
 }
 
-func (s *Builder) buildSortFilter(filter model.Sorter) (ret string, err error) {
+func (s *Builder) buildSorter(filter model.Sorter) (ret string, err error) {
 	if filter == nil {
 		return
 	}
@@ -171,7 +171,7 @@ func (s *Builder) buildSortFilter(filter model.Sorter) (ret string, err error) {
 	}
 
 	err = fmt.Errorf("illegal sort field name:%s", filter.Name())
-	log.Warnf("buildSortFilter failed, err:%s", err.Error())
+	log.Errorf("buildSorter failed, err:%s", err.Error())
 	return
 }
 

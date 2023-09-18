@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"fmt"
+
 	"github.com/muidea/magicOrm/database/common"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"

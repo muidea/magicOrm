@@ -17,9 +17,10 @@ func (s *Builder) BuildDelete() (ret string, err error) {
 		return
 	}
 
-	ret = fmt.Sprintf("DELETE FROM `%s` WHERE %s", s.GetTableName(), filterStr)
-	//log.Print(ret)
+	str := fmt.Sprintf("DELETE FROM `%s` WHERE %s", s.GetTableName(), filterStr)
+	//log.Print(str)
 
+	ret = str
 	return
 }
 
