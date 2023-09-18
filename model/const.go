@@ -97,3 +97,11 @@ func IsSliceType(typeValue TypeDeclare) bool {
 func IsMapType(typeVal TypeDeclare) bool {
 	return typeVal == TypeMapValue
 }
+
+func IsBasicSlice(tType Type) bool {
+	return tType.IsBasic() && IsSliceType(tType.GetValue())
+}
+
+func IsStructSlice(tType Type) bool {
+	return !tType.IsBasic() && IsSliceType(tType.GetValue())
+}

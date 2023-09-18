@@ -25,12 +25,11 @@ func toBasicValue(rVal model.Value, lType model.Type) (ret model.Value, err erro
 
 func toBasicSliceValue(rVal model.Value, lType model.Type) (ret model.Value, err error) {
 	if !model.IsSliceType(lType.GetValue()) {
-		err = fmt.Errorf("illegal value, type pkgKey:%v", lType.GetPkgKey())
+		err = fmt.Errorf("illegal slice value, type pkgKey:%v", lType.GetPkgKey())
 		log.Errorf("toBasicSliceValue failed, err:%v", err.Error())
 		return
 	}
 
-	lVal, _ := lType.Interface(nil)
 	rValList, rErr := remote.ElemDependValue(rVal)
 	if rErr != nil {
 		err = rErr
@@ -38,6 +37,7 @@ func toBasicSliceValue(rVal model.Value, lType model.Type) (ret model.Value, err
 		return
 	}
 
+	lVal, _ := lType.Interface(nil)
 	lSubType := lType.Elem()
 	for idx := 0; idx < len(rValList); idx++ {
 		lSubVal, lSubErr := toBasicValue(rValList[idx], lSubType)
@@ -61,7 +61,7 @@ func toBasicSliceValue(rVal model.Value, lType model.Type) (ret model.Value, err
 func toLocalFieldValue(fieldVal *remote.FieldValue, lField model.Field) (err error) {
 	lType := lField.GetType()
 	// basic slice
-	if lType.IsBasic() && model.IsSliceType(lType.GetValue()) {
+	if model.IsBasicSlice(lType) {
 		lVal, lErr := toBasicSliceValue(fieldVal.GetValue(), lType)
 		if lErr != nil {
 			err = lErr
@@ -70,7 +70,7 @@ func toLocalFieldValue(fieldVal *remote.FieldValue, lField model.Field) (err err
 		}
 		err = lField.SetValue(lVal)
 		if err != nil {
-			log.Errorf("toLocalFieldValue failed, lField.SetValue err:%v", err.Error())
+			log.Errorf("toLocalFieldValue failed, basic slice lField.SetValue err:%v", err.Error())
 		}
 		return
 	}
@@ -86,13 +86,13 @@ func toLocalFieldValue(fieldVal *remote.FieldValue, lField model.Field) (err err
 		}
 		err = lField.SetValue(lVal)
 		if err != nil {
-			log.Errorf("toLocalFieldValue failed, lField.SetValue err:%v", err.Error())
+			log.Errorf("toLocalFieldValue failed, basic lField.SetValue err:%v", err.Error())
 		}
 		return
 	}
 
 	// struct slice
-	if model.IsSliceType(lType.GetValue()) {
+	if model.IsStructSlice(lType) {
 		lVal, lErr := toStructSliceValue(fieldVal.GetValue(), lType)
 		if lErr != nil {
 			err = lErr
@@ -101,7 +101,7 @@ func toLocalFieldValue(fieldVal *remote.FieldValue, lField model.Field) (err err
 		}
 		err = lField.SetValue(lVal)
 		if err != nil {
-			log.Errorf("toLocalFieldValue failed, lField.SetValue err:%v", err.Error())
+			log.Errorf("toLocalFieldValue failed, struct slice lField.SetValue err:%v", err.Error())
 		}
 		return
 	}
@@ -116,7 +116,7 @@ func toLocalFieldValue(fieldVal *remote.FieldValue, lField model.Field) (err err
 
 	err = lField.SetValue(lVal)
 	if err != nil {
-		log.Errorf("toLocalFieldValue failed, lField.SetValue err:%v", err.Error())
+		log.Errorf("toLocalFieldValue failed, struct lField.SetValue err:%v", err.Error())
 	}
 	return
 }
