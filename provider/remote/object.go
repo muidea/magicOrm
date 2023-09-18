@@ -207,7 +207,7 @@ func (s *ObjectValue) isFieldAssigned(val *FieldValue) (ret bool) {
 }
 
 // IsAssigned is assigned value
-func (s ObjectValue) IsAssigned() (ret bool) {
+func (s *ObjectValue) IsAssigned() (ret bool) {
 	ret = false
 	for _, val := range s.Fields {
 		ret = s.isFieldAssigned(val)
@@ -248,7 +248,7 @@ func (s *SliceObjectValue) GetPkgKey() string {
 }
 
 // IsAssigned is assigned value
-func (s SliceObjectValue) IsAssigned() (ret bool) {
+func (s *SliceObjectValue) IsAssigned() (ret bool) {
 	ret = len(s.Values) > 0
 	return
 }
@@ -268,31 +268,6 @@ func (s *SliceObjectValue) Copy() (ret *SliceObjectValue) {
 	}
 
 	ret = ptr
-	return
-}
-
-func GetMapValue(entity interface{}) (ret interface{}, err error) {
-	mVal, mOK := entity.(map[string]interface{})
-	if !mOK {
-		err = fmt.Errorf("illegal map value")
-		return
-	}
-	ret, mOK = mVal["id"]
-	if !mOK {
-		err = fmt.Errorf("illegal map value, miss id")
-		return
-	}
-
-	return
-}
-
-func TransferObjectValue(name, pkgPath string, vals []*ObjectValue) (ret *SliceObjectValue) {
-	ret = &SliceObjectValue{
-		Name:    name,
-		PkgPath: pkgPath,
-		Values:  vals,
-	}
-
 	return
 }
 
