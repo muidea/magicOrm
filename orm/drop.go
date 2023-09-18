@@ -29,7 +29,7 @@ func (s *impl) dropRelation(vModel model.Model, vField model.Field, rModel model
 	return
 }
 
-func (s *impl) batchDropSchema(vModel model.Model) (err error) {
+func (s *impl) dropSchema(vModel model.Model) (err error) {
 	err = s.dropSingle(vModel)
 	if err != nil {
 		return
@@ -71,6 +71,6 @@ func (s *impl) Drop(vModel model.Model) (err error) {
 	}
 	defer s.finalTransaction(err)
 
-	err = s.batchDropSchema(vModel)
+	err = s.dropSchema(vModel)
 	return
 }

@@ -29,7 +29,7 @@ func (s *impl) createRelation(vModel model.Model, vField model.Field, rModel mod
 	return
 }
 
-func (s *impl) batchCreateSchema(vModel model.Model) (err error) {
+func (s *impl) createSchema(vModel model.Model) (err error) {
 	err = s.createSingle(vModel)
 	if err != nil {
 		return
@@ -71,6 +71,6 @@ func (s *impl) Create(vModel model.Model) (err error) {
 	}
 	defer s.finalTransaction(err)
 
-	err = s.batchCreateSchema(vModel)
+	err = s.createSchema(vModel)
 	return
 }

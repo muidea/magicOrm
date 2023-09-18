@@ -93,7 +93,7 @@ func (s *impl) deleteRelation(vModel model.Model, rField model.Field, deepLevel 
 
 	elemType := rType.Elem()
 	if !elemType.IsPtrType() {
-		fieldVal, fieldErr := s.queryRelation(vModel, rField, deepLevel)
+		fieldVal, fieldErr := s.queryRelation(vModel, rField, maxDeepLevel-1)
 		if fieldErr == nil && !fieldVal.IsNil() {
 			if model.IsStructType(rType.GetValue()) {
 				err = s.deleteRelationStructInner(fieldVal, rType, deepLevel)
