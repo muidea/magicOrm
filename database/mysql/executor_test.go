@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	log "github.com/cihub/seelog"
+	"github.com/muidea/magicCommon/foundation/log"
 )
 
 const (
@@ -41,8 +41,6 @@ func TestNewPool(t *testing.T) {
 			log.Errorf("execute failed, elapse:%v, err:%v", elapse, err)
 			return
 		}
-
-		log.Infof("execute ok, elapse:%v", elapse)
 	}()
 
 	wg := &sync.WaitGroup{}

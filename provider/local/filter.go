@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	log "github.com/cihub/seelog"
+	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicCommon/foundation/util"
 
@@ -47,7 +47,7 @@ func (s *filter) Equal(key string, val interface{}) (err error) {
 	}
 	if om.IsSliceType(qvType) {
 		err = fmt.Errorf("equal failed, illegal value type, type:%s", qv.Type().String())
-		log.Error(err.Error())
+		log.Errorf("Equal failed, err:%v", err.Error())
 		return
 	}
 
@@ -66,7 +66,7 @@ func (s *filter) NotEqual(key string, val interface{}) (err error) {
 	}
 	if om.IsSliceType(qvType) {
 		err = fmt.Errorf("NotEqual failed, illegal value type, type:%s", qv.Type().String())
-		log.Error(err.Error())
+		log.Errorf("NotEqual failed, err:%v", err.Error())
 		return
 	}
 
@@ -85,7 +85,7 @@ func (s *filter) Below(key string, val interface{}) (err error) {
 	}
 	if !om.IsBasicType(qvType) {
 		err = fmt.Errorf("below failed, illegal value type, type:%s", qv.Type().String())
-		log.Error(err.Error())
+		log.Errorf("Below failed, err:%v", err.Error())
 		return
 	}
 
@@ -104,7 +104,7 @@ func (s *filter) Above(key string, val interface{}) (err error) {
 	}
 	if !om.IsBasicType(qvType) {
 		err = fmt.Errorf("above failed, illegal value type, type:%s", qv.Type().String())
-		log.Error(err.Error())
+		log.Errorf("Above failed, err:%v", err.Error())
 		return
 	}
 
@@ -123,7 +123,7 @@ func (s *filter) In(key string, val interface{}) (err error) {
 	}
 	if !om.IsSliceType(qvType) {
 		err = fmt.Errorf("in failed, illegal value type, type:%s", qv.Type().String())
-		log.Error(err.Error())
+		log.Errorf("In failed, err:%v", err.Error())
 		return
 	}
 
@@ -142,7 +142,7 @@ func (s *filter) NotIn(key string, val interface{}) (err error) {
 	}
 	if !om.IsSliceType(qvType) {
 		err = fmt.Errorf("notIn failed, illegal value type, type:%s", qv.Type().String())
-		log.Error(err.Error())
+		log.Errorf("NotIn failed, err:%v", err.Error())
 		return
 	}
 
@@ -178,7 +178,7 @@ func (s *filter) ValueMask(val interface{}) (err error) {
 	maskType := reflect.Indirect(qv).Type().String()
 	if bindType != maskType {
 		err = fmt.Errorf("ValueMask failed, mismatch mask value, bindType:%v, maskType:%v", bindType, maskType)
-		log.Error(err)
+		log.Errorf("ValueMask failed, err:%v", err.Error())
 		return
 	}
 

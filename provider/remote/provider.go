@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	log "github.com/cihub/seelog"
+	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/remote/codec"

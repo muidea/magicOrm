@@ -3,7 +3,7 @@ package mysql
 import (
 	"fmt"
 
-	log "github.com/cihub/seelog"
+	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/model"
 )

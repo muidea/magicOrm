@@ -9,7 +9,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql" //引入Mysql驱动
 
-	log "github.com/cihub/seelog"
+	"github.com/muidea/magicCommon/foundation/log"
 )
 
 const defaultCharSet = "utf8mb4"
