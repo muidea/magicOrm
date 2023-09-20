@@ -132,7 +132,6 @@ func IsPtr(tType reflect.Type) bool {
 	return tType.Kind() == reflect.Ptr
 }
 
-// GetTypeEnum return field type as type constant from reflect.Value
 func GetTypeEnum(val reflect.Type) (ret model.TypeDeclare, err error) {
 	switch val.Kind() {
 	case reflect.Int8:
