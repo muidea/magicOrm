@@ -1,6 +1,7 @@
 package remote
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/muidea/magicCommon/foundation/util"
@@ -95,9 +96,13 @@ func (s *ObjectFilter) Equal(key string, val interface{}) (err error) {
 		uint8, uint16, uint32, uint, uint64,
 		float32, float64,
 		string,
-		*ObjectValue,
-		ObjectValue:
+		map[string]any,
+		*ObjectValue:
 		item := &FieldValue{Name: key, Value: val}
+		item, err = ConvertItem(item)
+		if err != nil {
+			return
+		}
 		s.EqualFilter = append(s.EqualFilter, item)
 	default:
 		err := fmt.Errorf("equal failed, illegal value, val:%v", val)
@@ -114,8 +119,13 @@ func (s *ObjectFilter) NotEqual(key string, val interface{}) (err error) {
 		uint8, uint16, uint32, uint, uint64,
 		float32, float64,
 		string,
+		map[string]any,
 		*ObjectValue:
 		item := &FieldValue{Name: key, Value: val}
+		item, err = ConvertItem(item)
+		if err != nil {
+			return
+		}
 		s.NotEqualFilter = append(s.NotEqualFilter, item)
 	default:
 		err := fmt.Errorf("not equal failed, illegal value, val:%v", val)
@@ -160,8 +170,13 @@ func (s *ObjectFilter) In(key string, val interface{}) (err error) {
 		[]uint8, []uint16, []uint32, []uint, []uint64,
 		[]float32, []float64,
 		[]string,
+		map[string]any,
 		*SliceObjectValue:
 		item := &FieldValue{Name: key, Value: val}
+		item, err = ConvertItem(item)
+		if err != nil {
+			return
+		}
 		s.InFilter = append(s.InFilter, item)
 	default:
 		err := fmt.Errorf("in failed, illegal value, val:%v", val)
@@ -178,8 +193,13 @@ func (s *ObjectFilter) NotIn(key string, val interface{}) (err error) {
 		[]uint8, []uint16, []uint32, []uint, []uint64,
 		[]float32, []float64,
 		[]string,
+		map[string]any,
 		*SliceObjectValue:
 		item := &FieldValue{Name: key, Value: val}
+		item, err = ConvertItem(item)
+		if err != nil {
+			return
+		}
 		s.NotInFilter = append(s.NotInFilter, item)
 	default:
 		err := fmt.Errorf("not in failed, illegal value, val:%v", val)
@@ -216,13 +236,26 @@ func (s *ObjectFilter) ValueMask(val interface{}) (err error) {
 		return
 	}
 
-	objectMask, objectOK := val.(*ObjectValue)
-	if !objectOK {
-		err = fmt.Errorf("illegal mask value")
+	var objectValuePtr *ObjectValue
+	switch val.(type) {
+	case *ObjectValue:
+		objectMask, objectOK := val.(*ObjectValue)
+		if objectOK {
+			objectValuePtr = objectMask
+		}
+	case json.RawMessage:
+		byteVal, byteOK := val.(json.RawMessage)
+		if byteOK {
+			objectValuePtr, err = DecodeObjectValue(byteVal)
+		}
+	}
+
+	if objectValuePtr != nil {
+		s.MaskValue = objectValuePtr
 		return
 	}
 
-	s.MaskValue = objectMask
+	err = fmt.Errorf("illegal mask value")
 	return
 }
 
