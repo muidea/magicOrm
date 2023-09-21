@@ -12,5 +12,5 @@ demo
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
-vendor
+#vendor
 !/database/mysql/demo/main.go
