@@ -53,7 +53,6 @@ func newType(itemType reflect.Type) (ret *remote.TypeImpl, err error) {
 	}
 
 	ret = &remote.TypeImpl{Name: itemType.Name(), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
-	//ret.ElemType = &TypeImpl{Name: itemType.Name(), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
 	return
 }
 

@@ -194,7 +194,7 @@ func toStructValue(rVal model.Value, lType model.Type) (ret model.Value, err err
 		return
 	}
 	if objectValuePtr == nil {
-		ret = &remote.NilValue
+		ret = &local.NilValue
 		return
 	}
 
@@ -213,7 +213,7 @@ func toStructSliceValue(rVal model.Value, lType model.Type) (ret model.Value, er
 		return
 	}
 	if sliceObjectValuePtr == nil {
-		ret = &remote.NilValue
+		ret = &local.NilValue
 		return
 	}
 
