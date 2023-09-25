@@ -30,6 +30,8 @@ type Orm interface {
 }
 
 var name2Pool sync.Map
+var name2PoolInitializeOnce sync.Once
+var name2PoolUninitializedOnce sync.Once
 
 // NewPool new executor pool
 func NewPool() executor.Pool {
@@ -47,19 +49,23 @@ func NewConfig(dbServer, dbName, username, password, charSet string) executor.Co
 
 // Initialize InitOrm
 func Initialize() {
-	name2Pool = sync.Map{}
+	name2PoolInitializeOnce.Do(func() {
+		name2Pool = sync.Map{}
+	})
 }
 
 // Uninitialized orm
 func Uninitialized() {
-	name2Pool.Range(func(_, val interface{}) bool {
-		pool := val.(executor.Pool)
-		pool.Uninitialized()
+	name2PoolUninitializedOnce.Do(func() {
+		name2Pool.Range(func(_, val interface{}) bool {
+			pool := val.(executor.Pool)
+			pool.Uninitialized()
 
-		return true
+			return true
+		})
+
+		name2Pool = sync.Map{}
 	})
-
-	name2Pool = sync.Map{}
 }
 
 func AddDatabase(dbServer, dbName, username, password, charSet string, maxConnNum int, owner string) (err error) {
