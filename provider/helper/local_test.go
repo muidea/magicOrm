@@ -61,4 +61,20 @@ func TestUpdateExtObjValue(t *testing.T) {
 		t.Errorf("updateEntity failed")
 		return
 	}
+
+	sliceObjectValue := &remote.SliceObjectValue{
+		Name:    objVal.Name,
+		PkgPath: objVal.PkgPath,
+		Values:  []*remote.ObjectValue{objVal, objInfo},
+	}
+
+	composeList := []*Compose{}
+	err = UpdateSliceEntity(sliceObjectValue, &composeList)
+	if err != nil {
+		t.Errorf("UpdateSliceEntity failed, err:%s", err.Error())
+		return
+	}
+	if len(composeList) != len(sliceObjectValue.Values) {
+		t.Errorf("UpdateSliceEntity failed")
+	}
 }

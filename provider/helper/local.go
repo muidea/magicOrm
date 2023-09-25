@@ -298,6 +298,6 @@ func UpdateSliceEntity(remoteValue *remote.SliceObjectValue, localEntity any) (e
 		return
 	}
 
-	entityValue.Set(retVal.Get().(reflect.Value))
+	entityValue.Set(reflect.Indirect(retVal.Get().(reflect.Value)))
 	return
 }
