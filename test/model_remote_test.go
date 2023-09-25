@@ -566,6 +566,47 @@ func TestRemoteUser(t *testing.T) {
 		return
 	}
 
+	user2Filter, user2Err := remoteProvider.GetEntityFilter(user2Val)
+	if user2Err != nil {
+		t.Errorf("remoteProvider.GetEntityFilter failed, error:%s", user2Err.Error())
+		return
+	}
+
+	maskValue, maskErr := helper.GetObjectValue(&User{Status: &Status{}, Group: []*Group{}})
+	if maskErr != nil {
+		t.Errorf("helper.GetObjectValue failed, error:%s", maskErr.Error())
+		return
+	}
+
+	maskErr = user2Filter.ValueMask(maskValue)
+	if maskErr != nil {
+		t.Errorf("user2Filter.ValueMask failed, error:%s", maskErr.Error())
+		return
+	}
+
+	userModelList, userModelErr := o1.BatchQuery(user2Filter)
+	if userModelErr != nil {
+		t.Errorf("o1.BatchQuery failed, error:%s", userModelErr.Error())
+		return
+	}
+	if len(userModelList) != 1 {
+		t.Errorf("o1.BatchQuery failed")
+		return
+	}
+
+	userValueList := []*remote.ObjectValue{}
+	for _, val := range userModelList {
+		userValueList = append(userValueList, val.Interface(true).(*remote.ObjectValue))
+	}
+
+	userList := []*User{}
+	userSliceValue := remote.TransferObjectValue(maskValue.GetName(), maskValue.GetPkgPath(), userValueList)
+	user2Err = helper.UpdateSliceEntity(userSliceValue, &userList)
+	if user2Err != nil {
+		t.Errorf("helper.UpdateSliceEntity failed, error:%s", user2Err.Error())
+		return
+	}
+
 	group1Model, group1Err = o1.Delete(group1Model)
 	if group1Err != nil {
 		t.Errorf("delete group1 failed, err:%s", group1Err.Error())
