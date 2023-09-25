@@ -217,7 +217,7 @@ func (s *Executor) Query(sql string) (err error) {
 		endTime := time.Now()
 		elapse := endTime.Sub(startTime)
 		if err != nil {
-			log.Errorf("query failed, execute time:%v, elapse:%v, sql:%s, err:%s", startTime.Local().String(), elapse, sql, err.Error())
+			log.Errorf("query failed, execute time:%s, elapse:%d, sql:%s, err:%s", startTime.Local().String(), elapse, sql, err.Error())
 			return
 		}
 
