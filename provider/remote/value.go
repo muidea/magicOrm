@@ -164,10 +164,10 @@ func (s *ValueImpl) Copy() (ret *ValueImpl) {
 		[]int8, []int16, []int32, []int, []int64,
 		[]uint8, []uint16, []uint32, []uint, []uint64,
 		[]float32, []float64,
-		[]string:
+		[]string,
+		*ObjectValue,
+		*SliceObjectValue:
 		ret.value = s.value
-	case *ObjectValue:
-	case *SliceObjectValue:
 	default:
 		err := fmt.Errorf("illegal value, val:%v", s.value)
 		panic(err.Error())
