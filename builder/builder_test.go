@@ -110,7 +110,8 @@ func TestBuilderCommon(t *testing.T) {
 }
 
 func TestBuilderReference(t *testing.T) {
-	ext := &Ext{ID: 10}
+	var desc string
+	ext := &Ext{ID: 10, Description: &desc}
 	unit := &Unit{ID: 10}
 
 	localProvider := provider.NewLocalProvider("default")
@@ -155,7 +156,7 @@ func TestBuilderReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build update failed, err:%s", err.Error())
 	}
-	if str != "UPDATE `abc_Ext` SET `name`='' WHERE `id`=10" {
+	if str != "UPDATE `abc_Ext` SET `name`='',`description`='' WHERE `id`=10" {
 		t.Errorf("build update failed, str:%s", str)
 	}
 

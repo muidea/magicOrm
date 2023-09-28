@@ -887,23 +887,23 @@ func TestRemoteBatchQuery(t *testing.T) {
 	}
 
 	status := &Status{Value: 10}
-	statusDef, objErr := helper.GetObject(status)
-	if objErr != nil {
-		t.Errorf("GetObject failed, err:%s", objErr.Error())
+	statusDef, userObjectErr := helper.GetObject(status)
+	if userObjectErr != nil {
+		t.Errorf("GetObject failed, err:%s", userObjectErr.Error())
 		return
 	}
 
 	user0 := &User{}
-	userDef, objErr := helper.GetObject(user0)
-	if objErr != nil {
-		t.Errorf("GetObject failed, err:%s", objErr.Error())
+	userDef, userObjectErr := helper.GetObject(user0)
+	if userObjectErr != nil {
+		t.Errorf("GetObject failed, err:%s", userObjectErr.Error())
 		return
 	}
 
 	group0 := &Group{}
-	groupDef, objErr := helper.GetObject(group0)
-	if objErr != nil {
-		t.Errorf("GetObject failed, err:%s", objErr.Error())
+	groupDef, userObjectErr := helper.GetObject(group0)
+	if userObjectErr != nil {
+		t.Errorf("GetObject failed, err:%s", userObjectErr.Error())
 		return
 	}
 
@@ -940,9 +940,9 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	group1Val, objErr := getObjectValue(group1)
-	if objErr != nil {
-		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+	group1Val, userObjectErr := getObjectValue(group1)
+	if userObjectErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", userObjectErr.Error())
 		return
 	}
 	group1Model, group1Err := remoteProvider.GetEntityModel(group1Val)
@@ -961,9 +961,9 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	group2Val, objErr := getObjectValue(group2)
-	if objErr != nil {
-		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+	group2Val, userObjectErr := getObjectValue(group2)
+	if userObjectErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", userObjectErr.Error())
 		return
 	}
 	group2Model, group2Err := remoteProvider.GetEntityModel(group2Val)
@@ -981,9 +981,9 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
-	group3Val, objErr := getObjectValue(group3)
-	if objErr != nil {
-		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+	group3Val, userObjectErr := getObjectValue(group3)
+	if userObjectErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", userObjectErr.Error())
 		return
 	}
 	group3Model, group3Err := remoteProvider.GetEntityModel(group3Val)
@@ -1017,9 +1017,9 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	user1Val, objErr := getObjectValue(user1)
-	if objErr != nil {
-		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+	user1Val, userObjectErr := getObjectValue(user1)
+	if userObjectErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", userObjectErr.Error())
 		return
 	}
 	user1Model, user1Err := remoteProvider.GetEntityModel(user1Val)
@@ -1040,9 +1040,9 @@ func TestRemoteBatchQuery(t *testing.T) {
 
 	user2.Group = append(user2.Group, group1)
 	user2.Group = append(user2.Group, group3)
-	user2Val, objErr := getObjectValue(user2)
-	if objErr != nil {
-		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+	user2Val, userObjectErr := getObjectValue(user2)
+	if userObjectErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", userObjectErr.Error())
 		return
 	}
 	user2Model, user2Err := remoteProvider.GetEntityModel(user2Val)
@@ -1074,13 +1074,12 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	userList := &[]User{}
-	userListVal, objErr := getSliceObjectValue(userList)
-	if objErr != nil {
-		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
+	userObjectValue, userObjectErr := helper.GetObjectValue(&User{})
+	if userObjectErr != nil {
+		t.Errorf("GetSliceObjectValue failed, err:%s", userObjectErr.Error())
 		return
 	}
-	filter, err := remoteProvider.GetEntityFilter(userListVal)
+	filter, err := remoteProvider.GetEntityFilter(userObjectValue)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -1095,13 +1094,6 @@ func TestRemoteBatchQuery(t *testing.T) {
 
 	if len(userModelList) != 2 {
 		t.Errorf("batch query user failed")
-		return
-	}
-
-	userList = &[]User{}
-	userListVal, objErr = getSliceObjectValue(userList)
-	if objErr != nil {
-		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
 		return
 	}
 
@@ -1130,14 +1122,13 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	userList = &[]User{}
-	userListVal, objErr = getSliceObjectValue(userList)
-	if objErr != nil {
-		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
+	userObjectValue, userObjectErr = helper.GetObjectValue(&User{})
+	if userObjectErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", userObjectErr.Error())
 		return
 	}
 
-	userFilter, err := remoteProvider.GetEntityFilter(userListVal)
+	userFilter, err := remoteProvider.GetEntityFilter(userObjectValue)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -1171,23 +1162,23 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	}
 
 	status := &Status{Value: 10}
-	statusDef, objErr := helper.GetObject(status)
-	if objErr != nil {
-		t.Errorf("GetObject failed, err:%s", objErr.Error())
+	statusDef, userObjectErr := helper.GetObject(status)
+	if userObjectErr != nil {
+		t.Errorf("GetObject failed, err:%s", userObjectErr.Error())
 		return
 	}
 
 	user0 := &User{}
-	userDef, objErr := helper.GetObject(user0)
-	if objErr != nil {
-		t.Errorf("GetObject failed, err:%s", objErr.Error())
+	userDef, userObjectErr := helper.GetObject(user0)
+	if userObjectErr != nil {
+		t.Errorf("GetObject failed, err:%s", userObjectErr.Error())
 		return
 	}
 
 	group0 := &Group{}
-	groupDef, objErr := helper.GetObject(group0)
-	if objErr != nil {
-		t.Errorf("GetObject failed, err:%s", objErr.Error())
+	groupDef, userObjectErr := helper.GetObject(group0)
+	if userObjectErr != nil {
+		t.Errorf("GetObject failed, err:%s", userObjectErr.Error())
 		return
 	}
 
@@ -1224,9 +1215,9 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
-	statusVal, objErr := getObjectValue(status)
-	if objErr != nil {
-		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+	statusVal, userObjectErr := getObjectValue(status)
+	if userObjectErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", userObjectErr.Error())
 		return
 	}
 	statusModel, statusErr := remoteProvider.GetEntityModel(statusVal)
@@ -1247,9 +1238,9 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	}
 	user1.Status = status
 
-	group1Val, objErr := getObjectValue(group1)
-	if objErr != nil {
-		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+	group1Val, userObjectErr := getObjectValue(group1)
+	if userObjectErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", userObjectErr.Error())
 		return
 	}
 	group1Model, group1Err := remoteProvider.GetEntityModel(group1Val)
@@ -1269,9 +1260,9 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
-	group2Val, objErr := getObjectValue(group2)
-	if objErr != nil {
-		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+	group2Val, userObjectErr := getObjectValue(group2)
+	if userObjectErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", userObjectErr.Error())
 		return
 	}
 	group2Model, group2Err := remoteProvider.GetEntityModel(group2Val)
@@ -1290,9 +1281,9 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
-	group3Val, objErr := getObjectValue(group3)
-	if objErr != nil {
-		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+	group3Val, userObjectErr := getObjectValue(group3)
+	if userObjectErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", userObjectErr.Error())
 		return
 	}
 	group3Model, group3Err := remoteProvider.GetEntityModel(group3Val)
@@ -1327,9 +1318,9 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
-	user1Val, objErr := getObjectValue(user1)
-	if objErr != nil {
-		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+	user1Val, userObjectErr := getObjectValue(user1)
+	if userObjectErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", userObjectErr.Error())
 		return
 	}
 	user1Model, user1Err := remoteProvider.GetEntityModel(user1Val)
@@ -1352,9 +1343,9 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	user2.Status = status
 	user2.Group = append(user2.Group, group1)
 	user2.Group = append(user2.Group, group3)
-	user2Val, objErr := getObjectValue(user2)
-	if objErr != nil {
-		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
+	user2Val, userObjectErr := getObjectValue(user2)
+	if userObjectErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", userObjectErr.Error())
 		return
 	}
 	user2Model, user2Err := remoteProvider.GetEntityModel(user2Val)
@@ -1384,13 +1375,12 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
-	userList := &[]*User{}
-	userListVal, objErr := getSliceObjectPtrValue(userList)
-	if objErr != nil {
-		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
+	userObjectValue, userObjectErr := helper.GetObjectValue(&User{})
+	if userObjectErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", userObjectErr.Error())
 		return
 	}
-	filter, err := remoteProvider.GetEntityFilter(userListVal)
+	filter, err := remoteProvider.GetEntityFilter(userObjectValue)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -1407,13 +1397,6 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 
 	if len(userModelList) != 2 {
 		t.Errorf("batch query user failed")
-		return
-	}
-
-	userList = &[]*User{}
-	userListVal, objErr = getSliceObjectPtrValue(userList)
-	if objErr != nil {
-		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
 		return
 	}
 
@@ -1440,19 +1423,13 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
-	filter2, err := remoteProvider.GetEntityFilter(userListVal)
+	filter2, err := remoteProvider.GetEntityFilter(userObjectValue)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
 	}
 
 	filter2.In("group", groupListVal)
-	userList = &[]*User{}
-	userListVal, objErr = getSliceObjectPtrValue(userList)
-	if objErr != nil {
-		t.Errorf("GetSliceObjectValue failed, err:%s", objErr.Error())
-		return
-	}
 	userModelList, userModelErr = o1.BatchQuery(filter2)
 	if userModelErr != nil {
 		err = userModelErr

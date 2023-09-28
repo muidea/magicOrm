@@ -200,6 +200,10 @@ func (s *ObjectValue) GetPkgKey() string {
 	return path.Join(s.GetPkgPath(), s.GetName())
 }
 
+func (s *ObjectValue) GetValue() []*FieldValue {
+	return s.Fields
+}
+
 func (s *ObjectValue) isFieldAssigned(val *FieldValue) (ret bool) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
@@ -248,6 +252,10 @@ func (s *SliceObjectValue) GetPkgPath() string {
 
 func (s *SliceObjectValue) GetPkgKey() string {
 	return path.Join(s.GetPkgPath(), s.GetName())
+}
+
+func (s *SliceObjectValue) GetValue() []*ObjectValue {
+	return s.Values
 }
 
 func (s *SliceObjectValue) IsAssigned() (ret bool) {

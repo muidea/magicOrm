@@ -179,7 +179,8 @@ func (s *Builder) getFieldQueryNames() (ret string, err error) {
 	str := ""
 	for _, field := range s.GetFields() {
 		fType := field.GetType()
-		if !fType.IsBasic() {
+		fValue := field.GetValue()
+		if !fType.IsBasic() || fValue.IsNil() {
 			continue
 		}
 

@@ -811,18 +811,19 @@ func TestRemoteQuery(t *testing.T) {
 		return
 	}
 
-	cList := []*Compose{}
-	cListValue, cListErr := helper.GetSliceObjectValue(&cList)
-	if cListErr != nil {
-		t.Errorf("getSliceObjectValue failed, err:%s", cListErr.Error())
+	cComposePtr := &Compose{}
+	cObjectValue, cObjectValueErr := helper.GetObjectValue(cComposePtr)
+	if cObjectValueErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", cObjectValueErr.Error())
 		return
 	}
-	filter, err := remoteProvider.GetEntityFilter(cListValue)
+	filter, err := remoteProvider.GetEntityFilter(cObjectValue)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
 	}
 
+	filter.ValueMask(cObjectValue)
 	cModelList, cModelErr := o1.BatchQuery(filter)
 	if cModelErr != nil {
 		err = cModelErr
@@ -831,13 +832,6 @@ func TestRemoteQuery(t *testing.T) {
 	}
 	if len(cModelList) != 4 {
 		t.Errorf("batch query compose failed")
-		return
-	}
-
-	cList = []*Compose{}
-	cListValue, cListErr = helper.GetSliceObjectValue(&cList)
-	if cListErr != nil {
-		t.Errorf("getSliceObjectValue failed, err:%s", c2Err.Error())
 		return
 	}
 

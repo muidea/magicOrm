@@ -363,20 +363,17 @@ func TestSimpleRemote(t *testing.T) {
 		}
 	}
 
-	bqValList := []*Simple{}
-	bqSliceObject, bqSliceErr := helper.GetSliceObjectValue(&bqValList)
-	if bqSliceErr != nil {
-		t.Errorf("GetSliceObjectValue failed, err:%s", bqSliceErr.Error())
-		return
+	objectValuePtr, objectValueErr := helper.GetObjectValue(&Simple{})
+	if objectValueErr != nil {
+		t.Errorf("GetObjectValue failed, error:%s", objectValueErr.Error())
 	}
-	filter, err := remoteProvider.GetEntityFilter(bqSliceObject)
+	filter, err := remoteProvider.GetEntityFilter(objectValuePtr)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
 	}
 
 	filter.Equal("name", "hi")
-	filter.ValueMask(&Simple{})
 	bqModelList, bqModelErr := o1.BatchQuery(filter)
 	if bqModelErr != nil {
 		t.Errorf("BatchQuery failed, err:%s", bqModelErr.Error())

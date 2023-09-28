@@ -634,20 +634,21 @@ func TestComposeRemote(t *testing.T) {
 		}
 	}
 
-	bqValList := []*Compose{}
-	bqSliceObject, bqSliceErr := helper.GetSliceObjectValue(&bqValList)
-	if bqSliceErr != nil {
-		t.Errorf("GetSliceObjectValue failed, err:%s", bqSliceErr.Error())
+	composePtr := &Compose{}
+	composeObjectValuePtr, composeObjectValueErr := helper.GetObjectValue(composePtr)
+	if composeObjectValueErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", composeObjectValueErr.Error())
 		return
 	}
-	filter, err := remoteProvider.GetEntityFilter(bqSliceObject)
+	filter, err := remoteProvider.GetEntityFilter(composeObjectValuePtr)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
 	}
 
 	filter.Equal("name", "hi")
-	filter.ValueMask(&Compose{
+
+	maskComposePtr := &Compose{
 		R3:           &Simple{},
 		H2:           []Simple{},
 		R4:           []*Simple{},
@@ -657,7 +658,15 @@ func TestComposeRemote(t *testing.T) {
 		RefPtrArray:  []*Reference{},
 		PtrRefArray:  []*Reference{},
 		PtrCompose:   &Compose{},
-	})
+	}
+
+	maskObjectValuePtr, maskObjectValueErr := helper.GetObjectValue(maskComposePtr)
+	if maskObjectValueErr != nil {
+		t.Errorf("GetObjectValue failed, err:%s", maskObjectValueErr.Error())
+		return
+	}
+
+	filter.ValueMask(maskObjectValuePtr)
 	bqModelList, bqModelErr := o1.BatchQuery(filter)
 	if bqModelErr != nil {
 		t.Errorf("BatchQuery failed, err:%s", bqModelErr.Error())

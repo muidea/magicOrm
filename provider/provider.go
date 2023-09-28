@@ -198,21 +198,14 @@ func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err 
 }
 
 func (s *providerImpl) GetEntityFilter(entity interface{}) (ret model.Filter, err error) {
-	vType, vErr := s.getTypeFunc(entity)
-	if vErr != nil {
-		err = vErr
-		log.Errorf("GetEntityFilter failed, getTypeFunc err:%v", err.Error())
-		return
-	}
-	vType = vType.Elem()
-	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
-	if typeModel == nil {
-		err = fmt.Errorf("can't fetch type model, must register type entity first, PkgKey:%s", vType.GetPkgKey())
-		log.Errorf("GetEntityFilter failed, s.modelCache.Fetch err:%v", err.Error())
+	entityModel, entityErr := s.GetEntityModel(entity)
+	if entityErr != nil {
+		err = fmt.Errorf("GetEntityModel error:%s", entityErr.Error())
+		log.Errorf("GetEntityFilter failed, err:%v", err.Error())
 		return
 	}
 
-	ret, err = s.getFilterFunc(typeModel.Copy())
+	ret, err = s.getFilterFunc(entityModel)
 	if err != nil {
 		log.Errorf("GetEntityFilter failed, getFilterFunc err:%v", err.Error())
 		return

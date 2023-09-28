@@ -54,7 +54,8 @@ func (s *impl) getFieldScanDestPtr(vModel model.Model, builder builder.Builder) 
 	var items []interface{}
 	for _, field := range vModel.GetFields() {
 		fType := field.GetType()
-		if !fType.IsBasic() {
+		fValue := field.GetValue()
+		if !fType.IsBasic() || fValue.IsNil() {
 			continue
 		}
 

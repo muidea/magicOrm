@@ -110,23 +110,23 @@ func (s *impl) assignSingleModel(modelVal model.Model, queryVal resultItems, dee
 	for _, field := range modelVal.GetFields() {
 		fType := field.GetType()
 		fValue := field.GetValue()
+		if fValue.IsNil() {
+			continue
+		}
+
 		if !fType.IsBasic() {
-			if !fValue.IsNil() {
-				err = s.assignModelField(modelVal, field, deepLevel)
-				if err != nil {
-					return
-				}
+			err = s.assignModelField(modelVal, field, deepLevel)
+			if err != nil {
+				return
 			}
 
 			//offset++
 			continue
 		}
 
-		if !fType.IsPtrType() || !fValue.IsNil() {
-			err = s.assignBasicField(fType, field, queryVal[offset])
-			if err != nil {
-				return
-			}
+		err = s.assignBasicField(fType, field, queryVal[offset])
+		if err != nil {
+			return
 		}
 		offset++
 	}
