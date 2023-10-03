@@ -1,6 +1,7 @@
 package orm
 
 import (
+	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
 )
@@ -9,6 +10,7 @@ func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, err error) 
 	filterVal, filterErr := s.modelProvider.GetEntityFilter(vModel.Interface(true))
 	if filterErr != nil {
 		err = filterErr
+		log.Errorf("getModelFilter failed, s.modelProvider.GetEntityFilter error:%s", err.Error())
 		return
 	}
 
@@ -23,6 +25,7 @@ func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, err error) 
 		if model.IsBasicType(vType.GetValue()) && !model.IsSliceType(vType.GetValue()) {
 			err = filterVal.Equal(val.GetName(), val.GetValue().Interface())
 			if err != nil {
+				log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
 				return
 			}
 
@@ -33,6 +36,7 @@ func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, err error) 
 		if model.IsStructType(vType.GetValue()) {
 			err = filterVal.Equal(val.GetName(), val.GetValue().Interface())
 			if err != nil {
+				log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
 				return
 			}
 
@@ -42,6 +46,7 @@ func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, err error) 
 		// if struct slice
 		err = filterVal.In(val.GetName(), val.GetValue().Interface())
 		if err != nil {
+			log.Errorf("getModelFilter failed, filterVal.In error:%s", err.Error())
 			return
 		}
 	}
@@ -62,6 +67,7 @@ func (s *impl) getFieldScanDestPtr(vModel model.Model, builder builder.Builder) 
 		itemVal, itemErr := builder.GetFieldScanDest(field)
 		if itemErr != nil {
 			err = itemErr
+			log.Errorf("getFieldScanDestPtr failed, builder.GetFieldScanDest error:%s", err.Error())
 			return
 		}
 

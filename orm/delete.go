@@ -11,10 +11,14 @@ func (s *impl) deleteSingle(vModel model.Model) (err error) {
 	sqlStr, sqlErr := builder.BuildDelete()
 	if sqlErr != nil {
 		err = sqlErr
+		log.Errorf("deleteSingle failed, builder.BuildDelete error:%s", err.Error())
 		return
 	}
 
 	_, _, err = s.executor.Execute(sqlStr)
+	if err != nil {
+		log.Errorf("deleteSingle failed, s.executor.Execute error:%s", err.Error())
+	}
 	return
 }
 
@@ -22,11 +26,13 @@ func (s *impl) deleteRelationStructInner(rVal model.Value, rType model.Type, dee
 	relationModel, relationErr := s.modelProvider.GetValueModel(rVal, rType)
 	if relationErr != nil {
 		err = relationErr
+		log.Errorf("deleteRelationStructInner failed, s.modelProvider.GetValueModel error:%s", err.Error())
 		return
 	}
 
 	err = s.deleteSingle(relationModel)
 	if err != nil {
+		log.Errorf("deleteRelationStructInner failed, s.deleteSingle error:%s", err.Error())
 		return
 	}
 
@@ -37,7 +43,8 @@ func (s *impl) deleteRelationStructInner(rVal model.Value, rType model.Type, dee
 
 		err = s.deleteRelation(relationModel, field, deepLevel+1)
 		if err != nil {
-			break
+			log.Errorf("deleteRelationStructInner failed, s.deleteRelation error:%s", err.Error())
+			return
 		}
 	}
 
@@ -48,6 +55,7 @@ func (s *impl) deleteRelationSliceInner(rVal model.Value, rType model.Type, deep
 	elemVal, elemErr := s.modelProvider.ElemDependValue(rVal)
 	if elemErr != nil {
 		err = elemErr
+		log.Errorf("deleteRelationSliceInner failed, s.modelProvider.ElemDependValue error:%s", err.Error())
 		return
 	}
 
@@ -56,11 +64,13 @@ func (s *impl) deleteRelationSliceInner(rVal model.Value, rType model.Type, deep
 		relationModel, relationErr := s.modelProvider.GetValueModel(elemVal[idx], elemType)
 		if relationErr != nil {
 			err = relationErr
+			log.Errorf("deleteRelationSliceInner failed, s.modelProvider.GetValueModel error:%s", err.Error())
 			return
 		}
 
 		err = s.deleteSingle(relationModel)
 		if err != nil {
+			log.Errorf("deleteRelationSliceInner failed, s.deleteSingle error:%s", err.Error())
 			return
 		}
 
@@ -71,7 +81,8 @@ func (s *impl) deleteRelationSliceInner(rVal model.Value, rType model.Type, deep
 
 			err = s.deleteRelation(relationModel, field, deepLevel+1)
 			if err != nil {
-				break
+				log.Errorf("deleteRelationSliceInner failed, s.deleteRelation error:%s", err.Error())
+				return
 			}
 		}
 	}
@@ -86,7 +97,7 @@ func (s *impl) deleteRelation(vModel model.Model, rField model.Field, deepLevel 
 	relationModel, relationErr := s.modelProvider.GetTypeModel(rType)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("get relation field model failed, err:%s", err.Error())
+		log.Errorf("deleteRelation failed, s.modelProvider.GetTypeModel error:%s", err.Error())
 		return
 	}
 
@@ -94,34 +105,44 @@ func (s *impl) deleteRelation(vModel model.Model, rField model.Field, deepLevel 
 	rightSQL, relationSQL, buildErr := builder.BuildDeleteRelation(rField, relationModel)
 	if buildErr != nil {
 		err = buildErr
+		log.Errorf("deleteRelation failed, builder.BuildDeleteRelation error:%s", err.Error())
 		return
 	}
 
 	elemType := rType.Elem()
 	if !elemType.IsPtrType() {
 		fieldVal, fieldErr := s.queryRelation(vModel, rField, maxDeepLevel-1)
-		if fieldErr == nil && !fieldVal.IsNil() {
-			if model.IsStructType(rType.GetValue()) {
-				err = s.deleteRelationStructInner(fieldVal, rType, deepLevel)
-				if err != nil {
-					return
-				}
-			} else if model.IsSliceType(rType.GetValue()) {
-				err = s.deleteRelationSliceInner(fieldVal, rType, deepLevel)
-				if err != nil {
-					return
-				}
+		if fieldErr != nil {
+			err = fieldErr
+			log.Errorf("deleteRelation failed, s.queryRelation error:%s", err.Error())
+			return
+		}
+
+		if model.IsStructType(rType.GetValue()) {
+			err = s.deleteRelationStructInner(fieldVal, rType, deepLevel)
+			if err != nil {
+				log.Errorf("deleteRelation failed, s.deleteRelationStructInner error:%s", err.Error())
+				return
+			}
+		} else if model.IsSliceType(rType.GetValue()) {
+			err = s.deleteRelationSliceInner(fieldVal, rType, deepLevel)
+			if err != nil {
+				log.Errorf("deleteRelation failed, s.deleteRelationSliceInner error:%s", err.Error())
+				return
 			}
 		}
 
 		_, _, err = s.executor.Execute(rightSQL)
 		if err != nil {
+			log.Errorf("deleteRelation failed, s.executor.Execute error:%s", err.Error())
 			return
 		}
 	}
 
 	_, _, err = s.executor.Execute(relationSQL)
-
+	if err != nil {
+		log.Errorf("deleteRelation failed, s.executor.Execute error:%s", err.Error())
+	}
 	return
 }
 
@@ -131,30 +152,26 @@ func (s *impl) Delete(vModel model.Model) (ret model.Model, err error) {
 	if err != nil {
 		return
 	}
-	defer s.finalTransaction(err)
+	defer func() {
+		err = s.finalTransaction(err)
+	}()
 
-	for {
-		err = s.deleteSingle(vModel)
-		if err != nil {
-			break
-		}
-
-		for _, field := range vModel.GetFields() {
-			if field.IsBasic() {
-				continue
-			}
-
-			err = s.deleteRelation(vModel, field, 0)
-			if err != nil {
-				break
-			}
-		}
-
-		break
+	err = s.deleteSingle(vModel)
+	if err != nil {
+		log.Errorf("Delete failed, s.deleteSingle error:%s", err.Error())
+		return
 	}
 
-	if err != nil {
-		return
+	for _, field := range vModel.GetFields() {
+		if field.IsBasic() {
+			continue
+		}
+
+		err = s.deleteRelation(vModel, field, 0)
+		if err != nil {
+			log.Errorf("Delete failed, s.deleteRelation error:%s", err.Error())
+			return
+		}
 	}
 
 	ret = vModel

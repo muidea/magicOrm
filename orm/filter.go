@@ -1,6 +1,7 @@
 package orm
 
 import (
+	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/model"
 )
 
@@ -9,6 +10,7 @@ func (s *impl) queryBatch(vFilter model.Filter) (ret []model.Model, err error) {
 	queryValueList, queryErr := s.innerQuery(vModel, vFilter)
 	if queryErr != nil {
 		err = queryErr
+		log.Errorf("queryBatch failed, s.innerQuery error:%s", err.Error())
 		return
 	}
 
@@ -17,6 +19,7 @@ func (s *impl) queryBatch(vFilter model.Filter) (ret []model.Model, err error) {
 		modelVal, modelErr := s.assignSingleModel(vModel.Copy(), queryValueList[idx], 0)
 		if modelErr != nil {
 			err = modelErr
+			log.Errorf("queryBatch failed, s.assignSingleModel error:%s", err.Error())
 			return
 		}
 
@@ -32,6 +35,7 @@ func (s *impl) BatchQuery(filter model.Filter) (ret []model.Model, err error) {
 	queryVal, queryErr := s.queryBatch(filter)
 	if queryErr != nil {
 		err = queryErr
+		log.Errorf("BatchQuery failed, s.queryBatch error:%s", err.Error())
 		return
 	}
 

@@ -80,6 +80,7 @@ func AddDatabase(dbServer, dbName, username, password, charSet string, maxConnNu
 	pool := NewPool()
 	err = pool.Initialize(maxConnNum, config)
 	if err != nil {
+		log.Errorf("AddDatabase failed, pool.Initialize error:%s", err.Error())
 		return
 	}
 
@@ -102,7 +103,7 @@ func DelDatabase(owner string) {
 func NewOrm(provider provider.Provider, cfg executor.Config, prefix string) (Orm, error) {
 	executor, err := NewExecutor(cfg)
 	if err != nil {
-		log.Errorf("new orm failed, err:%s", err.Error())
+		log.Errorf("NewOrm failed, NewExecutor error:%s", err.Error())
 		return nil, err
 	}
 
@@ -115,7 +116,7 @@ func GetOrm(provider provider.Provider, prefix string) (ret Orm, err error) {
 	val, ok := name2Pool.Load(provider.Owner())
 	if !ok {
 		err = fmt.Errorf("can't find orm,name:%s", provider.Owner())
-		log.Errorf("get orm failed, err:%s", err.Error())
+		log.Errorf("GetOrm failed, error:%s", err.Error())
 		return
 	}
 
@@ -123,6 +124,7 @@ func GetOrm(provider provider.Provider, prefix string) (ret Orm, err error) {
 	executorVal, executorErr := pool.GetExecutor()
 	if executorErr != nil {
 		err = executorErr
+		log.Errorf("GetOrm failed, pool.GetExecutor error:%s", err.Error())
 		return
 	}
 
@@ -141,6 +143,9 @@ type impl struct {
 func (s *impl) BeginTransaction() (err error) {
 	if s.executor != nil {
 		err = s.executor.BeginTransaction()
+		if err != nil {
+			log.Errorf("BeginTransaction failed, s.executor.BeginTransaction error:%s", err.Error())
+		}
 	}
 
 	return
@@ -150,6 +155,9 @@ func (s *impl) BeginTransaction() (err error) {
 func (s *impl) CommitTransaction() (err error) {
 	if s.executor != nil {
 		err = s.executor.CommitTransaction()
+		if err != nil {
+			log.Errorf("CommitTransaction failed, s.executor.CommitTransaction error:%s", err.Error())
+		}
 	}
 
 	return
@@ -159,6 +167,9 @@ func (s *impl) CommitTransaction() (err error) {
 func (s *impl) RollbackTransaction() (err error) {
 	if s.executor != nil {
 		err = s.executor.RollbackTransaction()
+		if err != nil {
+			log.Errorf("RollbackTransaction failed, s.executor.RollbackTransaction error:%s", err.Error())
+		}
 	}
 
 	return
@@ -166,9 +177,18 @@ func (s *impl) RollbackTransaction() (err error) {
 
 func (s *impl) finalTransaction(err error) error {
 	if err == nil {
-		return s.executor.CommitTransaction()
+		err = s.executor.CommitTransaction()
+		if err != nil {
+			log.Errorf("finalTransaction failed, s.executor.CommitTransaction error:%s", err.Error())
+		}
+		return err
 	}
-	return s.executor.RollbackTransaction()
+
+	err = s.executor.RollbackTransaction()
+	if err != nil {
+		log.Errorf("finalTransaction failed, s.executor.RollbackTransaction error:%s", err.Error())
+	}
+	return err
 }
 
 func (s *impl) Release() {

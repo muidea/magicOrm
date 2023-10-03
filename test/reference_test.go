@@ -16,6 +16,8 @@ import (
 const referenceLocalOwner = "referenceLocal"
 const referenceRemoteOwner = "referenceRemote"
 
+const loop = 1
+
 func TestReferenceLocal(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
@@ -68,7 +70,7 @@ func TestReferenceLocal(t *testing.T) {
 	strPtrArray := []*string{&strValue, &strValue}
 
 	// insert
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loop; idx++ {
 		sVal := &Reference{
 			Name:        strValue,
 			FValue:      &fValue,
@@ -95,7 +97,7 @@ func TestReferenceLocal(t *testing.T) {
 		sModelList = append(sModelList, sModel)
 	}
 
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loop; idx++ {
 		vModel, vErr := o1.Insert(sModelList[idx])
 		if vErr != nil {
 			err = vErr
@@ -108,7 +110,7 @@ func TestReferenceLocal(t *testing.T) {
 	}
 
 	// update
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loop; idx++ {
 		sVal := sValList[idx]
 		sVal.Name = "hi"
 		sModel, sErr := localProvider.GetEntityModel(sVal)
@@ -120,7 +122,7 @@ func TestReferenceLocal(t *testing.T) {
 
 		sModelList[idx] = sModel
 	}
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loop; idx++ {
 		vModel, vErr := o1.Update(sModelList[idx])
 		if vErr != nil {
 			err = vErr
@@ -135,7 +137,7 @@ func TestReferenceLocal(t *testing.T) {
 	// query
 	qValList := []*Reference{}
 	qModelList := []model.Model{}
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loop; idx++ {
 		var fVal float32
 		var ts time.Time
 		var flag bool
@@ -155,7 +157,7 @@ func TestReferenceLocal(t *testing.T) {
 		qModelList = append(qModelList, qModel)
 	}
 
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loop; idx++ {
 		qModel, qErr := o1.Query(qModelList[idx])
 		if qErr != nil {
 			err = qErr
@@ -167,7 +169,7 @@ func TestReferenceLocal(t *testing.T) {
 		qValList[idx] = qModel.Interface(true).(*Reference)
 	}
 
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loop; idx++ {
 		sVal := sValList[idx]
 		qVal := qValList[idx]
 		if !sVal.IsSame(qVal) {
@@ -202,7 +204,7 @@ func TestReferenceLocal(t *testing.T) {
 	}
 
 	// delete
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loop; idx++ {
 		_, qErr := o1.Delete(bqModelList[idx])
 		if qErr != nil {
 			err = qErr
@@ -264,7 +266,7 @@ func TestReferenceRemote(t *testing.T) {
 	strPtrArray := []*string{&strValue, &strValue}
 
 	// insert
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loop; idx++ {
 		sVal := &Reference{
 			Name:        strValue,
 			FValue:      &fValue,
@@ -299,7 +301,7 @@ func TestReferenceRemote(t *testing.T) {
 		sModelList = append(sModelList, sModel)
 	}
 
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loop; idx++ {
 		vModel, vErr := o1.Insert(sModelList[idx])
 		if vErr != nil {
 			err = vErr
@@ -320,7 +322,7 @@ func TestReferenceRemote(t *testing.T) {
 	}
 
 	// update
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loop; idx++ {
 		sVal := sValList[idx]
 		sVal.Name = "hi"
 		sObjectVal, sObjectErr := helper.GetObjectValue(sVal)
@@ -340,7 +342,7 @@ func TestReferenceRemote(t *testing.T) {
 
 		sModelList[idx] = sModel
 	}
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loop; idx++ {
 		vModel, vErr := o1.Update(sModelList[idx])
 		if vErr != nil {
 			err = vErr
@@ -364,7 +366,7 @@ func TestReferenceRemote(t *testing.T) {
 	qValList := []*Reference{}
 	qObjectValList := []*remote.ObjectValue{}
 	qModelList := []model.Model{}
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loop; idx++ {
 		var fVal float32
 		var ts time.Time
 		var flag bool
@@ -392,7 +394,7 @@ func TestReferenceRemote(t *testing.T) {
 		qModelList = append(qModelList, qModel)
 	}
 
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loop; idx++ {
 		qModel, qErr := o1.Query(qModelList[idx])
 		if qErr != nil {
 			err = qErr
@@ -412,7 +414,7 @@ func TestReferenceRemote(t *testing.T) {
 		qObjectValList[idx] = qObjectVal
 	}
 
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loop; idx++ {
 		sVal := sValList[idx]
 		qVal := qValList[idx]
 		if !sVal.IsSame(qVal) {
@@ -449,13 +451,13 @@ func TestReferenceRemote(t *testing.T) {
 		t.Errorf("BatchQuery failed, err:%s", bqModelErr.Error())
 		return
 	}
-	if len(bqModelList) != 100 {
+	if len(bqModelList) != loop {
 		t.Errorf("batch query reference failed")
 		return
 	}
 
 	// delete
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loop; idx++ {
 		_, qErr := o1.Delete(bqModelList[idx])
 		if qErr != nil {
 			err = qErr

@@ -426,8 +426,6 @@ func TestComposeRemote(t *testing.T) {
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	remoteProvider := provider.NewRemoteProvider(composeRemoteOwner)
 
-	loopSize := 1
-
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()
 	if err != nil {
@@ -465,176 +463,128 @@ func TestComposeRemote(t *testing.T) {
 		return
 	}
 
-	sValList := []*Compose{}
-	sObjectValList := []*remote.ObjectValue{}
-	sModelList := []model.Model{}
-
 	strValue := "test code"
 	// insert
-	for idx := 0; idx < loopSize; idx++ {
-		refPtrArray := []*Reference{rPtr}
-		sVal := &Compose{
-			Name:         strValue,
-			H1:           *sPtr,
-			R3:           sPtr,
-			H2:           []Simple{*sPtr, *sPtr},
-			R4:           []*Simple{sPtr, sPtr},
-			Reference:    *rPtr,
-			PtrReference: rPtr,
-			RefArray:     []Reference{*rPtr, *rPtr, *rPtr},
-			RefPtrArray:  refPtrArray,
-			PtrRefArray:  refPtrArray,
-			PtrCompose:   cPtr,
-		}
-		sValList = append(sValList, sVal)
-
-		sObjectVal, sObjectErr := helper.GetObjectValue(sVal)
-		if sObjectErr != nil {
-			err = sObjectErr
-			t.Errorf("GetObjectValue failed. err:%s", err.Error())
-			return
-		}
-		sObjectValList = append(sObjectValList, sObjectVal)
-
-		sModel, sErr := remoteProvider.GetEntityModel(sObjectVal)
-		if sErr != nil {
-			err = sErr
-			t.Errorf("GetEntityModel failed. err:%s", err.Error())
-			return
-		}
-
-		sModelList = append(sModelList, sModel)
+	refPtrArray := []*Reference{rPtr}
+	composePtr := &Compose{
+		Name:         strValue,
+		H1:           *sPtr,
+		R3:           sPtr,
+		H2:           []Simple{*sPtr, *sPtr},
+		R4:           []*Simple{sPtr, sPtr},
+		Reference:    *rPtr,
+		PtrReference: rPtr,
+		RefArray:     []Reference{*rPtr, *rPtr, *rPtr},
+		RefPtrArray:  refPtrArray,
+		PtrRefArray:  refPtrArray,
+		PtrCompose:   cPtr,
+	}
+	composeObjectValue, composeObjectErr := helper.GetObjectValue(composePtr)
+	if composeObjectErr != nil {
+		err = composeObjectErr
+		t.Errorf("GetObjectValue failed. err:%s", err.Error())
+		return
 	}
 
-	for idx := 0; idx < loopSize; idx++ {
-		vModel, vErr := o1.Insert(sModelList[idx])
-		if vErr != nil {
-			err = vErr
-			t.Errorf("Insert failed. err:%s", err.Error())
-			return
-		}
-
-		sObjectVal := vModel.Interface(true).(*remote.ObjectValue)
-		sVal := sValList[idx]
-		err = helper.UpdateEntity(sObjectVal, sVal)
-		if err != nil {
-			t.Errorf("UpdateEntity failed. err:%s", err.Error())
-			return
-		}
-		sValList[idx] = sVal
-		sModelList[idx] = vModel
-		sObjectValList[idx] = sObjectVal
+	composeModel, composeErr := remoteProvider.GetEntityModel(composeObjectValue)
+	if composeErr != nil {
+		err = composeErr
+		t.Errorf("GetEntityModel failed. err:%s", err.Error())
+		return
 	}
 
-	// update
-	for idx := 0; idx < loopSize; idx++ {
-		sVal := sValList[idx]
-		sVal.Name = "hi"
-		sObjectVal, sObjectErr := helper.GetObjectValue(sVal)
-		if sObjectErr != nil {
-			err = sObjectErr
-			t.Errorf("GetObjectValue failed. err:%s", err.Error())
-			return
-		}
-		sObjectValList[idx] = sObjectVal
-
-		sModel, sErr := remoteProvider.GetEntityModel(sObjectVal)
-		if sErr != nil {
-			err = sErr
-			t.Errorf("GetEntityModel failed. err:%s", err.Error())
-			return
-		}
-
-		sModelList[idx] = sModel
+	composeModel, composeErr = o1.Insert(composeModel)
+	if composeErr != nil {
+		err = composeErr
+		t.Errorf("Insert failed. err:%s", err.Error())
+		return
 	}
-	for idx := 0; idx < loopSize; idx++ {
-		vModel, vErr := o1.Update(sModelList[idx])
-		if vErr != nil {
-			err = vErr
-			t.Errorf("Update failed. err:%s", err.Error())
-			return
-		}
 
-		sObjectVal := vModel.Interface(true).(*remote.ObjectValue)
-		sVal := sValList[idx]
-		err = helper.UpdateEntity(sObjectVal, sVal)
-		if err != nil {
-			t.Errorf("UpdateEntity failed. err:%s", err.Error())
-			return
-		}
-		sValList[idx] = sVal
-		sModelList[idx] = vModel
-		sObjectValList[idx] = sObjectVal
+	composeObjectValue = composeModel.Interface(true).(*remote.ObjectValue)
+	err = helper.UpdateEntity(composeObjectValue, composePtr)
+	if err != nil {
+		t.Errorf("UpdateEntity failed. err:%s", err.Error())
+		return
+	}
+
+	composePtr.Name = "hi"
+	composeObjectValue, composeObjectErr = helper.GetObjectValue(composePtr)
+	if composeObjectErr != nil {
+		err = composeObjectErr
+		t.Errorf("GetObjectValue failed. err:%s", err.Error())
+		return
+	}
+
+	composeModel, composeErr = remoteProvider.GetEntityModel(composeObjectValue)
+	if composeErr != nil {
+		err = composeErr
+		t.Errorf("GetEntityModel failed. err:%s", err.Error())
+		return
+	}
+
+	vModel, vErr := o1.Update(composeModel)
+	if vErr != nil {
+		err = vErr
+		t.Errorf("Update failed. err:%s", err.Error())
+		return
+	}
+
+	composeObjectValue = vModel.Interface(true).(*remote.ObjectValue)
+	err = helper.UpdateEntity(composeObjectValue, composePtr)
+	if err != nil {
+		t.Errorf("UpdateEntity failed. err:%s", err.Error())
+		return
 	}
 
 	// query
-	qValList := []*Compose{}
-	qObjectValList := []*remote.ObjectValue{}
-	qModelList := []model.Model{}
-	for idx := 0; idx < loopSize; idx++ {
-		qVal := &Compose{
-			ID:           sValList[idx].ID,
-			R3:           &Simple{},
-			H2:           []Simple{},
-			R4:           []*Simple{},
-			PR4:          &[]Simple{},
-			PtrReference: &Reference{},
-			RefArray:     []Reference{},
-			RefPtrArray:  []*Reference{},
-			PtrRefArray:  []*Reference{},
-			PtrCompose:   &Compose{},
-		}
-		qValList = append(qValList, qVal)
-
-		qObjectVal, qObjectErr := helper.GetObjectValue(qVal)
-		if qObjectErr != nil {
-			err = qObjectErr
-			t.Errorf("GetObjectValue failed. err:%s", err.Error())
-			return
-		}
-		qObjectValList = append(qObjectValList, qObjectVal)
-
-		qModel, qErr := remoteProvider.GetEntityModel(qObjectVal)
-		if qErr != nil {
-			err = qErr
-			t.Errorf("GetEntityModel failed. err:%s", err.Error())
-			return
-		}
-
-		qModelList = append(qModelList, qModel)
+	queryComposeVal := &Compose{
+		ID:           composePtr.ID,
+		R3:           &Simple{},
+		H2:           []Simple{},
+		R4:           []*Simple{},
+		PR4:          &[]Simple{},
+		PtrReference: &Reference{},
+		RefArray:     []Reference{},
+		RefPtrArray:  []*Reference{},
+		PtrRefArray:  []*Reference{},
+		PtrCompose:   &Compose{},
 	}
 
-	for idx := 0; idx < loopSize; idx++ {
-		qModel, qErr := o1.Query(qModelList[idx])
-		if qErr != nil {
-			err = qErr
-			t.Errorf("Query failed. err:%s", err.Error())
-			return
-		}
-
-		qObjectVal := qModel.Interface(true).(*remote.ObjectValue)
-		qVal := qValList[idx]
-		err = helper.UpdateEntity(qObjectVal, qVal)
-		if err != nil {
-			t.Errorf("UpdateEntity failed. err:%s", err.Error())
-			return
-		}
-		qValList[idx] = qVal
-		qModelList[idx] = qModel
-		qObjectValList[idx] = qObjectVal
+	queryObjectValue, queryObjectErr := helper.GetObjectValue(queryComposeVal)
+	if queryObjectErr != nil {
+		err = queryObjectErr
+		t.Errorf("GetObjectValue failed. err:%s", err.Error())
+		return
 	}
 
-	for idx := 0; idx < loopSize; idx++ {
-		sVal := sValList[idx]
-		qVal := qValList[idx]
-		if !sVal.IsSame(qVal) {
-			err = fmt.Errorf("compare value failed")
-			t.Errorf("IsSame failed. err:%s", err.Error())
-			return
-		}
+	queryModel, queryErr := remoteProvider.GetEntityModel(queryObjectValue)
+	if queryErr != nil {
+		err = queryErr
+		t.Errorf("GetEntityModel failed. err:%s", err.Error())
+		return
 	}
 
-	composePtr := &Compose{}
+	queryModel, queryErr = o1.Query(queryModel)
+	if queryErr != nil {
+		err = queryErr
+		t.Errorf("Query failed. err:%s", err.Error())
+		return
+	}
+
+	queryObjectVal := queryModel.Interface(true).(*remote.ObjectValue)
+	err = helper.UpdateEntity(queryObjectVal, queryComposeVal)
+	if err != nil {
+		t.Errorf("UpdateEntity failed. err:%s", err.Error())
+		return
+	}
+
+	if !composePtr.IsSame(queryComposeVal) {
+		err = fmt.Errorf("compare value failed")
+		t.Errorf("IsSame failed. err:%s", err.Error())
+		return
+	}
+
+	composePtr = &Compose{}
 	composeObjectValuePtr, composeObjectValueErr := helper.GetObjectValue(composePtr)
 	if composeObjectValueErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", composeObjectValueErr.Error())
@@ -672,17 +622,16 @@ func TestComposeRemote(t *testing.T) {
 		t.Errorf("BatchQuery failed, err:%s", bqModelErr.Error())
 		return
 	}
-	if len(bqModelList) != loopSize {
+	if len(bqModelList) != 1 {
 		t.Errorf("batch query compose failed")
 		return
 	}
 
 	// delete
-	for idx := 0; idx < loopSize; idx++ {
-		_, qErr := o1.Delete(bqModelList[idx])
-		if qErr != nil {
-			err = qErr
-			return
-		}
+	_, qErr := o1.Delete(bqModelList[0])
+	if qErr != nil {
+		err = qErr
+		t.Errorf("o1.Delete failed, err:%s", qErr.Error())
+		return
 	}
 }

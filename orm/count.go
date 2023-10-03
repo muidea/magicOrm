@@ -3,6 +3,8 @@ package orm
 import (
 	"database/sql"
 
+	"github.com/muidea/magicCommon/foundation/log"
+
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
 )
@@ -12,6 +14,7 @@ func (s *impl) queryCount(vFilter model.Filter) (ret int64, err error) {
 	sqlStr, sqlErr := builder.BuildCount(vFilter)
 	if sqlErr != nil {
 		err = sqlErr
+		log.Errorf("queryCount failed, builder.BuildCount error:%s", err.Error())
 		return
 	}
 
@@ -25,6 +28,7 @@ func (s *impl) queryCount(vFilter model.Filter) (ret int64, err error) {
 		var countVal sql.NullInt64
 		err = s.executor.GetField(&countVal)
 		if err != nil {
+			log.Errorf("queryCount failed, s.executor.GetField error:%s", err.Error())
 			return
 		}
 
@@ -38,6 +42,7 @@ func (s *impl) Count(vFilter model.Filter) (ret int64, err error) {
 	queryVal, queryErr := s.queryCount(vFilter)
 	if queryErr != nil {
 		err = queryErr
+		log.Errorf("Count failed, s.queryCount error:%s", err.Error())
 		return
 	}
 	ret = queryVal
