@@ -58,7 +58,7 @@ func (s *Builder) BuildInsertRelation(vField model.Field, rModel model.Model) (r
 		return
 	}
 	relationTableName := s.GetRelationTableName(vField, rModel)
-	str := fmt.Sprintf("INSERT INTO `%s` (`left`, `right`) VALUES (%v,%v);", relationTableName, leftVal, rightVal)
+	str := fmt.Sprintf("INSERT INTO `%s` (`left`, `right`) VALUES (%v,%v)", relationTableName, leftVal, rightVal)
 	//log.Print(ret)
 
 	ret = str

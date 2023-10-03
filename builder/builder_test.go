@@ -11,7 +11,7 @@ import (
 
 // Unit 单元信息
 type Unit struct {
-	ID        int       `orm:"id key auto"`
+	ID        string    `orm:"uid key uuid"`
 	Name      string    `orm:"name"`
 	Value     float64   `orm:"value"`
 	TimeStamp time.Time `orm:"ts"`
@@ -19,7 +19,7 @@ type Unit struct {
 
 type Ext struct {
 	//ID 唯一标示单元
-	ID int `orm:"id key auto"`
+	ID int `orm:"eid key auto"`
 	// Name 名称
 	Name string `orm:"name"`
 
@@ -30,7 +30,7 @@ type Ext struct {
 
 func TestBuilderCommon(t *testing.T) {
 	now, _ := time.ParseInLocation(util.CSTLayout, "2018-01-02 15:04:05", time.Local)
-	unit := &Unit{ID: 10, Name: "Hello world", Value: 12.3456, TimeStamp: now}
+	unit := &Unit{ID: "10", Name: "Hello world", Value: 12.3456, TimeStamp: now}
 
 	localProvider := provider.NewLocalProvider("default")
 	localProvider.RegisterModel(unit)
@@ -52,7 +52,7 @@ func TestBuilderCommon(t *testing.T) {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 		return
 	}
-	if str != "CREATE TABLE IF NOT EXISTS `abc_Unit` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`value` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\tPRIMARY KEY (`id`)\n)\n" {
+	if str != "CREATE TABLE IF NOT EXISTS `abc_Unit` (\n\t`uid` TEXT NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\tPRIMARY KEY (`uid`)\n)\n" {
 		t.Errorf("build create schema failed, str:%s", str)
 		return
 	}
@@ -71,7 +71,7 @@ func TestBuilderCommon(t *testing.T) {
 	if err != nil {
 		t.Errorf("build insert failed, err:%s", err.Error())
 	}
-	if str != "INSERT INTO `abc_Unit` (`name`,`value`,`ts`) VALUES ('Hello world',12.3456,'2018-01-02 15:04:05')" {
+	if str != "INSERT INTO `abc_Unit` (`uid`,`name`,`value`,`ts`) VALUES ('10','Hello world',12.3456,'2018-01-02 15:04:05')" {
 		t.Errorf("build insert failed, str:%s", str)
 		return
 	}
@@ -81,7 +81,7 @@ func TestBuilderCommon(t *testing.T) {
 		t.Errorf("build update failed, err:%s", err.Error())
 		return
 	}
-	if str != "UPDATE `abc_Unit` SET `name`='Hello world',`value`=12.3456,`ts`='2018-01-02 15:04:05' WHERE `id`=10" {
+	if str != "UPDATE `abc_Unit` SET `name`='Hello world',`value`=12.3456,`ts`='2018-01-02 15:04:05' WHERE `uid`='10'" {
 		t.Errorf("build update failed, str:%s", str)
 		return
 	}
@@ -91,8 +91,8 @@ func TestBuilderCommon(t *testing.T) {
 		t.Errorf("build delete failed, err:%s", err.Error())
 		return
 	}
-	if str != "DELETE FROM `abc_Unit` WHERE `id`=10" {
-		t.Error("build delete failed")
+	if str != "DELETE FROM `abc_Unit` WHERE `uid`='10'" {
+		t.Errorf("build delete failed, str:%s", str)
 		return
 	}
 
@@ -101,8 +101,18 @@ func TestBuilderCommon(t *testing.T) {
 		t.Errorf("build query failed, err:%s", err.Error())
 		return
 	}
-	if str != "SELECT `id`,`name`,`value`,`ts` FROM `abc_Unit`" {
+	if str != "SELECT `uid`,`name`,`value`,`ts` FROM `abc_Unit`" {
 		t.Errorf("build query failed, str:%s", str)
+		return
+	}
+
+	str, err = builder.BuildCount(nil)
+	if err != nil {
+		t.Errorf("build count failed, err:%s", err.Error())
+		return
+	}
+	if str != "SELECT COUNT(`uid`) FROM `abc_Unit`" {
+		t.Errorf("build count failed, str:%s", str)
 		return
 	}
 
@@ -111,19 +121,21 @@ func TestBuilderCommon(t *testing.T) {
 
 func TestBuilderReference(t *testing.T) {
 	var desc string
-	ext := &Ext{ID: 10, Description: &desc}
-	unit := &Unit{ID: 10}
+	ext := &Ext{ID: 12, Description: &desc}
+	unit := &Unit{ID: "10"}
 
 	localProvider := provider.NewLocalProvider("default")
-	localProvider.RegisterModel(ext)
-	localProvider.RegisterModel(unit)
-	info, err := localProvider.GetEntityModel(ext)
-	if err != nil {
-		t.Errorf("GetEntityModel failed, err:%s", err.Error())
+	extModel, extErr := localProvider.RegisterModel(ext)
+	if extErr != nil {
+		t.Errorf("localProvider.RegisterModel failed, err:%s", extErr.Error())
 		return
 	}
+	unitModel, unitErr := localProvider.RegisterModel(unit)
+	if unitErr != nil {
+		t.Errorf("localProvider.RegisterModel failed, err:%s", unitErr.Error())
+	}
 
-	builder := NewBuilder(info, localProvider, "abc")
+	builder := NewBuilder(extModel, localProvider, "abc")
 	if builder == nil {
 		t.Error("new Builder failed")
 	}
@@ -132,7 +144,7 @@ func TestBuilderReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 	}
-	if str != "CREATE TABLE IF NOT EXISTS `abc_Ext` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`description` TEXT NOT NULL ,\n\tPRIMARY KEY (`id`)\n)\n" {
+	if str != "CREATE TABLE IF NOT EXISTS `abc_Ext` (\n\t`eid` INT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`description` TEXT NOT NULL ,\n\tPRIMARY KEY (`eid`)\n)\n" {
 		t.Errorf("build create schema failed, str:%s", str)
 	}
 
@@ -156,7 +168,7 @@ func TestBuilderReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build update failed, err:%s", err.Error())
 	}
-	if str != "UPDATE `abc_Ext` SET `name`='',`description`='' WHERE `id`=10" {
+	if str != "UPDATE `abc_Ext` SET `name`='',`description`='' WHERE `eid`=12" {
 		t.Errorf("build update failed, str:%s", str)
 	}
 
@@ -164,7 +176,7 @@ func TestBuilderReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build delete failed, err:%s", err.Error())
 	}
-	if str != "DELETE FROM `abc_Ext` WHERE `id`=10" {
+	if str != "DELETE FROM `abc_Ext` WHERE `eid`=12" {
 		t.Errorf("build delete failed, str:%s", str)
 	}
 
@@ -172,15 +184,80 @@ func TestBuilderReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build query failed, err:%s", err.Error())
 	}
-	if str != "SELECT `id`,`name`,`description` FROM `abc_Ext`" {
+	if str != "SELECT `eid`,`name`,`description` FROM `abc_Ext`" {
 		t.Errorf("build query failed, str:%s", str)
+	}
+
+	str, err = builder.BuildCount(nil)
+	if err != nil {
+		t.Errorf("build count failed, err:%s", err.Error())
+		return
+	}
+	if str != "SELECT COUNT(`eid`) FROM `abc_Ext`" {
+		t.Errorf("build count failed, str:%s", str)
+		return
+	}
+
+	uField := extModel.GetField("unit")
+	str, err = builder.BuildCreateRelationTable(uField, unitModel)
+	if err != nil {
+		t.Errorf("BuildCreateRelationTable failed, err:%s", err.Error())
+		return
+	}
+	if str != "CREATE TABLE IF NOT EXISTS `abc_ExtUnit1Unit` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`left` INT NOT NULL,\n\t`right` TEXT NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`)\n)\n" {
+		t.Errorf("BuildCreateRelationTable failed, str:%s", str)
+		return
+	}
+
+	str, err = builder.BuildDropRelationTable(uField, unitModel)
+	if err != nil {
+		t.Errorf("BuildDropRelationTable failed, err:%s", err.Error())
+		return
+	}
+	if str != "DROP TABLE IF EXISTS `abc_ExtUnit1Unit`" {
+		t.Errorf("BuildDropRelationTable failed, str:%s", str)
+		return
+	}
+
+	str, err = builder.BuildInsertRelation(uField, unitModel)
+	if err != nil {
+		t.Errorf("BuildInsertRelation failed, err:%s", err.Error())
+		return
+	}
+	if str != "INSERT INTO `abc_ExtUnit1Unit` (`left`, `right`) VALUES (12,'10')" {
+		t.Errorf("BuildInsertRelation failed, str:%s", str)
+		return
+	}
+
+	lStr, rStr, err := builder.BuildDeleteRelation(uField, unitModel)
+	if err != nil {
+		t.Errorf("BuildDeleteRelation failed, err:%s", err.Error())
+		return
+	}
+	if lStr != "DELETE FROM `abc_Unit` WHERE `uid` IN (SELECT `right` FROM `abc_ExtUnit1Unit` WHERE `left`=12)" {
+		t.Errorf("BuildDeleteRelation failed, lStr:%s", lStr)
+		return
+	}
+	if rStr != "DELETE FROM `abc_ExtUnit1Unit` WHERE `left`=12" {
+		t.Errorf("BuildDeleteRelation failed, rStr:%s", rStr)
+		return
+	}
+
+	str, err = builder.BuildQueryRelation(uField, unitModel)
+	if err != nil {
+		t.Errorf("BuildQueryRelation failed, err:%s", err.Error())
+		return
+	}
+	if str != "SELECT `right` FROM `abc_ExtUnit1Unit` WHERE `left`= 12" {
+		t.Errorf("BuildQueryRelation failed, str:%s", str)
+		return
 	}
 }
 
 func TestBuilderReference2(t *testing.T) {
 	desc := "Desc"
 	ext := &Ext{ID: 10, Description: &desc}
-	unit := &Unit{ID: 10}
+	unit := &Unit{ID: "10"}
 
 	localProvider := provider.NewLocalProvider("default")
 	localProvider.RegisterModel(ext)
@@ -200,7 +277,7 @@ func TestBuilderReference2(t *testing.T) {
 	if err != nil {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 	}
-	if str != "CREATE TABLE IF NOT EXISTS `abc_Ext` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`description` TEXT NOT NULL ,\n\tPRIMARY KEY (`id`)\n)\n" {
+	if str != "CREATE TABLE IF NOT EXISTS `abc_Ext` (\n\t`eid` INT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`description` TEXT NOT NULL ,\n\tPRIMARY KEY (`eid`)\n)\n" {
 		t.Errorf("build create schema failed, str:%v", str)
 	}
 
@@ -224,7 +301,7 @@ func TestBuilderReference2(t *testing.T) {
 	if err != nil {
 		t.Errorf("build update failed, err:%s", err.Error())
 	}
-	if str != "UPDATE `abc_Ext` SET `name`='',`description`='Desc' WHERE `id`=10" {
+	if str != "UPDATE `abc_Ext` SET `name`='',`description`='Desc' WHERE `eid`=10" {
 		t.Errorf("build update failed, str:%v", str)
 	}
 
@@ -232,7 +309,7 @@ func TestBuilderReference2(t *testing.T) {
 	if err != nil {
 		t.Errorf("build delete failed, err:%s", err.Error())
 	}
-	if str != "DELETE FROM `abc_Ext` WHERE `id`=10" {
+	if str != "DELETE FROM `abc_Ext` WHERE `eid`=10" {
 		t.Errorf("build delete failed, str:%v", str)
 	}
 
@@ -240,7 +317,7 @@ func TestBuilderReference2(t *testing.T) {
 	if err != nil {
 		t.Errorf("build query failed, err:%s", err.Error())
 	}
-	if str != "SELECT `id`,`name`,`description` FROM `abc_Ext`" {
+	if str != "SELECT `eid`,`name`,`description` FROM `abc_Ext`" {
 		t.Errorf("build query failed, str:%s", str)
 	}
 }

@@ -79,6 +79,10 @@ func (s *field) IsSlice() bool {
 	return s.typePtr.IsSlice()
 }
 
+func (s *field) IsPtrType() bool {
+	return s.typePtr.IsPtrType()
+}
+
 func (s *field) copy() *field {
 	val := &field{
 		index: s.index,

@@ -81,6 +81,10 @@ func (s *Field) IsSlice() bool {
 	return s.Type.IsSlice()
 }
 
+func (s *Field) IsPtrType() bool {
+	return s.Type.IsPtrType()
+}
+
 func (s *Field) copy() (ret *Field) {
 	fPtr := &Field{
 		Index:       s.Index,

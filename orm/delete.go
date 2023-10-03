@@ -92,9 +92,8 @@ func (s *impl) deleteRelationSliceInner(rVal model.Value, rType model.Type, deep
 
 func (s *impl) deleteRelation(vModel model.Model, rField model.Field, deepLevel int) (err error) {
 	rType := rField.GetType()
-	//rValue := rField.GetValue()
-	//relationModel, relationErr := s.modelProvider.GetValueModel(rValue, rType)
-	relationModel, relationErr := s.modelProvider.GetTypeModel(rType)
+	rValue := rField.GetValue()
+	relationModel, relationErr := s.modelProvider.GetValueModel(rValue, rType)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("deleteRelation failed, s.modelProvider.GetTypeModel error:%s", err.Error())

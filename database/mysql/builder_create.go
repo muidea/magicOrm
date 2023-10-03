@@ -6,7 +6,6 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-// BuildCreateTable  BuildCreateSchema
 func (s *Builder) BuildCreateTable() (ret string, err error) {
 	str := ""
 	for _, val := range s.GetFields() {

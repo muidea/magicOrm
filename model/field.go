@@ -12,6 +12,7 @@ type Field interface {
 	IsBasic() bool
 	IsStruct() bool
 	IsSlice() bool
+	IsPtrType() bool
 }
 
 func CompareField(l, r Field) bool {
