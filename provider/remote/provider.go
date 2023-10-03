@@ -130,6 +130,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err e
 		err = vModel.SetFieldValue(fieldVal.GetName(), fieldVal.GetValue())
 		if err != nil {
 			log.Errorf("SetModelValue failed, vModel.SetFieldValue err:%s", err.Error())
+			return
 		}
 	}
 

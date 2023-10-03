@@ -67,6 +67,18 @@ func (s *field) IsPrimaryKey() bool {
 	return s.specPtr.IsPrimaryKey()
 }
 
+func (s *field) IsBasic() bool {
+	return s.typePtr.IsBasic()
+}
+
+func (s *field) IsStruct() bool {
+	return s.typePtr.IsStruct()
+}
+
+func (s *field) IsSlice() bool {
+	return s.typePtr.IsSlice()
+}
+
 func (s *field) copy() *field {
 	val := &field{
 		index: s.index,

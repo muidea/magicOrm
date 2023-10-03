@@ -9,6 +9,9 @@ type Field interface {
 	GetValue() Value
 	SetValue(val Value) error
 	IsPrimaryKey() bool
+	IsBasic() bool
+	IsStruct() bool
+	IsSlice() bool
 }
 
 func CompareField(l, r Field) bool {

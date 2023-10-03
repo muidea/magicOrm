@@ -29,8 +29,7 @@ func (s *impl) innerInsert(vModel model.Model) (ret interface{}, err error) {
 func (s *impl) insertSingle(vModel model.Model) (ret model.Model, err error) {
 	autoIncrementFlag := false
 	for _, field := range vModel.GetFields() {
-		fType := field.GetType()
-		if !fType.IsBasic() {
+		if !field.IsBasic() {
 			continue
 		}
 
@@ -73,12 +72,11 @@ func (s *impl) insertSingle(vModel model.Model) (ret model.Model, err error) {
 
 func (s *impl) insertRelation(vModel model.Model, vField model.Field) (err error) {
 	fValue := vField.GetValue()
-	fType := vField.GetType()
-	if fType.IsBasic() || fValue.IsZero() {
+	if fValue.IsZero() {
 		return
 	}
 
-	if model.IsSliceType(fType.GetValue()) {
+	if vField.IsSlice() {
 		err = s.insertSliceRelation(vModel, vField)
 		return
 	}
@@ -107,6 +105,10 @@ func (s *impl) insertSingleRelation(vModel model.Model, vField model.Field) (err
 		}
 
 		for _, subField := range rModel.GetFields() {
+			if subField.IsBasic() {
+				continue
+			}
+
 			err = s.insertRelation(rModel, subField)
 			if err != nil {
 				log.Errorf("insertSingleRelation failed, s.insertRelation error, err:%s", err.Error())
@@ -151,15 +153,15 @@ func (s *impl) insertSliceRelation(vModel model.Model, vField model.Field) (err 
 		return
 	}
 
+	elemType := fType.Elem()
 	for _, fVal := range fSliceValue {
-		rModel, rErr := s.modelProvider.GetValueModel(fVal, fType)
+		rModel, rErr := s.modelProvider.GetValueModel(fVal, elemType)
 		if rErr != nil {
 			err = rErr
 			log.Errorf("insertSliceRelation failed, s.modelProvider.GetValueModel error, err:%s", err.Error())
 			return
 		}
 
-		elemType := fType.Elem()
 		if !elemType.IsPtrType() {
 			rModel, rErr = s.insertSingle(rModel)
 			if rErr != nil {
@@ -169,6 +171,10 @@ func (s *impl) insertSliceRelation(vModel model.Model, vField model.Field) (err 
 			}
 
 			for _, subField := range rModel.GetFields() {
+				if subField.IsBasic() {
+					continue
+				}
+
 				err = s.insertRelation(rModel, subField)
 				if err != nil {
 					log.Errorf("insertSliceRelation failed, s.insertRelation error, err:%s", err.Error())
@@ -224,6 +230,10 @@ func (s *impl) Insert(vModel model.Model) (ret model.Model, err error) {
 	}
 
 	for _, field := range insertVal.GetFields() {
+		if field.IsBasic() {
+			continue
+		}
+
 		err = s.insertRelation(insertVal, field)
 		if err != nil {
 			break

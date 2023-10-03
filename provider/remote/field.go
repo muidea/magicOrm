@@ -69,6 +69,18 @@ func (s *Field) IsPrimaryKey() bool {
 	return s.Spec.IsPrimaryKey()
 }
 
+func (s *Field) IsBasic() bool {
+	return s.Type.IsBasic()
+}
+
+func (s *Field) IsStruct() bool {
+	return s.Type.IsStruct()
+}
+
+func (s *Field) IsSlice() bool {
+	return s.Type.IsSlice()
+}
+
 func (s *Field) copy() (ret *Field) {
 	fPtr := &Field{
 		Index:       s.Index,

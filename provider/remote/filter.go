@@ -170,6 +170,7 @@ func (s *ObjectFilter) In(key string, val interface{}) (err error) {
 		[]uint8, []uint16, []uint32, []uint, []uint64,
 		[]float32, []float64,
 		[]string,
+		[]any,
 		map[string]any,
 		*SliceObjectValue:
 		item := &FieldValue{Name: key, Value: val}
@@ -193,6 +194,7 @@ func (s *ObjectFilter) NotIn(key string, val interface{}) (err error) {
 		[]uint8, []uint16, []uint32, []uint, []uint64,
 		[]float32, []float64,
 		[]string,
+		[]any,
 		map[string]any,
 		*SliceObjectValue:
 		item := &FieldValue{Name: key, Value: val}

@@ -217,10 +217,17 @@ func (s *providerImpl) GetEntityFilter(entity interface{}) (ret model.Filter, er
 func (s *providerImpl) GetValueModel(vVal model.Value, vType model.Type) (ret model.Model, err error) {
 	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
 	if typeModel == nil {
-		err = fmt.Errorf("can't fetch type model, must register type entity first")
+		err = fmt.Errorf("can't fetch type model, must register type:%s", vType.GetPkgKey())
 		log.Errorf("GetValueModel failed, s.modelCache.Fetch err:%v", err.Error())
 		return
 	}
+
+	/*
+		if vType.IsSlice() {
+			ret = typeModel.Copy()
+			return
+		}
+	*/
 
 	ret, err = s.setModelValueFunc(typeModel.Copy(), vVal)
 	if err != nil {

@@ -117,6 +117,15 @@ func (s *TypeImpl) IsBasic() bool {
 	return model.IsBasicType(elemType.GetValue())
 }
 
+func (s *TypeImpl) IsStruct() bool {
+	elemType := s.Elem()
+	return model.IsStructType(elemType.GetValue())
+}
+
+func (s *TypeImpl) IsSlice() bool {
+	return model.IsSliceType(s.GetValue())
+}
+
 func (s *TypeImpl) getRawType() reflect.Type {
 	if s.typeVal.Kind() == reflect.Ptr {
 		return s.typeVal.Elem()

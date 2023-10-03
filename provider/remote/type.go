@@ -116,6 +116,18 @@ func (s *TypeImpl) IsBasic() bool {
 	return model.IsBasicType(s.Value)
 }
 
+func (s *TypeImpl) IsStruct() bool {
+	if s.ElemType != nil {
+		return model.IsStructType(s.ElemType.Value)
+	}
+
+	return model.IsStructType(s.Value)
+}
+
+func (s *TypeImpl) IsSlice() bool {
+	return model.IsSliceType(s.Value)
+}
+
 func (s *TypeImpl) copy() (ret *TypeImpl) {
 	ret = &TypeImpl{
 		Name:        s.Name,

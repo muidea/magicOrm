@@ -36,11 +36,11 @@ func (s *impl) createSchema(vModel model.Model) (err error) {
 	}
 
 	for _, field := range vModel.GetFields() {
-		fType := field.GetType()
-		if fType.IsBasic() {
+		if field.IsBasic() {
 			continue
 		}
 
+		fType := field.GetType()
 		relationModel, relationErr := s.modelProvider.GetTypeModel(fType)
 		if relationErr != nil {
 			err = relationErr

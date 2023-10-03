@@ -31,6 +31,10 @@ func (s *impl) deleteRelationStructInner(rVal model.Value, rType model.Type, dee
 	}
 
 	for _, field := range relationModel.GetFields() {
+		if field.IsBasic() {
+			continue
+		}
+
 		err = s.deleteRelation(relationModel, field, deepLevel+1)
 		if err != nil {
 			break
@@ -61,6 +65,10 @@ func (s *impl) deleteRelationSliceInner(rVal model.Value, rType model.Type, deep
 		}
 
 		for _, field := range relationModel.GetFields() {
+			if field.IsBasic() {
+				continue
+			}
+
 			err = s.deleteRelation(relationModel, field, deepLevel+1)
 			if err != nil {
 				break
@@ -73,10 +81,8 @@ func (s *impl) deleteRelationSliceInner(rVal model.Value, rType model.Type, deep
 
 func (s *impl) deleteRelation(vModel model.Model, rField model.Field, deepLevel int) (err error) {
 	rType := rField.GetType()
-	if rType.IsBasic() {
-		return
-	}
-
+	//rValue := rField.GetValue()
+	//relationModel, relationErr := s.modelProvider.GetValueModel(rValue, rType)
 	relationModel, relationErr := s.modelProvider.GetTypeModel(rType)
 	if relationErr != nil {
 		err = relationErr
@@ -134,6 +140,10 @@ func (s *impl) Delete(vModel model.Model) (ret model.Model, err error) {
 		}
 
 		for _, field := range vModel.GetFields() {
+			if field.IsBasic() {
+				continue
+			}
+
 			err = s.deleteRelation(vModel, field, 0)
 			if err != nil {
 				break
