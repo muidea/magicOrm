@@ -42,7 +42,7 @@ func (s *objectImpl) GetFields() (ret model.Fields) {
 func (s *objectImpl) SetFieldValue(name string, val model.Value) (err error) {
 	for _, field := range s.fields {
 		if field.GetName() == name {
-			err = field.SetValue(val)
+			field.SetValue(val)
 			return
 		}
 	}

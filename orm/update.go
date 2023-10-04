@@ -42,9 +42,7 @@ func (s *impl) Update(vModel model.Model) (ret model.Model, err error) {
 	if err != nil {
 		return
 	}
-	defer func() {
-		err = s.finalTransaction(err)
-	}()
+	defer s.finalTransaction(err)
 
 	err = s.updateSingle(vModel)
 	if err != nil {

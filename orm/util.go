@@ -55,7 +55,7 @@ func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, err error) 
 	return
 }
 
-func (s *impl) getFieldScanDestPtr(vModel model.Model, builder builder.Builder) (ret []interface{}, err error) {
+func (s *impl) getModelFieldsScanDestPtr(vModel model.Model, builder builder.Builder) (ret []any, err error) {
 	var items []interface{}
 	for _, field := range vModel.GetFields() {
 		fType := field.GetType()
@@ -67,7 +67,7 @@ func (s *impl) getFieldScanDestPtr(vModel model.Model, builder builder.Builder) 
 		itemVal, itemErr := builder.GetFieldScanDest(field)
 		if itemErr != nil {
 			err = itemErr
-			log.Errorf("getFieldScanDestPtr failed, builder.GetFieldScanDest error:%s", err.Error())
+			log.Errorf("getModelFieldsScanDestPtr failed, builder.GetFieldScanDest error:%s", err.Error())
 			return
 		}
 
@@ -75,5 +75,17 @@ func (s *impl) getFieldScanDestPtr(vModel model.Model, builder builder.Builder) 
 	}
 	ret = items
 
+	return
+}
+
+func (s *impl) getModelPKFieldScanDestPtr(vModel model.Model, builder builder.Builder) (ret any, err error) {
+	itemVal, itemErr := builder.GetFieldScanDest(vModel.GetPrimaryField())
+	if itemErr != nil {
+		err = itemErr
+		log.Errorf("getModelPKFieldScanDestPtr failed, builder.GetFieldScanDest error:%s", err.Error())
+		return
+	}
+
+	ret = itemVal
 	return
 }

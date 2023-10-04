@@ -27,7 +27,7 @@ func (s *impl) innerInsert(vModel model.Model) (ret interface{}, err error) {
 	return
 }
 
-func (s *impl) insertSingle(vModel model.Model) (ret model.Model, err error) {
+func (s *impl) insertSingle(vModel model.Model) (err error) {
 	autoIncrementFlag := false
 	for _, field := range vModel.GetFields() {
 		if !field.IsBasic() {
@@ -63,14 +63,8 @@ func (s *impl) insertSingle(vModel model.Model) (ret model.Model, err error) {
 			return
 		}
 
-		err = pkField.SetValue(tVal)
-		if err != nil {
-			log.Errorf("insertSingle failed, pkField.SetValue error:%s", err.Error())
-			return
-		}
+		pkField.SetValue(tVal)
 	}
-
-	ret = vModel
 	return
 }
 
@@ -114,7 +108,7 @@ func (s *impl) insertSingleRelation(vModel model.Model, vField model.Field) (ret
 	}
 
 	if !fType.IsPtrType() {
-		rModel, rErr = s.insertSingle(rModel)
+		rErr = s.insertSingle(rModel)
 		if rErr != nil {
 			err = rErr
 			log.Errorf("insertSingleRelation failed, s.insertSingle error:%s", err.Error())
@@ -180,7 +174,7 @@ func (s *impl) insertSliceRelation(vModel model.Model, vField model.Field) (ret 
 		}
 
 		if !elemType.IsPtrType() {
-			rModel, rErr = s.insertSingle(rModel)
+			rErr = s.insertSingle(rModel)
 			if rErr != nil {
 				err = rErr
 				log.Errorf("insertSliceRelation failed, s.insertSingle error:%s", err.Error())
@@ -240,25 +234,25 @@ func (s *impl) Insert(vModel model.Model) (ret model.Model, err error) {
 	}
 	defer s.finalTransaction(err)
 
-	insertVal, insertErr := s.insertSingle(vModel)
-	if insertErr != nil {
-		err = insertErr
+	iErr := s.insertSingle(vModel)
+	if iErr != nil {
+		err = iErr
 		log.Errorf("Insert failed, s.insertSingle error:%s", err.Error())
 		return
 	}
 
-	for _, field := range insertVal.GetFields() {
+	for _, field := range vModel.GetFields() {
 		if field.IsBasic() {
 			continue
 		}
 
-		err = s.insertRelation(insertVal, field)
+		err = s.insertRelation(vModel, field)
 		if err != nil {
 			log.Errorf("Insert failed, s.insertRelation error:%s", err.Error())
 			return
 		}
 	}
 
-	ret = insertVal
+	ret = vModel
 	return
 }

@@ -54,7 +54,7 @@ func (s *field) GetValue() (ret model.Value) {
 	return
 }
 
-func (s *field) SetValue(val model.Value) (err error) {
+func (s *field) SetValue(val model.Value) {
 	s.valuePtr = val.(*ValueImpl)
 	return
 }

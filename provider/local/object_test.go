@@ -54,11 +54,7 @@ func TestModelValue(t *testing.T) {
 		t.Errorf("GetPrimaryField faield")
 		return
 	}
-	unitErr = pk.SetValue(iVal)
-	if unitErr != nil {
-		t.Errorf("Set value failed, unitErr:%s", unitErr.Error())
-		return
-	}
+	pk.SetValue(iVal)
 
 	name := "abcdfrfe"
 	nVal := NewValue(reflect.ValueOf(name))

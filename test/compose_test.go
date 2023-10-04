@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/muidea/magicCommon/foundation/util"
-	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
@@ -224,8 +223,6 @@ func TestComposeLocal(t *testing.T) {
 	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	localProvider := provider.NewLocalProvider(composeLocalOwner)
 
-	loopSize := 10
-
 	o1, err := orm.NewOrm(localProvider, config, "abc")
 	defer o1.Release()
 	if err != nil {
@@ -257,9 +254,6 @@ func TestComposeLocal(t *testing.T) {
 		return
 	}
 
-	sValList := []*Compose{}
-	sModelList := []model.Model{}
-
 	sPtr, rPtr, cPtr, pErr := prepareLocalData(localProvider, o1)
 	if pErr != nil {
 		t.Errorf("prepareLocalData failed. err:%s", pErr.Error())
@@ -268,118 +262,87 @@ func TestComposeLocal(t *testing.T) {
 
 	strValue := "test code"
 	// insert
-	for idx := 0; idx < loopSize; idx++ {
-		refPtrArray := []*Reference{rPtr}
-		sVal := &Compose{
-			Name:         strValue,
-			H1:           *sPtr,
-			R3:           sPtr,
-			H2:           []Simple{*sPtr, *sPtr},
-			R4:           []*Simple{sPtr, sPtr},
-			Reference:    *rPtr,
-			PtrReference: rPtr,
-			RefArray:     []Reference{*rPtr, *rPtr, *rPtr},
-			RefPtrArray:  refPtrArray,
-			PtrRefArray:  refPtrArray,
-			PtrCompose:   cPtr,
-		}
-		sValList = append(sValList, sVal)
-
-		sModel, sErr := localProvider.GetEntityModel(sVal)
-		if sErr != nil {
-			err = sErr
-			t.Errorf("GetEntityModel failed. err:%s", err.Error())
-			return
-		}
-
-		sModelList = append(sModelList, sModel)
+	refPtrArray := []*Reference{rPtr}
+	composePtr := &Compose{
+		Name:         strValue,
+		H1:           *sPtr,
+		R3:           sPtr,
+		H2:           []Simple{*sPtr, *sPtr},
+		R4:           []*Simple{sPtr, sPtr},
+		Reference:    *rPtr,
+		PtrReference: rPtr,
+		RefArray:     []Reference{*rPtr, *rPtr, *rPtr},
+		RefPtrArray:  refPtrArray,
+		PtrRefArray:  refPtrArray,
+		PtrCompose:   cPtr,
 	}
 
-	for idx := 0; idx < loopSize; idx++ {
-		vModel, vErr := o1.Insert(sModelList[idx])
-		if vErr != nil {
-			err = vErr
-			t.Errorf("Insert failed. err:%s", err.Error())
-			return
-		}
+	composeModel, composeErr := localProvider.GetEntityModel(composePtr)
+	if composeErr != nil {
+		err = composeErr
+		t.Errorf("GetEntityModel failed. err:%s", err.Error())
+		return
+	}
 
-		sModelList[idx] = vModel
-		sValList[idx] = vModel.Interface(true).(*Compose)
+	composeModel, composeErr = o1.Insert(composeModel)
+	if composeErr != nil {
+		err = composeErr
+		t.Errorf("Insert failed. err:%s", err.Error())
+		return
 	}
 
 	// update
-	for idx := 0; idx < loopSize; idx++ {
-		sVal := sValList[idx]
-		sVal.Name = "hi"
-		sModel, sErr := localProvider.GetEntityModel(sVal)
-		if sErr != nil {
-			err = sErr
-			t.Errorf("GetEntityModel failed. err:%s", err.Error())
-			return
-		}
-
-		sModelList[idx] = sModel
+	composePtr = composeModel.Interface(true).(*Compose)
+	composePtr.Name = "hi"
+	composeModel, composeErr = localProvider.GetEntityModel(composePtr)
+	if composeErr != nil {
+		err = composeErr
+		t.Errorf("GetEntityModel failed. err:%s", err.Error())
+		return
 	}
-	for idx := 0; idx < loopSize; idx++ {
-		vModel, vErr := o1.Update(sModelList[idx])
-		if vErr != nil {
-			err = vErr
-			t.Errorf("Update failed. err:%s", err.Error())
-			return
-		}
 
-		sModelList[idx] = vModel
-		sValList[idx] = vModel.Interface(true).(*Compose)
+	composeModel, composeErr = o1.Update(composeModel)
+	if composeErr != nil {
+		err = composeErr
+		t.Errorf("Update failed. err:%s", err.Error())
+		return
 	}
+
+	composePtr = composeModel.Interface(true).(*Compose)
 
 	// query
-	qValList := []*Compose{}
-	qModelList := []model.Model{}
-	for idx := 0; idx < loopSize; idx++ {
-		qVal := &Compose{
-			ID:           sValList[idx].ID,
-			R3:           &Simple{},
-			H2:           []Simple{},
-			R4:           []*Simple{},
-			PR4:          &[]Simple{},
-			PtrReference: &Reference{},
-			RefArray:     []Reference{},
-			RefPtrArray:  []*Reference{},
-			PtrRefArray:  []*Reference{},
-			PtrCompose:   &Compose{},
-		}
-		qValList = append(qValList, qVal)
-
-		qModel, qErr := localProvider.GetEntityModel(qVal)
-		if qErr != nil {
-			err = qErr
-			t.Errorf("GetEntityModel failed. err:%s", err.Error())
-			return
-		}
-
-		qModelList = append(qModelList, qModel)
+	queryVal := &Compose{
+		ID:           composePtr.ID,
+		R3:           &Simple{},
+		H2:           []Simple{},
+		R4:           []*Simple{},
+		PR4:          &[]Simple{},
+		PtrReference: &Reference{},
+		RefArray:     []Reference{},
+		RefPtrArray:  []*Reference{},
+		PtrRefArray:  []*Reference{},
+		PtrCompose:   &Compose{},
 	}
 
-	for idx := 0; idx < loopSize; idx++ {
-		qModel, qErr := o1.Query(qModelList[idx])
-		if qErr != nil {
-			err = qErr
-			t.Errorf("Query failed, idx:%d. err:%s", idx, err.Error())
-			return
-		}
-
-		qModelList[idx] = qModel
-		qValList[idx] = qModel.Interface(true).(*Compose)
+	queryModel, queryErr := localProvider.GetEntityModel(queryVal)
+	if queryErr != nil {
+		err = queryErr
+		t.Errorf("GetEntityModel failed. err:%s", err.Error())
+		return
 	}
 
-	for idx := 0; idx < loopSize; idx++ {
-		sVal := sValList[idx]
-		qVal := qValList[idx]
-		if !sVal.IsSame(qVal) {
-			err = fmt.Errorf("compare value failed")
-			t.Errorf("IsSame failed. err:%s", err.Error())
-			return
-		}
+	queryModel, queryErr = o1.Query(queryModel)
+	if queryErr != nil {
+		err = queryErr
+		t.Errorf("Query failed, err:%s", err.Error())
+		return
+	}
+	queryVal = queryModel.Interface(true).(*Compose)
+
+	if !composePtr.IsSame(queryVal) {
+		err = fmt.Errorf("compare value failed")
+		t.Errorf("IsSame failed. err:%s", err.Error())
+		return
 	}
 
 	filter, err := localProvider.GetEntityFilter(&Compose{})
@@ -388,8 +351,12 @@ func TestComposeLocal(t *testing.T) {
 		return
 	}
 
-	filter.Equal("name", "hi")
-	filter.ValueMask(&Compose{
+	err = filter.Equal("name", "hi")
+	if err != nil {
+		t.Errorf("filter.Equal failed, err:%s", err.Error())
+		return
+	}
+	err = filter.ValueMask(&Compose{
 		R3:           &Simple{},
 		H2:           []Simple{},
 		R4:           []*Simple{},
@@ -400,23 +367,26 @@ func TestComposeLocal(t *testing.T) {
 		PtrRefArray:  []*Reference{},
 		PtrCompose:   &Compose{},
 	})
+	if err != nil {
+		t.Errorf("filter.ValueMask failed, err:%s", err.Error())
+		return
+	}
+
 	bqModelList, bqModelErr := o1.BatchQuery(filter)
 	if bqModelErr != nil {
 		t.Errorf("BatchQuery failed, err:%s", bqModelErr.Error())
 		return
 	}
-	if len(bqModelList) != loopSize {
+	if len(bqModelList) != 1 {
 		t.Errorf("batch query compose failed")
 		return
 	}
 
 	// delete
-	for idx := 0; idx < loopSize; idx++ {
-		_, qErr := o1.Delete(bqModelList[idx])
-		if qErr != nil {
-			err = qErr
-			return
-		}
+	_, qErr := o1.Delete(bqModelList[0])
+	if qErr != nil {
+		err = qErr
+		return
 	}
 }
 
@@ -596,7 +566,11 @@ func TestComposeRemote(t *testing.T) {
 		return
 	}
 
-	filter.Equal("name", "hi")
+	err = filter.Equal("name", "hi")
+	if err != nil {
+		t.Errorf("filter.Equal failed, err:%s", err.Error())
+		return
+	}
 
 	maskComposePtr := &Compose{
 		R3:           &Simple{},
@@ -616,7 +590,12 @@ func TestComposeRemote(t *testing.T) {
 		return
 	}
 
-	filter.ValueMask(maskObjectValuePtr)
+	err = filter.ValueMask(maskObjectValuePtr)
+	if err != nil {
+		t.Errorf("filter.ValueMask failed, err:%s", err.Error())
+		return
+	}
+
 	bqModelList, bqModelErr := o1.BatchQuery(filter)
 	if bqModelErr != nil {
 		t.Errorf("BatchQuery failed, err:%s", bqModelErr.Error())

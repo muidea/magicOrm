@@ -69,11 +69,7 @@ func (s *Object) GetFields() (ret model.Fields) {
 func (s *Object) SetFieldValue(name string, val model.Value) (err error) {
 	for _, item := range s.Fields {
 		if item.Name == name {
-			err = item.SetValue(val)
-			if err != nil {
-				log.Errorf("set field value failed, object name:%s, err:%s", s.Name, err.Error())
-			}
-
+			item.SetValue(val)
 			return
 		}
 	}
@@ -105,7 +101,7 @@ func (s *Object) GetField(name string) (ret model.Field) {
 }
 
 // Interface object value
-func (s *Object) Interface(ptrValue bool) (ret any) {
+func (s *Object) Interface(_ bool) (ret any) {
 	objVal := &ObjectValue{Name: s.Name, PkgPath: s.PkgPath, Fields: []*FieldValue{}}
 
 	for _, v := range s.Fields {

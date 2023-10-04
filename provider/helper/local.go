@@ -68,10 +68,7 @@ func toLocalFieldValue(fieldVal *remote.FieldValue, lField model.Field) (err err
 			log.Errorf("toLocalFieldValue failed, field name:%s, toBasicSliceValue err:%v", fieldVal.GetName(), err.Error())
 			return
 		}
-		err = lField.SetValue(lVal)
-		if err != nil {
-			log.Errorf("toLocalFieldValue failed, field name:%s, basic slice lField.SetValue err:%v", fieldVal.GetName(), err.Error())
-		}
+		lField.SetValue(lVal)
 		return
 	}
 
@@ -84,10 +81,7 @@ func toLocalFieldValue(fieldVal *remote.FieldValue, lField model.Field) (err err
 			log.Errorf("toLocalFieldValue failed, field name:%s, toBasicValue err:%v", fieldVal.GetName(), err.Error())
 			return
 		}
-		err = lField.SetValue(lVal)
-		if err != nil {
-			log.Errorf("toLocalFieldValue failed, field name:%s, basic lField.SetValue err:%v", fieldVal.GetName(), err.Error())
-		}
+		lField.SetValue(lVal)
 		return
 	}
 
@@ -99,10 +93,7 @@ func toLocalFieldValue(fieldVal *remote.FieldValue, lField model.Field) (err err
 			log.Errorf("toLocalFieldValue failed, field name:%s, toStructSliceValue err:%v", fieldVal.GetName(), err.Error())
 			return
 		}
-		err = lField.SetValue(lVal)
-		if err != nil {
-			log.Errorf("toLocalFieldValue failed, field name:%s, struct slice lField.SetValue err:%v", fieldVal.GetName(), err.Error())
-		}
+		lField.SetValue(lVal)
 		return
 	}
 
@@ -114,10 +105,7 @@ func toLocalFieldValue(fieldVal *remote.FieldValue, lField model.Field) (err err
 		return
 	}
 
-	err = lField.SetValue(lVal)
-	if err != nil {
-		log.Errorf("toLocalFieldValue failed, field name:%s, struct lField.SetValue err:%v", fieldVal.GetName(), err.Error())
-	}
+	lField.SetValue(lVal)
 	return
 }
 
