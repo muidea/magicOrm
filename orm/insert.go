@@ -81,21 +81,29 @@ func (s *impl) insertRelation(vModel model.Model, vField model.Field) (err error
 	}
 
 	if vField.IsSlice() {
-		err = s.insertSliceRelation(vModel, vField)
-		if err != nil {
+		rValue, rErr := s.insertSliceRelation(vModel, vField)
+		if rErr != nil {
+			err = rErr
 			log.Errorf("insertRelation failed, s.insertSliceRelation error:%s", err.Error())
+			return
 		}
+
+		vField.SetValue(rValue)
 		return
 	}
 
-	err = s.insertSingleRelation(vModel, vField)
-	if err != nil {
+	rValue, rErr := s.insertSingleRelation(vModel, vField)
+	if rErr != nil {
+		err = rErr
 		log.Errorf("insertRelation failed, s.insertSingleRelation error:%s", err.Error())
+		return
 	}
+
+	vField.SetValue(rValue)
 	return
 }
 
-func (s *impl) insertSingleRelation(vModel model.Model, vField model.Field) (err error) {
+func (s *impl) insertSingleRelation(vModel model.Model, vField model.Field) (ret model.Value, err error) {
 	fValue := vField.GetValue()
 	fType := vField.GetType()
 	rModel, rErr := s.modelProvider.GetValueModel(fValue, fType)
@@ -105,8 +113,7 @@ func (s *impl) insertSingleRelation(vModel model.Model, vField model.Field) (err
 		return
 	}
 
-	elemType := fType.Elem()
-	if !elemType.IsPtrType() {
+	if !fType.IsPtrType() {
 		rModel, rErr = s.insertSingle(rModel)
 		if rErr != nil {
 			err = rErr
@@ -114,12 +121,12 @@ func (s *impl) insertSingleRelation(vModel model.Model, vField model.Field) (err
 			return
 		}
 
-		for _, subField := range rModel.GetFields() {
-			if subField.IsBasic() {
+		for _, field := range rModel.GetFields() {
+			if field.IsBasic() {
 				continue
 			}
 
-			err = s.insertRelation(rModel, subField)
+			err = s.insertRelation(rModel, field)
 			if err != nil {
 				log.Errorf("insertSingleRelation failed, s.insertRelation error:%s", err.Error())
 				return
@@ -141,18 +148,18 @@ func (s *impl) insertSingleRelation(vModel model.Model, vField model.Field) (err
 		return
 	}
 
-	entityVal, entityErr := s.modelProvider.GetEntityValue(rModel.Interface(elemType.IsPtrType()))
+	entityVal, entityErr := s.modelProvider.GetEntityValue(rModel.Interface(fType.IsPtrType()))
 	if entityErr != nil {
 		err = entityErr
 		log.Errorf("insertSingleRelation failed, s.modelProvider.GetEntityValue error:%s", err.Error())
 		return
 	}
 
-	err = fValue.Set(entityVal.Get())
+	ret = entityVal
 	return
 }
 
-func (s *impl) insertSliceRelation(vModel model.Model, vField model.Field) (err error) {
+func (s *impl) insertSliceRelation(vModel model.Model, vField model.Field) (ret model.Value, err error) {
 	fValue := vField.GetValue()
 	fType := vField.GetType()
 	rvValue, _ := fType.Interface(nil)
@@ -180,12 +187,12 @@ func (s *impl) insertSliceRelation(vModel model.Model, vField model.Field) (err 
 				return
 			}
 
-			for _, subField := range rModel.GetFields() {
-				if subField.IsBasic() {
+			for _, field := range rModel.GetFields() {
+				if field.IsBasic() {
 					continue
 				}
 
-				err = s.insertRelation(rModel, subField)
+				err = s.insertRelation(rModel, field)
 				if err != nil {
 					log.Errorf("insertSliceRelation failed, s.insertRelation error:%s", err.Error())
 					return
@@ -221,7 +228,7 @@ func (s *impl) insertSliceRelation(vModel model.Model, vField model.Field) (err 
 		}
 	}
 
-	err = fValue.Set(rvValue.Get())
+	ret = rvValue
 	return
 }
 

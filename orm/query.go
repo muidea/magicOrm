@@ -55,21 +55,21 @@ func (s *impl) querySingle(vModel model.Model, deepLevel int) (ret model.Model, 
 		return
 	}
 
-	queryValueList, queryErr := s.innerQuery(vModel, vFilter)
+	valueList, queryErr := s.innerQuery(vModel, vFilter)
 	if queryErr != nil {
 		err = queryErr
 		log.Errorf("querySingle failed, innerQuery error:%v", err.Error())
 		return
 	}
 
-	resultSize := len(queryValueList)
+	resultSize := len(valueList)
 	if resultSize != 1 {
 		err = fmt.Errorf("matched %d values", resultSize)
 		log.Errorf("querySingle failed, error:%v", err.Error())
 		return
 	}
 
-	modelVal, modelErr := s.assignSingleModel(vModel, queryValueList[0], deepLevel)
+	modelVal, modelErr := s.assignSingleModel(vModel, valueList[0], deepLevel)
 	if modelErr != nil {
 		err = modelErr
 		log.Errorf("querySingle failed, s.assignSingleModel error:%v", err.Error())
@@ -111,9 +111,9 @@ func (s *impl) assignBasicField(vField model.Field, fType model.Type, val interf
 	return
 }
 
-func (s *impl) assignSingleModel(modelVal model.Model, queryVal resultItems, deepLevel int) (ret model.Model, err error) {
+func (s *impl) assignSingleModel(vModel model.Model, queryVal resultItems, deepLevel int) (ret model.Model, err error) {
 	offset := 0
-	for _, field := range modelVal.GetFields() {
+	for _, field := range vModel.GetFields() {
 		fType := field.GetType()
 		fValue := field.GetValue()
 		if fValue.IsNil() {
@@ -121,7 +121,7 @@ func (s *impl) assignSingleModel(modelVal model.Model, queryVal resultItems, dee
 		}
 
 		if !fType.IsBasic() {
-			err = s.assignModelField(field, modelVal, deepLevel)
+			err = s.assignModelField(field, vModel, deepLevel)
 			if err != nil {
 				log.Errorf("assignSingleModel failed, s.assignModelField error:%v", err.Error())
 				return
@@ -139,7 +139,7 @@ func (s *impl) assignSingleModel(modelVal model.Model, queryVal resultItems, dee
 		offset++
 	}
 
-	ret = modelVal
+	ret = vModel
 	return
 }
 
@@ -362,7 +362,7 @@ func (s *impl) Query(vModel model.Model) (ret model.Model, err error) {
 	queryVal, queryErr := s.querySingle(vModel, 0)
 	if queryErr != nil {
 		err = queryErr
-		log.Errorf("Query failed, s.Query err:%v", err.Error())
+		log.Errorf("Query failed, s.querySingle err:%v", err.Error())
 		return
 	}
 
