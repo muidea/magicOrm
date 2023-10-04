@@ -61,29 +61,10 @@ func (s *impl) deleteRelationSliceInner(rVal model.Value, rType model.Type, deep
 
 	elemType := rType.Elem()
 	for idx := 0; idx < len(elemVal); idx++ {
-		relationModel, relationErr := s.modelProvider.GetValueModel(elemVal[idx], elemType)
-		if relationErr != nil {
-			err = relationErr
-			log.Errorf("deleteRelationSliceInner failed, s.modelProvider.GetValueModel error:%s", err.Error())
-			return
-		}
-
-		err = s.deleteSingle(relationModel)
+		err = s.deleteRelationStructInner(elemVal[idx], elemType, deepLevel)
 		if err != nil {
-			log.Errorf("deleteRelationSliceInner failed, s.deleteSingle error:%s", err.Error())
+			log.Errorf("deleteRelationSliceInner failed, s.deleteRelationStructInner error:%s", err.Error())
 			return
-		}
-
-		for _, field := range relationModel.GetFields() {
-			if field.IsBasic() {
-				continue
-			}
-
-			err = s.deleteRelation(relationModel, field, deepLevel+1)
-			if err != nil {
-				log.Errorf("deleteRelationSliceInner failed, s.deleteRelation error:%s", err.Error())
-				return
-			}
 		}
 	}
 
@@ -92,16 +73,15 @@ func (s *impl) deleteRelationSliceInner(rVal model.Value, rType model.Type, deep
 
 func (s *impl) deleteRelation(vModel model.Model, rField model.Field, deepLevel int) (err error) {
 	rType := rField.GetType()
-	rValue := rField.GetValue()
-	relationModel, relationErr := s.modelProvider.GetValueModel(rValue, rType)
-	if relationErr != nil {
-		err = relationErr
+	rModel, rErr := s.modelProvider.GetTypeModel(rType)
+	if rErr != nil {
+		err = rErr
 		log.Errorf("deleteRelation failed, s.modelProvider.GetTypeModel error:%s", err.Error())
 		return
 	}
 
 	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	rightSQL, relationSQL, buildErr := builder.BuildDeleteRelation(rField, relationModel)
+	rightSQL, relationSQL, buildErr := builder.BuildDeleteRelation(rField, rModel)
 	if buildErr != nil {
 		err = buildErr
 		log.Errorf("deleteRelation failed, builder.BuildDeleteRelation error:%s", err.Error())

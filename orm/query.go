@@ -232,7 +232,7 @@ func (s *impl) queryRelationIDs(vModel model.Model, rModel model.Model, vField m
 }
 
 func (s *impl) querySingleRelation(vModel model.Model, vField model.Field, deepLevel int) (ret model.Value, err error) {
-	fieldModel, fieldErr := s.modelProvider.GetValueModel(vField.GetValue(), vField.GetType())
+	fieldModel, fieldErr := s.modelProvider.GetTypeModel(vField.GetType())
 	if fieldErr != nil {
 		err = fieldErr
 		log.Errorf("querySingleRelation failed, s.modelProvider.GetTypeModel err:%v", err.Error())
@@ -289,7 +289,6 @@ func (s *impl) querySingleRelation(vModel model.Model, vField model.Field, deepL
 }
 
 func (s *impl) querySliceRelation(vModel model.Model, vField model.Field, deepLevel int) (ret model.Value, err error) {
-	//fieldModel, fieldErr := s.modelProvider.GetValueModel(vField.GetValue(), vField.GetType())
 	fieldModel, fieldErr := s.modelProvider.GetTypeModel(vField.GetType())
 	if fieldErr != nil {
 		err = fieldErr
