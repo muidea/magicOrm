@@ -7,7 +7,7 @@ type Field interface {
 	GetType() Type
 	GetSpec() Spec
 	GetValue() Value
-	SetValue(val Value) error
+	SetValue(val Value)
 	IsPrimaryKey() bool
 	IsBasic() bool
 	IsStruct() bool
