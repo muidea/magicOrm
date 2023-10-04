@@ -82,9 +82,7 @@ func (s *impl) Drop(vModel model.Model) (err error) {
 	if err != nil {
 		return
 	}
-	defer func() {
-		err = s.finalTransaction(err)
-	}()
+	defer s.finalTransaction(err)
 
 	err = s.dropSchema(vModel)
 	if err != nil {

@@ -175,20 +175,20 @@ func (s *impl) RollbackTransaction() (err error) {
 	return
 }
 
-func (s *impl) finalTransaction(err error) error {
+func (s *impl) finalTransaction(err error) {
 	if err == nil {
 		err = s.executor.CommitTransaction()
 		if err != nil {
 			log.Errorf("finalTransaction failed, s.executor.CommitTransaction error:%s", err.Error())
 		}
-		return err
+		return
 	}
 
 	err = s.executor.RollbackTransaction()
 	if err != nil {
 		log.Errorf("finalTransaction failed, s.executor.RollbackTransaction error:%s", err.Error())
 	}
-	return err
+	return
 }
 
 func (s *impl) Release() {

@@ -83,9 +83,7 @@ func (s *impl) Create(vModel model.Model) (err error) {
 	if err != nil {
 		return
 	}
-	defer func() {
-		err = s.finalTransaction(err)
-	}()
+	defer s.finalTransaction(err)
 
 	err = s.createSchema(vModel)
 	if err != nil {

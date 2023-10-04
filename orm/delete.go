@@ -131,9 +131,7 @@ func (s *impl) Delete(vModel model.Model) (ret model.Model, err error) {
 	if err != nil {
 		return
 	}
-	defer func() {
-		err = s.finalTransaction(err)
-	}()
+	defer s.finalTransaction(err)
 
 	err = s.deleteSingle(vModel)
 	if err != nil {

@@ -238,9 +238,7 @@ func (s *impl) Insert(vModel model.Model) (ret model.Model, err error) {
 	if err != nil {
 		return
 	}
-	defer func() {
-		err = s.finalTransaction(err)
-	}()
+	defer s.finalTransaction(err)
 
 	insertVal, insertErr := s.insertSingle(vModel)
 	if insertErr != nil {
