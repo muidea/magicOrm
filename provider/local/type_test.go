@@ -98,11 +98,7 @@ func TestIntType(t *testing.T) {
 		return
 	}
 
-	valErr := valPtr.Set(reflect.ValueOf(&iVal))
-	if valErr != nil {
-		t.Errorf("valPtr set failed ,err:%s", valErr.Error())
-		return
-	}
+	valPtr.Set(reflect.ValueOf(&iVal))
 
 	iAny = valPtr.Interface()
 	switch iAny.(type) {

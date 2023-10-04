@@ -4,7 +4,7 @@ package model
 type Value interface {
 	IsNil() bool
 	IsZero() bool
-	Set(val any) error
+	Set(val any)
 	Get() any
 	Addr() Value
 	Interface() any

@@ -84,10 +84,7 @@ func (s *impl) decodeStringSlice(val string, vType model.Type) (ret model.Value,
 			}
 		}
 
-		err = tVal.Set(sliceVal.Interface())
-		if err != nil {
-			return
-		}
+		tVal.Set(sliceVal.Interface())
 	}
 
 	ret = tVal

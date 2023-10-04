@@ -28,7 +28,7 @@ func (s *ValueImpl) IsZero() (ret bool) {
 	return
 }
 
-func (s *ValueImpl) Set(val any) (err error) {
+func (s *ValueImpl) Set(val any) {
 	s.value = val.(reflect.Value)
 	return
 }

@@ -101,7 +101,7 @@ func (s *ValueImpl) IsZero() (ret bool) {
 	return true
 }
 
-func (s *ValueImpl) Set(val any) (err error) {
+func (s *ValueImpl) Set(val any) {
 	s.value = val
 	return
 }

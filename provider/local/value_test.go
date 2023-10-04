@@ -79,11 +79,7 @@ func TestValue(t *testing.T) {
 		return
 	}
 
-	valueErr := value2Ptr.Set(valuePtr.Get())
-	if valueErr != nil {
-		t.Errorf("set failed, err:%s", valueErr.Error())
-		return
-	}
+	value2Ptr.Set(valuePtr.Get())
 	// not nil
 	if value2Ptr.IsNil() {
 		t.Errorf("is not nil")
@@ -102,9 +98,5 @@ func TestValue(t *testing.T) {
 
 	iVal = 12
 	iReflect2 := reflect.ValueOf(&iVal)
-	value2Err := value2Ptr.Set(iReflect2)
-	if value2Err != nil {
-		t.Errorf("update failed, err:%s", value2Err.Error())
-		return
-	}
+	value2Ptr.Set(iReflect2)
 }
