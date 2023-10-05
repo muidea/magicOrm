@@ -177,15 +177,14 @@ func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err 
 		return
 	}
 
-	if model.IsSliceType(entityType.GetValue()) {
+	if entityType.IsSlice() {
 		ret = entityModel.Copy()
 		return
 	}
 
 	entityValue, entityErr := s.getValueFunc(entity)
 	if entityErr != nil {
-		err = fmt.Errorf("GetEntityModel failed, getValueFunc error, err:%s", entityErr.Error())
-		log.Errorf("GetEntityModel failed, getValueFunc err:%v", err.Error())
+		ret = entityModel.Copy()
 		return
 	}
 
