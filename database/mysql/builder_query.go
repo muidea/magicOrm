@@ -105,7 +105,7 @@ func (s *Builder) buildRelationItem(pkField model.Field, rField model.Field, fil
 	strVal := oprFunc("right", valueStr)
 	relationTableName := s.GetRelationTableName(rField, fieldModel)
 	relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTableName, strVal)
-	relationFilterSQL = fmt.Sprintf("`%s` IN (SELECT DISTINCT(`id`) FROM (%s) ids)", pkField.GetName(), relationFilterSQL)
+	relationFilterSQL = fmt.Sprintf("`%s` IN (%s)", pkField.GetName(), relationFilterSQL)
 	ret = relationFilterSQL
 	return
 }

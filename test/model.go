@@ -8,7 +8,7 @@ type Status struct {
 
 // Group Group
 type Group struct {
-	ID     int      `orm:"id key auto"`
+	ID     int      `orm:"gid key auto"`
 	Name   string   `orm:"name"`
 	Users  *[]*User `orm:"users"`
 	Parent *Group   `orm:"parent"`
@@ -16,7 +16,7 @@ type Group struct {
 
 // User User
 type User struct {
-	ID     int      `orm:"id key auto"`
+	ID     int      `orm:"uid key auto"`
 	Name   string   `orm:"name"`
 	EMail  string   `orm:"email"`
 	Status *Status  `orm:"status"`
