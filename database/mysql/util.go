@@ -132,22 +132,18 @@ func getFieldScanDestPtr(field model.Field) (ret interface{}, err error) {
 		ret = &val
 		break
 	case model.TypePositiveBitValue:
-		val := uint8(0)
+		val := uint16(0)
 		ret = &val
 		break
 	case model.TypePositiveSmallIntegerValue:
-		val := uint16(0)
+		val := uint32(0)
 		ret = &val
 		break
 	case model.TypePositiveIntegerValue:
 		val := uint(0)
 		ret = &val
 		break
-	case model.TypePositiveInteger32Value:
-		val := uint32(0)
-		ret = &val
-		break
-	case model.TypePositiveBigIntegerValue:
+	case model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue:
 		val := uint64(0)
 		ret = &val
 		break
