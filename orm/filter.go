@@ -16,10 +16,10 @@ func (s *impl) queryBatch(vFilter model.Filter) (ret []model.Model, err error) {
 
 	sliceValue := []model.Model{}
 	for idx := 0; idx < len(queryValueList); idx++ {
-		modelVal, modelErr := s.assignSingleModel(vModel.Copy(), queryValueList[idx], 0)
+		modelVal, modelErr := s.innerAssign(vModel.Copy(), queryValueList[idx], 0)
 		if modelErr != nil {
 			err = modelErr
-			log.Errorf("queryBatch failed, s.assignSingleModel error:%s", err.Error())
+			log.Errorf("queryBatch failed, s.innerAssign error:%s", err.Error())
 			return
 		}
 

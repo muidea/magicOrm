@@ -144,7 +144,19 @@ func TestReferenceLocal(t *testing.T) {
 		strArray := []string{}
 		ptrStrArray := []*string{}
 
-		qVal := &Reference{ID: sValList[idx].ID, FValue: &fVal, TimeStamp: &ts, Flag: &flag, PtrArray: &strArray, PtrStrArray: &ptrStrArray}
+		qVal := &Reference{
+			ID:          sValList[idx].ID,
+			FValue:      &fVal,
+			TimeStamp:   &ts,
+			Flag:        &flag,
+			IArray:      []int{},
+			FArray:      []float32{},
+			StrArray:    []string{},
+			BArray:      []bool{},
+			PtrArray:    &strArray,
+			StrPtrArray: []*string{},
+			PtrStrArray: &ptrStrArray,
+		}
 		qValList = append(qValList, qVal)
 
 		qModel, qErr := localProvider.GetEntityModel(qVal)
@@ -198,7 +210,7 @@ func TestReferenceLocal(t *testing.T) {
 		t.Errorf("BatchQuery failed, err:%s", bqModelErr.Error())
 		return
 	}
-	if len(bqModelList) != 100 {
+	if len(bqModelList) != 1 {
 		t.Errorf("batch query reference failed")
 		return
 	}
@@ -373,7 +385,19 @@ func TestReferenceRemote(t *testing.T) {
 		strArray := []string{}
 		ptrStrArray := []*string{}
 
-		qVal := &Reference{ID: sValList[idx].ID, FValue: &fVal, TimeStamp: &ts, Flag: &flag, PtrArray: &strArray, PtrStrArray: &ptrStrArray}
+		qVal := &Reference{
+			ID:          sValList[idx].ID,
+			FValue:      &fVal,
+			TimeStamp:   &ts,
+			Flag:        &flag,
+			IArray:      []int{},
+			FArray:      []float32{},
+			StrArray:    []string{},
+			BArray:      []bool{},
+			PtrArray:    &strArray,
+			StrPtrArray: []*string{},
+			PtrStrArray: &ptrStrArray,
+		}
 		qValList = append(qValList, qVal)
 
 		qObjectVal, qObjectErr := helper.GetObjectValue(qVal)

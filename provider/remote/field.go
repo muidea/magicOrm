@@ -86,23 +86,28 @@ func (s *Field) IsPtrType() bool {
 }
 
 func (s *Field) copy() (ret *Field) {
-	fPtr := &Field{
+	val := &Field{
 		Index:       s.Index,
 		Name:        s.Name,
 		Description: s.Description,
 	}
 
 	if s.Spec != nil {
-		fPtr.Spec = s.Spec.copy()
+		val.Spec = s.Spec.copy()
 	}
 	if s.Type != nil {
-		fPtr.Type = s.Type.copy()
+		val.Type = s.Type.copy()
 	}
 	if s.value != nil {
-		fPtr.value = s.value.Copy()
+		val.value = s.value.Copy()
 	}
 
-	ret = fPtr
+	if !s.Type.IsPtrType() && s.value == nil {
+		tv, _ := s.Type.Interface(nil)
+		val.value = tv.(*ValueImpl)
+	}
+
+	ret = val
 	return
 }
 

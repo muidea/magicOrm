@@ -98,6 +98,12 @@ func (s *field) copy() *field {
 	if s.valuePtr != nil {
 		val.valuePtr = s.valuePtr.Copy()
 	}
+
+	if !s.typePtr.IsPtrType() && s.valuePtr == nil {
+		tv, _ := s.typePtr.Interface(nil)
+		val.valuePtr = tv.(*ValueImpl)
+	}
+
 	return val
 }
 
