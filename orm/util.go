@@ -22,7 +22,7 @@ func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, err error) 
 		}
 
 		// if basic
-		if model.IsBasicType(vType.GetValue()) && !model.IsSliceType(vType.GetValue()) {
+		if model.IsBasicType(vType.GetValue()) {
 			err = filterVal.Equal(val.GetName(), val.GetValue().Interface())
 			if err != nil {
 				log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
@@ -43,7 +43,7 @@ func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, err error) 
 			continue
 		}
 
-		// if struct slice
+		// if slice
 		err = filterVal.In(val.GetName(), val.GetValue().Interface())
 		if err != nil {
 			log.Errorf("getModelFilter failed, filterVal.In error:%s", err.Error())
@@ -56,7 +56,7 @@ func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, err error) 
 }
 
 func (s *impl) getModelFieldsScanDestPtr(vModel model.Model, builder builder.Builder) (ret []any, err error) {
-	var items []interface{}
+	items := []any{}
 	for _, field := range vModel.GetFields() {
 		fType := field.GetType()
 		fValue := field.GetValue()

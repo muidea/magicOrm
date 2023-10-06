@@ -10,7 +10,7 @@ const (
 	BelowOpr           // <
 	AboveOpr           // >
 	InOpr              // in
-	NotInOpr           // not in
+	NotInOpr           // !in
 	LikeOpr            // like
 )
 
