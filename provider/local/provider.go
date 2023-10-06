@@ -193,7 +193,7 @@ func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, codec c
 		return
 	}
 
-	vModel, vErr := SetModelValue(tModel.Copy(), vVal)
+	vModel, vErr := SetModelValue(tModel.Copy(false), vVal)
 	if vErr != nil {
 		err = vErr
 		return

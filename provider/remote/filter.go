@@ -363,8 +363,9 @@ func (s *ObjectFilter) Sorter() model.Sorter {
 }
 
 func (s *ObjectFilter) MaskModel() model.Model {
-	maskObject := s.bindObject.Copy()
-	if s.MaskValue != nil {
+	reset := s.MaskValue != nil
+	maskObject := s.bindObject.Copy(reset)
+	if reset {
 		for _, val := range s.MaskValue.Fields {
 			maskObject.SetFieldValue(val.Name, val.GetValue())
 		}

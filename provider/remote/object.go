@@ -117,7 +117,7 @@ func (s *Object) Interface(_ bool) (ret any) {
 	return
 }
 
-func (s *Object) Copy() (ret model.Model) {
+func (s *Object) Copy(reset bool) (ret model.Model) {
 	obj := &Object{
 		Name:        s.Name,
 		PkgPath:     s.PkgPath,
@@ -125,7 +125,7 @@ func (s *Object) Copy() (ret model.Model) {
 		Fields:      []*Field{},
 	}
 	for _, val := range s.Fields {
-		obj.Fields = append(obj.Fields, val.copy())
+		obj.Fields = append(obj.Fields, val.copy(reset))
 	}
 
 	ret = obj

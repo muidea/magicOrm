@@ -178,17 +178,17 @@ func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err 
 	}
 
 	if entityType.IsSlice() {
-		ret = entityModel.Copy()
+		ret = entityModel.Copy(false)
 		return
 	}
 
 	entityValue, entityErr := s.getValueFunc(entity)
 	if entityErr != nil {
-		ret = entityModel.Copy()
+		ret = entityModel.Copy(false)
 		return
 	}
 
-	ret, err = s.setModelValueFunc(entityModel.Copy(), entityValue)
+	ret, err = s.setModelValueFunc(entityModel.Copy(false), entityValue)
 	if err != nil {
 		err = fmt.Errorf("GetEntityModel failed, setModelValueFunc error, err:%s", err.Error())
 		log.Errorf("GetEntityModel failed, setModelValueFunc err:%v", err.Error())
@@ -221,14 +221,7 @@ func (s *providerImpl) GetValueModel(vVal model.Value, vType model.Type) (ret mo
 		return
 	}
 
-	/*
-		if vType.IsSlice() {
-			ret = typeModel.Copy()
-			return
-		}
-	*/
-
-	ret, err = s.setModelValueFunc(typeModel.Copy(), vVal)
+	ret, err = s.setModelValueFunc(typeModel.Copy(false), vVal)
 	if err != nil {
 		log.Errorf("GetValueModel failed, s.setModelValueFunc err:%v", err.Error())
 		return
@@ -250,7 +243,7 @@ func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err erro
 		return
 	}
 
-	ret = typeModel.Copy()
+	ret = typeModel.Copy(false)
 	return
 }
 
@@ -266,7 +259,7 @@ func (s *providerImpl) GetTypeFilter(vType model.Type) (ret model.Filter, err er
 		return
 	}
 
-	ret, err = s.getFilterFunc(typeModel.Copy())
+	ret, err = s.getFilterFunc(typeModel.Copy(false))
 	if err != nil {
 		log.Errorf("GetTypeFilter failed, s.getFilterFunc err:%v", err.Error())
 		return

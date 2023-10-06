@@ -1602,7 +1602,7 @@ func TestPolicy(t *testing.T) {
 		t.Errorf("getObjectValue failed, err:%s", statusErr.Error())
 		return
 	}
-	filter, err := remoteProvider.GetEntityFilter(statusValue)
+	filter, err := remoteProvider.GetEntityFilter(rewardPolicyValue)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return

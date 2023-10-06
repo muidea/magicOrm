@@ -184,7 +184,7 @@ func (s *impl) innerQueryRelationSliceModel(ids []any, vModel model.Model, deepL
 			log.Errorf("innerQueryRelationSliceModel failed, vFilter.Equal error:%v", err.Error())
 			return
 		}
-		queryVal, queryErr := s.querySingle(vModel.Copy(), vFilter, deepLevel+1)
+		queryVal, queryErr := s.querySingle(vModel.Copy(false), vFilter, deepLevel+1)
 		if queryErr != nil {
 			err = queryErr
 			log.Errorf("innerQueryRelationSliceModel failed, s.querySingle error:%v", err.Error())

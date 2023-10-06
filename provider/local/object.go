@@ -94,10 +94,10 @@ func (s *objectImpl) Interface(ptrValue bool) (ret interface{}) {
 	return
 }
 
-func (s *objectImpl) Copy() model.Model {
+func (s *objectImpl) Copy(reset bool) model.Model {
 	objectPtr := &objectImpl{objectType: s.objectType, fields: []*field{}}
 	for _, field := range s.fields {
-		objectPtr.fields = append(objectPtr.fields, field.copy())
+		objectPtr.fields = append(objectPtr.fields, field.copy(reset))
 	}
 
 	return objectPtr
