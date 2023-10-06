@@ -203,8 +203,18 @@ func TestReferenceLocal(t *testing.T) {
 		return
 	}
 
-	filter.Equal("name", "hi")
-	filter.ValueMask(&Reference{FValue: &fVal, TimeStamp: &ts2, Flag: &flag2, PtrArray: &strArray2, PtrStrArray: &ptrStrArray})
+	err = filter.Equal("name", "hi")
+	if err != nil {
+		t.Errorf("filter.Equal failed, err:%s", err.Error())
+		return
+	}
+
+	err = filter.ValueMask(&Reference{FValue: &fVal, TimeStamp: &ts2, Flag: &flag2, PtrArray: &strArray2, PtrStrArray: &ptrStrArray})
+	if err != nil {
+		t.Errorf("filter.ValueMask failed, err:%s", err.Error())
+		return
+	}
+
 	bqModelList, bqModelErr := o1.BatchQuery(filter)
 	if bqModelErr != nil {
 		t.Errorf("BatchQuery failed, err:%s", bqModelErr.Error())
@@ -467,9 +477,30 @@ func TestReferenceRemote(t *testing.T) {
 		return
 	}
 
-	filter.Equal("name", "hi")
-	filter.ValueMask(&Reference{FValue: &fVal, TimeStamp: &ts2, Flag: &flag2, PtrArray: &strArray2, PtrStrArray: &ptrStrArray})
-	filter.Like("strArray", "Abc")
+	err = filter.Equal("name", "hi")
+	if err != nil {
+		t.Errorf("filter.Equal failed, err:%s", err.Error())
+		return
+	}
+
+	maskVal, maskErr := helper.GetObjectValue(&Reference{FValue: &fVal, TimeStamp: &ts2, Flag: &flag2, PtrArray: &strArray2, PtrStrArray: &ptrStrArray})
+	if maskErr != nil {
+		t.Errorf("helper.GetObjectValue failed, err:%s", err.Error())
+		return
+	}
+
+	err = filter.ValueMask(maskVal)
+	if err != nil {
+		t.Errorf("filter.ValueMask failed, err:%s", err.Error())
+		return
+	}
+
+	err = filter.Like("strArray", "Abc")
+	if err != nil {
+		t.Errorf("filter.Like failed, err:%s", err.Error())
+		return
+	}
+
 	bqModelList, bqModelErr := o1.BatchQuery(filter)
 	if bqModelErr != nil {
 		t.Errorf("BatchQuery failed, err:%s", bqModelErr.Error())

@@ -33,7 +33,7 @@ type filter struct {
 	sortFilter *util.SortFilter
 }
 
-func NewFilter(valuePtr *ValueImpl) *filter {
+func newFilter(valuePtr *ValueImpl) *filter {
 	return &filter{bindValue: valuePtr, params: map[string]*filterItem{}}
 }
 
@@ -177,7 +177,7 @@ func (s *filter) ValueMask(val interface{}) (err error) {
 	bindType := reflect.Indirect(s.bindValue.value).Type().String()
 	maskType := reflect.Indirect(qv).Type().String()
 	if bindType != maskType {
-		err = fmt.Errorf("ValueMask failed, mismatch mask value, bindType:%v, maskType:%v", bindType, maskType)
+		err = fmt.Errorf("mismatch mask value, bindType:%v, maskType:%v", bindType, maskType)
 		log.Errorf("ValueMask failed, err:%v", err.Error())
 		return
 	}
@@ -230,6 +230,7 @@ func (s *filter) MaskModel() (ret om.Model) {
 
 	objPtr, objErr := getValueModel(maskVal.value)
 	if objErr != nil {
+		log.Errorf("MaskModel failed, getValueModel error:%s", objErr.Error())
 		return
 	}
 

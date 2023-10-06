@@ -18,10 +18,6 @@ func init() {
 	_codec = codec.New(ElemDependValue)
 }
 
-func GetCodec() codec.Codec {
-	return _codec
-}
-
 func GetEntityType(entity interface{}) (ret model.Type, err error) {
 	objPtr, objOK := entity.(*Object)
 	if objOK {
@@ -152,13 +148,11 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
 		}
 		return
 	}
-	/*
-		objectPtrValue, objectPtrOK := vVal.Get().(*ObjectValue)
-		if objectPtrOK {
-			ret = append(ret, NewValue(objectPtrValue))
-			return
-		}
-	*/
+	objectPtrValue, objectPtrOK := vVal.Get().(*ObjectValue)
+	if objectPtrOK {
+		ret = append(ret, NewValue(objectPtrValue))
+		return
+	}
 	rVal := reflect.ValueOf(vVal.Get())
 	if rVal.Kind() != reflect.Slice {
 		ret = append(ret, NewValue(vVal.Get()))

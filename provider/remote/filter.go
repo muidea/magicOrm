@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicCommon/foundation/util"
 	"github.com/muidea/magicOrm/model"
 )
@@ -251,13 +252,19 @@ func (s *ObjectFilter) ValueMask(val interface{}) (err error) {
 			objectValuePtr, err = DecodeObjectValue(byteVal)
 		}
 	}
-
-	if objectValuePtr != nil {
-		s.MaskValue = objectValuePtr
+	if objectValuePtr == nil {
+		err = fmt.Errorf("illegal mask value")
+		log.Errorf("ValueMask failed, err:%v", err.Error())
 		return
 	}
 
-	err = fmt.Errorf("illegal mask value")
+	if s.bindObject.GetPkgKey() != objectValuePtr.GetPkgKey() {
+		err = fmt.Errorf("mismatch mask value, bindPkgKey:%v, maskPkgKey:%v", s.bindObject.GetPkgKey(), objectValuePtr.GetPkgKey())
+		log.Errorf("ValueMask failed, err:%v", err.Error())
+		return
+	}
+
+	s.MaskValue = objectValuePtr
 	return
 }
 
@@ -367,7 +374,10 @@ func (s *ObjectFilter) MaskModel() model.Model {
 	maskObject := s.bindObject.Copy(reset)
 	if reset {
 		for _, val := range s.MaskValue.Fields {
-			maskObject.SetFieldValue(val.Name, val.GetValue())
+			err := maskObject.SetFieldValue(val.Name, val.GetValue())
+			if err != nil {
+				log.Errorf("MaskModel failed, maskObject.SetFieldValue error:%s", err.Error())
+			}
 		}
 	}
 

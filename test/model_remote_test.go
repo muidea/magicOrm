@@ -10,48 +10,6 @@ import (
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
-func getSliceObjectValue(val interface{}) (ret *remote.SliceObjectValue, err error) {
-	objVal, objErr := helper.GetSliceObjectValue(val)
-	if objErr != nil {
-		err = objErr
-		return
-	}
-
-	data, dataErr := remote.EncodeSliceObjectValue(objVal)
-	if dataErr != nil {
-		err = dataErr
-		return
-	}
-
-	ret, err = remote.DecodeSliceObjectValue(data)
-	if err != nil {
-		return
-	}
-
-	return
-}
-
-func getSliceObjectPtrValue(val interface{}) (ret *remote.SliceObjectValue, err error) {
-	objVal, objErr := helper.GetSliceObjectValue(val)
-	if objErr != nil {
-		err = objErr
-		return
-	}
-
-	data, dataErr := remote.EncodeSliceObjectValue(objVal)
-	if dataErr != nil {
-		err = dataErr
-		return
-	}
-
-	ret, err = remote.DecodeSliceObjectValue(data)
-	if err != nil {
-		return
-	}
-
-	return
-}
-
 func TestRemoteGroup(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
@@ -89,7 +47,11 @@ func TestRemoteGroup(t *testing.T) {
 	}
 
 	objList := []interface{}{groupDef, userDef, statusDef}
-	registerModel(remoteProvider, objList)
+	_, err = registerModel(remoteProvider, objList)
+	if err != nil {
+		t.Errorf("registerModel failed, err:%s", err.Error())
+		return
+	}
 
 	err = o1.Drop(statusDef)
 	if err != nil {
@@ -335,7 +297,11 @@ func TestRemoteUser(t *testing.T) {
 	}
 
 	objList := []interface{}{groupDef, userDef, statusDef}
-	registerModel(remoteProvider, objList)
+	_, err = registerModel(remoteProvider, objList)
+	if err != nil {
+		t.Errorf("registerModel failed, err:%s", err.Error())
+		return
+	}
 
 	err = o1.Drop(statusDef)
 	if err != nil {
@@ -675,7 +641,11 @@ func TestRemoteSystem(t *testing.T) {
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
 	objList := []interface{}{groupDef, userDef, statusDef, sysDef}
-	registerModel(remoteProvider, objList)
+	_, err = registerModel(remoteProvider, objList)
+	if err != nil {
+		t.Errorf("registerModel failed, err:%s", err.Error())
+		return
+	}
 
 	err = o1.Drop(statusDef)
 	if err != nil {
@@ -915,7 +885,11 @@ func TestRemoteBatchQuery(t *testing.T) {
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
 	objList := []interface{}{groupDef, userDef, statusDef}
-	registerModel(remoteProvider, objList)
+	_, err = registerModel(remoteProvider, objList)
+	if err != nil {
+		t.Errorf("registerModel failed, err:%s", err.Error())
+		return
+	}
 
 	err = o1.Drop(statusDef)
 	if err != nil {
@@ -1097,10 +1071,27 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	filter.Equal("name", user1.Name)
-	filter.In("group", groupListVal)
-	filter.Like("email", user1.EMail)
-	filter.ValueMask(maskVal)
+	err = filter.Equal("name", user1.Name)
+	if err != nil {
+		t.Errorf("filter.Equal err:%s", err.Error())
+		return
+	}
+
+	err = filter.In("group", groupListVal)
+	if err != nil {
+		t.Errorf("filter.In err:%s", err.Error())
+		return
+	}
+	err = filter.Like("email", user1.EMail)
+	if err != nil {
+		t.Errorf("filter.Like err:%s", err.Error())
+		return
+	}
+	err = filter.ValueMask(maskVal)
+	if err != nil {
+		t.Errorf("filter.ValueMask err:%s", err.Error())
+		return
+	}
 
 	pageFilter := &util.Pagination{PageNum: 0, PageSize: 100}
 	filter.Page(pageFilter)
@@ -1134,7 +1125,12 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	userFilter.In("group", groupListVal)
+	err = userFilter.In("group", groupListVal)
+	if err != nil {
+		t.Errorf("userFilter.In failed, err:%s", err.Error())
+		return
+	}
+
 	userModelList, userModelErr = o1.BatchQuery(userFilter)
 	if userModelErr != nil {
 		err = userModelErr
@@ -1190,7 +1186,11 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
 	objList := []interface{}{groupDef, userDef, statusDef}
-	registerModel(remoteProvider, objList)
+	_, err = registerModel(remoteProvider, objList)
+	if err != nil {
+		t.Errorf("registerModel failed, err:%s", err.Error())
+		return
+	}
 
 	err = o1.Drop(statusDef)
 	if err != nil {
@@ -1400,10 +1400,26 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
-	filter.Equal("name", user1.Name)
-	filter.In("group", groupListVal)
-	filter.Like("email", user1.EMail)
-	filter.ValueMask(maskVal)
+	err = filter.Equal("name", user1.Name)
+	if err != nil {
+		t.Errorf("filter.Equal failed, err:%s", err.Error())
+		return
+	}
+	err = filter.In("group", groupListVal)
+	if err != nil {
+		t.Errorf("filter.In failed, err:%s", err.Error())
+		return
+	}
+	err = filter.Like("email", user1.EMail)
+	if err != nil {
+		t.Errorf("filter.Like failed, err:%s", err.Error())
+		return
+	}
+	err = filter.ValueMask(maskVal)
+	if err != nil {
+		t.Errorf("filter.ValueMask failed, err:%s", err.Error())
+		return
+	}
 
 	userModelList, userModelErr = o1.BatchQuery(filter)
 	if userModelErr != nil {
@@ -1429,7 +1445,12 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
-	filter2.In("group", groupListVal)
+	err = filter2.In("group", groupListVal)
+	if err != nil {
+		t.Errorf("filter.In failed, err:%s", err.Error())
+		return
+	}
+
 	userModelList, userModelErr = o1.BatchQuery(filter2)
 	if userModelErr != nil {
 		err = userModelErr
@@ -1608,8 +1629,18 @@ func TestPolicy(t *testing.T) {
 		return
 	}
 
-	filter.Equal("status", statusValue)
-	filter.ValueMask(maskVal)
+	err = filter.Equal("status", statusValue)
+	if err != nil {
+		t.Errorf("filter.Equal failed, err:%s", err.Error())
+		return
+	}
+
+	err = filter.ValueMask(maskVal)
+	if err != nil {
+		t.Errorf("filter.ValueMask failed, err:%s", err.Error())
+		return
+	}
+
 	cModelList, cModelErr := o1.BatchQuery(filter)
 	if cModelErr != nil {
 		t.Errorf("batch query compose failed, err:%s", cModelErr.Error())

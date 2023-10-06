@@ -16,10 +16,6 @@ func init() {
 	_codec = codec.New(ElemDependValue)
 }
 
-func GetCodec() codec.Codec {
-	return _codec
-}
-
 func GetType(vType reflect.Type) (ret model.Type, err error) {
 	ret, err = NewType(vType)
 	return
@@ -78,7 +74,7 @@ func GetEntityModel(entity interface{}) (ret model.Model, err error) {
 
 func GetModelFilter(vModel model.Model) (ret model.Filter, err error) {
 	valuePtr := NewValue(reflect.ValueOf(vModel.Interface(true)))
-	ret = NewFilter(valuePtr)
+	ret = newFilter(valuePtr)
 	return
 }
 
