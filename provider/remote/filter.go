@@ -3,6 +3,7 @@ package remote
 import (
 	"encoding/json"
 	"fmt"
+	"path"
 
 	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicCommon/foundation/util"
@@ -60,6 +61,10 @@ func (s *ObjectFilter) GetName() string {
 
 func (s *ObjectFilter) GetPkgPath() string {
 	return s.PkgPath
+}
+
+func (s *ObjectFilter) GetPkgKey() string {
+	return path.Join(s.GetPkgPath(), s.GetName())
 }
 
 func (s *ObjectFilter) GetString(key string) (ret string, ok bool) {
