@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"fmt"
+	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/database/common"
 	"github.com/muidea/magicOrm/model"
@@ -23,6 +24,7 @@ func (s *Builder) buildModelFilter() (ret string, err error) {
 	pkfVal, pkfErr := s.EncodeValue(pkField.GetValue(), pkField.GetType())
 	if pkfErr != nil {
 		err = pkfErr
+		log.Errorf("buildModelFilter failed, s.EncodeValue error:%s", err.Error())
 		return
 	}
 

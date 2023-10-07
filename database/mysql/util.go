@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"fmt"
+	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/model"
 )
@@ -24,6 +25,7 @@ func verifyModel(vModel model.Model) error {
 	for _, val := range vModel.GetFields() {
 		err := verifyField(val)
 		if err != nil {
+			log.Errorf("verifyModel failed, verifyField error:%s", err.Error())
 			return err
 		}
 	}
@@ -42,6 +44,7 @@ func declareFieldInfo(vField model.Field) (ret string, err error) {
 	typeVal, typeErr := getTypeDeclare(vField.GetType())
 	if typeErr != nil {
 		err = typeErr
+		log.Errorf("declareFieldInfo failed, getTypeDeclare error:%s", err.Error())
 		return
 	}
 
@@ -81,6 +84,10 @@ func getTypeDeclare(fType model.Type) (ret string, err error) {
 		err = fmt.Errorf("no support field type, type:%v", fType.GetPkgKey())
 	}
 
+	if err != nil {
+		log.Errorf("getTypeDeclare failed, error:%s", err.Error())
+	}
+
 	return
 }
 
@@ -99,6 +106,10 @@ func getTypeDefaultValue(fType model.Type) (ret string, err error) {
 		ret = "''"
 	default:
 		err = fmt.Errorf("no support field type, type:%v", fType.GetPkgKey())
+	}
+
+	if err != nil {
+		log.Errorf("getTypeDefaultValue failed, error:%s", err.Error())
 	}
 
 	return
@@ -164,6 +175,10 @@ func getFieldScanDestPtr(field model.Field) (ret interface{}, err error) {
 		}
 	default:
 		err = fmt.Errorf("no support fileType, name:%s, type:%v", field.GetName(), fType.GetPkgKey())
+	}
+
+	if err != nil {
+		log.Errorf("getFieldScanDestPtr failed, error:%s", err.Error())
 	}
 
 	return

@@ -78,6 +78,7 @@ func NewExecutor(config *Config) (ret *Executor, err error) {
 	executorPtr := &Executor{connectStr: connectStr, dbHandle: nil, dbTx: nil, rowsHandle: nil, dbName: config.Database()}
 	err = executorPtr.Connect()
 	if err != nil {
+		log.Errorf("NewExecutor failed, executorPtr.Connect error:%s", err.Error())
 		return
 	}
 
@@ -88,7 +89,7 @@ func NewExecutor(config *Config) (ret *Executor, err error) {
 func (s *Executor) Connect() (err error) {
 	db, err := sql.Open("mysql", s.connectStr)
 	if err != nil {
-		log.Errorf("open database exception, err:%s", err.Error())
+		log.Errorf("Connect, sql.Open error:%s", err.Error())
 		return err
 	}
 
@@ -97,7 +98,7 @@ func (s *Executor) Connect() (err error) {
 
 	err = db.Ping()
 	if err != nil {
-		log.Errorf("ping database failed, err:%s", err.Error())
+		log.Errorf("Connect, db.Ping error:%s", err.Error())
 		return err
 	}
 
@@ -108,12 +109,13 @@ func (s *Executor) Connect() (err error) {
 func (s *Executor) Ping() (err error) {
 	if s.dbHandle == nil {
 		err = fmt.Errorf("must connect to database first")
+		log.Errorf("Ping failed, error:%s", err.Error())
 		return
 	}
 
 	err = s.dbHandle.Ping()
 	if err != nil {
-		log.Errorf("ping database failed, err:%s", err.Error())
+		log.Errorf("Ping failed, s.dbHandle.Ping error:%s", err.Error())
 	}
 
 	return
@@ -125,7 +127,7 @@ func (s *Executor) Release() {
 	}
 
 	if s.rowsHandle != nil {
-		s.rowsHandle.Close()
+		_ = s.rowsHandle.Close()
 	}
 	s.rowsHandle = nil
 
@@ -133,7 +135,7 @@ func (s *Executor) Release() {
 		if s.dbHandle != nil {
 			//log.Print("close database connection...")
 
-			s.dbHandle.Close()
+			_ = s.dbHandle.Close()
 		}
 		s.dbHandle = nil
 		return
@@ -144,7 +146,7 @@ func (s *Executor) Release() {
 
 func (s *Executor) destroy() {
 	if s.dbHandle != nil {
-		s.dbHandle.Close()
+		_ = s.dbHandle.Close()
 	}
 }
 
@@ -156,14 +158,14 @@ func (s *Executor) BeginTransaction() (err error) {
 	atomic.AddInt32(&s.dbTxCount, 1)
 	if s.dbTx == nil && s.dbTxCount == 1 {
 		if s.rowsHandle != nil {
-			s.rowsHandle.Close()
+			_ = s.rowsHandle.Close()
 		}
 		s.rowsHandle = nil
 
 		tx, txErr := s.dbHandle.Begin()
 		if txErr != nil {
 			err = txErr
-			log.Errorf("begin transaction failed, err:%s", err.Error())
+			log.Errorf("BeginTransaction failed, s.dbHandle.Begin error:%s", err.Error())
 			return
 		}
 
@@ -181,7 +183,7 @@ func (s *Executor) CommitTransaction() (err error) {
 		if err != nil {
 			s.dbTx = nil
 
-			log.Errorf("commit transaction failed, err:%s", err.Error())
+			log.Errorf("CommitTransaction failed, s.dbTx.Commit error:%s", err.Error())
 			return
 		}
 
@@ -199,7 +201,7 @@ func (s *Executor) RollbackTransaction() (err error) {
 		if err != nil {
 			s.dbTx = nil
 
-			log.Errorf("rollback transaction failed, err:%s", err.Error())
+			log.Errorf("RollbackTransaction failed, s.dbTx.Rollback error:%s", err.Error())
 			return
 		}
 
@@ -217,7 +219,7 @@ func (s *Executor) Query(sql string) (err error) {
 		endTime := time.Now()
 		elapse := endTime.Sub(startTime)
 		if err != nil {
-			log.Errorf("query failed, execute time:%s, elapse:%d, sql:%s, err:%s", startTime.Local().String(), elapse, sql, err.Error())
+			log.Errorf("Query failed, execute time:%s, elapse:%d, sql:%s, err:%s", startTime.Local().String(), elapse, sql, err.Error())
 			return
 		}
 
@@ -229,25 +231,27 @@ func (s *Executor) Query(sql string) (err error) {
 			panic("dbHanlde is nil")
 		}
 		if s.rowsHandle != nil {
-			s.rowsHandle.Close()
+			_ = s.rowsHandle.Close()
 			s.rowsHandle = nil
 		}
 
 		rows, rowErr := s.dbHandle.Query(sql)
 		if rowErr != nil {
 			err = rowErr
+			log.Errorf("Query failed, s.dbHandle.Query error:%s", err.Error())
 			return
 		}
 		s.rowsHandle = rows
 	} else {
 		if s.rowsHandle != nil {
-			s.rowsHandle.Close()
+			_ = s.rowsHandle.Close()
 			s.rowsHandle = nil
 		}
 
 		rows, rowErr := s.dbTx.Query(sql)
 		if rowErr != nil {
 			err = rowErr
+			log.Errorf("Query failed, s.dbTx.Query error:%s", err.Error())
 			return
 		}
 
@@ -265,7 +269,7 @@ func (s *Executor) Next() bool {
 	ret := s.rowsHandle.Next()
 	if !ret {
 		//log.Print("Next, close rows")
-		s.rowsHandle.Close()
+		_ = s.rowsHandle.Close()
 		s.rowsHandle = nil
 	}
 
@@ -274,7 +278,7 @@ func (s *Executor) Next() bool {
 
 func (s *Executor) Finish() {
 	if s.rowsHandle != nil {
-		s.rowsHandle.Close()
+		_ = s.rowsHandle.Close()
 		s.rowsHandle = nil
 	}
 }
@@ -286,7 +290,7 @@ func (s *Executor) GetField(value ...interface{}) (err error) {
 
 	err = s.rowsHandle.Scan(value...)
 	if err != nil {
-		log.Errorf("scan failed, err:%s", err.Error())
+		log.Errorf("GetField failed, s.rowsHandle.Scan error:%s", err.Error())
 	}
 
 	return
@@ -298,7 +302,7 @@ func (s *Executor) Execute(sql string) (rowsAffected int64, lastInsertID int64, 
 		endTime := time.Now()
 		elapse := endTime.Sub(startTime)
 		if err != nil {
-			log.Errorf("execute failed, execute time:%v, elapse:%v, sql:%s, err:%s", startTime.Local().String(), elapse, sql, err.Error())
+			log.Errorf("Execute failed, execute time:%v, elapse:%v, sql:%s, err:%s", startTime.Local().String(), elapse, sql, err.Error())
 			return
 		}
 
@@ -306,7 +310,7 @@ func (s *Executor) Execute(sql string) (rowsAffected int64, lastInsertID int64, 
 	}()
 
 	if s.rowsHandle != nil {
-		s.rowsHandle.Close()
+		_ = s.rowsHandle.Close()
 	}
 	s.rowsHandle = nil
 
@@ -318,6 +322,7 @@ func (s *Executor) Execute(sql string) (rowsAffected int64, lastInsertID int64, 
 		result, resultErr := s.dbHandle.Exec(sql)
 		if resultErr != nil {
 			err = resultErr
+			log.Errorf("Execute failed, s.dbHandle.Exec error:%s", err.Error())
 			return
 		}
 
@@ -329,6 +334,7 @@ func (s *Executor) Execute(sql string) (rowsAffected int64, lastInsertID int64, 
 	result, resultErr := s.dbTx.Exec(sql)
 	if resultErr != nil {
 		err = resultErr
+		log.Errorf("Execute failed, s.dbTx.Exec error:%s", err.Error())
 		return
 	}
 
@@ -343,6 +349,7 @@ func (s *Executor) CheckTableExist(tableName string) (ret bool, err error) {
 
 	err = s.Query(sql)
 	if err != nil {
+		log.Errorf("CheckTableExist failed, s.Query error:%s", err.Error())
 		return
 	}
 
@@ -405,6 +412,7 @@ func (s *Pool) Initialize(maxConnNum int, configPtr *Config) (err error) {
 			s.cacheExecutor <- executor
 		} else {
 			err = executorErr
+			log.Errorf("Initialize failed, NewExecutor error:%s", err.Error())
 			return
 		}
 	}
@@ -474,12 +482,14 @@ func (s *Pool) FetchOut() (ret *Executor, err error) {
 	executorPtr, executorErr := s.getFromCache(false)
 	if executorErr != nil {
 		err = executorErr
+		log.Errorf("FetchOut failed, s.getFromCache error:%s", err.Error())
 		return
 	}
 	if executorPtr == nil {
 		executorPtr, executorErr = s.getFromIdle()
 		if executorErr != nil {
 			err = executorErr
+			log.Errorf("FetchOut failed, s.getFromIdle error:%s", err.Error())
 			return
 		}
 	}
@@ -488,14 +498,16 @@ func (s *Pool) FetchOut() (ret *Executor, err error) {
 		executorPtr, executorErr = s.getFromCache(true)
 		if executorErr != nil {
 			err = executorErr
+			log.Errorf("FetchOut failed, s.getFromCache error:%s", err.Error())
 			return
 		}
 	}
 
-	// if ping error,reconnect...
+	// if ping error, reconnect...
 	if executorPtr.Ping() != nil {
 		err = executorPtr.Connect()
 		if err != nil {
+			log.Errorf("FetchOut failed, executorPtr.Connect error:%s", err.Error())
 			return
 		}
 	}
@@ -558,6 +570,7 @@ func (s *Pool) getFromIdle() (ret *Executor, err error) {
 	executorPtr, executorErr := NewExecutor(s.config)
 	if executorErr != nil {
 		err = executorErr
+		log.Errorf("getFromIdle failed, NewExecutor error:%s", err.Error())
 		return
 	}
 	s.curSize++

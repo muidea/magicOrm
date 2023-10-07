@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"fmt"
+	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/model"
 )
@@ -17,6 +18,7 @@ func (s *Builder) BuildCreateTable() (ret string, err error) {
 		infoVal, infoErr := declareFieldInfo(val)
 		if infoErr != nil {
 			err = infoErr
+			log.Errorf("BuildCreateTable failed, declareFieldInfo error:%s", err.Error())
 			return
 		}
 
@@ -45,6 +47,7 @@ func (s *Builder) BuildCreateRelationTable(field model.Field, rModel model.Model
 	lPKType, lPKErr := getTypeDeclare(lPKField.GetType())
 	if lPKErr != nil {
 		err = lPKErr
+		log.Errorf("BuildCreateRelationTable failed, getTypeDeclare error:%s", err.Error())
 		return
 	}
 
@@ -52,6 +55,7 @@ func (s *Builder) BuildCreateRelationTable(field model.Field, rModel model.Model
 	rPKType, rPKErr := getTypeDeclare(rPKField.GetType())
 	if rPKErr != nil {
 		err = rPKErr
+		log.Errorf("BuildCreateRelationTable failed, getTypeDeclare error:%s", err.Error())
 		return
 	}
 

@@ -11,13 +11,13 @@ func (s *Builder) BuildUpdate() (ret string, err error) {
 	updateStr, updateErr := s.getFieldUpdateValues()
 	if updateErr != nil {
 		err = updateErr
-		log.Errorf("getFieldUpdateValues failed, err:%s", err.Error())
+		log.Errorf("BuildUpdate failed, s.getFieldUpdateValues error:%s", err.Error())
 		return
 	}
 	filterStr, filterErr := s.buildModelFilter()
 	if filterErr != nil {
 		err = filterErr
-		log.Errorf("buildModelFilter failed, err:%s", err.Error())
+		log.Errorf("BuildUpdate failed, s.buildModelFilter error:%s", err.Error())
 		return
 	}
 
@@ -44,6 +44,7 @@ func (s *Builder) getFieldUpdateValues() (ret string, err error) {
 		fStr, fErr := s.EncodeValue(fValue, fType)
 		if fErr != nil {
 			err = fErr
+			log.Errorf("getFieldUpdateValues failed, s.EncodeValue error:%s", err.Error())
 			return
 		}
 

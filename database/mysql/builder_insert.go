@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"fmt"
+	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/model"
 )
@@ -27,6 +28,7 @@ func (s *Builder) BuildInsert() (ret string, err error) {
 		}
 		if valErr != nil {
 			err = valErr
+			log.Errorf("BuildInsert failed, s.EncodeValue/getTypeDefaultValue error:%s", err.Error())
 			return
 		}
 
@@ -55,6 +57,7 @@ func (s *Builder) BuildInsertRelation(vField model.Field, rModel model.Model) (r
 	leftVal, rightVal, valErr := s.GetRelationValue(rModel)
 	if valErr != nil {
 		err = valErr
+		log.Errorf("BuildInsertRelation failed, s.GetRelationValue error:%s", err.Error())
 		return
 	}
 	relationTableName := s.GetRelationTableName(vField, rModel)

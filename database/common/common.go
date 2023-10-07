@@ -96,14 +96,14 @@ func (s *Common) GetRelationValue(rModel model.Model) (leftVal, rightVal string,
 	entityVal, entityErr := s.GetModelValue()
 	if entityErr != nil {
 		err = entityErr
-		log.Errorf("get entity model value failed, err:%s", err.Error())
+		log.Errorf("GetRelationValue failed, s.GetModelValue error:%s", err.Error())
 		return
 	}
 
 	relationVal, relationErr := s.EncodeModelValue(rModel)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("get relation model value failed, err:%s", err.Error())
+		log.Errorf("GetRelationValue failed, s.EncodeModelValue error:%s", err.Error())
 		return
 	}
 
@@ -116,12 +116,14 @@ func (s *Common) EncodeValue(vValue model.Value, vType model.Type) (ret string, 
 	defer func() {
 		if eErr := recover(); eErr != nil {
 			err = fmt.Errorf("encode value failed, type:%v, err:%v", vType.GetPkgKey(), eErr)
+			log.Errorf("EncodeValue failed, error:%s", err.Error())
 		}
 	}()
 
 	fStr, fErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fErr != nil {
 		err = fErr
+		log.Errorf("EncodeValue failed, s.modelProvider.EncodeValue error:%s", err.Error())
 		return
 	}
 
@@ -140,7 +142,7 @@ func (s *Common) EncodeModelValue(vModel model.Model) (ret string, err error) {
 	fStr, fErr := s.EncodeValue(pkField.GetValue(), pkField.GetType())
 	if fErr != nil {
 		err = fErr
-		log.Errorf("encode pkField value failed, pkField name:%s, err:%s", pkField.GetName(), err.Error())
+		log.Errorf("EncodeModelValue failed, s.EncodeValue error:%s", err.Error())
 		return
 	}
 
@@ -148,6 +150,14 @@ func (s *Common) EncodeModelValue(vModel model.Model) (ret string, err error) {
 	return
 }
 
-func (s *Common) GetTypeModel(vType model.Type) (model.Model, error) {
-	return s.modelProvider.GetTypeModel(vType)
+func (s *Common) GetTypeModel(vType model.Type) (ret model.Model, err error) {
+	vModel, vErr := s.modelProvider.GetTypeModel(vType)
+	if vErr != nil {
+		err = vErr
+		log.Errorf("GetTypeModel failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+		return
+	}
+
+	ret = vModel
+	return
 }

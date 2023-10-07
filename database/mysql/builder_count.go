@@ -16,7 +16,7 @@ func (s *Builder) BuildCount(filter model.Filter) (ret string, err error) {
 		filterSQL, filterErr := s.buildFilter(filter)
 		if filterErr != nil {
 			err = filterErr
-			log.Errorf("buildModelFilter failed, err:%s", err.Error())
+			log.Errorf("BuildCount failed, s.buildFilter error:%s", err.Error())
 			return
 		}
 

@@ -13,6 +13,7 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret string, err error) {
 	namesVal, nameErr := s.getFieldQueryNames()
 	if nameErr != nil {
 		err = nameErr
+		log.Errorf("BuildQuery failed, s.getFieldQueryNames error:%s", err.Error())
 		return
 	}
 
@@ -21,6 +22,7 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret string, err error) {
 		filterSQL, filterErr := s.buildFilter(filter)
 		if filterErr != nil {
 			err = filterErr
+			log.Errorf("BuildQuery failed, s.buildFilter error:%s", err.Error())
 			return
 		}
 
@@ -31,6 +33,7 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret string, err error) {
 		sortVal, sortErr := s.buildSorter(filter.Sorter())
 		if sortErr != nil {
 			err = sortErr
+			log.Errorf("BuildQuery failed, s.buildSorter error:%s", err.Error())
 			return
 		}
 
@@ -53,6 +56,7 @@ func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (re
 	leftVal, leftErr := s.GetModelValue()
 	if leftErr != nil {
 		err = leftErr
+		log.Errorf("BuildQueryRelation failed, s.GetModelValue error:%s", err.Error())
 		return
 	}
 
@@ -70,7 +74,7 @@ func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem
 	valueStr, valueErr := s.EncodeValue(oprValue, fType)
 	if valueErr != nil {
 		err = valueErr
-		log.Errorf("encodeValue failed, vField name:%s, err:%s", vField.GetName(), err.Error())
+		log.Errorf("buildBasicItem failed, EncodeValue error:%s", err.Error())
 		return
 	}
 
@@ -80,6 +84,7 @@ func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem
 	}
 
 	err = fmt.Errorf("illegal item type, name:%s", vField.GetName())
+	log.Errorf("buildBasicItem failed, error:%s", err.Error())
 	return
 }
 
@@ -90,14 +95,14 @@ func (s *Builder) buildRelationItem(pkField model.Field, rField model.Field, fil
 	valueStr, valueErr := s.EncodeValue(oprValue, fType)
 	if valueErr != nil {
 		err = valueErr
-		log.Errorf("encodeValue failed, rField name:%s, err:%s", rField.GetName(), err.Error())
+		log.Errorf("buildRelationItem failed, s.EncodeValue error:%s", err.Error())
 		return
 	}
 
 	fieldModel, fieldErr := s.GetTypeModel(fType)
 	if fieldErr != nil {
 		err = fieldErr
-		log.Errorf("GetTypeModel failed, rField name:%s, err:%s", rField.GetName(), err.Error())
+		log.Errorf("buildRelationItem failed, s.GetTypeModel error:%s", err.Error())
 		return
 	}
 
@@ -128,6 +133,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 			basicSQL, basicErr := s.buildBasicItem(field, filterItem)
 			if basicErr != nil {
 				err = basicErr
+				log.Errorf("buildFilter failed, s.buildBasicItem error:%s", err.Error())
 				return
 			}
 
@@ -143,6 +149,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 		relationSQL, relationErr := s.buildRelationItem(pkField, field, filterItem)
 		if relationErr != nil {
 			err = relationErr
+			log.Errorf("buildFilter failed, s.buildRelationItem error:%s", err.Error())
 			return
 		}
 
