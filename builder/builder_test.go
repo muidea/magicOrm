@@ -45,6 +45,12 @@ func TestBuilderCommon(t *testing.T) {
 		return
 	}
 
+	filter, err := localProvider.GetEntityFilter(unit)
+	if err != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
+		return
+	}
+
 	builder := NewBuilder(info, localProvider, "abc")
 	if builder == nil {
 		t.Error("new Builder failed")
@@ -100,6 +106,11 @@ func TestBuilderCommon(t *testing.T) {
 		return
 	}
 
+	err = filter.Above("value", 12)
+	if err != nil {
+		t.Errorf("filter.Above failed, err:%s", err.Error())
+		return
+	}
 	str, err = builder.BuildQuery(nil)
 	if err != nil {
 		t.Errorf("build query failed, err:%s", err.Error())
@@ -110,12 +121,32 @@ func TestBuilderCommon(t *testing.T) {
 		return
 	}
 
+	str, err = builder.BuildQuery(filter)
+	if err != nil {
+		t.Errorf("build query failed, err:%s", err.Error())
+		return
+	}
+	if str != "SELECT `uid`,`name`,`value`,`ts` FROM `abc_Unit` WHERE `value` > 12" {
+		t.Errorf("build query failed, str:%s", str)
+		return
+	}
+
 	str, err = builder.BuildCount(nil)
 	if err != nil {
 		t.Errorf("build count failed, err:%s", err.Error())
 		return
 	}
 	if str != "SELECT COUNT(`uid`) FROM `abc_Unit`" {
+		t.Errorf("build count failed, str:%s", str)
+		return
+	}
+
+	str, err = builder.BuildCount(filter)
+	if err != nil {
+		t.Errorf("build count failed, err:%s", err.Error())
+		return
+	}
+	if str != "SELECT COUNT(`uid`) FROM `abc_Unit` WHERE `value` > 12" {
 		t.Errorf("build count failed, str:%s", str)
 		return
 	}
