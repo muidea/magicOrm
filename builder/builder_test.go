@@ -28,16 +28,16 @@ type Ext struct {
 	Unit Unit `orm:"unit"`
 }
 
-func TestNewBuilder(t *testing.T) {
-	t.Errorf("test failed")
-}
-
 func TestBuilderCommon(t *testing.T) {
 	now, _ := time.ParseInLocation(util.CSTLayout, "2018-01-02 15:04:05", time.Local)
 	unit := &Unit{ID: "10", Name: "Hello world", Value: 12.3456, TimeStamp: now}
 
 	localProvider := provider.NewLocalProvider("default")
-	localProvider.RegisterModel(unit)
+	_, err := localProvider.RegisterModel(unit)
+	if err != nil {
+		t.Errorf("localProvider.RegisterModel failed, err:%s", err.Error())
+		return
+	}
 
 	info, err := localProvider.GetEntityModel(unit)
 	if err != nil {
@@ -264,8 +264,16 @@ func TestBuilderReference2(t *testing.T) {
 	unit := &Unit{ID: "10"}
 
 	localProvider := provider.NewLocalProvider("default")
-	localProvider.RegisterModel(ext)
-	localProvider.RegisterModel(unit)
+	_, err := localProvider.RegisterModel(ext)
+	if err != nil {
+		t.Errorf("localProvider.RegisterModel failed, err:%s", err.Error())
+		return
+	}
+	_, err = localProvider.RegisterModel(unit)
+	if err != nil {
+		t.Errorf("localProvider.RegisterModel failed, err:%s", err.Error())
+		return
+	}
 	info, err := localProvider.GetEntityModel(ext)
 	if err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", err.Error())

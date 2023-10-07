@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  go_test:
+  goTest:
     runs-on: ubuntu-latest
 
     services:
