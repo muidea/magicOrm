@@ -201,12 +201,18 @@ func (s *ObjectValue) GetValue() []*FieldValue {
 }
 
 func (s *ObjectValue) SetFieldValue(name string, value interface{}) {
+	found := false
 	for _, val := range s.Fields {
 		if val.GetName() != name {
 			continue
 		}
 
+		found = true
 		val.Set(value)
+	}
+
+	if !found {
+		s.Fields = append(s.Fields, &FieldValue{Name: name, Value: value})
 	}
 }
 
