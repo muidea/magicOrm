@@ -19,6 +19,7 @@ const (
 )
 
 type Object struct {
+	ID          int      `json:"id"`
 	Name        string   `json:"name"`
 	PkgPath     string   `json:"pkgPath"`
 	Description string   `json:"description"`
