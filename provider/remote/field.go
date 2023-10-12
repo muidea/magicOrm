@@ -248,9 +248,8 @@ func (s *FieldValue) IsZero() bool {
 	return s.Value == nil
 }
 
-func (s *FieldValue) Set(val any) error {
+func (s *FieldValue) Set(val any) {
 	s.Value = val
-	return nil
 }
 
 func (s *FieldValue) Get() any {

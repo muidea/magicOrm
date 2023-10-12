@@ -200,6 +200,16 @@ func (s *ObjectValue) GetValue() []*FieldValue {
 	return s.Fields
 }
 
+func (s *ObjectValue) SetFieldValue(name string, value interface{}) {
+	for _, val := range s.Fields {
+		if val.GetName() != name {
+			continue
+		}
+
+		val.Set(value)
+	}
+}
+
 func (s *ObjectValue) isFieldAssigned(val *FieldValue) (ret bool) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
