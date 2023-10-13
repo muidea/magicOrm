@@ -21,7 +21,7 @@ type impl struct {
 
 // NewCache new modelInfo cache
 func NewCache() Cache {
-	return &impl{kvCache: cache.NewKVCache()}
+	return &impl{kvCache: cache.NewKVCache(nil)}
 }
 
 func (s *impl) Reset() {
