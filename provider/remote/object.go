@@ -146,7 +146,7 @@ func (s *Object) Dump() (ret string) {
 }
 
 func (s *Object) Verify() (err error) {
-	if s.Name == "" || s.PkgPath == "" {
+	if s.Name == "" {
 		err = fmt.Errorf("illegal object declare informain")
 		return
 	}
