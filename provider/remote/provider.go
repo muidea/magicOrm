@@ -19,6 +19,39 @@ func init() {
 }
 
 func GetEntityType(entity interface{}) (ret model.Type, err error) {
+	objInfo, objOK := entity.(Object)
+	if objOK {
+		impl := &TypeImpl{Name: objInfo.GetName(), Value: model.TypeStructValue, PkgPath: objInfo.GetPkgPath(), IsPtr: true}
+		impl.ElemType = &TypeImpl{Name: objInfo.GetName(), Value: model.TypeStructValue, PkgPath: objInfo.GetPkgPath(), IsPtr: true}
+
+		ret = impl
+		return
+	}
+
+	valInfo, valOK := entity.(ObjectValue)
+	if valOK {
+		impl := &TypeImpl{Name: valInfo.GetName(), Value: model.TypeStructValue, PkgPath: valInfo.GetPkgPath(), IsPtr: true}
+		impl.ElemType = &TypeImpl{Name: valInfo.GetName(), Value: model.TypeStructValue, PkgPath: valInfo.GetPkgPath(), IsPtr: true}
+
+		ret = impl
+		return
+	}
+
+	sValInfo, sValOK := entity.(SliceObjectValue)
+	if sValOK {
+		impl := &TypeImpl{Name: sValInfo.GetName(), Value: model.TypeSliceValue, PkgPath: sValInfo.GetPkgPath(), IsPtr: true}
+		impl.ElemType = &TypeImpl{Name: sValInfo.GetName(), Value: model.TypeStructValue, PkgPath: sValInfo.GetPkgPath(), IsPtr: true}
+
+		ret = impl
+		return
+	}
+
+	typeInfo, typeOK := entity.(TypeImpl)
+	if typeOK {
+		ret = &typeInfo
+		return
+	}
+
 	objPtr, objOK := entity.(*Object)
 	if objOK {
 		impl := &TypeImpl{Name: objPtr.GetName(), Value: model.TypeStructValue, PkgPath: objPtr.GetPkgPath(), IsPtr: true}
@@ -68,8 +101,17 @@ func GetEntityValue(entity interface{}) (ret model.Value, err error) {
 }
 
 func GetEntityModel(entity interface{}) (ret model.Model, err error) {
-	objPtr, ok := entity.(*Object)
-	if !ok {
+	var objPtr *Object
+	ptrVal, ptrOK := entity.(*Object)
+	if ptrOK {
+		objPtr = ptrVal
+	}
+
+	infoVal, infoOK := entity.(Object)
+	if infoOK {
+		objPtr = &infoVal
+	}
+	if objPtr == nil {
 		err = fmt.Errorf("illegal entity value, not object entity")
 		return
 	}
