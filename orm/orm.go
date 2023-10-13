@@ -74,6 +74,7 @@ func AddDatabase(dbServer, dbName, username, password, charSet string, maxConnNu
 	val, ok := name2Pool.Load(owner)
 	if ok {
 		pool := val.(executor.Pool)
+		pool.IncReference()
 		return pool.CheckConfig(config)
 	}
 
@@ -84,6 +85,7 @@ func AddDatabase(dbServer, dbName, username, password, charSet string, maxConnNu
 		return
 	}
 
+	pool.IncReference()
 	name2Pool.Store(owner, pool)
 	return
 }
@@ -95,8 +97,10 @@ func DelDatabase(owner string) {
 	}
 
 	pool := val.(executor.Pool)
-	pool.Uninitialized()
-	name2Pool.Delete(owner)
+	if pool.DecReference() == 0 {
+		pool.Uninitialized()
+		name2Pool.Delete(owner)
+	}
 }
 
 // NewOrm create new Orm

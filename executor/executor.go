@@ -29,6 +29,8 @@ type Pool interface {
 	Uninitialized()
 	GetExecutor() (Executor, error)
 	CheckConfig(config Config) error
+	IncReference() int
+	DecReference() int
 }
 
 func NewConfig(dbServer, dbName, username, password, charSet string) Config {
@@ -45,6 +47,7 @@ func NewPool() Pool {
 
 type poolImpl struct {
 	mysql.Pool
+	referenceCount int
 }
 
 func (s *poolImpl) Initialize(maxConnNum int, config Config) error {
@@ -62,4 +65,18 @@ func (s *poolImpl) GetExecutor() (Executor, error) {
 
 func (s *poolImpl) CheckConfig(config Config) error {
 	return s.Pool.CheckConfig(mysql.NewConfig(config.Server(), config.Database(), config.Username(), config.Password(), config.CharSet()))
+}
+
+func (s *poolImpl) IncReference() int {
+	s.referenceCount++
+	return s.referenceCount
+}
+
+func (s *poolImpl) DecReference() int {
+	s.referenceCount--
+	if s.referenceCount < 0 {
+		s.referenceCount = 0
+	}
+
+	return s.referenceCount
 }
