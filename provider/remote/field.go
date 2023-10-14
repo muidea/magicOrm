@@ -6,7 +6,6 @@ import (
 )
 
 type Field struct {
-	Index       int       `json:"index"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	Type        *TypeImpl `json:"type"`
@@ -17,10 +16,6 @@ type Field struct {
 type FieldValue struct {
 	Name  string `json:"name"`
 	Value any    `json:"value"`
-}
-
-func (s *Field) GetIndex() (ret int) {
-	return s.Index
 }
 
 func (s *Field) GetName() string {
@@ -87,7 +82,6 @@ func (s *Field) IsPtrType() bool {
 
 func (s *Field) copy(reset bool) (ret *Field) {
 	val := &Field{
-		Index:       s.Index,
 		Name:        s.Name,
 		Description: s.Description,
 	}
@@ -166,7 +160,7 @@ func (s *Field) verifyPK(typeVal model.TypeDeclare) error {
 
 func (s *Field) verify() (err error) {
 	if s.Type == nil {
-		err = fmt.Errorf("illegal filed, field type is null, index:%d, name:%v", s.Index, s.Name)
+		err = fmt.Errorf("illegal filed, field type is null, name:%v", s.Name)
 		return
 	}
 
@@ -211,7 +205,7 @@ func (s *Field) verify() (err error) {
 }
 
 func (s *Field) dump() string {
-	str := fmt.Sprintf("index:%d,name:%s,type:[%s]", s.Index, s.Name, s.Type.dump())
+	str := fmt.Sprintf("name:%s,type:[%s]", s.Name, s.Type.dump())
 	if s.Spec != nil {
 		str = fmt.Sprintf("%s,spec:[%s]", str, s.Spec.dump())
 	}
@@ -223,9 +217,6 @@ func (s *Field) dump() string {
 }
 
 func compareItem(l, r *Field) bool {
-	if l.Index != r.Index {
-		return false
-	}
 	if l.Name != r.Name {
 		return false
 	}

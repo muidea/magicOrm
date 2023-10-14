@@ -154,7 +154,7 @@ func (s *Object) Verify() (err error) {
 	for _, val := range s.Fields {
 		err = val.verify()
 		if err != nil {
-			log.Errorf("Verify field failed, idx:%d, name:%s, err:%s", val.Index, val.Name, err.Error())
+			log.Errorf("Verify field failed, name:%s, err:%s", val.Name, err.Error())
 			return
 		}
 	}

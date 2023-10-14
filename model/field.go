@@ -1,7 +1,6 @@
 package model
 
 type Field interface {
-	GetIndex() int
 	GetName() string
 	GetDescription() string
 	GetType() Type
@@ -16,8 +15,7 @@ type Field interface {
 }
 
 func CompareField(l, r Field) bool {
-	return l.GetIndex() == r.GetIndex() &&
-		l.GetName() == r.GetName() &&
+	return l.GetName() == r.GetName() &&
 		l.IsPrimaryKey() == r.IsPrimaryKey() &&
 		CompareType(l.GetType(), r.GetType()) &&
 		CompareSpec(l.GetSpec(), r.GetSpec()) &&

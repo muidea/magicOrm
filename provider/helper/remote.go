@@ -109,7 +109,6 @@ func getItemInfo(idx int, fieldType reflect.StructField) (ret *remote.Field, err
 	}
 
 	item := &remote.Field{}
-	item.Index = idx
 	item.Name = fieldType.Name
 	if specImpl.GetFieldName() != "" {
 		item.Name = specImpl.GetFieldName()
