@@ -114,10 +114,6 @@ func (s *Executor) Ping() (err error) {
 	}
 
 	err = s.dbHandle.Ping()
-	if err != nil {
-		log.Errorf("Ping failed, s.dbHandle.Ping error:%s", err.Error())
-	}
-
 	return
 }
 
