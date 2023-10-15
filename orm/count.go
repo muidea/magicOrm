@@ -2,6 +2,7 @@ package orm
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/muidea/magicCommon/foundation/log"
 
@@ -39,6 +40,11 @@ func (s *impl) queryCount(vFilter model.Filter) (ret int64, err error) {
 }
 
 func (s *impl) Count(vFilter model.Filter) (ret int64, err error) {
+	if vFilter == nil {
+		err = fmt.Errorf("illegal filter value")
+		return
+	}
+
 	queryVal, queryErr := s.queryCount(vFilter)
 	if queryErr != nil {
 		err = queryErr

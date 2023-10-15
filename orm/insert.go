@@ -1,6 +1,8 @@
 package orm
 
 import (
+	"fmt"
+
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/builder"
@@ -228,6 +230,11 @@ func (s *impl) insertSliceRelation(vModel model.Model, vField model.Field) (ret 
 
 // Insert insert
 func (s *impl) Insert(vModel model.Model) (ret model.Model, err error) {
+	if vModel == nil {
+		err = fmt.Errorf("illegal model value")
+		return
+	}
+
 	err = s.executor.BeginTransaction()
 	if err != nil {
 		return

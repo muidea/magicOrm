@@ -361,6 +361,11 @@ func (s *impl) queryRelation(vModel model.Model, vField model.Field, deepLevel i
 }
 
 func (s *impl) Query(vModel model.Model) (ret model.Model, err error) {
+	if vModel == nil {
+		err = fmt.Errorf("illegal model value")
+		return
+	}
+
 	vFilter, vErr := s.getModelFilter(vModel)
 	if vErr != nil {
 		err = vErr

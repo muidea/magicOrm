@@ -1,6 +1,8 @@
 package orm
 
 import (
+	"fmt"
+
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/builder"
@@ -38,6 +40,11 @@ func (s *impl) updateRelation(vModel model.Model, vField model.Field) (err error
 }
 
 func (s *impl) Update(vModel model.Model) (ret model.Model, err error) {
+	if vModel == nil {
+		err = fmt.Errorf("illegal model value")
+		return
+	}
+
 	err = s.executor.BeginTransaction()
 	if err != nil {
 		return
