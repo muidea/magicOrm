@@ -363,7 +363,7 @@ func getObjectValue(entityVal reflect.Value) (ret *remote.ObjectValue, err error
 		fieldName, fieldErr := getFieldName(fieldType)
 		if fieldErr != nil {
 			err = fieldErr
-			log.Errorf("get entity failed, field name:%s, err:%s", fieldType.Name, err.Error())
+			log.Errorf("get entity name failed, field name:%s, err:%s", fieldType.Name, err.Error())
 			return
 		}
 
@@ -379,6 +379,16 @@ func getObjectValue(entityVal reflect.Value) (ret *remote.ObjectValue, err error
 			err = valErr
 			log.Errorf("getFieldValue failed, field name:%s, err:%s", fieldType.Name, err.Error())
 			return
+		}
+
+		specPtr, specErr := newSpec(fieldType.Tag)
+		if specErr != nil {
+			err = specErr
+			log.Errorf("get entity spec failed, field name:%s, err:%s", fieldType.Name, err.Error())
+		}
+
+		if specPtr.IsPrimaryKey() && !val.IsNil() {
+			ret.ID = fmt.Sprintf("%v", val.GetValue().Interface())
 		}
 
 		ret.Fields = append(ret.Fields, val)
