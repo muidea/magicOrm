@@ -28,6 +28,7 @@ type Object struct {
 
 // ObjectValue Object value
 type ObjectValue struct {
+	ID      string        `json:"id"`
 	Name    string        `json:"name"`
 	PkgPath string        `json:"pkgPath"`
 	Fields  []*FieldValue `json:"fields"`
@@ -114,12 +115,18 @@ func (s *Object) Interface(_ bool) (ret any) {
 		objVal.Fields = append(objVal.Fields, &FieldValue{Name: v.Name, Value: v.value.Get()})
 	}
 
+	pkValue := s.GetPrimaryField().GetValue()
+	if !pkValue.IsNil() {
+		objVal.ID = fmt.Sprintf("%v", pkValue.Interface())
+	}
+
 	ret = objVal
 	return
 }
 
 func (s *Object) Copy(reset bool) (ret model.Model) {
 	obj := &Object{
+		ID:          s.ID,
 		Name:        s.Name,
 		PkgPath:     s.PkgPath,
 		Description: s.Description,
