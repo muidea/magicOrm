@@ -185,10 +185,12 @@ func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err 
 	entityValue, entityErr := s.getValueFunc(entity)
 	if entityErr != nil {
 		ret = entityModel.Copy(false)
+		err = entityErr
+		log.Errorf("GetEntityModel failed, s.getValueFunc err:%v", err.Error())
 		return
 	}
 
-	ret, err = s.setModelValueFunc(entityModel.Copy(false), entityValue)
+	ret, err = s.setModelValueFunc(entityModel.Copy(true), entityValue)
 	if err != nil {
 		err = fmt.Errorf("GetEntityModel failed, setModelValueFunc error, err:%s", err.Error())
 		log.Errorf("GetEntityModel failed, setModelValueFunc err:%v", err.Error())
