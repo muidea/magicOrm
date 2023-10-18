@@ -21,6 +21,8 @@ type Provider interface {
 
 	GetEntityModel(entity interface{}) (ret model.Model, err error)
 
+	GetEntityFilter(entity interface{}) (ret model.Filter, err error)
+
 	GetModelFilter(vModel model.Model) (ret model.Filter, err error)
 
 	GetValueModel(vVal model.Value, vType model.Type) (ret model.Model, err error)
@@ -164,8 +166,8 @@ func (s *providerImpl) GetEntityValue(entity interface{}) (ret model.Value, err 
 func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err error) {
 	entityType, entityErr := s.getTypeFunc(entity)
 	if entityErr != nil {
-		err = fmt.Errorf("GetEntityModel failed, getTypeFunc error, err:%s", entityErr.Error())
-		log.Errorf("GetEntityModel failed, err:%v", err.Error())
+		err = fmt.Errorf("GetEntityModel failed, getTypeFunc error, error:%s", entityErr.Error())
+		log.Errorf("GetEntityModel failed, error:%v", err.Error())
 		return
 	}
 
@@ -173,7 +175,7 @@ func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err 
 	entityModel := s.modelCache.Fetch(entityType.GetPkgKey())
 	if entityModel == nil {
 		err = fmt.Errorf("GetEntityModel failed, can't fetch entity model, must register entity first, entity PkgKey:%s", entityType.GetPkgKey())
-		log.Errorf("GetEntityModel failed, s.modelCache.Fetch err:%v", err.Error())
+		log.Errorf("GetEntityModel failed, s.modelCache.Fetch error:%v", err.Error())
 		return
 	}
 
@@ -193,9 +195,21 @@ func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err 
 
 	ret, err = s.setModelValueFunc(entityModel.Copy(), entityValue)
 	if err != nil {
-		err = fmt.Errorf("GetEntityModel failed, setModelValueFunc error, err:%s", err.Error())
-		log.Errorf("GetEntityModel failed, setModelValueFunc err:%v", err.Error())
+		err = fmt.Errorf("GetEntityModel failed, setModelValueFunc error, error:%s", err.Error())
+		log.Errorf("GetEntityModel failed, setModelValueFunc error:%v", err.Error())
 	}
+	return
+}
+
+func (s *providerImpl) GetEntityFilter(entity interface{}) (ret model.Filter, err error) {
+	vModel, vErr := s.GetEntityModel(entity)
+	if vErr != nil {
+		err = vErr
+		log.Errorf("GetEntityFilter failed, s.GetEntityModel error:%v", err.Error())
+		return
+	}
+
+	ret, err = s.GetModelFilter(vModel)
 	return
 }
 
@@ -208,7 +222,7 @@ func (s *providerImpl) GetModelFilter(vModel model.Model) (ret model.Filter, err
 	filterVal, filterErr := s.getFilterFunc(vModel)
 	if filterErr != nil {
 		err = filterErr
-		log.Errorf("GetEntityFilter failed, getFilterFunc err:%v", err.Error())
+		log.Errorf("GetEntityFilter failed, getFilterFunc error:%v", err.Error())
 		return
 	}
 
@@ -221,13 +235,13 @@ func (s *providerImpl) GetValueModel(vVal model.Value, vType model.Type) (ret mo
 	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
 	if typeModel == nil {
 		err = fmt.Errorf("can't fetch type model, must register type:%s", vType.GetPkgKey())
-		log.Errorf("GetValueModel failed, s.modelCache.Fetch err:%v", err.Error())
+		log.Errorf("GetValueModel failed, s.modelCache.Fetch error:%v", err.Error())
 		return
 	}
 
 	ret, err = s.setModelValueFunc(typeModel.Copy(), vVal)
 	if err != nil {
-		log.Errorf("GetValueModel failed, s.setModelValueFunc err:%v", err.Error())
+		log.Errorf("GetValueModel failed, s.setModelValueFunc error:%v", err.Error())
 		return
 	}
 
@@ -243,7 +257,7 @@ func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err erro
 	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
 	if typeModel == nil {
 		err = fmt.Errorf("can't fetch type model, must register type entity first, PkgKey:%s", vType.GetPkgKey())
-		log.Errorf("GetTypeModel failed, err:%v", err.Error())
+		log.Errorf("GetTypeModel failed, error:%v", err.Error())
 		return
 	}
 
@@ -259,13 +273,13 @@ func (s *providerImpl) GetTypeFilter(vType model.Type) (ret model.Filter, err er
 	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
 	if typeModel == nil {
 		err = fmt.Errorf("can't fetch type filter, must register type entity first, PkgKey:%s", vType.GetPkgKey())
-		log.Errorf("GetTypeFilter failed, err:%v", err.Error())
+		log.Errorf("GetTypeFilter failed, error:%v", err.Error())
 		return
 	}
 
 	ret, err = s.getFilterFunc(typeModel.Copy())
 	if err != nil {
-		log.Errorf("GetTypeFilter failed, s.getFilterFunc err:%v", err.Error())
+		log.Errorf("GetTypeFilter failed, s.getFilterFunc error:%v", err.Error())
 		return
 	}
 
@@ -275,7 +289,7 @@ func (s *providerImpl) GetTypeFilter(vType model.Type) (ret model.Filter, err er
 func (s *providerImpl) EncodeValue(vVal model.Value, vType model.Type) (ret interface{}, err error) {
 	ret, err = s.encodeValueFunc(vVal, vType, s.modelCache)
 	if err != nil {
-		log.Errorf("EncodeValue failed, s.encodeValueFunc err:%v", err.Error())
+		log.Errorf("EncodeValue failed, s.encodeValueFunc error:%v", err.Error())
 		return
 	}
 
@@ -285,7 +299,7 @@ func (s *providerImpl) EncodeValue(vVal model.Value, vType model.Type) (ret inte
 func (s *providerImpl) DecodeValue(vVal interface{}, vType model.Type) (ret model.Value, err error) {
 	ret, err = s.decodeValueFunc(vVal, vType, s.modelCache)
 	if err != nil {
-		log.Errorf("DecodeValue failed, s.decodeValueFunc err:%v", err.Error())
+		log.Errorf("DecodeValue failed, s.decodeValueFunc error:%v", err.Error())
 		return
 	}
 
@@ -295,7 +309,7 @@ func (s *providerImpl) DecodeValue(vVal interface{}, vType model.Type) (ret mode
 func (s *providerImpl) ElemDependValue(val model.Value) (ret []model.Value, err error) {
 	ret, err = s.elemDependValueFunc(val)
 	if err != nil {
-		log.Errorf("ElemDependValue failed, s.elemDependValueFunc err:%v", err.Error())
+		log.Errorf("ElemDependValue failed, s.elemDependValueFunc error:%v", err.Error())
 		return
 	}
 
@@ -305,7 +319,7 @@ func (s *providerImpl) ElemDependValue(val model.Value) (ret []model.Value, err 
 func (s *providerImpl) AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, err error) {
 	ret, err = s.appendSliceValueFunc(sliceVal, val)
 	if err != nil {
-		log.Errorf("AppendSliceValue failed, s.appendSliceValueFunc err:%v", err.Error())
+		log.Errorf("AppendSliceValue failed, s.appendSliceValueFunc error:%v", err.Error())
 		return
 	}
 
