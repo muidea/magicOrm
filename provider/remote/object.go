@@ -11,11 +11,11 @@ import (
 )
 
 const (
-	nameTag    = "name"
-	pkgPathTag = "pkgPath"
-	fieldsTag  = "fields"
-	valuesTag  = "values"
-	valueTag   = "value"
+	NameTag    = "name"
+	PkgPathTag = "pkgPath"
+	FieldsTag  = "fields"
+	ValuesTag  = "values"
+	ValueTag   = "value"
 )
 
 type Object struct {
@@ -325,9 +325,9 @@ func EncodeSliceObjectValue(objVal *SliceObjectValue) (ret []byte, err error) {
 
 // decodeObjectValueFromMap decode object value from map
 func decodeObjectValueFromMap(mapVal map[string]interface{}) (ret *ObjectValue, err error) {
-	nameVal, nameOK := mapVal[nameTag]
-	pkgPathVal, pkgPathOK := mapVal[pkgPathTag]
-	itemsVal, itemsOK := mapVal[fieldsTag]
+	nameVal, nameOK := mapVal[NameTag]
+	pkgPathVal, pkgPathOK := mapVal[PkgPathTag]
+	itemsVal, itemsOK := mapVal[FieldsTag]
 	if !nameOK || !pkgPathOK || !itemsOK {
 		err = fmt.Errorf("illegal ObjectValue")
 		return
@@ -360,9 +360,9 @@ func decodeObjectValueFromMap(mapVal map[string]interface{}) (ret *ObjectValue, 
 
 // decodeSliceObjectValueFromMap decode slice object value from map
 func decodeSliceObjectValueFromMap(mapVal map[string]interface{}) (ret *SliceObjectValue, err error) {
-	nameVal, nameOK := mapVal[nameTag]
-	pkgPathVal, pkgPathOK := mapVal[pkgPathTag]
-	valuesVal, valuesOK := mapVal[valuesTag]
+	nameVal, nameOK := mapVal[NameTag]
+	pkgPathVal, pkgPathOK := mapVal[PkgPathTag]
+	valuesVal, valuesOK := mapVal[ValuesTag]
 	if !nameOK || !pkgPathOK || !valuesOK {
 		err = fmt.Errorf("illegal SliceObjectValue")
 		return
@@ -394,8 +394,8 @@ func decodeSliceObjectValueFromMap(mapVal map[string]interface{}) (ret *SliceObj
 }
 
 func decodeItemValue(itemVal map[string]interface{}) (ret *FieldValue, err error) {
-	nameVal, nameOK := itemVal[nameTag]
-	valVal, _ := itemVal[valueTag]
+	nameVal, nameOK := itemVal[NameTag]
+	valVal, _ := itemVal[ValueTag]
 	if !nameOK {
 		err = fmt.Errorf("illegal item value")
 	}
@@ -409,7 +409,7 @@ func ConvertItem(val *FieldValue) (ret *FieldValue, err error) {
 	objVal, objOK := val.Value.(map[string]interface{})
 	// for struct or slice struct
 	if objOK {
-		_, itemsOK := objVal[fieldsTag]
+		_, itemsOK := objVal[FieldsTag]
 		if itemsOK {
 			ret = &FieldValue{Name: val.Name}
 
@@ -423,7 +423,7 @@ func ConvertItem(val *FieldValue) (ret *FieldValue, err error) {
 			return
 		}
 
-		_, valuesOK := objVal[valuesTag]
+		_, valuesOK := objVal[ValuesTag]
 		if valuesOK {
 			ret = &FieldValue{Name: val.Name}
 
