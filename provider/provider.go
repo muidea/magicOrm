@@ -188,7 +188,6 @@ func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err 
 		// 获取entity值失败，说明entity只是类型定义不是值
 		// 这里要当成获取Model成功继续处理
 		//err = entityErr
-		log.Errorf("GetEntityModel failed, s.getValueFunc err:%v", err.Error())
 		return
 	}
 
