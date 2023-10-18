@@ -222,7 +222,7 @@ func (s *filter) Sorter() om.Sorter {
 	return s.sortFilter
 }
 
-func (s *filter) MaskModel() (ret om.Model) {
+func (s *filter) MaskModel() om.Model {
 	maskVal := s.bindValue
 	if s.maskValue != nil {
 		maskVal = s.maskValue
@@ -231,9 +231,8 @@ func (s *filter) MaskModel() (ret om.Model) {
 	objPtr, objErr := getValueModel(maskVal.value)
 	if objErr != nil {
 		log.Errorf("MaskModel failed, getValueModel error:%s", objErr.Error())
-		return
+		return nil
 	}
 
-	ret = objPtr
-	return
+	return objPtr.Copy()
 }

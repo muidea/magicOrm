@@ -151,7 +151,8 @@ func TestSimpleLocal(t *testing.T) {
 		}
 	}
 
-	filter, err := localProvider.GetEntityFilter(&Simple{})
+	simpleModel, _ := localProvider.GetEntityModel(&Simple{})
+	filter, err := localProvider.GetModelFilter(simpleModel)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -363,11 +364,11 @@ func TestSimpleRemote(t *testing.T) {
 		}
 	}
 
-	objectValuePtr, objectValueErr := helper.GetObjectValue(&Simple{})
-	if objectValueErr != nil {
-		t.Errorf("GetObjectValue failed, error:%s", objectValueErr.Error())
+	objectPtr, objectErr := helper.GetObject(&Simple{})
+	if objectErr != nil {
+		t.Errorf("GetObject failed, error:%s", objectErr.Error())
 	}
-	filter, err := remoteProvider.GetEntityFilter(objectValuePtr)
+	filter, err := remoteProvider.GetModelFilter(objectPtr)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return

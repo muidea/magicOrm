@@ -584,7 +584,8 @@ func TestLocalQuery(t *testing.T) {
 	}
 	c4 = c4Model.Interface(false).(Compose)
 
-	filter, err := localProvider.GetEntityFilter(&Compose{})
+	cModel, _ := localProvider.GetEntityModel(&Compose{})
+	filter, err := localProvider.GetModelFilter(cModel)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return

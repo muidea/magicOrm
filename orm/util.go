@@ -7,7 +7,7 @@ import (
 )
 
 func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, err error) {
-	filterVal, filterErr := s.modelProvider.GetEntityFilter(vModel.Interface(true))
+	filterVal, filterErr := s.modelProvider.GetModelFilter(vModel)
 	if filterErr != nil {
 		err = filterErr
 		log.Errorf("getModelFilter failed, s.modelProvider.GetEntityFilter error:%s", err.Error())

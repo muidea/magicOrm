@@ -45,7 +45,7 @@ func TestBuilderCommon(t *testing.T) {
 		return
 	}
 
-	filter, err := localProvider.GetEntityFilter(unit)
+	filter, err := localProvider.GetModelFilter(info)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -111,16 +111,6 @@ func TestBuilderCommon(t *testing.T) {
 		t.Errorf("filter.Above failed, err:%s", err.Error())
 		return
 	}
-	str, err = builder.BuildQuery(nil)
-	if err != nil {
-		t.Errorf("build query failed, err:%s", err.Error())
-		return
-	}
-	if str != "SELECT `uid`,`name`,`value`,`ts` FROM `abc_Unit`" {
-		t.Errorf("build query failed, str:%s", str)
-		return
-	}
-
 	str, err = builder.BuildQuery(filter)
 	if err != nil {
 		t.Errorf("build query failed, err:%s", err.Error())
@@ -213,24 +203,6 @@ func TestBuilderReference(t *testing.T) {
 	}
 	if str != "DELETE FROM `abc_Ext` WHERE `eid`=12" {
 		t.Errorf("build delete failed, str:%s", str)
-	}
-
-	str, err = builder.BuildQuery(nil)
-	if err != nil {
-		t.Errorf("build query failed, err:%s", err.Error())
-	}
-	if str != "SELECT `eid`,`name`,`description` FROM `abc_Ext`" {
-		t.Errorf("build query failed, str:%s", str)
-	}
-
-	str, err = builder.BuildCount(nil)
-	if err != nil {
-		t.Errorf("build count failed, err:%s", err.Error())
-		return
-	}
-	if str != "SELECT COUNT(`eid`) FROM `abc_Ext`" {
-		t.Errorf("build count failed, str:%s", str)
-		return
 	}
 
 	uField := extModel.GetField("unit")
@@ -354,13 +326,5 @@ func TestBuilderReference2(t *testing.T) {
 	}
 	if str != "DELETE FROM `abc_Ext` WHERE `eid`=10" {
 		t.Errorf("build delete failed, str:%v", str)
-	}
-
-	str, err = builder.BuildQuery(nil)
-	if err != nil {
-		t.Errorf("build query failed, err:%s", err.Error())
-	}
-	if str != "SELECT `eid`,`name`,`description` FROM `abc_Ext`" {
-		t.Errorf("build query failed, str:%s", str)
 	}
 }

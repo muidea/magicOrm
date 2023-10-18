@@ -80,7 +80,7 @@ func (s *Field) IsPtrType() bool {
 	return s.Type.IsPtrType()
 }
 
-func (s *Field) copy(reset bool) (ret *Field) {
+func (s *Field) copy() (ret *Field) {
 	val := &Field{
 		Name:        s.Name,
 		Description: s.Description,
@@ -93,15 +93,8 @@ func (s *Field) copy(reset bool) (ret *Field) {
 		val.Type = s.Type.copy()
 	}
 
-	if !reset {
-		if s.value != nil {
-			val.value = s.value.Copy()
-		}
-
-		if !s.Type.IsPtrType() && s.value == nil {
-			tv, _ := s.Type.Interface(nil)
-			val.value = tv.(*ValueImpl)
-		}
+	if s.value != nil {
+		val.value = s.value.Copy()
 	}
 
 	ret = val

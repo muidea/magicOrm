@@ -197,7 +197,8 @@ func TestReferenceLocal(t *testing.T) {
 	strArray2 := []string{}
 	ptrStrArray := []*string{}
 
-	filter, err := localProvider.GetEntityFilter(&Reference{})
+	referenceModel, _ := localProvider.GetEntityModel(&Reference{})
+	filter, err := localProvider.GetModelFilter(referenceModel)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -459,11 +460,6 @@ func TestReferenceRemote(t *testing.T) {
 	}
 
 	bqValList := []*Reference{}
-	bqSliceObject, bqSliceErr := helper.GetSliceObjectValue(&bqValList)
-	if bqSliceErr != nil {
-		t.Errorf("GetSliceObjectValue failed, err:%s", bqSliceErr.Error())
-		return
-	}
 
 	var fVal float32
 	var ts2 time.Time
@@ -471,7 +467,9 @@ func TestReferenceRemote(t *testing.T) {
 	strArray2 := []string{}
 	ptrStrArray := []*string{}
 
-	filter, err := remoteProvider.GetEntityFilter(bqSliceObject)
+	referenceModel, _ := helper.GetObject(&bqValList)
+
+	filter, err := remoteProvider.GetModelFilter(referenceModel)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return

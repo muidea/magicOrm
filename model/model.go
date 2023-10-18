@@ -10,7 +10,7 @@ type Model interface {
 	GetPrimaryField() Field
 	GetField(name string) Field
 	Interface(ptrValue bool) any
-	Copy(reset bool) Model
+	Copy() Model
 	Dump() string
 }
 

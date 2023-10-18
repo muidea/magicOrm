@@ -234,7 +234,7 @@ func (s *Executor) Query(sql string) (err error) {
 		rows, rowErr := s.dbHandle.Query(sql)
 		if rowErr != nil {
 			err = rowErr
-			log.Errorf("Query failed, s.dbHandle.Query error:%s", err.Error())
+			log.Errorf("Query failed, s.dbHandle.Query:%s, error:%s", sql, err.Error())
 			return
 		}
 		s.rowsHandle = rows
@@ -247,7 +247,7 @@ func (s *Executor) Query(sql string) (err error) {
 		rows, rowErr := s.dbTx.Query(sql)
 		if rowErr != nil {
 			err = rowErr
-			log.Errorf("Query failed, s.dbTx.Query error:%s", err.Error())
+			log.Errorf("Query failed, s.dbTx.Query:%s, error:%s", sql, err.Error())
 			return
 		}
 

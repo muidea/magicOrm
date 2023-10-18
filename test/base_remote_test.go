@@ -817,7 +817,13 @@ func TestRemoteQuery(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", cObjectValueErr.Error())
 		return
 	}
-	filter, err := remoteProvider.GetEntityFilter(cObjectValue)
+	cObjectPtr, cObjectErr := helper.GetObject(cComposePtr)
+	if cObjectErr != nil {
+		t.Errorf("GetObject failed, err:%s", cObjectErr.Error())
+		return
+	}
+
+	filter, err := remoteProvider.GetModelFilter(cObjectPtr)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return

@@ -140,7 +140,7 @@ func type2Object(entityType reflect.Type) (ret *remote.Object, err error) {
 	if entityType.Kind() == reflect.Ptr {
 		entityType = entityType.Elem()
 	}
-	if entityType.Kind() == reflect.Interface {
+	if entityType.Kind() == reflect.Slice {
 		entityType = entityType.Elem()
 	}
 	if entityType.Kind() == reflect.Ptr {
@@ -154,6 +154,7 @@ func type2Object(entityType reflect.Type) (ret *remote.Object, err error) {
 		return
 	}
 
+	typeImpl = typeImpl.Elem().(*remote.TypeImpl)
 	if !model.IsStructType(typeImpl.GetValue()) {
 		err = fmt.Errorf("illegal object type, must be a struct obj, type:%s", entityType.String())
 		log.Errorf("type2Object failed, check object type err:%s", err.Error())

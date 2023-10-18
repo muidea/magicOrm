@@ -10,7 +10,7 @@ import (
 
 // BuildQuery build query sql
 func (s *Builder) BuildQuery(filter model.Filter) (ret string, err error) {
-	namesVal, nameErr := s.getFieldQueryNames()
+	namesVal, nameErr := s.getFieldQueryNames(filter)
 	if nameErr != nil {
 		err = nameErr
 		log.Errorf("BuildQuery failed, s.getFieldQueryNames error:%s", err.Error())
@@ -182,9 +182,10 @@ func (s *Builder) buildSorter(filter model.Sorter) (ret string, err error) {
 	return
 }
 
-func (s *Builder) getFieldQueryNames() (ret string, err error) {
+func (s *Builder) getFieldQueryNames(filter model.Filter) (ret string, err error) {
 	str := ""
-	for _, field := range s.GetFields() {
+	vModel := filter.MaskModel()
+	for _, field := range vModel.GetFields() {
 		fType := field.GetType()
 		fValue := field.GetValue()
 		if !fType.IsBasic() || fValue.IsNil() {
