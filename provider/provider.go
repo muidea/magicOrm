@@ -206,12 +206,15 @@ func (s *providerImpl) GetEntityFilter(entity interface{}) (ret model.Filter, er
 		return
 	}
 
-	ret, err = s.getFilterFunc(entityModel)
-	if err != nil {
+	filterVal, filterErr := s.getFilterFunc(entityModel)
+	if filterErr != nil {
+		err = filterErr
 		log.Errorf("GetEntityFilter failed, getFilterFunc err:%v", err.Error())
 		return
 	}
 
+	filterVal.ValueMask(entity)
+	ret = filterVal
 	return
 }
 

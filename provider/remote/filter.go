@@ -1,7 +1,6 @@
 package remote
 
 import (
-	"encoding/json"
 	"fmt"
 	"path"
 
@@ -247,18 +246,32 @@ func (s *ObjectFilter) ValueMask(val interface{}) (err error) {
 	var objectValuePtr *ObjectValue
 	switch val.(type) {
 	case *ObjectValue:
-		objectMask, objectOK := val.(*ObjectValue)
-		if objectOK {
-			objectValuePtr = objectMask
+		valuePtr, valueOK := val.(*ObjectValue)
+		if valueOK && valuePtr != nil {
+			objectValuePtr = valuePtr
 		}
-	case json.RawMessage:
-		byteVal, byteOK := val.(json.RawMessage)
-		if byteOK {
-			objectValuePtr, err = DecodeObjectValue(byteVal)
+	case *SliceObjectValue:
+		valuePtr, valueOK := val.(*SliceObjectValue)
+		if valueOK && valuePtr != nil {
+			objectValuePtr = &ObjectValue{
+				Name:    valuePtr.Name,
+				PkgPath: valuePtr.PkgPath,
+			}
 		}
-	}
-	if objectValuePtr == nil {
+		/*
+			case json.RawMessage:
+				byteVal, byteOK := val.(json.RawMessage)
+				if byteOK {
+					objectValuePtr, err = DecodeObjectValue(byteVal)
+					if err != nil {
+						DecodeSliceObjectValue(byteVal)
+					}
+				}*/
+	default:
 		err = fmt.Errorf("illegal mask value")
+	}
+
+	if err != nil {
 		log.Errorf("ValueMask failed, err:%v", err.Error())
 		return
 	}
