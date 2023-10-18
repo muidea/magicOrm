@@ -34,6 +34,8 @@ func NewValue(val any) (ret *ValueImpl) {
 		[]any,
 		*ObjectValue, *SliceObjectValue:
 		valPtr.value = val
+	case ObjectValue, SliceObjectValue:
+		valPtr.value = &val
 	default:
 		err := fmt.Errorf("illegal value, val:%v", val)
 		panic(err.Error())
