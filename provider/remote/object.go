@@ -107,8 +107,14 @@ func (s *Object) Interface(_ bool) (ret any) {
 	objVal := &ObjectValue{Name: s.Name, PkgPath: s.PkgPath, Fields: []*FieldValue{}}
 
 	for _, v := range s.Fields {
-		if v.value == nil || v.value.IsNil() {
+		if v.value == nil {
 			objVal.Fields = append(objVal.Fields, &FieldValue{Name: v.Name})
+			continue
+		}
+
+		if !v.IsPtrType() && v.value.IsNil() {
+			vVal, _ := v.Type.Interface(nil)
+			objVal.Fields = append(objVal.Fields, &FieldValue{Name: v.Name, Value: vVal.Interface()})
 			continue
 		}
 
