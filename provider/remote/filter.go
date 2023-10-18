@@ -250,29 +250,23 @@ func (s *ObjectFilter) ValueMask(val interface{}) (err error) {
 		if valueOK && valuePtr != nil {
 			objectValuePtr = valuePtr
 		}
-	case *SliceObjectValue:
-		valuePtr, valueOK := val.(*SliceObjectValue)
-		if valueOK && valuePtr != nil {
-			objectValuePtr = &ObjectValue{
-				Name:    valuePtr.Name,
-				PkgPath: valuePtr.PkgPath,
-			}
+	case ObjectValue:
+		valuePtr, valueOK := val.(ObjectValue)
+		if valueOK {
+			objectValuePtr = &valuePtr
 		}
-		/*
-			case json.RawMessage:
-				byteVal, byteOK := val.(json.RawMessage)
-				if byteOK {
-					objectValuePtr, err = DecodeObjectValue(byteVal)
-					if err != nil {
-						DecodeSliceObjectValue(byteVal)
-					}
-				}*/
+	case *SliceObjectValue, SliceObjectValue:
+		// nothing
 	default:
 		err = fmt.Errorf("illegal mask value")
 	}
 
 	if err != nil {
 		log.Errorf("ValueMask failed, err:%v", err.Error())
+		return
+	}
+
+	if objectValuePtr == nil {
 		return
 	}
 

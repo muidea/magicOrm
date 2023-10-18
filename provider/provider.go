@@ -214,7 +214,7 @@ func (s *providerImpl) GetEntityFilter(entity interface{}) (ret model.Filter, er
 		return
 	}
 
-	filterVal.ValueMask(entity)
+	_ = filterVal.ValueMask(entityModel.Interface(true))
 	ret = filterVal
 	return
 }
