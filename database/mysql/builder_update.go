@@ -49,9 +49,9 @@ func (s *Builder) getFieldUpdateValues() (ret string, err error) {
 		}
 
 		if str == "" {
-			str = fmt.Sprintf("`%s`=%v", field.GetName(), fStr)
+			str = fmt.Sprintf("`%s` = %v", field.GetName(), fStr)
 		} else {
-			str = fmt.Sprintf("%s,`%s`=%v", str, field.GetName(), fStr)
+			str = fmt.Sprintf("%s,`%s` = %v", str, field.GetName(), fStr)
 		}
 	}
 

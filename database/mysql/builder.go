@@ -29,6 +29,6 @@ func (s *Builder) buildModelFilter() (ret string, err error) {
 	}
 
 	pkfName := pkField.GetName()
-	ret = fmt.Sprintf("`%s`=%v", pkfName, pkfVal)
+	ret = fmt.Sprintf("`%s` = %v", pkfName, pkfVal)
 	return
 }
