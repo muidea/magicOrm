@@ -44,7 +44,7 @@ func (s *Builder) BuildCreateTable() (ret string, err error) {
 // BuildCreateRelationTable Build CreateRelation Schema
 func (s *Builder) BuildCreateRelationTable(field model.Field, rModel model.Model) (ret string, err error) {
 	lPKField := s.GetPrimaryKeyField(nil)
-	lPKType, lPKErr := getTypeDeclare(lPKField.GetType())
+	lPKType, lPKErr := getTypeDeclare(lPKField.GetType(), lPKField.GetSpec())
 	if lPKErr != nil {
 		err = lPKErr
 		log.Errorf("BuildCreateRelationTable failed, getTypeDeclare error:%s", err.Error())
@@ -52,7 +52,7 @@ func (s *Builder) BuildCreateRelationTable(field model.Field, rModel model.Model
 	}
 
 	rPKField := s.GetPrimaryKeyField(rModel)
-	rPKType, rPKErr := getTypeDeclare(rPKField.GetType())
+	rPKType, rPKErr := getTypeDeclare(rPKField.GetType(), lPKField.GetSpec())
 	if rPKErr != nil {
 		err = rPKErr
 		log.Errorf("BuildCreateRelationTable failed, getTypeDeclare error:%s", err.Error())

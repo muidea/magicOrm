@@ -41,7 +41,7 @@ func declareFieldInfo(vField model.Field) (ret string, err error) {
 	}
 
 	allowNull := "NOT NULL"
-	typeVal, typeErr := getTypeDeclare(vField.GetType())
+	typeVal, typeErr := getTypeDeclare(vField.GetType(), vField.GetSpec())
 	if typeErr != nil {
 		err = typeErr
 		log.Errorf("declareFieldInfo failed, getTypeDeclare error:%s", err.Error())
@@ -52,10 +52,14 @@ func declareFieldInfo(vField model.Field) (ret string, err error) {
 	return
 }
 
-func getTypeDeclare(fType model.Type) (ret string, err error) {
+func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err error) {
 	switch fType.GetValue() {
 	case model.TypeStringValue:
-		ret = "TEXT"
+		if fSpec.GetValueDeclare() == model.UUID {
+			ret = "VARCHAR(32)"
+		} else {
+			ret = "TEXT"
+		}
 		break
 	case model.TypeDateTimeValue:
 		ret = "DATETIME"
