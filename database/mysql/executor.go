@@ -360,8 +360,8 @@ func (s *Executor) CheckTableExist(tableName string) (ret bool, err error) {
 }
 
 const (
-	initConnCount     = 16
-	defaultMaxConnNum = 1024
+	initConnCount     = 5
+	defaultMaxConnNum = 50
 )
 
 // Pool executorPool
