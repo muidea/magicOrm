@@ -8,7 +8,7 @@ import (
 
 func TestUpdateExtObjValue(t *testing.T) {
 	newVal := &Compose{
-		//BasePtrArrayPtr: &[]*Base{},
+		BasePtrArrayPtr: &[]*Base{},
 	}
 	rawVal := composeVal
 	objVal, objErr := GetObjectValue(rawVal)
