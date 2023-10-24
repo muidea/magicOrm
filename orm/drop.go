@@ -9,8 +9,8 @@ import (
 )
 
 func (s *impl) dropSingle(vModel model.Model) (err error) {
-	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	dropSQL, dropErr := builder.BuildDropTable()
+	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+	dropSQL, dropErr := builderVal.BuildDropTable()
 	if dropErr != nil {
 		err = dropErr
 		log.Errorf("dropSingle failed, builder.BuildDropTable error:%s", err.Error())
@@ -25,8 +25,8 @@ func (s *impl) dropSingle(vModel model.Model) (err error) {
 }
 
 func (s *impl) dropRelation(vModel model.Model, vField model.Field, rModel model.Model) (err error) {
-	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	relationSQL, relationErr := builder.BuildDropRelationTable(vField, rModel)
+	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+	relationSQL, relationErr := builderVal.BuildDropRelationTable(vField, rModel)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("dropRelation failed, builder.BuildDropRelationTable error:%s", err.Error())
@@ -52,12 +52,16 @@ func (s *impl) dropSchema(vModel model.Model) (err error) {
 			continue
 		}
 
+		var relationModel model.Model
 		fType := field.GetType()
-		relationModel, relationErr := s.modelProvider.GetTypeModel(fType)
-		if relationErr != nil {
-			err = relationErr
-			log.Errorf("dropSchema failed, s.modelProvider.GetTypeModel error:%s", err.Error())
-			return
+		if vModel.GetPkgKey() == fType.GetPkgKey() {
+			relationModel = vModel
+		} else {
+			relationModel, err = s.modelProvider.GetTypeModel(fType)
+			if err != nil {
+				log.Errorf("dropSchema failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+				return
+			}
 		}
 
 		elemType := fType.Elem()

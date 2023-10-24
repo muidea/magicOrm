@@ -10,8 +10,8 @@ import (
 )
 
 func (s *impl) createSingle(vModel model.Model) (err error) {
-	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	createSQL, createErr := builder.BuildCreateTable()
+	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+	createSQL, createErr := builderVal.BuildCreateTable()
 	if createErr != nil {
 		err = createErr
 		log.Errorf("createSingle failed, builder.BuildCreateTable error:%s", err.Error())
@@ -26,8 +26,8 @@ func (s *impl) createSingle(vModel model.Model) (err error) {
 }
 
 func (s *impl) createRelation(vModel model.Model, vField model.Field, rModel model.Model) (err error) {
-	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	relationSQL, relationErr := builder.BuildCreateRelationTable(vField, rModel)
+	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+	relationSQL, relationErr := builderVal.BuildCreateRelationTable(vField, rModel)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("createRelation failed, builder.BuildCreateRelationTable error:%s", err.Error())
@@ -53,12 +53,16 @@ func (s *impl) createSchema(vModel model.Model) (err error) {
 			continue
 		}
 
+		var relationModel model.Model
 		fType := field.GetType()
-		relationModel, relationErr := s.modelProvider.GetTypeModel(fType)
-		if relationErr != nil {
-			err = relationErr
-			log.Errorf("createSchema failed, s.modelProvider.GetTypeModel error:%s", err.Error())
-			return
+		if vModel.GetPkgKey() == fType.GetPkgKey() {
+			relationModel = vModel
+		} else {
+			relationModel, err = s.modelProvider.GetTypeModel(fType)
+			if err != nil {
+				log.Errorf("createSchema failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+				return
+			}
 		}
 
 		elemType := fType.Elem()
