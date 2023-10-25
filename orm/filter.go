@@ -7,12 +7,16 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *impl) queryBatch(vFilter model.Filter) (ret []model.Model, err error) {
+func (s *impl) queryBatch(vFilter model.Filter) (ret []model.Model, re *cd.Result) {
 	vModel := vFilter.MaskModel()
 	queryValueList, queryErr := s.innerQuery(vModel, vFilter)
 	if queryErr != nil {
-		err = queryErr
-		log.Errorf("queryBatch failed, s.innerQuery error:%s", err.Error())
+		re = queryErr
+		if queryErr.Fail() {
+			log.Errorf("queryBatch failed, s.innerQuery error:%s", queryErr.Error())
+		} else if queryErr.Warn() {
+			log.Warnf("queryBatch failed, s.innerQuery error:%s", queryErr.Error())
+		}
 		return
 	}
 
@@ -20,8 +24,12 @@ func (s *impl) queryBatch(vFilter model.Filter) (ret []model.Model, err error) {
 	for idx := 0; idx < len(queryValueList); idx++ {
 		modelVal, modelErr := s.innerAssign(vModel.Copy(), queryValueList[idx], 0)
 		if modelErr != nil {
-			err = modelErr
-			log.Errorf("queryBatch failed, s.innerAssign error:%s", err.Error())
+			re = modelErr
+			if modelErr.Fail() {
+				log.Errorf("queryBatch failed, s.innerAssign error:%s", modelErr.Error())
+			} else if modelErr.Warn() {
+				log.Warnf("queryBatch failed, s.innerAssign error:%s", modelErr.Error())
+			}
 			return
 		}
 
@@ -41,8 +49,12 @@ func (s *impl) BatchQuery(vFilter model.Filter) (ret []model.Model, re *cd.Resul
 
 	queryVal, queryErr := s.queryBatch(vFilter)
 	if queryErr != nil {
-		re = cd.NewError(cd.UnExpected, queryErr.Error())
-		log.Errorf("BatchQuery failed, s.queryBatch error:%s", queryErr.Error())
+		re = queryErr
+		if queryErr.Fail() {
+			log.Errorf("BatchQuery failed, s.queryBatch error:%s", queryErr.Error())
+		} else if queryErr.Warn() {
+			log.Warnf("BatchQuery failed, s.queryBatch error:%s", queryErr.Error())
+		}
 		return
 	}
 
