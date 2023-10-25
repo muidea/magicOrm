@@ -3,6 +3,8 @@ package test
 import (
 	"time"
 
+	cd "github.com/muidea/magicCommon/def"
+
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
@@ -297,7 +299,7 @@ func registerModel(provider provider.Provider, objList []interface{}) (ret []mod
 	return
 }
 
-func createModel(orm orm.Orm, modelList []model.Model) (err error) {
+func createModel(orm orm.Orm, modelList []model.Model) (err *cd.Result) {
 	for _, val := range modelList {
 		err = orm.Create(val)
 		if err != nil {
@@ -308,7 +310,7 @@ func createModel(orm orm.Orm, modelList []model.Model) (err error) {
 	return
 }
 
-func dropModel(orm orm.Orm, modelList []model.Model) (err error) {
+func dropModel(orm orm.Orm, modelList []model.Model) (err *cd.Result) {
 	for _, val := range modelList {
 		err = orm.Drop(val)
 		if err != nil {

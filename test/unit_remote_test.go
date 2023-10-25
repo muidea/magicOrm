@@ -34,9 +34,9 @@ func TestRemoteExecutor(t *testing.T) {
 	}
 
 	objList := []interface{}{objDef}
-	_, err = registerModel(remoteProvider, objList)
-	if err != nil {
-		t.Errorf("register mode failed, err:%s", err.Error())
+	_, mErr := registerModel(remoteProvider, objList)
+	if mErr != nil {
+		t.Errorf("register mode failed, err:%s", mErr.Error())
 		return
 	}
 
@@ -64,15 +64,15 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	objModel, objErr = o1.Insert(objModel)
-	if objErr != nil {
-		t.Errorf("insert obj failed, err:%s", objErr.Error())
+	obj1Model, obj1Err := o1.Insert(objModel)
+	if obj1Err != nil {
+		t.Errorf("insert obj failed, err:%s", obj1Err.Error())
 		return
 	}
 
-	err = helper.UpdateEntity(objModel.Interface(true).(*remote.ObjectValue), val)
-	if err != nil {
-		t.Errorf("UpdateEntity failed, err:%s", err.Error())
+	eErr := helper.UpdateEntity(obj1Model.Interface(true).(*remote.ObjectValue), val)
+	if eErr != nil {
+		t.Errorf("UpdateEntity failed, err:%s", eErr.Error())
 		return
 	}
 
@@ -107,15 +107,15 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	obj2Model, obj2Err = o1.Query(obj2Model)
-	if obj2Err != nil {
-		t.Errorf("query obj failed, err:%s", obj2Err.Error())
+	obj22Model, obj22Err := o1.Query(obj2Model)
+	if obj22Err != nil {
+		t.Errorf("query obj failed, err:%s", obj22Err.Error())
 		return
 	}
 
-	err = helper.UpdateEntity(obj2Model.Interface(true).(*remote.ObjectValue), val2)
-	if err != nil {
-		t.Errorf("UpdateEntity failed, err:%s", err.Error())
+	eErr = helper.UpdateEntity(obj22Model.Interface(true).(*remote.ObjectValue), val2)
+	if eErr != nil {
+		t.Errorf("UpdateEntity failed, err:%s", eErr.Error())
 		return
 	}
 
@@ -207,9 +207,9 @@ func TestRemoteDepends(t *testing.T) {
 		return
 	}
 
-	extObjModel, extObjErr = o1.Insert(extObjModel)
-	if extObjErr != nil {
-		t.Errorf("insert ext failed, err:%s", extObjErr.Error())
+	_, extObj1Err := o1.Insert(extObjModel)
+	if extObj1Err != nil {
+		t.Errorf("insert ext failed, err:%s", extObj1Err.Error())
 		return
 	}
 
@@ -238,13 +238,13 @@ func TestRemoteDepends(t *testing.T) {
 		return
 	}
 
-	ext2ObjModel, ext2ObjErr = o1.Insert(ext2ObjModel)
-	if ext2ObjErr != nil {
-		t.Errorf("insert ext2 failed, err:%s", ext2ObjErr.Error())
+	ext22ObjModel, ext22ObjErr := o1.Insert(ext2ObjModel)
+	if ext22ObjErr != nil {
+		t.Errorf("insert ext2 failed, err:%s", ext22ObjErr.Error())
 		return
 	}
 
-	_, err = o1.Delete(ext2ObjModel)
+	_, err = o1.Delete(ext22ObjModel)
 	if err != nil {
 		t.Errorf("delete ext2 failed, err:%s", err.Error())
 	}

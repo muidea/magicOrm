@@ -2,6 +2,7 @@ package orm
 
 import (
 	"fmt"
+	cd "github.com/muidea/magicCommon/def"
 
 	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/builder"
@@ -353,23 +354,23 @@ func (s *impl) queryRelation(vModel model.Model, vField model.Field, deepLevel i
 	return
 }
 
-func (s *impl) Query(vModel model.Model) (ret model.Model, err error) {
+func (s *impl) Query(vModel model.Model) (ret model.Model, re *cd.Result) {
 	if vModel == nil {
-		err = fmt.Errorf("illegal model value")
+		re = cd.NewError(cd.IllegalParam, "illegal model value")
 		return
 	}
 
 	vFilter, vErr := s.getModelFilter(vModel)
 	if vErr != nil {
-		err = vErr
-		log.Errorf("Query failed, s.getModelFilter error:%v", err.Error())
+		re = cd.NewError(cd.UnExpected, vErr.Error())
+		log.Errorf("Query failed, s.getModelFilter error:%v", re.Error())
 		return
 	}
 
 	qModel, qErr := s.querySingle(vFilter, 0)
 	if qErr != nil {
-		err = qErr
-		log.Errorf("Query failed, s.querySingle err:%v", err.Error())
+		re = cd.NewError(cd.UnExpected, qErr.Error())
+		log.Errorf("Query failed, s.querySingle err:%v", re.Error())
 		return
 	}
 

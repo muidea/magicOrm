@@ -1,8 +1,7 @@
 package orm
 
 import (
-	"fmt"
-
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/builder"
@@ -229,21 +228,22 @@ func (s *impl) insertSliceRelation(vModel model.Model, vField model.Field) (ret 
 }
 
 // Insert insert
-func (s *impl) Insert(vModel model.Model) (ret model.Model, err error) {
+func (s *impl) Insert(vModel model.Model) (ret model.Model, re *cd.Result) {
 	if vModel == nil {
-		err = fmt.Errorf("illegal model value")
+		re = cd.NewError(cd.IllegalParam, "illegal model value")
 		return
 	}
 
-	err = s.executor.BeginTransaction()
+	err := s.executor.BeginTransaction()
 	if err != nil {
+		re = cd.NewError(cd.UnExpected, err.Error())
 		return
 	}
 	defer s.finalTransaction(err)
 
-	iErr := s.insertSingle(vModel)
-	if iErr != nil {
-		err = iErr
+	err = s.insertSingle(vModel)
+	if err != nil {
+		re = cd.NewError(cd.UnExpected, err.Error())
 		log.Errorf("Insert failed, s.insertSingle error:%s", err.Error())
 		return
 	}
@@ -255,6 +255,7 @@ func (s *impl) Insert(vModel model.Model) (ret model.Model, err error) {
 
 		err = s.insertRelation(vModel, field)
 		if err != nil {
+			re = cd.NewError(cd.UnExpected, err.Error())
 			log.Errorf("Insert failed, s.insertRelation error:%s", err.Error())
 			return
 		}

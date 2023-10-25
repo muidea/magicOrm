@@ -2,8 +2,8 @@ package orm
 
 import (
 	"database/sql"
-	"fmt"
 
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/builder"
@@ -39,19 +39,19 @@ func (s *impl) queryCount(vFilter model.Filter) (ret int64, err error) {
 	return
 }
 
-func (s *impl) Count(vFilter model.Filter) (ret int64, err error) {
+func (s *impl) Count(vFilter model.Filter) (ret int64, re *cd.Result) {
 	if vFilter == nil {
-		err = fmt.Errorf("illegal filter value")
+		re = cd.NewError(cd.IllegalParam, "illegal filter value")
 		return
 	}
 
 	queryVal, queryErr := s.queryCount(vFilter)
 	if queryErr != nil {
-		err = queryErr
-		log.Errorf("Count failed, s.queryCount error:%s", err.Error())
+		re = cd.NewError(cd.UnExpected, queryErr.Error())
+		log.Errorf("Count failed, s.queryCount error:%s", queryErr.Error())
 		return
 	}
-	ret = queryVal
 
+	ret = queryVal
 	return
 }

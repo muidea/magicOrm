@@ -1,7 +1,7 @@
 package orm
 
 import (
-	"fmt"
+	cd "github.com/muidea/magicCommon/def"
 
 	"github.com/muidea/magicCommon/foundation/log"
 
@@ -39,21 +39,23 @@ func (s *impl) updateRelation(vModel model.Model, vField model.Field) (err error
 	return
 }
 
-func (s *impl) Update(vModel model.Model) (ret model.Model, err error) {
+func (s *impl) Update(vModel model.Model) (ret model.Model, re *cd.Result) {
 	if vModel == nil {
-		err = fmt.Errorf("illegal model value")
+		re = cd.NewError(cd.IllegalParam, "illegal model value")
 		return
 	}
 
-	err = s.executor.BeginTransaction()
+	err := s.executor.BeginTransaction()
 	if err != nil {
+		re = cd.NewError(cd.UnExpected, err.Error())
 		return
 	}
 	defer s.finalTransaction(err)
 
 	err = s.updateSingle(vModel)
 	if err != nil {
-		log.Errorf("Update failed, s.updateSingle error:%s", err.Error())
+		re = cd.NewError(cd.UnExpected, err.Error())
+		log.Errorf("Update failed, s.updateSingle error:%s", re.Error())
 		return
 	}
 
@@ -64,7 +66,8 @@ func (s *impl) Update(vModel model.Model) (ret model.Model, err error) {
 
 		err = s.updateRelation(vModel, field)
 		if err != nil {
-			log.Errorf("Update failed, s.updateRelation error:%s", err.Error())
+			re = cd.NewError(cd.UnExpected, err.Error())
+			log.Errorf("Update failed, s.updateRelation error:%s", re.Error())
 			return
 		}
 	}

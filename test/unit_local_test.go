@@ -68,9 +68,9 @@ func TestLocalExecutor(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
 	}
-	objModel, objErr = o1.Update(objModel)
-	if objErr != nil {
-		t.Errorf("update obj failed, err:%s", objErr.Error())
+	_, obj1Err := o1.Update(objModel)
+	if obj1Err != nil {
+		t.Errorf("update obj failed, err:%s", obj1Err.Error())
 		return
 	}
 
@@ -80,21 +80,21 @@ func TestLocalExecutor(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", obj2Err.Error())
 		return
 	}
-	obj2Model, obj2Err = o1.Query(obj2Model)
-	if obj2Err != nil {
-		t.Errorf("query obj failed, err:%s", obj2Err.Error())
+	obj22Model, obj22Err := o1.Query(obj2Model)
+	if obj22Err != nil {
+		t.Errorf("query obj failed, err:%s", obj22Err.Error())
 		return
 	}
-	obj2 = obj2Model.Interface(true).(*Unit)
+	obj2 = obj22Model.Interface(true).(*Unit)
 	if obj.Name != obj2.Name || obj.Value != obj2.Value {
 		t.Errorf("query obj failed, obj:%v, obj2:%v", obj, obj2)
 		return
 	}
 
 	uModel, _ := localProvider.GetEntityModel(&Unit{})
-	filter, err := localProvider.GetModelFilter(uModel)
-	if err != nil {
-		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
+	filter, fErr := localProvider.GetModelFilter(uModel)
+	if fErr != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", fErr.Error())
 		return
 	}
 
@@ -150,24 +150,24 @@ func TestLocalDepends(t *testing.T) {
 		return
 	}
 
-	extModel, extErr = o1.Insert(extModel)
-	if extErr != nil {
-		t.Errorf("insert ext failed, err:%s", extErr.Error())
+	ext1Model, ext1Err := o1.Insert(extModel)
+	if ext1Err != nil {
+		t.Errorf("insert ext failed, err:%s", ext1Err.Error())
 		return
 	}
-	ext = extModel.Interface(true).(*ExtUnit)
+	ext = ext1Model.Interface(true).(*ExtUnit)
 
 	objModel, objErr := provider.GetEntityModel(obj)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
 	}
-	objModel, objErr = o1.Insert(objModel)
-	if objErr != nil {
-		t.Errorf("insert ext failed, err:%s", objErr.Error())
+	obj1Model, obj1Err := o1.Insert(objModel)
+	if obj1Err != nil {
+		t.Errorf("insert ext failed, err:%s", obj1Err.Error())
 		return
 	}
-	obj = objModel.Interface(true).(*Unit)
+	obj = obj1Model.Interface(true).(*Unit)
 
 	ext2 := &ExtUnitList{Unit: *obj, UnitList: []Unit{}}
 	ext2.UnitList = append(ext2.UnitList, *obj)
@@ -189,13 +189,13 @@ func TestLocalDepends(t *testing.T) {
 		return
 	}
 
-	ext2Model, ext2Err = o1.Insert(ext2Model)
-	if ext2Err != nil {
-		t.Errorf("insert ext2 failed, err:%s", ext2Err.Error())
+	ext22Model, ext22Err := o1.Insert(ext2Model)
+	if ext22Err != nil {
+		t.Errorf("insert ext2 failed, err:%s", ext22Err.Error())
 		return
 	}
 
-	_, err = o1.Delete(ext2Model)
+	_, err = o1.Delete(ext22Model)
 	if err != nil {
 		t.Errorf("delete ext2 failed, err:%s", err.Error())
 		return

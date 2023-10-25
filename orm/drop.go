@@ -1,9 +1,9 @@
 package orm
 
 import (
-	"fmt"
-
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
+
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
 )
@@ -83,20 +83,22 @@ func (s *impl) dropSchema(vModel model.Model) (err error) {
 	return
 }
 
-func (s *impl) Drop(vModel model.Model) (err error) {
+func (s *impl) Drop(vModel model.Model) (re *cd.Result) {
 	if vModel == nil {
-		err = fmt.Errorf("illegal model value")
+		re = cd.NewError(cd.IllegalParam, "illegal model value")
 		return
 	}
 
-	err = s.executor.BeginTransaction()
+	err := s.executor.BeginTransaction()
 	if err != nil {
+		re = cd.NewError(cd.UnExpected, err.Error())
 		return
 	}
 	defer s.finalTransaction(err)
 
 	err = s.dropSchema(vModel)
 	if err != nil {
+		re = cd.NewError(cd.UnExpected, err.Error())
 		log.Errorf("Drop failed, s.dropSchema error:%s", err.Error())
 	}
 	return

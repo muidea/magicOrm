@@ -44,9 +44,12 @@ func (ve ValidationErrors) Error() string {
 
 	buff := bytes.NewBufferString("")
 
+	var fe *fieldError
+
 	for i := 0; i < len(ve); i++ {
 
-		buff.WriteString(ve[i].Error())
+		fe = ve[i].(*fieldError)
+		buff.WriteString(fe.Error())
 		buff.WriteString("\n")
 	}
 

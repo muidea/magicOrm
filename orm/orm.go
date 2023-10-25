@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/executor"
@@ -15,17 +16,17 @@ const maxDeepLevel = 3
 
 // Orm orm interface
 type Orm interface {
-	Create(entity model.Model) error
-	Drop(entity model.Model) error
-	Insert(entity model.Model) (model.Model, error)
-	Update(entity model.Model) (model.Model, error)
-	Delete(entity model.Model) (model.Model, error)
-	Query(entity model.Model) (model.Model, error)
-	Count(filter model.Filter) (int64, error)
-	BatchQuery(filter model.Filter) ([]model.Model, error)
-	BeginTransaction() error
-	CommitTransaction() error
-	RollbackTransaction() error
+	Create(entity model.Model) *cd.Result
+	Drop(entity model.Model) *cd.Result
+	Insert(entity model.Model) (model.Model, *cd.Result)
+	Update(entity model.Model) (model.Model, *cd.Result)
+	Delete(entity model.Model) (model.Model, *cd.Result)
+	Query(entity model.Model) (model.Model, *cd.Result)
+	Count(filter model.Filter) (int64, *cd.Result)
+	BatchQuery(filter model.Filter) ([]model.Model, *cd.Result)
+	BeginTransaction() *cd.Result
+	CommitTransaction() *cd.Result
+	RollbackTransaction() *cd.Result
 	Release()
 }
 
@@ -39,8 +40,13 @@ func NewPool() executor.Pool {
 }
 
 // NewExecutor NewExecutor
-func NewExecutor(config executor.Config) (executor.Executor, error) {
-	return executor.NewExecutor(config)
+func NewExecutor(config executor.Config) (executor.Executor, *cd.Result) {
+	executorVal, executorErr := executor.NewExecutor(config)
+	if executorErr != nil {
+		return nil, cd.NewError(cd.UnExpected, executorErr.Error())
+	}
+
+	return executorVal, nil
 }
 
 func NewConfig(dbServer, dbName, username, password, charSet string) executor.Config {
@@ -68,19 +74,25 @@ func Uninitialized() {
 	})
 }
 
-func AddDatabase(dbServer, dbName, username, password, charSet string, maxConnNum int, owner string) (err error) {
+func AddDatabase(dbServer, dbName, username, password, charSet string, maxConnNum int, owner string) (re *cd.Result) {
 	config := NewConfig(dbServer, dbName, username, password, charSet)
 
 	val, ok := name2Pool.Load(owner)
 	if ok {
 		pool := val.(executor.Pool)
 		pool.IncReference()
-		return pool.CheckConfig(config)
+		err := pool.CheckConfig(config)
+		if err != nil {
+			re = cd.NewError(cd.UnExpected, err.Error())
+		}
+
+		return
 	}
 
 	pool := NewPool()
-	err = pool.Initialize(maxConnNum, config)
+	err := pool.Initialize(maxConnNum, config)
 	if err != nil {
+		re = cd.NewError(cd.UnExpected, err.Error())
 		log.Errorf("AddDatabase failed, pool.Initialize error:%s", err.Error())
 		return
 	}
@@ -104,31 +116,31 @@ func DelDatabase(owner string) {
 }
 
 // NewOrm create new Orm
-func NewOrm(provider provider.Provider, cfg executor.Config, prefix string) (Orm, error) {
-	executor, err := NewExecutor(cfg)
-	if err != nil {
-		log.Errorf("NewOrm failed, NewExecutor error:%s", err.Error())
-		return nil, err
+func NewOrm(provider provider.Provider, cfg executor.Config, prefix string) (Orm, *cd.Result) {
+	executorVal, executorErr := NewExecutor(cfg)
+	if executorErr != nil {
+		log.Errorf("NewOrm failed, NewExecutor error:%s", executorErr.Error())
+		return nil, cd.NewError(cd.UnExpected, executorErr.Error())
 	}
 
-	orm := &impl{executor: executor, modelProvider: provider, specialPrefix: prefix}
+	orm := &impl{executor: executorVal, modelProvider: provider, specialPrefix: prefix}
 	return orm, nil
 }
 
 // GetOrm get orm from pool
-func GetOrm(provider provider.Provider, prefix string) (ret Orm, err error) {
+func GetOrm(provider provider.Provider, prefix string) (ret Orm, re *cd.Result) {
 	val, ok := name2Pool.Load(provider.Owner())
 	if !ok {
-		err = fmt.Errorf("can't find orm,name:%s", provider.Owner())
-		log.Errorf("GetOrm failed, error:%s", err.Error())
+		re = cd.NewError(cd.UnExpected, fmt.Sprintf("can't find orm,name:%s", provider.Owner()))
+		log.Errorf("GetOrm failed, error:%s", re.Error())
 		return
 	}
 
 	pool := val.(executor.Pool)
 	executorVal, executorErr := pool.GetExecutor()
 	if executorErr != nil {
-		err = executorErr
-		log.Errorf("GetOrm failed, pool.GetExecutor error:%s", err.Error())
+		re = cd.NewError(cd.UnExpected, executorErr.Error())
+		log.Errorf("GetOrm failed, pool.GetExecutor error:%s", executorErr.Error())
 		return
 	}
 
@@ -144,10 +156,11 @@ type impl struct {
 }
 
 // BeginTransaction begin transaction
-func (s *impl) BeginTransaction() (err error) {
+func (s *impl) BeginTransaction() (re *cd.Result) {
 	if s.executor != nil {
-		err = s.executor.BeginTransaction()
+		err := s.executor.BeginTransaction()
 		if err != nil {
+			re = cd.NewError(cd.UnExpected, err.Error())
 			log.Errorf("BeginTransaction failed, s.executor.BeginTransaction error:%s", err.Error())
 		}
 	}
@@ -156,10 +169,11 @@ func (s *impl) BeginTransaction() (err error) {
 }
 
 // CommitTransaction commit transaction
-func (s *impl) CommitTransaction() (err error) {
+func (s *impl) CommitTransaction() (re *cd.Result) {
 	if s.executor != nil {
-		err = s.executor.CommitTransaction()
+		err := s.executor.CommitTransaction()
 		if err != nil {
+			re = cd.NewError(cd.UnExpected, err.Error())
 			log.Errorf("CommitTransaction failed, s.executor.CommitTransaction error:%s", err.Error())
 		}
 	}
@@ -168,10 +182,11 @@ func (s *impl) CommitTransaction() (err error) {
 }
 
 // RollbackTransaction rollback transaction
-func (s *impl) RollbackTransaction() (err error) {
+func (s *impl) RollbackTransaction() (re *cd.Result) {
 	if s.executor != nil {
-		err = s.executor.RollbackTransaction()
+		err := s.executor.RollbackTransaction()
 		if err != nil {
+			re = cd.NewError(cd.UnExpected, err.Error())
 			log.Errorf("RollbackTransaction failed, s.executor.RollbackTransaction error:%s", err.Error())
 		}
 	}

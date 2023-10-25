@@ -26,9 +26,9 @@ func TestLocalSimple(t *testing.T) {
 	}
 
 	objList := []interface{}{&Simple{}}
-	_, err = registerModel(localProvider, objList)
-	if err != nil {
-		t.Errorf("register model failed. err:%s", err.Error())
+	_, modelErr := registerModel(localProvider, objList)
+	if modelErr != nil {
+		t.Errorf("register model failed. err:%s", modelErr.Error())
 		return
 	}
 
@@ -107,9 +107,9 @@ func TestLocalReference(t *testing.T) {
 	}
 
 	objList := []interface{}{&Reference{}}
-	_, err = registerModel(localProvider, objList)
-	if err != nil {
-		t.Errorf("register model failed. err:%s", err.Error())
+	_, modelErr := registerModel(localProvider, objList)
+	if modelErr != nil {
+		t.Errorf("register model failed. err:%s", modelErr.Error())
 		return
 	}
 
@@ -265,8 +265,7 @@ func TestLocalCompose(t *testing.T) {
 	objList := []interface{}{&Simple{}, &Reference{}, &Compose{}}
 	mList, mErr := registerModel(localProvider, objList)
 	if mErr != nil {
-		err = mErr
-		t.Errorf("register model failed. err:%s", err.Error())
+		t.Errorf("register model failed. err:%s", mErr.Error())
 		return
 	}
 
@@ -585,12 +584,12 @@ func TestLocalQuery(t *testing.T) {
 	c4 = c4Model.Interface(false).(Compose)
 
 	cModel, _ := localProvider.GetEntityModel(&Compose{})
-	filter, err := localProvider.GetModelFilter(cModel)
-	if err != nil {
-		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
+	filterVal, filterErr := localProvider.GetModelFilter(cModel)
+	if filterErr != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", filterErr.Error())
 		return
 	}
-	cModelList, cModelErr := o1.BatchQuery(filter)
+	cModelList, cModelErr := o1.BatchQuery(filterVal)
 	if cModelErr != nil {
 		t.Errorf("batch query compose failed, err:%s", cModelErr.Error())
 		return
@@ -600,9 +599,9 @@ func TestLocalQuery(t *testing.T) {
 		return
 	}
 
-	filter.Equal("name", c2.Name)
-	filter.ValueMask(&Compose{R3: &Simple{}})
-	cModelList, cModelErr = o1.BatchQuery(filter)
+	filterVal.Equal("name", c2.Name)
+	filterVal.ValueMask(&Compose{R3: &Simple{}})
+	cModelList, cModelErr = o1.BatchQuery(filterVal)
 	if cModelErr != nil {
 		t.Errorf("batch query compose failed, err:%s", cModelErr.Error())
 		return
