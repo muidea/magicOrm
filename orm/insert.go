@@ -10,11 +10,11 @@ import (
 )
 
 func (s *impl) innerInsert(vModel model.Model) (ret interface{}, err error) {
-	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	sqlStr, sqlErr := builder.BuildInsert()
+	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+	sqlStr, sqlErr := builderVal.BuildInsert()
 	if sqlErr != nil {
 		err = sqlErr
-		log.Errorf("innerInsert failed, builder.BuildInsert error:%s", err.Error())
+		log.Errorf("innerInsert failed, builderVal.BuildInsert error:%s", err.Error())
 		return
 	}
 
@@ -130,11 +130,11 @@ func (s *impl) insertSingleRelation(vModel model.Model, vField model.Field) (ret
 		}
 	}
 
-	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	relationSQL, relationErr := builder.BuildInsertRelation(vField, rModel)
+	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+	relationSQL, relationErr := builderVal.BuildInsertRelation(vField, rModel)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("insertSingleRelation failed, builder.BuildInsertRelation error:%s", err.Error())
+		log.Errorf("insertSingleRelation failed, builderVal.BuildInsertRelation error:%s", err.Error())
 		return
 	}
 
@@ -196,11 +196,11 @@ func (s *impl) insertSliceRelation(vModel model.Model, vField model.Field) (ret 
 			}
 		}
 
-		builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-		relationSQL, relationErr := builder.BuildInsertRelation(vField, rModel)
+		builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+		relationSQL, relationErr := builderVal.BuildInsertRelation(vField, rModel)
 		if relationErr != nil {
 			err = relationErr
-			log.Errorf("insertSliceRelation failed, builder.BuildInsertRelation error:%s", err.Error())
+			log.Errorf("insertSliceRelation failed, builderVal.BuildInsertRelation error:%s", err.Error())
 			return
 		}
 

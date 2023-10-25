@@ -10,11 +10,11 @@ import (
 )
 
 func (s *impl) updateSingle(vModel model.Model) (err error) {
-	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	sqlStr, sqlErr := builder.BuildUpdate()
+	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+	sqlStr, sqlErr := builderVal.BuildUpdate()
 	if sqlErr != nil {
 		err = sqlErr
-		log.Errorf("updateSingle failed, builder.BuildUpdate error:%s", err.Error())
+		log.Errorf("updateSingle failed, builderVal.BuildUpdate error:%s", err.Error())
 		return
 	}
 

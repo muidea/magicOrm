@@ -9,11 +9,11 @@ import (
 )
 
 func (s *impl) deleteSingle(vModel model.Model) (err error) {
-	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	sqlStr, sqlErr := builder.BuildDelete()
+	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+	sqlStr, sqlErr := builderVal.BuildDelete()
 	if sqlErr != nil {
 		err = sqlErr
-		log.Errorf("deleteSingle failed, builder.BuildDelete error:%s", err.Error())
+		log.Errorf("deleteSingle failed, builderVal.BuildDelete error:%s", err.Error())
 		return
 	}
 
@@ -82,11 +82,11 @@ func (s *impl) deleteRelation(vModel model.Model, rField model.Field, deepLevel 
 		return
 	}
 
-	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	rightSQL, relationSQL, buildErr := builder.BuildDeleteRelation(rField, rModel)
+	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+	rightSQL, relationSQL, buildErr := builderVal.BuildDeleteRelation(rField, rModel)
 	if buildErr != nil {
 		err = buildErr
-		log.Errorf("deleteRelation failed, builder.BuildDeleteRelation error:%s", err.Error())
+		log.Errorf("deleteRelation failed, builderVal.BuildDeleteRelation error:%s", err.Error())
 		return
 	}
 

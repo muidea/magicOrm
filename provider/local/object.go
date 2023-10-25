@@ -47,7 +47,6 @@ func (s *objectImpl) SetFieldValue(name string, val model.Value) (err error) {
 		}
 	}
 
-	err = fmt.Errorf("illegal field,model name:%s, field name:%s", s.GetName(), name)
 	return
 }
 

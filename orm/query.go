@@ -12,8 +12,8 @@ type resultItems []any
 type resultItemsList []resultItems
 
 func (s *impl) innerQuery(vModel model.Model, filter model.Filter) (ret resultItemsList, err error) {
-	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	sqlStr, sqlErr := builder.BuildQuery(filter)
+	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+	sqlStr, sqlErr := builderVal.BuildQuery(filter)
 	if sqlErr != nil {
 		err = sqlErr
 		log.Errorf("innerQuery failed, builder.BuildQuery error:%s", err.Error())
@@ -27,7 +27,7 @@ func (s *impl) innerQuery(vModel model.Model, filter model.Filter) (ret resultIt
 	}
 	defer s.executor.Finish()
 	for s.executor.Next() {
-		itemValues, itemErr := s.getModelFieldsScanDestPtr(vModel, builder)
+		itemValues, itemErr := s.getModelFieldsScanDestPtr(vModel, builderVal)
 		if itemErr != nil {
 			err = itemErr
 			log.Errorf("innerQuery failed, s.getModelFieldsScanDestPtr error:%s", err.Error())
@@ -90,7 +90,7 @@ func (s *impl) querySingle(vFilter model.Filter, deepLevel int) (ret model.Model
 	resultSize := len(valueList)
 	if resultSize != 1 {
 		err = fmt.Errorf("matched %d values", resultSize)
-		log.Errorf("querySingle failed, error:%v", err.Error())
+		log.Warnf("querySingle failed, error:%v", err.Error())
 		return
 	}
 
@@ -194,8 +194,8 @@ func (s *impl) innerQueryRelationSliceModel(ids []any, vModel model.Model, deepL
 }
 
 func (s *impl) innerQueryRelationKeys(vModel model.Model, rModel model.Model, vField model.Field) (ret resultItems, err error) {
-	builder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	relationSQL, relationErr := builder.BuildQueryRelation(vField, rModel)
+	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+	relationSQL, relationErr := builderVal.BuildQueryRelation(vField, rModel)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("innerQueryRelationKeys failed, builder.BuildQueryRelation error:%v", err.Error())
@@ -212,7 +212,7 @@ func (s *impl) innerQueryRelationKeys(vModel model.Model, rModel model.Model, vF
 
 		defer s.executor.Finish()
 		for s.executor.Next() {
-			itemValue, itemErr := s.getModelPKFieldScanDestPtr(vModel, builder)
+			itemValue, itemErr := s.getModelPKFieldScanDestPtr(vModel, builderVal)
 			if itemErr != nil {
 				err = itemErr
 				log.Errorf("innerQueryRelationKeys failed, s.getModelPKFieldScanDestPtr error:%v", err.Error())

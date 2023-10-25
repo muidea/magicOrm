@@ -76,7 +76,6 @@ func (s *Object) SetFieldValue(name string, val model.Value) (err error) {
 		}
 	}
 
-	err = fmt.Errorf("invalid field name:%s", name)
 	return
 }
 
