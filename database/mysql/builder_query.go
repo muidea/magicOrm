@@ -3,13 +3,14 @@ package mysql
 import (
 	"fmt"
 
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/model"
 )
 
 // BuildQuery build query sql
-func (s *Builder) BuildQuery(filter model.Filter) (ret string, err error) {
+func (s *Builder) BuildQuery(filter model.Filter) (ret string, err *cd.Result) {
 	namesVal, nameErr := s.getFieldQueryNames(filter)
 	if nameErr != nil {
 		err = nameErr
@@ -52,7 +53,7 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret string, err error) {
 }
 
 // BuildQueryRelation build query relation sql
-func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (ret string, err error) {
+func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (ret string, err *cd.Result) {
 	leftVal, leftErr := s.GetModelValue()
 	if leftErr != nil {
 		err = leftErr
@@ -67,7 +68,7 @@ func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (re
 	return
 }
 
-func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem) (ret string, err error) {
+func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem) (ret string, err *cd.Result) {
 	fType := vField.GetType()
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
@@ -83,12 +84,12 @@ func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem
 		return
 	}
 
-	err = fmt.Errorf("illegal item type, name:%s", vField.GetName())
+	err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal item type, name:%s", vField.GetName()))
 	log.Errorf("buildBasicItem failed, error:%s", err.Error())
 	return
 }
 
-func (s *Builder) buildRelationItem(pkField model.Field, rField model.Field, filterItem model.FilterItem) (ret string, err error) {
+func (s *Builder) buildRelationItem(pkField model.Field, rField model.Field, filterItem model.FilterItem) (ret string, err *cd.Result) {
 	fType := rField.GetType()
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
@@ -115,7 +116,7 @@ func (s *Builder) buildRelationItem(pkField model.Field, rField model.Field, fil
 	return
 }
 
-func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
+func (s *Builder) buildFilter(filter model.Filter) (ret string, err *cd.Result) {
 	if filter == nil {
 		return
 	}
@@ -165,7 +166,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err error) {
 	return
 }
 
-func (s *Builder) buildSorter(filter model.Sorter) (ret string, err error) {
+func (s *Builder) buildSorter(filter model.Sorter) (ret string, err *cd.Result) {
 	if filter == nil {
 		return
 	}
@@ -177,12 +178,12 @@ func (s *Builder) buildSorter(filter model.Sorter) (ret string, err error) {
 		}
 	}
 
-	err = fmt.Errorf("illegal sort field name:%s", filter.Name())
+	err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal sort field name:%s", filter.Name()))
 	log.Errorf("buildSorter failed, err:%s", err.Error())
 	return
 }
 
-func (s *Builder) getFieldQueryNames(filter model.Filter) (ret string, err error) {
+func (s *Builder) getFieldQueryNames(filter model.Filter) (ret string, err *cd.Result) {
 	str := ""
 	vModel := filter.MaskModel()
 	for _, field := range vModel.GetFields() {
@@ -203,6 +204,6 @@ func (s *Builder) getFieldQueryNames(filter model.Filter) (ret string, err error
 	return
 }
 
-func (s *Builder) GetFieldScanDest(vField model.Field) (ret interface{}, err error) {
+func (s *Builder) GetFieldScanDest(vField model.Field) (ret interface{}, err *cd.Result) {
 	return getFieldScanDestPtr(vField)
 }

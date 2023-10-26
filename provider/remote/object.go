@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path"
 
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/model"
@@ -68,7 +69,7 @@ func (s *Object) GetFields() (ret model.Fields) {
 	return
 }
 
-func (s *Object) SetFieldValue(name string, val model.Value) (err error) {
+func (s *Object) SetFieldValue(name string, val model.Value) (err *cd.Result) {
 	for _, item := range s.Fields {
 		if item.Name == name {
 			item.SetValue(val)
@@ -156,9 +157,9 @@ func (s *Object) Dump() (ret string) {
 	return
 }
 
-func (s *Object) Verify() (err error) {
+func (s *Object) Verify() (err *cd.Result) {
 	if s.Name == "" {
-		err = fmt.Errorf("illegal object declare informain")
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal object declare informain"))
 		return
 	}
 
@@ -316,24 +317,36 @@ func TransferObjectValue(name, pkgPath string, vals []*ObjectValue) (ret *SliceO
 }
 
 // EncodeObjectValue encode objectValue to []byte
-func EncodeObjectValue(objVal *ObjectValue) (ret []byte, err error) {
-	ret, err = json.Marshal(objVal)
+func EncodeObjectValue(objVal *ObjectValue) (ret []byte, err *cd.Result) {
+	byteVal, byteErr := json.Marshal(objVal)
+	if byteErr != nil {
+		err = cd.NewError(cd.UnExpected, byteErr.Error())
+		return
+	}
+
+	ret = byteVal
 	return
 }
 
 // EncodeSliceObjectValue encode slice objectValue to []byte
-func EncodeSliceObjectValue(objVal *SliceObjectValue) (ret []byte, err error) {
-	ret, err = json.Marshal(objVal)
+func EncodeSliceObjectValue(objVal *SliceObjectValue) (ret []byte, err *cd.Result) {
+	byteVal, byteErr := json.Marshal(objVal)
+	if byteErr != nil {
+		err = cd.NewError(cd.UnExpected, byteErr.Error())
+		return
+	}
+
+	ret = byteVal
 	return
 }
 
 // decodeObjectValueFromMap decode object value from map
-func decodeObjectValueFromMap(mapVal map[string]interface{}) (ret *ObjectValue, err error) {
+func decodeObjectValueFromMap(mapVal map[string]interface{}) (ret *ObjectValue, err *cd.Result) {
 	nameVal, nameOK := mapVal[NameTag]
 	pkgPathVal, pkgPathOK := mapVal[PkgPathTag]
 	itemsVal, itemsOK := mapVal[FieldsTag]
 	if !nameOK || !pkgPathOK || !itemsOK {
-		err = fmt.Errorf("illegal ObjectValue")
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal ObjectValue"))
 		return
 	}
 
@@ -345,7 +358,7 @@ func decodeObjectValueFromMap(mapVal map[string]interface{}) (ret *ObjectValue, 
 	for _, val := range itemsVal.([]interface{}) {
 		item, itemOK := val.(map[string]interface{})
 		if !itemOK {
-			err = fmt.Errorf("illegal object field item value")
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal object field item value"))
 			return
 		}
 
@@ -363,12 +376,12 @@ func decodeObjectValueFromMap(mapVal map[string]interface{}) (ret *ObjectValue, 
 }
 
 // decodeSliceObjectValueFromMap decode slice object value from map
-func decodeSliceObjectValueFromMap(mapVal map[string]interface{}) (ret *SliceObjectValue, err error) {
+func decodeSliceObjectValueFromMap(mapVal map[string]interface{}) (ret *SliceObjectValue, err *cd.Result) {
 	nameVal, nameOK := mapVal[NameTag]
 	pkgPathVal, pkgPathOK := mapVal[PkgPathTag]
 	valuesVal, valuesOK := mapVal[ValuesTag]
 	if !nameOK || !pkgPathOK || !valuesOK {
-		err = fmt.Errorf("illegal SliceObjectValue")
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal SliceObjectValue"))
 		return
 	}
 
@@ -380,7 +393,7 @@ func decodeSliceObjectValueFromMap(mapVal map[string]interface{}) (ret *SliceObj
 	for _, val := range valuesVal.([]interface{}) {
 		item, itemOK := val.(map[string]interface{})
 		if !itemOK {
-			err = fmt.Errorf("illegal slice object field item value")
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal slice object field item value"))
 			return
 		}
 
@@ -397,11 +410,12 @@ func decodeSliceObjectValueFromMap(mapVal map[string]interface{}) (ret *SliceObj
 	return
 }
 
-func decodeItemValue(itemVal map[string]interface{}) (ret *FieldValue, err error) {
+func decodeItemValue(itemVal map[string]interface{}) (ret *FieldValue, err *cd.Result) {
 	nameVal, nameOK := itemVal[NameTag]
 	valVal, _ := itemVal[ValueTag]
 	if !nameOK {
-		err = fmt.Errorf("illegal item value")
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal item value"))
+		return
 	}
 
 	ret = &FieldValue{Name: nameVal.(string), Value: valVal}
@@ -409,7 +423,7 @@ func decodeItemValue(itemVal map[string]interface{}) (ret *FieldValue, err error
 	return
 }
 
-func ConvertItem(val *FieldValue) (ret *FieldValue, err error) {
+func ConvertItem(val *FieldValue) (ret *FieldValue, err *cd.Result) {
 	objVal, objOK := val.Value.(map[string]interface{})
 	// for struct or slice struct
 	if objOK {
@@ -441,7 +455,7 @@ func ConvertItem(val *FieldValue) (ret *FieldValue, err error) {
 			return
 		}
 
-		err = fmt.Errorf("illegal itemValue")
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal itemValue"))
 		return
 	}
 
@@ -458,10 +472,11 @@ func ConvertItem(val *FieldValue) (ret *FieldValue, err error) {
 }
 
 // DecodeObjectValue decode objectValue
-func DecodeObjectValue(data []byte) (ret *ObjectValue, err error) {
+func DecodeObjectValue(data []byte) (ret *ObjectValue, err *cd.Result) {
 	val := &ObjectValue{}
-	err = json.Unmarshal(data, val)
-	if err != nil {
+	byteErr := json.Unmarshal(data, val)
+	if byteErr != nil {
+		err = cd.NewError(cd.UnExpected, byteErr.Error())
 		return
 	}
 
@@ -478,15 +493,15 @@ func DecodeObjectValue(data []byte) (ret *ObjectValue, err error) {
 	}
 
 	ret = val
-
 	return
 }
 
 // DecodeSliceObjectValue decode objectValue
-func DecodeSliceObjectValue(data []byte) (ret *SliceObjectValue, err error) {
+func DecodeSliceObjectValue(data []byte) (ret *SliceObjectValue, err *cd.Result) {
 	sliceVal := &SliceObjectValue{}
-	err = json.Unmarshal(data, sliceVal)
-	if err != nil {
+	byteErr := json.Unmarshal(data, sliceVal)
+	if byteErr != nil {
+		err = cd.NewError(cd.UnExpected, byteErr.Error())
 		return
 	}
 
@@ -506,7 +521,7 @@ func DecodeSliceObjectValue(data []byte) (ret *SliceObjectValue, err error) {
 }
 
 // ConvertObjectValue convert object value
-func ConvertObjectValue(objVal *ObjectValue) (ret *ObjectValue, err error) {
+func ConvertObjectValue(objVal *ObjectValue) (ret *ObjectValue, err *cd.Result) {
 	for idx := range objVal.Fields {
 		cur := objVal.Fields[idx]
 
@@ -524,7 +539,7 @@ func ConvertObjectValue(objVal *ObjectValue) (ret *ObjectValue, err error) {
 	return
 }
 
-func ConvertSliceObjectValue(objVal *SliceObjectValue) (ret *SliceObjectValue, err error) {
+func ConvertSliceObjectValue(objVal *SliceObjectValue) (ret *SliceObjectValue, err *cd.Result) {
 	for idx := range objVal.Values {
 		cur := objVal.Values[idx]
 

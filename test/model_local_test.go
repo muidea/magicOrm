@@ -52,25 +52,25 @@ func TestLocalGroup(t *testing.T) {
 		t.Errorf("GetEntityModel failed,err:%s", group1Err)
 		return
 	}
-	group11Model, group11Err := o1.Insert(group1Model)
-	if group11Err != nil {
-		t.Errorf("insert Group1 failed, err:%s", group11Err.Error())
+	group1Model, group1Err = o1.Insert(group1Model)
+	if group1Err != nil {
+		t.Errorf("insert Group1 failed, err:%s", group1Err.Error())
 		return
 	}
 
-	group2.Parent = group11Model.Interface(true).(*Group)
+	group2.Parent = group1Model.Interface(true).(*Group)
 	group2Model, group2Err := provider.GetEntityModel(group2)
 	if group2Err != nil {
 		t.Errorf("GetEntityModel failed,err:%s", group2Err)
 		return
 	}
 
-	group22Model, group22Err := o1.Insert(group2Model)
-	if group22Err != nil {
-		t.Errorf("insert Group2 failed, err:%s", group22Err.Error())
+	group2Model, group2Err = o1.Insert(group2Model)
+	if group2Err != nil {
+		t.Errorf("insert Group2 failed, err:%s", group2Err.Error())
 		return
 	}
-	group2 = group22Model.Interface(true).(*Group)
+	group2 = group2Model.Interface(true).(*Group)
 
 	group3.Parent = group1Model.Interface(true).(*Group)
 	group3Model, group3Err := provider.GetEntityModel(group3)
@@ -78,15 +78,15 @@ func TestLocalGroup(t *testing.T) {
 		t.Errorf("GetEntityModel failed,err:%s", group3Err)
 		return
 	}
-	group33Model, group33Err := o1.Insert(group3Model)
-	if group33Err != nil {
-		t.Errorf("insert Group3 failed, err:%s", group33Err.Error())
+	group3Model, group3Err = o1.Insert(group3Model)
+	if group3Err != nil {
+		t.Errorf("insert Group3 failed, err:%s", group3Err.Error())
 		return
 	}
 
-	group33Model, group33Err = o1.Delete(group33Model)
-	if group33Err != nil {
-		t.Errorf("delete Group3 failed, err:%s", group33Err.Error())
+	group3Model, group3Err = o1.Delete(group3Model)
+	if group3Err != nil {
+		t.Errorf("delete Group3 failed, err:%s", group3Err.Error())
 		return
 	}
 
@@ -96,9 +96,9 @@ func TestLocalGroup(t *testing.T) {
 		t.Errorf("GetEntityModel failed,err:%s", group4Err)
 		return
 	}
-	_, group44Err := o1.Query(group4Model)
-	if group44Err != nil {
-		t.Errorf("query Group4 failed, err:%s", group44Err.Error())
+	group4Model, group4Err = o1.Query(group4Model)
+	if group4Err != nil {
+		t.Errorf("query Group4 failed, err:%s", group4Err.Error())
 		return
 	}
 
@@ -108,12 +108,12 @@ func TestLocalGroup(t *testing.T) {
 		t.Errorf("GetEntityModel failed,err:%s", group42Err)
 		return
 	}
-	group422Model, group422Err := o1.Query(group42Model)
-	if group422Err != nil {
-		t.Errorf("query Group42 failed, err:%s", group422Err.Error())
+	group42Model, group42Err = o1.Query(group42Model)
+	if group42Err != nil {
+		t.Errorf("query Group42 failed, err:%s", group42Err.Error())
 		return
 	}
-	group42 = group422Model.Interface(true).(*Group)
+	group42 = group42Model.Interface(true).(*Group)
 	if !group42.Equal(group2) {
 		t.Errorf("query Group42 failed")
 		return
@@ -125,12 +125,12 @@ func TestLocalGroup(t *testing.T) {
 		t.Errorf("GetEntityModel failed,err:%s", group5Err)
 		return
 	}
-	group55Model, group55Err := o1.Query(group5Model)
-	if group55Err != nil {
-		t.Errorf("query Group5 failed, err:%s", group55Err.Error())
+	group5Model, group5Err = o1.Query(group5Model)
+	if group5Err != nil {
+		t.Errorf("query Group4 failed, err:%s", group5Err.Error())
 		return
 	}
-	group5 = group55Model.Interface(true).(*Group)
+	group5 = group5Model.Interface(true).(*Group)
 	if !group5.Equal(group2) {
 		t.Errorf("query Group5 failed")
 	}
@@ -175,12 +175,12 @@ func TestLocalUser(t *testing.T) {
 		return
 	}
 
-	status2Model, status2Err := o1.Insert(statusModel)
-	if status2Err != nil {
-		t.Errorf("insert status failed, err:%s", status2Err.Error())
+	statusModel, statusErr = o1.Insert(statusModel)
+	if statusErr != nil {
+		t.Errorf("insert status failed, err:%s", statusErr.Error())
 		return
 	}
-	status = status2Model.Interface(true).(*Status)
+	status = statusModel.Interface(true).(*Status)
 
 	groupModel, groupErr := provider.GetEntityModel(group1)
 	if groupErr != nil {
@@ -212,24 +212,24 @@ func TestLocalUser(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", group2Err.Error())
 		return
 	}
-	group22Model, group22Err := o1.Insert(group2Model)
-	if group22Err != nil {
-		t.Errorf("insert Group2 failed, err:%s", group22Err.Error())
+	group2Model, group2Err = o1.Insert(group2Model)
+	if group2Err != nil {
+		t.Errorf("insert Group2 failed, err:%s", group2Err.Error())
 		return
 	}
-	group2 = group22Model.Interface(true).(*Group)
+	group2 = group2Model.Interface(true).(*Group)
 
 	group3Model, group3Err := provider.GetEntityModel(group3)
 	if group3Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", group3Err.Error())
 		return
 	}
-	group33Model, group33Err := o1.Insert(group3Model)
-	if group33Err != nil {
-		t.Errorf("insert Group3 failed, err:%s", group33Err.Error())
+	group3Model, group3Err = o1.Insert(group3Model)
+	if group3Err != nil {
+		t.Errorf("insert Group3 failed, err:%s", group3Err.Error())
 		return
 	}
-	group3 = group33Model.Interface(true).(*Group)
+	group3 = group3Model.Interface(true).(*Group)
 
 	user1 := &User{Name: "demo", EMail: "123@demo.com", Status: status, Group: []*Group{}}
 	user1.Group = append(user1.Group, group1)
@@ -252,12 +252,12 @@ func TestLocalUser(t *testing.T) {
 		return
 	}
 
-	user20Model, user20Err := o1.Insert(userModel)
-	if user20Err != nil {
-		t.Errorf("insert user1 failed, err:%s", user20Err.Error())
+	userModel, userErr = o1.Insert(userModel)
+	if userErr != nil {
+		t.Errorf("insert user1 failed, err:%s", userErr.Error())
 		return
 	}
-	user1 = user20Model.Interface(true).(*User)
+	user1 = userModel.Interface(true).(*User)
 
 	user2 := &User{ID: user1.ID, Status: &Status{}, Group: []*Group{}}
 	user2Model, user2Err := provider.GetEntityModel(user2)
@@ -265,12 +265,12 @@ func TestLocalUser(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", user2Err.Error())
 		return
 	}
-	user22Model, user22Err := o1.Query(user2Model)
-	if user22Err != nil {
-		t.Errorf("query user2 failed, err:%s", user22Err.Error())
+	user2Model, user2Err = o1.Query(user2Model)
+	if user2Err != nil {
+		t.Errorf("query user2 failed, err:%s", user2Err.Error())
 		return
 	}
-	user2 = user22Model.Interface(true).(*User)
+	user2 = user2Model.Interface(true).(*User)
 
 	if !user2.Equal(user1) {
 		t.Errorf("query user2 failed")
@@ -283,24 +283,24 @@ func TestLocalUser(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", user1Err.Error())
 		return
 	}
-	user11Model, user11Err := o1.Update(user1Model)
-	if user11Err != nil {
-		t.Errorf("update user1 failed, err:%s", user11Err.Error())
+	user1Model, user1Err = o1.Update(user1Model)
+	if user1Err != nil {
+		t.Errorf("update user1 failed, err:%s", user1Err.Error())
 		return
 	}
-	user1 = user11Model.Interface(true).(*User)
+	user1 = user1Model.Interface(true).(*User)
 
 	user2Model, user2Err = provider.GetEntityModel(user2)
 	if user2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", user2Err.Error())
 		return
 	}
-	user22Model, user22Err = o1.Query(user2Model)
-	if user22Err != nil {
-		t.Errorf("query user2 failed, err:%s", user22Err.Error())
+	user2Model, user2Err = o1.Query(user2Model)
+	if user2Err != nil {
+		t.Errorf("query user2 failed, err:%s", user2Err.Error())
 		return
 	}
-	user2 = user22Model.Interface(true).(*User)
+	user2 = user2Model.Interface(true).(*User)
 	if len(user2.Group) != 3 {
 		t.Errorf("query user2 failed")
 		return
@@ -315,9 +315,9 @@ func TestLocalUser(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", group1Err.Error())
 		return
 	}
-	_, group11Err := o1.Delete(group1Model)
-	if group11Err != nil {
-		t.Errorf("delete group1 failed, err:%s", group11Err.Error())
+	group1Model, group1Err = o1.Delete(group1Model)
+	if group1Err != nil {
+		t.Errorf("delete group1 failed, err:%s", group1Err.Error())
 		return
 	}
 
@@ -326,9 +326,9 @@ func TestLocalUser(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", group2Err.Error())
 		return
 	}
-	group22Model, group22Err = o1.Delete(group2Model)
-	if group22Err != nil {
-		t.Errorf("delete group1 failed, err:%s", group22Err.Error())
+	group2Model, group2Err = o1.Delete(group2Model)
+	if group2Err != nil {
+		t.Errorf("delete group1 failed, err:%s", group2Err.Error())
 		return
 	}
 
@@ -337,9 +337,9 @@ func TestLocalUser(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", group3Err.Error())
 		return
 	}
-	group33Model, group33Err = o1.Delete(group3Model)
-	if group33Err != nil {
-		t.Errorf("delete group1 failed, err:%s", group33Err.Error())
+	group3Model, group3Err = o1.Delete(group3Model)
+	if group3Err != nil {
+		t.Errorf("delete group1 failed, err:%s", group3Err.Error())
 		return
 	}
 
@@ -348,9 +348,9 @@ func TestLocalUser(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", user2Err.Error())
 		return
 	}
-	user22Model, user22Err = o1.Delete(user2Model)
-	if user22Err != nil {
-		t.Errorf("delete group1 failed, err:%s", user22Err.Error())
+	user2Model, user2Err = o1.Delete(user2Model)
+	if user2Err != nil {
+		t.Errorf("delete group1 failed, err:%s", user2Err.Error())
 		return
 	}
 }
@@ -420,24 +420,24 @@ func TestLocalSystem(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", user1Err.Error())
 		return
 	}
-	user11Model, user11Err := o1.Insert(user1Model)
-	if user11Err != nil {
-		t.Errorf("insert user failed, err:%s", user11Err.Error())
+	user1Model, user1Err = o1.Insert(user1Model)
+	if user1Err != nil {
+		t.Errorf("insert user failed, err:%s", user1Err.Error())
 		return
 	}
-	user1 = user11Model.Interface(true).(*User)
+	user1 = user1Model.Interface(true).(*User)
 
 	user2Model, user2Err := localProvider.GetEntityModel(user2)
 	if user2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", user2Err.Error())
 		return
 	}
-	user22Model, user22Err := o1.Insert(user2Model)
-	if user22Err != nil {
-		t.Errorf("insert user failed, err:%s", user22Err.Error())
+	user2Model, user2Err = o1.Insert(user2Model)
+	if user2Err != nil {
+		t.Errorf("insert user failed, err:%s", user2Err.Error())
 		return
 	}
-	user2 = user22Model.Interface(true).(*User)
+	user2 = user2Model.Interface(true).(*User)
 
 	sys1 := &System{Name: "sys1", Tags: []string{"aab", "ccd"}}
 
@@ -448,12 +448,12 @@ func TestLocalSystem(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", sys1Err.Error())
 		return
 	}
-	sys11Model, sys11Err := o1.Insert(sys1Model)
-	if sys11Err != nil {
-		t.Errorf("insert user failed, err:%s", sys11Err.Error())
+	sys1Model, sys1Err = o1.Insert(sys1Model)
+	if sys1Err != nil {
+		t.Errorf("insert user failed, err:%s", sys1Err.Error())
 		return
 	}
-	sys1 = sys11Model.Interface(true).(*System)
+	sys1 = sys1Model.Interface(true).(*System)
 
 	users = append(users, *user1)
 	users = append(users, *user2)
@@ -463,12 +463,12 @@ func TestLocalSystem(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", sys1Err.Error())
 		return
 	}
-	sys11Model, sys11Err = o1.Update(sys1Model)
-	if sys11Err != nil {
-		t.Errorf("insert user failed, err:%s", sys11Err.Error())
+	sys1Model, sys1Err = o1.Update(sys1Model)
+	if sys1Err != nil {
+		t.Errorf("insert user failed, err:%s", sys1Err.Error())
 		return
 	}
-	sys1 = sys11Model.Interface(true).(*System)
+	sys1 = sys1Model.Interface(true).(*System)
 
 	sys2 := &System{ID: sys1.ID, Users: &[]User{}, Tags: []string{}}
 	sys2Model, sys2Err := localProvider.GetEntityModel(sys2)
@@ -476,12 +476,12 @@ func TestLocalSystem(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", sys2Err.Error())
 		return
 	}
-	sys22Model, sys22Err := o1.Query(sys2Model)
-	if sys22Err != nil {
-		t.Errorf("query user failed, err:%s", sys22Err.Error())
+	sys2Model, sys2Err = o1.Query(sys2Model)
+	if sys2Err != nil {
+		t.Errorf("query user failed, err:%s", sys2Err.Error())
 		return
 	}
-	sys2 = sys22Model.Interface(true).(*System)
+	sys2 = sys2Model.Interface(true).(*System)
 
 	if !sys1.Equal(sys2) {
 		t.Error("query sys2 faield")
@@ -493,20 +493,20 @@ func TestLocalSystem(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", sys2Err.Error())
 		return
 	}
-	sys22Model, sys22Err = o1.Delete(sys2Model)
-	if sys22Err != nil {
-		t.Errorf("insert user failed, err:%s", sys22Err.Error())
+	sys2Model, sys2Err = o1.Delete(sys2Model)
+	if sys2Err != nil {
+		t.Errorf("insert user failed, err:%s", sys2Err.Error())
 		return
 	}
 
-	user11Model, user11Err = o1.Delete(user1Model)
-	if user11Err != nil {
-		t.Errorf("delete user1 failed, err:%s", user11Err.Error())
+	user1Model, user1Err = o1.Delete(user1Model)
+	if user1Err != nil {
+		t.Errorf("delete user1 failed, err:%s", user1Err.Error())
 		return
 	}
-	user22Model, user22Err = o1.Delete(user2Model)
-	if user22Err != nil {
-		t.Errorf("delete user2 failed, err:%s", user22Err.Error())
+	user2Model, user2Err = o1.Delete(user2Model)
+	if user2Err != nil {
+		t.Errorf("delete user2 failed, err:%s", user2Err.Error())
 		return
 	}
 }
@@ -552,12 +552,12 @@ func TestLocalBatchQuery(t *testing.T) {
 		return
 	}
 
-	status2Model, status2Err := o1.Insert(statusModel)
-	if status2Err != nil {
-		t.Errorf("insert group failed, err:%s", status2Err.Error())
+	statusModel, statusErr = o1.Insert(statusModel)
+	if statusErr != nil {
+		t.Errorf("insert group failed, err:%s", statusErr.Error())
 		return
 	}
-	status = status2Model.Interface(true).(*Status)
+	status = statusModel.Interface(true).(*Status)
 
 	group1Model, group1Err := localProvider.GetEntityModel(group1)
 	if group1Err != nil {
@@ -587,12 +587,12 @@ func TestLocalBatchQuery(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", group2Err.Error())
 		return
 	}
-	group22Model, group22Err := o1.Insert(group2Model)
-	if group22Err != nil {
-		t.Errorf("insert group failed, err:%s", group22Err.Error())
+	group2Model, group2Err = o1.Insert(group2Model)
+	if group2Err != nil {
+		t.Errorf("insert group failed, err:%s", group2Err.Error())
 		return
 	}
-	group2 = group22Model.Interface(true).(*Group)
+	group2 = group2Model.Interface(true).(*Group)
 
 	user1.Group = append(user1.Group, group1)
 	user1.Group = append(user1.Group, group2)
@@ -616,41 +616,41 @@ func TestLocalBatchQuery(t *testing.T) {
 		return
 	}
 
-	user11Model, user11Err := o1.Insert(user1Model)
-	if user11Err != nil {
-		t.Errorf("insert user failed, err:%s", user11Err.Error())
+	user1Model, user1Err = o1.Insert(user1Model)
+	if user1Err != nil {
+		t.Errorf("insert user failed, err:%s", user1Err.Error())
 		return
 	}
-	user1 = user11Model.Interface(true).(*User)
+	user1 = user1Model.Interface(true).(*User)
 
 	user2Model, user2Err := localProvider.GetEntityModel(user2)
 	if user2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", user2Err.Error())
 		return
 	}
-	_, user22Err := o1.Insert(user2Model)
-	if user22Err != nil {
-		t.Errorf("insert user failed, err:%s", user22Err.Error())
+	user2Model, user2Err = o1.Insert(user2Model)
+	if user2Err != nil {
+		t.Errorf("insert user failed, err:%s", user2Err.Error())
 		return
 	}
 
 	valueMask := &User{Status: &Status{}}
 	uModel, _ := localProvider.GetEntityModel(&User{})
-	filterVal, filterErr := localProvider.GetModelFilter(uModel)
-	if filterErr != nil {
-		t.Errorf("GetEntityFilter failed, err:%s", filterErr.Error())
+	filter, err := localProvider.GetModelFilter(uModel)
+	if err != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
 	}
-	filterVal.Equal("name", &user1.Name)
-	filterVal.In("group", user1.Group)
-	filterVal.Like("email", user1.EMail)
-	filterVal.Equal("status", status)
-	filterVal.ValueMask(valueMask)
+	filter.Equal("name", &user1.Name)
+	filter.In("group", user1.Group)
+	filter.Like("email", user1.EMail)
+	filter.Equal("status", status)
+	filter.ValueMask(valueMask)
 
 	pageFilter := &util.Pagination{PageNum: 0, PageSize: 100}
-	filterVal.Page(pageFilter)
+	filter.Page(pageFilter)
 
-	userModelList, userModelErr := o1.BatchQuery(filterVal)
+	userModelList, userModelErr := o1.BatchQuery(filter)
 	if userModelErr != nil {
 		err = userModelErr
 		t.Errorf("batch query user failed, err:%s", err.Error())
@@ -658,7 +658,7 @@ func TestLocalBatchQuery(t *testing.T) {
 	}
 
 	if len(userModelList) != 1 {
-		t.Errorf("filterVal query user failed")
+		t.Errorf("filter query user failed")
 		return
 	}
 }

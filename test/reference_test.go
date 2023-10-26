@@ -1,6 +1,8 @@
 package test
 
 import (
+	"fmt"
+	cd "github.com/muidea/magicCommon/def"
 	"testing"
 	"time"
 
@@ -38,19 +40,20 @@ func TestReferenceLocal(t *testing.T) {
 	entityList := []interface{}{simpleDef, referenceDef, composeDef}
 	modelList, modelErr := registerModel(localProvider, entityList)
 	if modelErr != nil {
-		t.Errorf("register model failed. err:%s", modelErr.Error())
+		err = modelErr
+		t.Errorf("register model failed. err:%s", err.Error())
 		return
 	}
 
-	model2Err := dropModel(o1, modelList)
-	if model2Err != nil {
-		t.Errorf("drop model failed. err:%s", model2Err.Error())
+	err = dropModel(o1, modelList)
+	if err != nil {
+		t.Errorf("drop model failed. err:%s", err.Error())
 		return
 	}
 
-	model2Err = createModel(o1, modelList)
-	if model2Err != nil {
-		t.Errorf("create model failed. err:%s", model2Err.Error())
+	err = createModel(o1, modelList)
+	if err != nil {
+		t.Errorf("create model failed. err:%s", err.Error())
 		return
 	}
 
@@ -87,7 +90,8 @@ func TestReferenceLocal(t *testing.T) {
 
 		sModel, sErr := localProvider.GetEntityModel(sVal)
 		if sErr != nil {
-			t.Errorf("GetEntityModel failed. err:%s", sErr.Error())
+			err = sErr
+			t.Errorf("GetEntityModel failed. err:%s", err.Error())
 			return
 		}
 
@@ -112,7 +116,8 @@ func TestReferenceLocal(t *testing.T) {
 		sVal.Name = "hi"
 		sModel, sErr := localProvider.GetEntityModel(sVal)
 		if sErr != nil {
-			t.Errorf("GetEntityModel failed. err:%s", sErr.Error())
+			err = sErr
+			t.Errorf("GetEntityModel failed. err:%s", err.Error())
 			return
 		}
 
@@ -157,7 +162,8 @@ func TestReferenceLocal(t *testing.T) {
 
 		qModel, qErr := localProvider.GetEntityModel(qVal)
 		if qErr != nil {
-			t.Errorf("GetEntityModel failed. err:%s", qErr.Error())
+			err = qErr
+			t.Errorf("GetEntityModel failed. err:%s", err.Error())
 			return
 		}
 
@@ -180,7 +186,8 @@ func TestReferenceLocal(t *testing.T) {
 		sVal := sValList[idx]
 		qVal := qValList[idx]
 		if !sVal.IsSame(qVal) {
-			t.Errorf("IsSame failed. err:%s", "compare value failed")
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("compare value failed"))
+			t.Errorf("IsSame failed. err:%s", err.Error())
 			return
 		}
 	}
@@ -192,21 +199,21 @@ func TestReferenceLocal(t *testing.T) {
 	ptrStrArray := []*string{}
 
 	referenceModel, _ := localProvider.GetEntityModel(&Reference{})
-	filter, fErr := localProvider.GetModelFilter(referenceModel)
-	if fErr != nil {
-		t.Errorf("GetEntityFilter failed, err:%s", fErr.Error())
+	filter, err := localProvider.GetModelFilter(referenceModel)
+	if err != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
 	}
 
-	fErr = filter.Equal("name", "hi")
-	if fErr != nil {
-		t.Errorf("filter.Equal failed, err:%s", fErr.Error())
+	err = filter.Equal("name", "hi")
+	if err != nil {
+		t.Errorf("filter.Equal failed, err:%s", err.Error())
 		return
 	}
 
-	fErr = filter.ValueMask(&Reference{FValue: &fVal, TimeStamp: &ts2, Flag: &flag2, PtrArray: &strArray2, PtrStrArray: &ptrStrArray})
-	if fErr != nil {
-		t.Errorf("filter.ValueMask failed, err:%s", fErr.Error())
+	err = filter.ValueMask(&Reference{FValue: &fVal, TimeStamp: &ts2, Flag: &flag2, PtrArray: &strArray2, PtrStrArray: &ptrStrArray})
+	if err != nil {
+		t.Errorf("filter.ValueMask failed, err:%s", err.Error())
 		return
 	}
 
@@ -251,19 +258,20 @@ func TestReferenceRemote(t *testing.T) {
 	entityList := []interface{}{simpleDef, referenceDef, composeDef}
 	modelList, modelErr := registerModel(remoteProvider, entityList)
 	if modelErr != nil {
-		t.Errorf("register model failed. err:%s", modelErr.Error())
+		err = modelErr
+		t.Errorf("register model failed. err:%s", err.Error())
 		return
 	}
 
-	model2Err := dropModel(o1, modelList)
-	if model2Err != nil {
-		t.Errorf("drop model failed. err:%s", model2Err.Error())
+	err = dropModel(o1, modelList)
+	if err != nil {
+		t.Errorf("drop model failed. err:%s", err.Error())
 		return
 	}
 
-	model2Err = createModel(o1, modelList)
-	if model2Err != nil {
-		t.Errorf("create model failed. err:%s", model2Err.Error())
+	err = createModel(o1, modelList)
+	if err != nil {
+		t.Errorf("create model failed. err:%s", err.Error())
 		return
 	}
 
@@ -301,14 +309,16 @@ func TestReferenceRemote(t *testing.T) {
 
 		sObjectVal, sObjectErr := helper.GetObjectValue(sVal)
 		if sObjectErr != nil {
-			t.Errorf("GetObjectValue failed. err:%s", sObjectErr.Error())
+			err = sObjectErr
+			t.Errorf("GetObjectValue failed. err:%s", err.Error())
 			return
 		}
 		sObjectValList = append(sObjectValList, sObjectVal)
 
 		sModel, sErr := remoteProvider.GetEntityModel(sObjectVal)
 		if sErr != nil {
-			t.Errorf("GetEntityModel failed. err:%s", sErr.Error())
+			err = sErr
+			t.Errorf("GetEntityModel failed. err:%s", err.Error())
 			return
 		}
 
@@ -325,9 +335,9 @@ func TestReferenceRemote(t *testing.T) {
 
 		sObjectVal := vModel.Interface(true).(*remote.ObjectValue)
 		sVal := sValList[idx]
-		eErr := helper.UpdateEntity(sObjectVal, sVal)
-		if eErr != nil {
-			t.Errorf("UpdateEntity failed. err:%s", eErr.Error())
+		err = helper.UpdateEntity(sObjectVal, sVal)
+		if err != nil {
+			t.Errorf("UpdateEntity failed. err:%s", err.Error())
 			return
 		}
 		sValList[idx] = sVal
@@ -341,14 +351,16 @@ func TestReferenceRemote(t *testing.T) {
 		sVal.Name = "hi"
 		sObjectVal, sObjectErr := helper.GetObjectValue(sVal)
 		if sObjectErr != nil {
-			t.Errorf("GetObjectValue failed. err:%s", sObjectErr.Error())
+			err = sObjectErr
+			t.Errorf("GetObjectValue failed. err:%s", err.Error())
 			return
 		}
 		sObjectValList[idx] = sObjectVal
 
 		sModel, sErr := remoteProvider.GetEntityModel(sObjectVal)
 		if sErr != nil {
-			t.Errorf("GetEntityModel failed. err:%s", sErr.Error())
+			err = sErr
+			t.Errorf("GetEntityModel failed. err:%s", err.Error())
 			return
 		}
 
@@ -364,9 +376,9 @@ func TestReferenceRemote(t *testing.T) {
 
 		sObjectVal := vModel.Interface(true).(*remote.ObjectValue)
 		sVal := sValList[idx]
-		eErr := helper.UpdateEntity(sObjectVal, sVal)
-		if eErr != nil {
-			t.Errorf("UpdateEntity failed. err:%s", eErr.Error())
+		err = helper.UpdateEntity(sObjectVal, sVal)
+		if err != nil {
+			t.Errorf("UpdateEntity failed. err:%s", err.Error())
 			return
 		}
 		sValList[idx] = sVal
@@ -402,14 +414,16 @@ func TestReferenceRemote(t *testing.T) {
 
 		qObjectVal, qObjectErr := helper.GetObjectValue(qVal)
 		if qObjectErr != nil {
-			t.Errorf("GetObjectValue failed. err:%s", qObjectErr.Error())
+			err = qObjectErr
+			t.Errorf("GetObjectValue failed. err:%s", err.Error())
 			return
 		}
 		qObjectValList = append(qObjectValList, qObjectVal)
 
 		qModel, qErr := remoteProvider.GetEntityModel(qObjectVal)
 		if qErr != nil {
-			t.Errorf("GetEntityModel failed. err:%s", qErr.Error())
+			err = qErr
+			t.Errorf("GetEntityModel failed. err:%s", err.Error())
 			return
 		}
 
@@ -426,9 +440,9 @@ func TestReferenceRemote(t *testing.T) {
 
 		qObjectVal := qModel.Interface(true).(*remote.ObjectValue)
 		qVal := qValList[idx]
-		eErr := helper.UpdateEntity(qObjectVal, qVal)
-		if eErr != nil {
-			t.Errorf("UpdateEntity failed. err:%s", eErr.Error())
+		err = helper.UpdateEntity(qObjectVal, qVal)
+		if err != nil {
+			t.Errorf("UpdateEntity failed. err:%s", err.Error())
 			return
 		}
 		qValList[idx] = qVal
@@ -440,7 +454,8 @@ func TestReferenceRemote(t *testing.T) {
 		sVal := sValList[idx]
 		qVal := qValList[idx]
 		if !sVal.IsSame(qVal) {
-			t.Errorf("IsSame failed. err:%s", "compare value failed")
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("compare value failed"))
+			t.Errorf("IsSame failed. err:%s", err.Error())
 			return
 		}
 	}
@@ -455,33 +470,33 @@ func TestReferenceRemote(t *testing.T) {
 
 	referenceModel, _ := helper.GetObject(&bqValList)
 
-	filter, fErr := remoteProvider.GetModelFilter(referenceModel)
-	if fErr != nil {
-		t.Errorf("GetEntityFilter failed, err:%s", fErr.Error())
+	filter, err := remoteProvider.GetModelFilter(referenceModel)
+	if err != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
 	}
 
-	fErr = filter.Equal("name", "hi")
-	if fErr != nil {
-		t.Errorf("filter.Equal failed, err:%s", fErr.Error())
+	err = filter.Equal("name", "hi")
+	if err != nil {
+		t.Errorf("filter.Equal failed, err:%s", err.Error())
 		return
 	}
 
 	maskVal, maskErr := helper.GetObjectValue(&Reference{FValue: &fVal, TimeStamp: &ts2, Flag: &flag2, PtrArray: &strArray2, PtrStrArray: &ptrStrArray})
 	if maskErr != nil {
-		t.Errorf("helper.GetObjectValue failed, err:%s", maskErr.Error())
+		t.Errorf("helper.GetObjectValue failed, err:%s", err.Error())
 		return
 	}
 
-	fErr = filter.ValueMask(maskVal)
-	if fErr != nil {
-		t.Errorf("filter.ValueMask failed, err:%s", fErr.Error())
+	err = filter.ValueMask(maskVal)
+	if err != nil {
+		t.Errorf("filter.ValueMask failed, err:%s", err.Error())
 		return
 	}
 
-	fErr = filter.Like("strArray", "Abc")
-	if fErr != nil {
-		t.Errorf("filter.Like failed, err:%s", fErr.Error())
+	err = filter.Like("strArray", "Abc")
+	if err != nil {
+		t.Errorf("filter.Like failed, err:%s", err.Error())
 		return
 	}
 

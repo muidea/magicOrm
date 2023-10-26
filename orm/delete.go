@@ -8,7 +8,7 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *impl) deleteSingle(vModel model.Model) (err error) {
+func (s *impl) deleteSingle(vModel model.Model) (err *cd.Result) {
 	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
 	sqlStr, sqlErr := builderVal.BuildDelete()
 	if sqlErr != nil {
@@ -24,7 +24,7 @@ func (s *impl) deleteSingle(vModel model.Model) (err error) {
 	return
 }
 
-func (s *impl) deleteRelationSingleStructInner(rVal model.Value, rType model.Type, deepLevel int) (err error) {
+func (s *impl) deleteRelationSingleStructInner(rVal model.Value, rType model.Type, deepLevel int) (err *cd.Result) {
 	relationModel, relationErr := s.modelProvider.GetValueModel(rVal, rType)
 	if relationErr != nil {
 		err = relationErr
@@ -53,7 +53,7 @@ func (s *impl) deleteRelationSingleStructInner(rVal model.Value, rType model.Typ
 	return
 }
 
-func (s *impl) deleteRelationSliceStructInner(rVal model.Value, rType model.Type, deepLevel int) (err error) {
+func (s *impl) deleteRelationSliceStructInner(rVal model.Value, rType model.Type, deepLevel int) (err *cd.Result) {
 	elemVal, elemErr := s.modelProvider.ElemDependValue(rVal)
 	if elemErr != nil {
 		err = elemErr
@@ -73,7 +73,7 @@ func (s *impl) deleteRelationSliceStructInner(rVal model.Value, rType model.Type
 	return
 }
 
-func (s *impl) deleteRelation(vModel model.Model, rField model.Field, deepLevel int) (err error) {
+func (s *impl) deleteRelation(vModel model.Model, rField model.Field, deepLevel int) (err *cd.Result) {
 	rType := rField.GetType()
 	rModel, rErr := s.modelProvider.GetTypeModel(rType)
 	if rErr != nil {
@@ -128,15 +128,14 @@ func (s *impl) deleteRelation(vModel model.Model, rField model.Field, deepLevel 
 }
 
 // Delete delete
-func (s *impl) Delete(vModel model.Model) (ret model.Model, re *cd.Result) {
+func (s *impl) Delete(vModel model.Model) (ret model.Model, err *cd.Result) {
 	if vModel == nil {
-		re = cd.NewError(cd.IllegalParam, "illegal model value")
+		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return
 	}
 
-	err := s.executor.BeginTransaction()
+	err = s.executor.BeginTransaction()
 	if err != nil {
-		re = cd.NewError(cd.UnExpected, err.Error())
 		return
 	}
 
@@ -144,7 +143,6 @@ func (s *impl) Delete(vModel model.Model) (ret model.Model, re *cd.Result) {
 
 	err = s.deleteSingle(vModel)
 	if err != nil {
-		re = cd.NewError(cd.UnExpected, err.Error())
 		log.Errorf("Delete failed, s.deleteSingle error:%s", err.Error())
 		return
 	}
@@ -156,7 +154,6 @@ func (s *impl) Delete(vModel model.Model) (ret model.Model, re *cd.Result) {
 
 		err = s.deleteRelation(vModel, field, 0)
 		if err != nil {
-			re = cd.NewError(cd.UnExpected, err.Error())
 			log.Errorf("Delete failed, s.deleteRelation error:%s", err.Error())
 			return
 		}

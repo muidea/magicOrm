@@ -79,12 +79,12 @@ func TestKPI(t *testing.T) {
 		return
 	}
 
-	kpi2Model, kpi2Err := o1.Insert(kpiModel)
-	if kpi2Err != nil {
-		t.Errorf("insert kpi failed, err:%s", kpi2Err.Error())
+	kpiModel, kpiErr = o1.Insert(kpiModel)
+	if kpiErr != nil {
+		t.Errorf("insert kpi failed, err:%s", kpiErr.Error())
 		return
 	}
-	kpi = kpi2Model.Interface(true).(*KPI)
+	kpi = kpiModel.Interface(true).(*KPI)
 
 	goal1 := &Goal{Type: ByMoney, Value: 1234}
 	kpi.JoinValue = *goal1
@@ -93,13 +93,13 @@ func TestKPI(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", kpiErr.Error())
 		return
 	}
-	kpi2Model, kpi2Err = o1.Update(kpiModel)
-	if kpi2Err != nil {
-		t.Errorf("update kpi failed, err:%s", kpi2Err.Error())
+	kpiModel, kpiErr = o1.Update(kpiModel)
+	if kpiErr != nil {
+		t.Errorf("update kpi failed, err:%s", kpiErr.Error())
 		return
 	}
 
-	_, err = o1.Delete(kpi2Model)
+	_, err = o1.Delete(kpiModel)
 	if err != nil {
 		t.Errorf("delete kpi failed, err:%s", err.Error())
 		return

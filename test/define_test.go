@@ -23,19 +23,20 @@ func TestDefine(t *testing.T) {
 	objList := []interface{}{&Sub{}, &Parent{}}
 	modelList, modelErr := registerModel(localProvider, objList)
 	if modelErr != nil {
-		t.Errorf("register model failed. err:%s", modelErr.Error())
+		err = modelErr
+		t.Errorf("register model failed. err:%s", err.Error())
 		return
 	}
 
-	mErr := dropModel(o1, modelList)
-	if mErr != nil {
-		t.Errorf("drop model failed. err:%s", mErr.Error())
+	err = dropModel(o1, modelList)
+	if err != nil {
+		t.Errorf("drop model failed. err:%s", err.Error())
 		return
 	}
 
-	mErr = createModel(o1, modelList)
-	if mErr != nil {
-		t.Errorf("create model failed. err:%s", mErr.Error())
+	err = createModel(o1, modelList)
+	if err != nil {
+		t.Errorf("create model failed. err:%s", err.Error())
 		return
 	}
 

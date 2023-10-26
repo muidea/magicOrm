@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-
 	"github.com/muidea/magicCommon/foundation/util"
 
 	om "github.com/muidea/magicOrm/model"
@@ -37,7 +37,7 @@ func newFilter(valuePtr *ValueImpl) *filter {
 	return &filter{bindValue: valuePtr, params: map[string]*filterItem{}}
 }
 
-func (s *filter) Equal(key string, val interface{}) (err error) {
+func (s *filter) Equal(key string, val interface{}) (err *cd.Result) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	qvType, qvErr := pu.GetTypeEnum(qv.Type())
 	if qvErr != nil {
@@ -46,7 +46,7 @@ func (s *filter) Equal(key string, val interface{}) (err error) {
 		return
 	}
 	if om.IsSliceType(qvType) {
-		err = fmt.Errorf("equal failed, illegal value type, type:%s", qv.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("equal failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("Equal failed, err:%v", err.Error())
 		return
 	}
@@ -56,7 +56,7 @@ func (s *filter) Equal(key string, val interface{}) (err error) {
 	return
 }
 
-func (s *filter) NotEqual(key string, val interface{}) (err error) {
+func (s *filter) NotEqual(key string, val interface{}) (err *cd.Result) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	qvType, qvErr := pu.GetTypeEnum(qv.Type())
 	if qvErr != nil {
@@ -65,7 +65,7 @@ func (s *filter) NotEqual(key string, val interface{}) (err error) {
 		return
 	}
 	if om.IsSliceType(qvType) {
-		err = fmt.Errorf("NotEqual failed, illegal value type, type:%s", qv.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("NotEqual failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("NotEqual failed, err:%v", err.Error())
 		return
 	}
@@ -75,7 +75,7 @@ func (s *filter) NotEqual(key string, val interface{}) (err error) {
 	return
 }
 
-func (s *filter) Below(key string, val interface{}) (err error) {
+func (s *filter) Below(key string, val interface{}) (err *cd.Result) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	qvType, qvErr := pu.GetTypeEnum(qv.Type())
 	if qvErr != nil {
@@ -84,7 +84,7 @@ func (s *filter) Below(key string, val interface{}) (err error) {
 		return
 	}
 	if !om.IsBasicType(qvType) {
-		err = fmt.Errorf("below failed, illegal value type, type:%s", qv.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("below failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("Below failed, err:%v", err.Error())
 		return
 	}
@@ -94,7 +94,7 @@ func (s *filter) Below(key string, val interface{}) (err error) {
 	return
 }
 
-func (s *filter) Above(key string, val interface{}) (err error) {
+func (s *filter) Above(key string, val interface{}) (err *cd.Result) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	qvType, qvErr := pu.GetTypeEnum(qv.Type())
 	if qvErr != nil {
@@ -103,7 +103,7 @@ func (s *filter) Above(key string, val interface{}) (err error) {
 		return
 	}
 	if !om.IsBasicType(qvType) {
-		err = fmt.Errorf("above failed, illegal value type, type:%s", qv.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("above failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("Above failed, err:%v", err.Error())
 		return
 	}
@@ -113,7 +113,7 @@ func (s *filter) Above(key string, val interface{}) (err error) {
 	return
 }
 
-func (s *filter) In(key string, val interface{}) (err error) {
+func (s *filter) In(key string, val interface{}) (err *cd.Result) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	qvType, qvErr := pu.GetTypeEnum(qv.Type())
 	if qvErr != nil {
@@ -122,7 +122,7 @@ func (s *filter) In(key string, val interface{}) (err error) {
 		return
 	}
 	if !om.IsSliceType(qvType) {
-		err = fmt.Errorf("in failed, illegal value type, type:%s", qv.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("in failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("In failed, err:%v", err.Error())
 		return
 	}
@@ -132,7 +132,7 @@ func (s *filter) In(key string, val interface{}) (err error) {
 	return
 }
 
-func (s *filter) NotIn(key string, val interface{}) (err error) {
+func (s *filter) NotIn(key string, val interface{}) (err *cd.Result) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	qvType, qvErr := pu.GetTypeEnum(qv.Type())
 	if qvErr != nil {
@@ -141,7 +141,7 @@ func (s *filter) NotIn(key string, val interface{}) (err error) {
 		return
 	}
 	if !om.IsSliceType(qvType) {
-		err = fmt.Errorf("notIn failed, illegal value type, type:%s", qv.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("notIn failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("NotIn failed, err:%v", err.Error())
 		return
 	}
@@ -151,10 +151,10 @@ func (s *filter) NotIn(key string, val interface{}) (err error) {
 	return
 }
 
-func (s *filter) Like(key string, val interface{}) (err error) {
+func (s *filter) Like(key string, val interface{}) (err *cd.Result) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	if qv.Kind() != reflect.String {
-		err = fmt.Errorf("like failed, illegal value type, type:%s", qv.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("like failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("Like failed, illegal value type, err:%s", err.Error())
 		return
 	}
@@ -172,12 +172,12 @@ func (s *filter) Sort(sorter *util.SortFilter) {
 	s.sortFilter = sorter
 }
 
-func (s *filter) ValueMask(val interface{}) (err error) {
+func (s *filter) ValueMask(val interface{}) (err *cd.Result) {
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	bindType := reflect.Indirect(s.bindValue.value).Type().String()
 	maskType := reflect.Indirect(qv).Type().String()
 	if bindType != maskType {
-		err = fmt.Errorf("mismatch mask value, bindType:%v, maskType:%v", bindType, maskType)
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("mismatch mask value, bindType:%v, maskType:%v", bindType, maskType))
 		log.Errorf("ValueMask failed, err:%v", err.Error())
 		return
 	}

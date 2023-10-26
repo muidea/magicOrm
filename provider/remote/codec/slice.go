@@ -3,14 +3,16 @@ package codec
 import (
 	"encoding/json"
 	"fmt"
-	pu "github.com/muidea/magicOrm/provider/util"
 	"reflect"
+
+	cd "github.com/muidea/magicCommon/def"
+	pu "github.com/muidea/magicOrm/provider/util"
 
 	"github.com/muidea/magicOrm/model"
 )
 
 // encodeSlice get slice value str
-func (s *impl) encodeSlice(vVal model.Value, vType model.Type) (ret string, err error) {
+func (s *impl) encodeSlice(vVal model.Value, vType model.Type) (ret string, err *cd.Result) {
 	vals, valErr := s.elemDependValue(vVal)
 	if valErr != nil {
 		err = valErr
@@ -44,7 +46,7 @@ func (s *impl) encodeSlice(vVal model.Value, vType model.Type) (ret string, err 
 	if len(items) > 0 {
 		data, dataErr := json.Marshal(items)
 		if dataErr != nil {
-			err = dataErr
+			err = cd.NewError(cd.UnExpected, dataErr.Error())
 			return
 		}
 
@@ -54,7 +56,7 @@ func (s *impl) encodeSlice(vVal model.Value, vType model.Type) (ret string, err 
 	return
 }
 
-func (s *impl) decodeStringSlice(val string, vType model.Type) (ret model.Value, err error) {
+func (s *impl) decodeStringSlice(val string, vType model.Type) (ret model.Value, err *cd.Result) {
 	tVal, _ := vType.Interface(nil)
 	if val != "" {
 		sliceVal := reflect.ValueOf(tVal.Get())
@@ -68,8 +70,9 @@ func (s *impl) decodeStringSlice(val string, vType model.Type) (ret model.Value,
 			sliceVal = reflect.Append(sliceVal, reflect.ValueOf(itemVal.Get()))
 		} else {
 			items := []any{}
-			err = json.Unmarshal([]byte(val), &items)
-			if err != nil {
+			byteErr := json.Unmarshal([]byte(val), &items)
+			if byteErr != nil {
+				err = cd.NewError(cd.UnExpected, byteErr.Error())
 				return
 			}
 
@@ -92,7 +95,7 @@ func (s *impl) decodeStringSlice(val string, vType model.Type) (ret model.Value,
 }
 
 // decodeSlice decode slice from string
-func (s *impl) decodeSlice(val interface{}, vType model.Type) (ret model.Value, err error) {
+func (s *impl) decodeSlice(val interface{}, vType model.Type) (ret model.Value, err *cd.Result) {
 	strVal, strErr := pu.GetString(val)
 	if strErr != nil {
 		err = strErr

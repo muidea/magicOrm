@@ -222,9 +222,9 @@ func TestSliceCodec(t *testing.T) {
 		return
 	}
 
-	tv, tErr := time.Parse(util.CSTLayout, "2006-01-02 15:04:05")
-	if tErr != nil {
-		t.Errorf("parse time failed, err:%s", tErr.Error())
+	tv, tvErr := time.Parse(util.CSTLayout, "2006-01-02 15:04:05")
+	if tvErr != nil {
+		t.Errorf("parse time failed, err:%s", tvErr.Error())
 		return
 	}
 

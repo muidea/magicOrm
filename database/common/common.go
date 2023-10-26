@@ -7,6 +7,7 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/model"
@@ -77,7 +78,7 @@ func (s *Common) GetFields() model.Fields {
 	return s.entityModel.GetFields()
 }
 
-func (s *Common) GetModelValue() (ret string, err error) {
+func (s *Common) GetModelValue() (ret string, err *cd.Result) {
 	if s.entityValue == "" {
 		entityVal, entityErr := s.EncodeModelValue(s.entityModel)
 		if entityErr != nil {
@@ -92,7 +93,7 @@ func (s *Common) GetModelValue() (ret string, err error) {
 	return
 }
 
-func (s *Common) GetRelationValue(rModel model.Model) (leftVal, rightVal string, err error) {
+func (s *Common) GetRelationValue(rModel model.Model) (leftVal, rightVal string, err *cd.Result) {
 	entityVal, entityErr := s.GetModelValue()
 	if entityErr != nil {
 		err = entityErr
@@ -112,10 +113,10 @@ func (s *Common) GetRelationValue(rModel model.Model) (leftVal, rightVal string,
 	return
 }
 
-func (s *Common) EncodeValue(vValue model.Value, vType model.Type) (ret string, err error) {
+func (s *Common) EncodeValue(vValue model.Value, vType model.Type) (ret string, err *cd.Result) {
 	defer func() {
 		if eErr := recover(); eErr != nil {
-			err = fmt.Errorf("encode value failed, type:%v, err:%v", vType.GetPkgKey(), eErr)
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("encode value failed, type:%v, err:%v", vType.GetPkgKey(), eErr))
 			log.Errorf("EncodeValue failed, error:%s", err.Error())
 		}
 	}()
@@ -137,7 +138,7 @@ func (s *Common) EncodeValue(vValue model.Value, vType model.Type) (ret string, 
 	return
 }
 
-func (s *Common) EncodeModelValue(vModel model.Model) (ret string, err error) {
+func (s *Common) EncodeModelValue(vModel model.Model) (ret string, err *cd.Result) {
 	pkField := vModel.GetPrimaryField()
 	fStr, fErr := s.EncodeValue(pkField.GetValue(), pkField.GetType())
 	if fErr != nil {
@@ -150,7 +151,7 @@ func (s *Common) EncodeModelValue(vModel model.Model) (ret string, err error) {
 	return
 }
 
-func (s *Common) GetTypeModel(vType model.Type) (ret model.Model, err error) {
+func (s *Common) GetTypeModel(vType model.Type) (ret model.Model, err *cd.Result) {
 	vModel, vErr := s.modelProvider.GetTypeModel(vType)
 	if vErr != nil {
 		err = vErr

@@ -5,13 +5,14 @@ import (
 	"reflect"
 	"time"
 
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/util"
 
 	"github.com/muidea/magicOrm/model"
 )
 
 // encodeDateTime get datetime value str
-func (s *impl) encodeDateTime(vVal model.Value, vType model.Type) (ret interface{}, err error) {
+func (s *impl) encodeDateTime(vVal model.Value, _ model.Type) (ret interface{}, err *cd.Result) {
 	val := reflect.Indirect(vVal.Get().(reflect.Value))
 	switch val.Kind() {
 	case reflect.Struct:
@@ -22,17 +23,17 @@ func (s *impl) encodeDateTime(vVal model.Value, vType model.Type) (ret interface
 				ret = ""
 			}
 		} else {
-			err = fmt.Errorf("encodeDateTime failed, illegal dateTime value, type:%s", val.Type().String())
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("encodeDateTime failed, illegal dateTime value, type:%s", val.Type().String()))
 		}
 	default:
-		err = fmt.Errorf("encodeDateTime failed, illegal dateTime type, type:%s", val.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("encodeDateTime failed, illegal dateTime type, type:%s", val.Type().String()))
 	}
 
 	return
 }
 
 // decodeDateTime decode datetime from string
-func (s *impl) decodeDateTime(val interface{}, vType model.Type) (ret model.Value, err error) {
+func (s *impl) decodeDateTime(val interface{}, vType model.Type) (ret model.Value, err *cd.Result) {
 	ret, err = vType.Interface(val)
 	return
 }

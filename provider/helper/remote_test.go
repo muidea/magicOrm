@@ -87,16 +87,16 @@ func TestSimpleObjInfo(t *testing.T) {
 		t.Errorf("GetObject failed")
 	}
 
-	data, err := json.Marshal(info)
-	if err != nil {
-		t.Errorf("marshal info failed, err:%s", err.Error())
+	byteVal, byteErr := json.Marshal(info)
+	if byteErr != nil {
+		t.Errorf("marshal info failed, err:%s", byteErr.Error())
 		return
 	}
 
 	info2 := &remote.Object{}
-	err = json.Unmarshal(data, info2)
-	if err != nil {
-		t.Errorf("marshal info failed, err:%s", err.Error())
+	byteErr = json.Unmarshal(byteVal, info2)
+	if byteErr != nil {
+		t.Errorf("marshal info failed, err:%s", byteErr.Error())
 		return
 	}
 
@@ -122,16 +122,16 @@ func TestExtObjInfo(t *testing.T) {
 		return
 	}
 
-	data, err := json.Marshal(info)
-	if err != nil {
-		t.Errorf("marshal info failed, err:%s", err.Error())
+	byteVal, byteErr := json.Marshal(info)
+	if byteErr != nil {
+		t.Errorf("marshal info failed, err:%s", byteErr.Error())
 		return
 	}
 
 	eInfo := &remote.Object{}
-	err = json.Unmarshal(data, eInfo)
-	if err != nil {
-		t.Errorf("unmarshal ext failed, err:%s", err.Error())
+	byteErr = json.Unmarshal(byteVal, eInfo)
+	if byteErr != nil {
+		t.Errorf("unmarshal ext failed, err:%s", byteErr.Error())
 		return
 	}
 

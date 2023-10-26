@@ -1,6 +1,8 @@
 package test
 
 import (
+	"fmt"
+	cd "github.com/muidea/magicCommon/def"
 	"testing"
 	"time"
 
@@ -37,19 +39,20 @@ func TestSimpleLocal(t *testing.T) {
 	entityList := []interface{}{simpleDef, referenceDef, composeDef}
 	modelList, modelErr := registerModel(localProvider, entityList)
 	if modelErr != nil {
-		t.Errorf("register model failed. err:%s", modelErr.Error())
+		err = modelErr
+		t.Errorf("register model failed. err:%s", err.Error())
 		return
 	}
 
-	mErr := dropModel(o1, modelList)
-	if mErr != nil {
-		t.Errorf("drop model failed. err:%s", mErr.Error())
+	err = dropModel(o1, modelList)
+	if err != nil {
+		t.Errorf("drop model failed. err:%s", err.Error())
 		return
 	}
 
-	mErr = createModel(o1, modelList)
-	if mErr != nil {
-		t.Errorf("create model failed. err:%s", mErr.Error())
+	err = createModel(o1, modelList)
+	if err != nil {
+		t.Errorf("create model failed. err:%s", err.Error())
 		return
 	}
 
@@ -65,7 +68,8 @@ func TestSimpleLocal(t *testing.T) {
 
 		sModel, sErr := localProvider.GetEntityModel(sVal)
 		if sErr != nil {
-			t.Errorf("GetEntityModel failed. err:%s", sErr.Error())
+			err = sErr
+			t.Errorf("GetEntityModel failed. err:%s", err.Error())
 			return
 		}
 
@@ -90,7 +94,8 @@ func TestSimpleLocal(t *testing.T) {
 		sVal.Name = "hi"
 		sModel, sErr := localProvider.GetEntityModel(sVal)
 		if sErr != nil {
-			t.Errorf("GetEntityModel failed. err:%s", sErr.Error())
+			err = sErr
+			t.Errorf("GetEntityModel failed. err:%s", err.Error())
 			return
 		}
 
@@ -117,7 +122,8 @@ func TestSimpleLocal(t *testing.T) {
 
 		qModel, qErr := localProvider.GetEntityModel(qVal)
 		if qErr != nil {
-			t.Errorf("GetEntityModel failed. err:%s", qErr.Error())
+			err = qErr
+			t.Errorf("GetEntityModel failed. err:%s", err.Error())
 			return
 		}
 
@@ -140,15 +146,16 @@ func TestSimpleLocal(t *testing.T) {
 		sVal := sValList[idx]
 		qVal := qValList[idx]
 		if !sVal.IsSame(qVal) {
-			t.Errorf("IsSame failed. err:%s", "compare value failed")
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("compare value failed"))
+			t.Errorf("IsSame failed. err:%s", err.Error())
 			return
 		}
 	}
 
 	simpleModel, _ := localProvider.GetEntityModel(&Simple{})
-	filter, fErr := localProvider.GetModelFilter(simpleModel)
-	if fErr != nil {
-		t.Errorf("GetEntityFilter failed, err:%s", fErr.Error())
+	filter, err := localProvider.GetModelFilter(simpleModel)
+	if err != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
 	}
 
@@ -195,19 +202,20 @@ func TestSimpleRemote(t *testing.T) {
 	entityList := []interface{}{simpleDef, referenceDef, composeDef}
 	modelList, modelErr := registerModel(remoteProvider, entityList)
 	if modelErr != nil {
-		t.Errorf("register model failed. err:%s", modelErr.Error())
+		err = modelErr
+		t.Errorf("register model failed. err:%s", err.Error())
 		return
 	}
 
-	mErr := dropModel(o1, modelList)
-	if mErr != nil {
-		t.Errorf("drop model failed. err:%s", mErr.Error())
+	err = dropModel(o1, modelList)
+	if err != nil {
+		t.Errorf("drop model failed. err:%s", err.Error())
 		return
 	}
 
-	mErr = createModel(o1, modelList)
-	if mErr != nil {
-		t.Errorf("create model failed. err:%s", mErr.Error())
+	err = createModel(o1, modelList)
+	if err != nil {
+		t.Errorf("create model failed. err:%s", err.Error())
 		return
 	}
 
@@ -224,14 +232,16 @@ func TestSimpleRemote(t *testing.T) {
 
 		sObjectVal, sObjectErr := helper.GetObjectValue(&sVal)
 		if sObjectErr != nil {
-			t.Errorf("GetObjectValue failed. err:%s", sObjectErr.Error())
+			err = sObjectErr
+			t.Errorf("GetObjectValue failed. err:%s", err.Error())
 			return
 		}
 		sObjectValList = append(sObjectValList, sObjectVal)
 
 		sModel, sErr := remoteProvider.GetEntityModel(sObjectVal)
 		if sErr != nil {
-			t.Errorf("GetEntityModel failed. err:%s", sErr.Error())
+			err = sErr
+			t.Errorf("GetEntityModel failed. err:%s", err.Error())
 			return
 		}
 
@@ -248,9 +258,9 @@ func TestSimpleRemote(t *testing.T) {
 
 		sObjectVal := vModel.Interface(true).(*remote.ObjectValue)
 		sVal := sValList[idx]
-		eErr := helper.UpdateEntity(sObjectVal, sVal)
-		if eErr != nil {
-			t.Errorf("UpdateEntity failed. err:%s", eErr.Error())
+		err = helper.UpdateEntity(sObjectVal, sVal)
+		if err != nil {
+			t.Errorf("UpdateEntity failed. err:%s", err.Error())
 			return
 		}
 		sValList[idx] = sVal
@@ -264,14 +274,16 @@ func TestSimpleRemote(t *testing.T) {
 		sVal.Name = "hi"
 		sObjectVal, sObjectErr := helper.GetObjectValue(sVal)
 		if sObjectErr != nil {
-			t.Errorf("GetObjectValue failed. err:%s", sObjectErr.Error())
+			err = sObjectErr
+			t.Errorf("GetObjectValue failed. err:%s", err.Error())
 			return
 		}
 		sObjectValList[idx] = sObjectVal
 
 		sModel, sErr := remoteProvider.GetEntityModel(sObjectVal)
 		if sErr != nil {
-			t.Errorf("GetEntityModel failed. err:%s", sErr.Error())
+			err = sErr
+			t.Errorf("GetEntityModel failed. err:%s", err.Error())
 			return
 		}
 
@@ -287,9 +299,9 @@ func TestSimpleRemote(t *testing.T) {
 
 		sObjectVal := vModel.Interface(true).(*remote.ObjectValue)
 		sVal := sValList[idx]
-		eErr := helper.UpdateEntity(sObjectVal, sVal)
-		if eErr != nil {
-			t.Errorf("UpdateEntity failed. err:%s", eErr.Error())
+		err = helper.UpdateEntity(sObjectVal, sVal)
+		if err != nil {
+			t.Errorf("UpdateEntity failed. err:%s", err.Error())
 			return
 		}
 		sValList[idx] = sVal
@@ -307,14 +319,16 @@ func TestSimpleRemote(t *testing.T) {
 
 		qObjectVal, qObjectErr := helper.GetObjectValue(qVal)
 		if qObjectErr != nil {
-			t.Errorf("GetObjectValue failed. err:%s", qObjectErr.Error())
+			err = qObjectErr
+			t.Errorf("GetObjectValue failed. err:%s", err.Error())
 			return
 		}
 		qObjectValList = append(qObjectValList, qObjectVal)
 
 		qModel, qErr := remoteProvider.GetEntityModel(qObjectVal)
 		if qErr != nil {
-			t.Errorf("GetEntityModel failed. err:%s", qErr.Error())
+			err = qErr
+			t.Errorf("GetEntityModel failed. err:%s", err.Error())
 			return
 		}
 
@@ -331,9 +345,9 @@ func TestSimpleRemote(t *testing.T) {
 
 		qObjectVal := qModel.Interface(true).(*remote.ObjectValue)
 		qVal := qValList[idx]
-		eErr := helper.UpdateEntity(qObjectVal, qVal)
-		if eErr != nil {
-			t.Errorf("UpdateEntity failed. err:%s", eErr.Error())
+		err = helper.UpdateEntity(qObjectVal, qVal)
+		if err != nil {
+			t.Errorf("UpdateEntity failed. err:%s", err.Error())
 			return
 		}
 		qValList[idx] = qVal
@@ -345,7 +359,8 @@ func TestSimpleRemote(t *testing.T) {
 		sVal := sValList[idx]
 		qVal := qValList[idx]
 		if !sVal.IsSame(qVal) {
-			t.Errorf("IsSame failed. err:%s", "compare value failed")
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("compare value failed"))
+			t.Errorf("IsSame failed. err:%s", err.Error())
 			return
 		}
 	}
@@ -354,9 +369,9 @@ func TestSimpleRemote(t *testing.T) {
 	if objectErr != nil {
 		t.Errorf("GetObject failed, error:%s", objectErr.Error())
 	}
-	filter, fErr := remoteProvider.GetModelFilter(objectPtr)
-	if fErr != nil {
-		t.Errorf("GetEntityFilter failed, err:%s", fErr.Error())
+	filter, err := remoteProvider.GetModelFilter(objectPtr)
+	if err != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
 	}
 

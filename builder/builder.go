@@ -1,6 +1,7 @@
 package builder
 
 import (
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/database/mysql"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
@@ -8,21 +9,21 @@ import (
 
 // Builder orm builder
 type Builder interface {
-	BuildCreateTable() (string, error)
-	BuildDropTable() (string, error)
-	BuildInsert() (string, error)
-	BuildUpdate() (string, error)
-	BuildDelete() (string, error)
-	BuildQuery(filter model.Filter) (string, error)
-	BuildCount(filter model.Filter) (string, error)
+	BuildCreateTable() (string, *cd.Result)
+	BuildDropTable() (string, *cd.Result)
+	BuildInsert() (string, *cd.Result)
+	BuildUpdate() (string, *cd.Result)
+	BuildDelete() (string, *cd.Result)
+	BuildQuery(filter model.Filter) (string, *cd.Result)
+	BuildCount(filter model.Filter) (string, *cd.Result)
 
-	BuildCreateRelationTable(field model.Field, rModel model.Model) (string, error)
-	BuildDropRelationTable(field model.Field, rModel model.Model) (string, error)
-	BuildInsertRelation(field model.Field, rModel model.Model) (string, error)
-	BuildDeleteRelation(field model.Field, rModel model.Model) (string, string, error)
-	BuildQueryRelation(field model.Field, rModel model.Model) (string, error)
+	BuildCreateRelationTable(field model.Field, rModel model.Model) (string, *cd.Result)
+	BuildDropRelationTable(field model.Field, rModel model.Model) (string, *cd.Result)
+	BuildInsertRelation(field model.Field, rModel model.Model) (string, *cd.Result)
+	BuildDeleteRelation(field model.Field, rModel model.Model) (string, string, *cd.Result)
+	BuildQueryRelation(field model.Field, rModel model.Model) (string, *cd.Result)
 
-	GetFieldScanDest(field model.Field) (interface{}, error)
+	GetFieldScanDest(field model.Field) (interface{}, *cd.Result)
 }
 
 // NewBuilder new builder

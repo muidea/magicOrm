@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path"
 
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicCommon/foundation/util"
 	"github.com/muidea/magicOrm/model"
@@ -95,7 +96,7 @@ func (s *ObjectFilter) GetInt(key string) (ret int, ok bool) {
 	return
 }
 
-func (s *ObjectFilter) Equal(key string, val interface{}) (err error) {
+func (s *ObjectFilter) Equal(key string, val interface{}) (err *cd.Result) {
 	switch val.(type) {
 	case bool,
 		int8, int16, int32, int, int64,
@@ -118,7 +119,7 @@ func (s *ObjectFilter) Equal(key string, val interface{}) (err error) {
 	return
 }
 
-func (s *ObjectFilter) NotEqual(key string, val interface{}) (err error) {
+func (s *ObjectFilter) NotEqual(key string, val interface{}) (err *cd.Result) {
 	switch val.(type) {
 	case bool,
 		int8, int16, int32, int, int64,
@@ -141,7 +142,7 @@ func (s *ObjectFilter) NotEqual(key string, val interface{}) (err error) {
 	return
 }
 
-func (s *ObjectFilter) Below(key string, val interface{}) (err error) {
+func (s *ObjectFilter) Below(key string, val interface{}) (err *cd.Result) {
 	switch val.(type) {
 	case int8, int16, int32, int, int64,
 		uint8, uint16, uint32, uint, uint64,
@@ -155,7 +156,7 @@ func (s *ObjectFilter) Below(key string, val interface{}) (err error) {
 	return
 }
 
-func (s *ObjectFilter) Above(key string, val interface{}) (err error) {
+func (s *ObjectFilter) Above(key string, val interface{}) (err *cd.Result) {
 	switch val.(type) {
 	case int8, int16, int32, int, int64,
 		uint8, uint16, uint32, uint, uint64,
@@ -169,7 +170,7 @@ func (s *ObjectFilter) Above(key string, val interface{}) (err error) {
 	return
 }
 
-func (s *ObjectFilter) In(key string, val interface{}) (err error) {
+func (s *ObjectFilter) In(key string, val interface{}) (err *cd.Result) {
 	switch val.(type) {
 	case []bool,
 		[]int8, []int16, []int32, []int, []int64,
@@ -193,7 +194,7 @@ func (s *ObjectFilter) In(key string, val interface{}) (err error) {
 	return
 }
 
-func (s *ObjectFilter) NotIn(key string, val interface{}) (err error) {
+func (s *ObjectFilter) NotIn(key string, val interface{}) (err *cd.Result) {
 	switch val.(type) {
 	case []bool,
 		[]int8, []int16, []int32, []int, []int64,
@@ -217,7 +218,7 @@ func (s *ObjectFilter) NotIn(key string, val interface{}) (err error) {
 	return
 }
 
-func (s *ObjectFilter) Like(key string, val interface{}) (err error) {
+func (s *ObjectFilter) Like(key string, val interface{}) (err *cd.Result) {
 	switch val.(type) {
 	case string:
 		item := &FieldValue{Name: key, Value: val}
@@ -238,9 +239,9 @@ func (s *ObjectFilter) Sort(sorter *util.SortFilter) {
 	s.SortFilter = sorter
 }
 
-func (s *ObjectFilter) ValueMask(val interface{}) (err error) {
+func (s *ObjectFilter) ValueMask(val interface{}) (err *cd.Result) {
 	if val == nil {
-		err = fmt.Errorf("illegal mask value")
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal mask value"))
 		return
 	}
 
@@ -264,7 +265,7 @@ func (s *ObjectFilter) ValueMask(val interface{}) (err error) {
 			objectValuePtr, err = DecodeObjectValue(byteVal)
 		}
 	default:
-		err = fmt.Errorf("illegal mask value")
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal mask value"))
 	}
 
 	if err != nil {
@@ -277,7 +278,7 @@ func (s *ObjectFilter) ValueMask(val interface{}) (err error) {
 	}
 
 	if s.bindObject.GetPkgKey() != objectValuePtr.GetPkgKey() {
-		err = fmt.Errorf("mismatch mask value, bindPkgKey:%v, maskPkgKey:%v", s.bindObject.GetPkgKey(), objectValuePtr.GetPkgKey())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("mismatch mask value, bindPkgKey:%v, maskPkgKey:%v", s.bindObject.GetPkgKey(), objectValuePtr.GetPkgKey()))
 		log.Errorf("ValueMask failed, err:%v", err.Error())
 		return
 	}
@@ -346,7 +347,7 @@ func (s *ObjectFilter) GetFilterItem(key string) model.FilterItem {
 	return nil
 }
 
-func (s *ObjectFilter) getFilterValue(key string, items []*FieldValue) (ret *FieldValue, err error) {
+func (s *ObjectFilter) getFilterValue(key string, items []*FieldValue) (ret *FieldValue, err *cd.Result) {
 	for _, val := range items {
 		if key == val.Name {
 			ret = val

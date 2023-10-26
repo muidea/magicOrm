@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-
 	fu "github.com/muidea/magicCommon/foundation/util"
 
 	"github.com/muidea/magicOrm/model"
@@ -132,7 +132,7 @@ func IsPtr(tType reflect.Type) bool {
 	return tType.Kind() == reflect.Ptr
 }
 
-func GetTypeEnum(val reflect.Type) (ret model.TypeDeclare, err error) {
+func GetTypeEnum(val reflect.Type) (ret model.TypeDeclare, err *cd.Result) {
 	switch val.Kind() {
 	case reflect.Int8:
 		ret = model.TypeBitValue
@@ -181,7 +181,7 @@ func GetTypeEnum(val reflect.Type) (ret model.TypeDeclare, err error) {
 
 		ret = model.TypeSliceValue
 	default:
-		err = fmt.Errorf("unsupported type:%v", val.String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("unsupported type:%v", val.String()))
 	}
 
 	return
@@ -237,7 +237,7 @@ func IsZero(val reflect.Value) (ret bool) {
 }
 
 // isSameStruct check if same
-func isSameStruct(firstVal, secondVal reflect.Value) (ret bool, err error) {
+func isSameStruct(firstVal, secondVal reflect.Value) (ret bool, err *cd.Result) {
 	firstNum := firstVal.NumField()
 	secondNum := secondVal.NumField()
 	if firstNum != secondNum {
@@ -260,7 +260,7 @@ func isSameStruct(firstVal, secondVal reflect.Value) (ret bool, err error) {
 }
 
 // IsSameVal is same value
-func IsSameVal(firstVal, secondVal reflect.Value) (ret bool, err error) {
+func IsSameVal(firstVal, secondVal reflect.Value) (ret bool, err *cd.Result) {
 	ret = firstVal.Type().String() == secondVal.Type().String()
 	if !ret {
 		return
@@ -329,7 +329,7 @@ func IsSameVal(firstVal, secondVal reflect.Value) (ret bool, err error) {
 	return
 }
 
-func GetBool(val any) (ret bool, err error) {
+func GetBool(val any) (ret bool, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	switch rVal.Kind() {
 	case reflect.Bool:
@@ -343,13 +343,13 @@ func GetBool(val any) (ret bool, err error) {
 	case reflect.String:
 		ret = len(rVal.String()) > 0 && rVal.String() == "1"
 	default:
-		err = fmt.Errorf("illegal bool value, val type:%v", rVal.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal bool value, val type:%v", rVal.Type().String()))
 	}
 
 	return
 }
 
-func GetInt(val any) (ret int, err error) {
+func GetInt(val any) (ret int, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	switch rVal.Kind() {
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
@@ -361,19 +361,19 @@ func GetInt(val any) (ret int, err error) {
 	case reflect.String:
 		i64, iErr := strconv.ParseInt(rVal.String(), 0, 64)
 		if iErr != nil {
-			err = iErr
+			err = cd.NewError(cd.UnExpected, iErr.Error())
 			return
 		}
 
 		ret = int(i64)
 	default:
-		err = fmt.Errorf("illegal int value, val type:%v", rVal.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal int value, val type:%v", rVal.Type().String()))
 	}
 
 	return
 }
 
-func GetInt8(val any) (ret int8, err error) {
+func GetInt8(val any) (ret int8, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	switch rVal.Kind() {
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
@@ -385,19 +385,19 @@ func GetInt8(val any) (ret int8, err error) {
 	case reflect.String:
 		i64, iErr := strconv.ParseInt(rVal.String(), 0, 64)
 		if iErr != nil {
-			err = iErr
+			err = cd.NewError(cd.UnExpected, iErr.Error())
 			return
 		}
 
 		ret = int8(i64)
 	default:
-		err = fmt.Errorf("illegal int8 value, val type:%v", rVal.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal int8 value, val type:%v", rVal.Type().String()))
 	}
 
 	return
 }
 
-func GetInt16(val any) (ret int16, err error) {
+func GetInt16(val any) (ret int16, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	switch rVal.Kind() {
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
@@ -409,19 +409,19 @@ func GetInt16(val any) (ret int16, err error) {
 	case reflect.String:
 		i64, iErr := strconv.ParseInt(rVal.String(), 0, 64)
 		if iErr != nil {
-			err = iErr
+			err = cd.NewError(cd.UnExpected, iErr.Error())
 			return
 		}
 
 		ret = int16(i64)
 	default:
-		err = fmt.Errorf("illegal int16 value, val type:%v", rVal.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal int16 value, val type:%v", rVal.Type().String()))
 	}
 
 	return
 }
 
-func GetInt32(val any) (ret int32, err error) {
+func GetInt32(val any) (ret int32, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	switch rVal.Kind() {
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
@@ -433,19 +433,19 @@ func GetInt32(val any) (ret int32, err error) {
 	case reflect.String:
 		i64, iErr := strconv.ParseInt(rVal.String(), 0, 64)
 		if iErr != nil {
-			err = iErr
+			err = cd.NewError(cd.UnExpected, iErr.Error())
 			return
 		}
 
 		ret = int32(i64)
 	default:
-		err = fmt.Errorf("illegal int32 value, val type:%v", rVal.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal int32 value, val type:%v", rVal.Type().String()))
 	}
 
 	return
 }
 
-func GetInt64(val any) (ret int64, err error) {
+func GetInt64(val any) (ret int64, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	switch rVal.Kind() {
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
@@ -457,37 +457,42 @@ func GetInt64(val any) (ret int64, err error) {
 	case reflect.String:
 		i64, iErr := strconv.ParseInt(rVal.String(), 0, 64)
 		if iErr != nil {
-			err = iErr
+			err = cd.NewError(cd.UnExpected, iErr.Error())
 			return
 		}
 
 		ret = i64
 	default:
-		err = fmt.Errorf("illegal int64 value, val type:%v", rVal.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal int64 value, val type:%v", rVal.Type().String()))
 	}
 
 	return
 }
 
-func GetUint(val any) (ret uint64, err error) {
+func GetUint(val any) (ret uint, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	switch rVal.Kind() {
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
-		ret = uint64(rVal.Int())
+		ret = uint(rVal.Int())
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
-		ret = rVal.Uint()
+		ret = uint(rVal.Uint())
 	case reflect.Float32, reflect.Float64:
-		ret = uint64(rVal.Float())
+		ret = uint(rVal.Float())
 	case reflect.String:
-		ret, err = strconv.ParseUint(rVal.String(), 0, 64)
+		ui64, uiErr := strconv.ParseUint(rVal.String(), 0, 64)
+		if uiErr != nil {
+			err = cd.NewError(cd.UnExpected, uiErr.Error())
+			return
+		}
+		ret = uint(ui64)
 	default:
-		err = fmt.Errorf("illegal uint value, val type:%v", rVal.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal uint value, val type:%v", rVal.Type().String()))
 	}
 
 	return
 }
 
-func GetUint8(val any) (ret uint8, err error) {
+func GetUint8(val any) (ret uint8, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	switch rVal.Kind() {
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
@@ -499,18 +504,18 @@ func GetUint8(val any) (ret uint8, err error) {
 	case reflect.String:
 		uiVal, uiErr := strconv.ParseUint(rVal.String(), 0, 64)
 		if uiErr != nil {
-			err = uiErr
+			err = cd.NewError(cd.UnExpected, uiErr.Error())
 			return
 		}
 		ret = uint8(uiVal)
 	default:
-		err = fmt.Errorf("illegal uint8 value, val type:%v", rVal.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal uint8 value, val type:%v", rVal.Type().String()))
 	}
 
 	return
 }
 
-func GetUint16(val any) (ret uint16, err error) {
+func GetUint16(val any) (ret uint16, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	switch rVal.Kind() {
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
@@ -522,18 +527,18 @@ func GetUint16(val any) (ret uint16, err error) {
 	case reflect.String:
 		uiVal, uiErr := strconv.ParseUint(rVal.String(), 0, 64)
 		if uiErr != nil {
-			err = uiErr
+			err = cd.NewError(cd.UnExpected, uiErr.Error())
 			return
 		}
 		ret = uint16(uiVal)
 	default:
-		err = fmt.Errorf("illegal uint16 value, val type:%v", rVal.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal uint16 value, val type:%v", rVal.Type().String()))
 	}
 
 	return
 }
 
-func GetUint32(val any) (ret uint32, err error) {
+func GetUint32(val any) (ret uint32, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	switch rVal.Kind() {
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
@@ -545,18 +550,18 @@ func GetUint32(val any) (ret uint32, err error) {
 	case reflect.String:
 		uiVal, uiErr := strconv.ParseUint(rVal.String(), 0, 64)
 		if uiErr != nil {
-			err = uiErr
+			err = cd.NewError(cd.UnExpected, uiErr.Error())
 			return
 		}
 		ret = uint32(uiVal)
 	default:
-		err = fmt.Errorf("illegal uint32 value, val type:%v", rVal.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal uint32 value, val type:%v", rVal.Type().String()))
 	}
 
 	return
 }
 
-func GetUint64(val any) (ret uint64, err error) {
+func GetUint64(val any) (ret uint64, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	switch rVal.Kind() {
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
@@ -568,18 +573,18 @@ func GetUint64(val any) (ret uint64, err error) {
 	case reflect.String:
 		uiVal, uiErr := strconv.ParseUint(rVal.String(), 0, 64)
 		if uiErr != nil {
-			err = uiErr
+			err = cd.NewError(cd.UnExpected, uiErr.Error())
 			return
 		}
 		ret = uiVal
 	default:
-		err = fmt.Errorf("illegal uint64 value, val type:%v", rVal.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal uint64 value, val type:%v", rVal.Type().String()))
 	}
 
 	return
 }
 
-func GetFloat32(val any) (ret float32, err error) {
+func GetFloat32(val any) (ret float32, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	switch rVal.Kind() {
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
@@ -591,19 +596,19 @@ func GetFloat32(val any) (ret float32, err error) {
 	case reflect.String:
 		fVal, fErr := strconv.ParseFloat(rVal.String(), 32)
 		if fErr != nil {
-			err = fErr
+			err = cd.NewError(cd.UnExpected, fErr.Error())
 			return
 		}
 
 		ret = float32(fVal)
 	default:
-		err = fmt.Errorf("illegal float32 value, val type:%v", rVal.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal float32 value, val type:%v", rVal.Type().String()))
 	}
 
 	return
 }
 
-func GetFloat64(val any) (ret float64, err error) {
+func GetFloat64(val any) (ret float64, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	switch rVal.Kind() {
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
@@ -615,34 +620,34 @@ func GetFloat64(val any) (ret float64, err error) {
 	case reflect.String:
 		fVal, fErr := strconv.ParseFloat(rVal.String(), 64)
 		if fErr != nil {
-			err = fErr
+			err = cd.NewError(cd.UnExpected, fErr.Error())
 			return
 		}
 
 		ret = fVal
 	default:
-		err = fmt.Errorf("illegal float64 value, val type:%v", rVal.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal float64 value, val type:%v", rVal.Type().String()))
 	}
 
 	return
 }
 
-func GetString(val any) (ret string, err error) {
+func GetString(val any) (ret string, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	switch rVal.Kind() {
 	case reflect.String:
 		ret = rVal.String()
 	default:
-		err = fmt.Errorf("illegal string value, val type:%v", rVal.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal string value, val type:%v", rVal.Type().String()))
 	}
 
 	return
 }
 
-func GetDateTimeStr(val any) (ret string, err error) {
+func GetDateTimeStr(val any) (ret string, err *cd.Result) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
-			err = fmt.Errorf("illegal dateTime value, val:%v", val)
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val:%v", val))
 		}
 	}()
 
@@ -653,27 +658,32 @@ func GetDateTimeStr(val any) (ret string, err error) {
 	case reflect.Struct:
 		ret = rVal.Interface().(time.Time).Format(fu.CSTLayout)
 	default:
-		err = fmt.Errorf("illegal dateTime value, val type:%v", rVal.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))
 	}
 
 	return
 }
 
-func GetDateTimeDt(val any) (ret time.Time, err error) {
+func GetDateTimeDt(val any) (ret time.Time, err *cd.Result) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
-			err = fmt.Errorf("illegal dateTime value, val:%v", val)
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val:%v", val))
 		}
 	}()
 
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	switch rVal.Kind() {
 	case reflect.String:
-		ret, err = time.Parse(fu.CSTLayout, rVal.String())
+		tVal, tErr := time.Parse(fu.CSTLayout, rVal.String())
+		if tErr != nil {
+			err = cd.NewError(cd.UnExpected, tErr.Error())
+			return
+		}
+		ret = tVal
 	case reflect.Struct:
 		ret = rVal.Interface().(time.Time)
 	default:
-		err = fmt.Errorf("illegal dateTime value, val type:%v", rVal.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))
 	}
 
 	return

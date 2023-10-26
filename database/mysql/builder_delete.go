@@ -3,13 +3,14 @@ package mysql
 import (
 	"fmt"
 
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/model"
 )
 
 // BuildDelete  BuildDelete
-func (s *Builder) BuildDelete() (ret string, err error) {
+func (s *Builder) BuildDelete() (ret string, err *cd.Result) {
 	filterStr, filterErr := s.buildModelFilter()
 	if filterErr != nil {
 		err = filterErr
@@ -25,7 +26,7 @@ func (s *Builder) BuildDelete() (ret string, err error) {
 }
 
 // BuildDeleteRelation BuildDeleteRelation
-func (s *Builder) BuildDeleteRelation(vField model.Field, rModel model.Model) (delRight, delRelation string, err error) {
+func (s *Builder) BuildDeleteRelation(vField model.Field, rModel model.Model) (delRight, delRelation string, err *cd.Result) {
 	leftVal, leftErr := s.GetModelValue()
 	if leftErr != nil {
 		err = leftErr

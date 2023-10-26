@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"strings"
 
+	cd "github.com/muidea/magicCommon/def"
+
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/util"
 )
@@ -18,16 +20,16 @@ type SpecImpl struct {
 var emptySpec = SpecImpl{primaryKey: false, valueDeclare: model.Customer}
 
 // NewSpec name[key][auto]
-func NewSpec(tag reflect.StructTag) (ret *SpecImpl, err error) {
+func NewSpec(tag reflect.StructTag) (ret *SpecImpl, err *cd.Result) {
 	spec := tag.Get("orm")
 	ret, err = getSpec(spec)
 	return
 }
 
-func getSpec(spec string) (ret *SpecImpl, err error) {
+func getSpec(spec string) (ret *SpecImpl, err *cd.Result) {
 	items := strings.Split(spec, " ")
 	if len(items) < 1 {
-		err = fmt.Errorf("illegal spec value, val:%s", spec)
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal spec value, val:%s", spec))
 		return
 	}
 

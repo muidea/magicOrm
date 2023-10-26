@@ -1,9 +1,10 @@
 package helper
 
 import (
-	"fmt"
 	"testing"
 	"time"
+
+	cd "github.com/muidea/magicCommon/def"
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/local"
@@ -140,7 +141,7 @@ func TestModel(t *testing.T) {
 	}
 }
 
-func testValue(t *testing.T, valPtr interface{}) error {
+func testValue(t *testing.T, valPtr interface{}) *cd.Result {
 	lModel, lErr := local.GetEntityModel(valPtr)
 	if lErr != nil {
 		t.Errorf("local.GetEntityModel failed. err:%s", lErr.Error())
@@ -190,7 +191,7 @@ func testValue(t *testing.T, valPtr interface{}) error {
 
 	if !model.CompareModel(lModel, rModel) {
 		t.Errorf("CompareModel failed")
-		return fmt.Errorf("compare model failed")
+		return cd.NewError(cd.UnExpected, "compare model failed")
 	}
 	return nil
 }

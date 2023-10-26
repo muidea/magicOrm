@@ -10,7 +10,7 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *impl) queryCount(vFilter model.Filter) (ret int64, err error) {
+func (s *impl) queryCount(vFilter model.Filter) (ret int64, err *cd.Result) {
 	builderVal := builder.NewBuilder(vFilter.MaskModel(), s.modelProvider, s.specialPrefix)
 	sqlStr, sqlErr := builderVal.BuildCount(vFilter)
 	if sqlErr != nil {
@@ -39,16 +39,16 @@ func (s *impl) queryCount(vFilter model.Filter) (ret int64, err error) {
 	return
 }
 
-func (s *impl) Count(vFilter model.Filter) (ret int64, re *cd.Result) {
+func (s *impl) Count(vFilter model.Filter) (ret int64, err *cd.Result) {
 	if vFilter == nil {
-		re = cd.NewError(cd.IllegalParam, "illegal filter value")
+		err = cd.NewError(cd.IllegalParam, "illegal filter value")
 		return
 	}
 
 	queryVal, queryErr := s.queryCount(vFilter)
 	if queryErr != nil {
-		re = cd.NewError(cd.UnExpected, queryErr.Error())
-		log.Errorf("Count failed, s.queryCount error:%s", queryErr.Error())
+		err = queryErr
+		log.Errorf("Count failed, s.queryCount error:%s", err.Error())
 		return
 	}
 

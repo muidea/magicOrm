@@ -9,7 +9,7 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *impl) updateSingle(vModel model.Model) (err error) {
+func (s *impl) updateSingle(vModel model.Model) (err *cd.Result) {
 	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
 	sqlStr, sqlErr := builderVal.BuildUpdate()
 	if sqlErr != nil {
@@ -25,7 +25,7 @@ func (s *impl) updateSingle(vModel model.Model) (err error) {
 	return
 }
 
-func (s *impl) updateRelation(vModel model.Model, vField model.Field) (err error) {
+func (s *impl) updateRelation(vModel model.Model, vField model.Field) (err *cd.Result) {
 	err = s.deleteRelation(vModel, vField, 0)
 	if err != nil {
 		log.Errorf("updateRelation failed, s.deleteRelation error:%s", err.Error())
@@ -39,23 +39,21 @@ func (s *impl) updateRelation(vModel model.Model, vField model.Field) (err error
 	return
 }
 
-func (s *impl) Update(vModel model.Model) (ret model.Model, re *cd.Result) {
+func (s *impl) Update(vModel model.Model) (ret model.Model, err *cd.Result) {
 	if vModel == nil {
-		re = cd.NewError(cd.IllegalParam, "illegal model value")
+		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return
 	}
 
-	err := s.executor.BeginTransaction()
+	err = s.executor.BeginTransaction()
 	if err != nil {
-		re = cd.NewError(cd.UnExpected, err.Error())
 		return
 	}
 	defer s.finalTransaction(err)
 
 	err = s.updateSingle(vModel)
 	if err != nil {
-		re = cd.NewError(cd.UnExpected, err.Error())
-		log.Errorf("Update failed, s.updateSingle error:%s", re.Error())
+		log.Errorf("Update failed, s.updateSingle error:%s", err.Error())
 		return
 	}
 
@@ -66,8 +64,7 @@ func (s *impl) Update(vModel model.Model) (ret model.Model, re *cd.Result) {
 
 		err = s.updateRelation(vModel, field)
 		if err != nil {
-			re = cd.NewError(cd.UnExpected, err.Error())
-			log.Errorf("Update failed, s.updateRelation error:%s", re.Error())
+			log.Errorf("Update failed, s.updateRelation error:%s", err.Error())
 			return
 		}
 	}

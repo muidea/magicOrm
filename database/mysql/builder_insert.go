@@ -2,13 +2,15 @@ package mysql
 
 import (
 	"fmt"
+
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/model"
 )
 
 // BuildInsert  Build Insert
-func (s *Builder) BuildInsert() (ret string, err error) {
+func (s *Builder) BuildInsert() (ret string, err *cd.Result) {
 	fieldNames := ""
 	fieldValues := ""
 	for _, field := range s.GetFields() {
@@ -20,7 +22,7 @@ func (s *Builder) BuildInsert() (ret string, err error) {
 		}
 
 		var valStr string
-		var valErr error
+		var valErr *cd.Result
 		if !fValue.IsNil() {
 			valStr, valErr = s.EncodeValue(fValue, fType)
 		} else {
@@ -28,7 +30,7 @@ func (s *Builder) BuildInsert() (ret string, err error) {
 		}
 		if valErr != nil {
 			err = valErr
-			log.Errorf("BuildInsert failed, s.EncodeValue/getTypeDefaultValue error:%s", err.Error())
+			log.Errorf("BuildInsert failed, s.EncodeValue/getTypeDefaultValue error:%s", valErr.Error())
 			return
 		}
 
@@ -53,7 +55,7 @@ func (s *Builder) BuildInsert() (ret string, err error) {
 }
 
 // BuildInsertRelation Build Insert Relation
-func (s *Builder) BuildInsertRelation(vField model.Field, rModel model.Model) (ret string, err error) {
+func (s *Builder) BuildInsertRelation(vField model.Field, rModel model.Model) (ret string, err *cd.Result) {
 	leftVal, rightVal, valErr := s.GetRelationValue(rModel)
 	if valErr != nil {
 		err = valErr

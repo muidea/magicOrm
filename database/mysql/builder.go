@@ -2,6 +2,8 @@ package mysql
 
 import (
 	"fmt"
+
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/database/common"
@@ -19,7 +21,7 @@ func New(vModel model.Model, modelProvider provider.Provider, prefix string) *Bu
 	return &Builder{Common: common.New(vModel, modelProvider, prefix)}
 }
 
-func (s *Builder) buildModelFilter() (ret string, err error) {
+func (s *Builder) buildModelFilter() (ret string, err *cd.Result) {
 	pkField := s.GetPrimaryKeyField(nil)
 	pkfVal, pkfErr := s.EncodeValue(pkField.GetValue(), pkField.GetType())
 	if pkfErr != nil {

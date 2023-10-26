@@ -8,7 +8,7 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *impl) createSingle(vModel model.Model) (err error) {
+func (s *impl) createSingle(vModel model.Model) (err *cd.Result) {
 	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
 	createSQL, createErr := builderVal.BuildCreateTable()
 	if createErr != nil {
@@ -24,7 +24,7 @@ func (s *impl) createSingle(vModel model.Model) (err error) {
 	return
 }
 
-func (s *impl) createRelation(vModel model.Model, vField model.Field, rModel model.Model) (err error) {
+func (s *impl) createRelation(vModel model.Model, vField model.Field, rModel model.Model) (err *cd.Result) {
 	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
 	relationSQL, relationErr := builderVal.BuildCreateRelationTable(vField, rModel)
 	if relationErr != nil {
@@ -40,7 +40,7 @@ func (s *impl) createRelation(vModel model.Model, vField model.Field, rModel mod
 	return
 }
 
-func (s *impl) createSchema(vModel model.Model) (err error) {
+func (s *impl) createSchema(vModel model.Model) (err *cd.Result) {
 	err = s.createSingle(vModel)
 	if err != nil {
 		log.Errorf("createSchema failed, s.createSingle error:%s", err.Error())
@@ -83,14 +83,13 @@ func (s *impl) createSchema(vModel model.Model) (err error) {
 	return
 }
 
-func (s *impl) Create(vModel model.Model) (re *cd.Result) {
+func (s *impl) Create(vModel model.Model) (err *cd.Result) {
 	if vModel == nil {
-		re = cd.NewError(cd.IllegalParam, "illegal model value")
+		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return
 	}
-	err := s.executor.BeginTransaction()
+	err = s.executor.BeginTransaction()
 	if err != nil {
-		re = cd.NewError(cd.UnExpected, err.Error())
 		return
 	}
 
@@ -98,7 +97,6 @@ func (s *impl) Create(vModel model.Model) (re *cd.Result) {
 
 	err = s.createSchema(vModel)
 	if err != nil {
-		re = cd.NewError(cd.UnExpected, err.Error())
 		log.Errorf("Create failed, s.createSchema error:%s", err.Error())
 	}
 	return

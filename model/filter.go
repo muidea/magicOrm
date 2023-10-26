@@ -1,6 +1,7 @@
 package model
 
 import (
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/util"
 )
 
@@ -30,16 +31,16 @@ type Sorter interface {
 
 // Filter orm query filter
 type Filter interface {
-	Equal(key string, val any) error
-	NotEqual(key string, val any) error
-	Below(key string, val any) error
-	Above(key string, val any) error
-	In(key string, val any) error
-	NotIn(key string, val any) error
-	Like(key string, val any) error
+	Equal(key string, val any) *cd.Result
+	NotEqual(key string, val any) *cd.Result
+	Below(key string, val any) *cd.Result
+	Above(key string, val any) *cd.Result
+	In(key string, val any) *cd.Result
+	NotIn(key string, val any) *cd.Result
+	Like(key string, val any) *cd.Result
 	Page(page *util.Pagination)
 	Sort(sorter *util.SortFilter)
-	ValueMask(val any) error
+	ValueMask(val any) *cd.Result
 
 	GetFilterItem(key string) FilterItem
 	Pagination() (limit, offset int, paging bool)

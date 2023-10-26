@@ -7,11 +7,11 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, re *cd.Result) {
+func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, err *cd.Result) {
 	filterVal, filterErr := s.modelProvider.GetModelFilter(vModel)
 	if filterErr != nil {
-		re = cd.NewError(cd.UnExpected, filterErr.Error())
-		log.Errorf("getModelFilter failed, s.modelProvider.GetEntityFilter error:%s", filterErr.Error())
+		err = filterErr
+		log.Errorf("getModelFilter failed, s.modelProvider.GetEntityFilter error:%s", err.Error())
 		return
 	}
 
@@ -24,9 +24,8 @@ func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, re *cd.Resu
 
 		// if basic
 		if model.IsBasicType(vType.GetValue()) {
-			err := filterVal.Equal(val.GetName(), val.GetValue().Interface())
+			err = filterVal.Equal(val.GetName(), val.GetValue().Interface())
 			if err != nil {
-				re = cd.NewError(cd.UnExpected, err.Error())
 				log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
 				return
 			}
@@ -36,9 +35,8 @@ func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, re *cd.Resu
 
 		// if struct
 		if model.IsStructType(vType.GetValue()) {
-			err := filterVal.Equal(val.GetName(), val.GetValue().Interface())
+			err = filterVal.Equal(val.GetName(), val.GetValue().Interface())
 			if err != nil {
-				re = cd.NewError(cd.UnExpected, err.Error())
 				log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
 				return
 			}
@@ -47,9 +45,8 @@ func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, re *cd.Resu
 		}
 
 		// if slice
-		err := filterVal.In(val.GetName(), val.GetValue().Interface())
+		err = filterVal.In(val.GetName(), val.GetValue().Interface())
 		if err != nil {
-			re = cd.NewError(cd.UnExpected, err.Error())
 			log.Errorf("getModelFilter failed, filterVal.In error:%s", err.Error())
 			return
 		}
@@ -59,7 +56,7 @@ func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, re *cd.Resu
 	return
 }
 
-func (s *impl) getModelFieldsScanDestPtr(vModel model.Model, builder builder.Builder) (ret []any, re *cd.Result) {
+func (s *impl) getModelFieldsScanDestPtr(vModel model.Model, builder builder.Builder) (ret []any, err *cd.Result) {
 	items := []any{}
 	for _, field := range vModel.GetFields() {
 		fType := field.GetType()
@@ -70,8 +67,8 @@ func (s *impl) getModelFieldsScanDestPtr(vModel model.Model, builder builder.Bui
 
 		itemVal, itemErr := builder.GetFieldScanDest(field)
 		if itemErr != nil {
-			re = cd.NewError(cd.UnExpected, itemErr.Error())
-			log.Errorf("getModelFieldsScanDestPtr failed, builder.GetFieldScanDest error:%s", itemErr.Error())
+			err = itemErr
+			log.Errorf("getModelFieldsScanDestPtr failed, builder.GetFieldScanDest error:%s", err.Error())
 			return
 		}
 
@@ -82,11 +79,11 @@ func (s *impl) getModelFieldsScanDestPtr(vModel model.Model, builder builder.Bui
 	return
 }
 
-func (s *impl) getModelPKFieldScanDestPtr(vModel model.Model, builder builder.Builder) (ret any, re *cd.Result) {
+func (s *impl) getModelPKFieldScanDestPtr(vModel model.Model, builder builder.Builder) (ret any, err *cd.Result) {
 	itemVal, itemErr := builder.GetFieldScanDest(vModel.GetPrimaryField())
 	if itemErr != nil {
-		re = cd.NewError(cd.UnExpected, itemErr.Error())
-		log.Errorf("getModelPKFieldScanDestPtr failed, builder.GetFieldScanDest error:%s", itemErr.Error())
+		err = itemErr
+		log.Errorf("getModelPKFieldScanDestPtr failed, builder.GetFieldScanDest error:%s", err.Error())
 		return
 	}
 

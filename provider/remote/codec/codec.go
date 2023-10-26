@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"reflect"
 
+	cd "github.com/muidea/magicCommon/def"
+
 	"github.com/muidea/magicOrm/model"
 )
 
-type ElemDependValueFunc func(model.Value) ([]model.Value, error)
+type ElemDependValueFunc func(model.Value) ([]model.Value, *cd.Result)
 
 type Codec interface {
-	Encode(vVal model.Value, vType model.Type) (ret interface{}, err error)
-	Decode(val interface{}, vType model.Type) (ret model.Value, err error)
+	Encode(vVal model.Value, vType model.Type) (ret interface{}, err *cd.Result)
+	Decode(val interface{}, vType model.Type) (ret model.Value, err *cd.Result)
 }
 
 type impl struct {
@@ -22,9 +24,9 @@ func New(elemDependValue ElemDependValueFunc) Codec {
 	return &impl{elemDependValue: elemDependValue}
 }
 
-func (s *impl) Encode(vVal model.Value, vType model.Type) (ret interface{}, err error) {
+func (s *impl) Encode(vVal model.Value, vType model.Type) (ret interface{}, err *cd.Result) {
 	if !vType.IsBasic() || vVal.IsNil() {
-		err = fmt.Errorf("encode value failed, illegal value or type")
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("encode value failed, illegal value or type"))
 		return
 	}
 
@@ -44,15 +46,15 @@ func (s *impl) Encode(vVal model.Value, vType model.Type) (ret interface{}, err 
 	case model.TypeStringValue:
 		ret, err = s.encodeString(vVal, vType)
 	default:
-		err = fmt.Errorf("illegal type, type:%s", vType.GetName())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal type, type:%s", vType.GetName()))
 	}
 
 	return
 }
 
-func (s *impl) Decode(val interface{}, vType model.Type) (ret model.Value, err error) {
+func (s *impl) Decode(val interface{}, vType model.Type) (ret model.Value, err *cd.Result) {
 	if !vType.IsBasic() {
-		err = fmt.Errorf("illegal value type, type:%s", vType.GetName())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal value type, type:%s", vType.GetName()))
 		return
 	}
 
@@ -73,11 +75,7 @@ func (s *impl) Decode(val interface{}, vType model.Type) (ret model.Value, err e
 	case model.TypeStringValue:
 		ret, err = s.decodeString(val, vType)
 	default:
-		err = fmt.Errorf("illegal type, type:%s", vType.GetName())
-	}
-
-	if err != nil {
-		return
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal type, type:%s", vType.GetName()))
 	}
 
 	return

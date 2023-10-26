@@ -8,6 +8,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	cd "github.com/muidea/magicCommon/def"
+
 	"github.com/muidea/magicOrm/database/mysql"
 )
 
@@ -28,7 +30,7 @@ var mode = 3
 var disableStatic = true
 var finishFlag = false
 
-type funcPtr func(executor *mysql.Executor) error
+type funcPtr func(executor *mysql.Executor) *cd.Result
 
 var currentSize atomic.Int64
 
@@ -135,7 +137,7 @@ func randomDDL(wg *sync.WaitGroup, pool *mysql.Pool) {
 }
 
 func pickExecutor(pool *mysql.Pool, wg *sync.WaitGroup, fPtr funcPtr) {
-	var err error
+	var err *cd.Result
 	func() {
 		wg.Add(1)
 		defer wg.Done()
@@ -157,24 +159,24 @@ func pickExecutor(pool *mysql.Pool, wg *sync.WaitGroup, fPtr funcPtr) {
 	}
 }
 
-func createSchema(executor *mysql.Executor) (err error) {
+func createSchema(executor *mysql.Executor) (err *cd.Result) {
 	sql := "CREATE TABLE `Unit` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`i8` TINYINT NOT NULL ,\n\t`i16` SMALLINT NOT NULL ,\n\t`i32` INT NOT NULL ,\n\t`i64` BIGINT NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` FLOAT NOT NULL ,\n\t`f64` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\t`flag` TINYINT NOT NULL ,\n\t`iArray` TEXT NOT NULL ,\n\t`fArray` TEXT NOT NULL ,\n\t`strArray` TEXT NOT NULL ,\n\tPRIMARY KEY (`id`)\n)"
 	_, _, err = executor.Execute(sql)
 	return
 }
 
-func dropSchema(executor *mysql.Executor) (err error) {
+func dropSchema(executor *mysql.Executor) (err *cd.Result) {
 	sql := "DROP TABLE IF EXISTS `Unit`"
 	_, _, err = executor.Execute(sql)
 	return
 }
 
-func checkSchema(tableName string, executor *mysql.Executor) (ret bool, err error) {
+func checkSchema(tableName string, executor *mysql.Executor) (ret bool, err *cd.Result) {
 	ret, err = executor.CheckTableExist(tableName)
 	return
 }
 
-func insertValue(executor *mysql.Executor) (err error) {
+func insertValue(executor *mysql.Executor) (err *cd.Result) {
 	sql := "INSERT INTO `Unit` (`i8`,`i16`,`i32`,`i64`,`name`,`value`,`f64`,`ts`,`flag`,`iArray`,`fArray`,`strArray`) VALUES (8,1600,323200,78962222222,'Hello world',12.345600128173828,12.45678,'2018-01-02 15:04:05',1,'12','12.34','abcdef')"
 	idx := 0
 	if itemSize == -1 {
@@ -198,7 +200,7 @@ func insertValue(executor *mysql.Executor) (err error) {
 	return
 }
 
-func truncateSchema(executor *mysql.Executor) (err error) {
+func truncateSchema(executor *mysql.Executor) (err *cd.Result) {
 	sql := "TRUNCATE TABLE `Unit`"
 	_, _, err = executor.Execute(sql)
 
@@ -207,43 +209,43 @@ func truncateSchema(executor *mysql.Executor) (err error) {
 	return
 }
 
-func alterSchemaAdd(executor *mysql.Executor) (err error) {
+func alterSchemaAdd(executor *mysql.Executor) (err *cd.Result) {
 	sql := "ALTER TABLE `Unit` ADD dVal DATE"
 	_, _, err = executor.Execute(sql)
 	return
 }
 
-func alterSchemaDrop(executor *mysql.Executor) (err error) {
+func alterSchemaDrop(executor *mysql.Executor) (err *cd.Result) {
 	sql := "ALTER TABLE `Unit` DROP dVal"
 	_, _, err = executor.Execute(sql)
 	return
 }
 
-func alterSchemaOlnDDLAdd(executor *mysql.Executor) (err error) {
+func alterSchemaOlnDDLAdd(executor *mysql.Executor) (err *cd.Result) {
 	sql := "ALTER TABLE `Unit` ADD dVal2 DATE, ALGORITHM=DEFAULT, LOCK=NONE"
 	_, _, err = executor.Execute(sql)
 	return
 }
 
-func alterSchemaOlnDDLDrop(executor *mysql.Executor) (err error) {
+func alterSchemaOlnDDLDrop(executor *mysql.Executor) (err *cd.Result) {
 	sql := "ALTER TABLE `Unit` DROP dVal2, ALGORITHM=DEFAULT, LOCK=NONE"
 	_, _, err = executor.Execute(sql)
 	return
 }
 
-func createSchemaDDL(executor *mysql.Executor) (err error) {
+func createSchemaDDL(executor *mysql.Executor) (err *cd.Result) {
 	sql := "CREATE TABLE `Unit002` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`i8` TINYINT NOT NULL ,\n\t`i16` SMALLINT NOT NULL ,\n\t`i32` INT NOT NULL ,\n\t`i64` BIGINT NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` FLOAT NOT NULL ,\n\t`f64` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\t`flag` TINYINT NOT NULL ,\n\t`iArray` TEXT NOT NULL ,\n\t`fArray` TEXT NOT NULL ,\n\t`strArray` TEXT NOT NULL ,\n\tPRIMARY KEY (`id`)\n)"
 	_, _, err = executor.Execute(sql)
 	return
 }
 
-func dropSchemaDDL(executor *mysql.Executor) (err error) {
+func dropSchemaDDL(executor *mysql.Executor) (err *cd.Result) {
 	sql := "DROP TABLE IF EXISTS `Unit002`"
 	_, _, err = executor.Execute(sql)
 	return
 }
 
-func specialCheck(executor *mysql.Executor) (err error) {
+func specialCheck(executor *mysql.Executor) (err *cd.Result) {
 	ok, _ := checkSchema("rbac_menuinfo", executor)
 	if ok {
 		alterSpecialSchemaOlnDDLAdd(executor)
@@ -253,13 +255,13 @@ func specialCheck(executor *mysql.Executor) (err error) {
 	return
 }
 
-func alterSpecialSchemaOlnDDLAdd(executor *mysql.Executor) (err error) {
+func alterSpecialSchemaOlnDDLAdd(executor *mysql.Executor) (err *cd.Result) {
 	sql := "ALTER TABLE `rbac_menuinfo` ADD dVal200 DATE, ALGORITHM=DEFAULT, LOCK=NONE"
 	_, _, err = executor.Execute(sql)
 	return
 }
 
-func alterSpecialSchemaOlnDDLDrop(executor *mysql.Executor) (err error) {
+func alterSpecialSchemaOlnDDLDrop(executor *mysql.Executor) (err *cd.Result) {
 	sql := "ALTER TABLE `rbac_menuinfo` DROP dVal200, ALGORITHM=DEFAULT, LOCK=NONE"
 	_, _, err = executor.Execute(sql)
 	return

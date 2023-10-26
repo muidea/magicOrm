@@ -5,6 +5,8 @@ import (
 	"path"
 	"reflect"
 
+	cd "github.com/muidea/magicCommon/def"
+
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/util"
 )
@@ -13,9 +15,9 @@ type TypeImpl struct {
 	typeVal reflect.Type
 }
 
-func getValueType(val reflect.Value) (ret *TypeImpl, err error) {
+func getValueType(val reflect.Value) (ret *TypeImpl, err *cd.Result) {
 	if util.IsNil(val) {
-		err = fmt.Errorf("can't get nil value type")
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("can't get nil value type"))
 		return
 	}
 
@@ -23,7 +25,7 @@ func getValueType(val reflect.Value) (ret *TypeImpl, err error) {
 	return
 }
 
-func NewType(val reflect.Type) (ret *TypeImpl, err error) {
+func NewType(val reflect.Type) (ret *TypeImpl, err *cd.Result) {
 	rType := val
 	if rType.Kind() == reflect.Ptr {
 		rType = rType.Elem()
@@ -66,7 +68,7 @@ func (s *TypeImpl) IsPtrType() bool {
 	return s.typeVal.Kind() == reflect.Ptr
 }
 
-func (s *TypeImpl) Interface(initVal any) (ret model.Value, err error) {
+func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 	tVal := reflect.New(s.getRawType()).Elem()
 
 	if initVal != nil {

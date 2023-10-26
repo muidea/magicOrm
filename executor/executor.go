@@ -1,6 +1,9 @@
 package executor
 
-import "github.com/muidea/magicOrm/database/mysql"
+import (
+	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicOrm/database/mysql"
+)
 
 type Config interface {
 	Server() string
@@ -13,22 +16,22 @@ type Config interface {
 // Executor 数据库访问对象
 type Executor interface {
 	Release()
-	BeginTransaction() error
-	CommitTransaction() error
-	RollbackTransaction() error
-	Query(sql string) error
+	BeginTransaction() *cd.Result
+	CommitTransaction() *cd.Result
+	RollbackTransaction() *cd.Result
+	Query(sql string) *cd.Result
 	Next() bool
 	Finish()
-	GetField(value ...interface{}) error
-	Execute(sql string) (rowsAffected int64, lastInsertID int64, err error)
-	CheckTableExist(tableName string) (bool, error)
+	GetField(value ...interface{}) *cd.Result
+	Execute(sql string) (rowsAffected int64, lastInsertID int64, err *cd.Result)
+	CheckTableExist(tableName string) (bool, *cd.Result)
 }
 
 type Pool interface {
-	Initialize(maxConnNum int, config Config) error
+	Initialize(maxConnNum int, config Config) *cd.Result
 	Uninitialized()
-	GetExecutor() (Executor, error)
-	CheckConfig(config Config) error
+	GetExecutor() (Executor, *cd.Result)
+	CheckConfig(config Config) *cd.Result
 	IncReference() int
 	DecReference() int
 }
@@ -37,7 +40,7 @@ func NewConfig(dbServer, dbName, username, password, charSet string) Config {
 	return mysql.NewConfig(dbServer, dbName, username, password, charSet)
 }
 
-func NewExecutor(config Config) (Executor, error) {
+func NewExecutor(config Config) (Executor, *cd.Result) {
 	return mysql.NewExecutor(mysql.NewConfig(config.Server(), config.Database(), config.Username(), config.Password(), config.CharSet()))
 }
 
@@ -50,7 +53,7 @@ type poolImpl struct {
 	referenceCount int
 }
 
-func (s *poolImpl) Initialize(maxConnNum int, config Config) error {
+func (s *poolImpl) Initialize(maxConnNum int, config Config) *cd.Result {
 	return s.Pool.Initialize(maxConnNum,
 		mysql.NewConfig(config.Server(), config.Database(), config.Username(), config.Password(), config.CharSet()))
 }
@@ -59,11 +62,11 @@ func (s *poolImpl) Uninitialized() {
 	s.Pool.Uninitialized()
 }
 
-func (s *poolImpl) GetExecutor() (Executor, error) {
+func (s *poolImpl) GetExecutor() (Executor, *cd.Result) {
 	return s.Pool.GetExecutor()
 }
 
-func (s *poolImpl) CheckConfig(config Config) error {
+func (s *poolImpl) CheckConfig(config Config) *cd.Result {
 	return s.Pool.CheckConfig(mysql.NewConfig(config.Server(), config.Database(), config.Username(), config.Password(), config.CharSet()))
 }
 

@@ -2,6 +2,8 @@ package remote
 
 import (
 	"fmt"
+
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/model"
 )
 
@@ -101,7 +103,7 @@ func (s *Field) copy() (ret *Field) {
 	return
 }
 
-func (s *Field) verifyAutoIncrement(typeVal model.TypeDeclare) error {
+func (s *Field) verifyAutoIncrement(typeVal model.TypeDeclare) *cd.Result {
 	switch typeVal {
 	case model.TypeBooleanValue,
 		model.TypeStringValue,
@@ -110,50 +112,50 @@ func (s *Field) verifyAutoIncrement(typeVal model.TypeDeclare) error {
 		model.TypeDoubleValue,
 		model.TypeStructValue,
 		model.TypeSliceValue:
-		return fmt.Errorf("illegal auto_increment field type, type:%v", typeVal)
+		return cd.NewError(cd.UnExpected, fmt.Sprintf("illegal auto_increment field type, type:%v", typeVal))
 	default:
 	}
 
 	return nil
 }
 
-func (s *Field) verifyUUID(typeVal model.TypeDeclare) error {
+func (s *Field) verifyUUID(typeVal model.TypeDeclare) *cd.Result {
 	if typeVal != model.TypeStringValue {
-		return fmt.Errorf("illegal uuid field type, type:%v", typeVal)
+		return cd.NewError(cd.UnExpected, fmt.Sprintf("illegal uuid field type, type:%v", typeVal))
 	}
 
 	return nil
 }
 
-func (s *Field) verifySnowFlake(typeVal model.TypeDeclare) error {
+func (s *Field) verifySnowFlake(typeVal model.TypeDeclare) *cd.Result {
 	if typeVal != model.TypeBigIntegerValue {
-		return fmt.Errorf("illegal snowflake field type, type:%v", typeVal)
+		return cd.NewError(cd.UnExpected, fmt.Sprintf("illegal snowflake field type, type:%v", typeVal))
 	}
 
 	return nil
 }
 
-func (s *Field) verifyDateTime(typeVal model.TypeDeclare) error {
+func (s *Field) verifyDateTime(typeVal model.TypeDeclare) *cd.Result {
 	if typeVal != model.TypeDateTimeValue {
-		return fmt.Errorf("illegal dateTime field type, type:%v", typeVal)
+		return cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime field type, type:%v", typeVal))
 	}
 
 	return nil
 }
 
-func (s *Field) verifyPK(typeVal model.TypeDeclare) error {
+func (s *Field) verifyPK(typeVal model.TypeDeclare) *cd.Result {
 	switch typeVal {
 	case model.TypeStructValue, model.TypeSliceValue:
-		return fmt.Errorf("illegal primary key field type, type:%v", typeVal)
+		return cd.NewError(cd.UnExpected, fmt.Sprintf("illegal primary key field type, type:%v", typeVal))
 	default:
 	}
 
 	return nil
 }
 
-func (s *Field) verify() (err error) {
+func (s *Field) verify() (err *cd.Result) {
 	if s.Type == nil {
-		err = fmt.Errorf("illegal filed, field type is null, name:%v", s.Name)
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal filed, field type is null, name:%v", s.Name))
 		return
 	}
 

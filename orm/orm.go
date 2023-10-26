@@ -41,12 +41,7 @@ func NewPool() executor.Pool {
 
 // NewExecutor NewExecutor
 func NewExecutor(config executor.Config) (executor.Executor, *cd.Result) {
-	executorVal, executorErr := executor.NewExecutor(config)
-	if executorErr != nil {
-		return nil, cd.NewError(cd.UnExpected, executorErr.Error())
-	}
-
-	return executorVal, nil
+	return executor.NewExecutor(config)
 }
 
 func NewConfig(dbServer, dbName, username, password, charSet string) executor.Config {
@@ -74,25 +69,20 @@ func Uninitialized() {
 	})
 }
 
-func AddDatabase(dbServer, dbName, username, password, charSet string, maxConnNum int, owner string) (re *cd.Result) {
+func AddDatabase(dbServer, dbName, username, password, charSet string, maxConnNum int, owner string) (err *cd.Result) {
 	config := NewConfig(dbServer, dbName, username, password, charSet)
 
 	val, ok := name2Pool.Load(owner)
 	if ok {
 		pool := val.(executor.Pool)
 		pool.IncReference()
-		err := pool.CheckConfig(config)
-		if err != nil {
-			re = cd.NewError(cd.UnExpected, err.Error())
-		}
-
+		err = pool.CheckConfig(config)
 		return
 	}
 
 	pool := NewPool()
-	err := pool.Initialize(maxConnNum, config)
+	err = pool.Initialize(maxConnNum, config)
 	if err != nil {
-		re = cd.NewError(cd.UnExpected, err.Error())
 		log.Errorf("AddDatabase failed, pool.Initialize error:%s", err.Error())
 		return
 	}
@@ -128,19 +118,19 @@ func NewOrm(provider provider.Provider, cfg executor.Config, prefix string) (Orm
 }
 
 // GetOrm get orm from pool
-func GetOrm(provider provider.Provider, prefix string) (ret Orm, re *cd.Result) {
+func GetOrm(provider provider.Provider, prefix string) (ret Orm, err *cd.Result) {
 	val, ok := name2Pool.Load(provider.Owner())
 	if !ok {
-		re = cd.NewError(cd.UnExpected, fmt.Sprintf("can't find orm,name:%s", provider.Owner()))
-		log.Errorf("GetOrm failed, error:%s", re.Error())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("can't find orm,name:%s", provider.Owner()))
+		log.Errorf("GetOrm failed, error:%s", err.Error())
 		return
 	}
 
 	pool := val.(executor.Pool)
 	executorVal, executorErr := pool.GetExecutor()
 	if executorErr != nil {
-		re = cd.NewError(cd.UnExpected, executorErr.Error())
-		log.Errorf("GetOrm failed, pool.GetExecutor error:%s", executorErr.Error())
+		err = executorErr
+		log.Errorf("GetOrm failed, pool.GetExecutor error:%s", err.Error())
 		return
 	}
 
@@ -156,11 +146,10 @@ type impl struct {
 }
 
 // BeginTransaction begin transaction
-func (s *impl) BeginTransaction() (re *cd.Result) {
+func (s *impl) BeginTransaction() (err *cd.Result) {
 	if s.executor != nil {
-		err := s.executor.BeginTransaction()
+		err = s.executor.BeginTransaction()
 		if err != nil {
-			re = cd.NewError(cd.UnExpected, err.Error())
 			log.Errorf("BeginTransaction failed, s.executor.BeginTransaction error:%s", err.Error())
 		}
 	}
@@ -169,11 +158,10 @@ func (s *impl) BeginTransaction() (re *cd.Result) {
 }
 
 // CommitTransaction commit transaction
-func (s *impl) CommitTransaction() (re *cd.Result) {
+func (s *impl) CommitTransaction() (err *cd.Result) {
 	if s.executor != nil {
-		err := s.executor.CommitTransaction()
+		err = s.executor.CommitTransaction()
 		if err != nil {
-			re = cd.NewError(cd.UnExpected, err.Error())
 			log.Errorf("CommitTransaction failed, s.executor.CommitTransaction error:%s", err.Error())
 		}
 	}
@@ -182,11 +170,10 @@ func (s *impl) CommitTransaction() (re *cd.Result) {
 }
 
 // RollbackTransaction rollback transaction
-func (s *impl) RollbackTransaction() (re *cd.Result) {
+func (s *impl) RollbackTransaction() (err *cd.Result) {
 	if s.executor != nil {
-		err := s.executor.RollbackTransaction()
+		err = s.executor.RollbackTransaction()
 		if err != nil {
-			re = cd.NewError(cd.UnExpected, err.Error())
 			log.Errorf("RollbackTransaction failed, s.executor.RollbackTransaction error:%s", err.Error())
 		}
 	}
@@ -194,7 +181,7 @@ func (s *impl) RollbackTransaction() (re *cd.Result) {
 	return
 }
 
-func (s *impl) finalTransaction(err error) {
+func (s *impl) finalTransaction(err *cd.Result) {
 	if err == nil {
 		err = s.executor.CommitTransaction()
 		if err != nil {

@@ -7,15 +7,15 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *impl) queryBatch(vFilter model.Filter) (ret []model.Model, re *cd.Result) {
+func (s *impl) queryBatch(vFilter model.Filter) (ret []model.Model, err *cd.Result) {
 	vModel := vFilter.MaskModel()
 	queryValueList, queryErr := s.innerQuery(vModel, vFilter)
 	if queryErr != nil {
-		re = queryErr
-		if queryErr.Fail() {
-			log.Errorf("queryBatch failed, s.innerQuery error:%s", queryErr.Error())
-		} else if queryErr.Warn() {
-			log.Warnf("queryBatch failed, s.innerQuery error:%s", queryErr.Error())
+		err = queryErr
+		if err.Fail() {
+			log.Errorf("queryBatch failed, s.innerQuery error:%s", err.Error())
+		} else if err.Warn() {
+			log.Warnf("queryBatch failed, s.innerQuery error:%s", err.Error())
 		}
 		return
 	}
@@ -24,11 +24,11 @@ func (s *impl) queryBatch(vFilter model.Filter) (ret []model.Model, re *cd.Resul
 	for idx := 0; idx < len(queryValueList); idx++ {
 		modelVal, modelErr := s.innerAssign(vModel.Copy(), queryValueList[idx], 0)
 		if modelErr != nil {
-			re = modelErr
-			if modelErr.Fail() {
-				log.Errorf("queryBatch failed, s.innerAssign error:%s", modelErr.Error())
-			} else if modelErr.Warn() {
-				log.Warnf("queryBatch failed, s.innerAssign error:%s", modelErr.Error())
+			err = modelErr
+			if err.Fail() {
+				log.Errorf("queryBatch failed, s.innerAssign error:%s", err.Error())
+			} else if err.Warn() {
+				log.Warnf("queryBatch failed, s.innerAssign error:%s", err.Error())
 			}
 			return
 		}
@@ -41,19 +41,19 @@ func (s *impl) queryBatch(vFilter model.Filter) (ret []model.Model, re *cd.Resul
 }
 
 // BatchQuery batch query
-func (s *impl) BatchQuery(vFilter model.Filter) (ret []model.Model, re *cd.Result) {
+func (s *impl) BatchQuery(vFilter model.Filter) (ret []model.Model, err *cd.Result) {
 	if vFilter == nil {
-		re = cd.NewError(cd.IllegalParam, "illegal model value")
+		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return
 	}
 
 	queryVal, queryErr := s.queryBatch(vFilter)
 	if queryErr != nil {
-		re = queryErr
-		if queryErr.Fail() {
-			log.Errorf("BatchQuery failed, s.queryBatch error:%s", queryErr.Error())
-		} else if queryErr.Warn() {
-			log.Warnf("BatchQuery failed, s.queryBatch error:%s", queryErr.Error())
+		err = queryErr
+		if err.Fail() {
+			log.Errorf("BatchQuery failed, s.queryBatch error:%s", err.Error())
+		} else if err.Warn() {
+			log.Warnf("BatchQuery failed, s.queryBatch error:%s", err.Error())
 		}
 		return
 	}

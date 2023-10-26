@@ -8,7 +8,7 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *impl) innerInsert(vModel model.Model) (ret interface{}, err error) {
+func (s *impl) innerInsert(vModel model.Model) (ret interface{}, err *cd.Result) {
 	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
 	sqlStr, sqlErr := builderVal.BuildInsert()
 	if sqlErr != nil {
@@ -28,7 +28,7 @@ func (s *impl) innerInsert(vModel model.Model) (ret interface{}, err error) {
 	return
 }
 
-func (s *impl) insertSingle(vModel model.Model) (err error) {
+func (s *impl) insertSingle(vModel model.Model) (err *cd.Result) {
 	autoIncrementFlag := false
 	for _, field := range vModel.GetFields() {
 		if !field.IsBasic() {
@@ -69,7 +69,7 @@ func (s *impl) insertSingle(vModel model.Model) (err error) {
 	return
 }
 
-func (s *impl) insertRelation(vModel model.Model, vField model.Field) (err error) {
+func (s *impl) insertRelation(vModel model.Model, vField model.Field) (err *cd.Result) {
 	fValue := vField.GetValue()
 	if fValue.IsZero() {
 		return
@@ -98,7 +98,7 @@ func (s *impl) insertRelation(vModel model.Model, vField model.Field) (err error
 	return
 }
 
-func (s *impl) insertSingleRelation(vModel model.Model, vField model.Field) (ret model.Value, err error) {
+func (s *impl) insertSingleRelation(vModel model.Model, vField model.Field) (ret model.Value, err *cd.Result) {
 	fValue := vField.GetValue()
 	fType := vField.GetType()
 	rModel, rErr := s.modelProvider.GetValueModel(fValue, fType)
@@ -154,7 +154,7 @@ func (s *impl) insertSingleRelation(vModel model.Model, vField model.Field) (ret
 	return
 }
 
-func (s *impl) insertSliceRelation(vModel model.Model, vField model.Field) (ret model.Value, err error) {
+func (s *impl) insertSliceRelation(vModel model.Model, vField model.Field) (ret model.Value, err *cd.Result) {
 	fValue := vField.GetValue()
 	fType := vField.GetType()
 	rvValue, _ := fType.Interface(nil)
@@ -228,22 +228,20 @@ func (s *impl) insertSliceRelation(vModel model.Model, vField model.Field) (ret 
 }
 
 // Insert insert
-func (s *impl) Insert(vModel model.Model) (ret model.Model, re *cd.Result) {
+func (s *impl) Insert(vModel model.Model) (ret model.Model, err *cd.Result) {
 	if vModel == nil {
-		re = cd.NewError(cd.IllegalParam, "illegal model value")
+		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return
 	}
 
-	err := s.executor.BeginTransaction()
+	err = s.executor.BeginTransaction()
 	if err != nil {
-		re = cd.NewError(cd.UnExpected, err.Error())
 		return
 	}
 	defer s.finalTransaction(err)
 
 	err = s.insertSingle(vModel)
 	if err != nil {
-		re = cd.NewError(cd.UnExpected, err.Error())
 		log.Errorf("Insert failed, s.insertSingle error:%s", err.Error())
 		return
 	}
@@ -255,7 +253,6 @@ func (s *impl) Insert(vModel model.Model) (ret model.Model, re *cd.Result) {
 
 		err = s.insertRelation(vModel, field)
 		if err != nil {
-			re = cd.NewError(cd.UnExpected, err.Error())
 			log.Errorf("Insert failed, s.insertRelation error:%s", err.Error())
 			return
 		}

@@ -2,24 +2,26 @@ package mysql
 
 import (
 	"fmt"
+
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/model"
 )
 
-func verifyField(vField model.Field) error {
+func verifyField(vField model.Field) *cd.Result {
 	fName := vField.GetName()
 	if IsKeyWord(fName) {
-		return fmt.Errorf("illegal fieldSpec, is a key word.[%s]", fName)
+		return cd.NewError(cd.UnExpected, fmt.Sprintf("illegal fieldSpec, is a key word.[%s]", fName))
 	}
 
 	return nil
 }
 
-func verifyModel(vModel model.Model) error {
+func verifyModel(vModel model.Model) *cd.Result {
 	name := vModel.GetName()
 	if IsKeyWord(name) {
-		return fmt.Errorf("illegal structName, is a key word.[%s]", name)
+		return cd.NewError(cd.UnExpected, fmt.Sprintf("illegal structName, is a key word.[%s]", name))
 	}
 
 	for _, val := range vModel.GetFields() {
@@ -33,7 +35,7 @@ func verifyModel(vModel model.Model) error {
 	return nil
 }
 
-func declareFieldInfo(vField model.Field) (ret string, err error) {
+func declareFieldInfo(vField model.Field) (ret string, err *cd.Result) {
 	autoIncrement := ""
 	fSpec := vField.GetSpec()
 	if fSpec != nil && model.IsAutoIncrement(fSpec.GetValueDeclare()) {
@@ -52,7 +54,7 @@ func declareFieldInfo(vField model.Field) (ret string, err error) {
 	return
 }
 
-func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err error) {
+func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err *cd.Result) {
 	switch fType.GetValue() {
 	case model.TypeStringValue:
 		if fSpec.GetValueDeclare() == model.UUID {
@@ -85,7 +87,7 @@ func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err error) 
 	case model.TypeSliceValue:
 		ret = "TEXT"
 	default:
-		err = fmt.Errorf("no support field type, type:%v", fType.GetPkgKey())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("no support field type, type:%v", fType.GetPkgKey()))
 	}
 
 	if err != nil {
@@ -95,7 +97,7 @@ func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err error) 
 	return
 }
 
-func getTypeDefaultValue(fType model.Type) (ret string, err error) {
+func getTypeDefaultValue(fType model.Type) (ret string, err *cd.Result) {
 	switch fType.GetValue() {
 	case model.TypeBooleanValue, model.TypeBitValue,
 		model.TypeSmallIntegerValue, model.TypePositiveBitValue,
@@ -109,7 +111,7 @@ func getTypeDefaultValue(fType model.Type) (ret string, err error) {
 		model.TypeSliceValue:
 		ret = "''"
 	default:
-		err = fmt.Errorf("no support field type, type:%v", fType.GetPkgKey())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("no support field type, type:%v", fType.GetPkgKey()))
 	}
 
 	if err != nil {
@@ -119,7 +121,7 @@ func getTypeDefaultValue(fType model.Type) (ret string, err error) {
 	return
 }
 
-func getFieldScanDestPtr(field model.Field) (ret interface{}, err error) {
+func getFieldScanDestPtr(field model.Field) (ret interface{}, err *cd.Result) {
 	fType := field.GetType()
 	switch fType.GetValue() {
 	case model.TypeStringValue, model.TypeDateTimeValue:
@@ -175,10 +177,10 @@ func getFieldScanDestPtr(field model.Field) (ret interface{}, err error) {
 			val := ""
 			ret = &val
 		} else {
-			err = fmt.Errorf("no support fileType, name:%s, type:%v", field.GetName(), fType.GetPkgKey())
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("no support fileType, name:%s, type:%v", field.GetName(), fType.GetPkgKey()))
 		}
 	default:
-		err = fmt.Errorf("no support fileType, name:%s, type:%v", field.GetName(), fType.GetPkgKey())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("no support fileType, name:%s, type:%v", field.GetName(), fType.GetPkgKey()))
 	}
 
 	if err != nil {

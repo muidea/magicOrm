@@ -3,11 +3,13 @@ package mysql
 import (
 	"fmt"
 
+	cd "github.com/muidea/magicCommon/def"
+
 	"github.com/muidea/magicCommon/foundation/log"
 )
 
 // BuildUpdate  Build Update
-func (s *Builder) BuildUpdate() (ret string, err error) {
+func (s *Builder) BuildUpdate() (ret string, err *cd.Result) {
 	updateStr, updateErr := s.getFieldUpdateValues()
 	if updateErr != nil {
 		err = updateErr
@@ -28,7 +30,7 @@ func (s *Builder) BuildUpdate() (ret string, err error) {
 	return
 }
 
-func (s *Builder) getFieldUpdateValues() (ret string, err error) {
+func (s *Builder) getFieldUpdateValues() (ret string, err *cd.Result) {
 	str := ""
 	for _, field := range s.GetFields() {
 		if field.IsPrimaryKey() {

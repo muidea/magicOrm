@@ -8,7 +8,7 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *impl) dropSingle(vModel model.Model) (err error) {
+func (s *impl) dropSingle(vModel model.Model) (err *cd.Result) {
 	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
 	dropSQL, dropErr := builderVal.BuildDropTable()
 	if dropErr != nil {
@@ -24,7 +24,7 @@ func (s *impl) dropSingle(vModel model.Model) (err error) {
 	return
 }
 
-func (s *impl) dropRelation(vModel model.Model, vField model.Field, rModel model.Model) (err error) {
+func (s *impl) dropRelation(vModel model.Model, vField model.Field, rModel model.Model) (err *cd.Result) {
 	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
 	relationSQL, relationErr := builderVal.BuildDropRelationTable(vField, rModel)
 	if relationErr != nil {
@@ -40,7 +40,7 @@ func (s *impl) dropRelation(vModel model.Model, vField model.Field, rModel model
 	return
 }
 
-func (s *impl) dropSchema(vModel model.Model) (err error) {
+func (s *impl) dropSchema(vModel model.Model) (err *cd.Result) {
 	err = s.dropSingle(vModel)
 	if err != nil {
 		log.Errorf("dropSchema failed, s.dropSingle error:%s", err.Error())
@@ -83,22 +83,20 @@ func (s *impl) dropSchema(vModel model.Model) (err error) {
 	return
 }
 
-func (s *impl) Drop(vModel model.Model) (re *cd.Result) {
+func (s *impl) Drop(vModel model.Model) (err *cd.Result) {
 	if vModel == nil {
-		re = cd.NewError(cd.IllegalParam, "illegal model value")
+		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return
 	}
 
-	err := s.executor.BeginTransaction()
+	err = s.executor.BeginTransaction()
 	if err != nil {
-		re = cd.NewError(cd.UnExpected, err.Error())
 		return
 	}
 	defer s.finalTransaction(err)
 
 	err = s.dropSchema(vModel)
 	if err != nil {
-		re = cd.NewError(cd.UnExpected, err.Error())
 		log.Errorf("Drop failed, s.dropSchema error:%s", err.Error())
 	}
 	return

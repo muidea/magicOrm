@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"path"
 
+	cd "github.com/muidea/magicCommon/def"
+
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/util"
 )
@@ -46,7 +48,7 @@ func (s *TypeImpl) IsPtrType() (ret bool) {
 	return
 }
 
-func (s *TypeImpl) Interface(initVal any) (ret model.Value, err error) {
+func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 	if initVal != nil {
 		switch s.GetValue() {
 		case model.TypeBooleanValue:

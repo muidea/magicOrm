@@ -2,12 +2,14 @@ package codec
 
 import (
 	"fmt"
-	"github.com/muidea/magicOrm/model"
 	"reflect"
+
+	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicOrm/model"
 )
 
 // encodeFloat get float value str
-func (s *impl) encodeFloat(vVal model.Value, _ model.Type) (ret interface{}, err error) {
+func (s *impl) encodeFloat(vVal model.Value, _ model.Type) (ret interface{}, err *cd.Result) {
 	val := reflect.Indirect(vVal.Get().(reflect.Value))
 	switch val.Kind() {
 	case reflect.Float32, reflect.Float64:
@@ -17,14 +19,14 @@ func (s *impl) encodeFloat(vVal model.Value, _ model.Type) (ret interface{}, err
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		ret = val.Uint()
 	default:
-		err = fmt.Errorf("encodeFloat failed, illegal float value, type:%s", val.Type().String())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("encodeFloat failed, illegal float value, type:%s", val.Type().String()))
 	}
 
 	return
 }
 
 // decodeFloat decode float from string
-func (s *impl) decodeFloat(val interface{}, vType model.Type) (ret model.Value, err error) {
+func (s *impl) decodeFloat(val interface{}, vType model.Type) (ret model.Value, err *cd.Result) {
 	ret, err = vType.Interface(val)
 	return
 }

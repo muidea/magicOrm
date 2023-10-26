@@ -2,12 +2,14 @@ package mysql
 
 import (
 	"fmt"
+
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *Builder) BuildCreateTable() (ret string, err error) {
+func (s *Builder) BuildCreateTable() (ret string, err *cd.Result) {
 	str := ""
 	for _, val := range s.GetFields() {
 		fType := val.GetType()
@@ -42,7 +44,7 @@ func (s *Builder) BuildCreateTable() (ret string, err error) {
 }
 
 // BuildCreateRelationTable Build CreateRelation Schema
-func (s *Builder) BuildCreateRelationTable(field model.Field, rModel model.Model) (ret string, err error) {
+func (s *Builder) BuildCreateRelationTable(field model.Field, rModel model.Model) (ret string, err *cd.Result) {
 	lPKField := s.GetPrimaryKeyField(nil)
 	lPKType, lPKErr := getTypeDeclare(lPKField.GetType(), lPKField.GetSpec())
 	if lPKErr != nil {
