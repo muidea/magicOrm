@@ -114,10 +114,10 @@ func (s *impl) querySingle(vFilter model.Filter, deepLevel int) (ret model.Model
 	modelVal, modelErr := s.innerAssign(vModel, valueList[0], deepLevel)
 	if modelErr != nil {
 		err = modelErr
-		if err.Fail() {
-			log.Errorf("querySingle failed, s.innerAssign error:%v", err.Error())
-		} else if err.Warn() {
+		if err.Warn() {
 			log.Warnf("querySingle failed, s.innerAssign error:%v", err.Error())
+		} else {
+			log.Errorf("querySingle failed, s.innerAssign error:%v", err.Error())
 		}
 		return
 	}
@@ -442,10 +442,10 @@ func (s *impl) Query(vModel model.Model) (ret model.Model, err *cd.Result) {
 	qModel, qErr := s.querySingle(vFilter, 0)
 	if qErr != nil {
 		err = qErr
-		if err.Fail() {
-			log.Errorf("Query failed, s.querySingle error:%v", err.Error())
-		} else if err.Warn() {
+		if err.Warn() {
 			log.Warnf("Query failed, s.querySingle error:%v", err.Error())
+		} else {
+			log.Errorf("Query failed, s.querySingle error:%v", err.Error())
 		}
 		return
 	}
