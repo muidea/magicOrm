@@ -151,8 +151,9 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *
 		return
 	}
 	if vVal.IsBasic() {
-		pkField := vModel.GetPrimaryField()
-		pkField.SetValue(vVal)
+		vModel.SetPrimaryFieldValue(vVal)
+
+		ret = vModel
 		return
 	}
 
@@ -171,11 +172,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *
 	}
 	for idx := 0; idx < len(rValPtr.Fields); idx++ {
 		fieldVal := rValPtr.Fields[idx]
-		err = vModel.SetFieldValue(fieldVal.GetName(), fieldVal.GetValue())
-		if err != nil {
-			log.Errorf("SetModelValue failed, vModel.SetFieldValue err:%s", err.Error())
-			return
-		}
+		vModel.SetFieldValue(fieldVal.GetName(), fieldVal.GetValue())
 	}
 
 	ret = vModel

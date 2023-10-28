@@ -162,7 +162,7 @@ func (s *impl) innerQueryRelationModel(id any, vModel model.Model, deepLevel int
 		log.Errorf("innerQueryRelationModel failed, s.modelProvider.DecodeValue error:%v", err.Error())
 		return
 	}
-	_ = vModel.SetFieldValue(pkField.GetName(), fVal)
+	vModel.SetFieldValue(pkField.GetName(), fVal)
 
 	vFilter, vErr := s.getModelFilter(vModel)
 	if vErr != nil {
@@ -201,7 +201,7 @@ func (s *impl) innerQueryRelationSliceModel(ids []any, vModel model.Model, deepL
 			log.Errorf("innerQueryRelationSliceModel failed, s.modelProvider.DecodeValue error:%v", err.Error())
 			return
 		}
-		_ = svModel.SetFieldValue(pkField.GetName(), fVal)
+		svModel.SetFieldValue(pkField.GetName(), fVal)
 
 		vFilter, vErr := s.getModelFilter(svModel)
 		if vErr != nil {

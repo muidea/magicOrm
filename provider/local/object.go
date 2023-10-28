@@ -33,17 +33,28 @@ func (s *objectImpl) GetPkgKey() string {
 }
 
 func (s *objectImpl) GetFields() (ret model.Fields) {
-	for _, field := range s.fields {
-		ret = append(ret, field)
+	for _, sf := range s.fields {
+		ret = append(ret, sf)
 	}
 
 	return
 }
 
-func (s *objectImpl) SetFieldValue(name string, val model.Value) (err *cd.Result) {
-	for _, field := range s.fields {
-		if field.GetName() == name {
-			field.SetValue(val)
+func (s *objectImpl) SetFieldValue(name string, val model.Value) {
+	for _, sf := range s.fields {
+		if sf.GetName() == name {
+			sf.SetValue(val)
+			return
+		}
+	}
+
+	return
+}
+
+func (s *objectImpl) SetPrimaryFieldValue(val model.Value) {
+	for _, sf := range s.fields {
+		if sf.IsPrimaryKey() {
+			sf.SetValue(val)
 			return
 		}
 	}
@@ -52,9 +63,9 @@ func (s *objectImpl) SetFieldValue(name string, val model.Value) (err *cd.Result
 }
 
 func (s *objectImpl) GetPrimaryField() (ret model.Field) {
-	for _, field := range s.fields {
-		if field.IsPrimaryKey() {
-			ret = field
+	for _, sf := range s.fields {
+		if sf.IsPrimaryKey() {
+			ret = sf
 			return
 		}
 	}
@@ -63,9 +74,9 @@ func (s *objectImpl) GetPrimaryField() (ret model.Field) {
 }
 
 func (s *objectImpl) GetField(name string) (ret model.Field) {
-	for _, field := range s.fields {
-		if field.GetName() == name {
-			ret = field
+	for _, sf := range s.fields {
+		if sf.GetName() == name {
+			ret = sf
 			return
 		}
 	}
@@ -76,14 +87,14 @@ func (s *objectImpl) GetField(name string) (ret model.Field) {
 func (s *objectImpl) Interface(ptrValue bool) (ret interface{}) {
 	retVal := reflect.New(s.objectType).Elem()
 
-	for _, field := range s.fields {
-		fVal := field.GetValue()
+	for _, sf := range s.fields {
+		fVal := sf.GetValue()
 		if fVal.IsNil() {
 			continue
 		}
 
 		val := fVal.Get().(reflect.Value)
-		retVal.Field(field.GetIndex()).Set(val)
+		retVal.Field(sf.GetIndex()).Set(val)
 	}
 
 	if ptrValue {
@@ -96,8 +107,8 @@ func (s *objectImpl) Interface(ptrValue bool) (ret interface{}) {
 
 func (s *objectImpl) Copy() model.Model {
 	objectPtr := &objectImpl{objectType: s.objectType, fields: []*field{}}
-	for _, field := range s.fields {
-		objectPtr.fields = append(objectPtr.fields, field.copy())
+	for _, sf := range s.fields {
+		objectPtr.fields = append(objectPtr.fields, sf.copy())
 	}
 
 	return objectPtr
@@ -108,8 +119,8 @@ func (s *objectImpl) Dump() (ret string) {
 	ret = fmt.Sprintf("%s\tname:%s, pkgPath:%s\n", ret, s.GetName(), s.GetPkgPath())
 
 	ret = fmt.Sprintf("%s fields:\n", ret)
-	for _, field := range s.fields {
-		ret = fmt.Sprintf("%s\t%s\n", ret, field.dump())
+	for _, sf := range s.fields {
+		ret = fmt.Sprintf("%s\t%s\n", ret, sf.dump())
 	}
 
 	return
@@ -121,10 +132,10 @@ func (s *objectImpl) verify() (err *cd.Result) {
 		return
 	}
 
-	for _, val := range s.fields {
-		err = val.verify()
+	for _, sf := range s.fields {
+		err = sf.verify()
 		if err != nil {
-			log.Errorf("verify field failed, idx:%d, name:%s, err:%s", val.index, val.name, err.Error())
+			log.Errorf("verify field failed, idx:%d, name:%s, err:%s", sf.index, sf.name, err.Error())
 			return
 		}
 	}

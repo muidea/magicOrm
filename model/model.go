@@ -1,14 +1,13 @@
 package model
 
-import cd "github.com/muidea/magicCommon/def"
-
 type Model interface {
 	GetName() string
 	GetPkgPath() string
 	GetDescription() string
 	GetPkgKey() string
 	GetFields() Fields
-	SetFieldValue(name string, val Value) *cd.Result
+	SetFieldValue(name string, val Value)
+	SetPrimaryFieldValue(val Value)
 	GetPrimaryField() Field
 	GetField(name string) Field
 	Interface(ptrValue bool) any

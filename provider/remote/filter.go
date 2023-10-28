@@ -392,10 +392,7 @@ func (s *ObjectFilter) MaskModel() model.Model {
 	maskObject := s.bindObject
 	if s.MaskValue != nil {
 		for _, val := range s.MaskValue.Fields {
-			err := maskObject.SetFieldValue(val.Name, val.GetValue())
-			if err != nil {
-				log.Errorf("MaskModel failed, maskObject.SetFieldValue error:%s", err.Error())
-			}
+			maskObject.SetFieldValue(val.Name, val.GetValue())
 		}
 	}
 

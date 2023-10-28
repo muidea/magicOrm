@@ -69,10 +69,21 @@ func (s *Object) GetFields() (ret model.Fields) {
 	return
 }
 
-func (s *Object) SetFieldValue(name string, val model.Value) (err *cd.Result) {
+func (s *Object) SetFieldValue(name string, val model.Value) {
 	for _, item := range s.Fields {
 		if item.Name == name {
 			item.SetValue(val)
+			return
+		}
+	}
+
+	return
+}
+
+func (s *Object) SetPrimaryFieldValue(val model.Value) {
+	for _, sf := range s.Fields {
+		if sf.IsPrimaryKey() {
+			sf.SetValue(val)
 			return
 		}
 	}

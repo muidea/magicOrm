@@ -119,10 +119,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *
 				continue
 			}
 		*/
-		err = vModel.SetFieldValue(fieldName, fieldVal)
-		if err != nil {
-			return
-		}
+		vModel.SetFieldValue(fieldName, fieldVal)
 	}
 
 	ret = vModel

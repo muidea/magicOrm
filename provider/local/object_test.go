@@ -58,19 +58,11 @@ func TestModelValue(t *testing.T) {
 
 	name := "abcdfrfe"
 	nVal := NewValue(reflect.ValueOf(name))
-	unitErr = unitInfo.SetFieldValue("name", nVal)
-	if unitErr != nil {
-		t.Errorf("UpdateField value failed, unitErr:%s", unitErr.Error())
-		return
-	}
+	unitInfo.SetFieldValue("name", nVal)
 
 	now = time.Now()
 	tsVal := NewValue(reflect.ValueOf(now))
-	unitErr = unitInfo.SetFieldValue("timeStamp", tsVal)
-	if unitErr != nil {
-		t.Errorf("UpdateField value failed, unitErr:%s", unitErr.Error())
-		return
-	}
+	unitInfo.SetFieldValue("timeStamp", tsVal)
 
 	unit = unitInfo.Interface(false).(Unit)
 	if unit.ID != int64(id) {
