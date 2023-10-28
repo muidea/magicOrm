@@ -85,6 +85,11 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *
 		ret = vModel
 		return
 	}
+	if vVal.IsBasic() {
+		pkField := vModel.GetPrimaryField()
+		pkField.SetValue(vVal)
+		return
+	}
 
 	rVal := reflect.Indirect(vVal.Get().(reflect.Value))
 	vType, vErr := NewType(rVal.Type())

@@ -150,11 +150,16 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *
 		ret = vModel
 		return
 	}
+	if vVal.IsBasic() {
+		pkField := vModel.GetPrimaryField()
+		pkField.SetValue(vVal)
+		return
+	}
 
 	val := vVal.Interface()
 	rValPtr, rValOK := val.(*ObjectValue)
 	if !rValOK {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal model value"))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal model value, val:%v", val))
 		log.Errorf("SetModelValue failed, err:%s", err.Error())
 		return
 	}
