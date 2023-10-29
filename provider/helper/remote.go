@@ -16,6 +16,11 @@ import (
 	pu "github.com/muidea/magicOrm/provider/util"
 )
 
+const (
+	ormTag  = "orm"
+	viewTag = "view"
+)
+
 func newType(itemType reflect.Type) (ret *remote.TypeImpl, err *cd.Result) {
 	isPtr := false
 	if itemType.Kind() == reflect.Ptr {
@@ -57,18 +62,21 @@ func newType(itemType reflect.Type) (ret *remote.TypeImpl, err *cd.Result) {
 }
 
 func newSpec(tag reflect.StructTag) (ret *remote.SpecImpl, err *cd.Result) {
-	spec := tag.Get("orm")
-	val, vErr := getSpec(spec)
+	ormSpec := tag.Get(ormTag)
+	val, vErr := getOrmSpec(ormSpec)
 	if vErr != nil {
 		err = vErr
 		return
 	}
 
+	viewSpec := tag.Get(viewTag)
+	val.ViewDeclare = getViewItems(viewSpec)
+
 	ret = &val
 	return
 }
 
-func getSpec(spec string) (ret remote.SpecImpl, err *cd.Result) {
+func getOrmSpec(spec string) (ret remote.SpecImpl, err *cd.Result) {
 	items := strings.Split(spec, " ")
 	if len(items) < 1 {
 		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal spec value, val:%s", spec))
@@ -92,6 +100,20 @@ func getSpec(spec string) (ret remote.SpecImpl, err *cd.Result) {
 		}
 	}
 
+	return
+}
+
+func getViewItems(spec string) (ret []model.ViewDeclare) {
+	ret = []model.ViewDeclare{}
+	items := strings.Split(spec, ",")
+	for _, sv := range items {
+		switch sv {
+		case "view":
+			ret = append(ret, model.FullView)
+		case "lite":
+			ret = append(ret, model.LiteView)
+		}
+	}
 	return
 }
 

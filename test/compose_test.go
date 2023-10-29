@@ -31,7 +31,7 @@ func prepareLocalData(localProvider provider.Provider, orm orm.Orm) (sPtr *Simpl
 		err = sErr
 		return
 	}
-	sPtr = sModel.Interface(true).(*Simple)
+	sPtr = sModel.Interface(true, 0).(*Simple)
 
 	strValue := "test code"
 	fValue := float32(12.34)
@@ -67,7 +67,7 @@ func prepareLocalData(localProvider provider.Provider, orm orm.Orm) (sPtr *Simpl
 		err = rErr
 		return
 	}
-	rPtr = rModel.Interface(true).(*Reference)
+	rPtr = rModel.Interface(true, 0).(*Reference)
 
 	refPtrArray := []*Reference{rPtr}
 	cVal := &Compose{
@@ -93,7 +93,7 @@ func prepareLocalData(localProvider provider.Provider, orm orm.Orm) (sPtr *Simpl
 		err = cErr
 		return
 	}
-	cPtr = cModel.Interface(true).(*Compose)
+	cPtr = cModel.Interface(true, 0).(*Compose)
 
 	return
 }
@@ -114,7 +114,7 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 		err = sErr
 		return
 	}
-	sObjectVal = sModel.Interface(true).(*remote.ObjectValue)
+	sObjectVal = sModel.Interface(true, 0).(*remote.ObjectValue)
 	sPtr = &Simple{}
 	sErr = helper.UpdateEntity(sObjectVal, sPtr)
 	if sErr != nil {
@@ -157,7 +157,7 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 		err = rErr
 		return
 	}
-	rObjectVal = rModel.Interface(true).(*remote.ObjectValue)
+	rObjectVal = rModel.Interface(true, 0).(*remote.ObjectValue)
 	var fVal float32
 	var ts2 time.Time
 	var flag2 bool
@@ -196,7 +196,7 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 		err = cErr
 		return
 	}
-	cObjectVal = cModel.Interface(true).(*remote.ObjectValue)
+	cObjectVal = cModel.Interface(true, 0).(*remote.ObjectValue)
 	cPtr = &Compose{
 		R3:           &Simple{},
 		H2:           []Simple{},
@@ -293,7 +293,7 @@ func TestComposeLocal(t *testing.T) {
 	}
 
 	// update
-	composePtr = composeModel.Interface(true).(*Compose)
+	composePtr = composeModel.Interface(true, 0).(*Compose)
 	composePtr.Name = "hi"
 	composeModel, composeErr = localProvider.GetEntityModel(composePtr)
 	if composeErr != nil {
@@ -309,7 +309,7 @@ func TestComposeLocal(t *testing.T) {
 		return
 	}
 
-	composePtr = composeModel.Interface(true).(*Compose)
+	composePtr = composeModel.Interface(true, 0).(*Compose)
 
 	// query
 	queryVal := &Compose{
@@ -338,7 +338,7 @@ func TestComposeLocal(t *testing.T) {
 		t.Errorf("Query failed, err:%s", err.Error())
 		return
 	}
-	queryVal = queryModel.Interface(true).(*Compose)
+	queryVal = queryModel.Interface(true, 0).(*Compose)
 
 	if !composePtr.IsSame(queryVal) {
 		err = cd.NewError(cd.UnExpected, fmt.Sprintf("compare value failed"))
@@ -472,7 +472,7 @@ func TestComposeRemote(t *testing.T) {
 		return
 	}
 
-	composeObjectValue = composeModel.Interface(true).(*remote.ObjectValue)
+	composeObjectValue = composeModel.Interface(true, 0).(*remote.ObjectValue)
 	err = helper.UpdateEntity(composeObjectValue, composePtr)
 	if err != nil {
 		t.Errorf("UpdateEntity failed. err:%s", err.Error())
@@ -501,7 +501,7 @@ func TestComposeRemote(t *testing.T) {
 		return
 	}
 
-	composeObjectValue = vModel.Interface(true).(*remote.ObjectValue)
+	composeObjectValue = vModel.Interface(true, 0).(*remote.ObjectValue)
 	err = helper.UpdateEntity(composeObjectValue, composePtr)
 	if err != nil {
 		t.Errorf("UpdateEntity failed. err:%s", err.Error())
@@ -543,7 +543,7 @@ func TestComposeRemote(t *testing.T) {
 		return
 	}
 
-	queryObjectVal := queryModel.Interface(true).(*remote.ObjectValue)
+	queryObjectVal := queryModel.Interface(true, 0).(*remote.ObjectValue)
 	err = helper.UpdateEntity(queryObjectVal, queryComposeVal)
 	if err != nil {
 		t.Errorf("UpdateEntity failed. err:%s", err.Error())

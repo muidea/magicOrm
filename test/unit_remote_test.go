@@ -70,7 +70,7 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	err = helper.UpdateEntity(objModel.Interface(true).(*remote.ObjectValue), val)
+	err = helper.UpdateEntity(objModel.Interface(true, 0).(*remote.ObjectValue), val)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -113,7 +113,7 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	err = helper.UpdateEntity(obj2Model.Interface(true).(*remote.ObjectValue), val2)
+	err = helper.UpdateEntity(obj2Model.Interface(true, 0).(*remote.ObjectValue), val2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return

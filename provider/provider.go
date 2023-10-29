@@ -226,7 +226,7 @@ func (s *providerImpl) GetModelFilter(vModel model.Model) (ret model.Filter, err
 		return
 	}
 
-	_ = filterVal.ValueMask(vModel.Interface(true))
+	_ = filterVal.ValueMask(vModel.Interface(true, 0))
 	ret = filterVal
 	return
 }

@@ -105,3 +105,10 @@ func IsBasicSlice(tType Type) bool {
 func IsStructSlice(tType Type) bool {
 	return !tType.IsBasic() && IsSliceType(tType.GetValue())
 }
+
+type ViewDeclare int
+
+const (
+	FullView = 1
+	LiteView = 2
+)

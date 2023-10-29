@@ -107,7 +107,7 @@ func TestReferenceLocal(t *testing.T) {
 		}
 
 		sModelList[idx] = vModel
-		sValList[idx] = vModel.Interface(true).(*Reference)
+		sValList[idx] = vModel.Interface(true, 0).(*Reference)
 	}
 
 	// update
@@ -132,7 +132,7 @@ func TestReferenceLocal(t *testing.T) {
 		}
 
 		sModelList[idx] = vModel
-		sValList[idx] = vModel.Interface(true).(*Reference)
+		sValList[idx] = vModel.Interface(true, 0).(*Reference)
 	}
 
 	// query
@@ -179,7 +179,7 @@ func TestReferenceLocal(t *testing.T) {
 		}
 
 		qModelList[idx] = qModel
-		qValList[idx] = qModel.Interface(true).(*Reference)
+		qValList[idx] = qModel.Interface(true, 0).(*Reference)
 	}
 
 	for idx := 0; idx < loop; idx++ {
@@ -333,7 +333,7 @@ func TestReferenceRemote(t *testing.T) {
 			return
 		}
 
-		sObjectVal := vModel.Interface(true).(*remote.ObjectValue)
+		sObjectVal := vModel.Interface(true, 0).(*remote.ObjectValue)
 		sVal := sValList[idx]
 		err = helper.UpdateEntity(sObjectVal, sVal)
 		if err != nil {
@@ -374,7 +374,7 @@ func TestReferenceRemote(t *testing.T) {
 			return
 		}
 
-		sObjectVal := vModel.Interface(true).(*remote.ObjectValue)
+		sObjectVal := vModel.Interface(true, 0).(*remote.ObjectValue)
 		sVal := sValList[idx]
 		err = helper.UpdateEntity(sObjectVal, sVal)
 		if err != nil {
@@ -438,7 +438,7 @@ func TestReferenceRemote(t *testing.T) {
 			return
 		}
 
-		qObjectVal := qModel.Interface(true).(*remote.ObjectValue)
+		qObjectVal := qModel.Interface(true, 0).(*remote.ObjectValue)
 		qVal := qValList[idx]
 		err = helper.UpdateEntity(qObjectVal, qVal)
 		if err != nil {

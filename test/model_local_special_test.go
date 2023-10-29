@@ -84,7 +84,7 @@ func TestKPI(t *testing.T) {
 		t.Errorf("insert kpi failed, err:%s", kpiErr.Error())
 		return
 	}
-	kpi = kpiModel.Interface(true).(*KPI)
+	kpi = kpiModel.Interface(true, 0).(*KPI)
 
 	goal1 := &Goal{Type: ByMoney, Value: 1234}
 	kpi.JoinValue = *goal1

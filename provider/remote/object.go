@@ -114,26 +114,35 @@ func (s *Object) GetField(name string) (ret model.Field) {
 }
 
 // Interface object value
-func (s *Object) Interface(_ bool) (ret any) {
+func (s *Object) Interface(ptrValue bool, viewSpec model.ViewDeclare) (ret any) {
 	objVal := &ObjectValue{Name: s.Name, PkgPath: s.PkgPath, Fields: []*FieldValue{}}
 
-	for _, v := range s.Fields {
-		if v.value == nil || v.value.IsNil() {
-			if v.IsPtrType() {
-				objVal.Fields = append(objVal.Fields, &FieldValue{Name: v.Name})
+	for _, sf := range s.Fields {
+		if viewSpec > 0 {
+			if sf.Spec.EnableView(viewSpec) {
+				vVal, _ := sf.Type.Interface(nil)
+				objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: vVal.Interface()})
+			}
+
+			continue
+		}
+
+		if sf.value == nil || sf.value.IsNil() {
+			if sf.IsPtrType() {
+				objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name})
 			} else {
-				vVal, _ := v.Type.Interface(nil)
-				objVal.Fields = append(objVal.Fields, &FieldValue{Name: v.Name, Value: vVal.Interface()})
+				vVal, _ := sf.Type.Interface(nil)
+				objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: vVal.Interface()})
 			}
 			continue
 		}
 
-		objVal.Fields = append(objVal.Fields, &FieldValue{Name: v.Name, Value: v.value.Get()})
+		objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: sf.value.Get()})
 	}
 
 	pkValue := s.GetPrimaryField().GetValue()
 	if !pkValue.IsNil() {
-		objVal.ID = fmt.Sprintf("%v", pkValue.Interface())
+		objVal.ID = fmt.Sprintf("%sf", pkValue.Interface())
 	}
 
 	ret = objVal

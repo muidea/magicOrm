@@ -11,22 +11,33 @@ import (
 	"github.com/muidea/magicOrm/provider/util"
 )
 
+const (
+	ormTag  = "orm"
+	viewTag = "view"
+)
+
 type SpecImpl struct {
 	fieldName    string
 	primaryKey   bool
 	valueDeclare model.ValueDeclare
+	viewDeclare  []model.ViewDeclare
 }
 
 var emptySpec = SpecImpl{primaryKey: false, valueDeclare: model.Customer}
 
 // NewSpec name[key][auto]
 func NewSpec(tag reflect.StructTag) (ret *SpecImpl, err *cd.Result) {
-	spec := tag.Get("orm")
-	ret, err = getSpec(spec)
+	ormSpec := tag.Get(ormTag)
+	ret, err = getOrmSpec(ormSpec)
+	if err != nil {
+		return
+	}
+	viewSpec := tag.Get(viewTag)
+	ret.viewDeclare = getViewItems(viewSpec)
 	return
 }
 
-func getSpec(spec string) (ret *SpecImpl, err *cd.Result) {
+func getOrmSpec(spec string) (ret *SpecImpl, err *cd.Result) {
 	items := strings.Split(spec, " ")
 	if len(items) < 1 {
 		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal spec value, val:%s", spec))
@@ -53,6 +64,20 @@ func getSpec(spec string) (ret *SpecImpl, err *cd.Result) {
 	return
 }
 
+func getViewItems(spec string) (ret []model.ViewDeclare) {
+	ret = []model.ViewDeclare{}
+	items := strings.Split(spec, ",")
+	for _, sv := range items {
+		switch sv {
+		case "view":
+			ret = append(ret, model.FullView)
+		case "lite":
+			ret = append(ret, model.LiteView)
+		}
+	}
+	return
+}
+
 // GetFieldName Name
 func (s *SpecImpl) GetFieldName() string {
 	return s.fieldName
@@ -64,6 +89,16 @@ func (s *SpecImpl) IsPrimaryKey() bool {
 
 func (s *SpecImpl) GetValueDeclare() model.ValueDeclare {
 	return s.valueDeclare
+}
+
+func (s *SpecImpl) EnableView(viewSpec model.ViewDeclare) bool {
+	for _, val := range s.viewDeclare {
+		if val == viewSpec {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (s *SpecImpl) copy() (ret *SpecImpl) {

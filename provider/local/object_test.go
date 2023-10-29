@@ -64,7 +64,7 @@ func TestModelValue(t *testing.T) {
 	tsVal := NewValue(reflect.ValueOf(now))
 	unitInfo.SetFieldValue("timeStamp", tsVal)
 
-	unit = unitInfo.Interface(false).(Unit)
+	unit = unitInfo.Interface(false, 0).(Unit)
 	if unit.ID != int64(id) {
 		t.Errorf("update id field failed, ID:%v, id:%v", unit.ID, id)
 		return

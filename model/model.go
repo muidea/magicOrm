@@ -10,7 +10,7 @@ type Model interface {
 	SetPrimaryFieldValue(val Value)
 	GetPrimaryField() Field
 	GetField(name string) Field
-	Interface(ptrValue bool) any
+	Interface(ptrValue bool, viewSpec ViewDeclare) any
 	Copy() Model
 	Dump() string
 }

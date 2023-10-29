@@ -59,7 +59,7 @@ func TestLocalExecutor(t *testing.T) {
 		t.Errorf("insert obj failed, err:%s", err.Error())
 		return
 	}
-	obj = objModel.Interface(true).(*Unit)
+	obj = objModel.Interface(true, 0).(*Unit)
 
 	obj.Name = "abababa"
 	obj.Value = 100.000
@@ -85,7 +85,7 @@ func TestLocalExecutor(t *testing.T) {
 		t.Errorf("query obj failed, err:%s", obj2Err.Error())
 		return
 	}
-	obj2 = obj2Model.Interface(true).(*Unit)
+	obj2 = obj2Model.Interface(true, 0).(*Unit)
 	if obj.Name != obj2.Name || obj.Value != obj2.Value {
 		t.Errorf("query obj failed, obj:%v, obj2:%v", obj, obj2)
 		return
@@ -155,7 +155,7 @@ func TestLocalDepends(t *testing.T) {
 		t.Errorf("insert ext failed, err:%s", extErr.Error())
 		return
 	}
-	ext = extModel.Interface(true).(*ExtUnit)
+	ext = extModel.Interface(true, 0).(*ExtUnit)
 
 	objModel, objErr := provider.GetEntityModel(obj)
 	if objErr != nil {
@@ -167,7 +167,7 @@ func TestLocalDepends(t *testing.T) {
 		t.Errorf("insert ext failed, err:%s", objErr.Error())
 		return
 	}
-	obj = objModel.Interface(true).(*Unit)
+	obj = objModel.Interface(true, 0).(*Unit)
 
 	ext2 := &ExtUnitList{Unit: *obj, UnitList: []Unit{}}
 	ext2.UnitList = append(ext2.UnitList, *obj)

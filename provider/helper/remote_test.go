@@ -29,14 +29,14 @@ type ExtInfo struct {
 
 func TestSpec(t *testing.T) {
 	spec := ""
-	_, err := getSpec(spec)
+	_, err := getOrmSpec(spec)
 	if err != nil {
 		t.Errorf("illegal spec value")
 		return
 	}
 
 	spec = "test"
-	itemSpec, err := getSpec(spec)
+	itemSpec, err := getOrmSpec(spec)
 	if err != nil {
 		t.Errorf("illegal spec value")
 		return
@@ -55,7 +55,7 @@ func TestSpec(t *testing.T) {
 	}
 
 	spec = "test auto key"
-	itemSpec, err = getSpec(spec)
+	itemSpec, err = getOrmSpec(spec)
 	if err != nil {
 		t.Errorf("illegal spec value")
 		return

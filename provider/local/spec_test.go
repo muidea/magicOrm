@@ -8,7 +8,7 @@ import (
 
 func TestSpec(t *testing.T) {
 	spec1 := "spec"
-	specPtr, specErr := getSpec(spec1)
+	specPtr, specErr := getOrmSpec(spec1)
 	if specErr != nil {
 		t.Errorf("NewSpec failed, err:%s", specErr.Error())
 		return
@@ -22,7 +22,7 @@ func TestSpec(t *testing.T) {
 	}
 
 	spec2 := "spec auto"
-	specPtr, specErr = getSpec(spec2)
+	specPtr, specErr = getOrmSpec(spec2)
 	if specErr != nil {
 		t.Errorf("NewSpec failed, err:%s", specErr.Error())
 		return
@@ -36,7 +36,7 @@ func TestSpec(t *testing.T) {
 	}
 
 	spec3 := "spec auto key"
-	specPtr, specErr = getSpec(spec3)
+	specPtr, specErr = getOrmSpec(spec3)
 	if specErr != nil {
 		t.Errorf("NewSpec failed, err:%s", specErr.Error())
 		return
@@ -50,7 +50,7 @@ func TestSpec(t *testing.T) {
 	}
 
 	spec4 := "spec key auto"
-	specPtr, specErr = getSpec(spec4)
+	specPtr, specErr = getOrmSpec(spec4)
 	if specErr != nil {
 		t.Errorf("NewSpec failed, err:%s", specErr.Error())
 		return

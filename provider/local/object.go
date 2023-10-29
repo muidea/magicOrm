@@ -84,10 +84,20 @@ func (s *objectImpl) GetField(name string) (ret model.Field) {
 	return
 }
 
-func (s *objectImpl) Interface(ptrValue bool) (ret interface{}) {
+func (s *objectImpl) Interface(ptrValue bool, viewSpec model.ViewDeclare) (ret interface{}) {
 	retVal := reflect.New(s.objectType).Elem()
 
 	for _, sf := range s.fields {
+		if viewSpec > 0 {
+			if sf.specPtr.EnableView(viewSpec) {
+				fVal, _ := sf.typePtr.Interface(nil)
+				val := fVal.Get().(reflect.Value)
+				retVal.Field(sf.GetIndex()).Set(val)
+			}
+
+			continue
+		}
+
 		fVal := sf.GetValue()
 		if fVal.IsNil() {
 			continue

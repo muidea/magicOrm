@@ -166,7 +166,7 @@ for idx:=0; idx<100; idx++ {
     }
     
     sModelList[idx] = vModel
-    sValList[idx] = vModel.Interface(true).(*Simple)
+    sValList[idx] = vModel.Interface(true,0).(*Simple)
 }
 
 // update
@@ -191,7 +191,7 @@ for idx:=0; idx<100; idx++ {
     }
     
     sModelList[idx] = vModel
-    sValList[idx] = vModel.Interface(true).(*Simple)
+    sValList[idx] = vModel.Interface(true,0).(*Simple)
 }
 
 // query
@@ -220,7 +220,7 @@ for idx:=0; idx<100; idx++ {
     }
     
     qModelList[idx] = qModel
-    qValList[idx] = qModel.Interface(true).(*Simple)
+    qValList[idx] = qModel.Interface(true,0).(*Simple)
 }
 
 for idx:=0; idx<100; idx++ {

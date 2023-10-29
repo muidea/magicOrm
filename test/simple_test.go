@@ -85,7 +85,7 @@ func TestSimpleLocal(t *testing.T) {
 		}
 
 		sModelList[idx] = vModel
-		sValList[idx] = vModel.Interface(true).(*Simple)
+		sValList[idx] = vModel.Interface(true, 0).(*Simple)
 	}
 
 	// update
@@ -110,7 +110,7 @@ func TestSimpleLocal(t *testing.T) {
 		}
 
 		sModelList[idx] = vModel
-		sValList[idx] = vModel.Interface(true).(*Simple)
+		sValList[idx] = vModel.Interface(true, 0).(*Simple)
 	}
 
 	// query
@@ -139,7 +139,7 @@ func TestSimpleLocal(t *testing.T) {
 		}
 
 		qModelList[idx] = qModel
-		qValList[idx] = qModel.Interface(true).(*Simple)
+		qValList[idx] = qModel.Interface(true, 0).(*Simple)
 	}
 
 	for idx := 0; idx < loopSize; idx++ {
@@ -256,7 +256,7 @@ func TestSimpleRemote(t *testing.T) {
 			return
 		}
 
-		sObjectVal := vModel.Interface(true).(*remote.ObjectValue)
+		sObjectVal := vModel.Interface(true, 0).(*remote.ObjectValue)
 		sVal := sValList[idx]
 		err = helper.UpdateEntity(sObjectVal, sVal)
 		if err != nil {
@@ -297,7 +297,7 @@ func TestSimpleRemote(t *testing.T) {
 			return
 		}
 
-		sObjectVal := vModel.Interface(true).(*remote.ObjectValue)
+		sObjectVal := vModel.Interface(true, 0).(*remote.ObjectValue)
 		sVal := sValList[idx]
 		err = helper.UpdateEntity(sObjectVal, sVal)
 		if err != nil {
@@ -343,7 +343,7 @@ func TestSimpleRemote(t *testing.T) {
 			return
 		}
 
-		qObjectVal := qModel.Interface(true).(*remote.ObjectValue)
+		qObjectVal := qModel.Interface(true, 0).(*remote.ObjectValue)
 		qVal := qValList[idx]
 		err = helper.UpdateEntity(qObjectVal, qVal)
 		if err != nil {

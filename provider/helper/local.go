@@ -143,7 +143,7 @@ func toLocalValue(rVal *remote.ObjectValue, lType model.Type) (ret model.Value, 
 		}
 	}
 
-	ret = local.NewValue(reflect.ValueOf(lModel.Interface(lType.IsPtrType())))
+	ret = local.NewValue(reflect.ValueOf(lModel.Interface(lType.IsPtrType(), 0)))
 	return
 }
 

@@ -7,9 +7,10 @@ import (
 )
 
 type SpecImpl struct {
-	FieldName    string             `json:"fieldName"`
-	PrimaryKey   bool               `json:"primaryKey"`
-	ValueDeclare model.ValueDeclare `json:"valueDeclare"`
+	FieldName    string              `json:"fieldName"`
+	PrimaryKey   bool                `json:"primaryKey"`
+	ValueDeclare model.ValueDeclare  `json:"valueDeclare"`
+	ViewDeclare  []model.ViewDeclare `json:"viewDeclare"`
 }
 
 var emptySpec = SpecImpl{PrimaryKey: false, ValueDeclare: model.Customer}
@@ -24,6 +25,16 @@ func (s SpecImpl) IsPrimaryKey() bool {
 
 func (s SpecImpl) GetValueDeclare() model.ValueDeclare {
 	return s.ValueDeclare
+}
+
+func (s SpecImpl) EnableView(viewSpec model.ViewDeclare) bool {
+	for _, val := range s.ViewDeclare {
+		if val == viewSpec {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (s SpecImpl) copy() *SpecImpl {
