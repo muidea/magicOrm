@@ -109,6 +109,7 @@ func IsStructSlice(tType Type) bool {
 type ViewDeclare int
 
 const (
-	FullView = 1
-	LiteView = 2
+	OriginView = 0
+	FullView   = 1
+	LiteView   = 2
 )
