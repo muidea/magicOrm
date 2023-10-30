@@ -324,7 +324,7 @@ func (s *impl) querySingleRelation(vModel model.Model, vField model.Field, deepL
 		return
 	}
 
-	modelVal, modelErr := s.modelProvider.GetEntityValue(rvModel.Interface(vType.IsPtrType(), 0))
+	modelVal, modelErr := s.modelProvider.GetEntityValue(rvModel.Interface(vType.IsPtrType(), model.LiteView))
 	if modelErr != nil {
 		err = modelErr
 		log.Errorf("querySingleRelation failed, s.modelProvider.GetEntityValue error:%v", err.Error())
@@ -375,7 +375,7 @@ func (s *impl) querySliceRelation(vModel model.Model, vField model.Field, deepLe
 
 	elemType := vType.Elem()
 	for _, sv := range rModelList {
-		modelVal, modelErr := s.modelProvider.GetEntityValue(sv.Interface(elemType.IsPtrType(), 0))
+		modelVal, modelErr := s.modelProvider.GetEntityValue(sv.Interface(elemType.IsPtrType(), model.LiteView))
 		if modelErr != nil {
 			err = modelErr
 			log.Errorf("querySliceRelation failed, s.modelProvider.GetEntityValue error:%sv", err.Error())

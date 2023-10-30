@@ -147,7 +147,7 @@ func (s *Object) Interface(_ bool, viewSpec model.ViewDeclare) (ret any) {
 
 	pkValue := s.GetPrimaryField().GetValue()
 	if !pkValue.IsNil() {
-		objVal.ID = fmt.Sprintf("%sf", pkValue.Interface())
+		objVal.ID = fmt.Sprintf("%v", pkValue.Interface())
 	}
 
 	ret = objVal
