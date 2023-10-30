@@ -26,6 +26,7 @@ func (s *impl) innerQuery(vModel model.Model, filter model.Filter) (ret resultIt
 		log.Errorf("innerQuery failed, s.executor.Query error:%s", err.Error())
 		return
 	}
+
 	defer s.executor.Finish()
 	for s.executor.Next() {
 		itemValues, itemErr := s.getModelFieldsScanDestPtr(vModel, builderVal)

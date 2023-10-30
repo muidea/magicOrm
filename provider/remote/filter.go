@@ -41,7 +41,8 @@ type ObjectFilter struct {
 	bindObject *Object
 }
 
-func NewFilter(objectPtr *Object) *ObjectFilter {
+func NewFilter(objectPtr *Object, viewSpec model.ViewDeclare) *ObjectFilter {
+	maskValue := objectPtr.Interface(true, viewSpec)
 	return &ObjectFilter{
 		Name:           objectPtr.GetName(),
 		PkgPath:        objectPtr.GetPkgPath(),
@@ -53,6 +54,7 @@ func NewFilter(objectPtr *Object) *ObjectFilter {
 		NotInFilter:    []*FieldValue{},
 		LikeFilter:     []*FieldValue{},
 		bindObject:     objectPtr,
+		MaskValue:      maskValue.(*ObjectValue),
 	}
 }
 
