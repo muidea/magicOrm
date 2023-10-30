@@ -106,6 +106,7 @@ func (s *SpecImpl) copy() (ret *SpecImpl) {
 		fieldName:    s.fieldName,
 		primaryKey:   s.primaryKey,
 		valueDeclare: s.valueDeclare,
+		viewDeclare:  s.viewDeclare,
 	}
 
 	return

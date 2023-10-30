@@ -7,8 +7,8 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, err *cd.Result) {
-	filterVal, filterErr := s.modelProvider.GetModelFilter(vModel)
+func (s *impl) getModelFilter(vModel model.Model, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result) {
+	filterVal, filterErr := s.modelProvider.GetModelFilter(vModel, viewSpec)
 	if filterErr != nil {
 		err = filterErr
 		log.Errorf("getModelFilter failed, s.modelProvider.GetEntityFilter error:%s", err.Error())

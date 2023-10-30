@@ -823,7 +823,7 @@ func TestRemoteQuery(t *testing.T) {
 		return
 	}
 
-	filter, err := remoteProvider.GetModelFilter(cObjectPtr)
+	filter, err := remoteProvider.GetModelFilter(cObjectPtr, 0)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return

@@ -347,7 +347,7 @@ func TestComposeLocal(t *testing.T) {
 	}
 
 	cModel, _ := localProvider.GetEntityModel(&Compose{})
-	filter, err := localProvider.GetModelFilter(cModel)
+	filter, err := localProvider.GetModelFilter(cModel, 0)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -563,7 +563,7 @@ func TestComposeRemote(t *testing.T) {
 		return
 	}
 
-	filter, err := remoteProvider.GetModelFilter(composeObjectPtr)
+	filter, err := remoteProvider.GetModelFilter(composeObjectPtr, 0)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return

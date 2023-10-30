@@ -539,7 +539,7 @@ func TestRemoteUser(t *testing.T) {
 	}
 
 	userModel, _ := remoteProvider.GetEntityModel(userObject)
-	user2Filter, user2Err := remoteProvider.GetModelFilter(userModel)
+	user2Filter, user2Err := remoteProvider.GetModelFilter(userModel, 0)
 	if user2Err != nil {
 		t.Errorf("remoteProvider.GetModelFilter failed, error:%s", user2Err.Error())
 		return
@@ -1061,7 +1061,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	filter, err := remoteProvider.GetModelFilter(userObject)
+	filter, err := remoteProvider.GetModelFilter(userObject, 0)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -1121,7 +1121,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	userFilter, err := remoteProvider.GetModelFilter(userObject)
+	userFilter, err := remoteProvider.GetModelFilter(userObject, 0)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -1382,7 +1382,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("GetObject failed, err:%s", userObjectErr.Error())
 		return
 	}
-	filter, err := remoteProvider.GetModelFilter(userObject)
+	filter, err := remoteProvider.GetModelFilter(userObject, 0)
 	if err != nil {
 		t.Errorf("GetModelFilter failed, err:%s", err.Error())
 		return
@@ -1441,7 +1441,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
-	filter2, err := remoteProvider.GetModelFilter(userObject)
+	filter2, err := remoteProvider.GetModelFilter(userObject, 0)
 	if err != nil {
 		t.Errorf("GetModelFilter failed, err:%s", err.Error())
 		return
@@ -1627,7 +1627,7 @@ func TestPolicy(t *testing.T) {
 		t.Errorf("getObjectValue failed, err:%s", statusErr.Error())
 		return
 	}
-	filter, err := remoteProvider.GetModelFilter(rewardPolicyObject)
+	filter, err := remoteProvider.GetModelFilter(rewardPolicyObject, 0)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return

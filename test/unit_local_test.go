@@ -92,7 +92,7 @@ func TestLocalExecutor(t *testing.T) {
 	}
 
 	uModel, _ := localProvider.GetEntityModel(&Unit{})
-	filter, err := localProvider.GetModelFilter(uModel)
+	filter, err := localProvider.GetModelFilter(uModel, 0)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return

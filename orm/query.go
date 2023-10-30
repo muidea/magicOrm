@@ -165,7 +165,7 @@ func (s *impl) innerQueryRelationModel(id any, vModel model.Model, deepLevel int
 	}
 	vModel.SetFieldValue(pkField.GetName(), fVal)
 
-	vFilter, vErr := s.getModelFilter(vModel)
+	vFilter, vErr := s.getModelFilter(vModel, model.LiteView)
 	if vErr != nil {
 		err = vErr
 		if err.Fail() {
@@ -204,7 +204,7 @@ func (s *impl) innerQueryRelationSliceModel(ids []any, vModel model.Model, deepL
 		}
 		svModel.SetFieldValue(pkField.GetName(), fVal)
 
-		vFilter, vErr := s.getModelFilter(svModel)
+		vFilter, vErr := s.getModelFilter(svModel, model.LiteView)
 		if vErr != nil {
 			err = vErr
 			if err.Fail() {
@@ -251,8 +251,8 @@ func (s *impl) innerQueryRelationKeys(vModel model.Model, rModel model.Model, vF
 			log.Errorf("innerQueryRelationKeys failed, s.executor.Query error:%v", err.Error())
 			return
 		}
-
 		defer s.executor.Finish()
+
 		for s.executor.Next() {
 			itemValue, itemErr := s.getModelPKFieldScanDestPtr(vModel, builderVal)
 			if itemErr != nil {
@@ -429,7 +429,7 @@ func (s *impl) Query(vModel model.Model) (ret model.Model, err *cd.Result) {
 		return
 	}
 
-	vFilter, vErr := s.getModelFilter(vModel)
+	vFilter, vErr := s.getModelFilter(vModel, 0)
 	if vErr != nil {
 		err = vErr
 		if err.Fail() {

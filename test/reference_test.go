@@ -199,7 +199,7 @@ func TestReferenceLocal(t *testing.T) {
 	ptrStrArray := []*string{}
 
 	referenceModel, _ := localProvider.GetEntityModel(&Reference{})
-	filter, err := localProvider.GetModelFilter(referenceModel)
+	filter, err := localProvider.GetModelFilter(referenceModel, 0)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -470,7 +470,7 @@ func TestReferenceRemote(t *testing.T) {
 
 	referenceModel, _ := helper.GetObject(&bqValList)
 
-	filter, err := remoteProvider.GetModelFilter(referenceModel)
+	filter, err := remoteProvider.GetModelFilter(referenceModel, 0)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return

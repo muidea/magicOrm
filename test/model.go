@@ -2,25 +2,25 @@ package test
 
 // Status status
 type Status struct {
-	ID    int `orm:"id key auto"`
-	Value int `orm:"value"`
+	ID    int `orm:"id key auto" view:"view,lite"`
+	Value int `orm:"value" view:"view,lite"`
 }
 
 // Group Group
 type Group struct {
-	ID     int      `orm:"gid key auto"`
-	Name   string   `orm:"name"`
-	Users  *[]*User `orm:"users"`
-	Parent *Group   `orm:"parent"`
+	ID     int      `orm:"gid key auto" view:"view,lite"`
+	Name   string   `orm:"name" view:"view,lite"`
+	Users  *[]*User `orm:"users" view:"view,lite"`
+	Parent *Group   `orm:"parent" view:"view,lite"`
 }
 
 // User User
 type User struct {
-	ID     int      `orm:"uid key auto"`
-	Name   string   `orm:"name"`
-	EMail  string   `orm:"email"`
-	Status *Status  `orm:"status"`
-	Group  []*Group `orm:"group"`
+	ID     int      `orm:"uid key auto" view:"view,lite"`
+	Name   string   `orm:"name" view:"view,lite"`
+	EMail  string   `orm:"email" view:"view,lite"`
+	Status *Status  `orm:"status" view:"view,lite"`
+	Group  []*Group `orm:"group" view:"view,lite"`
 }
 
 // System System

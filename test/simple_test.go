@@ -153,7 +153,7 @@ func TestSimpleLocal(t *testing.T) {
 	}
 
 	simpleModel, _ := localProvider.GetEntityModel(&Simple{})
-	filter, err := localProvider.GetModelFilter(simpleModel)
+	filter, err := localProvider.GetModelFilter(simpleModel, 0)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -369,7 +369,7 @@ func TestSimpleRemote(t *testing.T) {
 	if objectErr != nil {
 		t.Errorf("GetObject failed, error:%s", objectErr.Error())
 	}
-	filter, err := remoteProvider.GetModelFilter(objectPtr)
+	filter, err := remoteProvider.GetModelFilter(objectPtr, 0)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return

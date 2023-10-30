@@ -24,7 +24,7 @@ type Provider interface {
 
 	GetEntityFilter(entity interface{}) (ret model.Filter, err *cd.Result)
 
-	GetModelFilter(vModel model.Model) (ret model.Filter, err *cd.Result)
+	GetModelFilter(vModel model.Model, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result)
 
 	GetValueModel(vVal model.Value, vType model.Type) (ret model.Model, err *cd.Result)
 
@@ -209,11 +209,11 @@ func (s *providerImpl) GetEntityFilter(entity interface{}) (ret model.Filter, er
 		return
 	}
 
-	ret, err = s.GetModelFilter(vModel)
+	ret, err = s.GetModelFilter(vModel, 0)
 	return
 }
 
-func (s *providerImpl) GetModelFilter(vModel model.Model) (ret model.Filter, err *cd.Result) {
+func (s *providerImpl) GetModelFilter(vModel model.Model, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result) {
 	if vModel == nil {
 		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal model value"))
 		return
@@ -226,7 +226,7 @@ func (s *providerImpl) GetModelFilter(vModel model.Model) (ret model.Filter, err
 		return
 	}
 
-	_ = filterVal.ValueMask(vModel.Interface(true, 0))
+	_ = filterVal.ValueMask(vModel.Interface(true, viewSpec))
 	ret = filterVal
 	return
 }

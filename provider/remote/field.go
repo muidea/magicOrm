@@ -2,6 +2,8 @@ package remote
 
 import (
 	"fmt"
+	"math"
+	"reflect"
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/model"
@@ -231,7 +233,56 @@ func (s *FieldValue) IsNil() bool {
 }
 
 func (s *FieldValue) IsZero() bool {
-	return s.Value == nil
+	if s.Value == nil {
+		return true
+	}
+
+	rVal := reflect.ValueOf(s.Value)
+	switch s.Value.(type) {
+	case bool:
+		return rVal.Bool() == false
+	case int8, int16, int32, int, int64:
+		return rVal.Int() == 0
+	case uint8, uint16, uint32, uint, uint64:
+		return rVal.Uint() == 0
+	case float32, float64:
+		return math.Float64bits(rVal.Float()) == 0
+	case string:
+		return rVal.String() == ""
+	case []bool,
+		[]int8, []int16, []int32, []int, []int64,
+		[]uint8, []uint16, []uint32, []uint, []uint64,
+		[]float32, []float64,
+		[]string,
+		[]any:
+		return rVal.Len() == 0
+	case *ObjectValue:
+		valuePtr, valueOK := s.Value.(*ObjectValue)
+		if valueOK {
+			if valuePtr != nil {
+				return !valuePtr.IsAssigned()
+			}
+			return true
+		}
+
+		err := fmt.Errorf("illegal value, val:%v", s.Value)
+		panic(err.Error())
+	case *SliceObjectValue:
+		valuePtr, valueOK := s.Value.(*SliceObjectValue)
+		if valueOK {
+			if valuePtr != nil {
+				return !valuePtr.IsAssigned()
+			}
+			return true
+		}
+		err := fmt.Errorf("illegal value, val:%v", s.Value)
+		panic(err.Error())
+	default:
+		err := fmt.Errorf("illegal value, val:%v", s.Value)
+		panic(err.Error())
+	}
+
+	return true
 }
 
 func (s *FieldValue) Set(val any) {

@@ -636,7 +636,7 @@ func TestLocalBatchQuery(t *testing.T) {
 
 	valueMask := &User{Status: &Status{}}
 	uModel, _ := localProvider.GetEntityModel(&User{})
-	filter, err := localProvider.GetModelFilter(uModel)
+	filter, err := localProvider.GetModelFilter(uModel, 0)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
