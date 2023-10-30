@@ -10,8 +10,8 @@ type Status struct {
 type Group struct {
 	ID     int      `orm:"gid key auto" view:"view,lite"`
 	Name   string   `orm:"name" view:"view,lite"`
-	Users  *[]*User `orm:"users" view:"view,lite"`
-	Parent *Group   `orm:"parent" view:"view,lite"`
+	Users  *[]*User `orm:"users" view:"view"`
+	Parent *Group   `orm:"parent" view:"view"`
 }
 
 // User User
