@@ -28,6 +28,10 @@ func (s SpecImpl) GetValueDeclare() model.ValueDeclare {
 }
 
 func (s SpecImpl) EnableView(viewSpec model.ViewDeclare) bool {
+	if s.ViewDeclare == nil {
+		return false
+	}
+
 	for _, val := range s.ViewDeclare {
 		if val == viewSpec {
 			return true

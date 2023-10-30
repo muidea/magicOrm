@@ -119,7 +119,7 @@ func (s *Object) Interface(_ bool, viewSpec model.ViewDeclare) (ret any) {
 
 	for _, sf := range s.Fields {
 		if viewSpec > 0 {
-			if sf.Spec.EnableView(viewSpec) {
+			if sf.Spec != nil && sf.Spec.EnableView(viewSpec) {
 				if sf.value == nil || sf.value.IsNil() {
 					vVal, _ := sf.Type.Interface(nil)
 					objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: vVal.Interface()})

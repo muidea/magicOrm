@@ -90,7 +90,7 @@ func (s *objectImpl) Interface(ptrValue bool, viewSpec model.ViewDeclare) (ret i
 	for _, sf := range s.fields {
 		fVal := sf.GetValue()
 		if viewSpec > 0 {
-			if sf.specPtr.EnableView(viewSpec) {
+			if sf.specPtr != nil && sf.specPtr.EnableView(viewSpec) {
 				if fVal.IsNil() {
 					fVal, _ = sf.typePtr.Interface(nil)
 					val := fVal.Get().(reflect.Value)
