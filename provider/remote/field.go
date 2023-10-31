@@ -84,7 +84,7 @@ func (s *Field) IsPtrType() bool {
 	return s.Type.IsPtrType()
 }
 
-func (s *Field) copy() (ret *Field) {
+func (s *Field) copy(reset bool) (ret *Field) {
 	val := &Field{
 		Name:        s.Name,
 		Description: s.Description,
@@ -97,7 +97,7 @@ func (s *Field) copy() (ret *Field) {
 		val.Type = s.Type.copy()
 	}
 
-	if s.value != nil {
+	if !reset && s.value != nil {
 		val.value = s.value.Copy()
 	}
 

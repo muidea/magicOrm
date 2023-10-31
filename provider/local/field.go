@@ -85,7 +85,7 @@ func (s *field) IsPtrType() bool {
 	return s.typePtr.IsPtrType()
 }
 
-func (s *field) copy() *field {
+func (s *field) copy(reset bool) *field {
 	val := &field{
 		index: s.index,
 		name:  s.name,
@@ -97,7 +97,7 @@ func (s *field) copy() *field {
 	if s.specPtr != nil {
 		val.specPtr = s.specPtr.copy()
 	}
-	if s.valuePtr != nil {
+	if !reset && s.valuePtr != nil {
 		val.valuePtr = s.valuePtr.Copy()
 	}
 

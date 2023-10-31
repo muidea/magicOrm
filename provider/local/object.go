@@ -121,10 +121,10 @@ func (s *objectImpl) Interface(ptrValue bool, viewSpec model.ViewDeclare) (ret i
 	return
 }
 
-func (s *objectImpl) Copy() model.Model {
+func (s *objectImpl) Copy(reset bool) model.Model {
 	objectPtr := &objectImpl{objectType: s.objectType, fields: []*field{}}
 	for _, sf := range s.fields {
-		objectPtr.fields = append(objectPtr.fields, sf.copy())
+		objectPtr.fields = append(objectPtr.fields, sf.copy(reset))
 	}
 
 	return objectPtr

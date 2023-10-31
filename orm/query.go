@@ -194,7 +194,7 @@ func (s *impl) innerQueryRelationModel(id any, vModel model.Model, deepLevel int
 func (s *impl) innerQueryRelationSliceModel(ids []any, vModel model.Model, deepLevel int) (ret []model.Model, err *cd.Result) {
 	sliceVal := []model.Model{}
 	for _, id := range ids {
-		svModel := vModel.Copy()
+		svModel := vModel.Copy(false)
 		pkField := svModel.GetPrimaryField()
 		fVal, fErr := s.modelProvider.DecodeValue(id, pkField.GetType())
 		if fErr != nil {
@@ -429,7 +429,7 @@ func (s *impl) Query(vModel model.Model) (ret model.Model, err *cd.Result) {
 		return
 	}
 
-	vFilter, vErr := s.getModelFilter(vModel, 0)
+	vFilter, vErr := s.getModelFilter(vModel, model.OriginView)
 	if vErr != nil {
 		err = vErr
 		if err.Fail() {

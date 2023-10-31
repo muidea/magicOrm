@@ -234,5 +234,5 @@ func (s *filter) MaskModel() om.Model {
 		return nil
 	}
 
-	return objPtr.Copy()
+	return objPtr.Copy(false)
 }

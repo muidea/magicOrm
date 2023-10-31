@@ -22,7 +22,7 @@ func (s *impl) queryBatch(vFilter model.Filter) (ret []model.Model, err *cd.Resu
 
 	sliceValue := []model.Model{}
 	for idx := 0; idx < len(queryValueList); idx++ {
-		modelVal, modelErr := s.innerAssign(vModel.Copy(), queryValueList[idx], 0)
+		modelVal, modelErr := s.innerAssign(vModel.Copy(false), queryValueList[idx], 0)
 		if modelErr != nil {
 			err = modelErr
 			if err.Fail() {

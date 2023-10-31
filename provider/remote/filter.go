@@ -398,5 +398,5 @@ func (s *ObjectFilter) MaskModel() model.Model {
 		}
 	}
 
-	return maskObject.Copy()
+	return maskObject.Copy(false)
 }

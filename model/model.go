@@ -11,7 +11,7 @@ type Model interface {
 	GetPrimaryField() Field
 	GetField(name string) Field
 	Interface(ptrValue bool, viewSpec ViewDeclare) any
-	Copy() Model
+	Copy(reset bool) Model
 	Dump() string
 }
 
