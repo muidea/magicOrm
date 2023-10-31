@@ -209,7 +209,7 @@ func (s *providerImpl) GetEntityFilter(entity interface{}) (ret model.Filter, er
 		return
 	}
 
-	ret, err = s.GetModelFilter(vModel, 0)
+	ret, err = s.GetModelFilter(vModel, model.OriginView)
 	return
 }
 

@@ -75,7 +75,7 @@ func GetEntityModel(entity interface{}) (ret model.Model, err *cd.Result) {
 }
 
 func GetModelFilter(vModel model.Model) (ret model.Filter, err *cd.Result) {
-	valuePtr := NewValue(reflect.ValueOf(vModel.Interface(true, 0)))
+	valuePtr := NewValue(reflect.ValueOf(vModel.Interface(true, model.OriginView)))
 	ret = newFilter(valuePtr)
 	return
 }

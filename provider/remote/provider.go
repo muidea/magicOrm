@@ -133,7 +133,7 @@ func GetModelFilter(vModel model.Model) (ret model.Filter, err *cd.Result) {
 		return
 	}
 
-	ret = NewFilter(objectImpl, 0)
+	ret = NewFilter(objectImpl)
 	return
 }
 
