@@ -429,7 +429,7 @@ func (s *impl) Query(vModel model.Model) (ret model.Model, err *cd.Result) {
 		return
 	}
 
-	vFilter, vErr := s.getModelFilter(vModel, model.OriginView)
+	vFilter, vErr := s.getModelFilter(vModel, model.FullView)
 	if vErr != nil {
 		err = vErr
 		if err.Fail() {

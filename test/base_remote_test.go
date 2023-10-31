@@ -325,7 +325,7 @@ func TestRemoteReference(t *testing.T) {
 		t.Errorf("query reference failed, err:%s", err.Error())
 		return
 	}
-	if s4.FValue != nil || s4.TimeStamp != nil || s4.Flag != nil || s4.PtrStrArray != nil || s4.PtrArray != nil {
+	if s4.FValue == nil || s4.TimeStamp == nil || s4.Flag == nil || s4.PtrStrArray == nil || s4.PtrArray == nil {
 		t.Errorf("query reference failed")
 		return
 	}
