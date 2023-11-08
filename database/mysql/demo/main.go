@@ -25,8 +25,9 @@ var databaseUsername = "root"
 var databasePassword = "rootkit"
 var threadSize = 20
 
+var clearAll = true
 var itemSize = 18000000
-var mode = 3
+var mode = 1
 var disableStatic = true
 var finishFlag = false
 
@@ -42,6 +43,7 @@ func main() {
 	flag.StringVar(&databaseUsername, "Account", databaseUsername, "database account")
 	flag.StringVar(&databasePassword, "Password", databasePassword, "database password")
 	flag.IntVar(&threadSize, "ThreadSize", threadSize, "database access thread size")
+	flag.BoolVar(&clearAll, "ClearAll", clearAll, "clear all records")
 	flag.IntVar(&itemSize, "ItemSize", itemSize, "database insert item size")
 	flag.IntVar(&mode, "Mode", mode, "database access mode, 1=onceDML,2=onceDDL,3=monkeyDDL")
 	flag.BoolVar(&disableStatic, "DisableStatic", disableStatic, "disable static ddl,only online ddl")
@@ -86,7 +88,9 @@ func main() {
 }
 
 func testDML(wg *sync.WaitGroup, pool *mysql.Pool) {
-	pickExecutor(pool, wg, dropSchema)
+	if clearAll {
+		pickExecutor(pool, wg, dropSchema)
+	}
 
 	pickExecutor(pool, wg, createSchema)
 
@@ -160,7 +164,7 @@ func pickExecutor(pool *mysql.Pool, wg *sync.WaitGroup, fPtr funcPtr) {
 }
 
 func createSchema(executor *mysql.Executor) (err *cd.Result) {
-	sql := "CREATE TABLE `Unit` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`i8` TINYINT NOT NULL ,\n\t`i16` SMALLINT NOT NULL ,\n\t`i32` INT NOT NULL ,\n\t`i64` BIGINT NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` FLOAT NOT NULL ,\n\t`f64` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\t`flag` TINYINT NOT NULL ,\n\t`iArray` TEXT NOT NULL ,\n\t`fArray` TEXT NOT NULL ,\n\t`strArray` TEXT NOT NULL ,\n\tPRIMARY KEY (`id`)\n)"
+	sql := "CREATE TABLE IF NOT EXISTS `Unit` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`i8` TINYINT NOT NULL ,\n\t`i16` SMALLINT NOT NULL ,\n\t`i32` INT NOT NULL ,\n\t`i64` BIGINT NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` FLOAT NOT NULL ,\n\t`f64` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\t`flag` TINYINT NOT NULL ,\n\t`iArray` TEXT NOT NULL ,\n\t`fArray` TEXT NOT NULL ,\n\t`strArray` TEXT NOT NULL ,\n\tPRIMARY KEY (`id`)\n)"
 	_, _, err = executor.Execute(sql)
 	return
 }
@@ -234,7 +238,7 @@ func alterSchemaOlnDDLDrop(executor *mysql.Executor) (err *cd.Result) {
 }
 
 func createSchemaDDL(executor *mysql.Executor) (err *cd.Result) {
-	sql := "CREATE TABLE `Unit002` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`i8` TINYINT NOT NULL ,\n\t`i16` SMALLINT NOT NULL ,\n\t`i32` INT NOT NULL ,\n\t`i64` BIGINT NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` FLOAT NOT NULL ,\n\t`f64` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\t`flag` TINYINT NOT NULL ,\n\t`iArray` TEXT NOT NULL ,\n\t`fArray` TEXT NOT NULL ,\n\t`strArray` TEXT NOT NULL ,\n\tPRIMARY KEY (`id`)\n)"
+	sql := "CREATE TABLE IF NOT EXISTS `Unit002` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`i8` TINYINT NOT NULL ,\n\t`i16` SMALLINT NOT NULL ,\n\t`i32` INT NOT NULL ,\n\t`i64` BIGINT NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` FLOAT NOT NULL ,\n\t`f64` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\t`flag` TINYINT NOT NULL ,\n\t`iArray` TEXT NOT NULL ,\n\t`fArray` TEXT NOT NULL ,\n\t`strArray` TEXT NOT NULL ,\n\tPRIMARY KEY (`id`)\n)"
 	_, _, err = executor.Execute(sql)
 	return
 }
