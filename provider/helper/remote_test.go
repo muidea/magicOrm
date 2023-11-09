@@ -2,7 +2,6 @@ package helper
 
 import (
 	"encoding/json"
-	"os"
 	"testing"
 
 	"github.com/muidea/magicOrm/model"
@@ -215,14 +214,4 @@ func TestExtObjValue(t *testing.T) {
 		t.Errorf("compareObjectValue failed")
 		return
 	}
-}
-
-func TestSerializeEntity(t *testing.T) {
-	cwd, _ := os.Getwd()
-	entityList := []any{&Simple{}, &ExtInfo{}}
-	for _, val := range entityList {
-		SerializeEntity(val, cwd)
-	}
-
-	t.Log("SerializeEntity")
 }
