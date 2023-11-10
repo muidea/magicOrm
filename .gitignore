@@ -10,9 +10,9 @@
 
 demo
 
-/provider/helper/entity/
-/provider/helper/model/
-/provider/helper/serialize_test.go
+provider/helper/entity/
+provider/helper/model/
+provider/helper/serialize_test.go
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
