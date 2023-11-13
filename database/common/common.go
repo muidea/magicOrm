@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
-
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
@@ -29,11 +26,15 @@ func New(vModel model.Model, modelProvider provider.Provider, prefix string) Com
 }
 
 func (s *Common) constructTableName(vModel model.Model) string {
-	return cases.Title(language.English).String(vModel.GetName())
+	//return cases.Title(language.English).String(vModel.GetName())
+	strName := vModel.GetName()
+	return strings.ToUpper(strName[:1]) + strName[1:]
 }
 
 func (s *Common) constructInfix(vFiled model.Field) string {
-	return cases.Title(language.English).String(vFiled.GetName())
+	//return cases.Title(language.English).String(vFiled.GetName())
+	strName := vFiled.GetName()
+	return strings.ToUpper(strName[:1]) + strName[1:]
 }
 
 func (s *Common) GetTableName() string {
