@@ -57,7 +57,7 @@ func declareFieldInfo(vField model.Field) (ret string, err *cd.Result) {
 func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err *cd.Result) {
 	switch fType.GetValue() {
 	case model.TypeStringValue:
-		if fSpec.GetValueDeclare() == model.UUID {
+		if fSpec.IsPrimaryKey() {
 			ret = "VARCHAR(32)"
 		} else {
 			ret = "TEXT"
