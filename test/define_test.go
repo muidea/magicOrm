@@ -20,7 +20,7 @@ func TestDefine(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{&Sub{}, &Parent{}}
+	objList := []any{&Sub{}, &Parent{}}
 	modelList, modelErr := registerModel(localProvider, objList)
 	if modelErr != nil {
 		err = modelErr

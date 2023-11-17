@@ -143,7 +143,7 @@ func (s *impl) assignModelField(vField model.Field, vModel model.Model, deepLeve
 	return
 }
 
-func (s *impl) assignBasicField(vField model.Field, fType model.Type, val interface{}) (err *cd.Result) {
+func (s *impl) assignBasicField(vField model.Field, fType model.Type, val any) (err *cd.Result) {
 	fVal, fErr := s.modelProvider.DecodeValue(val, fType)
 	if fErr != nil {
 		err = fErr

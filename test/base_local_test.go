@@ -25,7 +25,7 @@ func TestLocalSimple(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{&Simple{}}
+	objList := []any{&Simple{}}
 	_, err = registerModel(localProvider, objList)
 	if err != nil {
 		t.Errorf("register model failed. err:%s", err.Error())
@@ -106,7 +106,7 @@ func TestLocalReference(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{&Reference{}}
+	objList := []any{&Reference{}}
 	_, err = registerModel(localProvider, objList)
 	if err != nil {
 		t.Errorf("register model failed. err:%s", err.Error())
@@ -262,7 +262,7 @@ func TestLocalCompose(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{&Simple{}, &Reference{}, &Compose{}}
+	objList := []any{&Simple{}, &Reference{}, &Compose{}}
 	mList, mErr := registerModel(localProvider, objList)
 	if mErr != nil {
 		err = mErr
@@ -435,7 +435,7 @@ func TestLocalQuery(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{&Simple{}, &Reference{}, &Compose{}}
+	objList := []any{&Simple{}, &Reference{}, &Compose{}}
 	mList, mErr := registerModel(localProvider, objList)
 	if mErr != nil {
 		t.Errorf("register model failed. err:%s", mErr.Error())

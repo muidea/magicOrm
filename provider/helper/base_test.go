@@ -141,7 +141,7 @@ func TestModel(t *testing.T) {
 	}
 }
 
-func testValue(t *testing.T, valPtr interface{}) *cd.Result {
+func testValue(t *testing.T, valPtr any) *cd.Result {
 	lModel, lErr := local.GetEntityModel(valPtr)
 	if lErr != nil {
 		t.Errorf("local.GetEntityModel failed. err:%s", lErr.Error())

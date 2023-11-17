@@ -231,7 +231,7 @@ func type2Object(entityType reflect.Type) (ret *remote.Object, err *cd.Result) {
 }
 
 // GetObject get object
-func GetObject(entity interface{}) (ret *remote.Object, err *cd.Result) {
+func GetObject(entity any) (ret *remote.Object, err *cd.Result) {
 	entityType := reflect.ValueOf(entity).Type()
 	ret, err = type2Object(entityType)
 	if err != nil {
@@ -424,7 +424,7 @@ func getObjectValue(entityVal reflect.Value) (ret *remote.ObjectValue, err *cd.R
 }
 
 // GetObjectValue get object value
-func GetObjectValue(entity interface{}) (ret *remote.ObjectValue, err *cd.Result) {
+func GetObjectValue(entity any) (ret *remote.ObjectValue, err *cd.Result) {
 	entityVal := reflect.ValueOf(entity)
 	ret, err = getObjectValue(entityVal)
 	return
@@ -473,7 +473,7 @@ func getSliceObjectValue(sliceVal reflect.Value) (ret *remote.SliceObjectValue, 
 }
 
 // GetSliceObjectValue get slice object value
-func GetSliceObjectValue(sliceEntity interface{}) (ret *remote.SliceObjectValue, err *cd.Result) {
+func GetSliceObjectValue(sliceEntity any) (ret *remote.SliceObjectValue, err *cd.Result) {
 	sliceValue := reflect.ValueOf(sliceEntity)
 	ret, err = getSliceObjectValue(sliceValue)
 	return
@@ -502,7 +502,7 @@ func DecodeObject(data []byte) (ret *remote.Object, err *cd.Result) {
 	return
 }
 
-func SerializeEntity(entity interface{}, destinationPath string) {
+func SerializeEntity(entity any, destinationPath string) {
 	objectPtr, objectErr := GetObject(entity)
 	if objectErr != nil {
 		log.Errorf("SerializeEntity failed, GetObject error:%s", objectErr.Error())

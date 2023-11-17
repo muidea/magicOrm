@@ -8,7 +8,7 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *impl) innerInsert(vModel model.Model) (ret interface{}, err *cd.Result) {
+func (s *impl) innerInsert(vModel model.Model) (ret any, err *cd.Result) {
 	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
 	sqlStr, sqlErr := builderVal.BuildInsert()
 	if sqlErr != nil {

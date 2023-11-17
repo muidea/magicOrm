@@ -23,7 +23,7 @@ func TestLocalGroup(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{&Group{}, &User{}, &Status{}}
+	objList := []any{&Group{}, &User{}, &Status{}}
 	registerModel(provider, objList)
 
 	group1 := &Group{Name: "testGroup1"}
@@ -156,7 +156,7 @@ func TestLocalUser(t *testing.T) {
 	group2 := &Group{Name: "testGroup2"}
 	group3 := &Group{Name: "testGroup3"}
 
-	objList := []interface{}{&Group{}, &User{}, &Status{}}
+	objList := []any{&Group{}, &User{}, &Status{}}
 	registerModel(provider, objList)
 
 	statusModel, statusErr := provider.GetEntityModel(status)
@@ -373,7 +373,7 @@ func TestLocalSystem(t *testing.T) {
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
-	objList := []interface{}{&Group{}, &User{}, &System{}, &Status{}}
+	objList := []any{&Group{}, &User{}, &System{}, &Status{}}
 	registerModel(localProvider, objList)
 
 	userModel, userErr := localProvider.GetEntityModel(User{})
@@ -533,7 +533,7 @@ func TestLocalBatchQuery(t *testing.T) {
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
-	objList := []interface{}{&Group{}, &User{}, &Status{}}
+	objList := []any{&Group{}, &User{}, &Status{}}
 	registerModel(localProvider, objList)
 
 	statusModel, statusErr := localProvider.GetEntityModel(status)

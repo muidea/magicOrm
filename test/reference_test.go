@@ -37,7 +37,7 @@ func TestReferenceLocal(t *testing.T) {
 	referenceDef := &Reference{}
 	composeDef := &Compose{}
 
-	entityList := []interface{}{simpleDef, referenceDef, composeDef}
+	entityList := []any{simpleDef, referenceDef, composeDef}
 	modelList, modelErr := registerModel(localProvider, entityList)
 	if modelErr != nil {
 		err = modelErr
@@ -255,7 +255,7 @@ func TestReferenceRemote(t *testing.T) {
 	referenceDef, _ := helper.GetObject(&Reference{})
 	composeDef, _ := helper.GetObject(&Compose{})
 
-	entityList := []interface{}{simpleDef, referenceDef, composeDef}
+	entityList := []any{simpleDef, referenceDef, composeDef}
 	modelList, modelErr := registerModel(remoteProvider, entityList)
 	if modelErr != nil {
 		err = modelErr

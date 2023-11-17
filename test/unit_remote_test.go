@@ -33,7 +33,7 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{objDef}
+	objList := []any{objDef}
 	_, err = registerModel(remoteProvider, objList)
 	if err != nil {
 		t.Errorf("register mode failed, err:%s", err.Error())
@@ -168,7 +168,7 @@ func TestRemoteDepends(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{objDef, extObjDef, ext2ObjDef}
+	objList := []any{objDef, extObjDef, ext2ObjDef}
 	registerModel(remoteProvider, objList)
 
 	err = o1.Drop(objDef)

@@ -21,7 +21,7 @@ func TestKPI(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{&Goal{}, &SpecialGoal{}, &KPI{}}
+	objList := []any{&Goal{}, &SpecialGoal{}, &KPI{}}
 	registerModel(provider, objList)
 
 	goal := &Goal{Type: ByPiece, Value: 10}

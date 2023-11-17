@@ -58,7 +58,7 @@ func Initialize() {
 // Uninitialized orm
 func Uninitialized() {
 	name2PoolUninitializedOnce.Do(func() {
-		name2Pool.Range(func(_, val interface{}) bool {
+		name2Pool.Range(func(_, val any) bool {
 			pool := val.(executor.Pool)
 			pool.Uninitialized()
 

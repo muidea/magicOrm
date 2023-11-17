@@ -46,7 +46,7 @@ func TestRemoteGroup(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{groupDef, userDef, statusDef}
+	objList := []any{groupDef, userDef, statusDef}
 	_, err = registerModel(remoteProvider, objList)
 	if err != nil {
 		t.Errorf("registerModel failed, err:%s", err.Error())
@@ -296,7 +296,7 @@ func TestRemoteUser(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{groupDef, userDef, statusDef}
+	objList := []any{groupDef, userDef, statusDef}
 	_, err = registerModel(remoteProvider, objList)
 	if err != nil {
 		t.Errorf("registerModel failed, err:%s", err.Error())
@@ -647,7 +647,7 @@ func TestRemoteSystem(t *testing.T) {
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
-	objList := []interface{}{groupDef, userDef, statusDef, sysDef}
+	objList := []any{groupDef, userDef, statusDef, sysDef}
 	_, err = registerModel(remoteProvider, objList)
 	if err != nil {
 		t.Errorf("registerModel failed, err:%s", err.Error())
@@ -891,7 +891,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
-	objList := []interface{}{groupDef, userDef, statusDef}
+	objList := []any{groupDef, userDef, statusDef}
 	_, err = registerModel(remoteProvider, objList)
 	if err != nil {
 		t.Errorf("registerModel failed, err:%s", err.Error())
@@ -1187,7 +1187,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
-	objList := []interface{}{groupDef, userDef, statusDef}
+	objList := []any{groupDef, userDef, statusDef}
 	_, err = registerModel(remoteProvider, objList)
 	if err != nil {
 		t.Errorf("registerModel failed, err:%s", err.Error())
@@ -1505,7 +1505,7 @@ func TestPolicy(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{valueItemDef, valueScopeDef, statusDef, rewardPolicyDef}
+	objList := []any{valueItemDef, valueScopeDef, statusDef, rewardPolicyDef}
 	_, err = registerModel(remoteProvider, objList)
 	if err != nil {
 		t.Errorf("registerModel failed, err:%s", err.Error())

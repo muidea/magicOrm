@@ -112,7 +112,7 @@ composeDef := helper.GetObject(&Compose{})
 ## 模型初始化
 ```go
 
-entityList := []interface{}{simpleDef, referenceDef, composeDef}
+entityList := []any{simpleDef, referenceDef, composeDef}
 modelList, modelErr := registerModel(provider, entityList)
 if modelErr != nil {
     err = modelErr

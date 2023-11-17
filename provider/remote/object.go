@@ -238,7 +238,19 @@ func (s *ObjectValue) GetValue() []*FieldValue {
 	return s.Fields
 }
 
-func (s *ObjectValue) SetFieldValue(name string, value interface{}) {
+func (s *ObjectValue) GetFieldValue(name string) any {
+	for _, val := range s.Fields {
+		if val.GetName() != name {
+			continue
+		}
+
+		return val.Get()
+	}
+
+	return nil
+}
+
+func (s *ObjectValue) SetFieldValue(name string, value any) {
 	found := false
 	for _, val := range s.Fields {
 		if val.GetName() != name {
@@ -366,7 +378,7 @@ func EncodeSliceObjectValue(objVal *SliceObjectValue) (ret []byte, err *cd.Resul
 }
 
 // decodeObjectValueFromMap decode object value from map
-func decodeObjectValueFromMap(mapVal map[string]interface{}) (ret *ObjectValue, err *cd.Result) {
+func decodeObjectValueFromMap(mapVal map[string]any) (ret *ObjectValue, err *cd.Result) {
 	nameVal, nameOK := mapVal[NameTag]
 	pkgPathVal, pkgPathOK := mapVal[PkgPathTag]
 	itemsVal, itemsOK := mapVal[FieldsTag]
@@ -380,8 +392,8 @@ func decodeObjectValueFromMap(mapVal map[string]interface{}) (ret *ObjectValue, 
 	}
 
 	objVal := &ObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), Fields: []*FieldValue{}}
-	for _, val := range itemsVal.([]interface{}) {
-		item, itemOK := val.(map[string]interface{})
+	for _, val := range itemsVal.([]any) {
+		item, itemOK := val.(map[string]any)
 		if !itemOK {
 			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal object field item value"))
 			return
@@ -401,7 +413,7 @@ func decodeObjectValueFromMap(mapVal map[string]interface{}) (ret *ObjectValue, 
 }
 
 // decodeSliceObjectValueFromMap decode slice object value from map
-func decodeSliceObjectValueFromMap(mapVal map[string]interface{}) (ret *SliceObjectValue, err *cd.Result) {
+func decodeSliceObjectValueFromMap(mapVal map[string]any) (ret *SliceObjectValue, err *cd.Result) {
 	nameVal, nameOK := mapVal[NameTag]
 	pkgPathVal, pkgPathOK := mapVal[PkgPathTag]
 	valuesVal, valuesOK := mapVal[ValuesTag]
@@ -415,8 +427,8 @@ func decodeSliceObjectValueFromMap(mapVal map[string]interface{}) (ret *SliceObj
 	}
 
 	objVal := &SliceObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), Values: []*ObjectValue{}}
-	for _, val := range valuesVal.([]interface{}) {
-		item, itemOK := val.(map[string]interface{})
+	for _, val := range valuesVal.([]any) {
+		item, itemOK := val.(map[string]any)
 		if !itemOK {
 			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal slice object field item value"))
 			return
@@ -435,7 +447,7 @@ func decodeSliceObjectValueFromMap(mapVal map[string]interface{}) (ret *SliceObj
 	return
 }
 
-func decodeItemValue(itemVal map[string]interface{}) (ret *FieldValue, err *cd.Result) {
+func decodeItemValue(itemVal map[string]any) (ret *FieldValue, err *cd.Result) {
 	nameVal, nameOK := itemVal[NameTag]
 	valVal, _ := itemVal[ValueTag]
 	if !nameOK {
@@ -449,7 +461,7 @@ func decodeItemValue(itemVal map[string]interface{}) (ret *FieldValue, err *cd.R
 }
 
 func ConvertItem(val *FieldValue) (ret *FieldValue, err *cd.Result) {
-	objVal, objOK := val.Value.(map[string]interface{})
+	objVal, objOK := val.Value.(map[string]any)
 	// for struct or slice struct
 	if objOK {
 		_, itemsOK := objVal[FieldsTag]
@@ -485,7 +497,7 @@ func ConvertItem(val *FieldValue) (ret *FieldValue, err *cd.Result) {
 	}
 
 	// for basic slice
-	sliceVal, sliceOK := val.Value.([]interface{})
+	sliceVal, sliceOK := val.Value.([]any)
 	if sliceOK {
 		ret = &FieldValue{Name: val.Name, Value: sliceVal}
 		return

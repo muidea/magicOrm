@@ -285,7 +285,7 @@ func (l *Compose) IsSame(r *Compose) bool {
 	return true
 }
 
-func registerModel(provider provider.Provider, objList []interface{}) (ret []model.Model, err *cd.Result) {
+func registerModel(provider provider.Provider, objList []any) (ret []model.Model, err *cd.Result) {
 	for _, val := range objList {
 		m, mErr := provider.RegisterModel(val)
 		if mErr != nil {
@@ -321,7 +321,7 @@ func dropModel(orm orm.Orm, modelList []model.Model) (err *cd.Result) {
 	return
 }
 
-func getObjectValue(val interface{}) (ret *remote.ObjectValue, err *cd.Result) {
+func getObjectValue(val any) (ret *remote.ObjectValue, err *cd.Result) {
 	objVal, objErr := helper.GetObjectValue(val)
 	if objErr != nil {
 		err = objErr

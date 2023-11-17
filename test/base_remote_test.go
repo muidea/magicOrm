@@ -34,7 +34,7 @@ func TestRemoteSimple(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{simpleDef}
+	objList := []any{simpleDef}
 	_, err = registerModel(remoteProvider, objList)
 	if err != nil {
 		t.Errorf("registerModel failed, err:%s", err.Error())
@@ -163,7 +163,7 @@ func TestRemoteReference(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{refDef}
+	objList := []any{refDef}
 	_, err = registerModel(remoteProvider, objList)
 	if err != nil {
 		t.Errorf("register model failed. err:%s", err.Error())
@@ -363,7 +363,7 @@ func TestRemoteCompose(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{simpleDef, referenceDef, composeDef}
+	objList := []any{simpleDef, referenceDef, composeDef}
 	mList, mErr := registerModel(remoteProvider, objList)
 	if mErr != nil {
 		err = mErr
@@ -610,7 +610,7 @@ func TestRemoteQuery(t *testing.T) {
 		return
 	}
 
-	objList := []interface{}{s1Def, r1Def, c1Def}
+	objList := []any{s1Def, r1Def, c1Def}
 	mList, mErr := registerModel(remoteProvider, objList)
 	if mErr != nil {
 		t.Errorf("register model failed. err:%s", mErr.Error())
