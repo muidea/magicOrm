@@ -38,6 +38,11 @@ func newFilter(valuePtr *ValueImpl) *filter {
 }
 
 func (s *filter) Equal(key string, val interface{}) (err *cd.Result) {
+	if val == nil {
+		err = cd.NewError(cd.IllegalParam, "illegal equal value")
+		return
+	}
+
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	qvType, qvErr := pu.GetTypeEnum(qv.Type())
 	if qvErr != nil {
@@ -57,6 +62,11 @@ func (s *filter) Equal(key string, val interface{}) (err *cd.Result) {
 }
 
 func (s *filter) NotEqual(key string, val interface{}) (err *cd.Result) {
+	if val == nil {
+		err = cd.NewError(cd.IllegalParam, "illegal not equal value")
+		return
+	}
+
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	qvType, qvErr := pu.GetTypeEnum(qv.Type())
 	if qvErr != nil {
@@ -76,6 +86,11 @@ func (s *filter) NotEqual(key string, val interface{}) (err *cd.Result) {
 }
 
 func (s *filter) Below(key string, val interface{}) (err *cd.Result) {
+	if val == nil {
+		err = cd.NewError(cd.IllegalParam, "illegal below value")
+		return
+	}
+
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	qvType, qvErr := pu.GetTypeEnum(qv.Type())
 	if qvErr != nil {
@@ -95,6 +110,11 @@ func (s *filter) Below(key string, val interface{}) (err *cd.Result) {
 }
 
 func (s *filter) Above(key string, val interface{}) (err *cd.Result) {
+	if val == nil {
+		err = cd.NewError(cd.IllegalParam, "illegal above value")
+		return
+	}
+
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	qvType, qvErr := pu.GetTypeEnum(qv.Type())
 	if qvErr != nil {
@@ -114,6 +134,11 @@ func (s *filter) Above(key string, val interface{}) (err *cd.Result) {
 }
 
 func (s *filter) In(key string, val interface{}) (err *cd.Result) {
+	if val == nil {
+		err = cd.NewError(cd.IllegalParam, "illegal in value")
+		return
+	}
+
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	qvType, qvErr := pu.GetTypeEnum(qv.Type())
 	if qvErr != nil {
@@ -133,6 +158,11 @@ func (s *filter) In(key string, val interface{}) (err *cd.Result) {
 }
 
 func (s *filter) NotIn(key string, val interface{}) (err *cd.Result) {
+	if val == nil {
+		err = cd.NewError(cd.IllegalParam, "illegal not in value")
+		return
+	}
+
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	qvType, qvErr := pu.GetTypeEnum(qv.Type())
 	if qvErr != nil {
@@ -152,6 +182,11 @@ func (s *filter) NotIn(key string, val interface{}) (err *cd.Result) {
 }
 
 func (s *filter) Like(key string, val interface{}) (err *cd.Result) {
+	if val == nil {
+		err = cd.NewError(cd.IllegalParam, "illegal like value")
+		return
+	}
+
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	if qv.Kind() != reflect.String {
 		err = cd.NewError(cd.UnExpected, fmt.Sprintf("like failed, illegal value type, type:%s", qv.Type().String()))
@@ -173,6 +208,11 @@ func (s *filter) Sort(sorter *util.SortFilter) {
 }
 
 func (s *filter) ValueMask(val interface{}) (err *cd.Result) {
+	if val == nil {
+		err = cd.NewError(cd.IllegalParam, "illegal value mask")
+		return
+	}
+
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	bindType := reflect.Indirect(s.bindValue.value).Type().String()
 	maskType := reflect.Indirect(qv).Type().String()
