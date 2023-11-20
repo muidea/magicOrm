@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/go-sql-driver/mysql v1.7.1
-	github.com/muidea/magicCommon v1.3.48
+	github.com/muidea/magicCommon v1.3.49
 )
 
 require (
