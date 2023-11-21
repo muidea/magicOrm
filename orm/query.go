@@ -21,7 +21,7 @@ func (s *impl) innerQuery(vModel model.Model, filter model.Filter) (ret resultIt
 		return
 	}
 
-	err = s.executor.Query(sqlStr)
+	_, err = s.executor.Query(sqlStr, false)
 	if err != nil {
 		log.Errorf("innerQuery failed, s.executor.Query error:%s", err.Error())
 		return
@@ -246,7 +246,7 @@ func (s *impl) innerQueryRelationKeys(vModel model.Model, rModel model.Model, vF
 
 	values := resultItems{}
 	func() {
-		err = s.executor.Query(relationSQL)
+		_, err = s.executor.Query(relationSQL, false)
 		if err != nil {
 			log.Errorf("innerQueryRelationKeys failed, s.executor.Query error:%v", err.Error())
 			return

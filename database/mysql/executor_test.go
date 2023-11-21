@@ -16,7 +16,7 @@ const (
 	monkeyDDL = 3
 )
 
-var databaseServer = "localhost:3306"
+var databaseServer = "127.0.0.1:3306"
 var databaseName = "testdb"
 var databaseUsername = "root"
 var databasePassword = "rootkit"
@@ -27,6 +27,38 @@ var mode = 1
 var finishFlag = false
 
 type funcPtr func(executor *Executor) *cd.Result
+
+func TestMasterSlaver(t *testing.T) {
+	pool := NewPool()
+	config := NewConfig(databaseServer, databaseName, databaseUsername, databasePassword, "")
+	pool.Initialize(50, config)
+	defer pool.Uninitialized()
+
+	executePtr, executeErr := pool.FetchOut()
+	if executeErr != nil {
+		t.Errorf("pool.FetchOut failed")
+		return
+	}
+
+	sql := "show slave status"
+	cols, queryErr := executePtr.Query(sql, true)
+	if queryErr != nil {
+		t.Errorf("executePtr.Query failed, error:%s", queryErr.Error())
+		return
+	}
+	if executePtr.Next() {
+		//executePtr.GetField()
+		t.Logf("ok, cols:%v", cols)
+	}
+
+	sql = "grant replication slave on *.* to 'root'@'%' identified by 'rootkit';"
+	_, _, executeErr = executePtr.Execute(sql)
+	if executeErr != nil {
+		t.Errorf("pool.FetchOut failed")
+		return
+	}
+
+}
 
 func TestNewPool(t *testing.T) {
 	pool := NewPool()

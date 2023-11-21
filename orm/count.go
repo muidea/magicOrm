@@ -19,7 +19,7 @@ func (s *impl) queryCount(vFilter model.Filter) (ret int64, err *cd.Result) {
 		return
 	}
 
-	err = s.executor.Query(sqlStr)
+	_, err = s.executor.Query(sqlStr, false)
 	if err != nil {
 		return
 	}

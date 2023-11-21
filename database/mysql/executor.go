@@ -214,7 +214,7 @@ func (s *Executor) RollbackTransaction() (err *cd.Result) {
 	return
 }
 
-func (s *Executor) Query(sql string) (err *cd.Result) {
+func (s *Executor) Query(sql string, needCols bool) (ret []string, err *cd.Result) {
 	//log.Infof("Query, sql:%s", sql)
 	startTime := time.Now()
 	defer func() {
@@ -243,6 +243,16 @@ func (s *Executor) Query(sql string) (err *cd.Result) {
 			log.Errorf("Query failed, s.dbHandle.Query:%s, error:%s", sql, rowErr.Error())
 			return
 		}
+		if needCols {
+			cols, colsErr := rows.Columns()
+			if colsErr != nil {
+				err = cd.NewError(cd.UnExpected, colsErr.Error())
+				log.Errorf("Query failed, rows.Columns:%s, error:%s", sql, colsErr.Error())
+				return
+			}
+
+			ret = cols
+		}
 		s.rowsHandle = rows
 	} else {
 		if s.rowsHandle != nil {
@@ -256,7 +266,16 @@ func (s *Executor) Query(sql string) (err *cd.Result) {
 			log.Errorf("Query failed, s.dbTx.Query:%s, error:%s", sql, rowErr.Error())
 			return
 		}
+		if needCols {
+			cols, colsErr := rows.Columns()
+			if colsErr != nil {
+				err = cd.NewError(cd.UnExpected, colsErr.Error())
+				log.Errorf("Query failed, rows.Columns:%s, error:%s", sql, colsErr.Error())
+				return
+			}
 
+			ret = cols
+		}
 		s.rowsHandle = rows
 	}
 
@@ -348,9 +367,9 @@ func (s *Executor) Execute(sql string) (rowsAffected int64, lastInsertID int64, 
 
 // CheckTableExist Check Table Exist
 func (s *Executor) CheckTableExist(tableName string) (ret bool, err *cd.Result) {
-	sql := fmt.Sprintf("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_NAME ='%s' and TABLE_SCHEMA ='%s'", tableName, s.dbName)
+	strSQL := fmt.Sprintf("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_NAME ='%s' and TABLE_SCHEMA ='%s'", tableName, s.dbName)
 
-	err = s.Query(sql)
+	_, err = s.Query(strSQL, false)
 	if err != nil {
 		log.Errorf("CheckTableExist failed, s.Query error:%s", err.Error())
 		return

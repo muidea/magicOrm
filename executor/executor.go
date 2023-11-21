@@ -19,7 +19,7 @@ type Executor interface {
 	BeginTransaction() *cd.Result
 	CommitTransaction() *cd.Result
 	RollbackTransaction() *cd.Result
-	Query(sql string) *cd.Result
+	Query(sql string, needCols bool) (ret []string, err *cd.Result)
 	Next() bool
 	Finish()
 	GetField(value ...interface{}) *cd.Result
