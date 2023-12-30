@@ -11,6 +11,7 @@ type SpecImpl struct {
 	PrimaryKey   bool                `json:"primaryKey"`
 	ValueDeclare model.ValueDeclare  `json:"valueDeclare"`
 	ViewDeclare  []model.ViewDeclare `json:"viewDeclare"`
+	DefaultValue any                 `json:"defaultValue"`
 }
 
 var emptySpec = SpecImpl{PrimaryKey: false, ValueDeclare: model.Customer}
