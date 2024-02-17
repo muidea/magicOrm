@@ -134,7 +134,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err *cd.Result) 
 			basicSQL, basicErr := s.buildBasicItem(field, filterItem)
 			if basicErr != nil {
 				err = basicErr
-				log.Errorf("buildFilter failed, s.buildBasicItem error:%s", err.Error())
+				log.Errorf("buildFilter failed, s.buildBasicItem %s error:%s", field.GetName(), err.Error())
 				return
 			}
 
@@ -150,7 +150,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err *cd.Result) 
 		relationSQL, relationErr := s.buildRelationItem(pkField, field, filterItem)
 		if relationErr != nil {
 			err = relationErr
-			log.Errorf("buildFilter failed, s.buildRelationItem error:%s", err.Error())
+			log.Errorf("buildFilter failed, s.buildRelationItem %s error:%s", field.GetName(), err.Error())
 			return
 		}
 
