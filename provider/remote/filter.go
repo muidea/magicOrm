@@ -112,7 +112,7 @@ func (s *ObjectFilter) Equal(key string, val interface{}) (err *cd.Result) {
 		}
 		s.EqualFilter = append(s.EqualFilter, item)
 	default:
-		err := fmt.Errorf("equal failed, illegal value, val:%v", val)
+		err := fmt.Errorf("equal failed, illegal value, key:%v, val:%v", key, val)
 		panic(err.Error())
 	}
 
@@ -135,7 +135,7 @@ func (s *ObjectFilter) NotEqual(key string, val interface{}) (err *cd.Result) {
 		}
 		s.NotEqualFilter = append(s.NotEqualFilter, item)
 	default:
-		err := fmt.Errorf("not equal failed, illegal value, val:%v", val)
+		err := fmt.Errorf("not equal failed, illegal value, key:%v, val:%v", key, val)
 		panic(err.Error())
 	}
 
@@ -150,7 +150,7 @@ func (s *ObjectFilter) Below(key string, val interface{}) (err *cd.Result) {
 		item := &FieldValue{Name: key, Value: val}
 		s.BelowFilter = append(s.BelowFilter, item)
 	default:
-		err := fmt.Errorf("below failed, illegal value, val:%v", val)
+		err := fmt.Errorf("below failed, illegal value, key:%v, val:%v", key, val)
 		panic(err.Error())
 	}
 	return
@@ -164,7 +164,7 @@ func (s *ObjectFilter) Above(key string, val interface{}) (err *cd.Result) {
 		item := &FieldValue{Name: key, Value: val}
 		s.AboveFilter = append(s.AboveFilter, item)
 	default:
-		err := fmt.Errorf("below failed, illegal value, val:%v", val)
+		err := fmt.Errorf("below failed, illegal value, key:%v, val:%v", key, val)
 		panic(err.Error())
 	}
 	return
@@ -187,7 +187,7 @@ func (s *ObjectFilter) In(key string, val interface{}) (err *cd.Result) {
 		}
 		s.InFilter = append(s.InFilter, item)
 	default:
-		err := fmt.Errorf("in failed, illegal value, val:%v", val)
+		err := fmt.Errorf("in failed, illegal value, key:%v, val:%v", key, val)
 		panic(err.Error())
 	}
 
@@ -211,7 +211,7 @@ func (s *ObjectFilter) NotIn(key string, val interface{}) (err *cd.Result) {
 		}
 		s.NotInFilter = append(s.NotInFilter, item)
 	default:
-		err := fmt.Errorf("not in failed, illegal value, val:%v", val)
+		err := fmt.Errorf("not in failed, illegal value, key:%v, val:%v", key, val)
 		panic(err.Error())
 	}
 
@@ -224,7 +224,7 @@ func (s *ObjectFilter) Like(key string, val interface{}) (err *cd.Result) {
 		item := &FieldValue{Name: key, Value: val}
 		s.LikeFilter = append(s.LikeFilter, item)
 	default:
-		err := fmt.Errorf("like failed, illegal value, val:%v", val)
+		err := fmt.Errorf("like failed, illegal value, key:%v, val:%v", key, val)
 		panic(err.Error())
 	}
 
