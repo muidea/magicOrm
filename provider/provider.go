@@ -22,7 +22,7 @@ type Provider interface {
 
 	GetEntityModel(entity interface{}) (ret model.Model, err *cd.Result)
 
-	GetEntityFilter(entity interface{}) (ret model.Filter, err *cd.Result)
+	GetEntityFilter(entity interface{}, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result)
 
 	GetModelFilter(vModel model.Model, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result)
 
@@ -30,7 +30,7 @@ type Provider interface {
 
 	GetTypeModel(vType model.Type) (ret model.Model, err *cd.Result)
 
-	GetTypeFilter(vType model.Type) (ret model.Filter, err *cd.Result)
+	GetTypeFilter(vType model.Type, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result)
 
 	EncodeValue(vVal model.Value, vType model.Type) (ret interface{}, err *cd.Result)
 
@@ -201,7 +201,7 @@ func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err 
 	return
 }
 
-func (s *providerImpl) GetEntityFilter(entity interface{}) (ret model.Filter, err *cd.Result) {
+func (s *providerImpl) GetEntityFilter(entity interface{}, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result) {
 	vModel, vErr := s.GetEntityModel(entity)
 	if vErr != nil {
 		err = vErr
@@ -209,7 +209,7 @@ func (s *providerImpl) GetEntityFilter(entity interface{}) (ret model.Filter, er
 		return
 	}
 
-	ret, err = s.GetModelFilter(vModel, model.OriginView)
+	ret, err = s.GetModelFilter(vModel, viewSpec)
 	return
 }
 
@@ -265,7 +265,7 @@ func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err *cd.
 	return
 }
 
-func (s *providerImpl) GetTypeFilter(vType model.Type) (ret model.Filter, err *cd.Result) {
+func (s *providerImpl) GetTypeFilter(vType model.Type, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result) {
 	if vType.IsBasic() {
 		return
 	}
@@ -277,12 +277,15 @@ func (s *providerImpl) GetTypeFilter(vType model.Type) (ret model.Filter, err *c
 		return
 	}
 
-	ret, err = s.getFilterFunc(typeModel.Copy(false))
-	if err != nil {
-		log.Errorf("GetTypeFilter failed, s.getFilterFunc error:%v", err.Error())
+	filterVal, filterErr := s.getFilterFunc(typeModel.Copy(false))
+	if filterErr != nil {
+		err = filterErr
+		log.Errorf("GetEntityFilter failed, getFilterFunc error:%v", err.Error())
 		return
 	}
 
+	_ = filterVal.ValueMask(typeModel.Interface(true, viewSpec))
+	ret = filterVal
 	return
 }
 
