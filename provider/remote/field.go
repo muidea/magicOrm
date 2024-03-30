@@ -105,7 +105,7 @@ func (s *Field) copy(reset bool) (ret *Field) {
 		val.value = s.value.Copy()
 	}
 	if val.value == nil && val.Spec != nil && val.Spec.DefaultValue != nil {
-		val.value = &ValueImpl{value: val.Spec.ValueDeclare}
+		val.value = &ValueImpl{value: val.Spec.DefaultValue}
 	}
 
 	ret = val
