@@ -535,25 +535,25 @@ func TestBuilderRemoteReference(t *testing.T) {
 		return
 	}
 
-	localProvider := provider.NewRemoteProvider("default")
-	extModel, extErr := localProvider.RegisterModel(eModel)
+	remoteProvider := provider.NewRemoteProvider("default")
+	extModel, extErr := remoteProvider.RegisterModel(eModel)
 	if extErr != nil {
-		t.Errorf("localProvider.RegisterModel failed, err:%s", extErr.Error())
+		t.Errorf("remoteProvider.RegisterModel failed, err:%s", extErr.Error())
 		return
 	}
-	unitModel, unitErr := localProvider.RegisterModel(uModel)
+	unitModel, unitErr := remoteProvider.RegisterModel(uModel)
 	if unitErr != nil {
-		t.Errorf("localProvider.RegisterModel failed, err:%s", unitErr.Error())
+		t.Errorf("remoteProvider.RegisterModel failed, err:%s", unitErr.Error())
 		return
 	}
 
-	extFilter, extErr := localProvider.GetModelFilter(eModel, 0)
+	extFilter, extErr := remoteProvider.GetModelFilter(eModel, 0)
 	if extErr != nil {
-		t.Errorf("localProvider.GetModelFilter failed, err:%s", extErr.Error())
+		t.Errorf("remoteProvider.GetModelFilter failed, err:%s", extErr.Error())
 		return
 	}
 
-	builder := NewBuilder(extModel, localProvider, "abc")
+	builder := NewBuilder(extModel, remoteProvider, "abc")
 	if builder == nil {
 		t.Error("new Builder failed")
 	}
