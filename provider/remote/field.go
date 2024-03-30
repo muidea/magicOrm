@@ -51,6 +51,10 @@ func (s *Field) GetValue() (ret model.Value) {
 		return
 	}
 
+	if s.Spec.DefaultValue != nil {
+		return &ValueImpl{value: s.Spec.ValueDeclare}
+	}
+
 	ret = &NilValue
 	return
 }
