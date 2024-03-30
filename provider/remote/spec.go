@@ -48,6 +48,7 @@ func (s SpecImpl) copy() *SpecImpl {
 		PrimaryKey:   s.PrimaryKey,
 		ValueDeclare: s.ValueDeclare,
 		ViewDeclare:  s.ViewDeclare,
+		DefaultValue: s.DefaultValue,
 	}
 
 	return &ret
