@@ -118,10 +118,15 @@ func (s *Object) Interface(_ bool, viewSpec model.ViewDeclare) (ret any) {
 	objVal := &ObjectValue{Name: s.Name, PkgPath: s.PkgPath, Fields: []*FieldValue{}}
 
 	for _, sf := range s.Fields {
+		var initVal any
+		if sf.Spec != nil && sf.Spec.DefaultValue != nil {
+			initVal = sf.Spec.DefaultValue
+		}
+
 		if viewSpec > 0 {
 			if sf.Spec != nil && sf.Spec.EnableView(viewSpec) {
 				if sf.value == nil || sf.value.IsNil() {
-					vVal, _ := sf.Type.Interface(nil)
+					vVal, _ := sf.Type.Interface(initVal)
 					objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: vVal.Interface()})
 					continue
 				}
@@ -134,9 +139,9 @@ func (s *Object) Interface(_ bool, viewSpec model.ViewDeclare) (ret any) {
 
 		if sf.value == nil || sf.value.IsNil() {
 			if sf.IsPtrType() {
-				objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name})
+				objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: initVal})
 			} else {
-				vVal, _ := sf.Type.Interface(nil)
+				vVal, _ := sf.Type.Interface(initVal)
 				objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: vVal.Interface()})
 			}
 			continue
