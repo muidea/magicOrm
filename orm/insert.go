@@ -6,6 +6,7 @@ import (
 
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider/util"
 )
 
 func (s *impl) innerInsert(vModel model.Model) (ret any, err *cd.Result) {
@@ -83,7 +84,9 @@ func (s *impl) insertRelation(vModel model.Model, vField model.Field) (err *cd.R
 			return
 		}
 
-		vField.SetValue(rValue)
+		if rValue != nil && !rValue.IsZero() {
+			vField.SetValue(rValue)
+		}
 		return
 	}
 
@@ -94,13 +97,23 @@ func (s *impl) insertRelation(vModel model.Model, vField model.Field) (err *cd.R
 		return
 	}
 
-	vField.SetValue(rValue)
+	if rValue != nil && !rValue.IsZero() {
+		vField.SetValue(rValue)
+	}
 	return
 }
 
 func (s *impl) insertSingleRelation(vModel model.Model, vField model.Field) (ret model.Value, err *cd.Result) {
 	fValue := vField.GetValue()
 	fType := vField.GetType()
+	// 为了避免自己引用或关联自己
+	if fType.GetPkgKey() == vModel.GetPkgKey() {
+		vValue := vModel.GetPrimaryField().GetValue()
+		if util.IsSameValue(fValue.Interface(), vValue.Interface()) {
+			return
+		}
+	}
+
 	rModel, rErr := s.modelProvider.GetValueModel(fValue, fType)
 	if rErr != nil {
 		err = rErr
@@ -167,6 +180,14 @@ func (s *impl) insertSliceRelation(vModel model.Model, vField model.Field) (ret 
 
 	elemType := fType.Elem()
 	for _, fVal := range fSliceValue {
+		// 为了避免自己引用或关联自己
+		if elemType.GetPkgKey() == vModel.GetPkgKey() {
+			vValue := vModel.GetPrimaryField().GetValue()
+			if util.IsSameValue(fVal.Interface(), vValue.Interface()) {
+				continue
+			}
+		}
+
 		rModel, rErr := s.modelProvider.GetValueModel(fVal, elemType)
 		if rErr != nil {
 			err = rErr

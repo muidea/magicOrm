@@ -248,7 +248,7 @@ func isSameStruct(firstVal, secondVal reflect.Value) (ret bool, err *cd.Result) 
 	for idx := 0; idx < firstNum; idx++ {
 		firstField := firstVal.Field(idx)
 		secondField := secondVal.Field(idx)
-		ret, err = IsSameVal(firstField, secondField)
+		ret, err = isSameVal(firstField, secondField)
 		if !ret || err != nil {
 			ret = false
 			return
@@ -259,8 +259,8 @@ func isSameStruct(firstVal, secondVal reflect.Value) (ret bool, err *cd.Result) 
 	return
 }
 
-// IsSameVal is same value
-func IsSameVal(firstVal, secondVal reflect.Value) (ret bool, err *cd.Result) {
+// isSameVal is same value
+func isSameVal(firstVal, secondVal reflect.Value) (ret bool, err *cd.Result) {
 	ret = firstVal.Type().String() == secondVal.Type().String()
 	if !ret {
 		return
@@ -319,7 +319,7 @@ func IsSameVal(firstVal, secondVal reflect.Value) (ret bool, err *cd.Result) {
 	for idx := 0; idx < firstVal.Len(); idx++ {
 		firstItem := firstVal.Index(idx)
 		secondItem := secondVal.Index(idx)
-		ret, err = IsSameVal(firstItem, secondItem)
+		ret, err = isSameVal(firstItem, secondItem)
 		if !ret || err != nil {
 			ret = false
 			return
@@ -327,6 +327,13 @@ func IsSameVal(firstVal, secondVal reflect.Value) (ret bool, err *cd.Result) {
 	}
 
 	return
+}
+
+func IsSameValue(firstVal, secondVal any) (ret bool) {
+	rFirstVal := reflect.ValueOf(firstVal)
+	rSecondVal := reflect.ValueOf(secondVal)
+	sameOK, sameErr := isSameVal(rFirstVal, rSecondVal)
+	return sameOK && sameErr == nil
 }
 
 func GetBool(val any) (ret bool, err *cd.Result) {
