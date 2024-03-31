@@ -330,12 +330,7 @@ func isSameVal(firstVal, secondVal reflect.Value) (ret bool, err *cd.Result) {
 }
 
 func IsSameValue(firstVal, secondVal any) (ret bool) {
-	rFirstVal := reflect.ValueOf(firstVal)
-	rSecondVal := reflect.ValueOf(secondVal)
-	sameOK, sameErr := isSameVal(rFirstVal, rSecondVal)
-	ret = sameOK && sameErr == nil
-
-	log.Infof("firstVal:%v, secondVal:%v, isSame:%v", firstVal, secondVal, ret)
+	ret = fmt.Sprintf("%v", firstVal) == fmt.Sprintf("%v", secondVal)
 	return
 }
 
