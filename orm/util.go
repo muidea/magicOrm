@@ -5,6 +5,7 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider/util"
 )
 
 func (s *impl) getModelFilter(vModel model.Model, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result) {
@@ -16,14 +17,14 @@ func (s *impl) getModelFilter(vModel model.Model, viewSpec model.ViewDeclare) (r
 	}
 
 	for _, val := range vModel.GetFields() {
-		vType := val.GetType()
-		vValue := val.GetValue()
-		if vValue.IsZero() {
+		fType := val.GetType()
+		fValue := val.GetValue()
+		if fValue.IsZero() {
 			continue
 		}
 
 		// if basic
-		if model.IsBasicType(vType.GetValue()) {
+		if model.IsBasicType(fType.GetValue()) {
 			err = filterVal.Equal(val.GetName(), val.GetValue().Interface())
 			if err != nil {
 				log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
@@ -34,8 +35,16 @@ func (s *impl) getModelFilter(vModel model.Model, viewSpec model.ViewDeclare) (r
 		}
 
 		// if struct
-		if model.IsStructType(vType.GetValue()) {
-			err = filterVal.Equal(val.GetName(), val.GetValue().Interface())
+		if model.IsStructType(fType.GetValue()) {
+			// 为了避免自己引用或关联自己
+			if fType.GetPkgKey() == vModel.GetPkgKey() {
+				vValue := vModel.GetPrimaryField().GetValue()
+				if util.IsSameValue(fValue.Interface(), vValue.Interface()) {
+					continue
+				}
+			}
+
+			err = filterVal.Equal(val.GetName(), fValue.Interface())
 			if err != nil {
 				log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
 				return
@@ -45,7 +54,7 @@ func (s *impl) getModelFilter(vModel model.Model, viewSpec model.ViewDeclare) (r
 		}
 
 		// if slice
-		err = filterVal.In(val.GetName(), val.GetValue().Interface())
+		err = filterVal.In(val.GetName(), fValue.Interface())
 		if err != nil {
 			log.Errorf("getModelFilter failed, filterVal.In error:%s", err.Error())
 			return
