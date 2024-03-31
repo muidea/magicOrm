@@ -330,7 +330,18 @@ func isSameVal(firstVal, secondVal reflect.Value) (ret bool, err *cd.Result) {
 }
 
 func IsSameValue(firstVal, secondVal any) (ret bool) {
-	ret = fmt.Sprintf("%v", firstVal) == fmt.Sprintf("%v", secondVal)
+	switch firstVal.(type) {
+	case bool, int8, int16, int32, int64, int, uint8, uint16, uint32, uint64, string:
+		ret = fmt.Sprintf("%v", firstVal) == fmt.Sprintf("%v", secondVal)
+	case float32, float64:
+		ret = fmt.Sprintf("%0.04f", firstVal) == fmt.Sprintf("%0.04f", secondVal)
+	default:
+		rFirstVal := reflect.ValueOf(firstVal)
+		rSecondVal := reflect.ValueOf(secondVal)
+		sameOK, sameErr := isSameVal(rFirstVal, rSecondVal)
+		ret = sameOK && sameErr == nil
+	}
+
 	return
 }
 
