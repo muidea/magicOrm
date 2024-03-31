@@ -333,7 +333,10 @@ func IsSameValue(firstVal, secondVal any) (ret bool) {
 	rFirstVal := reflect.ValueOf(firstVal)
 	rSecondVal := reflect.ValueOf(secondVal)
 	sameOK, sameErr := isSameVal(rFirstVal, rSecondVal)
-	return sameOK && sameErr == nil
+	ret = sameOK && sameErr == nil
+
+	log.Infof("firstVal:%v, secondVal:%v, isSame:%v", firstVal, secondVal, ret)
+	return
 }
 
 func GetBool(val any) (ret bool, err *cd.Result) {
