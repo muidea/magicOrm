@@ -18,7 +18,7 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret string, err *cd.Result) {
 		return
 	}
 
-	ret = fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.GetTableName())
+	str := fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.GetTableName())
 	if filter != nil {
 		filterSQL, filterErr := s.buildFilter(filter)
 		if filterErr != nil {
@@ -28,7 +28,7 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret string, err *cd.Result) {
 		}
 
 		if filterSQL != "" {
-			ret = fmt.Sprintf("%s WHERE %s", ret, filterSQL)
+			str = fmt.Sprintf("%s WHERE %s", str, filterSQL)
 		}
 
 		sortVal, sortErr := s.buildSorter(filter.Sorter())
@@ -39,15 +39,19 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret string, err *cd.Result) {
 		}
 
 		if sortVal != "" {
-			ret = fmt.Sprintf("%s ORDER BY %s", ret, sortVal)
+			str = fmt.Sprintf("%s ORDER BY %s", str, sortVal)
 		}
 
 		limit, offset, paging := filter.Pagination()
 		if paging {
-			ret = fmt.Sprintf("%s LIMIT %d OFFSET %d", ret, limit, offset)
+			str = fmt.Sprintf("%s LIMIT %d OFFSET %d", str, limit, offset)
 		}
 	}
+	if traceSQL() {
+		log.Infof("[SQL] query: %s", str)
+	}
 
+	ret = str
 	//log.Print(ret)
 	return
 }
@@ -62,9 +66,13 @@ func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (re
 	}
 
 	relationTableName := s.GetRelationTableName(vField, rModel)
-	ret = fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= %v", relationTableName, leftVal)
+	str := fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= %v", relationTableName, leftVal)
 	//log.Print(ret)
+	if traceSQL() {
+		log.Infof("[SQL] query relation: %s", str)
+	}
 
+	ret = str
 	return
 }
 

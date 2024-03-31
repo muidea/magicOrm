@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"fmt"
+	"github.com/muidea/magicCommon/foundation/log"
 
 	cd "github.com/muidea/magicCommon/def"
 
@@ -12,6 +13,9 @@ import (
 func (s *Builder) BuildDropTable() (ret string, err *cd.Result) {
 	str := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", s.GetTableName())
 	//log.Print(str)
+	if traceSQL() {
+		log.Infof("[SQL] drop: %s", str)
+	}
 
 	ret = str
 	return
@@ -22,6 +26,9 @@ func (s *Builder) BuildDropRelationTable(field model.Field, rModel model.Model) 
 	relationTableName := s.GetRelationTableName(field, rModel)
 	str := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", relationTableName)
 	//log.Print(str)
+	if traceSQL() {
+		log.Infof("[SQL] drop relation: %s", str)
+	}
 
 	ret = str
 	return

@@ -26,7 +26,9 @@ func (s *Builder) BuildCount(filter model.Filter) (ret string, err *cd.Result) {
 		}
 	}
 
-	//log.Print(ret)
+	if traceSQL() {
+		log.Infof("[SQL] count: %s", str)
+	}
 
 	ret = str
 	return

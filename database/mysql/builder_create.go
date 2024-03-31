@@ -37,7 +37,9 @@ func (s *Builder) BuildCreateTable() (ret string, err *cd.Result) {
 	}
 
 	str = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", s.GetTableName(), str)
-	//log.Print(str)
+	if traceSQL() {
+		log.Infof("[SQL] create: %s", str)
+	}
 
 	ret = str
 	return
@@ -65,6 +67,9 @@ func (s *Builder) BuildCreateRelationTable(field model.Field, rModel model.Model
 	str := fmt.Sprintf("\t`id` BIGINT NOT NULL AUTO_INCREMENT,\n\t`left` %s NOT NULL,\n\t`right` %s NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`)", lPKType, rPKType)
 	str = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", relationTableName, str)
 	//log.Print(str)
+	if traceSQL() {
+		log.Infof("[SQL] create relation: %s", str)
+	}
 
 	ret = str
 	return

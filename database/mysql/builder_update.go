@@ -25,6 +25,10 @@ func (s *Builder) BuildUpdate() (ret string, err *cd.Result) {
 
 	str := fmt.Sprintf("UPDATE `%s` SET %s WHERE %s", s.GetTableName(), updateStr, filterStr)
 	//log.Print(str)
+	if traceSQL() {
+		log.Infof("[SQL] update: %s", str)
+	}
+
 	ret = str
 
 	return

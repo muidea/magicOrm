@@ -49,6 +49,9 @@ func (s *Builder) BuildInsert() (ret string, err *cd.Result) {
 
 	str := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.GetTableName(), fieldNames, fieldValues)
 	//log.Print(str)
+	if traceSQL() {
+		log.Infof("[SQL] insert: %s", str)
+	}
 
 	ret = str
 	return
@@ -65,6 +68,9 @@ func (s *Builder) BuildInsertRelation(vField model.Field, rModel model.Model) (r
 	relationTableName := s.GetRelationTableName(vField, rModel)
 	str := fmt.Sprintf("INSERT INTO `%s` (`left`, `right`) VALUES (%v,%v)", relationTableName, leftVal, rightVal)
 	//log.Print(ret)
+	if traceSQL() {
+		log.Infof("[SQL] insert relation: %s", str)
+	}
 
 	ret = str
 	return

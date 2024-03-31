@@ -2,12 +2,22 @@ package mysql
 
 import (
 	"fmt"
+	"os"
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/model"
 )
+
+func traceSQL() bool {
+	enableTrace, enableOK := os.LookupEnv("TRACE_SQL")
+	if enableOK && enableTrace == "true" {
+		return true
+	}
+
+	return false
+}
 
 func verifyField(vField model.Field) *cd.Result {
 	fName := vField.GetName()
