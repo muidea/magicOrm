@@ -315,12 +315,13 @@ func (s *impl) querySingleRelation(vModel model.Model, vField model.Field, deepL
 
 	rvModel, rvErr := s.innerQueryRelationModel(valueList[0], rModel, deepLevel)
 	if rvErr != nil {
-		err = rvErr
-		if err.Fail() {
-			log.Errorf("querySingleRelation failed, s.innerQueryRelationModel error:%v", err.Error())
-		} else if err.Warn() {
-			log.Warnf("querySingleRelation failed, s.innerQueryRelationModel error:%v", err.Error())
+		if rvErr.Fail() {
+			log.Errorf("querySingleRelation failed, s.innerQueryRelationModel error:%v", rvErr.Error())
+		} else if rvErr.Warn() {
+			log.Warnf("querySingleRelation failed, s.innerQueryRelationModel error:%v", rvErr.Error())
 		}
+
+		ret = vValue
 		return
 	}
 
