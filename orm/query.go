@@ -217,13 +217,12 @@ func (s *impl) innerQueryRelationSliceModel(ids []any, vModel model.Model, deepL
 
 		queryVal, queryErr := s.querySingle(vFilter, deepLevel+1)
 		if queryErr != nil {
-			err = queryErr
-			if err.Fail() {
-				log.Errorf("innerQueryRelationSliceModel failed, s.querySingle error:%v", err.Error())
-			} else if err.Warn() {
-				log.Warnf("innerQueryRelationSliceModel failed, s.querySingle error:%v", err.Error())
+			if queryErr.Fail() {
+				log.Errorf("innerQueryRelationSliceModel failed, s.querySingle error:%v", queryErr.Error())
+			} else if queryErr.Warn() {
+				log.Warnf("innerQueryRelationSliceModel failed, s.querySingle error:%v", queryErr.Error())
 			}
-			return
+			continue
 		}
 
 		if queryVal != nil {
@@ -304,12 +303,13 @@ func (s *impl) querySingleRelation(vModel model.Model, vField model.Field, deepL
 	}
 	valueSize := len(valueList)
 	if valueSize == 0 {
+		ret = vValue
 		if vType.IsPtrType() {
-			ret = vValue
 			return
 		}
 
-		err = cd.NewWarn(cd.Warned, fmt.Sprintf("mismatch relation field:%s", vField.GetName()))
+		log.Warnf("query relation failed, model pkgKey:%s, field name:%s", vModel.GetPkgKey(), vField.GetName())
+		//err = cd.NewWarn(cd.Warned, fmt.Sprintf("mismatch relation field:%s", vField.GetName()))
 		return
 	}
 
