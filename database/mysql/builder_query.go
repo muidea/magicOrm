@@ -213,5 +213,6 @@ func (s *Builder) getFieldQueryNames(filter model.Filter) (ret string, err *cd.R
 }
 
 func (s *Builder) GetFieldScanDest(vField model.Field) (ret interface{}, err *cd.Result) {
+	log.Infof("type:%s", vField.GetType().GetValue())
 	return getFieldScanDestPtr(vField)
 }
