@@ -253,7 +253,7 @@ func (s *impl) innerQueryRelationKeys(vModel model.Model, rModel model.Model, vF
 		defer s.executor.Finish()
 
 		for s.executor.Next() {
-			itemValue, itemErr := s.getModelPKFieldScanDestPtr(vModel, builderVal)
+			itemValue, itemErr := s.getModelPKFieldScanDestPtr(rModel, builderVal)
 			if itemErr != nil {
 				err = itemErr
 				if err.Fail() {
