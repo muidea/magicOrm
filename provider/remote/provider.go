@@ -193,11 +193,21 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err *cd.Result) {
 		}
 		return
 	}
+
+	listObjectValuePtr, listOK := vVal.Get().([]*ObjectValue)
+	if listOK {
+		for idx := 0; idx < len(listObjectValuePtr); idx++ {
+			ret = append(ret, NewValue(listObjectValuePtr[idx]))
+		}
+		return
+	}
+
 	objectPtrValue, objectPtrOK := vVal.Get().(*ObjectValue)
 	if objectPtrOK {
 		ret = append(ret, NewValue(objectPtrValue))
 		return
 	}
+
 	rVal := reflect.ValueOf(vVal.Get())
 	if rVal.Kind() != reflect.Slice {
 		ret = append(ret, NewValue(vVal.Get()))
