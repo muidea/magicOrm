@@ -43,7 +43,7 @@ func (s *Builder) BuildDeleteRelation(vField model.Field, rModel model.Model) (d
 	delRelation = fmt.Sprintf("DELETE FROM `%s` WHERE `left`=%v", relationTableName, leftVal)
 	//log.Print(delRelation)
 	if traceSQL() {
-		log.Infof("[SQL] delete:%s, delete relation: %s", delRight, delRelation)
+		log.Infof("[SQL] delete: %s, delete relation: %s", delRight, delRelation)
 	}
 
 	return
