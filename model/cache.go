@@ -29,7 +29,7 @@ func (s *impl) Reset() {
 }
 
 func (s *impl) Put(name string, vModel Model) {
-	s.kvCache.Put(name, vModel, cache.MaxAgeValue)
+	s.kvCache.Put(name, vModel, cache.ForeverAgeValue)
 }
 
 func (s *impl) Fetch(name string) (ret Model) {
