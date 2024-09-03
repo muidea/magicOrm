@@ -58,7 +58,7 @@ func (s *impl) Update(vModel model.Model) (ret model.Model, err *cd.Result) {
 	}
 
 	for _, field := range vModel.GetFields() {
-		if field.IsBasic() {
+		if field.IsBasic() || field.GetValue().IsNil() {
 			continue
 		}
 
