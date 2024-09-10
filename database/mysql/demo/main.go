@@ -23,6 +23,7 @@ var databaseServer = "localhost:3306"
 var databaseName = "testdb"
 var databaseUsername = "root"
 var databasePassword = "rootkit"
+var tableName = "Unit"
 var threadSize = 20
 
 var clearAll = true
@@ -42,6 +43,7 @@ func main() {
 	flag.StringVar(&databaseName, "Database", databaseName, "database name")
 	flag.StringVar(&databaseUsername, "Account", databaseUsername, "database account")
 	flag.StringVar(&databasePassword, "Password", databasePassword, "database password")
+	flag.StringVar(&tableName, "TableName", tableName, "table Name")
 	flag.IntVar(&threadSize, "ThreadSize", threadSize, "database access thread size")
 	flag.BoolVar(&clearAll, "ClearAll", clearAll, "clear all records")
 	flag.IntVar(&itemSize, "ItemSize", itemSize, "database insert item size")
@@ -164,13 +166,13 @@ func pickExecutor(pool *mysql.Pool, wg *sync.WaitGroup, fPtr funcPtr) {
 }
 
 func createSchema(executor *mysql.Executor) (err *cd.Result) {
-	sql := "CREATE TABLE IF NOT EXISTS `Unit` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`i8` TINYINT NOT NULL ,\n\t`i16` SMALLINT NOT NULL ,\n\t`i32` INT NOT NULL ,\n\t`i64` BIGINT NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` FLOAT NOT NULL ,\n\t`f64` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\t`flag` TINYINT NOT NULL ,\n\t`iArray` TEXT NOT NULL ,\n\t`fArray` TEXT NOT NULL ,\n\t`strArray` TEXT NOT NULL ,\n\tPRIMARY KEY (`id`)\n)"
+	sql := fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`i8` TINYINT NOT NULL ,\n\t`i16` SMALLINT NOT NULL ,\n\t`i32` INT NOT NULL ,\n\t`i64` BIGINT NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` FLOAT NOT NULL ,\n\t`f64` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\t`flag` TINYINT NOT NULL ,\n\t`iArray` TEXT NOT NULL ,\n\t`fArray` TEXT NOT NULL ,\n\t`strArray` TEXT NOT NULL ,\n\tPRIMARY KEY (`id`)\n)", tableName)
 	_, _, err = executor.Execute(sql)
 	return
 }
 
 func dropSchema(executor *mysql.Executor) (err *cd.Result) {
-	sql := "DROP TABLE IF EXISTS `Unit`"
+	sql := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", tableName)
 	_, _, err = executor.Execute(sql)
 	return
 }
@@ -181,7 +183,7 @@ func checkSchema(tableName string, executor *mysql.Executor) (ret bool, err *cd.
 }
 
 func insertValue(executor *mysql.Executor) (err *cd.Result) {
-	sql := "INSERT INTO `Unit` (`i8`,`i16`,`i32`,`i64`,`name`,`value`,`f64`,`ts`,`flag`,`iArray`,`fArray`,`strArray`) VALUES (8,1600,323200,78962222222,'Hello world',12.345600128173828,12.45678,'2018-01-02 15:04:05',1,'12','12.34','abcdef')"
+	sql := fmt.Sprintf("INSERT INTO `%s` (`i8`,`i16`,`i32`,`i64`,`name`,`value`,`f64`,`ts`,`flag`,`iArray`,`fArray`,`strArray`) VALUES (8,1600,323200,78962222222,'Hello world',12.345600128173828,12.45678,'2018-01-02 15:04:05',1,'12','12.34','abcdef')", tableName)
 	idx := 0
 	if itemSize == -1 {
 		for {
@@ -205,7 +207,7 @@ func insertValue(executor *mysql.Executor) (err *cd.Result) {
 }
 
 func truncateSchema(executor *mysql.Executor) (err *cd.Result) {
-	sql := "TRUNCATE TABLE `Unit`"
+	sql := fmt.Sprintf("TRUNCATE TABLE `%s`", tableName)
 	_, _, err = executor.Execute(sql)
 
 	currentSize.Swap(0)
@@ -214,37 +216,37 @@ func truncateSchema(executor *mysql.Executor) (err *cd.Result) {
 }
 
 func alterSchemaAdd(executor *mysql.Executor) (err *cd.Result) {
-	sql := "ALTER TABLE `Unit` ADD dVal DATE"
+	sql := fmt.Sprintf("ALTER TABLE `%s` ADD dVal DATE", tableName)
 	_, _, err = executor.Execute(sql)
 	return
 }
 
 func alterSchemaDrop(executor *mysql.Executor) (err *cd.Result) {
-	sql := "ALTER TABLE `Unit` DROP dVal"
+	sql := fmt.Sprintf("ALTER TABLE `%s` DROP dVal", tableName)
 	_, _, err = executor.Execute(sql)
 	return
 }
 
 func alterSchemaOlnDDLAdd(executor *mysql.Executor) (err *cd.Result) {
-	sql := "ALTER TABLE `Unit` ADD dVal2 DATE, ALGORITHM=DEFAULT, LOCK=NONE"
+	sql := fmt.Sprintf("ALTER TABLE `%s` ADD dVal2 DATE, ALGORITHM=DEFAULT, LOCK=NONE", tableName)
 	_, _, err = executor.Execute(sql)
 	return
 }
 
 func alterSchemaOlnDDLDrop(executor *mysql.Executor) (err *cd.Result) {
-	sql := "ALTER TABLE `Unit` DROP dVal2, ALGORITHM=DEFAULT, LOCK=NONE"
+	sql := fmt.Sprintf("ALTER TABLE `%s` DROP dVal2, ALGORITHM=DEFAULT, LOCK=NONE", tableName)
 	_, _, err = executor.Execute(sql)
 	return
 }
 
 func createSchemaDDL(executor *mysql.Executor) (err *cd.Result) {
-	sql := "CREATE TABLE IF NOT EXISTS `Unit002` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`i8` TINYINT NOT NULL ,\n\t`i16` SMALLINT NOT NULL ,\n\t`i32` INT NOT NULL ,\n\t`i64` BIGINT NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` FLOAT NOT NULL ,\n\t`f64` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\t`flag` TINYINT NOT NULL ,\n\t`iArray` TEXT NOT NULL ,\n\t`fArray` TEXT NOT NULL ,\n\t`strArray` TEXT NOT NULL ,\n\tPRIMARY KEY (`id`)\n)"
+	sql := fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s002` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`i8` TINYINT NOT NULL ,\n\t`i16` SMALLINT NOT NULL ,\n\t`i32` INT NOT NULL ,\n\t`i64` BIGINT NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` FLOAT NOT NULL ,\n\t`f64` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\t`flag` TINYINT NOT NULL ,\n\t`iArray` TEXT NOT NULL ,\n\t`fArray` TEXT NOT NULL ,\n\t`strArray` TEXT NOT NULL ,\n\tPRIMARY KEY (`id`)\n)", tableName)
 	_, _, err = executor.Execute(sql)
 	return
 }
 
 func dropSchemaDDL(executor *mysql.Executor) (err *cd.Result) {
-	sql := "DROP TABLE IF EXISTS `Unit002`"
+	sql := fmt.Sprintf("DROP TABLE IF EXISTS `%s002`", tableName)
 	_, _, err = executor.Execute(sql)
 	return
 }
