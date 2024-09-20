@@ -40,6 +40,13 @@ func TestLocalStore(t *testing.T) {
 		t.Errorf("localProvider.GetEntityModel failed, erro:%s", skuInfoErr.Error())
 		return
 	}
+
+	o1.Drop(skuInfoModel)
+	if err != nil {
+		t.Errorf("o1.Drop failed. err:%s", err.Error())
+		return
+	}
+
 	err = o1.Create(skuInfoModel)
 	if err != nil {
 		t.Errorf("o1.Create failed. err:%s", err.Error())
@@ -65,6 +72,12 @@ func TestLocalStore(t *testing.T) {
 		t.Errorf("localProvider.GetEntityModel failed, erro:%s", productErr.Error())
 		return
 	}
+	err = o1.Drop(productModel)
+	if err != nil {
+		t.Errorf("o1.Drop failed. err:%s", err.Error())
+		return
+	}
+
 	err = o1.Create(productModel)
 	if err != nil {
 		t.Errorf("o1.Create failed. err:%s", err.Error())

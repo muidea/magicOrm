@@ -102,7 +102,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 		return
 	}
 
-	err = filter.Above("value", 12)
+	err = filter.Above("value", 12.23)
 	if err != nil {
 		t.Errorf("filter.Above failed, err:%s", err.Error())
 		return
@@ -112,7 +112,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 		t.Errorf("build query failed, err:%s", err.Error())
 		return
 	}
-	if str != "SELECT `uid`,`name`,`value`,`ts` FROM `abc_Unit` WHERE `value` > 12" {
+	if str != "SELECT `uid`,`name`,`value`,`ts` FROM `abc_Unit` WHERE `value` > 12.23" {
 		t.Errorf("build query failed, str:%s", str)
 		return
 	}
@@ -122,7 +122,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 		t.Errorf("build count failed, err:%s", err.Error())
 		return
 	}
-	if str != "SELECT COUNT(`uid`) FROM `abc_Unit` WHERE `value` > 12" {
+	if str != "SELECT COUNT(`uid`) FROM `abc_Unit` WHERE `value` > 12.23" {
 		t.Errorf("build count failed, str:%s", str)
 		return
 	}

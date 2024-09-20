@@ -14,7 +14,7 @@ import (
 type Provider interface {
 	RegisterModel(entity interface{}) (ret model.Model, err *cd.Result)
 
-	UnregisterModel(entity interface{}) (ret model.Model, err *cd.Result)
+	UnregisterModel(entity interface{}) (err *cd.Result)
 
 	GetEntityType(entity interface{}) (ret model.Type, err *cd.Result)
 
@@ -40,7 +40,7 @@ type Provider interface {
 
 	AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, err *cd.Result)
 
-	GetValue(valueDeclare model.ValueDeclare) (ret model.Value)
+	GetNewValue(valueDeclare model.ValueDeclare) (ret model.Value)
 
 	Owner() string
 
@@ -61,7 +61,7 @@ func NewLocalProvider(owner string) Provider {
 		appendSliceValueFunc: local.AppendSliceValue,
 		encodeValueFunc:      local.EncodeValue,
 		decodeValueFunc:      local.DecodeValue,
-		getValue:             local.GetValue,
+		getNewValue:          local.GetNewValue,
 	}
 
 	return ret
@@ -81,7 +81,7 @@ func NewRemoteProvider(owner string) Provider {
 		appendSliceValueFunc: remote.AppendSliceValue,
 		encodeValueFunc:      remote.EncodeValue,
 		decodeValueFunc:      remote.DecodeValue,
-		getValue:             remote.GetValue,
+		getNewValue:          remote.GetNewValue,
 	}
 
 	return ret
@@ -101,31 +101,28 @@ type providerImpl struct {
 	appendSliceValueFunc func(model.Value, model.Value) (model.Value, *cd.Result)
 	encodeValueFunc      func(model.Value, model.Type, model.Cache) (interface{}, *cd.Result)
 	decodeValueFunc      func(interface{}, model.Type, model.Cache) (model.Value, *cd.Result)
-	getValue             func(declare model.ValueDeclare) model.Value
+	getNewValue          func(declare model.ValueDeclare) model.Value
 }
 
 func (s *providerImpl) RegisterModel(entity interface{}) (ret model.Model, err *cd.Result) {
 	modelType, modelErr := s.getTypeFunc(entity)
 	if modelErr != nil {
 		err = modelErr
+		log.Errorf("RegisterModel failed, s.getTypeFunc error:%v", err.Error())
 		return
 	}
 
 	modelType = modelType.Elem()
 	curModel := s.modelCache.Fetch(modelType.GetPkgKey())
 	if curModel != nil {
-		if curModel.GetPkgPath() == modelType.GetPkgPath() {
-			ret = curModel
-			return
-		}
-
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("confluct object model, name:%s,pkgKey:%s", modelType.GetName(), modelType.GetPkgKey()))
+		ret = curModel
 		return
 	}
 
 	entityModel, entityErr := s.getModelFunc(entity)
 	if entityErr != nil {
 		err = entityErr
+		log.Errorf("RegisterModel failed, s.getModelFunc error:%v", err.Error())
 		return
 	}
 
@@ -134,33 +131,35 @@ func (s *providerImpl) RegisterModel(entity interface{}) (ret model.Model, err *
 	return
 }
 
-func (s *providerImpl) UnregisterModel(entity interface{}) (ret model.Model, err *cd.Result) {
+func (s *providerImpl) UnregisterModel(entity interface{}) (err *cd.Result) {
 	modelType, modelErr := s.getTypeFunc(entity)
 	if modelErr != nil {
 		err = modelErr
+		log.Errorf("UnregisterModel failed, s.getTypeFunc error:%v", err.Error())
 		return
 	}
 
 	modelType = modelType.Elem()
 	curModel := s.modelCache.Fetch(modelType.GetPkgKey())
 	if curModel != nil {
-		if curModel.GetPkgPath() != modelType.GetPkgPath() {
-			return
-		}
-
 		s.modelCache.Remove(curModel.GetPkgKey())
 	}
-	ret = curModel
 	return
 }
 
 func (s *providerImpl) GetEntityType(entity interface{}) (ret model.Type, err *cd.Result) {
 	ret, err = s.getTypeFunc(entity)
+	if err != nil {
+		log.Errorf("GetEntityType failed, s.getTypeFunc error:%v", err.Error())
+	}
 	return
 }
 
 func (s *providerImpl) GetEntityValue(entity interface{}) (ret model.Value, err *cd.Result) {
 	ret, err = s.getValueFunc(entity)
+	if err != nil {
+		log.Errorf("GetEntityValue failed, s.getValueFunc error:%v", err.Error())
+	}
 	return
 }
 
@@ -175,7 +174,7 @@ func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err 
 	// must check if register already
 	entityModel := s.modelCache.Fetch(entityType.GetPkgKey())
 	if entityModel == nil {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("GetEntityModel failed, can't fetch entity model, must register entity first, entity PkgKey:%s", entityType.GetPkgKey()))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("can't fetch entity model, must register entity first, entity PkgKey:%s", entityType.GetPkgKey()))
 		log.Errorf("GetEntityModel failed, s.modelCache.Fetch error:%v", err.Error())
 		return
 	}
@@ -210,12 +209,16 @@ func (s *providerImpl) GetEntityFilter(entity interface{}, viewSpec model.ViewDe
 	}
 
 	ret, err = s.GetModelFilter(vModel, viewSpec)
+	if err != nil {
+		log.Errorf("GetEntityFilter failed, s.GetModelFilter error:%v", err.Error())
+	}
 	return
 }
 
 func (s *providerImpl) GetModelFilter(vModel model.Model, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result) {
 	if vModel == nil {
 		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal model value"))
+		log.Errorf("GetModelFilter failed, error:%v", err.Error())
 		return
 	}
 
@@ -329,8 +332,8 @@ func (s *providerImpl) AppendSliceValue(sliceVal model.Value, val model.Value) (
 	return
 }
 
-func (s *providerImpl) GetValue(valueDeclare model.ValueDeclare) (ret model.Value) {
-	ret = s.getValue(valueDeclare)
+func (s *providerImpl) GetNewValue(valueDeclare model.ValueDeclare) (ret model.Value) {
+	ret = s.getNewValue(valueDeclare)
 	return
 }
 

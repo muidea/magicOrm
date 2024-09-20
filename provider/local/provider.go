@@ -2,8 +2,8 @@ package local
 
 import (
 	"fmt"
+	"github.com/muidea/magicCommon/foundation/log"
 	"reflect"
-	"strings"
 
 	cd "github.com/muidea/magicCommon/def"
 
@@ -142,7 +142,6 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err *cd.Result) {
 		val := NewValue(rVal.Index(idx))
 		ret = append(ret, val)
 	}
-
 	return
 }
 
@@ -180,16 +179,17 @@ func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, e
 	return
 }
 
-func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, codec codec.Codec) (ret interface{}, err *cd.Result) {
+func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache) (ret interface{}, err *cd.Result) {
 	tModel := mCache.Fetch(vType.GetPkgKey())
 	if tModel == nil {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal value type,type:%s", vType.GetName()))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal model type,type:%s", vType.GetName()))
+		log.Errorf("encodeModel failed, err:%s", err.Error())
 		return
 	}
 
 	if vVal.IsBasic() {
-		pkField := tModel.GetPrimaryField()
-		ret, err = codec.Encode(vVal, pkField.GetType())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal model value"))
+		log.Errorf("encodeModel failed, err:%s", err.Error())
 		return
 	}
 
@@ -200,11 +200,17 @@ func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, codec c
 	}
 
 	pkField := vModel.GetPrimaryField()
-	ret, err = codec.Encode(pkField.GetValue(), pkField.GetType())
+	tType := pkField.GetType()
+	tVal := pkField.GetValue()
+	if tVal.IsNil() {
+		tVal, _ = tType.Interface(nil)
+	}
+
+	ret, err = _codec.Encode(tVal, tType)
 	return
 }
 
-func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache, codec codec.Codec) (ret string, err *cd.Result) {
+func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache) (ret interface{}, err *cd.Result) {
 	vVals, vErr := ElemDependValue(tVal)
 	if vErr != nil {
 		err = vErr
@@ -214,18 +220,18 @@ func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache, co
 		return
 	}
 
-	items := []string{}
+	items := []interface{}{}
 	for _, v := range vVals {
-		strVal, strErr := encodeModel(v, tType.Elem(), mCache, codec)
-		if strErr != nil {
-			err = strErr
+		mVal, mErr := encodeModel(v, tType.Elem(), mCache)
+		if mErr != nil {
+			err = mErr
 			return
 		}
 
-		items = append(items, fmt.Sprintf("%v", strVal))
+		items = append(items, mVal)
 	}
 
-	ret = strings.Join(items, ",")
+	ret = items
 	return
 }
 
@@ -235,25 +241,118 @@ func EncodeValue(tVal model.Value, tType model.Type, mCache model.Cache) (ret in
 		return
 	}
 	if model.IsStructType(tType.GetValue()) {
-		ret, err = encodeModel(tVal, tType, mCache, _codec)
+		ret, err = encodeModel(tVal, tType, mCache)
 		return
 	}
 
-	ret, err = encodeSliceModel(tVal, tType, mCache, _codec)
+	ret, err = encodeSliceModel(tVal, tType, mCache)
 	return
 }
 
-func DecodeValue(tVal interface{}, tType model.Type, _ model.Cache) (ret model.Value, err *cd.Result) {
+func decodeModel(tVal interface{}, tType model.Type, mCache model.Cache) (ret model.Value, err *cd.Result) {
+	tModel := mCache.Fetch(tType.GetPkgKey())
+	if tModel == nil {
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal value type,type:%s", tType.GetName()))
+		return
+	}
+
+	mVal, mErr := GetEntityValue(tVal)
+	if mErr != nil {
+		err = mErr
+		return
+	}
+
+	var vErr *cd.Result
+	vModel := tModel.Copy(true)
+	if mVal.IsBasic() {
+		pkField := tModel.GetPrimaryField()
+		pkVal, pkErr := _codec.Decode(tVal, pkField.GetType())
+		if pkErr != nil {
+			err = pkErr
+			return
+		}
+
+		vModel.SetPrimaryFieldValue(pkVal)
+	} else {
+		vModel, vErr = SetModelValue(vModel, mVal)
+	}
+
+	if vErr != nil {
+		err = vErr
+		return
+	}
+
+	tVal = vModel.Interface(tType.IsPtrType(), model.OriginView)
+	ret, err = GetEntityValue(tVal)
+	return
+}
+
+func decodeSliceModel(tVal interface{}, tType model.Type, mCache model.Cache) (ret model.Value, err *cd.Result) {
+	tModel := mCache.Fetch(tType.GetPkgKey())
+	if tModel == nil {
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal value type,type:%s", tType.GetName()))
+		return
+	}
+	mVal, mErr := GetEntityValue(tVal)
+	if mErr != nil {
+		err = mErr
+		return
+	}
+
+	var mVals []model.Value
+	mVals, mErr = ElemDependValue(mVal)
+	if mErr != nil {
+		err = mErr
+		return
+	}
+
+	var vErr *cd.Result
+	vVals, _ := tType.Interface(nil)
+	for _, val := range mVals {
+		vModel := tModel.Copy(true)
+		if val.IsBasic() {
+			pkField := tModel.GetPrimaryField()
+			pkVal, pkErr := _codec.Decode(val.Interface(), pkField.GetType())
+			if pkErr != nil {
+				err = pkErr
+				return
+			}
+			vModel.SetPrimaryFieldValue(pkVal)
+		} else {
+			vModel, vErr = SetModelValue(vModel, val)
+			if vErr != nil {
+				err = vErr
+				return
+			}
+		}
+
+		iVal, _ := GetEntityValue(vModel.Interface(tType.Elem().IsPtrType(), model.OriginView))
+		vVals, vErr = AppendSliceValue(vVals, iVal)
+		if vErr != nil {
+			err = vErr
+			return
+		}
+	}
+
+	ret = vVals
+	return
+}
+
+func DecodeValue(tVal interface{}, tType model.Type, mCache model.Cache) (ret model.Value, err *cd.Result) {
 	if tType.IsBasic() {
 		ret, err = _codec.Decode(tVal, tType)
 		return
 	}
+	if model.IsStructType(tType.GetValue()) {
+		ret, err = decodeModel(tVal, tType, mCache)
+		return
+	}
 
-	err = cd.NewError(cd.UnExpected, fmt.Sprintf("unexpected type, type name:%s", tType.GetName()))
+	ret, err = decodeSliceModel(tVal, tType, mCache)
 	return
 }
 
-func GetValue(valueDeclare model.ValueDeclare) (ret model.Value) {
+func GetNewValue(valueDeclare model.ValueDeclare) (ret model.Value) {
 	var rVal interface{}
 	switch valueDeclare {
 	case model.SnowFlake:

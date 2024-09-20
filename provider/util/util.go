@@ -2,7 +2,6 @@ package util
 
 import (
 	"fmt"
-	"math"
 	"os"
 	"reflect"
 	"strconv"
@@ -301,7 +300,7 @@ func isSameVal(firstVal, secondVal reflect.Value) (ret bool, err *cd.Result) {
 		case model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveIntegerValue, model.TypePositiveBigIntegerValue:
 			ret = firstVal.Uint() == secondVal.Uint()
 		case model.TypeFloatValue, model.TypeDoubleValue:
-			ret = math.Abs(firstVal.Float()-secondVal.Float()) <= 0.0001
+			ret = firstVal.Float() == secondVal.Float()
 		case model.TypeDateTimeValue:
 			ret = firstVal.Interface().(time.Time).Sub(secondVal.Interface().(time.Time)) == 0
 		default:
@@ -330,21 +329,96 @@ func isSameVal(firstVal, secondVal reflect.Value) (ret bool, err *cd.Result) {
 }
 
 func IsSameValue(firstVal, secondVal any) (ret bool) {
-	switch firstVal.(type) {
-	case bool, int8, int16, int32, int64, int, uint8, uint16, uint32, uint64, string, float32, float64:
-		ret = fmt.Sprintf("%v", firstVal) == fmt.Sprintf("%v", secondVal)
-	default:
-		rFirstVal := reflect.ValueOf(firstVal)
-		rSecondVal := reflect.ValueOf(secondVal)
-		sameOK, sameErr := isSameVal(rFirstVal, rSecondVal)
-		ret = sameOK && sameErr == nil
-	}
+	rFirstVal := reflect.ValueOf(firstVal)
+	rSecondVal := reflect.ValueOf(secondVal)
+	sameOK, sameErr := isSameVal(rFirstVal, rSecondVal)
+	ret = sameOK && sameErr == nil
 
 	return
 }
 
 func GetBool(val any) (ret bool, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
+	return GetRawBool(rVal)
+}
+
+func GetInt(val any) (ret int, err *cd.Result) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	return GetRawInt(rVal)
+}
+
+func GetInt8(val any) (ret int8, err *cd.Result) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	return GetRawInt8(rVal)
+}
+
+func GetInt16(val any) (ret int16, err *cd.Result) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	return GetRawInt16(rVal)
+}
+
+func GetInt32(val any) (ret int32, err *cd.Result) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	return GetRawInt32(rVal)
+}
+
+func GetInt64(val any) (ret int64, err *cd.Result) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	return GetRawInt64(rVal)
+}
+
+func GetUint(val any) (ret uint, err *cd.Result) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	return GetRawUint(rVal)
+}
+
+func GetUint8(val any) (ret uint8, err *cd.Result) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	return GetRawUint8(rVal)
+}
+
+func GetUint16(val any) (ret uint16, err *cd.Result) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	return GetRawUint16(rVal)
+}
+
+func GetUint32(val any) (ret uint32, err *cd.Result) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	return GetRawUint32(rVal)
+}
+
+func GetUint64(val any) (ret uint64, err *cd.Result) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	return GetRawUint64(rVal)
+}
+
+func GetFloat32(val any) (ret float32, err *cd.Result) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	return GetRawFloat32(rVal)
+}
+
+func GetFloat64(val any) (ret float64, err *cd.Result) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	return GetRawFloat64(rVal)
+}
+
+func GetString(val any) (ret string, err *cd.Result) {
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	return GetRawString(rVal)
+}
+
+func GetDateTime(val any) (ret time.Time, err *cd.Result) {
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val:%v", val))
+		}
+	}()
+
+	rVal := reflect.Indirect(reflect.ValueOf(val))
+	return GetRawDateTime(rVal)
+}
+
+func GetRawBool(rVal reflect.Value) (ret bool, err *cd.Result) {
 	switch rVal.Kind() {
 	case reflect.Bool:
 		ret = rVal.Bool()
@@ -363,9 +437,14 @@ func GetBool(val any) (ret bool, err *cd.Result) {
 	return
 }
 
-func GetInt(val any) (ret int, err *cd.Result) {
-	rVal := reflect.Indirect(reflect.ValueOf(val))
+func GetRawInt(rVal reflect.Value) (ret int, err *cd.Result) {
 	switch rVal.Kind() {
+	case reflect.Bool:
+		if rVal.Bool() {
+			ret = 1
+		} else {
+			ret = 0
+		}
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
 		ret = int(rVal.Int())
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
@@ -387,9 +466,14 @@ func GetInt(val any) (ret int, err *cd.Result) {
 	return
 }
 
-func GetInt8(val any) (ret int8, err *cd.Result) {
-	rVal := reflect.Indirect(reflect.ValueOf(val))
+func GetRawInt8(rVal reflect.Value) (ret int8, err *cd.Result) {
 	switch rVal.Kind() {
+	case reflect.Bool:
+		if rVal.Bool() {
+			ret = 1
+		} else {
+			ret = 0
+		}
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
 		ret = int8(rVal.Int())
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
@@ -411,9 +495,14 @@ func GetInt8(val any) (ret int8, err *cd.Result) {
 	return
 }
 
-func GetInt16(val any) (ret int16, err *cd.Result) {
-	rVal := reflect.Indirect(reflect.ValueOf(val))
+func GetRawInt16(rVal reflect.Value) (ret int16, err *cd.Result) {
 	switch rVal.Kind() {
+	case reflect.Bool:
+		if rVal.Bool() {
+			ret = 1
+		} else {
+			ret = 0
+		}
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
 		ret = int16(rVal.Int())
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
@@ -435,9 +524,14 @@ func GetInt16(val any) (ret int16, err *cd.Result) {
 	return
 }
 
-func GetInt32(val any) (ret int32, err *cd.Result) {
-	rVal := reflect.Indirect(reflect.ValueOf(val))
+func GetRawInt32(rVal reflect.Value) (ret int32, err *cd.Result) {
 	switch rVal.Kind() {
+	case reflect.Bool:
+		if rVal.Bool() {
+			ret = 1
+		} else {
+			ret = 0
+		}
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
 		ret = int32(rVal.Int())
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
@@ -459,9 +553,14 @@ func GetInt32(val any) (ret int32, err *cd.Result) {
 	return
 }
 
-func GetInt64(val any) (ret int64, err *cd.Result) {
-	rVal := reflect.Indirect(reflect.ValueOf(val))
+func GetRawInt64(rVal reflect.Value) (ret int64, err *cd.Result) {
 	switch rVal.Kind() {
+	case reflect.Bool:
+		if rVal.Bool() {
+			ret = 1
+		} else {
+			ret = 0
+		}
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
 		ret = rVal.Int()
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
@@ -483,9 +582,14 @@ func GetInt64(val any) (ret int64, err *cd.Result) {
 	return
 }
 
-func GetUint(val any) (ret uint, err *cd.Result) {
-	rVal := reflect.Indirect(reflect.ValueOf(val))
+func GetRawUint(rVal reflect.Value) (ret uint, err *cd.Result) {
 	switch rVal.Kind() {
+	case reflect.Bool:
+		if rVal.Bool() {
+			ret = 1
+		} else {
+			ret = 0
+		}
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
 		ret = uint(rVal.Int())
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
@@ -506,9 +610,14 @@ func GetUint(val any) (ret uint, err *cd.Result) {
 	return
 }
 
-func GetUint8(val any) (ret uint8, err *cd.Result) {
-	rVal := reflect.Indirect(reflect.ValueOf(val))
+func GetRawUint8(rVal reflect.Value) (ret uint8, err *cd.Result) {
 	switch rVal.Kind() {
+	case reflect.Bool:
+		if rVal.Bool() {
+			ret = 1
+		} else {
+			ret = 0
+		}
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
 		ret = uint8(rVal.Int())
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
@@ -529,9 +638,14 @@ func GetUint8(val any) (ret uint8, err *cd.Result) {
 	return
 }
 
-func GetUint16(val any) (ret uint16, err *cd.Result) {
-	rVal := reflect.Indirect(reflect.ValueOf(val))
+func GetRawUint16(rVal reflect.Value) (ret uint16, err *cd.Result) {
 	switch rVal.Kind() {
+	case reflect.Bool:
+		if rVal.Bool() {
+			ret = 1
+		} else {
+			ret = 0
+		}
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
 		ret = uint16(rVal.Int())
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
@@ -552,9 +666,14 @@ func GetUint16(val any) (ret uint16, err *cd.Result) {
 	return
 }
 
-func GetUint32(val any) (ret uint32, err *cd.Result) {
-	rVal := reflect.Indirect(reflect.ValueOf(val))
+func GetRawUint32(rVal reflect.Value) (ret uint32, err *cd.Result) {
 	switch rVal.Kind() {
+	case reflect.Bool:
+		if rVal.Bool() {
+			ret = 1
+		} else {
+			ret = 0
+		}
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
 		ret = uint32(rVal.Int())
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
@@ -575,9 +694,14 @@ func GetUint32(val any) (ret uint32, err *cd.Result) {
 	return
 }
 
-func GetUint64(val any) (ret uint64, err *cd.Result) {
-	rVal := reflect.Indirect(reflect.ValueOf(val))
+func GetRawUint64(rVal reflect.Value) (ret uint64, err *cd.Result) {
 	switch rVal.Kind() {
+	case reflect.Bool:
+		if rVal.Bool() {
+			ret = 1
+		} else {
+			ret = 0
+		}
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
 		ret = uint64(rVal.Int())
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
@@ -598,9 +722,14 @@ func GetUint64(val any) (ret uint64, err *cd.Result) {
 	return
 }
 
-func GetFloat32(val any) (ret float32, err *cd.Result) {
-	rVal := reflect.Indirect(reflect.ValueOf(val))
+func GetRawFloat32(rVal reflect.Value) (ret float32, err *cd.Result) {
 	switch rVal.Kind() {
+	case reflect.Bool:
+		if rVal.Bool() {
+			ret = 1
+		} else {
+			ret = 0
+		}
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
 		ret = float32(rVal.Int())
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
@@ -622,9 +751,14 @@ func GetFloat32(val any) (ret float32, err *cd.Result) {
 	return
 }
 
-func GetFloat64(val any) (ret float64, err *cd.Result) {
-	rVal := reflect.Indirect(reflect.ValueOf(val))
+func GetRawFloat64(rVal reflect.Value) (ret float64, err *cd.Result) {
 	switch rVal.Kind() {
+	case reflect.Bool:
+		if rVal.Bool() {
+			ret = 1
+		} else {
+			ret = 0
+		}
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
 		ret = float64(rVal.Int())
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
@@ -646,11 +780,29 @@ func GetFloat64(val any) (ret float64, err *cd.Result) {
 	return
 }
 
-func GetString(val any) (ret string, err *cd.Result) {
-	rVal := reflect.Indirect(reflect.ValueOf(val))
+func GetRawString(rVal reflect.Value) (ret string, err *cd.Result) {
 	switch rVal.Kind() {
+	case reflect.Bool:
+		if rVal.Bool() {
+			ret = "1"
+		} else {
+			ret = "0"
+		}
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
+		ret = fmt.Sprintf("%d", rVal.Int())
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64:
+		ret = fmt.Sprintf("%d", rVal.Uint())
+	case reflect.Float32, reflect.Float64:
+		ret = fmt.Sprintf("%f", rVal.Float())
 	case reflect.String:
 		ret = rVal.String()
+	case reflect.Struct:
+		switch rVal.Type().String() {
+		case "time.Time":
+			ret = rVal.Interface().(time.Time).Format(fu.CSTLayout)
+		default:
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal string value, val type:%v", rVal.Type().String()))
+		}
 	default:
 		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal string value, val type:%v", rVal.Type().String()))
 	}
@@ -658,34 +810,13 @@ func GetString(val any) (ret string, err *cd.Result) {
 	return
 }
 
-func GetDateTimeStr(val any) (ret string, err *cd.Result) {
+func GetRawDateTime(rVal reflect.Value) (ret time.Time, err *cd.Result) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val:%v", val))
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val:%v", rVal.Interface()))
 		}
 	}()
 
-	rVal := reflect.Indirect(reflect.ValueOf(val))
-	switch rVal.Kind() {
-	case reflect.String:
-		ret = rVal.String()
-	case reflect.Struct:
-		ret = rVal.Interface().(time.Time).Format(fu.CSTLayout)
-	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))
-	}
-
-	return
-}
-
-func GetDateTimeDt(val any) (ret time.Time, err *cd.Result) {
-	defer func() {
-		if errInfo := recover(); errInfo != nil {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val:%v", val))
-		}
-	}()
-
-	rVal := reflect.Indirect(reflect.ValueOf(val))
 	switch rVal.Kind() {
 	case reflect.String:
 		tVal, tErr := time.Parse(fu.CSTLayout, rVal.String())
@@ -695,7 +826,12 @@ func GetDateTimeDt(val any) (ret time.Time, err *cd.Result) {
 		}
 		ret = tVal
 	case reflect.Struct:
-		ret = rVal.Interface().(time.Time)
+		switch rVal.Type().String() {
+		case "time.Time":
+			ret = rVal.Interface().(time.Time)
+		default:
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))
+		}
 	default:
 		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))
 	}

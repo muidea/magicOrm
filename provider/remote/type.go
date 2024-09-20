@@ -80,7 +80,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 		case model.TypeStringValue:
 			initVal, err = util.GetString(initVal)
 		case model.TypeDateTimeValue:
-			initVal, err = util.GetDateTimeStr(initVal)
+			initVal, err = util.GetString(initVal)
 		default:
 			initVal = nil
 		}

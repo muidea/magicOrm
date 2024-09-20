@@ -122,18 +122,18 @@ func (s *Common) EncodeValue(vValue model.Value, vType model.Type) (ret string, 
 		}
 	}()
 
-	fStr, fErr := s.modelProvider.EncodeValue(vValue, vType)
-	if fErr != nil {
-		err = fErr
+	eVal, eErr := s.modelProvider.EncodeValue(vValue, vType)
+	if eErr != nil {
+		err = eErr
 		log.Errorf("EncodeValue failed, s.modelProvider.EncodeValue error:%s", err.Error())
 		return
 	}
 
 	switch vType.GetValue() {
 	case model.TypeStringValue, model.TypeDateTimeValue, model.TypeSliceValue:
-		ret = fmt.Sprintf("'%v'", strings.ReplaceAll(fStr.(string), "'", "''"))
+		ret = fmt.Sprintf("'%v'", strings.ReplaceAll(eVal.(string), "'", "''"))
 	default:
-		ret = fmt.Sprintf("%v", fStr)
+		ret = fmt.Sprintf("%v", eVal)
 	}
 
 	return

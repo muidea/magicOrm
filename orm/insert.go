@@ -39,7 +39,7 @@ func (s *impl) insertSingle(vModel model.Model) (err *cd.Result) {
 		fSpec := field.GetSpec()
 		fValue := field.GetValue()
 		if fValue.IsZero() {
-			fValue = s.modelProvider.GetValue(fSpec.GetValueDeclare())
+			fValue = s.modelProvider.GetNewValue(fSpec.GetValueDeclare())
 			if !fValue.IsNil() {
 				field.SetValue(fValue)
 			}
