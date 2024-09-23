@@ -195,9 +195,9 @@ func TestSimpleRemote(t *testing.T) {
 		return
 	}
 
-	simpleDef, _ := helper.GetObject(&Simple{})
-	referenceDef, _ := helper.GetObject(&Reference{})
-	composeDef, _ := helper.GetObject(&Compose{})
+	simpleDef, _ := remote.GetObject(&Simple{})
+	referenceDef, _ := remote.GetObject(&Reference{})
+	composeDef, _ := remote.GetObject(&Compose{})
 
 	entityList := []any{simpleDef, referenceDef, composeDef}
 	modelList, modelErr := registerModel(remoteProvider, entityList)
@@ -230,7 +230,7 @@ func TestSimpleRemote(t *testing.T) {
 		sVal.I32 = int32(idx)
 		sValList = append(sValList, &sVal)
 
-		sObjectVal, sObjectErr := helper.GetObjectValue(&sVal)
+		sObjectVal, sObjectErr := remote.GetObjectValue(&sVal)
 		if sObjectErr != nil {
 			err = sObjectErr
 			t.Errorf("GetObjectValue failed. err:%s", err.Error())
@@ -272,7 +272,7 @@ func TestSimpleRemote(t *testing.T) {
 	for idx := 0; idx < 100; idx++ {
 		sVal := sValList[idx]
 		sVal.Name = "hi"
-		sObjectVal, sObjectErr := helper.GetObjectValue(sVal)
+		sObjectVal, sObjectErr := remote.GetObjectValue(sVal)
 		if sObjectErr != nil {
 			err = sObjectErr
 			t.Errorf("GetObjectValue failed. err:%s", err.Error())
@@ -317,7 +317,7 @@ func TestSimpleRemote(t *testing.T) {
 		qVal := &Simple{ID: sValList[idx].ID}
 		qValList = append(qValList, qVal)
 
-		qObjectVal, qObjectErr := helper.GetObjectValue(qVal)
+		qObjectVal, qObjectErr := remote.GetObjectValue(qVal)
 		if qObjectErr != nil {
 			err = qObjectErr
 			t.Errorf("GetObjectValue failed. err:%s", err.Error())
@@ -365,7 +365,7 @@ func TestSimpleRemote(t *testing.T) {
 		}
 	}
 
-	objectPtr, objectErr := helper.GetObject(&Simple{})
+	objectPtr, objectErr := remote.GetObject(&Simple{})
 	if objectErr != nil {
 		t.Errorf("GetObject failed, error:%s", objectErr.Error())
 	}

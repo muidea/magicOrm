@@ -84,7 +84,7 @@ func GetEntityType(entity interface{}) (ret model.Type, err *cd.Result) {
 		return
 	}
 
-	err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal entity, entity:%v", entity))
+	ret, err = getEntityType(entity)
 	return
 }
 
@@ -94,6 +94,25 @@ func GetEntityValue(entity interface{}) (ret model.Value, err *cd.Result) {
 			err = cd.NewError(cd.UnExpected, fmt.Sprintf("%v", errInfo))
 		}
 	}()
+
+	eType, eErr := GetEntityType(entity)
+	if eErr != nil {
+		err = eErr
+		return
+	}
+	if !eType.IsBasic() {
+		if eType.IsSlice() {
+			entity, err = GetSliceObjectValue(entity)
+			if err != nil {
+				return
+			}
+		} else {
+			entity, err = GetObjectValue(entity)
+			if err != nil {
+				return
+			}
+		}
+	}
 
 	ret = NewValue(entity)
 	return
@@ -197,12 +216,6 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err *cd.Result) {
 		for idx := 0; idx < len(listObjectValuePtr); idx++ {
 			ret = append(ret, NewValue(listObjectValuePtr[idx]))
 		}
-		return
-	}
-
-	objectPtrValue, objectPtrOK := vVal.Get().(*ObjectValue)
-	if objectPtrOK {
-		ret = append(ret, NewValue(objectPtrValue))
 		return
 	}
 

@@ -51,7 +51,7 @@ func getSliceType(tType model.Type) (ret any) {
 	return
 }
 
-func getBasicValue(tType model.Type) (ret any) {
+func getBasicInitValue(tType model.Type) (ret any) {
 	switch tType.GetValue() {
 	case model.TypeBooleanValue:
 		ret = false
@@ -92,7 +92,7 @@ func getBasicValue(tType model.Type) (ret any) {
 	return
 }
 
-func getStructValue(tType model.Type) (ret any) {
+func getStructInitValue(tType model.Type) (ret any) {
 	if model.IsSliceType(tType.GetValue()) {
 		_declareObjectSliceValue.Name = tType.GetName()
 		_declareObjectSliceValue.PkgPath = tType.GetPkgPath()
@@ -113,10 +113,10 @@ func getStructValue(tType model.Type) (ret any) {
 
 func getInitializeValue(tType model.Type) (ret any) {
 	if !tType.IsBasic() {
-		ret = getStructValue(tType)
+		ret = getStructInitValue(tType)
 		return
 	}
 
-	ret = getBasicValue(tType)
+	ret = getBasicInitValue(tType)
 	return
 }

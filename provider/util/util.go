@@ -260,6 +260,12 @@ func isSameStruct(firstVal, secondVal reflect.Value) (ret bool, err *cd.Result) 
 
 // isSameVal is same value
 func isSameVal(firstVal, secondVal reflect.Value) (ret bool, err *cd.Result) {
+	if firstVal.Kind() == reflect.Interface {
+		firstVal = firstVal.Elem()
+	}
+	if secondVal.Kind() == reflect.Interface {
+		secondVal = secondVal.Elem()
+	}
 	ret = firstVal.Type().String() == secondVal.Type().String()
 	if !ret {
 		return
@@ -280,6 +286,7 @@ func isSameVal(firstVal, secondVal reflect.Value) (ret bool, err *cd.Result) {
 	typeVal, typeErr := GetTypeEnum(firstVal.Type())
 	if typeErr != nil {
 		err = typeErr
+		log.Errorf("GetTypeEnum failed, error:%s", typeErr.Error())
 		ret = false
 		return
 	}

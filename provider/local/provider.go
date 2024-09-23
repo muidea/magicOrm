@@ -172,10 +172,10 @@ func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, e
 		return
 	}
 
-	rNewVal := reflect.Append(riSliceVal, rVal)
-	riSliceVal.Set(rNewVal)
+	riSliceVal = reflect.Append(riSliceVal, rVal)
+	//riSliceVal.Set(rNewVal)
 
-	ret = NewValue(rSliceVal)
+	ret = NewValue(riSliceVal)
 	return
 }
 

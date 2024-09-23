@@ -102,7 +102,7 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 	ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	sVal := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
 
-	sObjectVal, _ := helper.GetObjectValue(sVal)
+	sObjectVal, _ := remote.GetObjectValue(sVal)
 	sModel, sErr := remoteProvider.GetEntityModel(sObjectVal)
 	if sErr != nil {
 		err = sErr
@@ -145,7 +145,7 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 		PtrStrArray: &strPtrArray,
 	}
 
-	rObjectVal, _ := helper.GetObjectValue(rVal)
+	rObjectVal, _ := remote.GetObjectValue(rVal)
 	rModel, rErr := remoteProvider.GetEntityModel(rObjectVal)
 	if rErr != nil {
 		err = rErr
@@ -184,7 +184,7 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 		RefPtrArray:  refPtrArray,
 		PtrRefArray:  refPtrArray,
 	}
-	cObjectVal, _ := helper.GetObjectValue(cVal)
+	cObjectVal, _ := remote.GetObjectValue(cVal)
 	cModel, cErr := remoteProvider.GetEntityModel(cObjectVal)
 	if cErr != nil {
 		err = cErr
@@ -405,9 +405,9 @@ func TestComposeRemote(t *testing.T) {
 		return
 	}
 
-	simpleDef, _ := helper.GetObject(&Simple{})
-	referenceDef, _ := helper.GetObject(&Reference{})
-	composeDef, _ := helper.GetObject(&Compose{})
+	simpleDef, _ := remote.GetObject(&Simple{})
+	referenceDef, _ := remote.GetObject(&Reference{})
+	composeDef, _ := remote.GetObject(&Compose{})
 
 	entityList := []any{simpleDef, referenceDef, composeDef}
 	modelList, modelErr := registerModel(remoteProvider, entityList)
@@ -451,7 +451,7 @@ func TestComposeRemote(t *testing.T) {
 		PtrRefArray:  refPtrArray,
 		PtrCompose:   cPtr,
 	}
-	composeObjectValue, composeObjectErr := helper.GetObjectValue(composePtr)
+	composeObjectValue, composeObjectErr := remote.GetObjectValue(composePtr)
 	if composeObjectErr != nil {
 		err = composeObjectErr
 		t.Errorf("GetObjectValue failed. err:%s", err.Error())
@@ -480,7 +480,7 @@ func TestComposeRemote(t *testing.T) {
 	}
 
 	composePtr.Name = "hi"
-	composeObjectValue, composeObjectErr = helper.GetObjectValue(composePtr)
+	composeObjectValue, composeObjectErr = remote.GetObjectValue(composePtr)
 	if composeObjectErr != nil {
 		err = composeObjectErr
 		t.Errorf("GetObjectValue failed. err:%s", err.Error())
@@ -522,7 +522,7 @@ func TestComposeRemote(t *testing.T) {
 		PtrCompose:   &Compose{},
 	}
 
-	queryObjectValue, queryObjectErr := helper.GetObjectValue(queryComposeVal)
+	queryObjectValue, queryObjectErr := remote.GetObjectValue(queryComposeVal)
 	if queryObjectErr != nil {
 		err = queryObjectErr
 		t.Errorf("GetObjectValue failed. err:%s", err.Error())
@@ -557,7 +557,7 @@ func TestComposeRemote(t *testing.T) {
 	}
 
 	composePtr = &Compose{}
-	composeObjectPtr, composeObjectErr := helper.GetObject(composePtr)
+	composeObjectPtr, composeObjectErr := remote.GetObject(composePtr)
 	if composeObjectErr != nil {
 		t.Errorf("GetObject failed, err:%s", composeObjectErr.Error())
 		return
@@ -587,7 +587,7 @@ func TestComposeRemote(t *testing.T) {
 		PtrCompose:   &Compose{},
 	}
 
-	maskObjectValuePtr, maskObjectValueErr := helper.GetObjectValue(maskComposePtr)
+	maskObjectValuePtr, maskObjectValueErr := remote.GetObjectValue(maskComposePtr)
 	if maskObjectValueErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", maskObjectValueErr.Error())
 		return

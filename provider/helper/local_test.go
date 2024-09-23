@@ -11,7 +11,7 @@ func TestUpdateExtObjValue(t *testing.T) {
 		BasePtrArrayPtr: &[]*Base{},
 	}
 	rawVal := composeVal
-	objVal, objErr := GetObjectValue(rawVal)
+	objVal, objErr := remote.GetObjectValue(rawVal)
 	if objErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return

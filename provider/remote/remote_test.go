@@ -1,11 +1,10 @@
-package helper
+package remote
 
 import (
 	"encoding/json"
 	"testing"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/remote"
 )
 
 type Simple struct {
@@ -93,14 +92,14 @@ func TestSimpleObjInfo(t *testing.T) {
 		return
 	}
 
-	info2 := &remote.Object{}
+	info2 := &Object{}
 	byteErr = json.Unmarshal(byteVal, info2)
 	if byteErr != nil {
 		t.Errorf("marshal info failed, err:%s", byteErr.Error())
 		return
 	}
 
-	if !remote.CompareObject(info, info2) {
+	if !CompareObject(info, info2) {
 		t.Errorf("unmarshal failed")
 		return
 	}
@@ -128,14 +127,14 @@ func TestExtObjInfo(t *testing.T) {
 		return
 	}
 
-	eInfo := &remote.Object{}
+	eInfo := &Object{}
 	byteErr = json.Unmarshal(byteVal, eInfo)
 	if byteErr != nil {
 		t.Errorf("unmarshal ext failed, err:%s", byteErr.Error())
 		return
 	}
 
-	if !remote.CompareObject(info, eInfo) {
+	if !CompareObject(info, eInfo) {
 		t.Errorf("unmarshal faile")
 		return
 	}
@@ -157,19 +156,19 @@ func TestSimpleValue(t *testing.T) {
 		return
 	}
 
-	data, err := remote.EncodeObjectValue(rawVal)
+	data, err := EncodeObjectValue(rawVal)
 	if err != nil {
 		t.Errorf("encode object value failed, err:%s", err.Error())
 		return
 	}
 
-	curVal, curErr := remote.DecodeObjectValue(data)
+	curVal, curErr := DecodeObjectValue(data)
 	if curErr != nil {
 		t.Errorf("decode obj failed, err:%s", curErr.Error())
 		return
 	}
 
-	if !remote.CompareObjectValue(rawVal, curVal) {
+	if !CompareObjectValue(rawVal, curVal) {
 		t.Errorf("compareObjectValue failed")
 		return
 	}
@@ -198,19 +197,19 @@ func TestExtObjValue(t *testing.T) {
 		return
 	}
 
-	data, err := remote.EncodeObjectValue(objVal)
+	data, err := EncodeObjectValue(objVal)
 	if err != nil {
 		t.Errorf("encode object value failed, err:%s", err.Error())
 		return
 	}
 
-	objInfo, objErr := remote.DecodeObjectValue(data)
+	objInfo, objErr := DecodeObjectValue(data)
 	if objErr != nil {
 		t.Errorf("DecodeObjectValue failed, err:%s", objErr.Error())
 		return
 	}
 
-	if !remote.CompareObjectValue(objVal, objInfo) {
+	if !CompareObjectValue(objVal, objInfo) {
 		t.Errorf("compareObjectValue failed")
 		return
 	}

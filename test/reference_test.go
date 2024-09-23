@@ -251,9 +251,9 @@ func TestReferenceRemote(t *testing.T) {
 		return
 	}
 
-	simpleDef, _ := helper.GetObject(&Simple{})
-	referenceDef, _ := helper.GetObject(&Reference{})
-	composeDef, _ := helper.GetObject(&Compose{})
+	simpleDef, _ := remote.GetObject(&Simple{})
+	referenceDef, _ := remote.GetObject(&Reference{})
+	composeDef, _ := remote.GetObject(&Compose{})
 
 	entityList := []any{simpleDef, referenceDef, composeDef}
 	modelList, modelErr := registerModel(remoteProvider, entityList)
@@ -307,7 +307,7 @@ func TestReferenceRemote(t *testing.T) {
 		}
 		sValList = append(sValList, sVal)
 
-		sObjectVal, sObjectErr := helper.GetObjectValue(sVal)
+		sObjectVal, sObjectErr := remote.GetObjectValue(sVal)
 		if sObjectErr != nil {
 			err = sObjectErr
 			t.Errorf("GetObjectValue failed. err:%s", err.Error())
@@ -349,7 +349,7 @@ func TestReferenceRemote(t *testing.T) {
 	for idx := 0; idx < loop; idx++ {
 		sVal := sValList[idx]
 		sVal.Name = "hi"
-		sObjectVal, sObjectErr := helper.GetObjectValue(sVal)
+		sObjectVal, sObjectErr := remote.GetObjectValue(sVal)
 		if sObjectErr != nil {
 			err = sObjectErr
 			t.Errorf("GetObjectValue failed. err:%s", err.Error())
@@ -412,7 +412,7 @@ func TestReferenceRemote(t *testing.T) {
 		}
 		qValList = append(qValList, qVal)
 
-		qObjectVal, qObjectErr := helper.GetObjectValue(qVal)
+		qObjectVal, qObjectErr := remote.GetObjectValue(qVal)
 		if qObjectErr != nil {
 			err = qObjectErr
 			t.Errorf("GetObjectValue failed. err:%s", err.Error())
@@ -468,7 +468,7 @@ func TestReferenceRemote(t *testing.T) {
 	strArray2 := []string{}
 	ptrStrArray := []*string{}
 
-	referenceModel, _ := helper.GetObject(&bqValList)
+	referenceModel, _ := remote.GetObject(&bqValList)
 
 	filter, err := remoteProvider.GetModelFilter(referenceModel, 0)
 	if err != nil {
@@ -482,7 +482,7 @@ func TestReferenceRemote(t *testing.T) {
 		return
 	}
 
-	maskVal, maskErr := helper.GetObjectValue(&Reference{FValue: &fVal, TimeStamp: &ts2, Flag: &flag2, PtrArray: &strArray2, PtrStrArray: &ptrStrArray})
+	maskVal, maskErr := remote.GetObjectValue(&Reference{FValue: &fVal, TimeStamp: &ts2, Flag: &flag2, PtrArray: &strArray2, PtrStrArray: &ptrStrArray})
 	if maskErr != nil {
 		t.Errorf("helper.GetObjectValue failed, err:%s", err.Error())
 		return
