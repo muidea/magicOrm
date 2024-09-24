@@ -40,6 +40,59 @@ type Test struct {
 func TestModelValue(t *testing.T) {
 	now, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	unit := Unit{Name: "AA", T1: Test{Val: 123}, TimeStamp: now}
+
+	eModel, eErr := GetEntityModel(&unit)
+	if eErr != nil {
+		t.Errorf("GetEntityModel failed, error %s", eErr.Error())
+		return
+	}
+
+	uVal, uOK := eModel.Interface(false, 0).(Unit)
+	if !uOK {
+		t.Errorf("eModel.Interface failed")
+		return
+	}
+	if uVal.Name != unit.Name {
+		t.Errorf("eModel.Interface failed")
+		return
+	}
+
+	uPtrVal, uPtrOK := eModel.Interface(true, 0).(*Unit)
+	if !uPtrOK {
+		t.Errorf("eModel.Interface failed")
+		return
+	}
+	if uPtrVal.Name != unit.Name {
+		t.Errorf("eModel.Interface failed")
+		return
+	}
+
+	eModel, eErr = GetEntityModel(unit)
+	if eErr != nil {
+		t.Errorf("GetEntityModel failed, error %s", eErr.Error())
+		return
+	}
+
+	uVal, uOK = eModel.Interface(false, 0).(Unit)
+	if !uOK {
+		t.Errorf("eModel.Interface failed")
+		return
+	}
+	if uVal.Name != unit.Name {
+		t.Errorf("eModel.Interface failed")
+		return
+	}
+
+	uPtrVal, uPtrOK = eModel.Interface(true, 0).(*Unit)
+	if !uPtrOK {
+		t.Errorf("eModel.Interface failed")
+		return
+	}
+	if uPtrVal.Name != unit.Name {
+		t.Errorf("eModel.Interface failed")
+		return
+	}
+
 	unitVal := reflect.ValueOf(&unit).Elem()
 	unitInfo, unitErr := getTypeModel(unitVal.Type())
 	if unitErr != nil {
@@ -75,6 +128,16 @@ func TestModelValue(t *testing.T) {
 	}
 	if !unit.TimeStamp.Equal(now) {
 		t.Errorf("update timeStamp failed")
+		return
+	}
+
+	unitPtrVal, unitPtrOK := unitInfo.Interface(true, 0).(*Unit)
+	if !unitPtrOK {
+		t.Errorf("unitInfo.Interface failed")
+		return
+	}
+	if unitPtrVal.Name != name {
+		t.Errorf("update id field failed")
 		return
 	}
 }

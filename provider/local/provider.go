@@ -2,10 +2,10 @@ package local
 
 import (
 	"fmt"
-	"github.com/muidea/magicCommon/foundation/log"
 	"reflect"
 
 	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/local/codec"
@@ -24,6 +24,10 @@ func GetType(vType reflect.Type) (ret model.Type, err *cd.Result) {
 }
 
 func GetEntityType(entity interface{}) (ret model.Type, err *cd.Result) {
+	if entity == nil {
+		err = cd.NewError(cd.UnExpected, "entity is null")
+		return
+	}
 	rVal := reflect.ValueOf(entity)
 	if rVal.Kind() == reflect.Interface {
 		rVal = rVal.Elem()
@@ -39,16 +43,27 @@ func GetEntityType(entity interface{}) (ret model.Type, err *cd.Result) {
 }
 
 func GetEntityValue(entity interface{}) (ret model.Value, err *cd.Result) {
+	if entity == nil {
+		err = cd.NewError(cd.UnExpected, "entity is null")
+		return
+	}
 	rVal := reflect.ValueOf(entity)
 	if rVal.Kind() == reflect.Interface {
 		rVal = rVal.Elem()
 	}
 
-	ret = NewValue(rVal)
+	nVal := reflect.New(rVal.Type()).Elem()
+	nVal.Set(rVal)
+	ret = NewValue(nVal)
 	return
 }
 
 func GetEntityModel(entity interface{}) (ret model.Model, err *cd.Result) {
+	if entity == nil {
+		err = cd.NewError(cd.UnExpected, "entity is null")
+		return
+	}
+
 	rVal := reflect.ValueOf(entity)
 	if rVal.Kind() == reflect.Interface {
 		rVal = rVal.Elem()
@@ -146,36 +161,22 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err *cd.Result) {
 }
 
 func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, err *cd.Result) {
-	// *[]xx , []xx
 	rSliceVal := sliceVal.Get().(reflect.Value)
-	riSliceVal := reflect.Indirect(rSliceVal)
-	riSliceType := riSliceVal.Type()
-	if riSliceType.Kind() != reflect.Slice {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("append slice value failed, illegal slice value, slice type:%s", riSliceType.String()))
+	rSliceType := rSliceVal.Type()
+	if rSliceType.Kind() != reflect.Slice {
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("append slice value failed, illegal slice value, slice type:%s", rSliceType.String()))
 		return
-	}
-
-	isElemPtr := false
-	rElemType := riSliceType.Elem()
-	if rElemType.Kind() == reflect.Ptr {
-		isElemPtr = true
 	}
 
 	rVal := val.Get().(reflect.Value)
-	if !isElemPtr {
-		rVal = reflect.Indirect(rVal)
-	}
-
 	rType := rVal.Type()
-	if riSliceType.Elem().String() != rType.String() {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("append slice value failed, illegal slice item value, slice type:%s, item type:%s", riSliceType.String(), rType.String()))
+	if rSliceType.Elem().String() != rType.String() {
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("append slice value failed, illegal slice item value, slice type:%s, item type:%s", rSliceType.String(), rType.String()))
 		return
 	}
 
-	riSliceVal = reflect.Append(riSliceVal, rVal)
-	//riSliceVal.Set(rNewVal)
-
-	ret = NewValue(riSliceVal)
+	rSliceVal = reflect.Append(rSliceVal, rVal)
+	ret = NewValue(rSliceVal)
 	return
 }
 

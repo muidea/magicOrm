@@ -148,7 +148,7 @@ func (s TypeDeclare) String() string {
 	case TypeMapValue:
 		return "map"
 	default:
-		return fmt.Sprintf("illegal type %d", s)
+		return fmt.Sprintf("illegal type decare value %d", s)
 	}
 }
 
@@ -217,6 +217,6 @@ func (s ViewDeclare) String() string {
 	case LiteView:
 		return "lite"
 	default:
-		return "unknown"
+		return fmt.Sprintf("unknown view declare %d", s)
 	}
 }

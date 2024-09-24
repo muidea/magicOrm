@@ -91,11 +91,17 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 		case model.TypeDateTimeValue:
 			initVal, err = util.GetDateTime(initVal)
 			tVal.Set(reflect.ValueOf(initVal))
-		case model.TypeSliceValue:
-			tVal.Set(reflect.ValueOf(initVal))
 		default:
-			initVal = nil
+			rInitVal := reflect.Indirect(reflect.ValueOf(initVal))
+			if rInitVal.Type() != tVal.Type() {
+				err = cd.NewError(cd.UnExpected, "missmatch value type")
+			} else {
+				tVal.Set(rInitVal)
+			}
 		}
+	}
+	if err != nil {
+		return
 	}
 
 	if s.IsPtrType() {
