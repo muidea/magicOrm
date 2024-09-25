@@ -25,7 +25,7 @@ func GetType(vType reflect.Type) (ret model.Type, err *cd.Result) {
 
 func GetEntityType(entity interface{}) (ret model.Type, err *cd.Result) {
 	if entity == nil {
-		err = cd.NewError(cd.UnExpected, "entity is null")
+		err = cd.NewError(cd.UnExpected, "entity is nil")
 		return
 	}
 	rVal := reflect.ValueOf(entity)
@@ -44,7 +44,7 @@ func GetEntityType(entity interface{}) (ret model.Type, err *cd.Result) {
 
 func GetEntityValue(entity interface{}) (ret model.Value, err *cd.Result) {
 	if entity == nil {
-		err = cd.NewError(cd.UnExpected, "entity is null")
+		err = cd.NewError(cd.UnExpected, "entity is nil")
 		return
 	}
 	rVal := reflect.ValueOf(entity)
@@ -60,7 +60,7 @@ func GetEntityValue(entity interface{}) (ret model.Value, err *cd.Result) {
 
 func GetEntityModel(entity interface{}) (ret model.Model, err *cd.Result) {
 	if entity == nil {
-		err = cd.NewError(cd.UnExpected, "entity is null")
+		err = cd.NewError(cd.UnExpected, "entity is nil")
 		return
 	}
 
@@ -162,21 +162,26 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err *cd.Result) {
 
 func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, err *cd.Result) {
 	rSliceVal := sliceVal.Get().(reflect.Value)
-	rSliceType := rSliceVal.Type()
-	if rSliceType.Kind() != reflect.Slice {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("append slice value failed, illegal slice value, slice type:%s", rSliceType.String()))
+	rSliceIndirectVal := reflect.Indirect(rSliceVal)
+	riSliceIndirectType := rSliceIndirectVal.Type()
+	if riSliceIndirectType.Kind() != reflect.Slice {
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("append slice value failed, illegal slice value, slice type:%s", riSliceIndirectType.String()))
 		return
 	}
 
 	rVal := val.Get().(reflect.Value)
 	rType := rVal.Type()
-	if rSliceType.Elem().String() != rType.String() {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("append slice value failed, illegal slice item value, slice type:%s, item type:%s", rSliceType.String(), rType.String()))
+	if riSliceIndirectType.Elem().String() != rType.String() {
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("append slice value failed, illegal slice item value, slice type:%s, item type:%s", riSliceIndirectType.String(), rType.String()))
 		return
 	}
-
-	rSliceVal = reflect.Append(rSliceVal, rVal)
-	ret = NewValue(rSliceVal)
+	rSliceNewVal := reflect.New(riSliceIndirectType).Elem()
+	rSliceIndirectVal = reflect.Append(rSliceIndirectVal, rVal)
+	rSliceNewVal.Set(rSliceIndirectVal)
+	if rSliceVal.Kind() == reflect.Pointer {
+		rSliceNewVal = rSliceNewVal.Addr()
+	}
+	ret = NewValue(rSliceNewVal)
 	return
 }
 

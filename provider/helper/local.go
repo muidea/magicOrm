@@ -155,6 +155,7 @@ func toLocalSliceValue(sliceObjectValue *remote.SliceObjectValue, lType model.Ty
 	}
 
 	sliceEntityValue, _ := lType.Interface(nil)
+
 	for idx := 0; idx < len(sliceObjectValue.Values); idx++ {
 		sliceItem := sliceObjectValue.Values[idx]
 		lVal, lErr := toLocalValue(sliceItem, lType.Elem())

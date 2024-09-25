@@ -18,100 +18,170 @@ func init() {
 }
 
 func GetEntityType(entity interface{}) (ret model.Type, err *cd.Result) {
-	objInfo, objOK := entity.(Object)
-	if objOK {
-		impl := &TypeImpl{Name: objInfo.GetName(), Value: model.TypeStructValue, PkgPath: objInfo.GetPkgPath(), IsPtr: true}
-		impl.ElemType = &TypeImpl{Name: objInfo.GetName(), Value: model.TypeStructValue, PkgPath: objInfo.GetPkgPath(), IsPtr: true}
+	if entity == nil {
+		err = cd.NewError(cd.UnExpected, "entity is nil")
+		return
+	}
+	// 为了提升执行性能，以下判断条件的顺序不可以随便调整
+	objectInfo, objectInfoOK := entity.(Object)
+	if objectInfoOK {
+		impl := &TypeImpl{Name: objectInfo.GetName(), Value: model.TypeStructValue, PkgPath: objectInfo.GetPkgPath(), IsPtr: true}
+		impl.ElemType = &TypeImpl{Name: objectInfo.GetName(), Value: model.TypeStructValue, PkgPath: objectInfo.GetPkgPath(), IsPtr: true}
 
 		ret = impl
 		return
 	}
 
-	valInfo, valOK := entity.(ObjectValue)
-	if valOK {
-		impl := &TypeImpl{Name: valInfo.GetName(), Value: model.TypeStructValue, PkgPath: valInfo.GetPkgPath(), IsPtr: true}
-		impl.ElemType = &TypeImpl{Name: valInfo.GetName(), Value: model.TypeStructValue, PkgPath: valInfo.GetPkgPath(), IsPtr: true}
+	objectPtr, objectPtrOK := entity.(*Object)
+	if objectPtrOK {
+		impl := &TypeImpl{Name: objectPtr.GetName(), Value: model.TypeStructValue, PkgPath: objectPtr.GetPkgPath(), IsPtr: true}
+		impl.ElemType = &TypeImpl{Name: objectPtr.GetName(), Value: model.TypeStructValue, PkgPath: objectPtr.GetPkgPath(), IsPtr: true}
 
 		ret = impl
 		return
 	}
 
-	sValInfo, sValOK := entity.(SliceObjectValue)
-	if sValOK {
-		impl := &TypeImpl{Name: sValInfo.GetName(), Value: model.TypeSliceValue, PkgPath: sValInfo.GetPkgPath(), IsPtr: true}
-		impl.ElemType = &TypeImpl{Name: sValInfo.GetName(), Value: model.TypeStructValue, PkgPath: sValInfo.GetPkgPath(), IsPtr: true}
+	typeImplInfo, typeImplOK := entity.(TypeImpl)
+	if typeImplOK {
+		ret = &typeImplInfo
+		return
+	}
+
+	typeImplPtr, typeImplPtrOK := entity.(*TypeImpl)
+	if typeImplPtrOK {
+		ret = typeImplPtr
+		return
+	}
+
+	for {
+		valueImplInfo, valueImplOK := entity.(ValueImpl)
+		if valueImplOK {
+			entity = valueImplInfo.Interface()
+			break
+		}
+
+		valueImplPtr, valueImplPtrOK := entity.(*ValueImpl)
+		if valueImplPtrOK {
+			entity = valueImplPtr.Interface()
+		}
+		break
+	}
+
+	objectValue, objectValueOK := entity.(ObjectValue)
+	if objectValueOK {
+		impl := &TypeImpl{Name: objectValue.GetName(), Value: model.TypeStructValue, PkgPath: objectValue.GetPkgPath(), IsPtr: true}
+		impl.ElemType = &TypeImpl{Name: objectValue.GetName(), Value: model.TypeStructValue, PkgPath: objectValue.GetPkgPath(), IsPtr: true}
 
 		ret = impl
 		return
 	}
 
-	typeInfo, typeOK := entity.(TypeImpl)
-	if typeOK {
-		ret = &typeInfo
-		return
-	}
-
-	objPtr, objOK := entity.(*Object)
-	if objOK {
-		impl := &TypeImpl{Name: objPtr.GetName(), Value: model.TypeStructValue, PkgPath: objPtr.GetPkgPath(), IsPtr: true}
-		impl.ElemType = &TypeImpl{Name: objPtr.GetName(), Value: model.TypeStructValue, PkgPath: objPtr.GetPkgPath(), IsPtr: true}
+	sObjectValue, sObjectValueOK := entity.(SliceObjectValue)
+	if sObjectValueOK {
+		impl := &TypeImpl{Name: sObjectValue.GetName(), Value: model.TypeSliceValue, PkgPath: sObjectValue.GetPkgPath(), IsPtr: true}
+		impl.ElemType = &TypeImpl{Name: sObjectValue.GetName(), Value: model.TypeStructValue, PkgPath: sObjectValue.GetPkgPath(), IsPtr: true}
 
 		ret = impl
 		return
 	}
 
-	valPtr, valOK := entity.(*ObjectValue)
-	if valOK {
-		impl := &TypeImpl{Name: valPtr.GetName(), Value: model.TypeStructValue, PkgPath: valPtr.GetPkgPath(), IsPtr: true}
-		impl.ElemType = &TypeImpl{Name: valPtr.GetName(), Value: model.TypeStructValue, PkgPath: valPtr.GetPkgPath(), IsPtr: true}
+	objectValuePtr, objectValuePtrOK := entity.(*ObjectValue)
+	if objectValuePtrOK {
+		impl := &TypeImpl{Name: objectValuePtr.GetName(), Value: model.TypeStructValue, PkgPath: objectValuePtr.GetPkgPath(), IsPtr: true}
+		impl.ElemType = &TypeImpl{Name: objectValuePtr.GetName(), Value: model.TypeStructValue, PkgPath: objectValuePtr.GetPkgPath(), IsPtr: true}
 
 		ret = impl
 		return
 	}
 
-	sValPtr, sValOK := entity.(*SliceObjectValue)
-	if sValOK {
-		impl := &TypeImpl{Name: sValPtr.GetName(), Value: model.TypeSliceValue, PkgPath: sValPtr.GetPkgPath(), IsPtr: true}
-		impl.ElemType = &TypeImpl{Name: sValPtr.GetName(), Value: model.TypeStructValue, PkgPath: sValPtr.GetPkgPath(), IsPtr: true}
+	sObjectValuePtr, sObjectValuePtrOK := entity.(*SliceObjectValue)
+	if sObjectValuePtrOK {
+		impl := &TypeImpl{Name: sObjectValuePtr.GetName(), Value: model.TypeSliceValue, PkgPath: sObjectValuePtr.GetPkgPath(), IsPtr: true}
+		impl.ElemType = &TypeImpl{Name: sObjectValuePtr.GetName(), Value: model.TypeStructValue, PkgPath: sObjectValuePtr.GetPkgPath(), IsPtr: true}
 
 		ret = impl
 		return
 	}
 
-	typePtr, typeOK := entity.(*TypeImpl)
-	if typeOK {
-		ret = typePtr
+	switch entity.(type) {
+	case Field, SpecImpl, FieldValue, *Field, *SpecImpl, *FieldValue:
+		err = cd.NewError(cd.UnExpected, "illegal entity value")
 		return
 	}
 
 	ret, err = getEntityType(entity)
+	if err != nil {
+		log.Errorf("GetEntityType failed, getEntityType error:%s", err.Error())
+	}
 	return
 }
 
 func GetEntityValue(entity interface{}) (ret model.Value, err *cd.Result) {
-	defer func() {
-		if errInfo := recover(); errInfo != nil {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("%v", errInfo))
-		}
-	}()
-
-	eType, eErr := GetEntityType(entity)
-	if eErr != nil {
-		err = eErr
+	if entity == nil {
+		err = cd.NewError(cd.UnExpected, "entity is nil")
 		return
 	}
-	if !eType.IsBasic() {
-		if eType.IsSlice() {
-			entity, err = GetSliceObjectValue(entity)
-			if err != nil {
-				return
-			}
-		} else {
-			entity, err = GetObjectValue(entity)
-			if err != nil {
-				return
-			}
-		}
+
+	// 为了提升执行性能，以下判断条件的顺序不可以随便调整
+	valueImplInfo, valueImplOK := entity.(ValueImpl)
+	if valueImplOK {
+		ret = &valueImplInfo
+		return
+	}
+
+	valueImplPtr, valueImplPtrOK := entity.(*ValueImpl)
+	if valueImplPtrOK {
+		ret = valueImplPtr
+		return
+	}
+
+	objectValue, objectValueOK := entity.(ObjectValue)
+	if objectValueOK {
+		ret = NewValue(&objectValue)
+		return
+	}
+
+	sObjectValue, sObjectValueOK := entity.(SliceObjectValue)
+	if sObjectValueOK {
+		ret = NewValue(&sObjectValue)
+		return
+	}
+
+	objectValuePtr, objectValuePtrOK := entity.(*ObjectValue)
+	if objectValuePtrOK {
+		ret = NewValue(objectValuePtr)
+		return
+	}
+
+	sObjectValuePtr, sObjectValuePtrOK := entity.(*SliceObjectValue)
+	if sObjectValuePtrOK {
+		ret = NewValue(sObjectValuePtr)
+		return
+	}
+
+	switch entity.(type) {
+	case Object, Field, TypeImpl, SpecImpl, FieldValue, *Object, *Field, *TypeImpl, *SpecImpl, *FieldValue:
+		err = cd.NewError(cd.UnExpected, "illegal entity value")
+		return
+	}
+
+	entityType, entityErr := getEntityType(entity)
+	if entityErr != nil {
+		err = entityErr
+		return
+	}
+
+	if entityType.IsBasic() {
+		ret = NewValue(entity)
+		return
+	}
+	if entityType.IsSlice() {
+		entity, err = GetSliceObjectValue(entity)
+	} else {
+		entity, err = GetObjectValue(entity)
+	}
+	if err != nil {
+		return
 	}
 
 	ret = NewValue(entity)
@@ -119,27 +189,38 @@ func GetEntityValue(entity interface{}) (ret model.Value, err *cd.Result) {
 }
 
 func GetEntityModel(entity interface{}) (ret model.Model, err *cd.Result) {
-	var objPtr *Object
+	var objectPtr *Object
 	ptrVal, ptrOK := entity.(*Object)
 	if ptrOK {
-		objPtr = ptrVal
+		objectPtr = ptrVal
 	}
 
 	infoVal, infoOK := entity.(Object)
 	if infoOK {
-		objPtr = &infoVal
+		objectPtr = &infoVal
 	}
-	if objPtr == nil {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal entity value, not object entity"))
-		return
+	if objectPtr == nil {
+		switch entity.(type) {
+		case *ObjectValue, *SliceObjectValue, *Field, *TypeImpl, *ValueImpl, *SpecImpl, *FieldValue,
+			ObjectValue, SliceObjectValue, Field, TypeImpl, ValueImpl, SpecImpl, FieldValue:
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal entity value, not object entity"))
+		}
+		if err != nil {
+			return
+		}
+
+		objectPtr, err = GetObject(entity)
+		if err != nil {
+			return
+		}
 	}
 
-	err = objPtr.Verify()
+	err = objectPtr.Verify()
 	if err != nil {
 		return
 	}
 
-	ret = objPtr
+	ret = objectPtr
 	return
 }
 
