@@ -10,7 +10,7 @@ import (
 	pu "github.com/muidea/magicOrm/provider/util"
 )
 
-type ElemDependValueFunc func(model.Value) ([]model.Value, *cd.Result)
+type ElemDependValueFunc func(eVal interface{}) ([]model.Value, *cd.Result)
 
 type Codec interface {
 	Encode(vVal model.Value, vType model.Type) (ret interface{}, err *cd.Result)
@@ -74,7 +74,7 @@ func (s *impl) Encode(vVal model.Value, vType model.Type) (ret interface{}, err 
 
 // encodeSlice get slice value str
 func (s *impl) encodeSlice(vVal model.Value, vType model.Type) (ret interface{}, err *cd.Result) {
-	vals, valErr := s.elemDependValue(vVal)
+	vals, valErr := s.elemDependValue(vVal.Interface())
 	if valErr != nil {
 		err = valErr
 		return

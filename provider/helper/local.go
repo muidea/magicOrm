@@ -31,7 +31,7 @@ func toBasicSliceValue(rVal model.Value, lType model.Type) (ret model.Value, err
 		return
 	}
 
-	rValList, rErr := remote.ElemDependValue(rVal)
+	rValList, rErr := remote.ElemDependValue(rVal.Interface())
 	if rErr != nil {
 		err = rErr
 		log.Errorf("toBasicSliceValue failed, remote.ElemDependValue err:%v", err.Error())

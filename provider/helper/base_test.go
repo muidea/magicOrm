@@ -74,31 +74,29 @@ var composeVal = &Compose{
 }
 
 type Base struct {
-	ID           int         `orm:"id key auto"`
-	I8           int8        `orm:"i8"`
-	I16          int16       `orm:"i16"`
-	I32          int32       `orm:"i32"`
-	I64          int64       `orm:"i64"`
-	IVal         int         `orm:"iVal"`
-	UI8          uint8       `orm:"ui8"`
-	UI16         uint16      `orm:"ui16"`
-	UI32         uint32      `orm:"ui32"`
-	UI64         uint64      `orm:"ui64"`
-	UIVal        uint        `orm:"uiVal"`
-	F32          float32     `orm:"f32"`
-	F64          float64     `orm:"f64"`
-	Str          string      `orm:"name"`
-	TimeStamp    time.Time   `orm:"ts"`
-	Flag         bool        `orm:"flag"`
-	IArray       []int       `orm:"iArray"`
-	StrArray     []string    `orm:"strArray"`
-	TsArray      []time.Time `orm:"tsArray"`
-	BArray       []bool      `orm:"bArray"`
-	IPtr         *int        `orm:"iPtr"`
-	TSPtr        *time.Time  `orm:"tsPtr"`
-	IArrayPtr    *[]int      `orm:"iArrayPtr"`
-	IPtrArray    []*int      `orm:"iPtrArray"`
-	IPtrArrayPtr *[]*int     `orm:"iPtrArrayPtr"`
+	ID        int         `orm:"id key auto"`
+	I8        int8        `orm:"i8"`
+	I16       int16       `orm:"i16"`
+	I32       int32       `orm:"i32"`
+	I64       int64       `orm:"i64"`
+	IVal      int         `orm:"iVal"`
+	UI8       uint8       `orm:"ui8"`
+	UI16      uint16      `orm:"ui16"`
+	UI32      uint32      `orm:"ui32"`
+	UI64      uint64      `orm:"ui64"`
+	UIVal     uint        `orm:"uiVal"`
+	F32       float32     `orm:"f32"`
+	F64       float64     `orm:"f64"`
+	Str       string      `orm:"name"`
+	TimeStamp time.Time   `orm:"ts"`
+	Flag      bool        `orm:"flag"`
+	IArray    []int       `orm:"iArray"`
+	StrArray  []string    `orm:"strArray"`
+	TsArray   []time.Time `orm:"tsArray"`
+	BArray    []bool      `orm:"bArray"`
+	IPtr      *int        `orm:"iPtr"`
+	TSPtr     *time.Time  `orm:"tsPtr"`
+	IArrayPtr *[]int      `orm:"iArrayPtr"`
 }
 
 type Compose struct {

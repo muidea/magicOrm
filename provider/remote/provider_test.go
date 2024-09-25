@@ -205,3 +205,53 @@ func TestRemoteModel(t *testing.T) {
 		t.Errorf("EncodeValue failed")
 	}
 }
+
+func TestAppendSliceValue(t *testing.T) {
+	iSliceVal := []int{}
+
+	iSliceValueVal, iSliceValueErr := GetEntityValue(iSliceVal)
+	if iSliceValueErr != nil {
+		t.Errorf("GetEntityValue(iSliceVal) failed, error:%s", iSliceValueErr.Error())
+		return
+	}
+
+	iVal := 123
+	iValueVal, iValueErr := GetEntityValue(iVal)
+	if iValueErr != nil {
+		t.Errorf("GetEntityValue(iVal) failed, error:%s", iValueErr.Error())
+		return
+	}
+
+	iSliceValueVal, iSliceValueErr = AppendSliceValue(iSliceValueVal, iValueVal)
+	if iSliceValueErr != nil {
+		t.Errorf("AppendSliceValue(iSliceValueVal, iValueVal) failed, error:%s", iSliceValueErr.Error())
+		return
+	}
+	switch iSliceValueVal.Interface().(type) {
+	case []int:
+		t.Logf("%v", iSliceValueVal.Interface())
+	default:
+		t.Errorf("AppendSliceValue failed")
+		return
+	}
+
+	iSliceValueVal, iSliceValueErr = GetEntityValue(&iSliceVal)
+	if iSliceValueErr != nil {
+		t.Errorf("GetEntityValue(iSliceVal) failed, error:%s", iSliceValueErr.Error())
+		return
+	}
+
+	iSliceValueVal, iSliceValueErr = AppendSliceValue(iSliceValueVal, iValueVal)
+	if iSliceValueErr != nil {
+		t.Errorf("AppendSliceValue(iSliceValueVal, iValueVal) failed, error:%s", iSliceValueErr.Error())
+		return
+	}
+	switch iSliceValueVal.Interface().(type) {
+	case *[]int:
+		t.Logf("%+v", iSliceValueVal.Interface())
+	default:
+		t.Errorf("AppendSliceValue failed")
+		return
+	}
+
+}

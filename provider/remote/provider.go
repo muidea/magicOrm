@@ -4,11 +4,11 @@ import (
 	"fmt"
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-	"reflect"
-
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/remote/codec"
 	"github.com/muidea/magicOrm/provider/util"
+	"reflect"
+	"time"
 )
 
 var _codec codec.Codec
@@ -277,14 +277,14 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *
 	return
 }
 
-func ElemDependValue(vVal model.Value) (ret []model.Value, err *cd.Result) {
-	if vVal.IsNil() {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("vVal is nil"))
+func ElemDependValue(eVal interface{}) (ret []model.Value, err *cd.Result) {
+	if eVal == nil {
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("eVal is nil"))
 		log.Errorf("ElemDependValue failed, er:%s", err.Error())
 		return
 	}
 
-	sliceObjectPtrValue, slicePtrOK := vVal.Get().(*SliceObjectValue)
+	sliceObjectPtrValue, slicePtrOK := eVal.(*SliceObjectValue)
 	if slicePtrOK {
 		for idx := 0; idx < len(sliceObjectPtrValue.Values); idx++ {
 			ret = append(ret, NewValue(sliceObjectPtrValue.Values[idx]))
@@ -292,7 +292,7 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err *cd.Result) {
 		return
 	}
 
-	listObjectValuePtr, listOK := vVal.Get().([]*ObjectValue)
+	listObjectValuePtr, listOK := eVal.([]*ObjectValue)
 	if listOK {
 		for idx := 0; idx < len(listObjectValuePtr); idx++ {
 			ret = append(ret, NewValue(listObjectValuePtr[idx]))
@@ -300,9 +300,9 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err *cd.Result) {
 		return
 	}
 
-	rVal := reflect.ValueOf(vVal.Get())
+	rVal := reflect.Indirect(reflect.ValueOf(eVal))
 	if rVal.Kind() != reflect.Slice {
-		ret = append(ret, NewValue(vVal.Get()))
+		ret = append(ret, NewValue(eVal))
 		return
 	}
 
@@ -312,29 +312,138 @@ func ElemDependValue(vVal model.Value) (ret []model.Value, err *cd.Result) {
 	return
 }
 
-func AppendSliceValue(sliceVal model.Value, vVal model.Value) (ret model.Value, err *cd.Result) {
-	sliceObjectValuePtr, sliceObjectValueOK := sliceVal.Get().(*SliceObjectValue)
-	if sliceObjectValuePtr == nil || !sliceObjectValueOK {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal slice item value"))
-		log.Errorf("AppendSliceValue failed, err:%s", err.Error())
-		return
-	}
-
-	objectValuePtr, objectValueOK := vVal.Get().(*ObjectValue)
-	if objectValuePtr == nil || !objectValueOK {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal item value"))
-		log.Errorf("AppendSliceValue failed, err:%s", err.Error())
-		return
-	}
-
+func appendObjectSlice(sliceObjectValuePtr *SliceObjectValue, objectValuePtr *ObjectValue) (ret *SliceObjectValue, err *cd.Result) {
 	if sliceObjectValuePtr.GetPkgKey() != objectValuePtr.GetPkgKey() {
 		err = cd.NewError(cd.UnExpected, fmt.Sprintf("mismatch slice value, slice pkgKey:%v, item pkgkey:%v", sliceObjectValuePtr.GetPkgKey(), objectValuePtr.GetPkgKey()))
-		log.Errorf("AppendSliceValue failed, err:%s", err.Error())
+		log.Errorf("appendObjectSlice failed, err:%s", err.Error())
 		return
 	}
 
 	sliceObjectValuePtr.Values = append(sliceObjectValuePtr.Values, objectValuePtr)
-	ret = NewValue(sliceObjectValuePtr)
+	ret = sliceObjectValuePtr
+	return
+}
+
+func appendBaseSlice(sliceValue interface{}, value interface{}) (ret interface{}, err *cd.Result) {
+	sliceType, sliceErr := getEntityType(sliceValue)
+	if sliceErr != nil {
+		err = sliceErr
+		return
+	}
+
+	valueType, valueErr := getEntityType(value)
+	if valueErr != nil {
+		err = valueErr
+		return
+	}
+	if !sliceType.IsSlice() || !sliceType.IsBasic() || sliceType.Elem().GetPkgKey() != valueType.GetPkgKey() {
+		err = cd.NewError(cd.UnExpected, "illegal slice value")
+		return
+	}
+
+	if !sliceType.IsPtrType() {
+		switch valueType.GetValue() {
+		case model.TypeBooleanValue:
+			ret = append(sliceValue.([]bool), value.(bool))
+		case model.TypeBitValue:
+			ret = append(sliceValue.([]int8), value.(int8))
+		case model.TypeSmallIntegerValue:
+			ret = append(sliceValue.([]int16), value.(int16))
+		case model.TypeInteger32Value:
+			ret = append(sliceValue.([]int32), value.(int32))
+		case model.TypeBigIntegerValue:
+			ret = append(sliceValue.([]int64), value.(int64))
+		case model.TypeIntegerValue:
+			ret = append(sliceValue.([]int), value.(int))
+		case model.TypePositiveBitValue:
+			ret = append(sliceValue.([]uint8), value.(uint8))
+		case model.TypePositiveSmallIntegerValue:
+			ret = append(sliceValue.([]uint16), value.(uint16))
+		case model.TypePositiveInteger32Value:
+			ret = append(sliceValue.([]uint32), value.(uint32))
+		case model.TypePositiveBigIntegerValue:
+			ret = append(sliceValue.([]uint64), value.(uint64))
+		case model.TypePositiveIntegerValue:
+			ret = append(sliceValue.([]uint), value.(uint))
+		case model.TypeStringValue:
+			ret = append(sliceValue.([]string), value.(string))
+		case model.TypeDateTimeValue:
+			ret = append(sliceValue.([]time.Time), value.(time.Time))
+		default:
+			err = cd.NewError(cd.UnExpected, "illegal value type")
+		}
+
+		return
+	}
+
+	switch valueType.GetValue() {
+	case model.TypeBooleanValue:
+		sliceVal := append(*sliceValue.(*[]bool), value.(bool))
+		ret = &sliceVal
+	case model.TypeBitValue:
+		sliceVal := append(*sliceValue.(*[]int8), value.(int8))
+		ret = &sliceVal
+	case model.TypeSmallIntegerValue:
+		sliceVal := append(*sliceValue.(*[]int16), value.(int16))
+		ret = &sliceVal
+	case model.TypeInteger32Value:
+		sliceVal := append(*sliceValue.(*[]int32), value.(int32))
+		ret = &sliceVal
+	case model.TypeBigIntegerValue:
+		sliceVal := append(*sliceValue.(*[]int64), value.(int64))
+		ret = &sliceVal
+	case model.TypeIntegerValue:
+		sliceVal := append(*sliceValue.(*[]int), value.(int))
+		ret = &sliceVal
+	case model.TypePositiveBitValue:
+		sliceVal := append(*sliceValue.(*[]uint8), value.(uint8))
+		ret = &sliceVal
+	case model.TypePositiveSmallIntegerValue:
+		sliceVal := append(*sliceValue.(*[]uint16), value.(uint16))
+		ret = &sliceVal
+	case model.TypePositiveInteger32Value:
+		sliceVal := append(*sliceValue.(*[]uint32), value.(uint32))
+		ret = &sliceVal
+	case model.TypePositiveBigIntegerValue:
+		sliceVal := append(*sliceValue.(*[]uint64), value.(uint64))
+		ret = &sliceVal
+	case model.TypePositiveIntegerValue:
+		sliceVal := append(*sliceValue.(*[]uint), value.(uint))
+		ret = &sliceVal
+	case model.TypeStringValue:
+		sliceVal := append(*sliceValue.(*[]string), value.(string))
+		ret = &sliceVal
+	case model.TypeDateTimeValue:
+		sliceVal := append(*sliceValue.(*[]time.Time), value.(time.Time))
+		ret = &sliceVal
+	default:
+		err = cd.NewError(cd.UnExpected, "illegal value type")
+	}
+	if err != nil {
+		return
+	}
+	return
+}
+
+func AppendSliceValue(sliceVal model.Value, vVal model.Value) (ret model.Value, err *cd.Result) {
+	sliceObjectValuePtr, sliceObjectValueOK := sliceVal.Get().(*SliceObjectValue)
+	objectValuePtr, objectValueOK := vVal.Get().(*ObjectValue)
+	if sliceObjectValueOK && objectValueOK {
+		sliceObjectValuePtr, err = appendObjectSlice(sliceObjectValuePtr, objectValuePtr)
+		if err != nil {
+			log.Errorf("AppendSliceValue failed, err:%s", err.Error())
+			return
+		}
+		ret = NewValue(sliceObjectValuePtr)
+		return
+	}
+	baseSliceVal, baseSliceErr := appendBaseSlice(sliceVal.Get(), vVal.Get())
+	if baseSliceErr != nil {
+		err = baseSliceErr
+		return
+	}
+
+	ret = NewValue(baseSliceVal)
 	return
 }
 

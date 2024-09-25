@@ -2,11 +2,10 @@ package remote
 
 import (
 	"fmt"
+	"github.com/muidea/magicOrm/model"
 	"math"
 	"reflect"
 	"time"
-
-	"github.com/muidea/magicOrm/model"
 )
 
 type ValueImpl struct {
@@ -39,13 +38,14 @@ func NewValue(val any) (ret *ValueImpl) {
 		*float32, *float64,
 		*string,
 		*time.Time,
-		[]*bool,
-		[]*int8, []*int16, []*int32, []*int, []*int64,
-		[]*uint8, []*uint16, []*uint32, []*uint, []*uint64,
-		[]*float32, []*float64,
-		[]*string,
-		[]*time.Time,
-		[]any,
+		*[]bool,
+		*[]int8, *[]int16, *[]int32, *[]int, *[]int64,
+		*[]uint8, *[]uint16, *[]uint32, *[]uint, *[]uint64,
+		*[]float32, *[]float64,
+		*[]string,
+		*[]time.Time,
+		//[]any,
+		//*[]any,
 		*ObjectValue, *SliceObjectValue:
 		valPtr.value = val
 	case ObjectValue, SliceObjectValue:

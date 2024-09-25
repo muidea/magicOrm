@@ -15,7 +15,7 @@ type Simple struct {
 	Age    uint8   `orm:"age" view:"view,lite"`
 	Flag   bool    `orm:"flag" view:"view,lite"`
 	Add    []int   `orm:"add" view:"view,lite"`
-	AddPtr []*int  `orm:"addPtr" view:"view,lite"`
+	AddPtr *[]int  `orm:"addPtr" view:"view,lite"`
 }
 
 type ExtInfo struct {
@@ -143,7 +143,7 @@ func TestExtObjInfo(t *testing.T) {
 func TestSimpleValue(t *testing.T) {
 	desc := "obj_desc"
 	iVal := 123
-	obj := Simple{Name: "obj", Desc: &desc, Age: 240, Add: []int{12, 34, 45}, AddPtr: []*int{&iVal, &iVal}}
+	obj := Simple{Name: "obj", Desc: &desc, Age: 240, Add: []int{12, 34, 45}, AddPtr: &[]int{iVal, iVal}}
 
 	rawVal, rawErr := GetObjectValue(obj)
 	if rawErr != nil {

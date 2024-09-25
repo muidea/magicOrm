@@ -11,7 +11,7 @@ import (
 	pu "github.com/muidea/magicOrm/provider/util"
 )
 
-type ElemDependValueFunc func(model.Value) ([]model.Value, *cd.Result)
+type ElemDependValueFunc func(interface{}) ([]model.Value, *cd.Result)
 
 type Codec interface {
 	Encode(vVal model.Value, vType model.Type) (ret interface{}, err *cd.Result)
@@ -75,7 +75,7 @@ func (s *impl) Encode(vVal model.Value, vType model.Type) (ret interface{}, err 
 
 // encodeSlice get slice value str
 func (s *impl) encodeSlice(vVal model.Value, vType model.Type) (ret interface{}, err *cd.Result) {
-	vals, valErr := s.elemDependValue(vVal)
+	vals, valErr := s.elemDependValue(vVal.Interface())
 	if valErr != nil {
 		err = valErr
 		return
@@ -179,7 +179,6 @@ func (s *impl) decodeSlice(val interface{}, vType model.Type) (ret model.Value, 
 
 func (s *impl) decodeBoolSlice(rVal reflect.Value, rType model.Type) (ret model.Value, err *cd.Result) {
 	sliceVal := []bool{}
-	slicePtrVal := []*bool{}
 	for idx := 0; idx < rVal.Len(); idx++ {
 		iVal := reflect.Indirect(rVal.Index(idx))
 		if iVal.Kind() == reflect.Interface {
@@ -190,25 +189,15 @@ func (s *impl) decodeBoolSlice(rVal reflect.Value, rType model.Type) (ret model.
 			err = eErr
 			return
 		}
-		if rType.Elem().IsPtrType() {
-			slicePtrVal = append(slicePtrVal, &eVal)
-			continue
-		}
-
 		sliceVal = append(sliceVal, eVal)
 	}
 
-	if rType.Elem().IsPtrType() {
-		ret, err = rType.Interface(slicePtrVal)
-		return
-	}
 	ret, err = rType.Interface(sliceVal)
 	return
 }
 
 func (s *impl) decodeInt8Slice(rVal reflect.Value, rType model.Type) (ret model.Value, err *cd.Result) {
 	sliceVal := []int8{}
-	slicePtrVal := []*int8{}
 	for idx := 0; idx < rVal.Len(); idx++ {
 		iVal := reflect.Indirect(rVal.Index(idx))
 		if iVal.Kind() == reflect.Interface {
@@ -219,25 +208,15 @@ func (s *impl) decodeInt8Slice(rVal reflect.Value, rType model.Type) (ret model.
 			err = eErr
 			return
 		}
-		if rType.Elem().IsPtrType() {
-			slicePtrVal = append(slicePtrVal, &eVal)
-			continue
-		}
-
 		sliceVal = append(sliceVal, eVal)
 	}
 
-	if rType.Elem().IsPtrType() {
-		ret, err = rType.Interface(slicePtrVal)
-		return
-	}
 	ret, err = rType.Interface(sliceVal)
 	return
 }
 
 func (s *impl) decodeInt16Slice(rVal reflect.Value, rType model.Type) (ret model.Value, err *cd.Result) {
 	sliceVal := []int16{}
-	slicePtrVal := []*int16{}
 	for idx := 0; idx < rVal.Len(); idx++ {
 		iVal := reflect.Indirect(rVal.Index(idx))
 		if iVal.Kind() == reflect.Interface {
@@ -248,25 +227,15 @@ func (s *impl) decodeInt16Slice(rVal reflect.Value, rType model.Type) (ret model
 			err = eErr
 			return
 		}
-		if rType.Elem().IsPtrType() {
-			slicePtrVal = append(slicePtrVal, &eVal)
-			continue
-		}
-
 		sliceVal = append(sliceVal, eVal)
 	}
 
-	if rType.Elem().IsPtrType() {
-		ret, err = rType.Interface(slicePtrVal)
-		return
-	}
 	ret, err = rType.Interface(sliceVal)
 	return
 }
 
 func (s *impl) decodeInt32Slice(rVal reflect.Value, rType model.Type) (ret model.Value, err *cd.Result) {
 	sliceVal := []int32{}
-	slicePtrVal := []*int32{}
 	for idx := 0; idx < rVal.Len(); idx++ {
 		iVal := reflect.Indirect(rVal.Index(idx))
 		if iVal.Kind() == reflect.Interface {
@@ -277,25 +246,15 @@ func (s *impl) decodeInt32Slice(rVal reflect.Value, rType model.Type) (ret model
 			err = eErr
 			return
 		}
-		if rType.Elem().IsPtrType() {
-			slicePtrVal = append(slicePtrVal, &eVal)
-			continue
-		}
-
 		sliceVal = append(sliceVal, eVal)
 	}
 
-	if rType.Elem().IsPtrType() {
-		ret, err = rType.Interface(slicePtrVal)
-		return
-	}
 	ret, err = rType.Interface(sliceVal)
 	return
 }
 
 func (s *impl) decodeInt64Slice(rVal reflect.Value, rType model.Type) (ret model.Value, err *cd.Result) {
 	sliceVal := []int64{}
-	slicePtrVal := []*int64{}
 	for idx := 0; idx < rVal.Len(); idx++ {
 		iVal := reflect.Indirect(rVal.Index(idx))
 		if iVal.Kind() == reflect.Interface {
@@ -306,25 +265,15 @@ func (s *impl) decodeInt64Slice(rVal reflect.Value, rType model.Type) (ret model
 			err = eErr
 			return
 		}
-		if rType.Elem().IsPtrType() {
-			slicePtrVal = append(slicePtrVal, &eVal)
-			continue
-		}
-
 		sliceVal = append(sliceVal, eVal)
 	}
 
-	if rType.Elem().IsPtrType() {
-		ret, err = rType.Interface(slicePtrVal)
-		return
-	}
 	ret, err = rType.Interface(sliceVal)
 	return
 }
 
 func (s *impl) decodeIntSlice(rVal reflect.Value, rType model.Type) (ret model.Value, err *cd.Result) {
 	sliceVal := []int{}
-	slicePtrVal := []*int{}
 	for idx := 0; idx < rVal.Len(); idx++ {
 		iVal := reflect.Indirect(rVal.Index(idx))
 		if iVal.Kind() == reflect.Interface {
@@ -335,25 +284,15 @@ func (s *impl) decodeIntSlice(rVal reflect.Value, rType model.Type) (ret model.V
 			err = eErr
 			return
 		}
-		if rType.Elem().IsPtrType() {
-			slicePtrVal = append(slicePtrVal, &eVal)
-			continue
-		}
-
 		sliceVal = append(sliceVal, eVal)
 	}
 
-	if rType.Elem().IsPtrType() {
-		ret, err = rType.Interface(slicePtrVal)
-		return
-	}
 	ret, err = rType.Interface(sliceVal)
 	return
 }
 
 func (s *impl) decodeUint8Slice(rVal reflect.Value, rType model.Type) (ret model.Value, err *cd.Result) {
 	sliceVal := []uint8{}
-	slicePtrVal := []*uint8{}
 	for idx := 0; idx < rVal.Len(); idx++ {
 		iVal := reflect.Indirect(rVal.Index(idx))
 		if iVal.Kind() == reflect.Interface {
@@ -364,25 +303,15 @@ func (s *impl) decodeUint8Slice(rVal reflect.Value, rType model.Type) (ret model
 			err = eErr
 			return
 		}
-		if rType.Elem().IsPtrType() {
-			slicePtrVal = append(slicePtrVal, &eVal)
-			continue
-		}
-
 		sliceVal = append(sliceVal, eVal)
 	}
 
-	if rType.Elem().IsPtrType() {
-		ret, err = rType.Interface(slicePtrVal)
-		return
-	}
 	ret, err = rType.Interface(sliceVal)
 	return
 }
 
 func (s *impl) decodeUint16Slice(rVal reflect.Value, rType model.Type) (ret model.Value, err *cd.Result) {
 	sliceVal := []uint16{}
-	slicePtrVal := []*uint16{}
 	for idx := 0; idx < rVal.Len(); idx++ {
 		iVal := reflect.Indirect(rVal.Index(idx))
 		if iVal.Kind() == reflect.Interface {
@@ -393,25 +322,15 @@ func (s *impl) decodeUint16Slice(rVal reflect.Value, rType model.Type) (ret mode
 			err = eErr
 			return
 		}
-		if rType.Elem().IsPtrType() {
-			slicePtrVal = append(slicePtrVal, &eVal)
-			continue
-		}
-
 		sliceVal = append(sliceVal, eVal)
 	}
 
-	if rType.Elem().IsPtrType() {
-		ret, err = rType.Interface(slicePtrVal)
-		return
-	}
 	ret, err = rType.Interface(sliceVal)
 	return
 }
 
 func (s *impl) decodeUint32Slice(rVal reflect.Value, rType model.Type) (ret model.Value, err *cd.Result) {
 	sliceVal := []uint32{}
-	slicePtrVal := []*uint32{}
 	for idx := 0; idx < rVal.Len(); idx++ {
 		iVal := reflect.Indirect(rVal.Index(idx))
 		if iVal.Kind() == reflect.Interface {
@@ -422,25 +341,15 @@ func (s *impl) decodeUint32Slice(rVal reflect.Value, rType model.Type) (ret mode
 			err = eErr
 			return
 		}
-		if rType.Elem().IsPtrType() {
-			slicePtrVal = append(slicePtrVal, &eVal)
-			continue
-		}
-
 		sliceVal = append(sliceVal, eVal)
 	}
 
-	if rType.Elem().IsPtrType() {
-		ret, err = rType.Interface(slicePtrVal)
-		return
-	}
 	ret, err = rType.Interface(sliceVal)
 	return
 }
 
 func (s *impl) decodeUint64Slice(rVal reflect.Value, rType model.Type) (ret model.Value, err *cd.Result) {
 	sliceVal := []uint64{}
-	slicePtrVal := []*uint64{}
 	for idx := 0; idx < rVal.Len(); idx++ {
 		iVal := reflect.Indirect(rVal.Index(idx))
 		if iVal.Kind() == reflect.Interface {
@@ -451,17 +360,7 @@ func (s *impl) decodeUint64Slice(rVal reflect.Value, rType model.Type) (ret mode
 			err = eErr
 			return
 		}
-		if rType.Elem().IsPtrType() {
-			slicePtrVal = append(slicePtrVal, &eVal)
-			continue
-		}
-
 		sliceVal = append(sliceVal, eVal)
-	}
-
-	if rType.Elem().IsPtrType() {
-		ret, err = rType.Interface(slicePtrVal)
-		return
 	}
 	ret, err = rType.Interface(sliceVal)
 	return
@@ -469,7 +368,6 @@ func (s *impl) decodeUint64Slice(rVal reflect.Value, rType model.Type) (ret mode
 
 func (s *impl) decodeUintSlice(rVal reflect.Value, rType model.Type) (ret model.Value, err *cd.Result) {
 	sliceVal := []uint{}
-	slicePtrVal := []*uint{}
 	for idx := 0; idx < rVal.Len(); idx++ {
 		iVal := reflect.Indirect(rVal.Index(idx))
 		if iVal.Kind() == reflect.Interface {
@@ -480,25 +378,15 @@ func (s *impl) decodeUintSlice(rVal reflect.Value, rType model.Type) (ret model.
 			err = eErr
 			return
 		}
-		if rType.Elem().IsPtrType() {
-			slicePtrVal = append(slicePtrVal, &eVal)
-			continue
-		}
-
 		sliceVal = append(sliceVal, eVal)
 	}
 
-	if rType.Elem().IsPtrType() {
-		ret, err = rType.Interface(slicePtrVal)
-		return
-	}
 	ret, err = rType.Interface(sliceVal)
 	return
 }
 
 func (s *impl) decodeFloatSlice(rVal reflect.Value, rType model.Type) (ret model.Value, err *cd.Result) {
 	sliceVal := []float32{}
-	slicePtrVal := []*float32{}
 	for idx := 0; idx < rVal.Len(); idx++ {
 		iVal := reflect.Indirect(rVal.Index(idx))
 		if iVal.Kind() == reflect.Interface {
@@ -509,25 +397,15 @@ func (s *impl) decodeFloatSlice(rVal reflect.Value, rType model.Type) (ret model
 			err = eErr
 			return
 		}
-		if rType.Elem().IsPtrType() {
-			slicePtrVal = append(slicePtrVal, &eVal)
-			continue
-		}
-
 		sliceVal = append(sliceVal, eVal)
 	}
 
-	if rType.Elem().IsPtrType() {
-		ret, err = rType.Interface(slicePtrVal)
-		return
-	}
 	ret, err = rType.Interface(sliceVal)
 	return
 }
 
 func (s *impl) decodeDoubleSlice(rVal reflect.Value, rType model.Type) (ret model.Value, err *cd.Result) {
 	sliceVal := []float64{}
-	slicePtrVal := []*float64{}
 	for idx := 0; idx < rVal.Len(); idx++ {
 		iVal := reflect.Indirect(rVal.Index(idx))
 		if iVal.Kind() == reflect.Interface {
@@ -538,25 +416,15 @@ func (s *impl) decodeDoubleSlice(rVal reflect.Value, rType model.Type) (ret mode
 			err = eErr
 			return
 		}
-		if rType.Elem().IsPtrType() {
-			slicePtrVal = append(slicePtrVal, &eVal)
-			continue
-		}
-
 		sliceVal = append(sliceVal, eVal)
 	}
 
-	if rType.Elem().IsPtrType() {
-		ret, err = rType.Interface(slicePtrVal)
-		return
-	}
 	ret, err = rType.Interface(sliceVal)
 	return
 }
 
 func (s *impl) decodeStringSlice(rVal reflect.Value, rType model.Type) (ret model.Value, err *cd.Result) {
 	sliceVal := []string{}
-	slicePtrVal := []*string{}
 	for idx := 0; idx < rVal.Len(); idx++ {
 		iVal := reflect.Indirect(rVal.Index(idx))
 		if iVal.Kind() == reflect.Interface {
@@ -567,25 +435,15 @@ func (s *impl) decodeStringSlice(rVal reflect.Value, rType model.Type) (ret mode
 			err = eErr
 			return
 		}
-		if rType.Elem().IsPtrType() {
-			slicePtrVal = append(slicePtrVal, &eVal)
-			continue
-		}
-
 		sliceVal = append(sliceVal, eVal)
 	}
 
-	if rType.Elem().IsPtrType() {
-		ret, err = rType.Interface(slicePtrVal)
-		return
-	}
 	ret, err = rType.Interface(sliceVal)
 	return
 }
 
 func (s *impl) decodeDateTimeSlice(rVal reflect.Value, rType model.Type) (ret model.Value, err *cd.Result) {
 	sliceVal := []time.Time{}
-	slicePtrVal := []*time.Time{}
 	for idx := 0; idx < rVal.Len(); idx++ {
 		iVal := reflect.Indirect(rVal.Index(idx))
 		if iVal.Kind() == reflect.Interface {
@@ -596,18 +454,9 @@ func (s *impl) decodeDateTimeSlice(rVal reflect.Value, rType model.Type) (ret mo
 			err = eErr
 			return
 		}
-		if rType.Elem().IsPtrType() {
-			slicePtrVal = append(slicePtrVal, &eVal)
-			continue
-		}
-
 		sliceVal = append(sliceVal, eVal)
 	}
 
-	if rType.Elem().IsPtrType() {
-		ret, err = rType.Interface(slicePtrVal)
-		return
-	}
 	ret, err = rType.Interface(sliceVal)
 	return
 }

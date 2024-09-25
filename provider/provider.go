@@ -34,9 +34,9 @@ type Provider interface {
 
 	EncodeValue(vVal model.Value, vType model.Type) (ret interface{}, err *cd.Result)
 
-	DecodeValue(vVal interface{}, vType model.Type) (ret model.Value, err *cd.Result)
+	DecodeValue(eVal interface{}, vType model.Type) (ret model.Value, err *cd.Result)
 
-	ElemDependValue(val model.Value) (ret []model.Value, err *cd.Result)
+	ElemDependValue(eVal interface{}) (ret []model.Value, err *cd.Result)
 
 	AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, err *cd.Result)
 
@@ -97,7 +97,7 @@ type providerImpl struct {
 	getModelFunc         func(interface{}) (model.Model, *cd.Result)
 	getFilterFunc        func(model.Model) (model.Filter, *cd.Result)
 	setModelValueFunc    func(model.Model, model.Value) (model.Model, *cd.Result)
-	elemDependValueFunc  func(model.Value) ([]model.Value, *cd.Result)
+	elemDependValueFunc  func(interface{}) ([]model.Value, *cd.Result)
 	appendSliceValueFunc func(model.Value, model.Value) (model.Value, *cd.Result)
 	encodeValueFunc      func(model.Value, model.Type, model.Cache) (interface{}, *cd.Result)
 	decodeValueFunc      func(interface{}, model.Type, model.Cache) (model.Value, *cd.Result)
@@ -302,8 +302,8 @@ func (s *providerImpl) EncodeValue(vVal model.Value, vType model.Type) (ret inte
 	return
 }
 
-func (s *providerImpl) DecodeValue(vVal interface{}, vType model.Type) (ret model.Value, err *cd.Result) {
-	ret, err = s.decodeValueFunc(vVal, vType, s.modelCache)
+func (s *providerImpl) DecodeValue(eVal interface{}, vType model.Type) (ret model.Value, err *cd.Result) {
+	ret, err = s.decodeValueFunc(eVal, vType, s.modelCache)
 	if err != nil {
 		log.Errorf("DecodeValue failed, s.decodeValueFunc error:%v", err.Error())
 		return
@@ -312,8 +312,8 @@ func (s *providerImpl) DecodeValue(vVal interface{}, vType model.Type) (ret mode
 	return
 }
 
-func (s *providerImpl) ElemDependValue(val model.Value) (ret []model.Value, err *cd.Result) {
-	ret, err = s.elemDependValueFunc(val)
+func (s *providerImpl) ElemDependValue(eVal interface{}) (ret []model.Value, err *cd.Result) {
+	ret, err = s.elemDependValueFunc(eVal)
 	if err != nil {
 		log.Errorf("ElemDependValue failed, s.elemDependValueFunc error:%v", err.Error())
 		return
