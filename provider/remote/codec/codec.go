@@ -32,38 +32,37 @@ func (s *impl) Encode(vVal model.Value, vType model.Type) (ret interface{}, err 
 		return
 	}
 
-	val := vVal.Get()
 	switch vType.GetValue() {
 	case model.TypeBooleanValue:
-		ret, err = pu.GetInt8(val)
+		ret, err = pu.GetInt8(vVal.Interface())
 	case model.TypeBitValue:
-		ret, err = pu.GetInt8(val)
+		ret, err = pu.GetInt8(vVal.Interface())
 	case model.TypeSmallIntegerValue:
-		ret, err = pu.GetInt16(val)
+		ret, err = pu.GetInt16(vVal.Interface())
 	case model.TypeInteger32Value:
-		ret, err = pu.GetInt32(val)
+		ret, err = pu.GetInt32(vVal.Interface())
 	case model.TypeBigIntegerValue:
-		ret, err = pu.GetInt64(val)
+		ret, err = pu.GetInt64(vVal.Interface())
 	case model.TypeIntegerValue:
-		ret, err = pu.GetInt(val)
+		ret, err = pu.GetInt(vVal.Interface())
 	case model.TypePositiveBitValue:
-		ret, err = pu.GetUint8(val)
+		ret, err = pu.GetUint8(vVal.Interface())
 	case model.TypePositiveSmallIntegerValue:
-		ret, err = pu.GetUint16(val)
+		ret, err = pu.GetUint16(vVal.Interface())
 	case model.TypePositiveInteger32Value:
-		ret, err = pu.GetUint32(val)
+		ret, err = pu.GetUint32(vVal.Interface())
 	case model.TypePositiveBigIntegerValue:
-		ret, err = pu.GetUint64(val)
+		ret, err = pu.GetUint64(vVal.Interface())
 	case model.TypePositiveIntegerValue:
-		ret, err = pu.GetUint(val)
+		ret, err = pu.GetUint(vVal.Interface())
 	case model.TypeFloatValue:
-		ret, err = pu.GetFloat32(val)
+		ret, err = pu.GetFloat32(vVal.Interface())
 	case model.TypeDoubleValue:
-		ret, err = pu.GetFloat64(val)
+		ret, err = pu.GetFloat64(vVal.Interface())
 	case model.TypeStringValue:
-		ret, err = pu.GetString(val)
+		ret, err = pu.GetString(vVal.Interface())
 	case model.TypeDateTimeValue:
-		ret, err = pu.GetString(val)
+		ret, err = pu.GetString(vVal.Interface())
 	case model.TypeSliceValue:
 		ret, err = s.encodeSlice(vVal, vType)
 	default:
@@ -85,13 +84,13 @@ func (s *impl) encodeSlice(vVal model.Value, vType model.Type) (ret interface{},
 	}
 	items := []interface{}{}
 	for _, val := range vals {
-		strVal, strErr := s.Encode(val, vType.Elem())
-		if strErr != nil {
-			err = strErr
+		encodeVal, encodeErr := s.Encode(val, vType.Elem())
+		if encodeErr != nil {
+			err = encodeErr
 			return
 		}
 
-		items = append(items, strVal)
+		items = append(items, encodeVal)
 	}
 
 	ret = items

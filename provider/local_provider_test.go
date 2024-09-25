@@ -115,18 +115,18 @@ func TestNewLocalProvider(t *testing.T) {
 
 	dt001 := time.Now().UTC()
 	dt001Str := dt001.Format(fu.CSTLayout)
-	dtValueVal, dtValueErr := provider.GetEntityValue(&dt001)
+	dtValueVal, dtValueErr := provider.GetEntityValue(dt001)
 	if dtValueErr != nil {
 		t.Errorf("%s", dtValueErr.Error())
 		return
 	}
 
-	dtTypeVal, dtTypeErr := provider.GetEntityType(&dt001)
+	dtTypeVal, dtTypeErr := provider.GetEntityType(dt001)
 	if dtTypeErr != nil {
 		t.Errorf("%s", dtTypeErr.Error())
 		return
 	}
-	if !dtTypeVal.IsPtrType() {
+	if dtTypeVal.IsPtrType() {
 		t.Errorf("illetal type value")
 		return
 	}
@@ -151,17 +151,17 @@ func TestNewLocalProvider(t *testing.T) {
 
 	dVal := dtValueVal.Interface()
 	switch dVal.(type) {
-	case *time.Time:
+	case time.Time:
 	default:
 		t.Errorf("decodeValue failed")
 	}
 
-	gap := dtValueVal.Interface().(*time.Time).Sub(dt001)
+	gap := dtValueVal.Interface().(time.Time).Sub(dt001)
 	if gap >= time.Second || gap < -1*time.Second {
 		t.Errorf("illegal decode value")
 	}
 
-	dtSlice := []*time.Time{}
+	dtSlice := []time.Time{}
 	dtSliceValueVal, dtSliceValueErr := provider.GetEntityValue(dtSlice)
 	if dtSliceValueErr != nil {
 		t.Errorf("%s", dtSliceValueErr.Error())
@@ -203,7 +203,7 @@ func TestNewLocalProvider(t *testing.T) {
 		t.Errorf("%s", dtSliceValueErr.Error())
 		return
 	}
-	dtSlice = dtSliceValueVal.Interface().([]*time.Time)
+	dtSlice = dtSliceValueVal.Interface().([]time.Time)
 	if len(dtSlice) != 2 {
 		t.Errorf("decodeValue failed")
 	}

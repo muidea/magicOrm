@@ -673,7 +673,7 @@ func TestSliceBoolCodec(t *testing.T) {
 
 func TestSliceBoolPtrCodec(t *testing.T) {
 	valFalse := false
-	val := []*bool{&valFalse}
+	val := []bool{valFalse}
 	rVal := reflect.ValueOf(val)
 	rType := reflect.TypeOf(val)
 
@@ -721,7 +721,7 @@ func TestSliceBoolPtrCodec(t *testing.T) {
 		t.Errorf("decode []bool{false}, is false")
 		return
 	}
-	if dVal.Get().(reflect.Value).Index(0).Kind() != reflect.Ptr {
+	if dVal.Get().(reflect.Value).Index(0).Kind() == reflect.Ptr {
 		t.Errorf("decode []bool{false}, is false")
 		return
 	}
@@ -731,7 +731,7 @@ func TestSliceBoolPtrCodec(t *testing.T) {
 	}
 
 	valTrue := true
-	val = []*bool{&valTrue, &valFalse, &valTrue}
+	val = []bool{valTrue, valFalse, valTrue}
 	rVal = reflect.ValueOf(val)
 	rType = reflect.TypeOf(val)
 
