@@ -1,4 +1,4 @@
-package codec
+package util
 
 import (
 	"fmt"
@@ -8,7 +8,6 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 
 	"github.com/muidea/magicOrm/model"
-	pu "github.com/muidea/magicOrm/provider/util"
 )
 
 type ElemDependValueFunc func(interface{}) ([]model.Value, *cd.Result)
@@ -34,35 +33,35 @@ func (s *impl) Encode(vVal model.Value, vType model.Type) (ret interface{}, err 
 
 	switch vType.GetValue() {
 	case model.TypeBooleanValue:
-		ret, err = pu.GetInt8(vVal.Interface())
+		ret, err = GetInt8(vVal.Interface())
 	case model.TypeBitValue:
-		ret, err = pu.GetInt8(vVal.Interface())
+		ret, err = GetInt8(vVal.Interface())
 	case model.TypeSmallIntegerValue:
-		ret, err = pu.GetInt16(vVal.Interface())
+		ret, err = GetInt16(vVal.Interface())
 	case model.TypeInteger32Value:
-		ret, err = pu.GetInt32(vVal.Interface())
+		ret, err = GetInt32(vVal.Interface())
 	case model.TypeBigIntegerValue:
-		ret, err = pu.GetInt64(vVal.Interface())
+		ret, err = GetInt64(vVal.Interface())
 	case model.TypeIntegerValue:
-		ret, err = pu.GetInt(vVal.Interface())
+		ret, err = GetInt(vVal.Interface())
 	case model.TypePositiveBitValue:
-		ret, err = pu.GetUint8(vVal.Interface())
+		ret, err = GetUint8(vVal.Interface())
 	case model.TypePositiveSmallIntegerValue:
-		ret, err = pu.GetUint16(vVal.Interface())
+		ret, err = GetUint16(vVal.Interface())
 	case model.TypePositiveInteger32Value:
-		ret, err = pu.GetUint32(vVal.Interface())
+		ret, err = GetUint32(vVal.Interface())
 	case model.TypePositiveBigIntegerValue:
-		ret, err = pu.GetUint64(vVal.Interface())
+		ret, err = GetUint64(vVal.Interface())
 	case model.TypePositiveIntegerValue:
-		ret, err = pu.GetUint(vVal.Interface())
+		ret, err = GetUint(vVal.Interface())
 	case model.TypeFloatValue:
-		ret, err = pu.GetFloat32(vVal.Interface())
+		ret, err = GetFloat32(vVal.Interface())
 	case model.TypeDoubleValue:
-		ret, err = pu.GetFloat64(vVal.Interface())
+		ret, err = GetFloat64(vVal.Interface())
 	case model.TypeStringValue:
-		ret, err = pu.GetString(vVal.Interface())
+		ret, err = GetString(vVal.Interface())
 	case model.TypeDateTimeValue:
-		ret, err = pu.GetString(vVal.Interface())
+		ret, err = GetString(vVal.Interface())
 	case model.TypeSliceValue:
 		ret, err = s.encodeSlice(vVal, vType)
 	default:
@@ -183,7 +182,7 @@ func (s *impl) decodeBoolSlice(rVal reflect.Value, rType model.Type) (ret model.
 		if iVal.Kind() == reflect.Interface {
 			iVal = iVal.Elem()
 		}
-		eVal, eErr := pu.GetRawBool(iVal)
+		eVal, eErr := GetRawBool(iVal)
 		if eErr != nil {
 			err = eErr
 			return
@@ -202,7 +201,7 @@ func (s *impl) decodeInt8Slice(rVal reflect.Value, rType model.Type) (ret model.
 		if iVal.Kind() == reflect.Interface {
 			iVal = iVal.Elem()
 		}
-		eVal, eErr := pu.GetRawInt8(iVal)
+		eVal, eErr := GetRawInt8(iVal)
 		if eErr != nil {
 			err = eErr
 			return
@@ -221,7 +220,7 @@ func (s *impl) decodeInt16Slice(rVal reflect.Value, rType model.Type) (ret model
 		if iVal.Kind() == reflect.Interface {
 			iVal = iVal.Elem()
 		}
-		eVal, eErr := pu.GetRawInt16(iVal)
+		eVal, eErr := GetRawInt16(iVal)
 		if eErr != nil {
 			err = eErr
 			return
@@ -240,7 +239,7 @@ func (s *impl) decodeInt32Slice(rVal reflect.Value, rType model.Type) (ret model
 		if iVal.Kind() == reflect.Interface {
 			iVal = iVal.Elem()
 		}
-		eVal, eErr := pu.GetRawInt32(iVal)
+		eVal, eErr := GetRawInt32(iVal)
 		if eErr != nil {
 			err = eErr
 			return
@@ -259,7 +258,7 @@ func (s *impl) decodeInt64Slice(rVal reflect.Value, rType model.Type) (ret model
 		if iVal.Kind() == reflect.Interface {
 			iVal = iVal.Elem()
 		}
-		eVal, eErr := pu.GetRawInt64(iVal)
+		eVal, eErr := GetRawInt64(iVal)
 		if eErr != nil {
 			err = eErr
 			return
@@ -278,7 +277,7 @@ func (s *impl) decodeIntSlice(rVal reflect.Value, rType model.Type) (ret model.V
 		if iVal.Kind() == reflect.Interface {
 			iVal = iVal.Elem()
 		}
-		eVal, eErr := pu.GetRawInt(iVal)
+		eVal, eErr := GetRawInt(iVal)
 		if eErr != nil {
 			err = eErr
 			return
@@ -297,7 +296,7 @@ func (s *impl) decodeUint8Slice(rVal reflect.Value, rType model.Type) (ret model
 		if iVal.Kind() == reflect.Interface {
 			iVal = iVal.Elem()
 		}
-		eVal, eErr := pu.GetRawUint8(iVal)
+		eVal, eErr := GetRawUint8(iVal)
 		if eErr != nil {
 			err = eErr
 			return
@@ -316,7 +315,7 @@ func (s *impl) decodeUint16Slice(rVal reflect.Value, rType model.Type) (ret mode
 		if iVal.Kind() == reflect.Interface {
 			iVal = iVal.Elem()
 		}
-		eVal, eErr := pu.GetRawUint16(iVal)
+		eVal, eErr := GetRawUint16(iVal)
 		if eErr != nil {
 			err = eErr
 			return
@@ -335,7 +334,7 @@ func (s *impl) decodeUint32Slice(rVal reflect.Value, rType model.Type) (ret mode
 		if iVal.Kind() == reflect.Interface {
 			iVal = iVal.Elem()
 		}
-		eVal, eErr := pu.GetRawUint32(iVal)
+		eVal, eErr := GetRawUint32(iVal)
 		if eErr != nil {
 			err = eErr
 			return
@@ -354,7 +353,7 @@ func (s *impl) decodeUint64Slice(rVal reflect.Value, rType model.Type) (ret mode
 		if iVal.Kind() == reflect.Interface {
 			iVal = iVal.Elem()
 		}
-		eVal, eErr := pu.GetRawUint64(iVal)
+		eVal, eErr := GetRawUint64(iVal)
 		if eErr != nil {
 			err = eErr
 			return
@@ -372,7 +371,7 @@ func (s *impl) decodeUintSlice(rVal reflect.Value, rType model.Type) (ret model.
 		if iVal.Kind() == reflect.Interface {
 			iVal = iVal.Elem()
 		}
-		eVal, eErr := pu.GetRawUint(iVal)
+		eVal, eErr := GetRawUint(iVal)
 		if eErr != nil {
 			err = eErr
 			return
@@ -391,7 +390,7 @@ func (s *impl) decodeFloatSlice(rVal reflect.Value, rType model.Type) (ret model
 		if iVal.Kind() == reflect.Interface {
 			iVal = iVal.Elem()
 		}
-		eVal, eErr := pu.GetRawFloat32(iVal)
+		eVal, eErr := GetRawFloat32(iVal)
 		if eErr != nil {
 			err = eErr
 			return
@@ -410,7 +409,7 @@ func (s *impl) decodeDoubleSlice(rVal reflect.Value, rType model.Type) (ret mode
 		if iVal.Kind() == reflect.Interface {
 			iVal = iVal.Elem()
 		}
-		eVal, eErr := pu.GetRawFloat64(iVal)
+		eVal, eErr := GetRawFloat64(iVal)
 		if eErr != nil {
 			err = eErr
 			return
@@ -429,7 +428,7 @@ func (s *impl) decodeStringSlice(rVal reflect.Value, rType model.Type) (ret mode
 		if iVal.Kind() == reflect.Interface {
 			iVal = iVal.Elem()
 		}
-		eVal, eErr := pu.GetRawString(iVal)
+		eVal, eErr := GetRawString(iVal)
 		if eErr != nil {
 			err = eErr
 			return
@@ -448,7 +447,7 @@ func (s *impl) decodeDateTimeSlice(rVal reflect.Value, rType model.Type) (ret mo
 		if iVal.Kind() == reflect.Interface {
 			iVal = iVal.Elem()
 		}
-		eVal, eErr := pu.GetRawDateTime(iVal)
+		eVal, eErr := GetRawDateTime(iVal)
 		if eErr != nil {
 			err = eErr
 			return

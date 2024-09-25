@@ -8,14 +8,13 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/local/codec"
 	"github.com/muidea/magicOrm/provider/util"
 )
 
-var _codec codec.Codec
+var _codec util.Codec
 
 func init() {
-	_codec = codec.New(ElemDependValue)
+	_codec = util.New(ElemDependValue)
 }
 
 func GetType(vType reflect.Type) (ret model.Type, err *cd.Result) {

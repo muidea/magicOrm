@@ -5,16 +5,15 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/remote/codec"
 	"github.com/muidea/magicOrm/provider/util"
 	"reflect"
 	"time"
 )
 
-var _codec codec.Codec
+var _codec util.Codec
 
 func init() {
-	_codec = codec.New(ElemDependValue)
+	_codec = util.New(ElemDependValue)
 }
 
 func GetEntityType(entity interface{}) (ret model.Type, err *cd.Result) {
