@@ -23,7 +23,7 @@ func New(vModel model.Model, modelProvider provider.Provider, prefix string) *Bu
 
 func (s *Builder) buildModelFilter() (ret string, err *cd.Result) {
 	pkField := s.GetPrimaryKeyField(nil)
-	pkfVal, pkfErr := s.EncodeValue(pkField.GetValue(), pkField.GetType())
+	pkfVal, pkfErr := s.BuildFieldValue(pkField.GetType(), pkField.GetValue())
 	if pkfErr != nil {
 		err = pkfErr
 		log.Errorf("buildModelFilter failed, s.EncodeValue error:%s", err.Error())

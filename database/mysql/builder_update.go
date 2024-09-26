@@ -47,10 +47,10 @@ func (s *Builder) getFieldUpdateValues() (ret string, err *cd.Result) {
 			continue
 		}
 
-		fStr, fErr := s.EncodeValue(fValue, fType)
+		fStr, fErr := s.BuildFieldValue(fType, fValue)
 		if fErr != nil {
 			err = fErr
-			log.Errorf("getFieldUpdateValues failed, s.EncodeValue error:%s", err.Error())
+			log.Errorf("getFieldUpdateValues failed, BuildFieldValue error:%s", fErr.Error())
 			return
 		}
 

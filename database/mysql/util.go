@@ -107,30 +107,6 @@ func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err *cd.Res
 	return
 }
 
-func getTypeDefaultValue(fType model.Type) (ret string, err *cd.Result) {
-	switch fType.GetValue() {
-	case model.TypeBooleanValue, model.TypeBitValue,
-		model.TypeSmallIntegerValue, model.TypePositiveBitValue,
-		model.TypeIntegerValue, model.TypeInteger32Value, model.TypePositiveSmallIntegerValue,
-		model.TypeBigIntegerValue, model.TypePositiveIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue,
-		model.TypeFloatValue, model.TypeDoubleValue:
-		ret = "0"
-		break
-	case model.TypeStringValue,
-		model.TypeDateTimeValue,
-		model.TypeSliceValue:
-		ret = "''"
-	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("no support field type, type:%v", fType.GetPkgKey()))
-	}
-
-	if err != nil {
-		log.Errorf("getTypeDefaultValue failed, error:%s", err.Error())
-	}
-
-	return
-}
-
 func getFieldScanDestPtr(field model.Field) (ret interface{}, err *cd.Result) {
 	fType := field.GetType()
 	switch fType.GetValue() {

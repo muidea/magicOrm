@@ -1,6 +1,7 @@
 package common
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -26,13 +27,11 @@ func New(vModel model.Model, modelProvider provider.Provider, prefix string) Com
 }
 
 func (s *Common) constructTableName(vModel model.Model) string {
-	//return cases.Title(language.English).String(vModel.GetName())
 	strName := vModel.GetName()
 	return strings.ToUpper(strName[:1]) + strName[1:]
 }
 
 func (s *Common) constructInfix(vFiled model.Field) string {
-	//return cases.Title(language.English).String(vFiled.GetName())
 	strName := vFiled.GetName()
 	return strings.ToUpper(strName[:1]) + strName[1:]
 }
@@ -81,7 +80,7 @@ func (s *Common) GetFields() model.Fields {
 
 func (s *Common) GetModelValue() (ret string, err *cd.Result) {
 	if s.entityValue == "" {
-		entityVal, entityErr := s.EncodeModelValue(s.entityModel)
+		entityVal, entityErr := s.BuildModelValue(s.entityModel)
 		if entityErr != nil {
 			err = entityErr
 			return
@@ -102,7 +101,7 @@ func (s *Common) GetRelationValue(rModel model.Model) (leftVal, rightVal string,
 		return
 	}
 
-	relationVal, relationErr := s.EncodeModelValue(rModel)
+	relationVal, relationErr := s.BuildModelValue(rModel)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("GetRelationValue failed, s.EncodeModelValue error:%s", err.Error())
@@ -114,7 +113,7 @@ func (s *Common) GetRelationValue(rModel model.Model) (leftVal, rightVal string,
 	return
 }
 
-func (s *Common) EncodeValue(vValue model.Value, vType model.Type) (ret string, err *cd.Result) {
+func (s *Common) EncodeValue(vType model.Type, vValue model.Value) (ret interface{}, err *cd.Result) {
 	defer func() {
 		if eErr := recover(); eErr != nil {
 			err = cd.NewError(cd.UnExpected, fmt.Sprintf("encode value failed, type:%v, err:%v", vType.GetPkgKey(), eErr))
@@ -129,26 +128,7 @@ func (s *Common) EncodeValue(vValue model.Value, vType model.Type) (ret string, 
 		return
 	}
 
-	switch vType.GetValue() {
-	case model.TypeStringValue, model.TypeDateTimeValue, model.TypeSliceValue:
-		ret = fmt.Sprintf("'%v'", strings.ReplaceAll(eVal.(string), "'", "''"))
-	default:
-		ret = fmt.Sprintf("%v", eVal)
-	}
-
-	return
-}
-
-func (s *Common) EncodeModelValue(vModel model.Model) (ret string, err *cd.Result) {
-	pkField := vModel.GetPrimaryField()
-	fStr, fErr := s.EncodeValue(pkField.GetValue(), pkField.GetType())
-	if fErr != nil {
-		err = fErr
-		log.Errorf("EncodeModelValue failed, s.EncodeValue error:%s", err.Error())
-		return
-	}
-
-	ret = fStr
+	ret = eVal
 	return
 }
 
@@ -161,5 +141,182 @@ func (s *Common) GetTypeModel(vType model.Type) (ret model.Model, err *cd.Result
 	}
 
 	ret = vModel
+	return
+}
+
+func (s *Common) encodeStringValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
+	fEncodeVal, fEncodeErr := s.EncodeValue(vType, vValue)
+	if fEncodeErr != nil {
+		err = fEncodeErr
+		log.Errorf("encodeStringValue failed, s.EncodeValue error:%s", err.Error())
+		return
+	}
+	ret = fEncodeVal.(string)
+	return
+}
+
+func (s *Common) encodeIntValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
+	fEncodeVal, fEncodeErr := s.EncodeValue(vType, vValue)
+	if fEncodeErr != nil {
+		err = fEncodeErr
+		log.Errorf("encodeIntValue failed, s.EncodeValue error:%s", err.Error())
+		return
+	}
+	ret = fmt.Sprintf("%v", fEncodeVal)
+	return
+}
+
+func (s *Common) encodeFloatValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
+	fEncodeVal, fEncodeErr := s.EncodeValue(vType, vValue)
+	if fEncodeErr != nil {
+		err = fEncodeErr
+		log.Errorf("encodeFloatValue failed, s.EncodeValue error:%s", err.Error())
+		return
+	}
+	ret = fmt.Sprintf("%v", fEncodeVal)
+	return
+}
+
+func (s *Common) encodeSliceString(sliceVal []interface{}) []string {
+	strSlice := make([]string, len(sliceVal))
+	for idx, val := range sliceVal {
+		strSlice[idx] = val.(string)
+	}
+
+	return strSlice
+}
+
+func (s *Common) encodeSliceInt(sliceVal []interface{}) []string {
+	strSlice := make([]string, len(sliceVal))
+	for idx, val := range sliceVal {
+		strSlice[idx] = fmt.Sprintf("%v", val)
+	}
+
+	return strSlice
+}
+
+func (s *Common) encodeSliceFloat(sliceVal []interface{}) []string {
+	strSlice := make([]string, len(sliceVal))
+	for idx, val := range sliceVal {
+		strSlice[idx] = fmt.Sprintf("%v", val)
+	}
+
+	return strSlice
+}
+
+func (s *Common) encodeSliceValue(vType model.Type, vValue model.Value) (ret []string, err *cd.Result) {
+	fEncodeVal, fEncodeErr := s.EncodeValue(vType, vValue)
+	if fEncodeErr != nil {
+		err = fEncodeErr
+		log.Errorf("encodeSliceValue failed, s.EncodeValue error:%s", err.Error())
+		return
+	}
+
+	sliceVal, sliceOK := fEncodeVal.([]interface{})
+	if !sliceOK {
+		err = cd.NewError(cd.UnExpected, "illegal slice encode value")
+		return
+	}
+
+	switch vType.Elem().GetValue() {
+	case model.TypeStringValue, model.TypeDateTimeValue:
+		ret = s.encodeSliceString(sliceVal)
+	case model.TypeBooleanValue, model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeBigIntegerValue, model.TypeIntegerValue,
+		model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue, model.TypePositiveIntegerValue:
+		ret = s.encodeSliceInt(sliceVal)
+	case model.TypeFloatValue, model.TypeDoubleValue:
+		ret = s.encodeSliceFloat(sliceVal)
+	default:
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal filed type %s", vType.Elem().GetPkgKey()))
+	}
+
+	return
+}
+
+func (s *Common) BuildModelValue(vModel model.Model) (ret string, err *cd.Result) {
+	pkField := vModel.GetPrimaryField()
+	switch pkField.GetType().GetValue() {
+	case model.TypeStringValue:
+		strVal, strErr := s.encodeStringValue(pkField.GetType(), pkField.GetValue())
+		if strErr != nil {
+			err = strErr
+			return
+		}
+		ret = fmt.Sprintf("'%s'", strVal)
+	case model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeBigIntegerValue, model.TypeIntegerValue,
+		model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue, model.TypePositiveIntegerValue:
+		ret, err = s.encodeIntValue(pkField.GetType(), pkField.GetValue())
+	default:
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal pkFiled type %s", pkField.GetType().GetPkgKey()))
+	}
+	return
+}
+
+func (s *Common) BuildFieldValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
+	if vValue.IsNil() {
+		ret, err = getTypeDefaultValue(vType)
+		return
+	}
+
+	switch vType.GetValue() {
+	case model.TypeStringValue, model.TypeDateTimeValue:
+		strVal, strErr := s.encodeStringValue(vType, vValue)
+		if strErr != nil {
+			err = strErr
+			return
+		}
+		ret = fmt.Sprintf("'%s'", strVal)
+	case model.TypeBooleanValue, model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeBigIntegerValue, model.TypeIntegerValue,
+		model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue, model.TypePositiveIntegerValue:
+		ret, err = s.encodeIntValue(vType, vValue)
+	case model.TypeFloatValue, model.TypeDoubleValue:
+		ret, err = s.encodeFloatValue(vType, vValue)
+	case model.TypeSliceValue:
+		fEncodeVal, fEncodeErr := s.EncodeValue(vType, vValue)
+		if fEncodeErr != nil {
+			err = fEncodeErr
+			log.Errorf("encodeIntValue failed, s.EncodeValue error:%s", err.Error())
+			return
+		}
+		byteVal, byteErr := json.Marshal(fEncodeVal)
+		if byteErr != nil {
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("%s", byteErr.Error()))
+			return
+		}
+		ret = fmt.Sprintf("'%v'", strings.ReplaceAll(string(byteVal), "'", "''"))
+	default:
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal filed type %s", vType.GetPkgKey()))
+	}
+	return
+}
+
+func (s *Common) BuildOprValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
+	if vValue.IsNil() {
+		err = cd.NewError(cd.UnExpected, "nil opr value")
+		return
+	}
+
+	switch vType.GetValue() {
+	case model.TypeStringValue, model.TypeDateTimeValue:
+		strVal, strErr := s.encodeStringValue(vType, vValue)
+		if strErr != nil {
+			err = strErr
+			return
+		}
+		ret = fmt.Sprintf("'%s'", strVal)
+	case model.TypeBooleanValue, model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeBigIntegerValue, model.TypeIntegerValue,
+		model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue, model.TypePositiveIntegerValue:
+		ret, err = s.encodeIntValue(vType, vValue)
+	case model.TypeFloatValue, model.TypeDoubleValue:
+		ret, err = s.encodeFloatValue(vType, vValue)
+	case model.TypeSliceValue:
+		sliceVal, sliceErr := s.encodeSliceValue(vType, vValue)
+		if sliceErr != nil {
+			err = sliceErr
+		}
+		ret = strings.Join(sliceVal, ",")
+	default:
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal filed type %s", vType.GetPkgKey()))
+	}
 	return
 }

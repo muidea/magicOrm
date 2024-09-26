@@ -80,15 +80,15 @@ func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem
 	fType := vField.GetType()
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
-	valueStr, valueErr := s.EncodeValue(oprValue, fType)
-	if valueErr != nil {
-		err = valueErr
+	oprStr, oprErr := s.BuildOprValue(fType, oprValue)
+	if oprErr != nil {
+		err = oprErr
 		log.Errorf("buildBasicItem failed, EncodeValue error:%s", err.Error())
 		return
 	}
 
 	if fType.IsBasic() {
-		ret = oprFunc(vField.GetName(), valueStr)
+		ret = oprFunc(vField.GetName(), oprStr)
 		return
 	}
 
@@ -101,9 +101,9 @@ func (s *Builder) buildRelationItem(pkField model.Field, rField model.Field, fil
 	fType := rField.GetType()
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
-	valueStr, valueErr := s.EncodeValue(oprValue, fType)
-	if valueErr != nil {
-		err = valueErr
+	oprStr, oprErr := s.BuildOprValue(fType, oprValue)
+	if oprErr != nil {
+		err = oprErr
 		log.Errorf("buildRelationItem failed, s.EncodeValue error:%s", err.Error())
 		return
 	}
@@ -116,7 +116,7 @@ func (s *Builder) buildRelationItem(pkField model.Field, rField model.Field, fil
 	}
 
 	relationFilterSQL := ""
-	strVal := oprFunc("right", valueStr)
+	strVal := oprFunc("right", oprStr)
 	relationTableName := s.GetRelationTableName(rField, fieldModel)
 	relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTableName, strVal)
 	relationFilterSQL = fmt.Sprintf("`%s` IN (%s)", pkField.GetName(), relationFilterSQL)

@@ -21,16 +21,10 @@ func (s *Builder) BuildInsert() (ret string, err *cd.Result) {
 			continue
 		}
 
-		var valStr string
-		var valErr *cd.Result
-		if !fValue.IsNil() {
-			valStr, valErr = s.EncodeValue(fValue, fType)
-		} else {
-			valStr, valErr = getTypeDefaultValue(fType)
-		}
-		if valErr != nil {
-			err = valErr
-			log.Errorf("BuildInsert failed, s.EncodeValue/getTypeDefaultValue error:%s", valErr.Error())
+		fStr, fErr := s.BuildFieldValue(fType, fValue)
+		if fErr != nil {
+			err = fErr
+			log.Errorf("BuildInsert failed, BuildFieldValue error:%s", fErr.Error())
 			return
 		}
 
@@ -41,9 +35,9 @@ func (s *Builder) BuildInsert() (ret string, err *cd.Result) {
 		}
 
 		if fieldValues == "" {
-			fieldValues = fmt.Sprintf("%v", valStr)
+			fieldValues = fmt.Sprintf("%v", fStr)
 		} else {
-			fieldValues = fmt.Sprintf("%s,%v", fieldValues, valStr)
+			fieldValues = fmt.Sprintf("%s,%v", fieldValues, fStr)
 		}
 	}
 
