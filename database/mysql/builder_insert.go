@@ -13,7 +13,7 @@ import (
 func (s *Builder) BuildInsert() (ret string, err *cd.Result) {
 	fieldNames := ""
 	fieldValues := ""
-	for _, field := range s.GetFields() {
+	for _, field := range s.common.GetFields() {
 		fType := field.GetType()
 		fSpec := field.GetSpec()
 		fValue := field.GetValue()
@@ -21,7 +21,7 @@ func (s *Builder) BuildInsert() (ret string, err *cd.Result) {
 			continue
 		}
 
-		fStr, fErr := s.BuildFieldValue(fType, fValue)
+		fStr, fErr := s.common.BuildFieldValue(fType, fValue)
 		if fErr != nil {
 			err = fErr
 			log.Errorf("BuildInsert failed, BuildFieldValue error:%s", fErr.Error())
@@ -41,7 +41,7 @@ func (s *Builder) BuildInsert() (ret string, err *cd.Result) {
 		}
 	}
 
-	str := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.GetTableName(), fieldNames, fieldValues)
+	str := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.common.GetTableName(), fieldNames, fieldValues)
 	//log.Print(str)
 	if traceSQL() {
 		log.Infof("[SQL] insert: %s", str)
@@ -53,13 +53,13 @@ func (s *Builder) BuildInsert() (ret string, err *cd.Result) {
 
 // BuildInsertRelation Build Insert Relation
 func (s *Builder) BuildInsertRelation(vField model.Field, rModel model.Model) (ret string, err *cd.Result) {
-	leftVal, rightVal, valErr := s.GetRelationValue(rModel)
+	leftVal, rightVal, valErr := s.common.GetRelationValue(rModel)
 	if valErr != nil {
 		err = valErr
 		log.Errorf("BuildInsertRelation failed, s.GetRelationValue error:%s", err.Error())
 		return
 	}
-	relationTableName := s.GetRelationTableName(vField, rModel)
+	relationTableName := s.common.GetRelationTableName(vField, rModel)
 	str := fmt.Sprintf("INSERT INTO `%s` (`left`, `right`) VALUES (%v,%v)", relationTableName, leftVal, rightVal)
 	//log.Print(ret)
 	if traceSQL() {

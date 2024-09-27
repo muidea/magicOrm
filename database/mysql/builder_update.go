@@ -16,14 +16,14 @@ func (s *Builder) BuildUpdate() (ret string, err *cd.Result) {
 		log.Errorf("BuildUpdate failed, s.getFieldUpdateValues error:%s", err.Error())
 		return
 	}
-	filterStr, filterErr := s.buildModelFilter()
+	filterStr, filterErr := s.common.BuildModelFilter()
 	if filterErr != nil {
 		err = filterErr
-		log.Errorf("BuildUpdate failed, s.buildModelFilter error:%s", err.Error())
+		log.Errorf("BuildUpdate failed, s.BuildModelFilter error:%s", err.Error())
 		return
 	}
 
-	str := fmt.Sprintf("UPDATE `%s` SET %s WHERE %s", s.GetTableName(), updateStr, filterStr)
+	str := fmt.Sprintf("UPDATE `%s` SET %s WHERE %s", s.common.GetTableName(), updateStr, filterStr)
 	//log.Print(str)
 	if traceSQL() {
 		log.Infof("[SQL] update: %s", str)
@@ -36,7 +36,7 @@ func (s *Builder) BuildUpdate() (ret string, err *cd.Result) {
 
 func (s *Builder) getFieldUpdateValues() (ret string, err *cd.Result) {
 	str := ""
-	for _, field := range s.GetFields() {
+	for _, field := range s.common.GetFields() {
 		if field.IsPrimaryKey() {
 			continue
 		}
@@ -47,7 +47,7 @@ func (s *Builder) getFieldUpdateValues() (ret string, err *cd.Result) {
 			continue
 		}
 
-		fStr, fErr := s.BuildFieldValue(fType, fValue)
+		fStr, fErr := s.common.BuildFieldValue(fType, fValue)
 		if fErr != nil {
 			err = fErr
 			log.Errorf("getFieldUpdateValues failed, BuildFieldValue error:%s", fErr.Error())

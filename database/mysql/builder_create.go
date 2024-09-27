@@ -11,7 +11,7 @@ import (
 
 func (s *Builder) BuildCreateTable() (ret string, err *cd.Result) {
 	str := ""
-	for _, val := range s.GetFields() {
+	for _, val := range s.common.GetFields() {
 		fType := val.GetType()
 		if !fType.IsBasic() {
 			continue
@@ -31,12 +31,12 @@ func (s *Builder) BuildCreateTable() (ret string, err *cd.Result) {
 		}
 	}
 
-	pkField := s.GetPrimaryKeyField(nil)
+	pkField := s.common.GetPrimaryKeyField(nil)
 	if pkField != nil {
 		str = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", str, pkField.GetName())
 	}
 
-	str = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", s.GetTableName(), str)
+	str = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", s.common.GetTableName(), str)
 	if traceSQL() {
 		log.Infof("[SQL] create: %s", str)
 	}
@@ -47,7 +47,7 @@ func (s *Builder) BuildCreateTable() (ret string, err *cd.Result) {
 
 // BuildCreateRelationTable Build CreateRelation Schema
 func (s *Builder) BuildCreateRelationTable(field model.Field, rModel model.Model) (ret string, err *cd.Result) {
-	lPKField := s.GetPrimaryKeyField(nil)
+	lPKField := s.common.GetPrimaryKeyField(nil)
 	lPKType, lPKErr := getTypeDeclare(lPKField.GetType(), lPKField.GetSpec())
 	if lPKErr != nil {
 		err = lPKErr
@@ -55,7 +55,7 @@ func (s *Builder) BuildCreateRelationTable(field model.Field, rModel model.Model
 		return
 	}
 
-	rPKField := s.GetPrimaryKeyField(rModel)
+	rPKField := s.common.GetPrimaryKeyField(rModel)
 	rPKType, rPKErr := getTypeDeclare(rPKField.GetType(), lPKField.GetSpec())
 	if rPKErr != nil {
 		err = rPKErr
@@ -63,7 +63,7 @@ func (s *Builder) BuildCreateRelationTable(field model.Field, rModel model.Model
 		return
 	}
 
-	relationTableName := s.GetRelationTableName(field, rModel)
+	relationTableName := s.common.GetRelationTableName(field, rModel)
 	str := fmt.Sprintf("\t`id` BIGINT NOT NULL AUTO_INCREMENT,\n\t`left` %s NOT NULL,\n\t`right` %s NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`)", lPKType, rPKType)
 	str = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", relationTableName, str)
 	//log.Print(str)

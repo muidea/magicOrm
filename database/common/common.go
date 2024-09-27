@@ -22,8 +22,8 @@ type Common struct {
 	entityValue     string
 }
 
-func New(vModel model.Model, modelProvider provider.Provider, prefix string) Common {
-	return Common{entityModel: vModel, modelProvider: modelProvider, specialPrefix: prefix}
+func New(vModel model.Model, modelProvider provider.Provider, prefix string) *Common {
+	return &Common{entityModel: vModel, modelProvider: modelProvider, specialPrefix: prefix}
 }
 
 func (s *Common) constructTableName(vModel model.Model) string {
@@ -318,5 +318,19 @@ func (s *Common) BuildOprValue(vType model.Type, vValue model.Value) (ret string
 	default:
 		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal filed type %s", vType.GetPkgKey()))
 	}
+	return
+}
+
+func (s *Common) BuildModelFilter() (ret string, err *cd.Result) {
+	pkField := s.GetPrimaryKeyField(nil)
+	pkfVal, pkfErr := s.BuildFieldValue(pkField.GetType(), pkField.GetValue())
+	if pkfErr != nil {
+		err = pkfErr
+		log.Errorf("BuildModelFilter failed, s.EncodeValue error:%s", err.Error())
+		return
+	}
+
+	pkfName := pkField.GetName()
+	ret = fmt.Sprintf("`%s` = %v", pkfName, pkfVal)
 	return
 }

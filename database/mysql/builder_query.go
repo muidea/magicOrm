@@ -18,7 +18,7 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret string, err *cd.Result) {
 		return
 	}
 
-	str := fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.GetTableName())
+	str := fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.common.GetTableName())
 	if filter != nil {
 		filterSQL, filterErr := s.buildFilter(filter)
 		if filterErr != nil {
@@ -58,14 +58,14 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret string, err *cd.Result) {
 
 // BuildQueryRelation build query relation sql
 func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (ret string, err *cd.Result) {
-	leftVal, leftErr := s.GetModelValue()
+	leftVal, leftErr := s.common.GetModelValue()
 	if leftErr != nil {
 		err = leftErr
 		log.Errorf("BuildQueryRelation failed, s.GetModelValue error:%s", err.Error())
 		return
 	}
 
-	relationTableName := s.GetRelationTableName(vField, rModel)
+	relationTableName := s.common.GetRelationTableName(vField, rModel)
 	str := fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= %v", relationTableName, leftVal)
 	//log.Print(ret)
 	if traceSQL() {
@@ -80,7 +80,7 @@ func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem
 	fType := vField.GetType()
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
-	oprStr, oprErr := s.BuildOprValue(fType, oprValue)
+	oprStr, oprErr := s.common.BuildOprValue(fType, oprValue)
 	if oprErr != nil {
 		err = oprErr
 		log.Errorf("buildBasicItem failed, EncodeValue error:%s", err.Error())
@@ -101,14 +101,14 @@ func (s *Builder) buildRelationItem(pkField model.Field, rField model.Field, fil
 	fType := rField.GetType()
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
-	oprStr, oprErr := s.BuildOprValue(fType, oprValue)
+	oprStr, oprErr := s.common.BuildOprValue(fType, oprValue)
 	if oprErr != nil {
 		err = oprErr
 		log.Errorf("buildRelationItem failed, s.EncodeValue error:%s", err.Error())
 		return
 	}
 
-	fieldModel, fieldErr := s.GetTypeModel(fType)
+	fieldModel, fieldErr := s.common.GetTypeModel(fType)
 	if fieldErr != nil {
 		err = fieldErr
 		log.Errorf("buildRelationItem failed, s.GetTypeModel error:%s", err.Error())
@@ -117,7 +117,7 @@ func (s *Builder) buildRelationItem(pkField model.Field, rField model.Field, fil
 
 	relationFilterSQL := ""
 	strVal := oprFunc("right", oprStr)
-	relationTableName := s.GetRelationTableName(rField, fieldModel)
+	relationTableName := s.common.GetRelationTableName(rField, fieldModel)
 	relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTableName, strVal)
 	relationFilterSQL = fmt.Sprintf("`%s` IN (%s)", pkField.GetName(), relationFilterSQL)
 	ret = relationFilterSQL
@@ -130,8 +130,8 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err *cd.Result) 
 	}
 
 	filterSQL := ""
-	pkField := s.GetPrimaryKeyField(nil)
-	for _, field := range s.GetFields() {
+	pkField := s.common.GetPrimaryKeyField(nil)
+	for _, field := range s.common.GetFields() {
 		filterItem := filter.GetFilterItem(field.GetName())
 		if filterItem == nil {
 			continue
@@ -179,7 +179,7 @@ func (s *Builder) buildSorter(filter model.Sorter) (ret string, err *cd.Result) 
 		return
 	}
 
-	for _, val := range s.GetFields() {
+	for _, val := range s.common.GetFields() {
 		if val.GetName() == filter.Name() {
 			ret = SortOpr(filter.Name(), filter.AscSort())
 			return
