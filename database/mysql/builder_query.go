@@ -58,10 +58,10 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret string, err *cd.Result) {
 
 // BuildQueryRelation build query relation sql
 func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (ret string, err *cd.Result) {
-	leftVal, leftErr := s.common.GetModelValue()
+	leftVal, leftErr := s.common.GetHostModelValue()
 	if leftErr != nil {
 		err = leftErr
-		log.Errorf("BuildQueryRelation failed, s.GetModelValue error:%s", err.Error())
+		log.Errorf("BuildQueryRelation failed, s.GetHostModelValue error:%s", err.Error())
 		return
 	}
 
@@ -131,7 +131,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err *cd.Result) 
 
 	filterSQL := ""
 	pkField := s.common.GetHostPrimaryKeyField()
-	for _, field := range s.common.GetFields() {
+	for _, field := range s.common.GetHostFields() {
 		filterItem := filter.GetFilterItem(field.GetName())
 		if filterItem == nil {
 			continue
@@ -179,7 +179,7 @@ func (s *Builder) buildSorter(filter model.Sorter) (ret string, err *cd.Result) 
 		return
 	}
 
-	for _, val := range s.common.GetFields() {
+	for _, val := range s.common.GetHostFields() {
 		if val.GetName() == filter.Name() {
 			ret = SortOpr(filter.Name(), filter.AscSort())
 			return

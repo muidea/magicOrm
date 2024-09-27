@@ -11,7 +11,7 @@ import (
 
 func (s *Builder) BuildCreateTable() (ret string, err *cd.Result) {
 	str := ""
-	for _, val := range s.common.GetFields() {
+	for _, val := range s.common.GetHostFields() {
 		fType := val.GetType()
 		if !fType.IsBasic() {
 			continue

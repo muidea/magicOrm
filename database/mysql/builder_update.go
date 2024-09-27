@@ -36,7 +36,7 @@ func (s *Builder) BuildUpdate() (ret string, err *cd.Result) {
 
 func (s *Builder) getFieldUpdateValues() (ret string, err *cd.Result) {
 	str := ""
-	for _, field := range s.common.GetFields() {
+	for _, field := range s.common.GetHostFields() {
 		if field.IsPrimaryKey() {
 			continue
 		}
