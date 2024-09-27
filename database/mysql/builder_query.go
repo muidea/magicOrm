@@ -83,7 +83,7 @@ func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem
 	oprStr, oprErr := s.common.BuildOprValue(fType, oprValue)
 	if oprErr != nil {
 		err = oprErr
-		log.Errorf("buildBasicItem failed, EncodeValue error:%s", err.Error())
+		log.Errorf("buildBasicItem %s failed, EncodeValue error:%s", vField.GetName(), err.Error())
 		return
 	}
 
@@ -104,7 +104,7 @@ func (s *Builder) buildRelationItem(pkField model.Field, rField model.Field, fil
 	oprStr, oprErr := s.common.BuildOprValue(fType, oprValue)
 	if oprErr != nil {
 		err = oprErr
-		log.Errorf("buildRelationItem failed, s.EncodeValue error:%s", err.Error())
+		log.Errorf("buildRelationItem %s failed, s.EncodeValue error:%s", rField.GetName(), err.Error())
 		return
 	}
 

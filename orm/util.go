@@ -19,7 +19,7 @@ func (s *impl) getModelFilter(vModel model.Model, viewSpec model.ViewDeclare) (r
 	for _, val := range vModel.GetFields() {
 		fType := val.GetType()
 		fValue := val.GetValue()
-		if !fValue.IsValid() {
+		if fValue.IsZero() {
 			continue
 		}
 

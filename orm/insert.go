@@ -38,11 +38,9 @@ func (s *impl) insertSingle(vModel model.Model) (err *cd.Result) {
 
 		fSpec := field.GetSpec()
 		fValue := field.GetValue()
-		if fValue.IsZero() {
+		if !fValue.IsValid() {
 			fValue = s.modelProvider.GetNewValue(fSpec.GetValueDeclare())
-			if fValue.IsValid() {
-				field.SetValue(fValue)
-			}
+			field.SetValue(fValue)
 		}
 		if fSpec.GetValueDeclare() == model.AutoIncrement {
 			autoIncrementFlag = true

@@ -220,7 +220,7 @@ func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache) (ret in
 }
 
 func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache) (ret interface{}, err *cd.Result) {
-	vVals, vErr := ElemDependValue(tVal)
+	vVals, vErr := ElemDependValue(tVal.Interface())
 	if vErr != nil {
 		err = vErr
 		return

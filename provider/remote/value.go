@@ -2,10 +2,12 @@ package remote
 
 import (
 	"fmt"
-	"github.com/muidea/magicOrm/model"
 	"math"
 	"reflect"
 	"time"
+
+	fu "github.com/muidea/magicCommon/foundation/util"
+	"github.com/muidea/magicOrm/model"
 )
 
 type ValueImpl struct {
@@ -13,6 +15,9 @@ type ValueImpl struct {
 }
 
 var NilValue = ValueImpl{}
+
+var zeroString = ""
+var zeroDateTime = time.Time{}.Format(fu.CSTLayout)
 
 func NewValue(val any) (ret *ValueImpl) {
 	if val == nil {
@@ -80,7 +85,7 @@ func (s *ValueImpl) IsZero() (ret bool) {
 	case float32, float64:
 		return math.Float64bits(rVal.Float()) == 0
 	case string:
-		return rVal.String() == ""
+		return rVal.String() == zeroString || rVal.String() == zeroDateTime
 	case []bool,
 		[]int8, []int16, []int32, []int, []int64,
 		[]uint8, []uint16, []uint32, []uint, []uint64,

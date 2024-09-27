@@ -144,12 +144,7 @@ func (s *Common) buildModelValue(vModel model.Model) (ret string, err *cd.Result
 	pkField := vModel.GetPrimaryField()
 	switch pkField.GetType().GetValue() {
 	case model.TypeStringValue:
-		strVal, strErr := s.encodeStringValue(pkField.GetType(), pkField.GetValue())
-		if strErr != nil {
-			err = strErr
-			return
-		}
-		ret = fmt.Sprintf("'%s'", strVal)
+		ret, err = s.encodeStringValue(pkField.GetType(), pkField.GetValue())
 	case model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeBigIntegerValue, model.TypeIntegerValue,
 		model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue, model.TypePositiveIntegerValue:
 		ret, err = s.encodeIntValue(pkField.GetType(), pkField.GetValue())
@@ -167,12 +162,7 @@ func (s *Common) BuildFieldValue(vType model.Type, vValue model.Value) (ret stri
 
 	switch vType.GetValue() {
 	case model.TypeStringValue, model.TypeDateTimeValue:
-		strVal, strErr := s.encodeStringValue(vType, vValue)
-		if strErr != nil {
-			err = strErr
-			return
-		}
-		ret = fmt.Sprintf("'%s'", strVal)
+		ret, err = s.encodeStringValue(vType, vValue)
 	case model.TypeBooleanValue, model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeBigIntegerValue, model.TypeIntegerValue,
 		model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue, model.TypePositiveIntegerValue:
 		ret, err = s.encodeIntValue(vType, vValue)
@@ -205,17 +195,14 @@ func (s *Common) BuildOprValue(vType model.Type, vValue model.Value) (ret string
 
 	switch vType.GetValue() {
 	case model.TypeStringValue, model.TypeDateTimeValue:
-		strVal, strErr := s.encodeStringValue(vType, vValue)
-		if strErr != nil {
-			err = strErr
-			return
-		}
-		ret = fmt.Sprintf("'%s'", strVal)
+		ret, err = s.encodeStringValue(vType, vValue)
 	case model.TypeBooleanValue, model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeBigIntegerValue, model.TypeIntegerValue,
 		model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue, model.TypePositiveIntegerValue:
 		ret, err = s.encodeIntValue(vType, vValue)
 	case model.TypeFloatValue, model.TypeDoubleValue:
 		ret, err = s.encodeFloatValue(vType, vValue)
+	case model.TypeStructValue:
+		ret, err = s.encodeStructValue(vType, vValue)
 	case model.TypeSliceValue:
 		sliceVal, sliceErr := s.encodeSliceValue(vType, vValue)
 		if sliceErr != nil {
@@ -249,7 +236,8 @@ func (s *Common) encodeStringValue(vType model.Type, vValue model.Value) (ret st
 		log.Errorf("encodeStringValue failed, s.EncodeValue error:%s", err.Error())
 		return
 	}
-	ret = fEncodeVal.(string)
+
+	ret = fmt.Sprintf("'%s'", fEncodeVal)
 	return
 }
 
@@ -272,6 +260,22 @@ func (s *Common) encodeFloatValue(vType model.Type, vValue model.Value) (ret str
 		return
 	}
 	ret = fmt.Sprintf("%v", fEncodeVal)
+	return
+}
+
+func (s *Common) encodeStructValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
+	fEncodeVal, fEncodeErr := s.EncodeValue(vType, vValue)
+	if fEncodeErr != nil {
+		err = fEncodeErr
+		log.Errorf("encodeStringValue failed, s.EncodeValue error:%s", err.Error())
+		return
+	}
+	switch fEncodeVal.(type) {
+	case string:
+		ret = fmt.Sprintf("'%s'", fEncodeVal)
+	default:
+		ret = fmt.Sprintf("%v", fEncodeVal)
+	}
 	return
 }
 
@@ -302,6 +306,15 @@ func (s *Common) encodeSliceFloat(sliceVal []interface{}) []string {
 	return strSlice
 }
 
+func (s *Common) encodeSliceStruct(sliceVal []interface{}) []string {
+	strSlice := make([]string, len(sliceVal))
+	for idx, val := range sliceVal {
+		strSlice[idx] = fmt.Sprintf("%v", val)
+	}
+
+	return strSlice
+}
+
 func (s *Common) encodeSliceValue(vType model.Type, vValue model.Value) (ret []string, err *cd.Result) {
 	fEncodeVal, fEncodeErr := s.EncodeValue(vType, vValue)
 	if fEncodeErr != nil {
@@ -324,6 +337,8 @@ func (s *Common) encodeSliceValue(vType model.Type, vValue model.Value) (ret []s
 		ret = s.encodeSliceInt(sliceVal)
 	case model.TypeFloatValue, model.TypeDoubleValue:
 		ret = s.encodeSliceFloat(sliceVal)
+	case model.TypeStructValue:
+		ret = s.encodeSliceStruct(sliceVal)
 	default:
 		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal filed type %s", vType.Elem().GetPkgKey()))
 	}

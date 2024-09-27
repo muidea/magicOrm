@@ -29,6 +29,11 @@ func (s *ValueImpl) IsValid() (ret bool) {
 }
 
 func (s *ValueImpl) IsZero() (ret bool) {
+	if util.IsNil(s.value) {
+		ret = true
+		return
+	}
+
 	ret = util.IsZero(s.value)
 	return
 }
