@@ -13,17 +13,17 @@ import (
 )
 
 type Common struct {
-	entityModel   model.Model
+	hostModel     model.Model
 	modelProvider provider.Provider
 	specialPrefix string
 
 	// temp value, for performance optimization
-	entityTableName string
-	entityValue     string
+	hostTableName string
+	entityValue   string
 }
 
 func New(vModel model.Model, modelProvider provider.Provider, prefix string) *Common {
-	return &Common{entityModel: vModel, modelProvider: modelProvider, specialPrefix: prefix}
+	return &Common{hostModel: vModel, modelProvider: modelProvider, specialPrefix: prefix}
 }
 
 func (s *Common) constructTableName(vModel model.Model) string {
@@ -36,15 +36,15 @@ func (s *Common) constructInfix(vFiled model.Field) string {
 	return strings.ToUpper(strName[:1]) + strName[1:]
 }
 
-func (s *Common) GetTableName() string {
-	if s.entityTableName == "" {
-		s.entityTableName = s.GetHostTableName(s.entityModel)
+func (s *Common) GetHostTableName() string {
+	if s.hostTableName == "" {
+		s.hostTableName = s.GetModelTableName(s.hostModel)
 	}
 
-	return s.entityTableName
+	return s.hostTableName
 }
 
-func (s *Common) GetHostTableName(vModel model.Model) string {
+func (s *Common) GetModelTableName(vModel model.Model) string {
 	tableName := s.constructTableName(vModel)
 	if s.specialPrefix != "" {
 		tableName = fmt.Sprintf("%s_%s", s.specialPrefix, tableName)
@@ -54,7 +54,7 @@ func (s *Common) GetHostTableName(vModel model.Model) string {
 }
 
 func (s *Common) GetRelationTableName(vField model.Field, rModel model.Model) string {
-	leftName := s.constructTableName(s.entityModel)
+	leftName := s.constructTableName(s.hostModel)
 	rightName := s.constructTableName(rModel)
 	infixVal := s.constructInfix(vField)
 
@@ -66,21 +66,17 @@ func (s *Common) GetRelationTableName(vField model.Field, rModel model.Model) st
 	return tableName
 }
 
-func (s *Common) GetPrimaryKeyField(vModel model.Model) model.Field {
-	if vModel == nil {
-		return s.entityModel.GetPrimaryField()
-	}
-
-	return vModel.GetPrimaryField()
+func (s *Common) GetHostPrimaryKeyField() model.Field {
+	return s.hostModel.GetPrimaryField()
 }
 
 func (s *Common) GetFields() model.Fields {
-	return s.entityModel.GetFields()
+	return s.hostModel.GetFields()
 }
 
 func (s *Common) GetModelValue() (ret string, err *cd.Result) {
 	if s.entityValue == "" {
-		entityVal, entityErr := s.BuildModelValue(s.entityModel)
+		entityVal, entityErr := s.BuildModelValue(s.hostModel)
 		if entityErr != nil {
 			err = entityErr
 			return
@@ -322,7 +318,7 @@ func (s *Common) BuildOprValue(vType model.Type, vValue model.Value) (ret string
 }
 
 func (s *Common) BuildModelFilter() (ret string, err *cd.Result) {
-	pkField := s.GetPrimaryKeyField(nil)
+	pkField := s.hostModel.GetPrimaryField()
 	pkfVal, pkfErr := s.BuildFieldValue(pkField.GetType(), pkField.GetValue())
 	if pkfErr != nil {
 		err = pkfErr

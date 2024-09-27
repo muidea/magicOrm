@@ -31,12 +31,10 @@ func (s *Builder) BuildCreateTable() (ret string, err *cd.Result) {
 		}
 	}
 
-	pkField := s.common.GetPrimaryKeyField(nil)
-	if pkField != nil {
-		str = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", str, pkField.GetName())
-	}
+	pkFieldName := s.common.GetHostPrimaryKeyField().GetName()
+	str = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", str, pkFieldName)
 
-	str = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", s.common.GetTableName(), str)
+	str = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", s.common.GetHostTableName(), str)
 	if traceSQL() {
 		log.Infof("[SQL] create: %s", str)
 	}
@@ -47,7 +45,7 @@ func (s *Builder) BuildCreateTable() (ret string, err *cd.Result) {
 
 // BuildCreateRelationTable Build CreateRelation Schema
 func (s *Builder) BuildCreateRelationTable(field model.Field, rModel model.Model) (ret string, err *cd.Result) {
-	lPKField := s.common.GetPrimaryKeyField(nil)
+	lPKField := s.common.GetHostPrimaryKeyField()
 	lPKType, lPKErr := getTypeDeclare(lPKField.GetType(), lPKField.GetSpec())
 	if lPKErr != nil {
 		err = lPKErr
@@ -55,8 +53,8 @@ func (s *Builder) BuildCreateRelationTable(field model.Field, rModel model.Model
 		return
 	}
 
-	rPKField := s.common.GetPrimaryKeyField(rModel)
-	rPKType, rPKErr := getTypeDeclare(rPKField.GetType(), lPKField.GetSpec())
+	rPKField := rModel.GetPrimaryField()
+	rPKType, rPKErr := getTypeDeclare(rPKField.GetType(), rPKField.GetSpec())
 	if rPKErr != nil {
 		err = rPKErr
 		log.Errorf("BuildCreateRelationTable failed, getTypeDeclare error:%s", err.Error())

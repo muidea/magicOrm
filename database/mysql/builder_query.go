@@ -18,7 +18,7 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret string, err *cd.Result) {
 		return
 	}
 
-	str := fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.common.GetTableName())
+	str := fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.common.GetHostTableName())
 	if filter != nil {
 		filterSQL, filterErr := s.buildFilter(filter)
 		if filterErr != nil {
@@ -130,7 +130,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err *cd.Result) 
 	}
 
 	filterSQL := ""
-	pkField := s.common.GetPrimaryKeyField(nil)
+	pkField := s.common.GetHostPrimaryKeyField()
 	for _, field := range s.common.GetFields() {
 		filterItem := filter.GetFilterItem(field.GetName())
 		if filterItem == nil {

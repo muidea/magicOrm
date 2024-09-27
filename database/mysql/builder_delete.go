@@ -18,7 +18,7 @@ func (s *Builder) BuildDelete() (ret string, err *cd.Result) {
 		return
 	}
 
-	str := fmt.Sprintf("DELETE FROM `%s` WHERE %s", s.common.GetTableName(), filterStr)
+	str := fmt.Sprintf("DELETE FROM `%s` WHERE %s", s.common.GetHostTableName(), filterStr)
 	if traceSQL() {
 		log.Infof("[SQL] delete: %s", str)
 	}
@@ -38,8 +38,8 @@ func (s *Builder) BuildDeleteRelation(vField model.Field, rModel model.Model) (d
 
 	relationTableName := s.common.GetRelationTableName(vField, rModel)
 	delRight = fmt.Sprintf("DELETE FROM `%s` WHERE `%s` IN (SELECT `right` FROM `%s` WHERE `left`=%v)",
-		s.common.GetHostTableName(rModel),
-		s.common.GetPrimaryKeyField(rModel).GetName(),
+		s.common.GetModelTableName(rModel),
+		rModel.GetPrimaryField().GetName(),
 		relationTableName,
 		leftVal)
 	//log.Print(delRight)

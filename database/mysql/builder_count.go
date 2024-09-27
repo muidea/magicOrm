@@ -11,8 +11,8 @@ import (
 
 // BuildCount build count
 func (s *Builder) BuildCount(filter model.Filter) (ret string, err *cd.Result) {
-	pkField := s.common.GetPrimaryKeyField(nil)
-	str := fmt.Sprintf("SELECT COUNT(`%s`) FROM `%s`", pkField.GetName(), s.common.GetTableName())
+	pkFieldName := s.common.GetHostPrimaryKeyField().GetName()
+	str := fmt.Sprintf("SELECT COUNT(`%s`) FROM `%s`", pkFieldName, s.common.GetHostTableName())
 	if filter != nil {
 		filterSQL, filterErr := s.buildFilter(filter)
 		if filterErr != nil {

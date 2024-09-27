@@ -54,7 +54,7 @@ func (s *impl) deleteRelationSingleStructInner(rVal model.Value, rType model.Typ
 }
 
 func (s *impl) deleteRelationSliceStructInner(rVal model.Value, rType model.Type, deepLevel int) (err *cd.Result) {
-	elemVal, elemErr := s.modelProvider.ElemDependValue(rVal)
+	elemVal, elemErr := s.modelProvider.ElemDependValue(rVal.Interface())
 	if elemErr != nil {
 		err = elemErr
 		log.Errorf("deleteRelationSliceStructInner failed, s.modelProvider.ElemDependValue error:%s", err.Error())

@@ -172,7 +172,7 @@ func (s *impl) insertSliceRelation(vModel model.Model, vField model.Field) (ret 
 	fValue := vField.GetValue()
 	fType := vField.GetType()
 	rvValue, _ := fType.Interface(nil)
-	fSliceValue, fSliceErr := s.modelProvider.ElemDependValue(fValue)
+	fSliceValue, fSliceErr := s.modelProvider.ElemDependValue(fValue.Interface())
 	if fSliceErr != nil {
 		err = fSliceErr
 		log.Errorf("insertSliceRelation failed, s.modelProvider.ElemDependValue error:%s", err.Error())

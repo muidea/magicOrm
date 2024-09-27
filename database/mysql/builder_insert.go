@@ -41,7 +41,7 @@ func (s *Builder) BuildInsert() (ret string, err *cd.Result) {
 		}
 	}
 
-	str := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.common.GetTableName(), fieldNames, fieldValues)
+	str := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.common.GetHostTableName(), fieldNames, fieldValues)
 	//log.Print(str)
 	if traceSQL() {
 		log.Infof("[SQL] insert: %s", str)
