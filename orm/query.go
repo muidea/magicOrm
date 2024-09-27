@@ -321,7 +321,8 @@ func (s *impl) querySingleRelation(vModel model.Model, vField model.Field, deepL
 			log.Warnf("querySingleRelation failed, s.innerQueryRelationModel error:%v", rvErr.Error())
 		}
 
-		ret = vValue
+		err = rvErr
+		//ret = vValue
 		return
 	}
 
