@@ -156,7 +156,7 @@ func (s *Common) buildModelValue(vModel model.Model) (ret string, err *cd.Result
 
 func (s *Common) BuildFieldValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
 	if !vValue.IsValid() {
-		ret, err = getTypeDefaultValue(vType)
+		ret, err = getBasicTypeDefaultValue(vType)
 		return
 	}
 
