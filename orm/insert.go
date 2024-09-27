@@ -130,7 +130,6 @@ func (s *impl) insertSingleRelation(vModel model.Model, vField model.Field) (ret
 		}
 
 		for _, field := range rModel.GetFields() {
-			log.Infof("mode Name:%s, field Name:%s", rModel.GetPkgKey(), field.GetName())
 			if field.IsBasic() {
 				continue
 			}
