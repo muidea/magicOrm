@@ -59,13 +59,13 @@ func NewValue(val any) (ret *ValueImpl) {
 	return
 }
 
-func (s *ValueImpl) IsNil() (ret bool) {
-	ret = s.value == nil
+func (s *ValueImpl) IsValid() (ret bool) {
+	ret = s.value != nil
 	return
 }
 
 func (s *ValueImpl) IsZero() (ret bool) {
-	if s.IsNil() {
+	if !s.IsValid() {
 		return true
 	}
 

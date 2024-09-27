@@ -160,7 +160,7 @@ func (s *Common) buildModelValue(vModel model.Model) (ret string, err *cd.Result
 }
 
 func (s *Common) BuildFieldValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
-	if vValue.IsNil() {
+	if !vValue.IsValid() {
 		ret, err = getTypeDefaultValue(vType)
 		return
 	}
@@ -198,7 +198,7 @@ func (s *Common) BuildFieldValue(vType model.Type, vValue model.Value) (ret stri
 }
 
 func (s *Common) BuildOprValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
-	if vValue.IsNil() {
+	if !vValue.IsValid() {
 		err = cd.NewError(cd.UnExpected, "nil opr value")
 		return
 	}

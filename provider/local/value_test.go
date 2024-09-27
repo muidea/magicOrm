@@ -9,7 +9,7 @@ func TestValue(t *testing.T) {
 	var v reflect.Value
 
 	// nil
-	if !NilValue.IsNil() {
+	if NilValue.IsValid() {
 		t.Errorf("illegal nilValue, is nil")
 		return
 	}
@@ -22,7 +22,7 @@ func TestValue(t *testing.T) {
 
 	valuePtr := NewValue(v)
 	// nil
-	if !valuePtr.IsNil() {
+	if valuePtr.IsValid() {
 		t.Errorf("NewValue failed, is nil")
 		return
 	}
@@ -43,7 +43,7 @@ func TestValue(t *testing.T) {
 	iReflect := reflect.ValueOf(&iVal)
 	valuePtr = NewValue(iReflect)
 	// not nil
-	if valuePtr.IsNil() {
+	if !valuePtr.IsValid() {
 		t.Errorf("NewValue failed, is not nil")
 	}
 
@@ -62,8 +62,8 @@ func TestValue(t *testing.T) {
 	nReflect := reflect.ValueOf(&nulValue)
 	value2Ptr := NewValue(nReflect)
 	// not nil
-	if value2Ptr.IsNil() {
-		t.Errorf("NewValue failed, IsNil false")
+	if !value2Ptr.IsValid() {
+		t.Errorf("NewValue failed, IsValid false")
 		return
 	}
 
@@ -81,7 +81,7 @@ func TestValue(t *testing.T) {
 
 	value2Ptr.Set(valuePtr.Get())
 	// not nil
-	if value2Ptr.IsNil() {
+	if !value2Ptr.IsValid() {
 		t.Errorf("is not nil")
 		return
 	}

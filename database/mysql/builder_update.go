@@ -43,7 +43,7 @@ func (s *Builder) getFieldUpdateValues() (ret string, err *cd.Result) {
 
 		fType := field.GetType()
 		fValue := field.GetValue()
-		if !fType.IsBasic() || fValue.IsNil() {
+		if !fType.IsBasic() || !fValue.IsValid() {
 			continue
 		}
 

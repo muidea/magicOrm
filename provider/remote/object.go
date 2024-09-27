@@ -125,7 +125,7 @@ func (s *Object) Interface(_ bool, viewSpec model.ViewDeclare) (ret any) {
 
 		if viewSpec > 0 {
 			if sf.Spec != nil && sf.Spec.EnableView(viewSpec) {
-				if sf.value == nil || sf.value.IsNil() {
+				if sf.value == nil || !sf.value.IsValid() {
 					vVal, _ := sf.Type.Interface(initVal)
 					objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: vVal.Interface()})
 					continue
@@ -137,7 +137,7 @@ func (s *Object) Interface(_ bool, viewSpec model.ViewDeclare) (ret any) {
 			continue
 		}
 
-		if sf.value == nil || sf.value.IsNil() {
+		if sf.value == nil || !sf.value.IsValid() {
 			if sf.IsPtrType() {
 				objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: initVal})
 			} else {
@@ -151,7 +151,7 @@ func (s *Object) Interface(_ bool, viewSpec model.ViewDeclare) (ret any) {
 	}
 
 	pkValue := s.GetPrimaryField().GetValue()
-	if !pkValue.IsNil() {
+	if pkValue.IsValid() {
 		objVal.ID = fmt.Sprintf("%v", pkValue.Interface())
 	}
 

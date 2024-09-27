@@ -57,7 +57,7 @@ func (s *impl) innerAssign(vModel model.Model, queryVal resultItems, deepLevel i
 	for _, field := range vModel.GetFields() {
 		fType := field.GetType()
 		fValue := field.GetValue()
-		if fValue.IsNil() {
+		if !fValue.IsValid() {
 			continue
 		}
 

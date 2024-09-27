@@ -19,7 +19,7 @@ func (s *impl) getModelFilter(vModel model.Model, viewSpec model.ViewDeclare) (r
 	for _, val := range vModel.GetFields() {
 		fType := val.GetType()
 		fValue := val.GetValue()
-		if fValue.IsZero() {
+		if !fValue.IsValid() {
 			continue
 		}
 
@@ -70,7 +70,7 @@ func (s *impl) getModelFieldsScanDestPtr(vModel model.Model, builder builder.Bui
 	for _, field := range vModel.GetFields() {
 		fType := field.GetType()
 		fValue := field.GetValue()
-		if !fType.IsBasic() || fValue.IsNil() {
+		if !fType.IsBasic() || !fValue.IsValid() {
 			continue
 		}
 

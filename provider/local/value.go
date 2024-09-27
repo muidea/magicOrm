@@ -18,8 +18,13 @@ func NewValue(val reflect.Value) (ret *ValueImpl) {
 	return
 }
 
-func (s *ValueImpl) IsNil() (ret bool) {
-	ret = util.IsNil(s.value)
+func (s *ValueImpl) IsValid() (ret bool) {
+	if util.IsNil(s.value) {
+		ret = false
+		return
+	}
+
+	ret = true
 	return
 }
 

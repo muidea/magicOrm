@@ -2,7 +2,7 @@ package model
 
 // Value Value
 type Value interface {
-	IsNil() bool
+	IsValid() bool
 	IsZero() bool
 	Set(val any)
 	Get() any
@@ -13,7 +13,7 @@ type Value interface {
 
 func CompareValue(l, r Value) bool {
 	if l != nil && r != nil {
-		return l.IsNil() == r.IsNil()
+		return !l.IsValid() == !r.IsValid()
 	}
 
 	if l == nil && r == nil {
@@ -21,11 +21,11 @@ func CompareValue(l, r Value) bool {
 	}
 
 	if l == nil && r != nil {
-		return r.IsNil()
+		return !r.IsValid()
 	}
 
 	if l != nil && r == nil {
-		return l.IsNil()
+		return !l.IsValid()
 	}
 
 	return false

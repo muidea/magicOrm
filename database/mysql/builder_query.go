@@ -197,7 +197,7 @@ func (s *Builder) getFieldQueryNames(filter model.Filter) (ret string, err *cd.R
 	for _, field := range vModel.GetFields() {
 		fType := field.GetType()
 		fValue := field.GetValue()
-		if !fType.IsBasic() || fValue.IsNil() {
+		if !fType.IsBasic() || !fValue.IsValid() {
 			continue
 		}
 

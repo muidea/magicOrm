@@ -382,7 +382,7 @@ func TestBaseBoolCodec(t *testing.T) {
 		t.Errorf("decode bool false, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode bool false, is not nil")
 		return
 	}
@@ -432,7 +432,7 @@ func TestBaseBoolCodec(t *testing.T) {
 		t.Errorf("decode bool false, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode bool false, is not nil")
 		return
 	}
@@ -484,7 +484,7 @@ func TestBaseBoolPtrCodec(t *testing.T) {
 		t.Errorf("decode bool false, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode bool false, is not nil")
 		return
 	}
@@ -540,7 +540,7 @@ func TestBaseBoolPtrCodec(t *testing.T) {
 		t.Errorf("decode bool false, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode bool false, is not nil")
 		return
 	}
@@ -591,7 +591,7 @@ func TestSliceBoolCodec(t *testing.T) {
 		t.Errorf("decode []bool{false}, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode []bool{false}, is not nil")
 		return
 	}
@@ -645,7 +645,7 @@ func TestSliceBoolCodec(t *testing.T) {
 		t.Errorf("decode  []bool{true,false,true}, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode  []bool{true,false,true}, is not nil")
 		return
 	}
@@ -705,7 +705,7 @@ func TestSliceBoolPtrCodec(t *testing.T) {
 		t.Errorf("decode []bool{false}, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode []bool{false}, is not nil")
 		return
 	}
@@ -764,7 +764,7 @@ func TestSliceBoolPtrCodec(t *testing.T) {
 		t.Errorf("decode  []bool{true,false,true}, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode  []bool{true,false,true}, is not nil")
 		return
 	}
@@ -823,7 +823,7 @@ func TestBaseIntCodec(t *testing.T) {
 		t.Errorf("decode int16 0, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode int16 0, is not nil")
 		return
 	}
@@ -873,7 +873,7 @@ func TestBaseIntCodec(t *testing.T) {
 		t.Errorf("decode int16 123, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode int16 123, is not nil")
 		return
 	}
@@ -925,7 +925,7 @@ func TestBaseIntPtrCodec(t *testing.T) {
 		t.Errorf("decode int16 0, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode int16 0, is not nil")
 		return
 	}
@@ -980,7 +980,7 @@ func TestBaseIntPtrCodec(t *testing.T) {
 		t.Errorf("decode int16 123, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode int16 123, is not nil")
 		return
 	}
@@ -1036,7 +1036,7 @@ func TestSliceIntCodec(t *testing.T) {
 		t.Errorf("decode  []int16{123}, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode  []int16{123}, is not nil")
 		return
 	}
@@ -1090,7 +1090,7 @@ func TestSliceIntCodec(t *testing.T) {
 		t.Errorf("decode []int16{123,456,-789}, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode []int16{123,456,-789}, is not nil")
 		return
 	}
@@ -1153,7 +1153,7 @@ func TestBaseUIntCodec(t *testing.T) {
 		t.Errorf("decode uint32 0, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode uint32 0, is not nil")
 		return
 	}
@@ -1203,7 +1203,7 @@ func TestBaseUIntCodec(t *testing.T) {
 		t.Errorf("decode uint32 123, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode uint32 123, is not nil")
 		return
 	}
@@ -1254,7 +1254,7 @@ func TestSliceUIntCodec(t *testing.T) {
 		t.Errorf("decode  []uint32{123}, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode  []uint32{123}, is not nil")
 		return
 	}
@@ -1308,7 +1308,7 @@ func TestSliceUIntCodec(t *testing.T) {
 		t.Errorf("decode []uint32{123,456,789000000}, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode []uint32{123,456,789000000}, is not nil")
 		return
 	}
@@ -1371,7 +1371,7 @@ func TestBaseFloatCodec(t *testing.T) {
 		t.Errorf("decode float32 0, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode float32 0, is not nil")
 		return
 	}
@@ -1421,7 +1421,7 @@ func TestBaseFloatCodec(t *testing.T) {
 		t.Errorf("decode float32 123.456, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode float32 123.456, is not nil")
 		return
 	}
@@ -1472,7 +1472,7 @@ func TestSliceFloatCodec(t *testing.T) {
 		t.Errorf("decode  []float32{123}, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode  []float32{123}, is not nil")
 		return
 	}
@@ -1526,7 +1526,7 @@ func TestSliceFloatCodec(t *testing.T) {
 		t.Errorf("decode []float32{123,456,789000000}, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode []float32{123,456,789000000}, is not nil")
 		return
 	}
@@ -1589,7 +1589,7 @@ func TestBaseStringCodec(t *testing.T) {
 		t.Errorf("decode string 0, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode string 0, is not nil")
 		return
 	}
@@ -1639,7 +1639,7 @@ func TestBaseStringCodec(t *testing.T) {
 		t.Errorf("decode string 123.456, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode string 123.456, is not nil")
 		return
 	}
@@ -1690,7 +1690,7 @@ func TestSliceStringCodec(t *testing.T) {
 		t.Errorf("decode  []string{123}, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode  []string{123}, is not nil")
 		return
 	}
@@ -1744,7 +1744,7 @@ func TestSliceStringCodec(t *testing.T) {
 		t.Errorf("decode []string{123,456,789000000}, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode []string{123,456,789000000}, is not nil")
 		return
 	}
@@ -1807,7 +1807,7 @@ func TestBaseDateCodec(t *testing.T) {
 		t.Errorf("decode dateTime 2006-01-02 15:04:05, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode dateTime 2006-01-02 15:04:05, is not nil")
 		return
 	}
@@ -1860,7 +1860,7 @@ func TestSliceDateCodec(t *testing.T) {
 		t.Errorf("decode dateTime 2006-01-02 15:04:05, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode dateTime 2006-01-02 15:04:05, is not nil")
 		return
 	}
@@ -1912,7 +1912,7 @@ func TestSliceDateCodec(t *testing.T) {
 		t.Errorf("decode dateTime 2006-01-02 15:04:05, err:%s", dErr.Error())
 		return
 	}
-	if dVal.IsNil() {
+	if !dVal.IsValid() {
 		t.Errorf("decode dateTime 2006-01-02 15:04:05, is not nil")
 		return
 	}

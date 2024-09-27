@@ -26,7 +26,7 @@ func New(elemDependValue ElemDependValueFunc) Codec {
 }
 
 func (s *impl) Encode(vVal model.Value, vType model.Type) (ret interface{}, err *cd.Result) {
-	if !vType.IsBasic() || vVal.IsNil() {
+	if !vType.IsBasic() || !vVal.IsValid() {
 		err = cd.NewError(cd.UnExpected, fmt.Sprintf("encode value failed, illegal value or type"))
 		return
 	}

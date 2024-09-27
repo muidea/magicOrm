@@ -243,7 +243,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *
 		}
 	}()
 
-	if vVal.IsNil() {
+	if !vVal.IsValid() {
 		ret = vModel
 		return
 	}
@@ -469,7 +469,7 @@ func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache) (ret in
 	pkField := vModel.GetPrimaryField()
 	tType := pkField.GetType()
 	tVal := pkField.GetValue()
-	if tVal.IsNil() {
+	if !tVal.IsValid() {
 		tVal, _ = tType.Interface(nil)
 	}
 

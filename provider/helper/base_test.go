@@ -159,7 +159,7 @@ func testValue(t *testing.T, valPtr any) *cd.Result {
 
 	baseObjectVal, baseValErr := remote.GetObjectValue(valPtr)
 	if baseValErr != nil {
-		t.Errorf("remote.GetObjectValue failed, err:%s", baseErr.Error())
+		t.Errorf("remote.GetObjectValue failed, err:%s", baseValErr.Error())
 		return baseValErr
 	}
 
