@@ -1,4 +1,4 @@
-package common
+package context
 
 import (
 	"encoding/json"
@@ -12,7 +12,7 @@ import (
 	"github.com/muidea/magicOrm/provider"
 )
 
-type Common struct {
+type Context struct {
 	hostModel     model.Model
 	modelProvider provider.Provider
 	specialPrefix string
@@ -22,21 +22,21 @@ type Common struct {
 	hostModelValue     string
 }
 
-func New(vModel model.Model, modelProvider provider.Provider, prefix string) *Common {
-	return &Common{hostModel: vModel, modelProvider: modelProvider, specialPrefix: prefix}
+func New(vModel model.Model, modelProvider provider.Provider, prefix string) *Context {
+	return &Context{hostModel: vModel, modelProvider: modelProvider, specialPrefix: prefix}
 }
 
-func (s *Common) constructTableName(vModel model.Model) string {
+func (s *Context) constructTableName(vModel model.Model) string {
 	strName := vModel.GetName()
 	return strings.ToUpper(strName[:1]) + strName[1:]
 }
 
-func (s *Common) constructInfix(vFiled model.Field) string {
+func (s *Context) constructInfix(vFiled model.Field) string {
 	strName := vFiled.GetName()
 	return strings.ToUpper(strName[:1]) + strName[1:]
 }
 
-func (s *Common) GetHostTableName() string {
+func (s *Context) GetHostTableName() string {
 	if s.hostModelTableName == "" {
 		s.hostModelTableName = s.GetModelTableName(s.hostModel)
 	}
@@ -44,15 +44,15 @@ func (s *Common) GetHostTableName() string {
 	return s.hostModelTableName
 }
 
-func (s *Common) GetHostPrimaryKeyField() model.Field {
+func (s *Context) GetHostPrimaryKeyField() model.Field {
 	return s.hostModel.GetPrimaryField()
 }
 
-func (s *Common) GetHostFields() model.Fields {
+func (s *Context) GetHostFields() model.Fields {
 	return s.hostModel.GetFields()
 }
 
-func (s *Common) GetHostModelValue() (ret string, err *cd.Result) {
+func (s *Context) GetHostModelValue() (ret string, err *cd.Result) {
 	if s.hostModelValue == "" {
 		entityVal, entityErr := s.buildModelValue(s.hostModel)
 		if entityErr != nil {
@@ -67,7 +67,7 @@ func (s *Common) GetHostModelValue() (ret string, err *cd.Result) {
 	return
 }
 
-func (s *Common) GetModelTableName(vModel model.Model) string {
+func (s *Context) GetModelTableName(vModel model.Model) string {
 	tableName := s.constructTableName(vModel)
 	if s.specialPrefix != "" {
 		tableName = fmt.Sprintf("%s_%s", s.specialPrefix, tableName)
@@ -76,7 +76,7 @@ func (s *Common) GetModelTableName(vModel model.Model) string {
 	return tableName
 }
 
-func (s *Common) GetRelationTableName(vField model.Field, rModel model.Model) string {
+func (s *Context) GetRelationTableName(vField model.Field, rModel model.Model) string {
 	leftName := s.constructTableName(s.hostModel)
 	rightName := s.constructTableName(rModel)
 	infixVal := s.constructInfix(vField)
@@ -89,7 +89,7 @@ func (s *Common) GetRelationTableName(vField model.Field, rModel model.Model) st
 	return tableName
 }
 
-func (s *Common) GetRelationValue(rModel model.Model) (leftVal, rightVal string, err *cd.Result) {
+func (s *Context) GetRelationValue(rModel model.Model) (leftVal, rightVal string, err *cd.Result) {
 	entityVal, entityErr := s.GetHostModelValue()
 	if entityErr != nil {
 		err = entityErr
@@ -109,26 +109,7 @@ func (s *Common) GetRelationValue(rModel model.Model) (leftVal, rightVal string,
 	return
 }
 
-func (s *Common) EncodeValue(vType model.Type, vValue model.Value) (ret interface{}, err *cd.Result) {
-	defer func() {
-		if eErr := recover(); eErr != nil {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("encode value failed, type:%v, err:%v", vType.GetPkgKey(), eErr))
-			log.Errorf("EncodeValue failed, error:%s", err.Error())
-		}
-	}()
-
-	eVal, eErr := s.modelProvider.EncodeValue(vValue, vType)
-	if eErr != nil {
-		err = eErr
-		log.Errorf("EncodeValue failed, s.modelProvider.EncodeValue error:%s", err.Error())
-		return
-	}
-
-	ret = eVal
-	return
-}
-
-func (s *Common) GetTypeModel(vType model.Type) (ret model.Model, err *cd.Result) {
+func (s *Context) GetTypeModel(vType model.Type) (ret model.Model, err *cd.Result) {
 	vModel, vErr := s.modelProvider.GetTypeModel(vType)
 	if vErr != nil {
 		err = vErr
@@ -140,7 +121,7 @@ func (s *Common) GetTypeModel(vType model.Type) (ret model.Model, err *cd.Result
 	return
 }
 
-func (s *Common) buildModelValue(vModel model.Model) (ret string, err *cd.Result) {
+func (s *Context) buildModelValue(vModel model.Model) (ret string, err *cd.Result) {
 	pkField := vModel.GetPrimaryField()
 	switch pkField.GetType().GetValue() {
 	case model.TypeStringValue:
@@ -154,7 +135,7 @@ func (s *Common) buildModelValue(vModel model.Model) (ret string, err *cd.Result
 	return
 }
 
-func (s *Common) BuildFieldValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
+func (s *Context) BuildFieldValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
 	if !vValue.IsValid() {
 		ret, err = getBasicTypeDefaultValue(vType)
 		return
@@ -169,7 +150,7 @@ func (s *Common) BuildFieldValue(vType model.Type, vValue model.Value) (ret stri
 	case model.TypeFloatValue, model.TypeDoubleValue:
 		ret, err = s.encodeFloatValue(vType, vValue)
 	case model.TypeSliceValue:
-		fEncodeVal, fEncodeErr := s.EncodeValue(vType, vValue)
+		fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
 		if fEncodeErr != nil {
 			err = fEncodeErr
 			log.Errorf("encodeIntValue failed, s.EncodeValue error:%s", err.Error())
@@ -187,7 +168,7 @@ func (s *Common) BuildFieldValue(vType model.Type, vValue model.Value) (ret stri
 	return
 }
 
-func (s *Common) BuildOprValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
+func (s *Context) BuildOprValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
 	if !vValue.IsValid() {
 		err = cd.NewError(cd.UnExpected, "nil opr value")
 		return
@@ -215,7 +196,7 @@ func (s *Common) BuildOprValue(vType model.Type, vValue model.Value) (ret string
 	return
 }
 
-func (s *Common) BuildModelFilter() (ret string, err *cd.Result) {
+func (s *Context) BuildModelFilter() (ret string, err *cd.Result) {
 	pkField := s.hostModel.GetPrimaryField()
 	pkfVal, pkfErr := s.BuildFieldValue(pkField.GetType(), pkField.GetValue())
 	if pkfErr != nil {
@@ -229,8 +210,12 @@ func (s *Common) BuildModelFilter() (ret string, err *cd.Result) {
 	return
 }
 
-func (s *Common) encodeStringValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
-	fEncodeVal, fEncodeErr := s.EncodeValue(vType, vValue)
+func (s *Context) ExtractFiledValue(vType model.Type, eVal interface{}) (ret model.Value, err *cd.Result) {
+	return
+}
+
+func (s *Context) encodeStringValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
+	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fEncodeErr != nil {
 		err = fEncodeErr
 		log.Errorf("encodeStringValue failed, s.EncodeValue error:%s", err.Error())
@@ -241,8 +226,8 @@ func (s *Common) encodeStringValue(vType model.Type, vValue model.Value) (ret st
 	return
 }
 
-func (s *Common) encodeIntValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
-	fEncodeVal, fEncodeErr := s.EncodeValue(vType, vValue)
+func (s *Context) encodeIntValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
+	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fEncodeErr != nil {
 		err = fEncodeErr
 		log.Errorf("encodeIntValue failed, s.EncodeValue error:%s", err.Error())
@@ -252,8 +237,8 @@ func (s *Common) encodeIntValue(vType model.Type, vValue model.Value) (ret strin
 	return
 }
 
-func (s *Common) encodeFloatValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
-	fEncodeVal, fEncodeErr := s.EncodeValue(vType, vValue)
+func (s *Context) encodeFloatValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
+	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fEncodeErr != nil {
 		err = fEncodeErr
 		log.Errorf("encodeFloatValue failed, s.EncodeValue error:%s", err.Error())
@@ -263,8 +248,8 @@ func (s *Common) encodeFloatValue(vType model.Type, vValue model.Value) (ret str
 	return
 }
 
-func (s *Common) encodeStructValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
-	fEncodeVal, fEncodeErr := s.EncodeValue(vType, vValue)
+func (s *Context) encodeStructValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
+	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fEncodeErr != nil {
 		err = fEncodeErr
 		log.Errorf("encodeStringValue failed, s.EncodeValue error:%s", err.Error())
@@ -279,7 +264,7 @@ func (s *Common) encodeStructValue(vType model.Type, vValue model.Value) (ret st
 	return
 }
 
-func (s *Common) encodeSliceString(sliceVal []interface{}) []string {
+func (s *Context) encodeSliceString(sliceVal []interface{}) []string {
 	strSlice := make([]string, len(sliceVal))
 	for idx, val := range sliceVal {
 		strSlice[idx] = val.(string)
@@ -288,7 +273,7 @@ func (s *Common) encodeSliceString(sliceVal []interface{}) []string {
 	return strSlice
 }
 
-func (s *Common) encodeSliceInt(sliceVal []interface{}) []string {
+func (s *Context) encodeSliceInt(sliceVal []interface{}) []string {
 	strSlice := make([]string, len(sliceVal))
 	for idx, val := range sliceVal {
 		strSlice[idx] = fmt.Sprintf("%v", val)
@@ -297,7 +282,7 @@ func (s *Common) encodeSliceInt(sliceVal []interface{}) []string {
 	return strSlice
 }
 
-func (s *Common) encodeSliceFloat(sliceVal []interface{}) []string {
+func (s *Context) encodeSliceFloat(sliceVal []interface{}) []string {
 	strSlice := make([]string, len(sliceVal))
 	for idx, val := range sliceVal {
 		strSlice[idx] = fmt.Sprintf("%v", val)
@@ -306,7 +291,7 @@ func (s *Common) encodeSliceFloat(sliceVal []interface{}) []string {
 	return strSlice
 }
 
-func (s *Common) encodeSliceStruct(sliceVal []interface{}) []string {
+func (s *Context) encodeSliceStruct(sliceVal []interface{}) []string {
 	strSlice := make([]string, len(sliceVal))
 	for idx, val := range sliceVal {
 		strSlice[idx] = fmt.Sprintf("%v", val)
@@ -315,8 +300,8 @@ func (s *Common) encodeSliceStruct(sliceVal []interface{}) []string {
 	return strSlice
 }
 
-func (s *Common) encodeSliceValue(vType model.Type, vValue model.Value) (ret []string, err *cd.Result) {
-	fEncodeVal, fEncodeErr := s.EncodeValue(vType, vValue)
+func (s *Context) encodeSliceValue(vType model.Type, vValue model.Value) (ret []string, err *cd.Result) {
+	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fEncodeErr != nil {
 		err = fEncodeErr
 		log.Errorf("encodeSliceValue failed, s.EncodeValue error:%s", err.Error())
