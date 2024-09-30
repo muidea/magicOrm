@@ -36,7 +36,7 @@ func (s *Context) constructInfix(vFiled model.Field) string {
 	return strings.ToUpper(strName[:1]) + strName[1:]
 }
 
-func (s *Context) GetHostTableName() string {
+func (s *Context) GetHostModelTableName() string {
 	if s.hostModelTableName == "" {
 		s.hostModelTableName = s.GetModelTableName(s.hostModel)
 	}
@@ -44,11 +44,11 @@ func (s *Context) GetHostTableName() string {
 	return s.hostModelTableName
 }
 
-func (s *Context) GetHostPrimaryKeyField() model.Field {
+func (s *Context) GetHostModelPrimaryKeyField() model.Field {
 	return s.hostModel.GetPrimaryField()
 }
 
-func (s *Context) GetHostFields() model.Fields {
+func (s *Context) GetHostModelFields() model.Fields {
 	return s.hostModel.GetFields()
 }
 
@@ -121,20 +121,6 @@ func (s *Context) GetTypeModel(vType model.Type) (ret model.Model, err *cd.Resul
 	return
 }
 
-func (s *Context) buildModelValue(vModel model.Model) (ret string, err *cd.Result) {
-	pkField := vModel.GetPrimaryField()
-	switch pkField.GetType().GetValue() {
-	case model.TypeStringValue:
-		ret, err = s.encodeStringValue(pkField.GetType(), pkField.GetValue())
-	case model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeBigIntegerValue, model.TypeIntegerValue,
-		model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue, model.TypePositiveIntegerValue:
-		ret, err = s.encodeIntValue(pkField.GetType(), pkField.GetValue())
-	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal pkFiled type %s", pkField.GetType().GetPkgKey()))
-	}
-	return
-}
-
 func (s *Context) BuildFieldValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
 	if !vValue.IsValid() {
 		ret, err = getBasicTypeDefaultValue(vType)
@@ -196,21 +182,21 @@ func (s *Context) BuildOprValue(vType model.Type, vValue model.Value) (ret strin
 	return
 }
 
-func (s *Context) BuildModelFilter() (ret string, err *cd.Result) {
-	pkField := s.hostModel.GetPrimaryField()
-	pkfVal, pkfErr := s.BuildFieldValue(pkField.GetType(), pkField.GetValue())
-	if pkfErr != nil {
-		err = pkfErr
-		log.Errorf("BuildModelFilter failed, s.EncodeValue error:%s", err.Error())
-		return
-	}
-
-	pkfName := pkField.GetName()
-	ret = fmt.Sprintf("`%s` = %v", pkfName, pkfVal)
+func (s *Context) ExtractFiledValue(vType model.Type, eVal interface{}) (ret model.Value, err *cd.Result) {
 	return
 }
 
-func (s *Context) ExtractFiledValue(vType model.Type, eVal interface{}) (ret model.Value, err *cd.Result) {
+func (s *Context) buildModelValue(vModel model.Model) (ret string, err *cd.Result) {
+	pkField := vModel.GetPrimaryField()
+	switch pkField.GetType().GetValue() {
+	case model.TypeStringValue:
+		ret, err = s.encodeStringValue(pkField.GetType(), pkField.GetValue())
+	case model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeBigIntegerValue, model.TypeIntegerValue,
+		model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue, model.TypePositiveIntegerValue:
+		ret, err = s.encodeIntValue(pkField.GetType(), pkField.GetValue())
+	default:
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal pkFiled type %s", pkField.GetType().GetPkgKey()))
+	}
 	return
 }
 

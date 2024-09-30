@@ -11,7 +11,7 @@ import (
 
 func (s *Builder) BuildCreateTable() (ret string, err *cd.Result) {
 	str := ""
-	for _, val := range s.common.GetHostFields() {
+	for _, val := range s.common.GetHostModelFields() {
 		fType := val.GetType()
 		if !fType.IsBasic() {
 			continue
@@ -31,10 +31,10 @@ func (s *Builder) BuildCreateTable() (ret string, err *cd.Result) {
 		}
 	}
 
-	pkFieldName := s.common.GetHostPrimaryKeyField().GetName()
+	pkFieldName := s.common.GetHostModelPrimaryKeyField().GetName()
 	str = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", str, pkFieldName)
 
-	str = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", s.common.GetHostTableName(), str)
+	str = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", s.common.GetHostModelTableName(), str)
 	if traceSQL() {
 		log.Infof("[SQL] create: %s", str)
 	}
@@ -45,7 +45,7 @@ func (s *Builder) BuildCreateTable() (ret string, err *cd.Result) {
 
 // BuildCreateRelationTable Build CreateRelation Schema
 func (s *Builder) BuildCreateRelationTable(field model.Field, rModel model.Model) (ret string, err *cd.Result) {
-	lPKField := s.common.GetHostPrimaryKeyField()
+	lPKField := s.common.GetHostModelPrimaryKeyField()
 	lPKType, lPKErr := getTypeDeclare(lPKField.GetType(), lPKField.GetSpec())
 	if lPKErr != nil {
 		err = lPKErr

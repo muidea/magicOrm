@@ -13,7 +13,7 @@ import (
 func (s *Builder) BuildInsert() (ret string, err *cd.Result) {
 	fieldNames := ""
 	fieldValues := ""
-	for _, field := range s.common.GetHostFields() {
+	for _, field := range s.common.GetHostModelFields() {
 		fType := field.GetType()
 		fSpec := field.GetSpec()
 		fValue := field.GetValue()
@@ -41,7 +41,7 @@ func (s *Builder) BuildInsert() (ret string, err *cd.Result) {
 		}
 	}
 
-	str := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.common.GetHostTableName(), fieldNames, fieldValues)
+	str := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.common.GetHostModelTableName(), fieldNames, fieldValues)
 	//log.Print(str)
 	if traceSQL() {
 		log.Infof("[SQL] insert: %s", str)

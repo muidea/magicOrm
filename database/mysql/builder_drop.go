@@ -11,7 +11,7 @@ import (
 
 // BuildDropTable  BuildDropSchema
 func (s *Builder) BuildDropTable() (ret string, err *cd.Result) {
-	str := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", s.common.GetHostTableName())
+	str := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", s.common.GetHostModelTableName())
 	//log.Print(str)
 	if traceSQL() {
 		log.Infof("[SQL] drop: %s", str)

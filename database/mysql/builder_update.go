@@ -16,14 +16,14 @@ func (s *Builder) BuildUpdate() (ret string, err *cd.Result) {
 		log.Errorf("BuildUpdate failed, s.getFieldUpdateValues error:%s", err.Error())
 		return
 	}
-	filterStr, filterErr := s.common.BuildModelFilter()
+	filterStr, filterErr := s.buildFiledFilter(s.common.GetHostModelPrimaryKeyField())
 	if filterErr != nil {
 		err = filterErr
 		log.Errorf("BuildUpdate failed, s.BuildModelFilter error:%s", err.Error())
 		return
 	}
 
-	str := fmt.Sprintf("UPDATE `%s` SET %s WHERE %s", s.common.GetHostTableName(), updateStr, filterStr)
+	str := fmt.Sprintf("UPDATE `%s` SET %s WHERE %s", s.common.GetHostModelTableName(), updateStr, filterStr)
 	//log.Print(str)
 	if traceSQL() {
 		log.Infof("[SQL] update: %s", str)
@@ -36,7 +36,7 @@ func (s *Builder) BuildUpdate() (ret string, err *cd.Result) {
 
 func (s *Builder) getFieldUpdateValues() (ret string, err *cd.Result) {
 	str := ""
-	for _, field := range s.common.GetHostFields() {
+	for _, field := range s.common.GetHostModelFields() {
 		if field.IsPrimaryKey() {
 			continue
 		}

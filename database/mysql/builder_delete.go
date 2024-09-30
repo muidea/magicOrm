@@ -11,14 +11,14 @@ import (
 
 // BuildDelete  BuildDelete
 func (s *Builder) BuildDelete() (ret string, err *cd.Result) {
-	filterStr, filterErr := s.common.BuildModelFilter()
+	filterStr, filterErr := s.buildFiledFilter(s.common.GetHostModelPrimaryKeyField())
 	if filterErr != nil {
 		err = filterErr
 		log.Errorf("BuildDelete failed, s.BuildModelFilter error:%s", err.Error())
 		return
 	}
 
-	str := fmt.Sprintf("DELETE FROM `%s` WHERE %s", s.common.GetHostTableName(), filterStr)
+	str := fmt.Sprintf("DELETE FROM `%s` WHERE %s", s.common.GetHostModelTableName(), filterStr)
 	if traceSQL() {
 		log.Infof("[SQL] delete: %s", str)
 	}

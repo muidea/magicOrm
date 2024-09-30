@@ -18,7 +18,7 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret string, err *cd.Result) {
 		return
 	}
 
-	str := fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.common.GetHostTableName())
+	str := fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.common.GetHostModelTableName())
 	if filter != nil {
 		filterSQL, filterErr := s.buildFilter(filter)
 		if filterErr != nil {
@@ -121,73 +121,6 @@ func (s *Builder) buildRelationItem(pkField model.Field, rField model.Field, fil
 	relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTableName, strVal)
 	relationFilterSQL = fmt.Sprintf("`%s` IN (%s)", pkField.GetName(), relationFilterSQL)
 	ret = relationFilterSQL
-	return
-}
-
-func (s *Builder) buildFilter(filter model.Filter) (ret string, err *cd.Result) {
-	if filter == nil {
-		return
-	}
-
-	filterSQL := ""
-	pkField := s.common.GetHostPrimaryKeyField()
-	for _, field := range s.common.GetHostFields() {
-		filterItem := filter.GetFilterItem(field.GetName())
-		if filterItem == nil {
-			continue
-		}
-
-		fType := field.GetType()
-		if fType.IsBasic() {
-			basicSQL, basicErr := s.buildBasicItem(field, filterItem)
-			if basicErr != nil {
-				err = basicErr
-				log.Errorf("buildFilter failed, s.buildBasicItem %s error:%s", field.GetName(), err.Error())
-				return
-			}
-
-			if filterSQL == "" {
-				filterSQL = fmt.Sprintf("%s", basicSQL)
-				continue
-			}
-
-			filterSQL = fmt.Sprintf("%s AND %s", filterSQL, basicSQL)
-			continue
-		}
-
-		relationSQL, relationErr := s.buildRelationItem(pkField, field, filterItem)
-		if relationErr != nil {
-			err = relationErr
-			log.Errorf("buildFilter failed, s.buildRelationItem %s error:%s", field.GetName(), err.Error())
-			return
-		}
-
-		if filterSQL == "" {
-			filterSQL = fmt.Sprintf("%s", relationSQL)
-			continue
-		}
-
-		filterSQL = fmt.Sprintf("%s AND %s", filterSQL, relationSQL)
-	}
-
-	ret = filterSQL
-	return
-}
-
-func (s *Builder) buildSorter(filter model.Sorter) (ret string, err *cd.Result) {
-	if filter == nil {
-		return
-	}
-
-	for _, val := range s.common.GetHostFields() {
-		if val.GetName() == filter.Name() {
-			ret = SortOpr(filter.Name(), filter.AscSort())
-			return
-		}
-	}
-
-	err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal sort field name:%s", filter.Name()))
-	log.Errorf("buildSorter failed, err:%s", err.Error())
 	return
 }
 
