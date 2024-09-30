@@ -89,7 +89,7 @@ func (s *Context) GetRelationTableName(vField model.Field, rModel model.Model) s
 	return tableName
 }
 
-func (s *Context) GetRelationValue(rModel model.Model) (leftVal, rightVal any, err *cd.Result) {
+func (s *Context) GetRelationValue(rModel model.Model) (leftVal, rightVal model.RawVal, err *cd.Result) {
 	entityVal, entityErr := s.GetHostModelValue()
 	if entityErr != nil {
 		err = entityErr
@@ -121,9 +121,15 @@ func (s *Context) GetTypeModel(vType model.Type) (ret model.Model, err *cd.Resul
 	return
 }
 
-func (s *Context) BuildFieldValue(vType model.Type, vValue model.Value) (ret any, err *cd.Result) {
+func (s *Context) BuildFieldValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
 	if !vValue.IsValid() {
-		ret, err = getBasicTypeDefaultValue(vType)
+		defaultVal, defaultErr := getBasicTypeDefaultValue(vType)
+		if defaultErr != nil {
+			err = defaultErr
+			return
+		}
+
+		ret = model.NewRawVal(defaultVal)
 		return
 	}
 
@@ -147,7 +153,7 @@ func (s *Context) BuildFieldValue(vType model.Type, vValue model.Value) (ret any
 			err = cd.NewError(cd.UnExpected, fmt.Sprintf("%s", byteErr.Error()))
 			return
 		}
-		ret = fmt.Sprintf("'%v'", strings.ReplaceAll(string(byteVal), "'", "''"))
+		ret = model.NewRawVal(fmt.Sprintf("'%v'", strings.ReplaceAll(string(byteVal), "'", "''")))
 	default:
 		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal filed type %s", vType.GetPkgKey()))
 	}
