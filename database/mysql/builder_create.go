@@ -17,7 +17,7 @@ func (s *Builder) BuildCreateTable() (ret string, err *cd.Result) {
 			continue
 		}
 
-		infoVal, infoErr := declareFieldInfo(val)
+		infoVal, infoErr := s.declareFieldInfo(val)
 		if infoErr != nil {
 			err = infoErr
 			log.Errorf("BuildCreateTable failed, declareFieldInfo error:%s", err.Error())
@@ -70,5 +70,24 @@ func (s *Builder) BuildCreateRelationTable(field model.Field, rModel model.Model
 	}
 
 	ret = str
+	return
+}
+
+func (s *Builder) declareFieldInfo(vField model.Field) (ret string, err *cd.Result) {
+	autoIncrement := ""
+	fSpec := vField.GetSpec()
+	if fSpec != nil && model.IsAutoIncrement(fSpec.GetValueDeclare()) {
+		autoIncrement = "AUTO_INCREMENT"
+	}
+
+	allowNull := "NOT NULL"
+	typeVal, typeErr := getTypeDeclare(vField.GetType(), vField.GetSpec())
+	if typeErr != nil {
+		err = typeErr
+		log.Errorf("declareFieldInfo failed, getTypeDeclare error:%s", err.Error())
+		return
+	}
+
+	ret = fmt.Sprintf("`%s` %s %s %s", vField.GetName(), typeVal, allowNull, autoIncrement)
 	return
 }

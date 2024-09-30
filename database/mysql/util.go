@@ -45,25 +45,6 @@ func verifyModel(vModel model.Model) *cd.Result {
 	return nil
 }
 
-func declareFieldInfo(vField model.Field) (ret string, err *cd.Result) {
-	autoIncrement := ""
-	fSpec := vField.GetSpec()
-	if fSpec != nil && model.IsAutoIncrement(fSpec.GetValueDeclare()) {
-		autoIncrement = "AUTO_INCREMENT"
-	}
-
-	allowNull := "NOT NULL"
-	typeVal, typeErr := getTypeDeclare(vField.GetType(), vField.GetSpec())
-	if typeErr != nil {
-		err = typeErr
-		log.Errorf("declareFieldInfo failed, getTypeDeclare error:%s", err.Error())
-		return
-	}
-
-	ret = fmt.Sprintf("`%s` %s %s %s", vField.GetName(), typeVal, allowNull, autoIncrement)
-	return
-}
-
 func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err *cd.Result) {
 	switch fType.GetValue() {
 	case model.TypeStringValue:

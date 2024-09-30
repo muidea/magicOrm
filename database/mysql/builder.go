@@ -73,6 +73,54 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err *cd.Result) 
 	return
 }
 
+func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem) (ret string, err *cd.Result) {
+	fType := vField.GetType()
+	oprValue := filterItem.OprValue()
+	oprFunc := getOprFunc(filterItem)
+	oprStr, oprErr := s.common.BuildOprValue(fType, oprValue)
+	if oprErr != nil {
+		err = oprErr
+		log.Errorf("buildBasicItem %s failed, EncodeValue error:%s", vField.GetName(), err.Error())
+		return
+	}
+
+	if fType.IsBasic() {
+		ret = oprFunc(vField.GetName(), oprStr)
+		return
+	}
+
+	err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal item type, name:%s", vField.GetName()))
+	log.Errorf("buildBasicItem failed, error:%s", err.Error())
+	return
+}
+
+func (s *Builder) buildRelationItem(pkField model.Field, rField model.Field, filterItem model.FilterItem) (ret string, err *cd.Result) {
+	fType := rField.GetType()
+	oprValue := filterItem.OprValue()
+	oprFunc := getOprFunc(filterItem)
+	oprStr, oprErr := s.common.BuildOprValue(fType, oprValue)
+	if oprErr != nil {
+		err = oprErr
+		log.Errorf("buildRelationItem %s failed, s.EncodeValue error:%s", rField.GetName(), err.Error())
+		return
+	}
+
+	fieldModel, fieldErr := s.common.GetTypeModel(fType)
+	if fieldErr != nil {
+		err = fieldErr
+		log.Errorf("buildRelationItem failed, s.GetTypeModel error:%s", err.Error())
+		return
+	}
+
+	relationFilterSQL := ""
+	strVal := oprFunc("right", oprStr)
+	relationTableName := s.common.GetRelationTableName(rField, fieldModel)
+	relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTableName, strVal)
+	relationFilterSQL = fmt.Sprintf("`%s` IN (%s)", pkField.GetName(), relationFilterSQL)
+	ret = relationFilterSQL
+	return
+}
+
 func (s *Builder) buildSorter(filter model.Sorter) (ret string, err *cd.Result) {
 	if filter == nil {
 		return
