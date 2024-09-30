@@ -89,7 +89,7 @@ func (s *Context) GetRelationTableName(vField model.Field, rModel model.Model) s
 	return tableName
 }
 
-func (s *Context) GetRelationValue(rModel model.Model) (leftVal, rightVal interface{}, err *cd.Result) {
+func (s *Context) GetRelationValue(rModel model.Model) (leftVal, rightVal any, err *cd.Result) {
 	entityVal, entityErr := s.GetHostModelValue()
 	if entityErr != nil {
 		err = entityErr
@@ -121,7 +121,7 @@ func (s *Context) GetTypeModel(vType model.Type) (ret model.Model, err *cd.Resul
 	return
 }
 
-func (s *Context) BuildFieldValue(vType model.Type, vValue model.Value) (ret interface{}, err *cd.Result) {
+func (s *Context) BuildFieldValue(vType model.Type, vValue model.Value) (ret any, err *cd.Result) {
 	if !vValue.IsValid() {
 		ret, err = getBasicTypeDefaultValue(vType)
 		return
@@ -183,7 +183,7 @@ func (s *Context) BuildOprValue(vType model.Type, vValue model.Value) (ret model
 	return
 }
 
-func (s *Context) ExtractFiledValue(vType model.Type, eVal interface{}) (ret model.Value, err *cd.Result) {
+func (s *Context) ExtractFiledValue(vType model.Type, eVal any) (ret model.Value, err *cd.Result) {
 	return
 }
 
@@ -247,7 +247,7 @@ func (s *Context) encodeStructValue(vType model.Type, vValue model.Value) (ret m
 	return
 }
 
-func (s *Context) encodeSliceString(sliceVal []interface{}) []string {
+func (s *Context) encodeSliceString(sliceVal []any) []string {
 	strSlice := make([]string, len(sliceVal))
 	for idx, val := range sliceVal {
 		strSlice[idx] = val.(string)
@@ -256,7 +256,7 @@ func (s *Context) encodeSliceString(sliceVal []interface{}) []string {
 	return strSlice
 }
 
-func (s *Context) encodeSliceInt(sliceVal []interface{}) []string {
+func (s *Context) encodeSliceInt(sliceVal []any) []string {
 	strSlice := make([]string, len(sliceVal))
 	for idx, val := range sliceVal {
 		strSlice[idx] = fmt.Sprintf("%v", val)
@@ -265,7 +265,7 @@ func (s *Context) encodeSliceInt(sliceVal []interface{}) []string {
 	return strSlice
 }
 
-func (s *Context) encodeSliceFloat(sliceVal []interface{}) []string {
+func (s *Context) encodeSliceFloat(sliceVal []any) []string {
 	strSlice := make([]string, len(sliceVal))
 	for idx, val := range sliceVal {
 		strSlice[idx] = fmt.Sprintf("%v", val)
@@ -274,7 +274,7 @@ func (s *Context) encodeSliceFloat(sliceVal []interface{}) []string {
 	return strSlice
 }
 
-func (s *Context) encodeSliceStruct(sliceVal []interface{}) []string {
+func (s *Context) encodeSliceStruct(sliceVal []any) []string {
 	strSlice := make([]string, len(sliceVal))
 	for idx, val := range sliceVal {
 		strSlice[idx] = fmt.Sprintf("%v", val)
@@ -291,7 +291,7 @@ func (s *Context) encodeSliceValue(vType model.Type, vValue model.Value) (ret []
 		return
 	}
 
-	sliceVal, sliceOK := fEncodeVal.Value().([]interface{})
+	sliceVal, sliceOK := fEncodeVal.Value().([]any)
 	if !sliceOK {
 		err = cd.NewError(cd.UnExpected, "illegal slice encode value")
 		return
