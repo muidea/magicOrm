@@ -8,19 +8,19 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicCommon/foundation/util"
-	"github.com/muidea/magicOrm/model"
+	om "github.com/muidea/magicOrm/model"
 )
 
 type filterItem struct {
-	oprCode model.OprCode
+	oprCode om.OprCode
 	value   *ValueImpl
 }
 
-func (s *filterItem) OprCode() model.OprCode {
+func (s *filterItem) OprCode() om.OprCode {
 	return s.oprCode
 }
 
-func (s *filterItem) OprValue() model.Value {
+func (s *filterItem) OprValue() om.Value {
 	return s.value
 }
 
@@ -96,7 +96,7 @@ func (s *ObjectFilter) GetInt(key string) (ret int, ok bool) {
 	return
 }
 
-func (s *ObjectFilter) Equal(key string, val interface{}) (err *cd.Result) {
+func (s *ObjectFilter) Equal(key string, val any) (err *cd.Result) {
 	switch val.(type) {
 	case bool,
 		int8, int16, int32, int, int64,
@@ -112,14 +112,13 @@ func (s *ObjectFilter) Equal(key string, val interface{}) (err *cd.Result) {
 		}
 		s.EqualFilter = append(s.EqualFilter, item)
 	default:
-		err := fmt.Errorf("equal failed, illegal value, key:%v, val:%v", key, val)
-		panic(err.Error())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("equal failed, illegal value, key:%v, val:%v", key, val))
 	}
 
 	return
 }
 
-func (s *ObjectFilter) NotEqual(key string, val interface{}) (err *cd.Result) {
+func (s *ObjectFilter) NotEqual(key string, val any) (err *cd.Result) {
 	switch val.(type) {
 	case bool,
 		int8, int16, int32, int, int64,
@@ -135,14 +134,13 @@ func (s *ObjectFilter) NotEqual(key string, val interface{}) (err *cd.Result) {
 		}
 		s.NotEqualFilter = append(s.NotEqualFilter, item)
 	default:
-		err := fmt.Errorf("not equal failed, illegal value, key:%v, val:%v", key, val)
-		panic(err.Error())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("not equal failed, illegal value, key:%v, val:%v", key, val))
 	}
 
 	return
 }
 
-func (s *ObjectFilter) Below(key string, val interface{}) (err *cd.Result) {
+func (s *ObjectFilter) Below(key string, val any) (err *cd.Result) {
 	switch val.(type) {
 	case int8, int16, int32, int, int64,
 		uint8, uint16, uint32, uint, uint64,
@@ -150,13 +148,12 @@ func (s *ObjectFilter) Below(key string, val interface{}) (err *cd.Result) {
 		item := &FieldValue{Name: key, Value: val}
 		s.BelowFilter = append(s.BelowFilter, item)
 	default:
-		err := fmt.Errorf("below failed, illegal value, key:%v, val:%v", key, val)
-		panic(err.Error())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("below failed, illegal value, key:%v, val:%v", key, val))
 	}
 	return
 }
 
-func (s *ObjectFilter) Above(key string, val interface{}) (err *cd.Result) {
+func (s *ObjectFilter) Above(key string, val any) (err *cd.Result) {
 	switch val.(type) {
 	case int8, int16, int32, int, int64,
 		uint8, uint16, uint32, uint, uint64,
@@ -164,13 +161,12 @@ func (s *ObjectFilter) Above(key string, val interface{}) (err *cd.Result) {
 		item := &FieldValue{Name: key, Value: val}
 		s.AboveFilter = append(s.AboveFilter, item)
 	default:
-		err := fmt.Errorf("below failed, illegal value, key:%v, val:%v", key, val)
-		panic(err.Error())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("above failed, illegal value, key:%v, val:%v", key, val))
 	}
 	return
 }
 
-func (s *ObjectFilter) In(key string, val interface{}) (err *cd.Result) {
+func (s *ObjectFilter) In(key string, val any) (err *cd.Result) {
 	switch val.(type) {
 	case []bool,
 		[]int8, []int16, []int32, []int, []int64,
@@ -187,14 +183,13 @@ func (s *ObjectFilter) In(key string, val interface{}) (err *cd.Result) {
 		}
 		s.InFilter = append(s.InFilter, item)
 	default:
-		err := fmt.Errorf("in failed, illegal value, key:%v, val:%v", key, val)
-		panic(err.Error())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("in failed, illegal value, key:%v, val:%v", key, val))
 	}
 
 	return
 }
 
-func (s *ObjectFilter) NotIn(key string, val interface{}) (err *cd.Result) {
+func (s *ObjectFilter) NotIn(key string, val any) (err *cd.Result) {
 	switch val.(type) {
 	case []bool,
 		[]int8, []int16, []int32, []int, []int64,
@@ -211,21 +206,19 @@ func (s *ObjectFilter) NotIn(key string, val interface{}) (err *cd.Result) {
 		}
 		s.NotInFilter = append(s.NotInFilter, item)
 	default:
-		err := fmt.Errorf("not in failed, illegal value, key:%v, val:%v", key, val)
-		panic(err.Error())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("not in failed, illegal value, key:%v, val:%v", key, val))
 	}
 
 	return
 }
 
-func (s *ObjectFilter) Like(key string, val interface{}) (err *cd.Result) {
+func (s *ObjectFilter) Like(key string, val any) (err *cd.Result) {
 	switch val.(type) {
 	case string:
 		item := &FieldValue{Name: key, Value: val}
 		s.LikeFilter = append(s.LikeFilter, item)
 	default:
-		err := fmt.Errorf("like failed, illegal value, key:%v, val:%v", key, val)
-		panic(err.Error())
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("like failed, illegal value, key:%v, val:%v", key, val))
 	}
 
 	return
@@ -239,7 +232,7 @@ func (s *ObjectFilter) Sort(sorter *util.SortFilter) {
 	s.SortFilter = sorter
 }
 
-func (s *ObjectFilter) ValueMask(val interface{}) (err *cd.Result) {
+func (s *ObjectFilter) ValueMask(val any) (err *cd.Result) {
 	if val == nil {
 		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal mask value"))
 		return
@@ -287,13 +280,13 @@ func (s *ObjectFilter) ValueMask(val interface{}) (err *cd.Result) {
 	return
 }
 
-func (s *ObjectFilter) GetFilterItem(key string) model.FilterItem {
+func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
 	itemVal, itemErr := s.getFilterValue(key, s.EqualFilter)
 	if itemErr != nil {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: model.EqualOpr, value: NewValue(itemVal.Get())}
+		return &filterItem{oprCode: om.EqualOpr, value: NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.NotEqualFilter)
@@ -301,7 +294,7 @@ func (s *ObjectFilter) GetFilterItem(key string) model.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: model.NotEqualOpr, value: NewValue(itemVal.Get())}
+		return &filterItem{oprCode: om.NotEqualOpr, value: NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.BelowFilter)
@@ -309,7 +302,7 @@ func (s *ObjectFilter) GetFilterItem(key string) model.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: model.BelowOpr, value: NewValue(itemVal.Get())}
+		return &filterItem{oprCode: om.BelowOpr, value: NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.AboveFilter)
@@ -317,7 +310,7 @@ func (s *ObjectFilter) GetFilterItem(key string) model.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: model.AboveOpr, value: NewValue(itemVal.Get())}
+		return &filterItem{oprCode: om.AboveOpr, value: NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.InFilter)
@@ -325,7 +318,7 @@ func (s *ObjectFilter) GetFilterItem(key string) model.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: model.InOpr, value: NewValue(itemVal.Get())}
+		return &filterItem{oprCode: om.InOpr, value: NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.NotInFilter)
@@ -333,7 +326,7 @@ func (s *ObjectFilter) GetFilterItem(key string) model.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: model.NotInOpr, value: NewValue(itemVal.Get())}
+		return &filterItem{oprCode: om.NotInOpr, value: NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.LikeFilter)
@@ -341,7 +334,7 @@ func (s *ObjectFilter) GetFilterItem(key string) model.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: model.LikeOpr, value: NewValue(itemVal.Get())}
+		return &filterItem{oprCode: om.LikeOpr, value: NewValue(itemVal.Get())}
 	}
 
 	return nil
@@ -380,7 +373,7 @@ func (s *ObjectFilter) Pagination() (limit, offset int, paging bool) {
 	return
 }
 
-func (s *ObjectFilter) Sorter() model.Sorter {
+func (s *ObjectFilter) Sorter() om.Sorter {
 	if s.SortFilter == nil {
 		return nil
 	}
@@ -388,7 +381,7 @@ func (s *ObjectFilter) Sorter() model.Sorter {
 	return s.SortFilter
 }
 
-func (s *ObjectFilter) MaskModel() model.Model {
+func (s *ObjectFilter) MaskModel() om.Model {
 	maskObject := s.bindObject
 	if s.MaskValue != nil {
 		for _, val := range s.MaskValue.Fields {

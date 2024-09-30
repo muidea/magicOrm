@@ -74,23 +74,47 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 	if initVal != nil {
 		switch s.GetValue() {
 		case model.TypeBooleanValue:
-			initVal, err = util.GetBool(initVal)
-			tVal.SetBool(initVal.(bool))
+			rawVal, rawErr := util.GetBool(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			tVal.SetBool(rawVal.Value().(bool))
 		case model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeIntegerValue, model.TypeBigIntegerValue:
-			initVal, err = util.GetInt64(initVal)
-			tVal.SetInt(initVal.(int64))
+			rawVal, rawErr := util.GetInt64(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			tVal.SetInt(rawVal.Value().(int64))
 		case model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveIntegerValue, model.TypePositiveBigIntegerValue:
-			initVal, err = util.GetUint64(initVal)
-			tVal.SetUint(initVal.(uint64))
+			rawVal, rawErr := util.GetUint64(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			tVal.SetUint(rawVal.Value().(uint64))
 		case model.TypeFloatValue, model.TypeDoubleValue:
-			initVal, err = util.GetFloat64(initVal)
-			tVal.SetFloat(initVal.(float64))
+			rawVal, rawErr := util.GetFloat64(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			tVal.SetFloat(rawVal.Value().(float64))
 		case model.TypeStringValue:
-			initVal, err = util.GetString(initVal)
-			tVal.SetString(initVal.(string))
+			rawVal, rawErr := util.GetString(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			tVal.SetString(rawVal.Value().(string))
 		case model.TypeDateTimeValue:
-			initVal, err = util.GetDateTime(initVal)
-			tVal.Set(reflect.ValueOf(initVal))
+			rawVal, rawErr := util.GetDateTime(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			tVal.Set(reflect.ValueOf(rawVal.Value()))
 		default:
 			rInitVal := reflect.Indirect(reflect.ValueOf(initVal))
 			if rInitVal.Type() != tVal.Type() {

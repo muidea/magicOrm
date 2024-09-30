@@ -140,8 +140,8 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *
 	return
 }
 
-func ElemDependValue(eVal interface{}) (ret []model.Value, err *cd.Result) {
-	vVal := reflect.ValueOf(eVal)
+func ElemDependValue(eVal model.RawVal) (ret []model.Value, err *cd.Result) {
+	vVal := reflect.ValueOf(eVal.Value())
 	if vVal.Kind() == reflect.Interface {
 		vVal = vVal.Elem()
 	}
@@ -188,7 +188,7 @@ func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, e
 	return
 }
 
-func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache) (ret interface{}, err *cd.Result) {
+func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache) (ret model.RawVal, err *cd.Result) {
 	tModel := mCache.Fetch(vType.GetPkgKey())
 	if tModel == nil {
 		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal model type,type:%s", vType.GetName()))
@@ -219,7 +219,7 @@ func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache) (ret in
 	return
 }
 
-func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache) (ret interface{}, err *cd.Result) {
+func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache) (ret model.RawVal, err *cd.Result) {
 	vVals, vErr := ElemDependValue(tVal.Interface())
 	if vErr != nil {
 		err = vErr
@@ -237,14 +237,14 @@ func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache) (r
 			return
 		}
 
-		items = append(items, mVal)
+		items = append(items, mVal.Value())
 	}
 
-	ret = items
+	ret = model.NewRawVal(items)
 	return
 }
 
-func EncodeValue(tVal model.Value, tType model.Type, mCache model.Cache) (ret interface{}, err *cd.Result) {
+func EncodeValue(tVal model.Value, tType model.Type, mCache model.Cache) (ret model.RawVal, err *cd.Result) {
 	if tType.IsBasic() {
 		ret, err = _codec.Encode(tVal, tType)
 		return
@@ -258,14 +258,14 @@ func EncodeValue(tVal model.Value, tType model.Type, mCache model.Cache) (ret in
 	return
 }
 
-func decodeModel(eVal interface{}, tType model.Type, mCache model.Cache) (ret model.Value, err *cd.Result) {
+func decodeModel(eVal model.RawVal, tType model.Type, mCache model.Cache) (ret model.Value, err *cd.Result) {
 	tModel := mCache.Fetch(tType.GetPkgKey())
 	if tModel == nil {
 		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal value type,type:%s", tType.GetName()))
 		return
 	}
 
-	mVal, mErr := GetEntityValue(eVal)
+	mVal, mErr := GetEntityValue(eVal.Value())
 	if mErr != nil {
 		err = mErr
 		return
@@ -291,12 +291,11 @@ func decodeModel(eVal interface{}, tType model.Type, mCache model.Cache) (ret mo
 		return
 	}
 
-	eVal = vModel.Interface(tType.IsPtrType(), model.OriginView)
-	ret, err = GetEntityValue(eVal)
+	ret, err = GetEntityValue(vModel.Interface(tType.IsPtrType(), model.OriginView))
 	return
 }
 
-func decodeSliceModel(eVal interface{}, tType model.Type, mCache model.Cache) (ret model.Value, err *cd.Result) {
+func decodeSliceModel(eVal model.RawVal, tType model.Type, mCache model.Cache) (ret model.Value, err *cd.Result) {
 	tModel := mCache.Fetch(tType.GetPkgKey())
 	if tModel == nil {
 		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal value type,type:%s", tType.GetName()))
@@ -340,7 +339,7 @@ func decodeSliceModel(eVal interface{}, tType model.Type, mCache model.Cache) (r
 	return
 }
 
-func DecodeValue(eVal interface{}, tType model.Type, mCache model.Cache) (ret model.Value, err *cd.Result) {
+func DecodeValue(eVal model.RawVal, tType model.Type, mCache model.Cache) (ret model.Value, err *cd.Result) {
 	if tType.IsBasic() {
 		ret, err = _codec.Decode(eVal, tType)
 		return

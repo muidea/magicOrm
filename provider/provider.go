@@ -32,11 +32,11 @@ type Provider interface {
 
 	GetTypeFilter(vType model.Type, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result)
 
-	EncodeValue(vVal model.Value, vType model.Type) (ret interface{}, err *cd.Result)
+	EncodeValue(vVal model.Value, vType model.Type) (ret model.RawVal, err *cd.Result)
 
-	DecodeValue(eVal interface{}, vType model.Type) (ret model.Value, err *cd.Result)
+	DecodeValue(eVal model.RawVal, vType model.Type) (ret model.Value, err *cd.Result)
 
-	ElemDependValue(eVal interface{}) (ret []model.Value, err *cd.Result)
+	ElemDependValue(eVal model.RawVal) (ret []model.Value, err *cd.Result)
 
 	AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, err *cd.Result)
 
@@ -97,10 +97,10 @@ type providerImpl struct {
 	getModelFunc         func(interface{}) (model.Model, *cd.Result)
 	getFilterFunc        func(model.Model) (model.Filter, *cd.Result)
 	setModelValueFunc    func(model.Model, model.Value) (model.Model, *cd.Result)
-	elemDependValueFunc  func(interface{}) ([]model.Value, *cd.Result)
+	elemDependValueFunc  func(val model.RawVal) ([]model.Value, *cd.Result)
 	appendSliceValueFunc func(model.Value, model.Value) (model.Value, *cd.Result)
-	encodeValueFunc      func(model.Value, model.Type, model.Cache) (interface{}, *cd.Result)
-	decodeValueFunc      func(interface{}, model.Type, model.Cache) (model.Value, *cd.Result)
+	encodeValueFunc      func(model.Value, model.Type, model.Cache) (model.RawVal, *cd.Result)
+	decodeValueFunc      func(model.RawVal, model.Type, model.Cache) (model.Value, *cd.Result)
 	getNewValue          func(declare model.ValueDeclare) model.Value
 }
 
@@ -164,36 +164,36 @@ func (s *providerImpl) GetEntityValue(entity interface{}) (ret model.Value, err 
 }
 
 func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err *cd.Result) {
-	entityType, entityErr := s.getTypeFunc(entity)
-	if entityErr != nil {
-		err = entityErr
+	entityTypeVal, entityTypeErr := s.getTypeFunc(entity)
+	if entityTypeErr != nil {
+		err = entityTypeErr
 		log.Errorf("GetEntityModel failed, s.getTypeFunc error:%v", err.Error())
 		return
 	}
 
 	// must check if register already
-	entityModel := s.modelCache.Fetch(entityType.GetPkgKey())
+	entityModel := s.modelCache.Fetch(entityTypeVal.GetPkgKey())
 	if entityModel == nil {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("can't fetch entity model, must register entity first, entity PkgKey:%s", entityType.GetPkgKey()))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("can't fetch entity model, must register entity first, entity PkgKey:%s", entityTypeVal.GetPkgKey()))
 		log.Errorf("GetEntityModel failed, s.modelCache.Fetch error:%v", err.Error())
 		return
 	}
 
-	if entityType.IsSlice() {
+	if entityTypeVal.IsSlice() {
 		ret = entityModel.Copy(true)
 		return
 	}
 
-	entityValue, entityErr := s.getValueFunc(entity)
-	if entityErr != nil {
+	entityValueVal, entityValueErr := s.getValueFunc(entity)
+	if entityValueErr != nil {
 		ret = entityModel.Copy(true)
 		// 获取entity值失败，说明entity只是类型定义不是值
 		// 这里要当成获取Model成功继续处理
-		//err = entityErr
+		//err = entityTypeErr
 		return
 	}
 
-	ret, err = s.setModelValueFunc(entityModel.Copy(true), entityValue)
+	ret, err = s.setModelValueFunc(entityModel.Copy(true), entityValueVal)
 	if err != nil {
 		log.Errorf("GetEntityModel failed, setModelValueFunc error:%v", err.Error())
 	}
@@ -292,7 +292,7 @@ func (s *providerImpl) GetTypeFilter(vType model.Type, viewSpec model.ViewDeclar
 	return
 }
 
-func (s *providerImpl) EncodeValue(vVal model.Value, vType model.Type) (ret interface{}, err *cd.Result) {
+func (s *providerImpl) EncodeValue(vVal model.Value, vType model.Type) (ret model.RawVal, err *cd.Result) {
 	ret, err = s.encodeValueFunc(vVal, vType, s.modelCache)
 	if err != nil {
 		log.Errorf("EncodeValue failed, s.encodeValueFunc error:%v", err.Error())
@@ -302,7 +302,7 @@ func (s *providerImpl) EncodeValue(vVal model.Value, vType model.Type) (ret inte
 	return
 }
 
-func (s *providerImpl) DecodeValue(eVal interface{}, vType model.Type) (ret model.Value, err *cd.Result) {
+func (s *providerImpl) DecodeValue(eVal model.RawVal, vType model.Type) (ret model.Value, err *cd.Result) {
 	ret, err = s.decodeValueFunc(eVal, vType, s.modelCache)
 	if err != nil {
 		log.Errorf("DecodeValue failed, s.decodeValueFunc error:%v", err.Error())
@@ -312,7 +312,7 @@ func (s *providerImpl) DecodeValue(eVal interface{}, vType model.Type) (ret mode
 	return
 }
 
-func (s *providerImpl) ElemDependValue(eVal interface{}) (ret []model.Value, err *cd.Result) {
+func (s *providerImpl) ElemDependValue(eVal model.RawVal) (ret []model.Value, err *cd.Result) {
 	ret, err = s.elemDependValueFunc(eVal)
 	if err != nil {
 		log.Errorf("ElemDependValue failed, s.elemDependValueFunc error:%v", err.Error())

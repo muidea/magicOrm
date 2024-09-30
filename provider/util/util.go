@@ -344,77 +344,161 @@ func IsSameValue(firstVal, secondVal any) (ret bool) {
 	return
 }
 
-func GetBool(val any) (ret bool, err *cd.Result) {
+func GetBool(val any) (ret model.RawVal, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
-	return GetRawBool(rVal)
+	rawVal, rawErr := GetRawBool(rVal)
+	if rawErr != nil {
+		err = rawErr
+		return
+	}
+	ret = model.NewRawVal(rawVal)
+	return
 }
 
-func GetInt(val any) (ret int, err *cd.Result) {
+func GetInt(val any) (ret model.RawVal, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
-	return GetRawInt(rVal)
+	rawVal, rawErr := GetRawInt(rVal)
+	if rawErr != nil {
+		err = rawErr
+		return
+	}
+	ret = model.NewRawVal(rawVal)
+	return
 }
 
-func GetInt8(val any) (ret int8, err *cd.Result) {
+func GetInt8(val any) (ret model.RawVal, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
-	return GetRawInt8(rVal)
+	rawVal, rawErr := GetRawInt8(rVal)
+	if rawErr != nil {
+		err = rawErr
+		return
+	}
+	ret = model.NewRawVal(rawVal)
+	return
 }
 
-func GetInt16(val any) (ret int16, err *cd.Result) {
+func GetInt16(val any) (ret model.RawVal, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
-	return GetRawInt16(rVal)
+	rawVal, rawErr := GetRawInt16(rVal)
+	if rawErr != nil {
+		err = rawErr
+		return
+	}
+	ret = model.NewRawVal(rawVal)
+	return
 }
 
-func GetInt32(val any) (ret int32, err *cd.Result) {
+func GetInt32(val any) (ret model.RawVal, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
-	return GetRawInt32(rVal)
+	rawVal, rawErr := GetRawInt32(rVal)
+	if rawErr != nil {
+		err = rawErr
+		return
+	}
+	ret = model.NewRawVal(rawVal)
+	return
 }
 
-func GetInt64(val any) (ret int64, err *cd.Result) {
+func GetInt64(val any) (ret model.RawVal, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
-	return GetRawInt64(rVal)
+	rawVal, rawErr := GetRawInt64(rVal)
+	if rawErr != nil {
+		err = rawErr
+		return
+	}
+	ret = model.NewRawVal(rawVal)
+	return
 }
 
-func GetUint(val any) (ret uint, err *cd.Result) {
+func GetUint(val any) (ret model.RawVal, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
-	return GetRawUint(rVal)
+	rawVal, rawErr := GetRawUint(rVal)
+	if rawErr != nil {
+		err = rawErr
+		return
+	}
+	ret = model.NewRawVal(rawVal)
+	return
 }
 
-func GetUint8(val any) (ret uint8, err *cd.Result) {
+func GetUint8(val any) (ret model.RawVal, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
-	return GetRawUint8(rVal)
+	rawVal, rawErr := GetRawUint8(rVal)
+	if rawErr != nil {
+		err = rawErr
+		return
+	}
+	ret = model.NewRawVal(rawVal)
+	return
 }
 
-func GetUint16(val any) (ret uint16, err *cd.Result) {
+func GetUint16(val any) (ret model.RawVal, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
-	return GetRawUint16(rVal)
+	rawVal, rawErr := GetRawUint16(rVal)
+	if rawErr != nil {
+		err = rawErr
+		return
+	}
+	ret = model.NewRawVal(rawVal)
+	return
 }
 
-func GetUint32(val any) (ret uint32, err *cd.Result) {
+func GetUint32(val any) (ret model.RawVal, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
-	return GetRawUint32(rVal)
+	rawVal, rawErr := GetRawUint32(rVal)
+	if rawErr != nil {
+		err = rawErr
+		return
+	}
+	ret = model.NewRawVal(rawVal)
+	return
 }
 
-func GetUint64(val any) (ret uint64, err *cd.Result) {
+func GetUint64(val any) (ret model.RawVal, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
-	return GetRawUint64(rVal)
+	rawVal, rawErr := GetRawUint64(rVal)
+	if rawErr != nil {
+		err = rawErr
+		return
+	}
+	ret = model.NewRawVal(rawVal)
+	return
 }
 
-func GetFloat32(val any) (ret float32, err *cd.Result) {
+func GetFloat32(val any) (ret model.RawVal, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
-	return GetRawFloat32(rVal)
+	rawVal, rawErr := GetRawFloat32(rVal)
+	if rawErr != nil {
+		err = rawErr
+		return
+	}
+	ret = model.NewRawVal(rawVal)
+	return
 }
 
-func GetFloat64(val any) (ret float64, err *cd.Result) {
+func GetFloat64(val any) (ret model.RawVal, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
-	return GetRawFloat64(rVal)
+	rawVal, rawErr := GetRawFloat64(rVal)
+	if rawErr != nil {
+		err = rawErr
+		return
+	}
+	ret = model.NewRawVal(rawVal)
+	return
 }
 
-func GetString(val any) (ret string, err *cd.Result) {
+func GetString(val any) (ret model.RawVal, err *cd.Result) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
-	return GetRawString(rVal)
+	rawVal, rawErr := GetRawString(rVal)
+	if rawErr != nil {
+		err = rawErr
+		return
+	}
+	ret = model.NewRawVal(rawVal)
+	return
 }
 
-func GetDateTime(val any) (ret time.Time, err *cd.Result) {
+func GetDateTime(val any) (ret model.RawVal, err *cd.Result) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
 			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val:%v", val))
@@ -422,7 +506,13 @@ func GetDateTime(val any) (ret time.Time, err *cd.Result) {
 	}()
 
 	rVal := reflect.Indirect(reflect.ValueOf(val))
-	return GetRawDateTime(rVal)
+	rawVal, rawErr := GetRawDateTime(rVal)
+	if rawErr != nil {
+		err = rawErr
+		return
+	}
+	ret = model.NewRawVal(rawVal)
+	return
 }
 
 func GetRawBool(rVal reflect.Value) (ret bool, err *cd.Result) {
@@ -564,9 +654,9 @@ func GetRawInt64(rVal reflect.Value) (ret int64, err *cd.Result) {
 	switch rVal.Kind() {
 	case reflect.Bool:
 		if rVal.Bool() {
-			ret = 1
+			ret = int64(1)
 		} else {
-			ret = 0
+			ret = int64(0)
 		}
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64:
 		ret = rVal.Int()

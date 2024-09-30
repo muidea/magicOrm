@@ -23,7 +23,7 @@ func TestGetEntityValue(t *testing.T) {
 	iVal2 := 234
 	eVal.Set(reflect.ValueOf(iVal2))
 
-	niVal, niOK := eVal.Interface().(int)
+	niVal, niOK := eVal.Interface().Value().(int)
 	if !niOK || niVal != iVal2 {
 		t.Errorf("GetEntityValue failed")
 		return
@@ -35,7 +35,7 @@ func TestGetEntityValue(t *testing.T) {
 		t.Errorf("GetEntityValue failed, error:%s", eArrayErr.Error())
 		return
 	}
-	niValArray, niValOK := eArrayVal.Interface().([]int)
+	niValArray, niValOK := eArrayVal.Interface().Value().([]int)
 	if !niValOK {
 		t.Errorf("GetEntityValue failed")
 		return
@@ -50,7 +50,7 @@ func TestGetEntityValue(t *testing.T) {
 		t.Errorf("GetEntityValue failed, error:%s", eArrayErr.Error())
 		return
 	}
-	niValArray, niValOK = eArrayVal.Interface().([]int)
+	niValArray, niValOK = eArrayVal.Interface().Value().([]int)
 	if !niValOK {
 		t.Errorf("GetEntityValue failed")
 		return
@@ -90,7 +90,7 @@ func TestGetEntityType(t *testing.T) {
 		return
 	}
 
-	niVal, niOK := eVal.Interface().(int)
+	niVal, niOK := eVal.Interface().Value().(int)
 	if !niOK || niVal != iVal2 {
 		t.Errorf("GetEntityValue failed")
 		return
@@ -113,7 +113,7 @@ func TestGetEntityType(t *testing.T) {
 		return
 	}
 
-	niValArray, niValOK := eArrayVal.Interface().([]int)
+	niValArray, niValOK := eArrayVal.Interface().Value().([]int)
 	if !niValOK {
 		t.Errorf("GetEntityValue failed")
 		return
@@ -128,7 +128,7 @@ func TestGetEntityType(t *testing.T) {
 		t.Errorf("GetEntityValue failed, error:%s", eArrayErr.Error())
 		return
 	}
-	niValArray, niValOK = eArrayVal.Interface().([]int)
+	niValArray, niValOK = eArrayVal.Interface().Value().([]int)
 	if !niValOK {
 		t.Errorf("GetEntityValue failed")
 		return
@@ -155,7 +155,7 @@ func TestGetEntityType(t *testing.T) {
 		return
 	}
 
-	niValPtrArray, niValPtrOK := ePtrArrayVal.Interface().([]*int)
+	niValPtrArray, niValPtrOK := ePtrArrayVal.Interface().Value().([]*int)
 	if !niValPtrOK {
 		t.Errorf("GetEntityValue failed")
 		return
@@ -176,7 +176,7 @@ func TestGetEntityType(t *testing.T) {
 		t.Errorf("GetEntityValue failed, error:%s", ePtrArrayErr.Error())
 		return
 	}
-	niValPtrArray, niValPtrOK = ePtrArrayVal.Interface().([]*int)
+	niValPtrArray, niValPtrOK = ePtrArrayVal.Interface().Value().([]*int)
 	if !niValPtrOK {
 		t.Errorf("GetEntityValue failed")
 		return

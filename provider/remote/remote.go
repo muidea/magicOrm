@@ -251,7 +251,7 @@ func getFieldValue(fieldName string, itemType *TypeImpl, itemValue reflect.Value
 			return
 		}
 
-		ret = &FieldValue{Name: fieldName, Value: itemVal}
+		ret = &FieldValue{Name: fieldName, Value: itemVal.Value()}
 		return
 	}
 
@@ -325,7 +325,7 @@ func getObjectValue(entityVal reflect.Value) (ret *ObjectValue, err *cd.Result) 
 		}
 
 		if specPtr.IsPrimaryKey() && !val.IsNil() {
-			ret.ID = fmt.Sprintf("%v", val.GetValue().Interface())
+			ret.ID = fmt.Sprintf("%v", val.GetValue().Interface().Value())
 		}
 
 		ret.Fields = append(ret.Fields, val)

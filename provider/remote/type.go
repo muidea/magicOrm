@@ -52,35 +52,110 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 	if initVal != nil {
 		switch s.GetValue() {
 		case model.TypeBooleanValue:
-			initVal, err = util.GetBool(initVal)
+			rawVal, rawErr := util.GetBool(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			initVal = rawVal.Value()
 		case model.TypeBitValue:
-			initVal, err = util.GetInt8(initVal)
+			rawVal, rawErr := util.GetInt8(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			initVal = rawVal.Value()
 		case model.TypeSmallIntegerValue:
-			initVal, err = util.GetInt16(initVal)
+			rawVal, rawErr := util.GetInt16(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			initVal = rawVal.Value()
 		case model.TypeInteger32Value:
-			initVal, err = util.GetInt32(initVal)
+			rawVal, rawErr := util.GetInt32(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			initVal = rawVal.Value()
 		case model.TypeIntegerValue:
-			initVal, err = util.GetInt(initVal)
+			rawVal, rawErr := util.GetInt(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			initVal = rawVal.Value()
 		case model.TypeBigIntegerValue:
-			initVal, err = util.GetInt64(initVal)
+			rawVal, rawErr := util.GetInt64(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			initVal = rawVal.Value()
 		case model.TypePositiveBitValue:
-			initVal, err = util.GetUint8(initVal)
+			rawVal, rawErr := util.GetUint8(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			initVal = rawVal.Value()
 		case model.TypePositiveSmallIntegerValue:
-			initVal, err = util.GetUint16(initVal)
+			rawVal, rawErr := util.GetUint16(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			initVal = rawVal.Value()
 		case model.TypePositiveInteger32Value:
-			initVal, err = util.GetUint32(initVal)
+			rawVal, rawErr := util.GetUint32(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			initVal = rawVal.Value()
 		case model.TypePositiveIntegerValue:
-			initVal, err = util.GetUint(initVal)
+			rawVal, rawErr := util.GetUint(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			initVal = rawVal.Value()
 		case model.TypePositiveBigIntegerValue:
-			initVal, err = util.GetUint64(initVal)
+			rawVal, rawErr := util.GetUint64(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			initVal = rawVal.Value()
 		case model.TypeFloatValue:
-			initVal, err = util.GetFloat32(initVal)
+			rawVal, rawErr := util.GetFloat32(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			initVal = rawVal.Value()
 		case model.TypeDoubleValue:
-			initVal, err = util.GetFloat64(initVal)
+			rawVal, rawErr := util.GetFloat64(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			initVal = rawVal.Value()
 		case model.TypeStringValue:
-			initVal, err = util.GetString(initVal)
+			rawVal, rawErr := util.GetString(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			initVal = rawVal.Value()
 		case model.TypeDateTimeValue:
-			initVal, err = util.GetString(initVal)
+			rawVal, rawErr := util.GetString(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			initVal = rawVal.Value()
 		case model.TypeSliceValue:
 			// TODO
 		default:

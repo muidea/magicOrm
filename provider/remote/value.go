@@ -136,8 +136,8 @@ func (s *ValueImpl) Addr() model.Value {
 	return impl
 }
 
-func (s *ValueImpl) Interface() any {
-	return s.value
+func (s *ValueImpl) Interface() model.RawVal {
+	return model.NewRawVal(s.value)
 }
 
 func (s *ValueImpl) IsBasic() bool {

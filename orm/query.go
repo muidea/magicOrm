@@ -144,7 +144,7 @@ func (s *impl) assignModelField(vField model.Field, vModel model.Model, deepLeve
 }
 
 func (s *impl) assignBasicField(vField model.Field, fType model.Type, val any) (err *cd.Result) {
-	fVal, fErr := s.modelProvider.DecodeValue(val, fType)
+	fVal, fErr := s.modelProvider.DecodeValue(model.NewRawVal(val), fType)
 	if fErr != nil {
 		err = fErr
 		log.Errorf("assignBasicField failed, s.modelProvider.DecodeValue error:%v", err.Error())
@@ -157,7 +157,7 @@ func (s *impl) assignBasicField(vField model.Field, fType model.Type, val any) (
 
 func (s *impl) innerQueryRelationModel(id any, vModel model.Model, deepLevel int) (ret model.Model, err *cd.Result) {
 	pkField := vModel.GetPrimaryField()
-	fVal, fErr := s.modelProvider.DecodeValue(id, pkField.GetType())
+	fVal, fErr := s.modelProvider.DecodeValue(model.NewRawVal(id), pkField.GetType())
 	if fErr != nil {
 		err = fErr
 		log.Errorf("innerQueryRelationModel failed, s.modelProvider.DecodeValue error:%v", err.Error())
@@ -196,7 +196,7 @@ func (s *impl) innerQueryRelationSliceModel(ids []any, vModel model.Model, deepL
 	for _, id := range ids {
 		svModel := vModel.Copy(false)
 		pkField := svModel.GetPrimaryField()
-		fVal, fErr := s.modelProvider.DecodeValue(id, pkField.GetType())
+		fVal, fErr := s.modelProvider.DecodeValue(model.NewRawVal(id), pkField.GetType())
 		if fErr != nil {
 			err = fErr
 			log.Errorf("innerQueryRelationSliceModel failed, s.modelProvider.DecodeValue error:%v", err.Error())

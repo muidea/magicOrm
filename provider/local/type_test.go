@@ -73,7 +73,7 @@ func TestIntType(t *testing.T) {
 	}
 
 	valPtr, _ := iPtrType.Interface(nil)
-	switch valPtr.Interface().(type) {
+	switch valPtr.Interface().Value().(type) {
 	case *int:
 	default:
 		t.Errorf("get int type value failed. type:%s", valPtr.Get().(reflect.Value).Type().String())
@@ -100,7 +100,7 @@ func TestIntType(t *testing.T) {
 
 	valPtr.Set(reflect.ValueOf(&iVal))
 
-	iAny = valPtr.Interface()
+	iAny = valPtr.Interface().Value()
 	switch iAny.(type) {
 	case *int:
 	default:

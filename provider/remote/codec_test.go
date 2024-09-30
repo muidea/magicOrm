@@ -152,7 +152,7 @@ func TestCodec(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if fmt.Sprintf("%v", valStr) != fmt.Sprintf("%v", ss) {
+	if fmt.Sprintf("%v", valStr) != fmt.Sprintf("'%v'", ss) {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -161,7 +161,7 @@ func TestCodec(t *testing.T) {
 		t.Errorf("Decode failed,")
 		return
 	}
-	if fmt.Sprintf("%v", dVal.Interface()) != fmt.Sprintf("%v", ss) {
+	if fmt.Sprintf("%v", dVal.Interface()) != fmt.Sprintf("'%v'", ss) {
 		t.Errorf("Decode failed,")
 		return
 	}
@@ -182,7 +182,7 @@ func TestCodec(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if fmt.Sprintf("%v", valStr) != tt.Format(util.CSTLayout) {
+	if fmt.Sprintf("%v", valStr) != fmt.Sprintf("'%s'", tt.Format(util.CSTLayout)) {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -191,7 +191,7 @@ func TestCodec(t *testing.T) {
 		t.Errorf("Decode failed,")
 		return
 	}
-	if dVal.Interface().(string) != tt.Format(util.CSTLayout) {
+	if dVal.Interface().Value().(string) != tt.Format(util.CSTLayout) {
 		t.Errorf("Decode failed,")
 		return
 	}
@@ -227,9 +227,9 @@ func TestSliceCodec(t *testing.T) {
 		t.Errorf("Decode failed,")
 		return
 	}
-	switch dVal.Interface().(type) {
+	switch dVal.Interface().Value().(type) {
 	case []int:
-		t.Logf("%+v", dVal.Interface())
+		t.Logf("%+v", dVal.Interface().Value())
 	default:
 		t.Errorf("Decode failed,")
 	}

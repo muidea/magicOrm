@@ -19,7 +19,7 @@ type Context struct {
 
 	// temp value, for performance optimization
 	hostModelTableName string
-	hostModelValue     interface{}
+	hostModelValue     model.RawVal
 }
 
 func New(vModel model.Model, modelProvider provider.Provider, prefix string) *Context {
@@ -52,7 +52,7 @@ func (s *Context) GetHostModelFields() model.Fields {
 	return s.hostModel.GetFields()
 }
 
-func (s *Context) GetHostModelValue() (ret interface{}, err *cd.Result) {
+func (s *Context) GetHostModelValue() (ret model.RawVal, err *cd.Result) {
 	if s.hostModelValue == nil {
 		entityVal, entityErr := s.buildModelValue(s.hostModel)
 		if entityErr != nil {
@@ -154,7 +154,7 @@ func (s *Context) BuildFieldValue(vType model.Type, vValue model.Value) (ret int
 	return
 }
 
-func (s *Context) BuildOprValue(vType model.Type, vValue model.Value) (ret interface{}, err *cd.Result) {
+func (s *Context) BuildOprValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
 	if !vValue.IsValid() {
 		err = cd.NewError(cd.UnExpected, "nil opr value")
 		return
@@ -175,7 +175,8 @@ func (s *Context) BuildOprValue(vType model.Type, vValue model.Value) (ret inter
 		if sliceErr != nil {
 			err = sliceErr
 		}
-		ret = strings.Join(sliceVal, ",")
+		strVal := strings.Join(sliceVal, ",")
+		ret = model.NewRawVal(strVal)
 	default:
 		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal filed type %s", vType.GetPkgKey()))
 	}
@@ -186,7 +187,7 @@ func (s *Context) ExtractFiledValue(vType model.Type, eVal interface{}) (ret mod
 	return
 }
 
-func (s *Context) buildModelValue(vModel model.Model) (ret interface{}, err *cd.Result) {
+func (s *Context) buildModelValue(vModel model.Model) (ret model.RawVal, err *cd.Result) {
 	pkField := vModel.GetPrimaryField()
 	switch pkField.GetType().GetValue() {
 	case model.TypeStringValue:
@@ -200,7 +201,7 @@ func (s *Context) buildModelValue(vModel model.Model) (ret interface{}, err *cd.
 	return
 }
 
-func (s *Context) encodeStringValue(vType model.Type, vValue model.Value) (ret interface{}, err *cd.Result) {
+func (s *Context) encodeStringValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
 	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fEncodeErr != nil {
 		err = fEncodeErr
@@ -208,11 +209,11 @@ func (s *Context) encodeStringValue(vType model.Type, vValue model.Value) (ret i
 		return
 	}
 
-	ret = fmt.Sprintf("'%s'", fEncodeVal)
+	ret = fEncodeVal
 	return
 }
 
-func (s *Context) encodeIntValue(vType model.Type, vValue model.Value) (ret interface{}, err *cd.Result) {
+func (s *Context) encodeIntValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
 	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fEncodeErr != nil {
 		err = fEncodeErr
@@ -223,7 +224,7 @@ func (s *Context) encodeIntValue(vType model.Type, vValue model.Value) (ret inte
 	return
 }
 
-func (s *Context) encodeFloatValue(vType model.Type, vValue model.Value) (ret interface{}, err *cd.Result) {
+func (s *Context) encodeFloatValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
 	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fEncodeErr != nil {
 		err = fEncodeErr
@@ -234,19 +235,15 @@ func (s *Context) encodeFloatValue(vType model.Type, vValue model.Value) (ret in
 	return
 }
 
-func (s *Context) encodeStructValue(vType model.Type, vValue model.Value) (ret interface{}, err *cd.Result) {
+func (s *Context) encodeStructValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
 	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fEncodeErr != nil {
 		err = fEncodeErr
-		log.Errorf("encodeStringValue failed, s.EncodeValue error:%s", err.Error())
+		log.Errorf("encodeStructValue failed, s.EncodeValue error:%s", err.Error())
 		return
 	}
-	switch fEncodeVal.(type) {
-	case string:
-		ret = fmt.Sprintf("'%s'", fEncodeVal)
-	default:
-		ret = fEncodeVal
-	}
+
+	ret = fEncodeVal
 	return
 }
 
@@ -294,7 +291,7 @@ func (s *Context) encodeSliceValue(vType model.Type, vValue model.Value) (ret []
 		return
 	}
 
-	sliceVal, sliceOK := fEncodeVal.([]interface{})
+	sliceVal, sliceOK := fEncodeVal.Value().([]interface{})
 	if !sliceOK {
 		err = cd.NewError(cd.UnExpected, "illegal slice encode value")
 		return

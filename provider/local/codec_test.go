@@ -133,8 +133,8 @@ func TestCodec(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if fmt.Sprintf("%v", valStr) != fmt.Sprintf("%v", ss) {
-		t.Errorf("Encode failed,")
+	if fmt.Sprintf("%v", valStr) != fmt.Sprintf("'%v'", ss) {
+		t.Errorf("Encode failed, expect:%s", fmt.Sprintf("'%v'", ss))
 		return
 	}
 	dVal, dErr = _codec.Decode(valStr, sType)
@@ -142,7 +142,7 @@ func TestCodec(t *testing.T) {
 		t.Errorf("Decode failed,")
 		return
 	}
-	if fmt.Sprintf("%v", dVal.Interface()) != fmt.Sprintf("%v", ss) {
+	if fmt.Sprintf("%v", dVal.Interface()) != fmt.Sprintf("'%v'", ss) {
 		t.Errorf("Decode failed,")
 		return
 	}
@@ -160,7 +160,7 @@ func TestCodec(t *testing.T) {
 		t.Errorf("encode failed, err:%s", valErr.Error())
 		return
 	}
-	if fmt.Sprintf("%v", valStr) != tt.Format(util.CSTLayout) {
+	if fmt.Sprintf("%v", valStr) != fmt.Sprintf("'%s'", tt.Format(util.CSTLayout)) {
 		t.Errorf("Encode failed,")
 		return
 	}
@@ -169,7 +169,7 @@ func TestCodec(t *testing.T) {
 		t.Errorf("Decode failed,")
 		return
 	}
-	if dVal.Interface().(time.Time).Format(util.CSTLayout) != tt.Format(util.CSTLayout) {
+	if dVal.Interface().Value().(time.Time).Format(util.CSTLayout) != tt.Format(util.CSTLayout) {
 		t.Errorf("Decode failed,")
 		return
 	}
@@ -367,9 +367,9 @@ func TestBaseBoolCodec(t *testing.T) {
 		t.Errorf("encode bool false, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case int8:
-		if eVal.(int8) != 0 {
+		if eVal.Value().(int8) != 0 {
 			t.Errorf("encode false failed, val:%v", eVal)
 			return
 		}
@@ -416,14 +416,14 @@ func TestBaseBoolCodec(t *testing.T) {
 		t.Errorf("encode bool false, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case int8:
-		if eVal.(int8) != 1 {
-			t.Errorf("encode false failed, val:%v", eVal)
+		if eVal.Value().(int8) != 1 {
+			t.Errorf("encode false failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode false failed, val:%v", eVal)
+		t.Errorf("encode false failed, val:%v", eVal.Value())
 		return
 	}
 
@@ -469,14 +469,14 @@ func TestBaseBoolPtrCodec(t *testing.T) {
 		t.Errorf("encode bool false, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case int8:
-		if eVal.(int8) != 0 {
-			t.Errorf("encode false failed, val:%v", eVal)
+		if eVal.Value().(int8) != 0 {
+			t.Errorf("encode false failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode false failed, val:%v", eVal)
+		t.Errorf("encode false failed, val:%v", eVal.Value())
 		return
 	}
 	dVal, dErr := _codec.Decode(eVal, typePtr)
@@ -524,14 +524,14 @@ func TestBaseBoolPtrCodec(t *testing.T) {
 		t.Errorf("encode bool false, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case int8:
-		if eVal.(int8) != 1 {
-			t.Errorf("encode false failed, val:%v", eVal)
+		if eVal.Value().(int8) != 1 {
+			t.Errorf("encode false failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode false failed, val:%v", eVal)
+		t.Errorf("encode false failed, val:%v", eVal.Value())
 		return
 	}
 
@@ -576,14 +576,14 @@ func TestSliceBoolCodec(t *testing.T) {
 		t.Errorf("encode []bool{false}, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case []interface{}:
-		if len(eVal.([]interface{})) != 1 {
-			t.Errorf("encode []bool{false} failed, val:%v", eVal)
+		if len(eVal.Value().([]interface{})) != 1 {
+			t.Errorf("encode []bool{false} failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode []bool{false} failed, val:%v", eVal)
+		t.Errorf("encode []bool{false} failed, val:%v", eVal.Value())
 		return
 	}
 	dVal, dErr := _codec.Decode(eVal, typePtr)
@@ -629,14 +629,14 @@ func TestSliceBoolCodec(t *testing.T) {
 		t.Errorf("encode []bool{true,false,true}, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case interface{}:
-		if len(eVal.([]interface{})) != 3 {
-			t.Errorf("encode []bool{true,false,true} failed, val:%v", eVal)
+		if len(eVal.Value().([]interface{})) != 3 {
+			t.Errorf("encode []bool{true,false,true} failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode []bool{true,false,true} failed, val:%v", eVal)
+		t.Errorf("encode []bool{true,false,true} failed, val:%v", eVal.Value())
 		return
 	}
 
@@ -690,14 +690,14 @@ func TestSliceBoolPtrCodec(t *testing.T) {
 		t.Errorf("encode []bool{false}, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case []interface{}:
-		if len(eVal.([]interface{})) != 1 {
-			t.Errorf("encode []bool{false} failed, val:%v", eVal)
+		if len(eVal.Value().([]interface{})) != 1 {
+			t.Errorf("encode []bool{false} failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode []bool{false} failed, val:%v", eVal)
+		t.Errorf("encode []bool{false} failed, val:%v", eVal.Value())
 		return
 	}
 	dVal, dErr := _codec.Decode(eVal, typePtr)
@@ -748,14 +748,14 @@ func TestSliceBoolPtrCodec(t *testing.T) {
 		t.Errorf("encode []bool{true,false,true}, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case []interface{}:
-		if len(eVal.([]interface{})) != 3 {
-			t.Errorf("encode []bool{true,false,true} failed, val:%v", eVal)
+		if len(eVal.Value().([]interface{})) != 3 {
+			t.Errorf("encode []bool{true,false,true} failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode []bool{true,false,true} failed, val:%v", eVal)
+		t.Errorf("encode []bool{true,false,true} failed, val:%v", eVal.Value())
 		return
 	}
 
@@ -808,14 +808,14 @@ func TestBaseIntCodec(t *testing.T) {
 		t.Errorf("encode int16 0, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case int16:
-		if eVal.(int16) != 0 {
-			t.Errorf("encode int16 failed, val:%v", eVal)
+		if eVal.Value().(int16) != 0 {
+			t.Errorf("encode int16 failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode 0 failed, val:%v", eVal)
+		t.Errorf("encode 0 failed, val:%v", eVal.Value())
 		return
 	}
 	dVal, dErr := _codec.Decode(eVal, typePtr)
@@ -857,14 +857,14 @@ func TestBaseIntCodec(t *testing.T) {
 		t.Errorf("encode int16 123, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case int16:
-		if eVal.(int16) != 123 {
-			t.Errorf("encode int16 failed, val:%v", eVal)
+		if eVal.Value().(int16) != 123 {
+			t.Errorf("encode int16 failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode int16 failed, val:%v", eVal)
+		t.Errorf("encode int16 failed, val:%v", eVal.Value())
 		return
 	}
 
@@ -910,14 +910,14 @@ func TestBaseIntPtrCodec(t *testing.T) {
 		t.Errorf("encode int16 0, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case int16:
-		if eVal.(int16) != 0 {
-			t.Errorf("encode int16 failed, val:%v", eVal)
+		if eVal.Value().(int16) != 0 {
+			t.Errorf("encode int16 failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode 0 failed, val:%v", eVal)
+		t.Errorf("encode 0 failed, val:%v", eVal.Value())
 		return
 	}
 	dVal, dErr := _codec.Decode(eVal, typePtr)
@@ -964,14 +964,14 @@ func TestBaseIntPtrCodec(t *testing.T) {
 		t.Errorf("encode int16 123, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case int16:
-		if eVal.(int16) != 123 {
-			t.Errorf("encode int16 failed, val:%v", eVal)
+		if eVal.Value().(int16) != 123 {
+			t.Errorf("encode int16 failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode int16 failed, val:%v", eVal)
+		t.Errorf("encode int16 failed, val:%v", eVal.Value())
 		return
 	}
 
@@ -1020,14 +1020,14 @@ func TestSliceIntCodec(t *testing.T) {
 		t.Errorf("encode  []int16 0, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case []interface{}:
-		if len(eVal.([]interface{})) != 1 {
-			t.Errorf("encode  []int16 failed, val:%v", eVal)
+		if len(eVal.Value().([]interface{})) != 1 {
+			t.Errorf("encode  []int16 failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode []int16{123} failed, val:%v", eVal)
+		t.Errorf("encode []int16{123} failed, val:%v", eVal.Value())
 		return
 	}
 
@@ -1074,14 +1074,14 @@ func TestSliceIntCodec(t *testing.T) {
 		t.Errorf("encode []int16{123,456,-789}, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case []interface{}:
-		if len(eVal.([]interface{})) != 3 {
-			t.Errorf("encode []int16{123,456,-789} failed, val:%v", eVal)
+		if len(eVal.Value().([]interface{})) != 3 {
+			t.Errorf("encode []int16{123,456,-789} failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode []int16{123,456,-789} failed, val:%v", eVal)
+		t.Errorf("encode []int16{123,456,-789} failed, val:%v", eVal.Value())
 		return
 	}
 
@@ -1138,14 +1138,14 @@ func TestBaseUIntCodec(t *testing.T) {
 		t.Errorf("encode uint32 0, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case uint32:
-		if eVal.(uint32) != 0 {
-			t.Errorf("encode uint32 failed, val:%v", eVal)
+		if eVal.Value().(uint32) != 0 {
+			t.Errorf("encode uint32 failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode 0 failed, val:%v", eVal)
+		t.Errorf("encode 0 failed, val:%v", eVal.Value())
 		return
 	}
 	dVal, dErr := _codec.Decode(eVal, typePtr)
@@ -1187,14 +1187,14 @@ func TestBaseUIntCodec(t *testing.T) {
 		t.Errorf("encode uint32 123, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case uint32:
-		if eVal.(uint32) != 123 {
-			t.Errorf("encode uint32 failed, val:%v", eVal)
+		if eVal.Value().(uint32) != 123 {
+			t.Errorf("encode uint32 failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode uint32 failed, val:%v", eVal)
+		t.Errorf("encode uint32 failed, val:%v", eVal.Value())
 		return
 	}
 
@@ -1239,14 +1239,14 @@ func TestSliceUIntCodec(t *testing.T) {
 		t.Errorf("encode  []uint32 0, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case []interface{}:
-		if len(eVal.([]interface{})) != 1 {
-			t.Errorf("encode  []uint32 failed, val:%v", eVal)
+		if len(eVal.Value().([]interface{})) != 1 {
+			t.Errorf("encode  []uint32 failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode []uint32{123} failed, val:%v", eVal)
+		t.Errorf("encode []uint32{123} failed, val:%v", eVal.Value())
 		return
 	}
 	dVal, dErr := _codec.Decode(eVal, typePtr)
@@ -1292,14 +1292,14 @@ func TestSliceUIntCodec(t *testing.T) {
 		t.Errorf("encode []uint32{123,456,789000000}, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case []interface{}:
-		if len(eVal.([]interface{})) != 3 {
-			t.Errorf("encode []uint32{123,456,789000000} failed, val:%v", eVal)
+		if len(eVal.Value().([]interface{})) != 3 {
+			t.Errorf("encode []uint32{123,456,789000000} failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode []uint32{123,456,789000000} failed, val:%v", eVal)
+		t.Errorf("encode []uint32{123,456,789000000} failed, val:%v", eVal.Value())
 		return
 	}
 
@@ -1356,14 +1356,14 @@ func TestBaseFloatCodec(t *testing.T) {
 		t.Errorf("encode float32 0, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case float32:
-		if eVal.(float32) != 0 {
-			t.Errorf("encode float32 failed, val:%v", eVal)
+		if eVal.Value().(float32) != 0 {
+			t.Errorf("encode float32 failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode 0 failed, val:%v", eVal)
+		t.Errorf("encode 0 failed, val:%v", eVal.Value())
 		return
 	}
 	dVal, dErr := _codec.Decode(eVal, typePtr)
@@ -1405,14 +1405,14 @@ func TestBaseFloatCodec(t *testing.T) {
 		t.Errorf("encode float32 123.456, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case float32:
-		if eVal.(float32) != 123.456 {
-			t.Errorf("encode float32 failed, val:%v", eVal)
+		if eVal.Value().(float32) != 123.456 {
+			t.Errorf("encode float32 failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode float32 failed, val:%v", eVal)
+		t.Errorf("encode float32 failed, val:%v", eVal.Value())
 		return
 	}
 
@@ -1457,14 +1457,14 @@ func TestSliceFloatCodec(t *testing.T) {
 		t.Errorf("encode  []float32 0, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case []interface{}:
-		if len(eVal.([]interface{})) != 1 {
-			t.Errorf("encode  []float32 failed, val:%v", eVal)
+		if len(eVal.Value().([]interface{})) != 1 {
+			t.Errorf("encode  []float32 failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode []float32{123} failed, val:%v", eVal)
+		t.Errorf("encode []float32{123} failed, val:%v", eVal.Value())
 		return
 	}
 	dVal, dErr := _codec.Decode(eVal, typePtr)
@@ -1510,14 +1510,14 @@ func TestSliceFloatCodec(t *testing.T) {
 		t.Errorf("encode []float32{123,456,789000000}, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case []interface{}:
-		if len(eVal.([]interface{})) != 3 {
-			t.Errorf("encode []float32{123,456,789000000} failed, val:%v", eVal)
+		if len(eVal.Value().([]interface{})) != 3 {
+			t.Errorf("encode []float32{123,456,789000000} failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode []float32{123,456,789000000} failed, val:%v", eVal)
+		t.Errorf("encode []float32{123,456,789000000} failed, val:%v", eVal.Value())
 		return
 	}
 
@@ -1574,14 +1574,14 @@ func TestBaseStringCodec(t *testing.T) {
 		t.Errorf("encode string 0, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case string:
-		if eVal.(string) != "" {
-			t.Errorf("encode string failed, val:%v", eVal)
+		if eVal.Value().(string) != "" {
+			t.Errorf("encode string failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode 0 failed, val:%v", eVal)
+		t.Errorf("encode 0 failed, val:%v", eVal.Value())
 		return
 	}
 	dVal, dErr := _codec.Decode(eVal, typePtr)
@@ -1623,14 +1623,14 @@ func TestBaseStringCodec(t *testing.T) {
 		t.Errorf("encode string 123.456, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case string:
-		if eVal.(string) != "123.456" {
-			t.Errorf("encode string failed, val:%v", eVal)
+		if eVal.Value().(string) != "123.456" {
+			t.Errorf("encode string failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode string failed, val:%v", eVal)
+		t.Errorf("encode string failed, val:%v", eVal.Value())
 		return
 	}
 
@@ -1675,14 +1675,14 @@ func TestSliceStringCodec(t *testing.T) {
 		t.Errorf("encode  []string 0, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case []interface{}:
-		if len(eVal.([]interface{})) != 1 {
-			t.Errorf("encode  []string failed, val:%v", eVal)
+		if len(eVal.Value().([]interface{})) != 1 {
+			t.Errorf("encode  []string failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode []string{123} failed, val:%v", eVal)
+		t.Errorf("encode []string{123} failed, val:%v", eVal.Value())
 		return
 	}
 	dVal, dErr := _codec.Decode(eVal, typePtr)
@@ -1728,14 +1728,14 @@ func TestSliceStringCodec(t *testing.T) {
 		t.Errorf("encode []string{123,456,789000000}, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case []interface{}:
-		if len(eVal.([]interface{})) != 3 {
-			t.Errorf("encode []string{123,456,789000000} failed, val:%v", eVal)
+		if len(eVal.Value().([]interface{})) != 3 {
+			t.Errorf("encode []string{123,456,789000000} failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode []string{123,456,789000000} failed, val:%v", eVal)
+		t.Errorf("encode []string{123,456,789000000} failed, val:%v", eVal.Value())
 		return
 	}
 
@@ -1792,14 +1792,14 @@ func TestBaseDateCodec(t *testing.T) {
 		t.Errorf("encode dateTime 2006-01-02 15:04:05, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case string:
-		if eVal.(string) != "2006-01-02 15:04:05" {
-			t.Errorf("encode dateTime failed, val:%v", eVal)
+		if eVal.Value().(string) != "2006-01-02 15:04:05" {
+			t.Errorf("encode dateTime failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode 2006-01-02 15:04:05 failed, val:%v", eVal)
+		t.Errorf("encode 2006-01-02 15:04:05 failed, val:%v", eVal.Value())
 		return
 	}
 	dVal, dErr := _codec.Decode(eVal, typePtr)
@@ -1845,14 +1845,14 @@ func TestSliceDateCodec(t *testing.T) {
 		t.Errorf("encode dateTime 2006-01-02 15:04:05, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case []interface{}:
-		if len(eVal.([]interface{})) != 1 {
-			t.Errorf("encode dateTime failed, val:%v", eVal)
+		if len(eVal.Value().([]interface{})) != 1 {
+			t.Errorf("encode dateTime failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode 2006-01-02 15:04:05 failed, val:%v", eVal)
+		t.Errorf("encode 2006-01-02 15:04:05 failed, val:%v", eVal.Value())
 		return
 	}
 	dVal, dErr := _codec.Decode(eVal, typePtr)
@@ -1897,14 +1897,14 @@ func TestSliceDateCodec(t *testing.T) {
 		t.Errorf("encode dateTime 2006-01-02 15:04:05, err:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case []interface{}:
-		if len(eVal.([]interface{})) != 2 {
-			t.Errorf("encode dateTime failed, val:%v", eVal)
+		if len(eVal.Value().([]interface{})) != 2 {
+			t.Errorf("encode dateTime failed, val:%v", eVal.Value())
 			return
 		}
 	default:
-		t.Errorf("encode 2006-01-02 15:04:05 failed, val:%v", eVal)
+		t.Errorf("encode 2006-01-02 15:04:05 failed, val:%v", eVal.Value())
 		return
 	}
 	dVal, dErr = _codec.Decode(eVal, typePtr)

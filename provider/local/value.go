@@ -56,12 +56,12 @@ func (s *ValueImpl) Addr() model.Value {
 	return impl
 }
 
-func (s *ValueImpl) Interface() any {
+func (s *ValueImpl) Interface() model.RawVal {
 	if util.IsNil(s.value) {
 		return nil
 	}
 
-	return s.value.Interface()
+	return model.NewRawVal(s.value.Interface())
 }
 
 func (s *ValueImpl) IsBasic() bool {

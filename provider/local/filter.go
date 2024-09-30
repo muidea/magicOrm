@@ -37,7 +37,7 @@ func newFilter(valuePtr *ValueImpl) *filter {
 	return &filter{bindValue: valuePtr, params: map[string]*filterItem{}}
 }
 
-func (s *filter) Equal(key string, val interface{}) (err *cd.Result) {
+func (s *filter) Equal(key string, val any) (err *cd.Result) {
 	if val == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal equal value")
 		return
@@ -61,7 +61,7 @@ func (s *filter) Equal(key string, val interface{}) (err *cd.Result) {
 	return
 }
 
-func (s *filter) NotEqual(key string, val interface{}) (err *cd.Result) {
+func (s *filter) NotEqual(key string, val any) (err *cd.Result) {
 	if val == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal not equal value")
 		return
@@ -85,7 +85,7 @@ func (s *filter) NotEqual(key string, val interface{}) (err *cd.Result) {
 	return
 }
 
-func (s *filter) Below(key string, val interface{}) (err *cd.Result) {
+func (s *filter) Below(key string, val any) (err *cd.Result) {
 	if val == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal below value")
 		return
@@ -109,7 +109,7 @@ func (s *filter) Below(key string, val interface{}) (err *cd.Result) {
 	return
 }
 
-func (s *filter) Above(key string, val interface{}) (err *cd.Result) {
+func (s *filter) Above(key string, val any) (err *cd.Result) {
 	if val == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal above value")
 		return
@@ -133,7 +133,7 @@ func (s *filter) Above(key string, val interface{}) (err *cd.Result) {
 	return
 }
 
-func (s *filter) In(key string, val interface{}) (err *cd.Result) {
+func (s *filter) In(key string, val any) (err *cd.Result) {
 	if val == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal in value")
 		return
@@ -157,7 +157,7 @@ func (s *filter) In(key string, val interface{}) (err *cd.Result) {
 	return
 }
 
-func (s *filter) NotIn(key string, val interface{}) (err *cd.Result) {
+func (s *filter) NotIn(key string, val any) (err *cd.Result) {
 	if val == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal not in value")
 		return
@@ -181,7 +181,7 @@ func (s *filter) NotIn(key string, val interface{}) (err *cd.Result) {
 	return
 }
 
-func (s *filter) Like(key string, val interface{}) (err *cd.Result) {
+func (s *filter) Like(key string, val any) (err *cd.Result) {
 	if val == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal like value")
 		return
@@ -207,7 +207,7 @@ func (s *filter) Sort(sorter *util.SortFilter) {
 	s.sortFilter = sorter
 }
 
-func (s *filter) ValueMask(val interface{}) (err *cd.Result) {
+func (s *filter) ValueMask(val any) (err *cd.Result) {
 	if val == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal value mask")
 		return

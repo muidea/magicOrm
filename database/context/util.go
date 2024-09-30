@@ -50,14 +50,14 @@ func getFieldRelation(vField model.Field) (ret relationType) {
 	return
 }
 
-func getBasicTypeDefaultValue(fType model.Type) (ret string, err *cd.Result) {
+func getBasicTypeDefaultValue(fType model.Type) (ret interface{}, err *cd.Result) {
 	switch fType.Elem().GetValue() {
 	case model.TypeBooleanValue, model.TypeBitValue,
 		model.TypeSmallIntegerValue, model.TypePositiveBitValue,
 		model.TypeIntegerValue, model.TypeInteger32Value, model.TypePositiveSmallIntegerValue,
 		model.TypeBigIntegerValue, model.TypePositiveIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue,
 		model.TypeFloatValue, model.TypeDoubleValue:
-		ret = "0"
+		ret = 0
 		break
 	case model.TypeStringValue,
 		model.TypeDateTimeValue,

@@ -9,7 +9,7 @@ import (
 	"github.com/muidea/magicOrm/provider/util"
 )
 
-func (s *impl) innerInsert(vModel model.Model) (ret any, err *cd.Result) {
+func (s *impl) innerInsert(vModel model.Model) (ret model.RawVal, err *cd.Result) {
 	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
 	sqlStr, sqlErr := builderVal.BuildInsert()
 	if sqlErr != nil {
@@ -25,7 +25,7 @@ func (s *impl) innerInsert(vModel model.Model) (ret any, err *cd.Result) {
 		return
 	}
 
-	ret = id
+	ret = model.NewRawVal(id)
 	return
 }
 

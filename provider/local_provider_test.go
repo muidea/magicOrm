@@ -73,7 +73,7 @@ func TestNewLocalProvider(t *testing.T) {
 		t.Errorf("%s", eErr.Error())
 		return
 	}
-	iVal, iOK := eVal.(int)
+	iVal, iOK := eVal.Value().(int)
 	if !iOK || iVal != 100 {
 		t.Errorf("provider.EncodeValue failed, illegal value")
 		return
@@ -91,23 +91,23 @@ func TestNewLocalProvider(t *testing.T) {
 	}
 
 	s001NewVal.ID = 987654
-	sValueVal, sValueErr = provider.DecodeValue(s001NewVal, sTypeVal)
+	sValueVal, sValueErr = provider.DecodeValue(model.NewRawVal(s001NewVal), sTypeVal)
 	if sValueErr != nil {
 		t.Errorf("%s", sValueErr)
 		return
 	}
-	s001NewVal2 := sValueVal.Interface().(*Simple)
+	s001NewVal2 := sValueVal.Interface().Value().(*Simple)
 	if !util.IsSameValue(s001NewVal, s001NewVal2) {
 		t.Errorf("decode value model failed")
 		return
 	}
 
-	sValueVal, sValueErr = provider.DecodeValue(23456, sTypeVal)
+	sValueVal, sValueErr = provider.DecodeValue(model.NewRawVal(23456), sTypeVal)
 	if sValueErr != nil {
 		t.Errorf("%s", sValueErr)
 		return
 	}
-	s001NewVal3 := sValueVal.Interface().(*Simple)
+	s001NewVal3 := sValueVal.Interface().Value().(*Simple)
 	if s001NewVal3.ID != 23456 {
 		t.Errorf("decode value model failed")
 		return
@@ -135,28 +135,28 @@ func TestNewLocalProvider(t *testing.T) {
 		t.Errorf("%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case string:
-		t.Logf("%s", eVal.(string))
+		t.Logf("%s", eVal.Value().(string))
 	default:
 		t.Errorf("illegal value")
 		return
 	}
 
-	dtValueVal, dtValueErr = provider.DecodeValue(dt001Str, dtTypeVal)
+	dtValueVal, dtValueErr = provider.DecodeValue(model.NewRawVal(dt001Str), dtTypeVal)
 	if dtValueErr != nil {
 		t.Errorf("%s", dtValueErr.Error())
 		return
 	}
 
 	dVal := dtValueVal.Interface()
-	switch dVal.(type) {
+	switch dVal.Value().(type) {
 	case time.Time:
 	default:
 		t.Errorf("decodeValue failed")
 	}
 
-	gap := dtValueVal.Interface().(time.Time).Sub(dt001)
+	gap := dtValueVal.Interface().Value().(time.Time).Sub(dt001)
 	if gap >= time.Second || gap < -1*time.Second {
 		t.Errorf("illegal decode value")
 	}
@@ -189,21 +189,21 @@ func TestNewLocalProvider(t *testing.T) {
 		t.Errorf("%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case []interface{}:
-		t.Logf("%v", eVal.([]interface{}))
+		t.Logf("%v", eVal.Value().([]interface{}))
 	default:
 		t.Errorf("illegal value")
 		return
 	}
 
-	eVal = []string{"2024-09-21 03:12:31", "2024-09-21 03:12:31"}
+	eVal = model.NewRawVal([]string{"2024-09-21 03:12:31", "2024-09-21 03:12:31"})
 	dtSliceValueVal, dtSliceValueErr = provider.DecodeValue(eVal, dtSliceTypeVal)
 	if dtSliceValueErr != nil {
 		t.Errorf("%s", dtSliceValueErr.Error())
 		return
 	}
-	dtSlice = dtSliceValueVal.Interface().([]time.Time)
+	dtSlice = dtSliceValueVal.Interface().Value().([]time.Time)
 	if len(dtSlice) != 2 {
 		t.Errorf("decodeValue failed")
 	}

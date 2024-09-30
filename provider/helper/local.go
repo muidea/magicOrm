@@ -112,7 +112,7 @@ func toLocalFieldValue(fieldVal *remote.FieldValue, lField model.Field) (err *cd
 
 func toLocalValue(rVal *remote.ObjectValue, lType model.Type) (ret model.Value, err *cd.Result) {
 	lVal, _ := lType.Interface(nil)
-	lModel, lErr := local.GetEntityModel(lVal.Interface())
+	lModel, lErr := local.GetEntityModel(lVal.Interface().Value())
 	if lErr != nil {
 		err = lErr
 		log.Errorf("toLocalValue failed, local.GetEntityModel err:%v", err.Error())

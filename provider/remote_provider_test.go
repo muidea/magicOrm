@@ -85,7 +85,7 @@ func TestNewRemoteProvider(t *testing.T) {
 		t.Errorf("%s", eErr.Error())
 		return
 	}
-	iVal, iOK := eVal.(int)
+	iVal, iOK := eVal.Value().(int)
 	if !iOK || iVal != 100 {
 		t.Errorf("provider.EncodeValue failed, illegal value")
 		return
@@ -104,23 +104,23 @@ func TestNewRemoteProvider(t *testing.T) {
 
 	s001NewObjectValuePtr.SetFieldValue("id", 987654)
 	s001NewObjectValuePtr.ID = "987654"
-	sValueVal, sValueErr = provider.DecodeValue(s001NewObjectValuePtr, sTypeVal)
+	sValueVal, sValueErr = provider.DecodeValue(model.NewRawVal(s001NewObjectValuePtr), sTypeVal)
 	if sValueErr != nil {
 		t.Errorf("%s", sValueErr)
 		return
 	}
-	s001NewObjectValue2Ptr := sValueVal.Interface().(*remote.ObjectValue)
+	s001NewObjectValue2Ptr := sValueVal.Interface().Value().(*remote.ObjectValue)
 	if !util.IsSameValue(s001NewObjectValuePtr, s001NewObjectValue2Ptr) {
 		t.Errorf("decode value model failed")
 		return
 	}
 
-	sValueVal, sValueErr = provider.DecodeValue(23456, sTypeVal)
+	sValueVal, sValueErr = provider.DecodeValue(model.NewRawVal(23456), sTypeVal)
 	if sValueErr != nil {
 		t.Errorf("%s", sValueErr)
 		return
 	}
-	s001NewObjectValue3Ptr := sValueVal.Interface().(*remote.ObjectValue)
+	s001NewObjectValue3Ptr := sValueVal.Interface().Value().(*remote.ObjectValue)
 	if s001NewObjectValue3Ptr.GetFieldValue("id").(int) != 23456 {
 		t.Errorf("decode value model failed")
 		return
@@ -149,9 +149,9 @@ func TestNewRemoteProvider(t *testing.T) {
 		t.Errorf("%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case string:
-		t.Logf("%s", eVal.(string))
+		t.Logf("%s", eVal.Value().(string))
 	default:
 		t.Errorf("illegal value")
 		return
@@ -163,14 +163,14 @@ func TestNewRemoteProvider(t *testing.T) {
 		return
 	}
 
-	dVal := dtValueVal.Interface()
+	dVal := dtValueVal.Interface().Value()
 	switch dVal.(type) {
 	case string:
 	default:
 		t.Errorf("decodeValue failed")
 	}
 
-	dtDecodeVal := dtValueVal.Interface().(string)
+	dtDecodeVal := dtValueVal.Interface().Value().(string)
 	if dtDecodeVal != dt001Str {
 		t.Errorf("illegal decode value")
 	}
@@ -203,21 +203,21 @@ func TestNewRemoteProvider(t *testing.T) {
 		t.Errorf("%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case []interface{}:
-		t.Logf("%v", eVal.([]interface{}))
+		t.Logf("%v", eVal.Value().([]interface{}))
 	default:
 		t.Errorf("illegal value")
 		return
 	}
 
-	eVal = []string{"2024-09-21 03:12:31", "2024-09-21 03:12:31"}
+	eVal = model.NewRawVal([]string{"2024-09-21 03:12:31", "2024-09-21 03:12:31"})
 	dtSliceValueVal, dtSliceValueErr = provider.DecodeValue(eVal, dtSliceTypeVal)
 	if dtSliceValueErr != nil {
 		t.Errorf("%s", dtSliceValueErr.Error())
 		return
 	}
-	dtSlice = dtSliceValueVal.Interface().([]string)
+	dtSlice = dtSliceValueVal.Interface().Value().([]string)
 	if len(dtSlice) != 2 {
 		t.Errorf("decodeValue failed")
 	}

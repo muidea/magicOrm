@@ -25,7 +25,7 @@ func (s *impl) getModelFilter(vModel model.Model, viewSpec model.ViewDeclare) (r
 
 		// if basic
 		if model.IsBasicType(fType.GetValue()) {
-			err = filterVal.Equal(val.GetName(), val.GetValue().Interface())
+			err = filterVal.Equal(val.GetName(), val.GetValue().Interface().Value())
 			if err != nil {
 				log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
 				return
@@ -44,7 +44,7 @@ func (s *impl) getModelFilter(vModel model.Model, viewSpec model.ViewDeclare) (r
 				}
 			}
 
-			err = filterVal.Equal(val.GetName(), fValue.Interface())
+			err = filterVal.Equal(val.GetName(), fValue.Interface().Value())
 			if err != nil {
 				log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
 				return
@@ -54,7 +54,7 @@ func (s *impl) getModelFilter(vModel model.Model, viewSpec model.ViewDeclare) (r
 		}
 
 		// if slice
-		err = filterVal.In(val.GetName(), fValue.Interface())
+		err = filterVal.In(val.GetName(), fValue.Interface().Value())
 		if err != nil {
 			log.Errorf("getModelFilter failed, filterVal.In error:%s", err.Error())
 			return

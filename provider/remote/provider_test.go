@@ -51,7 +51,7 @@ func TestGetEntityType(t *testing.T) {
 		t.Errorf("eTypeVal.Interface failed, error:%s", eErr.Error())
 		return
 	}
-	iVal2, iVal2OK := eVal.Interface().(int)
+	iVal2, iVal2OK := eVal.Interface().Value().(int)
 	if !iVal2OK || iVal2 != iVal {
 		t.Errorf("eVal.Interface().(int) failed")
 		return
@@ -77,7 +77,7 @@ func TestGetEntityType(t *testing.T) {
 		t.Errorf("eTypeVal.Interface failed, error:%s", eErr.Error())
 		return
 	}
-	strVal, strValOK := eVal.Interface().(string)
+	strVal, strValOK := eVal.Interface().Value().(string)
 	if !strValOK || strVal != dt.Format(fu.CSTLayout) {
 		t.Errorf("eVal.Interface().(string) failed")
 		return
@@ -114,9 +114,9 @@ func TestGetEntityValue(t *testing.T) {
 		t.Errorf("_codec.Encode failed, error:%s", encodeErr.Error())
 		return
 	}
-	switch encodeVal.(type) {
+	switch encodeVal.Value().(type) {
 	case int:
-		t.Logf("%d", encodeVal.(int))
+		t.Logf("%d", encodeVal.Value().(int))
 	default:
 		t.Errorf("_codec.Encode failed")
 		return
@@ -148,9 +148,9 @@ func TestGetEntityValue(t *testing.T) {
 		t.Errorf("_codec.Encode failed, error:%s", encodeErr.Error())
 		return
 	}
-	switch encodeVal.(type) {
+	switch encodeVal.Value().(type) {
 	case string:
-		t.Logf("%s", encodeVal.(string))
+		t.Logf("%s", encodeVal.Value().(string))
 	default:
 		t.Errorf("_codec.Encode failed")
 		return
@@ -174,9 +174,9 @@ func TestRemoteModel(t *testing.T) {
 		return
 	}
 	var valuePtr *ObjectValue
-	switch eValueVal.Interface().(type) {
+	switch eValueVal.Interface().Value().(type) {
 	case *ObjectValue:
-		valuePtr = eValueVal.Interface().(*ObjectValue)
+		valuePtr = eValueVal.Interface().Value().(*ObjectValue)
 	default:
 		t.Errorf("GetEntityValue failed")
 		return
@@ -198,9 +198,9 @@ func TestRemoteModel(t *testing.T) {
 		t.Errorf("EncodeValue failed,error:%s", eErr.Error())
 		return
 	}
-	switch eVal.(type) {
+	switch eVal.Value().(type) {
 	case int64:
-		t.Logf("%d", eVal.(int64))
+		t.Logf("%d", eVal.Value().(int64))
 	default:
 		t.Errorf("EncodeValue failed")
 	}
@@ -227,7 +227,7 @@ func TestAppendSliceValue(t *testing.T) {
 		t.Errorf("AppendSliceValue(iSliceValueVal, iValueVal) failed, error:%s", iSliceValueErr.Error())
 		return
 	}
-	switch iSliceValueVal.Interface().(type) {
+	switch iSliceValueVal.Interface().Value().(type) {
 	case []int:
 		t.Logf("%v", iSliceValueVal.Interface())
 	default:
@@ -246,7 +246,7 @@ func TestAppendSliceValue(t *testing.T) {
 		t.Errorf("AppendSliceValue(iSliceValueVal, iValueVal) failed, error:%s", iSliceValueErr.Error())
 		return
 	}
-	switch iSliceValueVal.Interface().(type) {
+	switch iSliceValueVal.Interface().Value().(type) {
 	case *[]int:
 		t.Logf("%+v", iSliceValueVal.Interface())
 	default:
