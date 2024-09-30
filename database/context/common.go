@@ -189,7 +189,7 @@ func (s *Context) BuildOprValue(vType model.Type, vValue model.Value) (ret model
 	return
 }
 
-func (s *Context) ExtractFiledValue(vType model.Type, eVal any) (ret model.Value, err *cd.Result) {
+func (s *Context) ExtractFiledValue(vType model.Type, eVal model.RawVal) (ret model.Value, err *cd.Result) {
 	return
 }
 
