@@ -19,7 +19,7 @@ type Context struct {
 
 	// temp value, for performance optimization
 	hostModelTableName string
-	hostModelValue     string
+	hostModelValue     interface{}
 }
 
 func New(vModel model.Model, modelProvider provider.Provider, prefix string) *Context {
@@ -52,8 +52,8 @@ func (s *Context) GetHostModelFields() model.Fields {
 	return s.hostModel.GetFields()
 }
 
-func (s *Context) GetHostModelValue() (ret string, err *cd.Result) {
-	if s.hostModelValue == "" {
+func (s *Context) GetHostModelValue() (ret interface{}, err *cd.Result) {
+	if s.hostModelValue == nil {
 		entityVal, entityErr := s.buildModelValue(s.hostModel)
 		if entityErr != nil {
 			err = entityErr
@@ -89,7 +89,7 @@ func (s *Context) GetRelationTableName(vField model.Field, rModel model.Model) s
 	return tableName
 }
 
-func (s *Context) GetRelationValue(rModel model.Model) (leftVal, rightVal string, err *cd.Result) {
+func (s *Context) GetRelationValue(rModel model.Model) (leftVal, rightVal interface{}, err *cd.Result) {
 	entityVal, entityErr := s.GetHostModelValue()
 	if entityErr != nil {
 		err = entityErr
@@ -121,7 +121,7 @@ func (s *Context) GetTypeModel(vType model.Type) (ret model.Model, err *cd.Resul
 	return
 }
 
-func (s *Context) BuildFieldValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
+func (s *Context) BuildFieldValue(vType model.Type, vValue model.Value) (ret interface{}, err *cd.Result) {
 	if !vValue.IsValid() {
 		ret, err = getBasicTypeDefaultValue(vType)
 		return
@@ -154,7 +154,7 @@ func (s *Context) BuildFieldValue(vType model.Type, vValue model.Value) (ret str
 	return
 }
 
-func (s *Context) BuildOprValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
+func (s *Context) BuildOprValue(vType model.Type, vValue model.Value) (ret interface{}, err *cd.Result) {
 	if !vValue.IsValid() {
 		err = cd.NewError(cd.UnExpected, "nil opr value")
 		return
@@ -186,7 +186,7 @@ func (s *Context) ExtractFiledValue(vType model.Type, eVal interface{}) (ret mod
 	return
 }
 
-func (s *Context) buildModelValue(vModel model.Model) (ret string, err *cd.Result) {
+func (s *Context) buildModelValue(vModel model.Model) (ret interface{}, err *cd.Result) {
 	pkField := vModel.GetPrimaryField()
 	switch pkField.GetType().GetValue() {
 	case model.TypeStringValue:
@@ -200,7 +200,7 @@ func (s *Context) buildModelValue(vModel model.Model) (ret string, err *cd.Resul
 	return
 }
 
-func (s *Context) encodeStringValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
+func (s *Context) encodeStringValue(vType model.Type, vValue model.Value) (ret interface{}, err *cd.Result) {
 	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fEncodeErr != nil {
 		err = fEncodeErr
@@ -212,29 +212,29 @@ func (s *Context) encodeStringValue(vType model.Type, vValue model.Value) (ret s
 	return
 }
 
-func (s *Context) encodeIntValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
+func (s *Context) encodeIntValue(vType model.Type, vValue model.Value) (ret interface{}, err *cd.Result) {
 	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fEncodeErr != nil {
 		err = fEncodeErr
 		log.Errorf("encodeIntValue failed, s.EncodeValue error:%s", err.Error())
 		return
 	}
-	ret = fmt.Sprintf("%v", fEncodeVal)
+	ret = fEncodeVal
 	return
 }
 
-func (s *Context) encodeFloatValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
+func (s *Context) encodeFloatValue(vType model.Type, vValue model.Value) (ret interface{}, err *cd.Result) {
 	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fEncodeErr != nil {
 		err = fEncodeErr
 		log.Errorf("encodeFloatValue failed, s.EncodeValue error:%s", err.Error())
 		return
 	}
-	ret = fmt.Sprintf("%v", fEncodeVal)
+	ret = fEncodeVal
 	return
 }
 
-func (s *Context) encodeStructValue(vType model.Type, vValue model.Value) (ret string, err *cd.Result) {
+func (s *Context) encodeStructValue(vType model.Type, vValue model.Value) (ret interface{}, err *cd.Result) {
 	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fEncodeErr != nil {
 		err = fEncodeErr
@@ -245,7 +245,7 @@ func (s *Context) encodeStructValue(vType model.Type, vValue model.Value) (ret s
 	case string:
 		ret = fmt.Sprintf("'%s'", fEncodeVal)
 	default:
-		ret = fmt.Sprintf("%v", fEncodeVal)
+		ret = fEncodeVal
 	}
 	return
 }
@@ -313,6 +313,5 @@ func (s *Context) encodeSliceValue(vType model.Type, vValue model.Value) (ret []
 	default:
 		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal filed type %s", vType.Elem().GetPkgKey()))
 	}
-
 	return
 }
