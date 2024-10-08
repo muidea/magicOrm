@@ -58,10 +58,10 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret string, err *cd.Result) {
 
 // BuildQueryRelation build query relation sql
 func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (ret string, err *cd.Result) {
-	leftVal, leftErr := s.common.GetHostModelValue()
+	leftVal, leftErr := s.common.BuildHostModelValue()
 	if leftErr != nil {
 		err = leftErr
-		log.Errorf("BuildQueryRelation failed, s.GetHostModelValue error:%s", err.Error())
+		log.Errorf("BuildQueryRelation failed, s.BuildHostModelValue error:%s", err.Error())
 		return
 	}
 

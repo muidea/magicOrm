@@ -52,21 +52,6 @@ func (s *Context) GetHostModelFields() model.Fields {
 	return s.hostModel.GetFields()
 }
 
-func (s *Context) GetHostModelValue() (ret model.RawVal, err *cd.Result) {
-	if s.hostModelValue == nil {
-		entityVal, entityErr := s.buildModelValue(s.hostModel)
-		if entityErr != nil {
-			err = entityErr
-			return
-		}
-
-		s.hostModelValue = entityVal
-	}
-
-	ret = s.hostModelValue
-	return
-}
-
 func (s *Context) GetModelTableName(vModel model.Model) string {
 	tableName := s.constructTableName(vModel)
 	if s.specialPrefix != "" {
@@ -89,26 +74,6 @@ func (s *Context) GetRelationTableName(vField model.Field, rModel model.Model) s
 	return tableName
 }
 
-func (s *Context) GetRelationValue(rModel model.Model) (leftVal, rightVal model.RawVal, err *cd.Result) {
-	entityVal, entityErr := s.GetHostModelValue()
-	if entityErr != nil {
-		err = entityErr
-		log.Errorf("GetRelationValue failed, s.GetHostModelValue error:%s", err.Error())
-		return
-	}
-
-	relationVal, relationErr := s.buildModelValue(rModel)
-	if relationErr != nil {
-		err = relationErr
-		log.Errorf("GetRelationValue failed, s.EncodeModelValue error:%s", err.Error())
-		return
-	}
-
-	leftVal = entityVal
-	rightVal = relationVal
-	return
-}
-
 func (s *Context) GetTypeModel(vType model.Type) (ret model.Model, err *cd.Result) {
 	vModel, vErr := s.modelProvider.GetTypeModel(vType)
 	if vErr != nil {
@@ -118,6 +83,41 @@ func (s *Context) GetTypeModel(vType model.Type) (ret model.Model, err *cd.Resul
 	}
 
 	ret = vModel
+	return
+}
+
+func (s *Context) BuildHostModelValue() (ret model.RawVal, err *cd.Result) {
+	if s.hostModelValue == nil {
+		entityVal, entityErr := s.buildModelValue(s.hostModel)
+		if entityErr != nil {
+			err = entityErr
+			return
+		}
+
+		s.hostModelValue = entityVal
+	}
+
+	ret = s.hostModelValue
+	return
+}
+
+func (s *Context) BuildRelationValue(rModel model.Model) (leftVal, rightVal model.RawVal, err *cd.Result) {
+	entityVal, entityErr := s.BuildHostModelValue()
+	if entityErr != nil {
+		err = entityErr
+		log.Errorf("BuildRelationValue failed, s.BuildHostModelValue error:%s", err.Error())
+		return
+	}
+
+	relationVal, relationErr := s.buildModelValue(rModel)
+	if relationErr != nil {
+		err = relationErr
+		log.Errorf("BuildRelationValue failed, s.EncodeModelValue error:%s", err.Error())
+		return
+	}
+
+	leftVal = entityVal
+	rightVal = relationVal
 	return
 }
 
@@ -148,12 +148,12 @@ func (s *Context) BuildFieldValue(vType model.Type, vValue model.Value) (ret mod
 			log.Errorf("encodeIntValue failed, s.EncodeValue error:%s", err.Error())
 			return
 		}
-		byteVal, byteErr := json.Marshal(fEncodeVal)
+		byteVal, byteErr := json.Marshal(fEncodeVal.Value())
 		if byteErr != nil {
 			err = cd.NewError(cd.UnExpected, fmt.Sprintf("%s", byteErr.Error()))
 			return
 		}
-		ret = model.NewRawVal(fmt.Sprintf("'%v'", strings.ReplaceAll(string(byteVal), "'", "''")))
+		ret = model.NewRawVal(strings.ReplaceAll(string(byteVal), "'", "''"))
 	default:
 		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal filed type %s", vType.GetPkgKey()))
 	}

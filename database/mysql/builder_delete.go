@@ -29,10 +29,10 @@ func (s *Builder) BuildDelete() (ret string, err *cd.Result) {
 
 // BuildDeleteRelation BuildDeleteRelation
 func (s *Builder) BuildDeleteRelation(vField model.Field, rModel model.Model) (delRight, delRelation string, err *cd.Result) {
-	leftVal, leftErr := s.common.GetHostModelValue()
+	leftVal, leftErr := s.common.BuildHostModelValue()
 	if leftErr != nil {
 		err = leftErr
-		log.Errorf("BuildDeleteRelation failed, s.GetHostModelValue error:%s", err.Error())
+		log.Errorf("BuildDeleteRelation failed, s.BuildHostModelValue error:%s", err.Error())
 		return
 	}
 

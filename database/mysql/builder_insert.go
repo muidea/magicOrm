@@ -53,10 +53,10 @@ func (s *Builder) BuildInsert() (ret string, err *cd.Result) {
 
 // BuildInsertRelation Build Insert Relation
 func (s *Builder) BuildInsertRelation(vField model.Field, rModel model.Model) (ret string, err *cd.Result) {
-	leftVal, rightVal, valErr := s.common.GetRelationValue(rModel)
+	leftVal, rightVal, valErr := s.common.BuildRelationValue(rModel)
 	if valErr != nil {
 		err = valErr
-		log.Errorf("BuildInsertRelation failed, s.GetRelationValue error:%s", err.Error())
+		log.Errorf("BuildInsertRelation failed, s.BuildRelationValue error:%s", err.Error())
 		return
 	}
 	relationTableName := s.common.GetRelationTableName(vField, rModel)

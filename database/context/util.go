@@ -62,7 +62,7 @@ func getBasicTypeDefaultValue(fType model.Type) (ret any, err *cd.Result) {
 	case model.TypeStringValue,
 		model.TypeDateTimeValue,
 		model.TypeSliceValue:
-		ret = "''"
+		ret = ""
 	default:
 		err = cd.NewError(cd.UnExpected, fmt.Sprintf("no support field type, type:%v", fType.GetPkgKey()))
 	}
