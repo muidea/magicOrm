@@ -44,7 +44,7 @@ func (s *Builder) BuildCreateTable() (ret string, err *cd.Result) {
 }
 
 // BuildCreateRelationTable Build CreateRelation Schema
-func (s *Builder) BuildCreateRelationTable(field model.Field, rModel model.Model) (ret string, err *cd.Result) {
+func (s *Builder) BuildCreateRelationTable(vField model.Field, rModel model.Model) (ret string, err *cd.Result) {
 	lPKField := s.common.GetHostModelPrimaryKeyField()
 	lPKType, lPKErr := getTypeDeclare(lPKField.GetType(), lPKField.GetSpec())
 	if lPKErr != nil {
@@ -61,7 +61,13 @@ func (s *Builder) BuildCreateRelationTable(field model.Field, rModel model.Model
 		return
 	}
 
-	relationTableName := s.common.GetRelationTableName(field, rModel)
+	relationTableName, relationErr := s.common.GetRelationTableName(vField, rModel)
+	if relationErr != nil {
+		err = relationErr
+		log.Errorf("BuildCreateRelationTable %s failed, s.common.GetRelationTableName error:%s", vField.GetName(), err.Error())
+		return
+	}
+
 	str := fmt.Sprintf("\t`id` BIGINT NOT NULL AUTO_INCREMENT,\n\t`left` %s NOT NULL,\n\t`right` %s NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`)", lPKType, rPKType)
 	str = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", relationTableName, str)
 	//log.Print(str)

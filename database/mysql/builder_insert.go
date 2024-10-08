@@ -59,7 +59,13 @@ func (s *Builder) BuildInsertRelation(vField model.Field, rModel model.Model) (r
 		log.Errorf("BuildInsertRelation failed, s.BuildRelationValue error:%s", err.Error())
 		return
 	}
-	relationTableName := s.common.GetRelationTableName(vField, rModel)
+	relationTableName, relationErr := s.common.GetRelationTableName(vField, rModel)
+	if relationErr != nil {
+		err = relationErr
+		log.Errorf("BuildInsertRelation %s failed, s.common.GetRelationTableName error:%s", vField.GetName(), err.Error())
+		return
+	}
+
 	str := fmt.Sprintf("INSERT INTO `%s` (`left`, `right`) VALUES (%v,%v)", relationTableName, leftVal, rightVal)
 	//log.Print(ret)
 	if traceSQL() {

@@ -61,7 +61,17 @@ func (s *Context) GetModelTableName(vModel model.Model) string {
 	return tableName
 }
 
-func (s *Context) GetRelationTableName(vField model.Field, rModel model.Model) string {
+func (s *Context) GetRelationTableName(vField model.Field, rModel model.Model) (ret string, err *cd.Result) {
+	if rModel == nil {
+		fieldModel, fieldErr := s.modelProvider.GetTypeModel(vField.GetType())
+		if fieldErr != nil {
+			err = fieldErr
+			log.Errorf("GetRelationTableName failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+			return
+		}
+		rModel = fieldModel
+	}
+
 	leftName := s.constructTableName(s.hostModel)
 	rightName := s.constructTableName(rModel)
 	infixVal := s.constructInfix(vField)
@@ -71,18 +81,7 @@ func (s *Context) GetRelationTableName(vField model.Field, rModel model.Model) s
 		tableName = fmt.Sprintf("%s_%s", s.specialPrefix, tableName)
 	}
 
-	return tableName
-}
-
-func (s *Context) GetTypeModel(vType model.Type) (ret model.Model, err *cd.Result) {
-	vModel, vErr := s.modelProvider.GetTypeModel(vType)
-	if vErr != nil {
-		err = vErr
-		log.Errorf("GetTypeModel failed, s.modelProvider.GetTypeModel error:%s", err.Error())
-		return
-	}
-
-	ret = vModel
+	ret = tableName
 	return
 }
 

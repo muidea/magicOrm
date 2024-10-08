@@ -94,27 +94,25 @@ func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem
 	return
 }
 
-func (s *Builder) buildRelationItem(pkField model.Field, rField model.Field, filterItem model.FilterItem) (ret string, err *cd.Result) {
-	fType := rField.GetType()
+func (s *Builder) buildRelationItem(pkField model.Field, vField model.Field, filterItem model.FilterItem) (ret string, err *cd.Result) {
+	vType := vField.GetType()
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
-	oprStr, oprErr := s.common.BuildOprValue(fType, oprValue)
+	oprStr, oprErr := s.common.BuildOprValue(vType, oprValue)
 	if oprErr != nil {
 		err = oprErr
-		log.Errorf("buildRelationItem %s failed, s.EncodeValue error:%s", rField.GetName(), err.Error())
-		return
-	}
-
-	fieldModel, fieldErr := s.common.GetTypeModel(fType)
-	if fieldErr != nil {
-		err = fieldErr
-		log.Errorf("buildRelationItem failed, s.GetTypeModel error:%s", err.Error())
+		log.Errorf("buildRelationItem %s failed, s.common.BuildOprValue error:%s", vField.GetName(), err.Error())
 		return
 	}
 
 	relationFilterSQL := ""
 	strVal := oprFunc("right", oprStr)
-	relationTableName := s.common.GetRelationTableName(rField, fieldModel)
+	relationTableName, relationErr := s.common.GetRelationTableName(vField, nil)
+	if relationErr != nil {
+		err = relationErr
+		log.Errorf("buildRelationItem %s failed, s.common.GetRelationTableName error:%s", vField.GetName(), err.Error())
+		return
+	}
 	relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTableName, strVal)
 	relationFilterSQL = fmt.Sprintf("`%s` IN (%s)", pkField.GetName(), relationFilterSQL)
 	ret = relationFilterSQL

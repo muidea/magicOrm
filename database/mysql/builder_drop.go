@@ -22,8 +22,14 @@ func (s *Builder) BuildDropTable() (ret string, err *cd.Result) {
 }
 
 // BuildDropRelationTable Build DropRelation Schema
-func (s *Builder) BuildDropRelationTable(field model.Field, rModel model.Model) (ret string, err *cd.Result) {
-	relationTableName := s.common.GetRelationTableName(field, rModel)
+func (s *Builder) BuildDropRelationTable(vField model.Field, rModel model.Model) (ret string, err *cd.Result) {
+	relationTableName, relationErr := s.common.GetRelationTableName(vField, rModel)
+	if relationErr != nil {
+		err = relationErr
+		log.Errorf("BuildDeleteRelation %s failed, s.common.GetRelationTableName error:%s", vField.GetName(), err.Error())
+		return
+	}
+
 	str := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", relationTableName)
 	//log.Print(str)
 	if traceSQL() {

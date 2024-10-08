@@ -65,7 +65,13 @@ func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (re
 		return
 	}
 
-	relationTableName := s.common.GetRelationTableName(vField, rModel)
+	relationTableName, relationErr := s.common.GetRelationTableName(vField, rModel)
+	if relationErr != nil {
+		err = relationErr
+		log.Errorf("BuildQueryRelation %s failed, s.common.GetRelationTableName error:%s", vField.GetName(), err.Error())
+		return
+	}
+
 	str := fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= %v", relationTableName, leftVal)
 	//log.Print(ret)
 	if traceSQL() {
