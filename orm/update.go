@@ -9,9 +9,8 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *impl) updateSingle(vModel model.Model) (err *cd.Result) {
-	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	sqlStr, sqlErr := builderVal.BuildUpdate()
+func (s *impl) updateSingle(hBuilder builder.Builder) (err *cd.Result) {
+	sqlStr, sqlErr := hBuilder.BuildUpdate()
 	if sqlErr != nil {
 		err = sqlErr
 		log.Errorf("updateSingle failed, builderVal.BuildUpdate error:%s", err.Error())
@@ -25,17 +24,41 @@ func (s *impl) updateSingle(vModel model.Model) (err *cd.Result) {
 	return
 }
 
-func (s *impl) updateRelation(vModel model.Model, vField model.Field) (err *cd.Result) {
-	err = s.deleteRelation(vModel, vField, 0)
+func (s *impl) updateRelation(hBuilder builder.Builder, vField model.Field) (err *cd.Result) {
+	err = s.deleteRelation(hBuilder, vField, 0)
 	if err != nil {
 		log.Errorf("updateRelation failed, s.deleteRelation error:%s", err.Error())
 		return
 	}
 
-	err = s.insertRelation(vModel, vField)
+	err = s.insertRelation(hBuilder, vField)
 	if err != nil {
 		log.Errorf("updateRelation failed, s.insertRelation error:%s", err.Error())
 	}
+	return
+}
+
+func (s *impl) updateModel(vModel model.Model) (ret model.Model, err *cd.Result) {
+	hBuilder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+	err = s.updateSingle(hBuilder)
+	if err != nil {
+		log.Errorf("Update failed, s.updateSingle error:%s", err.Error())
+		return
+	}
+
+	for _, field := range vModel.GetFields() {
+		if field.IsBasic() || !field.GetValue().IsValid() {
+			continue
+		}
+
+		err = s.updateRelation(hBuilder, field)
+		if err != nil {
+			log.Errorf("Update failed, s.updateRelation error:%s", err.Error())
+			return
+		}
+	}
+
+	ret = vModel
 	return
 }
 
@@ -51,24 +74,10 @@ func (s *impl) Update(vModel model.Model) (ret model.Model, err *cd.Result) {
 	}
 	defer s.finalTransaction(err)
 
-	err = s.updateSingle(vModel)
+	ret, err = s.updateModel(vModel)
 	if err != nil {
 		log.Errorf("Update failed, s.updateSingle error:%s", err.Error())
 		return
 	}
-
-	for _, field := range vModel.GetFields() {
-		if field.IsBasic() || !field.GetValue().IsValid() {
-			continue
-		}
-
-		err = s.updateRelation(vModel, field)
-		if err != nil {
-			log.Errorf("Update failed, s.updateRelation error:%s", err.Error())
-			return
-		}
-	}
-
-	ret = vModel
 	return
 }

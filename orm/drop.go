@@ -8,12 +8,11 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *impl) dropSingle(vModel model.Model) (err *cd.Result) {
-	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	dropSQL, dropErr := builderVal.BuildDropTable()
+func (s *impl) dropSingle(hBuilder builder.Builder) (err *cd.Result) {
+	dropSQL, dropErr := hBuilder.BuildDropTable()
 	if dropErr != nil {
 		err = dropErr
-		log.Errorf("dropSingle failed, builder.BuildDropTable error:%s", err.Error())
+		log.Errorf("dropSingle failed, hBuilder.BuildDropTable error:%s", err.Error())
 		return
 	}
 
@@ -24,12 +23,11 @@ func (s *impl) dropSingle(vModel model.Model) (err *cd.Result) {
 	return
 }
 
-func (s *impl) dropRelation(vModel model.Model, vField model.Field, rModel model.Model) (err *cd.Result) {
-	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	relationSQL, relationErr := builderVal.BuildDropRelationTable(vField, rModel)
+func (s *impl) dropRelation(hBuilder builder.Builder, vField model.Field, rModel model.Model) (err *cd.Result) {
+	relationSQL, relationErr := hBuilder.BuildDropRelationTable(vField, rModel)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("dropRelation failed, builder.BuildDropRelationTable error:%s", err.Error())
+		log.Errorf("dropRelation failed, hBuilder.BuildDropRelationTable error:%s", err.Error())
 		return
 	}
 
@@ -41,7 +39,8 @@ func (s *impl) dropRelation(vModel model.Model, vField model.Field, rModel model
 }
 
 func (s *impl) dropSchema(vModel model.Model) (err *cd.Result) {
-	err = s.dropSingle(vModel)
+	hBuilder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+	err = s.dropSingle(hBuilder)
 	if err != nil {
 		log.Errorf("dropSchema failed, s.dropSingle error:%s", err.Error())
 		return
@@ -52,28 +51,25 @@ func (s *impl) dropSchema(vModel model.Model) (err *cd.Result) {
 			continue
 		}
 
-		var relationModel model.Model
 		fType := field.GetType()
-		if vModel.GetPkgKey() == fType.GetPkgKey() {
-			relationModel = vModel
-		} else {
-			relationModel, err = s.modelProvider.GetTypeModel(fType)
-			if err != nil {
-				log.Errorf("dropSchema failed, s.modelProvider.GetTypeModel error:%s", err.Error())
-				return
-			}
+		relationModel, relationErr := s.modelProvider.GetTypeModel(fType)
+		if relationErr != nil {
+			err = relationErr
+			log.Errorf("dropSchema failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+			return
 		}
 
 		elemType := fType.Elem()
 		if !elemType.IsPtrType() {
-			err = s.dropSingle(relationModel)
+			rBuilder := builder.NewBuilder(relationModel, s.modelProvider, s.specialPrefix)
+			err = s.dropSingle(rBuilder)
 			if err != nil {
 				log.Errorf("dropSchema failed, s.dropSingle error:%s", err.Error())
 				return
 			}
 		}
 
-		err = s.dropRelation(vModel, field, relationModel)
+		err = s.dropRelation(hBuilder, field, relationModel)
 		if err != nil {
 			log.Errorf("dropSchema failed, s.dropRelation error:%s", err.Error())
 			return
@@ -88,12 +84,6 @@ func (s *impl) Drop(vModel model.Model) (err *cd.Result) {
 		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return
 	}
-
-	err = s.executor.BeginTransaction()
-	if err != nil {
-		return
-	}
-	defer s.finalTransaction(err)
 
 	err = s.dropSchema(vModel)
 	if err != nil {

@@ -11,11 +11,11 @@ import (
 )
 
 func (s *impl) queryCount(vFilter model.Filter) (ret int64, err *cd.Result) {
-	builderVal := builder.NewBuilder(vFilter.MaskModel(), s.modelProvider, s.specialPrefix)
-	sqlStr, sqlErr := builderVal.BuildCount(vFilter)
+	hBuilder := builder.NewBuilder(vFilter.MaskModel(), s.modelProvider, s.specialPrefix)
+	sqlStr, sqlErr := hBuilder.BuildCount(vFilter)
 	if sqlErr != nil {
 		err = sqlErr
-		log.Errorf("queryCount failed, builderVal.BuildCount error:%s", err.Error())
+		log.Errorf("queryCount failed, hBuilder.BuildCount error:%s", err.Error())
 		return
 	}
 

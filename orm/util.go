@@ -65,7 +65,7 @@ func (s *impl) getModelFilter(vModel model.Model, viewSpec model.ViewDeclare) (r
 	return
 }
 
-func (s *impl) getModelFieldsPlaceHolder(vModel model.Model, builder builder.Builder) (ret []any, err *cd.Result) {
+func (s *impl) getModelFieldsPlaceHolder(hBuilder builder.Builder, vModel model.Model) (ret []any, err *cd.Result) {
 	items := []any{}
 	for _, field := range vModel.GetFields() {
 		fType := field.GetType()
@@ -74,10 +74,10 @@ func (s *impl) getModelFieldsPlaceHolder(vModel model.Model, builder builder.Bui
 			continue
 		}
 
-		itemVal, itemErr := builder.GetFieldPlaceHolder(field)
+		itemVal, itemErr := hBuilder.GetFieldPlaceHolder(field)
 		if itemErr != nil {
 			err = itemErr
-			log.Errorf("getModelFieldsPlaceHolder failed, builder.GetFieldPlaceHolder error:%s", err.Error())
+			log.Errorf("getModelFieldsPlaceHolder failed, hBuilder.GetFieldPlaceHolder error:%s", err.Error())
 			return
 		}
 
@@ -88,11 +88,11 @@ func (s *impl) getModelFieldsPlaceHolder(vModel model.Model, builder builder.Bui
 	return
 }
 
-func (s *impl) getModelPKFieldPlaceHolder(vModel model.Model, builder builder.Builder) (ret any, err *cd.Result) {
-	itemVal, itemErr := builder.GetFieldPlaceHolder(vModel.GetPrimaryField())
+func (s *impl) getModelPKFieldPlaceHolder(hBuilder builder.Builder, vModel model.Model) (ret any, err *cd.Result) {
+	itemVal, itemErr := hBuilder.GetFieldPlaceHolder(vModel.GetPrimaryField())
 	if itemErr != nil {
 		err = itemErr
-		log.Errorf("getModelPKFieldPlaceHolder failed, builder.GetFieldPlaceHolder error:%s", err.Error())
+		log.Errorf("getModelPKFieldPlaceHolder failed, hBuilder.GetFieldPlaceHolder error:%s", err.Error())
 		return
 	}
 

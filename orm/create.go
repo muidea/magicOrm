@@ -8,12 +8,11 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *impl) createSingle(vModel model.Model) (err *cd.Result) {
-	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	createSQL, createErr := builderVal.BuildCreateTable()
+func (s *impl) createSingle(hBuilder builder.Builder) (err *cd.Result) {
+	createSQL, createErr := hBuilder.BuildCreateTable()
 	if createErr != nil {
 		err = createErr
-		log.Errorf("createSingle failed, builder.BuildCreateTable error:%s", err.Error())
+		log.Errorf("createSingle failed, hBuilder.BuildCreateTable error:%s", err.Error())
 		return
 	}
 
@@ -24,12 +23,11 @@ func (s *impl) createSingle(vModel model.Model) (err *cd.Result) {
 	return
 }
 
-func (s *impl) createRelation(vModel model.Model, vField model.Field, rModel model.Model) (err *cd.Result) {
-	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	relationSQL, relationErr := builderVal.BuildCreateRelationTable(vField, rModel)
+func (s *impl) createRelation(hBuilder builder.Builder, vField model.Field, rModel model.Model) (err *cd.Result) {
+	relationSQL, relationErr := hBuilder.BuildCreateRelationTable(vField, rModel)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("createRelation failed, builder.BuildCreateRelationTable error:%s", err.Error())
+		log.Errorf("createRelation failed, hBuilder.BuildCreateRelationTable error:%s", err.Error())
 		return
 	}
 
@@ -41,7 +39,8 @@ func (s *impl) createRelation(vModel model.Model, vField model.Field, rModel mod
 }
 
 func (s *impl) createSchema(vModel model.Model) (err *cd.Result) {
-	err = s.createSingle(vModel)
+	hBuilder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+	err = s.createSingle(hBuilder)
 	if err != nil {
 		log.Errorf("createSchema failed, s.createSingle error:%s", err.Error())
 		return
@@ -52,28 +51,25 @@ func (s *impl) createSchema(vModel model.Model) (err *cd.Result) {
 			continue
 		}
 
-		var relationModel model.Model
 		fType := field.GetType()
-		if vModel.GetPkgKey() == fType.GetPkgKey() {
-			relationModel = vModel
-		} else {
-			relationModel, err = s.modelProvider.GetTypeModel(fType)
-			if err != nil {
-				log.Errorf("createSchema failed, s.modelProvider.GetTypeModel error:%s", err.Error())
-				return
-			}
+		relationModel, relationErr := s.modelProvider.GetTypeModel(fType)
+		if relationErr != nil {
+			err = relationErr
+			log.Errorf("createSchema failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+			return
 		}
 
 		elemType := fType.Elem()
 		if !elemType.IsPtrType() {
-			err = s.createSingle(relationModel)
+			rBuilder := builder.NewBuilder(relationModel, s.modelProvider, s.specialPrefix)
+			err = s.createSingle(rBuilder)
 			if err != nil {
 				log.Errorf("createSchema failed, s.createSingle error:%s", err.Error())
 				return
 			}
 		}
 
-		err = s.createRelation(vModel, field, relationModel)
+		err = s.createRelation(hBuilder, field, relationModel)
 		if err != nil {
 			log.Errorf("createSchema failed, s.createRelation error:%s", err.Error())
 			return
@@ -88,12 +84,6 @@ func (s *impl) Create(vModel model.Model) (err *cd.Result) {
 		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return
 	}
-	err = s.executor.BeginTransaction()
-	if err != nil {
-		return
-	}
-
-	defer s.finalTransaction(err)
 
 	err = s.createSchema(vModel)
 	if err != nil {

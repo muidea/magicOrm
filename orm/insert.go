@@ -6,15 +6,13 @@ import (
 
 	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/util"
 )
 
-func (s *impl) innerInsert(vModel model.Model) (ret model.RawVal, err *cd.Result) {
-	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	sqlStr, sqlErr := builderVal.BuildInsert()
+func (s *impl) innerInsert(builder builder.Builder) (ret model.RawVal, err *cd.Result) {
+	sqlStr, sqlErr := builder.BuildInsert()
 	if sqlErr != nil {
 		err = sqlErr
-		log.Errorf("innerInsert failed, builderVal.BuildInsert error:%s", err.Error())
+		log.Errorf("innerInsert failed, builder.BuildInsert error:%s", err.Error())
 		return
 	}
 
@@ -29,7 +27,7 @@ func (s *impl) innerInsert(vModel model.Model) (ret model.RawVal, err *cd.Result
 	return
 }
 
-func (s *impl) insertSingle(vModel model.Model) (err *cd.Result) {
+func (s *impl) insertSingle(builder builder.Builder, vModel model.Model) (err *cd.Result) {
 	autoIncrementFlag := false
 	for _, field := range vModel.GetFields() {
 		if !field.IsBasic() {
@@ -47,7 +45,7 @@ func (s *impl) insertSingle(vModel model.Model) (err *cd.Result) {
 		}
 	}
 
-	pkVal, pkErr := s.innerInsert(vModel)
+	pkVal, pkErr := s.innerInsert(builder)
 	if pkErr != nil {
 		err = pkErr
 		log.Errorf("insertSingle failed, s.innerInsert error:%s", err.Error())
@@ -68,14 +66,14 @@ func (s *impl) insertSingle(vModel model.Model) (err *cd.Result) {
 	return
 }
 
-func (s *impl) insertRelation(vModel model.Model, vField model.Field) (err *cd.Result) {
+func (s *impl) insertRelation(builder builder.Builder, vField model.Field) (err *cd.Result) {
 	fValue := vField.GetValue()
 	if fValue.IsZero() {
 		return
 	}
 
 	if vField.IsSlice() {
-		rValue, rErr := s.insertSliceRelation(vModel, vField)
+		rValue, rErr := s.insertSliceRelation(builder, vField)
 		if rErr != nil {
 			err = rErr
 			log.Errorf("insertRelation failed, s.insertSliceRelation error:%s", err.Error())
@@ -88,7 +86,7 @@ func (s *impl) insertRelation(vModel model.Model, vField model.Field) (err *cd.R
 		return
 	}
 
-	rValue, rErr := s.insertSingleRelation(vModel, vField)
+	rValue, rErr := s.insertSingleRelation(builder, vField)
 	if rErr != nil {
 		err = rErr
 		log.Errorf("insertRelation failed, s.insertSingleRelation error:%s", err.Error())
@@ -101,17 +99,9 @@ func (s *impl) insertRelation(vModel model.Model, vField model.Field) (err *cd.R
 	return
 }
 
-func (s *impl) insertSingleRelation(vModel model.Model, vField model.Field) (ret model.Value, err *cd.Result) {
+func (s *impl) insertSingleRelation(hBuilder builder.Builder, vField model.Field) (ret model.Value, err *cd.Result) {
 	fValue := vField.GetValue()
 	fType := vField.GetType()
-	// 为了避免自己引用或关联自己
-	if fType.GetPkgKey() == vModel.GetPkgKey() {
-		vValue := vModel.GetPrimaryField().GetValue()
-		if util.IsSameValue(fValue.Interface(), vValue.Interface()) {
-			return
-		}
-	}
-
 	rModel, rErr := s.modelProvider.GetValueModel(fValue, fType)
 	if rErr != nil {
 		err = rErr
@@ -120,7 +110,8 @@ func (s *impl) insertSingleRelation(vModel model.Model, vField model.Field) (ret
 	}
 
 	if !fType.IsPtrType() {
-		rErr = s.insertSingle(rModel)
+		rBuilder := builder.NewBuilder(rModel, s.modelProvider, s.specialPrefix)
+		rErr = s.insertSingle(rBuilder, rModel)
 		if rErr != nil {
 			err = rErr
 			log.Errorf("insertSingleRelation failed, s.insertSingle error:%s", err.Error())
@@ -132,7 +123,7 @@ func (s *impl) insertSingleRelation(vModel model.Model, vField model.Field) (ret
 				continue
 			}
 
-			err = s.insertRelation(rModel, field)
+			err = s.insertRelation(rBuilder, field)
 			if err != nil {
 				log.Errorf("insertSingleRelation failed, s.insertRelation error:%s", err.Error())
 				return
@@ -140,8 +131,7 @@ func (s *impl) insertSingleRelation(vModel model.Model, vField model.Field) (ret
 		}
 	}
 
-	builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	relationSQL, relationErr := builderVal.BuildInsertRelation(vField, rModel)
+	relationSQL, relationErr := hBuilder.BuildInsertRelation(vField, rModel)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("insertSingleRelation failed, builderVal.BuildInsertRelation error:%s", err.Error())
@@ -165,7 +155,7 @@ func (s *impl) insertSingleRelation(vModel model.Model, vField model.Field) (ret
 	return
 }
 
-func (s *impl) insertSliceRelation(vModel model.Model, vField model.Field) (ret model.Value, err *cd.Result) {
+func (s *impl) insertSliceRelation(hBuilder builder.Builder, vField model.Field) (ret model.Value, err *cd.Result) {
 	fValue := vField.GetValue()
 	fType := vField.GetType()
 	rvValue, _ := fType.Interface(nil)
@@ -178,14 +168,6 @@ func (s *impl) insertSliceRelation(vModel model.Model, vField model.Field) (ret 
 
 	elemType := fType.Elem()
 	for _, fVal := range fSliceValue {
-		// 为了避免自己引用或关联自己
-		if elemType.GetPkgKey() == vModel.GetPkgKey() {
-			vValue := vModel.GetPrimaryField().GetValue()
-			if util.IsSameValue(fVal.Interface(), vValue.Interface()) {
-				continue
-			}
-		}
-
 		rModel, rErr := s.modelProvider.GetValueModel(fVal, elemType)
 		if rErr != nil {
 			err = rErr
@@ -194,7 +176,8 @@ func (s *impl) insertSliceRelation(vModel model.Model, vField model.Field) (ret 
 		}
 
 		if !elemType.IsPtrType() {
-			rErr = s.insertSingle(rModel)
+			rBuilder := builder.NewBuilder(rModel, s.modelProvider, s.specialPrefix)
+			rErr = s.insertSingle(rBuilder, rModel)
 			if rErr != nil {
 				err = rErr
 				log.Errorf("insertSliceRelation failed, s.insertSingle error:%s", err.Error())
@@ -206,7 +189,7 @@ func (s *impl) insertSliceRelation(vModel model.Model, vField model.Field) (ret 
 					continue
 				}
 
-				err = s.insertRelation(rModel, field)
+				err = s.insertRelation(rBuilder, field)
 				if err != nil {
 					log.Errorf("insertSliceRelation failed, s.insertRelation error:%s", err.Error())
 					return
@@ -214,8 +197,7 @@ func (s *impl) insertSliceRelation(vModel model.Model, vField model.Field) (ret 
 			}
 		}
 
-		builderVal := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-		relationSQL, relationErr := builderVal.BuildInsertRelation(vField, rModel)
+		relationSQL, relationErr := hBuilder.BuildInsertRelation(vField, rModel)
 		if relationErr != nil {
 			err = relationErr
 			log.Errorf("insertSliceRelation failed, builderVal.BuildInsertRelation error:%s", err.Error())
@@ -246,7 +228,30 @@ func (s *impl) insertSliceRelation(vModel model.Model, vField model.Field) (ret 
 	return
 }
 
-// Insert insert
+func (s *impl) insertModel(vModel model.Model) (ret model.Model, err *cd.Result) {
+	hBuilder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+	err = s.insertSingle(hBuilder, vModel)
+	if err != nil {
+		log.Errorf("Insert failed, s.insertSingle error:%s", err.Error())
+		return
+	}
+
+	for _, field := range vModel.GetFields() {
+		if field.IsBasic() {
+			continue
+		}
+
+		err = s.insertRelation(hBuilder, field)
+		if err != nil {
+			log.Errorf("Insert failed, s.insertRelation error:%s", err.Error())
+			return
+		}
+	}
+
+	ret = vModel
+	return
+}
+
 func (s *impl) Insert(vModel model.Model) (ret model.Model, err *cd.Result) {
 	if vModel == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal model value")
@@ -259,24 +264,10 @@ func (s *impl) Insert(vModel model.Model) (ret model.Model, err *cd.Result) {
 	}
 	defer s.finalTransaction(err)
 
-	err = s.insertSingle(vModel)
+	ret, err = s.insertModel(vModel)
 	if err != nil {
-		log.Errorf("Insert failed, s.insertSingle error:%s", err.Error())
+		log.Errorf("Insert failed, s.insertModel error:%s", err.Error())
 		return
 	}
-
-	for _, field := range vModel.GetFields() {
-		if field.IsBasic() {
-			continue
-		}
-
-		err = s.insertRelation(vModel, field)
-		if err != nil {
-			log.Errorf("Insert failed, s.insertRelation error:%s", err.Error())
-			return
-		}
-	}
-
-	ret = vModel
 	return
 }
