@@ -103,6 +103,6 @@ func (s *Builder) getFieldQueryNames(filter model.Filter) (ret string, err *cd.R
 	return
 }
 
-func (s *Builder) GetFieldScanDest(vField model.Field) (ret interface{}, err *cd.Result) {
-	return getFieldScanDestPtr(vField)
+func (s *Builder) GetFieldPlaceHolder(vField model.Field) (ret interface{}, err *cd.Result) {
+	return getFieldPlaceHolder(vField)
 }

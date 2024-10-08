@@ -88,7 +88,7 @@ func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err *cd.Res
 	return
 }
 
-func getFieldScanDestPtr(field model.Field) (ret interface{}, err *cd.Result) {
+func getFieldPlaceHolder(field model.Field) (ret interface{}, err *cd.Result) {
 	fType := field.GetType()
 	switch fType.GetValue() {
 	case model.TypeStringValue, model.TypeDateTimeValue:
@@ -151,7 +151,7 @@ func getFieldScanDestPtr(field model.Field) (ret interface{}, err *cd.Result) {
 	}
 
 	if err != nil {
-		log.Errorf("getFieldScanDestPtr failed, error:%s", err.Error())
+		log.Errorf("getFieldPlaceHolder failed, error:%s", err.Error())
 	}
 
 	return

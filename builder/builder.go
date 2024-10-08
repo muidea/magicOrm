@@ -23,7 +23,7 @@ type Builder interface {
 	BuildDeleteRelation(field model.Field, rModel model.Model) (string, string, *cd.Result)
 	BuildQueryRelation(field model.Field, rModel model.Model) (string, *cd.Result)
 
-	GetFieldScanDest(field model.Field) (interface{}, *cd.Result)
+	GetFieldPlaceHolder(field model.Field) (interface{}, *cd.Result)
 }
 
 // NewBuilder new builder

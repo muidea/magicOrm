@@ -29,13 +29,13 @@ func (s *impl) innerQuery(vModel model.Model, filter model.Filter) (ret resultIt
 
 	defer s.executor.Finish()
 	for s.executor.Next() {
-		itemValues, itemErr := s.getModelFieldsScanDestPtr(vModel, builderVal)
+		itemValues, itemErr := s.getModelFieldsPlaceHolder(vModel, builderVal)
 		if itemErr != nil {
 			err = itemErr
 			if err.Fail() {
-				log.Errorf("innerQuery failed, s.getModelFieldsScanDestPtr error:%s", err.Error())
+				log.Errorf("innerQuery failed, s.getModelFieldsPlaceHolder error:%s", err.Error())
 			} else if err.Warn() {
-				log.Warnf("innerQuery failed, s.getModelFieldsScanDestPtr error:%s", err.Error())
+				log.Warnf("innerQuery failed, s.getModelFieldsPlaceHolder error:%s", err.Error())
 			}
 			return
 		}
@@ -253,13 +253,13 @@ func (s *impl) innerQueryRelationKeys(vModel model.Model, rModel model.Model, vF
 		defer s.executor.Finish()
 
 		for s.executor.Next() {
-			itemValue, itemErr := s.getModelPKFieldScanDestPtr(rModel, builderVal)
+			itemValue, itemErr := s.getModelPKFieldPlaceHolder(rModel, builderVal)
 			if itemErr != nil {
 				err = itemErr
 				if err.Fail() {
-					log.Errorf("innerQueryRelationKeys failed, s.getModelPKFieldScanDestPtr error:%v", err.Error())
+					log.Errorf("innerQueryRelationKeys failed, s.getModelPKFieldPlaceHolder error:%v", err.Error())
 				} else if err.Warn() {
-					log.Warnf("innerQueryRelationKeys failed, s.getModelPKFieldScanDestPtr error:%v", err.Error())
+					log.Warnf("innerQueryRelationKeys failed, s.getModelPKFieldPlaceHolder error:%v", err.Error())
 				}
 				return
 			}
