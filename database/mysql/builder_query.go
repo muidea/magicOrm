@@ -18,7 +18,7 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret string, err *cd.Result) {
 		return
 	}
 
-	str := fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.common.GetHostModelTableName())
+	str := fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.common.BuildHostModelTableName())
 	if filter != nil {
 		filterSQL, filterErr := s.buildFilter(filter)
 		if filterErr != nil {
@@ -65,10 +65,10 @@ func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (re
 		return
 	}
 
-	relationTableName, relationErr := s.common.GetRelationTableName(vField, rModel)
+	relationTableName, relationErr := s.common.BuildRelationTableName(vField, rModel)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("BuildQueryRelation %s failed, s.common.GetRelationTableName error:%s", vField.GetName(), err.Error())
+		log.Errorf("BuildQueryRelation %s failed, s.common.BuildRelationTableName error:%s", vField.GetName(), err.Error())
 		return
 	}
 

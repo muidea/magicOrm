@@ -107,10 +107,10 @@ func (s *Builder) buildRelationItem(pkField model.Field, vField model.Field, fil
 
 	relationFilterSQL := ""
 	strVal := oprFunc("right", oprStr)
-	relationTableName, relationErr := s.common.GetRelationTableName(vField, nil)
+	relationTableName, relationErr := s.common.BuildRelationTableName(vField, nil)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("buildRelationItem %s failed, s.common.GetRelationTableName error:%s", vField.GetName(), err.Error())
+		log.Errorf("buildRelationItem %s failed, s.common.BuildRelationTableName error:%s", vField.GetName(), err.Error())
 		return
 	}
 	relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTableName, strVal)
@@ -124,8 +124,8 @@ func (s *Builder) buildSorter(filter model.Sorter) (ret string, err *cd.Result) 
 		return
 	}
 
-	for _, val := range s.common.GetHostModelFields() {
-		if val.GetName() == filter.Name() {
+	for _, field := range s.common.GetHostModelFields() {
+		if field.GetName() == filter.Name() {
 			ret = SortOpr(filter.Name(), filter.AscSort())
 			return
 		}

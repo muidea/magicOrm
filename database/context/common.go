@@ -36,9 +36,9 @@ func (s *Context) constructInfix(vFiled model.Field) string {
 	return strings.ToUpper(strName[:1]) + strName[1:]
 }
 
-func (s *Context) GetHostModelTableName() string {
+func (s *Context) BuildHostModelTableName() string {
 	if s.hostModelTableName == "" {
-		s.hostModelTableName = s.GetModelTableName(s.hostModel)
+		s.hostModelTableName = s.BuildModelTableName(s.hostModel)
 	}
 
 	return s.hostModelTableName
@@ -52,7 +52,7 @@ func (s *Context) GetHostModelFields() model.Fields {
 	return s.hostModel.GetFields()
 }
 
-func (s *Context) GetModelTableName(vModel model.Model) string {
+func (s *Context) BuildModelTableName(vModel model.Model) string {
 	tableName := s.constructTableName(vModel)
 	if s.specialPrefix != "" {
 		tableName = fmt.Sprintf("%s_%s", s.specialPrefix, tableName)
@@ -61,12 +61,12 @@ func (s *Context) GetModelTableName(vModel model.Model) string {
 	return tableName
 }
 
-func (s *Context) GetRelationTableName(vField model.Field, rModel model.Model) (ret string, err *cd.Result) {
+func (s *Context) BuildRelationTableName(vField model.Field, rModel model.Model) (ret string, err *cd.Result) {
 	if rModel == nil {
 		fieldModel, fieldErr := s.modelProvider.GetTypeModel(vField.GetType())
 		if fieldErr != nil {
 			err = fieldErr
-			log.Errorf("GetRelationTableName failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+			log.Errorf("BuildRelationTableName failed, s.modelProvider.GetTypeModel error:%s", err.Error())
 			return
 		}
 		rModel = fieldModel

@@ -41,7 +41,7 @@ func (s *Builder) BuildInsert() (ret string, err *cd.Result) {
 		}
 	}
 
-	str := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.common.GetHostModelTableName(), fieldNames, fieldValues)
+	str := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.common.BuildHostModelTableName(), fieldNames, fieldValues)
 	//log.Print(str)
 	if traceSQL() {
 		log.Infof("[SQL] insert: %s", str)
@@ -59,10 +59,10 @@ func (s *Builder) BuildInsertRelation(vField model.Field, rModel model.Model) (r
 		log.Errorf("BuildInsertRelation failed, s.BuildRelationValue error:%s", err.Error())
 		return
 	}
-	relationTableName, relationErr := s.common.GetRelationTableName(vField, rModel)
+	relationTableName, relationErr := s.common.BuildRelationTableName(vField, rModel)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("BuildInsertRelation %s failed, s.common.GetRelationTableName error:%s", vField.GetName(), err.Error())
+		log.Errorf("BuildInsertRelation %s failed, s.common.BuildRelationTableName error:%s", vField.GetName(), err.Error())
 		return
 	}
 

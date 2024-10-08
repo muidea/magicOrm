@@ -11,13 +11,13 @@ import (
 
 func (s *Builder) BuildCreateTable() (ret string, err *cd.Result) {
 	str := ""
-	for _, val := range s.common.GetHostModelFields() {
-		fType := val.GetType()
+	for _, field := range s.common.GetHostModelFields() {
+		fType := field.GetType()
 		if !fType.IsBasic() {
 			continue
 		}
 
-		infoVal, infoErr := s.declareFieldInfo(val)
+		infoVal, infoErr := s.declareFieldInfo(field)
 		if infoErr != nil {
 			err = infoErr
 			log.Errorf("BuildCreateTable failed, declareFieldInfo error:%s", err.Error())
@@ -34,7 +34,7 @@ func (s *Builder) BuildCreateTable() (ret string, err *cd.Result) {
 	pkFieldName := s.common.GetHostModelPrimaryKeyField().GetName()
 	str = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", str, pkFieldName)
 
-	str = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", s.common.GetHostModelTableName(), str)
+	str = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", s.common.BuildHostModelTableName(), str)
 	if traceSQL() {
 		log.Infof("[SQL] create: %s", str)
 	}
@@ -61,10 +61,10 @@ func (s *Builder) BuildCreateRelationTable(vField model.Field, rModel model.Mode
 		return
 	}
 
-	relationTableName, relationErr := s.common.GetRelationTableName(vField, rModel)
+	relationTableName, relationErr := s.common.BuildRelationTableName(vField, rModel)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("BuildCreateRelationTable %s failed, s.common.GetRelationTableName error:%s", vField.GetName(), err.Error())
+		log.Errorf("BuildCreateRelationTable %s failed, s.common.BuildRelationTableName error:%s", vField.GetName(), err.Error())
 		return
 	}
 
