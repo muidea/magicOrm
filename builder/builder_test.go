@@ -58,7 +58,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 		return
 	}
-	if str != "CREATE TABLE IF NOT EXISTS `abc_Unit` (\n\t`uid` VARCHAR(32) NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\tPRIMARY KEY (`uid`)\n)\n" {
+	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_Unit` (\n\t`uid` VARCHAR(32) NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\tPRIMARY KEY (`uid`)\n)\n" {
 		t.Errorf("build create schema failed, str:%s", str)
 		return
 	}
@@ -68,7 +68,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 		t.Errorf("build drop schema failed, err:%s", err.Error())
 		return
 	}
-	if str != "DROP TABLE IF EXISTS `abc_Unit`" {
+	if str.SQL() != "DROP TABLE IF EXISTS `abc_Unit`" {
 		t.Error("build drop schema failed")
 		return
 	}
@@ -77,7 +77,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 	if err != nil {
 		t.Errorf("build insert failed, err:%s", err.Error())
 	}
-	if str != "INSERT INTO `abc_Unit` (`uid`,`name`,`value`,`ts`) VALUES ('10','Hello world',12.3456,'2018-01-02 15:04:05')" {
+	if str.SQL() != "INSERT INTO `abc_Unit` (`uid`,`name`,`value`,`ts`) VALUES ('10','Hello world',12.3456,'2018-01-02 15:04:05')" {
 		t.Errorf("build insert failed, str:%s", str)
 		return
 	}
@@ -87,7 +87,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 		t.Errorf("build update failed, err:%s", err.Error())
 		return
 	}
-	if str != "UPDATE `abc_Unit` SET `name` = 'Hello world',`value` = 12.3456,`ts` = '2018-01-02 15:04:05' WHERE `uid` = '10'" {
+	if str.SQL() != "UPDATE `abc_Unit` SET `name` = 'Hello world',`value` = 12.3456,`ts` = '2018-01-02 15:04:05' WHERE `uid` = '10'" {
 		t.Errorf("build update failed, str:%s", str)
 		return
 	}
@@ -97,7 +97,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 		t.Errorf("build delete failed, err:%s", err.Error())
 		return
 	}
-	if str != "DELETE FROM `abc_Unit` WHERE `uid` = '10'" {
+	if str.SQL() != "DELETE FROM `abc_Unit` WHERE `uid` = '10'" {
 		t.Errorf("build delete failed, str:%s", str)
 		return
 	}
@@ -112,7 +112,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 		t.Errorf("build query failed, err:%s", err.Error())
 		return
 	}
-	if str != "SELECT `uid`,`name`,`value`,`ts` FROM `abc_Unit` WHERE `value` > 12.23" {
+	if str.SQL() != "SELECT `uid`,`name`,`value`,`ts` FROM `abc_Unit` WHERE `value` > 12.23" {
 		t.Errorf("build query failed, str:%s", str)
 		return
 	}
@@ -122,7 +122,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 		t.Errorf("build count failed, err:%s", err.Error())
 		return
 	}
-	if str != "SELECT COUNT(`uid`) FROM `abc_Unit` WHERE `value` > 12.23" {
+	if str.SQL() != "SELECT COUNT(`uid`) FROM `abc_Unit` WHERE `value` > 12.23" {
 		t.Errorf("build count failed, str:%s", str)
 		return
 	}
@@ -155,7 +155,7 @@ func TestBuilderLocalReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 	}
-	if str != "CREATE TABLE IF NOT EXISTS `abc_Reference` (\n\t`eid` BIGINT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`value` DOUBLE NOT NULL ,\n\t`description` TEXT NOT NULL ,\n\tPRIMARY KEY (`eid`)\n)\n" {
+	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_Reference` (\n\t`eid` BIGINT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`value` DOUBLE NOT NULL ,\n\t`description` TEXT NOT NULL ,\n\tPRIMARY KEY (`eid`)\n)\n" {
 		t.Errorf("build create schema failed, str:%s", str)
 	}
 
@@ -163,7 +163,7 @@ func TestBuilderLocalReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build drop schema failed, err:%s", err.Error())
 	}
-	if str != "DROP TABLE IF EXISTS `abc_Reference`" {
+	if str.SQL() != "DROP TABLE IF EXISTS `abc_Reference`" {
 		t.Errorf("build drop schema failed, str:%s", str)
 	}
 
@@ -171,7 +171,7 @@ func TestBuilderLocalReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build insert failed, err:%s", err.Error())
 	}
-	if str != "INSERT INTO `abc_Reference` (`name`,`value`,`description`) VALUES ('Hey',0,'')" {
+	if str.SQL() != "INSERT INTO `abc_Reference` (`name`,`value`,`description`) VALUES ('Hey',0,'')" {
 		t.Errorf("build insert failed, str:%v", str)
 	}
 
@@ -179,7 +179,7 @@ func TestBuilderLocalReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build update failed, err:%s", err.Error())
 	}
-	if str != "UPDATE `abc_Reference` SET `name` = 'Hey',`value` = 0,`description` = '' WHERE `eid` = 12" {
+	if str.SQL() != "UPDATE `abc_Reference` SET `name` = 'Hey',`value` = 0,`description` = '' WHERE `eid` = 12" {
 		t.Errorf("build update failed, str:%s", str)
 	}
 
@@ -187,7 +187,7 @@ func TestBuilderLocalReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build delete failed, err:%s", err.Error())
 	}
-	if str != "DELETE FROM `abc_Reference` WHERE `eid` = 12" {
+	if str.SQL() != "DELETE FROM `abc_Reference` WHERE `eid` = 12" {
 		t.Errorf("build delete failed, str:%s", str)
 	}
 
@@ -197,7 +197,7 @@ func TestBuilderLocalReference(t *testing.T) {
 		t.Errorf("BuildCreateRelationTable failed, err:%s", err.Error())
 		return
 	}
-	if str != "CREATE TABLE IF NOT EXISTS `abc_ReferenceUnit1Unit` (\n\t`id` BIGINT NOT NULL AUTO_INCREMENT,\n\t`left` BIGINT NOT NULL,\n\t`right` VARCHAR(32) NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`)\n)\n" {
+	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_ReferenceUnit1Unit` (\n\t`id` BIGINT NOT NULL AUTO_INCREMENT,\n\t`left` BIGINT NOT NULL,\n\t`right` VARCHAR(32) NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`)\n)\n" {
 		t.Errorf("BuildCreateRelationTable failed, str:%s", str)
 		return
 	}
@@ -207,7 +207,7 @@ func TestBuilderLocalReference(t *testing.T) {
 		t.Errorf("BuildDropRelationTable failed, err:%s", err.Error())
 		return
 	}
-	if str != "DROP TABLE IF EXISTS `abc_ReferenceUnit1Unit`" {
+	if str.SQL() != "DROP TABLE IF EXISTS `abc_ReferenceUnit1Unit`" {
 		t.Errorf("BuildDropRelationTable failed, str:%s", str)
 		return
 	}
@@ -217,7 +217,7 @@ func TestBuilderLocalReference(t *testing.T) {
 		t.Errorf("BuildInsertRelation failed, err:%s", err.Error())
 		return
 	}
-	if str != "INSERT INTO `abc_ReferenceUnit1Unit` (`left`, `right`) VALUES (12,'10')" {
+	if str.SQL() != "INSERT INTO `abc_ReferenceUnit1Unit` (`left`, `right`) VALUES (12,'10')" {
 		t.Errorf("BuildInsertRelation failed, str:%s", str)
 		return
 	}
@@ -227,11 +227,11 @@ func TestBuilderLocalReference(t *testing.T) {
 		t.Errorf("BuildDeleteRelation failed, err:%s", err.Error())
 		return
 	}
-	if lStr != "DELETE FROM `abc_Unit` WHERE `uid` IN (SELECT `right` FROM `abc_ReferenceUnit1Unit` WHERE `left`=12)" {
+	if lStr.SQL() != "DELETE FROM `abc_Unit` WHERE `uid` IN (SELECT `right` FROM `abc_ReferenceUnit1Unit` WHERE `left`=12)" {
 		t.Errorf("BuildDeleteRelation failed, lStr:%s", lStr)
 		return
 	}
-	if rStr != "DELETE FROM `abc_ReferenceUnit1Unit` WHERE `left`=12" {
+	if rStr.SQL() != "DELETE FROM `abc_ReferenceUnit1Unit` WHERE `left`=12" {
 		t.Errorf("BuildDeleteRelation failed, rStr:%s", rStr)
 		return
 	}
@@ -241,7 +241,7 @@ func TestBuilderLocalReference(t *testing.T) {
 		t.Errorf("BuildQueryRelation failed, err:%s", err.Error())
 		return
 	}
-	if str != "SELECT `right` FROM `abc_ReferenceUnit1Unit` WHERE `left`= 12" {
+	if str.SQL() != "SELECT `right` FROM `abc_ReferenceUnit1Unit` WHERE `left`= 12" {
 		t.Errorf("BuildQueryRelation failed, str:%s", str)
 		return
 	}
@@ -341,7 +341,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 		return
 	}
-	if str != "CREATE TABLE IF NOT EXISTS `abc_Unit` (\n\t`uid` VARCHAR(32) NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\tPRIMARY KEY (`uid`)\n)\n" {
+	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_Unit` (\n\t`uid` VARCHAR(32) NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\tPRIMARY KEY (`uid`)\n)\n" {
 		t.Errorf("build create schema failed, str:%s", str)
 		return
 	}
@@ -351,7 +351,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 		t.Errorf("build drop schema failed, err:%s", err.Error())
 		return
 	}
-	if str != "DROP TABLE IF EXISTS `abc_Unit`" {
+	if str.SQL() != "DROP TABLE IF EXISTS `abc_Unit`" {
 		t.Error("build drop schema failed")
 		return
 	}
@@ -360,7 +360,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 	if err != nil {
 		t.Errorf("build insert failed, err:%s", err.Error())
 	}
-	if str != "INSERT INTO `abc_Unit` (`uid`,`name`,`value`,`ts`) VALUES ('10','Hello world',12.3456,'2018-01-02 15:04:05')" {
+	if str.SQL() != "INSERT INTO `abc_Unit` (`uid`,`name`,`value`,`ts`) VALUES ('10','Hello world',12.3456,'2018-01-02 15:04:05')" {
 		t.Errorf("build insert failed, str:%s", str)
 		return
 	}
@@ -370,7 +370,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 		t.Errorf("build update failed, err:%s", err.Error())
 		return
 	}
-	if str != "UPDATE `abc_Unit` SET `name` = 'Hello world',`value` = 12.3456,`ts` = '2018-01-02 15:04:05' WHERE `uid` = '10'" {
+	if str.SQL() != "UPDATE `abc_Unit` SET `name` = 'Hello world',`value` = 12.3456,`ts` = '2018-01-02 15:04:05' WHERE `uid` = '10'" {
 		t.Errorf("build update failed, str:%s", str)
 		return
 	}
@@ -380,7 +380,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 		t.Errorf("build delete failed, err:%s", err.Error())
 		return
 	}
-	if str != "DELETE FROM `abc_Unit` WHERE `uid` = '10'" {
+	if str.SQL() != "DELETE FROM `abc_Unit` WHERE `uid` = '10'" {
 		t.Errorf("build delete failed, str:%s", str)
 		return
 	}
@@ -395,7 +395,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 		t.Errorf("build query failed, err:%s", err.Error())
 		return
 	}
-	if str != "SELECT `uid`,`name`,`value`,`ts` FROM `abc_Unit` WHERE `value` > 12" {
+	if str.SQL() != "SELECT `uid`,`name`,`value`,`ts` FROM `abc_Unit` WHERE `value` > 12" {
 		t.Errorf("build query failed, str:%s", str)
 		return
 	}
@@ -405,7 +405,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 		t.Errorf("build count failed, err:%s", err.Error())
 		return
 	}
-	if str != "SELECT COUNT(`uid`) FROM `abc_Unit` WHERE `value` > 12" {
+	if str.SQL() != "SELECT COUNT(`uid`) FROM `abc_Unit` WHERE `value` > 12" {
 		t.Errorf("build count failed, str:%s", str)
 		return
 	}
@@ -562,7 +562,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 	}
-	if str != "CREATE TABLE IF NOT EXISTS `abc_Reference` (\n\t`eid` BIGINT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`value` DOUBLE NOT NULL ,\n\t`description` TEXT NOT NULL ,\n\tPRIMARY KEY (`eid`)\n)\n" {
+	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_Reference` (\n\t`eid` BIGINT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`value` DOUBLE NOT NULL ,\n\t`description` TEXT NOT NULL ,\n\tPRIMARY KEY (`eid`)\n)\n" {
 		t.Errorf("build create schema failed, str:%s", str)
 	}
 
@@ -570,7 +570,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build drop schema failed, err:%s", err.Error())
 	}
-	if str != "DROP TABLE IF EXISTS `abc_Reference`" {
+	if str.SQL() != "DROP TABLE IF EXISTS `abc_Reference`" {
 		t.Errorf("build drop schema failed, str:%s", str)
 	}
 
@@ -578,7 +578,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build insert failed, err:%s", err.Error())
 	}
-	if str != "INSERT INTO `abc_Reference` (`name`,`value`,`description`) VALUES ('Hey',0,'')" {
+	if str.SQL() != "INSERT INTO `abc_Reference` (`name`,`value`,`description`) VALUES ('Hey',0,'')" {
 		t.Errorf("build insert failed, str:%v", str)
 	}
 
@@ -586,7 +586,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build update failed, err:%s", err.Error())
 	}
-	if str != "UPDATE `abc_Reference` SET `name` = 'Hey' WHERE `eid` = 12" {
+	if str.SQL() != "UPDATE `abc_Reference` SET `name` = 'Hey' WHERE `eid` = 12" {
 		t.Errorf("build update failed, str:%s", str)
 	}
 
@@ -594,7 +594,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build delete failed, err:%s", err.Error())
 	}
-	if str != "DELETE FROM `abc_Reference` WHERE `eid` = 12" {
+	if str.SQL() != "DELETE FROM `abc_Reference` WHERE `eid` = 12" {
 		t.Errorf("build delete failed, str:%s", str)
 	}
 
@@ -602,7 +602,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build query failed, err:%s", err.Error())
 	}
-	if str != "SELECT `eid`,`name`,`value`,`description` FROM `abc_Reference`" {
+	if str.SQL() != "SELECT `eid`,`name`,`value`,`description` FROM `abc_Reference`" {
 		t.Errorf("build query failed, str:%s", str)
 	}
 
@@ -611,7 +611,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build query failed, err:%s", err.Error())
 	}
-	if str != "SELECT `eid`,`name`,`value`,`description` FROM `abc_Reference` WHERE `eid` = 12" {
+	if str.SQL() != "SELECT `eid`,`name`,`value`,`description` FROM `abc_Reference` WHERE `eid` = 12" {
 		t.Errorf("build query failed, str:%s", str)
 	}
 
@@ -621,7 +621,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		t.Errorf("BuildCreateRelationTable failed, err:%s", err.Error())
 		return
 	}
-	if str != "CREATE TABLE IF NOT EXISTS `abc_ReferenceUnit1Unit` (\n\t`id` BIGINT NOT NULL AUTO_INCREMENT,\n\t`left` BIGINT NOT NULL,\n\t`right` VARCHAR(32) NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`)\n)\n" {
+	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_ReferenceUnit1Unit` (\n\t`id` BIGINT NOT NULL AUTO_INCREMENT,\n\t`left` BIGINT NOT NULL,\n\t`right` VARCHAR(32) NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`)\n)\n" {
 		t.Errorf("BuildCreateRelationTable failed, str:%s", str)
 		return
 	}
@@ -631,7 +631,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		t.Errorf("BuildDropRelationTable failed, err:%s", err.Error())
 		return
 	}
-	if str != "DROP TABLE IF EXISTS `abc_ReferenceUnit1Unit`" {
+	if str.SQL() != "DROP TABLE IF EXISTS `abc_ReferenceUnit1Unit`" {
 		t.Errorf("BuildDropRelationTable failed, str:%s", str)
 		return
 	}
@@ -641,7 +641,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		t.Errorf("BuildInsertRelation failed, err:%s", err.Error())
 		return
 	}
-	if str != "INSERT INTO `abc_ReferenceUnit1Unit` (`left`, `right`) VALUES (12,'10')" {
+	if str.SQL() != "INSERT INTO `abc_ReferenceUnit1Unit` (`left`, `right`) VALUES (12,'10')" {
 		t.Errorf("BuildInsertRelation failed, str:%s", str)
 		return
 	}
@@ -651,11 +651,11 @@ func TestBuilderRemoteReference(t *testing.T) {
 		t.Errorf("BuildDeleteRelation failed, err:%s", err.Error())
 		return
 	}
-	if lStr != "DELETE FROM `abc_Unit` WHERE `uid` IN (SELECT `right` FROM `abc_ReferenceUnit1Unit` WHERE `left`=12)" {
+	if lStr.SQL() != "DELETE FROM `abc_Unit` WHERE `uid` IN (SELECT `right` FROM `abc_ReferenceUnit1Unit` WHERE `left`=12)" {
 		t.Errorf("BuildDeleteRelation failed, lStr:%s", lStr)
 		return
 	}
-	if rStr != "DELETE FROM `abc_ReferenceUnit1Unit` WHERE `left`=12" {
+	if rStr.SQL() != "DELETE FROM `abc_ReferenceUnit1Unit` WHERE `left`=12" {
 		t.Errorf("BuildDeleteRelation failed, rStr:%s", rStr)
 		return
 	}
@@ -665,7 +665,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		t.Errorf("BuildQueryRelation failed, err:%s", err.Error())
 		return
 	}
-	if str != "SELECT `right` FROM `abc_ReferenceUnit1Unit` WHERE `left`= 12" {
+	if str.SQL() != "SELECT `right` FROM `abc_ReferenceUnit1Unit` WHERE `left`= 12" {
 		t.Errorf("BuildQueryRelation failed, str:%s", str)
 		return
 	}
