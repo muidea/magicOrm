@@ -55,14 +55,6 @@ func (s *contextImpl) BuildHostModelTableName() string {
 	return s.hostModelTableName
 }
 
-func (s *contextImpl) GetHostModelPrimaryKeyField() model.Field {
-	return s.hostModel.GetPrimaryField()
-}
-
-func (s *contextImpl) GetHostModelFields() model.Fields {
-	return s.hostModel.GetFields()
-}
-
 func (s *contextImpl) BuildModelTableName(vModel model.Model) string {
 	tableName := s.constructTableName(vModel)
 	if s.specialPrefix != "" {
