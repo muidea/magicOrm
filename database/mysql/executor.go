@@ -214,7 +214,7 @@ func (s *Executor) RollbackTransaction() (err *cd.Result) {
 	return
 }
 
-func (s *Executor) Query(sql string, needCols bool) (ret []string, err *cd.Result) {
+func (s *Executor) Query(sql string, needCols bool, args ...any) (ret []string, err *cd.Result) {
 	//log.Infof("Query, sql:%s", sql)
 	startTime := time.Now()
 	defer func() {
@@ -225,7 +225,9 @@ func (s *Executor) Query(sql string, needCols bool) (ret []string, err *cd.Resul
 			return
 		}
 
-		//log.Infof("query ok, elapse:%v", elapse)
+		if traceSQL() {
+			log.Infof("Query ok, execute time:%s, elapse:%d, sql:%s", startTime.Local().String(), elapse, sql)
+		}
 	}()
 
 	if s.dbTx == nil {
@@ -237,7 +239,7 @@ func (s *Executor) Query(sql string, needCols bool) (ret []string, err *cd.Resul
 			s.rowsHandle = nil
 		}
 
-		rows, rowErr := s.dbHandle.Query(sql)
+		rows, rowErr := s.dbHandle.Query(sql, args...)
 		if rowErr != nil {
 			err = cd.NewError(cd.UnExpected, rowErr.Error())
 			log.Errorf("Query failed, s.dbHandle.Query:%s, error:%s", sql, rowErr.Error())
@@ -260,7 +262,7 @@ func (s *Executor) Query(sql string, needCols bool) (ret []string, err *cd.Resul
 			s.rowsHandle = nil
 		}
 
-		rows, rowErr := s.dbTx.Query(sql)
+		rows, rowErr := s.dbTx.Query(sql, args...)
 		if rowErr != nil {
 			err = cd.NewError(cd.UnExpected, rowErr.Error())
 			log.Errorf("Query failed, s.dbTx.Query:%s, error:%s", sql, rowErr.Error())
@@ -318,7 +320,7 @@ func (s *Executor) GetField(value ...interface{}) (err *cd.Result) {
 	return
 }
 
-func (s *Executor) Execute(sql string) (rowsAffected int64, lastInsertID int64, err *cd.Result) {
+func (s *Executor) Execute(sql string, args ...any) (rowsAffected int64, lastInsertID int64, err *cd.Result) {
 	startTime := time.Now()
 	defer func() {
 		endTime := time.Now()
@@ -328,7 +330,9 @@ func (s *Executor) Execute(sql string) (rowsAffected int64, lastInsertID int64, 
 			return
 		}
 
-		//log.Infof("execute ok, elapse:%v", elapse)
+		if traceSQL() {
+			log.Infof("Execute ok, execute time:%s, elapse:%d, sql:%s", startTime.Local().String(), elapse, sql)
+		}
 	}()
 
 	if s.rowsHandle != nil {
@@ -341,7 +345,7 @@ func (s *Executor) Execute(sql string) (rowsAffected int64, lastInsertID int64, 
 			panic("dbHandle is nil")
 		}
 
-		result, resultErr := s.dbHandle.Exec(sql)
+		result, resultErr := s.dbHandle.Exec(sql, args...)
 		if resultErr != nil {
 			err = cd.NewError(cd.UnExpected, resultErr.Error())
 			log.Errorf("Execute failed, s.dbHandle.Exec error:%s", resultErr.Error())
@@ -353,7 +357,7 @@ func (s *Executor) Execute(sql string) (rowsAffected int64, lastInsertID int64, 
 		return
 	}
 
-	result, resultErr := s.dbTx.Exec(sql)
+	result, resultErr := s.dbTx.Exec(sql, args...)
 	if resultErr != nil {
 		err = cd.NewError(cd.UnExpected, resultErr.Error())
 		log.Errorf("Execute failed, s.dbTx.Exec error:%s", resultErr.Error())

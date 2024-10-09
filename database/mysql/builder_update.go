@@ -16,7 +16,7 @@ func (s *Builder) BuildUpdate() (ret string, err *cd.Result) {
 		log.Errorf("BuildUpdate failed, s.getFieldUpdateValues error:%s", err.Error())
 		return
 	}
-	filterStr, filterErr := s.buildFiledFilter(s.common.GetHostModelPrimaryKeyField())
+	filterStr, filterErr := s.buildFiledFilter(s.hostModel.GetPrimaryField())
 	if filterErr != nil {
 		err = filterErr
 		log.Errorf("BuildUpdate failed, s.BuildModelFilter error:%s", err.Error())
@@ -36,7 +36,7 @@ func (s *Builder) BuildUpdate() (ret string, err *cd.Result) {
 
 func (s *Builder) getFieldUpdateValues() (ret string, err *cd.Result) {
 	str := ""
-	for _, field := range s.common.GetHostModelFields() {
+	for _, field := range s.hostModel.GetFields() {
 		if field.IsPrimaryKey() {
 			continue
 		}

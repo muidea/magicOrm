@@ -13,7 +13,7 @@ import (
 func (s *Builder) BuildInsert() (ret string, err *cd.Result) {
 	fieldNames := ""
 	fieldValues := ""
-	for _, field := range s.common.GetHostModelFields() {
+	for _, field := range s.hostModel.GetFields() {
 		fType := field.GetType()
 		fSpec := field.GetSpec()
 		fValue := field.GetValue()

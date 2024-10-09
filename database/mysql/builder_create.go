@@ -11,7 +11,7 @@ import (
 
 func (s *Builder) BuildCreateTable() (ret string, err *cd.Result) {
 	str := ""
-	for _, field := range s.common.GetHostModelFields() {
+	for _, field := range s.hostModel.GetFields() {
 		fType := field.GetType()
 		if !fType.IsBasic() {
 			continue
@@ -31,7 +31,7 @@ func (s *Builder) BuildCreateTable() (ret string, err *cd.Result) {
 		}
 	}
 
-	pkFieldName := s.common.GetHostModelPrimaryKeyField().GetName()
+	pkFieldName := s.hostModel.GetPrimaryField().GetName()
 	str = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", str, pkFieldName)
 
 	str = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", s.common.BuildHostModelTableName(), str)
@@ -45,7 +45,7 @@ func (s *Builder) BuildCreateTable() (ret string, err *cd.Result) {
 
 // BuildCreateRelationTable Build CreateRelation Schema
 func (s *Builder) BuildCreateRelationTable(vField model.Field, rModel model.Model) (ret string, err *cd.Result) {
-	lPKField := s.common.GetHostModelPrimaryKeyField()
+	lPKField := s.hostModel.GetPrimaryField()
 	lPKType, lPKErr := getTypeDeclare(lPKField.GetType(), lPKField.GetSpec())
 	if lPKErr != nil {
 		err = lPKErr

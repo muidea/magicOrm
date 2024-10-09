@@ -11,7 +11,7 @@ import (
 
 // BuildDelete  BuildDelete
 func (s *Builder) BuildDelete() (ret string, err *cd.Result) {
-	filterStr, filterErr := s.buildFiledFilter(s.common.GetHostModelPrimaryKeyField())
+	filterStr, filterErr := s.buildFiledFilter(s.hostModel.GetPrimaryField())
 	if filterErr != nil {
 		err = filterErr
 		log.Errorf("BuildDelete failed, s.BuildModelFilter error:%s", err.Error())

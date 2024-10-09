@@ -13,13 +13,15 @@ import (
 
 // Builder Builder
 type Builder struct {
-	common *context.Context
+	common    context.Context
+	hostModel model.Model
 }
 
 // New create builder
 func New(vModel model.Model, modelProvider provider.Provider, prefix string) *Builder {
 	return &Builder{
-		common: context.New(vModel, modelProvider, prefix),
+		common:    context.New(vModel, modelProvider, prefix),
+		hostModel: vModel,
 	}
 }
 
@@ -29,8 +31,8 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err *cd.Result) 
 	}
 
 	filterSQL := ""
-	pkField := s.common.GetHostModelPrimaryKeyField()
-	for _, field := range s.common.GetHostModelFields() {
+	pkField := s.hostModel.GetPrimaryField()
+	for _, field := range s.hostModel.GetFields() {
 		filterItem := filter.GetFilterItem(field.GetName())
 		if filterItem == nil {
 			continue
@@ -124,7 +126,7 @@ func (s *Builder) buildSorter(filter model.Sorter) (ret string, err *cd.Result) 
 		return
 	}
 
-	for _, field := range s.common.GetHostModelFields() {
+	for _, field := range s.hostModel.GetFields() {
 		if field.GetName() == filter.Name() {
 			ret = SortOpr(filter.Name(), filter.AscSort())
 			return

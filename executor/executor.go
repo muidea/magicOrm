@@ -19,11 +19,11 @@ type Executor interface {
 	BeginTransaction() *cd.Result
 	CommitTransaction() *cd.Result
 	RollbackTransaction() *cd.Result
-	Query(sql string, needCols bool) (ret []string, err *cd.Result)
+	Query(sql string, needCols bool, args ...any) (ret []string, err *cd.Result)
 	Next() bool
 	Finish()
 	GetField(value ...interface{}) *cd.Result
-	Execute(sql string) (rowsAffected int64, lastInsertID int64, err *cd.Result)
+	Execute(sql string, args ...any) (rowsAffected int64, lastInsertID int64, err *cd.Result)
 	CheckTableExist(tableName string) (bool, *cd.Result)
 }
 

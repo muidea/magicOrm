@@ -12,7 +12,18 @@ import (
 	"github.com/muidea/magicOrm/provider"
 )
 
-type Context struct {
+type Context interface {
+	BuildHostModelTableName() string
+	BuildModelTableName(vModel model.Model) string
+	BuildRelationTableName(vField model.Field, rModel model.Model) (ret string, err *cd.Result)
+	BuildHostModelValue() (ret model.RawVal, err *cd.Result)
+	BuildRelationValue(rModel model.Model) (leftVal, rightVal model.RawVal, err *cd.Result)
+	BuildFieldValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result)
+	BuildOprValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result)
+	ExtractFiledValue(vType model.Type, eVal model.RawVal) (ret model.Value, err *cd.Result)
+}
+
+type contextImpl struct {
 	hostModel     model.Model
 	modelProvider provider.Provider
 	specialPrefix string
@@ -22,21 +33,21 @@ type Context struct {
 	hostModelValue     model.RawVal
 }
 
-func New(vModel model.Model, modelProvider provider.Provider, prefix string) *Context {
-	return &Context{hostModel: vModel, modelProvider: modelProvider, specialPrefix: prefix}
+func New(vModel model.Model, modelProvider provider.Provider, prefix string) Context {
+	return &contextImpl{hostModel: vModel, modelProvider: modelProvider, specialPrefix: prefix}
 }
 
-func (s *Context) constructTableName(vModel model.Model) string {
+func (s *contextImpl) constructTableName(vModel model.Model) string {
 	strName := vModel.GetName()
 	return strings.ToUpper(strName[:1]) + strName[1:]
 }
 
-func (s *Context) constructInfix(vFiled model.Field) string {
+func (s *contextImpl) constructInfix(vFiled model.Field) string {
 	strName := vFiled.GetName()
 	return strings.ToUpper(strName[:1]) + strName[1:]
 }
 
-func (s *Context) BuildHostModelTableName() string {
+func (s *contextImpl) BuildHostModelTableName() string {
 	if s.hostModelTableName == "" {
 		s.hostModelTableName = s.BuildModelTableName(s.hostModel)
 	}
@@ -44,15 +55,15 @@ func (s *Context) BuildHostModelTableName() string {
 	return s.hostModelTableName
 }
 
-func (s *Context) GetHostModelPrimaryKeyField() model.Field {
+func (s *contextImpl) GetHostModelPrimaryKeyField() model.Field {
 	return s.hostModel.GetPrimaryField()
 }
 
-func (s *Context) GetHostModelFields() model.Fields {
+func (s *contextImpl) GetHostModelFields() model.Fields {
 	return s.hostModel.GetFields()
 }
 
-func (s *Context) BuildModelTableName(vModel model.Model) string {
+func (s *contextImpl) BuildModelTableName(vModel model.Model) string {
 	tableName := s.constructTableName(vModel)
 	if s.specialPrefix != "" {
 		tableName = fmt.Sprintf("%s_%s", s.specialPrefix, tableName)
@@ -61,7 +72,7 @@ func (s *Context) BuildModelTableName(vModel model.Model) string {
 	return tableName
 }
 
-func (s *Context) BuildRelationTableName(vField model.Field, rModel model.Model) (ret string, err *cd.Result) {
+func (s *contextImpl) BuildRelationTableName(vField model.Field, rModel model.Model) (ret string, err *cd.Result) {
 	if rModel == nil {
 		fieldModel, fieldErr := s.modelProvider.GetTypeModel(vField.GetType())
 		if fieldErr != nil {
@@ -85,7 +96,7 @@ func (s *Context) BuildRelationTableName(vField model.Field, rModel model.Model)
 	return
 }
 
-func (s *Context) BuildHostModelValue() (ret model.RawVal, err *cd.Result) {
+func (s *contextImpl) BuildHostModelValue() (ret model.RawVal, err *cd.Result) {
 	if s.hostModelValue == nil {
 		entityVal, entityErr := s.buildModelValue(s.hostModel)
 		if entityErr != nil {
@@ -100,7 +111,7 @@ func (s *Context) BuildHostModelValue() (ret model.RawVal, err *cd.Result) {
 	return
 }
 
-func (s *Context) BuildRelationValue(rModel model.Model) (leftVal, rightVal model.RawVal, err *cd.Result) {
+func (s *contextImpl) BuildRelationValue(rModel model.Model) (leftVal, rightVal model.RawVal, err *cd.Result) {
 	entityVal, entityErr := s.BuildHostModelValue()
 	if entityErr != nil {
 		err = entityErr
@@ -120,7 +131,7 @@ func (s *Context) BuildRelationValue(rModel model.Model) (leftVal, rightVal mode
 	return
 }
 
-func (s *Context) BuildFieldValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
+func (s *contextImpl) BuildFieldValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
 	if !vValue.IsValid() {
 		defaultVal, defaultErr := getBasicTypeDefaultValue(vType)
 		if defaultErr != nil {
@@ -159,7 +170,7 @@ func (s *Context) BuildFieldValue(vType model.Type, vValue model.Value) (ret mod
 	return
 }
 
-func (s *Context) BuildOprValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
+func (s *contextImpl) BuildOprValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
 	if !vValue.IsValid() {
 		err = cd.NewError(cd.UnExpected, "nil opr value")
 		return
@@ -188,11 +199,11 @@ func (s *Context) BuildOprValue(vType model.Type, vValue model.Value) (ret model
 	return
 }
 
-func (s *Context) ExtractFiledValue(vType model.Type, eVal model.RawVal) (ret model.Value, err *cd.Result) {
+func (s *contextImpl) ExtractFiledValue(vType model.Type, eVal model.RawVal) (ret model.Value, err *cd.Result) {
 	return
 }
 
-func (s *Context) buildModelValue(vModel model.Model) (ret model.RawVal, err *cd.Result) {
+func (s *contextImpl) buildModelValue(vModel model.Model) (ret model.RawVal, err *cd.Result) {
 	pkField := vModel.GetPrimaryField()
 	switch pkField.GetType().GetValue() {
 	case model.TypeStringValue:
@@ -206,7 +217,7 @@ func (s *Context) buildModelValue(vModel model.Model) (ret model.RawVal, err *cd
 	return
 }
 
-func (s *Context) encodeStringValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
+func (s *contextImpl) encodeStringValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
 	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fEncodeErr != nil {
 		err = fEncodeErr
@@ -218,7 +229,7 @@ func (s *Context) encodeStringValue(vType model.Type, vValue model.Value) (ret m
 	return
 }
 
-func (s *Context) encodeIntValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
+func (s *contextImpl) encodeIntValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
 	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fEncodeErr != nil {
 		err = fEncodeErr
@@ -229,7 +240,7 @@ func (s *Context) encodeIntValue(vType model.Type, vValue model.Value) (ret mode
 	return
 }
 
-func (s *Context) encodeFloatValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
+func (s *contextImpl) encodeFloatValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
 	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fEncodeErr != nil {
 		err = fEncodeErr
@@ -240,7 +251,7 @@ func (s *Context) encodeFloatValue(vType model.Type, vValue model.Value) (ret mo
 	return
 }
 
-func (s *Context) encodeStructValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
+func (s *contextImpl) encodeStructValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
 	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fEncodeErr != nil {
 		err = fEncodeErr
@@ -252,7 +263,7 @@ func (s *Context) encodeStructValue(vType model.Type, vValue model.Value) (ret m
 	return
 }
 
-func (s *Context) encodeSliceString(sliceVal []any) []string {
+func (s *contextImpl) encodeSliceString(sliceVal []any) []string {
 	strSlice := make([]string, len(sliceVal))
 	for idx, val := range sliceVal {
 		strSlice[idx] = val.(string)
@@ -261,7 +272,7 @@ func (s *Context) encodeSliceString(sliceVal []any) []string {
 	return strSlice
 }
 
-func (s *Context) encodeSliceInt(sliceVal []any) []string {
+func (s *contextImpl) encodeSliceInt(sliceVal []any) []string {
 	strSlice := make([]string, len(sliceVal))
 	for idx, val := range sliceVal {
 		strSlice[idx] = fmt.Sprintf("%v", val)
@@ -270,7 +281,7 @@ func (s *Context) encodeSliceInt(sliceVal []any) []string {
 	return strSlice
 }
 
-func (s *Context) encodeSliceFloat(sliceVal []any) []string {
+func (s *contextImpl) encodeSliceFloat(sliceVal []any) []string {
 	strSlice := make([]string, len(sliceVal))
 	for idx, val := range sliceVal {
 		strSlice[idx] = fmt.Sprintf("%v", val)
@@ -279,7 +290,7 @@ func (s *Context) encodeSliceFloat(sliceVal []any) []string {
 	return strSlice
 }
 
-func (s *Context) encodeSliceStruct(sliceVal []any) []string {
+func (s *contextImpl) encodeSliceStruct(sliceVal []any) []string {
 	strSlice := make([]string, len(sliceVal))
 	for idx, val := range sliceVal {
 		strSlice[idx] = fmt.Sprintf("%v", val)
@@ -288,7 +299,7 @@ func (s *Context) encodeSliceStruct(sliceVal []any) []string {
 	return strSlice
 }
 
-func (s *Context) encodeSliceValue(vType model.Type, vValue model.Value) (ret []string, err *cd.Result) {
+func (s *contextImpl) encodeSliceValue(vType model.Type, vValue model.Value) (ret []string, err *cd.Result) {
 	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fEncodeErr != nil {
 		err = fEncodeErr
