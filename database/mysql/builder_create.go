@@ -6,11 +6,12 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
+	"github.com/muidea/magicOrm/database/context"
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *Builder) BuildCreateTable() (ret string, err *cd.Result) {
-	str := ""
+func (s *Builder) BuildCreateTable() (ret context.BuildResult, err *cd.Result) {
+	createSQL := ""
 	for _, field := range s.hostModel.GetFields() {
 		fType := field.GetType()
 		if !fType.IsBasic() {
@@ -24,27 +25,27 @@ func (s *Builder) BuildCreateTable() (ret string, err *cd.Result) {
 			return
 		}
 
-		if str == "" {
-			str = fmt.Sprintf("\t%s", infoVal)
+		if createSQL == "" {
+			createSQL = fmt.Sprintf("\t%s", infoVal)
 		} else {
-			str = fmt.Sprintf("%s,\n\t%s", str, infoVal)
+			createSQL = fmt.Sprintf("%s,\n\t%s", createSQL, infoVal)
 		}
 	}
 
 	pkFieldName := s.hostModel.GetPrimaryField().GetName()
-	str = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", str, pkFieldName)
+	createSQL = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", createSQL, pkFieldName)
 
-	str = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", s.common.BuildHostModelTableName(), str)
+	createSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", s.common.BuildHostModelTableName(), createSQL)
 	if traceSQL() {
-		log.Infof("[SQL] create: %s", str)
+		log.Infof("[SQL] create: %s", createSQL)
 	}
 
-	ret = str
+	ret = NewBuildResult(createSQL, nil)
 	return
 }
 
 // BuildCreateRelationTable Build CreateRelation Schema
-func (s *Builder) BuildCreateRelationTable(vField model.Field, rModel model.Model) (ret string, err *cd.Result) {
+func (s *Builder) BuildCreateRelationTable(vField model.Field, rModel model.Model) (ret context.BuildResult, err *cd.Result) {
 	lPKField := s.hostModel.GetPrimaryField()
 	lPKType, lPKErr := getTypeDeclare(lPKField.GetType(), lPKField.GetSpec())
 	if lPKErr != nil {
@@ -68,14 +69,14 @@ func (s *Builder) BuildCreateRelationTable(vField model.Field, rModel model.Mode
 		return
 	}
 
-	str := fmt.Sprintf("\t`id` BIGINT NOT NULL AUTO_INCREMENT,\n\t`left` %s NOT NULL,\n\t`right` %s NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`)", lPKType, rPKType)
-	str = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", relationTableName, str)
-	//log.Print(str)
+	createRelationSQL := fmt.Sprintf("\t`id` BIGINT NOT NULL AUTO_INCREMENT,\n\t`left` %s NOT NULL,\n\t`right` %s NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`)", lPKType, rPKType)
+	createRelationSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", relationTableName, createRelationSQL)
+	//log.Print(createRelationSQL)
 	if traceSQL() {
-		log.Infof("[SQL] create relation: %s", str)
+		log.Infof("[SQL] create relation: %s", createRelationSQL)
 	}
 
-	ret = str
+	ret = NewBuildResult(createRelationSQL, nil)
 	return
 }
 

@@ -9,14 +9,14 @@ import (
 )
 
 func (s *impl) createSingle(hBuilder builder.Builder) (err *cd.Result) {
-	createSQL, createErr := hBuilder.BuildCreateTable()
+	createResult, createErr := hBuilder.BuildCreateTable()
 	if createErr != nil {
 		err = createErr
 		log.Errorf("createSingle failed, hBuilder.BuildCreateTable error:%s", err.Error())
 		return
 	}
 
-	_, _, err = s.executor.Execute(createSQL)
+	_, _, err = s.executor.Execute(createResult.SQL(), createResult.Args()...)
 	if err != nil {
 		log.Errorf("createSingle failed, s.executor.Execute error:%s", err.Error())
 	}
@@ -24,14 +24,14 @@ func (s *impl) createSingle(hBuilder builder.Builder) (err *cd.Result) {
 }
 
 func (s *impl) createRelation(hBuilder builder.Builder, vField model.Field, rModel model.Model) (err *cd.Result) {
-	relationSQL, relationErr := hBuilder.BuildCreateRelationTable(vField, rModel)
+	relationResult, relationErr := hBuilder.BuildCreateRelationTable(vField, rModel)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("createRelation failed, hBuilder.BuildCreateRelationTable error:%s", err.Error())
 		return
 	}
 
-	_, _, err = s.executor.Execute(relationSQL)
+	_, _, err = s.executor.Execute(relationResult.SQL(), relationResult.Args()...)
 	if err != nil {
 		log.Errorf("createRelation failed, s.executor.Execute error:%s", err.Error())
 	}

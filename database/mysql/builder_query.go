@@ -6,11 +6,12 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
+	"github.com/muidea/magicOrm/database/context"
 	"github.com/muidea/magicOrm/model"
 )
 
 // BuildQuery build query sql
-func (s *Builder) BuildQuery(filter model.Filter) (ret string, err *cd.Result) {
+func (s *Builder) BuildQuery(filter model.Filter) (ret context.BuildResult, err *cd.Result) {
 	namesVal, nameErr := s.getFieldQueryNames(filter)
 	if nameErr != nil {
 		err = nameErr
@@ -18,7 +19,7 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret string, err *cd.Result) {
 		return
 	}
 
-	str := fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.common.BuildHostModelTableName())
+	querySQL := fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.common.BuildHostModelTableName())
 	if filter != nil {
 		filterSQL, filterErr := s.buildFilter(filter)
 		if filterErr != nil {
@@ -28,7 +29,7 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret string, err *cd.Result) {
 		}
 
 		if filterSQL != "" {
-			str = fmt.Sprintf("%s WHERE %s", str, filterSQL)
+			querySQL = fmt.Sprintf("%s WHERE %s", querySQL, filterSQL)
 		}
 
 		sortVal, sortErr := s.buildSorter(filter.Sorter())
@@ -39,25 +40,25 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret string, err *cd.Result) {
 		}
 
 		if sortVal != "" {
-			str = fmt.Sprintf("%s ORDER BY %s", str, sortVal)
+			querySQL = fmt.Sprintf("%s ORDER BY %s", querySQL, sortVal)
 		}
 
 		limit, offset, paging := filter.Pagination()
 		if paging {
-			str = fmt.Sprintf("%s LIMIT %d OFFSET %d", str, limit, offset)
+			querySQL = fmt.Sprintf("%s LIMIT %d OFFSET %d", querySQL, limit, offset)
 		}
 	}
 	if traceSQL() {
-		log.Infof("[SQL] query: %s", str)
+		log.Infof("[SQL] query: %s", querySQL)
 	}
 
-	ret = str
+	ret = NewBuildResult(querySQL, nil)
 	//log.Print(ret)
 	return
 }
 
 // BuildQueryRelation build query relation sql
-func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (ret string, err *cd.Result) {
+func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (ret context.BuildResult, err *cd.Result) {
 	leftVal, leftErr := s.common.BuildHostModelValue()
 	if leftErr != nil {
 		err = leftErr
@@ -72,13 +73,13 @@ func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (re
 		return
 	}
 
-	str := fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= %v", relationTableName, leftVal)
+	queryRelationSQL := fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= %v", relationTableName, leftVal)
 	//log.Print(ret)
 	if traceSQL() {
-		log.Infof("[SQL] query relation: %s", str)
+		log.Infof("[SQL] query relation: %s", queryRelationSQL)
 	}
 
-	ret = str
+	ret = NewBuildResult(queryRelationSQL, nil)
 	return
 }
 

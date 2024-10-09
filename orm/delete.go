@@ -9,14 +9,14 @@ import (
 )
 
 func (s *impl) deleteSingle(hBuilder builder.Builder) (err *cd.Result) {
-	sqlStr, sqlErr := hBuilder.BuildDelete()
-	if sqlErr != nil {
-		err = sqlErr
+	deleteResult, deleteErr := hBuilder.BuildDelete()
+	if deleteErr != nil {
+		err = deleteErr
 		log.Errorf("deleteSingle failed, builderVal.BuildDelete error:%s", err.Error())
 		return
 	}
 
-	_, _, err = s.executor.Execute(sqlStr)
+	_, _, err = s.executor.Execute(deleteResult.SQL(), deleteResult.Args()...)
 	if err != nil {
 		log.Errorf("deleteSingle failed, s.executor.Execute error:%s", err.Error())
 	}
@@ -82,9 +82,9 @@ func (s *impl) deleteRelation(hBuilder builder.Builder, vField model.Field, deep
 		return
 	}
 
-	rightSQL, relationSQL, buildErr := hBuilder.BuildDeleteRelation(vField, rModel)
-	if buildErr != nil {
-		err = buildErr
+	rightResult, relationResult, resultErr := hBuilder.BuildDeleteRelation(vField, rModel)
+	if resultErr != nil {
+		err = resultErr
 		log.Errorf("deleteRelation failed, builderVal.BuildDeleteRelation error:%s", err.Error())
 		return
 	}
@@ -112,14 +112,14 @@ func (s *impl) deleteRelation(hBuilder builder.Builder, vField model.Field, deep
 			}
 		}
 
-		_, _, err = s.executor.Execute(rightSQL)
+		_, _, err = s.executor.Execute(rightResult.SQL(), rightResult.Args()...)
 		if err != nil {
 			log.Errorf("deleteRelation failed, s.executor.Execute error:%s", err.Error())
 			return
 		}
 	}
 
-	_, _, err = s.executor.Execute(relationSQL)
+	_, _, err = s.executor.Execute(relationResult.SQL(), relationResult.Args()...)
 	if err != nil {
 		log.Errorf("deleteRelation failed, s.executor.Execute error:%s", err.Error())
 	}

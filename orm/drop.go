@@ -9,14 +9,14 @@ import (
 )
 
 func (s *impl) dropSingle(hBuilder builder.Builder) (err *cd.Result) {
-	dropSQL, dropErr := hBuilder.BuildDropTable()
+	dropResult, dropErr := hBuilder.BuildDropTable()
 	if dropErr != nil {
 		err = dropErr
 		log.Errorf("dropSingle failed, hBuilder.BuildDropTable error:%s", err.Error())
 		return
 	}
 
-	_, _, err = s.executor.Execute(dropSQL)
+	_, _, err = s.executor.Execute(dropResult.SQL(), dropResult.Args()...)
 	if err != nil {
 		log.Errorf("dropSingle failed, s.executor.Execute error:%s", err.Error())
 	}
@@ -24,14 +24,14 @@ func (s *impl) dropSingle(hBuilder builder.Builder) (err *cd.Result) {
 }
 
 func (s *impl) dropRelation(hBuilder builder.Builder, vField model.Field, rModel model.Model) (err *cd.Result) {
-	relationSQL, relationErr := hBuilder.BuildDropRelationTable(vField, rModel)
+	relationResult, relationErr := hBuilder.BuildDropRelationTable(vField, rModel)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("dropRelation failed, hBuilder.BuildDropRelationTable error:%s", err.Error())
 		return
 	}
 
-	_, _, err = s.executor.Execute(relationSQL)
+	_, _, err = s.executor.Execute(relationResult.SQL(), relationResult.Args()...)
 	if err != nil {
 		log.Errorf("dropRelation failed, s.executor.Execute error:%s", err.Error())
 	}

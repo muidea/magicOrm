@@ -14,14 +14,14 @@ type resultItemsList []resultItems
 
 func (s *impl) innerQuery(vModel model.Model, filter model.Filter) (ret resultItemsList, err *cd.Result) {
 	hBuilder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	sqlStr, sqlErr := hBuilder.BuildQuery(filter)
-	if sqlErr != nil {
-		err = sqlErr
+	queryResult, queryErr := hBuilder.BuildQuery(filter)
+	if queryErr != nil {
+		err = queryErr
 		log.Errorf("innerQuery failed, builder.BuildQuery error:%s", err.Error())
 		return
 	}
 
-	_, err = s.executor.Query(sqlStr, false)
+	_, err = s.executor.Query(queryResult.SQL(), false, queryResult.Args()...)
 	if err != nil {
 		log.Errorf("innerQuery failed, s.executor.Query error:%s", err.Error())
 		return
@@ -237,7 +237,7 @@ func (s *impl) innerQueryRelationSliceModel(ids []any, vModel model.Model, deepL
 }
 
 func (s *impl) innerQueryRelationKeys(hBuilder builder.Builder, vField model.Field, rModel model.Model) (ret resultItems, err *cd.Result) {
-	relationSQL, relationErr := hBuilder.BuildQueryRelation(vField, rModel)
+	relationResult, relationErr := hBuilder.BuildQueryRelation(vField, rModel)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("innerQueryRelationKeys failed, hBuilder.BuildQueryRelation error:%v", err.Error())
@@ -246,7 +246,7 @@ func (s *impl) innerQueryRelationKeys(hBuilder builder.Builder, vField model.Fie
 
 	values := resultItems{}
 	func() {
-		_, err = s.executor.Query(relationSQL, false)
+		_, err = s.executor.Query(relationResult.SQL(), false, relationResult.Args()...)
 		if err != nil {
 			log.Errorf("innerQueryRelationKeys failed, s.executor.Query error:%v", err.Error())
 			return

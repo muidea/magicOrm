@@ -6,10 +6,11 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 
 	"github.com/muidea/magicCommon/foundation/log"
+	"github.com/muidea/magicOrm/database/context"
 )
 
 // BuildUpdate  Build Update
-func (s *Builder) BuildUpdate() (ret string, err *cd.Result) {
+func (s *Builder) BuildUpdate() (ret context.BuildResult, err *cd.Result) {
 	updateStr, updateErr := s.getFieldUpdateValues()
 	if updateErr != nil {
 		err = updateErr
@@ -23,14 +24,13 @@ func (s *Builder) BuildUpdate() (ret string, err *cd.Result) {
 		return
 	}
 
-	str := fmt.Sprintf("UPDATE `%s` SET %s WHERE %s", s.common.BuildHostModelTableName(), updateStr, filterStr)
-	//log.Print(str)
+	updateSQL := fmt.Sprintf("UPDATE `%s` SET %s WHERE %s", s.common.BuildHostModelTableName(), updateStr, filterStr)
+	//log.Print(updateSQL)
 	if traceSQL() {
-		log.Infof("[SQL] update: %s", str)
+		log.Infof("[SQL] update: %s", updateSQL)
 	}
 
-	ret = str
-
+	ret = NewBuildResult(updateSQL, nil)
 	return
 }
 

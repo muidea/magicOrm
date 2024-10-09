@@ -12,14 +12,14 @@ import (
 
 func (s *impl) queryCount(vFilter model.Filter) (ret int64, err *cd.Result) {
 	hBuilder := builder.NewBuilder(vFilter.MaskModel(), s.modelProvider, s.specialPrefix)
-	sqlStr, sqlErr := hBuilder.BuildCount(vFilter)
-	if sqlErr != nil {
-		err = sqlErr
+	countResult, countErr := hBuilder.BuildCount(vFilter)
+	if countErr != nil {
+		err = countErr
 		log.Errorf("queryCount failed, hBuilder.BuildCount error:%s", err.Error())
 		return
 	}
 
-	_, err = s.executor.Query(sqlStr, false)
+	_, err = s.executor.Query(countResult.SQL(), false, countResult.Args()...)
 	if err != nil {
 		return
 	}

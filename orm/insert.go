@@ -9,14 +9,14 @@ import (
 )
 
 func (s *impl) innerInsert(builder builder.Builder) (ret model.RawVal, err *cd.Result) {
-	sqlStr, sqlErr := builder.BuildInsert()
-	if sqlErr != nil {
-		err = sqlErr
+	insertResult, insertErr := builder.BuildInsert()
+	if insertErr != nil {
+		err = insertErr
 		log.Errorf("innerInsert failed, builder.BuildInsert error:%s", err.Error())
 		return
 	}
 
-	_, id, idErr := s.executor.Execute(sqlStr)
+	_, id, idErr := s.executor.Execute(insertResult.SQL(), insertResult.Args()...)
 	if idErr != nil {
 		err = idErr
 		log.Errorf("innerInsert failed, s.executor.Execute error:%s", err.Error())
@@ -138,7 +138,7 @@ func (s *impl) insertSingleRelation(hBuilder builder.Builder, vField model.Field
 		return
 	}
 
-	_, _, err = s.executor.Execute(relationSQL)
+	_, _, err = s.executor.Execute(relationSQL.SQL(), relationSQL.Args()...)
 	if err != nil {
 		log.Errorf("insertSingleRelation failed, s.executor.Execute error:%s", err.Error())
 		return
@@ -197,14 +197,14 @@ func (s *impl) insertSliceRelation(hBuilder builder.Builder, vField model.Field)
 			}
 		}
 
-		relationSQL, relationErr := hBuilder.BuildInsertRelation(vField, rModel)
+		relationResult, relationErr := hBuilder.BuildInsertRelation(vField, rModel)
 		if relationErr != nil {
 			err = relationErr
 			log.Errorf("insertSliceRelation failed, builderVal.BuildInsertRelation error:%s", err.Error())
 			return
 		}
 
-		_, _, err = s.executor.Execute(relationSQL)
+		_, _, err = s.executor.Execute(relationResult.SQL(), relationResult.Args()...)
 		if err != nil {
 			log.Errorf("insertSliceRelation failed, s.executor.Execute error:%s", err.Error())
 			return

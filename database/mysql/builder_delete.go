@@ -6,11 +6,12 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
+	"github.com/muidea/magicOrm/database/context"
 	"github.com/muidea/magicOrm/model"
 )
 
 // BuildDelete  BuildDelete
-func (s *Builder) BuildDelete() (ret string, err *cd.Result) {
+func (s *Builder) BuildDelete() (ret context.BuildResult, err *cd.Result) {
 	filterStr, filterErr := s.buildFiledFilter(s.hostModel.GetPrimaryField())
 	if filterErr != nil {
 		err = filterErr
@@ -18,17 +19,17 @@ func (s *Builder) BuildDelete() (ret string, err *cd.Result) {
 		return
 	}
 
-	str := fmt.Sprintf("DELETE FROM `%s` WHERE %s", s.common.BuildHostModelTableName(), filterStr)
+	deleteSQL := fmt.Sprintf("DELETE FROM `%s` WHERE %s", s.common.BuildHostModelTableName(), filterStr)
 	if traceSQL() {
-		log.Infof("[SQL] delete: %s", str)
+		log.Infof("[SQL] delete: %s", deleteSQL)
 	}
 
-	ret = str
+	ret = NewBuildResult(deleteSQL, nil)
 	return
 }
 
 // BuildDeleteRelation BuildDeleteRelation
-func (s *Builder) BuildDeleteRelation(vField model.Field, rModel model.Model) (delRight, delRelation string, err *cd.Result) {
+func (s *Builder) BuildDeleteRelation(vField model.Field, rModel model.Model) (delRight, delRelation context.BuildResult, err *cd.Result) {
 	leftVal, leftErr := s.common.BuildHostModelValue()
 	if leftErr != nil {
 		err = leftErr
@@ -43,14 +44,16 @@ func (s *Builder) BuildDeleteRelation(vField model.Field, rModel model.Model) (d
 		return
 	}
 
-	delRight = fmt.Sprintf("DELETE FROM `%s` WHERE `%s` IN (SELECT `right` FROM `%s` WHERE `left`=%v)",
+	delRightSQL := fmt.Sprintf("DELETE FROM `%s` WHERE `%s` IN (SELECT `right` FROM `%s` WHERE `left`=%v)",
 		s.common.BuildModelTableName(rModel),
 		rModel.GetPrimaryField().GetName(),
 		relationTableName,
 		leftVal)
+	delRight = NewBuildResult(delRightSQL, nil)
 	//log.Print(delRight)
 
-	delRelation = fmt.Sprintf("DELETE FROM `%s` WHERE `left`=%v", relationTableName, leftVal)
+	delRelationSQL := fmt.Sprintf("DELETE FROM `%s` WHERE `left`=%v", relationTableName, leftVal)
+	delRelation = NewBuildResult(delRelationSQL, nil)
 	//log.Print(delRelation)
 	if traceSQL() {
 		log.Infof("[SQL] delete: %s, delete relation: %s", delRight, delRelation)

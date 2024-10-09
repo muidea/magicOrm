@@ -10,14 +10,14 @@ import (
 )
 
 func (s *impl) updateSingle(hBuilder builder.Builder) (err *cd.Result) {
-	sqlStr, sqlErr := hBuilder.BuildUpdate()
-	if sqlErr != nil {
-		err = sqlErr
+	updateResult, updateErr := hBuilder.BuildUpdate()
+	if updateErr != nil {
+		err = updateErr
 		log.Errorf("updateSingle failed, builderVal.BuildUpdate error:%s", err.Error())
 		return
 	}
 
-	_, _, err = s.executor.Execute(sqlStr)
+	_, _, err = s.executor.Execute(updateResult.SQL(), updateResult.Args()...)
 	if err != nil {
 		log.Errorf("updateSingle failed, s.executor.Execute error:%s", err.Error())
 	}

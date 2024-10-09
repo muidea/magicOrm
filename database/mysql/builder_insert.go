@@ -6,11 +6,12 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
+	"github.com/muidea/magicOrm/database/context"
 	"github.com/muidea/magicOrm/model"
 )
 
 // BuildInsert  Build Insert
-func (s *Builder) BuildInsert() (ret string, err *cd.Result) {
+func (s *Builder) BuildInsert() (ret context.BuildResult, err *cd.Result) {
 	fieldNames := ""
 	fieldValues := ""
 	for _, field := range s.hostModel.GetFields() {
@@ -41,18 +42,18 @@ func (s *Builder) BuildInsert() (ret string, err *cd.Result) {
 		}
 	}
 
-	str := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.common.BuildHostModelTableName(), fieldNames, fieldValues)
-	//log.Print(str)
+	insertSQL := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.common.BuildHostModelTableName(), fieldNames, fieldValues)
+	//log.Print(insertSQL)
 	if traceSQL() {
-		log.Infof("[SQL] insert: %s", str)
+		log.Infof("[SQL] insert: %s", insertSQL)
 	}
 
-	ret = str
+	ret = NewBuildResult(insertSQL, nil)
 	return
 }
 
 // BuildInsertRelation Build Insert Relation
-func (s *Builder) BuildInsertRelation(vField model.Field, rModel model.Model) (ret string, err *cd.Result) {
+func (s *Builder) BuildInsertRelation(vField model.Field, rModel model.Model) (ret context.BuildResult, err *cd.Result) {
 	leftVal, rightVal, valErr := s.common.BuildRelationValue(rModel)
 	if valErr != nil {
 		err = valErr
@@ -66,12 +67,12 @@ func (s *Builder) BuildInsertRelation(vField model.Field, rModel model.Model) (r
 		return
 	}
 
-	str := fmt.Sprintf("INSERT INTO `%s` (`left`, `right`) VALUES (%v,%v)", relationTableName, leftVal, rightVal)
+	insertRelationSQL := fmt.Sprintf("INSERT INTO `%s` (`left`, `right`) VALUES (%v,%v)", relationTableName, leftVal, rightVal)
 	//log.Print(ret)
 	if traceSQL() {
-		log.Infof("[SQL] insert relation: %s", str)
+		log.Infof("[SQL] insert relation: %s", insertRelationSQL)
 	}
 
-	ret = str
+	ret = NewBuildResult(insertRelationSQL, nil)
 	return
 }

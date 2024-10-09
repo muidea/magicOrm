@@ -2,27 +2,28 @@ package mysql
 
 import (
 	"fmt"
-	"github.com/muidea/magicCommon/foundation/log"
 
 	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/log"
 
+	"github.com/muidea/magicOrm/database/context"
 	"github.com/muidea/magicOrm/model"
 )
 
 // BuildDropTable  BuildDropSchema
-func (s *Builder) BuildDropTable() (ret string, err *cd.Result) {
-	str := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", s.common.BuildHostModelTableName())
-	//log.Print(str)
+func (s *Builder) BuildDropTable() (ret context.BuildResult, err *cd.Result) {
+	dropSQL := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", s.common.BuildHostModelTableName())
+	//log.Print(dropSQL)
 	if traceSQL() {
-		log.Infof("[SQL] drop: %s", str)
+		log.Infof("[SQL] drop: %s", dropSQL)
 	}
 
-	ret = str
+	ret = NewBuildResult(dropSQL, nil)
 	return
 }
 
 // BuildDropRelationTable Build DropRelation Schema
-func (s *Builder) BuildDropRelationTable(vField model.Field, rModel model.Model) (ret string, err *cd.Result) {
+func (s *Builder) BuildDropRelationTable(vField model.Field, rModel model.Model) (ret context.BuildResult, err *cd.Result) {
 	relationTableName, relationErr := s.common.BuildRelationTableName(vField, rModel)
 	if relationErr != nil {
 		err = relationErr
@@ -30,12 +31,12 @@ func (s *Builder) BuildDropRelationTable(vField model.Field, rModel model.Model)
 		return
 	}
 
-	str := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", relationTableName)
-	//log.Print(str)
+	dropRelationSQL := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", relationTableName)
+	//log.Print(dropRelationSQL)
 	if traceSQL() {
-		log.Infof("[SQL] drop relation: %s", str)
+		log.Infof("[SQL] drop relation: %s", dropRelationSQL)
 	}
 
-	ret = str
+	ret = NewBuildResult(dropRelationSQL, nil)
 	return
 }
