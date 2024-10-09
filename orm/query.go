@@ -2,19 +2,20 @@ package orm
 
 import (
 	"fmt"
-	cd "github.com/muidea/magicCommon/def"
 
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
+
 	"github.com/muidea/magicOrm/builder"
+	"github.com/muidea/magicOrm/database/context"
 	"github.com/muidea/magicOrm/model"
 )
 
 type resultItems []any
 type resultItemsList []resultItems
 
-func (s *impl) innerQuery(vModel model.Model, filter model.Filter) (ret resultItemsList, err *cd.Result) {
-	hBuilder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
-	queryResult, queryErr := hBuilder.BuildQuery(filter)
+func (s *impl) innerQuery(builder builder.Builder, vModel model.Model, filter model.Filter) (ret resultItemsList, err *cd.Result) {
+	queryResult, queryErr := builder.BuildQuery(filter)
 	if queryErr != nil {
 		err = queryErr
 		log.Errorf("innerQuery failed, builder.BuildQuery error:%s", err.Error())
@@ -29,7 +30,7 @@ func (s *impl) innerQuery(vModel model.Model, filter model.Filter) (ret resultIt
 
 	defer s.executor.Finish()
 	for s.executor.Next() {
-		itemValues, itemErr := s.getModelFieldsPlaceHolder(hBuilder, vModel)
+		itemValues, itemErr := s.getModelFieldsPlaceHolder(builder, vModel)
 		if itemErr != nil {
 			err = itemErr
 			if err.Fail() {
@@ -52,10 +53,9 @@ func (s *impl) innerQuery(vModel model.Model, filter model.Filter) (ret resultIt
 	return
 }
 
-func (s *impl) innerAssign(vModel model.Model, queryVal resultItems, deepLevel int) (ret model.Model, err *cd.Result) {
+func (s *impl) innerAssign(builder builder.Builder, vModel model.Model, queryVal resultItems, deepLevel int) (ret model.Model, err *cd.Result) {
 	offset := 0
 
-	hBuilder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
 	for _, field := range vModel.GetFields() {
 		fType := field.GetType()
 		fValue := field.GetValue()
@@ -64,7 +64,7 @@ func (s *impl) innerAssign(vModel model.Model, queryVal resultItems, deepLevel i
 		}
 
 		if !fType.IsBasic() {
-			err = s.assignModelField(hBuilder, field, deepLevel)
+			err = s.assignModelField(builder, field, deepLevel)
 			if err != nil {
 				if err.Fail() {
 					log.Errorf("innerAssign failed, s.assignModelField error:%v", err.Error())
@@ -96,7 +96,9 @@ func (s *impl) innerAssign(vModel model.Model, queryVal resultItems, deepLevel i
 
 func (s *impl) querySingle(vFilter model.Filter, deepLevel int) (ret model.Model, err *cd.Result) {
 	vModel := vFilter.MaskModel()
-	valueList, queryErr := s.innerQuery(vModel, vFilter)
+	hContext := context.New(vModel, s.modelProvider, s.specialPrefix)
+	hBuilder := builder.NewBuilder(vModel, hContext)
+	valueList, queryErr := s.innerQuery(hBuilder, vModel, vFilter)
 	if queryErr != nil {
 		err = queryErr
 		if err.Fail() {
@@ -114,7 +116,7 @@ func (s *impl) querySingle(vFilter model.Filter, deepLevel int) (ret model.Model
 		return
 	}
 
-	modelVal, modelErr := s.innerAssign(vModel, valueList[0], deepLevel)
+	modelVal, modelErr := s.innerAssign(hBuilder, vModel, valueList[0], deepLevel)
 	if modelErr != nil {
 		err = modelErr
 		if err.Warn() {

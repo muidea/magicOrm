@@ -5,7 +5,6 @@ import (
 	"github.com/muidea/magicOrm/database/context"
 	"github.com/muidea/magicOrm/database/mysql"
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider"
 )
 
 // Builder orm builder
@@ -28,6 +27,6 @@ type Builder interface {
 }
 
 // NewBuilder new builder
-func NewBuilder(vModel model.Model, modelProvider provider.Provider, prefix string) Builder {
-	return mysql.New(vModel, modelProvider, prefix)
+func NewBuilder(vModel model.Model, context context.Context) Builder {
+	return mysql.New(vModel, context)
 }

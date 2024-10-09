@@ -5,6 +5,7 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/builder"
+	"github.com/muidea/magicOrm/database/context"
 	"github.com/muidea/magicOrm/model"
 )
 
@@ -39,7 +40,8 @@ func (s *impl) dropRelation(hBuilder builder.Builder, vField model.Field, rModel
 }
 
 func (s *impl) dropSchema(vModel model.Model) (err *cd.Result) {
-	hBuilder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+	hContext := context.New(vModel, s.modelProvider, s.specialPrefix)
+	hBuilder := builder.NewBuilder(vModel, hContext)
 	err = s.dropSingle(hBuilder)
 	if err != nil {
 		log.Errorf("dropSchema failed, s.dropSingle error:%s", err.Error())
@@ -61,7 +63,8 @@ func (s *impl) dropSchema(vModel model.Model) (err *cd.Result) {
 
 		elemType := fType.Elem()
 		if !elemType.IsPtrType() {
-			rBuilder := builder.NewBuilder(relationModel, s.modelProvider, s.specialPrefix)
+			rContext := context.New(relationModel, s.modelProvider, s.specialPrefix)
+			rBuilder := builder.NewBuilder(relationModel, rContext)
 			err = s.dropSingle(rBuilder)
 			if err != nil {
 				log.Errorf("dropSchema failed, s.dropSingle error:%s", err.Error())

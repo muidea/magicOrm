@@ -5,6 +5,7 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/builder"
+	"github.com/muidea/magicOrm/database/context"
 	"github.com/muidea/magicOrm/model"
 )
 
@@ -39,7 +40,8 @@ func (s *impl) createRelation(hBuilder builder.Builder, vField model.Field, rMod
 }
 
 func (s *impl) createSchema(vModel model.Model) (err *cd.Result) {
-	hBuilder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+	hContext := context.New(vModel, s.modelProvider, s.specialPrefix)
+	hBuilder := builder.NewBuilder(vModel, hContext)
 	err = s.createSingle(hBuilder)
 	if err != nil {
 		log.Errorf("createSchema failed, s.createSingle error:%s", err.Error())
@@ -61,7 +63,8 @@ func (s *impl) createSchema(vModel model.Model) (err *cd.Result) {
 
 		elemType := fType.Elem()
 		if !elemType.IsPtrType() {
-			rBuilder := builder.NewBuilder(relationModel, s.modelProvider, s.specialPrefix)
+			rContext := context.New(relationModel, s.modelProvider, s.specialPrefix)
+			rBuilder := builder.NewBuilder(relationModel, rContext)
 			err = s.createSingle(rBuilder)
 			if err != nil {
 				log.Errorf("createSchema failed, s.createSingle error:%s", err.Error())

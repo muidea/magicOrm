@@ -8,20 +8,19 @@ import (
 
 	"github.com/muidea/magicOrm/database/context"
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider"
 )
 
 // Builder Builder
 type Builder struct {
-	common    context.Context
-	hostModel model.Model
+	buildContext context.Context
+	hostModel    model.Model
 }
 
 // New create builder
-func New(vModel model.Model, modelProvider provider.Provider, prefix string) *Builder {
+func New(vModel model.Model, context context.Context) *Builder {
 	return &Builder{
-		common:    context.New(vModel, modelProvider, prefix),
-		hostModel: vModel,
+		buildContext: context,
+		hostModel:    vModel,
 	}
 }
 
@@ -79,7 +78,7 @@ func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem
 	fType := vField.GetType()
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
-	oprStr, oprErr := s.common.BuildOprValue(fType, oprValue)
+	oprStr, oprErr := s.buildContext.BuildOprValue(fType, oprValue)
 	if oprErr != nil {
 		err = oprErr
 		log.Errorf("buildBasicItem %s failed, EncodeValue error:%s", vField.GetName(), err.Error())
@@ -100,19 +99,19 @@ func (s *Builder) buildRelationItem(pkField model.Field, vField model.Field, fil
 	vType := vField.GetType()
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
-	oprStr, oprErr := s.common.BuildOprValue(vType, oprValue)
+	oprStr, oprErr := s.buildContext.BuildOprValue(vType, oprValue)
 	if oprErr != nil {
 		err = oprErr
-		log.Errorf("buildRelationItem %s failed, s.common.BuildOprValue error:%s", vField.GetName(), err.Error())
+		log.Errorf("buildRelationItem %s failed, s.buildContext.BuildOprValue error:%s", vField.GetName(), err.Error())
 		return
 	}
 
 	relationFilterSQL := ""
 	strVal := oprFunc("right", oprStr)
-	relationTableName, relationErr := s.common.BuildRelationTableName(vField, nil)
+	relationTableName, relationErr := s.buildContext.BuildRelationTableName(vField, nil)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("buildRelationItem %s failed, s.common.BuildRelationTableName error:%s", vField.GetName(), err.Error())
+		log.Errorf("buildRelationItem %s failed, s.buildContext.BuildRelationTableName error:%s", vField.GetName(), err.Error())
 		return
 	}
 	relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTableName, strVal)
@@ -139,7 +138,7 @@ func (s *Builder) buildSorter(filter model.Sorter) (ret string, err *cd.Result) 
 }
 
 func (s *Builder) buildFiledFilter(vField model.Field) (ret string, err *cd.Result) {
-	pkfVal, pkfErr := s.common.BuildFieldValue(vField.GetType(), vField.GetValue())
+	pkfVal, pkfErr := s.buildContext.BuildFieldValue(vField.GetType(), vField.GetValue())
 	if pkfErr != nil {
 		err = pkfErr
 		log.Errorf("BuildModelFilter failed, s.EncodeValue error:%s", err.Error())

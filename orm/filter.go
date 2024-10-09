@@ -4,12 +4,16 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
+	"github.com/muidea/magicOrm/builder"
+	"github.com/muidea/magicOrm/database/context"
 	"github.com/muidea/magicOrm/model"
 )
 
 func (s *impl) batchQuery(vFilter model.Filter) (ret []model.Model, err *cd.Result) {
 	vModel := vFilter.MaskModel()
-	queryValueList, queryErr := s.innerQuery(vModel, vFilter)
+	hContext := context.New(vModel, s.modelProvider, s.specialPrefix)
+	hBuilder := builder.NewBuilder(vModel, hContext)
+	queryValueList, queryErr := s.innerQuery(hBuilder, vModel, vFilter)
 	if queryErr != nil {
 		err = queryErr
 		if err.Fail() {
@@ -22,7 +26,7 @@ func (s *impl) batchQuery(vFilter model.Filter) (ret []model.Model, err *cd.Resu
 
 	sliceValue := []model.Model{}
 	for idx := 0; idx < len(queryValueList); idx++ {
-		modelVal, modelErr := s.innerAssign(vModel.Copy(false), queryValueList[idx], 0)
+		modelVal, modelErr := s.innerAssign(hBuilder, vModel.Copy(false), queryValueList[idx], 0)
 		if modelErr != nil {
 			err = modelErr
 			if err.Fail() {

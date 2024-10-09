@@ -5,6 +5,7 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/builder"
+	"github.com/muidea/magicOrm/database/context"
 	"github.com/muidea/magicOrm/model"
 )
 
@@ -31,8 +32,9 @@ func (s *impl) deleteRelationSingleStructInner(rVal model.Value, rType model.Typ
 		return
 	}
 
-	hBuilder := builder.NewBuilder(relationModel, s.modelProvider, s.specialPrefix)
-	err = s.deleteSingle(hBuilder)
+	rContext := context.New(relationModel, s.modelProvider, s.specialPrefix)
+	rBuilder := builder.NewBuilder(relationModel, rContext)
+	err = s.deleteSingle(rBuilder)
 	if err != nil {
 		log.Errorf("deleteRelationSingleStructInner failed, s.deleteSingle error:%s", err.Error())
 		return
@@ -43,7 +45,7 @@ func (s *impl) deleteRelationSingleStructInner(rVal model.Value, rType model.Typ
 			continue
 		}
 
-		err = s.deleteRelation(hBuilder, field, deepLevel+1)
+		err = s.deleteRelation(rBuilder, field, deepLevel+1)
 		if err != nil {
 			log.Errorf("deleteRelationSingleStructInner failed, s.deleteRelation error:%s", err.Error())
 			return
@@ -127,7 +129,8 @@ func (s *impl) deleteRelation(hBuilder builder.Builder, vField model.Field, deep
 }
 
 func (s *impl) deleteModel(vModel model.Model) (ret model.Model, err *cd.Result) {
-	hBuilder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+	hContext := context.New(vModel, s.modelProvider, s.specialPrefix)
+	hBuilder := builder.NewBuilder(vModel, hContext)
 	err = s.deleteSingle(hBuilder)
 	if err != nil {
 		log.Errorf("Delete failed, s.deleteSingle error:%s", err.Error())

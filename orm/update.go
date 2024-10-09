@@ -2,10 +2,10 @@ package orm
 
 import (
 	cd "github.com/muidea/magicCommon/def"
-
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/builder"
+	"github.com/muidea/magicOrm/database/context"
 	"github.com/muidea/magicOrm/model"
 )
 
@@ -39,7 +39,8 @@ func (s *impl) updateRelation(hBuilder builder.Builder, vField model.Field) (err
 }
 
 func (s *impl) updateModel(vModel model.Model) (ret model.Model, err *cd.Result) {
-	hBuilder := builder.NewBuilder(vModel, s.modelProvider, s.specialPrefix)
+	hContext := context.New(vModel, s.modelProvider, s.specialPrefix)
+	hBuilder := builder.NewBuilder(vModel, hContext)
 	err = s.updateSingle(hBuilder)
 	if err != nil {
 		log.Errorf("Update failed, s.updateSingle error:%s", err.Error())
