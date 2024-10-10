@@ -18,7 +18,7 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret *Result, err *cd.Result) 
 		return
 	}
 
-	querySQL := fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.buildContext.BuildHostModelTableName())
+	querySQL := fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.buildCodec.BuildHostModelTableName())
 	if filter != nil {
 		filterSQL, filterErr := s.buildFilter(filter)
 		if filterErr != nil {
@@ -58,17 +58,17 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret *Result, err *cd.Result) 
 
 // BuildQueryRelation build query relation sql
 func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (ret *Result, err *cd.Result) {
-	leftVal, leftErr := s.buildContext.BuildHostModelValue()
+	leftVal, leftErr := s.buildCodec.BuildHostModelValue()
 	if leftErr != nil {
 		err = leftErr
 		log.Errorf("BuildQueryRelation failed, s.BuildHostModelValue error:%s", err.Error())
 		return
 	}
 
-	relationTableName, relationErr := s.buildContext.BuildRelationTableName(vField, rModel)
+	relationTableName, relationErr := s.buildCodec.BuildRelationTableName(vField, rModel)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("BuildQueryRelation %s failed, s.buildContext.BuildRelationTableName error:%s", vField.GetName(), err.Error())
+		log.Errorf("BuildQueryRelation %s failed, s.buildCodec.BuildRelationTableName error:%s", vField.GetName(), err.Error())
 		return
 	}
 

@@ -83,8 +83,8 @@ func (s *builderImpl) GetFieldPlaceHolder(field model.Field) (any, *cd.Result) {
 }
 
 // NewBuilder new builder
-func NewBuilder(vModel model.Model, context codec.Codec) Builder {
+func NewBuilder(vModel model.Model, codec codec.Codec) Builder {
 	return &builderImpl{
-		builder: mysql.New(vModel, context),
+		builder: mysql.New(vModel, codec),
 	}
 }

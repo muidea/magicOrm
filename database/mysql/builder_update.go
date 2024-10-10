@@ -23,7 +23,7 @@ func (s *Builder) BuildUpdate() (ret *Result, err *cd.Result) {
 		return
 	}
 
-	updateSQL := fmt.Sprintf("UPDATE `%s` SET %s WHERE %s", s.buildContext.BuildHostModelTableName(), updateStr, filterStr)
+	updateSQL := fmt.Sprintf("UPDATE `%s` SET %s WHERE %s", s.buildCodec.BuildHostModelTableName(), updateStr, filterStr)
 	//log.Print(updateSQL)
 	if traceSQL() {
 		log.Infof("[SQL] update: %s", updateSQL)
@@ -46,7 +46,7 @@ func (s *Builder) getFieldUpdateValues() (ret string, err *cd.Result) {
 			continue
 		}
 
-		fStr, fErr := s.buildContext.BuildFieldValue(field)
+		fStr, fErr := s.buildCodec.BuildFieldValue(field)
 		if fErr != nil {
 			err = fErr
 			log.Errorf("getFieldUpdateValues failed, BuildFieldValue error:%s", fErr.Error())

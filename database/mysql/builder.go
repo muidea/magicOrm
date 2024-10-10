@@ -12,15 +12,15 @@ import (
 
 // Builder Builder
 type Builder struct {
-	buildContext codec.Codec
-	hostModel    model.Model
+	buildCodec codec.Codec
+	hostModel  model.Model
 }
 
 // New create builder
-func New(vModel model.Model, context codec.Codec) *Builder {
+func New(vModel model.Model, codec codec.Codec) *Builder {
 	return &Builder{
-		buildContext: context,
-		hostModel:    vModel,
+		buildCodec: codec,
+		hostModel:  vModel,
 	}
 }
 
@@ -84,7 +84,7 @@ func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem
 
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
-	oprStr, oprErr := s.buildContext.BuildOprValue(vField, oprValue)
+	oprStr, oprErr := s.buildCodec.BuildOprValue(vField, oprValue)
 	if oprErr != nil {
 		err = oprErr
 		log.Errorf("buildBasicItem %s failed, EncodeValue error:%s", vField.GetName(), err.Error())
@@ -98,19 +98,19 @@ func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem
 func (s *Builder) buildRelationItem(pkField model.Field, vField model.Field, filterItem model.FilterItem) (ret string, err *cd.Result) {
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
-	oprStr, oprErr := s.buildContext.BuildOprValue(vField, oprValue)
+	oprStr, oprErr := s.buildCodec.BuildOprValue(vField, oprValue)
 	if oprErr != nil {
 		err = oprErr
-		log.Errorf("buildRelationItem %s failed, s.buildContext.BuildOprValue error:%s", vField.GetName(), err.Error())
+		log.Errorf("buildRelationItem %s failed, s.buildCodec.BuildOprValue error:%s", vField.GetName(), err.Error())
 		return
 	}
 
 	relationFilterSQL := ""
 	strVal := oprFunc("right", oprStr)
-	relationTableName, relationErr := s.buildContext.BuildRelationTableName(vField, nil)
+	relationTableName, relationErr := s.buildCodec.BuildRelationTableName(vField, nil)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("buildRelationItem %s failed, s.buildContext.BuildRelationTableName error:%s", vField.GetName(), err.Error())
+		log.Errorf("buildRelationItem %s failed, s.buildCodec.BuildRelationTableName error:%s", vField.GetName(), err.Error())
 		return
 	}
 	relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTableName, strVal)
@@ -137,7 +137,7 @@ func (s *Builder) buildSorter(filter model.Sorter) (ret string, err *cd.Result) 
 }
 
 func (s *Builder) buildFiledFilter(vField model.Field) (ret string, err *cd.Result) {
-	pkfVal, pkfErr := s.buildContext.BuildFieldValue(vField)
+	pkfVal, pkfErr := s.buildCodec.BuildFieldValue(vField)
 	if pkfErr != nil {
 		err = pkfErr
 		log.Errorf("BuildModelFilter failed, s.EncodeValue error:%s", err.Error())
