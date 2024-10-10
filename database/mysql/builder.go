@@ -6,18 +6,18 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
-	"github.com/muidea/magicOrm/database/context"
+	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/model"
 )
 
 // Builder Builder
 type Builder struct {
-	buildContext context.Context
+	buildContext codec.Codec
 	hostModel    model.Model
 }
 
 // New create builder
-func New(vModel model.Model, context context.Context) *Builder {
+func New(vModel model.Model, context codec.Codec) *Builder {
 	return &Builder{
 		buildContext: context,
 		hostModel:    vModel,

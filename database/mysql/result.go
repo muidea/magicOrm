@@ -1,7 +1,7 @@
 package mysql
 
 import (
-	"github.com/muidea/magicOrm/database/context"
+	"github.com/muidea/magicOrm/database/codec"
 )
 
 type BuildResult struct {
@@ -21,7 +21,7 @@ func (s *BuildResult) Args() []any {
 	return s.valsVal
 }
 
-func NewBuildResult(sql string, vals []any) context.BuildResult {
+func NewBuildResult(sql string, vals []any) codec.BuildResult {
 	return &BuildResult{
 		sqlVal:  sql,
 		valsVal: []any{},

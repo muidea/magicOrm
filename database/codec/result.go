@@ -1,4 +1,4 @@
-package context
+package codec
 
 type BuildResult interface {
 	SQL() string

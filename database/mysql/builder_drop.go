@@ -6,12 +6,12 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
-	"github.com/muidea/magicOrm/database/context"
+	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/model"
 )
 
 // BuildDropTable  BuildDropSchema
-func (s *Builder) BuildDropTable() (ret context.BuildResult, err *cd.Result) {
+func (s *Builder) BuildDropTable() (ret codec.BuildResult, err *cd.Result) {
 	dropSQL := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", s.buildContext.BuildHostModelTableName())
 	//log.Print(dropSQL)
 	if traceSQL() {
@@ -23,7 +23,7 @@ func (s *Builder) BuildDropTable() (ret context.BuildResult, err *cd.Result) {
 }
 
 // BuildDropRelationTable Build DropRelation Schema
-func (s *Builder) BuildDropRelationTable(vField model.Field, rModel model.Model) (ret context.BuildResult, err *cd.Result) {
+func (s *Builder) BuildDropRelationTable(vField model.Field, rModel model.Model) (ret codec.BuildResult, err *cd.Result) {
 	relationTableName, relationErr := s.buildContext.BuildRelationTableName(vField, rModel)
 	if relationErr != nil {
 		err = relationErr

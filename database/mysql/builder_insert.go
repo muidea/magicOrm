@@ -6,12 +6,12 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
-	"github.com/muidea/magicOrm/database/context"
+	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/model"
 )
 
 // BuildInsert  Build Insert
-func (s *Builder) BuildInsert() (ret context.BuildResult, err *cd.Result) {
+func (s *Builder) BuildInsert() (ret codec.BuildResult, err *cd.Result) {
 	fieldNames := ""
 	fieldValues := ""
 	for _, field := range s.hostModel.GetFields() {
@@ -53,7 +53,7 @@ func (s *Builder) BuildInsert() (ret context.BuildResult, err *cd.Result) {
 }
 
 // BuildInsertRelation Build Insert Relation
-func (s *Builder) BuildInsertRelation(vField model.Field, rModel model.Model) (ret context.BuildResult, err *cd.Result) {
+func (s *Builder) BuildInsertRelation(vField model.Field, rModel model.Model) (ret codec.BuildResult, err *cd.Result) {
 	leftVal, rightVal, valErr := s.buildContext.BuildRelationValue(rModel)
 	if valErr != nil {
 		err = valErr

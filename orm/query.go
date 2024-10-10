@@ -7,7 +7,7 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/builder"
-	"github.com/muidea/magicOrm/database/context"
+	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/model"
 )
 
@@ -96,7 +96,7 @@ func (s *impl) innerAssign(builder builder.Builder, vModel model.Model, queryVal
 
 func (s *impl) querySingle(vFilter model.Filter, deepLevel int) (ret model.Model, err *cd.Result) {
 	vModel := vFilter.MaskModel()
-	hContext := context.New(vModel, s.modelProvider, s.specialPrefix)
+	hContext := codec.New(vModel, s.modelProvider, s.specialPrefix)
 	hBuilder := builder.NewBuilder(vModel, hContext)
 	valueList, queryErr := s.innerQuery(hBuilder, vModel, vFilter)
 	if queryErr != nil {

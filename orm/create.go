@@ -5,7 +5,7 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/builder"
-	"github.com/muidea/magicOrm/database/context"
+	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/model"
 )
 
@@ -40,7 +40,7 @@ func (s *impl) createRelation(hBuilder builder.Builder, vField model.Field, rMod
 }
 
 func (s *impl) createSchema(vModel model.Model) (err *cd.Result) {
-	hContext := context.New(vModel, s.modelProvider, s.specialPrefix)
+	hContext := codec.New(vModel, s.modelProvider, s.specialPrefix)
 	hBuilder := builder.NewBuilder(vModel, hContext)
 	err = s.createSingle(hBuilder)
 	if err != nil {
@@ -63,7 +63,7 @@ func (s *impl) createSchema(vModel model.Model) (err *cd.Result) {
 
 		elemType := fType.Elem()
 		if !elemType.IsPtrType() {
-			rContext := context.New(relationModel, s.modelProvider, s.specialPrefix)
+			rContext := codec.New(relationModel, s.modelProvider, s.specialPrefix)
 			rBuilder := builder.NewBuilder(relationModel, rContext)
 			err = s.createSingle(rBuilder)
 			if err != nil {
