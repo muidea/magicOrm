@@ -6,11 +6,10 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 
 	"github.com/muidea/magicCommon/foundation/log"
-	"github.com/muidea/magicOrm/database/codec"
 )
 
 // BuildUpdate  Build Update
-func (s *Builder) BuildUpdate() (ret codec.BuildResult, err *cd.Result) {
+func (s *Builder) BuildUpdate() (ret *Result, err *cd.Result) {
 	updateStr, updateErr := s.getFieldUpdateValues()
 	if updateErr != nil {
 		err = updateErr
@@ -30,7 +29,7 @@ func (s *Builder) BuildUpdate() (ret codec.BuildResult, err *cd.Result) {
 		log.Infof("[SQL] update: %s", updateSQL)
 	}
 
-	ret = NewBuildResult(updateSQL, nil)
+	ret = NewResult(updateSQL, nil)
 	return
 }
 

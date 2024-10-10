@@ -6,11 +6,10 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
-	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *Builder) BuildCreateTable() (ret codec.BuildResult, err *cd.Result) {
+func (s *Builder) BuildCreateTable() (ret *Result, err *cd.Result) {
 	createSQL := ""
 	for _, field := range s.hostModel.GetFields() {
 		fType := field.GetType()
@@ -40,12 +39,12 @@ func (s *Builder) BuildCreateTable() (ret codec.BuildResult, err *cd.Result) {
 		log.Infof("[SQL] create: %s", createSQL)
 	}
 
-	ret = NewBuildResult(createSQL, nil)
+	ret = NewResult(createSQL, nil)
 	return
 }
 
 // BuildCreateRelationTable Build CreateRelation Schema
-func (s *Builder) BuildCreateRelationTable(vField model.Field, rModel model.Model) (ret codec.BuildResult, err *cd.Result) {
+func (s *Builder) BuildCreateRelationTable(vField model.Field, rModel model.Model) (ret *Result, err *cd.Result) {
 	lPKField := s.hostModel.GetPrimaryField()
 	lPKType, lPKErr := getTypeDeclare(lPKField.GetType(), lPKField.GetSpec())
 	if lPKErr != nil {
@@ -76,7 +75,7 @@ func (s *Builder) BuildCreateRelationTable(vField model.Field, rModel model.Mode
 		log.Infof("[SQL] create relation: %s", createRelationSQL)
 	}
 
-	ret = NewBuildResult(createRelationSQL, nil)
+	ret = NewResult(createRelationSQL, nil)
 	return
 }
 

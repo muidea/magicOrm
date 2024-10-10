@@ -1,28 +1,24 @@
 package mysql
 
-import (
-	"github.com/muidea/magicOrm/database/codec"
-)
-
-type BuildResult struct {
+type Result struct {
 	sqlVal  string
 	valsVal []any
 }
 
-func (s *BuildResult) String() string {
+func (s *Result) String() string {
 	return s.sqlVal
 }
 
-func (s *BuildResult) SQL() string {
+func (s *Result) SQL() string {
 	return s.sqlVal
 }
 
-func (s *BuildResult) Args() []any {
+func (s *Result) Args() []any {
 	return s.valsVal
 }
 
-func NewBuildResult(sql string, vals []any) codec.BuildResult {
-	return &BuildResult{
+func NewResult(sql string, vals []any) *Result {
+	return &Result{
 		sqlVal:  sql,
 		valsVal: []any{},
 	}

@@ -6,12 +6,11 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
-	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/model"
 )
 
 // BuildDelete  BuildDelete
-func (s *Builder) BuildDelete() (ret codec.BuildResult, err *cd.Result) {
+func (s *Builder) BuildDelete() (ret *Result, err *cd.Result) {
 	filterStr, filterErr := s.buildFiledFilter(s.hostModel.GetPrimaryField())
 	if filterErr != nil {
 		err = filterErr
@@ -24,12 +23,12 @@ func (s *Builder) BuildDelete() (ret codec.BuildResult, err *cd.Result) {
 		log.Infof("[SQL] delete: %s", deleteSQL)
 	}
 
-	ret = NewBuildResult(deleteSQL, nil)
+	ret = NewResult(deleteSQL, nil)
 	return
 }
 
 // BuildDeleteRelation BuildDeleteRelation
-func (s *Builder) BuildDeleteRelation(vField model.Field, rModel model.Model) (delRight, delRelation codec.BuildResult, err *cd.Result) {
+func (s *Builder) BuildDeleteRelation(vField model.Field, rModel model.Model) (delRight, delRelation *Result, err *cd.Result) {
 	leftVal, leftErr := s.buildContext.BuildHostModelValue()
 	if leftErr != nil {
 		err = leftErr
@@ -49,11 +48,11 @@ func (s *Builder) BuildDeleteRelation(vField model.Field, rModel model.Model) (d
 		rModel.GetPrimaryField().GetName(),
 		relationTableName,
 		leftVal)
-	delRight = NewBuildResult(delRightSQL, nil)
+	delRight = NewResult(delRightSQL, nil)
 	//log.Print(delRight)
 
 	delRelationSQL := fmt.Sprintf("DELETE FROM `%s` WHERE `left`=%v", relationTableName, leftVal)
-	delRelation = NewBuildResult(delRelationSQL, nil)
+	delRelation = NewResult(delRelationSQL, nil)
 	//log.Print(delRelation)
 	if traceSQL() {
 		log.Infof("[SQL] delete: %s, delete relation: %s", delRight, delRelation)

@@ -6,12 +6,11 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
-	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/model"
 )
 
 // BuildQuery build query sql
-func (s *Builder) BuildQuery(filter model.Filter) (ret codec.BuildResult, err *cd.Result) {
+func (s *Builder) BuildQuery(filter model.Filter) (ret *Result, err *cd.Result) {
 	namesVal, nameErr := s.getFieldQueryNames(filter)
 	if nameErr != nil {
 		err = nameErr
@@ -52,13 +51,13 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret codec.BuildResult, err *c
 		log.Infof("[SQL] query: %s", querySQL)
 	}
 
-	ret = NewBuildResult(querySQL, nil)
+	ret = NewResult(querySQL, nil)
 	//log.Print(ret)
 	return
 }
 
 // BuildQueryRelation build query relation sql
-func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (ret codec.BuildResult, err *cd.Result) {
+func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (ret *Result, err *cd.Result) {
 	leftVal, leftErr := s.buildContext.BuildHostModelValue()
 	if leftErr != nil {
 		err = leftErr
@@ -79,7 +78,7 @@ func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (re
 		log.Infof("[SQL] query relation: %s", queryRelationSQL)
 	}
 
-	ret = NewBuildResult(queryRelationSQL, nil)
+	ret = NewResult(queryRelationSQL, nil)
 	return
 }
 
