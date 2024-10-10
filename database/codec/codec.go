@@ -15,12 +15,12 @@ import (
 type Codec interface {
 	BuildHostModelTableName() string
 	BuildModelTableName(vModel model.Model) string
-	BuildRelationTableName(vField model.Field, rModel model.Model) (ret string, err *cd.Result)
-	BuildHostModelValue() (ret model.RawVal, err *cd.Result)
-	BuildRelationValue(rModel model.Model) (leftVal, rightVal model.RawVal, err *cd.Result)
-	BuildFieldValue(vField model.Field) (ret model.RawVal, err *cd.Result)
-	BuildOprValue(vField model.Field, vValue model.Value) (ret model.RawVal, err *cd.Result)
-	ExtractFiledValue(vField model.Field, eVal model.RawVal) (ret model.Value, err *cd.Result)
+	BuildRelationTableName(vField model.Field, rModel model.Model) (string, *cd.Result)
+	BuildHostModelValue() (model.RawVal, *cd.Result)
+	BuildRelationValue(rModel model.Model) (model.RawVal, model.RawVal, *cd.Result)
+	BuildFieldValue(vField model.Field) (model.RawVal, *cd.Result)
+	BuildOprValue(vField model.Field, vValue model.Value) (model.RawVal, *cd.Result)
+	ExtractFiledValue(vField model.Field, eVal model.RawVal) (model.Value, *cd.Result)
 }
 
 type codecImpl struct {
