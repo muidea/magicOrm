@@ -18,7 +18,7 @@ type Codec interface {
 	BuildRelationTableName(vField model.Field, rModel model.Model) (ret string, err *cd.Result)
 	BuildHostModelValue() (ret model.RawVal, err *cd.Result)
 	BuildRelationValue(rModel model.Model) (leftVal, rightVal model.RawVal, err *cd.Result)
-	BuildFieldValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result)
+	BuildFieldValue(vField model.Field) (ret model.RawVal, err *cd.Result)
 	BuildOprValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result)
 	ExtractFiledValue(vType model.Type, eVal model.RawVal) (ret model.Value, err *cd.Result)
 }
@@ -111,7 +111,9 @@ func (s *codecImpl) BuildRelationValue(rModel model.Model) (leftVal, rightVal mo
 	return
 }
 
-func (s *codecImpl) BuildFieldValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
+func (s *codecImpl) BuildFieldValue(vField model.Field) (ret model.RawVal, err *cd.Result) {
+	vType := vField.GetType()
+	vValue := vField.GetValue()
 	if !vValue.IsValid() {
 		defaultVal, defaultErr := getBasicTypeDefaultValue(vType)
 		if defaultErr != nil {

@@ -46,7 +46,7 @@ func (s *Builder) getFieldUpdateValues() (ret string, err *cd.Result) {
 			continue
 		}
 
-		fStr, fErr := s.buildContext.BuildFieldValue(fType, fValue)
+		fStr, fErr := s.buildContext.BuildFieldValue(field)
 		if fErr != nil {
 			err = fErr
 			log.Errorf("getFieldUpdateValues failed, BuildFieldValue error:%s", fErr.Error())

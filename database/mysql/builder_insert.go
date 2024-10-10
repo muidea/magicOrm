@@ -16,12 +16,11 @@ func (s *Builder) BuildInsert() (ret *Result, err *cd.Result) {
 	for _, field := range s.hostModel.GetFields() {
 		fType := field.GetType()
 		fSpec := field.GetSpec()
-		fValue := field.GetValue()
 		if !fType.IsBasic() || fSpec.GetValueDeclare() == model.AutoIncrement {
 			continue
 		}
 
-		fStr, fErr := s.buildContext.BuildFieldValue(fType, fValue)
+		fStr, fErr := s.buildContext.BuildFieldValue(field)
 		if fErr != nil {
 			err = fErr
 			log.Errorf("BuildInsert failed, BuildFieldValue error:%s", fErr.Error())

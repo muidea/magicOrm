@@ -138,7 +138,7 @@ func (s *Builder) buildSorter(filter model.Sorter) (ret string, err *cd.Result) 
 }
 
 func (s *Builder) buildFiledFilter(vField model.Field) (ret string, err *cd.Result) {
-	pkfVal, pkfErr := s.buildContext.BuildFieldValue(vField.GetType(), vField.GetValue())
+	pkfVal, pkfErr := s.buildContext.BuildFieldValue(vField)
 	if pkfErr != nil {
 		err = pkfErr
 		log.Errorf("BuildModelFilter failed, s.EncodeValue error:%s", err.Error())
