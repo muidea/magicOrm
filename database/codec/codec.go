@@ -19,14 +19,18 @@ type Codec interface {
 	BuildHostModelValue() (ret model.RawVal, err *cd.Result)
 	BuildRelationValue(rModel model.Model) (leftVal, rightVal model.RawVal, err *cd.Result)
 	BuildFieldValue(vField model.Field) (ret model.RawVal, err *cd.Result)
-	BuildOprValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result)
-	ExtractFiledValue(vType model.Type, eVal model.RawVal) (ret model.Value, err *cd.Result)
+	BuildOprValue(vField model.Field, vValue model.Value) (ret model.RawVal, err *cd.Result)
+	ExtractFiledValue(vField model.Field, eVal model.RawVal) (ret model.Value, err *cd.Result)
 }
 
 type codecImpl struct {
 	hostModel     model.Model
 	modelProvider provider.Provider
 	specialPrefix string
+
+	// temp value, for performance optimization
+	hostModelTableName string
+	hostModelValue     model.RawVal
 }
 
 func New(vModel model.Model, modelProvider provider.Provider, prefix string) Codec {
@@ -44,7 +48,11 @@ func (s *codecImpl) constructInfix(vFiled model.Field) string {
 }
 
 func (s *codecImpl) BuildHostModelTableName() string {
-	return s.BuildModelTableName(s.hostModel)
+	if s.hostModelTableName == "" {
+		s.hostModelTableName = s.BuildModelTableName(s.hostModel)
+	}
+
+	return s.hostModelTableName
 }
 
 func (s *codecImpl) BuildModelTableName(vModel model.Model) string {
@@ -81,13 +89,17 @@ func (s *codecImpl) BuildRelationTableName(vField model.Field, rModel model.Mode
 }
 
 func (s *codecImpl) BuildHostModelValue() (ret model.RawVal, err *cd.Result) {
-	entityVal, entityErr := s.buildModelValue(s.hostModel)
-	if entityErr != nil {
-		err = entityErr
-		return
+	if s.hostModelValue == nil {
+		entityVal, entityErr := s.buildModelValue(s.hostModel)
+		if entityErr != nil {
+			err = entityErr
+			return
+		}
+
+		s.hostModelValue = entityVal
 	}
 
-	ret = entityVal
+	ret = s.hostModelValue
 	return
 }
 
@@ -115,7 +127,7 @@ func (s *codecImpl) BuildFieldValue(vField model.Field) (ret model.RawVal, err *
 	vType := vField.GetType()
 	vValue := vField.GetValue()
 	if !vValue.IsValid() {
-		defaultVal, defaultErr := getBasicTypeDefaultValue(vType)
+		defaultVal, defaultErr := s.getBasicTypeDefaultValue(vType)
 		if defaultErr != nil {
 			err = defaultErr
 			return
@@ -152,12 +164,13 @@ func (s *codecImpl) BuildFieldValue(vField model.Field) (ret model.RawVal, err *
 	return
 }
 
-func (s *codecImpl) BuildOprValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
+func (s *codecImpl) BuildOprValue(vField model.Field, vValue model.Value) (ret model.RawVal, err *cd.Result) {
 	if !vValue.IsValid() {
 		err = cd.NewError(cd.UnExpected, "nil opr value")
 		return
 	}
 
+	vType := vField.GetType()
 	switch vType.GetValue() {
 	case model.TypeStringValue, model.TypeDateTimeValue:
 		ret, err = s.encodeStringValue(vType, vValue)
@@ -181,7 +194,7 @@ func (s *codecImpl) BuildOprValue(vType model.Type, vValue model.Value) (ret mod
 	return
 }
 
-func (s *codecImpl) ExtractFiledValue(vType model.Type, eVal model.RawVal) (ret model.Value, err *cd.Result) {
+func (s *codecImpl) ExtractFiledValue(vField model.Field, eVal model.RawVal) (ret model.Value, err *cd.Result) {
 	return
 }
 
@@ -336,5 +349,29 @@ func (s *codecImpl) getFieldRelation(vField model.Field) (ret relationType) {
 	}
 
 	ret = relationRef1vn
+	return
+}
+
+func (s *codecImpl) getBasicTypeDefaultValue(fType model.Type) (ret any, err *cd.Result) {
+	switch fType.GetValue() {
+	case model.TypeBooleanValue, model.TypeBitValue,
+		model.TypeSmallIntegerValue, model.TypePositiveBitValue,
+		model.TypeIntegerValue, model.TypeInteger32Value, model.TypePositiveSmallIntegerValue,
+		model.TypeBigIntegerValue, model.TypePositiveIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue,
+		model.TypeFloatValue, model.TypeDoubleValue:
+		ret = 0
+		break
+	case model.TypeStringValue,
+		model.TypeDateTimeValue,
+		model.TypeSliceValue:
+		ret = ""
+	default:
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("no support field type, type:%v", fType.GetPkgKey()))
+	}
+
+	if err != nil {
+		log.Errorf("getBasicTypeDefaultValue failed, error:%s", err.Error())
+	}
+
 	return
 }

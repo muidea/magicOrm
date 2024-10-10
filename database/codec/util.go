@@ -2,10 +2,6 @@ package codec
 
 import (
 	"fmt"
-
-	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
-	"github.com/muidea/magicOrm/model"
 )
 
 type relationType int
@@ -20,28 +16,4 @@ const (
 
 func (s relationType) String() string {
 	return fmt.Sprintf("%d", s)
-}
-
-func getBasicTypeDefaultValue(fType model.Type) (ret any, err *cd.Result) {
-	switch fType.Elem().GetValue() {
-	case model.TypeBooleanValue, model.TypeBitValue,
-		model.TypeSmallIntegerValue, model.TypePositiveBitValue,
-		model.TypeIntegerValue, model.TypeInteger32Value, model.TypePositiveSmallIntegerValue,
-		model.TypeBigIntegerValue, model.TypePositiveIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue,
-		model.TypeFloatValue, model.TypeDoubleValue:
-		ret = 0
-		break
-	case model.TypeStringValue,
-		model.TypeDateTimeValue,
-		model.TypeSliceValue:
-		ret = ""
-	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("no support field type, type:%v", fType.GetPkgKey()))
-	}
-
-	if err != nil {
-		log.Errorf("getBasicTypeDefaultValue failed, error:%s", err.Error())
-	}
-
-	return
 }

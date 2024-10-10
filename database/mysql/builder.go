@@ -76,30 +76,29 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err *cd.Result) 
 
 func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem) (ret string, err *cd.Result) {
 	fType := vField.GetType()
+	if !fType.IsBasic() {
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal item type, name:%s", vField.GetName()))
+		log.Errorf("buildBasicItem failed, error:%s", err.Error())
+		return
+	}
+
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
-	oprStr, oprErr := s.buildContext.BuildOprValue(fType, oprValue)
+	oprStr, oprErr := s.buildContext.BuildOprValue(vField, oprValue)
 	if oprErr != nil {
 		err = oprErr
 		log.Errorf("buildBasicItem %s failed, EncodeValue error:%s", vField.GetName(), err.Error())
 		return
 	}
 
-	if fType.IsBasic() {
-		ret = oprFunc(vField.GetName(), oprStr)
-		return
-	}
-
-	err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal item type, name:%s", vField.GetName()))
-	log.Errorf("buildBasicItem failed, error:%s", err.Error())
+	ret = oprFunc(vField.GetName(), oprStr)
 	return
 }
 
 func (s *Builder) buildRelationItem(pkField model.Field, vField model.Field, filterItem model.FilterItem) (ret string, err *cd.Result) {
-	vType := vField.GetType()
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
-	oprStr, oprErr := s.buildContext.BuildOprValue(vType, oprValue)
+	oprStr, oprErr := s.buildContext.BuildOprValue(vField, oprValue)
 	if oprErr != nil {
 		err = oprErr
 		log.Errorf("buildRelationItem %s failed, s.buildContext.BuildOprValue error:%s", vField.GetName(), err.Error())
