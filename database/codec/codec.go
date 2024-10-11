@@ -13,8 +13,8 @@ import (
 )
 
 type Codec interface {
-	BuildModelTableName(vModel model.Model) string
-	BuildRelationTableName(vModel model.Model, vField model.Field) (string, *cd.Result)
+	ConstructModelTableName(vModel model.Model) string
+	ConstructRelationTableName(vModel model.Model, vField model.Field) (string, *cd.Result)
 
 	BuildModelValue(vModel model.Model) (model.RawVal, *cd.Result)
 	BuildFieldValue(vField model.Field) (model.RawVal, *cd.Result)
@@ -41,7 +41,7 @@ func (s *codecImpl) constructInfix(vFiled model.Field) string {
 	return strings.ToUpper(strName[:1]) + strName[1:]
 }
 
-func (s *codecImpl) BuildModelTableName(vModel model.Model) string {
+func (s *codecImpl) ConstructModelTableName(vModel model.Model) string {
 	tableName := s.constructTableName(vModel)
 	if s.specialPrefix != "" {
 		tableName = fmt.Sprintf("%s_%s", s.specialPrefix, tableName)
@@ -50,11 +50,11 @@ func (s *codecImpl) BuildModelTableName(vModel model.Model) string {
 	return tableName
 }
 
-func (s *codecImpl) BuildRelationTableName(vModel model.Model, vField model.Field) (ret string, err *cd.Result) {
+func (s *codecImpl) ConstructRelationTableName(vModel model.Model, vField model.Field) (ret string, err *cd.Result) {
 	fieldModel, fieldErr := s.modelProvider.GetTypeModel(vField.GetType())
 	if fieldErr != nil {
 		err = fieldErr
-		log.Errorf("BuildRelationTableName failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+		log.Errorf("ConstructRelationTableName failed, s.modelProvider.GetTypeModel error:%s", err.Error())
 		return
 	}
 

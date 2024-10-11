@@ -5,14 +5,12 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/builder"
-	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/model"
 )
 
 func (s *impl) batchQuery(vFilter model.Filter) (ret []model.Model, err *cd.Result) {
 	vModel := vFilter.MaskModel()
-	hContext := codec.New(s.modelProvider, s.specialPrefix)
-	hBuilder := builder.NewBuilder(vModel, hContext)
+	hBuilder := builder.NewBuilder(vModel, s.modelCodec)
 	queryValueList, queryErr := s.innerQuery(hBuilder, vModel, vFilter)
 	if queryErr != nil {
 		err = queryErr

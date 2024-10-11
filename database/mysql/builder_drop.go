@@ -11,7 +11,7 @@ import (
 
 // BuildDropTable  BuildDropSchema
 func (s *Builder) BuildDropTable() (ret *Result, err *cd.Result) {
-	dropSQL := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", s.buildCodec.BuildModelTableName(s.hostModel))
+	dropSQL := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", s.buildCodec.ConstructModelTableName(s.hostModel))
 	//log.Print(dropSQL)
 	if traceSQL() {
 		log.Infof("[SQL] drop: %s", dropSQL)
@@ -23,10 +23,10 @@ func (s *Builder) BuildDropTable() (ret *Result, err *cd.Result) {
 
 // BuildDropRelationTable Build DropRelation Schema
 func (s *Builder) BuildDropRelationTable(vField model.Field, rModel model.Model) (ret *Result, err *cd.Result) {
-	relationTableName, relationErr := s.buildCodec.BuildRelationTableName(s.hostModel, vField)
+	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(s.hostModel, vField)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("BuildDeleteRelation %s failed, s.buildCodec.BuildRelationTableName error:%s", vField.GetName(), err.Error())
+		log.Errorf("BuildDeleteRelation %s failed, s.buildCodec.ConstructRelationTableName error:%s", vField.GetName(), err.Error())
 		return
 	}
 

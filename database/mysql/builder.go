@@ -107,10 +107,10 @@ func (s *Builder) buildRelationItem(pkField model.Field, vField model.Field, fil
 
 	relationFilterSQL := ""
 	strVal := oprFunc("right", oprStr)
-	relationTableName, relationErr := s.buildCodec.BuildRelationTableName(s.hostModel, vField)
+	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(s.hostModel, vField)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("buildRelationItem %s failed, s.buildCodec.BuildRelationTableName error:%s", vField.GetName(), err.Error())
+		log.Errorf("buildRelationItem %s failed, s.buildCodec.ConstructRelationTableName error:%s", vField.GetName(), err.Error())
 		return
 	}
 	relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTableName, strVal)

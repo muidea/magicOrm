@@ -7,6 +7,7 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
+	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
@@ -113,7 +114,7 @@ func NewOrm(provider provider.Provider, cfg executor.Config, prefix string) (Orm
 		return nil, cd.NewError(cd.UnExpected, executorErr.Error())
 	}
 
-	orm := &impl{executor: executorVal, modelProvider: provider, specialPrefix: prefix}
+	orm := &impl{executor: executorVal, modelProvider: provider, modelCodec: codec.New(provider, prefix)}
 	return orm, nil
 }
 
@@ -134,7 +135,7 @@ func GetOrm(provider provider.Provider, prefix string) (ret Orm, err *cd.Result)
 		return
 	}
 
-	ret = &impl{executor: executorVal, modelProvider: provider, specialPrefix: prefix}
+	ret = &impl{executor: executorVal, modelProvider: provider, modelCodec: codec.New(provider, prefix)}
 	return
 }
 
@@ -142,7 +143,7 @@ func GetOrm(provider provider.Provider, prefix string) (ret Orm, err *cd.Result)
 type impl struct {
 	executor      executor.Executor
 	modelProvider provider.Provider
-	specialPrefix string
+	modelCodec    codec.Codec
 }
 
 // BeginTransaction begin transaction

@@ -5,7 +5,6 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/builder"
-	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/model"
 )
 
@@ -32,8 +31,7 @@ func (s *impl) deleteRelationSingleStructInner(rVal model.Value, rType model.Typ
 		return
 	}
 
-	rContext := codec.New(s.modelProvider, s.specialPrefix)
-	rBuilder := builder.NewBuilder(relationModel, rContext)
+	rBuilder := builder.NewBuilder(relationModel, s.modelCodec)
 	err = s.deleteSingle(rBuilder)
 	if err != nil {
 		log.Errorf("deleteRelationSingleStructInner failed, s.deleteSingle error:%s", err.Error())
@@ -129,8 +127,7 @@ func (s *impl) deleteRelation(hBuilder builder.Builder, vField model.Field, deep
 }
 
 func (s *impl) deleteModel(vModel model.Model) (ret model.Model, err *cd.Result) {
-	hContext := codec.New(s.modelProvider, s.specialPrefix)
-	hBuilder := builder.NewBuilder(vModel, hContext)
+	hBuilder := builder.NewBuilder(vModel, s.modelCodec)
 	err = s.deleteSingle(hBuilder)
 	if err != nil {
 		log.Errorf("Delete failed, s.deleteSingle error:%s", err.Error())

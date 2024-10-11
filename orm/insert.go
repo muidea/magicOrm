@@ -5,7 +5,6 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/builder"
-	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/model"
 )
 
@@ -111,8 +110,7 @@ func (s *impl) insertSingleRelation(hBuilder builder.Builder, vField model.Field
 	}
 
 	if !fType.IsPtrType() {
-		rContext := codec.New(s.modelProvider, s.specialPrefix)
-		rBuilder := builder.NewBuilder(rModel, rContext)
+		rBuilder := builder.NewBuilder(rModel, s.modelCodec)
 		rErr = s.insertSingle(rBuilder, rModel)
 		if rErr != nil {
 			err = rErr
@@ -178,8 +176,7 @@ func (s *impl) insertSliceRelation(hBuilder builder.Builder, vField model.Field)
 		}
 
 		if !elemType.IsPtrType() {
-			rContext := codec.New(s.modelProvider, s.specialPrefix)
-			rBuilder := builder.NewBuilder(rModel, rContext)
+			rBuilder := builder.NewBuilder(rModel, s.modelCodec)
 			rErr = s.insertSingle(rBuilder, rModel)
 			if rErr != nil {
 				err = rErr
@@ -232,8 +229,7 @@ func (s *impl) insertSliceRelation(hBuilder builder.Builder, vField model.Field)
 }
 
 func (s *impl) insertModel(vModel model.Model) (ret model.Model, err *cd.Result) {
-	hContext := codec.New(s.modelProvider, s.specialPrefix)
-	hBuilder := builder.NewBuilder(vModel, hContext)
+	hBuilder := builder.NewBuilder(vModel, s.modelCodec)
 	err = s.insertSingle(hBuilder, vModel)
 	if err != nil {
 		log.Errorf("Insert failed, s.insertSingle error:%s", err.Error())

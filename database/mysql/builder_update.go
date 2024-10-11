@@ -23,7 +23,7 @@ func (s *Builder) BuildUpdate() (ret *Result, err *cd.Result) {
 		return
 	}
 
-	updateSQL := fmt.Sprintf("UPDATE `%s` SET %s WHERE %s", s.buildCodec.BuildModelTableName(s.hostModel), updateStr, filterStr)
+	updateSQL := fmt.Sprintf("UPDATE `%s` SET %s WHERE %s", s.buildCodec.ConstructModelTableName(s.hostModel), updateStr, filterStr)
 	//log.Print(updateSQL)
 	if traceSQL() {
 		log.Infof("[SQL] update: %s", updateSQL)
