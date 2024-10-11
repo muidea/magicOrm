@@ -39,7 +39,7 @@ func (s *impl) updateRelation(hBuilder builder.Builder, vField model.Field) (err
 }
 
 func (s *impl) updateModel(vModel model.Model) (ret model.Model, err *cd.Result) {
-	hContext := codec.New(vModel, s.modelProvider, s.specialPrefix)
+	hContext := codec.New(s.modelProvider, s.specialPrefix)
 	hBuilder := builder.NewBuilder(vModel, hContext)
 	err = s.updateSingle(hBuilder)
 	if err != nil {

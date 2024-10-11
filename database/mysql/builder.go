@@ -107,7 +107,7 @@ func (s *Builder) buildRelationItem(pkField model.Field, vField model.Field, fil
 
 	relationFilterSQL := ""
 	strVal := oprFunc("right", oprStr)
-	relationTableName, relationErr := s.buildCodec.BuildRelationTableName(vField, nil)
+	relationTableName, relationErr := s.buildCodec.BuildRelationTableName(s.hostModel, vField)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("buildRelationItem %s failed, s.buildCodec.BuildRelationTableName error:%s", vField.GetName(), err.Error())

@@ -34,7 +34,7 @@ func (s *Builder) BuildCreateTable() (ret *Result, err *cd.Result) {
 	pkFieldName := s.hostModel.GetPrimaryField().GetName()
 	createSQL = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", createSQL, pkFieldName)
 
-	createSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", s.buildCodec.BuildHostModelTableName(), createSQL)
+	createSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", s.buildCodec.BuildModelTableName(s.hostModel), createSQL)
 	if traceSQL() {
 		log.Infof("[SQL] create: %s", createSQL)
 	}
@@ -61,7 +61,7 @@ func (s *Builder) BuildCreateRelationTable(vField model.Field, rModel model.Mode
 		return
 	}
 
-	relationTableName, relationErr := s.buildCodec.BuildRelationTableName(vField, rModel)
+	relationTableName, relationErr := s.buildCodec.BuildRelationTableName(s.hostModel, vField)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("BuildCreateRelationTable %s failed, s.buildCodec.BuildRelationTableName error:%s", vField.GetName(), err.Error())

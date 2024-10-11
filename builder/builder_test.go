@@ -48,7 +48,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 		return
 	}
 
-	buildContext := codec.New(info, localProvider, "abc")
+	buildContext := codec.New(localProvider, "abc")
 	builder := NewBuilder(info, buildContext)
 	if builder == nil {
 		t.Error("new Builder failed")
@@ -148,7 +148,7 @@ func TestBuilderLocalReference(t *testing.T) {
 		t.Errorf("localProvider.RegisterModel failed, err:%s", unitErr.Error())
 	}
 
-	buildContext := codec.New(extModel, localProvider, "abc")
+	buildContext := codec.New(localProvider, "abc")
 	builder := NewBuilder(extModel, buildContext)
 	if builder == nil {
 		t.Error("new Builder failed")
@@ -333,7 +333,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 		return
 	}
 
-	buildContext := codec.New(info, localProvider, "abc")
+	buildContext := codec.New(localProvider, "abc")
 	builder := NewBuilder(info, buildContext)
 	if builder == nil {
 		t.Error("new Builder failed")
@@ -557,7 +557,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		return
 	}
 
-	buildContext := codec.New(extModel, remoteProvider, "abc")
+	buildContext := codec.New(remoteProvider, "abc")
 	builder := NewBuilder(extModel, buildContext)
 	if builder == nil {
 		t.Error("new Builder failed")

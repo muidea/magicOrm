@@ -11,7 +11,7 @@ import (
 
 func (s *impl) batchQuery(vFilter model.Filter) (ret []model.Model, err *cd.Result) {
 	vModel := vFilter.MaskModel()
-	hContext := codec.New(vModel, s.modelProvider, s.specialPrefix)
+	hContext := codec.New(s.modelProvider, s.specialPrefix)
 	hBuilder := builder.NewBuilder(vModel, hContext)
 	queryValueList, queryErr := s.innerQuery(hBuilder, vModel, vFilter)
 	if queryErr != nil {

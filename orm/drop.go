@@ -40,7 +40,7 @@ func (s *impl) dropRelation(hBuilder builder.Builder, vField model.Field, rModel
 }
 
 func (s *impl) dropSchema(vModel model.Model) (err *cd.Result) {
-	hContext := codec.New(vModel, s.modelProvider, s.specialPrefix)
+	hContext := codec.New(s.modelProvider, s.specialPrefix)
 	hBuilder := builder.NewBuilder(vModel, hContext)
 	err = s.dropSingle(hBuilder)
 	if err != nil {
@@ -63,7 +63,7 @@ func (s *impl) dropSchema(vModel model.Model) (err *cd.Result) {
 
 		elemType := fType.Elem()
 		if !elemType.IsPtrType() {
-			rContext := codec.New(relationModel, s.modelProvider, s.specialPrefix)
+			rContext := codec.New(s.modelProvider, s.specialPrefix)
 			rBuilder := builder.NewBuilder(relationModel, rContext)
 			err = s.dropSingle(rBuilder)
 			if err != nil {

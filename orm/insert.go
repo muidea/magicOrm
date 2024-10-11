@@ -111,7 +111,7 @@ func (s *impl) insertSingleRelation(hBuilder builder.Builder, vField model.Field
 	}
 
 	if !fType.IsPtrType() {
-		rContext := codec.New(rModel, s.modelProvider, s.specialPrefix)
+		rContext := codec.New(s.modelProvider, s.specialPrefix)
 		rBuilder := builder.NewBuilder(rModel, rContext)
 		rErr = s.insertSingle(rBuilder, rModel)
 		if rErr != nil {
@@ -178,7 +178,7 @@ func (s *impl) insertSliceRelation(hBuilder builder.Builder, vField model.Field)
 		}
 
 		if !elemType.IsPtrType() {
-			rContext := codec.New(rModel, s.modelProvider, s.specialPrefix)
+			rContext := codec.New(s.modelProvider, s.specialPrefix)
 			rBuilder := builder.NewBuilder(rModel, rContext)
 			rErr = s.insertSingle(rBuilder, rModel)
 			if rErr != nil {
@@ -232,7 +232,7 @@ func (s *impl) insertSliceRelation(hBuilder builder.Builder, vField model.Field)
 }
 
 func (s *impl) insertModel(vModel model.Model) (ret model.Model, err *cd.Result) {
-	hContext := codec.New(vModel, s.modelProvider, s.specialPrefix)
+	hContext := codec.New(s.modelProvider, s.specialPrefix)
 	hBuilder := builder.NewBuilder(vModel, hContext)
 	err = s.insertSingle(hBuilder, vModel)
 	if err != nil {

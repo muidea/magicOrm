@@ -40,7 +40,7 @@ func (s *Builder) BuildInsert() (ret *Result, err *cd.Result) {
 		}
 	}
 
-	insertSQL := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.buildCodec.BuildHostModelTableName(), fieldNames, fieldValues)
+	insertSQL := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.buildCodec.BuildModelTableName(s.hostModel), fieldNames, fieldValues)
 	//log.Print(insertSQL)
 	if traceSQL() {
 		log.Infof("[SQL] insert: %s", insertSQL)
@@ -52,16 +52,24 @@ func (s *Builder) BuildInsert() (ret *Result, err *cd.Result) {
 
 // BuildInsertRelation Build Insert Relation
 func (s *Builder) BuildInsertRelation(vField model.Field, rModel model.Model) (ret *Result, err *cd.Result) {
-	leftVal, rightVal, valErr := s.buildCodec.BuildRelationValue(rModel)
-	if valErr != nil {
-		err = valErr
-		log.Errorf("BuildInsertRelation failed, s.BuildRelationValue error:%s", err.Error())
-		return
-	}
-	relationTableName, relationErr := s.buildCodec.BuildRelationTableName(vField, rModel)
+	relationTableName, relationErr := s.buildCodec.BuildRelationTableName(s.hostModel, vField)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("BuildInsertRelation %s failed, s.buildCodec.BuildRelationTableName error:%s", vField.GetName(), err.Error())
+		return
+	}
+
+	leftVal, leftErr := s.buildCodec.BuildModelValue(s.hostModel)
+	if leftErr != nil {
+		err = leftErr
+		log.Errorf("BuildInsertRelation failed, s.BuildModelValue error:%s", err.Error())
+		return
+	}
+
+	rightVal, rightErr := s.buildCodec.BuildModelValue(rModel)
+	if rightErr != nil {
+		err = rightErr
+		log.Errorf("BuildInsertRelation failed, s.BuildModelValue error:%s", err.Error())
 		return
 	}
 

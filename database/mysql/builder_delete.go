@@ -18,7 +18,7 @@ func (s *Builder) BuildDelete() (ret *Result, err *cd.Result) {
 		return
 	}
 
-	deleteSQL := fmt.Sprintf("DELETE FROM `%s` WHERE %s", s.buildCodec.BuildHostModelTableName(), filterStr)
+	deleteSQL := fmt.Sprintf("DELETE FROM `%s` WHERE %s", s.buildCodec.BuildModelTableName(s.hostModel), filterStr)
 	if traceSQL() {
 		log.Infof("[SQL] delete: %s", deleteSQL)
 	}
@@ -29,14 +29,14 @@ func (s *Builder) BuildDelete() (ret *Result, err *cd.Result) {
 
 // BuildDeleteRelation BuildDeleteRelation
 func (s *Builder) BuildDeleteRelation(vField model.Field, rModel model.Model) (delRight, delRelation *Result, err *cd.Result) {
-	leftVal, leftErr := s.buildCodec.BuildHostModelValue()
+	leftVal, leftErr := s.buildCodec.BuildModelValue(s.hostModel)
 	if leftErr != nil {
 		err = leftErr
 		log.Errorf("BuildDeleteRelation failed, s.BuildHostModelValue error:%s", err.Error())
 		return
 	}
 
-	relationTableName, relationErr := s.buildCodec.BuildRelationTableName(vField, rModel)
+	relationTableName, relationErr := s.buildCodec.BuildRelationTableName(s.hostModel, vField)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("BuildDeleteRelation %s failed, s.buildCodec.BuildRelationTableName error:%s", vField.GetName(), err.Error())

@@ -32,7 +32,7 @@ func (s *impl) deleteRelationSingleStructInner(rVal model.Value, rType model.Typ
 		return
 	}
 
-	rContext := codec.New(relationModel, s.modelProvider, s.specialPrefix)
+	rContext := codec.New(s.modelProvider, s.specialPrefix)
 	rBuilder := builder.NewBuilder(relationModel, rContext)
 	err = s.deleteSingle(rBuilder)
 	if err != nil {
@@ -129,7 +129,7 @@ func (s *impl) deleteRelation(hBuilder builder.Builder, vField model.Field, deep
 }
 
 func (s *impl) deleteModel(vModel model.Model) (ret model.Model, err *cd.Result) {
-	hContext := codec.New(vModel, s.modelProvider, s.specialPrefix)
+	hContext := codec.New(s.modelProvider, s.specialPrefix)
 	hBuilder := builder.NewBuilder(vModel, hContext)
 	err = s.deleteSingle(hBuilder)
 	if err != nil {

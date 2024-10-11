@@ -13,28 +13,22 @@ import (
 )
 
 type Codec interface {
-	BuildHostModelTableName() string
 	BuildModelTableName(vModel model.Model) string
-	BuildRelationTableName(vField model.Field, rModel model.Model) (string, *cd.Result)
-	BuildHostModelValue() (model.RawVal, *cd.Result)
-	BuildRelationValue(rModel model.Model) (model.RawVal, model.RawVal, *cd.Result)
+	BuildRelationTableName(vModel model.Model, vField model.Field) (string, *cd.Result)
+
+	BuildModelValue(vModel model.Model) (model.RawVal, *cd.Result)
 	BuildFieldValue(vField model.Field) (model.RawVal, *cd.Result)
 	BuildOprValue(vField model.Field, vValue model.Value) (model.RawVal, *cd.Result)
 	ExtractFiledValue(vField model.Field, eVal model.RawVal) (model.Value, *cd.Result)
 }
 
 type codecImpl struct {
-	hostModel     model.Model
 	modelProvider provider.Provider
 	specialPrefix string
-
-	// temp value, for performance optimization
-	hostModelTableName string
-	hostModelValue     model.RawVal
 }
 
-func New(vModel model.Model, modelProvider provider.Provider, prefix string) Codec {
-	return &codecImpl{hostModel: vModel, modelProvider: modelProvider, specialPrefix: prefix}
+func New(modelProvider provider.Provider, prefix string) Codec {
+	return &codecImpl{modelProvider: modelProvider, specialPrefix: prefix}
 }
 
 func (s *codecImpl) constructTableName(vModel model.Model) string {
@@ -47,14 +41,6 @@ func (s *codecImpl) constructInfix(vFiled model.Field) string {
 	return strings.ToUpper(strName[:1]) + strName[1:]
 }
 
-func (s *codecImpl) BuildHostModelTableName() string {
-	if s.hostModelTableName == "" {
-		s.hostModelTableName = s.BuildModelTableName(s.hostModel)
-	}
-
-	return s.hostModelTableName
-}
-
 func (s *codecImpl) BuildModelTableName(vModel model.Model) string {
 	tableName := s.constructTableName(vModel)
 	if s.specialPrefix != "" {
@@ -64,19 +50,16 @@ func (s *codecImpl) BuildModelTableName(vModel model.Model) string {
 	return tableName
 }
 
-func (s *codecImpl) BuildRelationTableName(vField model.Field, rModel model.Model) (ret string, err *cd.Result) {
-	if rModel == nil {
-		fieldModel, fieldErr := s.modelProvider.GetTypeModel(vField.GetType())
-		if fieldErr != nil {
-			err = fieldErr
-			log.Errorf("BuildRelationTableName failed, s.modelProvider.GetTypeModel error:%s", err.Error())
-			return
-		}
-		rModel = fieldModel
+func (s *codecImpl) BuildRelationTableName(vModel model.Model, vField model.Field) (ret string, err *cd.Result) {
+	fieldModel, fieldErr := s.modelProvider.GetTypeModel(vField.GetType())
+	if fieldErr != nil {
+		err = fieldErr
+		log.Errorf("BuildRelationTableName failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+		return
 	}
 
-	leftName := s.constructTableName(s.hostModel)
-	rightName := s.constructTableName(rModel)
+	leftName := s.constructTableName(vModel)
+	rightName := s.constructTableName(fieldModel)
 	infixVal := s.constructInfix(vField)
 
 	tableName := fmt.Sprintf("%s%s%s%s", leftName, infixVal, s.getFieldRelation(vField), rightName)
@@ -88,38 +71,15 @@ func (s *codecImpl) BuildRelationTableName(vField model.Field, rModel model.Mode
 	return
 }
 
-func (s *codecImpl) BuildHostModelValue() (ret model.RawVal, err *cd.Result) {
-	if s.hostModelValue == nil {
-		entityVal, entityErr := s.buildModelValue(s.hostModel)
-		if entityErr != nil {
-			err = entityErr
-			return
-		}
-
-		s.hostModelValue = entityVal
-	}
-
-	ret = s.hostModelValue
-	return
-}
-
-func (s *codecImpl) BuildRelationValue(rModel model.Model) (leftVal, rightVal model.RawVal, err *cd.Result) {
-	entityVal, entityErr := s.BuildHostModelValue()
+func (s *codecImpl) BuildModelValue(vModel model.Model) (ret model.RawVal, err *cd.Result) {
+	entityVal, entityErr := s.buildModelValue(vModel)
 	if entityErr != nil {
 		err = entityErr
-		log.Errorf("BuildRelationValue failed, s.BuildHostModelValue error:%s", err.Error())
+		log.Errorf("BuildModelValue failed, s.EncodeModelValue error:%s", err.Error())
 		return
 	}
 
-	relationVal, relationErr := s.buildModelValue(rModel)
-	if relationErr != nil {
-		err = relationErr
-		log.Errorf("BuildRelationValue failed, s.EncodeModelValue error:%s", err.Error())
-		return
-	}
-
-	leftVal = entityVal
-	rightVal = relationVal
+	ret = entityVal
 	return
 }
 
