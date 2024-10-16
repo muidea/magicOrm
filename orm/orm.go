@@ -7,6 +7,7 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
+	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
@@ -202,5 +203,34 @@ func (s *impl) Release() {
 	if s.executor != nil {
 		s.executor.Release()
 		s.executor = nil
+	}
+}
+
+type baseRunner struct {
+	vModel        model.Model
+	executor      executor.Executor
+	modelProvider provider.Provider
+	modelCodec    codec.Codec
+	hBuilder      builder.Builder
+
+	batchFilter bool
+	deepLevel   int
+}
+
+func newBaseRunner(
+	vModel model.Model,
+	executor executor.Executor,
+	provider provider.Provider,
+	modelCodec codec.Codec,
+	batchFilter bool,
+	deepLevel int) baseRunner {
+	return baseRunner{
+		vModel:        vModel,
+		batchFilter:   batchFilter,
+		deepLevel:     deepLevel,
+		executor:      executor,
+		modelProvider: provider,
+		modelCodec:    modelCodec,
+		hBuilder:      builder.NewBuilder(vModel, modelCodec),
 	}
 }

@@ -11,7 +11,7 @@ import (
 
 // BuildQuery build query sql
 func (s *Builder) BuildQuery(filter model.Filter) (ret *Result, err *cd.Result) {
-	namesVal, nameErr := s.getFieldQueryNames(filter)
+	namesVal, nameErr := s.getFieldQueryNames()
 	if nameErr != nil {
 		err = nameErr
 		log.Errorf("BuildQuery failed, s.getFieldQueryNames error:%s", err.Error())
@@ -82,10 +82,9 @@ func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (re
 	return
 }
 
-func (s *Builder) getFieldQueryNames(filter model.Filter) (ret string, err *cd.Result) {
+func (s *Builder) getFieldQueryNames() (ret string, err *cd.Result) {
 	str := ""
-	vModel := filter.MaskModel()
-	for _, field := range vModel.GetFields() {
+	for _, field := range s.hostModel.GetFields() {
 		fType := field.GetType()
 		fValue := field.GetValue()
 		if !fType.IsBasic() || !fValue.IsValid() {
@@ -103,6 +102,33 @@ func (s *Builder) getFieldQueryNames(filter model.Filter) (ret string, err *cd.R
 	return
 }
 
-func (s *Builder) GetFieldPlaceHolder(vField model.Field) (ret interface{}, err *cd.Result) {
+func (s *Builder) GetFieldPlaceHolder(vField model.Field) (ret any, err *cd.Result) {
 	return getFieldPlaceHolder(vField)
+}
+
+func (s *Builder) BuildQueryPlaceHolder() (ret []any, err *cd.Result) {
+	items := []any{}
+	for _, field := range s.hostModel.GetFields() {
+		fType := field.GetType()
+		fValue := field.GetValue()
+		if !fType.IsBasic() || !fValue.IsValid() {
+			continue
+		}
+
+		itemVal, itemErr := getFieldPlaceHolder(field)
+		if itemErr != nil {
+			err = itemErr
+			log.Errorf("BuildQueryPlaceHolder failed, getFieldPlaceHolder error:%s", err.Error())
+			return
+		}
+
+		items = append(items, itemVal)
+	}
+
+	ret = items
+	return
+}
+
+func (s *Builder) BuildQueryRelationPlaceHolder(field model.Field, rModel model.Model) (ret any, err *cd.Result) {
+	return getFieldPlaceHolder(rModel.GetPrimaryField())
 }

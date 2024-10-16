@@ -4,32 +4,34 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
-	"github.com/muidea/magicOrm/builder"
+	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider"
 )
 
-func (s *impl) innerInsert(builder builder.Builder) (ret model.RawVal, err *cd.Result) {
-	insertResult, insertErr := builder.BuildInsert()
-	if insertErr != nil {
-		err = insertErr
-		log.Errorf("innerInsert failed, builder.BuildInsert error:%s", err.Error())
-		return
-	}
-
-	_, id, idErr := s.executor.Execute(insertResult.SQL(), insertResult.Args()...)
-	if idErr != nil {
-		err = idErr
-		log.Errorf("innerInsert failed, s.executor.Execute error:%s", err.Error())
-		return
-	}
-
-	ret = model.NewRawVal(id)
-	return
+type InsertRunner struct {
+	baseRunner
+	QueryRunner
 }
 
-func (s *impl) insertSingle(builder builder.Builder, vModel model.Model) (err *cd.Result) {
+func NewInsertRunner(
+	vModel model.Model,
+	executor executor.Executor,
+	provider provider.Provider,
+	modelCodec codec.Codec) *InsertRunner {
+	baseRunner := newBaseRunner(vModel, executor, provider, modelCodec, false, 0)
+	return &InsertRunner{
+		baseRunner: baseRunner,
+		QueryRunner: QueryRunner{
+			baseRunner: baseRunner,
+		},
+	}
+}
+
+func (s *InsertRunner) insertHost() (err *cd.Result) {
 	autoIncrementFlag := false
-	for _, field := range vModel.GetFields() {
+	for _, field := range s.vModel.GetFields() {
 		if !field.IsBasic() {
 			continue
 		}
@@ -45,19 +47,19 @@ func (s *impl) insertSingle(builder builder.Builder, vModel model.Model) (err *c
 		}
 	}
 
-	pkVal, pkErr := s.innerInsert(builder)
+	pkVal, pkErr := s.innerHost()
 	if pkErr != nil {
 		err = pkErr
-		log.Errorf("insertSingle failed, s.innerInsert error:%s", err.Error())
+		log.Errorf("insertHost failed, s.innerHost error:%s", err.Error())
 		return
 	}
 
 	if pkVal != nil && autoIncrementFlag {
-		pkField := vModel.GetPrimaryField()
+		pkField := s.vModel.GetPrimaryField()
 		tVal, tErr := s.modelProvider.DecodeValue(pkVal, pkField.GetType())
 		if tErr != nil {
 			err = tErr
-			log.Errorf("insertSingle failed, s.modelProvider.DecodeValue error:%s", err.Error())
+			log.Errorf("insertHost failed, s.modelProvider.DecodeValue error:%s", err.Error())
 			return
 		}
 
@@ -66,14 +68,33 @@ func (s *impl) insertSingle(builder builder.Builder, vModel model.Model) (err *c
 	return
 }
 
-func (s *impl) insertRelation(builder builder.Builder, vField model.Field) (err *cd.Result) {
+func (s *InsertRunner) innerHost() (ret model.RawVal, err *cd.Result) {
+	insertResult, insertErr := s.hBuilder.BuildInsert()
+	if insertErr != nil {
+		err = insertErr
+		log.Errorf("innerHost failed, builder.BuildInsert error:%s", err.Error())
+		return
+	}
+
+	_, id, idErr := s.executor.Execute(insertResult.SQL(), insertResult.Args()...)
+	if idErr != nil {
+		err = idErr
+		log.Errorf("innerHost failed, s.executor.Execute error:%s", err.Error())
+		return
+	}
+
+	ret = model.NewRawVal(id)
+	return
+}
+
+func (s *InsertRunner) insertRelation(vField model.Field) (err *cd.Result) {
 	fValue := vField.GetValue()
 	if fValue.IsZero() {
 		return
 	}
 
 	if vField.IsSlice() {
-		rValue, rErr := s.insertSliceRelation(builder, vField)
+		rValue, rErr := s.insertSliceRelation(vField)
 		if rErr != nil {
 			err = rErr
 			log.Errorf("insertRelation failed, s.insertSliceRelation error:%s", err.Error())
@@ -86,7 +107,7 @@ func (s *impl) insertRelation(builder builder.Builder, vField model.Field) (err 
 		return
 	}
 
-	rValue, rErr := s.insertSingleRelation(builder, vField)
+	rValue, rErr := s.insertSingleRelation(vField)
 	if rErr != nil {
 		err = rErr
 		log.Errorf("insertRelation failed, s.insertSingleRelation error:%s", err.Error())
@@ -99,7 +120,7 @@ func (s *impl) insertRelation(builder builder.Builder, vField model.Field) (err 
 	return
 }
 
-func (s *impl) insertSingleRelation(hBuilder builder.Builder, vField model.Field) (ret model.Value, err *cd.Result) {
+func (s *InsertRunner) insertSingleRelation(vField model.Field) (ret model.Value, err *cd.Result) {
 	fValue := vField.GetValue()
 	fType := vField.GetType()
 	rModel, rErr := s.modelProvider.GetValueModel(fValue, fType)
@@ -110,28 +131,16 @@ func (s *impl) insertSingleRelation(hBuilder builder.Builder, vField model.Field
 	}
 
 	if !fType.IsPtrType() {
-		rBuilder := builder.NewBuilder(rModel, s.modelCodec)
-		rErr = s.insertSingle(rBuilder, rModel)
+		rInsertRunner := NewInsertRunner(rModel, s.executor, s.modelProvider, s.modelCodec)
+		rModel, rErr = rInsertRunner.Insert()
 		if rErr != nil {
 			err = rErr
 			log.Errorf("insertSingleRelation failed, s.insertSingle error:%s", err.Error())
 			return
 		}
-
-		for _, field := range rModel.GetFields() {
-			if field.IsBasic() {
-				continue
-			}
-
-			err = s.insertRelation(rBuilder, field)
-			if err != nil {
-				log.Errorf("insertSingleRelation failed, s.insertRelation error:%s", err.Error())
-				return
-			}
-		}
 	}
 
-	relationSQL, relationErr := hBuilder.BuildInsertRelation(vField, rModel)
+	relationSQL, relationErr := s.hBuilder.BuildInsertRelation(vField, rModel)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("insertSingleRelation failed, builderVal.BuildInsertRelation error:%s", err.Error())
@@ -155,7 +164,7 @@ func (s *impl) insertSingleRelation(hBuilder builder.Builder, vField model.Field
 	return
 }
 
-func (s *impl) insertSliceRelation(hBuilder builder.Builder, vField model.Field) (ret model.Value, err *cd.Result) {
+func (s *InsertRunner) insertSliceRelation(vField model.Field) (ret model.Value, err *cd.Result) {
 	fValue := vField.GetValue()
 	fType := vField.GetType()
 	rvValue, _ := fType.Interface(nil)
@@ -176,28 +185,16 @@ func (s *impl) insertSliceRelation(hBuilder builder.Builder, vField model.Field)
 		}
 
 		if !elemType.IsPtrType() {
-			rBuilder := builder.NewBuilder(rModel, s.modelCodec)
-			rErr = s.insertSingle(rBuilder, rModel)
+			rInsertRunner := NewInsertRunner(rModel, s.executor, s.modelProvider, s.modelCodec)
+			rModel, rErr = rInsertRunner.Insert()
 			if rErr != nil {
 				err = rErr
 				log.Errorf("insertSliceRelation failed, s.insertSingle error:%s", err.Error())
 				return
 			}
-
-			for _, field := range rModel.GetFields() {
-				if field.IsBasic() {
-					continue
-				}
-
-				err = s.insertRelation(rBuilder, field)
-				if err != nil {
-					log.Errorf("insertSliceRelation failed, s.insertRelation error:%s", err.Error())
-					return
-				}
-			}
 		}
 
-		relationResult, relationErr := hBuilder.BuildInsertRelation(vField, rModel)
+		relationResult, relationErr := s.hBuilder.BuildInsertRelation(vField, rModel)
 		if relationErr != nil {
 			err = relationErr
 			log.Errorf("insertSliceRelation failed, builderVal.BuildInsertRelation error:%s", err.Error())
@@ -228,27 +225,26 @@ func (s *impl) insertSliceRelation(hBuilder builder.Builder, vField model.Field)
 	return
 }
 
-func (s *impl) insertModel(vModel model.Model) (ret model.Model, err *cd.Result) {
-	hBuilder := builder.NewBuilder(vModel, s.modelCodec)
-	err = s.insertSingle(hBuilder, vModel)
+func (s *InsertRunner) Insert() (ret model.Model, err *cd.Result) {
+	err = s.insertHost()
 	if err != nil {
 		log.Errorf("Insert failed, s.insertSingle error:%s", err.Error())
 		return
 	}
 
-	for _, field := range vModel.GetFields() {
+	for _, field := range s.vModel.GetFields() {
 		if field.IsBasic() {
 			continue
 		}
 
-		err = s.insertRelation(hBuilder, field)
+		err = s.insertRelation(field)
 		if err != nil {
 			log.Errorf("Insert failed, s.insertRelation error:%s", err.Error())
 			return
 		}
 	}
 
-	ret = vModel
+	ret = s.vModel
 	return
 }
 
@@ -264,9 +260,10 @@ func (s *impl) Insert(vModel model.Model) (ret model.Model, err *cd.Result) {
 	}
 	defer s.finalTransaction(err)
 
-	ret, err = s.insertModel(vModel)
+	insertRunner := NewInsertRunner(vModel, s.executor, s.modelProvider, s.modelCodec)
+	ret, err = insertRunner.Insert()
 	if err != nil {
-		log.Errorf("Insert failed, s.insertModel error:%s", err.Error())
+		log.Errorf("Insert failed, insertRunner.Insert() error:%s", err.Error())
 		return
 	}
 	return

@@ -19,12 +19,17 @@ func NewValue(val reflect.Value) (ret *ValueImpl) {
 }
 
 func (s *ValueImpl) IsValid() (ret bool) {
-	if util.IsNil(s.value) {
-		ret = false
-		return
+	if !s.value.IsValid() {
+		return false
 	}
 
-	ret = true
+	rawVal := reflect.Indirect(s.value)
+	switch rawVal.Kind() {
+	case reflect.Slice, reflect.Map:
+		return !rawVal.IsNil()
+	default:
+	}
+	ret = rawVal.IsValid()
 	return
 }
 

@@ -431,6 +431,10 @@ func TestBuilderRemoteReference(t *testing.T) {
 				Spec: &remote.SpecImpl{
 					PrimaryKey:   true,
 					ValueDeclare: model.AutoIncrement,
+					ViewDeclare: []model.ViewDeclare{
+						model.FullView,
+						model.LiteView,
+					},
 				},
 			},
 			{
@@ -439,6 +443,12 @@ func TestBuilderRemoteReference(t *testing.T) {
 					Name:  "string",
 					Value: 113,
 				},
+				Spec: &remote.SpecImpl{
+					ViewDeclare: []model.ViewDeclare{
+						model.FullView,
+						model.LiteView,
+					},
+				},
 			},
 			{
 				Name: "value",
@@ -446,12 +456,24 @@ func TestBuilderRemoteReference(t *testing.T) {
 					Name:  "float64",
 					Value: 112,
 				},
+				Spec: &remote.SpecImpl{
+					ViewDeclare: []model.ViewDeclare{
+						model.FullView,
+						model.LiteView,
+					},
+				},
 			},
 			{
 				Name: "description",
 				Type: &remote.TypeImpl{
 					Name:  "string",
 					Value: 113,
+				},
+				Spec: &remote.SpecImpl{
+					ViewDeclare: []model.ViewDeclare{
+						model.FullView,
+						model.LiteView,
+					},
 				},
 			},
 			{
@@ -464,6 +486,12 @@ func TestBuilderRemoteReference(t *testing.T) {
 						Name:    "Unit",
 						PkgPath: "/test",
 						Value:   115,
+					},
+				},
+				Spec: &remote.SpecImpl{
+					ViewDeclare: []model.ViewDeclare{
+						model.FullView,
+						model.LiteView,
 					},
 				},
 			},
@@ -551,64 +579,77 @@ func TestBuilderRemoteReference(t *testing.T) {
 		return
 	}
 
-	extFilter, extErr := remoteProvider.GetModelFilter(eModel, 0)
+	extFilter, extErr := remoteProvider.GetModelFilter(eModel, model.FullView)
 	if extErr != nil {
 		t.Errorf("remoteProvider.GetModelFilter failed, err:%s", extErr.Error())
 		return
 	}
 
 	buildContext := codec.New(remoteProvider, "abc")
-	builder := NewBuilder(extModel, buildContext)
+	builder := NewBuilder(extFilter.MaskModel(), buildContext)
 	if builder == nil {
 		t.Error("new Builder failed")
+		return
 	}
 
 	str, err := builder.BuildCreateTable()
 	if err != nil {
 		t.Errorf("build create schema failed, err:%s", err.Error())
+		return
 	}
 	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_Reference` (\n\t`eid` BIGINT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`value` DOUBLE NOT NULL ,\n\t`description` TEXT NOT NULL ,\n\tPRIMARY KEY (`eid`)\n)\n" {
 		t.Errorf("build create schema failed, str:%s", str)
+		return
 	}
 
 	str, err = builder.BuildDropTable()
 	if err != nil {
 		t.Errorf("build drop schema failed, err:%s", err.Error())
+		return
 	}
 	if str.SQL() != "DROP TABLE IF EXISTS `abc_Reference`" {
 		t.Errorf("build drop schema failed, str:%s", str)
+		return
 	}
 
 	str, err = builder.BuildInsert()
 	if err != nil {
 		t.Errorf("build insert failed, err:%s", err.Error())
+		return
 	}
 	if str.SQL() != "INSERT INTO `abc_Reference` (`name`,`value`,`description`) VALUES ('Hey',0,'')" {
 		t.Errorf("build insert failed, str:%v", str)
+		return
 	}
 
 	str, err = builder.BuildUpdate()
 	if err != nil {
 		t.Errorf("build update failed, err:%s", err.Error())
+		return
 	}
-	if str.SQL() != "UPDATE `abc_Reference` SET `name` = 'Hey' WHERE `eid` = 12" {
+	if str.SQL() != "UPDATE `abc_Reference` SET `name` = 'Hey',`value` = 0,`description` = '' WHERE `eid` = 12" {
 		t.Errorf("build update failed, str:%s", str)
+		return
 	}
 
 	str, err = builder.BuildDelete()
 	if err != nil {
 		t.Errorf("build delete failed, err:%s", err.Error())
+		return
 	}
 	if str.SQL() != "DELETE FROM `abc_Reference` WHERE `eid` = 12" {
 		t.Errorf("build delete failed, str:%s", str)
+		return
 	}
 
 	str, err = builder.BuildQuery(extFilter)
 	if err != nil {
 		t.Errorf("build query failed, err:%s", err.Error())
+		return
 	}
 	if str.SQL() != "SELECT `eid`,`name`,`value`,`description` FROM `abc_Reference`" {
 		t.Errorf("build query failed, str:%s", str)
+		return
 	}
 
 	extFilter.Equal("eid", 12)
@@ -618,6 +659,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 	}
 	if str.SQL() != "SELECT `eid`,`name`,`value`,`description` FROM `abc_Reference` WHERE `eid` = 12" {
 		t.Errorf("build query failed, str:%s", str)
+		return
 	}
 
 	uField := extModel.GetField("unit")

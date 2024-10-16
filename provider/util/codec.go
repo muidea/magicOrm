@@ -78,10 +78,6 @@ func (s *impl) encodeSlice(vVal model.Value, vType model.Type) (ret model.RawVal
 		err = valErr
 		return
 	}
-	if len(vals) == 0 {
-		ret = model.NewRawVal(nil)
-		return
-	}
 	items := []interface{}{}
 	for _, val := range vals {
 		encodeVal, encodeErr := s.Encode(val, vType.Elem())

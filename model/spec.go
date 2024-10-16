@@ -3,6 +3,7 @@ package model
 type Spec interface {
 	IsPrimaryKey() bool
 	GetValueDeclare() ValueDeclare
+	EnableView(ViewDeclare) bool
 }
 
 func CompareSpec(l, r Spec) bool {

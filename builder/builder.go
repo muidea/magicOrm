@@ -15,6 +15,7 @@ type Builder interface {
 	BuildUpdate() (Result, *cd.Result)
 	BuildDelete() (Result, *cd.Result)
 	BuildQuery(filter model.Filter) (Result, *cd.Result)
+	BuildQueryPlaceHolder() ([]any, *cd.Result)
 	BuildCount(filter model.Filter) (Result, *cd.Result)
 
 	BuildCreateRelationTable(field model.Field, rModel model.Model) (Result, *cd.Result)
@@ -22,8 +23,7 @@ type Builder interface {
 	BuildInsertRelation(field model.Field, rModel model.Model) (Result, *cd.Result)
 	BuildDeleteRelation(field model.Field, rModel model.Model) (Result, Result, *cd.Result)
 	BuildQueryRelation(field model.Field, rModel model.Model) (Result, *cd.Result)
-
-	GetFieldPlaceHolder(field model.Field) (any, *cd.Result)
+	BuildQueryRelationPlaceHolder(field model.Field, rModel model.Model) (any, *cd.Result)
 }
 
 type builderImpl struct {
@@ -54,6 +54,10 @@ func (s *builderImpl) BuildQuery(filter model.Filter) (Result, *cd.Result) {
 	return s.builder.BuildQuery(filter)
 }
 
+func (s *builderImpl) BuildQueryPlaceHolder() ([]any, *cd.Result) {
+	return s.builder.BuildQueryPlaceHolder()
+}
+
 func (s *builderImpl) BuildCount(filter model.Filter) (Result, *cd.Result) {
 	return s.builder.BuildCount(filter)
 }
@@ -78,8 +82,8 @@ func (s *builderImpl) BuildQueryRelation(field model.Field, rModel model.Model) 
 	return s.builder.BuildQueryRelation(field, rModel)
 }
 
-func (s *builderImpl) GetFieldPlaceHolder(field model.Field) (any, *cd.Result) {
-	return s.builder.GetFieldPlaceHolder(field)
+func (s *builderImpl) BuildQueryRelationPlaceHolder(field model.Field, rModel model.Model) (any, *cd.Result) {
+	return s.builder.BuildQueryRelationPlaceHolder(field, rModel)
 }
 
 // NewBuilder new builder

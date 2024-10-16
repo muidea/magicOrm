@@ -5,26 +5,48 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/builder"
+	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider"
 )
 
-func (s *impl) dropSingle(hBuilder builder.Builder) (err *cd.Result) {
-	dropResult, dropErr := hBuilder.BuildDropTable()
+type DropRunner struct {
+	vModel        model.Model
+	executor      executor.Executor
+	modelProvider provider.Provider
+	modelCodec    codec.Codec
+
+	hBuilder builder.Builder
+}
+
+func NewDropRunner(vModel model.Model, executor executor.Executor, provider provider.Provider, modelCodec codec.Codec) *DropRunner {
+	return &DropRunner{
+		vModel:        vModel,
+		executor:      executor,
+		modelProvider: provider,
+		modelCodec:    modelCodec,
+		hBuilder:      builder.NewBuilder(vModel, modelCodec),
+	}
+}
+
+func (s *DropRunner) dropHost() (err *cd.Result) {
+	dropResult, dropErr := s.hBuilder.BuildDropTable()
 	if dropErr != nil {
 		err = dropErr
-		log.Errorf("dropSingle failed, hBuilder.BuildDropTable error:%s", err.Error())
+		log.Errorf("dropHost failed, s.hBuilder.BuildDropTable error:%s", err.Error())
 		return
 	}
 
 	_, _, err = s.executor.Execute(dropResult.SQL(), dropResult.Args()...)
 	if err != nil {
-		log.Errorf("dropSingle failed, s.executor.Execute error:%s", err.Error())
+		log.Errorf("dropHost failed, s.executor.Execute error:%s", err.Error())
 	}
 	return
 }
 
-func (s *impl) dropRelation(hBuilder builder.Builder, vField model.Field, rModel model.Model) (err *cd.Result) {
-	relationResult, relationErr := hBuilder.BuildDropRelationTable(vField, rModel)
+func (s *DropRunner) dropRelation(vField model.Field, rModel model.Model) (err *cd.Result) {
+	relationResult, relationErr := s.hBuilder.BuildDropRelationTable(vField, rModel)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("dropRelation failed, hBuilder.BuildDropRelationTable error:%s", err.Error())
@@ -38,15 +60,14 @@ func (s *impl) dropRelation(hBuilder builder.Builder, vField model.Field, rModel
 	return
 }
 
-func (s *impl) dropSchema(vModel model.Model) (err *cd.Result) {
-	hBuilder := builder.NewBuilder(vModel, s.modelCodec)
-	err = s.dropSingle(hBuilder)
+func (s *DropRunner) Drop() (err *cd.Result) {
+	err = s.dropHost()
 	if err != nil {
-		log.Errorf("dropSchema failed, s.dropSingle error:%s", err.Error())
+		log.Errorf("Drop failed, s.dropHost error:%s", err.Error())
 		return
 	}
 
-	for _, field := range vModel.GetFields() {
+	for _, field := range s.vModel.GetFields() {
 		if field.IsBasic() {
 			continue
 		}
@@ -55,21 +76,21 @@ func (s *impl) dropSchema(vModel model.Model) (err *cd.Result) {
 		relationModel, relationErr := s.modelProvider.GetTypeModel(fType)
 		if relationErr != nil {
 			err = relationErr
-			log.Errorf("dropSchema failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+			log.Errorf("Drop failed, s.modelProvider.GetTypeModel error:%s", err.Error())
 			return
 		}
 
 		elemType := fType.Elem()
 		if !elemType.IsPtrType() {
-			rBuilder := builder.NewBuilder(relationModel, s.modelCodec)
-			err = s.dropSingle(rBuilder)
+			rRunner := NewDropRunner(relationModel, s.executor, s.modelProvider, s.modelCodec)
+			err = rRunner.Drop()
 			if err != nil {
-				log.Errorf("dropSchema failed, s.dropSingle error:%s", err.Error())
+				log.Errorf("Drop failed, rRunner.Drop() error:%s", err.Error())
 				return
 			}
 		}
 
-		err = s.dropRelation(hBuilder, field, relationModel)
+		err = s.dropRelation(field, relationModel)
 		if err != nil {
 			log.Errorf("dropSchema failed, s.dropRelation error:%s", err.Error())
 			return
@@ -85,9 +106,10 @@ func (s *impl) Drop(vModel model.Model) (err *cd.Result) {
 		return
 	}
 
-	err = s.dropSchema(vModel)
+	dropRunner := NewDropRunner(vModel, s.executor, s.modelProvider, s.modelCodec)
+	err = dropRunner.Drop()
 	if err != nil {
-		log.Errorf("Drop failed, s.dropSchema error:%s", err.Error())
+		log.Errorf("Drop failed, dropRunner.Drop() error:%s", err.Error())
 	}
 	return
 }

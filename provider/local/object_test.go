@@ -224,3 +224,47 @@ func TestGetModelValue(t *testing.T) {
 	t1Info.Dump()
 	t2Info.Dump()
 }
+
+type Reference struct {
+	ID          int       `orm:"id key auto" view:"view,lite"`
+	BArray      []bool    `orm:"bArray" view:"view,lite"`
+	StrArray    []string  `orm:"strArray" view:"view,lite"`
+	PtrArray    *[]string `orm:"ptrArray" view:"view,lite"`
+	PtrStrArray *[]string `orm:"ptrStrArray" view:"view,lite"`
+}
+
+func TestCheckValid(t *testing.T) {
+	ptrArray2 := []string{}
+	r1 := &Reference{
+		StrArray: ptrArray2,
+		PtrArray: &ptrArray2,
+	}
+
+	fR1 := reflect.ValueOf(r1)
+	r1Model, r1Err := getValueModel(fR1)
+	if r1Err != nil {
+		t.Errorf("getValueModel failed, error:%s", r1Err.Error())
+		return
+	}
+
+	if !r1Model.GetField("id").GetValue().IsValid() {
+		t.Errorf("check int IsValid failed")
+		return
+	}
+	if r1Model.GetField("bArray").GetValue().IsValid() {
+		t.Errorf("check int IsValid failed")
+		return
+	}
+	if !r1Model.GetField("strArray").GetValue().IsValid() {
+		t.Errorf("check int IsValid failed")
+		return
+	}
+	if !r1Model.GetField("ptrArray").GetValue().IsValid() {
+		t.Errorf("check int IsValid failed")
+		return
+	}
+	if r1Model.GetField("ptrStrArray").GetValue().IsValid() {
+		t.Errorf("check int IsValid failed")
+		return
+	}
+}

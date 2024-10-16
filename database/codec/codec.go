@@ -155,6 +155,28 @@ func (s *codecImpl) BuildOprValue(vField model.Field, vValue model.Value) (ret m
 }
 
 func (s *codecImpl) ExtractFiledValue(vField model.Field, eVal model.RawVal) (ret model.Value, err *cd.Result) {
+	vType := vField.GetType()
+	switch vType.GetValue() {
+	case model.TypeSliceValue:
+		strVal, strOK := eVal.Value().(*string)
+		if strOK {
+			if *strVal != "" {
+				vArray := []any{}
+				byteErr := json.Unmarshal([]byte(*strVal), &vArray)
+				if byteErr != nil {
+					err = cd.NewError(cd.UnExpected, byteErr.Error())
+					return
+				}
+				ret, err = s.modelProvider.DecodeValue(model.NewRawVal(vArray), vType)
+			} else {
+				ret, err = vType.Interface(nil)
+			}
+		} else {
+			err = cd.NewError(cd.UnExpected, "illegal field value")
+		}
+	default:
+		ret, err = s.modelProvider.DecodeValue(eVal, vType)
+	}
 	return
 }
 

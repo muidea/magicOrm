@@ -127,27 +127,22 @@ func (s *Object) Interface(_ bool, viewSpec model.ViewDeclare) (ret any) {
 			if sf.Spec != nil && sf.Spec.EnableView(viewSpec) {
 				if sf.value == nil || !sf.value.IsValid() {
 					vVal, _ := sf.Type.Interface(initVal)
-					objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: vVal.Interface().Value()})
+					objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: vVal.Get()})
 					continue
 				}
 
-				objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: sf.value.Interface().Value()})
+				objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: sf.value.Get()})
 			}
 
 			continue
 		}
 
 		if sf.value == nil || !sf.value.IsValid() {
-			if sf.IsPtrType() {
-				objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: initVal})
-			} else {
-				vVal, _ := sf.Type.Interface(initVal)
-				objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: vVal.Interface().Value()})
-			}
+			objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: initVal})
 			continue
 		}
 
-		objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: sf.value.Interface().Value()})
+		objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: sf.value.Get()})
 	}
 
 	pkValue := s.GetPrimaryField().GetValue()

@@ -245,6 +245,11 @@ func getFieldValue(fieldName string, itemType *TypeImpl, itemValue reflect.Value
 	}
 
 	if itemType.IsBasic() {
+		if pu.IsNil(itemValue) {
+			ret = &FieldValue{Name: fieldName, Value: nil}
+			return
+		}
+
 		itemVal, itemErr := _codec.Encode(NewValue(itemValue.Interface()), itemType)
 		if itemErr != nil {
 			err = itemErr
