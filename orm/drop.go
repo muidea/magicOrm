@@ -20,8 +20,8 @@ func NewDropRunner(vModel model.Model, executor executor.Executor, provider prov
 	}
 }
 
-func (s *DropRunner) dropHost() (err *cd.Result) {
-	dropResult, dropErr := s.hBuilder.BuildDropTable(s.vModel)
+func (s *DropRunner) dropHost(vModel model.Model) (err *cd.Result) {
+	dropResult, dropErr := s.hBuilder.BuildDropTable(vModel)
 	if dropErr != nil {
 		err = dropErr
 		log.Errorf("dropHost failed, s.hBuilder.BuildDropTable error:%s", err.Error())
@@ -35,8 +35,8 @@ func (s *DropRunner) dropHost() (err *cd.Result) {
 	return
 }
 
-func (s *DropRunner) dropRelation(vField model.Field, rModel model.Model) (err *cd.Result) {
-	relationResult, relationErr := s.hBuilder.BuildDropRelationTable(s.vModel, vField, rModel)
+func (s *DropRunner) dropRelation(vModel model.Model, vField model.Field, rModel model.Model) (err *cd.Result) {
+	relationResult, relationErr := s.hBuilder.BuildDropRelationTable(vModel, vField, rModel)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("dropRelation failed, hBuilder.BuildDropRelationTable error:%s", err.Error())
@@ -51,7 +51,7 @@ func (s *DropRunner) dropRelation(vField model.Field, rModel model.Model) (err *
 }
 
 func (s *DropRunner) Drop() (err *cd.Result) {
-	err = s.dropHost()
+	err = s.dropHost(s.vModel)
 	if err != nil {
 		log.Errorf("Drop failed, s.dropHost error:%s", err.Error())
 		return
@@ -80,9 +80,9 @@ func (s *DropRunner) Drop() (err *cd.Result) {
 			}
 		}
 
-		err = s.dropRelation(field, rModel)
+		err = s.dropRelation(s.vModel, field, rModel)
 		if err != nil {
-			log.Errorf("dropSchema failed, s.dropRelation error:%s", err.Error())
+			log.Errorf("Drop failed, s.dropRelation error:%s", err.Error())
 			return
 		}
 	}

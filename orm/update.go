@@ -43,11 +43,11 @@ func NewUpdateRunner(
 	}
 }
 
-func (s *UpdateRunner) updateHost() (err *cd.Result) {
-	updateResult, updateErr := s.hBuilder.BuildUpdate(s.baseRunner.vModel)
+func (s *UpdateRunner) updateHost(vModel model.Model) (err *cd.Result) {
+	updateResult, updateErr := s.hBuilder.BuildUpdate(vModel)
 	if updateErr != nil {
 		err = updateErr
-		log.Errorf("updateHost failed, builderVal.BuildUpdate error:%s", err.Error())
+		log.Errorf("updateHost failed, s.hBuilder.BuildUpdate error:%s", err.Error())
 		return
 	}
 
@@ -58,14 +58,14 @@ func (s *UpdateRunner) updateHost() (err *cd.Result) {
 	return
 }
 
-func (s *UpdateRunner) updateRelation(vField model.Field, rModel model.Model) (err *cd.Result) {
-	err = s.deleteRelation(vField, rModel, 0)
+func (s *UpdateRunner) updateRelation(vModel model.Model, vField model.Field, rModel model.Model) (err *cd.Result) {
+	err = s.deleteRelation(vModel, vField, rModel, 0)
 	if err != nil {
 		log.Errorf("updateRelation failed, s.deleteRelation error:%s", err.Error())
 		return
 	}
 
-	err = s.insertRelation(vField, rModel)
+	err = s.insertRelation(vModel, vField, rModel)
 	if err != nil {
 		log.Errorf("updateRelation failed, s.insertRelation error:%s", err.Error())
 	}
@@ -73,7 +73,7 @@ func (s *UpdateRunner) updateRelation(vField model.Field, rModel model.Model) (e
 }
 
 func (s *UpdateRunner) Update() (ret model.Model, err *cd.Result) {
-	err = s.updateHost()
+	err = s.updateHost(s.vModel)
 	if err != nil {
 		log.Errorf("Update failed, s.updateSingle error:%s", err.Error())
 		return
@@ -91,7 +91,7 @@ func (s *UpdateRunner) Update() (ret model.Model, err *cd.Result) {
 			return
 		}
 
-		err = s.updateRelation(field, rModel)
+		err = s.updateRelation(s.vModel, field, rModel)
 		if err != nil {
 			log.Errorf("Update failed, s.updateRelation error:%s", err.Error())
 			return

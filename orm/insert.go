@@ -29,9 +29,9 @@ func NewInsertRunner(
 	}
 }
 
-func (s *InsertRunner) insertHost() (err *cd.Result) {
+func (s *InsertRunner) insertHost(vModel model.Model) (err *cd.Result) {
 	autoIncrementFlag := false
-	for _, field := range s.vModel.GetFields() {
+	for _, field := range vModel.GetFields() {
 		if !field.IsBasic() {
 			continue
 		}
@@ -47,7 +47,7 @@ func (s *InsertRunner) insertHost() (err *cd.Result) {
 		}
 	}
 
-	pkVal, pkErr := s.innerHost()
+	pkVal, pkErr := s.innerHost(vModel)
 	if pkErr != nil {
 		err = pkErr
 		log.Errorf("insertHost failed, s.innerHost error:%s", err.Error())
@@ -55,7 +55,7 @@ func (s *InsertRunner) insertHost() (err *cd.Result) {
 	}
 
 	if pkVal != nil && autoIncrementFlag {
-		pkField := s.vModel.GetPrimaryField()
+		pkField := vModel.GetPrimaryField()
 		tVal, tErr := s.modelProvider.DecodeValue(pkVal, pkField.GetType())
 		if tErr != nil {
 			err = tErr
@@ -68,8 +68,8 @@ func (s *InsertRunner) insertHost() (err *cd.Result) {
 	return
 }
 
-func (s *InsertRunner) innerHost() (ret model.RawVal, err *cd.Result) {
-	insertResult, insertErr := s.hBuilder.BuildInsert(s.vModel)
+func (s *InsertRunner) innerHost(vModel model.Model) (ret model.RawVal, err *cd.Result) {
+	insertResult, insertErr := s.hBuilder.BuildInsert(vModel)
 	if insertErr != nil {
 		err = insertErr
 		log.Errorf("innerHost failed, builder.BuildInsert error:%s", err.Error())
@@ -87,14 +87,14 @@ func (s *InsertRunner) innerHost() (ret model.RawVal, err *cd.Result) {
 	return
 }
 
-func (s *InsertRunner) insertRelation(vField model.Field, rModel model.Model) (err *cd.Result) {
+func (s *InsertRunner) insertRelation(vModel model.Model, vField model.Field, rModel model.Model) (err *cd.Result) {
 	fValue := vField.GetValue()
 	if fValue.IsZero() {
 		return
 	}
 
 	if vField.IsSlice() {
-		rValue, rErr := s.insertSliceRelation(vField, rModel)
+		rValue, rErr := s.insertSliceRelation(vModel, vField, rModel)
 		if rErr != nil {
 			err = rErr
 			log.Errorf("insertRelation failed, s.insertSliceRelation error:%s", err.Error())
@@ -107,7 +107,7 @@ func (s *InsertRunner) insertRelation(vField model.Field, rModel model.Model) (e
 		return
 	}
 
-	rValue, rErr := s.insertSingleRelation(vField, rModel)
+	rValue, rErr := s.insertSingleRelation(vModel, vField, rModel)
 	if rErr != nil {
 		err = rErr
 		log.Errorf("insertRelation failed, s.insertSingleRelation error:%s", err.Error())
@@ -120,7 +120,7 @@ func (s *InsertRunner) insertRelation(vField model.Field, rModel model.Model) (e
 	return
 }
 
-func (s *InsertRunner) insertSingleRelation(vField model.Field, rModel model.Model) (ret model.Value, err *cd.Result) {
+func (s *InsertRunner) insertSingleRelation(vModel model.Model, vField model.Field, rModel model.Model) (ret model.Value, err *cd.Result) {
 	fType := vField.GetType()
 	fValue := vField.GetValue()
 	var rErr *cd.Result
@@ -141,10 +141,10 @@ func (s *InsertRunner) insertSingleRelation(vField model.Field, rModel model.Mod
 		}
 	}
 
-	relationSQL, relationErr := s.hBuilder.BuildInsertRelation(s.vModel, vField, rModel)
+	relationSQL, relationErr := s.hBuilder.BuildInsertRelation(vModel, vField, rModel)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("insertSingleRelation failed, builderVal.BuildInsertRelation error:%s", err.Error())
+		log.Errorf("insertSingleRelation failed, s.hBuilder.BuildInsertRelation error:%s", err.Error())
 		return
 	}
 
@@ -165,7 +165,7 @@ func (s *InsertRunner) insertSingleRelation(vField model.Field, rModel model.Mod
 	return
 }
 
-func (s *InsertRunner) insertSliceRelation(vField model.Field, rModel model.Model) (ret model.Value, err *cd.Result) {
+func (s *InsertRunner) insertSliceRelation(vModel model.Model, vField model.Field, rModel model.Model) (ret model.Value, err *cd.Result) {
 	fValue := vField.GetValue()
 	fType := vField.GetType()
 	rvValue, _ := fType.Interface(nil)
@@ -196,10 +196,10 @@ func (s *InsertRunner) insertSliceRelation(vField model.Field, rModel model.Mode
 			}
 		}
 
-		relationResult, relationErr := s.hBuilder.BuildInsertRelation(s.vModel, vField, rModel)
+		relationResult, relationErr := s.hBuilder.BuildInsertRelation(vModel, vField, rModel)
 		if relationErr != nil {
 			err = relationErr
-			log.Errorf("insertSliceRelation failed, builderVal.BuildInsertRelation error:%s", err.Error())
+			log.Errorf("insertSliceRelation failed, s.hBuilder.BuildInsertRelation error:%s", err.Error())
 			return
 		}
 
@@ -228,7 +228,7 @@ func (s *InsertRunner) insertSliceRelation(vField model.Field, rModel model.Mode
 }
 
 func (s *InsertRunner) Insert() (ret model.Model, err *cd.Result) {
-	err = s.insertHost()
+	err = s.insertHost(s.vModel)
 	if err != nil {
 		log.Errorf("Insert failed, s.insertSingle error:%s", err.Error())
 		return
@@ -246,7 +246,7 @@ func (s *InsertRunner) Insert() (ret model.Model, err *cd.Result) {
 			return
 		}
 
-		err = s.insertRelation(field, rModel)
+		err = s.insertRelation(s.vModel, field, rModel)
 		if err != nil {
 			log.Errorf("Insert failed, s.insertRelation error:%s", err.Error())
 			return

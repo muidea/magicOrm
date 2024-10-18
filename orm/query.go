@@ -32,8 +32,8 @@ func NewQueryRunner(
 	}
 }
 
-func (s *QueryRunner) innerQuery(filter model.Filter) (ret resultItemsList, err *cd.Result) {
-	queryResult, queryErr := s.hBuilder.BuildQuery(s.vModel, filter)
+func (s *QueryRunner) innerQuery(vModel model.Model, filter model.Filter) (ret resultItemsList, err *cd.Result) {
+	queryResult, queryErr := s.hBuilder.BuildQuery(vModel, filter)
 	if queryErr != nil {
 		err = queryErr
 		log.Errorf("innerQuery failed, s.hBuilder.BuildQuery error:%s", err.Error())
@@ -49,7 +49,7 @@ func (s *QueryRunner) innerQuery(filter model.Filter) (ret resultItemsList, err 
 
 	queryList := resultItemsList{}
 	for s.executor.Next() {
-		itemValues, itemErr := s.hBuilder.BuildQueryPlaceHolder(s.vModel)
+		itemValues, itemErr := s.hBuilder.BuildQueryPlaceHolder(vModel)
 		if itemErr != nil {
 			err = itemErr
 			if err.Fail() {
@@ -73,9 +73,9 @@ func (s *QueryRunner) innerQuery(filter model.Filter) (ret resultItemsList, err 
 	return
 }
 
-func (s *QueryRunner) innerAssign(queryVal resultItems, deepLevel int) (ret model.Model, err *cd.Result) {
+func (s *QueryRunner) innerAssign(vModel model.Model, queryVal resultItems, deepLevel int) (ret model.Model, err *cd.Result) {
 	offset := 0
-	qModel := s.vModel.Copy(false)
+	qModel := vModel.Copy(false)
 	for _, field := range qModel.GetFields() {
 		fType := field.GetType()
 		fValue := field.GetValue()
@@ -411,7 +411,7 @@ func (s *QueryRunner) innerQueryRelationSliceModel(ids []any, rModel model.Model
 
 func (s *QueryRunner) Query(filter model.Filter) (ret []model.Model, err *cd.Result) {
 	s.vModel = filter.MaskModel()
-	queryValueList, queryErr := s.innerQuery(filter)
+	queryValueList, queryErr := s.innerQuery(s.vModel, filter)
 	if queryErr != nil {
 		err = queryErr
 		if err.Fail() {
@@ -432,7 +432,7 @@ func (s *QueryRunner) Query(filter model.Filter) (ret []model.Model, err *cd.Res
 
 	sliceValue := []model.Model{}
 	for idx := 0; idx < len(queryValueList); idx++ {
-		modelVal, modelErr := s.innerAssign(queryValueList[idx], 0)
+		modelVal, modelErr := s.innerAssign(s.vModel, queryValueList[idx], 0)
 		if modelErr != nil {
 			err = modelErr
 			if err.Fail() {

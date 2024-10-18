@@ -82,7 +82,7 @@ func (s *CreateRunner) Create() (err *cd.Result) {
 
 		err = s.createRelation(field, rModel)
 		if err != nil {
-			log.Errorf("createSchema failed, s.createRelation error:%s", err.Error())
+			log.Errorf("Create failed, s.createRelation error:%s", err.Error())
 			return
 		}
 	}

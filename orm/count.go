@@ -30,7 +30,7 @@ func (s *CountRunner) Count(vFilter model.Filter) (ret int64, err *cd.Result) {
 	countResult, countErr := s.hBuilder.BuildCount(s.vModel, vFilter)
 	if countErr != nil {
 		err = countErr
-		log.Errorf("queryCount failed, hBuilder.BuildCount error:%s", err.Error())
+		log.Errorf("Count failed, hBuilder.BuildCount error:%s", err.Error())
 		return
 	}
 
@@ -44,7 +44,7 @@ func (s *CountRunner) Count(vFilter model.Filter) (ret int64, err *cd.Result) {
 		var countVal sql.NullInt64
 		err = s.executor.GetField(&countVal)
 		if err != nil {
-			log.Errorf("queryCount failed, s.executor.GetField error:%s", err.Error())
+			log.Errorf("Count failed, s.executor.GetField error:%s", err.Error())
 			return
 		}
 
@@ -65,7 +65,7 @@ func (s *impl) Count(vFilter model.Filter) (ret int64, err *cd.Result) {
 	queryVal, queryErr := countRunner.Count(vFilter)
 	if queryErr != nil {
 		err = queryErr
-		log.Errorf("Count failed, s.queryCount error:%s", err.Error())
+		log.Errorf("Count failed, countRunner.Count error:%s", err.Error())
 		return
 	}
 
