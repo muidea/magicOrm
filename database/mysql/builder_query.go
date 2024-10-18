@@ -10,17 +10,17 @@ import (
 )
 
 // BuildQuery build query sql
-func (s *Builder) BuildQuery(filter model.Filter) (ret *Result, err *cd.Result) {
-	namesVal, nameErr := s.getFieldQueryNames()
+func (s *Builder) BuildQuery(vModel model.Model, filter model.Filter) (ret *Result, err *cd.Result) {
+	namesVal, nameErr := s.getFieldQueryNames(vModel)
 	if nameErr != nil {
 		err = nameErr
 		log.Errorf("BuildQuery failed, s.getFieldQueryNames error:%s", err.Error())
 		return
 	}
 
-	querySQL := fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.buildCodec.ConstructModelTableName(s.hostModel))
+	querySQL := fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.buildCodec.ConstructModelTableName(vModel))
 	if filter != nil {
-		filterSQL, filterErr := s.buildFilter(filter)
+		filterSQL, filterErr := s.buildFilter(vModel, filter)
 		if filterErr != nil {
 			err = filterErr
 			log.Errorf("BuildQuery failed, s.buildFilter error:%s", err.Error())
@@ -31,7 +31,7 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret *Result, err *cd.Result) 
 			querySQL = fmt.Sprintf("%s WHERE %s", querySQL, filterSQL)
 		}
 
-		sortVal, sortErr := s.buildSorter(filter.Sorter())
+		sortVal, sortErr := s.buildSorter(vModel, filter.Sorter())
 		if sortErr != nil {
 			err = sortErr
 			log.Errorf("BuildQuery failed, s.buildSorter error:%s", err.Error())
@@ -57,15 +57,15 @@ func (s *Builder) BuildQuery(filter model.Filter) (ret *Result, err *cd.Result) 
 }
 
 // BuildQueryRelation build query relation sql
-func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (ret *Result, err *cd.Result) {
-	leftVal, leftErr := s.buildCodec.BuildModelValue(s.hostModel)
+func (s *Builder) BuildQueryRelation(vModel model.Model, vField model.Field, rModel model.Model) (ret *Result, err *cd.Result) {
+	leftVal, leftErr := s.buildCodec.BuildModelValue(vModel)
 	if leftErr != nil {
 		err = leftErr
 		log.Errorf("BuildQueryRelation failed, s.BuildHostModelValue error:%s", err.Error())
 		return
 	}
 
-	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(s.hostModel, vField)
+	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField, rModel)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("BuildQueryRelation %s failed, s.buildCodec.ConstructRelationTableName error:%s", vField.GetName(), err.Error())
@@ -82,9 +82,9 @@ func (s *Builder) BuildQueryRelation(vField model.Field, rModel model.Model) (re
 	return
 }
 
-func (s *Builder) getFieldQueryNames() (ret string, err *cd.Result) {
+func (s *Builder) getFieldQueryNames(vModel model.Model) (ret string, err *cd.Result) {
 	str := ""
-	for _, field := range s.hostModel.GetFields() {
+	for _, field := range vModel.GetFields() {
 		fType := field.GetType()
 		fValue := field.GetValue()
 		if !fType.IsBasic() || !fValue.IsValid() {
@@ -106,9 +106,9 @@ func (s *Builder) GetFieldPlaceHolder(vField model.Field) (ret any, err *cd.Resu
 	return getFieldPlaceHolder(vField)
 }
 
-func (s *Builder) BuildQueryPlaceHolder() (ret []any, err *cd.Result) {
+func (s *Builder) BuildQueryPlaceHolder(vModel model.Model) (ret []any, err *cd.Result) {
 	items := []any{}
-	for _, field := range s.hostModel.GetFields() {
+	for _, field := range vModel.GetFields() {
 		fType := field.GetType()
 		fValue := field.GetValue()
 		if !fType.IsBasic() || !fValue.IsValid() {
@@ -129,6 +129,6 @@ func (s *Builder) BuildQueryPlaceHolder() (ret []any, err *cd.Result) {
 	return
 }
 
-func (s *Builder) BuildQueryRelationPlaceHolder(field model.Field, rModel model.Model) (ret any, err *cd.Result) {
+func (s *Builder) BuildQueryRelationPlaceHolder(vModel model.Model, vField model.Field, rModel model.Model) (ret any, err *cd.Result) {
 	return getFieldPlaceHolder(rModel.GetPrimaryField())
 }

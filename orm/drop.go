@@ -4,7 +4,6 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
-	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
@@ -12,26 +11,17 @@ import (
 )
 
 type DropRunner struct {
-	vModel        model.Model
-	executor      executor.Executor
-	modelProvider provider.Provider
-	modelCodec    codec.Codec
-
-	hBuilder builder.Builder
+	baseRunner
 }
 
 func NewDropRunner(vModel model.Model, executor executor.Executor, provider provider.Provider, modelCodec codec.Codec) *DropRunner {
 	return &DropRunner{
-		vModel:        vModel,
-		executor:      executor,
-		modelProvider: provider,
-		modelCodec:    modelCodec,
-		hBuilder:      builder.NewBuilder(vModel, modelCodec),
+		baseRunner: newBaseRunner(vModel, executor, provider, modelCodec, false, 0),
 	}
 }
 
 func (s *DropRunner) dropHost() (err *cd.Result) {
-	dropResult, dropErr := s.hBuilder.BuildDropTable()
+	dropResult, dropErr := s.hBuilder.BuildDropTable(s.vModel)
 	if dropErr != nil {
 		err = dropErr
 		log.Errorf("dropHost failed, s.hBuilder.BuildDropTable error:%s", err.Error())
@@ -46,7 +36,7 @@ func (s *DropRunner) dropHost() (err *cd.Result) {
 }
 
 func (s *DropRunner) dropRelation(vField model.Field, rModel model.Model) (err *cd.Result) {
-	relationResult, relationErr := s.hBuilder.BuildDropRelationTable(vField, rModel)
+	relationResult, relationErr := s.hBuilder.BuildDropRelationTable(s.vModel, vField, rModel)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("dropRelation failed, hBuilder.BuildDropRelationTable error:%s", err.Error())
@@ -73,16 +63,16 @@ func (s *DropRunner) Drop() (err *cd.Result) {
 		}
 
 		fType := field.GetType()
-		relationModel, relationErr := s.modelProvider.GetTypeModel(fType)
-		if relationErr != nil {
-			err = relationErr
+		rModel, rErr := s.modelProvider.GetTypeModel(fType)
+		if rErr != nil {
+			err = rErr
 			log.Errorf("Drop failed, s.modelProvider.GetTypeModel error:%s", err.Error())
 			return
 		}
 
 		elemType := fType.Elem()
 		if !elemType.IsPtrType() {
-			rRunner := NewDropRunner(relationModel, s.executor, s.modelProvider, s.modelCodec)
+			rRunner := NewDropRunner(rModel, s.executor, s.modelProvider, s.modelCodec)
 			err = rRunner.Drop()
 			if err != nil {
 				log.Errorf("Drop failed, rRunner.Drop() error:%s", err.Error())
@@ -90,7 +80,7 @@ func (s *DropRunner) Drop() (err *cd.Result) {
 			}
 		}
 
-		err = s.dropRelation(field, relationModel)
+		err = s.dropRelation(field, rModel)
 		if err != nil {
 			log.Errorf("dropSchema failed, s.dropRelation error:%s", err.Error())
 			return

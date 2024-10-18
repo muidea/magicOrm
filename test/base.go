@@ -60,19 +60,19 @@ func (l *Simple) IsSame(r *Simple) bool {
 }
 
 type Reference struct {
-	ID          int        `orm:"id key auto" view:"view,lite"`
-	Name        string     `orm:"name" view:"view,lite"`
-	FValue      *float32   `orm:"value" view:"view,lite"`
-	F64         float64    `orm:"f64" view:"view,lite"`
-	TimeStamp   *time.Time `orm:"ts" view:"view,lite"`
-	Flag        *bool      `orm:"flag" view:"view,lite"`
-	IArray      []int      `orm:"iArray" view:"view,lite"`
-	FArray      []float32  `orm:"fArray" view:"view,lite"`
-	StrArray    []string   `orm:"strArray" view:"view,lite"`
-	BArray      []bool     `orm:"bArray" view:"view,lite"`
-	PtrArray    *[]string  `orm:"ptrArray" view:"view,lite"`
-	StrPtrArray []*string  `orm:"strPtrArray" view:"view,lite"`
-	PtrStrArray *[]*string `orm:"ptrStrArray" view:"view,lite"`
+	ID          int       `orm:"id key auto" view:"view,lite"`
+	Name        string    `orm:"name" view:"view,lite"`
+	FValue      float32   `orm:"value" view:"view,lite"`
+	F64         float64   `orm:"f64" view:"view,lite"`
+	TimeStamp   time.Time `orm:"ts" view:"view,lite"`
+	Flag        bool      `orm:"flag" view:"view,lite"`
+	IArray      []int     `orm:"iArray" view:"view,lite"`
+	FArray      []float32 `orm:"fArray" view:"view,lite"`
+	StrArray    []string  `orm:"strArray" view:"view,lite"`
+	BArray      []bool    `orm:"bArray" view:"view,lite"`
+	PtrArray    *[]string `orm:"ptrArray" view:"view,lite"`
+	StrPtrArray []string  `orm:"strPtrArray" view:"view,lite"`
+	PtrStrArray *[]string `orm:"ptrStrArray" view:"view,lite"`
 }
 
 func (l *Reference) IsSame(r *Reference) bool {
@@ -85,44 +85,14 @@ func (l *Reference) IsSame(r *Reference) bool {
 	if l.F64 != r.F64 {
 		return false
 	}
-	if l.FValue != nil {
-		if r.FValue == nil {
-			return false
-		}
-		if *l.FValue != *r.FValue {
-			return false
-		}
+	if l.FValue != r.FValue {
+		return false
 	}
-	if l.FValue == nil {
-		if r.FValue != nil {
-			return false
-		}
+	if l.TimeStamp != r.TimeStamp {
+		return false
 	}
-	if l.TimeStamp != nil {
-		if r.TimeStamp == nil {
-			return false
-		}
-		if l.TimeStamp.Sub(*r.TimeStamp) != 0 {
-			return false
-		}
-	}
-	if l.TimeStamp == nil {
-		if r.TimeStamp != nil {
-			return false
-		}
-	}
-	if l.Flag != nil {
-		if r.Flag == nil {
-			return false
-		}
-		if *l.Flag != *r.Flag {
-			return false
-		}
-	}
-	if l.Flag == nil {
-		if r.Flag != nil {
-			return false
-		}
+	if l.Flag != r.Flag {
+		return false
 	}
 	if len(l.IArray) != len(r.IArray) {
 		return false

@@ -68,16 +68,16 @@ func TestReferenceLocal(t *testing.T) {
 	fArray := []float32{12.34, 23, 45, 45, 67}
 	strArray := []string{"Abc", "Bcd"}
 	bArray := []bool{true, true, false, false}
-	strPtrArray := []*string{&strValue, &strValue}
+	strPtrArray := []string{strValue, strValue}
 
 	// insert
 	for idx := 0; idx < loop; idx++ {
 		sVal := &Reference{
 			Name:        strValue,
-			FValue:      &fValue,
+			FValue:      fValue,
 			F64:         23.456,
-			TimeStamp:   &ts,
-			Flag:        &flag,
+			TimeStamp:   ts,
+			Flag:        flag,
 			IArray:      iArray,
 			FArray:      fArray,
 			StrArray:    strArray,
@@ -143,19 +143,19 @@ func TestReferenceLocal(t *testing.T) {
 		var ts time.Time
 		var flag bool
 		strArray := []string{}
-		ptrStrArray := []*string{}
+		ptrStrArray := []string{}
 
 		qVal := &Reference{
 			ID:          sValList[idx].ID,
-			FValue:      &fVal,
-			TimeStamp:   &ts,
-			Flag:        &flag,
+			FValue:      fVal,
+			TimeStamp:   ts,
+			Flag:        flag,
 			IArray:      []int{},
 			FArray:      []float32{},
 			StrArray:    []string{},
 			BArray:      []bool{},
 			PtrArray:    &strArray,
-			StrPtrArray: []*string{},
+			StrPtrArray: []string{},
 			PtrStrArray: &ptrStrArray,
 		}
 		qValList = append(qValList, qVal)
@@ -196,7 +196,7 @@ func TestReferenceLocal(t *testing.T) {
 	var ts2 time.Time
 	var flag2 bool
 	strArray2 := []string{}
-	ptrStrArray := []*string{}
+	ptrStrArray := []string{}
 
 	referenceModel, _ := localProvider.GetEntityModel(&Reference{})
 	filter, err := localProvider.GetModelFilter(referenceModel, 0)
@@ -211,7 +211,7 @@ func TestReferenceLocal(t *testing.T) {
 		return
 	}
 
-	err = filter.ValueMask(&Reference{FValue: &fVal, TimeStamp: &ts2, Flag: &flag2, PtrArray: &strArray2, PtrStrArray: &ptrStrArray})
+	err = filter.ValueMask(&Reference{FValue: fVal, TimeStamp: ts2, Flag: flag2, PtrArray: &strArray2, PtrStrArray: &ptrStrArray})
 	if err != nil {
 		t.Errorf("filter.ValueMask failed, err:%s", err.Error())
 		return
@@ -287,16 +287,16 @@ func TestReferenceRemote(t *testing.T) {
 	fArray := []float32{12.34, 23, 45, 45, 67}
 	strArray := []string{"Abc", "Bcd"}
 	bArray := []bool{true, true, false, false}
-	strPtrArray := []*string{&strValue, &strValue}
+	strPtrArray := []string{strValue, strValue}
 
 	// insert
 	for idx := 0; idx < loop; idx++ {
 		sVal := &Reference{
 			Name:        strValue,
-			FValue:      &fValue,
+			FValue:      fValue,
 			F64:         23.456,
-			TimeStamp:   &ts,
-			Flag:        &flag,
+			TimeStamp:   ts,
+			Flag:        flag,
 			IArray:      iArray,
 			FArray:      fArray,
 			StrArray:    strArray,
@@ -395,19 +395,19 @@ func TestReferenceRemote(t *testing.T) {
 		var ts time.Time
 		var flag bool
 		strArray := []string{}
-		ptrStrArray := []*string{}
+		ptrStrArray := []string{}
 
 		qVal := &Reference{
 			ID:          sValList[idx].ID,
-			FValue:      &fVal,
-			TimeStamp:   &ts,
-			Flag:        &flag,
+			FValue:      fVal,
+			TimeStamp:   ts,
+			Flag:        flag,
 			IArray:      []int{},
 			FArray:      []float32{},
 			StrArray:    []string{},
 			BArray:      []bool{},
 			PtrArray:    &strArray,
-			StrPtrArray: []*string{},
+			StrPtrArray: []string{},
 			PtrStrArray: &ptrStrArray,
 		}
 		qValList = append(qValList, qVal)
@@ -466,7 +466,7 @@ func TestReferenceRemote(t *testing.T) {
 	var ts2 time.Time
 	var flag2 bool
 	strArray2 := []string{}
-	ptrStrArray := []*string{}
+	ptrStrArray := []string{}
 
 	referenceModel, _ := remote.GetObject(&bqValList)
 
@@ -482,7 +482,7 @@ func TestReferenceRemote(t *testing.T) {
 		return
 	}
 
-	maskVal, maskErr := remote.GetObjectValue(&Reference{FValue: &fVal, TimeStamp: &ts2, Flag: &flag2, PtrArray: &strArray2, PtrStrArray: &ptrStrArray})
+	maskVal, maskErr := remote.GetObjectValue(&Reference{FValue: fVal, TimeStamp: ts2, Flag: flag2, PtrArray: &strArray2, PtrStrArray: &ptrStrArray})
 	if maskErr != nil {
 		t.Errorf("helper.GetObjectValue failed, err:%s", err.Error())
 		return

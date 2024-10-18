@@ -4,7 +4,6 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
-	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
@@ -12,26 +11,17 @@ import (
 )
 
 type CreateRunner struct {
-	vModel        model.Model
-	executor      executor.Executor
-	modelProvider provider.Provider
-	modelCodec    codec.Codec
-
-	hBuilder builder.Builder
+	baseRunner
 }
 
 func NewCreateRunner(vModel model.Model, executor executor.Executor, provider provider.Provider, modelCodec codec.Codec) *CreateRunner {
 	return &CreateRunner{
-		vModel:        vModel,
-		executor:      executor,
-		modelProvider: provider,
-		modelCodec:    modelCodec,
-		hBuilder:      builder.NewBuilder(vModel, modelCodec),
+		baseRunner: newBaseRunner(vModel, executor, provider, modelCodec, false, 0),
 	}
 }
 
 func (s *CreateRunner) createHost() (err *cd.Result) {
-	createResult, createErr := s.hBuilder.BuildCreateTable()
+	createResult, createErr := s.hBuilder.BuildCreateTable(s.vModel)
 	if createErr != nil {
 		err = createErr
 		log.Errorf("createHost failed, s.hBuilder.BuildCreateTable error:%s", err.Error())
@@ -46,7 +36,7 @@ func (s *CreateRunner) createHost() (err *cd.Result) {
 }
 
 func (s *CreateRunner) createRelation(vField model.Field, rModel model.Model) (err *cd.Result) {
-	relationResult, relationErr := s.hBuilder.BuildCreateRelationTable(vField, rModel)
+	relationResult, relationErr := s.hBuilder.BuildCreateRelationTable(s.vModel, vField, rModel)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("createRelation failed, hBuilder.BuildCreateRelationTable error:%s", err.Error())
@@ -73,16 +63,16 @@ func (s *CreateRunner) Create() (err *cd.Result) {
 		}
 
 		fType := field.GetType()
-		relationModel, relationErr := s.modelProvider.GetTypeModel(fType)
-		if relationErr != nil {
-			err = relationErr
+		rModel, rErr := s.modelProvider.GetTypeModel(fType)
+		if rErr != nil {
+			err = rErr
 			log.Errorf("Create failed, s.modelProvider.GetTypeModel error:%s", err.Error())
 			return
 		}
 
 		elemType := fType.Elem()
 		if !elemType.IsPtrType() {
-			rRunner := NewCreateRunner(relationModel, s.executor, s.modelProvider, s.modelCodec)
+			rRunner := NewCreateRunner(rModel, s.executor, s.modelProvider, s.modelCodec)
 			err = rRunner.Create()
 			if err != nil {
 				log.Errorf("Create failed, rRunner.Create() error:%s", err.Error())
@@ -90,7 +80,7 @@ func (s *CreateRunner) Create() (err *cd.Result) {
 			}
 		}
 
-		err = s.createRelation(field, relationModel)
+		err = s.createRelation(field, rModel)
 		if err != nil {
 			log.Errorf("createSchema failed, s.createRelation error:%s", err.Error())
 			return

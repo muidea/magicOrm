@@ -642,11 +642,33 @@ func TestLocalBatchQuery(t *testing.T) {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
 	}
-	filter.Equal("name", &user1.Name)
-	filter.In("group", user1.Group)
-	filter.Like("email", user1.EMail)
-	filter.Equal("status", status)
-	filter.ValueMask(valueMask)
+	err = filter.Equal("name", &user1.Name)
+	if err != nil {
+		t.Errorf("Equal name failed, error:%s", err.Error())
+		return
+	}
+	err = filter.In("group", user1.Group)
+	if err != nil {
+		t.Errorf("Equal group failed, error:%s", err.Error())
+		return
+	}
+	err = filter.Like("email", user1.EMail)
+	if err != nil {
+		t.Errorf("like email failed, error:%s", err.Error())
+		return
+	}
+
+	err = filter.Equal("status", status)
+	if err != nil {
+		t.Errorf("Equal status failed, error:%s", err.Error())
+		return
+	}
+
+	err = filter.ValueMask(valueMask)
+	if err != nil {
+		t.Errorf("ValueMask failed, error:%s", err.Error())
+		return
+	}
 
 	pageFilter := &util.Pagination{PageNum: 0, PageSize: 100}
 	filter.Page(pageFilter)

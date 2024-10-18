@@ -4,26 +4,27 @@ import (
 	"fmt"
 
 	cd "github.com/muidea/magicCommon/def"
-
 	"github.com/muidea/magicCommon/foundation/log"
+
+	"github.com/muidea/magicOrm/model"
 )
 
 // BuildUpdate  Build Update
-func (s *Builder) BuildUpdate() (ret *Result, err *cd.Result) {
-	updateStr, updateErr := s.getFieldUpdateValues()
+func (s *Builder) BuildUpdate(vModel model.Model) (ret *Result, err *cd.Result) {
+	updateStr, updateErr := s.getFieldUpdateValues(vModel)
 	if updateErr != nil {
 		err = updateErr
 		log.Errorf("BuildUpdate failed, s.getFieldUpdateValues error:%s", err.Error())
 		return
 	}
-	filterStr, filterErr := s.buildFiledFilter(s.hostModel.GetPrimaryField())
+	filterStr, filterErr := s.buildFiledFilter(vModel.GetPrimaryField())
 	if filterErr != nil {
 		err = filterErr
 		log.Errorf("BuildUpdate failed, s.BuildModelFilter error:%s", err.Error())
 		return
 	}
 
-	updateSQL := fmt.Sprintf("UPDATE `%s` SET %s WHERE %s", s.buildCodec.ConstructModelTableName(s.hostModel), updateStr, filterStr)
+	updateSQL := fmt.Sprintf("UPDATE `%s` SET %s WHERE %s", s.buildCodec.ConstructModelTableName(vModel), updateStr, filterStr)
 	//log.Print(updateSQL)
 	if traceSQL() {
 		log.Infof("[SQL] update: %s", updateSQL)
@@ -33,9 +34,9 @@ func (s *Builder) BuildUpdate() (ret *Result, err *cd.Result) {
 	return
 }
 
-func (s *Builder) getFieldUpdateValues() (ret string, err *cd.Result) {
+func (s *Builder) getFieldUpdateValues(vModel model.Model) (ret string, err *cd.Result) {
 	str := ""
-	for _, field := range s.hostModel.GetFields() {
+	for _, field := range vModel.GetFields() {
 		if field.IsPrimaryKey() {
 			continue
 		}

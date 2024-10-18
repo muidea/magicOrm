@@ -91,7 +91,7 @@ func TestNewRemoteProvider(t *testing.T) {
 		return
 	}
 
-	sModelVal, sModelErr = provider.GetValueModel(sValueVal, sTypeVal)
+	sModelVal, sModelErr = provider.SetModelValue(sModelVal, sValueVal)
 	if sModelErr != nil {
 		t.Errorf("%s", sModelErr.Error())
 		return

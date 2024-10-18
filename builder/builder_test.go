@@ -21,14 +21,28 @@ type Unit struct {
 }
 
 type Reference struct {
-	//ID 唯一标示单元
-	ID int64 `orm:"eid key auto"`
-	// Name 名称
+	ID          int64   `orm:"eid key auto"`
 	Name        string  `orm:"name"`
 	Value       float64 `orm:"value"`
 	Description *string `orm:"description"`
 
 	Unit Unit `orm:"unit"`
+}
+
+func initLocalValue() (uVal *Unit, rVal *Reference) {
+	now, _ := time.ParseInLocation(util.CSTLayout, "2018-01-02 15:04:05", time.Local)
+	uVal = &Unit{ID: "10", Name: "Hello world", Value: 12.3456, TimeStamp: now}
+
+	var desc string
+	rVal = &Reference{
+		ID:          12,
+		Name:        "Hey",
+		Description: &desc,
+		Unit: Unit{
+			ID: "10",
+		},
+	}
+	return
 }
 
 func TestBuilderLocalUnit(t *testing.T) {
@@ -49,13 +63,13 @@ func TestBuilderLocalUnit(t *testing.T) {
 	}
 
 	buildContext := codec.New(localProvider, "abc")
-	builder := NewBuilder(info, buildContext)
+	builder := NewBuilder(localProvider, buildContext)
 	if builder == nil {
 		t.Error("new Builder failed")
 		return
 	}
 
-	str, err := builder.BuildCreateTable()
+	str, err := builder.BuildCreateTable(info)
 	if err != nil {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 		return
@@ -65,7 +79,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildDropTable()
+	str, err = builder.BuildDropTable(info)
 	if err != nil {
 		t.Errorf("build drop schema failed, err:%s", err.Error())
 		return
@@ -75,7 +89,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildInsert()
+	str, err = builder.BuildInsert(info)
 	if err != nil {
 		t.Errorf("build insert failed, err:%s", err.Error())
 	}
@@ -84,7 +98,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildUpdate()
+	str, err = builder.BuildUpdate(info)
 	if err != nil {
 		t.Errorf("build update failed, err:%s", err.Error())
 		return
@@ -94,7 +108,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildDelete()
+	str, err = builder.BuildDelete(info)
 	if err != nil {
 		t.Errorf("build delete failed, err:%s", err.Error())
 		return
@@ -109,7 +123,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 		t.Errorf("filter.Above failed, err:%s", err.Error())
 		return
 	}
-	str, err = builder.BuildQuery(filter)
+	str, err = builder.BuildQuery(info, filter)
 	if err != nil {
 		t.Errorf("build query failed, err:%s", err.Error())
 		return
@@ -119,7 +133,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildCount(filter)
+	str, err = builder.BuildCount(info, filter)
 	if err != nil {
 		t.Errorf("build count failed, err:%s", err.Error())
 		return
@@ -134,27 +148,34 @@ func TestBuilderLocalUnit(t *testing.T) {
 
 func TestBuilderLocalReference(t *testing.T) {
 	var desc string
-	ext := &Reference{ID: 12, Name: "Hey", Description: &desc}
-	unit := &Unit{ID: "10"}
+	unitVal := &Unit{ID: "10"}
+	referenceVal := &Reference{
+		ID:          12,
+		Name:        "Hey",
+		Description: &desc,
+		Unit: Unit{
+			ID: "10",
+		},
+	}
 
 	localProvider := provider.NewLocalProvider("default")
-	extModel, extErr := localProvider.RegisterModel(ext)
-	if extErr != nil {
-		t.Errorf("localProvider.RegisterModel failed, err:%s", extErr.Error())
+	referenceModel, referenceErr := localProvider.RegisterModel(referenceVal)
+	if referenceErr != nil {
+		t.Errorf("localProvider.RegisterModel failed, err:%s", referenceErr.Error())
 		return
 	}
-	unitModel, unitErr := localProvider.RegisterModel(unit)
+	unitModel, unitErr := localProvider.RegisterModel(unitVal)
 	if unitErr != nil {
 		t.Errorf("localProvider.RegisterModel failed, err:%s", unitErr.Error())
 	}
 
 	buildContext := codec.New(localProvider, "abc")
-	builder := NewBuilder(extModel, buildContext)
+	builder := NewBuilder(localProvider, buildContext)
 	if builder == nil {
 		t.Error("new Builder failed")
 	}
 
-	str, err := builder.BuildCreateTable()
+	str, err := builder.BuildCreateTable(referenceModel)
 	if err != nil {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 	}
@@ -162,7 +183,7 @@ func TestBuilderLocalReference(t *testing.T) {
 		t.Errorf("build create schema failed, str:%s", str)
 	}
 
-	str, err = builder.BuildDropTable()
+	str, err = builder.BuildDropTable(referenceModel)
 	if err != nil {
 		t.Errorf("build drop schema failed, err:%s", err.Error())
 	}
@@ -170,7 +191,19 @@ func TestBuilderLocalReference(t *testing.T) {
 		t.Errorf("build drop schema failed, str:%s", str)
 	}
 
-	str, err = builder.BuildInsert()
+	referenceModel, referenceErr = localProvider.GetEntityModel(referenceVal)
+	if referenceErr != nil {
+		t.Errorf("localProvider.GetEntityModel failed, err:%s", referenceErr.Error())
+		return
+	}
+
+	unitModel, unitErr = localProvider.GetEntityModel(unitVal)
+	if unitErr != nil {
+		t.Errorf("localProvider.GetEntityModel failed, err:%s", unitErr.Error())
+		return
+	}
+
+	str, err = builder.BuildInsert(referenceModel)
 	if err != nil {
 		t.Errorf("build insert failed, err:%s", err.Error())
 	}
@@ -178,7 +211,7 @@ func TestBuilderLocalReference(t *testing.T) {
 		t.Errorf("build insert failed, str:%v", str)
 	}
 
-	str, err = builder.BuildUpdate()
+	str, err = builder.BuildUpdate(referenceModel)
 	if err != nil {
 		t.Errorf("build update failed, err:%s", err.Error())
 	}
@@ -186,7 +219,7 @@ func TestBuilderLocalReference(t *testing.T) {
 		t.Errorf("build update failed, str:%s", str)
 	}
 
-	str, err = builder.BuildDelete()
+	str, err = builder.BuildDelete(referenceModel)
 	if err != nil {
 		t.Errorf("build delete failed, err:%s", err.Error())
 	}
@@ -194,8 +227,8 @@ func TestBuilderLocalReference(t *testing.T) {
 		t.Errorf("build delete failed, str:%s", str)
 	}
 
-	uField := extModel.GetField("unit")
-	str, err = builder.BuildCreateRelationTable(uField, unitModel)
+	uField := referenceModel.GetField("unit")
+	str, err = builder.BuildCreateRelationTable(referenceModel, uField, unitModel)
 	if err != nil {
 		t.Errorf("BuildCreateRelationTable failed, err:%s", err.Error())
 		return
@@ -205,7 +238,7 @@ func TestBuilderLocalReference(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildDropRelationTable(uField, unitModel)
+	str, err = builder.BuildDropRelationTable(referenceModel, uField, unitModel)
 	if err != nil {
 		t.Errorf("BuildDropRelationTable failed, err:%s", err.Error())
 		return
@@ -215,7 +248,7 @@ func TestBuilderLocalReference(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildInsertRelation(uField, unitModel)
+	str, err = builder.BuildInsertRelation(referenceModel, uField, unitModel)
 	if err != nil {
 		t.Errorf("BuildInsertRelation failed, err:%s", err.Error())
 		return
@@ -225,7 +258,7 @@ func TestBuilderLocalReference(t *testing.T) {
 		return
 	}
 
-	lStr, rStr, err := builder.BuildDeleteRelation(uField, unitModel)
+	lStr, rStr, err := builder.BuildDeleteRelation(referenceModel, uField, unitModel)
 	if err != nil {
 		t.Errorf("BuildDeleteRelation failed, err:%s", err.Error())
 		return
@@ -239,7 +272,7 @@ func TestBuilderLocalReference(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildQueryRelation(uField, unitModel)
+	str, err = builder.BuildQueryRelation(referenceModel, uField, unitModel)
 	if err != nil {
 		t.Errorf("BuildQueryRelation failed, err:%s", err.Error())
 		return
@@ -334,13 +367,13 @@ func TestBuilderRemoteUnit(t *testing.T) {
 	}
 
 	buildContext := codec.New(localProvider, "abc")
-	builder := NewBuilder(info, buildContext)
+	builder := NewBuilder(localProvider, buildContext)
 	if builder == nil {
 		t.Error("new Builder failed")
 		return
 	}
 
-	str, err := builder.BuildCreateTable()
+	str, err := builder.BuildCreateTable(info)
 	if err != nil {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 		return
@@ -350,7 +383,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildDropTable()
+	str, err = builder.BuildDropTable(info)
 	if err != nil {
 		t.Errorf("build drop schema failed, err:%s", err.Error())
 		return
@@ -360,7 +393,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildInsert()
+	str, err = builder.BuildInsert(info)
 	if err != nil {
 		t.Errorf("build insert failed, err:%s", err.Error())
 	}
@@ -369,7 +402,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildUpdate()
+	str, err = builder.BuildUpdate(info)
 	if err != nil {
 		t.Errorf("build update failed, err:%s", err.Error())
 		return
@@ -379,7 +412,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildDelete()
+	str, err = builder.BuildDelete(info)
 	if err != nil {
 		t.Errorf("build delete failed, err:%s", err.Error())
 		return
@@ -394,7 +427,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 		t.Errorf("filter.Above failed, err:%s", err.Error())
 		return
 	}
-	str, err = builder.BuildQuery(filter)
+	str, err = builder.BuildQuery(info, filter)
 	if err != nil {
 		t.Errorf("build query failed, err:%s", err.Error())
 		return
@@ -404,7 +437,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildCount(filter)
+	str, err = builder.BuildCount(info, filter)
 	if err != nil {
 		t.Errorf("build count failed, err:%s", err.Error())
 		return
@@ -418,7 +451,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 }
 
 func TestBuilderRemoteReference(t *testing.T) {
-	extObject := &remote.Object{
+	referenceObject := &remote.Object{
 		Name:    "Reference",
 		PkgPath: "/test",
 		Fields: []*remote.Field{
@@ -479,9 +512,10 @@ func TestBuilderRemoteReference(t *testing.T) {
 			{
 				Name: "unit",
 				Type: &remote.TypeImpl{
-					Name:  "Unit",
-					Value: 115,
-					IsPtr: false,
+					Name:    "Unit",
+					PkgPath: "/test",
+					Value:   115,
+					IsPtr:   false,
 					ElemType: &remote.TypeImpl{
 						Name:    "Unit",
 						PkgPath: "/test",
@@ -498,7 +532,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		},
 	}
 
-	extObjectValue := &remote.ObjectValue{
+	referenceObjectValue := &remote.ObjectValue{
 		Name:    "Reference",
 		PkgPath: "/test",
 		Fields: []*remote.FieldValue{
@@ -554,45 +588,47 @@ func TestBuilderRemoteReference(t *testing.T) {
 	}
 
 	uVal := remote.NewValue(unitObjectValue)
-	uModel, uErr := remote.SetModelValue(unitObject, uVal)
+	unitModel, uErr := remote.SetModelValue(unitObject, uVal)
 	if uErr != nil {
 		t.Errorf("remote.SetModelValue failed")
 		return
 	}
 
-	eVal := remote.NewValue(extObjectValue)
-	eModel, eErr := remote.SetModelValue(extObject, eVal)
+	eVal := remote.NewValue(referenceObjectValue)
+	referenceModel, eErr := remote.SetModelValue(referenceObject, eVal)
 	if eErr != nil {
 		t.Errorf("remote.SetModelValue failed")
 		return
 	}
 
+	referenceModel.SetFieldValue("unit", uVal)
+
 	remoteProvider := provider.NewRemoteProvider("default")
-	extModel, extErr := remoteProvider.RegisterModel(eModel)
+	_, extErr := remoteProvider.RegisterModel(referenceModel)
 	if extErr != nil {
 		t.Errorf("remoteProvider.RegisterModel failed, err:%s", extErr.Error())
 		return
 	}
-	unitModel, unitErr := remoteProvider.RegisterModel(uModel)
+	_, unitErr := remoteProvider.RegisterModel(unitModel)
 	if unitErr != nil {
 		t.Errorf("remoteProvider.RegisterModel failed, err:%s", unitErr.Error())
 		return
 	}
 
-	extFilter, extErr := remoteProvider.GetModelFilter(eModel, model.FullView)
+	extFilter, extErr := remoteProvider.GetModelFilter(referenceModel, model.FullView)
 	if extErr != nil {
 		t.Errorf("remoteProvider.GetModelFilter failed, err:%s", extErr.Error())
 		return
 	}
 
 	buildContext := codec.New(remoteProvider, "abc")
-	builder := NewBuilder(extFilter.MaskModel(), buildContext)
+	builder := NewBuilder(remoteProvider, buildContext)
 	if builder == nil {
 		t.Error("new Builder failed")
 		return
 	}
 
-	str, err := builder.BuildCreateTable()
+	str, err := builder.BuildCreateTable(referenceModel)
 	if err != nil {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 		return
@@ -602,7 +638,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildDropTable()
+	str, err = builder.BuildDropTable(referenceModel)
 	if err != nil {
 		t.Errorf("build drop schema failed, err:%s", err.Error())
 		return
@@ -612,7 +648,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildInsert()
+	str, err = builder.BuildInsert(referenceModel)
 	if err != nil {
 		t.Errorf("build insert failed, err:%s", err.Error())
 		return
@@ -622,17 +658,17 @@ func TestBuilderRemoteReference(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildUpdate()
+	str, err = builder.BuildUpdate(referenceModel)
 	if err != nil {
 		t.Errorf("build update failed, err:%s", err.Error())
 		return
 	}
-	if str.SQL() != "UPDATE `abc_Reference` SET `name` = 'Hey',`value` = 0,`description` = '' WHERE `eid` = 12" {
+	if str.SQL() != "UPDATE `abc_Reference` SET `name` = 'Hey' WHERE `eid` = 12" {
 		t.Errorf("build update failed, str:%s", str)
 		return
 	}
 
-	str, err = builder.BuildDelete()
+	str, err = builder.BuildDelete(referenceModel)
 	if err != nil {
 		t.Errorf("build delete failed, err:%s", err.Error())
 		return
@@ -642,7 +678,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildQuery(extFilter)
+	str, err = builder.BuildQuery(extFilter.MaskModel(), extFilter)
 	if err != nil {
 		t.Errorf("build query failed, err:%s", err.Error())
 		return
@@ -653,7 +689,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 	}
 
 	extFilter.Equal("eid", 12)
-	str, err = builder.BuildQuery(extFilter)
+	str, err = builder.BuildQuery(referenceModel, extFilter)
 	if err != nil {
 		t.Errorf("build query failed, err:%s", err.Error())
 	}
@@ -662,8 +698,8 @@ func TestBuilderRemoteReference(t *testing.T) {
 		return
 	}
 
-	uField := extModel.GetField("unit")
-	str, err = builder.BuildCreateRelationTable(uField, unitModel)
+	uField := referenceModel.GetField("unit")
+	str, err = builder.BuildCreateRelationTable(referenceModel, uField, unitModel)
 	if err != nil {
 		t.Errorf("BuildCreateRelationTable failed, err:%s", err.Error())
 		return
@@ -673,7 +709,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildDropRelationTable(uField, unitModel)
+	str, err = builder.BuildDropRelationTable(referenceModel, uField, unitModel)
 	if err != nil {
 		t.Errorf("BuildDropRelationTable failed, err:%s", err.Error())
 		return
@@ -683,7 +719,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildInsertRelation(uField, unitModel)
+	str, err = builder.BuildInsertRelation(referenceModel, uField, unitModel)
 	if err != nil {
 		t.Errorf("BuildInsertRelation failed, err:%s", err.Error())
 		return
@@ -693,7 +729,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		return
 	}
 
-	lStr, rStr, err := builder.BuildDeleteRelation(uField, unitModel)
+	lStr, rStr, err := builder.BuildDeleteRelation(referenceModel, uField, unitModel)
 	if err != nil {
 		t.Errorf("BuildDeleteRelation failed, err:%s", err.Error())
 		return
@@ -707,7 +743,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildQueryRelation(uField, unitModel)
+	str, err = builder.BuildQueryRelation(referenceModel, uField, unitModel)
 	if err != nil {
 		t.Errorf("BuildQueryRelation failed, err:%s", err.Error())
 		return

@@ -14,7 +14,7 @@ import (
 
 type Codec interface {
 	ConstructModelTableName(vModel model.Model) string
-	ConstructRelationTableName(vModel model.Model, vField model.Field) (string, *cd.Result)
+	ConstructRelationTableName(vModel model.Model, vField model.Field, rModel model.Model) (string, *cd.Result)
 
 	BuildModelValue(vModel model.Model) (model.RawVal, *cd.Result)
 	BuildFieldValue(vField model.Field) (model.RawVal, *cd.Result)
@@ -50,16 +50,9 @@ func (s *codecImpl) ConstructModelTableName(vModel model.Model) string {
 	return tableName
 }
 
-func (s *codecImpl) ConstructRelationTableName(vModel model.Model, vField model.Field) (ret string, err *cd.Result) {
-	fieldModel, fieldErr := s.modelProvider.GetTypeModel(vField.GetType())
-	if fieldErr != nil {
-		err = fieldErr
-		log.Errorf("ConstructRelationTableName failed, s.modelProvider.GetTypeModel error:%s", err.Error())
-		return
-	}
-
+func (s *codecImpl) ConstructRelationTableName(vModel model.Model, vField model.Field, rModel model.Model) (ret string, err *cd.Result) {
 	leftName := s.constructTableName(vModel)
-	rightName := s.constructTableName(fieldModel)
+	rightName := s.constructTableName(rModel)
 	infixVal := s.constructInfix(vField)
 
 	tableName := fmt.Sprintf("%s%s%s%s", leftName, infixVal, s.getFieldRelation(vField), rightName)

@@ -190,13 +190,13 @@ func TestRemoteReference(t *testing.T) {
 	fArray := []float32{12.34, 23, 45, 45, 67}
 	strArray := []string{"Abc", "Bcd"}
 	bArray := []bool{true, true, false, false}
-	strPtrArray := []*string{&strValue, &strValue}
+	strPtrArray := []string{strValue, strValue}
 	s1 := &Reference{
 		Name:        strValue,
-		FValue:      &fValue,
+		FValue:      fValue,
 		F64:         23.456,
-		TimeStamp:   &ts,
-		Flag:        &flag,
+		TimeStamp:   ts,
+		Flag:        flag,
 		IArray:      iArray,
 		FArray:      fArray,
 		StrArray:    strArray,
@@ -257,18 +257,18 @@ func TestRemoteReference(t *testing.T) {
 	var ts2 time.Time
 	var bVal bool
 	strArray2 := []string{}
-	ptrArray2 := []*string{}
+	ptrArray2 := []string{}
 	s2 := &Reference{
 		ID:          s1.ID,
-		FValue:      &fValue2,
-		TimeStamp:   &ts2,
-		Flag:        &bVal,
+		FValue:      fValue2,
+		TimeStamp:   ts2,
+		Flag:        bVal,
 		IArray:      []int{},
 		FArray:      []float32{},
 		StrArray:    []string{},
 		BArray:      []bool{},
 		PtrArray:    &strArray2,
-		StrPtrArray: []*string{},
+		StrPtrArray: []string{},
 		PtrStrArray: &ptrArray2,
 	}
 	s2Value, s2Err := getObjectValue(s2)
@@ -298,7 +298,8 @@ func TestRemoteReference(t *testing.T) {
 	}
 
 	s4 := &Reference{
-		ID: s1.ID,
+		ID:     s1.ID,
+		IArray: []int{},
 	}
 	s4Value, s4Err := getObjectValue(s4)
 	if s4Err != nil {
@@ -325,7 +326,7 @@ func TestRemoteReference(t *testing.T) {
 		t.Errorf("query reference failed, err:%s", err.Error())
 		return
 	}
-	if s4.FValue == nil || s4.TimeStamp == nil || s4.Flag == nil || s4.PtrStrArray == nil || s4.PtrArray == nil {
+	if s4.IArray == nil || s4.PtrStrArray != nil || s4.PtrArray != nil {
 		t.Errorf("query reference failed")
 		return
 	}
@@ -418,13 +419,13 @@ func TestRemoteCompose(t *testing.T) {
 	fArray := []float32{12.34, 23, 45, 45, 67}
 	strArray := []string{"Abc", "Bcd"}
 	bArray := []bool{true, true, false, false}
-	strPtrArray := []*string{&strValue, &strValue}
+	strPtrArray := []string{strValue, strValue}
 	r1 := &Reference{
 		Name:        strValue,
-		FValue:      &fValue,
+		FValue:      fValue,
 		F64:         23.456,
-		TimeStamp:   &ts,
-		Flag:        &flag,
+		TimeStamp:   ts,
+		Flag:        flag,
 		IArray:      iArray,
 		FArray:      fArray,
 		StrArray:    strArray,
@@ -663,13 +664,13 @@ func TestRemoteQuery(t *testing.T) {
 	fArray := []float32{12.34, 23, 45, 45, 67}
 	strArray := []string{"Abc", "Bcd"}
 	bArray := []bool{true, true, false, false}
-	strPtrArray := []*string{&strValue, &strValue}
+	strPtrArray := []string{strValue, strValue}
 	r1 = &Reference{
 		Name:        strValue,
-		FValue:      &fValue,
+		FValue:      fValue,
 		F64:         23.456,
-		TimeStamp:   &ts,
-		Flag:        &flag,
+		TimeStamp:   ts,
+		Flag:        flag,
 		IArray:      iArray,
 		FArray:      fArray,
 		StrArray:    strArray,

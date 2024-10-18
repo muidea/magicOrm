@@ -8,30 +8,30 @@ import (
 
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider"
 )
 
 // Builder Builder
 type Builder struct {
-	buildCodec codec.Codec
-	hostModel  model.Model
+	modelProvider provider.Provider
+	buildCodec    codec.Codec
 }
 
 // New create builder
-func New(vModel model.Model, codec codec.Codec) *Builder {
+func New(provider provider.Provider, codec codec.Codec) *Builder {
 	return &Builder{
-		buildCodec: codec,
-		hostModel:  vModel,
+		modelProvider: provider,
+		buildCodec:    codec,
 	}
 }
 
-func (s *Builder) buildFilter(filter model.Filter) (ret string, err *cd.Result) {
+func (s *Builder) buildFilter(vModel model.Model, filter model.Filter) (ret string, err *cd.Result) {
 	if filter == nil {
 		return
 	}
 
 	filterSQL := ""
-	pkField := s.hostModel.GetPrimaryField()
-	for _, field := range s.hostModel.GetFields() {
+	for _, field := range vModel.GetFields() {
 		filterItem := filter.GetFilterItem(field.GetName())
 		if filterItem == nil {
 			continue
@@ -55,7 +55,7 @@ func (s *Builder) buildFilter(filter model.Filter) (ret string, err *cd.Result) 
 			continue
 		}
 
-		relationSQL, relationErr := s.buildRelationItem(pkField, field, filterItem)
+		relationSQL, relationErr := s.buildRelationItem(vModel, field, filterItem)
 		if relationErr != nil {
 			err = relationErr
 			log.Errorf("buildFilter failed, s.buildRelationItem %s error:%s", field.GetName(), err.Error())
@@ -95,7 +95,7 @@ func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem
 	return
 }
 
-func (s *Builder) buildRelationItem(pkField model.Field, vField model.Field, filterItem model.FilterItem) (ret string, err *cd.Result) {
+func (s *Builder) buildRelationItem(vModel model.Model, vField model.Field, filterItem model.FilterItem) (ret string, err *cd.Result) {
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
 	oprStr, oprErr := s.buildCodec.BuildOprValue(vField, oprValue)
@@ -105,26 +105,35 @@ func (s *Builder) buildRelationItem(pkField model.Field, vField model.Field, fil
 		return
 	}
 
+	rModel, rErr := s.modelProvider.GetTypeModel(vField.GetType())
+	if rErr != nil {
+		err = rErr
+		log.Errorf("buildRelationItem %s failed, s.modelProvider.GetTypeModel error:%s", vField.GetName(), err.Error())
+		return
+	}
+
 	relationFilterSQL := ""
 	strVal := oprFunc("right", oprStr)
-	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(s.hostModel, vField)
+	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField, rModel)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("buildRelationItem %s failed, s.buildCodec.ConstructRelationTableName error:%s", vField.GetName(), err.Error())
 		return
 	}
+
+	pkField := vModel.GetPrimaryField()
 	relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTableName, strVal)
 	relationFilterSQL = fmt.Sprintf("`%s` IN (%s)", pkField.GetName(), relationFilterSQL)
 	ret = relationFilterSQL
 	return
 }
 
-func (s *Builder) buildSorter(filter model.Sorter) (ret string, err *cd.Result) {
+func (s *Builder) buildSorter(vModel model.Model, filter model.Sorter) (ret string, err *cd.Result) {
 	if filter == nil {
 		return
 	}
 
-	for _, field := range s.hostModel.GetFields() {
+	for _, field := range vModel.GetFields() {
 		if field.GetName() == filter.Name() {
 			ret = SortOpr(filter.Name(), filter.AscSort())
 			return
@@ -137,14 +146,14 @@ func (s *Builder) buildSorter(filter model.Sorter) (ret string, err *cd.Result) 
 }
 
 func (s *Builder) buildFiledFilter(vField model.Field) (ret string, err *cd.Result) {
-	pkfVal, pkfErr := s.buildCodec.BuildFieldValue(vField)
-	if pkfErr != nil {
-		err = pkfErr
+	fieldVal, fieldErr := s.buildCodec.BuildFieldValue(vField)
+	if fieldErr != nil {
+		err = fieldErr
 		log.Errorf("BuildModelFilter failed, s.EncodeValue error:%s", err.Error())
 		return
 	}
 
-	pkfName := vField.GetName()
-	ret = fmt.Sprintf("`%s` = %v", pkfName, pkfVal)
+	fieldName := vField.GetName()
+	ret = fmt.Sprintf("`%s` = %v", fieldName, fieldVal)
 	return
 }

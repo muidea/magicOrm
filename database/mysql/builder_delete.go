@@ -10,15 +10,15 @@ import (
 )
 
 // BuildDelete  BuildDelete
-func (s *Builder) BuildDelete() (ret *Result, err *cd.Result) {
-	filterStr, filterErr := s.buildFiledFilter(s.hostModel.GetPrimaryField())
+func (s *Builder) BuildDelete(vModel model.Model) (ret *Result, err *cd.Result) {
+	filterStr, filterErr := s.buildFiledFilter(vModel.GetPrimaryField())
 	if filterErr != nil {
 		err = filterErr
 		log.Errorf("BuildDelete failed, s.BuildModelFilter error:%s", err.Error())
 		return
 	}
 
-	deleteSQL := fmt.Sprintf("DELETE FROM `%s` WHERE %s", s.buildCodec.ConstructModelTableName(s.hostModel), filterStr)
+	deleteSQL := fmt.Sprintf("DELETE FROM `%s` WHERE %s", s.buildCodec.ConstructModelTableName(vModel), filterStr)
 	if traceSQL() {
 		log.Infof("[SQL] delete: %s", deleteSQL)
 	}
@@ -28,15 +28,15 @@ func (s *Builder) BuildDelete() (ret *Result, err *cd.Result) {
 }
 
 // BuildDeleteRelation BuildDeleteRelation
-func (s *Builder) BuildDeleteRelation(vField model.Field, rModel model.Model) (delRight, delRelation *Result, err *cd.Result) {
-	leftVal, leftErr := s.buildCodec.BuildModelValue(s.hostModel)
+func (s *Builder) BuildDeleteRelation(vModel model.Model, vField model.Field, rModel model.Model) (delRight, delRelation *Result, err *cd.Result) {
+	leftVal, leftErr := s.buildCodec.BuildModelValue(vModel)
 	if leftErr != nil {
 		err = leftErr
 		log.Errorf("BuildDeleteRelation failed, s.BuildHostModelValue error:%s", err.Error())
 		return
 	}
 
-	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(s.hostModel, vField)
+	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField, rModel)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("BuildDeleteRelation %s failed, s.buildCodec.ConstructRelationTableName error:%s", vField.GetName(), err.Error())

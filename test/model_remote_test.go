@@ -1,6 +1,7 @@
 package test
 
 import (
+	"github.com/muidea/magicOrm/model"
 	"testing"
 
 	"github.com/muidea/magicCommon/foundation/util"
@@ -1061,7 +1062,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	filter, err := remoteProvider.GetModelFilter(userObject, 0)
+	filter, err := remoteProvider.GetModelFilter(userObject, model.FullView)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -1382,7 +1383,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("GetObject failed, err:%s", userObjectErr.Error())
 		return
 	}
-	filter, err := remoteProvider.GetModelFilter(userObject, 0)
+	filter, err := remoteProvider.GetModelFilter(userObject, model.FullView)
 	if err != nil {
 		t.Errorf("GetModelFilter failed, err:%s", err.Error())
 		return

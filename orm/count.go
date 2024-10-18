@@ -27,22 +27,22 @@ func NewCountRunner(
 }
 
 func (s *CountRunner) Count(vFilter model.Filter) (ret int64, err *cd.Result) {
-	countResult, countErr := s.baseRunner.hBuilder.BuildCount(vFilter)
+	countResult, countErr := s.hBuilder.BuildCount(s.vModel, vFilter)
 	if countErr != nil {
 		err = countErr
 		log.Errorf("queryCount failed, hBuilder.BuildCount error:%s", err.Error())
 		return
 	}
 
-	_, err = s.baseRunner.executor.Query(countResult.SQL(), false, countResult.Args()...)
+	_, err = s.executor.Query(countResult.SQL(), false, countResult.Args()...)
 	if err != nil {
 		return
 	}
-	defer s.baseRunner.executor.Finish()
+	defer s.executor.Finish()
 
-	if s.baseRunner.executor.Next() {
+	if s.executor.Next() {
 		var countVal sql.NullInt64
-		err = s.baseRunner.executor.GetField(&countVal)
+		err = s.executor.GetField(&countVal)
 		if err != nil {
 			log.Errorf("queryCount failed, s.executor.GetField error:%s", err.Error())
 			return

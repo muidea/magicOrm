@@ -26,6 +26,8 @@ type Provider interface {
 
 	GetModelFilter(vModel model.Model, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result)
 
+	SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *cd.Result)
+
 	GetValueModel(vVal model.Value, vType model.Type) (ret model.Model, err *cd.Result)
 
 	GetTypeModel(vType model.Type) (ret model.Model, err *cd.Result)
@@ -189,7 +191,7 @@ func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err 
 		ret = entityModel.Copy(true)
 		// 获取entity值失败，说明entity只是类型定义不是值
 		// 这里要当成获取Model成功继续处理
-		//err = entityTypeErr
+		//err = entityValueErr
 		return
 	}
 
@@ -234,6 +236,14 @@ func (s *providerImpl) GetModelFilter(vModel model.Model, viewSpec model.ViewDec
 	return
 }
 
+func (s *providerImpl) SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *cd.Result) {
+	ret, err = s.setModelValueFunc(vModel, vVal)
+	if err != nil {
+		log.Errorf("SetModelValue failed, s.setModelValueFunc error:%v", err.Error())
+	}
+	return
+}
+
 func (s *providerImpl) GetValueModel(vVal model.Value, vType model.Type) (ret model.Model, err *cd.Result) {
 	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
 	if typeModel == nil {
@@ -264,7 +274,7 @@ func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err *cd.
 		return
 	}
 
-	ret = typeModel.Copy(false)
+	ret = typeModel.Copy(true)
 	return
 }
 

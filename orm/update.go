@@ -44,7 +44,7 @@ func NewUpdateRunner(
 }
 
 func (s *UpdateRunner) updateHost() (err *cd.Result) {
-	updateResult, updateErr := s.hBuilder.BuildUpdate()
+	updateResult, updateErr := s.hBuilder.BuildUpdate(s.baseRunner.vModel)
 	if updateErr != nil {
 		err = updateErr
 		log.Errorf("updateHost failed, builderVal.BuildUpdate error:%s", err.Error())
@@ -58,14 +58,14 @@ func (s *UpdateRunner) updateHost() (err *cd.Result) {
 	return
 }
 
-func (s *UpdateRunner) updateRelation(vField model.Field) (err *cd.Result) {
-	err = s.deleteRelation(vField, 0)
+func (s *UpdateRunner) updateRelation(vField model.Field, rModel model.Model) (err *cd.Result) {
+	err = s.deleteRelation(vField, rModel, 0)
 	if err != nil {
 		log.Errorf("updateRelation failed, s.deleteRelation error:%s", err.Error())
 		return
 	}
 
-	err = s.insertRelation(vField)
+	err = s.insertRelation(vField, rModel)
 	if err != nil {
 		log.Errorf("updateRelation failed, s.insertRelation error:%s", err.Error())
 	}
@@ -84,7 +84,14 @@ func (s *UpdateRunner) Update() (ret model.Model, err *cd.Result) {
 			continue
 		}
 
-		err = s.updateRelation(field)
+		rModel, rErr := s.modelProvider.GetTypeModel(field.GetType())
+		if rErr != nil {
+			err = rErr
+			log.Errorf("Update failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+			return
+		}
+
+		err = s.updateRelation(field, rModel)
 		if err != nil {
 			log.Errorf("Update failed, s.updateRelation error:%s", err.Error())
 			return

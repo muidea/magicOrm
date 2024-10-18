@@ -2,11 +2,12 @@ package test
 
 import (
 	"fmt"
-	cd "github.com/muidea/magicCommon/def"
 	"testing"
 	"time"
 
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/util"
+
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
@@ -40,13 +41,13 @@ func prepareLocalData(localProvider provider.Provider, orm orm.Orm) (sPtr *Simpl
 	fArray := []float32{12.34, 23, 45, 45, 67}
 	strArray := []string{"Abc", "Bcd"}
 	bArray := []bool{true, true, false, false}
-	strPtrArray := []*string{&strValue, &strValue}
+	strPtrArray := []string{strValue, strValue}
 	rVal := &Reference{
 		Name:        strValue,
-		FValue:      &fValue,
+		FValue:      fValue,
 		F64:         23.456,
-		TimeStamp:   &ts,
-		Flag:        &flag,
+		TimeStamp:   ts,
+		Flag:        flag,
 		IArray:      iArray,
 		FArray:      fArray,
 		StrArray:    strArray,
@@ -129,13 +130,13 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 	fArray := []float32{12.34, 23, 45, 45, 67}
 	strArray := []string{"Abc", "Bcd"}
 	bArray := []bool{true, true, false, false}
-	strPtrArray := []*string{&strValue, &strValue}
+	strPtrArray := []string{strValue, strValue}
 	rVal := &Reference{
 		Name:        strValue,
-		FValue:      &fValue,
+		FValue:      fValue,
 		F64:         23.456,
-		TimeStamp:   &ts,
-		Flag:        &flag,
+		TimeStamp:   ts,
+		Flag:        flag,
 		IArray:      iArray,
 		FArray:      fArray,
 		StrArray:    strArray,
@@ -162,9 +163,9 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 	var ts2 time.Time
 	var flag2 bool
 	strArray2 := []string{}
-	ptrStrArray := []*string{}
+	ptrStrArray := []string{}
 
-	rPtr = &Reference{FValue: &fVal, TimeStamp: &ts2, Flag: &flag2, PtrArray: &strArray2, PtrStrArray: &ptrStrArray}
+	rPtr = &Reference{FValue: fVal, TimeStamp: ts2, Flag: flag2, PtrArray: &strArray2, PtrStrArray: &ptrStrArray}
 	rErr = helper.UpdateEntity(rObjectVal, rPtr)
 	if rErr != nil {
 		err = rErr

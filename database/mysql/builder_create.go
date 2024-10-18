@@ -9,9 +9,9 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *Builder) BuildCreateTable() (ret *Result, err *cd.Result) {
+func (s *Builder) BuildCreateTable(vModel model.Model) (ret *Result, err *cd.Result) {
 	createSQL := ""
-	for _, field := range s.hostModel.GetFields() {
+	for _, field := range vModel.GetFields() {
 		fType := field.GetType()
 		if !fType.IsBasic() {
 			continue
@@ -31,10 +31,10 @@ func (s *Builder) BuildCreateTable() (ret *Result, err *cd.Result) {
 		}
 	}
 
-	pkFieldName := s.hostModel.GetPrimaryField().GetName()
+	pkFieldName := vModel.GetPrimaryField().GetName()
 	createSQL = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", createSQL, pkFieldName)
 
-	createSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", s.buildCodec.ConstructModelTableName(s.hostModel), createSQL)
+	createSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", s.buildCodec.ConstructModelTableName(vModel), createSQL)
 	if traceSQL() {
 		log.Infof("[SQL] create: %s", createSQL)
 	}
@@ -44,12 +44,19 @@ func (s *Builder) BuildCreateTable() (ret *Result, err *cd.Result) {
 }
 
 // BuildCreateRelationTable Build CreateRelation Schema
-func (s *Builder) BuildCreateRelationTable(vField model.Field, rModel model.Model) (ret *Result, err *cd.Result) {
-	lPKField := s.hostModel.GetPrimaryField()
+func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Field, rModel model.Model) (ret *Result, err *cd.Result) {
+	lPKField := vModel.GetPrimaryField()
 	lPKType, lPKErr := getTypeDeclare(lPKField.GetType(), lPKField.GetSpec())
 	if lPKErr != nil {
 		err = lPKErr
 		log.Errorf("BuildCreateRelationTable failed, getTypeDeclare error:%s", err.Error())
+		return
+	}
+
+	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField, rModel)
+	if relationErr != nil {
+		err = relationErr
+		log.Errorf("BuildCreateRelationTable %s failed, s.buildCodec.ConstructRelationTableName error:%s", vField.GetName(), err.Error())
 		return
 	}
 
@@ -58,13 +65,6 @@ func (s *Builder) BuildCreateRelationTable(vField model.Field, rModel model.Mode
 	if rPKErr != nil {
 		err = rPKErr
 		log.Errorf("BuildCreateRelationTable failed, getTypeDeclare error:%s", err.Error())
-		return
-	}
-
-	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(s.hostModel, vField)
-	if relationErr != nil {
-		err = relationErr
-		log.Errorf("BuildCreateRelationTable %s failed, s.buildCodec.ConstructRelationTableName error:%s", vField.GetName(), err.Error())
 		return
 	}
 
