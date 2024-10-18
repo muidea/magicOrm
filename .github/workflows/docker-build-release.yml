@@ -23,6 +23,6 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.19.6'
+          go-version: '1.22.2'
       - name: Test with the Go CLI
         run: go test -json ./...
