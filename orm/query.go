@@ -205,19 +205,31 @@ func (s *QueryRunner) querySingleRelation(vModel model.Model, vField model.Field
 		return
 	}
 
-	rvModel, rvErr := s.innerQueryRelationModel(valueList[0], rModel, deepLevel)
+	rvModel, rvErr := s.innerQueryRelationSingleModel(valueList[0], rModel, deepLevel)
 	if rvErr != nil {
 		if rvErr.Fail() {
-			log.Errorf("querySingleRelation failed, s.innerQueryRelationModel error:%v", rvErr.Error())
+			log.Errorf("querySingleRelation failed, s.innerQueryRelationSingleModel error:%v", rvErr.Error())
 		} else if rvErr.Warn() {
-			log.Warnf("querySingleRelation failed, s.innerQueryRelationModel error:%v", rvErr.Error())
+			log.Warnf("querySingleRelation failed, s.innerQueryRelationSingleModel error:%v", rvErr.Error())
 		}
 
 		err = rvErr
 		return
 	}
 
-	modelVal, modelErr := s.modelProvider.GetEntityValue(rvModel.Interface(vType.IsPtrType(), model.LiteView))
+	if rvModel != nil {
+		modelVal, modelErr := s.modelProvider.GetEntityValue(rvModel.Interface(vType.IsPtrType(), model.LiteView))
+		if modelErr != nil {
+			err = modelErr
+			log.Errorf("querySingleRelation failed, s.modelProvider.GetEntityValue error:%v", err.Error())
+			return
+		}
+
+		ret = modelVal
+		return
+	}
+
+	modelVal, modelErr := s.modelProvider.GetEntityValue(rModel.Interface(vType.IsPtrType(), model.LiteView))
 	if modelErr != nil {
 		err = modelErr
 		log.Errorf("querySingleRelation failed, s.modelProvider.GetEntityValue error:%v", err.Error())
@@ -325,12 +337,12 @@ func (s *QueryRunner) innerQueryRelationKeys(vModel model.Model, vField model.Fi
 	return
 }
 
-func (s *QueryRunner) innerQueryRelationModel(id any, rModel model.Model, deepLevel int) (ret model.Model, err *cd.Result) {
+func (s *QueryRunner) innerQueryRelationSingleModel(id any, rModel model.Model, deepLevel int) (ret model.Model, err *cd.Result) {
 	pkField := rModel.GetPrimaryField()
 	fVal, fErr := s.modelProvider.DecodeValue(model.NewRawVal(id), pkField.GetType())
 	if fErr != nil {
 		err = fErr
-		log.Errorf("innerQueryRelationModel failed, s.modelProvider.DecodeValue error:%v", err.Error())
+		log.Errorf("innerQueryRelationSingleModel failed, s.modelProvider.DecodeValue error:%v", err.Error())
 		return
 	}
 	rModel.SetFieldValue(pkField.GetName(), fVal)
@@ -339,9 +351,9 @@ func (s *QueryRunner) innerQueryRelationModel(id any, rModel model.Model, deepLe
 	if vErr != nil {
 		err = vErr
 		if err.Fail() {
-			log.Errorf("innerQueryRelationModel failed, getModelFilter error:%v", err.Error())
+			log.Errorf("innerQueryRelationSingleModel failed, getModelFilter error:%v", err.Error())
 		} else if err.Warn() {
-			log.Warnf("innerQueryRelationModel failed, getModelFilter error:%v", err.Error())
+			log.Warnf("innerQueryRelationSingleModel failed, getModelFilter error:%v", err.Error())
 		}
 		return
 	}
@@ -351,9 +363,9 @@ func (s *QueryRunner) innerQueryRelationModel(id any, rModel model.Model, deepLe
 	if queryErr != nil {
 		err = queryErr
 		if err.Fail() {
-			log.Errorf("innerQueryRelationModel failed, s.querySingle error:%v", err.Error())
+			log.Errorf("innerQueryRelationSingleModel failed, s.querySingle error:%v", err.Error())
 		} else if err.Warn() {
-			log.Warnf("innerQueryRelationModel failed, s.querySingle error:%v", err.Error())
+			log.Warnf("innerQueryRelationSingleModel failed, s.querySingle error:%v", err.Error())
 		}
 		return
 	}
@@ -393,9 +405,9 @@ func (s *QueryRunner) innerQueryRelationSliceModel(ids []any, rModel model.Model
 		if queryErr != nil {
 			err = queryErr
 			if err.Fail() {
-				log.Errorf("innerQueryRelationModel failed, s.querySingle error:%v", err.Error())
+				log.Errorf("innerQueryRelationSingleModel failed, s.querySingle error:%v", err.Error())
 			} else if err.Warn() {
-				log.Warnf("innerQueryRelationModel failed, s.querySingle error:%v", err.Error())
+				log.Warnf("innerQueryRelationSingleModel failed, s.querySingle error:%v", err.Error())
 			}
 			return
 		}
@@ -478,7 +490,11 @@ func (s *impl) Query(vModel model.Model) (ret model.Model, err *cd.Result) {
 		}
 		return
 	}
+	if queryVal != nil && len(queryVal) != 0 {
+		ret = queryVal[0]
+		return
+	}
 
-	ret = queryVal[0]
+	err = cd.NewError(cd.NoExist, fmt.Sprintf("query model failed, pkgKey:%s", vModel.GetPkgKey()))
 	return
 }
