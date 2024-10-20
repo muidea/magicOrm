@@ -17,7 +17,32 @@ func getModelFilter(vModel model.Model, provider provider.Provider, viewSpec mod
 		return
 	}
 
+	hasPKValue := false
 	for _, field := range vModel.GetFields() {
+		fValue := field.GetValue()
+		if !field.IsPrimaryKey() || fValue.IsZero() {
+			continue
+		}
+
+		err = filterVal.Equal(field.GetName(), fValue.Interface().Value())
+		if err != nil {
+			log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
+			return
+		}
+		hasPKValue = true
+		break
+	}
+
+	if hasPKValue {
+		ret = filterVal
+		return
+	}
+
+	for _, field := range vModel.GetFields() {
+		if field.IsPrimaryKey() {
+			continue
+		}
+
 		fType := field.GetType()
 		fValue := field.GetValue()
 		if fValue.IsZero() {
