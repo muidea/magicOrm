@@ -231,7 +231,7 @@ func (s *codecImpl) encodeStructValue(vType model.Type, vValue model.Value) (ret
 func (s *codecImpl) encodeSliceString(sliceVal []any) []string {
 	strSlice := make([]string, len(sliceVal))
 	for idx, val := range sliceVal {
-		strSlice[idx] = val.(string)
+		strSlice[idx] = fmt.Sprintf("'%v'", val)
 	}
 
 	return strSlice
