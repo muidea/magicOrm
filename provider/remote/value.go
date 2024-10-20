@@ -49,14 +49,14 @@ func NewValue(val any) (ret *ValueImpl) {
 		*[]float32, *[]float64,
 		*[]string,
 		*[]time.Time,
-		//[]any,
-		//*[]any,
+		[]any,
 		*ObjectValue, *SliceObjectValue:
 		valPtr.value = val
 	case ObjectValue, SliceObjectValue:
 		valPtr.value = &val
 	default:
-		err := fmt.Errorf("illegal value, val:%v", val)
+		rVal := reflect.ValueOf(val)
+		err := fmt.Errorf("illegal value, val:%v, val type:%s", val, rVal.Type().String())
 		panic(err.Error())
 	}
 
