@@ -25,7 +25,7 @@ func getModelFilter(vModel model.Model, provider provider.Provider, viewSpec mod
 		}
 
 		// if basic
-		if model.IsBasicType(fType.GetValue()) {
+		if field.IsBasic() {
 			err = filterVal.Equal(field.GetName(), field.GetValue().Interface().Value())
 			if err != nil {
 				log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
@@ -35,8 +35,19 @@ func getModelFilter(vModel model.Model, provider provider.Provider, viewSpec mod
 			continue
 		}
 
+		// if slice
+		if field.IsSlice() {
+			err = filterVal.In(field.GetName(), fValue.Interface().Value())
+			if err != nil {
+				log.Errorf("getModelFilter failed, filterVal.In error:%s", err.Error())
+				return
+			}
+
+			continue
+		}
+
 		// if struct
-		if model.IsStructType(fType.GetValue()) {
+		if field.IsStruct() {
 			// 为了避免自己引用或关联自己
 			if fType.GetPkgKey() == vModel.GetPkgKey() {
 				vValue := vModel.GetPrimaryField().GetValue()
@@ -52,13 +63,6 @@ func getModelFilter(vModel model.Model, provider provider.Provider, viewSpec mod
 			}
 
 			continue
-		}
-
-		// if slice
-		err = filterVal.In(field.GetName(), fValue.Interface().Value())
-		if err != nil {
-			log.Errorf("getModelFilter failed, filterVal.In error:%s", err.Error())
-			return
 		}
 	}
 

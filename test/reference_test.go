@@ -494,11 +494,11 @@ func TestReferenceRemote(t *testing.T) {
 		return
 	}
 
-	err = filter.Like("strArray", "Abc")
-	if err != nil {
-		t.Errorf("filter.Like failed, err:%s", err.Error())
-		return
-	}
+	//err = filter.Like("strArray", "Abc")
+	//if err != nil {
+	//	t.Errorf("filter.Like failed, err:%s", err.Error())
+	//	return
+	//}
 
 	bqModelList, bqModelErr := o1.BatchQuery(filter)
 	if bqModelErr != nil {

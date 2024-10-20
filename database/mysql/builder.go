@@ -37,8 +37,7 @@ func (s *Builder) buildFilter(vModel model.Model, filter model.Filter) (ret stri
 			continue
 		}
 
-		fType := field.GetType()
-		if fType.IsBasic() {
+		if field.IsBasic() {
 			basicSQL, basicErr := s.buildBasicItem(field, filterItem)
 			if basicErr != nil {
 				err = basicErr
@@ -75,13 +74,6 @@ func (s *Builder) buildFilter(vModel model.Model, filter model.Filter) (ret stri
 }
 
 func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem) (ret string, err *cd.Result) {
-	fType := vField.GetType()
-	if !fType.IsBasic() {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal item type, name:%s", vField.GetName()))
-		log.Errorf("buildBasicItem failed, error:%s", err.Error())
-		return
-	}
-
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
 	oprStr, oprErr := s.buildCodec.BuildOprValue(vField, oprValue)
