@@ -25,11 +25,13 @@ func getModelFilter(vModel model.Model, provider provider.Provider, viewSpec mod
 		}
 
 		// if basic
-		if field.IsBasic() && !field.IsSlice() {
-			err = filterVal.Equal(field.GetName(), fValue.Interface().Value())
-			if err != nil {
-				log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
-				return
+		if field.IsBasic() {
+			if !field.IsSlice() {
+				err = filterVal.Equal(field.GetName(), fValue.Interface().Value())
+				if err != nil {
+					log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
+					return
+				}
 			}
 
 			continue
