@@ -115,7 +115,7 @@ func (s *ValueImpl) IsZero() (ret bool) {
 		err := fmt.Errorf("illegal value, val:%v", s.value)
 		panic(err.Error())
 	default:
-		err := fmt.Errorf("illegal value, val:%v", s.value)
+		err := fmt.Errorf("illegal value, val:%v, val type:%s", s.value, rVal.Type().String())
 		panic(err.Error())
 	}
 
