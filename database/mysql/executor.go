@@ -221,12 +221,12 @@ func (s *Executor) Query(sql string, needCols bool, args ...any) (ret []string, 
 		endTime := time.Now()
 		elapse := endTime.Sub(startTime)
 		if err != nil {
-			log.Errorf("Query failed, execute time:%s, elapse:%d, sql:%s, err:%s", startTime.Local().String(), elapse, sql, err.Error())
+			log.Errorf("Query failed, execute time:%s, elapse:%v, sql:%s, err:%s", startTime.Local().String(), elapse, sql, err.Error())
 			return
 		}
 
 		if traceSQL() {
-			log.Infof("Query ok, execute time:%s, elapse:%d, sql:%s", startTime.Local().String(), elapse, sql)
+			log.Infof("Query ok, execute time:%s, elapse:%v, sql:%s", startTime.Local().String(), elapse, sql)
 		}
 	}()
 
@@ -331,7 +331,7 @@ func (s *Executor) Execute(sql string, args ...any) (rowsAffected int64, lastIns
 		}
 
 		if traceSQL() {
-			log.Infof("Execute ok, execute time:%s, elapse:%d, sql:%s", startTime.Local().String(), elapse, sql)
+			log.Infof("Execute ok, execute time:%s, elapse:%v, sql:%s", startTime.Local().String(), elapse, sql)
 		}
 	}()
 
