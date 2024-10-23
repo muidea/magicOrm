@@ -127,7 +127,7 @@ func (s *Object) Interface(_ bool, viewSpec model.ViewDeclare) (ret any) {
 			if sf.Spec != nil && sf.Spec.EnableView(viewSpec) {
 				if sf.value == nil || !sf.value.IsValid() {
 					vVal, vErr := sf.Type.Interface(initVal)
-					if vErr != nil {
+					if vErr == nil {
 						objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: vVal.Get()})
 					} else {
 						log.Errorf("Interface failed, pkgKey:%s, fieldName:%s, error:%s", s.GetPkgKey(), sf.GetName(), vErr.Error())
