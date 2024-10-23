@@ -2,6 +2,7 @@ package remote
 
 import (
 	"fmt"
+	"github.com/muidea/magicCommon/foundation/log"
 	"path"
 
 	cd "github.com/muidea/magicCommon/def"
@@ -55,6 +56,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 			rawVal, rawErr := util.GetBool(initVal)
 			if rawErr != nil {
 				err = rawErr
+				log.Errorf("Interface failed, util.GetBool initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
 			initVal = rawVal.Value()
@@ -62,6 +64,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 			rawVal, rawErr := util.GetInt8(initVal)
 			if rawErr != nil {
 				err = rawErr
+				log.Errorf("Interface failed, util.GetInt8 initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
 			initVal = rawVal.Value()
@@ -69,6 +72,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 			rawVal, rawErr := util.GetInt16(initVal)
 			if rawErr != nil {
 				err = rawErr
+				log.Errorf("Interface failed, util.GetInt16 initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
 			initVal = rawVal.Value()
@@ -76,6 +80,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 			rawVal, rawErr := util.GetInt32(initVal)
 			if rawErr != nil {
 				err = rawErr
+				log.Errorf("Interface failed, util.GetInt32 initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
 			initVal = rawVal.Value()
@@ -83,6 +88,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 			rawVal, rawErr := util.GetInt(initVal)
 			if rawErr != nil {
 				err = rawErr
+				log.Errorf("Interface failed, util.GetInt initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
 			initVal = rawVal.Value()
@@ -90,6 +96,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 			rawVal, rawErr := util.GetInt64(initVal)
 			if rawErr != nil {
 				err = rawErr
+				log.Errorf("Interface failed, util.GetInt64 initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
 			initVal = rawVal.Value()
@@ -97,6 +104,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 			rawVal, rawErr := util.GetUint8(initVal)
 			if rawErr != nil {
 				err = rawErr
+				log.Errorf("Interface failed, util.GetUint8 initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
 			initVal = rawVal.Value()
@@ -104,6 +112,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 			rawVal, rawErr := util.GetUint16(initVal)
 			if rawErr != nil {
 				err = rawErr
+				log.Errorf("Interface failed, util.GetUint16 initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
 			initVal = rawVal.Value()
@@ -111,6 +120,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 			rawVal, rawErr := util.GetUint32(initVal)
 			if rawErr != nil {
 				err = rawErr
+				log.Errorf("Interface failed, util.GetUint32 initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
 			initVal = rawVal.Value()
@@ -118,6 +128,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 			rawVal, rawErr := util.GetUint(initVal)
 			if rawErr != nil {
 				err = rawErr
+				log.Errorf("Interface failed, util.GetUint initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
 			initVal = rawVal.Value()
@@ -125,6 +136,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 			rawVal, rawErr := util.GetUint64(initVal)
 			if rawErr != nil {
 				err = rawErr
+				log.Errorf("Interface failed, util.GetUint64 initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
 			initVal = rawVal.Value()
@@ -132,6 +144,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 			rawVal, rawErr := util.GetFloat32(initVal)
 			if rawErr != nil {
 				err = rawErr
+				log.Errorf("Interface failed, util.GetFloat32 initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
 			initVal = rawVal.Value()
@@ -139,6 +152,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 			rawVal, rawErr := util.GetFloat64(initVal)
 			if rawErr != nil {
 				err = rawErr
+				log.Errorf("Interface failed, util.GetFloat64 initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
 			initVal = rawVal.Value()
@@ -146,6 +160,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 			rawVal, rawErr := util.GetString(initVal)
 			if rawErr != nil {
 				err = rawErr
+				log.Errorf("Interface failed, util.GetString initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
 			initVal = rawVal.Value()
@@ -153,19 +168,17 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 			rawVal, rawErr := util.GetString(initVal)
 			if rawErr != nil {
 				err = rawErr
+				log.Errorf("Interface failed, util.GetString initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
 			initVal = rawVal.Value()
 		case model.TypeSliceValue:
 			// TODO
+			log.Errorf("Interface failed, util.GetString initVal:%+v", initVal)
 		default:
 			initVal = nil
 		}
 	}
-	if err != nil {
-		return
-	}
-
 	if initVal != nil {
 		ret = NewValue(initVal)
 		return
