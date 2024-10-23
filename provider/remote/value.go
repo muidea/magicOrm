@@ -38,17 +38,6 @@ func NewValue(val any) (ret *ValueImpl) {
 		[]float32, []float64,
 		[]string,
 		[]time.Time,
-		*int8, *int16, *int32, *int, *int64,
-		*uint8, *uint16, *uint32, *uint, *uint64,
-		*float32, *float64,
-		*string,
-		*time.Time,
-		*[]bool,
-		*[]int8, *[]int16, *[]int32, *[]int, *[]int64,
-		*[]uint8, *[]uint16, *[]uint32, *[]uint, *[]uint64,
-		*[]float32, *[]float64,
-		*[]string,
-		*[]time.Time,
 		[]any,
 		*ObjectValue, *SliceObjectValue:
 		valPtr.value = val

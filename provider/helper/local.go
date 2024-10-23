@@ -127,7 +127,7 @@ func toLocalValue(rVal *remote.ObjectValue, lType model.Type) (ret model.Value, 
 
 	for idx := 0; idx < len(rVal.Fields); idx++ {
 		fieldVal := rVal.Fields[idx]
-		if fieldVal.IsNil() || fieldVal.IsZero() {
+		if fieldVal.IsNil() {
 			continue
 		}
 

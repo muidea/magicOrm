@@ -250,6 +250,7 @@ func getFieldValue(fieldName string, itemType *TypeImpl, itemValue reflect.Value
 			return
 		}
 
+		itemValue = reflect.Indirect(itemValue)
 		itemVal, itemErr := _codec.Encode(NewValue(itemValue.Interface()), itemType)
 		if itemErr != nil {
 			err = itemErr

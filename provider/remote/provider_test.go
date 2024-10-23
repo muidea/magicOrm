@@ -123,13 +123,13 @@ func TestGetEntityValue(t *testing.T) {
 	}
 
 	dt := time.Now()
-	entity = &dt
+	entity = dt
 	eTypeVal, eTypeErr = GetEntityType(entity)
 	if eTypeErr != nil {
 		t.Errorf("GetEntityType failed, error:%s", eTypeErr.Error())
 		return
 	}
-	if !eTypeVal.IsBasic() || !eTypeVal.IsPtrType() {
+	if !eTypeVal.IsBasic() || eTypeVal.IsPtrType() {
 		t.Errorf("GetEntityType failed")
 		return
 	}
@@ -235,7 +235,7 @@ func TestAppendSliceValue(t *testing.T) {
 		return
 	}
 
-	iSliceValueVal, iSliceValueErr = GetEntityValue(&iSliceVal)
+	iSliceValueVal, iSliceValueErr = GetEntityValue(iSliceVal)
 	if iSliceValueErr != nil {
 		t.Errorf("GetEntityValue(iSliceVal) failed, error:%s", iSliceValueErr.Error())
 		return
@@ -247,7 +247,7 @@ func TestAppendSliceValue(t *testing.T) {
 		return
 	}
 	switch iSliceValueVal.Interface().Value().(type) {
-	case *[]int:
+	case []int:
 		t.Logf("%+v", iSliceValueVal.Interface())
 	default:
 		t.Errorf("AppendSliceValue failed")

@@ -156,8 +156,14 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 				return
 			}
 			initVal = rawVal.Value()
-		case model.TypeStringValue, model.TypeDateTimeValue:
-			// nothing
+		case model.TypeDateTimeValue, model.TypeStringValue:
+			rawVal, rawErr := util.GetString(initVal)
+			if rawErr != nil {
+				err = rawErr
+				log.Errorf("Interface failed, util.GetString initVal:%+v, error:%s", initVal, err.Error())
+				return
+			}
+			initVal = rawVal.Value()
 		case model.TypeSliceValue:
 			if !s.Elem().IsBasic() {
 				initVal = nil
