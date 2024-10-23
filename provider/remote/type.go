@@ -2,10 +2,10 @@ package remote
 
 import (
 	"fmt"
-	"github.com/muidea/magicCommon/foundation/log"
 	"path"
 
 	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/util"
@@ -156,25 +156,12 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 				return
 			}
 			initVal = rawVal.Value()
-		case model.TypeStringValue:
-			rawVal, rawErr := util.GetString(initVal)
-			if rawErr != nil {
-				err = rawErr
-				log.Errorf("Interface failed, util.GetString initVal:%+v, error:%s", initVal, err.Error())
-				return
-			}
-			initVal = rawVal.Value()
-		case model.TypeDateTimeValue:
-			rawVal, rawErr := util.GetString(initVal)
-			if rawErr != nil {
-				err = rawErr
-				log.Errorf("Interface failed, util.GetString initVal:%+v, error:%s", initVal, err.Error())
-				return
-			}
-			initVal = rawVal.Value()
+		case model.TypeStringValue, model.TypeDateTimeValue:
+			// nothing
 		case model.TypeSliceValue:
-			// TODO
-			log.Errorf("Interface failed, util.GetString initVal:%+v", initVal)
+			if !s.Elem().IsBasic() {
+				initVal = nil
+			}
 		default:
 			initVal = nil
 		}
