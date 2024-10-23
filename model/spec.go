@@ -4,6 +4,7 @@ type Spec interface {
 	IsPrimaryKey() bool
 	GetValueDeclare() ValueDeclare
 	EnableView(ViewDeclare) bool
+	GetDefaultValue() RawVal
 }
 
 func CompareSpec(l, r Spec) bool {

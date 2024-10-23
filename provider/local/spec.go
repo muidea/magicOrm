@@ -104,6 +104,10 @@ func (s *SpecImpl) EnableView(viewSpec model.ViewDeclare) bool {
 	return false
 }
 
+func (s *SpecImpl) GetDefaultValue() model.RawVal {
+	return model.NewRawVal(nil)
+}
+
 func (s *SpecImpl) copy() (ret *SpecImpl) {
 	ret = &SpecImpl{
 		fieldName:    s.fieldName,
