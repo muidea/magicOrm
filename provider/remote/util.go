@@ -9,7 +9,7 @@ import (
 var _declareObjectSliceValue SliceObjectValue
 var _declareObjectValue ObjectValue
 
-func getSliceType(tType model.Type) (ret any) {
+func getSliceInitValue(tType model.Type) (ret any) {
 	eType := tType.Elem()
 	switch eType.GetValue() {
 	case model.TypeBooleanValue:
@@ -41,8 +41,6 @@ func getSliceType(tType model.Type) (ret any) {
 		ret = []float32{}
 	case model.TypeDoubleValue:
 		ret = []float64{}
-	case model.TypeStructValue:
-		ret = &_declareObjectSliceValue
 	default:
 		err := fmt.Errorf("unexpected slice item type, name:%s, type:%d", tType.GetName(), tType.GetValue())
 		panic(err)
@@ -83,7 +81,7 @@ func getBasicInitValue(tType model.Type) (ret any) {
 	case model.TypeDoubleValue:
 		ret = 0.00
 	case model.TypeSliceValue:
-		ret = getSliceType(tType)
+		ret = getSliceInitValue(tType)
 	default:
 		err := fmt.Errorf("unexpected basic item type, name:%s, type:%d", tType.GetName(), tType.GetValue())
 		panic(err)
@@ -94,17 +92,18 @@ func getBasicInitValue(tType model.Type) (ret any) {
 
 func getStructInitValue(tType model.Type) (ret any) {
 	if model.IsSliceType(tType.GetValue()) {
-		_declareObjectSliceValue.Name = tType.GetName()
-		_declareObjectSliceValue.PkgPath = tType.GetPkgPath()
-
-		ret = _declareObjectSliceValue.Copy()
+		sliceVal := _declareObjectSliceValue.Copy()
+		sliceVal.Name = tType.GetName()
+		sliceVal.PkgPath = tType.GetPkgPath()
+		ret = sliceVal
 		return
 	}
 
 	if model.IsStructType(tType.GetValue()) {
-		_declareObjectValue.Name = tType.GetName()
-		_declareObjectValue.PkgPath = tType.GetPkgPath()
-		ret = _declareObjectValue.Copy()
+		valPtr := _declareObjectValue.Copy()
+		valPtr.Name = tType.GetName()
+		valPtr.PkgPath = tType.GetPkgPath()
+		ret = valPtr
 		return
 	}
 

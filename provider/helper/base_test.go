@@ -109,6 +109,13 @@ type Compose struct {
 	BasePtrArrayPtr *[]*Base `orm:"basePtrArrayPtr"`
 }
 
+type Person struct {
+	ID   int     `orm:"id key auto"`
+	Name string  `orm:"name"`
+	Age  *int    `orm:"age"`
+	Addr *string `orm:"addr"`
+}
+
 func TestModel(t *testing.T) {
 	base1 := emptyBase
 	err := testValue(t, base1)
@@ -192,4 +199,39 @@ func testValue(t *testing.T, valPtr any) *cd.Result {
 		return cd.NewError(cd.UnExpected, "compare model failed")
 	}
 	return nil
+}
+
+func TestPerson(t *testing.T) {
+	age := 40
+	addr := "test addr"
+	person := &Person{
+		ID:   12,
+		Name: "test",
+		Age:  &age,
+		Addr: &addr,
+	}
+
+	personObjectVal, personObjectErr := GetObjectValue(person)
+	if personObjectErr != nil {
+		t.Errorf("GetObjectValue failed, error:%s", personObjectErr.Error())
+		return
+	}
+
+	personObjectVal.SetFieldValue("age", 32)
+	personObjectVal.SetFieldValue("addr", "hey boy!")
+
+	nPerson := &Person{}
+	entityErr := UpdateEntity(personObjectVal, nPerson)
+	if entityErr != nil {
+		t.Errorf("UpdateEntity failed, error:%s", entityErr.Error())
+		return
+	}
+	if *nPerson.Age != 32 {
+		t.Errorf("UpdateEntity failed")
+		return
+	}
+	if *nPerson.Addr != "hey boy!" {
+		t.Errorf("UpdateEntity failed")
+		return
+	}
 }

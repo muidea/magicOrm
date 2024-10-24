@@ -239,7 +239,7 @@ func GetObject(entity any) (ret *Object, err *cd.Result) {
 }
 
 func getFieldValue(fieldName string, itemType *TypeImpl, itemValue reflect.Value) (ret *FieldValue, err *cd.Result) {
-	if itemType.IsPtrType() && itemValue.IsZero() {
+	if itemType.IsPtrType() && itemValue.IsNil() {
 		ret = &FieldValue{Name: fieldName, Value: nil}
 		return
 	}

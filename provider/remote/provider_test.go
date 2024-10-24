@@ -8,11 +8,11 @@ import (
 )
 
 func TestGetEntityType(t *testing.T) {
-	var entity interface{}
+	var entityVal interface{}
 	iVal := 123
 
-	entity = iVal
-	eTypeVal, eTypeErr := GetEntityType(entity)
+	entityVal = iVal
+	eTypeVal, eTypeErr := GetEntityType(entityVal)
 	if eTypeErr != nil {
 		t.Errorf("GetEntityType failed, error:%s", eTypeErr.Error())
 		return
@@ -26,7 +26,7 @@ func TestGetEntityType(t *testing.T) {
 		return
 	}
 
-	typePtr, typeErr := getEntityType(entity)
+	typePtr, typeErr := getEntityType(entityVal)
 	if typeErr != nil {
 		t.Errorf("getEntityType failed, error:%s", typeErr.Error())
 		return
@@ -46,7 +46,7 @@ func TestGetEntityType(t *testing.T) {
 		return
 	}
 
-	eVal, eErr := eTypeVal.Interface(entity)
+	eVal, eErr := eTypeVal.Interface(entityVal)
 	if eErr != nil {
 		t.Errorf("eTypeVal.Interface failed, error:%s", eErr.Error())
 		return
@@ -58,8 +58,8 @@ func TestGetEntityType(t *testing.T) {
 	}
 
 	dt := time.Now()
-	entity = &dt
-	eTypeVal, eTypeErr = GetEntityType(entity)
+	entityVal = &dt
+	eTypeVal, eTypeErr = GetEntityType(entityVal)
 	if eTypeErr != nil {
 		t.Errorf("GetEntityType failed, error:%s", eTypeErr.Error())
 		return
@@ -72,7 +72,7 @@ func TestGetEntityType(t *testing.T) {
 		t.Errorf("GetEntityType failed")
 		return
 	}
-	eVal, eErr = eTypeVal.Interface(entity)
+	eVal, eErr = eTypeVal.Interface(entityVal)
 	if eErr != nil {
 		t.Errorf("eTypeVal.Interface failed, error:%s", eErr.Error())
 		return
@@ -85,11 +85,11 @@ func TestGetEntityType(t *testing.T) {
 }
 
 func TestGetEntityValue(t *testing.T) {
-	var entity interface{}
+	var entityVal interface{}
 	iVal := 123
 
-	entity = iVal
-	eTypeVal, eTypeErr := GetEntityType(entity)
+	entityVal = iVal
+	eTypeVal, eTypeErr := GetEntityType(entityVal)
 	if eTypeErr != nil {
 		t.Errorf("GetEntityType failed, error:%s", eTypeErr.Error())
 		return
@@ -103,7 +103,7 @@ func TestGetEntityValue(t *testing.T) {
 		return
 	}
 
-	eValueVal, eValueErr := GetEntityValue(entity)
+	eValueVal, eValueErr := GetEntityValue(entityVal)
 	if eValueErr != nil {
 		t.Errorf("GetEntityValue failed, error:%s", eValueErr.Error())
 		return
@@ -123,8 +123,8 @@ func TestGetEntityValue(t *testing.T) {
 	}
 
 	dt := time.Now()
-	entity = dt
-	eTypeVal, eTypeErr = GetEntityType(entity)
+	entityVal = dt
+	eTypeVal, eTypeErr = GetEntityType(entityVal)
 	if eTypeErr != nil {
 		t.Errorf("GetEntityType failed, error:%s", eTypeErr.Error())
 		return
@@ -137,7 +137,7 @@ func TestGetEntityValue(t *testing.T) {
 		t.Errorf("GetEntityType failed")
 		return
 	}
-	eValueVal, eValueErr = GetEntityValue(entity)
+	eValueVal, eValueErr = GetEntityValue(entityVal)
 	if eValueErr != nil {
 		t.Errorf("GetEntityValue failed, error:%s", eValueErr.Error())
 		return
@@ -158,8 +158,11 @@ func TestGetEntityValue(t *testing.T) {
 }
 
 func TestRemoteModel(t *testing.T) {
+	desc := "abc"
 	sPtr := &Simple{
-		ID: 100,
+		ID:   100,
+		Desc: &desc,
+		Add:  []int{},
 	}
 
 	eTypeVal, eTypeErr := GetEntityType(sPtr)

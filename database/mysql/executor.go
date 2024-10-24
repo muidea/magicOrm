@@ -232,7 +232,7 @@ func (s *Executor) Query(sql string, needCols bool, args ...any) (ret []string, 
 
 	if s.dbTx == nil {
 		if s.dbHandle == nil {
-			panic("dbHanlde is nil")
+			panic("dbHandle is nil")
 		}
 		if s.rowsHandle != nil {
 			_ = s.rowsHandle.Close()
@@ -371,9 +371,8 @@ func (s *Executor) Execute(sql string, args ...any) (rowsAffected int64, lastIns
 
 // CheckTableExist Check Table Exist
 func (s *Executor) CheckTableExist(tableName string) (ret bool, err *cd.Result) {
-	strSQL := fmt.Sprintf("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_NAME ='%s' and TABLE_SCHEMA ='%s'", tableName, s.dbName)
-
-	_, err = s.Query(strSQL, false)
+	strSQL := "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_NAME =? and TABLE_SCHEMA =?"
+	_, err = s.Query(strSQL, false, tableName, s.dbName)
 	if err != nil {
 		log.Errorf("CheckTableExist failed, s.Query error:%s", err.Error())
 		return

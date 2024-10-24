@@ -99,6 +99,21 @@ func testDML(wg *sync.WaitGroup, pool *Pool) {
 	wg.Add(1)
 	pickExecutor(pool, wg, createSchema)
 
+	wg.Add(1)
+	pickExecutor(pool, wg, func(executor *Executor) (err *cd.Result) {
+		bVal, bErr := checkSchema(executor)
+		if bErr != nil {
+			log.Errorf("checkSchema failed, error:%s", bErr.Error())
+			err = bErr
+			return
+		}
+		if !bVal {
+			log.Errorf("checkSchema failed")
+		}
+
+		return
+	})
+
 	for idx := 0; idx < threadSize; idx++ {
 		wg.Add(1)
 		go pickExecutor(pool, wg, insertValue)
