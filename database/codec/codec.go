@@ -272,43 +272,7 @@ func (s *codecImpl) encodeSliceValue(vType model.Type, vValue model.Value) (ret 
 		return
 	}
 
-	sliceVal, sliceOK := fEncodeVal.Value().([]any)
-	if !sliceOK {
-		err = cd.NewError(cd.UnExpected, "illegal slice encode value")
-		return
-	}
-
-	var strSlice = []string{}
-	eType := vType.Elem()
-	switch eType.GetValue() {
-	case model.TypeStringValue, model.TypeDateTimeValue:
-		strSlice = s.encodeSliceString(sliceVal)
-	case model.TypeBooleanValue, model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeBigIntegerValue, model.TypeIntegerValue,
-		model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue, model.TypePositiveIntegerValue:
-		strSlice = s.encodeSliceInt(sliceVal)
-	case model.TypeFloatValue, model.TypeDoubleValue:
-		strSlice = s.encodeSliceFloat(sliceVal)
-	case model.TypeStructValue:
-		strSlice = s.encodeSliceStruct(sliceVal)
-	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal filed type %s", vType.Elem().GetPkgKey()))
-	}
-	if err != nil {
-		return
-	}
-
-	if eType.IsBasic() {
-		byteVal, byteErr := json.Marshal(strSlice)
-		if byteErr != nil {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("%s", byteErr.Error()))
-			return
-		}
-		ret = model.NewRawVal(strings.ReplaceAll(string(byteVal), "'", "''"))
-		return
-	}
-
-	strVal := strings.Join(strSlice, ",")
-	ret = model.NewRawVal(strVal)
+	ret = fEncodeVal
 	return
 }
 

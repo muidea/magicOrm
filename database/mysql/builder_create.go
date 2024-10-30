@@ -9,7 +9,7 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *Builder) BuildCreateTable(vModel model.Model) (ret *Result, err *cd.Result) {
+func (s *Builder) BuildCreateTable(vModel model.Model) (ret *ResultStack, err *cd.Result) {
 	createSQL := ""
 	for _, field := range vModel.GetFields() {
 		fType := field.GetType()
@@ -44,7 +44,7 @@ func (s *Builder) BuildCreateTable(vModel model.Model) (ret *Result, err *cd.Res
 }
 
 // BuildCreateRelationTable Build CreateRelation Schema
-func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Field, rModel model.Model) (ret *Result, err *cd.Result) {
+func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Field, rModel model.Model) (ret *ResultStack, err *cd.Result) {
 	lPKField := vModel.GetPrimaryField()
 	lPKType, lPKErr := getTypeDeclare(lPKField.GetType(), lPKField.GetSpec())
 	if lPKErr != nil {

@@ -25,7 +25,7 @@ func New(provider provider.Provider, codec codec.Codec) *Builder {
 	}
 }
 
-func (s *Builder) buildFilter(vModel model.Model, filter model.Filter) (ret string, err *cd.Result) {
+func (s *Builder) buildFilter(vModel model.Model, filter model.Filter, resultStackPtr *ResultStack) (ret string, err *cd.Result) {
 	if filter == nil {
 		return
 	}
@@ -38,7 +38,7 @@ func (s *Builder) buildFilter(vModel model.Model, filter model.Filter) (ret stri
 		}
 
 		if field.IsBasic() {
-			basicSQL, basicErr := s.buildBasicItem(field, filterItem)
+			basicSQL, basicErr := s.buildBasicItem(field, filterItem, resultStackPtr)
 			if basicErr != nil {
 				err = basicErr
 				log.Errorf("buildFilter failed, s.buildBasicItem %s error:%s", field.GetName(), err.Error())
@@ -54,7 +54,7 @@ func (s *Builder) buildFilter(vModel model.Model, filter model.Filter) (ret stri
 			continue
 		}
 
-		relationSQL, relationErr := s.buildRelationItem(vModel, field, filterItem)
+		relationSQL, relationErr := s.buildRelationItem(vModel, field, filterItem, resultStackPtr)
 		if relationErr != nil {
 			err = relationErr
 			log.Errorf("buildFilter failed, s.buildRelationItem %s error:%s", field.GetName(), err.Error())
@@ -73,7 +73,7 @@ func (s *Builder) buildFilter(vModel model.Model, filter model.Filter) (ret stri
 	return
 }
 
-func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem) (ret string, err *cd.Result) {
+func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem, resultStackPtr *ResultStack) (ret string, err *cd.Result) {
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
 	oprStr, oprErr := s.buildCodec.BuildOprValue(vField, oprValue)
@@ -83,11 +83,11 @@ func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem
 		return
 	}
 
-	ret = oprFunc(vField.GetName(), oprStr)
+	ret = oprFunc(vField.GetName(), oprStr, resultStackPtr)
 	return
 }
 
-func (s *Builder) buildRelationItem(vModel model.Model, vField model.Field, filterItem model.FilterItem) (ret string, err *cd.Result) {
+func (s *Builder) buildRelationItem(vModel model.Model, vField model.Field, filterItem model.FilterItem, resultStackPtr *ResultStack) (ret string, err *cd.Result) {
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
 	oprStr, oprErr := s.buildCodec.BuildOprValue(vField, oprValue)
@@ -105,7 +105,7 @@ func (s *Builder) buildRelationItem(vModel model.Model, vField model.Field, filt
 	}
 
 	relationFilterSQL := ""
-	strVal := oprFunc("right", oprStr)
+	strVal := oprFunc("right", oprStr, resultStackPtr)
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField, rModel)
 	if relationErr != nil {
 		err = relationErr
@@ -137,7 +137,7 @@ func (s *Builder) buildSorter(vModel model.Model, filter model.Sorter) (ret stri
 	return
 }
 
-func (s *Builder) buildFiledFilter(vField model.Field) (ret string, err *cd.Result) {
+func (s *Builder) buildFiledFilter(vField model.Field, resultStackPtr *ResultStack) (ret string, err *cd.Result) {
 	fieldVal, fieldErr := s.buildCodec.BuildFieldValue(vField)
 	if fieldErr != nil {
 		err = fieldErr
@@ -146,6 +146,7 @@ func (s *Builder) buildFiledFilter(vField model.Field) (ret string, err *cd.Resu
 	}
 
 	fieldName := vField.GetName()
-	ret = fmt.Sprintf("`%s` = %v", fieldName, fieldVal)
+	resultStackPtr.PushArgs(fieldVal.Value())
+	ret = fmt.Sprintf("`%s` = ?", fieldName)
 	return
 }

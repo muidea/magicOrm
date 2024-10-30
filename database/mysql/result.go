@@ -1,25 +1,29 @@
 package mysql
 
-type Result struct {
+type ResultStack struct {
 	sqlVal  string
-	valsVal []any
+	argsVal []any
 }
 
-func (s *Result) String() string {
-	return s.sqlVal
-}
-
-func (s *Result) SQL() string {
-	return s.sqlVal
-}
-
-func (s *Result) Args() []any {
-	return s.valsVal
-}
-
-func NewResult(sql string, vals []any) *Result {
-	return &Result{
+func NewResult(sql string, args []any) *ResultStack {
+	return &ResultStack{
 		sqlVal:  sql,
-		valsVal: []any{},
+		argsVal: args,
 	}
+}
+
+func (s *ResultStack) SetSQL(sql string) {
+	s.sqlVal = sql
+}
+
+func (s *ResultStack) PushArgs(arg ...any) {
+	s.argsVal = append(s.argsVal, arg...)
+}
+
+func (s *ResultStack) SQL() string {
+	return s.sqlVal
+}
+
+func (s *ResultStack) Args() []any {
+	return s.argsVal
 }

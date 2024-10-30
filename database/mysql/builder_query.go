@@ -10,7 +10,7 @@ import (
 )
 
 // BuildQuery build query sql
-func (s *Builder) BuildQuery(vModel model.Model, filter model.Filter) (ret *Result, err *cd.Result) {
+func (s *Builder) BuildQuery(vModel model.Model, filter model.Filter) (ret *ResultStack, err *cd.Result) {
 	namesVal, nameErr := s.getFieldQueryNames(vModel)
 	if nameErr != nil {
 		err = nameErr
@@ -18,9 +18,10 @@ func (s *Builder) BuildQuery(vModel model.Model, filter model.Filter) (ret *Resu
 		return
 	}
 
+	resultStackPtr := &ResultStack{}
 	querySQL := fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.buildCodec.ConstructModelTableName(vModel))
 	if filter != nil {
-		filterSQL, filterErr := s.buildFilter(vModel, filter)
+		filterSQL, filterErr := s.buildFilter(vModel, filter, resultStackPtr)
 		if filterErr != nil {
 			err = filterErr
 			log.Errorf("BuildQuery failed, s.buildFilter error:%s", err.Error())
@@ -44,20 +45,21 @@ func (s *Builder) BuildQuery(vModel model.Model, filter model.Filter) (ret *Resu
 
 		limit, offset, paging := filter.Pagination()
 		if paging {
-			querySQL = fmt.Sprintf("%s LIMIT %d OFFSET %d", querySQL, limit, offset)
+			resultStackPtr.PushArgs(limit, offset)
+			querySQL = fmt.Sprintf("%s LIMIT ? OFFSET ?", querySQL)
 		}
 	}
 	if traceSQL() {
 		log.Infof("[SQL] query: %s", querySQL)
 	}
 
-	ret = NewResult(querySQL, nil)
-	//log.Print(ret)
+	resultStackPtr.SetSQL(querySQL)
+	ret = resultStackPtr
 	return
 }
 
 // BuildQueryRelation build query relation sql
-func (s *Builder) BuildQueryRelation(vModel model.Model, vField model.Field, rModel model.Model) (ret *Result, err *cd.Result) {
+func (s *Builder) BuildQueryRelation(vModel model.Model, vField model.Field, rModel model.Model) (ret *ResultStack, err *cd.Result) {
 	leftVal, leftErr := s.buildCodec.BuildModelValue(vModel)
 	if leftErr != nil {
 		err = leftErr
@@ -72,13 +74,15 @@ func (s *Builder) BuildQueryRelation(vModel model.Model, vField model.Field, rMo
 		return
 	}
 
-	queryRelationSQL := fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= %v", relationTableName, leftVal)
-	//log.Print(ret)
+	resultStackPtr := &ResultStack{}
+	queryRelationSQL := fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= ?", relationTableName)
 	if traceSQL() {
 		log.Infof("[SQL] query relation: %s", queryRelationSQL)
 	}
 
-	ret = NewResult(queryRelationSQL, nil)
+	resultStackPtr.PushArgs(leftVal.Value())
+	resultStackPtr.SetSQL(queryRelationSQL)
+	ret = resultStackPtr
 	return
 }
 

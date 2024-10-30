@@ -10,14 +10,15 @@ import (
 )
 
 // BuildUpdate  Build Update
-func (s *Builder) BuildUpdate(vModel model.Model) (ret *Result, err *cd.Result) {
-	updateStr, updateErr := s.getFieldUpdateValues(vModel)
+func (s *Builder) BuildUpdate(vModel model.Model) (ret *ResultStack, err *cd.Result) {
+	resultStackPtr := &ResultStack{}
+	updateStr, updateErr := s.buildFieldUpdateValues(vModel, resultStackPtr)
 	if updateErr != nil {
 		err = updateErr
-		log.Errorf("BuildUpdate failed, s.getFieldUpdateValues error:%s", err.Error())
+		log.Errorf("BuildUpdate failed, s.buildFieldUpdateValues error:%s", err.Error())
 		return
 	}
-	filterStr, filterErr := s.buildFiledFilter(vModel.GetPrimaryField())
+	filterStr, filterErr := s.buildFiledFilter(vModel.GetPrimaryField(), resultStackPtr)
 	if filterErr != nil {
 		err = filterErr
 		log.Errorf("BuildUpdate failed, s.BuildModelFilter error:%s", err.Error())
@@ -25,16 +26,16 @@ func (s *Builder) BuildUpdate(vModel model.Model) (ret *Result, err *cd.Result) 
 	}
 
 	updateSQL := fmt.Sprintf("UPDATE `%s` SET %s WHERE %s", s.buildCodec.ConstructModelTableName(vModel), updateStr, filterStr)
-	//log.Print(updateSQL)
 	if traceSQL() {
 		log.Infof("[SQL] update: %s", updateSQL)
 	}
 
-	ret = NewResult(updateSQL, nil)
+	resultStackPtr.SetSQL(updateSQL)
+	ret = resultStackPtr
 	return
 }
 
-func (s *Builder) getFieldUpdateValues(vModel model.Model) (ret string, err *cd.Result) {
+func (s *Builder) buildFieldUpdateValues(vModel model.Model, resultStackPtr *ResultStack) (ret string, err *cd.Result) {
 	str := ""
 	for _, field := range vModel.GetFields() {
 		if field.IsPrimaryKey() {
@@ -47,17 +48,18 @@ func (s *Builder) getFieldUpdateValues(vModel model.Model) (ret string, err *cd.
 			continue
 		}
 
-		fStr, fErr := s.buildCodec.BuildFieldValue(field)
+		fVal, fErr := s.buildCodec.BuildFieldValue(field)
 		if fErr != nil {
 			err = fErr
-			log.Errorf("getFieldUpdateValues failed, BuildFieldValue error:%s", fErr.Error())
+			log.Errorf("buildFieldUpdateValues failed, BuildFieldValue error:%s", fErr.Error())
 			return
 		}
 
+		resultStackPtr.PushArgs(fVal.Value())
 		if str == "" {
-			str = fmt.Sprintf("`%s` = %v", field.GetName(), fStr)
+			str = fmt.Sprintf("`%s` = ?", field.GetName())
 		} else {
-			str = fmt.Sprintf("%s,`%s` = %v", str, field.GetName(), fStr)
+			str = fmt.Sprintf("%s,`%s` = ?", str, field.GetName())
 		}
 	}
 

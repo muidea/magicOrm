@@ -10,11 +10,12 @@ import (
 )
 
 // BuildCount build count
-func (s *Builder) BuildCount(vModel model.Model, filter model.Filter) (ret *Result, err *cd.Result) {
+func (s *Builder) BuildCount(vModel model.Model, filter model.Filter) (ret *ResultStack, err *cd.Result) {
+	resultStackPtr := &ResultStack{}
 	pkFieldName := vModel.GetPrimaryField().GetName()
 	countSQL := fmt.Sprintf("SELECT COUNT(`%s`) FROM `%s`", pkFieldName, s.buildCodec.ConstructModelTableName(vModel))
 	if filter != nil {
-		filterSQL, filterErr := s.buildFilter(vModel, filter)
+		filterSQL, filterErr := s.buildFilter(vModel, filter, resultStackPtr)
 		if filterErr != nil {
 			err = filterErr
 			log.Errorf("BuildCount failed, s.buildFilter error:%s", err.Error())
@@ -30,6 +31,7 @@ func (s *Builder) BuildCount(vModel model.Model, filter model.Filter) (ret *Resu
 		log.Infof("[SQL] count: %s", countSQL)
 	}
 
-	ret = NewResult(countSQL, nil)
+	resultStackPtr.SetSQL(countSQL)
+	ret = resultStackPtr
 	return
 }

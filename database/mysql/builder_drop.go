@@ -10,7 +10,7 @@ import (
 )
 
 // BuildDropTable  BuildDropSchema
-func (s *Builder) BuildDropTable(vModel model.Model) (ret *Result, err *cd.Result) {
+func (s *Builder) BuildDropTable(vModel model.Model) (ret *ResultStack, err *cd.Result) {
 	dropSQL := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", s.buildCodec.ConstructModelTableName(vModel))
 	//log.Print(dropSQL)
 	if traceSQL() {
@@ -22,7 +22,7 @@ func (s *Builder) BuildDropTable(vModel model.Model) (ret *Result, err *cd.Resul
 }
 
 // BuildDropRelationTable Build DropRelation Schema
-func (s *Builder) BuildDropRelationTable(vModel model.Model, vField model.Field, rModel model.Model) (ret *Result, err *cd.Result) {
+func (s *Builder) BuildDropRelationTable(vModel model.Model, vField model.Field, rModel model.Model) (ret *ResultStack, err *cd.Result) {
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField, rModel)
 	if relationErr != nil {
 		err = relationErr

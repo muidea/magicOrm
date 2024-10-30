@@ -10,7 +10,8 @@ import (
 )
 
 // BuildInsert  Build Insert
-func (s *Builder) BuildInsert(vModel model.Model) (ret *Result, err *cd.Result) {
+func (s *Builder) BuildInsert(vModel model.Model) (ret *ResultStack, err *cd.Result) {
+	resultStackPtr := &ResultStack{}
 	fieldNames := ""
 	fieldValues := ""
 	for _, field := range vModel.GetFields() {
@@ -33,25 +34,26 @@ func (s *Builder) BuildInsert(vModel model.Model) (ret *Result, err *cd.Result) 
 			fieldNames = fmt.Sprintf("%s,`%s`", fieldNames, field.GetName())
 		}
 
+		resultStackPtr.PushArgs(fStr.Value())
 		if fieldValues == "" {
-			fieldValues = fmt.Sprintf("%v", fStr)
+			fieldValues = fmt.Sprintf("%v", "?")
 		} else {
-			fieldValues = fmt.Sprintf("%s,%v", fieldValues, fStr)
+			fieldValues = fmt.Sprintf("%s,%v", fieldValues, "?")
 		}
 	}
 
 	insertSQL := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.buildCodec.ConstructModelTableName(vModel), fieldNames, fieldValues)
-	//log.Print(insertSQL)
 	if traceSQL() {
 		log.Infof("[SQL] insert: %s", insertSQL)
 	}
 
-	ret = NewResult(insertSQL, nil)
+	resultStackPtr.SetSQL(insertSQL)
+	ret = resultStackPtr
 	return
 }
 
 // BuildInsertRelation Build Insert Relation
-func (s *Builder) BuildInsertRelation(vModel model.Model, vField model.Field, rModel model.Model) (ret *Result, err *cd.Result) {
+func (s *Builder) BuildInsertRelation(vModel model.Model, vField model.Field, rModel model.Model) (ret *ResultStack, err *cd.Result) {
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField, rModel)
 	if relationErr != nil {
 		err = relationErr
@@ -73,12 +75,15 @@ func (s *Builder) BuildInsertRelation(vModel model.Model, vField model.Field, rM
 		return
 	}
 
-	insertRelationSQL := fmt.Sprintf("INSERT INTO `%s` (`left`, `right`) VALUES (%v,%v)", relationTableName, leftVal, rightVal)
+	resultStackPtr := &ResultStack{}
+	insertRelationSQL := fmt.Sprintf("INSERT INTO `%s` (`left`, `right`) VALUES (?,?)", relationTableName)
+	resultStackPtr.PushArgs(leftVal.Value(), rightVal.Value())
+	resultStackPtr.SetSQL(insertRelationSQL)
 	//log.Print(ret)
 	if traceSQL() {
 		log.Infof("[SQL] insert relation: %s", insertRelationSQL)
 	}
 
-	ret = NewResult(insertRelationSQL, nil)
+	ret = resultStackPtr
 	return
 }

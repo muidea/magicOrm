@@ -242,7 +242,7 @@ func (s *Executor) Query(sql string, needCols bool, args ...any) (ret []string, 
 		rows, rowErr := s.dbHandle.Query(sql, args...)
 		if rowErr != nil {
 			err = cd.NewError(cd.UnExpected, rowErr.Error())
-			log.Errorf("Query failed, s.dbHandle.Query:%s, error:%s", sql, rowErr.Error())
+			log.Errorf("Query failed, s.dbHandle.Query:%s, args:%+v, error:%s", sql, args, rowErr.Error())
 			return
 		}
 		if needCols {
