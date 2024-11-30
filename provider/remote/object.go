@@ -22,6 +22,8 @@ const (
 type Object struct {
 	ID          int64    `json:"id"`
 	Name        string   `json:"name"`
+	NickName    string   `json:"nickName"`
+	Icon        string   `jjson:"icon"`
 	PkgPath     string   `json:"pkgPath"`
 	Description string   `json:"description"`
 	Fields      []*Field `json:"fields"`
@@ -162,6 +164,8 @@ func (s *Object) Copy(reset bool) (ret model.Model) {
 	obj := &Object{
 		ID:          s.ID,
 		Name:        s.Name,
+		NickName:    s.NickName,
+		Icon:        s.Icon,
 		PkgPath:     s.PkgPath,
 		Description: s.Description,
 		Fields:      []*Field{},
@@ -175,7 +179,7 @@ func (s *Object) Copy(reset bool) (ret model.Model) {
 }
 
 func (s *Object) Dump() (ret string) {
-	ret = fmt.Sprintf("\nmodelImpl:\n")
+	ret = "\nmodelImpl:\n"
 	ret = fmt.Sprintf("%s\tname:%s, pkgPath:%s\n", ret, s.GetName(), s.GetPkgPath())
 
 	ret = fmt.Sprintf("%sfields:\n", ret)
@@ -188,7 +192,7 @@ func (s *Object) Dump() (ret string) {
 
 func (s *Object) Verify() (err *cd.Result) {
 	if s.Name == "" {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal object declare informain"))
+		err = cd.NewError(cd.UnExpected, "illegal object declare informain")
 		return
 	}
 
@@ -357,37 +361,34 @@ func TransferObjectValue(name, pkgPath string, vals []*ObjectValue) (ret *SliceO
 	return
 }
 
-// EncodeObjectValue encode objectValue to []byte
-func EncodeObjectValue(objVal *ObjectValue) (ret []byte, err *cd.Result) {
-	byteVal, byteErr := json.Marshal(objVal)
+func encodeValue[T any](valPtr *T) (ret []byte, err *cd.Result) {
+	byteVal, byteErr := json.Marshal(valPtr)
 	if byteErr != nil {
 		err = cd.NewError(cd.UnExpected, byteErr.Error())
 		return
 	}
 
 	ret = byteVal
+	return
+}
+
+// EncodeObjectValue encode objectValue to []byte
+func EncodeObjectValue(objVal *ObjectValue) (ret []byte, err *cd.Result) {
+	ret, err = encodeValue(objVal)
 	return
 }
 
 // EncodeSliceObjectValue encode slice objectValue to []byte
 func EncodeSliceObjectValue(objVal *SliceObjectValue) (ret []byte, err *cd.Result) {
-	byteVal, byteErr := json.Marshal(objVal)
-	if byteErr != nil {
-		err = cd.NewError(cd.UnExpected, byteErr.Error())
-		return
-	}
-
-	ret = byteVal
+	ret, err = encodeValue(objVal)
 	return
 }
-
-// decodeObjectValueFromMap decode object value from map
 func decodeObjectValueFromMap(mapVal map[string]any) (ret *ObjectValue, err *cd.Result) {
 	nameVal, nameOK := mapVal[NameTag]
 	pkgPathVal, pkgPathOK := mapVal[PkgPathTag]
 	itemsVal, itemsOK := mapVal[FieldsTag]
 	if !nameOK || !pkgPathOK || !itemsOK {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal ObjectValue"))
+		err = cd.NewError(cd.UnExpected, "illegal ObjectValue")
 		return
 	}
 
@@ -395,11 +396,17 @@ func decodeObjectValueFromMap(mapVal map[string]any) (ret *ObjectValue, err *cd.
 		return
 	}
 
-	objVal := &ObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), Fields: []*FieldValue{}}
-	for _, val := range itemsVal.([]any) {
+	items := itemsVal.([]any)
+	objVal := &ObjectValue{
+		Name:    nameVal.(string),
+		PkgPath: pkgPathVal.(string),
+		Fields:  make([]*FieldValue, 0, len(items)),
+	}
+
+	for _, val := range items {
 		item, itemOK := val.(map[string]any)
 		if !itemOK {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal object field item value"))
+			err = cd.NewError(cd.UnExpected, "illegal object field item value")
 			return
 		}
 
@@ -416,13 +423,12 @@ func decodeObjectValueFromMap(mapVal map[string]any) (ret *ObjectValue, err *cd.
 	return
 }
 
-// decodeSliceObjectValueFromMap decode slice object value from map
 func decodeSliceObjectValueFromMap(mapVal map[string]any) (ret *SliceObjectValue, err *cd.Result) {
 	nameVal, nameOK := mapVal[NameTag]
 	pkgPathVal, pkgPathOK := mapVal[PkgPathTag]
 	valuesVal, valuesOK := mapVal[ValuesTag]
 	if !nameOK || !pkgPathOK || !valuesOK {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal SliceObjectValue"))
+		err = cd.NewError(cd.UnExpected, "illegal SliceObjectValue")
 		return
 	}
 
@@ -430,11 +436,17 @@ func decodeSliceObjectValueFromMap(mapVal map[string]any) (ret *SliceObjectValue
 		return
 	}
 
-	objVal := &SliceObjectValue{Name: nameVal.(string), PkgPath: pkgPathVal.(string), Values: []*ObjectValue{}}
-	for _, val := range valuesVal.([]any) {
+	values := valuesVal.([]any)
+	objVal := &SliceObjectValue{
+		Name:    nameVal.(string),
+		PkgPath: pkgPathVal.(string),
+		Values:  make([]*ObjectValue, 0, len(values)),
+	}
+
+	for _, val := range values {
 		item, itemOK := val.(map[string]any)
 		if !itemOK {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal slice object field item value"))
+			err = cd.NewError(cd.UnExpected, "illegal slice object field item value")
 			return
 		}
 
@@ -452,14 +464,25 @@ func decodeSliceObjectValueFromMap(mapVal map[string]any) (ret *SliceObjectValue
 }
 
 func decodeItemValue(itemVal map[string]any) (ret *FieldValue, err *cd.Result) {
-	nameVal, nameOK := itemVal[NameTag]
-	valVal, _ := itemVal[ValueTag]
-	if !nameOK {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal item value"))
+	if itemVal == nil {
+		err = cd.NewError(cd.UnExpected, "itemVal is nil")
 		return
 	}
 
-	ret = &FieldValue{Name: nameVal.(string), Value: valVal}
+	nameVal, nameOK := itemVal[NameTag]
+	valVal, _ := itemVal[ValueTag]
+	if !nameOK {
+		err = cd.NewError(cd.UnExpected, "illegal item value")
+		return
+	}
+
+	nameStr, ok := nameVal.(string)
+	if !ok {
+		err = cd.NewError(cd.UnExpected, "nameVal is not a string")
+		return
+	}
+
+	ret = &FieldValue{Name: nameStr, Value: valVal}
 	ret, err = ConvertItem(ret)
 	return
 }
@@ -496,7 +519,7 @@ func ConvertItem(val *FieldValue) (ret *FieldValue, err *cd.Result) {
 			return
 		}
 
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal itemValue"))
+		err = cd.NewError(cd.UnExpected, "illegal itemValue")
 		return
 	}
 
@@ -511,54 +534,26 @@ func ConvertItem(val *FieldValue) (ret *FieldValue, err *cd.Result) {
 	ret = val
 	return
 }
-
-// DecodeObjectValue decode objectValue
-func DecodeObjectValue(data []byte) (ret *ObjectValue, err *cd.Result) {
-	val := &ObjectValue{}
+func decodeValue[T any](data []byte, val *T, decodeFunc func(*T) (*T, *cd.Result)) (*T, *cd.Result) {
 	byteErr := json.Unmarshal(data, val)
 	if byteErr != nil {
-		err = cd.NewError(cd.UnExpected, byteErr.Error())
-		return
+		return nil, cd.NewError(cd.UnExpected, byteErr.Error())
 	}
 
-	for idx := range val.Fields {
-		cur := val.Fields[idx]
-
-		item, itemErr := ConvertItem(cur)
-		if itemErr != nil {
-			err = itemErr
-			return
-		}
-
-		cur.Value = item.Value
+	ret, err := decodeFunc(val)
+	if err != nil {
+		return nil, err
 	}
 
-	ret = val
-	return
+	return ret, nil
 }
 
-// DecodeSliceObjectValue decode objectValue
+func DecodeObjectValue(data []byte) (ret *ObjectValue, err *cd.Result) {
+	return decodeValue(data, &ObjectValue{}, ConvertObjectValue)
+}
+
 func DecodeSliceObjectValue(data []byte) (ret *SliceObjectValue, err *cd.Result) {
-	sliceVal := &SliceObjectValue{}
-	byteErr := json.Unmarshal(data, sliceVal)
-	if byteErr != nil {
-		err = cd.NewError(cd.UnExpected, byteErr.Error())
-		return
-	}
-
-	for idx := range sliceVal.Values {
-		cur := sliceVal.Values[idx]
-		val, valErr := ConvertObjectValue(cur)
-		if valErr != nil {
-			err = valErr
-			return
-		}
-
-		sliceVal.Values[idx] = val
-	}
-
-	ret = sliceVal
-	return
+	return decodeValue(data, &SliceObjectValue{}, ConvertSliceObjectValue)
 }
 
 // ConvertObjectValue convert object value
@@ -596,35 +591,17 @@ func ConvertSliceObjectValue(objVal *SliceObjectValue) (ret *SliceObjectValue, e
 	ret = objVal
 	return
 }
-
 func compareItemValue(l, r *FieldValue) bool {
-	if l.Name != r.Name {
-		return false
-	}
-	if l.IsNil() != r.IsNil() {
-		return false
-	}
-
-	return true
+	return l.Name == r.Name && l.IsNil() == r.IsNil()
 }
 
 func CompareObjectValue(l, r *ObjectValue) bool {
-	if l.Name != r.Name {
-		return false
-	}
-
-	if l.PkgPath != r.PkgPath {
-		return false
-	}
-
-	if len(l.Fields) != len(r.Fields) {
+	if l.Name != r.Name || l.PkgPath != r.PkgPath || len(l.Fields) != len(r.Fields) {
 		return false
 	}
 
 	for idx := 0; idx < len(l.Fields); idx++ {
-		lVal := l.Fields[idx]
-		rVal := r.Fields[idx]
-		if !compareItemValue(lVal, rVal) {
+		if !compareItemValue(l.Fields[idx], r.Fields[idx]) {
 			return false
 		}
 	}
@@ -633,20 +610,12 @@ func CompareObjectValue(l, r *ObjectValue) bool {
 }
 
 func CompareSliceObjectValue(l, r *SliceObjectValue) bool {
-	if l.Name != r.Name {
-		return false
-	}
-	if l.PkgPath != r.PkgPath {
-		return false
-	}
-	if len(l.Values) != len(r.Values) {
+	if l.Name != r.Name || l.PkgPath != r.PkgPath || len(l.Values) != len(r.Values) {
 		return false
 	}
 
 	for idx := 0; idx < len(l.Values); idx++ {
-		lVal := l.Values[idx]
-		rVal := r.Values[idx]
-		if !CompareObjectValue(lVal, rVal) {
+		if !CompareObjectValue(l.Values[idx], r.Values[idx]) {
 			return false
 		}
 	}
