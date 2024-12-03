@@ -1,9 +1,10 @@
 package util
 
 import (
-	"log"
 	"reflect"
 	"testing"
+
+	"github.com/muidea/magicCommon/foundation/log"
 )
 
 type TestVal struct {
@@ -18,7 +19,7 @@ type TestVal struct {
 
 func TestNilValue(t *testing.T) {
 	var val reflect.Value
-	log.Printf("IsValid(val), val:%v", val)
+	log.Infof("IsValid(val), val:%v", val)
 	// nil
 	if !IsNil(val) {
 		t.Errorf("Check val is nil failed")
@@ -26,13 +27,13 @@ func TestNilValue(t *testing.T) {
 	}
 
 	var iVal int
-	log.Printf("IsValid(reflect.ValueOf(iVal)), val:%v", iVal)
+	log.Infof("IsValid(reflect.ValueOf(iVal)), val:%v", iVal)
 	// not nil
 	if IsNil(reflect.ValueOf(iVal)) {
 		t.Errorf("Check int is nil failed")
 		return
 	}
-	log.Printf("IsValid(reflect.ValueOf(&iVal)), val:%v", &iVal)
+	log.Infof("IsValid(reflect.ValueOf(&iVal)), val:%v", &iVal)
 	// not nil
 	if IsNil(reflect.ValueOf(&iVal)) {
 		t.Errorf("Check int ptr is nil failed")
@@ -40,7 +41,7 @@ func TestNilValue(t *testing.T) {
 	}
 
 	var iValPtr *int
-	log.Printf("!IsValid(reflect.ValueOf(iValPtr)), val:%v", iValPtr)
+	log.Infof("!IsValid(reflect.ValueOf(iValPtr)), val:%v", iValPtr)
 	// nil
 	if !IsNil(reflect.ValueOf(iValPtr)) {
 		t.Errorf("Check int ptr is nil failed")
@@ -48,14 +49,14 @@ func TestNilValue(t *testing.T) {
 	}
 
 	iValPtr = &iVal
-	log.Printf("IsValid(reflect.ValueOf(iValPtr)), val:%v", iValPtr)
+	log.Infof("IsValid(reflect.ValueOf(iValPtr)), val:%v", iValPtr)
 	// not nil
 	if IsNil(reflect.ValueOf(iValPtr)) {
 		t.Errorf("Check int ptr is nil failed")
 		return
 	}
 
-	log.Printf("IsValid(reflect.ValueOf(&iValPtr)), val:%v", &iValPtr)
+	log.Infof("IsValid(reflect.ValueOf(&iValPtr)), val:%v", &iValPtr)
 	// not nil
 	if IsNil(reflect.ValueOf(&iValPtr)) {
 		t.Errorf("Check int ptr is nil failed")
@@ -63,7 +64,7 @@ func TestNilValue(t *testing.T) {
 	}
 
 	var interfaceVal interface{}
-	log.Printf("!IsValid(reflect.ValueOf(interfaceVal)), val:%v", interfaceVal)
+	log.Infof("!IsValid(reflect.ValueOf(interfaceVal)), val:%v", interfaceVal)
 	// nil
 	if !IsNil(reflect.ValueOf(interfaceVal)) {
 		t.Errorf("Check interface is nil failed")
@@ -71,7 +72,7 @@ func TestNilValue(t *testing.T) {
 	}
 
 	interfaceVal = iVal
-	log.Printf("IsValid(reflect.ValueOf(interfaceVal)), val:%v", interfaceVal)
+	log.Infof("IsValid(reflect.ValueOf(interfaceVal)), val:%v", interfaceVal)
 	// not nil
 	if IsNil(reflect.ValueOf(interfaceVal)) {
 		t.Errorf("Check interface is nil failed")
@@ -79,7 +80,7 @@ func TestNilValue(t *testing.T) {
 	}
 
 	interfaceVal = nil
-	log.Printf("IsValid(reflect.ValueOf(interfaceVal)), val:%v", interfaceVal)
+	log.Infof("IsValid(reflect.ValueOf(interfaceVal)), val:%v", interfaceVal)
 	// nil
 	if !IsNil(reflect.ValueOf(interfaceVal)) {
 		t.Errorf("Check interface is nil failed")
@@ -87,7 +88,7 @@ func TestNilValue(t *testing.T) {
 	}
 
 	var arrayIntVal []int
-	log.Printf("IsValid(reflect.ValueOf(arrayIntVal)), val:%v", arrayIntVal)
+	log.Infof("IsValid(reflect.ValueOf(arrayIntVal)), val:%v", arrayIntVal)
 	// nil
 	if !IsNil(reflect.ValueOf(arrayIntVal)) {
 		t.Errorf("Check arrayIntVal is nil failed")
@@ -96,7 +97,7 @@ func TestNilValue(t *testing.T) {
 
 	var arrayIntInterfaceVal interface{}
 	arrayIntInterfaceVal = arrayIntVal
-	log.Printf("IsValid(reflect.ValueOf(arrayIntInterfaceVal)), val:%v", arrayIntInterfaceVal)
+	log.Infof("IsValid(reflect.ValueOf(arrayIntInterfaceVal)), val:%v", arrayIntInterfaceVal)
 	// nil
 	if !IsNil(reflect.ValueOf(arrayIntInterfaceVal)) {
 		t.Errorf("Check arrayIntVal interface is nil failed")
@@ -104,14 +105,14 @@ func TestNilValue(t *testing.T) {
 	}
 
 	arrayIntInterfaceVal = &arrayIntVal
-	log.Printf("IsValid(reflect.ValueOf(arrayIntInterfaceVal)), val:%v", arrayIntInterfaceVal)
+	log.Infof("IsValid(reflect.ValueOf(arrayIntInterfaceVal)), val:%v", arrayIntInterfaceVal)
 	// not nil
 	if IsNil(reflect.ValueOf(arrayIntInterfaceVal)) {
 		t.Errorf("Check arrayIntVal ptr interface is nil failed")
 		return
 	}
 
-	log.Printf("IsValid(reflect.ValueOf(&arrayIntInterfaceVal)), val:%v", &arrayIntInterfaceVal)
+	log.Infof("IsValid(reflect.ValueOf(&arrayIntInterfaceVal)), val:%v", &arrayIntInterfaceVal)
 	// not nil
 	if IsNil(reflect.ValueOf(&arrayIntInterfaceVal)) {
 		t.Errorf("Check arrayIntVal ptr interface is nil failed")
@@ -119,14 +120,14 @@ func TestNilValue(t *testing.T) {
 	}
 
 	var mapVal map[string]string
-	log.Printf("IsValid(reflect.ValueOf(mapVal)), val:%v", mapVal)
+	log.Infof("IsValid(reflect.ValueOf(mapVal)), val:%v", mapVal)
 	// nil
 	if !IsNil(reflect.ValueOf(mapVal)) {
 		t.Errorf("Check mapVal is nil failed")
 		return
 	}
 
-	log.Printf("IsValid(reflect.ValueOf(&mapVal)), val:%v", &mapVal)
+	log.Infof("IsValid(reflect.ValueOf(&mapVal)), val:%v", &mapVal)
 	// not nil
 	if IsNil(reflect.ValueOf(&mapVal)) {
 		t.Errorf("Check mapVal ptr is nil failed")
@@ -134,7 +135,7 @@ func TestNilValue(t *testing.T) {
 	}
 
 	intSlice := []int64{}
-	log.Printf("IsValid(reflect.ValueOf(intSlice)), val:%v", &intSlice)
+	log.Infof("IsValid(reflect.ValueOf(intSlice)), val:%v", &intSlice)
 	// not nil
 	if IsNil(reflect.ValueOf(intSlice)) {
 		t.Errorf("Check intSlice ptr is nil failed")
@@ -153,7 +154,7 @@ func TestStructNilValue(t *testing.T) {
 	demo1 := Demo{}
 	dv := reflect.ValueOf(demo1)
 	intVal := dv.FieldByName("IntVal")
-	log.Printf("IsValid(intVal), val:%v", intVal.Interface())
+	log.Infof("IsValid(intVal), val:%v", intVal.Interface())
 	// not nil
 	if IsNil(intVal) {
 		t.Errorf("Check intVal is nil failed")
@@ -161,7 +162,7 @@ func TestStructNilValue(t *testing.T) {
 	}
 
 	ptrVal := dv.FieldByName("PtrVal")
-	log.Printf("!IsValid(ptrVal), val:%v", ptrVal.Interface())
+	log.Infof("!IsValid(ptrVal), val:%v", ptrVal.Interface())
 	// nil
 	if !IsNil(ptrVal) {
 		t.Errorf("Check ptrVal is nil failed")
@@ -169,7 +170,7 @@ func TestStructNilValue(t *testing.T) {
 	}
 
 	interfaceVal := dv.FieldByName("InterfaceVal")
-	log.Printf("!IsValid(interfaceVal), val:%v", interfaceVal.Interface())
+	log.Infof("!IsValid(interfaceVal), val:%v", interfaceVal.Interface())
 	// nil
 	if !IsNil(interfaceVal) {
 		t.Errorf("Check interfaceVal is nil failed")
@@ -177,7 +178,7 @@ func TestStructNilValue(t *testing.T) {
 	}
 
 	arrayVal := dv.FieldByName("ArrayVal")
-	log.Printf("IsValid(arrayVal), val:%v", arrayVal.Interface())
+	log.Infof("IsValid(arrayVal), val:%v", arrayVal.Interface())
 	// nil
 	if !IsNil(arrayVal) {
 		t.Errorf("Check arrayVal is nil failed")
@@ -188,7 +189,7 @@ func TestStructNilValue(t *testing.T) {
 	demo2 := Demo{PtrVal: &ii}
 	dv2 := reflect.ValueOf(demo2)
 	intVal2 := dv2.FieldByName("IntVal")
-	log.Printf("IsValid(intVal2), val:%v", intVal2.Interface())
+	log.Infof("IsValid(intVal2), val:%v", intVal2.Interface())
 	// not nil
 	if IsNil(intVal2) {
 		t.Errorf("Check intVal2 is nil failed")
@@ -196,7 +197,7 @@ func TestStructNilValue(t *testing.T) {
 	}
 
 	ptrVal2 := dv2.FieldByName("PtrVal")
-	log.Printf("IsValid(ptrVal2), val:%v", ptrVal2.Interface())
+	log.Infof("IsValid(ptrVal2), val:%v", ptrVal2.Interface())
 	// not nil
 	if IsNil(ptrVal2) {
 		t.Errorf("Check ptrVal2 is nil failed")
@@ -204,7 +205,7 @@ func TestStructNilValue(t *testing.T) {
 	}
 
 	interfaceVal2 := dv2.FieldByName("InterfaceVal")
-	log.Printf("!IsValid(interfaceVal2), val:%v", interfaceVal2.Interface())
+	log.Infof("!IsValid(interfaceVal2), val:%v", interfaceVal2.Interface())
 	// nil
 	if !IsNil(interfaceVal2) {
 		t.Errorf("Check interfaceVal2 is nil failed")
@@ -212,7 +213,7 @@ func TestStructNilValue(t *testing.T) {
 	}
 
 	arrayVal2 := dv2.FieldByName("ArrayVal")
-	log.Printf("IsValid(arrayVal2), val:%v", arrayVal2.Interface())
+	log.Infof("IsValid(arrayVal2), val:%v", arrayVal2.Interface())
 	// nil
 	if !IsNil(arrayVal2) {
 		t.Errorf("Check arrayVal2 is nil failed")
