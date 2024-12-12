@@ -73,18 +73,10 @@ func (s *Result) Error() string {
 	return fmt.Sprintf("errorCode:%v", s.ErrorCode)
 }
 
-func NewError(errCode ErrorCode, reason string) *Result {
-	if errCode < Failed {
-		errCode = Failed
-	}
-
-	return &Result{ErrorCode: errCode, Reason: reason}
+func (s *Result) String() string {
+	return fmt.Sprintf("errorCode:%v, reason:%v", s.ErrorCode, s.Reason)
 }
 
-func NewWarn(errCode ErrorCode, reason string) *Result {
-	if errCode < Warned || errCode >= Failed {
-		errCode = Warned
-	}
-
+func NewError(errCode ErrorCode, reason string) *Result {
 	return &Result{ErrorCode: errCode, Reason: reason}
 }
