@@ -61,7 +61,7 @@ func (s *Builder) BuildDeleteRelation(vModel model.Model, vField model.Field, rM
 	delRelation = delRelationStackPtr
 
 	if traceSQL() {
-		log.Infof("[SQL] delete host: %s, delete relation: %s", delHost, delRelation)
+		log.Infof("[SQL] delete host: %s, delete relation: %s", delHostSQL, delRelationSQL)
 	}
 
 	return
