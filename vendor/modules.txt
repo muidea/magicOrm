@@ -28,7 +28,7 @@ github.com/google/uuid
 ## explicit; go 1.18
 github.com/leodido/go-urn
 github.com/leodido/go-urn/scim/schema
-# github.com/muidea/magicCommon v1.3.122
+# github.com/muidea/magicCommon v1.3.122 => ../magicCommon
 ## explicit; go 1.22
 github.com/muidea/magicCommon/def
 github.com/muidea/magicCommon/foundation/cache
@@ -53,3 +53,4 @@ golang.org/x/text/internal/language
 golang.org/x/text/internal/language/compact
 golang.org/x/text/internal/tag
 golang.org/x/text/language
+# github.com/muidea/magicCommon => ../magicCommon
