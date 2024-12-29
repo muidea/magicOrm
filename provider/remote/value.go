@@ -157,7 +157,7 @@ func (s *ValueImpl) IsBasic() bool {
 	return false
 }
 
-func (s *ValueImpl) Copy() (ret *ValueImpl) {
+func (s *ValueImpl) Copy() (ret *ValueImpl, err error) {
 	if s.value == nil {
 		ret = &ValueImpl{}
 		return
@@ -181,8 +181,7 @@ func (s *ValueImpl) Copy() (ret *ValueImpl) {
 		*SliceObjectValue:
 		ret.value = s.value
 	default:
-		err := fmt.Errorf("illegal value, val:%v", s.value)
-		panic(err.Error())
+		err = fmt.Errorf("illegal value, val:%v", s.value)
 	}
 
 	return

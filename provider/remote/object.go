@@ -171,7 +171,13 @@ func (s *Object) Copy(reset bool) (ret model.Model) {
 		Fields:      []*Field{},
 	}
 	for _, val := range s.Fields {
-		obj.Fields = append(obj.Fields, val.copy(reset))
+		valPtr, valErr := val.copy(reset)
+		if valErr != nil {
+			log.Errorf("Copy field failed, name:%s, err:%s", val.GetName(), valErr.Error())
+			panic(valErr)
+		}
+
+		obj.Fields = append(obj.Fields, valPtr)
 	}
 
 	ret = obj
