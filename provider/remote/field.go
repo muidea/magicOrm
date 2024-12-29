@@ -22,6 +22,10 @@ type FieldValue struct {
 	Value any    `json:"value"`
 }
 
+func (s *FieldValue) String() string {
+	return fmt.Sprintf("name:%s,value:%+v", s.Name, s.Value)
+}
+
 func (s *Field) GetName() string {
 	return s.Name
 }
@@ -61,7 +65,6 @@ func (s *Field) GetValue() (ret model.Value) {
 
 func (s *Field) SetValue(val model.Value) {
 	s.value = val.(*ValueImpl)
-	return
 }
 
 func (s *Field) IsPrimaryKey() bool {
@@ -247,7 +250,7 @@ func (s *FieldValue) IsZero() bool {
 	rVal := reflect.ValueOf(s.Value)
 	switch s.Value.(type) {
 	case bool:
-		return rVal.Bool() == false
+		return !rVal.Bool()
 	case int8, int16, int32, int, int64:
 		return rVal.Int() == 0
 	case uint8, uint16, uint32, uint, uint64:
@@ -288,8 +291,6 @@ func (s *FieldValue) IsZero() bool {
 		err := fmt.Errorf("illegal value, val:%v", s.Value)
 		panic(err.Error())
 	}
-
-	return true
 }
 
 func (s *FieldValue) Set(val any) {

@@ -66,7 +66,7 @@ func (s *ValueImpl) IsZero() (ret bool) {
 	rVal := reflect.ValueOf(s.value)
 	switch s.value.(type) {
 	case bool:
-		return rVal.Bool() == false
+		return !rVal.Bool()
 	case int8, int16, int32, int, int64:
 		return rVal.Int() == 0
 	case uint8, uint16, uint32, uint, uint64:
@@ -107,13 +107,10 @@ func (s *ValueImpl) IsZero() (ret bool) {
 		err := fmt.Errorf("illegal value, val:%v, val type:%s", s.value, rVal.Type().String())
 		panic(err.Error())
 	}
-
-	return true
 }
 
 func (s *ValueImpl) Set(val any) {
 	s.value = val
-	return
 }
 
 func (s *ValueImpl) Get() any {
@@ -153,8 +150,6 @@ func (s *ValueImpl) IsBasic() bool {
 		err := fmt.Errorf("illegal value, val:%v", s.value)
 		panic(err.Error())
 	}
-
-	return false
 }
 
 func (s *ValueImpl) Copy() (ret *ValueImpl, err error) {
@@ -181,7 +176,7 @@ func (s *ValueImpl) Copy() (ret *ValueImpl, err error) {
 		*SliceObjectValue:
 		ret.value = s.value
 	default:
-		err = fmt.Errorf("illegal value, val:%v", s.value)
+		err = fmt.Errorf("illegal value type, val:%+v", s.value)
 	}
 
 	return

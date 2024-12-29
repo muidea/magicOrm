@@ -78,8 +78,6 @@ func (s *Object) SetFieldValue(name string, val model.Value) {
 			return
 		}
 	}
-
-	return
 }
 
 func (s *Object) SetPrimaryFieldValue(val model.Value) {
@@ -89,8 +87,6 @@ func (s *Object) SetPrimaryFieldValue(val model.Value) {
 			return
 		}
 	}
-
-	return
 }
 
 func (s *Object) GetPrimaryField() (ret model.Field) {
@@ -476,7 +472,6 @@ func decodeItemValue(itemVal map[string]any) (ret *FieldValue, err *cd.Result) {
 	}
 
 	nameVal, nameOK := itemVal[NameTag]
-	valVal, _ := itemVal[ValueTag]
 	if !nameOK {
 		err = cd.NewError(cd.UnExpected, "illegal item value")
 		return
@@ -488,6 +483,7 @@ func decodeItemValue(itemVal map[string]any) (ret *FieldValue, err *cd.Result) {
 		return
 	}
 
+	valVal := itemVal[ValueTag]
 	ret = &FieldValue{Name: nameStr, Value: valVal}
 	ret, err = ConvertItem(ret)
 	return
