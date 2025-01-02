@@ -119,12 +119,13 @@ func toLocalValue(rVal *remote.ObjectValue, lType model.Type) (ret model.Value, 
 		return
 	}
 
-	if rVal.GetPkgKey() != lModel.GetPkgKey() {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("mismatch pkgKey, remote object value pkgKey:%s, local model pkgKey:%s", rVal.GetPkgKey(), lModel.GetPkgKey()))
-		log.Errorf("toLocalValue failed, err:%v", err.Error())
-		return
-	}
-
+	/*
+		if rVal.GetPkgKey() != lModel.GetPkgKey() {
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("mismatch pkgKey, remote object value pkgKey:%s, local model pkgKey:%s", rVal.GetPkgKey(), lModel.GetPkgKey()))
+			log.Errorf("toLocalValue failed, err:%v", err.Error())
+			return
+		}
+	*/
 	for idx := 0; idx < len(rVal.Fields); idx++ {
 		fieldVal := rVal.Fields[idx]
 		if fieldVal.IsNil() {
@@ -148,11 +149,13 @@ func toLocalValue(rVal *remote.ObjectValue, lType model.Type) (ret model.Value, 
 }
 
 func toLocalSliceValue(sliceObjectValue *remote.SliceObjectValue, lType model.Type) (ret model.Value, err *cd.Result) {
-	if sliceObjectValue.GetPkgKey() != lType.GetPkgKey() {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("mismatch objectValue for value, sliceObjectValue pkgKey:%s, sliceEntityType pkgKey:%s", sliceObjectValue.GetPkgKey(), lType.GetPkgKey()))
-		log.Errorf("toLocalSliceValue failed, err:%s", err)
-		return
-	}
+	/*
+		if sliceObjectValue.GetPkgKey() != lType.GetPkgKey() {
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("mismatch objectValue for value, sliceObjectValue pkgKey:%s, sliceEntityType pkgKey:%s", sliceObjectValue.GetPkgKey(), lType.GetPkgKey()))
+			log.Errorf("toLocalSliceValue failed, err:%s", err)
+			return
+		}
+	*/
 
 	sliceEntityValue, _ := lType.Interface(nil)
 
