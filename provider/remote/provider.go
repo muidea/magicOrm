@@ -2,12 +2,13 @@ package remote
 
 import (
 	"fmt"
+	"reflect"
+	"time"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/util"
-	"reflect"
-	"time"
 )
 
 var _codec util.Codec
@@ -202,7 +203,7 @@ func GetEntityModel(entity interface{}) (ret model.Model, err *cd.Result) {
 		switch entity.(type) {
 		case *ObjectValue, *SliceObjectValue, *Field, *TypeImpl, *ValueImpl, *SpecImpl, *FieldValue,
 			ObjectValue, SliceObjectValue, Field, TypeImpl, ValueImpl, SpecImpl, FieldValue:
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal entity value, not object entity"))
+			err = cd.NewError(cd.UnExpected, "illegal entity value, not object entity")
 		}
 		if err != nil {
 			return
@@ -226,7 +227,7 @@ func GetEntityModel(entity interface{}) (ret model.Model, err *cd.Result) {
 func GetModelFilter(vModel model.Model) (ret model.Filter, err *cd.Result) {
 	objectImpl, objectOK := vModel.(*Object)
 	if !objectOK {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("invalid model value"))
+		err = cd.NewError(cd.UnExpected, "invalid model value")
 		return
 	}
 
@@ -262,11 +263,14 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *
 		return
 	}
 
-	if rValPtr.GetPkgKey() != vModel.GetPkgKey() {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal model value, mode PkgKey:%s, value PkgKey:%s", vModel.GetPkgKey(), rValPtr.GetPkgKey()))
-		log.Errorf("SetModelValue failed, err:%s", err.Error())
-		return
-	}
+	/*
+		if rValPtr.GetPkgKey() != vModel.GetPkgKey() {
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal model value, mode PkgKey:%s, value PkgKey:%s", vModel.GetPkgKey(), rValPtr.GetPkgKey()))
+			log.Errorf("SetModelValue failed, err:%s", err.Error())
+			return
+		}
+	*/
+
 	for idx := 0; idx < len(rValPtr.Fields); idx++ {
 		fieldVal := rValPtr.Fields[idx]
 		vModel.SetFieldValue(fieldVal.GetName(), fieldVal.GetValue())
@@ -278,7 +282,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *
 
 func ElemDependValue(eVal model.RawVal) (ret []model.Value, err *cd.Result) {
 	if eVal == nil {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("eVal is nil"))
+		err = cd.NewError(cd.UnExpected, "eVal is nil")
 		log.Errorf("ElemDependValue failed, er:%s", err.Error())
 		return
 	}
@@ -456,7 +460,7 @@ func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache) (ret mo
 	}
 
 	if vVal.IsBasic() {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal model value"))
+		err = cd.NewError(cd.UnExpected, "illegal model value")
 		log.Errorf("encodeModel failed, err:%s", err.Error())
 		return
 	}
