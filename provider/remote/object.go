@@ -23,7 +23,7 @@ type Object struct {
 	ID          int64    `json:"id"`
 	Name        string   `json:"name"`
 	NickName    string   `json:"nickName"`
-	Icon        string   `jjson:"icon"`
+	Icon        string   `json:"icon"`
 	PkgPath     string   `json:"pkgPath"`
 	Description string   `json:"description"`
 	Fields      []*Field `json:"fields"`
