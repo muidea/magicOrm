@@ -11,7 +11,7 @@ import (
 
 type Field struct {
 	Name        string    `json:"name"`
-	NickName    string    `json:"nickName"`
+	ShowName    string    `json:"showName"`
 	Description string    `json:"description"`
 	Type        *TypeImpl `json:"type"`
 	Spec        *SpecImpl `json:"spec"`
@@ -31,8 +31,8 @@ func (s *Field) GetName() string {
 	return s.Name
 }
 
-func (s *Field) GetNickName() string {
-	return s.NickName
+func (s *Field) GetShowName() string {
+	return s.ShowName
 }
 
 func (s *Field) GetDescription() string {
@@ -99,7 +99,7 @@ func (s *Field) IsPtrType() bool {
 func (s *Field) copy(reset bool) (ret *Field, err error) {
 	val := &Field{
 		Name:        s.Name,
-		NickName:    s.NickName,
+		ShowName:    s.ShowName,
 		Description: s.Description,
 	}
 
@@ -233,7 +233,7 @@ func compareItem(l, r *Field) bool {
 	if l.Name != r.Name {
 		return false
 	}
-	if l.NickName != r.NickName {
+	if l.ShowName != r.ShowName {
 		return false
 	}
 

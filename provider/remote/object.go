@@ -22,7 +22,7 @@ const (
 type Object struct {
 	ID          int64    `json:"id"`
 	Name        string   `json:"name"`
-	NickName    string   `json:"nickName"`
+	ShowName    string   `json:"showName"`
 	Icon        string   `json:"icon"`
 	PkgPath     string   `json:"pkgPath"`
 	Description string   `json:"description"`
@@ -160,7 +160,7 @@ func (s *Object) Copy(reset bool) (ret model.Model) {
 	obj := &Object{
 		ID:          s.ID,
 		Name:        s.Name,
-		NickName:    s.NickName,
+		ShowName:    s.ShowName,
 		Icon:        s.Icon,
 		PkgPath:     s.PkgPath,
 		Description: s.Description,
