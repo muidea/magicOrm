@@ -459,11 +459,11 @@ func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache) (ret mo
 		return
 	}
 
-	if vVal.IsBasic() {
-		err = cd.NewError(cd.UnExpected, "illegal model value")
-		log.Errorf("encodeModel failed, err:%s", err.Error())
-		return
-	}
+	//if vVal.IsBasic() {
+	//	err = cd.NewError(cd.UnExpected, "illegal model value")
+	//	log.Errorf("encodeModel failed, err:%s", err.Error())
+	//	return
+	//}
 
 	vModel, vErr := SetModelValue(tModel.Copy(true), vVal)
 	if vErr != nil {

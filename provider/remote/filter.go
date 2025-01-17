@@ -234,31 +234,22 @@ func (s *ObjectFilter) Sort(sorter *util.SortFilter) {
 
 func (s *ObjectFilter) ValueMask(val any) (err *cd.Result) {
 	if val == nil {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal mask value"))
+		err = cd.NewError(cd.UnExpected, "illegal mask value")
 		return
 	}
 
 	var objectValuePtr *ObjectValue
-	switch val.(type) {
+	switch v := val.(type) {
 	case *ObjectValue:
-		valuePtr, valueOK := val.(*ObjectValue)
-		if valueOK && valuePtr != nil {
-			objectValuePtr = valuePtr
+		if v != nil {
+			objectValuePtr = v
 		}
 	case ObjectValue:
-		valuePtr, valueOK := val.(ObjectValue)
-		if valueOK {
-			objectValuePtr = &valuePtr
-		}
-	case *SliceObjectValue, SliceObjectValue:
-		// nothing
+		objectValuePtr = &v
 	case json.RawMessage:
-		byteVal, byteOK := val.(json.RawMessage)
-		if byteOK {
-			objectValuePtr, err = DecodeObjectValue(byteVal)
-		}
+		objectValuePtr, err = DecodeObjectValue(v)
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal mask value"))
+		err = cd.NewError(cd.UnExpected, "illegal mask value")
 	}
 
 	if err != nil {
