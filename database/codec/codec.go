@@ -282,7 +282,7 @@ func (s *codecImpl) getFieldRelation(vField model.Field) (ret relationType) {
 		return
 	}
 
-	isPtr := fType.Elem().IsPtrType() || fType.IsPtrType()
+	isPtr := fType.Elem().IsPtrType()
 	isSlice := model.IsSliceType(fType.GetValue())
 
 	if !isPtr && !isSlice {
