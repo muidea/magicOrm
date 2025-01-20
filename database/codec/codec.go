@@ -107,7 +107,7 @@ func (s *codecImpl) BuildFieldValue(vField model.Field) (ret model.RawVal, err *
 		}
 		byteVal, byteErr := json.Marshal(fEncodeVal.Value())
 		if byteErr != nil {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("%s", byteErr.Error()))
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("%v", byteErr.Error()))
 			return
 		}
 		ret = model.NewRawVal(strings.ReplaceAll(string(byteVal), "'", "''"))
@@ -228,42 +228,6 @@ func (s *codecImpl) encodeStructValue(vType model.Type, vValue model.Value) (ret
 	return
 }
 
-func (s *codecImpl) encodeSliceString(sliceVal []any) []string {
-	strSlice := make([]string, len(sliceVal))
-	for idx, val := range sliceVal {
-		strSlice[idx] = fmt.Sprintf("'%v'", val)
-	}
-
-	return strSlice
-}
-
-func (s *codecImpl) encodeSliceInt(sliceVal []any) []string {
-	strSlice := make([]string, len(sliceVal))
-	for idx, val := range sliceVal {
-		strSlice[idx] = fmt.Sprintf("%v", val)
-	}
-
-	return strSlice
-}
-
-func (s *codecImpl) encodeSliceFloat(sliceVal []any) []string {
-	strSlice := make([]string, len(sliceVal))
-	for idx, val := range sliceVal {
-		strSlice[idx] = fmt.Sprintf("%v", val)
-	}
-
-	return strSlice
-}
-
-func (s *codecImpl) encodeSliceStruct(sliceVal []any) []string {
-	strSlice := make([]string, len(sliceVal))
-	for idx, val := range sliceVal {
-		strSlice[idx] = fmt.Sprintf("%v", val)
-	}
-
-	return strSlice
-}
-
 func (s *codecImpl) encodeSliceValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
 	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
 	if fEncodeErr != nil {
@@ -312,7 +276,6 @@ func (s *codecImpl) getBasicTypeDefaultValue(fType model.Type) (ret any, err *cd
 		model.TypeBigIntegerValue, model.TypePositiveIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue,
 		model.TypeFloatValue, model.TypeDoubleValue:
 		ret = 0
-		break
 	case model.TypeStringValue,
 		model.TypeDateTimeValue,
 		model.TypeSliceValue:
