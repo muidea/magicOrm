@@ -176,7 +176,7 @@ func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err 
 	// must check if register already
 	entityModel := s.modelCache.Fetch(entityTypeVal.GetPkgKey())
 	if entityModel == nil {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("can't fetch entity model, must register entity first, entity PkgKey:%s", entityTypeVal.GetPkgKey()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch entity model, must register entity first, entity PkgKey:%s", entityTypeVal.GetPkgKey()))
 		log.Errorf("GetEntityModel failed, s.modelCache.Fetch error:%v", err.Error())
 		return
 	}
@@ -219,7 +219,7 @@ func (s *providerImpl) GetEntityFilter(entity interface{}, viewSpec model.ViewDe
 
 func (s *providerImpl) GetModelFilter(vModel model.Model, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result) {
 	if vModel == nil {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal model value"))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal model value"))
 		log.Errorf("GetModelFilter failed, error:%v", err.Error())
 		return
 	}
@@ -247,7 +247,7 @@ func (s *providerImpl) SetModelValue(vModel model.Model, vVal model.Value) (ret 
 func (s *providerImpl) GetValueModel(vVal model.Value, vType model.Type) (ret model.Model, err *cd.Result) {
 	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
 	if typeModel == nil {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("can't fetch type model, must register type:%s", vType.GetPkgKey()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch type model, must register type:%s", vType.GetPkgKey()))
 		log.Errorf("GetValueModel failed, s.modelCache.Fetch error:%v", err.Error())
 		return
 	}
@@ -269,7 +269,7 @@ func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err *cd.
 	vType = vType.Elem()
 	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
 	if typeModel == nil {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("can't fetch type model, must register type entity first, PkgKey:%s", vType.GetPkgKey()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch type model, must register type entity first, PkgKey:%s", vType.GetPkgKey()))
 		log.Errorf("GetTypeModel failed, error:%v", err.Error())
 		return
 	}
@@ -285,7 +285,7 @@ func (s *providerImpl) GetTypeFilter(vType model.Type, viewSpec model.ViewDeclar
 	vType = vType.Elem()
 	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
 	if typeModel == nil {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("can't fetch type filter, must register type entity first, PkgKey:%s", vType.GetPkgKey()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch type filter, must register type entity first, PkgKey:%s", vType.GetPkgKey()))
 		log.Errorf("GetTypeFilter failed, error:%v", err.Error())
 		return
 	}

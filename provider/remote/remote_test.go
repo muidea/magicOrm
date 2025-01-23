@@ -9,21 +9,21 @@ import (
 
 type Simple struct {
 	//ID 唯一标示单元
-	ID     int64   `orm:"id key" view:"view,lite"`
-	Name   string  `orm:"name" view:"view,lite"`
+	ID     int64   `orm:"id key" view:"detail,lite"`
+	Name   string  `orm:"name" view:"detail,lite"`
 	Desc   *string `orm:"desc" view:"view"`
-	Age    uint8   `orm:"age" view:"view,lite"`
-	Flag   bool    `orm:"flag" view:"view,lite"`
-	Add    []int   `orm:"add" view:"view,lite"`
-	AddPtr *[]int  `orm:"addPtr" view:"view,lite"`
+	Age    uint8   `orm:"age" view:"detail,lite"`
+	Flag   bool    `orm:"flag" view:"detail,lite"`
+	Add    []int   `orm:"add" view:"detail,lite"`
+	AddPtr *[]int  `orm:"addPtr" view:"detail,lite"`
 }
 
 type ExtInfo struct {
-	ID       int64     `orm:"id key" view:"view,lite"`
-	Name     string    `orm:"name" view:"view,lite"`
-	Obj      Simple    `orm:"obj" view:"view,lite"`
-	ObjPtr   *Simple   `orm:"objPtr" view:"view,lite"`
-	ObjArray []*Simple `orm:"array" view:"view,lite"`
+	ID       int64     `orm:"id key" view:"detail,lite"`
+	Name     string    `orm:"name" view:"detail,lite"`
+	Obj      Simple    `orm:"obj" view:"detail,lite"`
+	ObjPtr   *Simple   `orm:"objPtr" view:"detail,lite"`
+	ObjArray []*Simple `orm:"array" view:"detail,lite"`
 }
 
 func TestSpec(t *testing.T) {

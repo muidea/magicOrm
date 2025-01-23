@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/muidea/magicCommon/foundation/util"
+	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
@@ -84,7 +85,7 @@ func TestRemoteSimple(t *testing.T) {
 		t.Errorf("insert reference failed, err:%s", err.Error())
 		return
 	}
-	err = helper.UpdateEntity(s1Model.Interface(true, 0).(*remote.ObjectValue), s1)
+	err = helper.UpdateEntity(s1Model.Interface(true, model.OriginView).(*remote.ObjectValue), s1)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
@@ -108,7 +109,7 @@ func TestRemoteSimple(t *testing.T) {
 		t.Errorf("update reference failed, err:%s", err.Error())
 		return
 	}
-	err = helper.UpdateEntity(s1Model.Interface(true, 0).(*remote.ObjectValue), s1)
+	err = helper.UpdateEntity(s1Model.Interface(true, model.OriginView).(*remote.ObjectValue), s1)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
@@ -131,7 +132,7 @@ func TestRemoteSimple(t *testing.T) {
 		t.Errorf("query reference failed, err:%s", err.Error())
 		return
 	}
-	err = helper.UpdateEntity(s2Model.Interface(true, 0).(*remote.ObjectValue), s2)
+	err = helper.UpdateEntity(s2Model.Interface(true, model.OriginView).(*remote.ObjectValue), s2)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
@@ -224,7 +225,7 @@ func TestRemoteReference(t *testing.T) {
 		t.Errorf("insert reference failed, err:%s", err.Error())
 		return
 	}
-	err = helper.UpdateEntity(s1Model.Interface(true, 0).(*remote.ObjectValue), s1)
+	err = helper.UpdateEntity(s1Model.Interface(true, model.OriginView).(*remote.ObjectValue), s1)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
@@ -247,7 +248,7 @@ func TestRemoteReference(t *testing.T) {
 		t.Errorf("update reference failed, err:%s", err.Error())
 		return
 	}
-	err = helper.UpdateEntity(s1Model.Interface(true, 0).(*remote.ObjectValue), s1)
+	err = helper.UpdateEntity(s1Model.Interface(true, model.OriginView).(*remote.ObjectValue), s1)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
@@ -287,7 +288,7 @@ func TestRemoteReference(t *testing.T) {
 		t.Errorf("query reference failed, err:%s", err.Error())
 		return
 	}
-	err = helper.UpdateEntity(s2Model.Interface(true, 0).(*remote.ObjectValue), s2)
+	err = helper.UpdateEntity(s2Model.Interface(true, model.OriginView).(*remote.ObjectValue), s2)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
@@ -317,7 +318,7 @@ func TestRemoteReference(t *testing.T) {
 		t.Errorf("query reference failed, err:%s", err.Error())
 		return
 	}
-	err = helper.UpdateEntity(s4Model.Interface(true, 0).(*remote.ObjectValue), s4)
+	err = helper.UpdateEntity(s4Model.Interface(true, model.OriginView).(*remote.ObjectValue), s4)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
@@ -405,7 +406,7 @@ func TestRemoteCompose(t *testing.T) {
 		t.Errorf("insert simple failed, err:%s", err.Error())
 		return
 	}
-	s1Val = s1Model.Interface(true, 0).(*remote.ObjectValue)
+	s1Val = s1Model.Interface(true, model.OriginView).(*remote.ObjectValue)
 	err = helper.UpdateEntity(s1Val, s1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
@@ -452,7 +453,7 @@ func TestRemoteCompose(t *testing.T) {
 		return
 	}
 
-	r1Val = r1Model.Interface(true, 0).(*remote.ObjectValue)
+	r1Val = r1Model.Interface(true, model.OriginView).(*remote.ObjectValue)
 	err = helper.UpdateEntity(r1Val, r1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
@@ -487,7 +488,7 @@ func TestRemoteCompose(t *testing.T) {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
-	c1Val = c1Model.Interface(true, 0).(*remote.ObjectValue)
+	c1Val = c1Model.Interface(true, model.OriginView).(*remote.ObjectValue)
 	err = helper.UpdateEntity(c1Val, c1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
@@ -524,7 +525,7 @@ func TestRemoteCompose(t *testing.T) {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
-	c2Val = c2Model.Interface(true, 0).(*remote.ObjectValue)
+	c2Val = c2Model.Interface(true, model.OriginView).(*remote.ObjectValue)
 	err = helper.UpdateEntity(c2Val, c2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
@@ -559,7 +560,7 @@ func TestRemoteCompose(t *testing.T) {
 		t.Errorf("query compose failed, err:%s", err.Error())
 		return
 	}
-	c3Val = c3Model.Interface(true, 0).(*remote.ObjectValue)
+	c3Val = c3Model.Interface(true, model.OriginView).(*remote.ObjectValue)
 	err = helper.UpdateEntity(c3Val, c3)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
@@ -651,7 +652,7 @@ func TestRemoteQuery(t *testing.T) {
 		t.Errorf("insert simple failed, err:%s", err.Error())
 		return
 	}
-	err = helper.UpdateEntity(s1Model.Interface(true, 0).(*remote.ObjectValue), s1)
+	err = helper.UpdateEntity(s1Model.Interface(true, model.OriginView).(*remote.ObjectValue), s1)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
@@ -690,11 +691,11 @@ func TestRemoteQuery(t *testing.T) {
 		return
 	}
 	r1Model, r1Err = o1.Insert(r1Model)
-	if err != nil {
+	if r1Err != nil {
 		t.Errorf("insert reference failed, err:%s", err.Error())
 		return
 	}
-	err = helper.UpdateEntity(r1Model.Interface(true, 0).(*remote.ObjectValue), r1)
+	err = helper.UpdateEntity(r1Model.Interface(true, model.OriginView).(*remote.ObjectValue), r1)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
@@ -730,7 +731,7 @@ func TestRemoteQuery(t *testing.T) {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
-	err = helper.UpdateEntity(c1Model.Interface(true, 0).(*remote.ObjectValue), c1)
+	err = helper.UpdateEntity(c1Model.Interface(true, model.OriginView).(*remote.ObjectValue), c1)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
@@ -766,7 +767,7 @@ func TestRemoteQuery(t *testing.T) {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
-	err = helper.UpdateEntity(c2Model.Interface(true, 0).(*remote.ObjectValue), c2)
+	err = helper.UpdateEntity(c2Model.Interface(true, model.OriginView).(*remote.ObjectValue), c2)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
@@ -786,7 +787,7 @@ func TestRemoteQuery(t *testing.T) {
 		return
 	}
 
-	err = helper.UpdateEntity(c3Model.Interface(true, 0).(*remote.ObjectValue), c3)
+	err = helper.UpdateEntity(c3Model.Interface(true, model.OriginView).(*remote.ObjectValue), c3)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
@@ -806,7 +807,7 @@ func TestRemoteQuery(t *testing.T) {
 		return
 	}
 
-	err = helper.UpdateEntity(c4Model.Interface(true, 0).(*remote.ObjectValue), c4)
+	err = helper.UpdateEntity(c4Model.Interface(true, model.OriginView).(*remote.ObjectValue), c4)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
@@ -824,7 +825,7 @@ func TestRemoteQuery(t *testing.T) {
 		return
 	}
 
-	filter, err := remoteProvider.GetModelFilter(cObjectPtr, 0)
+	filter, err := remoteProvider.GetModelFilter(cObjectPtr, model.OriginView)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return

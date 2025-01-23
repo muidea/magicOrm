@@ -19,7 +19,7 @@ func init() {
 
 func GetEntityType(entity interface{}) (ret model.Type, err *cd.Result) {
 	if entity == nil {
-		err = cd.NewError(cd.UnExpected, "entity is nil")
+		err = cd.NewResult(cd.UnExpected, "entity is nil")
 		return
 	}
 	// 为了提升执行性能，以下判断条件的顺序不可以随便调整
@@ -105,7 +105,7 @@ func GetEntityType(entity interface{}) (ret model.Type, err *cd.Result) {
 
 	switch entity.(type) {
 	case Field, SpecImpl, FieldValue, *Field, *SpecImpl, *FieldValue:
-		err = cd.NewError(cd.UnExpected, "illegal entity value")
+		err = cd.NewResult(cd.UnExpected, "illegal entity value")
 		return
 	}
 
@@ -118,7 +118,7 @@ func GetEntityType(entity interface{}) (ret model.Type, err *cd.Result) {
 
 func GetEntityValue(entity interface{}) (ret model.Value, err *cd.Result) {
 	if entity == nil {
-		err = cd.NewError(cd.UnExpected, "entity is nil")
+		err = cd.NewResult(cd.UnExpected, "entity is nil")
 		return
 	}
 
@@ -161,7 +161,7 @@ func GetEntityValue(entity interface{}) (ret model.Value, err *cd.Result) {
 
 	switch entity.(type) {
 	case Object, Field, TypeImpl, SpecImpl, FieldValue, *Object, *Field, *TypeImpl, *SpecImpl, *FieldValue:
-		err = cd.NewError(cd.UnExpected, "illegal entity value")
+		err = cd.NewResult(cd.UnExpected, "illegal entity value")
 		return
 	}
 
@@ -203,7 +203,7 @@ func GetEntityModel(entity interface{}) (ret model.Model, err *cd.Result) {
 		switch entity.(type) {
 		case *ObjectValue, *SliceObjectValue, *Field, *TypeImpl, *ValueImpl, *SpecImpl, *FieldValue,
 			ObjectValue, SliceObjectValue, Field, TypeImpl, ValueImpl, SpecImpl, FieldValue:
-			err = cd.NewError(cd.UnExpected, "illegal entity value, not object entity")
+			err = cd.NewResult(cd.UnExpected, "illegal entity value, not object entity")
 		}
 		if err != nil {
 			return
@@ -227,7 +227,7 @@ func GetEntityModel(entity interface{}) (ret model.Model, err *cd.Result) {
 func GetModelFilter(vModel model.Model) (ret model.Filter, err *cd.Result) {
 	objectImpl, objectOK := vModel.(*Object)
 	if !objectOK {
-		err = cd.NewError(cd.UnExpected, "invalid model value")
+		err = cd.NewResult(cd.UnExpected, "invalid model value")
 		return
 	}
 
@@ -238,7 +238,7 @@ func GetModelFilter(vModel model.Model) (ret model.Filter, err *cd.Result) {
 func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *cd.Result) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("SetModelValue failed, illegal value, err:%v", errInfo))
+			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("SetModelValue failed, illegal value, err:%v", errInfo))
 			log.Errorf("SetModelValue failed, err:%s", err.Error())
 			return
 		}
@@ -258,14 +258,14 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *
 	val := vVal.Interface().Value()
 	rValPtr, rValOK := val.(*ObjectValue)
 	if !rValOK {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal model value, val:%v", val))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal model value, val:%v", val))
 		log.Errorf("SetModelValue failed, err:%s", err.Error())
 		return
 	}
 
 	/*
 		if rValPtr.GetPkgKey() != vModel.GetPkgKey() {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal model value, mode PkgKey:%s, value PkgKey:%s", vModel.GetPkgKey(), rValPtr.GetPkgKey()))
+			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal model value, mode PkgKey:%s, value PkgKey:%s", vModel.GetPkgKey(), rValPtr.GetPkgKey()))
 			log.Errorf("SetModelValue failed, err:%s", err.Error())
 			return
 		}
@@ -282,7 +282,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *
 
 func ElemDependValue(eVal model.RawVal) (ret []model.Value, err *cd.Result) {
 	if eVal == nil {
-		err = cd.NewError(cd.UnExpected, "eVal is nil")
+		err = cd.NewResult(cd.UnExpected, "eVal is nil")
 		log.Errorf("ElemDependValue failed, er:%s", err.Error())
 		return
 	}
@@ -318,7 +318,7 @@ func ElemDependValue(eVal model.RawVal) (ret []model.Value, err *cd.Result) {
 
 func appendObjectSlice(sliceObjectValuePtr *SliceObjectValue, objectValuePtr *ObjectValue) (ret *SliceObjectValue, err *cd.Result) {
 	if sliceObjectValuePtr.GetPkgKey() != objectValuePtr.GetPkgKey() {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("mismatch slice value, slice pkgKey:%v, item pkgkey:%v", sliceObjectValuePtr.GetPkgKey(), objectValuePtr.GetPkgKey()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("mismatch slice value, slice pkgKey:%v, item pkgkey:%v", sliceObjectValuePtr.GetPkgKey(), objectValuePtr.GetPkgKey()))
 		log.Errorf("appendObjectSlice failed, err:%s", err.Error())
 		return
 	}
@@ -341,7 +341,7 @@ func appendBaseSlice(sliceValue interface{}, value interface{}) (ret interface{}
 		return
 	}
 	if !sliceType.IsSlice() || !sliceType.IsBasic() || sliceType.Elem().GetPkgKey() != valueType.GetPkgKey() {
-		err = cd.NewError(cd.UnExpected, "illegal slice value")
+		err = cd.NewResult(cd.UnExpected, "illegal slice value")
 		return
 	}
 
@@ -374,7 +374,7 @@ func appendBaseSlice(sliceValue interface{}, value interface{}) (ret interface{}
 		case model.TypeDateTimeValue:
 			ret = append(sliceValue.([]time.Time), value.(time.Time))
 		default:
-			err = cd.NewError(cd.UnExpected, "illegal value type")
+			err = cd.NewResult(cd.UnExpected, "illegal value type")
 		}
 
 		return
@@ -421,7 +421,7 @@ func appendBaseSlice(sliceValue interface{}, value interface{}) (ret interface{}
 		sliceVal := append(*sliceValue.(*[]time.Time), value.(time.Time))
 		ret = &sliceVal
 	default:
-		err = cd.NewError(cd.UnExpected, "illegal value type")
+		err = cd.NewResult(cd.UnExpected, "illegal value type")
 	}
 	if err != nil {
 		return
@@ -454,13 +454,13 @@ func AppendSliceValue(sliceVal model.Value, vVal model.Value) (ret model.Value, 
 func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache) (ret model.RawVal, err *cd.Result) {
 	tModel := mCache.Fetch(vType.GetPkgKey())
 	if tModel == nil {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal model type,type:%s", vType.GetName()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal model type,type:%s", vType.GetName()))
 		log.Errorf("encodeModel failed, err:%s", err.Error())
 		return
 	}
 
 	//if vVal.IsBasic() {
-	//	err = cd.NewError(cd.UnExpected, "illegal model value")
+	//	err = cd.NewResult(cd.UnExpected, "illegal model value")
 	//	log.Errorf("encodeModel failed, err:%s", err.Error())
 	//	return
 	//}
@@ -524,7 +524,7 @@ func EncodeValue(tVal model.Value, tType model.Type, mCache model.Cache) (ret mo
 func decodeModel(tVal model.RawVal, tType model.Type, mCache model.Cache) (ret model.Value, err *cd.Result) {
 	tModel := mCache.Fetch(tType.GetPkgKey())
 	if tModel == nil {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal value type,type:%s", tType.GetName()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal value type,type:%s", tType.GetName()))
 		return
 	}
 
@@ -561,7 +561,7 @@ func decodeModel(tVal model.RawVal, tType model.Type, mCache model.Cache) (ret m
 func decodeSliceModel(tVal interface{}, tType model.Type, mCache model.Cache) (ret model.Value, err *cd.Result) {
 	tModel := mCache.Fetch(tType.GetPkgKey())
 	if tModel == nil {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal value type,type:%s", tType.GetName()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal value type,type:%s", tType.GetName()))
 		return
 	}
 	mVal, mErr := GetEntityValue(tVal)

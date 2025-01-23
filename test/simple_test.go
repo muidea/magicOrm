@@ -1,10 +1,10 @@
 package test
 
 import (
-	"fmt"
-	cd "github.com/muidea/magicCommon/def"
 	"testing"
 	"time"
+
+	cd "github.com/muidea/magicCommon/def"
 
 	"github.com/muidea/magicCommon/foundation/util"
 	"github.com/muidea/magicOrm/model"
@@ -85,7 +85,7 @@ func TestSimpleLocal(t *testing.T) {
 		}
 
 		sModelList[idx] = vModel
-		sValList[idx] = vModel.Interface(true, 0).(*Simple)
+		sValList[idx] = vModel.Interface(true, model.OriginView).(*Simple)
 	}
 
 	// update
@@ -110,7 +110,7 @@ func TestSimpleLocal(t *testing.T) {
 		}
 
 		sModelList[idx] = vModel
-		sValList[idx] = vModel.Interface(true, 0).(*Simple)
+		sValList[idx] = vModel.Interface(true, model.OriginView).(*Simple)
 	}
 
 	// query
@@ -139,21 +139,21 @@ func TestSimpleLocal(t *testing.T) {
 		}
 
 		qModelList[idx] = qModel
-		qValList[idx] = qModel.Interface(true, 0).(*Simple)
+		qValList[idx] = qModel.Interface(true, model.OriginView).(*Simple)
 	}
 
 	for idx := 0; idx < loopSize; idx++ {
 		sVal := sValList[idx]
 		qVal := qValList[idx]
 		if !sVal.IsSame(qVal) {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("compare value failed"))
+			err = cd.NewResult(cd.UnExpected, "compare value failed")
 			t.Errorf("IsSame failed. err:%s", err.Error())
 			return
 		}
 	}
 
 	simpleModel, _ := localProvider.GetEntityModel(&Simple{})
-	filter, err := localProvider.GetModelFilter(simpleModel, 0)
+	filter, err := localProvider.GetModelFilter(simpleModel, model.OriginView)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -175,7 +175,7 @@ func TestSimpleLocal(t *testing.T) {
 	for idx := 0; idx < loopSize; idx++ {
 		_, qErr := o1.Delete(bqModelList[idx])
 		if qErr != nil {
-			err = qErr
+			t.Errorf("Delete failed. err:%s", qErr.Error())
 			return
 		}
 	}
@@ -256,7 +256,7 @@ func TestSimpleRemote(t *testing.T) {
 			return
 		}
 
-		sObjectVal := vModel.Interface(true, 0).(*remote.ObjectValue)
+		sObjectVal := vModel.Interface(true, model.OriginView).(*remote.ObjectValue)
 		sVal := sValList[idx]
 		err = helper.UpdateEntity(sObjectVal, sVal)
 		if err != nil {
@@ -297,7 +297,7 @@ func TestSimpleRemote(t *testing.T) {
 			return
 		}
 
-		sObjectVal := vModel.Interface(true, 0).(*remote.ObjectValue)
+		sObjectVal := vModel.Interface(true, model.OriginView).(*remote.ObjectValue)
 		sVal := sValList[idx]
 		err = helper.UpdateEntity(sObjectVal, sVal)
 		if err != nil {
@@ -343,7 +343,7 @@ func TestSimpleRemote(t *testing.T) {
 			return
 		}
 
-		qObjectVal := qModel.Interface(true, 0).(*remote.ObjectValue)
+		qObjectVal := qModel.Interface(true, model.OriginView).(*remote.ObjectValue)
 		qVal := qValList[idx]
 		err = helper.UpdateEntity(qObjectVal, qVal)
 		if err != nil {
@@ -359,7 +359,7 @@ func TestSimpleRemote(t *testing.T) {
 		sVal := sValList[idx]
 		qVal := qValList[idx]
 		if !sVal.IsSame(qVal) {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("compare value failed"))
+			err = cd.NewResult(cd.UnExpected, "compare value failed")
 			t.Errorf("IsSame failed. err:%s", err.Error())
 			return
 		}
@@ -390,7 +390,7 @@ func TestSimpleRemote(t *testing.T) {
 	for idx := 0; idx < 100; idx++ {
 		_, qErr := o1.Delete(bqModelList[idx])
 		if qErr != nil {
-			err = qErr
+			t.Errorf("Delete failed. err:%s", qErr.Error())
 			return
 		}
 	}

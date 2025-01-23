@@ -121,7 +121,7 @@ func (s *Object) Interface(_ bool, viewSpec model.ViewDeclare) (ret any) {
 			initVal = sf.Spec.DefaultValue
 		}
 
-		if viewSpec > 0 {
+		if viewSpec != model.OriginView {
 			if sf.Spec != nil && sf.Spec.EnableView(viewSpec) {
 				if sf.value == nil || !sf.value.IsValid() {
 					vVal, vErr := sf.Type.Interface(initVal)
@@ -194,7 +194,7 @@ func (s *Object) Dump() (ret string) {
 
 func (s *Object) Verify() (err *cd.Result) {
 	if s.Name == "" {
-		err = cd.NewError(cd.UnExpected, "illegal object declare informain")
+		err = cd.NewResult(cd.UnExpected, "illegal object declare informain")
 		return
 	}
 
@@ -366,7 +366,7 @@ func TransferObjectValue(name, pkgPath string, vals []*ObjectValue) (ret *SliceO
 func encodeValue[T any](valPtr *T) (ret []byte, err *cd.Result) {
 	byteVal, byteErr := json.Marshal(valPtr)
 	if byteErr != nil {
-		err = cd.NewError(cd.UnExpected, byteErr.Error())
+		err = cd.NewResult(cd.UnExpected, byteErr.Error())
 		return
 	}
 
@@ -390,7 +390,7 @@ func decodeObjectValueFromMap(mapVal map[string]any) (ret *ObjectValue, err *cd.
 	pkgPathVal, pkgPathOK := mapVal[PkgPathTag]
 	itemsVal, itemsOK := mapVal[FieldsTag]
 	if !nameOK || !pkgPathOK || !itemsOK {
-		err = cd.NewError(cd.UnExpected, "illegal ObjectValue")
+		err = cd.NewResult(cd.UnExpected, "illegal ObjectValue")
 		return
 	}
 
@@ -408,7 +408,7 @@ func decodeObjectValueFromMap(mapVal map[string]any) (ret *ObjectValue, err *cd.
 	for _, val := range items {
 		item, itemOK := val.(map[string]any)
 		if !itemOK {
-			err = cd.NewError(cd.UnExpected, "illegal object field item value")
+			err = cd.NewResult(cd.UnExpected, "illegal object field item value")
 			return
 		}
 
@@ -430,7 +430,7 @@ func decodeSliceObjectValueFromMap(mapVal map[string]any) (ret *SliceObjectValue
 	pkgPathVal, pkgPathOK := mapVal[PkgPathTag]
 	valuesVal, valuesOK := mapVal[ValuesTag]
 	if !nameOK || !pkgPathOK || !valuesOK {
-		err = cd.NewError(cd.UnExpected, "illegal SliceObjectValue")
+		err = cd.NewResult(cd.UnExpected, "illegal SliceObjectValue")
 		return
 	}
 
@@ -448,7 +448,7 @@ func decodeSliceObjectValueFromMap(mapVal map[string]any) (ret *SliceObjectValue
 	for _, val := range values {
 		item, itemOK := val.(map[string]any)
 		if !itemOK {
-			err = cd.NewError(cd.UnExpected, "illegal slice object field item value")
+			err = cd.NewResult(cd.UnExpected, "illegal slice object field item value")
 			return
 		}
 
@@ -467,19 +467,19 @@ func decodeSliceObjectValueFromMap(mapVal map[string]any) (ret *SliceObjectValue
 
 func decodeItemValue(itemVal map[string]any) (ret *FieldValue, err *cd.Result) {
 	if itemVal == nil {
-		err = cd.NewError(cd.UnExpected, "itemVal is nil")
+		err = cd.NewResult(cd.UnExpected, "itemVal is nil")
 		return
 	}
 
 	nameVal, nameOK := itemVal[NameTag]
 	if !nameOK {
-		err = cd.NewError(cd.UnExpected, "illegal item value")
+		err = cd.NewResult(cd.UnExpected, "illegal item value")
 		return
 	}
 
 	nameStr, ok := nameVal.(string)
 	if !ok {
-		err = cd.NewError(cd.UnExpected, "nameVal is not a string")
+		err = cd.NewResult(cd.UnExpected, "nameVal is not a string")
 		return
 	}
 
@@ -521,7 +521,7 @@ func ConvertItem(val *FieldValue) (ret *FieldValue, err *cd.Result) {
 			return
 		}
 
-		err = cd.NewError(cd.UnExpected, "illegal itemValue")
+		err = cd.NewResult(cd.UnExpected, "illegal itemValue")
 		return
 	}
 
@@ -539,7 +539,7 @@ func ConvertItem(val *FieldValue) (ret *FieldValue, err *cd.Result) {
 func decodeValue[T any](data []byte, val *T, decodeFunc func(*T) (*T, *cd.Result)) (*T, *cd.Result) {
 	byteErr := json.Unmarshal(data, val)
 	if byteErr != nil {
-		return nil, cd.NewError(cd.UnExpected, byteErr.Error())
+		return nil, cd.NewResult(cd.UnExpected, byteErr.Error())
 	}
 
 	ret, err := decodeFunc(val)

@@ -438,7 +438,7 @@ func (s *QueryRunner) Query(filter model.Filter) (ret []model.Model, err *cd.Res
 		return
 	}
 	if !s.batchFilter && queryCount > 1 {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("match %d items", queryCount))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("match %d items", queryCount))
 		return
 	}
 
@@ -464,7 +464,7 @@ func (s *QueryRunner) Query(filter model.Filter) (ret []model.Model, err *cd.Res
 
 func (s *impl) Query(vModel model.Model) (ret model.Model, err *cd.Result) {
 	if vModel == nil {
-		err = cd.NewError(cd.IllegalParam, "illegal model value")
+		err = cd.NewResult(cd.IllegalParam, "illegal model value")
 		return
 	}
 
@@ -495,6 +495,6 @@ func (s *impl) Query(vModel model.Model) (ret model.Model, err *cd.Result) {
 		return
 	}
 
-	err = cd.NewError(cd.NoExist, fmt.Sprintf("query model failed, pkgKey:%s", vModel.GetPkgKey()))
+	err = cd.NewResult(cd.NoExist, fmt.Sprintf("query model failed, pkgKey:%s", vModel.GetPkgKey()))
 	return
 }

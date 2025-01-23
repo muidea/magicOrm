@@ -26,7 +26,7 @@ func toBasicValue(rVal model.Value, lType model.Type) (ret model.Value, err *cd.
 
 func toBasicSliceValue(rVal model.Value, lType model.Type) (ret model.Value, err *cd.Result) {
 	if !model.IsSliceType(lType.GetValue()) {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal slice value, type pkgKey:%v", lType.GetPkgKey()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal slice value, type pkgKey:%v", lType.GetPkgKey()))
 		log.Errorf("toBasicSliceValue failed, err:%v", err.Error())
 		return
 	}
@@ -121,7 +121,7 @@ func toLocalValue(rVal *remote.ObjectValue, lType model.Type) (ret model.Value, 
 
 	/*
 		if rVal.GetPkgKey() != lModel.GetPkgKey() {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("mismatch pkgKey, remote object value pkgKey:%s, local model pkgKey:%s", rVal.GetPkgKey(), lModel.GetPkgKey()))
+			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("mismatch pkgKey, remote object value pkgKey:%s, local model pkgKey:%s", rVal.GetPkgKey(), lModel.GetPkgKey()))
 			log.Errorf("toLocalValue failed, err:%v", err.Error())
 			return
 		}
@@ -151,7 +151,7 @@ func toLocalValue(rVal *remote.ObjectValue, lType model.Type) (ret model.Value, 
 func toLocalSliceValue(sliceObjectValue *remote.SliceObjectValue, lType model.Type) (ret model.Value, err *cd.Result) {
 	/*
 		if sliceObjectValue.GetPkgKey() != lType.GetPkgKey() {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("mismatch objectValue for value, sliceObjectValue pkgKey:%s, sliceEntityType pkgKey:%s", sliceObjectValue.GetPkgKey(), lType.GetPkgKey()))
+			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("mismatch objectValue for value, sliceObjectValue pkgKey:%s, sliceEntityType pkgKey:%s", sliceObjectValue.GetPkgKey(), lType.GetPkgKey()))
 			log.Errorf("toLocalSliceValue failed, err:%s", err)
 			return
 		}
@@ -182,7 +182,7 @@ func toLocalSliceValue(sliceObjectValue *remote.SliceObjectValue, lType model.Ty
 func toStructValue(rVal model.Value, lType model.Type) (ret model.Value, err *cd.Result) {
 	objectValuePtr, objectValueOK := rVal.Get().(*remote.ObjectValue)
 	if !objectValueOK {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal remote object value, value type:%s", lType.GetPkgKey()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal remote object value, value type:%s", lType.GetPkgKey()))
 		log.Errorf("toStructValue failed, error:%s", err.Error())
 		return
 	}
@@ -201,7 +201,7 @@ func toStructValue(rVal model.Value, lType model.Type) (ret model.Value, err *cd
 func toStructSliceValue(rVal model.Value, lType model.Type) (ret model.Value, err *cd.Result) {
 	sliceObjectValuePtr, sliceObjectValueOK := rVal.Get().(*remote.SliceObjectValue)
 	if !sliceObjectValueOK {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal remote slice value, value type:%s", lType.GetPkgKey()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal remote slice value, value type:%s", lType.GetPkgKey()))
 		log.Errorf("toStructSliceValue failed, err:%s", err.Error())
 		return
 	}
@@ -226,18 +226,18 @@ func UpdateEntity(remoteValue *remote.ObjectValue, localEntity any) (err *cd.Res
 
 	entityValue := reflect.ValueOf(localEntity)
 	if entityValue.Kind() != reflect.Ptr {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal localEntity value, must be a pointer localEntity"))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal localEntity value, must be a pointer localEntity"))
 		log.Errorf("UpdateEntity failed, error:%s", err.Error())
 		return
 	}
 
 	entityValue = reflect.Indirect(entityValue)
 	if entityValue.Kind() != reflect.Struct {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal localEntity, must be a struct localEntity"))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal localEntity, must be a struct localEntity"))
 		return
 	}
 	if !entityValue.CanSet() {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal localEntity value, can't be set"))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal localEntity value, can't be set"))
 		log.Errorf("UpdateEntity failed, error:%s", err.Error())
 		return
 	}
@@ -268,7 +268,7 @@ func UpdateSliceEntity(remoteValue *remote.SliceObjectValue, localEntity any) (e
 
 	entityValue := reflect.ValueOf(localEntity)
 	if entityValue.Kind() != reflect.Ptr {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal localEntity value, must be a pointer localEntity"))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal localEntity value, must be a pointer localEntity"))
 		log.Errorf("UpdateSliceEntity failed, error:%s", err.Error())
 		return
 	}
@@ -282,12 +282,12 @@ func UpdateSliceEntity(remoteValue *remote.SliceObjectValue, localEntity any) (e
 
 	entityValue = reflect.Indirect(entityValue)
 	if entityValue.Kind() != reflect.Slice {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal localEntity, must be a struct localEntity"))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal localEntity, must be a struct localEntity"))
 		log.Errorf("UpdateSliceEntity failed, error:%s", err.Error())
 		return
 	}
 	if !entityValue.CanSet() {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal localEntity value, can't be set"))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal localEntity value, can't be set"))
 		log.Errorf("UpdateSliceEntity failed, error:%s", err.Error())
 		return
 	}

@@ -39,7 +39,7 @@ func newFilter(valuePtr *ValueImpl) *filter {
 
 func (s *filter) Equal(key string, val any) (err *cd.Result) {
 	if val == nil {
-		err = cd.NewError(cd.IllegalParam, "illegal equal value")
+		err = cd.NewResult(cd.IllegalParam, "illegal equal value")
 		return
 	}
 
@@ -51,7 +51,7 @@ func (s *filter) Equal(key string, val any) (err *cd.Result) {
 		return
 	}
 	if om.IsSliceType(qvType) {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("equal failed, illegal value type, type:%s", qv.Type().String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("equal failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("Equal failed, err:%v", err.Error())
 		return
 	}
@@ -63,7 +63,7 @@ func (s *filter) Equal(key string, val any) (err *cd.Result) {
 
 func (s *filter) NotEqual(key string, val any) (err *cd.Result) {
 	if val == nil {
-		err = cd.NewError(cd.IllegalParam, "illegal not equal value")
+		err = cd.NewResult(cd.IllegalParam, "illegal not equal value")
 		return
 	}
 
@@ -75,7 +75,7 @@ func (s *filter) NotEqual(key string, val any) (err *cd.Result) {
 		return
 	}
 	if om.IsSliceType(qvType) {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("NotEqual failed, illegal value type, type:%s", qv.Type().String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("NotEqual failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("NotEqual failed, err:%v", err.Error())
 		return
 	}
@@ -87,7 +87,7 @@ func (s *filter) NotEqual(key string, val any) (err *cd.Result) {
 
 func (s *filter) Below(key string, val any) (err *cd.Result) {
 	if val == nil {
-		err = cd.NewError(cd.IllegalParam, "illegal below value")
+		err = cd.NewResult(cd.IllegalParam, "illegal below value")
 		return
 	}
 
@@ -99,7 +99,7 @@ func (s *filter) Below(key string, val any) (err *cd.Result) {
 		return
 	}
 	if !om.IsBasicType(qvType) {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("below failed, illegal value type, type:%s", qv.Type().String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("below failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("Below failed, err:%v", err.Error())
 		return
 	}
@@ -111,7 +111,7 @@ func (s *filter) Below(key string, val any) (err *cd.Result) {
 
 func (s *filter) Above(key string, val any) (err *cd.Result) {
 	if val == nil {
-		err = cd.NewError(cd.IllegalParam, "illegal above value")
+		err = cd.NewResult(cd.IllegalParam, "illegal above value")
 		return
 	}
 
@@ -123,7 +123,7 @@ func (s *filter) Above(key string, val any) (err *cd.Result) {
 		return
 	}
 	if !om.IsBasicType(qvType) {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("above failed, illegal value type, type:%s", qv.Type().String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("above failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("Above failed, err:%v", err.Error())
 		return
 	}
@@ -135,7 +135,7 @@ func (s *filter) Above(key string, val any) (err *cd.Result) {
 
 func (s *filter) In(key string, val any) (err *cd.Result) {
 	if val == nil {
-		err = cd.NewError(cd.IllegalParam, "illegal in value")
+		err = cd.NewResult(cd.IllegalParam, "illegal in value")
 		return
 	}
 
@@ -147,7 +147,7 @@ func (s *filter) In(key string, val any) (err *cd.Result) {
 		return
 	}
 	if !om.IsSliceType(qvType) {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("in failed, illegal value type, type:%s", qv.Type().String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("in failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("In failed, err:%v", err.Error())
 		return
 	}
@@ -159,7 +159,7 @@ func (s *filter) In(key string, val any) (err *cd.Result) {
 
 func (s *filter) NotIn(key string, val any) (err *cd.Result) {
 	if val == nil {
-		err = cd.NewError(cd.IllegalParam, "illegal not in value")
+		err = cd.NewResult(cd.IllegalParam, "illegal not in value")
 		return
 	}
 
@@ -171,7 +171,7 @@ func (s *filter) NotIn(key string, val any) (err *cd.Result) {
 		return
 	}
 	if !om.IsSliceType(qvType) {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("notIn failed, illegal value type, type:%s", qv.Type().String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("notIn failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("NotIn failed, err:%v", err.Error())
 		return
 	}
@@ -183,13 +183,13 @@ func (s *filter) NotIn(key string, val any) (err *cd.Result) {
 
 func (s *filter) Like(key string, val any) (err *cd.Result) {
 	if val == nil {
-		err = cd.NewError(cd.IllegalParam, "illegal like value")
+		err = cd.NewResult(cd.IllegalParam, "illegal like value")
 		return
 	}
 
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	if qv.Kind() != reflect.String {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("like failed, illegal value type, type:%s", qv.Type().String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("like failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("Like failed, illegal value type, err:%s", err.Error())
 		return
 	}
@@ -209,7 +209,7 @@ func (s *filter) Sort(sorter *util.SortFilter) {
 
 func (s *filter) ValueMask(val any) (err *cd.Result) {
 	if val == nil {
-		err = cd.NewError(cd.IllegalParam, "illegal value mask")
+		err = cd.NewResult(cd.IllegalParam, "illegal value mask")
 		return
 	}
 
@@ -217,7 +217,7 @@ func (s *filter) ValueMask(val any) (err *cd.Result) {
 	bindType := reflect.Indirect(s.bindValue.value).Type().String()
 	maskType := reflect.Indirect(qv).Type().String()
 	if bindType != maskType {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("mismatch mask value, bindType:%v, maskType:%v", bindType, maskType))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("mismatch mask value, bindType:%v, maskType:%v", bindType, maskType))
 		log.Errorf("ValueMask failed, err:%v", err.Error())
 		return
 	}

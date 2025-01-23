@@ -17,7 +17,7 @@ type TypeImpl struct {
 
 func getValueType(val reflect.Value) (ret *TypeImpl, err *cd.Result) {
 	if util.IsNil(val) {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("can't get nil value type"))
+		err = cd.NewResult(cd.UnExpected, "can't get nil value type")
 		return
 	}
 
@@ -118,7 +118,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 		default:
 			rInitVal := reflect.Indirect(reflect.ValueOf(initVal))
 			if rInitVal.Type() != tVal.Type() {
-				err = cd.NewError(cd.UnExpected, "missmatch value type")
+				err = cd.NewResult(cd.UnExpected, "missmatch value type")
 			} else {
 				tVal.Set(rInitVal)
 			}

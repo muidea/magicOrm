@@ -111,7 +111,7 @@ func NewOrm(provider provider.Provider, cfg executor.Config, prefix string) (Orm
 	executorVal, executorErr := NewExecutor(cfg)
 	if executorErr != nil {
 		log.Errorf("NewOrm failed, NewExecutor error:%s", executorErr.Error())
-		return nil, cd.NewError(cd.UnExpected, executorErr.Error())
+		return nil, cd.NewResult(cd.UnExpected, executorErr.Error())
 	}
 
 	orm := &impl{executor: executorVal, modelProvider: provider, modelCodec: codec.New(provider, prefix)}
@@ -122,7 +122,7 @@ func NewOrm(provider provider.Provider, cfg executor.Config, prefix string) (Orm
 func GetOrm(provider provider.Provider, prefix string) (ret Orm, err *cd.Result) {
 	val, ok := name2Pool.Load(provider.Owner())
 	if !ok {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("can't find orm,name:%s", provider.Owner()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't find orm,name:%s", provider.Owner()))
 		log.Errorf("GetOrm failed, error:%s", err.Error())
 		return
 	}

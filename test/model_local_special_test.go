@@ -1,8 +1,10 @@
 package test
 
 import (
-	"github.com/muidea/magicOrm/provider"
 	"testing"
+
+	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider"
 
 	"github.com/muidea/magicOrm/orm"
 )
@@ -84,7 +86,7 @@ func TestKPI(t *testing.T) {
 		t.Errorf("insert kpi failed, err:%s", kpiErr.Error())
 		return
 	}
-	kpi = kpiModel.Interface(true, 0).(*KPI)
+	kpi = kpiModel.Interface(true, model.OriginView).(*KPI)
 
 	goal1 := &Goal{Type: ByMoney, Value: 1234}
 	kpi.JoinValue = *goal1

@@ -180,7 +180,7 @@ func GetTypeEnum(val reflect.Type) (ret model.TypeDeclare, err *cd.Result) {
 
 		ret = model.TypeSliceValue
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("unsupported type:%v", val.String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("unsupported type:%v", val.String()))
 	}
 
 	return
@@ -501,7 +501,7 @@ func GetString(val any) (ret model.RawVal, err *cd.Result) {
 func GetDateTime(val any) (ret model.RawVal, err *cd.Result) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val:%v", val))
+			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val:%v", val))
 		}
 	}()
 
@@ -528,7 +528,7 @@ func GetRawBool(rVal reflect.Value) (ret bool, err *cd.Result) {
 	case reflect.String:
 		ret = len(rVal.String()) > 0 && rVal.String() == "1"
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal bool value, val type:%v", rVal.Type().String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal bool value, val type:%v", rVal.Type().String()))
 	}
 
 	return
@@ -551,13 +551,13 @@ func GetRawInt(rVal reflect.Value) (ret int, err *cd.Result) {
 	case reflect.String:
 		i64, iErr := strconv.ParseInt(rVal.String(), 0, 64)
 		if iErr != nil {
-			err = cd.NewError(cd.UnExpected, iErr.Error())
+			err = cd.NewResult(cd.UnExpected, iErr.Error())
 			return
 		}
 
 		ret = int(i64)
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal int value, val type:%v", rVal.Type().String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal int value, val type:%v", rVal.Type().String()))
 	}
 
 	return
@@ -580,13 +580,13 @@ func GetRawInt8(rVal reflect.Value) (ret int8, err *cd.Result) {
 	case reflect.String:
 		i64, iErr := strconv.ParseInt(rVal.String(), 0, 64)
 		if iErr != nil {
-			err = cd.NewError(cd.UnExpected, iErr.Error())
+			err = cd.NewResult(cd.UnExpected, iErr.Error())
 			return
 		}
 
 		ret = int8(i64)
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal int8 value, val type:%v", rVal.Type().String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal int8 value, val type:%v", rVal.Type().String()))
 	}
 
 	return
@@ -609,13 +609,13 @@ func GetRawInt16(rVal reflect.Value) (ret int16, err *cd.Result) {
 	case reflect.String:
 		i64, iErr := strconv.ParseInt(rVal.String(), 0, 64)
 		if iErr != nil {
-			err = cd.NewError(cd.UnExpected, iErr.Error())
+			err = cd.NewResult(cd.UnExpected, iErr.Error())
 			return
 		}
 
 		ret = int16(i64)
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal int16 value, val type:%v", rVal.Type().String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal int16 value, val type:%v", rVal.Type().String()))
 	}
 
 	return
@@ -638,13 +638,13 @@ func GetRawInt32(rVal reflect.Value) (ret int32, err *cd.Result) {
 	case reflect.String:
 		i64, iErr := strconv.ParseInt(rVal.String(), 0, 64)
 		if iErr != nil {
-			err = cd.NewError(cd.UnExpected, iErr.Error())
+			err = cd.NewResult(cd.UnExpected, iErr.Error())
 			return
 		}
 
 		ret = int32(i64)
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal int32 value, val type:%v", rVal.Type().String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal int32 value, val type:%v", rVal.Type().String()))
 	}
 
 	return
@@ -667,13 +667,13 @@ func GetRawInt64(rVal reflect.Value) (ret int64, err *cd.Result) {
 	case reflect.String:
 		i64, iErr := strconv.ParseInt(rVal.String(), 0, 64)
 		if iErr != nil {
-			err = cd.NewError(cd.UnExpected, iErr.Error())
+			err = cd.NewResult(cd.UnExpected, iErr.Error())
 			return
 		}
 
 		ret = i64
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal int64 value, val type:%v", rVal.Type().String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal int64 value, val type:%v", rVal.Type().String()))
 	}
 
 	return
@@ -696,12 +696,12 @@ func GetRawUint(rVal reflect.Value) (ret uint, err *cd.Result) {
 	case reflect.String:
 		ui64, uiErr := strconv.ParseUint(rVal.String(), 0, 64)
 		if uiErr != nil {
-			err = cd.NewError(cd.UnExpected, uiErr.Error())
+			err = cd.NewResult(cd.UnExpected, uiErr.Error())
 			return
 		}
 		ret = uint(ui64)
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal uint value, val type:%v", rVal.Type().String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal uint value, val type:%v", rVal.Type().String()))
 	}
 
 	return
@@ -724,12 +724,12 @@ func GetRawUint8(rVal reflect.Value) (ret uint8, err *cd.Result) {
 	case reflect.String:
 		uiVal, uiErr := strconv.ParseUint(rVal.String(), 0, 64)
 		if uiErr != nil {
-			err = cd.NewError(cd.UnExpected, uiErr.Error())
+			err = cd.NewResult(cd.UnExpected, uiErr.Error())
 			return
 		}
 		ret = uint8(uiVal)
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal uint8 value, val type:%v", rVal.Type().String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal uint8 value, val type:%v", rVal.Type().String()))
 	}
 
 	return
@@ -752,12 +752,12 @@ func GetRawUint16(rVal reflect.Value) (ret uint16, err *cd.Result) {
 	case reflect.String:
 		uiVal, uiErr := strconv.ParseUint(rVal.String(), 0, 64)
 		if uiErr != nil {
-			err = cd.NewError(cd.UnExpected, uiErr.Error())
+			err = cd.NewResult(cd.UnExpected, uiErr.Error())
 			return
 		}
 		ret = uint16(uiVal)
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal uint16 value, val type:%v", rVal.Type().String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal uint16 value, val type:%v", rVal.Type().String()))
 	}
 
 	return
@@ -780,12 +780,12 @@ func GetRawUint32(rVal reflect.Value) (ret uint32, err *cd.Result) {
 	case reflect.String:
 		uiVal, uiErr := strconv.ParseUint(rVal.String(), 0, 64)
 		if uiErr != nil {
-			err = cd.NewError(cd.UnExpected, uiErr.Error())
+			err = cd.NewResult(cd.UnExpected, uiErr.Error())
 			return
 		}
 		ret = uint32(uiVal)
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal uint32 value, val type:%v", rVal.Type().String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal uint32 value, val type:%v", rVal.Type().String()))
 	}
 
 	return
@@ -808,12 +808,12 @@ func GetRawUint64(rVal reflect.Value) (ret uint64, err *cd.Result) {
 	case reflect.String:
 		uiVal, uiErr := strconv.ParseUint(rVal.String(), 0, 64)
 		if uiErr != nil {
-			err = cd.NewError(cd.UnExpected, uiErr.Error())
+			err = cd.NewResult(cd.UnExpected, uiErr.Error())
 			return
 		}
 		ret = uiVal
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal uint64 value, val type:%v", rVal.Type().String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal uint64 value, val type:%v", rVal.Type().String()))
 	}
 
 	return
@@ -836,13 +836,13 @@ func GetRawFloat32(rVal reflect.Value) (ret float32, err *cd.Result) {
 	case reflect.String:
 		fVal, fErr := strconv.ParseFloat(rVal.String(), 32)
 		if fErr != nil {
-			err = cd.NewError(cd.UnExpected, fErr.Error())
+			err = cd.NewResult(cd.UnExpected, fErr.Error())
 			return
 		}
 
 		ret = float32(fVal)
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal float32 value, val type:%v", rVal.Type().String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal float32 value, val type:%v", rVal.Type().String()))
 	}
 
 	return
@@ -865,13 +865,13 @@ func GetRawFloat64(rVal reflect.Value) (ret float64, err *cd.Result) {
 	case reflect.String:
 		fVal, fErr := strconv.ParseFloat(rVal.String(), 64)
 		if fErr != nil {
-			err = cd.NewError(cd.UnExpected, fErr.Error())
+			err = cd.NewResult(cd.UnExpected, fErr.Error())
 			return
 		}
 
 		ret = fVal
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal float64 value, val type:%v", rVal.Type().String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal float64 value, val type:%v", rVal.Type().String()))
 	}
 
 	return
@@ -898,10 +898,10 @@ func GetRawString(rVal reflect.Value) (ret string, err *cd.Result) {
 		case "time.Time":
 			ret = rVal.Interface().(time.Time).Format(fu.CSTLayout)
 		default:
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal string value, val type:%v", rVal.Type().String()))
+			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal string value, val type:%v", rVal.Type().String()))
 		}
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal string value, val type:%v", rVal.Type().String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal string value, val type:%v", rVal.Type().String()))
 	}
 
 	return
@@ -910,7 +910,7 @@ func GetRawString(rVal reflect.Value) (ret string, err *cd.Result) {
 func GetRawDateTime(rVal reflect.Value) (ret time.Time, err *cd.Result) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val:%v", rVal.Interface()))
+			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val:%v", rVal.Interface()))
 		}
 	}()
 
@@ -918,7 +918,7 @@ func GetRawDateTime(rVal reflect.Value) (ret time.Time, err *cd.Result) {
 	case reflect.String:
 		tVal, tErr := time.Parse(fu.CSTLayout, rVal.String())
 		if tErr != nil {
-			err = cd.NewError(cd.UnExpected, tErr.Error())
+			err = cd.NewResult(cd.UnExpected, tErr.Error())
 			return
 		}
 		ret = tVal
@@ -927,10 +927,10 @@ func GetRawDateTime(rVal reflect.Value) (ret time.Time, err *cd.Result) {
 		case "time.Time":
 			ret = rVal.Interface().(time.Time)
 		default:
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))
+			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))
 		}
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))
 	}
 
 	return

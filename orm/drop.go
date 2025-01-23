@@ -92,7 +92,7 @@ func (s *DropRunner) Drop() (err *cd.Result) {
 
 func (s *impl) Drop(vModel model.Model) (err *cd.Result) {
 	if vModel == nil {
-		err = cd.NewError(cd.IllegalParam, "illegal model value")
+		err = cd.NewResult(cd.IllegalParam, "illegal model value")
 		return
 	}
 

@@ -1,8 +1,9 @@
 package test
 
 import (
-	"github.com/muidea/magicOrm/model"
 	"testing"
+
+	"github.com/muidea/magicOrm/model"
 
 	"github.com/muidea/magicCommon/foundation/util"
 	"github.com/muidea/magicOrm/orm"
@@ -108,7 +109,7 @@ func TestRemoteGroup(t *testing.T) {
 		return
 	}
 
-	err = helper.UpdateEntity(statusModel.Interface(true, 0).(*remote.ObjectValue), status)
+	err = helper.UpdateEntity(statusModel.Interface(true, model.OriginView).(*remote.ObjectValue), status)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -131,7 +132,7 @@ func TestRemoteGroup(t *testing.T) {
 		return
 	}
 
-	err = helper.UpdateEntity(group1Model.Interface(true, 0).(*remote.ObjectValue), group1)
+	err = helper.UpdateEntity(group1Model.Interface(true, model.OriginView).(*remote.ObjectValue), group1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -153,7 +154,7 @@ func TestRemoteGroup(t *testing.T) {
 		t.Errorf("insert Group1 failed, err:%s", qGroup1Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(qGroup1Model.Interface(true, 0).(*remote.ObjectValue), qGroup1)
+	err = helper.UpdateEntity(qGroup1Model.Interface(true, model.OriginView).(*remote.ObjectValue), qGroup1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -175,7 +176,7 @@ func TestRemoteGroup(t *testing.T) {
 		t.Errorf("insert Group2 failed, err:%s", group2Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(group2Model.Interface(true, 0).(*remote.ObjectValue), group2)
+	err = helper.UpdateEntity(group2Model.Interface(true, model.OriginView).(*remote.ObjectValue), group2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -198,12 +199,12 @@ func TestRemoteGroup(t *testing.T) {
 		return
 	}
 
-	err = helper.UpdateEntity(group3Model.Interface(true, 0).(*remote.ObjectValue), group3)
+	err = helper.UpdateEntity(group3Model.Interface(true, model.OriginView).(*remote.ObjectValue), group3)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
-	group3Model, group3Err = o1.Delete(group3Model)
+	_, group3Err = o1.Delete(group3Model)
 	if group3Err != nil {
 		t.Errorf("delete Group3 failed, err:%s", group3Err.Error())
 		return
@@ -226,7 +227,7 @@ func TestRemoteGroup(t *testing.T) {
 		return
 	}
 
-	err = helper.UpdateEntity(group4Model.Interface(true, 0).(*remote.ObjectValue), group4)
+	err = helper.UpdateEntity(group4Model.Interface(true, model.OriginView).(*remote.ObjectValue), group4)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -249,7 +250,7 @@ func TestRemoteGroup(t *testing.T) {
 		return
 	}
 
-	err = helper.UpdateEntity(group5Model.Interface(true, 0).(*remote.ObjectValue), group5)
+	err = helper.UpdateEntity(group5Model.Interface(true, model.OriginView).(*remote.ObjectValue), group5)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -358,7 +359,7 @@ func TestRemoteUser(t *testing.T) {
 		return
 	}
 
-	err = helper.UpdateEntity(statusModel.Interface(true, 0).(*remote.ObjectValue), status)
+	err = helper.UpdateEntity(statusModel.Interface(true, model.OriginView).(*remote.ObjectValue), status)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -381,7 +382,7 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("insert Group1 failed, err:%s", group1Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(group1Model.Interface(true, 0).(*remote.ObjectValue), group1)
+	err = helper.UpdateEntity(group1Model.Interface(true, model.OriginView).(*remote.ObjectValue), group1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -402,7 +403,7 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("insert Group2 failed, err:%s", group2Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(group2Model.Interface(true, 0).(*remote.ObjectValue), group2)
+	err = helper.UpdateEntity(group2Model.Interface(true, model.OriginView).(*remote.ObjectValue), group2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -423,7 +424,7 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("insert Group2 failed, err:%s", group3Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(group3Model.Interface(true, 0).(*remote.ObjectValue), group3)
+	err = helper.UpdateEntity(group3Model.Interface(true, model.OriginView).(*remote.ObjectValue), group3)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -448,7 +449,7 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("insert user1 failed, err:%s", user1Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(user1Model.Interface(true, 0).(*remote.ObjectValue), user1)
+	err = helper.UpdateEntity(user1Model.Interface(true, model.OriginView).(*remote.ObjectValue), user1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -470,7 +471,7 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("query user2 failed, err:%s", user2Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(user2Model.Interface(true, 0).(*remote.ObjectValue), user2)
+	err = helper.UpdateEntity(user2Model.Interface(true, model.OriginView).(*remote.ObjectValue), user2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -497,7 +498,7 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("update user1 failed, err:%s", user1Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(user1Model.Interface(true, 0).(*remote.ObjectValue), user1)
+	err = helper.UpdateEntity(user1Model.Interface(true, model.OriginView).(*remote.ObjectValue), user1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -518,7 +519,7 @@ func TestRemoteUser(t *testing.T) {
 		t.Errorf("query user2 failed, err:%s", user2Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(user2Model.Interface(true, 0).(*remote.ObjectValue), user2)
+	err = helper.UpdateEntity(user2Model.Interface(true, model.OriginView).(*remote.ObjectValue), user2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -540,7 +541,7 @@ func TestRemoteUser(t *testing.T) {
 	}
 
 	userModel, _ := remoteProvider.GetEntityModel(userObject)
-	user2Filter, user2Err := remoteProvider.GetModelFilter(userModel, 0)
+	user2Filter, user2Err := remoteProvider.GetModelFilter(userModel, model.OriginView)
 	if user2Err != nil {
 		t.Errorf("remoteProvider.GetModelFilter failed, error:%s", user2Err.Error())
 		return
@@ -570,7 +571,7 @@ func TestRemoteUser(t *testing.T) {
 
 	userValueList := []*remote.ObjectValue{}
 	for _, val := range userModelList {
-		userValueList = append(userValueList, val.Interface(true, 0).(*remote.ObjectValue))
+		userValueList = append(userValueList, val.Interface(true, model.OriginView).(*remote.ObjectValue))
 	}
 
 	userList := []*User{}
@@ -581,22 +582,22 @@ func TestRemoteUser(t *testing.T) {
 		return
 	}
 
-	group1Model, group1Err = o1.Delete(group1Model)
+	_, group1Err = o1.Delete(group1Model)
 	if group1Err != nil {
 		t.Errorf("delete group1 failed, err:%s", group1Err.Error())
 		return
 	}
-	group2Model, group2Err = o1.Delete(group2Model)
+	_, group2Err = o1.Delete(group2Model)
 	if group2Err != nil {
 		t.Errorf("delete group2 failed, err:%s", group2Err.Error())
 		return
 	}
-	group3Model, group3Err = o1.Delete(group3Model)
+	_, group3Err = o1.Delete(group3Model)
 	if group3Err != nil {
 		t.Errorf("delete group3 failed, err:%s", group3Err.Error())
 		return
 	}
-	user2Model, user2Err = o1.Delete(user2Model)
+	_, user2Err = o1.Delete(user2Model)
 	if user2Err != nil {
 		t.Errorf("delete user2 failed, err:%s", user2Err.Error())
 		return
@@ -703,7 +704,7 @@ func TestRemoteSystem(t *testing.T) {
 		return
 	}
 
-	err = helper.UpdateEntity(statusModel.Interface(true, 0).(*remote.ObjectValue), status)
+	err = helper.UpdateEntity(statusModel.Interface(true, model.OriginView).(*remote.ObjectValue), status)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -725,7 +726,7 @@ func TestRemoteSystem(t *testing.T) {
 		t.Errorf("insert user failed, err:%s", user1Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(user1Model.Interface(true, 0).(*remote.ObjectValue), user1)
+	err = helper.UpdateEntity(user1Model.Interface(true, model.OriginView).(*remote.ObjectValue), user1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -746,7 +747,7 @@ func TestRemoteSystem(t *testing.T) {
 		t.Errorf("insert user failed, err:%s", user2Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(user2Model.Interface(true, 0).(*remote.ObjectValue), user2)
+	err = helper.UpdateEntity(user2Model.Interface(true, model.OriginView).(*remote.ObjectValue), user2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -777,7 +778,7 @@ func TestRemoteSystem(t *testing.T) {
 		t.Errorf("insert user failed, err:%s", sys1Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(sys1Model.Interface(true, 0).(*remote.ObjectValue), sys1)
+	err = helper.UpdateEntity(sys1Model.Interface(true, model.OriginView).(*remote.ObjectValue), sys1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -801,7 +802,7 @@ func TestRemoteSystem(t *testing.T) {
 		t.Errorf("update system failed, err:%s", sys1Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(sys1Model.Interface(true, 0).(*remote.ObjectValue), sys1)
+	err = helper.UpdateEntity(sys1Model.Interface(true, model.OriginView).(*remote.ObjectValue), sys1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -823,7 +824,7 @@ func TestRemoteSystem(t *testing.T) {
 		t.Errorf("query system failed, err:%s", sys2Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(sys2Model.Interface(true, 0).(*remote.ObjectValue), sys2)
+	err = helper.UpdateEntity(sys2Model.Interface(true, model.OriginView).(*remote.ObjectValue), sys2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -834,17 +835,17 @@ func TestRemoteSystem(t *testing.T) {
 		return
 	}
 
-	sys2Model, sys2Err = o1.Delete(sys2Model)
-	if err != nil {
-		t.Errorf("delete system failed, err:%s", err.Error())
+	_, sys2Err = o1.Delete(sys2Model)
+	if sys2Err != nil {
+		t.Errorf("delete system failed, err:%s", sys2Err.Error())
 		return
 	}
-	user1Model, user1Err = o1.Delete(user1Model)
+	_, user1Err = o1.Delete(user1Model)
 	if user1Err != nil {
 		t.Errorf("delete user1 failed, err:%s", user1Err.Error())
 		return
 	}
-	user2Model, user2Err = o1.Delete(user2Model)
+	_, user2Err = o1.Delete(user2Model)
 	if user2Err != nil {
 		t.Errorf("delete user2 failed, err:%s", user2Err.Error())
 	}
@@ -937,7 +938,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("insert group failed, err:%s", group1Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(group1Model.Interface(true, 0).(*remote.ObjectValue), group1)
+	err = helper.UpdateEntity(group1Model.Interface(true, model.OriginView).(*remote.ObjectValue), group1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -958,7 +959,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("insert group failed, err:%s", group2Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(group2Model.Interface(true, 0).(*remote.ObjectValue), group2)
+	err = helper.UpdateEntity(group2Model.Interface(true, model.OriginView).(*remote.ObjectValue), group2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -978,7 +979,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("insert group failed, err:%s", group3Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(group3Model.Interface(true, 0).(*remote.ObjectValue), group3)
+	err = helper.UpdateEntity(group3Model.Interface(true, model.OriginView).(*remote.ObjectValue), group3)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -1014,7 +1015,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("insert user failed, err:%s", user1Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(user1Model.Interface(true, 0).(*remote.ObjectValue), user1)
+	err = helper.UpdateEntity(user1Model.Interface(true, model.OriginView).(*remote.ObjectValue), user1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -1037,7 +1038,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		t.Errorf("insert user failed, err:%s", user2Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(user2Model.Interface(true, 0).(*remote.ObjectValue), user2)
+	err = helper.UpdateEntity(user2Model.Interface(true, model.OriginView).(*remote.ObjectValue), user2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -1122,7 +1123,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	userFilter, err := remoteProvider.GetModelFilter(userObject, 0)
+	userFilter, err := remoteProvider.GetModelFilter(userObject, model.OriginView)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -1234,7 +1235,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("insert group failed, err:%s", statusErr.Error())
 		return
 	}
-	err = helper.UpdateEntity(statusModel.Interface(true, 0).(*remote.ObjectValue), status)
+	err = helper.UpdateEntity(statusModel.Interface(true, model.OriginView).(*remote.ObjectValue), status)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -1257,7 +1258,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("insert group failed, err:%s", group1Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(group1Model.Interface(true, 0).(*remote.ObjectValue), group1)
+	err = helper.UpdateEntity(group1Model.Interface(true, model.OriginView).(*remote.ObjectValue), group1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -1279,7 +1280,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("insert group failed, err:%s", group2Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(group2Model.Interface(true, 0).(*remote.ObjectValue), group2)
+	err = helper.UpdateEntity(group2Model.Interface(true, model.OriginView).(*remote.ObjectValue), group2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -1300,7 +1301,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("insert group failed, err:%s", group3Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(group3Model.Interface(true, 0).(*remote.ObjectValue), group3)
+	err = helper.UpdateEntity(group3Model.Interface(true, model.OriginView).(*remote.ObjectValue), group3)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -1337,7 +1338,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("insert group failed, err:%s", user1Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(user1Model.Interface(true, 0).(*remote.ObjectValue), user1)
+	err = helper.UpdateEntity(user1Model.Interface(true, model.OriginView).(*remote.ObjectValue), user1)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -1362,7 +1363,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("insert group failed, err:%s", user2Err.Error())
 		return
 	}
-	err = helper.UpdateEntity(user2Model.Interface(true, 0).(*remote.ObjectValue), user2)
+	err = helper.UpdateEntity(user2Model.Interface(true, model.OriginView).(*remote.ObjectValue), user2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -1442,7 +1443,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
-	filter2, err := remoteProvider.GetModelFilter(userObject, 0)
+	filter2, err := remoteProvider.GetModelFilter(userObject, model.OriginView)
 	if err != nil {
 		t.Errorf("GetModelFilter failed, err:%s", err.Error())
 		return
@@ -1577,7 +1578,7 @@ func TestPolicy(t *testing.T) {
 		t.Errorf("insert reference failed, err:%s", err.Error())
 		return
 	}
-	err = helper.UpdateEntity(s1Model.Interface(true, 0).(*remote.ObjectValue), status)
+	err = helper.UpdateEntity(s1Model.Interface(true, model.OriginView).(*remote.ObjectValue), status)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
@@ -1611,7 +1612,7 @@ func TestPolicy(t *testing.T) {
 		t.Errorf("insert reference failed, err:%s", err.Error())
 		return
 	}
-	err = helper.UpdateEntity(rewardPolicyModel.Interface(true, 0).(*remote.ObjectValue), rewardPolicy)
+	err = helper.UpdateEntity(rewardPolicyModel.Interface(true, model.OriginView).(*remote.ObjectValue), rewardPolicy)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
@@ -1628,7 +1629,7 @@ func TestPolicy(t *testing.T) {
 		t.Errorf("getObjectValue failed, err:%s", statusErr.Error())
 		return
 	}
-	filter, err := remoteProvider.GetModelFilter(rewardPolicyObject, 0)
+	filter, err := remoteProvider.GetModelFilter(rewardPolicyObject, model.OriginView)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return

@@ -22,7 +22,7 @@ func traceSQL() bool {
 func verifyField(vField model.Field) *cd.Result {
 	fName := vField.GetName()
 	if IsKeyWord(fName) {
-		return cd.NewError(cd.UnExpected, fmt.Sprintf("illegal fieldSpec, is a key word.[%s]", fName))
+		return cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal fieldSpec, is a key word.[%s]", fName))
 	}
 
 	return nil
@@ -31,7 +31,7 @@ func verifyField(vField model.Field) *cd.Result {
 func verifyModel(vModel model.Model) *cd.Result {
 	name := vModel.GetName()
 	if IsKeyWord(name) {
-		return cd.NewError(cd.UnExpected, fmt.Sprintf("illegal structName, is a key word.[%s]", name))
+		return cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal structName, is a key word.[%s]", name))
 	}
 
 	for _, val := range vModel.GetFields() {
@@ -78,7 +78,7 @@ func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err *cd.Res
 	case model.TypeSliceValue:
 		ret = "TEXT"
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("no support field type, type:%v", fType.GetPkgKey()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("no support field type, type:%v", fType.GetPkgKey()))
 	}
 
 	if err != nil {
@@ -144,10 +144,10 @@ func getFieldPlaceHolder(field model.Field) (ret interface{}, err *cd.Result) {
 			val := ""
 			ret = &val
 		} else {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("no support fileType, name:%s, type:%v", field.GetName(), fType.GetPkgKey()))
+			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("no support fileType, name:%s, type:%v", field.GetName(), fType.GetPkgKey()))
 		}
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("no support fileType, name:%s, type:%v", field.GetName(), fType.GetPkgKey()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("no support fileType, name:%s, type:%v", field.GetName(), fType.GetPkgKey()))
 	}
 
 	if err != nil {

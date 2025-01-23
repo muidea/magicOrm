@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
@@ -70,7 +71,7 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	err = helper.UpdateEntity(objModel.Interface(true, 0).(*remote.ObjectValue), val)
+	err = helper.UpdateEntity(objModel.Interface(true, model.OriginView).(*remote.ObjectValue), val)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -89,9 +90,9 @@ func TestRemoteExecutor(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
 	}
-	objModel, objErr = o1.Update(objModel)
-	if err != nil {
-		t.Errorf("update obj failed, err:%s", err.Error())
+	_, objErr = o1.Update(objModel)
+	if objErr != nil {
+		t.Errorf("update obj failed, err:%s", objErr.Error())
 		return
 	}
 
@@ -113,7 +114,7 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	err = helper.UpdateEntity(obj2Model.Interface(true, 0).(*remote.ObjectValue), val2)
+	err = helper.UpdateEntity(obj2Model.Interface(true, model.OriginView).(*remote.ObjectValue), val2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -207,7 +208,7 @@ func TestRemoteDepends(t *testing.T) {
 		return
 	}
 
-	extObjModel, extObjErr = o1.Insert(extObjModel)
+	_, extObjErr = o1.Insert(extObjModel)
 	if extObjErr != nil {
 		t.Errorf("insert ext failed, err:%s", extObjErr.Error())
 		return

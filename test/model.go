@@ -2,33 +2,33 @@ package test
 
 // Status status
 type Status struct {
-	ID    int `orm:"id key auto" view:"view,lite"`
-	Value int `orm:"value" view:"view,lite"`
+	ID    int `orm:"id key auto" view:"detail,lite"`
+	Value int `orm:"value" view:"detail,lite"`
 }
 
 // Group Group
 type Group struct {
-	ID     int      `orm:"gid key auto" view:"view,lite"`
-	Name   string   `orm:"name" view:"view,lite"`
-	Users  *[]*User `orm:"users" view:"view,lite"`
-	Parent *Group   `orm:"parent" view:"view,lite"`
+	ID     int      `orm:"gid key auto" view:"detail,lite"`
+	Name   string   `orm:"name" view:"detail,lite"`
+	Users  *[]*User `orm:"users" view:"detail,lite"`
+	Parent *Group   `orm:"parent" view:"detail,lite"`
 }
 
 // User User
 type User struct {
-	ID     int      `orm:"uid key auto" view:"view,lite"`
-	Name   string   `orm:"name" view:"view,lite"`
-	EMail  string   `orm:"email" view:"view,lite"`
-	Status *Status  `orm:"status" view:"view,lite"`
-	Group  []*Group `orm:"group" view:"view,lite"`
+	ID     int      `orm:"uid key auto" view:"detail,lite"`
+	Name   string   `orm:"name" view:"detail,lite"`
+	EMail  string   `orm:"email" view:"detail,lite"`
+	Status *Status  `orm:"status" view:"detail,lite"`
+	Group  []*Group `orm:"group" view:"detail,lite"`
 }
 
 // System System
 type System struct {
-	ID    int      `orm:"id key auto" view:"view,lite"`
-	Name  string   `orm:"name" view:"view,lite"`
-	Users *[]User  `orm:"users" view:"view,lite"`
-	Tags  []string `orm:"tags" view:"view,lite"`
+	ID    int      `orm:"id key auto" view:"detail,lite"`
+	Name  string   `orm:"name" view:"detail,lite"`
+	Users *[]User  `orm:"users" view:"detail,lite"`
+	Tags  []string `orm:"tags" view:"detail,lite"`
 }
 
 // Equal Equal
@@ -164,51 +164,51 @@ const (
 
 // Goal 考核目标
 type Goal struct {
-	ID    int     `json:"id" orm:"id key auto" view:"view,lite"` // ID
-	Type  int     `json:"type" orm:"type" view:"view,lite"`
-	Value float32 `json:"value" orm:"value" view:"view,lite"`
+	ID    int     `json:"id" orm:"id key auto" view:"detail,lite"` // ID
+	Type  int     `json:"type" orm:"type" view:"detail,lite"`
+	Value float32 `json:"value" orm:"value" view:"detail,lite"`
 }
 
 // SpecialGoal 特殊目标
 type SpecialGoal struct {
-	ID            int      `json:"id" orm:"id key auto" view:"view,lite"` // ID
-	CheckDistrict []string `json:"checkDistrict" orm:"checkDistrict" view:"view,lite"`
-	CheckProduct  []string `json:"checkProduct" orm:"checkProduct" view:"view,lite"`
-	CheckType     int      `json:"checkType" orm:"checkType" view:"view,lite"`
-	CheckValue    Goal     `json:"checkValue" orm:"checkValue" view:"view,lite"`
+	ID            int      `json:"id" orm:"id key auto" view:"detail,lite"` // ID
+	CheckDistrict []string `json:"checkDistrict" orm:"checkDistrict" view:"detail,lite"`
+	CheckProduct  []string `json:"checkProduct" orm:"checkProduct" view:"detail,lite"`
+	CheckType     int      `json:"checkType" orm:"checkType" view:"detail,lite"`
+	CheckValue    Goal     `json:"checkValue" orm:"checkValue" view:"detail,lite"`
 }
 
 // KPI 代理商考核指标
 type KPI struct {
-	ID            int         `json:"id" orm:"id key auto" view:"view,lite"`              // ID
-	Title         string      `json:"title" orm:"title" view:"view,lite"`                 // 名称
-	JoinValue     Goal        `json:"joinValue" orm:"joinValue" view:"view,lite"`         // 加盟目标
-	PerMonthValue Goal        `json:"perMonthValue" orm:"perMonthValue" view:"view,lite"` // 每月目标
-	SpecialValue  SpecialGoal `json:"specialValue" orm:"specialValue" view:"view,lite"`   // 特殊地区或产品目标
-	Default       bool        `json:"default" orm:"default" view:"view,lite"`
+	ID            int         `json:"id" orm:"id key auto" view:"detail,lite"`              // ID
+	Title         string      `json:"title" orm:"title" view:"detail,lite"`                 // 名称
+	JoinValue     Goal        `json:"joinValue" orm:"joinValue" view:"detail,lite"`         // 加盟目标
+	PerMonthValue Goal        `json:"perMonthValue" orm:"perMonthValue" view:"detail,lite"` // 每月目标
+	SpecialValue  SpecialGoal `json:"specialValue" orm:"specialValue" view:"detail,lite"`   // 特殊地区或产品目标
+	Default       bool        `json:"default" orm:"default" view:"detail,lite"`
 }
 
 type ValueItem struct {
-	ID    int     `json:"id" orm:"id key auto" view:"view,lite"`
-	Level int     `json:"level" orm:"level" view:"view,lite"`
-	Type  int     `json:"type" orm:"type" view:"view,lite"`
-	Value float64 `json:"value" orm:"value" view:"view,lite"`
+	ID    int     `json:"id" orm:"id key auto" view:"detail,lite"`
+	Level int     `json:"level" orm:"level" view:"detail,lite"`
+	Type  int     `json:"type" orm:"type" view:"detail,lite"`
+	Value float64 `json:"value" orm:"value" view:"detail,lite"`
 }
 
 type ValueScope struct {
-	ID        int     `json:"id" orm:"id key auto" view:"view,lite"`
-	LowValue  float64 `json:"lowValue" orm:"lowValue" view:"view,lite"`
-	HighValue float64 `json:"highValue" orm:"highValue" view:"view,lite"`
+	ID        int     `json:"id" orm:"id key auto" view:"detail,lite"`
+	LowValue  float64 `json:"lowValue" orm:"lowValue" view:"detail,lite"`
+	HighValue float64 `json:"highValue" orm:"highValue" view:"detail,lite"`
 }
 
 type RewardPolicy struct {
-	ID          int         `json:"id" orm:"id key auto" view:"view,lite"`
-	Name        string      `json:"name" orm:"name" view:"view,lite"`
-	Description string      `json:"description" orm:"description" view:"view,lite"`
-	ValueItem   []ValueItem `json:"item" orm:"item" view:"view,lite"`
-	ValueScope  ValueScope  `json:"scope" orm:"scope" view:"view,lite"`
-	Status      *Status     `json:"status" orm:"status" view:"view,lite"`
-	Creater     int         `json:"creater" orm:"creater" view:"view,lite"`
-	UpdateTime  int64       `json:"updateTime" orm:"updateTime" view:"view,lite"`
-	Namespace   string      `json:"namespace" orm:"namespace" view:"view,lite"`
+	ID          int         `json:"id" orm:"id key auto" view:"detail,lite"`
+	Name        string      `json:"name" orm:"name" view:"detail,lite"`
+	Description string      `json:"description" orm:"description" view:"detail,lite"`
+	ValueItem   []ValueItem `json:"item" orm:"item" view:"detail,lite"`
+	ValueScope  ValueScope  `json:"scope" orm:"scope" view:"detail,lite"`
+	Status      *Status     `json:"status" orm:"status" view:"detail,lite"`
+	Creater     int         `json:"creater" orm:"creater" view:"detail,lite"`
+	UpdateTime  int64       `json:"updateTime" orm:"updateTime" view:"detail,lite"`
+	Namespace   string      `json:"namespace" orm:"namespace" view:"detail,lite"`
 }

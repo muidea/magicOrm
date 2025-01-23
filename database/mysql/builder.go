@@ -132,7 +132,7 @@ func (s *Builder) buildSorter(vModel model.Model, filter model.Sorter) (ret stri
 		}
 	}
 
-	err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal sort field name:%s", filter.Name()))
+	err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal sort field name:%s", filter.Name()))
 	log.Errorf("buildSorter failed, err:%s", err.Error())
 	return
 }

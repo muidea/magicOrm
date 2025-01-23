@@ -56,7 +56,7 @@ func (s *CountRunner) Count(vFilter model.Filter) (ret int64, err *cd.Result) {
 
 func (s *impl) Count(vFilter model.Filter) (ret int64, err *cd.Result) {
 	if vFilter == nil {
-		err = cd.NewError(cd.IllegalParam, "illegal filter value")
+		err = cd.NewResult(cd.IllegalParam, "illegal filter value")
 		return
 	}
 

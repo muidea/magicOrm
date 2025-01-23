@@ -259,7 +259,7 @@ func (s *InsertRunner) Insert() (ret model.Model, err *cd.Result) {
 
 func (s *impl) Insert(vModel model.Model) (ret model.Model, err *cd.Result) {
 	if vModel == nil {
-		err = cd.NewError(cd.IllegalParam, "illegal model value")
+		err = cd.NewResult(cd.IllegalParam, "illegal model value")
 		return
 	}
 

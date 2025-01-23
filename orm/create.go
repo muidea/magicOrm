@@ -92,7 +92,7 @@ func (s *CreateRunner) Create() (err *cd.Result) {
 
 func (s *impl) Create(vModel model.Model) (err *cd.Result) {
 	if vModel == nil {
-		err = cd.NewError(cd.IllegalParam, "illegal model value")
+		err = cd.NewResult(cd.IllegalParam, "illegal model value")
 		return
 	}
 

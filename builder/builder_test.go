@@ -40,7 +40,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 		return
 	}
 
-	filter, err := localProvider.GetModelFilter(info, 0)
+	filter, err := localProvider.GetModelFilter(info, model.OriginView)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -344,7 +344,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 		return
 	}
 
-	filter, err := localProvider.GetModelFilter(info, 0)
+	filter, err := localProvider.GetModelFilter(info, model.OriginView)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return

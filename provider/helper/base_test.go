@@ -196,7 +196,7 @@ func testValue(t *testing.T, valPtr any) *cd.Result {
 
 	if !model.CompareModel(lModel, rModel) {
 		t.Errorf("CompareModel failed")
-		return cd.NewError(cd.UnExpected, "compare model failed")
+		return cd.NewResult(cd.UnExpected, "compare model failed")
 	}
 	return nil
 }

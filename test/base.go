@@ -12,16 +12,16 @@ import (
 )
 
 type Simple struct {
-	ID        int       `orm:"id key auto" view:"view,lite"`
-	I8        int8      `orm:"i8" view:"view,lite"`
-	I16       int16     `orm:"i16" view:"view,lite"`
-	I32       int32     `orm:"i32" view:"view,lite"`
-	I64       uint64    `orm:"i64" view:"view,lite"`
-	Name      string    `orm:"name" view:"view,lite"`
-	Value     float32   `orm:"value" view:"view,lite"`
-	F64       float64   `orm:"f64" view:"view,lite"`
-	TimeStamp time.Time `orm:"ts dateTime" view:"view,lite"`
-	Flag      bool      `orm:"flag" view:"view,lite"`
+	ID        int       `orm:"id key auto" view:"detail,lite"`
+	I8        int8      `orm:"i8" view:"detail,lite"`
+	I16       int16     `orm:"i16" view:"detail,lite"`
+	I32       int32     `orm:"i32" view:"detail,lite"`
+	I64       uint64    `orm:"i64" view:"detail,lite"`
+	Name      string    `orm:"name" view:"detail,lite"`
+	Value     float32   `orm:"value" view:"detail,lite"`
+	F64       float64   `orm:"f64" view:"detail,lite"`
+	TimeStamp time.Time `orm:"ts dateTime" view:"detail,lite"`
+	Flag      bool      `orm:"flag" view:"detail,lite"`
 }
 
 func (l *Simple) IsSame(r *Simple) bool {
@@ -60,19 +60,19 @@ func (l *Simple) IsSame(r *Simple) bool {
 }
 
 type Reference struct {
-	ID          int       `orm:"id key auto" view:"view,lite"`
-	Name        string    `orm:"name" view:"view,lite"`
-	FValue      float32   `orm:"value" view:"view,lite"`
-	F64         float64   `orm:"f64" view:"view,lite"`
-	TimeStamp   time.Time `orm:"ts" view:"view,lite"`
-	Flag        bool      `orm:"flag" view:"view,lite"`
-	IArray      []int     `orm:"iArray" view:"view,lite"`
-	FArray      []float32 `orm:"fArray" view:"view,lite"`
-	StrArray    []string  `orm:"strArray" view:"view,lite"`
-	BArray      []bool    `orm:"bArray" view:"view,lite"`
-	PtrArray    *[]string `orm:"ptrArray" view:"view,lite"`
-	StrPtrArray []string  `orm:"strPtrArray" view:"view,lite"`
-	PtrStrArray *[]string `orm:"ptrStrArray" view:"view,lite"`
+	ID          int       `orm:"id key auto" view:"detail,lite"`
+	Name        string    `orm:"name" view:"detail,lite"`
+	FValue      float32   `orm:"value" view:"detail,lite"`
+	F64         float64   `orm:"f64" view:"detail,lite"`
+	TimeStamp   time.Time `orm:"ts" view:"detail,lite"`
+	Flag        bool      `orm:"flag" view:"detail,lite"`
+	IArray      []int     `orm:"iArray" view:"detail,lite"`
+	FArray      []float32 `orm:"fArray" view:"detail,lite"`
+	StrArray    []string  `orm:"strArray" view:"detail,lite"`
+	BArray      []bool    `orm:"bArray" view:"detail,lite"`
+	PtrArray    *[]string `orm:"ptrArray" view:"detail,lite"`
+	StrPtrArray []string  `orm:"strPtrArray" view:"detail,lite"`
+	PtrStrArray *[]string `orm:"ptrStrArray" view:"detail,lite"`
 }
 
 func (l *Reference) IsSame(r *Reference) bool {
@@ -140,23 +140,23 @@ func (l *Reference) IsSame(r *Reference) bool {
 }
 
 type Compose struct {
-	ID   int    `orm:"id key auto" view:"view,lite"`
-	Name string `orm:"name" view:"view,lite"`
+	ID   int    `orm:"id key auto" view:"detail,lite"`
+	Name string `orm:"name" view:"detail,lite"`
 	// 1
-	H1 Simple `orm:"simple" view:"view,lite"`
+	H1 Simple `orm:"simple" view:"detail,lite"`
 	// 3
-	R3 *Simple `orm:"ptrSimple" view:"view,lite"`
+	R3 *Simple `orm:"ptrSimple" view:"detail,lite"`
 	// 2
-	H2 []Simple `orm:"simpleArray" view:"view,lite"`
+	H2 []Simple `orm:"simpleArray" view:"detail,lite"`
 	// 4
-	R4           []*Simple    `orm:"simplePtrArray" view:"view,lite"`
-	PR4          *[]Simple    `orm:"ptrSimpleArray" view:"view,lite"`
-	Reference    Reference    `orm:"reference" view:"view,lite"`
-	PtrReference *Reference   `orm:"ptrReference" view:"view,lite"`
-	RefArray     []Reference  `orm:"refArray" view:"view,lite"`
-	RefPtrArray  []*Reference `orm:"refPtrArray" view:"view,lite"`
-	PtrRefArray  []*Reference `orm:"ptrRefArray" view:"view,lite"`
-	PtrCompose   *Compose     `orm:"ptrCompose" view:"view,lite"`
+	R4           []*Simple    `orm:"simplePtrArray" view:"detail,lite"`
+	PR4          *[]Simple    `orm:"ptrSimpleArray" view:"detail,lite"`
+	Reference    Reference    `orm:"reference" view:"detail,lite"`
+	PtrReference *Reference   `orm:"ptrReference" view:"detail,lite"`
+	RefArray     []Reference  `orm:"refArray" view:"detail,lite"`
+	RefPtrArray  []*Reference `orm:"refPtrArray" view:"detail,lite"`
+	PtrRefArray  []*Reference `orm:"ptrRefArray" view:"detail,lite"`
+	PtrCompose   *Compose     `orm:"ptrCompose" view:"detail,lite"`
 }
 
 func (l *Compose) IsSame(r *Compose) bool {

@@ -27,7 +27,7 @@ func New(elemDependValue ElemDependValueFunc) Codec {
 
 func (s *impl) Encode(vVal model.Value, vType model.Type) (ret model.RawVal, err *cd.Result) {
 	if !vType.IsBasic() || !vVal.IsValid() {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("encode value failed, illegal value or type"))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("encode value failed, illegal value or type"))
 		return
 	}
 
@@ -65,7 +65,7 @@ func (s *impl) Encode(vVal model.Value, vType model.Type) (ret model.RawVal, err
 	case model.TypeSliceValue:
 		ret, err = s.encodeSlice(vVal, vType)
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal type, type:%s", vType.GetName()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, type:%s", vType.GetName()))
 	}
 
 	return
@@ -95,7 +95,7 @@ func (s *impl) encodeSlice(vVal model.Value, vType model.Type) (ret model.RawVal
 
 func (s *impl) Decode(val model.RawVal, vType model.Type) (ret model.Value, err *cd.Result) {
 	if !vType.IsBasic() {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal value type, type:%s", vType.GetName()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal value type, type:%s", vType.GetName()))
 		return
 	}
 
@@ -110,7 +110,7 @@ func (s *impl) Decode(val model.RawVal, vType model.Type) (ret model.Value, err 
 	case model.TypeSliceValue:
 		ret, err = s.decodeSlice(val, vType)
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal type, type:%s", vType.GetName()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, type:%s", vType.GetName()))
 	}
 
 	if err != nil {
@@ -129,7 +129,7 @@ func (s *impl) decodeSlice(val model.RawVal, vType model.Type) (ret model.Value,
 
 	rVal := reflect.Indirect(reflect.ValueOf(val.Value()))
 	if rVal.Kind() != reflect.Slice {
-		err = cd.NewError(cd.UnExpected, "illegal value type, not slice value")
+		err = cd.NewResult(cd.UnExpected, "illegal value type, not slice value")
 		return
 	}
 
@@ -166,7 +166,7 @@ func (s *impl) decodeSlice(val model.RawVal, vType model.Type) (ret model.Value,
 	case model.TypeDateTimeValue:
 		ret, err = s.decodeDateTimeSlice(rVal, vType)
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal slice element type, type pkgKey:%s", vType.GetPkgKey()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal slice element type, type pkgKey:%s", vType.GetPkgKey()))
 	}
 
 	return

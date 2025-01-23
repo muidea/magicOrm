@@ -158,7 +158,7 @@ func (s *DeleteRunner) Delete() (err *cd.Result) {
 
 func (s *impl) Delete(vModel model.Model) (ret model.Model, err *cd.Result) {
 	if vModel == nil {
-		err = cd.NewError(cd.IllegalParam, "illegal model value")
+		err = cd.NewResult(cd.IllegalParam, "illegal model value")
 		return
 	}
 

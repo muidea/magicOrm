@@ -2,12 +2,13 @@ package remote
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/model"
 	pu "github.com/muidea/magicOrm/provider/util"
-	"reflect"
-	"strings"
 )
 
 const (
@@ -49,7 +50,7 @@ func newType(itemType reflect.Type) (ret *TypeImpl, err *cd.Result) {
 			return
 		}
 		if model.IsSliceType(sliceVal) {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal slice type, type:%s", sliceType.String()))
+			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal slice type, type:%s", sliceType.String()))
 			return
 		}
 
@@ -79,7 +80,7 @@ func newSpec(tag reflect.StructTag) (ret *SpecImpl, err *cd.Result) {
 func getOrmSpec(spec string) (ret SpecImpl, err *cd.Result) {
 	items := strings.Split(spec, " ")
 	if len(items) < 1 {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal spec value, val:%s", spec))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal spec value, val:%s", spec))
 		return
 	}
 
@@ -108,9 +109,9 @@ func getViewItems(spec string) (ret []model.ViewDeclare) {
 	items := strings.Split(spec, ",")
 	for _, sv := range items {
 		switch sv {
-		case "view":
+		case model.FullView:
 			ret = append(ret, model.FullView)
-		case "lite":
+		case model.LiteView:
 			ret = append(ret, model.LiteView)
 		}
 	}
@@ -178,7 +179,7 @@ func type2Object(entityType reflect.Type) (ret *Object, err *cd.Result) {
 
 	typeImpl = typeImpl.Elem().(*TypeImpl)
 	if !model.IsStructType(typeImpl.GetValue()) {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal object type, must be a struct obj, type:%s", entityType.String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal object type, must be a struct obj, type:%s", entityType.String()))
 		log.Errorf("type2Object failed, check object type err:%s", err.Error())
 		return
 	}
@@ -200,7 +201,7 @@ func type2Object(entityType reflect.Type) (ret *Object, err *cd.Result) {
 		}
 		if fItem.IsPrimaryKey() {
 			if hasPrimaryKey {
-				err = cd.NewError(cd.UnExpected, fmt.Sprintf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldType.Name, impl.GetName()))
+				err = cd.NewResult(cd.UnExpected, fmt.Sprintf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldType.Name, impl.GetName()))
 				log.Errorf("type2Object failed, check primary key err:%s", err.Error())
 				return
 			}
@@ -212,13 +213,13 @@ func type2Object(entityType reflect.Type) (ret *Object, err *cd.Result) {
 	}
 
 	if len(impl.Fields) == 0 {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("no define orm field, struct name:%s", impl.GetName()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("no define orm field, struct name:%s", impl.GetName()))
 		log.Errorf("type2Object failed, check fields err:%s", err.Error())
 		return
 	}
 
 	if !hasPrimaryKey {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("no define primary key field, struct name:%s", impl.GetName()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("no define primary key field, struct name:%s", impl.GetName()))
 		log.Errorf("type2Object failed, check primary key err:%s", err.Error())
 		return
 	}
@@ -294,7 +295,7 @@ func getObjectValue(entityVal reflect.Value) (ret *ObjectValue, err *cd.Result) 
 		return
 	}
 	if !model.IsStructType(objType.GetValue()) || objType.IsSlice() {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal entity value, entity type:%s", entityType.String()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal entity value, entity type:%s", entityType.String()))
 		log.Errorf("getObjectValue failed, check object type err:%s", err.Error())
 		return
 	}
@@ -382,14 +383,14 @@ func getSliceObjectValue(sliceVal reflect.Value) (ret *SliceObjectValue, err *cd
 	}
 
 	if !model.IsSliceType(sliceType.GetValue()) {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal slice object value"))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal slice object value"))
 		log.Errorf("getSliceObjectValue failed, check slice type err:%s", err.Error())
 		return
 	}
 
 	elemType := sliceType.Elem()
 	if !model.IsStructType(elemType.GetValue()) {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal slice item type"))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal slice item type"))
 		log.Errorf("getSliceObjectValue failed, check slice item err:%s", err.Error())
 		return
 	}

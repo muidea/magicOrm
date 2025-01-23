@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/muidea/magicCommon/foundation/util"
+	"github.com/muidea/magicOrm/model"
 )
 
 // Unit 单元信息
@@ -47,7 +48,7 @@ func TestModelValue(t *testing.T) {
 		return
 	}
 
-	uVal, uOK := eModel.Interface(false, 0).(Unit)
+	uVal, uOK := eModel.Interface(false, model.OriginView).(Unit)
 	if !uOK {
 		t.Errorf("eModel.Interface failed")
 		return
@@ -57,7 +58,7 @@ func TestModelValue(t *testing.T) {
 		return
 	}
 
-	uPtrVal, uPtrOK := eModel.Interface(true, 0).(*Unit)
+	uPtrVal, uPtrOK := eModel.Interface(true, model.OriginView).(*Unit)
 	if !uPtrOK {
 		t.Errorf("eModel.Interface failed")
 		return
@@ -73,7 +74,7 @@ func TestModelValue(t *testing.T) {
 		return
 	}
 
-	uVal, uOK = eModel.Interface(false, 0).(Unit)
+	uVal, uOK = eModel.Interface(false, model.OriginView).(Unit)
 	if !uOK {
 		t.Errorf("eModel.Interface failed")
 		return
@@ -83,7 +84,7 @@ func TestModelValue(t *testing.T) {
 		return
 	}
 
-	uPtrVal, uPtrOK = eModel.Interface(true, 0).(*Unit)
+	uPtrVal, uPtrOK = eModel.Interface(true, model.OriginView).(*Unit)
 	if !uPtrOK {
 		t.Errorf("eModel.Interface failed")
 		return
@@ -117,7 +118,7 @@ func TestModelValue(t *testing.T) {
 	tsVal := NewValue(reflect.ValueOf(now))
 	unitInfo.SetFieldValue("timeStamp", tsVal)
 
-	unit = unitInfo.Interface(false, 0).(Unit)
+	unit = unitInfo.Interface(false, model.OriginView).(Unit)
 	if unit.ID != int64(id) {
 		t.Errorf("update id field failed, ID:%v, id:%v", unit.ID, id)
 		return
@@ -131,7 +132,7 @@ func TestModelValue(t *testing.T) {
 		return
 	}
 
-	unitPtrVal, unitPtrOK := unitInfo.Interface(true, 0).(*Unit)
+	unitPtrVal, unitPtrOK := unitInfo.Interface(true, model.OriginView).(*Unit)
 	if !unitPtrOK {
 		t.Errorf("unitInfo.Interface failed")
 		return
@@ -216,7 +217,7 @@ func TestGetModelValue(t *testing.T) {
 	t2 := &TT{Aa: 34, Bb: 45}
 	//reflect.TypeOf(t2)
 	t2Info, t2Err := getValueModel(reflect.ValueOf(t2).Elem())
-	if t1Err != nil {
+	if t2Err != nil {
 		t.Errorf("getValueModel t2 failed, err:%s", t2Err.Error())
 		return
 	}
@@ -226,11 +227,11 @@ func TestGetModelValue(t *testing.T) {
 }
 
 type Reference struct {
-	ID          int       `orm:"id key auto" view:"view,lite"`
-	BArray      []bool    `orm:"bArray" view:"view,lite"`
-	StrArray    []string  `orm:"strArray" view:"view,lite"`
-	PtrArray    *[]string `orm:"ptrArray" view:"view,lite"`
-	PtrStrArray *[]string `orm:"ptrStrArray" view:"view,lite"`
+	ID          int       `orm:"id key auto" view:"detail,lite"`
+	BArray      []bool    `orm:"bArray" view:"detail,lite"`
+	StrArray    []string  `orm:"strArray" view:"detail,lite"`
+	PtrArray    *[]string `orm:"ptrArray" view:"detail,lite"`
+	PtrStrArray *[]string `orm:"ptrStrArray" view:"detail,lite"`
 }
 
 func TestCheckValid(t *testing.T) {

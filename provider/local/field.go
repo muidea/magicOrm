@@ -58,7 +58,6 @@ func (s *field) GetValue() (ret model.Value) {
 
 func (s *field) SetValue(val model.Value) {
 	s.valuePtr = val.(*ValueImpl)
-	return
 }
 
 func (s *field) IsPrimaryKey() bool {
@@ -113,7 +112,7 @@ func (s *field) verifyAutoIncrement(typeVal model.TypeDeclare) *cd.Result {
 		model.TypeDoubleValue,
 		model.TypeStructValue,
 		model.TypeSliceValue:
-		return cd.NewError(cd.UnExpected, fmt.Sprintf("illegal auto_increment field type, type:%v", typeVal))
+		return cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal auto_increment field type, type:%v", typeVal))
 	default:
 	}
 
@@ -122,7 +121,7 @@ func (s *field) verifyAutoIncrement(typeVal model.TypeDeclare) *cd.Result {
 
 func (s *field) verifyUUID(typeVal model.TypeDeclare) *cd.Result {
 	if typeVal != model.TypeStringValue {
-		return cd.NewError(cd.UnExpected, fmt.Sprintf("illegal uuid field type, type:%v", typeVal))
+		return cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal uuid field type, type:%v", typeVal))
 	}
 
 	return nil
@@ -130,7 +129,7 @@ func (s *field) verifyUUID(typeVal model.TypeDeclare) *cd.Result {
 
 func (s *field) verifySnowFlake(typeVal model.TypeDeclare) *cd.Result {
 	if typeVal != model.TypeBigIntegerValue {
-		return cd.NewError(cd.UnExpected, fmt.Sprintf("illegal snowflake field type, type:%v", typeVal))
+		return cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal snowflake field type, type:%v", typeVal))
 	}
 
 	return nil
@@ -138,7 +137,7 @@ func (s *field) verifySnowFlake(typeVal model.TypeDeclare) *cd.Result {
 
 func (s *field) verifyDateTime(typeVal model.TypeDeclare) *cd.Result {
 	if typeVal != model.TypeDateTimeValue {
-		return cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime field type, type:%v", typeVal))
+		return cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal dateTime field type, type:%v", typeVal))
 	}
 
 	return nil
@@ -147,7 +146,7 @@ func (s *field) verifyDateTime(typeVal model.TypeDeclare) *cd.Result {
 func (s *field) verifyPK(typeVal model.TypeDeclare) *cd.Result {
 	switch typeVal {
 	case model.TypeStructValue, model.TypeSliceValue:
-		return cd.NewError(cd.UnExpected, fmt.Sprintf("illegal primary key field type, type:%v", typeVal))
+		return cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal primary key field type, type:%v", typeVal))
 	default:
 	}
 
@@ -156,7 +155,7 @@ func (s *field) verifyPK(typeVal model.TypeDeclare) *cd.Result {
 
 func (s *field) verify() (err *cd.Result) {
 	if s.typePtr == nil {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal filed, field type is null, index:%d, name:%v", s.index, s.name))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal filed, field type is null, index:%d, name:%v", s.index, s.name))
 		return
 	}
 

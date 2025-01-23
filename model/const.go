@@ -200,23 +200,10 @@ func IsStructSlice(tType Type) bool {
 	return !tType.IsBasic() && IsSliceType(tType.GetValue())
 }
 
-type ViewDeclare int
+type ViewDeclare string
 
 const (
-	OriginView = 0
-	FullView   = 1
-	LiteView   = 2
+	OriginView = "origin"
+	FullView   = "detail"
+	LiteView   = "lite"
 )
-
-func (s ViewDeclare) String() string {
-	switch s {
-	case OriginView:
-		return "origin"
-	case FullView:
-		return "detail"
-	case LiteView:
-		return "lite"
-	default:
-		return fmt.Sprintf("unknown view declare %d", s)
-	}
-}

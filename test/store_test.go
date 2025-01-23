@@ -1,10 +1,11 @@
 package test
 
 import (
+	"testing"
+
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
-	"testing"
 )
 
 func TestLocalStore(t *testing.T) {
@@ -41,7 +42,7 @@ func TestLocalStore(t *testing.T) {
 		return
 	}
 
-	o1.Drop(skuInfoModel)
+	err = o1.Drop(skuInfoModel)
 	if err != nil {
 		t.Errorf("o1.Drop failed. err:%s", err.Error())
 		return
@@ -150,9 +151,9 @@ func TestLocalStore(t *testing.T) {
 	}
 
 	stockInModel, stockInErr = o1.Insert(stockInModel)
-	if storeErr != nil {
+	if stockInErr != nil {
 		t.Errorf("o1.Insert failed, erro:%s", stockInErr.Error())
 		return
 	}
-	stockIn001 = stockInModel.Interface(true, model.FullView).(*StockIn)
+	_ = stockInModel.Interface(true, model.FullView).(*StockIn)
 }

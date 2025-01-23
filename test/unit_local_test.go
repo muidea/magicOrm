@@ -1,9 +1,11 @@
 package test
 
 import (
-	"github.com/muidea/magicOrm/provider"
 	"testing"
 	"time"
+
+	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider"
 
 	"github.com/muidea/magicOrm/orm"
 )
@@ -55,11 +57,11 @@ func TestLocalExecutor(t *testing.T) {
 	}
 
 	objModel, objErr = o1.Insert(objModel)
-	if err != nil {
-		t.Errorf("insert obj failed, err:%s", err.Error())
+	if objErr != nil {
+		t.Errorf("insert obj failed, err:%s", objErr.Error())
 		return
 	}
-	obj = objModel.Interface(true, 0).(*Unit)
+	obj = objModel.Interface(true, model.OriginView).(*Unit)
 
 	obj.Name = "abababa"
 	obj.Value = 100.000
@@ -68,7 +70,7 @@ func TestLocalExecutor(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
 	}
-	objModel, objErr = o1.Update(objModel)
+	_, objErr = o1.Update(objModel)
 	if objErr != nil {
 		t.Errorf("update obj failed, err:%s", objErr.Error())
 		return
@@ -85,14 +87,14 @@ func TestLocalExecutor(t *testing.T) {
 		t.Errorf("query obj failed, err:%s", obj2Err.Error())
 		return
 	}
-	obj2 = obj2Model.Interface(true, 0).(*Unit)
+	obj2 = obj2Model.Interface(true, model.OriginView).(*Unit)
 	if obj.Name != obj2.Name || obj.Value != obj2.Value {
 		t.Errorf("query obj failed, obj:%v, obj2:%v", obj, obj2)
 		return
 	}
 
 	uModel, _ := localProvider.GetEntityModel(&Unit{})
-	filter, err := localProvider.GetModelFilter(uModel, 0)
+	filter, err := localProvider.GetModelFilter(uModel, model.OriginView)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -155,7 +157,7 @@ func TestLocalDepends(t *testing.T) {
 		t.Errorf("insert ext failed, err:%s", extErr.Error())
 		return
 	}
-	ext = extModel.Interface(true, 0).(*ExtUnit)
+	_ = extModel.Interface(true, model.OriginView).(*ExtUnit)
 
 	objModel, objErr := provider.GetEntityModel(obj)
 	if objErr != nil {
@@ -167,7 +169,7 @@ func TestLocalDepends(t *testing.T) {
 		t.Errorf("insert ext failed, err:%s", objErr.Error())
 		return
 	}
-	obj = objModel.Interface(true, 0).(*Unit)
+	obj = objModel.Interface(true, model.OriginView).(*Unit)
 
 	ext2 := &ExtUnitList{Unit: *obj, UnitList: []Unit{}}
 	ext2.UnitList = append(ext2.UnitList, *obj)

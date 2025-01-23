@@ -45,7 +45,6 @@ func (s *ValueImpl) IsZero() (ret bool) {
 
 func (s *ValueImpl) Set(val any) {
 	s.value = val.(reflect.Value)
-	return
 }
 
 func (s *ValueImpl) Get() any {

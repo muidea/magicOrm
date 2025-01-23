@@ -1,8 +1,9 @@
 package test
 
 import (
-	om "github.com/muidea/magicOrm/model"
 	"testing"
+
+	om "github.com/muidea/magicOrm/model"
 
 	"github.com/muidea/magicCommon/foundation/util"
 	"github.com/muidea/magicOrm/orm"
@@ -85,7 +86,7 @@ func TestLocalGroup(t *testing.T) {
 		return
 	}
 
-	group3Model, group3Err = o1.Delete(group3Model)
+	_, group3Err = o1.Delete(group3Model)
 	if group3Err != nil {
 		t.Errorf("delete Group3 failed, err:%s", group3Err.Error())
 		return
@@ -97,7 +98,7 @@ func TestLocalGroup(t *testing.T) {
 		t.Errorf("GetEntityModel failed,err:%s", group4Err)
 		return
 	}
-	group4Model, group4Err = o1.Query(group4Model)
+	_, group4Err = o1.Query(group4Model)
 	if group4Err != nil {
 		t.Errorf("query Group4 failed, err:%s", group4Err.Error())
 		return
@@ -202,7 +203,7 @@ func TestLocalUser(t *testing.T) {
 	}
 
 	groupModel, groupErr = o1.Insert(groupModel)
-	if err != nil {
+	if groupErr != nil {
 		t.Errorf("insert Group1 failed, err:%s", err.Error())
 		return
 	}
@@ -316,7 +317,7 @@ func TestLocalUser(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", group1Err.Error())
 		return
 	}
-	group1Model, group1Err = o1.Delete(group1Model)
+	_, group1Err = o1.Delete(group1Model)
 	if group1Err != nil {
 		t.Errorf("delete group1 failed, err:%s", group1Err.Error())
 		return
@@ -327,7 +328,7 @@ func TestLocalUser(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", group2Err.Error())
 		return
 	}
-	group2Model, group2Err = o1.Delete(group2Model)
+	_, group2Err = o1.Delete(group2Model)
 	if group2Err != nil {
 		t.Errorf("delete group1 failed, err:%s", group2Err.Error())
 		return
@@ -338,7 +339,7 @@ func TestLocalUser(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", group3Err.Error())
 		return
 	}
-	group3Model, group3Err = o1.Delete(group3Model)
+	_, group3Err = o1.Delete(group3Model)
 	if group3Err != nil {
 		t.Errorf("delete group1 failed, err:%s", group3Err.Error())
 		return
@@ -349,7 +350,7 @@ func TestLocalUser(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", user2Err.Error())
 		return
 	}
-	user2Model, user2Err = o1.Delete(user2Model)
+	_, user2Err = o1.Delete(user2Model)
 	if user2Err != nil {
 		t.Errorf("delete group1 failed, err:%s", user2Err.Error())
 		return
@@ -494,18 +495,18 @@ func TestLocalSystem(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", sys2Err.Error())
 		return
 	}
-	sys2Model, sys2Err = o1.Delete(sys2Model)
+	_, sys2Err = o1.Delete(sys2Model)
 	if sys2Err != nil {
 		t.Errorf("insert user failed, err:%s", sys2Err.Error())
 		return
 	}
 
-	user1Model, user1Err = o1.Delete(user1Model)
+	_, user1Err = o1.Delete(user1Model)
 	if user1Err != nil {
 		t.Errorf("delete user1 failed, err:%s", user1Err.Error())
 		return
 	}
-	user2Model, user2Err = o1.Delete(user2Model)
+	_, user2Err = o1.Delete(user2Model)
 	if user2Err != nil {
 		t.Errorf("delete user2 failed, err:%s", user2Err.Error())
 		return
@@ -577,7 +578,7 @@ func TestLocalBatchQuery(t *testing.T) {
 	}
 
 	group1Model, group1Err = o1.Insert(group1Model)
-	if err != nil {
+	if group1Err != nil {
 		t.Errorf("insert group failed, err:%s", err.Error())
 		return
 	}
@@ -629,7 +630,7 @@ func TestLocalBatchQuery(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err:%s", user2Err.Error())
 		return
 	}
-	user2Model, user2Err = o1.Insert(user2Model)
+	_, user2Err = o1.Insert(user2Model)
 	if user2Err != nil {
 		t.Errorf("insert user failed, err:%s", user2Err.Error())
 		return

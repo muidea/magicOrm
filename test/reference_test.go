@@ -1,10 +1,10 @@
 package test
 
 import (
-	"fmt"
-	cd "github.com/muidea/magicCommon/def"
 	"testing"
 	"time"
+
+	cd "github.com/muidea/magicCommon/def"
 
 	"github.com/muidea/magicCommon/foundation/util"
 	"github.com/muidea/magicOrm/model"
@@ -107,7 +107,7 @@ func TestReferenceLocal(t *testing.T) {
 		}
 
 		sModelList[idx] = vModel
-		sValList[idx] = vModel.Interface(true, 0).(*Reference)
+		sValList[idx] = vModel.Interface(true, model.OriginView).(*Reference)
 	}
 
 	// update
@@ -132,7 +132,7 @@ func TestReferenceLocal(t *testing.T) {
 		}
 
 		sModelList[idx] = vModel
-		sValList[idx] = vModel.Interface(true, 0).(*Reference)
+		sValList[idx] = vModel.Interface(true, model.OriginView).(*Reference)
 	}
 
 	// query
@@ -179,14 +179,14 @@ func TestReferenceLocal(t *testing.T) {
 		}
 
 		qModelList[idx] = qModel
-		qValList[idx] = qModel.Interface(true, 0).(*Reference)
+		qValList[idx] = qModel.Interface(true, model.OriginView).(*Reference)
 	}
 
 	for idx := 0; idx < loop; idx++ {
 		sVal := sValList[idx]
 		qVal := qValList[idx]
 		if !sVal.IsSame(qVal) {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("compare value failed"))
+			err = cd.NewResult(cd.UnExpected, "compare value failed")
 			t.Errorf("IsSame failed. err:%s", err.Error())
 			return
 		}
@@ -199,7 +199,7 @@ func TestReferenceLocal(t *testing.T) {
 	ptrStrArray := []string{}
 
 	referenceModel, _ := localProvider.GetEntityModel(&Reference{})
-	filter, err := localProvider.GetModelFilter(referenceModel, 0)
+	filter, err := localProvider.GetModelFilter(referenceModel, model.OriginView)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -231,7 +231,7 @@ func TestReferenceLocal(t *testing.T) {
 	for idx := 0; idx < loop; idx++ {
 		_, qErr := o1.Delete(bqModelList[idx])
 		if qErr != nil {
-			err = qErr
+			t.Errorf("Delete failed. err:%s", qErr.Error())
 			return
 		}
 	}
@@ -333,7 +333,7 @@ func TestReferenceRemote(t *testing.T) {
 			return
 		}
 
-		sObjectVal := vModel.Interface(true, 0).(*remote.ObjectValue)
+		sObjectVal := vModel.Interface(true, model.OriginView).(*remote.ObjectValue)
 		sVal := sValList[idx]
 		err = helper.UpdateEntity(sObjectVal, sVal)
 		if err != nil {
@@ -374,7 +374,7 @@ func TestReferenceRemote(t *testing.T) {
 			return
 		}
 
-		sObjectVal := vModel.Interface(true, 0).(*remote.ObjectValue)
+		sObjectVal := vModel.Interface(true, model.OriginView).(*remote.ObjectValue)
 		sVal := sValList[idx]
 		err = helper.UpdateEntity(sObjectVal, sVal)
 		if err != nil {
@@ -438,7 +438,7 @@ func TestReferenceRemote(t *testing.T) {
 			return
 		}
 
-		qObjectVal := qModel.Interface(true, 0).(*remote.ObjectValue)
+		qObjectVal := qModel.Interface(true, model.OriginView).(*remote.ObjectValue)
 		qVal := qValList[idx]
 		err = helper.UpdateEntity(qObjectVal, qVal)
 		if err != nil {
@@ -454,7 +454,7 @@ func TestReferenceRemote(t *testing.T) {
 		sVal := sValList[idx]
 		qVal := qValList[idx]
 		if !sVal.IsSame(qVal) {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("compare value failed"))
+			err = cd.NewResult(cd.UnExpected, "compare value failed")
 			t.Errorf("IsSame failed. err:%s", err.Error())
 			return
 		}
@@ -470,7 +470,7 @@ func TestReferenceRemote(t *testing.T) {
 
 	referenceModel, _ := remote.GetObject(&bqValList)
 
-	filter, err := remoteProvider.GetModelFilter(referenceModel, 0)
+	filter, err := remoteProvider.GetModelFilter(referenceModel, model.OriginView)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -514,7 +514,7 @@ func TestReferenceRemote(t *testing.T) {
 	for idx := 0; idx < loop; idx++ {
 		_, qErr := o1.Delete(bqModelList[idx])
 		if qErr != nil {
-			err = qErr
+			t.Errorf("Delete failed. err:%s", qErr.Error())
 			return
 		}
 	}

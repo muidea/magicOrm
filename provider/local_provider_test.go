@@ -11,16 +11,16 @@ import (
 )
 
 type Simple struct {
-	ID        int       `orm:"id key auto" view:"view,lite"`
-	I8        int8      `orm:"i8" view:"view,lite"`
-	I16       int16     `orm:"i16" view:"view,lite"`
-	I32       int32     `orm:"i32" view:"view,lite"`
-	I64       uint64    `orm:"i64" view:"view,lite"`
-	Name      string    `orm:"name" view:"view,lite"`
-	Value     float32   `orm:"value" view:"view,lite"`
-	F64       float64   `orm:"f64" view:"view,lite"`
-	TimeStamp time.Time `orm:"ts dateTime" view:"view,lite"`
-	Flag      bool      `orm:"flag" view:"view,lite"`
+	ID        int       `orm:"id key auto" view:"detail,lite"`
+	I8        int8      `orm:"i8" view:"detail,lite"`
+	I16       int16     `orm:"i16" view:"detail,lite"`
+	I32       int32     `orm:"i32" view:"detail,lite"`
+	I64       uint64    `orm:"i64" view:"detail,lite"`
+	Name      string    `orm:"name" view:"detail,lite"`
+	Value     float32   `orm:"value" view:"detail,lite"`
+	F64       float64   `orm:"f64" view:"detail,lite"`
+	TimeStamp time.Time `orm:"ts dateTime" view:"detail,lite"`
+	Flag      bool      `orm:"flag" view:"detail,lite"`
 	Namespace string    `orm:"namespace"`
 }
 

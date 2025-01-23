@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/muidea/magicCommon/foundation/util"
+	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
 )
@@ -58,7 +59,7 @@ func TestLocalSimple(t *testing.T) {
 		t.Errorf("insert simple failed, err:%s", err.Error())
 		return
 	}
-	s1 = s1Model.Interface(true, 0).(*Simple)
+	s1 = s1Model.Interface(true, model.OriginView).(*Simple)
 
 	s1.Name = "hello"
 	s1Model, s1Err = localProvider.GetEntityModel(s1)
@@ -71,7 +72,7 @@ func TestLocalSimple(t *testing.T) {
 		t.Errorf("update simple failed, err:%s", err.Error())
 		return
 	}
-	s1 = s1Model.Interface(true, 0).(*Simple)
+	s1 = s1Model.Interface(true, model.OriginView).(*Simple)
 
 	s2 := Simple{ID: s1.ID}
 	s2Model, s2Err := localProvider.GetEntityModel(s2)
@@ -85,7 +86,7 @@ func TestLocalSimple(t *testing.T) {
 		t.Errorf("query simple failed, err:%s", err.Error())
 		return
 	}
-	s2 = s2Model.Interface(false, 0).(Simple)
+	s2 = s2Model.Interface(false, model.OriginView).(Simple)
 
 	if !s1.IsSame(&s2) {
 		t.Errorf("Query simple failed.")
@@ -159,7 +160,7 @@ func TestLocalReference(t *testing.T) {
 		t.Errorf("insert simple failed, err:%s", err.Error())
 		return
 	}
-	s1 = s1Model.Interface(true, 0).(*Reference)
+	s1 = s1Model.Interface(true, model.OriginView).(*Reference)
 
 	s1.Name = "hello"
 	s1Model, s1Err = localProvider.GetEntityModel(s1)
@@ -173,7 +174,7 @@ func TestLocalReference(t *testing.T) {
 		t.Errorf("update simple failed, err:%s", err.Error())
 		return
 	}
-	s1 = s1Model.Interface(true, 0).(*Reference)
+	s1 = s1Model.Interface(true, model.OriginView).(*Reference)
 
 	fValue2 := float32(0.0)
 	var ts2 time.Time
@@ -205,7 +206,7 @@ func TestLocalReference(t *testing.T) {
 		t.Errorf("query reference failed, err:%s", err.Error())
 		return
 	}
-	s2 = s2Model.Interface(false, 0).(Reference)
+	s2 = s2Model.Interface(false, model.OriginView).(Reference)
 
 	if !s1.IsSame(&s2) {
 		t.Errorf("Query reference failed.")
@@ -217,7 +218,7 @@ func TestLocalReference(t *testing.T) {
 		t.Errorf("insert reference failed, err:%s", err.Error())
 		return
 	}
-	s2 = s2Model.Interface(false, 0).(Reference)
+	s2 = s2Model.Interface(false, model.OriginView).(Reference)
 	if s1.IsSame(&s2) {
 		t.Errorf("Query reference failed.")
 		return
@@ -237,7 +238,7 @@ func TestLocalReference(t *testing.T) {
 		t.Errorf("query reference failed, err:%s", err.Error())
 		return
 	}
-	s4 = s4Model.Interface(false, 0).(Reference)
+	s4 = s4Model.Interface(false, model.OriginView).(Reference)
 	if s4.Name != s2.Name {
 		t.Errorf("query reference failed, err:%s", err.Error())
 		return
@@ -296,7 +297,7 @@ func TestLocalCompose(t *testing.T) {
 		t.Errorf("insert simple failed, err:%s", err.Error())
 		return
 	}
-	s1 = s1Model.Interface(false, 0).(Simple)
+	s1 = s1Model.Interface(false, model.OriginView).(Simple)
 
 	strValue := "test code"
 	fValue := float32(12.34)
@@ -333,7 +334,7 @@ func TestLocalCompose(t *testing.T) {
 		return
 	}
 
-	r1 = r1Model.Interface(false, 0).(Reference)
+	r1 = r1Model.Interface(false, model.OriginView).(Reference)
 
 	refPtrArray := []*Reference{&r1}
 	c1 := &Compose{
@@ -358,7 +359,7 @@ func TestLocalCompose(t *testing.T) {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
-	c1 = c1Model.Interface(true, 0).(*Compose)
+	c1 = c1Model.Interface(true, model.OriginView).(*Compose)
 
 	c2 := Compose{
 		Name:         strValue,
@@ -384,7 +385,7 @@ func TestLocalCompose(t *testing.T) {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
-	c2 = c2Model.Interface(false, 0).(Compose)
+	c2 = c2Model.Interface(false, model.OriginView).(Compose)
 
 	c3 := Compose{
 		ID:           c2.ID,
@@ -409,7 +410,7 @@ func TestLocalCompose(t *testing.T) {
 		t.Errorf("query compose failed, err:%s", err.Error())
 		return
 	}
-	c3 = c3Model.Interface(false, 0).(Compose)
+	c3 = c3Model.Interface(false, model.OriginView).(Compose)
 
 	if c3.IsSame(c1) {
 		t.Error("query compose failed")
@@ -469,7 +470,7 @@ func TestLocalQuery(t *testing.T) {
 		t.Errorf("insert simple failed, err:%s", err.Error())
 		return
 	}
-	s1 = s1Model.Interface(false, 0).(Simple)
+	s1 = s1Model.Interface(false, model.OriginView).(Simple)
 
 	strValue := "test code"
 	fValue := float32(12.34)
@@ -503,7 +504,7 @@ func TestLocalQuery(t *testing.T) {
 		t.Errorf("insert reference failed, err:%s", err.Error())
 		return
 	}
-	r1 = r1Model.Interface(false, 0).(Reference)
+	r1 = r1Model.Interface(false, model.OriginView).(Reference)
 
 	refPtrArray := []*Reference{&r1}
 	c1 := Compose{
@@ -529,7 +530,7 @@ func TestLocalQuery(t *testing.T) {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
-	c1 = c1Model.Interface(false, 0).(Compose)
+	c1 = c1Model.Interface(false, model.OriginView).(Compose)
 
 	strValue = "123"
 	c2 := Compose{
@@ -556,7 +557,7 @@ func TestLocalQuery(t *testing.T) {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
-	c2 = c2Model.Interface(false, 0).(Compose)
+	c2 = c2Model.Interface(false, model.OriginView).(Compose)
 
 	c3 := c2
 	c3Model, c3Err := localProvider.GetEntityModel(c3)
@@ -569,7 +570,7 @@ func TestLocalQuery(t *testing.T) {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
-	c3 = c3Model.Interface(false, 0).(Compose)
+	_ = c3Model.Interface(false, model.OriginView).(Compose)
 
 	c4 := c2
 	c4Model, c4Err := localProvider.GetEntityModel(c4)
@@ -582,10 +583,10 @@ func TestLocalQuery(t *testing.T) {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
-	c4 = c4Model.Interface(false, 0).(Compose)
+	_ = c4Model.Interface(false, model.OriginView).(Compose)
 
 	cModel, _ := localProvider.GetEntityModel(&Compose{})
-	filter, err := localProvider.GetModelFilter(cModel, 0)
+	filter, err := localProvider.GetModelFilter(cModel, model.OriginView)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return

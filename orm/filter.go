@@ -10,7 +10,7 @@ import (
 // BatchQuery batch query
 func (s *impl) BatchQuery(filter model.Filter) (ret []model.Model, err *cd.Result) {
 	if filter == nil {
-		err = cd.NewError(cd.IllegalParam, "illegal model value")
+		err = cd.NewResult(cd.IllegalParam, "illegal model value")
 		return
 	}
 

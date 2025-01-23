@@ -107,19 +107,19 @@ func (s *codecImpl) BuildFieldValue(vField model.Field) (ret model.RawVal, err *
 		}
 		byteVal, byteErr := json.Marshal(fEncodeVal.Value())
 		if byteErr != nil {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("%v", byteErr.Error()))
+			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("%v", byteErr.Error()))
 			return
 		}
 		ret = model.NewRawVal(strings.ReplaceAll(string(byteVal), "'", "''"))
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal filed type %s", vType.GetPkgKey()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal filed type %s", vType.GetPkgKey()))
 	}
 	return
 }
 
 func (s *codecImpl) BuildOprValue(vField model.Field, vValue model.Value) (ret model.RawVal, err *cd.Result) {
 	if !vValue.IsValid() {
-		err = cd.NewError(cd.UnExpected, "nil opr value")
+		err = cd.NewResult(cd.UnExpected, "nil opr value")
 		return
 	}
 
@@ -137,7 +137,7 @@ func (s *codecImpl) BuildOprValue(vField model.Field, vValue model.Value) (ret m
 	case model.TypeSliceValue:
 		ret, err = s.encodeSliceValue(vType, vValue)
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal filed type %s", vType.GetPkgKey()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal filed type %s", vType.GetPkgKey()))
 	}
 	return
 }
@@ -152,7 +152,7 @@ func (s *codecImpl) ExtractFiledValue(vField model.Field, eVal model.RawVal) (re
 				vArray := []any{}
 				byteErr := json.Unmarshal([]byte(*strVal), &vArray)
 				if byteErr != nil {
-					err = cd.NewError(cd.UnExpected, byteErr.Error())
+					err = cd.NewResult(cd.UnExpected, byteErr.Error())
 					return
 				}
 				ret, err = s.modelProvider.DecodeValue(model.NewRawVal(vArray), vType)
@@ -160,7 +160,7 @@ func (s *codecImpl) ExtractFiledValue(vField model.Field, eVal model.RawVal) (re
 				ret, err = vType.Interface(nil)
 			}
 		} else {
-			err = cd.NewError(cd.UnExpected, "illegal field value")
+			err = cd.NewResult(cd.UnExpected, "illegal field value")
 		}
 	default:
 		ret, err = s.modelProvider.DecodeValue(eVal, vType)
@@ -177,7 +177,7 @@ func (s *codecImpl) buildModelValue(vModel model.Model) (ret model.RawVal, err *
 		model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue, model.TypePositiveIntegerValue:
 		ret, err = s.encodeIntValue(pkField.GetType(), pkField.GetValue())
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal pkFiled type %s", pkField.GetType().GetPkgKey()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal pkFiled type %s", pkField.GetType().GetPkgKey()))
 	}
 	return
 }
@@ -281,7 +281,7 @@ func (s *codecImpl) getBasicTypeDefaultValue(fType model.Type) (ret any, err *cd
 		model.TypeSliceValue:
 		ret = ""
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("no support field type, type:%v", fType.GetPkgKey()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("no support field type, type:%v", fType.GetPkgKey()))
 	}
 
 	if err != nil {

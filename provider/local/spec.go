@@ -40,7 +40,7 @@ func NewSpec(tag reflect.StructTag) (ret *SpecImpl, err *cd.Result) {
 func getOrmSpec(spec string) (ret *SpecImpl, err *cd.Result) {
 	items := strings.Split(spec, " ")
 	if len(items) < 1 {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal spec value, val:%s", spec))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal spec value, val:%s", spec))
 		return
 	}
 
@@ -69,9 +69,9 @@ func getViewItems(spec string) (ret []model.ViewDeclare) {
 	items := strings.Split(spec, ",")
 	for _, sv := range items {
 		switch sv {
-		case "view":
+		case model.FullView:
 			ret = append(ret, model.FullView)
-		case "lite":
+		case model.LiteView:
 			ret = append(ret, model.LiteView)
 		}
 	}

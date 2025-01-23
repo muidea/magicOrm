@@ -2,11 +2,12 @@ package test
 
 import (
 	"encoding/json"
+	"testing"
+
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/remote"
-	"testing"
 )
 
 var statusDef = `
@@ -33,8 +34,8 @@ var statusDef = `
         "primaryKey": true,
         "valueDeclare": 1,
         "viewDeclare": [
-          1,
-          2
+          "detail",
+          "lite"
         ]
       }
     },
@@ -51,8 +52,8 @@ var statusDef = `
       },
       "spec": {
         "viewDeclare": [
-          1,
-          2
+          "detail",
+          "lite"
         ]
       }
     },
@@ -69,8 +70,8 @@ var statusDef = `
       },
       "spec": {
         "viewDeclare": [
-          1,
-          2
+          "detail",
+          "lite"
         ]
       }
     }
@@ -102,9 +103,9 @@ var partnerDef = `
         "primaryKey": true,
         "valueDeclare": 1,
         "viewDeclare": [
-          1,
-          2
-        ]
+          "detail",
+          "lite"
+         ]
       }
     },
     {
@@ -120,9 +121,9 @@ var partnerDef = `
       },
       "spec": {
         "viewDeclare": [
-          1,
-          2
-        ]
+          "detail",
+          "lite"
+         ]
       }
     },
     {
@@ -138,9 +139,9 @@ var partnerDef = `
       },
       "spec": {
         "viewDeclare": [
-          1,
-          2
-        ],
+          "detail",
+          "lite"
+         ],
         "defaultValue": 2
       }
     }
@@ -228,7 +229,7 @@ func TestPartner(t *testing.T) {
 		return
 	}
 
-	status001Model, status001Err = o1.Insert(status001Model)
+	_, status001Err = o1.Insert(status001Model)
 	if status001Err != nil {
 		t.Errorf("Insert status failed, error:%s", status001Err.Error())
 		return
@@ -258,7 +259,7 @@ func TestPartner(t *testing.T) {
 		return
 	}
 
-	status002Model, status002Err = o1.Insert(status002Model)
+	_, status002Err = o1.Insert(status002Model)
 	if status002Err != nil {
 		t.Errorf("Insert status failed, error:%s", status002Err.Error())
 		return
