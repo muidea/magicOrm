@@ -111,7 +111,7 @@ func (s *Executor) Connect() (err *cd.Result) {
 
 func (s *Executor) Ping() (err *cd.Result) {
 	if s.dbHandle == nil {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("must connect to database first"))
+		err = cd.NewResult(cd.UnExpected, "must connect to database first")
 		log.Errorf("Ping failed, error:%s", err.Error())
 		return
 	}
@@ -153,7 +153,7 @@ func (s *Executor) destroy() {
 }
 
 func (s *Executor) idle() bool {
-	return time.Now().Sub(s.finishTime) > 10*time.Minute
+	return time.Since(s.finishTime) > 10*time.Minute
 }
 
 func (s *Executor) BeginTransaction() (err *cd.Result) {
@@ -492,7 +492,7 @@ func (s *Pool) CheckConfig(cfgPtr *Config) *cd.Result {
 		return nil
 	}
 
-	return cd.NewResult(cd.UnExpected, fmt.Sprintf("mismatch database config"))
+	return cd.NewResult(cd.UnExpected, "mismatch database config")
 }
 
 // FetchOut FetchOut Executor

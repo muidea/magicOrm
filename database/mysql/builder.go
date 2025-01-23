@@ -46,7 +46,7 @@ func (s *Builder) buildFilter(vModel model.Model, filter model.Filter, resultSta
 			}
 
 			if filterSQL == "" {
-				filterSQL = fmt.Sprintf("%s", basicSQL)
+				filterSQL = basicSQL
 				continue
 			}
 
@@ -62,7 +62,7 @@ func (s *Builder) buildFilter(vModel model.Model, filter model.Filter, resultSta
 		}
 
 		if filterSQL == "" {
-			filterSQL = fmt.Sprintf("%s", relationSQL)
+			filterSQL = relationSQL
 			continue
 		}
 
