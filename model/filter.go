@@ -2,7 +2,6 @@ package model
 
 import (
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/util"
 )
 
 const (
@@ -29,6 +28,11 @@ type Sorter interface {
 	AscSort() bool
 }
 
+type Paginationer interface {
+	Limit() int64
+	Offset() int64
+}
+
 // Filter orm query filter
 type Filter interface {
 	Equal(key string, val any) *cd.Result
@@ -38,12 +42,12 @@ type Filter interface {
 	In(key string, val any) *cd.Result
 	NotIn(key string, val any) *cd.Result
 	Like(key string, val any) *cd.Result
-	Page(page *util.Pagination)
-	Sort(sorter *util.SortFilter)
+	Pagination(pageNum, pageSize int)
+	Sort(fieldName string, ascFlag bool)
 	ValueMask(val any) *cd.Result
 
 	GetFilterItem(key string) FilterItem
-	Pagination() (limit, offset int, paging bool)
+	Paginationer() Paginationer
 	Sorter() Sorter
 	MaskModel() Model
 }

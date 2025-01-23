@@ -6,7 +6,6 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-	"github.com/muidea/magicCommon/foundation/util"
 
 	om "github.com/muidea/magicOrm/model"
 	pu "github.com/muidea/magicOrm/provider/util"
@@ -29,8 +28,8 @@ type filter struct {
 	bindValue  *ValueImpl
 	params     map[string]*filterItem
 	maskValue  *ValueImpl
-	pageFilter *util.Pagination
-	sortFilter *util.SortFilter
+	pageFilter *pu.Pagination
+	sortFilter *pu.SortFilter
 }
 
 func newFilter(valuePtr *ValueImpl) *filter {
@@ -199,12 +198,18 @@ func (s *filter) Like(key string, val any) (err *cd.Result) {
 	return
 }
 
-func (s *filter) Page(pageFilter *util.Pagination) {
-	s.pageFilter = pageFilter
+func (s *filter) Pagination(pageNum, pageSize int) {
+	s.pageFilter = &pu.Pagination{
+		PageNum:  pageNum,
+		PageSize: pageSize,
+	}
 }
 
-func (s *filter) Sort(sorter *util.SortFilter) {
-	s.sortFilter = sorter
+func (s *filter) Sort(fieldName string, ascFlag bool) {
+	s.sortFilter = &pu.SortFilter{
+		FieldName: fieldName,
+		AscFlag:   ascFlag,
+	}
 }
 
 func (s *filter) ValueMask(val any) (err *cd.Result) {
@@ -235,23 +240,12 @@ func (s *filter) GetFilterItem(key string) om.FilterItem {
 	return nil
 }
 
-func (s *filter) Pagination() (limit, offset int, paging bool) {
-	paging = false
+func (s *filter) Paginationer() om.Paginationer {
 	if s.pageFilter == nil {
-		return
+		return nil
 	}
 
-	paging = true
-	limit = s.pageFilter.PageSize
-	offset = s.pageFilter.PageSize * (s.pageFilter.PageNum - 1)
-	if offset < 0 {
-		offset = 0
-	}
-	if limit <= 0 {
-		limit = 100
-	}
-
-	return
+	return s.pageFilter
 }
 
 func (s *filter) Sorter() om.Sorter {

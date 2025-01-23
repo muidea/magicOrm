@@ -7,8 +7,8 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-	"github.com/muidea/magicCommon/foundation/util"
 	om "github.com/muidea/magicOrm/model"
+	pu "github.com/muidea/magicOrm/provider/util"
 )
 
 type filterItem struct {
@@ -25,18 +25,18 @@ func (s *filterItem) OprValue() om.Value {
 }
 
 type ObjectFilter struct {
-	Name           string           `json:"name"`
-	PkgPath        string           `json:"pkgPath"`
-	EqualFilter    []*FieldValue    `json:"equal"`
-	NotEqualFilter []*FieldValue    `json:"noEqual"`
-	BelowFilter    []*FieldValue    `json:"below"`
-	AboveFilter    []*FieldValue    `json:"above"`
-	InFilter       []*FieldValue    `json:"in"`
-	NotInFilter    []*FieldValue    `json:"notIn"`
-	LikeFilter     []*FieldValue    `json:"like"`
-	MaskValue      *ObjectValue     `json:"maskValue"`
-	PageFilter     *util.Pagination `json:"page"`
-	SortFilter     *util.SortFilter `json:"sort"`
+	Name           string         `json:"name"`
+	PkgPath        string         `json:"pkgPath"`
+	EqualFilter    []*FieldValue  `json:"equal"`
+	NotEqualFilter []*FieldValue  `json:"noEqual"`
+	BelowFilter    []*FieldValue  `json:"below"`
+	AboveFilter    []*FieldValue  `json:"above"`
+	InFilter       []*FieldValue  `json:"in"`
+	NotInFilter    []*FieldValue  `json:"notIn"`
+	LikeFilter     []*FieldValue  `json:"like"`
+	MaskValue      *ObjectValue   `json:"maskValue"`
+	PageFilter     *pu.Pagination `json:"page"`
+	SortFilter     *pu.SortFilter `json:"sort"`
 
 	bindObject *Object
 }
@@ -224,12 +224,18 @@ func (s *ObjectFilter) Like(key string, val any) (err *cd.Result) {
 	return
 }
 
-func (s *ObjectFilter) Page(filter *util.Pagination) {
-	s.PageFilter = filter
+func (s *ObjectFilter) Pagination(pageNum, pageSize int) {
+	s.PageFilter = &pu.Pagination{
+		PageNum:  pageNum,
+		PageSize: pageSize,
+	}
 }
 
-func (s *ObjectFilter) Sort(sorter *util.SortFilter) {
-	s.SortFilter = sorter
+func (s *ObjectFilter) Sort(fieldName string, ascFlag bool) {
+	s.SortFilter = &pu.SortFilter{
+		FieldName: fieldName,
+		AscFlag:   ascFlag,
+	}
 }
 
 func (s *ObjectFilter) ValueMask(val any) (err *cd.Result) {
@@ -345,23 +351,12 @@ func (s *ObjectFilter) getFilterValue(key string, items []*FieldValue) (ret *Fie
 	return
 }
 
-func (s *ObjectFilter) Pagination() (limit, offset int, paging bool) {
-	paging = false
+func (s *ObjectFilter) Paginationer() om.Paginationer {
 	if s.PageFilter == nil {
-		return
+		return nil
 	}
 
-	paging = true
-	limit = s.PageFilter.PageSize
-	offset = s.PageFilter.PageSize * (s.PageFilter.PageNum - 1)
-	if offset < 0 {
-		offset = 0
-	}
-	if limit <= 0 {
-		limit = 100
-	}
-
-	return
+	return s.PageFilter
 }
 
 func (s *ObjectFilter) Sorter() om.Sorter {

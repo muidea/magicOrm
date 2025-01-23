@@ -5,7 +5,6 @@ import (
 
 	"github.com/muidea/magicOrm/model"
 
-	"github.com/muidea/magicCommon/foundation/util"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
@@ -1103,8 +1102,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	pageFilter := &util.Pagination{PageNum: 0, PageSize: 100}
-	filter.Page(pageFilter)
+	filter.Pagination(0, 100)
 	userModelList, userModelErr = o1.BatchQuery(filter)
 	if userModelErr != nil {
 		err = userModelErr
@@ -1390,8 +1388,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		return
 	}
 
-	pageFilter := &util.Pagination{PageNum: 0, PageSize: 100}
-	filter.Page(pageFilter)
+	filter.Pagination(0, 100)
 	userModelList, userModelErr := o1.BatchQuery(filter)
 	if userModelErr != nil {
 		err = userModelErr

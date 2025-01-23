@@ -43,9 +43,9 @@ func (s *Builder) BuildQuery(vModel model.Model, filter model.Filter) (ret *Resu
 			querySQL = fmt.Sprintf("%s ORDER BY %s", querySQL, sortVal)
 		}
 
-		limit, offset, paging := filter.Pagination()
-		if paging {
-			resultStackPtr.PushArgs(limit, offset)
+		paginationer := filter.Paginationer()
+		if paginationer != nil {
+			resultStackPtr.PushArgs(paginationer.Limit(), paginationer.Offset())
 			querySQL = fmt.Sprintf("%s LIMIT ? OFFSET ?", querySQL)
 		}
 	}
