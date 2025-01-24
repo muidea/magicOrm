@@ -91,7 +91,7 @@ func (s *Executor) Connect() (err *cd.Result) {
 	dbHandle, dbErr := sql.Open("mysql", s.connectStr)
 	if dbErr != nil {
 		err = cd.NewResult(cd.UnExpected, dbErr.Error())
-		log.Errorf("Connect, sql.Open error:%s", err.Error())
+		log.Errorf("open database exception, connectStr:%s, err:%s", s.connectStr, err.Error())
 		return
 	}
 
@@ -101,7 +101,7 @@ func (s *Executor) Connect() (err *cd.Result) {
 	dbErr = dbHandle.Ping()
 	if dbErr != nil {
 		err = cd.NewResult(cd.UnExpected, dbErr.Error())
-		log.Errorf("Connect, dbHandle.Ping error:%s", err.Error())
+		log.Errorf("ping database failed, connectStr:%s, err:%s", s.connectStr, err.Error())
 		return
 	}
 
