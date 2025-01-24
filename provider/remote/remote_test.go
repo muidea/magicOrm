@@ -11,7 +11,7 @@ type Simple struct {
 	//ID 唯一标示单元
 	ID     int64   `orm:"id key" view:"detail,lite"`
 	Name   string  `orm:"name" view:"detail,lite"`
-	Desc   *string `orm:"desc" view:"view"`
+	Desc   *string `orm:"desc" view:"detail"`
 	Age    uint8   `orm:"age" view:"detail,lite"`
 	Flag   bool    `orm:"flag" view:"detail,lite"`
 	Add    []int   `orm:"add" view:"detail,lite"`
