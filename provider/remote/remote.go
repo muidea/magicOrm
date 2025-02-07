@@ -349,7 +349,7 @@ func GetObjectValue(entity any) (ret *ObjectValue, err *cd.Result) {
 		return
 	}
 	objPtr, ptrOK := entity.(*Object)
-	if objOK {
+	if ptrOK {
 		ret = objPtr.Interface(true, model.OriginView).(*ObjectValue)
 		return
 	}
@@ -383,14 +383,14 @@ func getSliceObjectValue(sliceVal reflect.Value) (ret *SliceObjectValue, err *cd
 	}
 
 	if !model.IsSliceType(sliceType.GetValue()) {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal slice object value"))
+		err = cd.NewResult(cd.UnExpected, "illegal slice object value")
 		log.Errorf("getSliceObjectValue failed, check slice type err:%s", err.Error())
 		return
 	}
 
 	elemType := sliceType.Elem()
 	if !model.IsStructType(elemType.GetValue()) {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal slice item type"))
+		err = cd.NewResult(cd.UnExpected, "illegal slice item type")
 		log.Errorf("getSliceObjectValue failed, check slice item err:%s", err.Error())
 		return
 	}

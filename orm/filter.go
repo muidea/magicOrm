@@ -15,8 +15,7 @@ func (s *impl) BatchQuery(filter model.Filter) (ret []model.Model, err *cd.Resul
 		return
 	}
 
-	vModel := filter.MaskModel()
-	vQueryRunner := NewQueryRunner(vModel, s.executor, s.modelProvider, s.modelCodec, true, 0)
+	vQueryRunner := NewQueryRunner(filter.MaskModel(), s.executor, s.modelProvider, s.modelCodec, true, 0)
 	queryVal, queryErr := vQueryRunner.Query(filter)
 	if queryErr != nil {
 		err = queryErr

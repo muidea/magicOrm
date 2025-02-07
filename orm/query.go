@@ -358,7 +358,7 @@ func (s *QueryRunner) innerQueryRelationSingleModel(id any, rModel model.Model, 
 		return
 	}
 
-	rQueryRunner := NewQueryRunner(rModel, s.executor, s.modelProvider, s.modelCodec, false, deepLevel+1)
+	rQueryRunner := NewQueryRunner(vFilter.MaskModel(), s.executor, s.modelProvider, s.modelCodec, false, deepLevel+1)
 	queryVal, queryErr := rQueryRunner.Query(vFilter)
 	if queryErr != nil {
 		err = queryErr
@@ -370,7 +370,7 @@ func (s *QueryRunner) innerQueryRelationSingleModel(id any, rModel model.Model, 
 		return
 	}
 
-	if len(queryVal) > 0 { // 移除了显式的 nil 检查
+	if len(queryVal) > 0 {
 		ret = queryVal[0]
 	}
 	return
@@ -400,7 +400,7 @@ func (s *QueryRunner) innerQueryRelationSliceModel(ids []any, rModel model.Model
 			return
 		}
 
-		rQueryRunner := NewQueryRunner(svModel, s.executor, s.modelProvider, s.modelCodec, false, deepLevel+1)
+		rQueryRunner := NewQueryRunner(vFilter.MaskModel(), s.executor, s.modelProvider, s.modelCodec, false, deepLevel+1)
 		queryVal, queryErr := rQueryRunner.Query(vFilter)
 		if queryErr != nil {
 			err = queryErr
@@ -412,7 +412,7 @@ func (s *QueryRunner) innerQueryRelationSliceModel(ids []any, rModel model.Model
 			return
 		}
 
-		if len(queryVal) > 0 { // 移除了显式的 nil 检查
+		if len(queryVal) > 0 {
 			sliceVal = append(sliceVal, queryVal[0])
 		}
 	}
@@ -422,10 +422,9 @@ func (s *QueryRunner) innerQueryRelationSliceModel(ids []any, rModel model.Model
 }
 
 func (s *QueryRunner) Query(filter model.Filter) (ret []model.Model, err *cd.Result) {
-	s.vModel = filter.MaskModel()
-	queryValueList, queryErr := s.innerQuery(s.vModel, filter)
-	if queryErr != nil {
-		err = queryErr
+	queryValueList, queryValueErr := s.innerQuery(s.vModel, filter)
+	if queryValueErr != nil {
+		err = queryValueErr
 		if err.Fail() {
 			log.Errorf("Query failed, s.innerQuery error:%s", err.Error())
 		} else if err.Warn() {
@@ -479,7 +478,7 @@ func (s *impl) Query(vModel model.Model) (ret model.Model, err *cd.Result) {
 		return
 	}
 
-	vQueryRunner := NewQueryRunner(vModel, s.executor, s.modelProvider, s.modelCodec, false, 0)
+	vQueryRunner := NewQueryRunner(vFilter.MaskModel(), s.executor, s.modelProvider, s.modelCodec, false, 0)
 	queryVal, queryErr := vQueryRunner.Query(vFilter)
 	if queryErr != nil {
 		err = queryErr
@@ -490,7 +489,7 @@ func (s *impl) Query(vModel model.Model) (ret model.Model, err *cd.Result) {
 		}
 		return
 	}
-	if len(queryVal) != 0 { // 移除了显式的 nil 检查
+	if len(queryVal) != 0 {
 		ret = queryVal[0]
 		return
 	}

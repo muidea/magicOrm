@@ -673,7 +673,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 	}
 
 	extFilter.Equal("eid", 12)
-	str, err = builder.BuildQuery(referenceModel, extFilter)
+	str, err = builder.BuildQuery(extFilter.MaskModel(), extFilter)
 	if err != nil {
 		t.Errorf("build query failed, err:%s", err.Error())
 	}

@@ -53,18 +53,14 @@ func GetEntityType(entity interface{}) (ret model.Type, err *cd.Result) {
 		return
 	}
 
-	for {
-		valueImplInfo, valueImplOK := entity.(ValueImpl)
-		if valueImplOK {
-			entity = valueImplInfo.Interface()
-			break
-		}
+	valueImplInfo, valueImplOK := entity.(ValueImpl)
+	if valueImplOK {
+		entity = valueImplInfo.Interface()
+	}
 
-		valueImplPtr, valueImplPtrOK := entity.(*ValueImpl)
-		if valueImplPtrOK {
-			entity = valueImplPtr.Interface()
-		}
-		break
+	valueImplPtr, valueImplPtrOK := entity.(*ValueImpl)
+	if valueImplPtrOK {
+		entity = valueImplPtr.Interface()
 	}
 
 	objectValue, objectValueOK := entity.(ObjectValue)
@@ -224,14 +220,35 @@ func GetEntityModel(entity interface{}) (ret model.Model, err *cd.Result) {
 	return
 }
 
-func GetModelFilter(vModel model.Model) (ret model.Filter, err *cd.Result) {
+func GetModelFilter(vModel model.Model, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result) {
 	objectImpl, objectOK := vModel.(*Object)
 	if !objectOK {
 		err = cd.NewResult(cd.UnExpected, "invalid model value")
 		return
 	}
 
-	ret = NewFilter(objectImpl)
+	// 这里需要判断Filed的值是否为空，如果为空，则需要根据viewSpec来判断是否需要初始化
+	filterObject := objectImpl.Copy(false).(*Object)
+	for _, sf := range filterObject.Fields {
+		if (sf.value != nil && sf.value.IsValid()) || viewSpec == model.OriginView {
+			continue
+		}
+
+		var initVal any
+		if sf.Spec != nil && sf.Spec.DefaultValue != nil {
+			initVal = sf.Spec.DefaultValue
+		}
+		if sf.Spec != nil && sf.Spec.EnableView(viewSpec) {
+			vVal, vErr := sf.Type.Interface(initVal)
+			if vErr == nil {
+				sf.value = vVal.(*ValueImpl)
+			} else {
+				log.Errorf("Interface failed, pkgKey:%s, fieldName:%s, error:%s", sf.GetType().GetPkgKey(), sf.GetType().GetName(), vErr.Error())
+			}
+		}
+	}
+
+	ret = NewFilter(filterObject)
 	return
 }
 

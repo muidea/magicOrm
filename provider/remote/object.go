@@ -169,7 +169,7 @@ func (s *Object) Copy(reset bool) (ret model.Model) {
 	for _, val := range s.Fields {
 		valPtr, valErr := val.copy(reset)
 		if valErr != nil {
-			log.Errorf("Copy field failed, name:%s, err:%s", val.GetName(), valErr.Error())
+			log.Errorf("copy field failed, name:%s, err:%s", val.GetName(), valErr.Error())
 			panic(valErr)
 		}
 

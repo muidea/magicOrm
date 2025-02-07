@@ -97,7 +97,7 @@ type providerImpl struct {
 	getTypeFunc          func(interface{}) (model.Type, *cd.Result)
 	getValueFunc         func(interface{}) (model.Value, *cd.Result)
 	getModelFunc         func(interface{}) (model.Model, *cd.Result)
-	getFilterFunc        func(model.Model) (model.Filter, *cd.Result)
+	getFilterFunc        func(model.Model, model.ViewDeclare) (model.Filter, *cd.Result)
 	setModelValueFunc    func(model.Model, model.Value) (model.Model, *cd.Result)
 	elemDependValueFunc  func(val model.RawVal) ([]model.Value, *cd.Result)
 	appendSliceValueFunc func(model.Value, model.Value) (model.Value, *cd.Result)
@@ -219,19 +219,18 @@ func (s *providerImpl) GetEntityFilter(entity interface{}, viewSpec model.ViewDe
 
 func (s *providerImpl) GetModelFilter(vModel model.Model, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result) {
 	if vModel == nil {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal model value"))
+		err = cd.NewResult(cd.UnExpected, "illegal model value")
 		log.Errorf("GetModelFilter failed, error:%v", err.Error())
 		return
 	}
 
-	filterVal, filterErr := s.getFilterFunc(vModel)
+	filterVal, filterErr := s.getFilterFunc(vModel, viewSpec)
 	if filterErr != nil {
 		err = filterErr
 		log.Errorf("GetEntityFilter failed, getFilterFunc error:%v", err.Error())
 		return
 	}
 
-	_ = filterVal.ValueMask(vModel.Interface(true, viewSpec))
 	ret = filterVal
 	return
 }
@@ -290,14 +289,13 @@ func (s *providerImpl) GetTypeFilter(vType model.Type, viewSpec model.ViewDeclar
 		return
 	}
 
-	filterVal, filterErr := s.getFilterFunc(typeModel.Copy(false))
+	filterVal, filterErr := s.getFilterFunc(typeModel.Copy(false), viewSpec)
 	if filterErr != nil {
 		err = filterErr
 		log.Errorf("GetEntityFilter failed, getFilterFunc error:%v", err.Error())
 		return
 	}
 
-	_ = filterVal.ValueMask(typeModel.Interface(true, viewSpec))
 	ret = filterVal
 	return
 }

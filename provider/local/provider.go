@@ -88,8 +88,8 @@ func GetEntityModel(entity interface{}) (ret model.Model, err *cd.Result) {
 	return
 }
 
-func GetModelFilter(vModel model.Model) (ret model.Filter, err *cd.Result) {
-	valuePtr := NewValue(reflect.ValueOf(vModel.Interface(true, model.OriginView)))
+func GetModelFilter(vModel model.Model, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result) {
+	valuePtr := NewValue(reflect.ValueOf(vModel.Interface(true, viewSpec)))
 	ret = newFilter(valuePtr)
 	return
 }

@@ -960,6 +960,11 @@ func GetRawDateTime(rVal reflect.Value) (ret time.Time, err *cd.Result) {
 
 	switch rVal.Kind() {
 	case reflect.String:
+		if rVal.String() == "" {
+			ret = time.Time{}
+			return
+		}
+		
 		tVal, tErr := time.Parse(fu.CSTLayout, rVal.String())
 		if tErr != nil {
 			err = cd.NewResult(cd.UnExpected, tErr.Error())

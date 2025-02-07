@@ -223,7 +223,7 @@ func (l *Compose) IsSame(r *Compose) bool {
 	if len(l.RefPtrArray) != len(r.RefPtrArray) {
 		return false
 	}
-	if l.PtrRefArray != nil && len(l.PtrRefArray) > 0 {
+	if len(l.PtrRefArray) > 0 {
 		if r.PtrRefArray == nil {
 			return false
 		}
@@ -232,7 +232,7 @@ func (l *Compose) IsSame(r *Compose) bool {
 		}
 	}
 	if l.PtrRefArray == nil {
-		if r.PtrRefArray != nil && len(r.PtrRefArray) > 0 {
+		if len(r.PtrRefArray) > 0 {
 			return false
 		}
 	}
