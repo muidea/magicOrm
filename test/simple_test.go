@@ -369,7 +369,7 @@ func TestSimpleRemote(t *testing.T) {
 	if objectErr != nil {
 		t.Errorf("GetObject failed, error:%s", objectErr.Error())
 	}
-	filter, err := remoteProvider.GetModelFilter(objectPtr, model.FullView)
+	filter, err := remoteProvider.GetModelFilter(objectPtr, model.DetailView)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return

@@ -293,7 +293,7 @@ func TestPartner(t *testing.T) {
 		return
 	}
 
-	partnerFilter, partnerErr := remoteProvider.GetEntityFilter(partnerModel.Interface(true, model.FullView), model.FullView)
+	partnerFilter, partnerErr := remoteProvider.GetEntityFilter(partnerModel.Interface(true, model.DetailView), model.DetailView)
 	if partnerErr != nil {
 		t.Errorf("remoteProvider.GetEntityFilter failed, error:%s", partnerErr.Error())
 		return

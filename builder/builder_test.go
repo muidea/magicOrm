@@ -449,7 +449,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 					PrimaryKey:   true,
 					ValueDeclare: model.AutoIncrement,
 					ViewDeclare: []model.ViewDeclare{
-						model.FullView,
+						model.DetailView,
 						model.LiteView,
 					},
 				},
@@ -462,7 +462,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 				},
 				Spec: &remote.SpecImpl{
 					ViewDeclare: []model.ViewDeclare{
-						model.FullView,
+						model.DetailView,
 						model.LiteView,
 					},
 				},
@@ -475,7 +475,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 				},
 				Spec: &remote.SpecImpl{
 					ViewDeclare: []model.ViewDeclare{
-						model.FullView,
+						model.DetailView,
 						model.LiteView,
 					},
 				},
@@ -488,7 +488,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 				},
 				Spec: &remote.SpecImpl{
 					ViewDeclare: []model.ViewDeclare{
-						model.FullView,
+						model.DetailView,
 						model.LiteView,
 					},
 				},
@@ -508,7 +508,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 				},
 				Spec: &remote.SpecImpl{
 					ViewDeclare: []model.ViewDeclare{
-						model.FullView,
+						model.DetailView,
 						model.LiteView,
 					},
 				},
@@ -599,7 +599,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		return
 	}
 
-	extFilter, extErr := remoteProvider.GetModelFilter(referenceModel, model.FullView)
+	extFilter, extErr := remoteProvider.GetModelFilter(referenceModel, model.DetailView)
 	if extErr != nil {
 		t.Errorf("remoteProvider.GetModelFilter failed, err:%s", extErr.Error())
 		return

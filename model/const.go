@@ -204,6 +204,6 @@ type ViewDeclare string
 
 const (
 	OriginView = "origin"
-	FullView   = "detail"
+	DetailView = "detail"
 	LiteView   = "lite"
 )

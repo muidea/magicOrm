@@ -59,7 +59,7 @@ func TestLocalStore(t *testing.T) {
 		t.Errorf("o1.Insert failed, erro:%s", skuInfoErr.Error())
 		return
 	}
-	skuInfo001 = skuInfoModel.Interface(true, model.FullView).(*SKUInfo)
+	skuInfo001 = skuInfoModel.Interface(true, model.DetailView).(*SKUInfo)
 
 	product001 := &Product{
 		Name:        "pro001",
@@ -90,7 +90,7 @@ func TestLocalStore(t *testing.T) {
 		t.Errorf("o1.Insert failed, erro:%s", productErr.Error())
 		return
 	}
-	product001 = productModel.Interface(true, model.FullView).(*Product)
+	product001 = productModel.Interface(true, model.DetailView).(*Product)
 
 	store001 := &Store{
 		Code: "store001",
@@ -112,7 +112,7 @@ func TestLocalStore(t *testing.T) {
 		t.Errorf("o1.Insert failed, erro:%s", storeErr.Error())
 		return
 	}
-	store001 = storeModel.Interface(true, model.FullView).(*Store)
+	store001 = storeModel.Interface(true, model.DetailView).(*Store)
 
 	goodsInfo := &GoodsInfo{}
 	goodsInfoModel, goodsInfoErr := localProvider.GetEntityModel(goodsInfo)
@@ -155,5 +155,5 @@ func TestLocalStore(t *testing.T) {
 		t.Errorf("o1.Insert failed, erro:%s", stockInErr.Error())
 		return
 	}
-	_ = stockInModel.Interface(true, model.FullView).(*StockIn)
+	_ = stockInModel.Interface(true, model.DetailView).(*StockIn)
 }

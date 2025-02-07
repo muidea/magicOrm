@@ -1062,7 +1062,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 		return
 	}
 
-	filter, err := remoteProvider.GetModelFilter(userObject, model.FullView)
+	filter, err := remoteProvider.GetModelFilter(userObject, model.DetailView)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -1382,7 +1382,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 		t.Errorf("GetObject failed, err:%s", userObjectErr.Error())
 		return
 	}
-	filter, err := remoteProvider.GetModelFilter(userObject, model.FullView)
+	filter, err := remoteProvider.GetModelFilter(userObject, model.DetailView)
 	if err != nil {
 		t.Errorf("GetModelFilter failed, err:%s", err.Error())
 		return

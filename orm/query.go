@@ -370,7 +370,7 @@ func (s *QueryRunner) innerQueryRelationSingleModel(id any, rModel model.Model, 
 		return
 	}
 
-	if queryVal != nil && len(queryVal) > 0 {
+	if len(queryVal) > 0 { // 移除了显式的 nil 检查
 		ret = queryVal[0]
 	}
 	return
@@ -412,7 +412,7 @@ func (s *QueryRunner) innerQueryRelationSliceModel(ids []any, rModel model.Model
 			return
 		}
 
-		if queryVal != nil && len(queryVal) > 0 {
+		if len(queryVal) > 0 { // 移除了显式的 nil 检查
 			sliceVal = append(sliceVal, queryVal[0])
 		}
 	}
@@ -490,7 +490,7 @@ func (s *impl) Query(vModel model.Model) (ret model.Model, err *cd.Result) {
 		}
 		return
 	}
-	if queryVal != nil && len(queryVal) != 0 {
+	if len(queryVal) != 0 { // 移除了显式的 nil 检查
 		ret = queryVal[0]
 		return
 	}

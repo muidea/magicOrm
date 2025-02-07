@@ -69,8 +69,8 @@ func getViewItems(spec string) (ret []model.ViewDeclare) {
 	items := strings.Split(spec, ",")
 	for _, sv := range items {
 		switch sv {
-		case model.FullView:
-			ret = append(ret, model.FullView)
+		case model.DetailView:
+			ret = append(ret, model.DetailView)
 		case model.LiteView:
 			ret = append(ret, model.LiteView)
 		}

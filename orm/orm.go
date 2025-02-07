@@ -195,7 +195,6 @@ func (s *impl) finalTransaction(err *cd.Result) {
 	if err != nil {
 		log.Errorf("finalTransaction failed, s.executor.RollbackTransaction error:%s", err.Error())
 	}
-	return
 }
 
 func (s *impl) Release() {

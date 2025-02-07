@@ -11,6 +11,7 @@ import (
 func (s *impl) BatchQuery(filter model.Filter) (ret []model.Model, err *cd.Result) {
 	if filter == nil {
 		err = cd.NewResult(cd.IllegalParam, "illegal model value")
+		log.Errorf("BatchQuery failed, illegal model value")
 		return
 	}
 
