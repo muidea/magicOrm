@@ -2,19 +2,17 @@ package cache
 
 import (
 	"context"
-	"math"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicCommon/foundation/util"
 )
 
 // Cache 缓存对象
 type Cache interface {
-	// maxAge单位minute
-	Put(data interface{}, maxAge float64) string
+	// maxAge单位second
+	Put(data interface{}, maxAge int64) string
 	Fetch(id string) interface{}
 	Search(opr SearchOpr) interface{}
 	Remove(id string)
@@ -23,15 +21,22 @@ type Cache interface {
 }
 
 // NewCache 创建Cache对象
-func NewCache(cleanCallBack CleanCallBackFunc) Cache {
+func NewCache(cleanCallBack ExpiredCleanCallBackFunc) Cache {
 	cacheCtx, cacheCancel := context.WithCancel(context.Background())
 	cache := &MemoryCache{
-		commandChannel: make(chan commandData, 10),
-		cancelFunc:     cacheCancel,
+		commandChannel:       make(chan commandData, 100),
+		cancelFunc:           cacheCancel,
+		expiredCleanCallBack: cleanCallBack,
+		rwLock:               new(sync.RWMutex),
 	}
 
-	cache.cacheWg.Add(2)
-	go cache.run(cleanCallBack)
+	// 启动多个worker处理命令
+	for i := 0; i < ConcurrentGoroutines; i++ {
+		cache.cacheWg.Add(1)
+		go cache.run()
+	}
+
+	cache.cacheWg.Add(1)
 	go cache.checkTimeOut(cacheCtx)
 
 	return cache
@@ -39,7 +44,7 @@ func NewCache(cleanCallBack CleanCallBackFunc) Cache {
 
 type putInData struct {
 	data   interface{}
-	maxAge float64
+	maxAge int64
 }
 
 type putInResult struct {
@@ -71,16 +76,21 @@ type cacheData struct {
 
 // MemoryCache 内存缓存
 type MemoryCache struct {
-	commandChannel chan commandData
-	cancelFunc     context.CancelFunc
-	cacheWg        sync.WaitGroup
+	commandChannel       chan commandData
+	cancelFunc           context.CancelFunc
+	cacheWg              sync.WaitGroup
+	localCacheData       sync.Map
+	pool                 sync.Pool
+	expiredCleanCallBack ExpiredCleanCallBackFunc
+	rwLock               *sync.RWMutex
 }
 
 // Put 投放数据，返回数据的唯一标示
-func (s *MemoryCache) Put(data interface{}, maxAge float64) string {
-	dataPtr := &putInData{}
-	dataPtr.data = data
-	dataPtr.maxAge = maxAge
+func (s *MemoryCache) Put(data interface{}, maxAge int64) string {
+	dataPtr := &putInData{
+		data:   data,
+		maxAge: maxAge,
+	}
 
 	result := s.sendCommand(commandData{action: putIn, value: dataPtr}).(*putInResult)
 	return result.value
@@ -88,11 +98,21 @@ func (s *MemoryCache) Put(data interface{}, maxAge float64) string {
 
 // Fetch 获取数据
 func (s *MemoryCache) Fetch(id string) interface{} {
-	dataPtr := &fetchOutData{}
-	dataPtr.id = id
+	s.rwLock.RLock()
+	defer s.rwLock.RUnlock()
 
-	result := s.sendCommand(commandData{action: fetchOut, value: dataPtr}).(*fetchOutResult)
-	return result.value
+	v, found := s.localCacheData.Load(id)
+	if !found {
+		return nil
+	}
+
+	dataPtr := v.(cacheData)
+	if s.isExpired(dataPtr) {
+		s.localCacheData.Delete(id)
+		return nil
+	}
+
+	return dataPtr.cacheData.data
 }
 
 func (s *MemoryCache) Search(opr SearchOpr) interface{} {
@@ -124,113 +144,125 @@ func (s *MemoryCache) ClearAll() {
 func (s *MemoryCache) Release() {
 	s.cancelFunc()
 
-	s.sendCommand(commandData{action: end})
+	// 为每个worker发送end命令
+	for i := 0; i < ConcurrentGoroutines; i++ {
+		s.sendCommand(commandData{action: end})
+	}
 
 	s.cacheWg.Wait()
 	close(s.commandChannel)
 }
 
 func (s *MemoryCache) sendCommand(command commandData) interface{} {
-	reply := make(chan interface{})
+	var reply chan interface{}
+	if v := s.pool.Get(); v != nil {
+		reply = v.(chan interface{})
+	} else {
+		reply = make(chan interface{})
+	}
+	defer s.pool.Put(reply)
+
 	command.result = reply
 	s.commandChannel <- command
 	return <-reply
 }
 
-func (s *MemoryCache) run(cleanCallBack CleanCallBackFunc) {
-	localCacheData := make(map[string]cacheData)
-	defer func() {
-		log.Warnf("run, release cache")
-		s.cacheWg.Done()
-	}()
+func (s *MemoryCache) run() {
+	defer s.cacheWg.Done()
 
 	for command := range s.commandChannel {
 		switch command.action {
 		case putIn:
+			s.rwLock.Lock()
 			id := strings.ToLower(util.RandomAlphanumeric(32))
+			dataPtr := cacheData{
+				cacheData: command.value.(*putInData),
+				cacheTime: time.Now(),
+			}
+			s.localCacheData.Store(id, dataPtr)
+			s.rwLock.Unlock()
 
-			dataPtr := cacheData{}
-			dataPtr.cacheData = command.value.(*putInData)
-			dataPtr.cacheTime = time.Now()
-
-			localCacheData[id] = dataPtr
-
-			result := &putInResult{}
-			result.value = id
-
+			result := &putInResult{value: id}
 			command.result <- result
+
 		case fetchOut:
 			id := command.value.(*fetchOutData).id
-			dataPtr, found := localCacheData[id]
+			v, found := s.localCacheData.Load(id)
 
 			result := &fetchOutResult{}
 			if found {
+				dataPtr := v.(cacheData)
 				dataPtr.cacheTime = time.Now()
-				localCacheData[id] = dataPtr
-
+				s.localCacheData.Store(id, dataPtr)
 				result.value = dataPtr.cacheData.data
 			}
 
 			command.result <- result
+
 		case search:
 			opr := command.value.(*searchData).opr
 
 			result := &searchResult{}
-			for k, v := range localCacheData {
-				if opr(v.cacheData.data) {
-					v.cacheTime = time.Now()
-					localCacheData[k] = v
-					result.value = v.cacheData.data
-					break
+			s.localCacheData.Range(func(k, v interface{}) bool {
+				dataPtr := v.(cacheData)
+				if opr(dataPtr.cacheData.data) {
+					dataPtr.cacheTime = time.Now()
+					s.localCacheData.Store(k, dataPtr)
+					result.value = dataPtr.cacheData.data
+					return false
 				}
-			}
+				return true
+			})
 
 			command.result <- result
+
 		case remove:
 			id := command.value.(*removeData).id
-			delete(localCacheData, id)
+			s.localCacheData.Delete(id)
 			command.result <- true
+
 		case clearAll:
-			localCacheData = make(map[string]cacheData)
+			s.localCacheData.Range(func(k, v interface{}) bool {
+				s.localCacheData.Delete(k)
+				return true
+			})
 			command.result <- true
+
 		case checkTimeOut:
-			keys := s.getExpiredKeys(localCacheData)
+			keys := s.getExpiredKeys()
 			go func() {
 				for _, v := range keys {
-					if cleanCallBack != nil {
-						cleanCallBack(v)
+					if s.expiredCleanCallBack != nil {
+						s.expiredCleanCallBack(v)
 					}
 					s.Remove(v)
 				}
 			}()
+
 		case end:
-			localCacheData = nil
 			command.result <- true
 			return
 		}
 	}
 }
 
-func (s *MemoryCache) getExpiredKeys(localCacheData map[string]cacheData) []string {
+func (s *MemoryCache) getExpiredKeys() []string {
 	keys := []string{}
-	// 检查每项数据是否超时，超时数据需要主动清除掉
-	for k, v := range localCacheData {
-		if math.Abs(v.cacheData.maxAge-ForeverAgeValue) > 0.001 {
-			current := time.Now()
-			elapse := current.Sub(v.cacheTime).Minutes()
-			if elapse > v.cacheData.maxAge {
-				keys = append(keys, k)
+	s.localCacheData.Range(func(k, v interface{}) bool {
+		dataPtr := v.(cacheData)
+		if dataPtr.cacheData.maxAge != ForeverAgeValue {
+			elapse := time.Since(dataPtr.cacheTime).Seconds()
+			if int64(elapse) > dataPtr.cacheData.maxAge {
+				keys = append(keys, k.(string))
 			}
 		}
-	}
+		return true
+	})
 	return keys
 }
 
 func (s *MemoryCache) checkTimeOut(ctx context.Context) {
-	defer func() {
-		log.Warnf("checkTimeOut, release cache")
-		s.cacheWg.Done()
-	}()
+	defer s.cacheWg.Done()
 
 	timeOutTimer := time.NewTicker(5 * time.Second)
 	defer timeOutTimer.Stop()
@@ -240,9 +272,14 @@ func (s *MemoryCache) checkTimeOut(ctx context.Context) {
 		case <-timeOutTimer.C:
 			s.commandChannel <- commandData{action: checkTimeOut}
 		case <-ctx.Done():
-			log.Infof("checkTimeOut exit")
 			return
 		}
 	}
 }
 
+func (s *MemoryCache) isExpired(data cacheData) bool {
+	if data.cacheData.maxAge != ForeverAgeValue {
+		return int64(time.Since(data.cacheTime).Seconds()) > data.cacheData.maxAge
+	}
+	return false
+}

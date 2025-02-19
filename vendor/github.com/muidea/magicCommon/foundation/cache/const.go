@@ -2,9 +2,9 @@ package cache
 
 // ForeverAge 最大存放期限，无限期
 const ForeverAgeValue = -1
-const OneMinuteAgeValue = 1
-const TenMinutesAgeValue = 10
-const HalfHourAgeValue = 30
+const OneMinuteAgeValue = 60
+const TenMinutesAgeValue = 600
+const HalfHourAgeValue = 1800
 
 type commandAction int
 
@@ -19,6 +19,9 @@ const (
 	end                               // 停止Cache
 )
 
+// ConcurrentGoroutines 并发执行的协程数量
+const ConcurrentGoroutines = 2
+
 type SearchOpr func(val interface{}) bool
 
 type commandData struct {
@@ -26,3 +29,5 @@ type commandData struct {
 	value  interface{}
 	result chan interface{} //单向Channel
 }
+
+type ExpiredCleanCallBackFunc func(string)
