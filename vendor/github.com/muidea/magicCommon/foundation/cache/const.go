@@ -1,6 +1,6 @@
 package cache
 
-// ForeverAgeValue 最大存放期限，无限期
+// ForeverAge 最大存放期限，无限期
 const ForeverAgeValue = -1
 const OneMinuteAgeValue = 1
 const TenMinutesAgeValue = 10
@@ -24,5 +24,5 @@ type SearchOpr func(val interface{}) bool
 type commandData struct {
 	action commandAction
 	value  interface{}
-	result chan<- interface{} //单向Channel
+	result chan interface{} //单向Channel
 }
