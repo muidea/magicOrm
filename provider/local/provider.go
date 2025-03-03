@@ -24,13 +24,30 @@ func GetType(vType reflect.Type) (ret model.Type, err *cd.Result) {
 
 func GetEntityType(entity interface{}) (ret model.Type, err *cd.Result) {
 	if entity == nil {
-		err = cd.NewResult(cd.UnExpected, "entity is nil")
+		err = cd.NewResult(cd.IllegalParam, "nil entity value")
 		return
 	}
+
 	rVal := reflect.ValueOf(entity)
+	if !rVal.IsValid() {
+		err = cd.NewResult(cd.IllegalParam, "invalid entity value")
+		return
+	}
+
+	if rVal.Kind() == reflect.Ptr && rVal.IsNil() {
+		err = cd.NewResult(cd.IllegalParam, "nil pointer entity value")
+		return
+	}
+
 	if rVal.Kind() == reflect.Interface {
 		rVal = rVal.Elem()
 	}
+
+	if !rVal.IsValid() {
+		err = cd.NewResult(cd.IllegalParam, "invalid entity value after dereference")
+		return
+	}
+
 	vType, vErr := getValueType(rVal)
 	if vErr != nil {
 		err = vErr
@@ -43,12 +60,28 @@ func GetEntityType(entity interface{}) (ret model.Type, err *cd.Result) {
 
 func GetEntityValue(entity interface{}) (ret model.Value, err *cd.Result) {
 	if entity == nil {
-		err = cd.NewResult(cd.UnExpected, "entity is nil")
+		err = cd.NewResult(cd.IllegalParam, "nil entity value")
 		return
 	}
+
 	rVal := reflect.ValueOf(entity)
+	if !rVal.IsValid() {
+		err = cd.NewResult(cd.IllegalParam, "invalid entity value")
+		return
+	}
+
+	if rVal.Kind() == reflect.Ptr && rVal.IsNil() {
+		err = cd.NewResult(cd.IllegalParam, "nil pointer entity value")
+		return
+	}
+
 	if rVal.Kind() == reflect.Interface {
 		rVal = rVal.Elem()
+	}
+
+	if !rVal.IsValid() {
+		err = cd.NewResult(cd.IllegalParam, "invalid entity value after dereference")
+		return
 	}
 
 	nVal := reflect.New(rVal.Type()).Elem()
@@ -189,6 +222,12 @@ func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, e
 }
 
 func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache) (ret model.RawVal, err *cd.Result) {
+	if mCache == nil {
+		err = cd.NewResult(cd.IllegalParam, "nil model cache parameter")
+		log.Errorf("encodeModel failed, err:%s", err.Error())
+		return
+	}
+
 	tModel := mCache.Fetch(vType.GetPkgKey())
 	if tModel == nil {
 		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal model type,type:%s", vType.GetName()))
@@ -245,6 +284,12 @@ func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache) (r
 }
 
 func EncodeValue(tVal model.Value, tType model.Type, mCache model.Cache) (ret model.RawVal, err *cd.Result) {
+	if mCache == nil {
+		err = cd.NewResult(cd.IllegalParam, "nil model cache parameter")
+		log.Errorf("EncodeValue failed, err:%s", err.Error())
+		return
+	}
+
 	if tType.IsBasic() {
 		ret, err = _codec.Encode(tVal, tType)
 		return

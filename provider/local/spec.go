@@ -38,12 +38,7 @@ func NewSpec(tag reflect.StructTag) (ret *SpecImpl, err *cd.Result) {
 }
 
 func getOrmSpec(spec string) (ret *SpecImpl, err *cd.Result) {
-	items := strings.Split(spec, " ")
-	if len(items) < 1 {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal spec value, val:%s", spec))
-		return
-	}
-
+	items := strings.Split(strings.TrimSpace(spec), " ")
 	ret = &SpecImpl{primaryKey: false, valueDeclare: model.Customer}
 	ret.fieldName = items[0]
 	for idx := 1; idx < len(items); idx++ {

@@ -1,9 +1,9 @@
 package test
 
 import (
+	"os"
 	"testing"
 	"time"
-	"os"
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/orm"
@@ -16,8 +16,8 @@ type ViewItem struct {
 	Name        string    `orm:"name" view:"detail,lite"`
 	Description string    `orm:"description" view:"detail,lite"`
 	Value       float64   `orm:"value" view:"detail"`
-	CreatedAt   time.Time `orm:"createdAt dateTime" view:"detail"`
-	UpdatedAt   time.Time `orm:"updatedAt dateTime" view:"detail"`
+	CreatedAt   time.Time `orm:"createdAt datetime" view:"detail"`
+	UpdatedAt   time.Time `orm:"updatedAt datetime" view:"detail"`
 	Enabled     bool      `orm:"enabled" view:"detail,lite"`
 	Tags        []string  `orm:"tags" view:"detail"`
 }
@@ -33,9 +33,6 @@ type ViewContainer struct {
 
 // TestViewFeatures 测试视图功能
 func TestViewFeatures(t *testing.T) {
-	// 临时跳过视图测试
-	t.Skip("Temporarily skipping view tests due to stability issues")
-	
 	orm.Initialize()
 	defer orm.Uninitialized()
 
@@ -230,7 +227,7 @@ func testComplexNestedView(t *testing.T, o1 orm.Orm, localProvider provider.Prov
 			CreatedAt:   now,
 			UpdatedAt:   now,
 			Enabled:     i%2 == 0,
-			Tags:        []string{"nested", "item", string(rune(65+i))},
+			Tags:        []string{"nested", "item", string(rune(65 + i))},
 		}
 
 		itemModel, itemErr := localProvider.GetEntityModel(item)
@@ -270,28 +267,28 @@ func testComplexNestedView(t *testing.T, o1 orm.Orm, localProvider provider.Prov
 
 	// 测试不同视图模式下嵌套对象的处理
 	testViewModes := []struct {
-		name                string
-		viewMode            model.ViewDeclare
-		hasMainItem         bool
-		mainItemHasDetail   bool
-		hasAdditionalItems  bool
-		itemCountVisible    bool
+		name               string
+		viewMode           model.ViewDeclare
+		hasMainItem        bool
+		mainItemHasDetail  bool
+		hasAdditionalItems bool
+		itemCountVisible   bool
 	}{
 		{
-			name:                "DetailView",
-			viewMode:            model.DetailView,
-			hasMainItem:         true,
-			mainItemHasDetail:   true,
-			hasAdditionalItems:  true,
-			itemCountVisible:    true,
+			name:               "DetailView",
+			viewMode:           model.DetailView,
+			hasMainItem:        true,
+			mainItemHasDetail:  true,
+			hasAdditionalItems: true,
+			itemCountVisible:   true,
 		},
 		{
-			name:                "LiteView",
-			viewMode:            model.LiteView,
-			hasMainItem:         true,
-			mainItemHasDetail:   false, // lite view不包含MainItem的详细字段
-			hasAdditionalItems:  false, // lite view不包含AdditionalItems
-			itemCountVisible:    true,
+			name:               "LiteView",
+			viewMode:           model.LiteView,
+			hasMainItem:        true,
+			mainItemHasDetail:  false, // lite view不包含MainItem的详细字段
+			hasAdditionalItems: false, // lite view不包含AdditionalItems
+			itemCountVisible:   true,
 		},
 	}
 
@@ -365,20 +362,20 @@ func cleanupViewTest(t *testing.T, o1 orm.Orm, localProvider provider.Provider) 
 		t.Errorf("GetModelFilter failed, err:%s", err.Error())
 		return
 	}
-	
+
 	containerModelList, containerQueryErr := o1.BatchQuery(containerFilter)
 	if containerQueryErr != nil {
 		t.Errorf("batch query container failed, err:%s", containerQueryErr.Error())
 		return
 	}
-	
+
 	for _, model := range containerModelList {
 		_, delErr := o1.Delete(model)
 		if delErr != nil {
 			t.Errorf("delete container failed, err:%s", delErr.Error())
 		}
 	}
-	
+
 	// 删除项目对象
 	itemModel, _ := localProvider.GetEntityModel(&ViewItem{})
 	itemFilter, err := localProvider.GetModelFilter(itemModel, model.OriginView)
@@ -386,13 +383,13 @@ func cleanupViewTest(t *testing.T, o1 orm.Orm, localProvider provider.Provider) 
 		t.Errorf("GetModelFilter failed, err:%s", err.Error())
 		return
 	}
-	
+
 	itemModelList, itemQueryErr := o1.BatchQuery(itemFilter)
 	if itemQueryErr != nil {
 		t.Errorf("batch query item failed, err:%s", itemQueryErr.Error())
 		return
 	}
-	
+
 	for _, model := range itemModelList {
 		_, delErr := o1.Delete(model)
 		if delErr != nil {

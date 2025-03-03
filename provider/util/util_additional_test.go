@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	fu "github.com/muidea/magicCommon/foundation/util"
 )
 
@@ -44,7 +46,7 @@ func TestPagination(t *testing.T) {
 		PageSize: 10,
 	}
 
-	if pagination.Limit() != 30 {
+	if pagination.Limit() != 10 {
 		t.Errorf("Expected Limit to be 10, but got %d", pagination.Limit())
 		return
 	}
@@ -462,5 +464,80 @@ func TestIDGenerators(t *testing.T) {
 	// ID应该大于0
 	if id1 <= 0 || id2 <= 0 {
 		t.Errorf("SnowFlake IDs should be positive: %d, %d", id1, id2)
+	}
+}
+
+// TestConvertNumberVal 测试 convertNumberVal 函数
+func TestConvertNumberVal(t *testing.T) {
+	tests := []struct {
+		name     string
+		kind     reflect.Kind
+		input    interface{}
+		expected interface{}
+		hasError bool
+	}{
+		{"Bool to Int", reflect.Int, true, int(1), false},
+		{"Bool to Uint", reflect.Uint, false, uint(0), false},
+		{"Bool to Float", reflect.Float64, true, float64(1), false},
+		{"Int to Int", reflect.Int32, int64(42), int32(42), false},
+		{"Int to Uint", reflect.Uint16, int64(42), uint16(42), false},
+		{"Int to Float", reflect.Float32, int64(42), float32(42), false},
+		{"Uint to Int", reflect.Int8, uint64(42), int8(42), false},
+		{"Uint to Uint", reflect.Uint64, uint64(42), uint64(42), false},
+		{"Uint to Float", reflect.Float64, uint64(42), float64(42), false},
+		{"Float to Int", reflect.Int64, float64(42.5), int64(42), false},
+		{"Float to Uint", reflect.Uint32, float64(42.5), uint32(42), false},
+		{"Float to Float", reflect.Float32, float64(42.5), float32(42.5), false},
+		{"String to Int", reflect.Int16, "42", int16(42), false},
+		{"String to Uint", reflect.Uint8, "42", uint8(42), false},
+		{"String to Float", reflect.Float64, "42.5", float64(42.5), false},
+		{"Invalid String to Int", reflect.Int, "not a number", nil, true},
+		{"Unsupported Kind", reflect.String, int64(42), nil, true},
+		{"Bool to Int8", reflect.Int8, true, int8(1), false},
+		{"Bool to Int16", reflect.Int16, false, int16(0), false},
+		{"Bool to Int32", reflect.Int32, true, int32(1), false},
+		{"Bool to Int64", reflect.Int64, false, int64(0), false},
+		{"Bool to Uint8", reflect.Uint8, true, uint8(1), false},
+		{"Bool to Uint16", reflect.Uint16, false, uint16(0), false},
+		{"Bool to Uint32", reflect.Uint32, true, uint32(1), false},
+		{"Bool to Uint64", reflect.Uint64, false, uint64(0), false},
+		{"Bool to Float32", reflect.Float32, true, float32(1), false},
+		{"Int to Int8", reflect.Int8, int64(127), int8(127), false},
+		{"Int to Int16", reflect.Int16, int64(32767), int16(32767), false},
+		{"Int to Uint8", reflect.Uint8, int64(255), uint8(255), false},
+		{"Int to Uint32", reflect.Uint32, int64(4294967295), uint32(4294967295), false},
+		{"Int to Float64", reflect.Float64, int64(42), float64(42), false},
+		{"Uint to Int16", reflect.Int16, uint64(32767), int16(32767), false},
+		{"Uint to Int32", reflect.Int32, uint64(2147483647), int32(2147483647), false},
+		{"Uint to Uint8", reflect.Uint8, uint64(255), uint8(255), false},
+		{"Uint to Uint16", reflect.Uint16, uint64(65535), uint16(65535), false},
+		{"Uint to Uint32", reflect.Uint32, uint64(4294967295), uint32(4294967295), false},
+		{"Uint to Float32", reflect.Float32, uint64(42), float32(42), false},
+		{"Float to Int8", reflect.Int8, float64(127.9), int8(127), false},
+		{"Float to Int16", reflect.Int16, float64(32767.9), int16(32767), false},
+		{"Float to Int32", reflect.Int32, float64(2147483647.9), int32(2147483647), false},
+		{"Float to Uint8", reflect.Uint8, float64(255.9), uint8(255), false},
+		{"Float to Uint16", reflect.Uint16, float64(65535.9), uint16(65535), false},
+		{"String to Int8", reflect.Int8, "127", int8(127), false},
+		{"String to Int32", reflect.Int32, "2147483647", int32(2147483647), false},
+		{"String to Int64", reflect.Int64, "9223372036854775807", int64(9223372036854775807), false},
+		{"String to Uint16", reflect.Uint16, "65535", uint16(65535), false},
+		{"String to Uint32", reflect.Uint32, "4294967295", uint32(4294967295), false},
+		{"String to Uint64", reflect.Uint64, "18446744073709551615", uint64(18446744073709551615), false},
+		{"String to Float32", reflect.Float32, "3.14159", float32(3.14159), false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rVal := reflect.ValueOf(tt.input)
+			result, err := convertNumberVal(tt.kind, rVal)
+
+			if tt.hasError {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+				assert.Equal(t, tt.expected, result)
+			}
+		})
 	}
 }

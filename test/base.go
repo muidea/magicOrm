@@ -20,7 +20,7 @@ type Simple struct {
 	Name      string    `orm:"name" view:"detail,lite"`
 	Value     float32   `orm:"value" view:"detail,lite"`
 	F64       float64   `orm:"f64" view:"detail,lite"`
-	TimeStamp time.Time `orm:"ts dateTime" view:"detail,lite"`
+	TimeStamp time.Time `orm:"ts datetime" view:"detail,lite"`
 	Flag      bool      `orm:"flag" view:"detail,lite"`
 }
 

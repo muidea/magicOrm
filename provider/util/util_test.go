@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/muidea/magicCommon/foundation/log"
+	"github.com/muidea/magicOrm/model"
 )
 
 type TestVal struct {
@@ -218,5 +219,152 @@ func TestStructNilValue(t *testing.T) {
 	if !IsNil(arrayVal2) {
 		t.Errorf("Check arrayVal2 is nil failed")
 		return
+	}
+}
+
+func TestTypeEnumEdgeCases(t *testing.T) {
+	// Test for pointer types
+	var nilVal *int
+	nilType := reflect.TypeOf(nilVal)
+	enum, err := GetTypeEnum(nilType)
+	if err != nil {
+		t.Errorf("GetTypeEnum for pointer should not error, got: %v", err)
+	}
+	if !IsPtr(nilType) {
+		t.Errorf("IsPtr for pointer type should be true")
+	}
+
+	// Test for nested pointer types
+	var nestedPtr **int
+	nestedType := reflect.TypeOf(nestedPtr)
+	enum, err = GetTypeEnum(nestedType)
+	if err != nil {
+		t.Errorf("GetTypeEnum for nested pointer should not error, got: %v", err)
+	}
+	if !IsPtr(nestedType) {
+		t.Errorf("IsPtr for nested pointer type should be true")
+	}
+
+	// Test for slice of pointers
+	var slicePtr []*int
+	sliceType := reflect.TypeOf(slicePtr)
+	enum, err = GetTypeEnum(sliceType)
+	if err != nil {
+		t.Errorf("GetTypeEnum for slice of pointers should not error, got: %v", err)
+	}
+	if enum != model.TypeSliceValue {
+		t.Errorf("GetTypeEnum for slice of pointers expected TypeSliceValue, got: %v", enum)
+	}
+
+	// Test for interface type
+	var iface interface{}
+	_ = reflect.TypeOf(&iface).Elem() // Just to check if it's nil
+	if !IsNil(reflect.ValueOf(iface)) {
+		t.Errorf("IsNil for nil interface should be true")
+	}
+
+	// Test for map type
+	var mapVal map[string]int
+	mapType := reflect.TypeOf(mapVal)
+	_, err = GetTypeEnum(mapType)
+	if err != nil {
+		t.Errorf("GetTypeEnum for map should not error, got: %v", err)
+	}
+}
+
+func TestIsZeroFunction(t *testing.T) {
+	// IsZero tests for basic types
+	if !IsZero(reflect.ValueOf(0)) {
+		t.Errorf("IsZero for 0 should be true")
+	}
+	if !IsZero(reflect.ValueOf("")) {
+		t.Errorf("IsZero for empty string should be true")
+	}
+	if !IsZero(reflect.ValueOf(false)) {
+		t.Errorf("IsZero for false should be true")
+	}
+	if IsZero(reflect.ValueOf(1)) {
+		t.Errorf("IsZero for 1 should be false")
+	}
+	if IsZero(reflect.ValueOf("test")) {
+		t.Errorf("IsZero for non-empty string should be false")
+	}
+
+	// Test for struct types
+	emptyStruct := TestVal{}
+	if !IsZero(reflect.ValueOf(emptyStruct)) {
+		t.Errorf("IsZero for empty struct should be true")
+	}
+
+	nonEmptyStruct := TestVal{IVal: 5, SVal: "test"}
+	if IsZero(reflect.ValueOf(nonEmptyStruct)) {
+		t.Errorf("IsZero for non-empty struct should be false")
+	}
+
+	// Test for slice types
+	var emptySlice []int
+	if !IsZero(reflect.ValueOf(emptySlice)) {
+		t.Errorf("IsZero for nil slice should be true")
+	}
+
+	nonEmptySlice := []int{1, 2, 3}
+	if IsZero(reflect.ValueOf(nonEmptySlice)) {
+		t.Errorf("IsZero for non-empty slice should be false")
+	}
+
+	// Test for pointer types
+	var nilPtr *int
+	if !IsZero(reflect.ValueOf(nilPtr)) {
+		t.Errorf("IsZero for nil pointer should be true")
+	}
+
+	intVal := 5
+	ptr := &intVal
+	if IsZero(reflect.ValueOf(ptr)) {
+		t.Errorf("IsZero for non-nil pointer should be false")
+	}
+}
+
+func TestTypeConversionsRaw(t *testing.T) {
+	// Test int to string conversion
+	intVal := int64(42)
+	str, err := GetRawString(reflect.ValueOf(intVal))
+	if err != nil || str != "42" {
+		t.Errorf("Failed to convert int64 to string: %v", err)
+	}
+
+	// Test string to int conversion
+	strVal := "42"
+	intResult, err := GetRawInt64(reflect.ValueOf(strVal))
+	if err != nil || intResult != 42 {
+		t.Errorf("Failed to convert string to int64: %v", err)
+	}
+
+	// Test float conversion - the string representation may vary slightly
+	floatVal := 42.5
+	floatStr, err := GetRawString(reflect.ValueOf(floatVal))
+	if err != nil {
+		t.Errorf("Failed to convert float64 to string: %v", err)
+	}
+	// Float to string conversion may have different formats, so we just check that it contains "42.5"
+	if floatStr != "42.5" && floatStr != "42.500000" {
+		t.Errorf("Unexpected string conversion for float: %s", floatStr)
+	}
+
+	// Test for string to bool conversion - for strings other than "1", it should return false, not error
+	nonBoolStr := "notabool"
+	boolVal, err := GetRawBool(reflect.ValueOf(nonBoolStr))
+	if err != nil {
+		t.Errorf("GetRawBool should not return error for string values, got: %v", err)
+	}
+	if boolVal != false {
+		t.Errorf("GetRawBool for non-'1' string should return false")
+	}
+
+	// Test for actual error case (unsupported type)
+	complexVal := complex(1, 2)
+	_, err = GetRawBool(reflect.ValueOf(complexVal))
+	if err == nil {
+		t.Errorf("Expected error when converting complex to bool, but got none")
 	}
 }

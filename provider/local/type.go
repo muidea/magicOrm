@@ -30,8 +30,13 @@ func NewType(val reflect.Type) (ret *TypeImpl, err *cd.Result) {
 	if rType.Kind() == reflect.Ptr {
 		rType = rType.Elem()
 	}
-	_, err = util.GetTypeEnum(rType)
-	if err != nil {
+	tVal, tErr := util.GetTypeEnum(rType)
+	if tErr != nil {
+		err = tErr
+		return
+	}
+	if tVal == model.TypeMapValue {
+		err = cd.NewResult(cd.UnExpected, "unsupported map type")
 		return
 	}
 

@@ -83,6 +83,10 @@ func (s *objectImpl) GetField(name string) (ret model.Field) {
 func (s *objectImpl) Interface(ptrValue bool, viewSpec model.ViewDeclare) (ret interface{}) {
 	retVal := reflect.New(s.objectType).Elem()
 
+	if viewSpec == "" {
+		viewSpec = model.OriginView
+	}
+
 	for _, sf := range s.fields {
 		fVal := sf.GetValue()
 		if viewSpec != model.OriginView {
@@ -144,7 +148,15 @@ func (s *objectImpl) verify() (err *cd.Result) {
 		return
 	}
 
+	fieldNames := make(map[string]bool)
 	for _, sf := range s.fields {
+		if _, exists := fieldNames[sf.name]; exists {
+			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("duplicate field name: %s", sf.name))
+			log.Errorf("verify field failed, duplicate name: %s", sf.name)
+			return
+		}
+		fieldNames[sf.name] = true
+
 		err = sf.verify()
 		if err != nil {
 			log.Errorf("verify field failed, idx:%d, name:%s, err:%s", sf.index, sf.name, err.Error())

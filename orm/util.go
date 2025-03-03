@@ -45,7 +45,7 @@ func getModelFilter(vModel model.Model, provider provider.Provider, viewSpec mod
 
 		fType := field.GetType()
 		fValue := field.GetValue()
-		if fValue.IsZero() {
+		if !fValue.IsValid() {
 			continue
 		}
 
