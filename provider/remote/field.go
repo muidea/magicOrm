@@ -320,10 +320,16 @@ func (s *FieldValue) GetValue() model.Value {
 
 func (s *FieldValue) copy() (ret *FieldValue) {
 	if s.Value == nil {
-		ret = &FieldValue{}
+		ret = &FieldValue{
+			Name:  s.Name,
+			Value: nil,
+		}
 		return
 	}
 
-	ret = &FieldValue{Value: s.Value}
+	ret = &FieldValue{
+		Name:  s.Name,
+		Value: s.Value,
+	}
 	return
 }

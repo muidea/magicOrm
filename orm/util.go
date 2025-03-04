@@ -6,7 +6,6 @@ import (
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
-	"github.com/muidea/magicOrm/provider/util"
 )
 
 func getModelFilter(vModel model.Model, provider provider.Provider, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result) {
@@ -43,7 +42,7 @@ func getModelFilter(vModel model.Model, provider provider.Provider, viewSpec mod
 			continue
 		}
 
-		fType := field.GetType()
+		//fType := field.GetType()
 		fValue := field.GetValue()
 		if !fValue.IsValid() {
 			continue
@@ -76,12 +75,14 @@ func getModelFilter(vModel model.Model, provider provider.Provider, viewSpec mod
 		// if struct
 		if field.IsStruct() {
 			// 为了避免自己引用或关联自己
-			if fType.GetPkgKey() == vModel.GetPkgKey() {
-				vValue := vModel.GetPrimaryField().GetValue()
-				if util.IsSameValue(fValue.Interface(), vValue.Interface()) {
-					continue
-				}
-			}
+			// 这种情况放在数据插入的时候判断
+			//if fType.GetPkgKey() == vModel.GetPkgKey() {
+			//	vValue := vModel.GetPrimaryField().GetValue()
+			//	log.Infof("field:%s, vValue:%v, fValue:%v", field.GetName(), vValue.Interface(), fValue.Interface())
+			//	if util.IsSameValue(fValue.Interface(), vValue.Interface()) {
+			//		continue
+			//	}
+			//}
 
 			err = filterVal.Equal(field.GetName(), fValue.Interface().Value())
 			if err != nil {

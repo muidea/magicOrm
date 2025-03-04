@@ -226,18 +226,19 @@ func UpdateEntity(remoteValue *remote.ObjectValue, localEntity any) (err *cd.Res
 
 	entityValue := reflect.ValueOf(localEntity)
 	if entityValue.Kind() != reflect.Ptr {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal localEntity value, must be a pointer localEntity"))
+		err = cd.NewResult(cd.UnExpected, "illegal localEntity value, must be a pointer localEntity")
 		log.Errorf("UpdateEntity failed, error:%s", err.Error())
 		return
 	}
 
 	entityValue = reflect.Indirect(entityValue)
 	if entityValue.Kind() != reflect.Struct {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal localEntity, must be a struct localEntity"))
+		err = cd.NewResult(cd.UnExpected, "illegal localEntity, must be a struct localEntity")
+		log.Errorf("UpdateEntity failed, error:%s", err.Error())
 		return
 	}
 	if !entityValue.CanSet() {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal localEntity value, can't be set"))
+		err = cd.NewResult(cd.UnExpected, "illegal localEntity value, can't be set")
 		log.Errorf("UpdateEntity failed, error:%s", err.Error())
 		return
 	}

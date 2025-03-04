@@ -22,8 +22,6 @@ var ui16Val = uint16(116)
 var ui32Val = uint32(132)
 var ui64Val = uint64(164)
 var uiVal = uint(400)
-var f32Val = float32(12.34)
-var f64Val = 23.45
 var strVal = "hello world"
 var tsVal = time.Now()
 var bVal = true
@@ -33,9 +31,6 @@ var tsArray = []time.Time{tsVal, tsVal}
 var bArray = []bool{bVal, bVal}
 var iPtr = &iVal
 var tsPtr = &tsVal
-var iArrayPtr = &iArray
-var iPtrArray = []*int{iPtr, iPtr}
-var iPtrArrayPtr = &iPtrArray
 
 var emptyBase = &Base{}
 var baseVal = &Base{
@@ -226,11 +221,24 @@ func TestPerson(t *testing.T) {
 		t.Errorf("UpdateEntity failed, error:%s", entityErr.Error())
 		return
 	}
-	if *nPerson.Age != 32 {
+	if nPerson.Age != nil || nPerson.Addr != nil {
 		t.Errorf("UpdateEntity failed")
 		return
 	}
-	if *nPerson.Addr != "hey boy!" {
+
+	ageVal := 0
+	addrVal := ""
+	nPerson = &Person{Age: &ageVal, Addr: &addrVal}
+	entityErr = UpdateEntity(personObjectVal, nPerson)
+	if entityErr != nil {
+		t.Errorf("UpdateEntity failed, error:%s", entityErr.Error())
+		return
+	}
+	if nPerson.Age == nil || nPerson.Addr == nil {
+		t.Errorf("UpdateEntity failed")
+		return
+	}
+	if *nPerson.Age != 32 || *nPerson.Addr != addr {
 		t.Errorf("UpdateEntity failed")
 		return
 	}

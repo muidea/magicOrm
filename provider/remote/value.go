@@ -2,12 +2,11 @@ package remote
 
 import (
 	"fmt"
-	"math"
 	"reflect"
 	"time"
 
-	fu "github.com/muidea/magicCommon/foundation/util"
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/utils"
 )
 
 type ValueImpl struct {
@@ -15,9 +14,6 @@ type ValueImpl struct {
 }
 
 var NilValue = ValueImpl{}
-
-var zeroString = ""
-var zeroDateTime = time.Time{}.Format(fu.CSTLayout)
 
 func NewValue(val any) (ret *ValueImpl) {
 	if val == nil {
@@ -54,58 +50,28 @@ func NewValue(val any) (ret *ValueImpl) {
 }
 
 func (s *ValueImpl) IsValid() (ret bool) {
-	ret = s.value != nil
+	ret = utils.IsReallyValid(s.value)
 	return
 }
 
-func (s *ValueImpl) IsZero() (ret bool) {
-	if !s.IsValid() {
+// IsZero checks if the value is zero.
+// 如果对应的值是ObjectValue,SliceObjectValue或者对应的指针值，还需要继续判断是否包含Fields，Fields的包含的items为0也认为是0
+func (s *ValueImpl) IsZero() bool {
+	if s.value == nil {
 		return true
 	}
 
-	rVal := reflect.ValueOf(s.value)
-	switch s.value.(type) {
-	case bool:
-		return !rVal.Bool()
-	case int8, int16, int32, int, int64:
-		return rVal.Int() == 0
-	case uint8, uint16, uint32, uint, uint64:
-		return rVal.Uint() == 0
-	case float32, float64:
-		return math.Float64bits(rVal.Float()) == 0
-	case string:
-		return rVal.String() == zeroString || rVal.String() == zeroDateTime
-	case []bool,
-		[]int8, []int16, []int32, []int, []int64,
-		[]uint8, []uint16, []uint32, []uint, []uint64,
-		[]float32, []float64,
-		[]string,
-		[]any:
-		return rVal.Len() == 0
+	switch v := s.value.(type) {
 	case *ObjectValue:
-		valuePtr, valueOK := s.value.(*ObjectValue)
-		if valueOK {
-			if valuePtr != nil {
-				return !valuePtr.IsAssigned()
-			}
-			return true
-		}
-
-		err := fmt.Errorf("illegal value, val:%v", s.value)
-		panic(err.Error())
+		return v == nil || len(v.Fields) == 0
 	case *SliceObjectValue:
-		valuePtr, valueOK := s.value.(*SliceObjectValue)
-		if valueOK {
-			if valuePtr != nil {
-				return !valuePtr.IsAssigned()
-			}
-			return true
-		}
-		err := fmt.Errorf("illegal value, val:%v", s.value)
-		panic(err.Error())
+		return v == nil || len(v.Values) == 0
+	case ObjectValue:
+		return len(v.Fields) == 0
+	case SliceObjectValue:
+		return len(v.Values) == 0
 	default:
-		err := fmt.Errorf("illegal value, val:%v, val type:%s", s.value, rVal.Type().String())
-		panic(err.Error())
+		return utils.IsReallyZero(s.value)
 	}
 }
 

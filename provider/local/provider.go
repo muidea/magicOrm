@@ -9,6 +9,7 @@ import (
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/util"
+	"github.com/muidea/magicOrm/utils"
 )
 
 var _codec util.Codec
@@ -59,40 +60,18 @@ func GetEntityType(entity interface{}) (ret model.Type, err *cd.Result) {
 }
 
 func GetEntityValue(entity interface{}) (ret model.Value, err *cd.Result) {
-	if entity == nil {
-		err = cd.NewResult(cd.IllegalParam, "nil entity value")
+	if !utils.IsReallyValid(entity) {
+		err = cd.NewResult(cd.IllegalParam, "entity is invalid")
 		return
 	}
-
 	rVal := reflect.ValueOf(entity)
-	if !rVal.IsValid() {
-		err = cd.NewResult(cd.IllegalParam, "invalid entity value")
-		return
-	}
-
-	if rVal.Kind() == reflect.Ptr && rVal.IsNil() {
-		err = cd.NewResult(cd.IllegalParam, "nil pointer entity value")
-		return
-	}
-
-	if rVal.Kind() == reflect.Interface {
-		rVal = rVal.Elem()
-	}
-
-	if !rVal.IsValid() {
-		err = cd.NewResult(cd.IllegalParam, "invalid entity value after dereference")
-		return
-	}
-
-	nVal := reflect.New(rVal.Type()).Elem()
-	nVal.Set(rVal)
-	ret = NewValue(nVal)
+	ret = NewValue(rVal)
 	return
 }
 
 func GetEntityModel(entity interface{}) (ret model.Model, err *cd.Result) {
-	if entity == nil {
-		err = cd.NewResult(cd.UnExpected, "entity is nil")
+	if !utils.IsReallyValid(entity) {
+		err = cd.NewResult(cd.IllegalParam, "entity is invalid")
 		return
 	}
 
@@ -138,6 +117,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *
 		return
 	}
 
+	log.Infof("SetModelValue: %v", vVal.Get().(reflect.Value).Type().String())
 	rVal := reflect.Indirect(vVal.Get().(reflect.Value))
 	vType, vErr := NewType(rVal.Type())
 	if vErr != nil {
@@ -346,6 +326,8 @@ func decodeSliceModel(eVal model.RawVal, tType model.Type, mCache model.Cache) (
 		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal value type,type:%s", tType.GetName()))
 		return
 	}
+
+	log.Infof("decodeSliceModel: %v", eVal.Value().(reflect.Value).Type().String())
 	mVals, mErr := ElemDependValue(eVal)
 	if mErr != nil {
 		err = mErr
@@ -365,6 +347,7 @@ func decodeSliceModel(eVal model.RawVal, tType model.Type, mCache model.Cache) (
 			}
 			vModel.SetPrimaryFieldValue(pkVal)
 		} else {
+			log.Infof("SetModelValue: %v", val.Get().(reflect.Value).Type().String())
 			vModel, vErr = SetModelValue(vModel, val)
 			if vErr != nil {
 				err = vErr

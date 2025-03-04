@@ -9,6 +9,7 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/model"
 	pu "github.com/muidea/magicOrm/provider/util"
+	"github.com/muidea/magicOrm/utils"
 )
 
 const (
@@ -17,6 +18,11 @@ const (
 )
 
 func getEntityType(entity any) (ret *TypeImpl, err *cd.Result) {
+	if !utils.IsReallyValid(entity) {
+		err = cd.NewResult(cd.UnExpected, "can't get type info from nil value")
+		return
+	}
+
 	entityType := reflect.TypeOf(entity)
 	ret, err = newType(entityType)
 	return
@@ -108,7 +114,7 @@ func getViewItems(spec string) (ret []model.ViewDeclare) {
 	ret = []model.ViewDeclare{}
 	items := strings.Split(spec, ",")
 	for _, sv := range items {
-		switch sv {
+		switch strings.TrimSpace(sv) {
 		case model.DetailView:
 			ret = append(ret, model.DetailView)
 		case model.LiteView:
@@ -230,7 +236,14 @@ func type2Object(entityType reflect.Type) (ret *Object, err *cd.Result) {
 
 // GetObject get object
 func GetObject(entity any) (ret *Object, err *cd.Result) {
-	entityType := reflect.TypeOf(entity)
+	if !utils.IsReallyValid(entity) {
+		err = cd.NewResult(cd.UnExpected, "illegal object value")
+		log.Errorf("GetObject failed, check entity err:%s", err.Error())
+		return
+	}
+
+	rValue := reflect.ValueOf(entity)
+	entityType := rValue.Type()
 	ret, err = type2Object(entityType)
 	if err != nil {
 		log.Errorf("GetObject failed, type2Object err:%s", err.Error())
@@ -246,7 +259,7 @@ func getFieldValue(fieldName string, itemType *TypeImpl, itemValue reflect.Value
 	}
 
 	if itemType.IsBasic() {
-		if pu.IsNil(itemValue) {
+		if !utils.IsReallyValidForReflect(itemValue) {
 			ret = &FieldValue{Name: fieldName, Value: nil}
 			return
 		}
@@ -343,6 +356,11 @@ func getObjectValue(entityVal reflect.Value) (ret *ObjectValue, err *cd.Result) 
 
 // GetObjectValue get object value
 func GetObjectValue(entity any) (ret *ObjectValue, err *cd.Result) {
+	if !utils.IsReallyValid(entity) {
+		err = cd.NewResult(cd.UnExpected, "illegal object value")
+		return
+	}
+
 	objInfo, objOK := entity.(Object)
 	if objOK {
 		ret = objInfo.Interface(true, model.OriginView).(*ObjectValue)
@@ -371,7 +389,7 @@ func GetObjectValue(entity any) (ret *ObjectValue, err *cd.Result) {
 }
 
 func getSliceObjectValue(sliceVal reflect.Value) (ret *SliceObjectValue, err *cd.Result) {
-	if pu.IsNil(sliceVal) {
+	if !utils.IsReallyValidForReflect(sliceVal) {
 		return
 	}
 
@@ -414,6 +432,11 @@ func getSliceObjectValue(sliceVal reflect.Value) (ret *SliceObjectValue, err *cd
 
 // GetSliceObjectValue get slice object value
 func GetSliceObjectValue(sliceEntity any) (ret *SliceObjectValue, err *cd.Result) {
+	if !utils.IsReallyValid(sliceEntity) {
+		err = cd.NewResult(cd.UnExpected, "illegal slice object value")
+		return
+	}
+
 	valInfo, infoOK := sliceEntity.(SliceObjectValue)
 	if infoOK {
 		ret = &valInfo

@@ -144,41 +144,6 @@ func TestGetEntityValue(t *testing.T) {
 	}
 }
 
-// TestLocalProvider tests the basic functionality of the LocalProvider
-func TestLocalProvider(t *testing.T) {
-	// Create a mock model cache provider
-	mockCache := &mockModelCache{
-		models: make(map[string]model.Model),
-	}
-	
-	// Add at least one test to make the mockCache used
-	if len(mockCache.models) == 0 {
-		// This is expected since we haven't added any models yet
-		t.Log("Mock cache initialized with empty models map")
-	}
-	
-	// Test implementation removed for now
-	t.Skip("Test implementation incomplete")
-}
-
-// mockModelCache is a mock implementation of model.Cache for testing
-type mockModelCache struct {
-	models map[string]model.Model
-}
-
-func (m *mockModelCache) Get(modelName string) (model.Model, bool) {
-	mdl, ok := m.models[modelName]
-	return mdl, ok
-}
-
-func (m *mockModelCache) Put(mdl model.Model) {
-	m.models[mdl.GetPkgKey()] = mdl
-}
-
-func (m *mockModelCache) Remove(modelName string) {
-	delete(m.models, modelName)
-}
-
 func TestAppendSliceValue2(t *testing.T) {
 	// Create slice value
 	intSlice := []int{1, 2, 3}
@@ -294,7 +259,7 @@ func TestPointerValueHandling(t *testing.T) {
 		t.Errorf("GetEntityValue failed for pointer to slice: %s", err.Error())
 		return
 	}
-	
+
 	// Verify pointer to slice value is correct
 	rawVal = slicePtrVal.Interface().(model.RawVal)
 	retrievedSlicePtr := rawVal.Value().(*[]int)

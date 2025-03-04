@@ -101,8 +101,8 @@ func TestGetValueType(t *testing.T) {
 	var nilVal *int = nil
 	nilValue := reflect.ValueOf(nilVal)
 	_, err = getValueType(nilValue)
-	if err == nil {
-		t.Errorf("getValueType should fail for nil values")
+	if err != nil {
+		t.Errorf("getValueType should not fail for nil values, got: %v", err)
 	}
 
 	// Test unsupported type

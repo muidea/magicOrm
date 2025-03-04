@@ -6,9 +6,11 @@ import (
 	"reflect"
 
 	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/util"
+	"github.com/muidea/magicOrm/utils"
 )
 
 type TypeImpl struct {
@@ -16,7 +18,7 @@ type TypeImpl struct {
 }
 
 func getValueType(val reflect.Value) (ret *TypeImpl, err *cd.Result) {
-	if util.IsNil(val) {
+	if !utils.IsReallyValidTypeForReflect(val.Type()) {
 		err = cd.NewResult(cd.UnExpected, "can't get nil value type")
 		return
 	}
@@ -26,6 +28,7 @@ func getValueType(val reflect.Value) (ret *TypeImpl, err *cd.Result) {
 }
 
 func NewType(val reflect.Type) (ret *TypeImpl, err *cd.Result) {
+	log.Infof("NewType: %v", val)
 	rType := val
 	if rType.Kind() == reflect.Ptr {
 		rType = rType.Elem()

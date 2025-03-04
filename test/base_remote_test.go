@@ -318,7 +318,7 @@ func TestRemoteReference(t *testing.T) {
 		t.Errorf("query reference failed, err:%s", err.Error())
 		return
 	}
-	err = helper.UpdateEntity(s4Model.Interface(true, model.OriginView).(*remote.ObjectValue), s4)
+	err = helper.UpdateEntity(s4Model.Interface(true, model.LiteView).(*remote.ObjectValue), s4)
 	if err != nil {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return

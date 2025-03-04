@@ -10,7 +10,6 @@ import (
 	"time"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 	fu "github.com/muidea/magicCommon/foundation/util"
 
 	"github.com/muidea/magicOrm/model"
@@ -196,7 +195,6 @@ var typeEnumMap = map[reflect.Kind]model.TypeDeclare{
 }
 
 func GetTypeEnum(val reflect.Type) (ret model.TypeDeclare, err *cd.Result) {
-	log.Infof("GetTypeEnum, val:%v", val)
 	if val.Kind() == reflect.Interface {
 		val = val.Elem()
 	}
@@ -220,7 +218,6 @@ func GetTypeEnum(val reflect.Type) (ret model.TypeDeclare, err *cd.Result) {
 			ret = model.TypeStructValue
 			for i := 0; i < val.NumField(); i++ {
 				field := val.Field(i)
-				log.Infof("3....isSameVal, type name:%v, field name:%v, type:%v", val, field.Name, field.Type)
 				if !isValidFieldType(field.Type) {
 					err = cd.NewResult(cd.UnExpected, fmt.Sprintf("unsupported field type in struct: %v", field.Type))
 					return
@@ -255,81 +252,26 @@ func isValidFieldType(t reflect.Type) bool {
 	}
 }
 
-// recoverToTrue 是一个通用的 recover 辅助函数
-// 用于在恢复 panic 后返回 true
-func recoverToTrue(ret *bool) {
-	if err := recover(); err != nil {
-		log.Errorf("Check failed: %v", err)
-		*ret = true
-	}
-}
-
-// IsNil checks if a value is nil.
-// It returns true if the value is nil, false otherwise.
-// For pointer types, it returns true if the pointer is uninitialized.
-// If val is not a valid Value (i.e., val.IsValid() returns false), it returns true.
-func IsNil(val reflect.Value) (ret bool) {
-	defer recoverToTrue(&ret)
-
-	if !val.IsValid() {
-		return true
-	}
-
-	switch val.Kind() {
-	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
-		return val.IsNil()
-	default:
-		return false
-	}
-}
-
-// IsZero checks if a value is zero (the initial value for its type).
-// It returns true if the value is zero, false otherwise.
-func IsZero(val reflect.Value) (ret bool) {
-	defer recoverToTrue(&ret)
-
-	val = reflect.Indirect(val)
-	if !val.IsValid() {
-		return true
-	}
-
-	switch val.Kind() {
-	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
-		return val.IsNil()
-	case reflect.Array:
-		return val.Len() == 0 || IsZero(val.Index(0))
-	case reflect.Struct:
-		for i := 0; i < val.NumField(); i++ {
-			if !IsZero(val.Field(i)) {
-				return false
-			}
-		}
-		return true
-	default:
-		return val.IsZero()
-	}
-}
-
 // IsSameValue 判断两个值是否相同
 func IsSameValue(firstVal, secondVal any) (ret bool) {
 	// 如果两个值都是 nil，则认为它们相同
 	if firstVal == nil && secondVal == nil {
 		return true
 	}
-	
+
 	// 如果只有一个值是 nil，则认为它们不同
 	if firstVal == nil || secondVal == nil {
 		return false
 	}
-	
+
 	rFirstVal := reflect.ValueOf(firstVal)
 	rSecondVal := reflect.ValueOf(secondVal)
-	
+
 	// 如果类型不同，则认为它们不同
 	if rFirstVal.Type() != rSecondVal.Type() {
 		return false
 	}
-	
+
 	// 根据类型进行比较
 	switch rFirstVal.Kind() {
 	case reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
@@ -337,28 +279,28 @@ func IsSameValue(firstVal, secondVal any) (ret bool) {
 		reflect.Float32, reflect.Float64, reflect.String:
 		// 基本类型可以直接比较
 		return rFirstVal.Interface() == rSecondVal.Interface()
-		
+
 	case reflect.Slice, reflect.Array:
 		// 比较切片或数组的每个元素
 		length := rFirstVal.Len()
 		if length != rSecondVal.Len() {
 			return false
 		}
-		
+
 		for i := 0; i < length; i++ {
 			if !IsSameValue(rFirstVal.Index(i).Interface(), rSecondVal.Index(i).Interface()) {
 				return false
 			}
 		}
 		return true
-		
+
 	case reflect.Map:
 		// 比较映射的键值对
 		keys := rFirstVal.MapKeys()
 		if len(keys) != rSecondVal.Len() {
 			return false
 		}
-		
+
 		for _, key := range keys {
 			val1 := rFirstVal.MapIndex(key)
 			val2 := rSecondVal.MapIndex(key)
@@ -367,25 +309,25 @@ func IsSameValue(firstVal, secondVal any) (ret bool) {
 			}
 		}
 		return true
-		
+
 	case reflect.Struct:
 		// 比较结构体的每个字段
 		numField := rFirstVal.NumField()
 		for i := 0; i < numField; i++ {
 			field1 := rFirstVal.Field(i)
 			field2 := rSecondVal.Field(i)
-			
+
 			// 跳过不可比较的字段
 			if !field1.CanInterface() || !field2.CanInterface() {
 				continue
 			}
-			
+
 			if !IsSameValue(field1.Interface(), field2.Interface()) {
 				return false
 			}
 		}
 		return true
-		
+
 	case reflect.Ptr, reflect.Interface:
 		// 如果是指针或接口，则比较它们指向的值
 		if rFirstVal.IsNil() && rSecondVal.IsNil() {
@@ -395,7 +337,7 @@ func IsSameValue(firstVal, secondVal any) (ret bool) {
 			return false
 		}
 		return IsSameValue(rFirstVal.Elem().Interface(), rSecondVal.Elem().Interface())
-		
+
 	default:
 		// 对于其他类型，尝试直接比较
 		// 注意：这可能不适用于所有类型

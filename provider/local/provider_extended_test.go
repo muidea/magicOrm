@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/model"
 )
 
@@ -278,6 +279,7 @@ func TestEncodeDecodeSlice(t *testing.T) {
 		return
 	}
 
+	log.Infof("DecodeValue: %v", rawVal.Value().(reflect.Value).Type().String())
 	// Test DecodeValue with slice
 	decodedValue, err := DecodeValue(rawVal, entityType, mockCache)
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider/util"
+	"github.com/muidea/magicOrm/utils"
 )
 
 type ValueImpl struct {
@@ -19,27 +20,24 @@ func NewValue(val reflect.Value) (ret *ValueImpl) {
 }
 
 func (s *ValueImpl) IsValid() (ret bool) {
-	if !s.value.IsValid() {
-		return false
-	}
+	/*
+		if !s.value.IsValid() {
+			return false
+		}
 
-	rawVal := reflect.Indirect(s.value)
-	switch rawVal.Kind() {
-	case reflect.Slice, reflect.Map:
-		return !rawVal.IsNil()
-	default:
-	}
-	ret = rawVal.IsValid()
+		rawVal := reflect.Indirect(s.value)
+		switch rawVal.Kind() {
+		case reflect.Slice, reflect.Map:
+			return !rawVal.IsNil()
+		default:
+		}
+		ret = rawVal.IsValid()*/
+	ret = utils.IsReallyValidForReflect(s.value)
 	return
 }
 
 func (s *ValueImpl) IsZero() (ret bool) {
-	if util.IsNil(s.value) {
-		ret = true
-		return
-	}
-
-	ret = util.IsZero(s.value)
+	ret = utils.IsReallyZeroForReflect(s.value)
 	return
 }
 
@@ -61,7 +59,7 @@ func (s *ValueImpl) Addr() model.Value {
 }
 
 func (s *ValueImpl) Interface() model.RawVal {
-	if util.IsNil(s.value) {
+	if !utils.IsReallyValidForReflect(s.value) {
 		return nil
 	}
 
@@ -69,7 +67,7 @@ func (s *ValueImpl) Interface() model.RawVal {
 }
 
 func (s *ValueImpl) IsBasic() bool {
-	if util.IsNil(s.value) {
+	if !utils.IsReallyValidForReflect(s.value) {
 		return false
 	}
 
@@ -88,7 +86,7 @@ func (s *ValueImpl) IsBasic() bool {
 }
 
 func (s *ValueImpl) Copy() (ret *ValueImpl) {
-	if !util.IsNil(s.value) {
+	if utils.IsReallyValidForReflect(s.value) {
 		ret = &ValueImpl{value: reflect.New(s.value.Type()).Elem()}
 		ret.value.Set(s.value)
 		return

@@ -9,6 +9,7 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/utils"
 )
 
 const (
@@ -283,8 +284,9 @@ func (s *ObjectValue) isFieldAssigned(val *FieldValue) (ret bool) {
 		}
 	}()
 
-	valPtr := NewValue(val.Value)
-	ret = !valPtr.IsZero()
+	ret = !utils.IsReallyZero(val.Value)
+	//valPtr := NewValue(val.Value)
+	//ret = !valPtr.IsZero()
 	return
 }
 

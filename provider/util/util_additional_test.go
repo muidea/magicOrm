@@ -215,61 +215,6 @@ func TestTypeChecks(t *testing.T) {
 	}
 }
 
-// TestIsValueFunctions 测试IsNil和IsZero函数
-func TestIsValueFunctions(t *testing.T) {
-	// 测试IsNil
-	var nilSlice []int
-	if !IsNil(reflect.ValueOf(nilSlice)) {
-		t.Errorf("nil slice should be identified as nil")
-	}
-
-	nonNilSlice := []int{1, 2, 3}
-	if IsNil(reflect.ValueOf(nonNilSlice)) {
-		t.Errorf("non-nil slice should not be identified as nil")
-	}
-
-	var nilMap map[string]int
-	if !IsNil(reflect.ValueOf(nilMap)) {
-		t.Errorf("nil map should be identified as nil")
-	}
-
-	var nilPtr *int
-	if !IsNil(reflect.ValueOf(nilPtr)) {
-		t.Errorf("nil pointer should be identified as nil")
-	}
-
-	// 测试IsZero
-	emptyString := ""
-	if !IsZero(reflect.ValueOf(emptyString)) {
-		t.Errorf("empty string should be identified as zero")
-	}
-
-	nonEmptyString := "test"
-	if IsZero(reflect.ValueOf(nonEmptyString)) {
-		t.Errorf("non-empty string should not be identified as zero")
-	}
-
-	zeroInt := 0
-	if !IsZero(reflect.ValueOf(zeroInt)) {
-		t.Errorf("zero int should be identified as zero")
-	}
-
-	nonZeroInt := 123
-	if IsZero(reflect.ValueOf(nonZeroInt)) {
-		t.Errorf("non-zero int should not be identified as zero")
-	}
-
-	zeroTime := time.Time{}
-	if !IsZero(reflect.ValueOf(zeroTime)) {
-		t.Errorf("zero time should be identified as zero")
-	}
-
-	nonZeroTime := time.Now()
-	if IsZero(reflect.ValueOf(nonZeroTime)) {
-		t.Errorf("non-zero time should not be identified as zero")
-	}
-}
-
 // TestIsSameValue 测试IsSameValue函数
 func TestIsSameValue(t *testing.T) {
 	// 测试基本类型
