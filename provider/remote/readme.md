@@ -1,59 +1,207 @@
-# MagicORM Remote Struct转换模块说明
+# Remote 数据结构说明
 
-## 功能说明
 
-1、实现magicOrm/model目录下的模型规范
+## Object 数据模型
 
-2、Object 实现了模型对象描述，实现了model.Model的所有接口
+Object描述数据模型信息，模型信息使用json格式进行序列化保存以及服务间传递
 
-2、ObjectValue 实现了模型对象值描述
+### 数据模型定义格式如下
 
-3、SliceObjectValue 实现了模型对象Slice值描述
+```go
 
-4、支持将一个Struct对象转化成Object和ObjectValue
+    type TypeDeclare int
 
-## 转换规则详解
+    // Define the Type enum
+    const (
+        // TypeBooleanValue bool
+        TypeBooleanValue = iota + 100
+        // TypeBitValue int8
+        TypeBitValue
+        // TypeSmallIntegerValue int16
+        TypeSmallIntegerValue
+        // TypeInteger32Value int32
+        TypeInteger32Value
+        // TypeIntegerValue int
+        TypeIntegerValue
+        // TypeBigIntegerValue int64
+        TypeBigIntegerValue
+        // TypePositiveBitValue uint8
+        TypePositiveBitValue
+        // TypePositiveSmallIntegerValue uint16
+        TypePositiveSmallIntegerValue
+        // TypePositiveInteger32Value uint32
+        TypePositiveInteger32Value
+        // TypePositiveIntegerValue uint
+        TypePositiveIntegerValue
+        // TypePositiveBigIntegerValue uint64
+        TypePositiveBigIntegerValue
+        // TypeFloatValue float32
+        TypeFloatValue
+        // TypeDoubleValue float64
+        TypeDoubleValue
+        // TypeStringValue string
+        TypeStringValue
+        // TypeDateTimeValue time.Time
+        TypeDateTimeValue
+        // TypeStructValue struct
+        TypeStructValue
+        // TypeSliceValue slice
+        TypeSliceValue
+    )
 
-### 一、结构体转Model对象
+    type ValueDeclare int
 
-1. **模型命名规则**
-   - `model.Name` = 结构体类型名（reflect.Type.Name()）
-   - `model.PkgPath` = 结构体包路径（reflect.Type.PkgPath()）
-   - `model.PkgKey` = 组合标识：`${PkgPath}/${Name}`
+    const (
+        Customer ValueDeclare = iota
+        AutoIncrement
+        UUID
+        SnowFlake
+        DateTime
+    )
 
-2. **字段处理规则**
-   - 每个结构体字段转换为model.Field对象：
-     - `field.Name` ← 字段名称
-     - `field.Type` ← 字段类型
-     - `field.Value` ← 字段值
-     - `field.Spec` ← 字段标签的`orm`部分
+    type ViewDeclare string
 
-### 二、类型约束规范
+    const (
+        OriginView = "origin"
+        DetailView = "detail"
+        LiteView   = "lite"
+    )
 
-1. **允许的字段类型**
-   - 基础类型：整型/浮点/布尔/字符串
-   - 复合类型：
-     - 结构体（自动递归转换）
-     - 时间类型（time.Time）
-     - 指针类型（指向上述类型）
-     - Slice类型（元素需符合上述类型要求）
+    type TypeImpl struct {
+        Name        string            `json:"name"`
+        PkgPath     string            `json:"pkgPath"`
+        Description string            `json:"description"`
+        Value       model.TypeDeclare `json:"value"`
+        IsPtr       bool              `json:"isPtr"`
+        ElemType    *TypeImpl         `json:"elemType"`
+    }
 
-2. **特殊类型处理**
-   Slice类型 → 元素类型必须为：
-   - 基础数值类型
-   - 合规结构体
-   - time.Time
-   - 上述类型的指针形式
-   - 所有的描述返回值都是""
+    type SpecImpl struct {
+        PrimaryKey   bool                `json:"primaryKey"`
+        ValueDeclare model.ValueDeclare  `json:"valueDeclare"`
+        ViewDeclare  []model.ViewDeclare `json:"viewDeclare"`
+        DefaultValue any                 `json:"defaultValue"`
+    }
 
-### 三、其他处理规则
+    type ValueImpl struct {
+        value any
+    }
 
-1. 字段标签包含Key，则该Filed为PrimaryField
+    type Field struct {
+        Name        string    `json:"name"`
+        ShowName    string    `json:"showName"`
+        Description string    `json:"description"`
+        Type        *TypeImpl `json:"type"`
+        Spec        *SpecImpl `json:"spec"`
+        value       *ValueImpl
+    }
 
-2. 字段标签view，表示Field支持的View种类可以是origin/detail/lite 其他字段非法
+```
 
-3. Model Interface函数根据要求返回对应的struct值,每个字段要求匹配view定义，如果字段没有定义，则默认为origin，如果ptrValue为true则表示返回struct值的指针
+### 模型信息说明
 
-4. Model Copy函数如果传入true，返回一个Model副本，但是Fied的值都初始化成对应类型的初始值，否则返回一个完整的Model各个Field的值保持与源Model一致
+#### 基本信息
 
-5. Struct对象值转换成ObjectValue时，如果Fied类型时time.Time，则将其值转成以CSTLayout的时间格式("2006-01-02 15:04:05")格式化的字符串值
+* ID 表示当前模型值对应的唯一标识，ID必须唯一，在模型持久化时使用，ID不能为空，ID不能重复
+* Name 表示当前模型值对应的名称，名称必须唯一，名称不能为空，名称不能重复
+* ShowName 表示当前模型值对应的显示名称，名称不能为空
+* Icon 表示当前模型值对应的图标，图标不能为空
+* PkgPath 表示当前模型值对应的包路径，参照http的url规则，在本地使用时可以只包含http url的path部分
+* Description 表示当前模型值对应的描述信息
+
+#### Field说明
+
+* Name 表示当前Field值对应的名称，名称必须唯一，名称不能为空，名称不能重复
+
+* ShowName 表示当前Field值对应的显示名称，名称不能为空
+
+* Description 表示当前Field值对应的描述信息
+
+* TypeImpl说明
+
+1. TypeImpl->ElemType 表示当前TypeImpl所依赖的TypeImpl类型 是可选字段，只有在Value的值为TypeStructValue和TypeSliceValue时必须
+
+2. TypeImpl->Value的值为TypeStructValue 表示当前Fileld值是另外一个模型值。此时TypeImpl->ElemType表示当前Fileld值对应的模型
+
+3. TypeImpl->Value的值为TypeSliceValue 表示当前Field值是一个列表，此时TypeImpl->ElemType表示该列表的元素类型
+
+4. TypeImpl->Value的值如果是其他的类型(TypeBooleanValue-TypeDateTimeValue)，则表示当前Field值是一个基本类型，此时TypeImpl->ElemType可以为空
+
+5. TypeImpl->IsPtr 表示当前Field值是否是可选字段，如果IsPtr为True表示模型值对应的Field值可能为空，在业务中不是必选字段
+
+* SpecImpl说明
+
+1. SpecImpl->PrimaryKey 表示当前Field值是否是主键，如果为True则表示当前Field值是主键，否则不是主键
+
+2. SpecImpl->ValueDeclare 表示当前Field值对应的值声明类型，如果为Customer表示当前Field值对应的值声明类型为自定义类型，否则为系统内置类型
+
+3. SpecImpl->ViewDeclare 表示当前Field值对应的视图声明类型，OriginView是默认的视图类型，DetailView表示详细视图类型，LiteView表示精简视图类型，在不指定视图类型时，默认为OriginView
+
+4. SpecImpl->DefaultValue 表示当前Field值对应的默认值，如果为空表示当前Field值没有默认值，否则则使用该值为默认值，在模型对象值对应的Field值为为空时，使用该值为默认值
+
+* ValueImpl说明
+
+1. 在使用Object进行业务处理时，ValueImpl->value 表示当前Field值对应的值，如果为空表示当前Field值没有值，否则则使用该值为值，该值不导出，只做临时数据传递
+
+
+## ObjectValue 模型对象值
+
+ObjectValue描述模型对象值，模型对象值使用json格式进行序列化保存以及服务间传递
+
+### 模型值格式定义如下
+
+```go
+
+    type FieldValue struct {
+        Name  string `json:"name"`
+        Value any    `json:"value"`
+    }
+
+    type ObjectValue struct {
+        ID      string        `json:"id"`
+        Name    string        `json:"name"`
+        PkgPath string        `json:"pkgPath"`
+        Fields  []*FieldValue `json:"fields"`
+    }
+
+
+```
+
+### 模型值信息说明
+
+#### 基本信息
+
+* ID 表示当前模型值对应的唯一标识，ID必须唯一，在模型持久化时使用，ID不能为空，ID不能重复
+* Name 表示当前模型值对应的名称，名称必须唯一，名称不能为空，名称不能重复，保持与Object的一致
+* PkgPath 表示当前模型值对应的包路径，参照http的url规则，在本地使用时可以只包含http url的path部分，保持与Object的一致
+* Fields 表示当前模型值对应的字段列表，Fields不能重复
+
+### FieldValue说明
+
+* Name 表示当前FieldValue对应的名称，名称必须唯一，名称不能为空，名称不能重复，保持与Object的一致
+* Value 表示当前FieldValue对应的值，根据模型对应Field的定义，该值允许为空，如果field对应的类型为TypeStructValue，则对应的值为ObjectValue，如果对应的类型为TypeSliceValue，并且ElemType对应的类型为TypeStructValue，则对应的值为SliceObjectValue，否则为对应类型的值
+
+
+## SliceObjectValue 列表对象值
+
+SliceObjectValue描述列表对象值，列表对象值使用json格式进行序列化保存以及服务间传递
+
+### 模型值格式定义如下
+```go
+
+    type SliceObjectValue struct {
+        Name    string         `json:"name"`
+        PkgPath string         `json:"pkgPath"`
+        Values  []*ObjectValue `json:"values"`
+    }
+
+```
+
+### 列表对象值值信息说明
+
+#### 基本信息
+* Name 表示当前列表对象值对应的名称，名称必须唯一，名称不能为空，名称不能重复，保持与Object的一致
+* PkgPath 表示当前列表对象值对应的包路径，参照http的url规则，在本地使用时可以只包含http url的path部分，保持与Object的一致
+* Values 表示当前列表对象值对应的值列表, 对应的ObjectValue参照前面的定义
+
+
