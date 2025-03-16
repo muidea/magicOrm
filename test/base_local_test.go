@@ -1,3 +1,6 @@
+//go:build local || all
+// +build local all
+
 package test
 
 import (
@@ -5,12 +8,120 @@ import (
 	"time"
 
 	"github.com/muidea/magicCommon/foundation/util"
-	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
 )
 
 const localOwner = "local"
+
+type Optional struct {
+	ID                int       `orm:"id key auto" view:"detail,lite"`
+	Name              string    `orm:"name" view:"detail,lite"`
+	Optional          *string   `orm:"optional" view:"detail,lite"`
+	StrArry           []string  `orm:"strArry" view:"detail,lite"`
+	OptionnalStrArray *[]string `orm:"optionnalStrArray" view:"detail,lite"`
+}
+
+func TestOptional(t *testing.T) {
+	orm.Initialize()
+	defer orm.Uninitialized()
+
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
+	localProvider := provider.NewLocalProvider(localOwner)
+
+	o1, err := orm.NewOrm(localProvider, config, "abc")
+	defer o1.Release()
+	if err != nil {
+		t.Errorf("new Orm failed, err:%s", err.Error())
+		return
+	}
+
+	objList := []any{&Optional{}}
+	_, err = registerModel(localProvider, objList)
+	if err != nil {
+		t.Errorf("register model failed. err:%s", err.Error())
+		return
+	}
+
+	opt001 := Optional{Name: "abc", StrArry: []string{"a", "b", "c"}}
+	optionalModel, err := localProvider.GetEntityModel(opt001)
+	if err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Drop(optionalModel)
+	if err != nil {
+		t.Errorf("drop optional failed, err:%s", err.Error())
+		return
+	}
+
+	err = o1.Create(optionalModel)
+	if err != nil {
+		t.Errorf("create optional failed, err:%s", err.Error())
+		return
+	}
+
+	newOpt000 := optionalModel.Interface(true).(*Optional)
+	if newOpt000.Name != opt001.Name {
+		t.Errorf("insert optional failed, missmatch name, expect:%s, actual:%s", opt001.Name, newOpt000.Name)
+	}
+	if newOpt000.Optional != nil {
+		t.Errorf("insert optional failed, missmatch optional, expect nil, actual:%+v", newOpt000.Optional)
+	}
+	if newOpt000.OptionnalStrArray != nil {
+		t.Errorf("insert optional failed, missmatch optionnalStrArray, expect nil, actual:%+v", newOpt000.OptionnalStrArray)
+	}
+
+	optionalModel, err = o1.Insert(optionalModel)
+	if err != nil {
+		t.Errorf("insert optional failed, err:%s", err.Error())
+	}
+	newOpt001 := optionalModel.Interface(true).(*Optional)
+	if newOpt001.Name != opt001.Name {
+		t.Errorf("insert optional failed, missmatch name, expect:%s, actual:%s", opt001.Name, newOpt001.Name)
+	}
+	if newOpt001.Optional != nil {
+		t.Errorf("insert optional failed, missmatch optional, expect nil, actual:%+v", newOpt001.Optional)
+	}
+	if newOpt001.OptionnalStrArray != nil {
+		t.Errorf("insert optional failed, missmatch optionnalStrArray, expect nil, actual:%+v", newOpt001.OptionnalStrArray)
+	}
+
+	err = optionalModel.SetFieldValue("name", "def")
+	if err != nil {
+		t.Errorf("set optional failed, err:%s", err.Error())
+	}
+	optionalModel, err = o1.Update(optionalModel)
+	if err != nil {
+		t.Errorf("update optional failed, err:%s", err.Error())
+	}
+	newOpt002 := optionalModel.Interface(true).(*Optional)
+	if newOpt002.Name != "def" {
+		t.Errorf("update optional failed, missmatch name, expect:%s, actual:%s", "def", newOpt002.Name)
+	}
+
+	err = optionalModel.SetFieldValue("name", "ghi")
+	if err != nil {
+		t.Errorf("set optional failed, err:%s", err.Error())
+	}
+	newPtr := &opt001.Name
+	err = optionalModel.SetFieldValue("optional", newPtr)
+	if err != nil {
+		t.Errorf("set optional failed, err:%s", err.Error())
+	}
+	optionalModel, err = o1.Update(optionalModel)
+	if err != nil {
+		t.Errorf("update optional failed, err:%s", err.Error())
+	}
+	newOpt003 := optionalModel.Interface(true).(*Optional)
+	if newOpt003.Name != "ghi" {
+		t.Errorf("update optional failed, missmatch name, expect:%s, actual:%s", "ghi", newOpt003.Name)
+	}
+	if *newOpt003.Optional != opt001.Name {
+		t.Errorf("update optional failed, missmatch optional, expect:%s, actual:%s", opt001.Name, *newOpt003.Optional)
+	}
+}
 
 func TestLocalSimple(t *testing.T) {
 	orm.Initialize()
@@ -59,7 +170,7 @@ func TestLocalSimple(t *testing.T) {
 		t.Errorf("insert simple failed, err:%s", err.Error())
 		return
 	}
-	s1 = s1Model.Interface(true, model.OriginView).(*Simple)
+	s1 = s1Model.Interface(true).(*Simple)
 
 	s1.Name = "hello"
 	s1Model, s1Err = localProvider.GetEntityModel(s1)
@@ -72,10 +183,10 @@ func TestLocalSimple(t *testing.T) {
 		t.Errorf("update simple failed, err:%s", err.Error())
 		return
 	}
-	s1 = s1Model.Interface(true, model.OriginView).(*Simple)
+	s1 = s1Model.Interface(true).(*Simple)
 
 	s2 := Simple{ID: s1.ID}
-	s2Model, s2Err := localProvider.GetEntityModel(s2)
+	s2Model, s2Err := localProvider.GetEntityModel(&s2)
 	if s2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s2Err.Error())
 		return
@@ -86,7 +197,7 @@ func TestLocalSimple(t *testing.T) {
 		t.Errorf("query simple failed, err:%s", err.Error())
 		return
 	}
-	s2 = s2Model.Interface(false, model.OriginView).(Simple)
+	s2 = s2Model.Interface(false).(Simple)
 
 	if !s1.IsSame(&s2) {
 		t.Errorf("Query simple failed.")
@@ -160,7 +271,7 @@ func TestLocalReference(t *testing.T) {
 		t.Errorf("insert simple failed, err:%s", err.Error())
 		return
 	}
-	s1 = s1Model.Interface(true, model.OriginView).(*Reference)
+	s1 = s1Model.Interface(true).(*Reference)
 
 	s1.Name = "hello"
 	s1Model, s1Err = localProvider.GetEntityModel(s1)
@@ -174,7 +285,7 @@ func TestLocalReference(t *testing.T) {
 		t.Errorf("update simple failed, err:%s", err.Error())
 		return
 	}
-	s1 = s1Model.Interface(true, model.OriginView).(*Reference)
+	s1 = s1Model.Interface(true).(*Reference)
 
 	fValue2 := float32(0.0)
 	var ts2 time.Time
@@ -195,7 +306,7 @@ func TestLocalReference(t *testing.T) {
 		PtrStrArray: &ptrArray2,
 	}
 
-	s2Model, s2Err := localProvider.GetEntityModel(s2)
+	s2Model, s2Err := localProvider.GetEntityModel(&s2)
 	if s2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s2Err.Error())
 		return
@@ -206,7 +317,7 @@ func TestLocalReference(t *testing.T) {
 		t.Errorf("query reference failed, err:%s", err.Error())
 		return
 	}
-	s2 = s2Model.Interface(false, model.OriginView).(Reference)
+	s2 = s2Model.Interface(false).(Reference)
 
 	if !s1.IsSame(&s2) {
 		t.Errorf("Query reference failed.")
@@ -218,16 +329,18 @@ func TestLocalReference(t *testing.T) {
 		t.Errorf("insert reference failed, err:%s", err.Error())
 		return
 	}
-	s2 = s2Model.Interface(false, model.OriginView).(Reference)
+	s2 = s2Model.Interface(false).(Reference)
 	if s1.IsSame(&s2) {
 		t.Errorf("Query reference failed.")
 		return
 	}
 
+	newPtrArray := []string{}
 	s4 := Reference{
-		ID: s1.ID,
+		ID:       s1.ID,
+		PtrArray: &newPtrArray,
 	}
-	s4Model, s4Err := localProvider.GetEntityModel(s4)
+	s4Model, s4Err := localProvider.GetEntityModel(&s4)
 	if s4Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s4Err.Error())
 		return
@@ -238,12 +351,12 @@ func TestLocalReference(t *testing.T) {
 		t.Errorf("query reference failed, err:%s", err.Error())
 		return
 	}
-	s4 = s4Model.Interface(false, model.OriginView).(Reference)
+	s4 = s4Model.Interface(false).(Reference)
 	if s4.Name != s2.Name {
 		t.Errorf("query reference failed, err:%s", err.Error())
 		return
 	}
-	if s4.IArray != nil || s4.FArray != nil || s4.PtrStrArray != nil || s4.PtrArray != nil {
+	if s4.IArray == nil || s4.FArray == nil || s4.PtrStrArray != nil || s4.PtrArray == nil {
 		t.Errorf("query reference failed")
 		return
 	}
@@ -297,7 +410,7 @@ func TestLocalCompose(t *testing.T) {
 		t.Errorf("insert simple failed, err:%s", err.Error())
 		return
 	}
-	s1 = s1Model.Interface(false, model.OriginView).(Simple)
+	s1 = s1Model.Interface(false).(Simple)
 
 	strValue := "test code"
 	fValue := float32(12.34)
@@ -322,7 +435,7 @@ func TestLocalCompose(t *testing.T) {
 		PtrStrArray: &strPtrArray,
 	}
 
-	r1Model, r1Err := localProvider.GetEntityModel(r1)
+	r1Model, r1Err := localProvider.GetEntityModel(&r1)
 	if r1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", r1Err.Error())
 		return
@@ -334,20 +447,19 @@ func TestLocalCompose(t *testing.T) {
 		return
 	}
 
-	r1 = r1Model.Interface(false, model.OriginView).(Reference)
+	r1 = r1Model.Interface(false).(Reference)
 
 	refPtrArray := []*Reference{&r1}
 	c1 := &Compose{
-		Name:         strValue,
-		H1:           s1,
-		R3:           &s1,
-		H2:           []Simple{s1, s1},
-		R4:           []*Simple{&s1, &s1},
-		Reference:    r1,
-		PtrReference: &r1,
-		RefArray:     []Reference{r1, r1, r1},
-		RefPtrArray:  refPtrArray,
-		PtrRefArray:  refPtrArray,
+		Name:              strValue,
+		Simple:            s1,
+		SimplePtr:         &s1,
+		SimpleArray:       []Simple{s1, s1},
+		SimplePtrArray:    []*Simple{&s1, &s1},
+		Reference:         r1,
+		ReferencePtr:      &r1,
+		ReferenceArray:    []Reference{r1, r1, r1},
+		ReferencePtrArray: refPtrArray,
 	}
 	c1Model, c1Err := localProvider.GetEntityModel(c1)
 	if c1Err != nil {
@@ -359,22 +471,21 @@ func TestLocalCompose(t *testing.T) {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
-	c1 = c1Model.Interface(true, model.OriginView).(*Compose)
+	c1 = c1Model.Interface(true).(*Compose)
 
 	c2 := Compose{
-		Name:         strValue,
-		H1:           s1,
-		R3:           &s1,
-		H2:           []Simple{s1, s1},
-		R4:           []*Simple{&s1, &s1},
-		Reference:    r1,
-		PtrReference: &r1,
-		RefArray:     []Reference{r1, r1, r1},
-		RefPtrArray:  refPtrArray,
-		PtrRefArray:  refPtrArray,
-		PtrCompose:   c1,
+		Name:              strValue,
+		Simple:            s1,
+		SimplePtr:         &s1,
+		SimpleArray:       []Simple{s1, s1},
+		SimplePtrArray:    []*Simple{&s1, &s1},
+		Reference:         r1,
+		ReferencePtr:      &r1,
+		ReferenceArray:    []Reference{r1, r1, r1},
+		ReferencePtrArray: refPtrArray,
+		ComposePtr:        c1,
 	}
-	c2Model, c2Err := localProvider.GetEntityModel(c2)
+	c2Model, c2Err := localProvider.GetEntityModel(&c2)
 	if c2Err != nil {
 		t.Errorf("GetEntityModel failed,err:%s", c2Err.Error())
 		return
@@ -385,21 +496,20 @@ func TestLocalCompose(t *testing.T) {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
-	c2 = c2Model.Interface(false, model.OriginView).(Compose)
+	c2 = c2Model.Interface(false).(Compose)
 
 	c3 := Compose{
-		ID:           c2.ID,
-		R3:           &Simple{},
-		H2:           []Simple{},
-		R4:           []*Simple{},
-		PR4:          &[]Simple{},
-		PtrReference: &Reference{},
-		RefArray:     []Reference{},
-		RefPtrArray:  []*Reference{},
-		PtrRefArray:  []*Reference{},
-		PtrCompose:   &Compose{},
+		ID:                c2.ID,
+		SimplePtr:         &Simple{},
+		SimpleArray:       []Simple{},
+		SimplePtrArray:    []*Simple{},
+		SimpleArrayPtr:    &[]Simple{},
+		ReferencePtr:      &Reference{},
+		ReferenceArray:    []Reference{},
+		ReferencePtrArray: []*Reference{},
+		ComposePtr:        &Compose{},
 	}
-	c3Model, c3Err := localProvider.GetEntityModel(c3)
+	c3Model, c3Err := localProvider.GetEntityModel(&c3)
 	if c3Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", c3Err.Error())
 		return
@@ -410,7 +520,7 @@ func TestLocalCompose(t *testing.T) {
 		t.Errorf("query compose failed, err:%s", err.Error())
 		return
 	}
-	c3 = c3Model.Interface(false, model.OriginView).(Compose)
+	c3 = c3Model.Interface(false).(Compose)
 
 	if c3.IsSame(c1) {
 		t.Error("query compose failed")
@@ -470,7 +580,7 @@ func TestLocalQuery(t *testing.T) {
 		t.Errorf("insert simple failed, err:%s", err.Error())
 		return
 	}
-	s1 = s1Model.Interface(false, model.OriginView).(Simple)
+	s1 = s1Model.Interface(false).(Simple)
 
 	strValue := "test code"
 	fValue := float32(12.34)
@@ -504,20 +614,19 @@ func TestLocalQuery(t *testing.T) {
 		t.Errorf("insert reference failed, err:%s", err.Error())
 		return
 	}
-	r1 = r1Model.Interface(false, model.OriginView).(Reference)
+	r1 = r1Model.Interface(false).(Reference)
 
 	refPtrArray := []*Reference{&r1}
 	c1 := Compose{
-		Name:         strValue,
-		H1:           s1,
-		R3:           &s1,
-		H2:           []Simple{s1, s1},
-		R4:           []*Simple{&s1, &s1},
-		Reference:    r1,
-		PtrReference: &r1,
-		RefArray:     []Reference{r1, r1, r1},
-		RefPtrArray:  refPtrArray,
-		PtrRefArray:  refPtrArray,
+		Name:              strValue,
+		Simple:            s1,
+		SimplePtr:         &s1,
+		SimpleArray:       []Simple{s1, s1},
+		SimplePtrArray:    []*Simple{&s1, &s1},
+		Reference:         r1,
+		ReferencePtr:      &r1,
+		ReferenceArray:    []Reference{r1, r1, r1},
+		ReferencePtrArray: refPtrArray,
 	}
 	c1Model, c1Err := localProvider.GetEntityModel(c1)
 	if c1Err != nil {
@@ -530,21 +639,20 @@ func TestLocalQuery(t *testing.T) {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
-	c1 = c1Model.Interface(false, model.OriginView).(Compose)
+	c1 = c1Model.Interface(false).(Compose)
 
 	strValue = "123"
 	c2 := Compose{
-		Name:         strValue,
-		H1:           s1,
-		R3:           &s1,
-		H2:           []Simple{s1, s1},
-		R4:           []*Simple{&s1, &s1},
-		Reference:    r1,
-		PtrReference: &r1,
-		RefArray:     []Reference{r1, r1, r1},
-		RefPtrArray:  refPtrArray,
-		PtrRefArray:  refPtrArray,
-		PtrCompose:   &c1,
+		Name:              strValue,
+		Simple:            s1,
+		SimplePtr:         &s1,
+		SimpleArray:       []Simple{s1, s1},
+		SimplePtrArray:    []*Simple{&s1, &s1},
+		Reference:         r1,
+		ReferencePtr:      &r1,
+		ReferenceArray:    []Reference{r1, r1, r1},
+		ReferencePtrArray: refPtrArray,
+		ComposePtr:        &c1,
 	}
 	c2Model, c2Err := localProvider.GetEntityModel(c2)
 	if c2Err != nil {
@@ -557,7 +665,7 @@ func TestLocalQuery(t *testing.T) {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
-	c2 = c2Model.Interface(false, model.OriginView).(Compose)
+	c2 = c2Model.Interface(false).(Compose)
 
 	c3 := c2
 	c3Model, c3Err := localProvider.GetEntityModel(c3)
@@ -570,7 +678,7 @@ func TestLocalQuery(t *testing.T) {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
-	_ = c3Model.Interface(false, model.OriginView).(Compose)
+	_ = c3Model.Interface(false).(Compose)
 
 	c4 := c2
 	c4Model, c4Err := localProvider.GetEntityModel(c4)
@@ -583,10 +691,10 @@ func TestLocalQuery(t *testing.T) {
 		t.Errorf("insert compose failed, err:%s", err.Error())
 		return
 	}
-	_ = c4Model.Interface(false, model.OriginView).(Compose)
+	_ = c4Model.Interface(false).(Compose)
 
 	cModel, _ := localProvider.GetEntityModel(&Compose{})
-	filter, err := localProvider.GetModelFilter(cModel, model.OriginView)
+	filter, err := localProvider.GetModelFilter(cModel)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -602,7 +710,7 @@ func TestLocalQuery(t *testing.T) {
 	}
 
 	filter.Equal("name", c2.Name)
-	filter.ValueMask(&Compose{R3: &Simple{}})
+	filter.ValueMask(&Compose{SimplePtr: &Simple{}})
 	cModelList, cModelErr = o1.BatchQuery(filter)
 	if cModelErr != nil {
 		t.Errorf("batch query compose failed, err:%s", cModelErr.Error())

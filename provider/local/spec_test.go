@@ -111,40 +111,6 @@ func TestSpecValueDeclares(t *testing.T) {
 	}
 }
 
-// TestSpecCopy tests the spec copy functionality
-func TestSpecCopy(t *testing.T) {
-	// Create a test spec
-	spec := "field primary auto"
-	specPtr, err := getOrmSpec(spec)
-	if err != nil {
-		t.Errorf("getOrmSpec failed: %s", err.Error())
-		return
-	}
-
-	// Make a copy
-	copiedSpec := specPtr.copy()
-	if copiedSpec == nil {
-		t.Errorf("Spec.copy() returned nil")
-		return
-	}
-
-	// Verify the copy has the same values
-	if copiedSpec.GetFieldName() != specPtr.GetFieldName() {
-		t.Errorf("Copied spec field name mismatch, expected: %s, got: %s",
-			specPtr.GetFieldName(), copiedSpec.GetFieldName())
-	}
-
-	if copiedSpec.GetValueDeclare() != specPtr.GetValueDeclare() {
-		t.Errorf("Copied spec value declare mismatch, expected: %v, got: %v",
-			specPtr.GetValueDeclare(), copiedSpec.GetValueDeclare())
-	}
-
-	if copiedSpec.IsPrimaryKey() != specPtr.IsPrimaryKey() {
-		t.Errorf("Copied spec primary key flag mismatch, expected: %v, got: %v",
-			specPtr.IsPrimaryKey(), copiedSpec.IsPrimaryKey())
-	}
-}
-
 // TestSpecDescription tests the spec description functionality
 func TestSpecDescription(t *testing.T) {
 	// Create a spec
@@ -154,15 +120,6 @@ func TestSpecDescription(t *testing.T) {
 		t.Errorf("getOrmSpec failed: %s", err.Error())
 		return
 	}
-
-	// Get spec info using dump method instead of Description
-	specInfo := specPtr.dump()
-	if specInfo == "" {
-		t.Errorf("Spec.dump() returned empty string")
-		return
-	}
-
-	t.Logf("Spec info: %s", specInfo)
 
 	// Verify spec has the expected values
 	if specPtr.GetFieldName() != "field" {
@@ -178,12 +135,6 @@ func TestSpecDescription(t *testing.T) {
 	if !specPtr.IsPrimaryKey() {
 		t.Errorf("Primary key flag mismatch, expected: %v, got: %v",
 			true, specPtr.IsPrimaryKey())
-	}
-
-	// Test spec comparison using model.CompareSpec
-	copiedSpec := specPtr.copy()
-	if !model.CompareSpec(specPtr, copiedSpec) {
-		t.Errorf("model.CompareSpec() should return true for identical specs")
 	}
 }
 

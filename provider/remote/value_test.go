@@ -7,19 +7,6 @@ import (
 
 func TestValue(t *testing.T) {
 	var v any
-
-	// nil
-	if NilValue.IsValid() {
-		t.Errorf("illegal nilValue, is nil")
-		return
-	}
-
-	// zero
-	if !NilValue.IsZero() {
-		t.Errorf("illegal nilValue, is zero")
-		return
-	}
-
 	valuePtr := NewValue(v)
 	// nil
 	if valuePtr.IsValid() {
@@ -33,12 +20,6 @@ func TestValue(t *testing.T) {
 		return
 	}
 
-	// not basic
-	if valuePtr.IsBasic() {
-		t.Errorf("IsBasic failed, is not basic")
-		return
-	}
-
 	iVal := 10
 	valuePtr = NewValue(iVal)
 	// not nil
@@ -49,12 +30,6 @@ func TestValue(t *testing.T) {
 	// not zero
 	if valuePtr.IsZero() {
 		t.Errorf("NewValue failed, is not zero")
-	}
-
-	// basic
-	if !valuePtr.IsBasic() {
-		t.Errorf("IsBasic failed")
-		return
 	}
 
 	var nulValue int
@@ -71,12 +46,6 @@ func TestValue(t *testing.T) {
 		return
 	}
 
-	// basic
-	if !value2Ptr.IsBasic() {
-		t.Errorf("IsBasic failed")
-		return
-	}
-
 	value2Ptr.Set(valuePtr.Get())
 	// not nil
 	if !value2Ptr.IsValid() {
@@ -88,31 +57,12 @@ func TestValue(t *testing.T) {
 		t.Errorf("not zero")
 	}
 
-	// basic
-	if !value2Ptr.IsBasic() {
-		t.Errorf("IsBasic failed")
-		return
-	}
-
 	iReflect2 := 12
 	value2Ptr.Set(iReflect2)
 
-	// Test Addr method
-	addrVal := valuePtr.Addr()
-	if !addrVal.IsValid() {
-		t.Errorf("Addr failed, should be valid")
-		return
-	}
-
-	if addrVal.Get() != valuePtr.Get() {
-		t.Errorf("Addr failed, value mismatch: got %v, expected %v", addrVal.Get(), valuePtr.Get())
-		return
-	}
-
 	// Test Interface method
-	interfaceVal := valuePtr.Interface()
-	if interfaceVal.Value() != iVal {
-		t.Errorf("Interface failed, value mismatch: got %v, expected %v", interfaceVal.Value(), iVal)
+	if valuePtr.Get() != iVal {
+		t.Errorf("Interface failed, value mismatch: got %v, expected %v", valuePtr.Get(), iVal)
 		return
 	}
 }
@@ -121,7 +71,7 @@ func TestValueWithVariousTypes(t *testing.T) {
 	// Test boolean values
 	boolVal := true
 	boolValuePtr := NewValue(boolVal)
-	if !boolValuePtr.IsValid() || boolValuePtr.IsZero() || !boolValuePtr.IsBasic() {
+	if !boolValuePtr.IsValid() || boolValuePtr.IsZero() {
 		t.Errorf("Boolean value handling failed")
 		return
 	}
@@ -129,7 +79,7 @@ func TestValueWithVariousTypes(t *testing.T) {
 	// Test zero boolean
 	zeroBool := false
 	zeroBoolValuePtr := NewValue(zeroBool)
-	if !zeroBoolValuePtr.IsValid() || !zeroBoolValuePtr.IsZero() || !zeroBoolValuePtr.IsBasic() {
+	if !zeroBoolValuePtr.IsValid() || !zeroBoolValuePtr.IsZero() {
 		t.Errorf("Zero boolean value handling failed")
 		return
 	}
@@ -137,7 +87,7 @@ func TestValueWithVariousTypes(t *testing.T) {
 	// Test string values
 	strVal := "test string"
 	strValuePtr := NewValue(strVal)
-	if !strValuePtr.IsValid() || strValuePtr.IsZero() || !strValuePtr.IsBasic() {
+	if !strValuePtr.IsValid() || strValuePtr.IsZero() {
 		t.Errorf("String value handling failed")
 		return
 	}
@@ -145,7 +95,7 @@ func TestValueWithVariousTypes(t *testing.T) {
 	// Test empty string
 	emptyStr := ""
 	emptyStrValuePtr := NewValue(emptyStr)
-	if !emptyStrValuePtr.IsValid() || !emptyStrValuePtr.IsZero() || !emptyStrValuePtr.IsBasic() {
+	if !emptyStrValuePtr.IsValid() || !emptyStrValuePtr.IsZero() {
 		t.Errorf("Empty string value handling failed")
 		return
 	}
@@ -153,7 +103,7 @@ func TestValueWithVariousTypes(t *testing.T) {
 	// Test float values
 	floatVal := 123.456
 	floatValuePtr := NewValue(floatVal)
-	if !floatValuePtr.IsValid() || floatValuePtr.IsZero() || !floatValuePtr.IsBasic() {
+	if !floatValuePtr.IsValid() || floatValuePtr.IsZero() {
 		t.Errorf("Float value handling failed")
 		return
 	}
@@ -161,7 +111,7 @@ func TestValueWithVariousTypes(t *testing.T) {
 	// Test zero float
 	zeroFloat := 0.0
 	zeroFloatValuePtr := NewValue(zeroFloat)
-	if !zeroFloatValuePtr.IsValid() || !zeroFloatValuePtr.IsZero() || !zeroFloatValuePtr.IsBasic() {
+	if !zeroFloatValuePtr.IsValid() || !zeroFloatValuePtr.IsZero() {
 		t.Errorf("Zero float value handling failed")
 		return
 	}
@@ -169,7 +119,7 @@ func TestValueWithVariousTypes(t *testing.T) {
 	// Test slice values
 	sliceVal := []int{1, 2, 3}
 	sliceValuePtr := NewValue(sliceVal)
-	if !sliceValuePtr.IsValid() || sliceValuePtr.IsZero() || !sliceValuePtr.IsBasic() {
+	if !sliceValuePtr.IsValid() || sliceValuePtr.IsZero() {
 		t.Errorf("Slice value handling failed")
 		return
 	}
@@ -177,7 +127,7 @@ func TestValueWithVariousTypes(t *testing.T) {
 	// Test empty slice
 	emptySlice := []int{}
 	emptySliceValuePtr := NewValue(emptySlice)
-	if !emptySliceValuePtr.IsValid() || !emptySliceValuePtr.IsZero() || !emptySliceValuePtr.IsBasic() {
+	if !emptySliceValuePtr.IsValid() || !emptySliceValuePtr.IsZero() {
 		t.Errorf("Empty slice value handling failed")
 		return
 	}
@@ -188,7 +138,7 @@ func TestValueCopy(t *testing.T) {
 	intVal := 42
 	intValuePtr := NewValue(intVal)
 
-	copyValue, err := intValuePtr.Copy()
+	copyValue, err := intValuePtr.copy()
 	if err != nil {
 		t.Errorf("Copy of int value failed: %v", err)
 		return
@@ -204,7 +154,7 @@ func TestValueCopy(t *testing.T) {
 	strVal := "test string"
 	strValuePtr := NewValue(strVal)
 
-	copyStrValue, err := strValuePtr.Copy()
+	copyStrValue, err := strValuePtr.copy()
 	if err != nil {
 		t.Errorf("Copy of string value failed: %v", err)
 		return
@@ -216,24 +166,11 @@ func TestValueCopy(t *testing.T) {
 		return
 	}
 
-	// Test copy of nil value
-	nilValuePtr := &NilValue
-	copyNilValue, err := nilValuePtr.Copy()
-	if err != nil {
-		t.Errorf("Copy of nil value failed: %v", err)
-		return
-	}
-
-	if copyNilValue.IsValid() {
-		t.Errorf("Copy of nil value failed, should be invalid")
-		return
-	}
-
 	// Test copy of slice
 	sliceVal := []int{1, 2, 3}
 	sliceValuePtr := NewValue(sliceVal)
 
-	copySliceValue, err := sliceValuePtr.Copy()
+	copySliceValue, err := sliceValuePtr.copy()
 	if err != nil {
 		t.Errorf("Copy of slice value failed: %v", err)
 		return
@@ -268,13 +205,8 @@ func TestObjectValueHandling(t *testing.T) {
 		return
 	}
 
-	if objValuePtr.IsBasic() {
-		t.Errorf("ObjectValue should not be basic")
-		return
-	}
-
 	// Test copy of ObjectValue
-	copyObjValue, err := objValuePtr.Copy()
+	copyObjValue, err := objValuePtr.copy()
 	if err != nil {
 		t.Errorf("Copy of ObjectValue failed: %v", err)
 		return
@@ -317,13 +249,8 @@ func TestSliceObjectValueHandling(t *testing.T) {
 		return
 	}
 
-	if sliceObjValuePtr.IsBasic() {
-		t.Errorf("SliceObjectValue should not be basic")
-		return
-	}
-
 	// Test copy of SliceObjectValue
-	copySliceObjValue, err := sliceObjValuePtr.Copy()
+	copySliceObjValue, err := sliceObjValuePtr.copy()
 	if err != nil {
 		t.Errorf("Copy of SliceObjectValue failed: %v", err)
 		return

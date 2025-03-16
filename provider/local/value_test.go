@@ -3,220 +3,194 @@ package local
 import (
 	"reflect"
 	"testing"
+
+	"github.com/muidea/magicCommon/foundation/log"
+	"github.com/muidea/magicOrm/model"
 )
 
+func TestArray(t *testing.T) {
+	type Demo struct {
+		IntArray  []int
+		StrArray  []string
+		StrPtr    *string
+		NotStrPtr *string
+	}
+
+	strVal := "abc"
+	demo := &Demo{IntArray: []int{}, NotStrPtr: &strVal}
+	if demo.IntArray == nil {
+		t.Errorf("IntArray is nil")
+	}
+	if demo.StrArray != nil {
+		t.Errorf("StrArray is not nil")
+	}
+
+	if demo.StrPtr != nil {
+		t.Errorf("StrPtr is not nil")
+	}
+
+	rDemoVal := reflect.Indirect(reflect.ValueOf(demo))
+	rIntArray := rDemoVal.FieldByName("IntArray")
+	rStrArray := rDemoVal.FieldByName("StrArray")
+	rStrPtr := rDemoVal.FieldByName("StrPtr")
+	rNotStrPtr := rDemoVal.FieldByName("NotStrPtr")
+	log.Infof("rIntArray isValid:%v", rIntArray.IsValid())
+	log.Infof("rIntArray isNil:%v", rIntArray.IsNil())
+	log.Infof("rIntArray isZero:%v", rIntArray.IsZero())
+	log.Infof("rIntArray raw---------------")
+	rIntArrayPtr := NewValue(rIntArray)
+	rIntArrayPtr.reset(true)
+	log.Infof("rIntArray isValid:%v", rIntArray.IsValid())
+	log.Infof("rIntArray isNil:%v", rIntArray.IsNil())
+	log.Infof("rIntArray isZero:%v", rIntArray.IsZero())
+	log.Infof("rIntArray reset(true)---------------")
+	rIntArrayPtr.reset(false)
+	log.Infof("rIntArray isValid:%v", rIntArray.IsValid())
+	log.Infof("rIntArray isNil:%v", rIntArray.IsNil())
+	log.Infof("rIntArray isZero:%v", rIntArray.IsZero())
+	log.Infof("rIntArray reset(false)---------------")
+	log.Infof("################################################")
+
+	log.Infof("rStrArray isValid:%v", rStrArray.IsValid())
+	log.Infof("rStrArray isNil:%v", rStrArray.IsNil())
+	log.Infof("rStrArray isZero:%v", rStrArray.IsZero())
+	log.Infof("rStrArray raw---------------")
+	rStrArrayPtr := NewValue(rStrArray)
+	rStrArrayPtr.reset(true)
+	log.Infof("rStrArray isValid:%v", rStrArray.IsValid())
+	log.Infof("rStrArray isNil:%v", rStrArray.IsNil())
+	log.Infof("rStrArray isZero:%v", rStrArray.IsZero())
+	log.Infof("rStrArray reset(true)---------------")
+
+	log.Infof("################################################")
+
+	log.Infof("rStrPtr isValid:%v", rStrPtr.IsValid())
+	log.Infof("rStrPtr isNil:%v", rStrPtr.IsNil())
+	log.Infof("rStrPtr isZero:%v", rStrPtr.IsZero())
+	log.Infof("rStrPtr raw---------------")
+	rStrPtrPtr := NewValue(rStrPtr)
+	rStrPtrPtr.reset(true)
+	log.Infof("rStrPtr isValid:%v", rStrPtr.IsValid())
+	log.Infof("rStrPtr isNil:%v", rStrPtr.IsNil())
+	log.Infof("rStrPtr isZero:%v", rStrPtr.IsZero())
+	log.Infof("rStrPtr reset(true)---------------")
+
+	log.Infof("################################################")
+
+	log.Infof("rNotStrPtr isValid:%v", rNotStrPtr.IsValid())
+	log.Infof("rNotStrPtr isNil:%v", rNotStrPtr.IsNil())
+	log.Infof("rNotStrPtr isZero:%v", rNotStrPtr.IsZero())
+	log.Infof("rNotStrPtr raw---------------")
+	rNotStrPtrPtr := NewValue(rNotStrPtr)
+	rNotStrPtrPtr.reset(true)
+	log.Infof("rNotStrPtr isValid:%v", rNotStrPtr.IsValid())
+	log.Infof("rNotStrPtr isNil:%v", rNotStrPtr.IsNil())
+	log.Infof("rNotStrPtr isZero:%v", rNotStrPtr.IsZero())
+	log.Infof("rNotStrPtr reset(true)---------------")
+	rNotStrPtrPtr.reset(false)
+	log.Infof("rNotStrPtr isValid:%v", rNotStrPtr.IsValid())
+	log.Infof("rNotStrPtr isNil:%v", rNotStrPtr.IsNil())
+	log.Infof("rNotStrPtr isZero:%v", rNotStrPtr.IsZero())
+	log.Infof("rNotStrPtr reset(false)---------------")
+
+	log.Infof("################################################")
+}
+
 func TestValue(t *testing.T) {
-	var v reflect.Value
+	intVal := 10
 
-	// nil
-	if NilValue.IsValid() {
-		t.Errorf("illegal nilValue, is nil")
-		return
+	unsetReflect := reflect.ValueOf(intVal)
+	value := NewValue(unsetReflect)
+	defer func() {
+		if r := recover(); r != nil {
+			t.Errorf("Set failed, panicked: %v", r)
+		}
+	}()
+	err := value.Set(0)
+	if err == nil {
+		t.Errorf("Set failed, error is nil")
 	}
 
-	// zero
-	if !NilValue.IsZero() {
-		t.Errorf("illegal nilValue, is zero")
-		return
+	if intVal == 0 {
+		t.Errorf("Set failed, value is not zero")
 	}
 
-	valuePtr := NewValue(v)
-	// nil
-	if valuePtr.IsValid() {
-		t.Errorf("NewValue failed, is nil")
-		return
-	}
-
-	// zero
-	if !valuePtr.IsZero() {
-		t.Errorf("NewValue failed, is zero")
-		return
-	}
-
-	// not basic
-	if valuePtr.IsBasic() {
-		t.Errorf("IsBasic failed, is not basic")
-		return
-	}
-
-	iVal := 10
-	iReflect := reflect.ValueOf(&iVal)
-	valuePtr = NewValue(iReflect)
-	// not nil
-	if !valuePtr.IsValid() {
+	intReflect := reflect.ValueOf(&intVal)
+	value = NewValue(intReflect)
+	if !value.IsValid() {
 		t.Errorf("NewValue failed, is not nil")
 	}
 
-	// not zero
-	if valuePtr.IsZero() {
+	if value.IsZero() {
 		t.Errorf("NewValue failed, is not zero")
 	}
 
-	// basic
-	if !valuePtr.IsBasic() {
-		t.Errorf("IsBasic failed")
-		return
+	err = value.Set(0)
+	if err == nil {
+		t.Errorf("Set failed, error is not nil")
 	}
 
-	var nulValue int
-	nReflect := reflect.ValueOf(&nulValue)
-	value2Ptr := NewValue(nReflect)
-	// not nil
-	if !value2Ptr.IsValid() {
+	if intVal == 0 {
+		t.Errorf("Set failed, value is not zero")
+	}
+	if value.IsZero() {
+		t.Errorf("IsZero() for non-zero value should be false")
+	}
+
+	rawVal := value.Get()
+	switch rawVal.(type) {
+	case *int:
+		if *(rawVal.(*int)) != intVal {
+			t.Errorf("Get failed, expected *int, got %T", rawVal)
+		}
+	default:
+		t.Errorf("Get failed, expected *int, got %T", rawVal)
+	}
+
+	var nilValue int
+	nilReflect := reflect.ValueOf(&nilValue).Elem()
+	value = NewValue(nilReflect)
+	if !value.IsValid() {
 		t.Errorf("NewValue failed, IsValid false")
-		return
 	}
 
-	// zero
-	if !value2Ptr.IsZero() {
+	if !value.IsZero() {
 		t.Errorf("NewValue failed, IsZero true")
-		return
 	}
 
-	// basic
-	if !value2Ptr.IsBasic() {
-		t.Errorf("IsBasic failed")
-		return
+	rawVal = value.Get()
+	switch rawVal.(type) {
+	case int:
+		if rawVal.(int) != 0 {
+			t.Errorf("Get failed, expected int, got %T", rawVal)
+		}
+	default:
+		t.Errorf("Get failed, expected int, got %T", rawVal)
 	}
 
-	value2Ptr.Set(valuePtr.Get())
-	// not nil
-	if !value2Ptr.IsValid() {
-		t.Errorf("is not nil")
-		return
+	value.Set(10)
+	if value.IsZero() {
+		t.Errorf("Set failed, IsZero true")
 	}
-	// not zero
-	if value2Ptr.IsZero() {
-		t.Errorf("not zero")
+	rawVal = value.Get()
+	switch rawVal.(type) {
+	case int:
+		if rawVal.(int) != 10 {
+			t.Errorf("Get failed, expected int, got %T", rawVal)
+		}
+	default:
+		t.Errorf("Get failed, expected int, got %T", rawVal)
 	}
-
-	// basic
-	if !value2Ptr.IsBasic() {
-		t.Errorf("IsBasic failed")
-		return
-	}
-
-	iVal = 12
-	iReflect2 := reflect.ValueOf(&iVal)
-	value2Ptr.Set(iReflect2)
 }
 
 // TestValueInterface tests the Interface method
 func TestValueInterface(t *testing.T) {
-	// Test with nil value
-	var v reflect.Value
-	valuePtr := NewValue(v)
-	if valuePtr.Interface() != nil {
-		t.Errorf("Interface() for nil value should return nil")
-	}
-
 	// Test with non-nil value
 	iVal := 10
-	iReflect := reflect.ValueOf(iVal)
-	valuePtr = NewValue(iReflect)
-	rawVal := valuePtr.Interface()
-	if rawVal == nil {
-		t.Errorf("Interface() for non-nil value should not return nil")
-		return
-	}
-
-	if rawVal.Value() != iVal {
-		t.Errorf("Interface() returned wrong value, expected: %v, got: %v", iVal, rawVal.Value())
-	}
-}
-
-// TestValueAddr tests the Addr method
-func TestValueAddr(t *testing.T) {
-	// Setup addressable value
-	iVal := 10
-	slice := []int{iVal}
-	sliceReflectVal := reflect.ValueOf(slice)
-	elemReflectVal := sliceReflectVal.Index(0)
-	valuePtr := NewValue(elemReflectVal)
-
-	// Test Addr
-	addrValue := valuePtr.Addr()
-	if addrValue == nil {
-		t.Errorf("Addr() should not return nil for addressable value")
-		return
-	}
-
-	// Verify the value can be dereferenced
-	rawVal := addrValue.Interface()
-	if rawVal == nil {
-		t.Errorf("Addr().Interface() should not return nil")
-		return
-	}
-
-	// Verify the value is correct
-	val := rawVal.Value().(*int)
-	if *val != iVal {
-		t.Errorf("Addr() returned wrong value, expected: %v, got: %v", iVal, *val)
-	}
-}
-
-// TestValueCopy tests the Copy method
-func TestValueCopy(t *testing.T) {
-	// Test with nil value
-	var v reflect.Value
-	valuePtr := NewValue(v)
-	copyVal := valuePtr.Copy()
-	if copyVal.IsValid() {
-		t.Errorf("Copy() of nil value should not be valid")
-	}
-
-	// Test with non-nil value
-	iVal := 10
-	iReflect := reflect.ValueOf(iVal)
-	valuePtr = NewValue(iReflect)
-	copyVal = valuePtr.Copy()
-
-	// Verify copy is valid
-	if !copyVal.IsValid() {
-		t.Errorf("Copy() of non-nil value should be valid")
-		return
-	}
-
-	// Verify value equality
-	originalVal := valuePtr.Get().(reflect.Value).Interface()
-	copiedVal := copyVal.Get().(reflect.Value).Interface()
-	if originalVal != copiedVal {
-		t.Errorf("Copy() value mismatch, expected: %v, got: %v", originalVal, copiedVal)
-	}
-
-	// Verify deep copy - changing original should not affect copy
-	iVal = 20
-	if copiedVal != 10 {
-		t.Errorf("Copy() should be a deep copy, expected copied value to remain 10, got: %v", copiedVal)
-	}
-}
-
-// TestValueIsBasic tests the IsBasic method with various types
-func TestValueIsBasic(t *testing.T) {
-	// Test with basic types
-	testCases := []struct {
-		name     string
-		value    interface{}
-		expected bool
-	}{
-		{"Int", 10, true},
-		{"String", "test", true},
-		{"Bool", true, true},
-		{"Float", 10.5, true},
-		{"Struct", struct{ Name string }{"test"}, false},
-		{"Slice of basic", []int{1, 2, 3}, true},
-		{"Slice of struct", []struct{ Name string }{{"test"}}, false},
-		{"Pointer to basic", func() interface{} { i := 10; return &i }(), true},
-		{"Pointer to struct", func() interface{} { s := struct{ Name string }{"test"}; return &s }(), false},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			valuePtr := NewValue(reflect.ValueOf(tc.value))
-			if valuePtr.IsBasic() != tc.expected {
-				t.Errorf("IsBasic() for %s, expected: %v, got: %v", tc.name, tc.expected, valuePtr.IsBasic())
-			}
-		})
+	iReflect := reflect.ValueOf(&iVal).Elem()
+	valuePtr := NewValue(iReflect)
+	if valuePtr.Get().(int) != iVal {
+		t.Errorf("Interface() returned wrong value, expected: %v, got: %v", iVal, valuePtr.Get())
 	}
 }
 
@@ -244,5 +218,100 @@ func TestValueWithNilPointer(t *testing.T) {
 	}
 	if valuePtr.IsZero() {
 		t.Errorf("IsZero() for non-nil pointer should be false")
+	}
+}
+
+func TestUnpackValue(t *testing.T) {
+	tests := []struct {
+		name     string
+		value    any
+		expected []model.Value
+	}{
+		{
+			name:  "slice value",
+			value: []int{1, 2, 3},
+			expected: []model.Value{
+				NewValue(reflect.ValueOf(1)),
+				NewValue(reflect.ValueOf(2)),
+				NewValue(reflect.ValueOf(3)),
+			},
+		},
+		{
+			name:     "non-slice value",
+			value:    42,
+			expected: []model.Value{NewValue(reflect.ValueOf(42))},
+		},
+		{
+			name:     "empty slice value",
+			value:    []int{},
+			expected: []model.Value{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			valueImpl := &ValueImpl{value: reflect.ValueOf(tt.value)}
+			actual := valueImpl.UnpackValue()
+			if len(actual) != len(tt.expected) {
+				t.Errorf("UnpackValue() name:%s = %v, want %v", tt.name, actual, tt.expected)
+				return
+			}
+
+			for i := range actual {
+				if actual[i].Get() != tt.expected[i].Get() {
+					t.Errorf("UnpackValue() name:%s = %v, want %v", tt.name, actual, tt.expected)
+				}
+			}
+		})
+	}
+}
+
+func TestValueImpl_Append(t *testing.T) {
+	tests := []struct {
+		name    string
+		value   reflect.Value
+		val     reflect.Value
+		wantErr bool
+	}{
+		{
+			name:    "append to slice",
+			value:   reflect.Indirect(reflect.ValueOf(&[]int{1, 2})),
+			val:     reflect.ValueOf(3),
+			wantErr: false,
+		},
+		{
+			name:    "append to non-slice",
+			value:   reflect.ValueOf(1),
+			val:     reflect.ValueOf(2),
+			wantErr: true,
+		},
+		{
+			name:    "type mismatch",
+			value:   reflect.ValueOf([]int{1, 2}),
+			val:     reflect.ValueOf("3"),
+			wantErr: true,
+		},
+		{
+			name:    "nil value",
+			value:   reflect.ValueOf([]int{1, 2}),
+			val:     reflect.ValueOf(nil),
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v := &ValueImpl{value: tt.value}
+			err := v.Append(tt.val)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValueImpl.Append() name:%s, error = %v, wantErr %v", tt.name, err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr {
+				if v.value.Len() != 3 {
+					t.Errorf("ValueImpl.Append() name:%s, len = %d, want 3", tt.name, v.value.Len())
+				}
+			}
+		})
 	}
 }

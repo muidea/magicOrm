@@ -4,12 +4,13 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
+	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
 )
 
-func getModelFilter(vModel model.Model, provider provider.Provider, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result) {
-	filterVal, filterErr := provider.GetModelFilter(vModel, viewSpec)
+func getModelFilter(vModel model.Model, provider provider.Provider, modelCodec codec.Codec) (ret model.Filter, err *cd.Result) {
+	filterVal, filterErr := provider.GetModelFilter(vModel)
 	if filterErr != nil {
 		err = filterErr
 		log.Errorf("getModelFilter failed, s.modelProvider.GetEntityFilter error:%s", err.Error())
@@ -17,19 +18,21 @@ func getModelFilter(vModel model.Model, provider provider.Provider, viewSpec mod
 	}
 
 	hasPKValue := false
-	for _, field := range vModel.GetFields() {
-		fValue := field.GetValue()
-		if !field.IsPrimaryKey() || fValue.IsZero() {
-			continue
+	pkField := vModel.GetPrimaryField()
+	if model.IsAssignedField(pkField) {
+		pkVal, pkErr := modelCodec.PackedBasicFieldValue(pkField, pkField.GetValue())
+		if pkErr != nil {
+			err = pkErr
+			log.Errorf("getModelFilter failed, modelCodec.PackedFieldValue error:%s", err.Error())
+			return
 		}
 
-		err = filterVal.Equal(field.GetName(), fValue.Interface().Value())
+		err = filterVal.Equal(pkField.GetName(), pkVal)
 		if err != nil {
 			log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
 			return
 		}
 		hasPKValue = true
-		break
 	}
 
 	if hasPKValue {
@@ -38,55 +41,58 @@ func getModelFilter(vModel model.Model, provider provider.Provider, viewSpec mod
 	}
 
 	for _, field := range vModel.GetFields() {
-		if field.IsPrimaryKey() {
+		if model.IsPrimaryField(field) || !model.IsAssignedField(field) {
 			continue
 		}
 
-		//fType := field.GetType()
-		fValue := field.GetValue()
-		if !fValue.IsValid() {
-			continue
-		}
-
-		// if basic
-		if field.IsBasic() {
-			if !field.IsSlice() {
-				err = filterVal.Equal(field.GetName(), fValue.Interface().Value())
-				if err != nil {
-					log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
-					return
-				}
-			}
-
-			continue
-		}
-
-		// if slice
-		if field.IsSlice() {
-			err = filterVal.In(field.GetName(), fValue.Interface().Value())
+		// 这里需要考虑普通值和Struct以及Slice Struct值的分开处理
+		// basic, basic slice
+		if model.IsBasicField(field) {
+			//fieldVal, fieldErr := modelCodec.PackedBasicFieldValue(field, field.GetValue())
+			//if fieldErr != nil {
+			//	err = fieldErr
+			//	log.Errorf("getModelFilter failed, modelCodec.PackedFieldValue error:%s", err.Error())
+			//	return
+			//}
+			err = filterVal.Equal(field.GetName(), field.GetValue().Get())
 			if err != nil {
-				log.Errorf("getModelFilter failed, filterVal.In error:%s", err.Error())
+				log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
 				return
 			}
 
 			continue
 		}
 
-		// if struct
-		if field.IsStruct() {
-			// 为了避免自己引用或关联自己
-			// 这种情况放在数据插入的时候判断
-			//if fType.GetPkgKey() == vModel.GetPkgKey() {
-			//	vValue := vModel.GetPrimaryField().GetValue()
-			//	log.Infof("field:%s, vValue:%v, fValue:%v", field.GetName(), vValue.Interface(), fValue.Interface())
-			//	if util.IsSameValue(fValue.Interface(), vValue.Interface()) {
-			//		continue
-			//	}
+		// struct
+		if model.IsStructField(field) {
+			//fieldVal, fieldErr := modelCodec.PackedStructFieldValue(field, field.GetValue())
+			//if fieldErr != nil {
+			//	err = fieldErr
+			//	log.Errorf("getModelFilter failed, modelCodec.PackedFieldValue error:%s", err.Error())
+			//	return
 			//}
 
-			err = filterVal.Equal(field.GetName(), fValue.Interface().Value())
+			err = filterVal.Equal(field.GetName(), field.GetValue().Get())
 			if err != nil {
 				log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
+				return
+			}
+
+			continue
+		}
+
+		// struct slice
+		if model.IsSliceField(field) {
+			//fieldVal, fieldErr := modelCodec.PackedSliceStructFieldValue(field, field.GetValue())
+			//if fieldErr != nil {
+			//	err = fieldErr
+			//	log.Errorf("getModelFilter failed, modelCodec.PackedFieldValue error:%s", err.Error())
+			//	return
+			//}
+
+			err = filterVal.In(field.GetName(), field.GetValue().Get())
+			if err != nil {
+				log.Errorf("getModelFilter failed, filterVal.In error:%s", err.Error())
 				return
 			}
 

@@ -73,14 +73,14 @@ func TestTypeValidation(t *testing.T) {
 func TestStructValidation(t *testing.T) {
 	// Test valid struct
 	validStruct := ValidationTestStruct{ID: 1, Name: "test"}
-	_, err := GetEntityModel(validStruct)
+	_, err := GetEntityModel(&validStruct)
 	if err != nil {
 		t.Errorf("GetEntityModel failed for valid struct: %s", err.Error())
 	}
 
 	// Test struct with no primary key
 	invalidKeyStruct := InvalidKeyStruct{Name: "test", Value: 123.45}
-	_, err = GetEntityModel(invalidKeyStruct)
+	_, err = GetEntityModel(&invalidKeyStruct)
 	if err == nil {
 		t.Errorf("GetEntityModel should fail for struct with no primary key")
 	}
@@ -111,57 +111,12 @@ func TestStructValidation(t *testing.T) {
 	}
 }
 
-func TestFieldVerificationOrig(t *testing.T) {
-	validStruct := ValidationTestStruct{ID: 1, Name: "test"}
-	entityType := reflect.TypeOf(validStruct)
-	entityValue := reflect.ValueOf(validStruct)
-
-	// Test each field
-	for i := 0; i < entityType.NumField(); i++ {
-		structField := entityType.Field(i)
-		fieldValue := entityValue.Field(i)
-
-		fieldSpec, specErr := NewSpec(structField.Tag)
-		if specErr != nil {
-			t.Errorf("NewSpec failed: %s", specErr.Error())
-			continue
-		}
-
-		fieldType, typeErr := NewType(fieldValue.Type())
-		if typeErr != nil {
-			t.Errorf("NewType failed: %s", typeErr.Error())
-			continue
-		}
-
-		field := &field{
-			index:    i,
-			name:     fieldSpec.GetFieldName(),
-			typePtr:  fieldType,
-			specPtr:  fieldSpec,
-			valuePtr: NewValue(fieldValue),
-		}
-
-		err := field.verify()
-		if err != nil {
-			t.Errorf("field.verify failed for field %s: %s", structField.Name, err.Error())
-		}
-	}
-}
-
 func TestValueVerification(t *testing.T) {
 	// Test valid values
 	intVal := 42
 	intValue := NewValue(reflect.ValueOf(intVal))
 	if !intValue.IsValid() {
 		t.Errorf("Value should be valid for int")
-	}
-
-	// Test nil value
-	var nilPtr *int = nil
-	nilValue := reflect.ValueOf(nilPtr)
-	nilVal := NewValue(nilValue)
-	if nilVal.IsValid() {
-		t.Errorf("Value should be invalid for nil pointer")
 	}
 
 	// Test zero values

@@ -37,8 +37,8 @@ func (s *Builder) buildFilter(vModel model.Model, filter model.Filter, resultSta
 			continue
 		}
 
-		if field.IsBasic() {
-			basicSQL, basicErr := s.buildBasicItem(field, filterItem, resultStackPtr)
+		if model.IsBasicField(field) {
+			basicSQL, basicErr := s.buildBasicFilterItem(field, filterItem, resultStackPtr)
 			if basicErr != nil {
 				err = basicErr
 				log.Errorf("buildFilter failed, s.buildBasicItem %s error:%s", field.GetName(), err.Error())
@@ -54,7 +54,7 @@ func (s *Builder) buildFilter(vModel model.Model, filter model.Filter, resultSta
 			continue
 		}
 
-		relationSQL, relationErr := s.buildRelationItem(vModel, field, filterItem, resultStackPtr)
+		relationSQL, relationErr := s.buildRelationFilterItem(vModel, field, filterItem, resultStackPtr)
 		if relationErr != nil {
 			err = relationErr
 			log.Errorf("buildFilter failed, s.buildRelationItem %s error:%s", field.GetName(), err.Error())
@@ -73,40 +73,50 @@ func (s *Builder) buildFilter(vModel model.Model, filter model.Filter, resultSta
 	return
 }
 
-func (s *Builder) buildBasicItem(vField model.Field, filterItem model.FilterItem, resultStackPtr *ResultStack) (ret string, err *cd.Result) {
+func (s *Builder) buildBasicFilterItem(vField model.Field, filterItem model.FilterItem, resultStackPtr *ResultStack) (ret string, err *cd.Result) {
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
-	oprStr, oprErr := s.buildCodec.BuildOprValue(vField, oprValue)
-	if oprErr != nil {
-		err = oprErr
-		log.Errorf("buildBasicItem %s failed, EncodeValue error:%s", vField.GetName(), err.Error())
+	fieldVal, fieldErr := s.modelProvider.EncodeValue(oprValue.Get(), vField.GetType())
+	if fieldErr != nil {
+		err = fieldErr
+		log.Errorf("buildBasicItem %s failed, s.modelProvider.EncodeValue error:%s", vField.GetName(), err.Error())
 		return
 	}
 
-	ret = oprFunc(vField.GetName(), oprStr, resultStackPtr)
+	ret = oprFunc(vField.GetName(), fieldVal, resultStackPtr)
 	return
 }
 
-func (s *Builder) buildRelationItem(vModel model.Model, vField model.Field, filterItem model.FilterItem, resultStackPtr *ResultStack) (ret string, err *cd.Result) {
+func (s *Builder) buildRelationFilterItem(vModel model.Model, vField model.Field, filterItem model.FilterItem, resultStackPtr *ResultStack) (ret string, err *cd.Result) {
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
-	oprStr, oprErr := s.buildCodec.BuildOprValue(vField, oprValue)
-	if oprErr != nil {
-		err = oprErr
-		log.Errorf("buildRelationItem %s failed, s.buildCodec.BuildOprValue error:%s", vField.GetName(), err.Error())
-		return
-	}
 
-	rModel, rErr := s.modelProvider.GetTypeModel(vField.GetType())
-	if rErr != nil {
-		err = rErr
-		log.Errorf("buildRelationItem %s failed, s.modelProvider.GetTypeModel error:%s", vField.GetName(), err.Error())
-		return
+	var fieldVal any
+	switch filterItem.OprCode() {
+	case model.InOpr, model.NotInOpr:
+		entitySlice := []any{}
+		fieldVals := oprValue.UnpackValue()
+		for _, val := range fieldVals {
+			subItemVal, subItemErr := s.modelProvider.EncodeValue(val.Get(), vField.GetType())
+			if subItemErr != nil {
+				err = subItemErr
+				log.Errorf("buildRelationItem %s failed, s.modelProvider.EncodeValue error:%s", vField.GetName(), err.Error())
+				return
+			}
+			entitySlice = append(entitySlice, subItemVal)
+		}
+		fieldVal = entitySlice
+	default:
+		fieldVal, err = s.modelProvider.EncodeValue(oprValue.Get(), vField.GetType())
+		if err != nil {
+			log.Errorf("buildRelationItem %s failed, s.modelProvider.EncodeValue error:%s", vField.GetName(), err.Error())
+			return
+		}
 	}
 
 	relationFilterSQL := ""
-	strVal := oprFunc("right", oprStr, resultStackPtr)
-	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField, rModel)
+	strVal := oprFunc("right", fieldVal, resultStackPtr)
+	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("buildRelationItem %s failed, s.buildCodec.ConstructRelationTableName error:%s", vField.GetName(), err.Error())
@@ -137,16 +147,9 @@ func (s *Builder) buildSorter(vModel model.Model, filter model.Sorter) (ret stri
 	return
 }
 
-func (s *Builder) buildFiledFilter(vField model.Field, resultStackPtr *ResultStack) (ret string, err *cd.Result) {
-	fieldVal, fieldErr := s.buildCodec.BuildFieldValue(vField)
-	if fieldErr != nil {
-		err = fieldErr
-		log.Errorf("BuildModelFilter failed, s.EncodeValue error:%s", err.Error())
-		return
-	}
-
+func (s *Builder) buildFieldFilter(vField model.Field, resultStackPtr *ResultStack) (ret string, err *cd.Result) {
 	fieldName := vField.GetName()
-	resultStackPtr.PushArgs(fieldVal.Value())
+	resultStackPtr.PushArgs(vField.GetValue().Get())
 	ret = fmt.Sprintf("`%s` = ?", fieldName)
 	return
 }

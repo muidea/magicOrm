@@ -35,6 +35,8 @@ type Paginationer interface {
 
 // Filter orm query filter
 type Filter interface {
+	GetName() string
+	GetPkgPath() string
 	Equal(key string, val any) *cd.Result
 	NotEqual(key string, val any) *cd.Result
 	Below(key string, val any) *cd.Result

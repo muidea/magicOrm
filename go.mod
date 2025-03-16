@@ -4,6 +4,7 @@ go 1.22
 
 require (
 	github.com/go-sql-driver/mysql v1.8.1
+	github.com/google/go-cmp v0.7.0
 	github.com/muidea/magicCommon v1.3.122
 	github.com/stretchr/testify v1.10.0
 )

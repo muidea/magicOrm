@@ -63,35 +63,34 @@ func TestFieldImplementation(t *testing.T) {
 	}
 
 	// Test SetValue
-	newValue := NewValue(int64(456))
-	field.SetValue(newValue)
+	field.SetValue(int64(456))
 	updatedValue := field.GetValue()
 	if updatedValue.Get() != int64(456) {
 		t.Errorf("SetValue failed, expected 456, got %v", updatedValue.Get())
 	}
 
-	// Test IsPrimaryKey
-	if !field.IsPrimaryKey() {
-		t.Errorf("IsPrimaryKey failed, expected true, got false")
+	// Test IsPrimaryField
+	if !model.IsPrimaryField(field) {
+		t.Errorf("IsPrimaryField failed, expected true, got false")
 	}
 
 	// Test IsBasic
-	if !field.IsBasic() {
+	if !model.IsBasicField(field) {
 		t.Errorf("IsBasic failed, expected true, got false")
 	}
 
 	// Test IsStruct
-	if field.IsStruct() {
+	if model.IsStructField(field) {
 		t.Errorf("IsStruct failed, expected false, got true")
 	}
 
 	// Test IsSlice
-	if field.IsSlice() {
+	if model.IsSliceField(field) {
 		t.Errorf("IsSlice failed, expected false, got true")
 	}
 
 	// Test IsPtrType
-	if field.IsPtrType() {
+	if model.IsPtrField(field) {
 		t.Errorf("IsPtrType failed, expected false, got true")
 	}
 }
@@ -108,7 +107,7 @@ func TestFieldCopy(t *testing.T) {
 	}
 
 	// Test copy with reset=false
-	copiedField, err := field.copy(false)
+	copiedField, err := field.copy(model.OriginView)
 	if err != nil {
 		t.Errorf("Field copy(false) failed with error: %v", err)
 		return
@@ -126,7 +125,7 @@ func TestFieldCopy(t *testing.T) {
 	}
 
 	// Test copy with reset=true
-	resetField, err := field.copy(true)
+	resetField, err := field.copy(model.MetaView)
 	if err != nil {
 		t.Errorf("Field copy(true) failed with error: %v", err)
 		return
@@ -295,7 +294,7 @@ func TestFieldValueImplementation(t *testing.T) {
 	}
 
 	// Test IsNil
-	if fieldVal.IsNil() {
+	if !fieldVal.IsValid() {
 		t.Errorf("IsNil failed, expected false, got true")
 	}
 
@@ -304,7 +303,7 @@ func TestFieldValueImplementation(t *testing.T) {
 		Name:  "nilField",
 		Value: nil,
 	}
-	if !nilFieldVal.IsNil() {
+	if nilFieldVal.IsValid() {
 		t.Errorf("IsNil failed for nil value, expected true, got false")
 	}
 
@@ -330,11 +329,11 @@ func TestFieldValueImplementation(t *testing.T) {
 		Name:  "testField",
 		Value: int64(123),
 	}
-	
+
 	if testFieldVal.Get() != int64(123) {
 		t.Errorf("Get failed, expected 123, got %v", testFieldVal.Get())
 	}
-	
+
 	testFieldVal.Set(int64(456))
 	if testFieldVal.Get() != int64(456) {
 		t.Errorf("Set failed, expected 456 after setting, got %v", testFieldVal.Get())
@@ -350,7 +349,7 @@ func TestFieldValueImplementation(t *testing.T) {
 	if copiedFieldVal.Name != testFieldVal.Name || copiedFieldVal.Value != testFieldVal.Value {
 		t.Errorf("copy failed, values don't match")
 	}
-	
+
 	// Verify the copy is independent
 	testFieldVal.Set(int64(789))
 	if copiedFieldVal.Value == testFieldVal.Value {

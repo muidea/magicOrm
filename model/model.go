@@ -1,18 +1,20 @@
 package model
 
+import cd "github.com/muidea/magicCommon/def"
+
 type Model interface {
 	GetName() string
+	GetShowName() string
 	GetPkgPath() string
 	GetDescription() string
-	GetPkgKey() string
 	GetFields() Fields
-	SetFieldValue(name string, val Value)
-	SetPrimaryFieldValue(val Value)
+	SetFieldValue(name string, val any) *cd.Result
+	SetPrimaryFieldValue(val any) *cd.Result
 	GetPrimaryField() Field
 	GetField(name string) Field
-	Interface(ptrValue bool, viewSpec ViewDeclare) any
-	Copy(reset bool) Model
-	Dump() string
+	Interface(ptrValue bool) any
+	Copy(viewSpec ViewDeclare) Model
+	Reset()
 }
 
 func CompareModel(l, r Model) bool {

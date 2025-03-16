@@ -35,8 +35,8 @@ func (s *DropRunner) dropHost(vModel model.Model) (err *cd.Result) {
 	return
 }
 
-func (s *DropRunner) dropRelation(vModel model.Model, vField model.Field, rModel model.Model) (err *cd.Result) {
-	relationResult, relationErr := s.hBuilder.BuildDropRelationTable(vModel, vField, rModel)
+func (s *DropRunner) dropRelation(vModel model.Model, vField model.Field) (err *cd.Result) {
+	relationResult, relationErr := s.hBuilder.BuildDropRelationTable(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("dropRelation failed, hBuilder.BuildDropRelationTable error:%s", err.Error())
@@ -58,20 +58,19 @@ func (s *DropRunner) Drop() (err *cd.Result) {
 	}
 
 	for _, field := range s.vModel.GetFields() {
-		if field.IsBasic() {
+		if model.IsBasicField(field) {
 			continue
 		}
 
-		fType := field.GetType()
-		rModel, rErr := s.modelProvider.GetTypeModel(fType)
-		if rErr != nil {
-			err = rErr
-			log.Errorf("Drop failed, s.modelProvider.GetTypeModel error:%s", err.Error())
-			return
-		}
-
-		elemType := fType.Elem()
+		elemType := field.GetType().Elem()
 		if !elemType.IsPtrType() {
+			rModel, rErr := s.modelProvider.GetTypeModel(elemType)
+			if rErr != nil {
+				err = rErr
+				log.Errorf("Drop failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+				return
+			}
+
 			rRunner := NewDropRunner(rModel, s.executor, s.modelProvider, s.modelCodec)
 			err = rRunner.Drop()
 			if err != nil {
@@ -80,7 +79,7 @@ func (s *DropRunner) Drop() (err *cd.Result) {
 			}
 		}
 
-		err = s.dropRelation(s.vModel, field, rModel)
+		err = s.dropRelation(s.vModel, field)
 		if err != nil {
 			log.Errorf("Drop failed, s.dropRelation error:%s", err.Error())
 			return

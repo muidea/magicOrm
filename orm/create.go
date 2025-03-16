@@ -35,8 +35,8 @@ func (s *CreateRunner) createHost() (err *cd.Result) {
 	return
 }
 
-func (s *CreateRunner) createRelation(vField model.Field, rModel model.Model) (err *cd.Result) {
-	relationResult, relationErr := s.hBuilder.BuildCreateRelationTable(s.vModel, vField, rModel)
+func (s *CreateRunner) createRelation(vField model.Field) (err *cd.Result) {
+	relationResult, relationErr := s.hBuilder.BuildCreateRelationTable(s.vModel, vField)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("createRelation failed, hBuilder.BuildCreateRelationTable error:%s", err.Error())
@@ -58,20 +58,19 @@ func (s *CreateRunner) Create() (err *cd.Result) {
 	}
 
 	for _, field := range s.vModel.GetFields() {
-		if field.IsBasic() {
+		if model.IsBasicField(field) {
 			continue
 		}
 
-		fType := field.GetType()
-		rModel, rErr := s.modelProvider.GetTypeModel(fType)
-		if rErr != nil {
-			err = rErr
-			log.Errorf("Create failed, s.modelProvider.GetTypeModel error:%s", err.Error())
-			return
-		}
-
-		elemType := fType.Elem()
+		elemType := field.GetType().Elem()
 		if !elemType.IsPtrType() {
+			rModel, rErr := s.modelProvider.GetTypeModel(elemType)
+			if rErr != nil {
+				err = rErr
+				log.Errorf("Create failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+				return
+			}
+
 			rRunner := NewCreateRunner(rModel, s.executor, s.modelProvider, s.modelCodec)
 			err = rRunner.Create()
 			if err != nil {
@@ -80,7 +79,7 @@ func (s *CreateRunner) Create() (err *cd.Result) {
 			}
 		}
 
-		err = s.createRelation(field, rModel)
+		err = s.createRelation(field)
 		if err != nil {
 			log.Errorf("Create failed, s.createRelation error:%s", err.Error())
 			return

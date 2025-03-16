@@ -1,697 +1,396 @@
 package utils
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/muidea/magicCommon/foundation/log"
 )
 
-type BaseInfo struct {
-	IntVal          int            `orm:"intVal"`
-	EmptyIntVal     int            `orm:"EmptyIntVal"`
-	StrVal          string         `orm:"strVal"`
-	EmptyStrVal     string         `orm:"EmptyStrVal"`
-	BoolVal         bool           `orm:"boolVal"`
-	EmptyBoolVal    bool           `orm:"EmptyBoolVal"`
-	Float32Val      float32        `orm:"float32Val"`
-	EmptyFloat32Val float32        `orm:"EmptyFloat32Val"`
-	Float64Val      float64        `orm:"float64Val"`
-	EmptyFloat64Val float64        `orm:"EmptyFloat64Val"`
-	TimeVal         time.Time      `orm:"timeVal"`
-	EmptyTimeVal    time.Time      `orm:"EmptyTimeVal"`
-	SliceVal        []int          `orm:"sliceVal"`
-	EmptySliceVal   []int          `orm:"EmptySliceVal"`
-	MapVal          map[string]int `orm:"mapVal"`
-	EmptyMapVal     map[string]int `orm:"EmptyMapVal"`
-}
-
-// TestIsReallyValid tests the IsReallyValid function
+// TestIsReallyValid tests the IsReallyValid function based on its documented behavior
 func TestIsReallyValid(t *testing.T) {
-	var sliceVal []int
-	var mapVal map[string]int
-	var structVal struct{}
-
-	baseInfo := BaseInfo{
-		IntVal:     1,
-		StrVal:     "a",
-		BoolVal:    true,
-		Float32Val: 1.0,
-		Float64Val: 1.0,
-		TimeVal:    time.Now(),
-		SliceVal:   []int{1},
-		MapVal:     map[string]int{"a": 1},
+	var strPtr *string
+	strPtrRVal := reflect.ValueOf(strPtr)
+	log.Infof("strPtrRVal Type:%v", strPtrRVal.Type())
+	strPtrRVal = reflect.New(strPtrRVal.Type().Elem()).Elem()
+	log.Infof("strPtrRVal Type:%v", strPtrRVal.Type())
+	if !IsReallyValidValueForReflect(strPtrRVal) {
+		t.Errorf("strPtrRVal should be valid")
+	}
+	strPtrRVal = strPtrRVal.Addr()
+	log.Infof("strPtrRVal Type:%v", strPtrRVal.Type())
+	if !IsReallyValidValueForReflect(strPtrRVal) {
+		t.Errorf("strPtrRVal should be valid")
 	}
 
+	var interfaceVal interface{}
+
+	emptyIntSlice := []int{}
+	noEmptyIntSlice := []int{1, 2, 3}
+
+	emptyArray := [0]int{}
+	float32Array := [2]float32{12.34, 23.45}
+
 	tests := []struct {
-		name string
-		val  interface{}
-		want bool
+		name  string
+		value interface{}
+		want  bool
 	}{
-		{"Nil", nil, false},
-		{"NilPointer", (*int)(nil), false},
-		{"NonNilPointer", new(int), true},
-		{"PointerToNonNilPointer", func() interface{} { i := 0; p := &i; return &p }(), true},
-		{"ValidInt", 42, true},
-		{"ValidString", "hello", true},
-		{"ZeroInt", 0, true},
-		{"EmptyString", "", true},
-		{"EmptySlice", []int{}, true},
-		{"sliceVal", sliceVal, false},
-		{"NonEmptySlice", []int{1, 2, 3}, true},
-		{"EmptyMap", map[string]int{}, true},
-		{"mapVal", mapVal, false},
-		{"NonEmptyMap", map[string]int{"a": 1}, true},
-		{"EmptyStruct", struct{}{}, false},
-		{"structVal", structVal, false},
-		{"NonEmptyStruct", struct{ Name string }{Name: "test"}, true},
-		{"NilFunc", (func())(nil), false},
-		{"NilChan", (chan int)(nil), false},
-		{"baseInfo", baseInfo, true},
-		{"baseInfo.IntVal", baseInfo.IntVal, true},
-		{"baseInfo.EmptyIntVal", baseInfo.EmptyIntVal, true},
-		{"baseInfo.StrVal", baseInfo.StrVal, true},
-		{"baseInfo.EmptyStrVal", baseInfo.EmptyStrVal, true},
-		{"baseInfo.BoolVal", baseInfo.BoolVal, true},
-		{"baseInfo.EmptyBoolVal", baseInfo.EmptyBoolVal, true},
-		{"baseInfo.Float32Val", baseInfo.Float32Val, true},
-		{"baseInfo.EmptyFloat32Val", baseInfo.EmptyFloat32Val, true},
-		{"baseInfo.Float64Val", baseInfo.Float64Val, true},
-		{"baseInfo.EmptyFloat64Val", baseInfo.EmptyFloat64Val, true},
-		{"baseInfo.TimeVal", baseInfo.TimeVal, true},
-		{"baseInfo.EmptyTimeVal", baseInfo.EmptyTimeVal, true},
-		{"baseInfo.SliceVal", baseInfo.SliceVal, true},
-		{"baseInfo.EmptySliceVal", baseInfo.EmptySliceVal, false},
-		{"baseInfo.MapVal", baseInfo.MapVal, true},
-		{"baseInfo.EmptyMapVal", baseInfo.EmptyMapVal, false},
+		// Basic value types tests
+		{"nil", nil, false},
+		{"bool true", true, true},
+		{"bool false", false, true},
+		{"int zero", 0, true},
+		{"int non-zero", 42, true},
+		{"int8", int8(8), true},
+		{"int16", int16(16), true},
+		{"int32", int32(32), true},
+		{"int64", int64(64), true},
+		{"uint", uint(1), true},
+		{"uint8", uint8(8), true},
+		{"uint16", uint16(16), true},
+		{"uint32", uint32(32), true},
+		{"uint64", uint64(64), true},
+		{"float32", float32(3.14), true},
+		{"float64", float64(3.14), true},
+		{"empty string", "", true},
+		{"non-empty string", "hello", true},
+
+		// Pointer type tests
+		{"nil pointer", (*int)(nil), false},
+		{"pointer to int", func() interface{} { v := 42; return &v }(), true},
+		{"pointer to string", func() interface{} { v := "hello"; return &v }(), true},
+		{"nil pointer time.Time", (*time.Time)(nil), false},
+		{"pointer to time.Time", func() interface{} { v := time.Now(); return &v }(), true},
+
+		{"interface, empty int slice", func() interface{} { interfaceVal = emptyIntSlice; return interfaceVal }(), true},
+		{"interface, noEmpty int slice", func() interface{} { interfaceVal = noEmptyIntSlice; return interfaceVal }(), true},
+		{"interface, empty int array", func() interface{} { interfaceVal = emptyArray; return interfaceVal }(), true},
+		{"interface, noEmpty float32 array", func() interface{} { interfaceVal = float32Array; return interfaceVal }(), true},
+
+		// Slice type tests
+		{"nil slice", ([]int)(nil), false},
+		{"empty slice", []int{}, true},
+		{"int slice", []int{1, 2, 3}, true},
+		{"string slice", []string{"a", "b", "c"}, true},
+		{"empty float32 array", [0]float32{}, true},
+
+		// Invalid types
+		{"map", map[string]int{"a": 1}, false},
+		{"struct", struct{ Name string }{"John"}, false},
+		{"chan", make(chan int), false},
+		{"func", func() {}, false},
+		{"complex", complex(1, 2), false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsReallyValid(tt.val); got != tt.want {
-				t.Errorf("name:%s IsReallyValid() = %v, want %v", tt.name, got, tt.want)
+			if got := IsReallyValidValue(tt.value); got != tt.want {
+				t.Errorf("IsReallyValid() = %v, name:%v, want %v for %v", got, tt.name, tt.want, tt.value)
 			}
 		})
 	}
 }
 
-// TestIsReallyValidForReflect tests the IsReallyValidForReflect function
-func TestIsReallyValidForReflect(t *testing.T) {
-	var sliceVal []int
-	var mapVal map[string]int
-	var structVal struct{}
-
-	baseInfo := BaseInfo{
-		IntVal:     1,
-		StrVal:     "a",
-		BoolVal:    true,
-		Float32Val: 1.0,
-		Float64Val: 1.0,
-		TimeVal:    time.Now(),
-		SliceVal:   []int{1},
-		MapVal:     map[string]int{"a": 1},
-	}
-
-	tests := []struct {
-		name string
-		val  reflect.Value
-		want bool
-	}{
-		{"NilPointer", reflect.ValueOf((*int)(nil)), false},
-		{"NonNilPointer", reflect.ValueOf(new(int)), true},
-		{"ValidInt", reflect.ValueOf(42), true},
-		{"ValidString", reflect.ValueOf("hello"), true},
-		{"ValidStruct", reflect.ValueOf(struct{ Name string }{Name: "test"}), true},
-		{"ZeroInt", reflect.ValueOf(0), true},
-		{"EmptyString", reflect.ValueOf(""), true},
-		{"EmptySlice", reflect.ValueOf([]int{}), true},
-		{"NonEmptySlice", reflect.ValueOf([]int{1, 2, 3}), true},
-		{"EmptyMap", reflect.ValueOf(map[string]int{}), true},
-		{"NonEmptyMap", reflect.ValueOf(map[string]int{"a": 1}), true},
-		{"EmptyStruct", reflect.ValueOf(struct{}{}), false},
-		{"ZeroTime", reflect.ValueOf(time.Time{}), true},
-		{"NonZeroTime", reflect.ValueOf(time.Now()), true},
-		{"sliceVal", reflect.ValueOf(sliceVal), false},
-		{"mapVal", reflect.ValueOf(mapVal), false},
-		{"structVal", reflect.ValueOf(structVal), false},
-		{"baseInfo", reflect.ValueOf(baseInfo), true},
-		{"baseInfo.IntVal", reflect.ValueOf(baseInfo.IntVal), true},
-		{"baseInfo.EmptyIntVal", reflect.ValueOf(baseInfo.EmptyIntVal), true},
-		{"baseInfo.StrVal", reflect.ValueOf(baseInfo.StrVal), true},
-		{"baseInfo.EmptyStrVal", reflect.ValueOf(baseInfo.EmptyStrVal), true},
-		{"baseInfo.BoolVal", reflect.ValueOf(baseInfo.BoolVal), true},
-		{"baseInfo.EmptyBoolVal", reflect.ValueOf(baseInfo.EmptyBoolVal), true},
-		{"baseInfo.Float32Val", reflect.ValueOf(baseInfo.Float32Val), true},
-		{"baseInfo.EmptyFloat32Val", reflect.ValueOf(baseInfo.EmptyFloat32Val), true},
-		{"baseInfo.Float64Val", reflect.ValueOf(baseInfo.Float64Val), true},
-		{"baseInfo.EmptyFloat64Val", reflect.ValueOf(baseInfo.EmptyFloat64Val), true},
-		{"baseInfo.TimeVal", reflect.ValueOf(baseInfo.TimeVal), true},
-		{"baseInfo.EmptyTimeVal", reflect.ValueOf(baseInfo.EmptyTimeVal), true},
-		{"baseInfo.SliceVal", reflect.ValueOf(baseInfo.SliceVal), true},
-		{"baseInfo.EmptySliceVal", reflect.ValueOf(baseInfo.EmptySliceVal), false},
-		{"baseInfo.MapVal", reflect.ValueOf(baseInfo.MapVal), true},
-		{"baseInfo.EmptyMapVal", reflect.ValueOf(baseInfo.EmptyMapVal), false},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := IsReallyValidForReflect(tt.val); got != tt.want {
-				t.Errorf("name:%s IsReallyValidForReflect() = %v, want %v", tt.name, got, tt.want)
-			}
-		})
-	}
-
-	// Test for nil channel and function
-	var funcPtr func() int
-	if IsReallyValidForReflect(reflect.ValueOf(funcPtr)) {
-		t.Errorf("nil function should not be valid")
-	}
-
-	var chanVal chan int
-	if IsReallyValidForReflect(reflect.ValueOf(chanVal)) {
-		t.Errorf("nil channel should not be valid")
-	}
-}
-
-// TestIsReallyZero tests the IsReallyZero function
+// TestIsReallyZero tests the IsReallyZero function based on its documented behavior
 func TestIsReallyZero(t *testing.T) {
-	var sliceVal []int
-	var mapVal map[string]int
-	var structVal struct{}
+	var interfaceVal interface{}
 
-	baseInfo := BaseInfo{
-		IntVal:     1,
-		StrVal:     "a",
-		BoolVal:    true,
-		Float32Val: 1.0,
-		Float64Val: 1.0,
-		TimeVal:    time.Now(),
-		SliceVal:   []int{1},
-		MapVal:     map[string]int{"a": 1},
+	emptyIntSlice := []int{}
+	noEmptyIntSlice := []int{1, 2, 3}
+
+	interfaceVal = emptyIntSlice
+	if !IsReallyZeroValue(interfaceVal) {
+		t.Error("IsReallyZero() should return true for empty slice")
+	}
+	interfaceVal = noEmptyIntSlice
+	if IsReallyZeroValue(interfaceVal) {
+		t.Error("IsReallyZero() should return false for non-empty slice")
 	}
 
 	tests := []struct {
-		name string
-		val  interface{}
-		want bool
+		name  string
+		value interface{}
+		want  bool
 	}{
-		{"Nil", nil, true},
-		{"NilPointer", (*int)(nil), true},
-		{"NonNilPointerToZero", func() interface{} { i := 0; return &i }(), true},
-		{"NonNilPointerToNonZero", func() interface{} { i := 1; return &i }(), false},
-		{"ZeroInt", 0, true},
-		{"NonZeroInt", 1, false},
-		{"EmptyString", "", true},
-		{"NonEmptyString", "hello", false},
-		{"EmptySlice", []int{}, true},
-		{"NonEmptySlice", []int{1, 2, 3}, false},
-		{"EmptyMap", map[string]int{}, true},
-		{"NonEmptyMap", map[string]int{"a": 1}, false},
-		{"EmptyStruct", struct{}{}, true},
-		{"ZeroTime", time.Time{}, true},
-		{"NonZeroTime", time.Now(), false},
-		{"StructWithZeroFields", struct{ Name string }{}, true},
-		{"StructWithNonZeroFields", struct{ Name string }{Name: "test"}, false},
-		{"ComplexNestedStruct", struct {
-			Name  string
-			Age   int
-			Items []string
-			Data  map[string]int
-			Ptr   *int
-		}{}, true},
-		{"NilFunc", (func())(nil), true},
-		{"NonNilFunc", func() {}, false},
-		{"NilChan", (chan int)(nil), true},
-		{"NonNilChan", make(chan int), false},
-		{"Array", [3]int{0, 0, 0}, true},
-		{"NonZeroArray", [3]int{0, 1, 0}, false},
-		{"sliceVal", sliceVal, true},
-		{"mapVal", mapVal, true},
-		{"structVal", structVal, true},
-		{"baseInfo.IntVal", baseInfo.IntVal, false},
-		{"baseInfo.EmptyIntVal", baseInfo.EmptyIntVal, true},
-		{"baseInfo.StrVal", baseInfo.StrVal, false},
-		{"baseInfo.EmptyStrVal", baseInfo.EmptyStrVal, true},
-		{"baseInfo.BoolVal", baseInfo.BoolVal, false},
-		{"baseInfo.EmptyBoolVal", baseInfo.EmptyBoolVal, true},
-		{"baseInfo.Float32Val", baseInfo.Float32Val, false},
-		{"baseInfo.EmptyFloat32Val", baseInfo.EmptyFloat32Val, true},
-		{"baseInfo.Float64Val", baseInfo.Float64Val, false},
-		{"baseInfo.EmptyFloat64Val", baseInfo.EmptyFloat64Val, true},
-		{"baseInfo.TimeVal", baseInfo.TimeVal, false},
-		{"baseInfo.EmptyTimeVal", baseInfo.EmptyTimeVal, true},
-		{"baseInfo.SliceVal", baseInfo.SliceVal, false},
-		{"baseInfo.EmptySliceVal", baseInfo.EmptySliceVal, true},
-		{"baseInfo.MapVal", baseInfo.MapVal, false},
-		{"baseInfo.EmptyMapVal", baseInfo.EmptyMapVal, true},
+		// Basic value types tests
+		{"nil", nil, true},
+		{"bool false", false, true},
+		{"bool true", true, false},
+		{"int zero", 0, true},
+		{"int non-zero", 42, false},
+		{"int8 zero", int8(0), true},
+		{"int8 non-zero", int8(8), false},
+		{"int16 zero", int16(0), true},
+		{"int16 non-zero", int16(16), false},
+		{"int32 zero", int32(0), true},
+		{"int32 non-zero", int32(32), false},
+		{"int64 zero", int64(0), true},
+		{"int64 non-zero", int64(64), false},
+		{"uint zero", uint(0), true},
+		{"uint non-zero", uint(1), false},
+		{"uint8 zero", uint8(0), true},
+		{"uint8 non-zero", uint8(8), false},
+		{"uint16 zero", uint16(0), true},
+		{"uint16 non-zero", uint16(16), false},
+		{"uint32 zero", uint32(0), true},
+		{"uint32 non-zero", uint32(32), false},
+		{"uint64 zero", uint64(0), true},
+		{"uint64 non-zero", uint64(64), false},
+		{"float32 zero", float32(0), true},
+		{"float32 non-zero", float32(3.14), false},
+		{"float64 zero", float64(0), true},
+		{"float64 non-zero", float64(3.14), false},
+		{"empty string", "", true},
+		{"non-empty string", "hello", false},
+		{"empty time.Time", time.Time{}, true},
+		{"non-empty time.Time", time.Now(), false},
+
+		// Pointer type tests
+		{"nil pointer", (*int)(nil), true},
+		{"pointer to zero", func() interface{} { v := 0; return &v }(), true},
+		{"pointer to non-zero", func() interface{} { v := 42; return &v }(), false},
+		{"nil pointer time.Time", (*time.Time)(nil), true},
+		{"pointer to non-empty time.Time", func() interface{} { v := time.Now(); return &v }(), false},
+
+		{"empty slice", func() interface{} { interfaceVal = emptyIntSlice; return interfaceVal }(), true},
+		{"noEmpty slice", func() interface{} { interfaceVal = noEmptyIntSlice; return interfaceVal }(), false},
+
+		// Invalid types (should return default Go zero value determination)
+		{"map", map[string]int{"a": 1}, false},
+		{"empty map", map[string]int{}, false},
+		{"struct with values", struct{ Name string }{"John"}, false},
+		{"empty struct", struct{ Name string }{}, true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsReallyZero(tt.val); got != tt.want {
-				t.Errorf("name:%s IsReallyZero() = %v, want %v", tt.name, got, tt.want)
-			}
-		})
-	}
-
-	zero := reflect.ValueOf(time.Time{})
-	cur := reflect.ValueOf(time.Now())
-	if IsReallyZeroForReflect(cur) {
-		t.Errorf("name:NowTime IsReallyZero() = %v, want %v", cur, false)
-	}
-	if !IsReallyZeroForReflect(zero) {
-		t.Errorf("name:ZeroTime IsReallyZero() = %v, want %v", zero, true)
-	}
-}
-
-// TestIsReallyZeroForReflect tests the IsReallyZeroForReflect function
-func TestIsReallyZeroForReflect(t *testing.T) {
-	var sliceVal []int
-	var mapVal map[string]int
-	var structVal struct{}
-
-	baseInfo := BaseInfo{
-		IntVal:     1,
-		StrVal:     "a",
-		BoolVal:    true,
-		Float32Val: 1.0,
-		Float64Val: 1.0,
-		TimeVal:    time.Now(),
-		SliceVal:   []int{1},
-		MapVal:     map[string]int{"a": 1},
-	}
-
-	tests := []struct {
-		name string
-		val  reflect.Value
-		want bool
-	}{
-		{"NilPointer", reflect.ValueOf((*int)(nil)), true},
-		{"NonNilPointerToZero", reflect.ValueOf(func() interface{} { i := 0; return &i }()), true},
-		{"NonNilPointerToNonZero", reflect.ValueOf(func() interface{} { i := 1; return &i }()), false},
-		{"ZeroInt", reflect.ValueOf(0), true},
-		{"NonZeroInt", reflect.ValueOf(1), false},
-		{"EmptyString", reflect.ValueOf(""), true},
-		{"NonEmptyString", reflect.ValueOf("hello"), false},
-		{"EmptySlice", reflect.ValueOf([]int{}), true},
-		{"NonEmptySlice", reflect.ValueOf([]int{1, 2, 3}), false},
-		{"EmptyMap", reflect.ValueOf(map[string]int{}), true},
-		{"NonEmptyMap", reflect.ValueOf(map[string]int{"a": 1}), false},
-		{"EmptyStruct", reflect.ValueOf(struct{}{}), true},
-		{"StructWithZeroFields", reflect.ValueOf(struct{ Name string }{}), true},
-		{"StructWithNonZeroFields", reflect.ValueOf(struct{ Name string }{Name: "test"}), false},
-		{"NestedStruct", reflect.ValueOf(struct {
-			Name   string
-			Age    int
-			Parent *struct{ Name string }
-		}{}), true},
-		{"NilFunc", reflect.ValueOf((func())(nil)), true},
-		{"NonNilFunc", reflect.ValueOf(func() {}), false},
-		{"NilChan", reflect.ValueOf((chan int)(nil)), true},
-		{"NonNilChan", reflect.ValueOf(make(chan int)), false},
-		{"ZeroArray", reflect.ValueOf([3]int{0, 0, 0}), true},
-		{"NonZeroArray", reflect.ValueOf([3]int{0, 1, 0}), false},
-		{"StructWithUnexportedField", reflect.ValueOf(struct {
-			name string
-			Age  int
-		}{name: "hidden", Age: 0}), true},
-		{"sliceVal", reflect.ValueOf(sliceVal), true},
-		{"mapVal", reflect.ValueOf(mapVal), true},
-		{"structVal", reflect.ValueOf(structVal), true},
-		{"baseInfo", reflect.ValueOf(baseInfo), false},
-		{"baseInfo.IntVal", reflect.ValueOf(baseInfo.IntVal), false},
-		{"baseInfo.EmptyIntVal", reflect.ValueOf(baseInfo.EmptyIntVal), true},
-		{"baseInfo.StrVal", reflect.ValueOf(baseInfo.StrVal), false},
-		{"baseInfo.EmptyStrVal", reflect.ValueOf(baseInfo.EmptyStrVal), true},
-		{"baseInfo.BoolVal", reflect.ValueOf(baseInfo.BoolVal), false},
-		{"baseInfo.EmptyBoolVal", reflect.ValueOf(baseInfo.EmptyBoolVal), true},
-		{"baseInfo.Float32Val", reflect.ValueOf(baseInfo.Float32Val), false},
-		{"baseInfo.EmptyFloat32Val", reflect.ValueOf(baseInfo.EmptyFloat32Val), true},
-		{"baseInfo.Float64Val", reflect.ValueOf(baseInfo.Float64Val), false},
-		{"baseInfo.EmptyFloat64Val", reflect.ValueOf(baseInfo.EmptyFloat64Val), true},
-		{"baseInfo.TimeVal", reflect.ValueOf(baseInfo.TimeVal), false},
-		{"baseInfo.EmptyTimeVal", reflect.ValueOf(baseInfo.EmptyTimeVal), true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := IsReallyZeroForReflect(tt.val); got != tt.want {
-				t.Errorf("name:%s, IsReallyZeroForReflect() = %v, want %v", tt.name, got, tt.want)
+			if got := IsReallyZeroValue(tt.value); got != tt.want {
+				t.Errorf("IsReallyZero() name:%s got = %v, want %v for %v", tt.name, got, tt.want, tt.value)
 			}
 		})
 	}
 }
 
-// TestComplexNestedCases tests more complex nested data structures
-func TestComplexNestedCases(t *testing.T) {
-	type InnerStruct struct {
-		Field1 string
-		Field2 int
-		Field3 *string
-	}
-
-	type OuterStruct struct {
-		Name     string
-		Inner    InnerStruct
-		InnerPtr *InnerStruct
-		Data     []InnerStruct
-		Map      map[string]*InnerStruct
-	}
-
-	// Test empty complex struct
-	emptyComplex := OuterStruct{}
-	if !IsReallyZero(emptyComplex) {
-		t.Errorf("empty complex struct should be zero")
-	}
-	// Empty struct with exported fields should be valid
-	if !IsReallyValid(emptyComplex) {
-		t.Errorf("empty complex struct should be valid since it has exported fields")
-	}
-
-	// Test partially filled complex struct
-	s := "test"
-	partialComplex := OuterStruct{
-		Name: "Test",
-		Inner: InnerStruct{
-			Field1: "",
-			Field2: 0,
-			Field3: nil,
-		},
-		InnerPtr: nil,
-		Data:     nil,
-		Map:      nil,
-	}
-	if IsReallyZero(partialComplex) {
-		t.Errorf("partially filled complex struct should not be zero")
-	}
-	if !IsReallyValid(partialComplex) {
-		t.Errorf("partially filled complex struct should be valid")
-	}
-
-	// Test fully filled complex struct
-	fullComplex := OuterStruct{
-		Name: "Test",
-		Inner: InnerStruct{
-			Field1: "Value",
-			Field2: 42,
-			Field3: &s,
-		},
-		InnerPtr: &InnerStruct{
-			Field1: "Inner",
-			Field2: 100,
-			Field3: nil,
-		},
-		Data: []InnerStruct{
-			{
-				Field1: "Item1",
-				Field2: 1,
-				Field3: nil,
-			},
-		},
-		Map: map[string]*InnerStruct{
-			"key": {
-				Field1: "MapValue",
-				Field2: 200,
-				Field3: &s,
-			},
-		},
-	}
-	if IsReallyZero(fullComplex) {
-		t.Errorf("fully filled complex struct should not be zero")
-	}
-	if !IsReallyValid(fullComplex) {
-		t.Errorf("fully filled complex struct should be valid")
-	}
-}
-
-// TestIsReallyValidType tests the IsReallyValidType function
+// TestIsReallyValidType tests the IsReallyValidType function based on its documented behavior
 func TestIsReallyValidType(t *testing.T) {
-	// 基本数据类型测试 - 应该返回 true
-	testBasicTypes := []struct {
-		name string
-		val  interface{}
+	tests := []struct {
+		name  string
+		value interface{}
+		want  bool
 	}{
-		{"bool", true},
-		{"int", 42},
-		{"int8", int8(8)},
-		{"int16", int16(16)},
-		{"int32", int32(32)},
-		{"int64", int64(64)},
-		{"uint", uint(42)},
-		{"uint8", uint8(8)},
-		{"uint16", uint16(16)},
-		{"uint32", uint32(32)},
-		{"uint64", uint64(64)},
-		{"float32", float32(3.14)},
-		{"float64", 3.14},
-		{"string", "测试字符串"},
+		// Basic value types tests
+		{"nil", nil, false},
+		{"bool", true, true},
+		{"int", 42, true},
+		{"int8", int8(8), true},
+		{"int16", int16(16), true},
+		{"int32", int32(32), true},
+		{"int64", int64(64), true},
+		{"uint", uint(1), true},
+		{"uint8", uint8(8), true},
+		{"uint16", uint16(16), true},
+		{"uint32", uint32(32), true},
+		{"uint64", uint64(64), true},
+		{"float32", float32(3.14), true},
+		{"float64", float64(3.14), true},
+		{"string", "hello", true},
+
+		// Pointer type tests
+		{"nil pointer", (*int)(nil), true},
+		{"pointer to int", func() interface{} { v := 42; return &v }(), true},
+		{"pointer to string", func() interface{} { v := "hello"; return &v }(), true},
+
+		// Slice type tests
+		{"nil slice", ([]int)(nil), true},
+		{"empty slice", []int{}, true},
+		{"int slice", []int{1, 2, 3}, true},
+		{"string slice", []string{"a", "b", "c"}, true},
+
+		// Invalid types
+		{"map", map[string]int{"a": 1}, false},
+		{"struct", struct{ Name string }{"John"}, false},
+		{"chan", make(chan int), false},
+		{"func", func() {}, false},
+		{"complex", complex(1, 2), false},
 	}
 
-	for _, tt := range testBasicTypes {
-		t.Run(fmt.Sprintf("basic_type_%s", tt.name), func(t *testing.T) {
-			if !IsReallyValidType(tt.val) {
-				t.Errorf("%s 应该是合法类型", tt.name)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := IsReallyValidType(tt.value); got != tt.want {
+				t.Errorf("IsReallyValidType() = %v, want %v for %v of type %T", got, tt.want, tt.name, tt.value)
 			}
 		})
 	}
 
-	// 容器类型递归测试
-	t.Run("容器类型递归测试", func(t *testing.T) {
-		// 递归合法类型容器 - 应该返回 true
-		validContainers := []struct {
-			name string
-			val  interface{}
-		}{
-			{"空切片", []int{}},
-			{"整数切片", []int{1, 2, 3}},
-			{"字符串切片", []string{"a", "b"}},
-			{"整数指针切片", []*int{new(int)}},
-			{"基本类型Map", map[string]int{"a": 1}},
-			{"嵌套Map", map[int]map[string]float64{1: {"x": 1.0}}},
-			{"有效结构体切片", []struct{ A int }{{A: 1}}},
-			{"嵌套有效容器", []map[string][]int{{"a": {1, 2}}}},
-			{"多层指针", new(int)},
-			{"指针切片", &[]string{"a", "b"}},
-		}
+	sliceArray := []interface{}{}
+	sliceArray = append(sliceArray, 1, 2, 3)
+	if IsReallyValidType(sliceArray) {
+		t.Errorf("IsReallyValidType([]interface{}) = true, want false")
+	}
+}
 
-		for _, tt := range validContainers {
-			t.Run("valid_"+tt.name, func(t *testing.T) {
-				if !IsReallyValidType(tt.val) {
-					t.Errorf("%s 应该是合法类型", tt.name)
-				}
-			})
-		}
+// TestNestedTypes tests the behavior of the utility functions with nested types
+func TestNestedTypes(t *testing.T) {
+	// Nested slices
+	nestedSlice := [][]int{{1, 2, 3}}
+	if IsReallyValidType(nestedSlice) {
+		t.Errorf("IsReallyValidType([][]int) = true, want false")
+	}
 
-		// 递归非法类型容器 - 应该返回 false
-		invalidContainers := []struct {
-			name string
-			val  interface{}
-		}{
-			{"chan元素切片", []chan int{make(chan int)}},
-			{"func元素切片", []func(){func() {}}},
-			{"chan值Map", map[string]chan int{"a": make(chan int)}},
-			{"非基本类型Key的Map", map[struct{ A int }]int{{A: 1}: 1}},
-			{"非法嵌套", []map[string][]chan int{{"a": {make(chan int)}}}},
-			{"指向非法类型的指针", func() *chan int { ch := make(chan int); return &ch }()},
-			{"包含非法类型切片的结构体", struct{ A []func() }{A: []func(){func() {}}}},
-		}
+	// Pointers to slices
+	slicePtr := &[]int{1, 2, 3}
+	if !IsReallyValidType(slicePtr) {
+		t.Errorf("IsReallyValidType(&[]int) = true, want false")
+	}
 
-		for _, tt := range invalidContainers {
-			t.Run("invalid_"+tt.name, func(t *testing.T) {
-				if IsReallyValidType(tt.val) {
-					t.Errorf("%s 应该是非法类型", tt.name)
-				}
-			})
-		}
-	})
+	// Slices of pointers to basic types
+	intVal := 42
+	sliceOfPtrs := []*int{&intVal}
+	if !IsReallyValidType(sliceOfPtrs) {
+		t.Errorf("IsReallyValidType([]*int) = false, want true")
+	}
+}
 
-	// 结构体类型测试
-	t.Run("结构体类型测试", func(t *testing.T) {
-		// time.Time 类型
-		if !IsReallyValidType(time.Time{}) {
-			t.Error("time.Time 应该是合法类型")
-		}
-		if !IsReallyValidType(time.Now()) {
-			t.Error("time.Time 非零值应该是合法类型")
-		}
+// TestBasicTypesFull provides an exhaustive test of all basic types
+func TestBasicTypesFull(t *testing.T) {
+	// Test all basic value types are considered valid
+	validTypes := []interface{}{
+		// Bool
+		true, false,
+		// Integer types
+		int8(8), int16(16), int32(32), int(42), int64(64),
+		uint8(8), uint16(16), uint32(32), uint(42), uint64(64),
+		// Float types
+		float32(3.14), float64(3.14),
+		// String
+		"hello",
+		time.Now(),
+	}
 
-		// 所有字段类型都合法的结构体
-		type AllValidFields struct {
-			Int       int
-			String    string
-			TimeField time.Time
-			IntSlice  []int
-			StringMap map[string]string
-			Nested    struct{ X int }
+	for i, v := range validTypes {
+		if !IsReallyValidType(v) {
+			t.Errorf("Case %d: IsReallyValidType(%T) = false, want true", i, v)
 		}
-		if !IsReallyValidType(AllValidFields{}) {
-			t.Error("所有字段类型都合法的结构体应该是合法类型")
-		}
+	}
 
-		// 含有非法类型字段的结构体（导出字段）
-		type HasInvalidField struct {
-			Valid   int
-			Invalid chan int
-		}
-		if IsReallyValidType(HasInvalidField{}) {
-			t.Error("含有非法类型导出字段的结构体应该是非法类型")
-		}
+	// Test all non-basic types are considered invalid
+	invalidTypes := []interface{}{
+		struct{}{},
+		map[string]int{},
+		[]struct{}{},
+		func() {},
+		make(chan int),
+		complex(1, 2),
+	}
 
-		// 含有非法类型字段的结构体（未导出字段）
-		type HasInvalidUnexportedField struct {
-			Valid   int
-			invalid chan int
+	for i, v := range invalidTypes {
+		if IsReallyValidType(v) {
+			t.Errorf("Case %d: IsReallyValidType(%T) = true, want false", i, v)
 		}
-		if !IsReallyValidType(HasInvalidUnexportedField{}) {
-			t.Error("含有非法类型未导出字段的结构体应该是合法类型（不检查未导出字段）")
-		}
+	}
+}
 
-		// 含有特殊合法类型字段的结构体
-		type HasSpecialField struct {
-			TimeField time.Time
-		}
-		if !IsReallyValidType(HasSpecialField{}) {
-			t.Error("含有time.Time字段的结构体应该是合法类型")
-		}
+// TestPointersDeep tests the behavior with multi-level pointers
+func TestPointersDeep(t *testing.T) {
+	// Single level pointer
+	intVal := 42
+	ptrInt := &intVal
 
-		// 无导出字段的结构体
-		type NoExportedFields struct {
-			field int
-		}
-		if IsReallyValidType(NoExportedFields{}) {
-			t.Error("无导出字段的结构体应该是非法类型")
-		}
+	if !IsReallyValidType(ptrInt) {
+		t.Errorf("IsReallyValidType(*int) = false, want true")
+	}
 
-		// 嵌套结构体
-		type ValidNested struct {
-			Field  int
-			Nested struct {
-				SubField string
+	// Double level pointer
+	ptrPtrInt := &ptrInt
+	if IsReallyValidType(ptrPtrInt) {
+		t.Errorf("IsReallyValidType(**int) = true, want false")
+	}
+}
+
+// TestEdgeCases tests edge cases for each function
+func TestEdgeCases(t *testing.T) {
+	// IsReallyValidType with interface{}
+	var iface interface{} = 42
+	if !IsReallyValidType(iface) {
+		t.Errorf("IsReallyValidType(interface{}=42) = false, want true")
+	}
+
+	// IsReallyValid with interface{}
+	if !IsReallyValidValue(iface) {
+		t.Errorf("IsReallyValid(interface{}=42) = false, want true")
+	}
+
+	// IsReallyZero with interface{}
+	iface = 0
+	if !IsReallyZeroValue(iface) {
+		t.Errorf("IsReallyZero(interface{}=0) = false, want true")
+	}
+
+	// Empty slices of various types
+	if !IsReallyValidType([]int{}) {
+		t.Errorf("IsReallyValidType([]int{}) = false, want true")
+	}
+
+	if !IsReallyValidType([]string{}) {
+		t.Errorf("IsReallyValidType([]string{}) = false, want true")
+	}
+}
+
+func TestDeepCopy(t *testing.T) {
+	tests := []struct {
+		name  string
+		value interface{}
+	}{
+		{"int", 42},
+		{"string", "hello"},
+		{"bool", true},
+		{"float64", 3.14},
+		{"slice", []int{1, 2, 3}},
+		{"pointer", func() interface{} { v := 10; return &v }()},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			copiedVal, copiedErr := DeepCopy(tt.value)
+			if copiedErr != nil {
+				t.Errorf("DeepCopy() error = %v, want nil", copiedErr)
 			}
-		}
-		if !IsReallyValidType(ValidNested{}) {
-			t.Error("嵌套合法结构体应该是合法类型")
-		}
 
-		type InvalidNested struct {
-			Field  int
-			Nested struct {
-				SubField chan int
+			if !reflect.DeepEqual(tt.value, copiedVal) {
+				t.Errorf("DeepCopy() = %v, want %v", copiedVal, tt.value)
 			}
-		}
-		if IsReallyValidType(InvalidNested{}) {
-			t.Error("嵌套非法结构体应该是非法类型")
-		}
-	})
 
-	// 指针类型测试
-	t.Run("指针类型测试", func(t *testing.T) {
-		// nil 指针
-		var intPtr *int = nil
-		if IsReallyValidType(intPtr) {
-			t.Error("nil 指针应该是非法类型")
-		}
+			// Check that the copied value is not the same instance
+			if reflect.ValueOf(tt.value).Kind() == reflect.Ptr {
+				if reflect.ValueOf(tt.value).Pointer() == reflect.ValueOf(copiedVal).Pointer() {
+					t.Errorf("DeepCopy() returned same pointer for %v", tt.name)
+				}
+			}
+		})
+	}
+}
 
-		// 指向基本类型的非 nil 指针
-		intVal := 42
-		if !IsReallyValidType(&intVal) {
-			t.Error("指向基本类型的非 nil 指针应该是合法类型")
-		}
+func TestDeepCopyForReflect(t *testing.T) {
+	type MyStruct struct {
+		A int
+		B string
+		C []int
+	}
 
-		// 指向切片的指针
-		sliceVal := []string{"a", "b"}
-		if !IsReallyValidType(&sliceVal) {
-			t.Error("指向切片的指针应该是合法类型")
-		}
+	original := MyStruct{
+		A: 42,
+		B: "hello",
+		C: []int{1, 2, 3},
+	}
 
-		// 指向非法类型的指针
-		chanVal := make(chan int)
-		if IsReallyValidType(&chanVal) {
-			t.Error("指向非法类型的指针应该是非法类型")
-		}
+	srcValue := reflect.ValueOf(original)
+	copyValue := DeepCopyForReflect(srcValue)
 
-		// 多层指针
-		validPtr := &intVal
-		doublePtr := &validPtr
-		if !IsReallyValidType(doublePtr) {
-			t.Error("多层嵌套的有效指针应该是合法类型")
-		}
-
-		invalidPtr := &chanVal
-		doubleInvalidPtr := &invalidPtr
-		if IsReallyValidType(doubleInvalidPtr) {
-			t.Error("多层嵌套的无效指针应该是非法类型")
-		}
-	})
-
-	// 接口类型测试
-	t.Run("接口类型测试", func(t *testing.T) {
-		// nil 接口
-		var nilInterface interface{} = nil
-		if IsReallyValidType(nilInterface) {
-			t.Error("nil 接口应该是非法类型")
-		}
-
-		// 包含基本类型的接口
-		var intInterface interface{} = 42
-		if !IsReallyValidType(intInterface) {
-			t.Error("包含有效值的接口应该是合法类型")
-		}
-
-		// 包含切片的接口
-		var sliceInterface interface{} = []int{1, 2, 3}
-		if !IsReallyValidType(sliceInterface) {
-			t.Error("包含切片的接口应该是合法类型")
-		}
-
-		// 包含非法类型的接口
-		var chanInterface interface{} = make(chan int)
-		if IsReallyValidType(chanInterface) {
-			t.Error("包含 channel 的接口应该是非法类型")
-		}
-
-		// 包含有嵌套非法类型的接口
-		var nestedInvalidInterface interface{} = []chan int{make(chan int)}
-		if IsReallyValidType(nestedInvalidInterface) {
-			t.Error("包含嵌套非法类型的接口应该是非法类型")
-		}
-	})
-
-	// 函数中特别举例的示例
-	t.Run("函数文档中的示例", func(t *testing.T) {
-		// []*map[int]struct{A string} 合法（slice->指针->map[int]->struct）
-		complexValid := []*map[int]struct{ A string }{
-			{1: {A: "test"}},
-		}
-		if !IsReallyValidType(complexValid) {
-			t.Error("[]*map[int]struct{A string} 应该是合法类型")
-		}
-
-		// map[float64]chan struct{} 非法（Value类型含chan）
-		invalidMap := map[float64]chan struct{}{
-			1.0: make(chan struct{}),
-		}
-		if IsReallyValidType(invalidMap) {
-			t.Error("map[float64]chan struct{} 应该是非法类型")
-		}
-
-		// struct{ B int; c []func() } 非法（c字段类型为func且未导出）
-		type ComplexInvalid struct {
-			B int
-			c []func()
-		}
-		complexInvalid := ComplexInvalid{B: 1, c: []func(){func() {}}}
-		// 注意：根据规则，未导出字段不会被检查，所以这个结构体实际是合法的
-		if !IsReallyValidType(complexInvalid) {
-			t.Error("struct{ B int; c []func() } 应该是合法类型（未导出字段不检查）")
-		}
-
-		// struct{ X time.Time } 合法（导出字段类型为特例）
-		type HasTimeField struct {
-			X time.Time
-		}
-		if !IsReallyValidType(HasTimeField{}) {
-			t.Error("struct{ X time.Time } 应该是合法类型")
-		}
-	})
+	// 验证拷贝结果
+	copied := copyValue.Interface().(MyStruct)
+	if !IsSameValue(original, copied) {
+		t.Errorf("DeepCopyForReflect() = %v, want %v", copied, original)
+	}
 }

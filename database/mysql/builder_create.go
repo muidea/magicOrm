@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"bytes"
 	"fmt"
 
 	cd "github.com/muidea/magicCommon/def"
@@ -12,8 +13,7 @@ import (
 func (s *Builder) BuildCreateTable(vModel model.Model) (ret *ResultStack, err *cd.Result) {
 	createSQL := ""
 	for _, field := range vModel.GetFields() {
-		fType := field.GetType()
-		if !fType.IsBasic() {
+		if !model.IsBasicField(field) {
 			continue
 		}
 
@@ -44,7 +44,7 @@ func (s *Builder) BuildCreateTable(vModel model.Model) (ret *ResultStack, err *c
 }
 
 // BuildCreateRelationTable Build CreateRelation Schema
-func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Field, rModel model.Model) (ret *ResultStack, err *cd.Result) {
+func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Field) (ret *ResultStack, err *cd.Result) {
 	lPKField := vModel.GetPrimaryField()
 	lPKType, lPKErr := getTypeDeclare(lPKField.GetType(), lPKField.GetSpec())
 	if lPKErr != nil {
@@ -53,10 +53,17 @@ func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Fiel
 		return
 	}
 
-	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField, rModel)
+	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("BuildCreateRelationTable %s failed, s.buildCodec.ConstructRelationTableName error:%s", vField.GetName(), err.Error())
+		return
+	}
+
+	rModel, rErr := s.modelProvider.GetTypeModel(vField.GetType().Elem())
+	if rErr != nil {
+		err = rErr
+		log.Errorf("BuildCreateRelationTable %s failed, s.modelProvider.GetTypeModel error:%s", vField.GetName(), err.Error())
 		return
 	}
 
@@ -78,21 +85,58 @@ func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Fiel
 	return
 }
 
+// declareFieldInfo declare field info
+// 根据字段类型和字段特性生成字段定义
+// 类似以下信息
+// `id` int(11) NOT NULL AUTO_INCREMENT
+// `i8` tinyint(4) DEFAULT '100',
 func (s *Builder) declareFieldInfo(vField model.Field) (ret string, err *cd.Result) {
-	autoIncrement := ""
-	fSpec := vField.GetSpec()
-	if fSpec != nil && model.IsAutoIncrement(fSpec.GetValueDeclare()) {
-		autoIncrement = "AUTO_INCREMENT"
-	}
+	strBuffer := bytes.NewBufferString("")
+	// Write field name
+	strBuffer.WriteString("`")
+	strBuffer.WriteString(vField.GetName())
+	strBuffer.WriteString("`")
 
-	allowNull := "NOT NULL"
+	// Write field type
 	typeVal, typeErr := getTypeDeclare(vField.GetType(), vField.GetSpec())
 	if typeErr != nil {
 		err = typeErr
 		log.Errorf("declareFieldInfo failed, getTypeDeclare error:%s", err.Error())
 		return
 	}
+	strBuffer.WriteString(" ")
+	strBuffer.WriteString(typeVal)
 
-	ret = fmt.Sprintf("`%s` %s %s %s", vField.GetName(), typeVal, allowNull, autoIncrement)
+	// Write NULL constraint
+	if !vField.GetType().IsPtrType() {
+		strBuffer.WriteString(" NOT NULL")
+	}
+
+	// Write default value if exists
+	fSpec := vField.GetSpec()
+	if fSpec != nil && fSpec.GetDefaultValue() != nil {
+		defaultValue := fSpec.GetDefaultValue()
+		strBuffer.WriteString(" DEFAULT ")
+
+		switch vField.GetType().GetValue() {
+		case model.TypeStringValue, model.TypeDateTimeValue:
+			strBuffer.WriteString("'")
+			strBuffer.WriteString(fmt.Sprintf("%v", defaultValue))
+			strBuffer.WriteString("'")
+		case model.TypeBooleanValue, model.TypeBitValue,
+			model.TypeSmallIntegerValue, model.TypePositiveBitValue,
+			model.TypeIntegerValue, model.TypeInteger32Value, model.TypePositiveSmallIntegerValue,
+			model.TypeBigIntegerValue, model.TypePositiveIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue,
+			model.TypeFloatValue, model.TypeDoubleValue:
+			strBuffer.WriteString(fmt.Sprintf("%v", defaultValue))
+		}
+	}
+
+	// Write auto increment if needed
+	if fSpec != nil && model.IsAutoIncrementDeclare(fSpec.GetValueDeclare()) {
+		strBuffer.WriteString(" AUTO_INCREMENT")
+	}
+
+	ret = strBuffer.String()
 	return
 }

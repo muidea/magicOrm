@@ -3,8 +3,6 @@ package helper
 import (
 	"testing"
 	"time"
-
-	"github.com/muidea/magicOrm/provider/remote"
 )
 
 // TestEntity 测试实体
@@ -46,7 +44,7 @@ func TestUpdateSliceEntity(t *testing.T) {
 	}
 
 	// 获取远程切片对象值
-	sliceObjectValue, sliceObjectErr := remote.GetSliceObjectValue(originalEntities)
+	sliceObjectValue, sliceObjectErr := GetSliceObjectValue(originalEntities)
 	if sliceObjectErr != nil {
 		t.Errorf("获取切片对象值失败: %s", sliceObjectErr.Error())
 		return
@@ -98,7 +96,7 @@ func TestObjectSerializationAndDeserialization(t *testing.T) {
 	}
 
 	// 获取对象
-	objectPtr, objectErr := remote.GetObject(testEntity)
+	objectPtr, objectErr := GetObject(testEntity)
 	if objectErr != nil {
 		t.Errorf("获取对象失败: %s", objectErr.Error())
 		return

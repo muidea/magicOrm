@@ -6,21 +6,20 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-
-	om "github.com/muidea/magicOrm/model"
-	pu "github.com/muidea/magicOrm/provider/util"
+	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/utils"
 )
 
 type filterItem struct {
-	oprCode om.OprCode
+	oprCode model.OprCode
 	value   *ValueImpl
 }
 
-func (s *filterItem) OprCode() om.OprCode {
+func (s *filterItem) OprCode() model.OprCode {
 	return s.oprCode
 }
 
-func (s *filterItem) OprValue() om.Value {
+func (s *filterItem) OprValue() model.Value {
 	return s.value
 }
 
@@ -28,12 +27,20 @@ type filter struct {
 	bindValue  *ValueImpl
 	params     map[string]*filterItem
 	maskValue  *ValueImpl
-	pageFilter *pu.Pagination
-	sortFilter *pu.SortFilter
+	pageFilter *utils.Pagination
+	sortFilter *utils.SortFilter
 }
 
 func newFilter(valuePtr *ValueImpl) *filter {
 	return &filter{bindValue: valuePtr, params: map[string]*filterItem{}}
+}
+
+func (s *filter) GetName() string {
+	return ""
+}
+
+func (s *filter) GetPkgPath() string {
+	return ""
 }
 
 func (s *filter) Equal(key string, val any) (err *cd.Result) {
@@ -43,20 +50,20 @@ func (s *filter) Equal(key string, val any) (err *cd.Result) {
 	}
 
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := pu.GetTypeEnum(qv.Type())
+	qvType, qvErr := utils.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		log.Errorf("Equal failed, illegal value type, err:%s", err.Error())
 		return
 	}
-	if om.IsSliceType(qvType) {
+	if model.IsSliceType(qvType) {
 		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("equal failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("Equal failed, err:%v", err.Error())
 		return
 	}
 
 	//s.equalFilter = append(s.equalFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: om.EqualOpr, value: NewValue(qv)}
+	s.params[key] = &filterItem{oprCode: model.EqualOpr, value: NewValue(qv)}
 	return
 }
 
@@ -67,20 +74,20 @@ func (s *filter) NotEqual(key string, val any) (err *cd.Result) {
 	}
 
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := pu.GetTypeEnum(qv.Type())
+	qvType, qvErr := utils.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		log.Errorf("NotEqual failed, illegal value type, err:%s", err.Error())
 		return
 	}
-	if om.IsSliceType(qvType) {
+	if model.IsSliceType(qvType) {
 		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("NotEqual failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("NotEqual failed, err:%v", err.Error())
 		return
 	}
 
 	//s.notEqualFilter = append(s.notEqualFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: om.NotEqualOpr, value: NewValue(qv)}
+	s.params[key] = &filterItem{oprCode: model.NotEqualOpr, value: NewValue(qv)}
 	return
 }
 
@@ -91,20 +98,20 @@ func (s *filter) Below(key string, val any) (err *cd.Result) {
 	}
 
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := pu.GetTypeEnum(qv.Type())
+	qvType, qvErr := utils.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		log.Errorf("Below failed, illegal value type, err:%s", err.Error())
 		return
 	}
-	if !om.IsBasicType(qvType) {
+	if !model.IsBasicType(qvType) {
 		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("below failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("Below failed, err:%v", err.Error())
 		return
 	}
 
 	//s.belowFilter = append(s.belowFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: om.BelowOpr, value: NewValue(qv)}
+	s.params[key] = &filterItem{oprCode: model.BelowOpr, value: NewValue(qv)}
 	return
 }
 
@@ -115,20 +122,20 @@ func (s *filter) Above(key string, val any) (err *cd.Result) {
 	}
 
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := pu.GetTypeEnum(qv.Type())
+	qvType, qvErr := utils.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		log.Errorf("Above failed, illegal value type, err:%s", err.Error())
 		return
 	}
-	if !om.IsBasicType(qvType) {
+	if !model.IsBasicType(qvType) {
 		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("above failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("Above failed, err:%v", err.Error())
 		return
 	}
 
 	//s.aboveFilter = append(s.aboveFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: om.AboveOpr, value: NewValue(qv)}
+	s.params[key] = &filterItem{oprCode: model.AboveOpr, value: NewValue(qv)}
 	return
 }
 
@@ -139,20 +146,20 @@ func (s *filter) In(key string, val any) (err *cd.Result) {
 	}
 
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := pu.GetTypeEnum(qv.Type())
+	qvType, qvErr := utils.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		log.Errorf("In failed, illegal value type, err:%s", err.Error())
 		return
 	}
-	if !om.IsSliceType(qvType) {
+	if !model.IsSliceType(qvType) {
 		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("in failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("In failed, err:%v", err.Error())
 		return
 	}
 
 	//s.inFilter = append(s.inFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: om.InOpr, value: NewValue(qv)}
+	s.params[key] = &filterItem{oprCode: model.InOpr, value: NewValue(qv)}
 	return
 }
 
@@ -163,20 +170,20 @@ func (s *filter) NotIn(key string, val any) (err *cd.Result) {
 	}
 
 	qv := reflect.Indirect(reflect.ValueOf(val))
-	qvType, qvErr := pu.GetTypeEnum(qv.Type())
+	qvType, qvErr := utils.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
 		log.Errorf("NotIn failed, illegal value type, err:%s", err.Error())
 		return
 	}
-	if !om.IsSliceType(qvType) {
+	if !model.IsSliceType(qvType) {
 		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("notIn failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("NotIn failed, err:%v", err.Error())
 		return
 	}
 
 	//s.notInFilter = append(s.notInFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: om.NotInOpr, value: NewValue(qv)}
+	s.params[key] = &filterItem{oprCode: model.NotInOpr, value: NewValue(qv)}
 	return
 }
 
@@ -194,19 +201,19 @@ func (s *filter) Like(key string, val any) (err *cd.Result) {
 	}
 
 	//s.likeFilter = append(s.likeFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: om.LikeOpr, value: NewValue(qv)}
+	s.params[key] = &filterItem{oprCode: model.LikeOpr, value: NewValue(qv)}
 	return
 }
 
 func (s *filter) Pagination(pageNum, pageSize int) {
-	s.pageFilter = &pu.Pagination{
+	s.pageFilter = &utils.Pagination{
 		PageNum:  pageNum,
 		PageSize: pageSize,
 	}
 }
 
 func (s *filter) Sort(fieldName string, ascFlag bool) {
-	s.sortFilter = &pu.SortFilter{
+	s.sortFilter = &utils.SortFilter{
 		FieldName: fieldName,
 		AscFlag:   ascFlag,
 	}
@@ -231,7 +238,7 @@ func (s *filter) ValueMask(val any) (err *cd.Result) {
 	return
 }
 
-func (s *filter) GetFilterItem(key string) om.FilterItem {
+func (s *filter) GetFilterItem(key string) model.FilterItem {
 	v, ok := s.params[key]
 	if ok {
 		return v
@@ -240,7 +247,7 @@ func (s *filter) GetFilterItem(key string) om.FilterItem {
 	return nil
 }
 
-func (s *filter) Paginationer() om.Paginationer {
+func (s *filter) Paginationer() model.Paginationer {
 	if s.pageFilter == nil {
 		return nil
 	}
@@ -248,7 +255,7 @@ func (s *filter) Paginationer() om.Paginationer {
 	return s.pageFilter
 }
 
-func (s *filter) Sorter() om.Sorter {
+func (s *filter) Sorter() model.Sorter {
 	if s.sortFilter == nil {
 		return nil
 	}
@@ -256,17 +263,17 @@ func (s *filter) Sorter() om.Sorter {
 	return s.sortFilter
 }
 
-func (s *filter) MaskModel() om.Model {
+func (s *filter) MaskModel() model.Model {
 	maskVal := s.bindValue
 	if s.maskValue != nil {
 		maskVal = s.maskValue
 	}
 
-	objPtr, objErr := getValueModel(maskVal.value)
+	objPtr, objErr := getValueModel(maskVal.value, model.OriginView)
 	if objErr != nil {
 		log.Errorf("MaskModel failed, getValueModel error:%s", objErr.Error())
 		return nil
 	}
 
-	return objPtr.Copy(false)
+	return objPtr
 }

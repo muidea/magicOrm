@@ -21,7 +21,7 @@ func TestFieldProperties(t *testing.T) {
 	}
 
 	// Get model for test struct
-	testModel, err := GetEntityModel(TestStruct{})
+	testModel, err := GetEntityModel(&TestStruct{})
 	if err != nil {
 		t.Errorf("GetEntityModel failed: %s", err.Error())
 		return
@@ -38,22 +38,22 @@ func TestFieldProperties(t *testing.T) {
 		// Check field types are properly detected
 		switch field.GetName() {
 		case "id":
-			if !field.IsBasic() || field.IsSlice() || field.IsStruct() {
+			if !model.IsBasicField(field) || model.IsSliceField(field) || model.IsStructField(field) {
 				t.Errorf("ID field should be a basic type")
 			}
-			if !field.IsPrimaryKey() {
+			if !model.IsPrimaryField(field) {
 				t.Errorf("ID field should be a primary key")
 			}
 		case "name":
-			if !field.IsBasic() || field.IsPtrType() {
+			if !model.IsBasicField(field) || model.IsPtrField(field) {
 				t.Errorf("Name field should be a basic non-pointer type")
 			}
 		case "updatedAt":
-			if !field.IsPtrType() {
+			if !model.IsPtrField(field) {
 				t.Errorf("UpdatedAt field should be a pointer type")
 			}
 		case "created":
-			if !field.IsBasic() {
+			if !model.IsBasicField(field) {
 				t.Errorf("Created field should be a struct type")
 			}
 		}
@@ -69,7 +69,7 @@ func TestFieldCompare(t *testing.T) {
 	}
 
 	// Get model for test struct
-	testModel, err := GetEntityModel(TestStruct{})
+	testModel, err := GetEntityModel(&TestStruct{})
 	if err != nil {
 		t.Errorf("GetEntityModel failed: %s", err.Error())
 		return
@@ -90,8 +90,22 @@ func TestFieldCompare(t *testing.T) {
 	}
 
 	// Primary key status should be different
-	if idField.IsPrimaryKey() == nameField.IsPrimaryKey() {
+	if model.IsPrimaryField(idField) == model.IsPrimaryField(nameField) {
 		t.Errorf("Primary key status should be different")
+	}
+
+	idField.SetValue(100)
+	if idField.GetValue().Get().(int) != 100 {
+		t.Errorf("Field value should be 100")
+	}
+
+	testVal := testModel.Interface(false)
+	if testVal.(TestStruct).ID != 100 {
+		t.Errorf("Interface failed for DetailView, expected ID: 100, got: %d", testVal.(TestStruct).ID)
+	}
+	testPtrVal := testModel.Interface(true)
+	if testPtrVal.(*TestStruct).ID != 100 {
+		t.Errorf("Interface failed for DetailView, expected ID: 100, got: %d", testPtrVal.(*TestStruct).ID)
 	}
 }
 
@@ -106,7 +120,7 @@ func TestFieldValueDeclare(t *testing.T) {
 	}
 
 	// Get model for test struct
-	testModel, err := GetEntityModel(TestDeclareStruct{
+	testModel, err := GetEntityModel(&TestDeclareStruct{
 		UUID:      "uuid",
 		Snowflake: 123,
 		Created:   time.Now(),

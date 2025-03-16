@@ -12,58 +12,47 @@ import (
 )
 
 type Provider interface {
-	RegisterModel(entity interface{}) (ret model.Model, err *cd.Result)
+	RegisterModel(entity any) (ret model.Model, err *cd.Result)
 
-	UnregisterModel(entity interface{}) (err *cd.Result)
+	UnregisterModel(entity any) (err *cd.Result)
 
-	GetEntityType(entity interface{}) (ret model.Type, err *cd.Result)
+	GetEntityType(entity any) (ret model.Type, err *cd.Result)
 
-	GetEntityValue(entity interface{}) (ret model.Value, err *cd.Result)
+	GetEntityValue(entity any) (ret model.Value, err *cd.Result)
 
-	GetEntityModel(entity interface{}) (ret model.Model, err *cd.Result)
+	GetEntityModel(entity any) (ret model.Model, err *cd.Result)
 
-	GetEntityFilter(entity interface{}, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result)
-
-	GetModelFilter(vModel model.Model, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result)
-
-	SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *cd.Result)
-
-	GetValueModel(vVal model.Value, vType model.Type) (ret model.Model, err *cd.Result)
+	GetEntityFilter(entity any) (ret model.Filter, err *cd.Result)
 
 	GetTypeModel(vType model.Type) (ret model.Model, err *cd.Result)
 
+	GetModelFilter(vModel model.Model) (ret model.Filter, err *cd.Result)
+
 	GetTypeFilter(vType model.Type, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result)
 
-	EncodeValue(vVal model.Value, vType model.Type) (ret model.RawVal, err *cd.Result)
+	SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *cd.Result)
 
-	DecodeValue(eVal model.RawVal, vType model.Type) (ret model.Value, err *cd.Result)
+	EncodeValue(vVal any, vType model.Type) (ret any, err *cd.Result)
 
-	ElemDependValue(eVal model.RawVal) (ret []model.Value, err *cd.Result)
-
-	AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, err *cd.Result)
-
-	GetNewValue(valueDeclare model.ValueDeclare) (ret model.Value)
+	DecodeValue(vVal any, vType model.Type) (ret any, err *cd.Result)
 
 	Owner() string
 
 	Reset()
 }
 
-// NewLocalProvider model provider
+// NewRemoteProvider model provider
 func NewLocalProvider(owner string) Provider {
 	ret := &providerImpl{
-		owner:                owner,
-		modelCache:           model.NewCache(),
-		getTypeFunc:          local.GetEntityType,
-		getValueFunc:         local.GetEntityValue,
-		getModelFunc:         local.GetEntityModel,
-		getFilterFunc:        local.GetModelFilter,
-		setModelValueFunc:    local.SetModelValue,
-		elemDependValueFunc:  local.ElemDependValue,
-		appendSliceValueFunc: local.AppendSliceValue,
-		encodeValueFunc:      local.EncodeValue,
-		decodeValueFunc:      local.DecodeValue,
-		getNewValue:          local.GetNewValue,
+		owner:              owner,
+		modelCache:         model.NewCache(),
+		getEntityTypeFunc:  local.GetEntityType,
+		getEntityValueFunc: local.GetEntityValue,
+		getEntityModelFunc: local.GetEntityModel,
+		getModelFilterFunc: local.GetModelFilter,
+		setModelValueFunc:  local.SetModelValue,
+		encodeValueFunc:    local.EncodeValue,
+		decodeValueFunc:    local.DecodeValue,
 	}
 
 	return ret
@@ -72,18 +61,15 @@ func NewLocalProvider(owner string) Provider {
 // NewRemoteProvider model provider
 func NewRemoteProvider(owner string) Provider {
 	ret := &providerImpl{
-		owner:                owner,
-		modelCache:           model.NewCache(),
-		getTypeFunc:          remote.GetEntityType,
-		getValueFunc:         remote.GetEntityValue,
-		getModelFunc:         remote.GetEntityModel,
-		getFilterFunc:        remote.GetModelFilter,
-		setModelValueFunc:    remote.SetModelValue,
-		elemDependValueFunc:  remote.ElemDependValue,
-		appendSliceValueFunc: remote.AppendSliceValue,
-		encodeValueFunc:      remote.EncodeValue,
-		decodeValueFunc:      remote.DecodeValue,
-		getNewValue:          remote.GetNewValue,
+		owner:              owner,
+		modelCache:         model.NewCache(),
+		getEntityTypeFunc:  remote.GetEntityType,
+		getEntityValueFunc: remote.GetEntityValue,
+		getEntityModelFunc: remote.GetEntityModel,
+		getModelFilterFunc: remote.GetModelFilter,
+		setModelValueFunc:  remote.SetModelValue,
+		encodeValueFunc:    remote.EncodeValue,
+		decodeValueFunc:    remote.DecodeValue,
 	}
 
 	return ret
@@ -94,47 +80,37 @@ type providerImpl struct {
 
 	modelCache model.Cache
 
-	getTypeFunc          func(interface{}) (model.Type, *cd.Result)
-	getValueFunc         func(interface{}) (model.Value, *cd.Result)
-	getModelFunc         func(interface{}) (model.Model, *cd.Result)
-	getFilterFunc        func(model.Model, model.ViewDeclare) (model.Filter, *cd.Result)
-	setModelValueFunc    func(model.Model, model.Value) (model.Model, *cd.Result)
-	elemDependValueFunc  func(val model.RawVal) ([]model.Value, *cd.Result)
-	appendSliceValueFunc func(model.Value, model.Value) (model.Value, *cd.Result)
-	encodeValueFunc      func(model.Value, model.Type, model.Cache) (model.RawVal, *cd.Result)
-	decodeValueFunc      func(model.RawVal, model.Type, model.Cache) (model.Value, *cd.Result)
-	getNewValue          func(declare model.ValueDeclare) model.Value
+	getEntityTypeFunc  func(any) (model.Type, *cd.Result)
+	getEntityValueFunc func(any) (model.Value, *cd.Result)
+	getEntityModelFunc func(any) (model.Model, *cd.Result)
+	getModelFilterFunc func(model.Model) (model.Filter, *cd.Result)
+	setModelValueFunc  func(model.Model, model.Value) (model.Model, *cd.Result)
+	encodeValueFunc    func(any, model.Type) (any, *cd.Result)
+	decodeValueFunc    func(any, model.Type) (any, *cd.Result)
 }
 
-func (s *providerImpl) RegisterModel(entity interface{}) (ret model.Model, err *cd.Result) {
-	modelType, modelErr := s.getTypeFunc(entity)
-	if modelErr != nil {
-		err = modelErr
-		log.Errorf("RegisterModel failed, s.getTypeFunc error:%v", err.Error())
-		return
-	}
-
-	modelType = modelType.Elem()
-	curModel := s.modelCache.Fetch(modelType.GetPkgKey())
-	if curModel != nil {
-		ret = curModel
-		return
-	}
-
-	entityModel, entityErr := s.getModelFunc(entity)
+func (s *providerImpl) RegisterModel(entity any) (ret model.Model, err *cd.Result) {
+	entityModel, entityErr := s.getEntityModelFunc(entity)
 	if entityErr != nil {
 		err = entityErr
 		log.Errorf("RegisterModel failed, s.getModelFunc error:%v", err.Error())
 		return
 	}
 
-	s.modelCache.Put(entityModel.GetPkgKey(), entityModel)
+	curModel := s.modelCache.Fetch(entityModel.GetPkgPath())
+	if curModel != nil {
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("model already registered, PkgPath:%s", entityModel.GetPkgPath()))
+		return
+	}
+
+	// 这里主动Copy一份，避免污染原始的entity
+	s.modelCache.Put(entityModel.GetPkgPath(), entityModel.Copy(model.MetaView))
 	ret = entityModel
 	return
 }
 
-func (s *providerImpl) UnregisterModel(entity interface{}) (err *cd.Result) {
-	modelType, modelErr := s.getTypeFunc(entity)
+func (s *providerImpl) UnregisterModel(entity any) (err *cd.Result) {
+	modelType, modelErr := s.getEntityTypeFunc(entity)
 	if modelErr != nil {
 		err = modelErr
 		log.Errorf("UnregisterModel failed, s.getTypeFunc error:%v", err.Error())
@@ -142,92 +118,145 @@ func (s *providerImpl) UnregisterModel(entity interface{}) (err *cd.Result) {
 	}
 
 	modelType = modelType.Elem()
-	curModel := s.modelCache.Fetch(modelType.GetPkgKey())
+	curModel := s.modelCache.Fetch(modelType.GetPkgPath())
 	if curModel != nil {
-		s.modelCache.Remove(curModel.GetPkgKey())
+		s.modelCache.Remove(curModel.GetPkgPath())
 	}
 	return
 }
 
-func (s *providerImpl) GetEntityType(entity interface{}) (ret model.Type, err *cd.Result) {
-	ret, err = s.getTypeFunc(entity)
+func (s *providerImpl) GetEntityType(entity any) (ret model.Type, err *cd.Result) {
+	ret, err = s.getEntityTypeFunc(entity)
 	if err != nil {
 		log.Errorf("GetEntityType failed, s.getTypeFunc error:%v", err.Error())
 	}
 	return
 }
 
-func (s *providerImpl) GetEntityValue(entity interface{}) (ret model.Value, err *cd.Result) {
-	ret, err = s.getValueFunc(entity)
+func (s *providerImpl) GetEntityValue(entity any) (ret model.Value, err *cd.Result) {
+	ret, err = s.getEntityValueFunc(entity)
 	if err != nil {
 		log.Errorf("GetEntityValue failed, s.getValueFunc error:%v", err.Error())
 	}
 	return
 }
 
-func (s *providerImpl) GetEntityModel(entity interface{}) (ret model.Model, err *cd.Result) {
-	entityTypeVal, entityTypeErr := s.getTypeFunc(entity)
+func (s *providerImpl) GetEntityModel(entity any) (ret model.Model, err *cd.Result) {
+	ret, err = s.checkEntityModel(entity)
+	if err != nil {
+		log.Errorf("GetEntityModel failed, s.checkEntityModel error:%v", err.Error())
+	}
+	return
+}
+
+// checkEntityModel check entity model
+// entity 可以是struct model type or model value
+// 这里需要先进行判断
+func (s *providerImpl) checkEntityModel(entity any) (ret model.Model, err *cd.Result) {
+	entityType, entityTypeErr := s.getEntityTypeFunc(entity)
 	if entityTypeErr != nil {
 		err = entityTypeErr
-		log.Errorf("GetEntityModel failed, s.getTypeFunc error:%v", err.Error())
+		log.Errorf("checkEntityModel failed, s.getEntityTypeFunc error:%v", err.Error())
 		return
 	}
 
-	// must check if register already
-	entityModel := s.modelCache.Fetch(entityTypeVal.GetPkgKey())
-	if entityModel == nil {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch entity model, must register entity first, entity PkgKey:%s", entityTypeVal.GetPkgKey()))
-		log.Errorf("GetEntityModel failed, s.modelCache.Fetch error:%v", err.Error())
+	curModelVal := s.modelCache.Fetch(entityType.Elem().GetPkgPath())
+	if curModelVal == nil {
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch model, PkgPath:%s", entityType.Elem().GetPkgPath()))
+		log.Errorf("checkEntityModel failed, error:%v", err.Error())
 		return
 	}
-
-	if entityTypeVal.IsSlice() {
-		ret = entityModel.Copy(true)
-		return
-	}
-
-	entityValueVal, entityValueErr := s.getValueFunc(entity)
+	entityValue, entityValueErr := s.getEntityValueFunc(entity)
 	if entityValueErr != nil {
-		ret = entityModel.Copy(true)
-		// 获取entity值失败，说明entity只是类型定义不是值
-		// 这里要当成获取Model成功继续处理
-		//err = entityValueErr
+		// 到这里说明entity只是model type,不是model value
+		ret = curModelVal.Copy(model.MetaView)
 		return
 	}
 
-	ret, err = s.setModelValueFunc(entityModel.Copy(true), entityValueVal)
+	entityModelVal, entityModelErr := s.setModelValueFunc(curModelVal.Copy(model.MetaView), entityValue)
+	if entityModelErr != nil {
+		err = entityModelErr
+		log.Errorf("checkEntityModel failed, s.setModelValueFunc error:%v", err.Error())
+	}
+
+	ret = entityModelVal
+	return
+}
+
+func (s *providerImpl) GetEntityFilter(entity any) (ret model.Filter, err *cd.Result) {
+	entityModelVal, entityModelErr := s.checkEntityModel(entity)
+	if entityModelErr != nil {
+		err = entityModelErr
+		log.Errorf("GetEntityFilter failed, s.checkEntityModel error:%v", err.Error())
+		return
+	}
+
+	ret, err = s.getModelFilterFunc(entityModelVal)
 	if err != nil {
-		log.Errorf("GetEntityModel failed, setModelValueFunc error:%v", err.Error())
+		log.Errorf("GetEntityFilter failed, s.getModelFilterFunc error:%v", err.Error())
 	}
 	return
 }
 
-func (s *providerImpl) GetEntityFilter(entity interface{}, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result) {
-	vModel, vErr := s.GetEntityModel(entity)
-	if vErr != nil {
-		err = vErr
-		log.Errorf("GetEntityFilter failed, s.GetEntityModel error:%v", err.Error())
+func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err *cd.Result) {
+	if model.IsBasic(vType) {
+		err = cd.NewResult(cd.UnExpected, "illegal type value, type pkgPath:"+vType.GetPkgPath())
+		log.Errorf("GetTypeModel failed, error:%v", err.Error())
 		return
 	}
 
-	ret, err = s.GetModelFilter(vModel, viewSpec)
-	if err != nil {
-		log.Errorf("GetEntityFilter failed, s.GetModelFilter error:%v", err.Error())
+	typeModelVal := s.modelCache.Fetch(vType.Elem().GetPkgPath())
+	if typeModelVal == nil {
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch type model, must register type entity first, PkgPath:%s", vType.Elem().GetPkgPath()))
+		log.Errorf("GetTypeModel failed, error:%v", err.Error())
+		return
 	}
+
+	ret = typeModelVal.Copy(model.MetaView)
 	return
 }
 
-func (s *providerImpl) GetModelFilter(vModel model.Model, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result) {
+func (s *providerImpl) GetModelFilter(vModel model.Model) (ret model.Filter, err *cd.Result) {
 	if vModel == nil {
 		err = cd.NewResult(cd.UnExpected, "illegal model value")
 		log.Errorf("GetModelFilter failed, error:%v", err.Error())
 		return
 	}
+	curModelVal := s.modelCache.Fetch(vModel.GetPkgPath())
+	if curModelVal == nil {
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch model, PkgPath:%s", vModel.GetPkgPath()))
+		log.Errorf("GetModelFilter failed, error:%v", err.Error())
+		return
+	}
 
-	filterVal, filterErr := s.getFilterFunc(vModel, viewSpec)
+	filterVal, filterErr := s.getModelFilterFunc(vModel)
 	if filterErr != nil {
 		err = filterErr
-		log.Errorf("GetEntityFilter failed, getFilterFunc error:%v", err.Error())
+		log.Errorf("GetModelFilter failed, getFilterFunc error:%v", err.Error())
+		return
+	}
+
+	ret = filterVal
+	return
+}
+
+func (s *providerImpl) GetTypeFilter(vType model.Type, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result) {
+	if vType == nil {
+		err = cd.NewResult(cd.UnExpected, "illegal type value")
+		log.Errorf("GetTypeFilter failed, error:%v", err.Error())
+		return
+	}
+	curModelVal := s.modelCache.Fetch(vType.GetPkgPath())
+	if curModelVal == nil {
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch model, PkgPath:%s", vType.GetPkgPath()))
+		log.Errorf("GetTypeFilter failed, error:%v", err.Error())
+		return
+	}
+
+	filterVal, filterErr := s.getModelFilterFunc(curModelVal.Copy(viewSpec))
+	if filterErr != nil {
+		err = filterErr
+		log.Errorf("GetTypeFilter failed, getFilterFunc error:%v", err.Error())
 		return
 	}
 
@@ -236,6 +265,13 @@ func (s *providerImpl) GetModelFilter(vModel model.Model, viewSpec model.ViewDec
 }
 
 func (s *providerImpl) SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *cd.Result) {
+	curModel := s.modelCache.Fetch(vModel.GetPkgPath())
+	if curModel == nil {
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch model, PkgPath:%s", vModel.GetPkgPath()))
+		log.Errorf("SetModelValue failed, error:%v", err.Error())
+		return
+	}
+
 	ret, err = s.setModelValueFunc(vModel, vVal)
 	if err != nil {
 		log.Errorf("SetModelValue failed, s.setModelValueFunc error:%v", err.Error())
@@ -243,107 +279,52 @@ func (s *providerImpl) SetModelValue(vModel model.Model, vVal model.Value) (ret 
 	return
 }
 
-func (s *providerImpl) GetValueModel(vVal model.Value, vType model.Type) (ret model.Model, err *cd.Result) {
-	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
-	if typeModel == nil {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch type model, must register type:%s", vType.GetPkgKey()))
-		log.Errorf("GetValueModel failed, s.modelCache.Fetch error:%v", err.Error())
+func (s *providerImpl) EncodeValue(vVal any, vType model.Type) (ret any, err *cd.Result) {
+	if model.IsBasic(vType) {
+		ret, err = s.encodeValueFunc(vVal, vType)
+		if err != nil {
+			log.Errorf("EncodeValue failed, s.encodeValueFunc error:%v", err.Error())
+		}
 		return
 	}
 
-	ret, err = s.setModelValueFunc(typeModel.Copy(true), vVal)
-	if err != nil {
-		log.Errorf("GetValueModel failed, s.setModelValueFunc error:%v", err.Error())
+	curModelVal := s.modelCache.Fetch(vType.Elem().GetPkgPath())
+	if curModelVal == nil {
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch model, PkgPath:%s", vType.Elem().GetPkgPath()))
+		log.Errorf("EncodeValue failed, error:%v", err.Error())
 		return
 	}
 
+	eVal, eErr := s.getEntityValueFunc(vVal)
+	if eErr != nil {
+		err = eErr
+		log.Errorf("EncodeValue failed, s.getEntityValueFunc error:%v", err.Error())
+		return
+	}
+	vModelVal, vModelErr := s.setModelValueFunc(curModelVal.Copy(model.LiteView), eVal)
+	if vModelErr != nil {
+		err = vModelErr
+		log.Errorf("EncodeValue failed, s.setModelValueFunc error:%v", err.Error())
+		return
+	}
+
+	pkField := vModelVal.GetPrimaryField()
+	ret, err = s.encodeValueFunc(pkField.GetValue().Get(), pkField.GetType())
 	return
 }
 
-func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err *cd.Result) {
-	if vType.IsBasic() {
-		return
-	}
-
-	vType = vType.Elem()
-	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
-	if typeModel == nil {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch type model, must register type entity first, PkgKey:%s", vType.GetPkgKey()))
-		log.Errorf("GetTypeModel failed, error:%v", err.Error())
-		return
-	}
-
-	ret = typeModel.Copy(true)
-	return
-}
-
-func (s *providerImpl) GetTypeFilter(vType model.Type, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result) {
-	if vType.IsBasic() {
-		return
-	}
-	vType = vType.Elem()
-	typeModel := s.modelCache.Fetch(vType.GetPkgKey())
-	if typeModel == nil {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch type filter, must register type entity first, PkgKey:%s", vType.GetPkgKey()))
-		log.Errorf("GetTypeFilter failed, error:%v", err.Error())
-		return
-	}
-
-	filterVal, filterErr := s.getFilterFunc(typeModel.Copy(false), viewSpec)
-	if filterErr != nil {
-		err = filterErr
-		log.Errorf("GetEntityFilter failed, getFilterFunc error:%v", err.Error())
-		return
-	}
-
-	ret = filterVal
-	return
-}
-
-func (s *providerImpl) EncodeValue(vVal model.Value, vType model.Type) (ret model.RawVal, err *cd.Result) {
-	ret, err = s.encodeValueFunc(vVal, vType, s.modelCache)
-	if err != nil {
-		log.Errorf("EncodeValue failed, s.encodeValueFunc error:%v", err.Error())
-		return
-	}
-
-	return
-}
-
-func (s *providerImpl) DecodeValue(eVal model.RawVal, vType model.Type) (ret model.Value, err *cd.Result) {
-	ret, err = s.decodeValueFunc(eVal, vType, s.modelCache)
+func (s *providerImpl) DecodeValue(vVal any, vType model.Type) (ret any, err *cd.Result) {
+	ret, err = s.decodeValueFunc(vVal, vType)
 	if err != nil {
 		log.Errorf("DecodeValue failed, s.decodeValueFunc error:%v", err.Error())
-		return
 	}
-
 	return
 }
 
-func (s *providerImpl) ElemDependValue(eVal model.RawVal) (ret []model.Value, err *cd.Result) {
-	ret, err = s.elemDependValueFunc(eVal)
-	if err != nil {
-		log.Errorf("ElemDependValue failed, s.elemDependValueFunc error:%v", err.Error())
-		return
-	}
-
-	return
-}
-
-func (s *providerImpl) AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, err *cd.Result) {
-	ret, err = s.appendSliceValueFunc(sliceVal, val)
-	if err != nil {
-		log.Errorf("AppendSliceValue failed, s.appendSliceValueFunc error:%v", err.Error())
-		return
-	}
-
-	return
-}
-
-func (s *providerImpl) GetNewValue(valueDeclare model.ValueDeclare) (ret model.Value) {
-	ret = s.getNewValue(valueDeclare)
-	return
-}
+//func (s *providerImpl) GetNewValue(valueDeclare model.ValueDeclare) (ret model.Value) {
+//	ret = s.getNewValue(valueDeclare)
+//	return
+//}
 
 func (s *providerImpl) Owner() string {
 	return s.owner

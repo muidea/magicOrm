@@ -29,8 +29,8 @@ func (s SpecImpl) GetValueDeclare() model.ValueDeclare {
 }
 
 func (s SpecImpl) EnableView(viewSpec model.ViewDeclare) bool {
-	if s.ViewDeclare == nil {
-		return false
+	if viewSpec == model.MetaView {
+		return true
 	}
 
 	for _, val := range s.ViewDeclare {
@@ -42,11 +42,11 @@ func (s SpecImpl) EnableView(viewSpec model.ViewDeclare) bool {
 	return false
 }
 
-func (s SpecImpl) GetDefaultValue() model.RawVal {
-	return model.NewRawVal(s.DefaultValue)
+func (s SpecImpl) GetDefaultValue() any {
+	return s.DefaultValue
 }
 
-func (s SpecImpl) copy() *SpecImpl {
+func (s SpecImpl) Copy() *SpecImpl {
 	ret := SpecImpl{
 		FieldName:    s.FieldName,
 		PrimaryKey:   s.PrimaryKey,

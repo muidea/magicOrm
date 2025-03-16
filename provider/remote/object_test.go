@@ -11,19 +11,19 @@ func TestObjectImplementation(t *testing.T) {
 	// Create test object
 	obj := &Object{
 		Name:        "TestObject",
-		PkgPath:     "github.com/test/pkg",
+		PkgPath:     "github.com/test/pkg/TestObject",
 		Description: "Test Object Description",
 		Fields: []*Field{
 			{
-				Name: "id",
-				Type: &TypeImpl{Name: "int64", Value: model.TypeBigIntegerValue},
-				Spec: &SpecImpl{FieldName: "id", PrimaryKey: true},
+				Name:  "id",
+				Type:  &TypeImpl{Name: "int64", Value: model.TypeBigIntegerValue},
+				Spec:  &SpecImpl{FieldName: "id", PrimaryKey: true},
 				value: NewValue(int64(123)),
 			},
 			{
-				Name: "name",
-				Type: &TypeImpl{Name: "string", Value: model.TypeStringValue},
-				Spec: &SpecImpl{FieldName: "name"},
+				Name:  "name",
+				Type:  &TypeImpl{Name: "string", Value: model.TypeStringValue},
+				Spec:  &SpecImpl{FieldName: "name"},
 				value: NewValue("test name"),
 			},
 		},
@@ -34,20 +34,15 @@ func TestObjectImplementation(t *testing.T) {
 		t.Errorf("GetName failed, expected 'TestObject', got '%s'", obj.GetName())
 	}
 
-	// Test GetPkgPath
-	if obj.GetPkgPath() != "github.com/test/pkg" {
-		t.Errorf("GetPkgPath failed, expected 'github.com/test/pkg', got '%s'", obj.GetPkgPath())
-	}
-
 	// Test GetDescription
 	if obj.GetDescription() != "Test Object Description" {
 		t.Errorf("GetDescription failed, expected 'Test Object Description', got '%s'", obj.GetDescription())
 	}
 
-	// Test GetPkgKey
-	expectedPkgKey := "github.com/test/pkg/TestObject"
-	if obj.GetPkgKey() != expectedPkgKey {
-		t.Errorf("GetPkgKey failed, expected '%s', got '%s'", expectedPkgKey, obj.GetPkgKey())
+	// Test GetPkgPath
+	expectedPkgPath := "github.com/test/pkg/TestObject"
+	if obj.GetPkgPath() != expectedPkgPath {
+		t.Errorf("GetPkgKey failed, expected '%s', got '%s'", expectedPkgPath, obj.GetPkgPath())
 	}
 
 	// Test GetFields
@@ -78,16 +73,14 @@ func TestObjectImplementation(t *testing.T) {
 	}
 
 	// Test SetFieldValue
-	newValue := NewValue("updated name")
-	obj.SetFieldValue("name", newValue)
+	obj.SetFieldValue("name", "updated name")
 	updatedField := obj.GetField("name")
 	if updatedField.GetValue().Get() != "updated name" {
 		t.Errorf("SetFieldValue failed, expected 'updated name', got '%v'", updatedField.GetValue().Get())
 	}
 
 	// Test SetPrimaryFieldValue
-	newPKValue := NewValue(int64(456))
-	obj.SetPrimaryFieldValue(newPKValue)
+	obj.SetPrimaryFieldValue(int64(456))
 	updatedPKField := obj.GetPrimaryField()
 	if updatedPKField.GetValue().Get() != int64(456) {
 		t.Errorf("SetPrimaryFieldValue failed, expected 456, got %v", updatedPKField.GetValue().Get())
@@ -102,32 +95,32 @@ func TestObjectCopy(t *testing.T) {
 		Description: "Test Object Description",
 		Fields: []*Field{
 			{
-				Name: "id",
-				Type: &TypeImpl{Name: "int64", Value: model.TypeBigIntegerValue},
-				Spec: &SpecImpl{FieldName: "id", PrimaryKey: true},
+				Name:  "id",
+				Type:  &TypeImpl{Name: "int64", Value: model.TypeBigIntegerValue},
+				Spec:  &SpecImpl{FieldName: "id", PrimaryKey: true},
 				value: NewValue(int64(123)),
 			},
 			{
-				Name: "name",
-				Type: &TypeImpl{Name: "string", Value: model.TypeStringValue},
-				Spec: &SpecImpl{FieldName: "name"},
+				Name:  "name",
+				Type:  &TypeImpl{Name: "string", Value: model.TypeStringValue},
+				Spec:  &SpecImpl{FieldName: "name"},
 				value: NewValue("test name"),
 			},
 		},
 	}
 
 	// Test Copy with reset=true
-	copiedObj := obj.Copy(true)
-	if copiedObj.GetName() != obj.GetName() || 
-	   copiedObj.GetPkgPath() != obj.GetPkgPath() ||
-	   copiedObj.GetDescription() != obj.GetDescription() {
+	copiedObj := obj.Copy(model.MetaView)
+	if copiedObj.GetName() != obj.GetName() ||
+		copiedObj.GetPkgPath() != obj.GetPkgPath() ||
+		copiedObj.GetDescription() != obj.GetDescription() {
 		t.Errorf("Copy(true) failed, basic properties don't match")
 	}
 
 	// With reset=true, field structure is preserved but values are reset
 	copiedFields := copiedObj.GetFields()
 	if len(copiedFields) != len(obj.GetFields()) {
-		t.Errorf("Copy(true) failed, field count mismatch: expected %d, got %d", 
+		t.Errorf("Copy(true) failed, field count mismatch: expected %d, got %d",
 			len(obj.GetFields()), len(copiedFields))
 	}
 
@@ -138,10 +131,10 @@ func TestObjectCopy(t *testing.T) {
 	}
 
 	// Test Copy with reset=false
-	copiedObj2 := obj.Copy(false)
-	if copiedObj2.GetName() != obj.GetName() || 
-	   copiedObj2.GetPkgPath() != obj.GetPkgPath() ||
-	   copiedObj2.GetDescription() != obj.GetDescription() {
+	copiedObj2 := obj.Copy(model.OriginView)
+	if copiedObj2.GetName() != obj.GetName() ||
+		copiedObj2.GetPkgPath() != obj.GetPkgPath() ||
+		copiedObj2.GetDescription() != obj.GetDescription() {
 		t.Errorf("Copy(false) failed, basic properties don't match")
 	}
 
@@ -149,7 +142,7 @@ func TestObjectCopy(t *testing.T) {
 	nameField2 := copiedObj2.GetField("name")
 	originalField := obj.GetField("name")
 	if nameField2.GetValue().Get() != originalField.GetValue().Get() {
-		t.Errorf("Copy(false) failed, field value not preserved: expected %v, got %v", 
+		t.Errorf("Copy(false) failed, field value not preserved: expected %v, got %v",
 			originalField.GetValue().Get(), nameField2.GetValue().Get())
 	}
 }
@@ -162,28 +155,28 @@ func TestObjectInterface(t *testing.T) {
 		Description: "Test Object Description",
 		Fields: []*Field{
 			{
-				Name: "id",
-				Type: &TypeImpl{Name: "int64", Value: model.TypeBigIntegerValue},
-				Spec: &SpecImpl{FieldName: "id", PrimaryKey: true, ViewDeclare: []model.ViewDeclare{model.DetailView, model.LiteView}},
+				Name:  "id",
+				Type:  &TypeImpl{Name: "int64", Value: model.TypeBigIntegerValue},
+				Spec:  &SpecImpl{FieldName: "id", PrimaryKey: true, ViewDeclare: []model.ViewDeclare{model.DetailView, model.LiteView}},
 				value: NewValue(int64(123)),
 			},
 			{
-				Name: "name",
-				Type: &TypeImpl{Name: "string", Value: model.TypeStringValue},
-				Spec: &SpecImpl{FieldName: "name", ViewDeclare: []model.ViewDeclare{model.DetailView, model.LiteView}},
+				Name:  "name",
+				Type:  &TypeImpl{Name: "string", Value: model.TypeStringValue},
+				Spec:  &SpecImpl{FieldName: "name", ViewDeclare: []model.ViewDeclare{model.DetailView, model.LiteView}},
 				value: NewValue("test name"),
 			},
 			{
-				Name: "description",
-				Type: &TypeImpl{Name: "string", Value: model.TypeStringValue},
-				Spec: &SpecImpl{FieldName: "description", ViewDeclare: []model.ViewDeclare{model.DetailView}},
+				Name:  "description",
+				Type:  &TypeImpl{Name: "string", Value: model.TypeStringValue},
+				Spec:  &SpecImpl{FieldName: "description", ViewDeclare: []model.ViewDeclare{model.DetailView}},
 				value: NewValue("test description"),
 			},
 		},
 	}
 
 	// Test Interface with OriginView
-	result := obj.Interface(false, model.OriginView)
+	result := obj.Interface(false)
 	objVal, ok := result.(*ObjectValue)
 	if !ok {
 		t.Errorf("Interface failed, expected *ObjectValue, got %T", result)
@@ -198,8 +191,9 @@ func TestObjectInterface(t *testing.T) {
 		t.Errorf("Interface with OriginView failed, expected 3 fields, got %d", len(objVal.Fields))
 	}
 
+	detailView := obj.Copy(model.DetailView)
 	// Test Interface with DetailView
-	result = obj.Interface(false, model.DetailView)
+	result = detailView.Interface(false)
 	objVal, ok = result.(*ObjectValue)
 	if !ok {
 		t.Errorf("Interface failed, expected *ObjectValue, got %T", result)
@@ -210,8 +204,9 @@ func TestObjectInterface(t *testing.T) {
 		t.Errorf("Interface with DetailView failed, expected 3 fields, got %d", len(objVal.Fields))
 	}
 
+	liteView := obj.Copy(model.LiteView)
 	// Test Interface with LiteView
-	result = obj.Interface(false, model.LiteView)
+	result = liteView.Interface(false)
 	objVal, ok = result.(*ObjectValue)
 	if !ok {
 		t.Errorf("Interface failed, expected *ObjectValue, got %T", result)
@@ -240,7 +235,7 @@ func TestObjectValueImplementation(t *testing.T) {
 	objVal := &ObjectValue{
 		ID:      "123",
 		Name:    "TestObject",
-		PkgPath: "github.com/test/pkg",
+		PkgPath: "github.com/test/pkg/TestObject",
 		Fields: []*FieldValue{
 			{Name: "id", Value: int64(123)},
 			{Name: "name", Value: "test name"},
@@ -253,14 +248,9 @@ func TestObjectValueImplementation(t *testing.T) {
 	}
 
 	// Test GetPkgPath
-	if objVal.GetPkgPath() != "github.com/test/pkg" {
-		t.Errorf("GetPkgPath failed, expected 'github.com/test/pkg', got '%s'", objVal.GetPkgPath())
-	}
-
-	// Test GetPkgKey
-	expectedPkgKey := "github.com/test/pkg/TestObject"
-	if objVal.GetPkgKey() != expectedPkgKey {
-		t.Errorf("GetPkgKey failed, expected '%s', got '%s'", expectedPkgKey, objVal.GetPkgKey())
+	expectedPkgPath := "github.com/test/pkg/TestObject"
+	if objVal.GetPkgPath() != expectedPkgPath {
+		t.Errorf("GetPkgPathy failed, expected '%s', got '%s'", expectedPkgPath, objVal.GetPkgPath())
 	}
 
 	// Test GetValue
@@ -320,7 +310,7 @@ func TestSliceObjectValueImplementation(t *testing.T) {
 	// Create test SliceObjectValue
 	sliceObjVal := &SliceObjectValue{
 		Name:    "TestSliceObject",
-		PkgPath: "github.com/test/pkg",
+		PkgPath: "github.com/test/pkg/TestSliceObject",
 		Values: []*ObjectValue{
 			{
 				ID:      "123",
@@ -348,15 +338,10 @@ func TestSliceObjectValueImplementation(t *testing.T) {
 		t.Errorf("GetName failed, expected 'TestSliceObject', got '%s'", sliceObjVal.GetName())
 	}
 
-	// Test GetPkgPath
-	if sliceObjVal.GetPkgPath() != "github.com/test/pkg" {
-		t.Errorf("GetPkgPath failed, expected 'github.com/test/pkg', got '%s'", sliceObjVal.GetPkgPath())
-	}
-
 	// Test GetPkgKey
-	expectedPkgKey := "github.com/test/pkg/TestSliceObject"
-	if sliceObjVal.GetPkgKey() != expectedPkgKey {
-		t.Errorf("GetPkgKey failed, expected '%s', got '%s'", expectedPkgKey, sliceObjVal.GetPkgKey())
+	expectedPkgPath := "github.com/test/pkg/TestSliceObject"
+	if sliceObjVal.GetPkgPath() != expectedPkgPath {
+		t.Errorf("GetPkgKey failed, expected '%s', got '%s'", expectedPkgPath, sliceObjVal.GetPkgPath())
 	}
 
 	// Test GetValue
@@ -397,12 +382,12 @@ func TestSliceObjectValueImplementation(t *testing.T) {
 		originalFirstObjField := sliceObjVal.Values[0].Fields[0]
 		originalFieldVal := originalFirstObjField.Value
 		originalFirstObjField.Value = "modified"
-		
+
 		copiedFirstObjField := copiedVal.Values[0].Fields[0]
 		if reflect.DeepEqual(copiedFirstObjField.Value, originalFirstObjField.Value) {
 			t.Errorf("Copy failed, copy should not be affected by changes to original")
 		}
-		
+
 		// Restore original for other tests
 		originalFirstObjField.Value = originalFieldVal
 	}

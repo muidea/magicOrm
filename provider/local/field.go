@@ -1,10 +1,10 @@
 package local
 
 import (
-	"fmt"
 	"reflect"
 
 	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/model"
 )
@@ -24,6 +24,10 @@ func (s *field) GetIndex() int {
 }
 
 func (s *field) GetName() string {
+	return s.name
+}
+
+func (s *field) GetShowName() string {
 	return s.name
 }
 
@@ -47,198 +51,86 @@ func (s *field) GetSpec() (ret model.Spec) {
 }
 
 func (s *field) GetValue() (ret model.Value) {
-	if s.valuePtr != nil {
-		ret = s.valuePtr
-		return
-	}
-
-	ret = &NilValue
+	ret = s.valuePtr
 	return
 }
 
-func (s *field) SetValue(val model.Value) {
-	s.valuePtr = val.(*ValueImpl)
+func (s *field) SetValue(val any) *cd.Result {
+	return s.valuePtr.Set(val)
 }
 
-func (s *field) IsPrimaryKey() bool {
-	if s.specPtr == nil {
-		return false
+func (s *field) GetSliceValue() []model.Value {
+	if !model.IsSlice(s.typePtr) || !s.valuePtr.IsValid() {
+		return nil
 	}
 
-	return s.specPtr.IsPrimaryKey()
+	return s.valuePtr.UnpackValue()
 }
 
-func (s *field) IsBasic() bool {
-	return s.typePtr.IsBasic()
-}
-
-func (s *field) IsStruct() bool {
-	return s.typePtr.IsStruct()
-}
-
-func (s *field) IsSlice() bool {
-	return s.typePtr.IsSlice()
-}
-
-func (s *field) IsPtrType() bool {
-	return s.typePtr.IsPtrType()
-}
-
-func (s *field) copy(reset bool) *field {
-	val := &field{
-		index: s.index,
-		name:  s.name,
-	}
-
-	if s.typePtr != nil {
-		val.typePtr = s.typePtr.copy()
-	}
-	if s.specPtr != nil {
-		val.specPtr = s.specPtr.copy()
-	}
-	if !reset && s.valuePtr != nil {
-		val.valuePtr = s.valuePtr.Copy()
-	}
-
-	return val
-}
-
-func (s *field) verifyAutoIncrement(typeVal model.TypeDeclare) *cd.Result {
-	switch typeVal {
-	case model.TypeBooleanValue,
-		model.TypeStringValue,
-		model.TypeDateTimeValue,
-		model.TypeFloatValue,
-		model.TypeDoubleValue,
-		model.TypeStructValue,
-		model.TypeSliceValue:
-		return cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal auto_increment field type, type:%v", typeVal))
-	default:
-	}
-
-	return nil
-}
-
-func (s *field) verifyUUID(typeVal model.TypeDeclare) *cd.Result {
-	if typeVal != model.TypeStringValue {
-		return cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal uuid field type, type:%v", typeVal))
-	}
-
-	return nil
-}
-
-func (s *field) verifySnowFlake(typeVal model.TypeDeclare) *cd.Result {
-	if typeVal != model.TypeBigIntegerValue {
-		return cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal snowflake field type, type:%v", typeVal))
-	}
-
-	return nil
-}
-
-func (s *field) verifyDateTime(typeVal model.TypeDeclare) *cd.Result {
-	if typeVal != model.TypeDateTimeValue {
-		return cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal dateTime field type, type:%v", typeVal))
-	}
-
-	return nil
-}
-
-func (s *field) verifyPK(typeVal model.TypeDeclare) *cd.Result {
-	switch typeVal {
-	case model.TypeStructValue, model.TypeSliceValue:
-		return cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal primary key field type, type:%v", typeVal))
-	default:
-	}
-
-	return nil
-}
-
-func (s *field) verify() (err *cd.Result) {
-	if s.typePtr == nil {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal filed, field type is null, index:%d, name:%v", s.index, s.name))
+func (s *field) AppendSliceValue(val any) (err *cd.Result) {
+	if val == nil {
+		err = cd.NewResult(cd.UnExpected, "field append slice value is nil")
 		return
 	}
 
-	if s.specPtr == nil {
+	if !model.IsSlice(s.typePtr) {
+		err = cd.NewResult(cd.UnExpected, "field is not slice")
 		return
 	}
-	val := s.typePtr.GetValue()
-	if s.specPtr.GetValueDeclare() == model.AutoIncrement {
-		err = s.verifyAutoIncrement(val)
-		if err != nil {
-			return
-		}
-	}
-	if s.specPtr.GetValueDeclare() == model.UUID {
-		err = s.verifyUUID(val)
-		if err != nil {
-			return
-		}
-	}
 
-	if s.specPtr.GetValueDeclare() == model.SnowFlake {
-		err = s.verifySnowFlake(val)
-		if err != nil {
-			return
-		}
-	}
-
-	if s.specPtr.GetValueDeclare() == model.DateTime {
-		err = s.verifyDateTime(val)
-		if err != nil {
-			return
-		}
-	}
-
-	if s.specPtr.IsPrimaryKey() {
-		err = s.verifyPK(val)
-	}
-
+	err = s.valuePtr.Append(reflect.ValueOf(val))
 	return
 }
 
-func (s *field) dump() string {
-	str := fmt.Sprintf("index:%d,name:%s,type:[%s],spec:[%s]", s.index, s.name, s.typePtr.dump(), s.specPtr.dump())
-	return str
+func (s *field) Reset() {
+	s.valuePtr.reset(model.IsAssignedField(s))
 }
 
-func getFieldName(fieldType reflect.StructField) (ret string, err *cd.Result) {
-	fieldName := fieldType.Name
-	specPtr, specErr := NewSpec(fieldType.Tag)
-	if specErr != nil {
-		err = specErr
+func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Value, viewSpec model.ViewDeclare) (ret *field, err *cd.Result) {
+	var typePtr *TypeImpl
+	var specPtr *SpecImpl
+	var valuePtr *ValueImpl
+
+	typePtr, err = NewType(fieldType.Type)
+	if err != nil {
 		return
 	}
 
-	if specPtr.GetFieldName() != "" {
-		fieldName = specPtr.GetFieldName()
-	}
-
-	ret = fieldName
-	return
-}
-
-func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Value) (ret *field, err *cd.Result) {
-	typePtr, typeErr := NewType(fieldType.Type)
-	if typeErr != nil {
-		err = typeErr
+	specPtr, err = NewSpec(fieldType.Tag)
+	if err != nil {
 		return
 	}
 
-	specPtr, specErr := NewSpec(fieldType.Tag)
-	if specErr != nil {
-		err = specErr
-		return
+	fieldPtr := &field{
+		index: idx,
+		name:  fieldType.Name,
 	}
 
-	valuePtr := NewValue(fieldValue)
-
-	fieldPtr := &field{}
-	fieldPtr.index = idx
-
-	fieldPtr.name = fieldType.Name
 	if specPtr.GetFieldName() != "" {
 		fieldPtr.name = specPtr.GetFieldName()
+	}
+
+	valuePtr = NewValue(fieldValue)
+
+	switch viewSpec {
+	case model.MetaView:
+		if !typePtr.IsPtrType() {
+			valuePtr.reset(true)
+		} else {
+			valuePtr.reset(false)
+		}
+	case model.DetailView, model.LiteView:
+		if !specPtr.EnableView(viewSpec) {
+			// 如果spec未定义，则重置该value，不进行初始化
+			valuePtr.reset(false)
+		} else if !valuePtr.IsValid() {
+			// 如果spec定义，但是value无效，则重置该value，并进行初始化
+			valuePtr.reset(true)
+		}
+	case model.OriginView:
+		//  do nothing
+	default:
+		log.Warnf("fieldName:%s,unknown view spec:%v", fieldPtr.name, viewSpec)
 	}
 
 	fieldPtr.typePtr = typePtr

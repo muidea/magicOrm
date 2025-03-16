@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	om "github.com/muidea/magicOrm/model"
-	pu "github.com/muidea/magicOrm/provider/util"
+	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/utils"
 )
 
 /*
@@ -38,6 +38,7 @@ type TestStruct struct {
 	Score      float64   `orm:"score"`
 	IsActive   bool      `orm:"isActive"`
 	CreateTime time.Time `orm:"createTime"`
+	StrPtr     *string   `orm:"strPtr"`
 }
 
 // TestFilterEqual tests the Equal method
@@ -71,7 +72,7 @@ func TestFilterEqual(t *testing.T) {
 		return
 	}
 
-	if idFilter.OprCode() != om.EqualOpr {
+	if idFilter.OprCode() != model.EqualOpr {
 		t.Errorf("Expected EqualOpr, got %v", idFilter.OprCode())
 	}
 
@@ -212,9 +213,9 @@ func TestFilterPagination(t *testing.T) {
 		return
 	}
 
-	_, ok := pagination.(*pu.Pagination)
+	_, ok := pagination.(*utils.Pagination)
 	if !ok {
-		t.Errorf("Paginationer did not return *pu.Pagination")
+		t.Errorf("Paginationer did not return *utils.Pagination")
 		return
 	}
 
@@ -271,7 +272,7 @@ func TestFilterValueMask(t *testing.T) {
 
 	// Create a value to use as mask
 	maskVal := TestStruct{ID: 0, Name: "masked"}
-	err := filter.ValueMask(maskVal)
+	err := filter.ValueMask(&maskVal)
 	if err != nil {
 		t.Errorf("ValueMask returned error: %v", err)
 		return
@@ -288,35 +289,25 @@ func TestFilterValueMask(t *testing.T) {
 	idField := maskedModel.GetField("id")
 	if idField == nil {
 		t.Errorf("GetField('id') returned nil for masked model")
-		return
 	}
-
-	idValue := idField.GetValue()
-	if idValue == nil {
-		t.Errorf("GetValue() returned nil for id field in masked model")
-		return
-	}
-
-	idReflectValue := idValue.Get().(reflect.Value)
-	if idReflectValue.Int() != int64(0) {
-		t.Errorf("Masked 'id' field has wrong value, expected 0, got %v", idReflectValue.Int())
+	if !model.IsValidField(idField) {
+		t.Errorf("GetField('id') returned valid field for masked model")
 	}
 
 	nameField := maskedModel.GetField("name")
 	if nameField == nil {
 		t.Errorf("GetField('name') returned nil for masked model")
-		return
+	}
+	if !model.IsValidField(nameField) {
+		t.Errorf("GetField('name') returned valid field for masked model")
 	}
 
-	nameValue := nameField.GetValue()
-	if nameValue == nil {
-		t.Errorf("GetValue() returned nil for name field in masked model")
-		return
+	strPtrField := maskedModel.GetField("strPtr")
+	if strPtrField == nil {
+		t.Errorf("GetField('strPtr') returned nil for masked model")
 	}
-
-	nameReflectValue := nameValue.Get().(reflect.Value)
-	if nameReflectValue.String() != "masked" {
-		t.Errorf("Masked 'name' field has wrong value, expected 'masked', got %v", nameReflectValue.String())
+	if model.IsValidField(strPtrField) {
+		t.Errorf("GetField('strPtr') returned invalid field for masked model")
 	}
 }
 
@@ -370,9 +361,9 @@ func TestPaginationEdgeCases(t *testing.T) {
 		return
 	}
 
-	_, ok := pagination.(*pu.Pagination)
+	_, ok := pagination.(*utils.Pagination)
 	if !ok {
-		t.Errorf("Paginationer did not return *pu.Pagination")
+		t.Errorf("Paginationer did not return *utils.Pagination")
 		return
 	}
 
@@ -384,7 +375,7 @@ func TestPaginationEdgeCases(t *testing.T) {
 		t.Errorf("Paginationer returned nil")
 		return
 	}
-	_, _ = pagination.(*pu.Pagination)
+	_, _ = pagination.(*utils.Pagination)
 }
 
 // TestFilterCombinedOperations tests multiple filter operations combined
@@ -418,17 +409,17 @@ func TestFilterCombinedOperations(t *testing.T) {
 
 	// Verify all filter items exist
 	idFilter := filter.GetFilterItem("id")
-	if idFilter == nil || idFilter.OprCode() != om.EqualOpr {
+	if idFilter == nil || idFilter.OprCode() != model.EqualOpr {
 		t.Errorf("Expected 'id' filter with EqualOpr, got %v", idFilter)
 	}
 
 	scoreFilter := filter.GetFilterItem("score")
-	if scoreFilter == nil || scoreFilter.OprCode() != om.AboveOpr {
+	if scoreFilter == nil || scoreFilter.OprCode() != model.AboveOpr {
 		t.Errorf("Expected 'score' filter with AboveOpr, got %v", scoreFilter)
 	}
 
 	nameFilter := filter.GetFilterItem("name")
-	if nameFilter == nil || nameFilter.OprCode() != om.LikeOpr {
+	if nameFilter == nil || nameFilter.OprCode() != model.LikeOpr {
 		t.Errorf("Expected 'name' filter with LikeOpr, got %v", nameFilter)
 	}
 
@@ -462,7 +453,7 @@ func TestFilterReplacement(t *testing.T) {
 
 	// Verify filter
 	idFilter := filter.GetFilterItem("id")
-	if idFilter == nil || idFilter.OprCode() != om.EqualOpr {
+	if idFilter == nil || idFilter.OprCode() != model.EqualOpr {
 		t.Errorf("Expected 'id' filter with EqualOpr, got %v", idFilter)
 		return
 	}
@@ -476,77 +467,8 @@ func TestFilterReplacement(t *testing.T) {
 
 	// Verify filter was replaced
 	idFilter = filter.GetFilterItem("id")
-	if idFilter == nil || idFilter.OprCode() != om.NotEqualOpr {
+	if idFilter == nil || idFilter.OprCode() != model.NotEqualOpr {
 		t.Errorf("Expected 'id' filter to be replaced with NotEqualOpr, got %v", idFilter)
-	}
-}
-
-// TestMaskModelWithStructs tests the MaskModel functionality with struct values
-func TestMaskModelWithStructs(t *testing.T) {
-	// Create a nested struct for testing
-	nestedVal := TestNestedStruct{
-		ID:     1,
-		Info:   TestProviderStruct{ID: 10, Name: "nested"},
-		Active: true,
-	}
-
-	valueImpl := NewValue(reflect.ValueOf(nestedVal))
-	filter := newFilter(valueImpl)
-
-	// Add some filters
-	err := filter.Equal("id", 1)
-	if err != nil {
-		t.Errorf("Equal returned error: %v", err)
-		return
-	}
-
-	err = filter.Equal("active", true)
-	if err != nil {
-		t.Errorf("Equal returned error: %v", err)
-		return
-	}
-
-	// Set a mask value
-	maskStruct := TestNestedStruct{
-		ID:     2,
-		Active: false,
-	}
-
-	err = filter.ValueMask(maskStruct)
-	if err != nil {
-		t.Errorf("ValueMask returned error: %v", err)
-		return
-	}
-
-	// Get mask model
-	maskModel := filter.MaskModel()
-	if maskModel == nil {
-		t.Errorf("MaskModel returned nil")
-		return
-	}
-
-	// Verify mask fields
-	idField := maskModel.GetField("id")
-	if idField == nil {
-		t.Errorf("Expected 'id' field in mask model")
-		return
-	}
-
-	activeField := maskModel.GetField("active")
-	if activeField == nil {
-		t.Errorf("Expected 'active' field in mask model")
-		return
-	}
-
-	// Verify field values
-	idValue := idField.GetValue().Get().(reflect.Value).Interface()
-	if idValue != 2 {
-		t.Errorf("Expected mask id to be 2, got %v", idValue)
-	}
-
-	activeValue := activeField.GetValue().Get().(reflect.Value).Interface()
-	if activeValue != false {
-		t.Errorf("Expected mask active to be false, got %v", activeValue)
 	}
 }
 

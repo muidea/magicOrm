@@ -12,7 +12,7 @@ import (
 // BuildDelete  BuildDelete
 func (s *Builder) BuildDelete(vModel model.Model) (ret *ResultStack, err *cd.Result) {
 	resultStackPtr := &ResultStack{}
-	filterStr, filterErr := s.buildFiledFilter(vModel.GetPrimaryField(), resultStackPtr)
+	filterStr, filterErr := s.buildFieldFilter(vModel.GetPrimaryField(), resultStackPtr)
 	if filterErr != nil {
 		err = filterErr
 		log.Errorf("BuildDelete failed, s.BuildModelFilter error:%s", err.Error())
@@ -30,34 +30,35 @@ func (s *Builder) BuildDelete(vModel model.Model) (ret *ResultStack, err *cd.Res
 }
 
 // BuildDeleteRelation BuildDeleteRelation
-func (s *Builder) BuildDeleteRelation(vModel model.Model, vField model.Field, rModel model.Model) (delHost, delRelation *ResultStack, err *cd.Result) {
-	hostVal, hostErr := s.buildCodec.BuildModelValue(vModel)
-	if hostErr != nil {
-		err = hostErr
-		log.Errorf("BuildDeleteRelation failed, s.BuildHostModelValue error:%s", err.Error())
-		return
-	}
-
-	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField, rModel)
+func (s *Builder) BuildDeleteRelation(vModel model.Model, vField model.Field) (delHost, delRelation *ResultStack, err *cd.Result) {
+	hostVal := vModel.GetPrimaryField().GetValue().Get()
+	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("BuildDeleteRelation %s failed, s.buildCodec.ConstructRelationTableName error:%s", vField.GetName(), err.Error())
 		return
 	}
 
+	rModel, rErr := s.modelProvider.GetTypeModel(vField.GetType())
+	if rErr != nil {
+		err = rErr
+		log.Errorf("BuildDeleteRelation %s failed, s.modelProvider.GetTypeModel error:%s", vField.GetName(), err.Error())
+		return
+	}
+
 	delHostStackPtr := &ResultStack{}
 	delHostSQL := fmt.Sprintf("DELETE FROM `%s` WHERE `%s` IN (SELECT `right` FROM `%s` WHERE `left`=?)",
-		s.buildCodec.ConstructModelTableName(rModel),
+		s.buildCodec.ConstructModelTableName(vField.GetType()),
 		rModel.GetPrimaryField().GetName(),
 		relationTableName)
 	delHostStackPtr.SetSQL(delHostSQL)
-	delHostStackPtr.PushArgs(hostVal.Value())
+	delHostStackPtr.PushArgs(hostVal)
 	delHost = delHostStackPtr
 
 	delRelationStackPtr := &ResultStack{}
 	delRelationSQL := fmt.Sprintf("DELETE FROM `%s` WHERE `left`=?", relationTableName)
 	delRelationStackPtr.SetSQL(delRelationSQL)
-	delRelationStackPtr.PushArgs(hostVal.Value())
+	delRelationStackPtr.PushArgs(hostVal)
 	delRelation = delRelationStackPtr
 
 	if traceSQL() {

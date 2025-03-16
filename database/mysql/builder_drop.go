@@ -22,8 +22,8 @@ func (s *Builder) BuildDropTable(vModel model.Model) (ret *ResultStack, err *cd.
 }
 
 // BuildDropRelationTable Build DropRelation Schema
-func (s *Builder) BuildDropRelationTable(vModel model.Model, vField model.Field, rModel model.Model) (ret *ResultStack, err *cd.Result) {
-	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField, rModel)
+func (s *Builder) BuildDropRelationTable(vModel model.Model, vField model.Field) (ret *ResultStack, err *cd.Result) {
+	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("BuildDeleteRelation %s failed, s.buildCodec.ConstructRelationTableName error:%s", vField.GetName(), err.Error())

@@ -1,10 +1,12 @@
+//go:build local
+// +build local
+
 package test
 
 import (
 	"testing"
 	"time"
 
-	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
 
 	"github.com/muidea/magicOrm/orm"
@@ -61,7 +63,7 @@ func TestLocalExecutor(t *testing.T) {
 		t.Errorf("insert obj failed, err:%s", objErr.Error())
 		return
 	}
-	obj = objModel.Interface(true, model.OriginView).(*Unit)
+	obj = objModel.Interface(true).(*Unit)
 
 	obj.Name = "abababa"
 	obj.Value = 100.000
@@ -87,14 +89,14 @@ func TestLocalExecutor(t *testing.T) {
 		t.Errorf("query obj failed, err:%s", obj2Err.Error())
 		return
 	}
-	obj2 = obj2Model.Interface(true, model.OriginView).(*Unit)
+	obj2 = obj2Model.Interface(true).(*Unit)
 	if obj.Name != obj2.Name || obj.Value != obj2.Value {
 		t.Errorf("query obj failed, obj:%v, obj2:%v", obj, obj2)
 		return
 	}
 
 	uModel, _ := localProvider.GetEntityModel(&Unit{})
-	filter, err := localProvider.GetModelFilter(uModel, model.OriginView)
+	filter, err := localProvider.GetModelFilter(uModel)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -128,7 +130,7 @@ func TestLocalDepends(t *testing.T) {
 	}
 
 	now, _ := time.Parse("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000")
-	obj := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
+	obj := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true, IArray: []int{}, FArray: []float32{}, StrArray: []string{}}
 	ext := &ExtUnit{Unit: obj}
 
 	objList := []any{&Unit{}, &ExtUnit{}, &ExtUnitList{}}
@@ -157,7 +159,7 @@ func TestLocalDepends(t *testing.T) {
 		t.Errorf("insert ext failed, err:%s", extErr.Error())
 		return
 	}
-	_ = extModel.Interface(true, model.OriginView).(*ExtUnit)
+	_ = extModel.Interface(true).(*ExtUnit)
 
 	objModel, objErr := provider.GetEntityModel(obj)
 	if objErr != nil {
@@ -169,7 +171,7 @@ func TestLocalDepends(t *testing.T) {
 		t.Errorf("insert ext failed, err:%s", objErr.Error())
 		return
 	}
-	obj = objModel.Interface(true, model.OriginView).(*Unit)
+	obj = objModel.Interface(true).(*Unit)
 
 	ext2 := &ExtUnitList{Unit: *obj, UnitList: []Unit{}}
 	ext2.UnitList = append(ext2.UnitList, *obj)

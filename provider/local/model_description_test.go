@@ -2,6 +2,8 @@ package local
 
 import (
 	"testing"
+
+	"github.com/muidea/magicOrm/model"
 )
 
 // TestModelProperties tests the basic properties of model
@@ -13,7 +15,7 @@ func TestModelProperties(t *testing.T) {
 	}
 
 	// Get model for simple struct
-	simpleModel, err := GetEntityModel(SimpleStruct{})
+	simpleModel, err := GetEntityModel(&SimpleStruct{})
 	if err != nil {
 		t.Errorf("GetEntityModel failed: %s", err.Error())
 		return
@@ -37,7 +39,7 @@ func TestModelProperties(t *testing.T) {
 	idField := simpleModel.GetField("id")
 	if idField == nil {
 		t.Errorf("GetField(id) returned nil")
-	} else if !idField.IsPrimaryKey() {
+	} else if !model.IsPrimaryField(idField) {
 		t.Errorf("id field should be primary key")
 	}
 
@@ -83,7 +85,7 @@ func TestModelWithNestedStruct(t *testing.T) {
 	}
 
 	// Get model for struct with nested struct
-	nestedModel, err := GetEntityModel(PersonWithAddress{})
+	nestedModel, err := GetEntityModel(&PersonWithAddress{})
 	if err != nil {
 		t.Errorf("GetEntityModel failed: %s", err.Error())
 		return
@@ -99,7 +101,7 @@ func TestModelWithNestedStruct(t *testing.T) {
 	addressField := nestedModel.GetField("address")
 	if addressField == nil {
 		t.Errorf("GetField(address) returned nil")
-	} else if !addressField.IsStruct() {
+	} else if !model.IsStructField(addressField) {
 		t.Errorf("address field should be a struct type")
 	}
 }
@@ -114,7 +116,7 @@ func TestModelWithSliceFields(t *testing.T) {
 	}
 
 	// Get model for struct with slices
-	sliceModel, err := GetEntityModel(WithSlices{})
+	sliceModel, err := GetEntityModel(&WithSlices{})
 	if err != nil {
 		t.Errorf("GetEntityModel failed: %s", err.Error())
 		return
@@ -124,14 +126,14 @@ func TestModelWithSliceFields(t *testing.T) {
 	namesField := sliceModel.GetField("names")
 	if namesField == nil {
 		t.Errorf("GetField(names) returned nil")
-	} else if !namesField.IsSlice() {
+	} else if !model.IsSliceField(namesField) {
 		t.Errorf("names field should be a slice type")
 	}
 
 	scoresField := sliceModel.GetField("scores")
 	if scoresField == nil {
 		t.Errorf("GetField(scores) returned nil")
-	} else if !scoresField.IsSlice() {
+	} else if !model.IsSliceField(scoresField) {
 		t.Errorf("scores field should be a slice type")
 	}
 }

@@ -19,12 +19,12 @@ type Builder interface {
 	BuildQueryPlaceHolder(vModel model.Model) ([]any, *cd.Result)
 	BuildCount(vModel model.Model, vFilter model.Filter) (Result, *cd.Result)
 
-	BuildCreateRelationTable(vModel model.Model, vField model.Field, rModel model.Model) (Result, *cd.Result)
-	BuildDropRelationTable(vModel model.Model, vField model.Field, rModel model.Model) (Result, *cd.Result)
+	BuildCreateRelationTable(vModel model.Model, vField model.Field) (Result, *cd.Result)
+	BuildDropRelationTable(vModel model.Model, vField model.Field) (Result, *cd.Result)
 	BuildInsertRelation(vModel model.Model, vField model.Field, rModel model.Model) (Result, *cd.Result)
-	BuildDeleteRelation(vModel model.Model, vField model.Field, rModel model.Model) (Result, Result, *cd.Result)
-	BuildQueryRelation(vModel model.Model, vField model.Field, rModel model.Model) (Result, *cd.Result)
-	BuildQueryRelationPlaceHolder(vModel model.Model, vField model.Field, rModel model.Model) (any, *cd.Result)
+	BuildDeleteRelation(vModel model.Model, vField model.Field) (Result, Result, *cd.Result)
+	BuildQueryRelation(vModel model.Model, vField model.Field) (Result, *cd.Result)
+	BuildQueryRelationPlaceHolder(vModel model.Model, vField model.Field) (any, *cd.Result)
 }
 
 type builderImpl struct {
@@ -63,28 +63,28 @@ func (s *builderImpl) BuildCount(vModel model.Model, vFilter model.Filter) (Resu
 	return s.builder.BuildCount(vModel, vFilter)
 }
 
-func (s *builderImpl) BuildCreateRelationTable(vModel model.Model, vField model.Field, rModel model.Model) (Result, *cd.Result) {
-	return s.builder.BuildCreateRelationTable(vModel, vField, rModel)
+func (s *builderImpl) BuildCreateRelationTable(vModel model.Model, vField model.Field) (Result, *cd.Result) {
+	return s.builder.BuildCreateRelationTable(vModel, vField)
 }
 
-func (s *builderImpl) BuildDropRelationTable(vModel model.Model, vField model.Field, rModel model.Model) (Result, *cd.Result) {
-	return s.builder.BuildDropRelationTable(vModel, vField, rModel)
+func (s *builderImpl) BuildDropRelationTable(vModel model.Model, vField model.Field) (Result, *cd.Result) {
+	return s.builder.BuildDropRelationTable(vModel, vField)
 }
 
 func (s *builderImpl) BuildInsertRelation(vModel model.Model, vField model.Field, rModel model.Model) (Result, *cd.Result) {
-	return s.builder.BuildInsertRelation(vModel, vField, rModel)
+	return s.builder.BuildInsertRelation(vModel, vField,rModel)
 }
 
-func (s *builderImpl) BuildDeleteRelation(vModel model.Model, vField model.Field, rModel model.Model) (Result, Result, *cd.Result) {
-	return s.builder.BuildDeleteRelation(vModel, vField, rModel)
+func (s *builderImpl) BuildDeleteRelation(vModel model.Model, vField model.Field) (Result, Result, *cd.Result) {
+	return s.builder.BuildDeleteRelation(vModel, vField)
 }
 
-func (s *builderImpl) BuildQueryRelation(vModel model.Model, vField model.Field, rModel model.Model) (Result, *cd.Result) {
-	return s.builder.BuildQueryRelation(vModel, vField, rModel)
+func (s *builderImpl) BuildQueryRelation(vModel model.Model, vField model.Field) (Result, *cd.Result) {
+	return s.builder.BuildQueryRelation(vModel, vField)
 }
 
-func (s *builderImpl) BuildQueryRelationPlaceHolder(vModel model.Model, vField model.Field, rModel model.Model) (any, *cd.Result) {
-	return s.builder.BuildQueryRelationPlaceHolder(vModel, vField, rModel)
+func (s *builderImpl) BuildQueryRelationPlaceHolder(vModel model.Model, vField model.Field) (any, *cd.Result) {
+	return s.builder.BuildQueryRelationPlaceHolder(vModel, vField)
 }
 
 // NewBuilder new builder

@@ -1,22 +1,22 @@
 package model
 
+import cd "github.com/muidea/magicCommon/def"
+
 type Field interface {
 	GetName() string
+	GetShowName() string
 	GetDescription() string
 	GetType() Type
 	GetSpec() Spec
 	GetValue() Value
-	SetValue(val Value)
-	IsPrimaryKey() bool
-	IsBasic() bool
-	IsStruct() bool
-	IsSlice() bool
-	IsPtrType() bool
+	SetValue(val any) *cd.Result
+	GetSliceValue() []Value
+	AppendSliceValue(val any) *cd.Result
+	Reset()
 }
 
 func CompareField(l, r Field) bool {
 	return l.GetName() == r.GetName() &&
-		l.IsPrimaryKey() == r.IsPrimaryKey() &&
 		CompareType(l.GetType(), r.GetType()) &&
 		CompareSpec(l.GetSpec(), r.GetSpec()) &&
 		CompareValue(l.GetValue(), r.GetValue())
@@ -47,7 +47,7 @@ func (s *Fields) Append(vField Field) bool {
 // GetPrimaryField get primary key field
 func (s *Fields) GetPrimaryField() Field {
 	for _, val := range *s {
-		if val.IsPrimaryKey() {
+		if IsPrimaryField(val) {
 			return val
 		}
 	}

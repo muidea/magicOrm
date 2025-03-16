@@ -1,14 +1,13 @@
 package local
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 
 	cd "github.com/muidea/magicCommon/def"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/util"
+	"github.com/muidea/magicOrm/utils"
 )
 
 const (
@@ -43,15 +42,15 @@ func getOrmSpec(spec string) (ret *SpecImpl, err *cd.Result) {
 	ret.fieldName = items[0]
 	for idx := 1; idx < len(items); idx++ {
 		switch items[idx] {
-		case util.Auto:
+		case utils.Auto:
 			ret.valueDeclare = model.AutoIncrement
-		case util.UUID:
+		case utils.UUID:
 			ret.valueDeclare = model.UUID
-		case util.SnowFlake:
+		case utils.SnowFlake:
 			ret.valueDeclare = model.SnowFlake
-		case util.DateTime:
+		case utils.DateTime:
 			ret.valueDeclare = model.DateTime
-		case util.Key:
+		case utils.Key:
 			ret.primaryKey = true
 		}
 	}
@@ -87,9 +86,10 @@ func (s *SpecImpl) GetValueDeclare() model.ValueDeclare {
 }
 
 func (s *SpecImpl) EnableView(viewSpec model.ViewDeclare) bool {
-	if s.viewDeclare == nil {
-		return false
+	if viewSpec == model.MetaView {
+		return true
 	}
+
 	for _, val := range s.viewDeclare {
 		if val == viewSpec {
 			return true
@@ -99,21 +99,6 @@ func (s *SpecImpl) EnableView(viewSpec model.ViewDeclare) bool {
 	return false
 }
 
-func (s *SpecImpl) GetDefaultValue() model.RawVal {
-	return model.NewRawVal(nil)
-}
-
-func (s *SpecImpl) copy() (ret *SpecImpl) {
-	ret = &SpecImpl{
-		fieldName:    s.fieldName,
-		primaryKey:   s.primaryKey,
-		valueDeclare: s.valueDeclare,
-		viewDeclare:  s.viewDeclare,
-	}
-
-	return
-}
-
-func (s *SpecImpl) dump() (ret string) {
-	return fmt.Sprintf("name=%s key=%v value=%v", s.GetFieldName(), s.IsPrimaryKey(), s.GetValueDeclare())
+func (s *SpecImpl) GetDefaultValue() any {
+	return nil
 }

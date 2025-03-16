@@ -3,40 +3,39 @@ package remote
 import (
 	"encoding/json"
 	"fmt"
-	"path"
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-	om "github.com/muidea/magicOrm/model"
-	pu "github.com/muidea/magicOrm/provider/util"
+	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/utils"
 )
 
 type filterItem struct {
-	oprCode om.OprCode
+	oprCode model.OprCode
 	value   *ValueImpl
 }
 
-func (s *filterItem) OprCode() om.OprCode {
+func (s *filterItem) OprCode() model.OprCode {
 	return s.oprCode
 }
 
-func (s *filterItem) OprValue() om.Value {
+func (s *filterItem) OprValue() model.Value {
 	return s.value
 }
 
 type ObjectFilter struct {
-	Name           string         `json:"name"`
-	PkgPath        string         `json:"pkgPath"`
-	EqualFilter    []*FieldValue  `json:"equal"`
-	NotEqualFilter []*FieldValue  `json:"noEqual"`
-	BelowFilter    []*FieldValue  `json:"below"`
-	AboveFilter    []*FieldValue  `json:"above"`
-	InFilter       []*FieldValue  `json:"in"`
-	NotInFilter    []*FieldValue  `json:"notIn"`
-	LikeFilter     []*FieldValue  `json:"like"`
-	MaskValue      *ObjectValue   `json:"maskValue"`
-	PageFilter     *pu.Pagination `json:"page"`
-	SortFilter     *pu.SortFilter `json:"sort"`
+	Name           string            `json:"name"`
+	PkgPath        string            `json:"pkgPath"`
+	EqualFilter    []*FieldValue     `json:"equal"`
+	NotEqualFilter []*FieldValue     `json:"noEqual"`
+	BelowFilter    []*FieldValue     `json:"below"`
+	AboveFilter    []*FieldValue     `json:"above"`
+	InFilter       []*FieldValue     `json:"in"`
+	NotInFilter    []*FieldValue     `json:"notIn"`
+	LikeFilter     []*FieldValue     `json:"like"`
+	MaskValue      *ObjectValue      `json:"maskValue"`
+	PageFilter     *utils.Pagination `json:"page"`
+	SortFilter     *utils.SortFilter `json:"sort"`
 
 	bindObject *Object
 }
@@ -62,10 +61,6 @@ func (s *ObjectFilter) GetName() string {
 
 func (s *ObjectFilter) GetPkgPath() string {
 	return s.PkgPath
-}
-
-func (s *ObjectFilter) GetPkgKey() string {
-	return path.Join(s.GetPkgPath(), s.GetName())
 }
 
 func (s *ObjectFilter) GetString(key string) (ret string, ok bool) {
@@ -225,14 +220,14 @@ func (s *ObjectFilter) Like(key string, val any) (err *cd.Result) {
 }
 
 func (s *ObjectFilter) Pagination(pageNum, pageSize int) {
-	s.PageFilter = &pu.Pagination{
+	s.PageFilter = &utils.Pagination{
 		PageNum:  pageNum,
 		PageSize: pageSize,
 	}
 }
 
 func (s *ObjectFilter) Sort(fieldName string, ascFlag bool) {
-	s.SortFilter = &pu.SortFilter{
+	s.SortFilter = &utils.SortFilter{
 		FieldName: fieldName,
 		AscFlag:   ascFlag,
 	}
@@ -267,23 +262,17 @@ func (s *ObjectFilter) ValueMask(val any) (err *cd.Result) {
 		return
 	}
 
-	if s.bindObject.GetPkgKey() != objectValuePtr.GetPkgKey() {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("mismatch mask value, bindPkgKey:%v, maskPkgKey:%v", s.bindObject.GetPkgKey(), objectValuePtr.GetPkgKey()))
-		log.Errorf("ValueMask failed, err:%v", err.Error())
-		return
-	}
-
 	s.MaskValue = objectValuePtr
 	return
 }
 
-func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
+func (s *ObjectFilter) GetFilterItem(key string) model.FilterItem {
 	itemVal, itemErr := s.getFilterValue(key, s.EqualFilter)
 	if itemErr != nil {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: om.EqualOpr, value: NewValue(itemVal.Get())}
+		return &filterItem{oprCode: model.EqualOpr, value: NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.NotEqualFilter)
@@ -291,7 +280,7 @@ func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: om.NotEqualOpr, value: NewValue(itemVal.Get())}
+		return &filterItem{oprCode: model.NotEqualOpr, value: NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.BelowFilter)
@@ -299,7 +288,7 @@ func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: om.BelowOpr, value: NewValue(itemVal.Get())}
+		return &filterItem{oprCode: model.BelowOpr, value: NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.AboveFilter)
@@ -307,7 +296,7 @@ func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: om.AboveOpr, value: NewValue(itemVal.Get())}
+		return &filterItem{oprCode: model.AboveOpr, value: NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.InFilter)
@@ -315,7 +304,7 @@ func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: om.InOpr, value: NewValue(itemVal.Get())}
+		return &filterItem{oprCode: model.InOpr, value: NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.NotInFilter)
@@ -323,7 +312,7 @@ func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: om.NotInOpr, value: NewValue(itemVal.Get())}
+		return &filterItem{oprCode: model.NotInOpr, value: NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.LikeFilter)
@@ -331,7 +320,7 @@ func (s *ObjectFilter) GetFilterItem(key string) om.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: om.LikeOpr, value: NewValue(itemVal.Get())}
+		return &filterItem{oprCode: model.LikeOpr, value: NewValue(itemVal.Get())}
 	}
 
 	return nil
@@ -351,7 +340,7 @@ func (s *ObjectFilter) getFilterValue(key string, items []*FieldValue) (ret *Fie
 	return
 }
 
-func (s *ObjectFilter) Paginationer() om.Paginationer {
+func (s *ObjectFilter) Paginationer() model.Paginationer {
 	if s.PageFilter == nil {
 		return nil
 	}
@@ -359,7 +348,7 @@ func (s *ObjectFilter) Paginationer() om.Paginationer {
 	return s.PageFilter
 }
 
-func (s *ObjectFilter) Sorter() om.Sorter {
+func (s *ObjectFilter) Sorter() model.Sorter {
 	if s.SortFilter == nil {
 		return nil
 	}
@@ -367,13 +356,13 @@ func (s *ObjectFilter) Sorter() om.Sorter {
 	return s.SortFilter
 }
 
-func (s *ObjectFilter) MaskModel() om.Model {
+func (s *ObjectFilter) MaskModel() model.Model {
 	maskObject := s.bindObject
 	if s.MaskValue != nil {
 		for _, val := range s.MaskValue.Fields {
-			maskObject.SetFieldValue(val.Name, val.GetValue())
+			maskObject.SetFieldValue(val.Name, val.GetValue().Get())
 		}
 	}
 
-	return maskObject.Copy(false)
+	return maskObject.Copy(model.OriginView)
 }

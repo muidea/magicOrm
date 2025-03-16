@@ -15,16 +15,20 @@ func (s *Builder) BuildInsert(vModel model.Model) (ret *ResultStack, err *cd.Res
 	fieldNames := ""
 	fieldValues := ""
 	for _, field := range vModel.GetFields() {
-		fType := field.GetType()
-		fSpec := field.GetSpec()
-		if !fType.IsBasic() || fSpec.GetValueDeclare() == model.AutoIncrement {
+		if !model.IsBasicField(field) || !model.IsValidField(field) {
 			continue
 		}
 
-		fStr, fErr := s.buildCodec.BuildFieldValue(field)
-		if fErr != nil {
-			err = fErr
-			log.Errorf("BuildInsert failed, BuildFieldValue error:%s", fErr.Error())
+		fSpec := field.GetSpec()
+		if fSpec.GetValueDeclare() == model.AutoIncrement {
+			continue
+		}
+
+		fValue := field.GetValue()
+		encodeVal, encodeErr := s.buildCodec.PackedBasicFieldValue(field, fValue)
+		if encodeErr != nil {
+			err = encodeErr
+			log.Errorf("BuildInsert %s failed, encodeFieldValue error:%s", field.GetName(), err.Error())
 			return
 		}
 
@@ -34,7 +38,7 @@ func (s *Builder) BuildInsert(vModel model.Model) (ret *ResultStack, err *cd.Res
 			fieldNames = fmt.Sprintf("%s,`%s`", fieldNames, field.GetName())
 		}
 
-		resultStackPtr.PushArgs(fStr.Value())
+		resultStackPtr.PushArgs(encodeVal)
 		if fieldValues == "" {
 			fieldValues = fmt.Sprintf("%v", "?")
 		} else {
@@ -54,30 +58,18 @@ func (s *Builder) BuildInsert(vModel model.Model) (ret *ResultStack, err *cd.Res
 
 // BuildInsertRelation Build Insert Relation
 func (s *Builder) BuildInsertRelation(vModel model.Model, vField model.Field, rModel model.Model) (ret *ResultStack, err *cd.Result) {
-	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField, rModel)
+	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
 		log.Errorf("BuildInsertRelation %s failed, s.buildCodec.ConstructRelationTableName error:%s", vField.GetName(), err.Error())
 		return
 	}
 
-	leftVal, leftErr := s.buildCodec.BuildModelValue(vModel)
-	if leftErr != nil {
-		err = leftErr
-		log.Errorf("BuildInsertRelation failed, s.buildCodec.BuildModelValue error:%s", err.Error())
-		return
-	}
-
-	rightVal, rightErr := s.buildCodec.BuildModelValue(rModel)
-	if rightErr != nil {
-		err = rightErr
-		log.Errorf("BuildInsertRelation failed, s.BuildModelValue error:%s", err.Error())
-		return
-	}
-
+	leftVal := vModel.GetPrimaryField().GetValue().Get()
+	rightVal := rModel.GetPrimaryField().GetValue().Get()
 	resultStackPtr := &ResultStack{}
 	insertRelationSQL := fmt.Sprintf("INSERT INTO `%s` (`left`, `right`) VALUES (?,?)", relationTableName)
-	resultStackPtr.PushArgs(leftVal.Value(), rightVal.Value())
+	resultStackPtr.PushArgs(leftVal, rightVal)
 	resultStackPtr.SetSQL(insertRelationSQL)
 	//log.Print(ret)
 	if traceSQL() {

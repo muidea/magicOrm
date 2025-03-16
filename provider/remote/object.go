@@ -3,7 +3,6 @@ package remote
 import (
 	"encoding/json"
 	"fmt"
-	"path"
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
@@ -50,6 +49,11 @@ func (s *Object) GetName() (ret string) {
 	return
 }
 
+func (s *Object) GetShowName() (ret string) {
+	ret = s.ShowName
+	return
+}
+
 func (s *Object) GetPkgPath() (ret string) {
 	ret = s.PkgPath
 	return
@@ -60,10 +64,6 @@ func (s *Object) GetDescription() (ret string) {
 	return
 }
 
-func (s *Object) GetPkgKey() string {
-	return path.Join(s.GetPkgPath(), s.GetName())
-}
-
 func (s *Object) GetFields() (ret model.Fields) {
 	for _, val := range s.Fields {
 		ret = append(ret, val)
@@ -72,28 +72,33 @@ func (s *Object) GetFields() (ret model.Fields) {
 	return
 }
 
-func (s *Object) SetFieldValue(name string, val model.Value) {
+func (s *Object) SetFieldValue(name string, val any) (err *cd.Result) {
 	for _, item := range s.Fields {
 		if item.Name == name {
-			item.SetValue(val)
+			err = item.SetValue(val)
 			return
 		}
 	}
+
+	log.Warnf("SetFieldValue failed, field:%s not found", name)
+	return
 }
 
-func (s *Object) SetPrimaryFieldValue(val model.Value) {
+func (s *Object) SetPrimaryFieldValue(val any) (err *cd.Result) {
 	for _, sf := range s.Fields {
-		if sf.IsPrimaryKey() {
-			sf.SetValue(val)
+		if model.IsPrimaryField(sf) {
+			err = sf.SetValue(val)
 			return
 		}
 	}
+
+	return
 }
 
 func (s *Object) GetPrimaryField() (ret model.Field) {
-	for _, v := range s.Fields {
-		if v.IsPrimaryKey() {
-			ret = v
+	for _, sf := range s.Fields {
+		if model.IsPrimaryField(sf) {
+			ret = sf
 			return
 		}
 	}
@@ -113,35 +118,11 @@ func (s *Object) GetField(name string) (ret model.Field) {
 }
 
 // Interface object value
-func (s *Object) Interface(_ bool, viewSpec model.ViewDeclare) (ret any) {
+func (s *Object) Interface(_ bool) (ret any) {
 	objVal := &ObjectValue{Name: s.Name, PkgPath: s.PkgPath, Fields: []*FieldValue{}}
 
 	for _, sf := range s.Fields {
-		var initVal any
-		if sf.Spec != nil && sf.Spec.DefaultValue != nil {
-			initVal = sf.Spec.DefaultValue
-		}
-
-		if viewSpec != model.OriginView {
-			if sf.Spec != nil && sf.Spec.EnableView(viewSpec) {
-				if sf.value == nil || !sf.value.IsValid() {
-					vVal, vErr := sf.Type.Interface(initVal)
-					if vErr == nil {
-						objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: vVal.Get()})
-					} else {
-						log.Errorf("Interface failed, pkgKey:%s, fieldName:%s, error:%s", s.GetPkgKey(), sf.GetName(), vErr.Error())
-					}
-					continue
-				}
-
-				objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: sf.value.Get()})
-			}
-
-			continue
-		}
-
 		if sf.value == nil || !sf.value.IsValid() {
-			objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: initVal})
 			continue
 		}
 
@@ -150,14 +131,14 @@ func (s *Object) Interface(_ bool, viewSpec model.ViewDeclare) (ret any) {
 
 	pkValue := s.GetPrimaryField().GetValue()
 	if pkValue.IsValid() {
-		objVal.ID = fmt.Sprintf("%v", pkValue.Interface().Value())
+		objVal.ID = fmt.Sprintf("%v", pkValue.Get())
 	}
 
 	ret = objVal
 	return
 }
 
-func (s *Object) Copy(reset bool) (ret model.Model) {
+func (s *Object) Copy(viewSpec model.ViewDeclare) (ret model.Model) {
 	obj := &Object{
 		ID:          s.ID,
 		Name:        s.Name,
@@ -168,7 +149,7 @@ func (s *Object) Copy(reset bool) (ret model.Model) {
 		Fields:      []*Field{},
 	}
 	for _, val := range s.Fields {
-		valPtr, valErr := val.copy(reset)
+		valPtr, valErr := val.copy(viewSpec)
 		if valErr != nil {
 			log.Errorf("copy field failed, name:%s, err:%s", val.GetName(), valErr.Error())
 			panic(valErr)
@@ -181,16 +162,10 @@ func (s *Object) Copy(reset bool) (ret model.Model) {
 	return
 }
 
-func (s *Object) Dump() (ret string) {
-	ret = "\nmodelImpl:\n"
-	ret = fmt.Sprintf("%s\tname:%s, pkgPath:%s\n", ret, s.GetName(), s.GetPkgPath())
-
-	ret = fmt.Sprintf("%sfields:\n", ret)
-	for _, field := range s.Fields {
-		ret = fmt.Sprintf("%s\t%s\n", ret, field.dump())
+func (s *Object) Reset() {
+	for _, val := range s.Fields {
+		val.Reset()
 	}
-
-	return
 }
 
 func (s *Object) Verify() (err *cd.Result) {
@@ -241,10 +216,6 @@ func (s *ObjectValue) GetPkgPath() string {
 	return s.PkgPath
 }
 
-func (s *ObjectValue) GetPkgKey() string {
-	return path.Join(s.GetPkgPath(), s.GetName())
-}
-
 func (s *ObjectValue) GetValue() []*FieldValue {
 	return s.Fields
 }
@@ -284,7 +255,7 @@ func (s *ObjectValue) isFieldAssigned(val *FieldValue) (ret bool) {
 		}
 	}()
 
-	ret = !utils.IsReallyZero(val.Value)
+	ret = !utils.IsReallyZeroValue(val.Value)
 	//valPtr := NewValue(val.Value)
 	//ret = !valPtr.IsZero()
 	return
@@ -304,6 +275,7 @@ func (s *ObjectValue) IsAssigned() (ret bool) {
 
 func (s *ObjectValue) Copy() (ret *ObjectValue) {
 	ptr := &ObjectValue{
+		ID:      s.ID,
 		Name:    s.Name,
 		PkgPath: s.PkgPath,
 	}
@@ -322,10 +294,6 @@ func (s *SliceObjectValue) GetName() string {
 
 func (s *SliceObjectValue) GetPkgPath() string {
 	return s.PkgPath
-}
-
-func (s *SliceObjectValue) GetPkgKey() string {
-	return path.Join(s.GetPkgPath(), s.GetName())
 }
 
 func (s *SliceObjectValue) GetValue() []*ObjectValue {
@@ -365,7 +333,7 @@ func TransferObjectValue(name, pkgPath string, vals []*ObjectValue) (ret *SliceO
 	return
 }
 
-func encodeValue[T any](valPtr *T) (ret []byte, err *cd.Result) {
+func marshalHelper[T any](valPtr *T) (ret []byte, err *cd.Result) {
 	byteVal, byteErr := json.Marshal(valPtr)
 	if byteErr != nil {
 		err = cd.NewResult(cd.UnExpected, byteErr.Error())
@@ -378,13 +346,13 @@ func encodeValue[T any](valPtr *T) (ret []byte, err *cd.Result) {
 
 // EncodeObjectValue encode objectValue to []byte
 func EncodeObjectValue(objVal *ObjectValue) (ret []byte, err *cd.Result) {
-	ret, err = encodeValue(objVal)
+	ret, err = marshalHelper(objVal)
 	return
 }
 
 // EncodeSliceObjectValue encode slice objectValue to []byte
 func EncodeSliceObjectValue(objVal *SliceObjectValue) (ret []byte, err *cd.Result) {
-	ret, err = encodeValue(objVal)
+	ret, err = marshalHelper(objVal)
 	return
 }
 func decodeObjectValueFromMap(mapVal map[string]any) (ret *ObjectValue, err *cd.Result) {
@@ -491,6 +459,49 @@ func decodeItemValue(itemVal map[string]any) (ret *FieldValue, err *cd.Result) {
 	return
 }
 
+func convertAnySlice(slieceVal []interface{}) interface{} {
+	if len(slieceVal) == 0 {
+		return slieceVal
+	}
+
+	switch tVal := slieceVal[0].(type) {
+	case float64:
+		result := make([]float64, len(slieceVal))
+		for i, v := range slieceVal {
+			val, ok := v.(float64)
+			if !ok {
+				return []float64{}
+			}
+
+			result[i] = val
+		}
+		return result
+	case string:
+		result := make([]string, len(slieceVal))
+		for i, v := range slieceVal {
+			val, ok := v.(string)
+			if !ok {
+				return []string{}
+			}
+			result[i] = val
+		}
+		return result
+	case bool:
+		result := make([]bool, len(slieceVal))
+		for i, v := range slieceVal {
+			val, ok := v.(bool)
+			if !ok {
+				return []bool{}
+			}
+			result[i] = val
+		}
+		return result
+	default:
+		log.Errorf("convertInterfaceArrayToSlice unexpected type:%v", tVal)
+		return nil
+	}
+}
+
 func ConvertItem(val *FieldValue) (ret *FieldValue, err *cd.Result) {
 	objVal, objOK := val.Value.(map[string]any)
 	// for struct or slice struct
@@ -530,7 +541,7 @@ func ConvertItem(val *FieldValue) (ret *FieldValue, err *cd.Result) {
 	// for basic slice
 	sliceVal, sliceOK := val.Value.([]any)
 	if sliceOK {
-		ret = &FieldValue{Name: val.Name, Value: sliceVal}
+		ret = &FieldValue{Name: val.Name, Value: convertAnySlice(sliceVal)}
 		return
 	}
 
@@ -538,7 +549,7 @@ func ConvertItem(val *FieldValue) (ret *FieldValue, err *cd.Result) {
 	ret = val
 	return
 }
-func decodeValue[T any](data []byte, val *T, decodeFunc func(*T) (*T, *cd.Result)) (*T, *cd.Result) {
+func unmarshalHelper[T any](data []byte, val *T, decodeFunc func(*T) (*T, *cd.Result)) (*T, *cd.Result) {
 	byteErr := json.Unmarshal(data, val)
 	if byteErr != nil {
 		return nil, cd.NewResult(cd.UnExpected, byteErr.Error())
@@ -553,11 +564,11 @@ func decodeValue[T any](data []byte, val *T, decodeFunc func(*T) (*T, *cd.Result
 }
 
 func DecodeObjectValue(data []byte) (ret *ObjectValue, err *cd.Result) {
-	return decodeValue(data, &ObjectValue{}, ConvertObjectValue)
+	return unmarshalHelper(data, &ObjectValue{}, ConvertObjectValue)
 }
 
 func DecodeSliceObjectValue(data []byte) (ret *SliceObjectValue, err *cd.Result) {
-	return decodeValue(data, &SliceObjectValue{}, ConvertSliceObjectValue)
+	return unmarshalHelper(data, &SliceObjectValue{}, ConvertSliceObjectValue)
 }
 
 // ConvertObjectValue convert object value
@@ -596,7 +607,19 @@ func ConvertSliceObjectValue(objVal *SliceObjectValue) (ret *SliceObjectValue, e
 	return
 }
 func compareItemValue(l, r *FieldValue) bool {
-	return l.Name == r.Name && l.IsNil() == r.IsNil()
+	if l.Name != r.Name {
+		return false
+	}
+
+	return true
+	/*
+		equal, diff := utils.CompareWithNumericConversion(l.Value, r.Value)
+		if !equal {
+			log.Errorf("compareItemValue failed, l:%v, r:%v, diff:%s", l, r, diff)
+		}
+
+		return equal
+	*/
 }
 
 func CompareObjectValue(l, r *ObjectValue) bool {

@@ -8,7 +8,6 @@ Object描述数据模型信息，模型信息使用json格式进行序列化保�
 ### 数据模型定义格式如下
 
 ```go
-
     type TypeDeclare int
 
     // Define the Type enum
@@ -95,7 +94,6 @@ Object描述数据模型信息，模型信息使用json格式进行序列化保�
         Spec        *SpecImpl `json:"spec"`
         value       *ValueImpl
     }
-
 ```
 
 ### 模型信息说明
@@ -151,7 +149,6 @@ ObjectValue描述模型对象值，模型对象值使用json格式进行序列�
 ### 模型值格式定义如下
 
 ```go
-
     type FieldValue struct {
         Name  string `json:"name"`
         Value any    `json:"value"`
@@ -163,8 +160,6 @@ ObjectValue描述模型对象值，模型对象值使用json格式进行序列�
         PkgPath string        `json:"pkgPath"`
         Fields  []*FieldValue `json:"fields"`
     }
-
-
 ```
 
 ### 模型值信息说明
@@ -186,22 +181,95 @@ ObjectValue描述模型对象值，模型对象值使用json格式进行序列�
 
 SliceObjectValue描述列表对象值，列表对象值使用json格式进行序列化保存以及服务间传递
 
-### 模型值格式定义如下
-```go
 
+### SliceObjectValue 格式定义如下
+
+```go
     type SliceObjectValue struct {
         Name    string         `json:"name"`
         PkgPath string         `json:"pkgPath"`
         Values  []*ObjectValue `json:"values"`
     }
-
 ```
 
-### 列表对象值值信息说明
+### SliceObjectValue 信息说明
 
-#### 基本信息
+#### SliceObjectValue 基本信息
+
 * Name 表示当前列表对象值对应的名称，名称必须唯一，名称不能为空，名称不能重复，保持与Object的一致
 * PkgPath 表示当前列表对象值对应的包路径，参照http的url规则，在本地使用时可以只包含http url的path部分，保持与Object的一致
 * Values 表示当前列表对象值对应的值列表, 对应的ObjectValue参照前面的定义
 
+
+## ObjectFilter 模型对象过滤
+
+ObjectFilter描述模型对象值过滤条件，模型对象值过滤使用json格式进行序列化保存以及服务间传递
+
+
+### 模型值过滤格式定义如下
+
+```go
+    type ObjectFilter struct {
+        Name           string         `json:"name"`
+        PkgPath        string         `json:"pkgPath"`
+        EqualFilter    []*FieldValue  `json:"equal"`
+        NotEqualFilter []*FieldValue  `json:"noEqual"`
+        BelowFilter    []*FieldValue  `json:"below"`
+        AboveFilter    []*FieldValue  `json:"above"`
+        InFilter       []*FieldValue  `json:"in"`
+        NotInFilter    []*FieldValue  `json:"notIn"`
+        LikeFilter     []*FieldValue  `json:"like"`
+        MaskValue      *ObjectValue   `json:"maskValue"`
+        PageFilter     *pu.Pagination `json:"page"`
+        SortFilter     *pu.SortFilter `json:"sort"`
+
+        bindObject *Object
+    }
+```
+
+### ObjectFilter 信息说明
+
+#### ObjectFilter 基本信息
+
+* Name 被过滤对象值对应的模型名称，保持与Object的一致
+* PkgPath 被过滤对象值对应模型的PkgPath 保持与Object的一致
+
+#### ObjectFilter 过滤条件说明
+
+* EqualFilter 筛选指定属性值与过滤条件完全相等的对象，支持多条件组合，多个条件间为逻辑"与"关系
+
+* NotEqualFilter 排除指定属性值与过滤条件相同的对象，支持多属性联合排除，空值视为特殊匹配项
+
+* 范围过滤
+
+ 1. BelowFilter 小于过滤，属性值 > 条件值
+
+ 2. AboveFilter 大于过滤，属性值 < 条件值
+
+
+* 集合过滤
+
+ 1. InFilter 包含过滤，属性值存在于条件集合
+
+ 2. NotInFilter 排除过滤，属性值不在条件集合
+
+* 模糊匹配过滤
+ 
+ 1. LikeFilter 模糊匹配过滤，使用通配符进行模式匹配（*代表任意字符）
+
+* MaskValue 字段掩码，控制返回字段的白名单，MaskValue数据格式为ObjectValue
+
+* PageFilter 分页控制，实现将过滤结果分页返回, 当前页(从1开始)，每页记录数，是否返回总记录数
+
+* SortFilter 排序控制，实现将过滤结果按照指定的字段进行排序
+
+* bindObject 动态绑定，临时绑定的过滤值对应的对象模型
+
+* 组合规则
+
+ 1. 多条件默认执行逻辑"与"操作
+
+ 2. 相同字段的多个条件按最后出现的生效
+
+ 3. 空值处理：需显式声明null匹配条件
 

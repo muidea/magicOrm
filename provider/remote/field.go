@@ -2,11 +2,11 @@ package remote
 
 import (
 	"fmt"
-	"math"
-	"reflect"
 
 	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/utils"
 )
 
 type Field struct {
@@ -60,64 +60,89 @@ func (s *Field) GetValue() (ret model.Value) {
 		return
 	}
 
-	if s.Spec != nil && s.Spec.DefaultValue != nil {
-		return &ValueImpl{value: s.Spec.ValueDeclare}
-	}
-
-	ret = &NilValue
+	ret = &ValueImpl{}
 	return
 }
 
-func (s *Field) SetValue(val model.Value) {
-	s.value = val.(*ValueImpl)
-}
-
-func (s *Field) IsPrimaryKey() bool {
-	if s.Spec == nil {
-		return false
+func (s *Field) SetValue(val any) *cd.Result {
+	if s.value == nil {
+		s.value = &ValueImpl{}
 	}
 
-	return s.Spec.IsPrimaryKey()
+	return s.value.Set(val)
 }
 
-func (s *Field) IsBasic() bool {
-	return s.Type.IsBasic()
+func (s *Field) GetSliceValue() (ret []model.Value) {
+	if !model.IsSlice(s.Type) || !s.value.IsValid() {
+		return
+	}
+
+	ret = s.value.UnpackValue()
+	return
 }
 
-func (s *Field) IsStruct() bool {
-	return s.Type.IsStruct()
+func (s *Field) AppendSliceValue(val any) (err *cd.Result) {
+	if val == nil {
+		err = cd.NewResult(cd.UnExpected, "field append slice value is nil")
+		return
+	}
+	if !model.IsSlice(s.Type) {
+		err = cd.NewResult(cd.UnExpected, "field is not slice")
+		return
+	}
+
+	err = s.value.Append(val)
+	return
 }
 
-func (s *Field) IsSlice() bool {
-	return s.Type.IsSlice()
+func (s *Field) Reset() {
+	if s.value != nil && s.value.IsValid() {
+		s.value = NewValue(getInitializeValue(s.Type))
+		return
+	}
+
+	s.value = &ValueImpl{}
 }
 
-func (s *Field) IsPtrType() bool {
-	return s.Type.IsPtrType()
-}
-
-func (s *Field) copy(reset bool) (ret *Field, err error) {
-	val := &Field{
+func (s *Field) copy(viewSpec model.ViewDeclare) (ret *Field, err error) {
+	ret = &Field{
 		Name:        s.Name,
 		ShowName:    s.ShowName,
 		Description: s.Description,
+		Type:        s.Type.Copy(),
+		//Spec:        s.Spec.Copy(),
+	}
+	if s.Spec == nil {
+		ret.Spec = &emptySpec
+	} else {
+		ret.Spec = s.Spec.Copy()
 	}
 
-	if s.Spec != nil {
-		val.Spec = s.Spec.copy()
-	}
-	if s.Type != nil {
-		val.Type = s.Type.copy()
+	switch viewSpec {
+	case model.MetaView:
+		if !s.Type.IsPtrType() {
+			ret.value = NewValue(getInitializeValue(s.Type))
+		} else {
+			ret.value = &ValueImpl{}
+		}
+	case model.DetailView, model.LiteView:
+		if !ret.Spec.EnableView(viewSpec) {
+			ret.value = &ValueImpl{}
+		} else {
+			ret.value = NewValue(getInitializeValue(s.Type))
+		}
+	case model.OriginView:
+		if s.value != nil {
+			ret.value, _ = s.value.copy()
+		} else {
+			if !s.Type.IsPtrType() {
+				ret.value = NewValue(getInitializeValue(s.Type))
+			}
+		}
+	default:
+		log.Warnf("fieldName:%s,unknown view spec:%v", s.Name, viewSpec)
 	}
 
-	if !reset && s.value != nil {
-		val.value, err = s.value.Copy()
-	}
-	if val.value == nil && val.Spec != nil && val.Spec.DefaultValue != nil {
-		val.value = &ValueImpl{value: val.Spec.DefaultValue}
-	}
-
-	ret = val
 	return
 }
 
@@ -217,18 +242,6 @@ func (s *Field) verify() (err *cd.Result) {
 	return
 }
 
-func (s *Field) dump() string {
-	str := fmt.Sprintf("name:%s,type:[%s]", s.Name, s.Type.dump())
-	if s.Spec != nil {
-		str = fmt.Sprintf("%s,spec:[%s]", str, s.Spec.dump())
-	}
-	if s.value != nil {
-		str = fmt.Sprintf("%s,value:%v", str, s.value.Interface())
-	}
-
-	return str
-}
-
 func compareItem(l, r *Field) bool {
 	if l.Name != r.Name {
 		return false
@@ -247,8 +260,19 @@ func compareItem(l, r *Field) bool {
 	return true
 }
 
-func (s *FieldValue) IsNil() bool {
-	return s.Value == nil
+func (s *FieldValue) IsValid() bool {
+	if s.Value == nil {
+		return false
+	}
+
+	switch v := s.Value.(type) {
+	case *ObjectValue:
+		return v != nil
+	case *SliceObjectValue:
+		return v != nil
+	default:
+		return utils.IsReallyValidValue(s.Value)
+	}
 }
 
 func (s *FieldValue) IsZero() bool {
@@ -256,54 +280,34 @@ func (s *FieldValue) IsZero() bool {
 		return true
 	}
 
-	rVal := reflect.ValueOf(s.Value)
-	switch s.Value.(type) {
-	case bool:
-		return !rVal.Bool()
-	case int8, int16, int32, int, int64:
-		return rVal.Int() == 0
-	case uint8, uint16, uint32, uint, uint64:
-		return rVal.Uint() == 0
-	case float32, float64:
-		return math.Float64bits(rVal.Float()) == 0
-	case string:
-		return rVal.String() == ""
-	case []bool,
-		[]int8, []int16, []int32, []int, []int64,
-		[]uint8, []uint16, []uint32, []uint, []uint64,
-		[]float32, []float64,
-		[]string,
-		[]any:
-		return rVal.Len() == 0
+	switch v := s.Value.(type) {
 	case *ObjectValue:
-		valuePtr, valueOK := s.Value.(*ObjectValue)
-		if valueOK {
-			if valuePtr != nil {
-				return !valuePtr.IsAssigned()
-			}
-			return true
-		}
-
-		err := fmt.Errorf("illegal value, val:%v", s.Value)
-		panic(err.Error())
+		return v == nil || len(v.Fields) == 0
 	case *SliceObjectValue:
-		valuePtr, valueOK := s.Value.(*SliceObjectValue)
-		if valueOK {
-			if valuePtr != nil {
-				return !valuePtr.IsAssigned()
-			}
-			return true
-		}
-		err := fmt.Errorf("illegal value, val:%v", s.Value)
-		panic(err.Error())
+		return v == nil || len(v.Values) == 0
 	default:
-		err := fmt.Errorf("illegal value, val:%v", s.Value)
-		panic(err.Error())
+		return utils.IsReallyZeroValue(s.Value)
 	}
 }
 
 func (s *FieldValue) Set(val any) {
-	s.Value = val
+	if val == nil {
+		s.Value = nil
+		return
+	}
+
+	switch val.(type) {
+	case *ObjectValue, *SliceObjectValue:
+		s.Value = val
+	case ObjectValue, SliceObjectValue:
+		s.Value = &val
+	default:
+		if !utils.IsReallyValidValue(val) {
+			panic(fmt.Sprintf("illegal value:%+v", val))
+		}
+
+		s.Value = val
+	}
 }
 
 func (s *FieldValue) Get() any {
@@ -327,9 +331,28 @@ func (s *FieldValue) copy() (ret *FieldValue) {
 		return
 	}
 
-	ret = &FieldValue{
-		Name:  s.Name,
-		Value: s.Value,
+	switch v := s.Value.(type) {
+	case *ObjectValue:
+		ret = &FieldValue{
+			Name:  s.Name,
+			Value: v.Copy(),
+		}
+		return
+	case *SliceObjectValue:
+		ret = &FieldValue{
+			Name:  s.Name,
+			Value: v.Copy(),
+		}
+		return ret
+	default:
+		copiedVal, copiedErr := utils.DeepCopy(s.Value)
+		if copiedErr != nil {
+			panic(copiedErr)
+		}
+		ret = &FieldValue{
+			Name:  s.Name,
+			Value: copiedVal,
+		}
+		return
 	}
-	return
 }

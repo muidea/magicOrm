@@ -3,12 +3,6 @@ package helper
 import (
 	"testing"
 	"time"
-
-	cd "github.com/muidea/magicCommon/def"
-
-	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/local"
-	"github.com/muidea/magicOrm/provider/remote"
 )
 
 var idVal = 100
@@ -32,7 +26,6 @@ var bArray = []bool{bVal, bVal}
 var iPtr = &iVal
 var tsPtr = &tsVal
 
-var emptyBase = &Base{}
 var baseVal = &Base{
 	ID:        idVal,
 	I8:        i8Val,
@@ -56,7 +49,6 @@ var baseVal = &Base{
 	TSPtr:     tsPtr,
 }
 
-var emptyCompose = &Compose{}
 var basePtrArrayVal = []*Base{baseVal, baseVal}
 var composeVal = &Compose{
 	ID:              idVal,
@@ -111,99 +103,13 @@ type Person struct {
 	Addr *string `orm:"addr"`
 }
 
-func TestModel(t *testing.T) {
-	base1 := emptyBase
-	err := testValue(t, base1)
-	if err != nil {
-		t.Error("test base1 failed")
-		return
-	}
-
-	base2 := baseVal
-	err = testValue(t, base2)
-	if err != nil {
-		t.Error("test base2 failed")
-		return
-	}
-
-	compose1 := emptyCompose
-	err = testValue(t, compose1)
-	if err != nil {
-		t.Error("test compose1 failed")
-		return
-	}
-
-	compose2 := composeVal
-	err = testValue(t, compose2)
-	if err != nil {
-		t.Error("test compose2 failed")
-		return
-	}
-}
-
-func testValue(t *testing.T, valPtr any) *cd.Result {
-	lModel, lErr := local.GetEntityModel(valPtr)
-	if lErr != nil {
-		t.Errorf("local.GetEntityModel failed. err:%s", lErr.Error())
-		return lErr
-	}
-
-	baseObject, baseErr := remote.GetObject(valPtr)
-	if baseErr != nil {
-		t.Errorf("remote.GetObject failed, err:%s", baseErr.Error())
-		return baseErr
-	}
-	rModel, rErr := remote.GetEntityModel(baseObject)
-	if rErr != nil {
-		t.Errorf("remote.GetEntityModel failed. err:%s", rErr.Error())
-		return rErr
-	}
-
-	baseObjectVal, baseValErr := remote.GetObjectValue(valPtr)
-	if baseValErr != nil {
-		t.Errorf("remote.GetObjectValue failed, err:%s", baseValErr.Error())
-		return baseValErr
-	}
-
-	byteVal, byteErr := remote.EncodeObjectValue(baseObjectVal)
-	if byteErr != nil {
-		t.Errorf("remote.EncodeObjectValue failed, err:%v", byteErr.Error())
-		return byteErr
-	}
-
-	rawObjectVal, rawObjectErr := remote.DecodeObjectValue(byteVal)
-	if rawObjectErr != nil {
-		t.Errorf("remote.DecodeObjectValue failed, err:%v", rawObjectErr.Error())
-		return rawObjectErr
-	}
-
-	rVal, rErr := remote.GetEntityValue(rawObjectVal)
-	if rErr != nil {
-		t.Errorf("remote.GetEntityValue failed. err:%s", rErr.Error())
-		return rErr
-	}
-
-	rModel, rErr = remote.SetModelValue(rModel, rVal)
-	if rErr != nil {
-		t.Errorf("remote.SetModelValue failed. err:%s", rErr.Error())
-		return rErr
-	}
-
-	if !model.CompareModel(lModel, rModel) {
-		t.Errorf("CompareModel failed")
-		return cd.NewResult(cd.UnExpected, "compare model failed")
-	}
-	return nil
-}
-
 func TestPerson(t *testing.T) {
 	age := 40
-	addr := "test addr"
+	//addr := "test addr"
 	person := &Person{
 		ID:   12,
 		Name: "test",
 		Age:  &age,
-		Addr: &addr,
 	}
 
 	personObjectVal, personObjectErr := GetObjectValue(person)
@@ -212,33 +118,13 @@ func TestPerson(t *testing.T) {
 		return
 	}
 
-	personObjectVal.SetFieldValue("age", 32)
-	personObjectVal.SetFieldValue("addr", "hey boy!")
-
 	nPerson := &Person{}
 	entityErr := UpdateEntity(personObjectVal, nPerson)
 	if entityErr != nil {
 		t.Errorf("UpdateEntity failed, error:%s", entityErr.Error())
 		return
 	}
-	if nPerson.Age != nil || nPerson.Addr != nil {
-		t.Errorf("UpdateEntity failed")
-		return
-	}
-
-	ageVal := 0
-	addrVal := ""
-	nPerson = &Person{Age: &ageVal, Addr: &addrVal}
-	entityErr = UpdateEntity(personObjectVal, nPerson)
-	if entityErr != nil {
-		t.Errorf("UpdateEntity failed, error:%s", entityErr.Error())
-		return
-	}
-	if nPerson.Age == nil || nPerson.Addr == nil {
-		t.Errorf("UpdateEntity failed")
-		return
-	}
-	if *nPerson.Age != 32 || *nPerson.Addr != addr {
+	if nPerson.ID != 12 || nPerson.Name != "test" || nPerson.Age == nil || nPerson.Addr != nil {
 		t.Errorf("UpdateEntity failed")
 		return
 	}

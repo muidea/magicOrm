@@ -40,7 +40,7 @@
 
 ### 三、其他处理规则
 
-1. 字段标签包含Key，则该Filed为PrimaryField
+1. 字段标签包含Key，则该Field为PrimaryField
 
 2. 字段标签view，表示Field支持的View种类可以是origin/detail/lite 其他字段非法
 
