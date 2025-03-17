@@ -22,7 +22,7 @@ type Provider interface {
 
 	GetEntityModel(entity any) (ret model.Model, err *cd.Result)
 
-	GetEntityFilter(entity any) (ret model.Filter, err *cd.Result)
+	GetEntityFilter(entity any, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result)
 
 	GetTypeModel(vType model.Type) (ret model.Model, err *cd.Result)
 
@@ -142,7 +142,7 @@ func (s *providerImpl) GetEntityValue(entity any) (ret model.Value, err *cd.Resu
 }
 
 func (s *providerImpl) GetEntityModel(entity any) (ret model.Model, err *cd.Result) {
-	ret, err = s.checkEntityModel(entity)
+	ret, err = s.checkEntityModel(entity, model.MetaView)
 	if err != nil {
 		log.Errorf("GetEntityModel failed, s.checkEntityModel error:%v", err.Error())
 	}
@@ -152,7 +152,7 @@ func (s *providerImpl) GetEntityModel(entity any) (ret model.Model, err *cd.Resu
 // checkEntityModel check entity model
 // entity 可以是struct model type or model value
 // 这里需要先进行判断
-func (s *providerImpl) checkEntityModel(entity any) (ret model.Model, err *cd.Result) {
+func (s *providerImpl) checkEntityModel(entity any, viewSpec model.ViewDeclare) (ret model.Model, err *cd.Result) {
 	entityType, entityTypeErr := s.getEntityTypeFunc(entity)
 	if entityTypeErr != nil {
 		err = entityTypeErr
@@ -169,11 +169,11 @@ func (s *providerImpl) checkEntityModel(entity any) (ret model.Model, err *cd.Re
 	entityValue, entityValueErr := s.getEntityValueFunc(entity)
 	if entityValueErr != nil {
 		// 到这里说明entity只是model type,不是model value
-		ret = curModelVal.Copy(model.MetaView)
+		ret = curModelVal.Copy(viewSpec)
 		return
 	}
 
-	entityModelVal, entityModelErr := s.setModelValueFunc(curModelVal.Copy(model.MetaView), entityValue)
+	entityModelVal, entityModelErr := s.setModelValueFunc(curModelVal.Copy(viewSpec), entityValue)
 	if entityModelErr != nil {
 		err = entityModelErr
 		log.Errorf("checkEntityModel failed, s.setModelValueFunc error:%v", err.Error())
@@ -183,8 +183,8 @@ func (s *providerImpl) checkEntityModel(entity any) (ret model.Model, err *cd.Re
 	return
 }
 
-func (s *providerImpl) GetEntityFilter(entity any) (ret model.Filter, err *cd.Result) {
-	entityModelVal, entityModelErr := s.checkEntityModel(entity)
+func (s *providerImpl) GetEntityFilter(entity any, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Result) {
+	entityModelVal, entityModelErr := s.checkEntityModel(entity, viewSpec)
 	if entityModelErr != nil {
 		err = entityModelErr
 		log.Errorf("GetEntityFilter failed, s.checkEntityModel error:%v", err.Error())

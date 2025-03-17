@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/remote"
@@ -295,7 +296,7 @@ func TestPartner(t *testing.T) {
 		return
 	}
 
-	partnerFilter, partnerErr := remoteProvider.GetEntityFilter(partnerModel.Interface(true))
+	partnerFilter, partnerErr := remoteProvider.GetEntityFilter(partnerModel.Interface(true), model.MetaView)
 	if partnerErr != nil {
 		t.Errorf("remoteProvider.GetEntityFilter failed, error:%s", partnerErr.Error())
 		return

@@ -3,6 +3,8 @@ package provider
 import (
 	"testing"
 	"time"
+
+	"github.com/muidea/magicOrm/model"
 )
 
 type Simple struct {
@@ -57,7 +59,7 @@ func TestNewLocalProvider(t *testing.T) {
 		return
 	}
 
-	_, sFilterErr := provider.GetEntityFilter(s001)
+	_, sFilterErr := provider.GetEntityFilter(s001, model.MetaView)
 	if sFilterErr != nil {
 		t.Errorf("%s", sFilterErr.Error())
 		return
