@@ -83,7 +83,7 @@ func TestTypeImpl_GetName(t *testing.T) {
 
 func TestTypeImpl_GetPkgPath(t *testing.T) {
 	typ, _ := NewType(reflect.TypeOf(testStruct{}))
-	assert.Contains(t, typ.GetPkgPath(), "testStruct")
+	assert.Contains(t, typ.GetPkgKey(), "testStruct")
 }
 
 func TestTypeImpl_GetValue(t *testing.T) {

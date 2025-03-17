@@ -112,7 +112,7 @@ func TestStructToModelConversion(t *testing.T) {
 	}
 
 	// Test rule 1.2: struct package path should become model package path
-	if mdl.GetPkgPath() != path.Join(reflect.TypeOf(BasicTypes{}).PkgPath(), reflect.TypeOf(BasicTypes{}).Name()) {
+	if mdl.GetPkgKey() != path.Join(reflect.TypeOf(BasicTypes{}).PkgPath(), reflect.TypeOf(BasicTypes{}).Name()) {
 		t.Errorf("Rule 1.2 failed: Model package path should match struct package path")
 	}
 }
