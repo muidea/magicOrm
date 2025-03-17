@@ -55,14 +55,22 @@ func GetEntityValue(entity any) (ret model.Value, err *cd.Result) {
 		return
 	}
 
-	switch entity.(type) {
+	switch val := entity.(type) {
 	case *ObjectValue:
 		ret = &ValueImpl{
-			value: entity.(*ObjectValue),
+			value: val,
 		}
 	case *SliceObjectValue:
 		ret = &ValueImpl{
-			value: entity.(*SliceObjectValue),
+			value: val,
+		}
+	case ObjectValue:
+		ret = &ValueImpl{
+			value: &val,
+		}
+	case SliceObjectValue:
+		ret = &ValueImpl{
+			value: &val,
 		}
 	default:
 		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal entity, entity:%v", entity))
@@ -79,9 +87,11 @@ func GetEntityModel(entity any) (ret model.Model, err *cd.Result) {
 		return
 	}
 
-	switch entity.(type) {
+	switch val := entity.(type) {
 	case *Object:
-		ret = entity.(*Object)
+		ret = val
+	case Object:
+		ret = &val
 	default:
 		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal entity, entity:%v", entity))
 		log.Errorf("GetEntityModel failed, err:%s", err.Error())
@@ -125,14 +135,14 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *
 }
 
 func assignObjectValue(vModel model.Model, objectValuePtr *ObjectValue) (err *cd.Result) {
-		for idx := 0; idx < len(objectValuePtr.Fields); idx++ {
-			fieldVal := objectValuePtr.Fields[idx]
-			err = vModel.SetFieldValue(fieldVal.GetName(), fieldVal.Get())
-			if err != nil {
-				log.Errorf("assignObjectValue failed, err:%s", err.Error())
-				return
-			}
+	for idx := range objectValuePtr.Fields {
+		fieldVal := objectValuePtr.Fields[idx]
+		err = vModel.SetFieldValue(fieldVal.GetName(), fieldVal.Get())
+		if err != nil {
+			log.Errorf("assignObjectValue failed, err:%s", err.Error())
+			return
 		}
+	}
 
 	return
 }

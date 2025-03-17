@@ -138,9 +138,9 @@ func TestValue(t *testing.T) {
 	}
 
 	rawVal := value.Get()
-	switch rawVal.(type) {
+	switch rawVal := rawVal.(type) {
 	case *int:
-		if *(rawVal.(*int)) != intVal {
+		if *rawVal != intVal {
 			t.Errorf("Get failed, expected *int, got %T", rawVal)
 		}
 	default:
@@ -159,9 +159,9 @@ func TestValue(t *testing.T) {
 	}
 
 	rawVal = value.Get()
-	switch rawVal.(type) {
+	switch rawVal := rawVal.(type) {
 	case int:
-		if rawVal.(int) != 0 {
+		if rawVal != 0 {
 			t.Errorf("Get failed, expected int, got %T", rawVal)
 		}
 	default:
@@ -173,9 +173,9 @@ func TestValue(t *testing.T) {
 		t.Errorf("Set failed, IsZero true")
 	}
 	rawVal = value.Get()
-	switch rawVal.(type) {
+	switch rawVal := rawVal.(type) {
 	case int:
-		if rawVal.(int) != 10 {
+		if rawVal != 10 {
 			t.Errorf("Get failed, expected int, got %T", rawVal)
 		}
 	default:
