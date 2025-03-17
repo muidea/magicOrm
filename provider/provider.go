@@ -100,7 +100,7 @@ func (s *providerImpl) RegisterModel(entity any) (ret model.Model, err *cd.Resul
 	pkgKey := entityModel.GetPkgKey()
 	curModel := s.modelCache.Fetch(pkgKey)
 	if curModel != nil {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("model already registered, PkgKey:%s", pkgKey))
+		ret = entityModel
 		return
 	}
 
