@@ -6,6 +6,7 @@ type Model interface {
 	GetName() string
 	GetShowName() string
 	GetPkgPath() string
+	GetPkgKey() string
 	GetDescription() string
 	GetFields() Fields
 	SetFieldValue(name string, val any) *cd.Result

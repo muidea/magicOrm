@@ -19,7 +19,7 @@ var statusDef = `
   "name": "status",
   "version": "0.0.1",
   "status": 2,
-  "pkgPath": "/vmi/status",
+  "pkgPath": "/vmi",
   "description": "",
   "fields": [
     {
@@ -88,7 +88,7 @@ var partnerDef = `
   "name": "partner",
   "version": "0.0.1",
   "status": 2,
-  "pkgPath": "/vmi/partner",
+  "pkgPath": "/vmi",
   "description": "会员信息",
   "fields": [
     {
@@ -134,7 +134,7 @@ var partnerDef = `
       "description": "",
       "type": {
         "name": "status",
-        "pkgPath": "/vmi/status",
+        "pkgPath": "/vmi",
         "description": "",
         "value": 115,
         "isPtr": true,

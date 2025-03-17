@@ -11,7 +11,7 @@ func TestObjectImplementation(t *testing.T) {
 	// Create test object
 	obj := &Object{
 		Name:        "TestObject",
-		PkgPath:     "github.com/test/pkg/TestObject",
+		PkgPath:     "github.com/test/pkg",
 		Description: "Test Object Description",
 		Fields: []*Field{
 			{
@@ -40,7 +40,7 @@ func TestObjectImplementation(t *testing.T) {
 	}
 
 	// Test GetPkgPath
-	expectedPkgPath := "github.com/test/pkg/TestObject"
+	expectedPkgPath := "github.com/test/pkg"
 	if obj.GetPkgPath() != expectedPkgPath {
 		t.Errorf("GetPkgKey failed, expected '%s', got '%s'", expectedPkgPath, obj.GetPkgPath())
 	}
@@ -235,7 +235,7 @@ func TestObjectValueImplementation(t *testing.T) {
 	objVal := &ObjectValue{
 		ID:      "123",
 		Name:    "TestObject",
-		PkgPath: "github.com/test/pkg/TestObject",
+		PkgPath: "github.com/test/pkg",
 		Fields: []*FieldValue{
 			{Name: "id", Value: int64(123)},
 			{Name: "name", Value: "test name"},
@@ -248,7 +248,7 @@ func TestObjectValueImplementation(t *testing.T) {
 	}
 
 	// Test GetPkgPath
-	expectedPkgPath := "github.com/test/pkg/TestObject"
+	expectedPkgPath := "github.com/test/pkg"
 	if objVal.GetPkgPath() != expectedPkgPath {
 		t.Errorf("GetPkgPathy failed, expected '%s', got '%s'", expectedPkgPath, objVal.GetPkgPath())
 	}
@@ -310,7 +310,7 @@ func TestSliceObjectValueImplementation(t *testing.T) {
 	// Create test SliceObjectValue
 	sliceObjVal := &SliceObjectValue{
 		Name:    "TestSliceObject",
-		PkgPath: "github.com/test/pkg/TestSliceObject",
+		PkgPath: "github.com/test/pkg",
 		Values: []*ObjectValue{
 			{
 				ID:      "123",
@@ -339,7 +339,7 @@ func TestSliceObjectValueImplementation(t *testing.T) {
 	}
 
 	// Test GetPkgKey
-	expectedPkgPath := "github.com/test/pkg/TestSliceObject"
+	expectedPkgPath := "github.com/test/pkg"
 	if sliceObjVal.GetPkgPath() != expectedPkgPath {
 		t.Errorf("GetPkgKey failed, expected '%s', got '%s'", expectedPkgPath, sliceObjVal.GetPkgPath())
 	}

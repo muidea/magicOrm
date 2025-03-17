@@ -286,7 +286,7 @@ func (s *QueryRunner) innerQueryRelationSingleModel(id any, vField model.Field, 
 	rModel, rErr := s.modelProvider.GetTypeModel(vField.GetType())
 	if rErr != nil {
 		err = rErr
-		log.Errorf("innerQueryRelationSingleModel failed, s.modelProvider.GetTypeModel error:%v", err.Error())
+		log.Errorf("innerQueryRelationSingleModel failed, s.modelProvider.GetTypeModel field:%s, id:%v, error:%v", vField.GetType().GetPkgKey(), id, err.Error())
 		return
 	}
 
@@ -295,9 +295,9 @@ func (s *QueryRunner) innerQueryRelationSingleModel(id any, vField model.Field, 
 	if vErr != nil {
 		err = vErr
 		if err.Fail() {
-			log.Errorf("innerQueryRelationSingleModel failed, getModelFilter error:%v", err.Error())
+			log.Errorf("innerQueryRelationSingleModel failed, getModelFilter model:%s, id:%v, error:%v", rModel.GetPkgKey(), id, err.Error())
 		} else if err.Warn() {
-			log.Warnf("innerQueryRelationSingleModel failed, getModelFilter error:%v", err.Error())
+			log.Warnf("innerQueryRelationSingleModel failed, getModelFilter model:%s, id:%v, error:%v", rModel.GetPkgKey(), id, err.Error())
 		}
 		return
 	}
@@ -307,14 +307,14 @@ func (s *QueryRunner) innerQueryRelationSingleModel(id any, vField model.Field, 
 	if queryErr != nil {
 		err = queryErr
 		if err.Fail() {
-			log.Errorf("innerQueryRelationSingleModel failed, field:%s, id:%v, s.querySingle error:%v", vField.GetName(), id, err.Error())
+			log.Errorf("innerQueryRelationSingleModel failed, s.querySingle model:%s, id:%v, error:%v", rModel.GetPkgKey(), id, err.Error())
 		} else if err.Warn() {
-			log.Warnf("innerQueryRelationSingleModel failed, field:%s, id:%v, s.querySingle error:%v", vField.GetName(), id, err.Error())
+			log.Warnf("innerQueryRelationSingleModel failed, s.querySingle model:%s, id:%v, error:%v", rModel.GetPkgKey(), id, err.Error())
 		}
 		return
 	}
 	if len(queryVal) > 1 {
-		errMsg := fmt.Sprintf("match more than one model, pkgPath:%s, field name:%s, id:%v", vField.GetType().GetPkgPath(), vField.GetName(), id)
+		errMsg := fmt.Sprintf("match more than one model, model:%s, id:%v", rModel.GetPkgKey(), id)
 		log.Warnf("innerQueryRelationSingleModel failed, errMsg:%s", errMsg)
 		err = cd.NewResult(cd.UnExpected, errMsg)
 		return
@@ -328,7 +328,7 @@ func (s *QueryRunner) innerQueryRelationSingleModel(id any, vField model.Field, 
 	if deepLevel < maxDeepLevel {
 		// 到这里说明未查询到数据，说明存在数据表之间数据不一致
 		// 这种情况下直接返回nil，后续要考虑进行脏数据检测
-		log.Warnf("query relation failed, miss relation data, model pkgPath:%s, field name:%s, id:%v", vField.GetType().GetPkgPath(), vField.GetName(), id)
+		log.Warnf("query relation failed, miss relation data, model:%s, id:%v", rModel.GetPkgKey(), id)
 	}
 	return
 }
@@ -393,7 +393,7 @@ func (s *QueryRunner) Query(filter model.Filter) (ret []model.Model, err *cd.Res
 		return
 	}
 	if !s.batchFilter && queryCount > 1 {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("matched model pkgPath:%s %d items value", s.vModel.GetPkgPath(), queryCount))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("matched model:%s %d items value", s.vModel.GetPkgKey(), queryCount))
 		log.Warnf("Query failed, s.innerQuery warning:%s", err.Error())
 		return
 	}
@@ -453,6 +453,6 @@ func (s *impl) Query(vModel model.Model) (ret model.Model, err *cd.Result) {
 		return
 	}
 
-	err = cd.NewResult(cd.NoExist, fmt.Sprintf("query model failed, pkgKey:%s", vModel.GetPkgPath()))
+	err = cd.NewResult(cd.NoExist, fmt.Sprintf("query model failed, model:%s", vModel.GetPkgKey()))
 	return
 }

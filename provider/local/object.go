@@ -28,7 +28,11 @@ func (s *objectImpl) GetShowName() string {
 
 func (s *objectImpl) GetPkgPath() string {
 	rType := reflect.Indirect(s.objectValue).Type()
-	return path.Join(rType.PkgPath(), rType.Name())
+	return rType.PkgPath()
+}
+
+func (s *objectImpl) GetPkgKey() string {
+	return path.Join(s.GetPkgPath(), s.GetName())
 }
 
 func (s *objectImpl) GetDescription() string {

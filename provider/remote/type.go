@@ -1,6 +1,8 @@
 package remote
 
 import (
+	"path"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/model"
@@ -23,6 +25,11 @@ func (s *TypeImpl) GetName() (ret string) {
 
 func (s *TypeImpl) GetPkgPath() (ret string) {
 	ret = s.PkgPath
+	return
+}
+
+func (s *TypeImpl) GetPkgKey() (ret string) {
+	ret = path.Join(s.PkgPath, s.Name)
 	return
 }
 

@@ -153,13 +153,13 @@ func (s *InsertRunner) insertSliceRelation(vModel model.Model, vField model.Fiel
 		rModel, rErr := s.modelProvider.GetTypeModel(elemType)
 		if rErr != nil {
 			err = rErr
-			log.Errorf("insertSliceRelation failed, model pkgPath:%s, filed name:%s, s.modelProvider.GetTypeModel error:%s", vModel.GetPkgPath(), vField.GetName(), err.Error())
+			log.Errorf("insertSliceRelation failed, model:%s, filed name:%s, s.modelProvider.GetTypeModel error:%s", vModel.GetPkgKey(), vField.GetName(), err.Error())
 			return
 		}
 		rModel, rErr = s.modelProvider.SetModelValue(rModel, fVal)
 		if rErr != nil {
 			err = rErr
-			log.Errorf("insertSliceRelation failed, model pkgPath:%s, filed name:%s, s.modelProvider.SetModelValue error:%s", vModel.GetPkgPath(), vField.GetName(), err.Error())
+			log.Errorf("insertSliceRelation failed, model:%s, filed name:%s, s.modelProvider.SetModelValue error:%s", vModel.GetPkgKey(), vField.GetName(), err.Error())
 			return
 		}
 
@@ -168,7 +168,7 @@ func (s *InsertRunner) insertSliceRelation(vModel model.Model, vField model.Fiel
 			rModel, rErr = rInsertRunner.Insert()
 			if rErr != nil {
 				err = rErr
-				log.Errorf("insertSliceRelation failed, model pkgPath:%s, filed name:%s, s.insertSingle error:%s", vModel.GetPkgPath(), vField.GetName(), err.Error())
+				log.Errorf("insertSliceRelation failed, model:%s, filed name:%s, s.insertSingle error:%s", vModel.GetPkgKey(), vField.GetName(), err.Error())
 				return
 			}
 		}
@@ -176,20 +176,20 @@ func (s *InsertRunner) insertSliceRelation(vModel model.Model, vField model.Fiel
 		relationResult, relationErr := s.hBuilder.BuildInsertRelation(vModel, vField, rModel)
 		if relationErr != nil {
 			err = relationErr
-			log.Errorf("insertSliceRelation failed, model pkgPath:%s, filed name:%s, s.hBuilder.BuildInsertRelation error:%s", vModel.GetPkgPath(), vField.GetName(), err.Error())
+			log.Errorf("insertSliceRelation failed, model:%s, filed name:%s, s.hBuilder.BuildInsertRelation error:%s", vModel.GetPkgKey(), vField.GetName(), err.Error())
 			return
 		}
 
 		_, _, err = s.executor.Execute(relationResult.SQL(), relationResult.Args()...)
 		if err != nil {
-			log.Errorf("insertSliceRelation failed, model pkgPath:%s, filed name:%s, s.executor.Execute error:%s", vModel.GetPkgPath(), vField.GetName(), err.Error())
+			log.Errorf("insertSliceRelation failed, model:%s, filed name:%s, s.executor.Execute error:%s", vModel.GetPkgKey(), vField.GetName(), err.Error())
 			return
 		}
 
 		// 这里只需要直接更新值就可以
 		err = fVal.Set(rModel.Interface(elemType.IsPtrType()))
 		if err != nil {
-			log.Errorf("insertSliceRelation failed, model pkgPath:%s, filed name:%s, fVal.Set error:%s", vModel.GetPkgPath(), vField.GetName(), err.Error())
+			log.Errorf("insertSliceRelation failed, model:%s, filed name:%s, fVal.Set error:%s", vModel.GetPkgKey(), vField.GetName(), err.Error())
 			return
 		}
 	}

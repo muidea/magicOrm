@@ -818,7 +818,7 @@ func init() {
 
 func EncodeValue(vVal any, vType model.Type) (ret any, err *cd.Result) {
 	if !model.IsBasic(vType) {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("EncodeValue failed, illegal type, type pkgPath:%s", vType.GetPkgPath()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("EncodeValue failed, illegal type, type pkgKey:%s", vType.GetPkgKey()))
 		return
 	}
 
@@ -829,13 +829,13 @@ func EncodeValue(vVal any, vType model.Type) (ret any, err *cd.Result) {
 
 func encodeValue(rVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
 	if !rVal.IsValid() {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal value, type pkgPath:%s", vType.GetPkgPath()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal value, type pkgKey:%s", vType.GetPkgKey()))
 		return
 	}
 
 	funcVal, funcOK := encodeValueConvertMap[vType.GetValue()]
 	if !funcOK {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, pkgPath:%s", vType.GetPkgPath()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, pkgKey:%s", vType.GetPkgKey()))
 		return
 	}
 
@@ -845,14 +845,14 @@ func encodeValue(rVal reflect.Value, vType model.Type) (ret any, err *cd.Result)
 
 func encodeSliceValue(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
 	if !model.IsBasic(vType) {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, type pkgPath:%s", vType.GetPkgPath()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, type pkgKey:%s", vType.GetPkgKey()))
 		return
 	}
 
 	eType := vType.Elem()
 	funcVal, funcOK := encodeValueConvertSliceMap[eType.GetValue()]
 	if !funcOK {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, type pkgPath:%s", vType.GetPkgPath()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, type pkgKey:%s", vType.GetPkgKey()))
 		return
 	}
 
@@ -892,7 +892,7 @@ func encodeSliceTemplate[T any](vVal reflect.Value, vType model.Type, _ T) (ret 
 
 func DecodeValue(vVal any, vType model.Type) (ret any, err *cd.Result) {
 	if !model.IsBasic(vType) {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, type pkgPath:%s", vType.GetPkgPath()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, type pkgKey:%s", vType.GetPkgKey()))
 		return
 	}
 
@@ -903,12 +903,12 @@ func DecodeValue(vVal any, vType model.Type) (ret any, err *cd.Result) {
 
 func decodeValue(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
 	if !vVal.IsValid() {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal value, type pkgPath:%s", vType.GetPkgPath()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal value, type pkgKey:%s", vType.GetPkgKey()))
 		return
 	}
 	funcPtr, funcOK := decodeValueConvertMap[vType.GetValue()]
 	if !funcOK {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, type pkgPath:%s", vType.GetPkgPath()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, type pkgKey:%s", vType.GetPkgKey()))
 		return
 	}
 
@@ -918,13 +918,13 @@ func decodeValue(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result)
 
 func decodeSliceValue(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
 	if !model.IsBasic(vType) {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, type pkgPath:%s", vType.GetPkgPath()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, type pkgKey:%s", vType.GetPkgKey()))
 		return
 	}
 
 	funcPtr, funcOK := decodeConvertSliceMap[vType.Elem().GetValue()]
 	if !funcOK {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, type pkgPath:%s", vType.GetPkgPath()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, type pkgKey:%s", vType.GetPkgKey()))
 		return
 	}
 
@@ -947,7 +947,7 @@ func decodeSliceTemplate[T any](rSliceVal reflect.Value, vType model.Type, _ T) 
 		tVal, tOk := decodeVal.(T)
 		if !tOk {
 			err = cd.NewResult(cd.UnExpected, "illegal type")
-			log.Errorf("decodeSliceTemplate failed, illegal type, vType:%v, decodeVal:%+v", vType.GetPkgPath(), decodeVal)
+			log.Errorf("decodeSliceTemplate failed, illegal type, vType:%v, decodeVal:%+v", vType.GetPkgKey(), decodeVal)
 			return
 		}
 

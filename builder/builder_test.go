@@ -430,7 +430,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 func TestBuilderRemoteReference(t *testing.T) {
 	referenceObject := &remote.Object{
 		Name:    "Reference",
-		PkgPath: "/test/Reference",
+		PkgPath: "/test",
 		Fields: []*remote.Field{
 			{
 				Name: "eid",
@@ -490,12 +490,12 @@ func TestBuilderRemoteReference(t *testing.T) {
 				Name: "unit",
 				Type: &remote.TypeImpl{
 					Name:    "Unit",
-					PkgPath: "/test/Unit",
+					PkgPath: "/test",
 					Value:   115,
 					IsPtr:   false,
 					ElemType: &remote.TypeImpl{
 						Name:    "Unit",
-						PkgPath: "/test/Unit",
+						PkgPath: "/test",
 						Value:   115,
 					},
 				},
@@ -511,7 +511,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 
 	referenceObjectValue := &remote.ObjectValue{
 		Name:    "Reference",
-		PkgPath: "/test/Reference",
+		PkgPath: "/test",
 		Fields: []*remote.FieldValue{
 			{
 				Name:  "eid",
@@ -526,7 +526,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 
 	unitObject := &remote.Object{
 		Name:    "Unit",
-		PkgPath: "/test/Unit",
+		PkgPath: "/test",
 		Fields: []*remote.Field{
 			{
 				Name: "uid",
@@ -551,7 +551,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 
 	unitObjectValue := &remote.ObjectValue{
 		Name:    "Unit",
-		PkgPath: "/test/Unit",
+		PkgPath: "/test",
 		Fields: []*remote.FieldValue{
 			{
 				Name:  "uid",

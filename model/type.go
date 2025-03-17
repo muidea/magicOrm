@@ -5,6 +5,7 @@ import cd "github.com/muidea/magicCommon/def"
 type Type interface {
 	GetName() string
 	GetPkgPath() string
+	GetPkgKey() string
 	GetDescription() string
 	GetValue() TypeDeclare
 	IsPtrType() bool

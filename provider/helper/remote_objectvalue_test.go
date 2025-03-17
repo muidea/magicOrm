@@ -102,7 +102,7 @@ func TestSliceObjectValueManipulation(t *testing.T) {
 	}
 
 	// The PkgPath will be the package of this test file, which is "github.com/muidea/magicOrm/provider/remote"
-	expectedPkgPath := "github.com/muidea/magicOrm/provider/helper/Simple"
+	expectedPkgPath := "github.com/muidea/magicOrm/provider/helper"
 	if sliceVal.GetPkgPath() != expectedPkgPath {
 		t.Errorf("SliceObjectValue pkgPath mismatch, expected '%s', got '%s'", expectedPkgPath, sliceVal.GetPkgPath())
 		return

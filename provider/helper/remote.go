@@ -2,7 +2,6 @@ package helper
 
 import (
 	"fmt"
-	"path"
 	"reflect"
 	"strings"
 
@@ -49,7 +48,7 @@ func newType(itemType reflect.Type) (ret *remote.TypeImpl, err *cd.Result) {
 			sliceType = sliceType.Elem()
 			slicePtr = true
 		}
-		ret = &remote.TypeImpl{Name: sliceType.Name(), Value: typeVal, PkgPath: path.Join(sliceType.PkgPath(), sliceType.Name()), IsPtr: isPtr}
+		ret = &remote.TypeImpl{Name: sliceType.Name(), Value: typeVal, PkgPath: sliceType.PkgPath(), IsPtr: isPtr}
 
 		sliceVal, sliceErr := utils.GetTypeEnum(sliceType)
 		if sliceErr != nil {
@@ -61,11 +60,11 @@ func newType(itemType reflect.Type) (ret *remote.TypeImpl, err *cd.Result) {
 			return
 		}
 
-		ret.ElemType = &remote.TypeImpl{Name: sliceType.Name(), Value: sliceVal, PkgPath: path.Join(sliceType.PkgPath(), sliceType.Name()), IsPtr: slicePtr}
+		ret.ElemType = &remote.TypeImpl{Name: sliceType.Name(), Value: sliceVal, PkgPath: sliceType.PkgPath(), IsPtr: slicePtr}
 		return
 	}
 
-	ret = &remote.TypeImpl{Name: itemType.Name(), Value: typeVal, PkgPath: path.Join(itemType.PkgPath(), itemType.Name()), IsPtr: isPtr}
+	ret = &remote.TypeImpl{Name: itemType.Name(), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
 	return
 }
 
@@ -193,7 +192,7 @@ func type2Object(entityType reflect.Type) (ret *remote.Object, err *cd.Result) {
 
 	impl := &remote.Object{}
 	impl.Name = entityType.Name()
-	impl.PkgPath = path.Join(entityType.PkgPath(), entityType.Name())
+	impl.PkgPath = entityType.PkgPath()
 	impl.Fields = []*remote.Field{}
 
 	hasPrimaryField := false
@@ -276,7 +275,7 @@ func getFieldValue(fieldName string, itemType *remote.TypeImpl, itemValue reflec
 		itemVal, itemErr := local.EncodeValue(itemValue.Interface(), itemType)
 		if itemErr != nil {
 			err = itemErr
-			log.Errorf("getFieldValue failed, fieldName:%s, itemType:%s, Encode err:%s", fieldName, itemType.GetPkgPath(), itemErr.Error())
+			log.Errorf("getFieldValue failed, fieldName:%s, itemPkgKey:%s, Encode err:%s", fieldName, itemType.GetPkgKey(), itemErr.Error())
 			return
 		}
 
@@ -288,7 +287,7 @@ func getFieldValue(fieldName string, itemType *remote.TypeImpl, itemValue reflec
 		objVal, objErr := getSliceObjectValue(itemValue)
 		if objErr != nil {
 			err = objErr
-			log.Errorf("getFieldValue failed, fieldName:%s, itemType:%s, getSliceObjectValue err:%s", fieldName, itemType.GetPkgPath(), err.Error())
+			log.Errorf("getFieldValue failed, fieldName:%s, itemPkgKey:%s, getSliceObjectValue err:%s", fieldName, itemType.GetPkgKey(), err.Error())
 			return
 		}
 
@@ -299,7 +298,7 @@ func getFieldValue(fieldName string, itemType *remote.TypeImpl, itemValue reflec
 	objVal, objErr := getObjectValue(itemValue)
 	if objErr != nil {
 		err = objErr
-		log.Errorf("getFieldValue failed, filedName:%s, itemType:%s, getObjectValue err:%s", fieldName, itemType.GetPkgPath(), err.Error())
+		log.Errorf("getFieldValue failed, filedName:%s, itemPkgKey:%s, getObjectValue err:%s", fieldName, itemType.GetPkgKey(), err.Error())
 		return
 	}
 

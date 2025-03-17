@@ -36,7 +36,11 @@ func (s *TypeImpl) GetName() string {
 
 func (s *TypeImpl) GetPkgPath() string {
 	rType := s.getElemType()
-	return path.Join(rType.PkgPath(), rType.Name())
+	return rType.PkgPath()
+}
+
+func (s *TypeImpl) GetPkgKey() string {
+	return path.Join(s.GetPkgPath(), s.GetName())
 }
 
 func (s *TypeImpl) GetDescription() string {

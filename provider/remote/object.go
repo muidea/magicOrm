@@ -3,6 +3,7 @@ package remote
 import (
 	"encoding/json"
 	"fmt"
+	"path"
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
@@ -57,6 +58,10 @@ func (s *Object) GetShowName() (ret string) {
 func (s *Object) GetPkgPath() (ret string) {
 	ret = s.PkgPath
 	return
+}
+
+func (s *Object) GetPkgKey() string {
+	return path.Join(s.PkgPath, s.Name)
 }
 
 func (s *Object) GetDescription() (ret string) {
@@ -216,6 +221,10 @@ func (s *ObjectValue) GetPkgPath() string {
 	return s.PkgPath
 }
 
+func (s *ObjectValue) GetPkgKey() string {
+	return path.Join(s.PkgPath, s.Name)
+}
+
 func (s *ObjectValue) GetValue() []*FieldValue {
 	return s.Fields
 }
@@ -294,6 +303,10 @@ func (s *SliceObjectValue) GetName() string {
 
 func (s *SliceObjectValue) GetPkgPath() string {
 	return s.PkgPath
+}
+
+func (s *SliceObjectValue) GetPkgKey() string {
+	return path.Join(s.PkgPath, s.Name)
 }
 
 func (s *SliceObjectValue) GetValue() []*ObjectValue {

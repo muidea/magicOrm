@@ -97,14 +97,15 @@ func (s *providerImpl) RegisterModel(entity any) (ret model.Model, err *cd.Resul
 		return
 	}
 
-	curModel := s.modelCache.Fetch(entityModel.GetPkgPath())
+	pkgKey := entityModel.GetPkgKey()
+	curModel := s.modelCache.Fetch(pkgKey)
 	if curModel != nil {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("model already registered, PkgPath:%s", entityModel.GetPkgPath()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("model already registered, PkgKey:%s", pkgKey))
 		return
 	}
 
 	// 这里主动Copy一份，避免污染原始的entity
-	s.modelCache.Put(entityModel.GetPkgPath(), entityModel.Copy(model.MetaView))
+	s.modelCache.Put(pkgKey, entityModel.Copy(model.MetaView))
 	ret = entityModel
 	return
 }
@@ -118,9 +119,9 @@ func (s *providerImpl) UnregisterModel(entity any) (err *cd.Result) {
 	}
 
 	modelType = modelType.Elem()
-	curModel := s.modelCache.Fetch(modelType.GetPkgPath())
+	curModel := s.modelCache.Fetch(modelType.GetPkgKey())
 	if curModel != nil {
-		s.modelCache.Remove(curModel.GetPkgPath())
+		s.modelCache.Remove(curModel.GetPkgKey())
 	}
 	return
 }
@@ -160,9 +161,10 @@ func (s *providerImpl) checkEntityModel(entity any, viewSpec model.ViewDeclare) 
 		return
 	}
 
-	curModelVal := s.modelCache.Fetch(entityType.Elem().GetPkgPath())
+	pkgKey := entityType.Elem().GetPkgKey()
+	curModelVal := s.modelCache.Fetch(pkgKey)
 	if curModelVal == nil {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch model, PkgPath:%s", entityType.Elem().GetPkgPath()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
 		log.Errorf("checkEntityModel failed, error:%v", err.Error())
 		return
 	}
@@ -200,14 +202,15 @@ func (s *providerImpl) GetEntityFilter(entity any, viewSpec model.ViewDeclare) (
 
 func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err *cd.Result) {
 	if model.IsBasic(vType) {
-		err = cd.NewResult(cd.UnExpected, "illegal type value, type pkgPath:"+vType.GetPkgPath())
+		err = cd.NewResult(cd.UnExpected, "illegal type value, type pkgKey:"+vType.GetPkgKey())
 		log.Errorf("GetTypeModel failed, error:%v", err.Error())
 		return
 	}
 
-	typeModelVal := s.modelCache.Fetch(vType.Elem().GetPkgPath())
+	pkgKey := vType.Elem().GetPkgKey()
+	typeModelVal := s.modelCache.Fetch(pkgKey)
 	if typeModelVal == nil {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch type model, must register type entity first, PkgPath:%s", vType.Elem().GetPkgPath()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch type model, must register type entity first, PkgKey:%s", pkgKey))
 		log.Errorf("GetTypeModel failed, error:%v", err.Error())
 		return
 	}
@@ -222,9 +225,11 @@ func (s *providerImpl) GetModelFilter(vModel model.Model) (ret model.Filter, err
 		log.Errorf("GetModelFilter failed, error:%v", err.Error())
 		return
 	}
-	curModelVal := s.modelCache.Fetch(vModel.GetPkgPath())
+
+	pkgKey := vModel.GetPkgKey()
+	curModelVal := s.modelCache.Fetch(pkgKey)
 	if curModelVal == nil {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch model, PkgPath:%s", vModel.GetPkgPath()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
 		log.Errorf("GetModelFilter failed, error:%v", err.Error())
 		return
 	}
@@ -246,9 +251,11 @@ func (s *providerImpl) GetTypeFilter(vType model.Type, viewSpec model.ViewDeclar
 		log.Errorf("GetTypeFilter failed, error:%v", err.Error())
 		return
 	}
-	curModelVal := s.modelCache.Fetch(vType.GetPkgPath())
+
+	pkgKey := vType.GetPkgKey()
+	curModelVal := s.modelCache.Fetch(pkgKey)
 	if curModelVal == nil {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch model, PkgPath:%s", vType.GetPkgPath()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
 		log.Errorf("GetTypeFilter failed, error:%v", err.Error())
 		return
 	}
@@ -265,9 +272,10 @@ func (s *providerImpl) GetTypeFilter(vType model.Type, viewSpec model.ViewDeclar
 }
 
 func (s *providerImpl) SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *cd.Result) {
-	curModel := s.modelCache.Fetch(vModel.GetPkgPath())
+	pkgKey := vModel.GetPkgKey()
+	curModel := s.modelCache.Fetch(pkgKey)
 	if curModel == nil {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch model, PkgPath:%s", vModel.GetPkgPath()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
 		log.Errorf("SetModelValue failed, error:%v", err.Error())
 		return
 	}
@@ -288,9 +296,10 @@ func (s *providerImpl) EncodeValue(vVal any, vType model.Type) (ret any, err *cd
 		return
 	}
 
-	curModelVal := s.modelCache.Fetch(vType.Elem().GetPkgPath())
+	pkgKey := vType.Elem().GetPkgKey()
+	curModelVal := s.modelCache.Fetch(pkgKey)
 	if curModelVal == nil {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch model, PkgPath:%s", vType.Elem().GetPkgPath()))
+		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
 		log.Errorf("EncodeValue failed, error:%v", err.Error())
 		return
 	}
