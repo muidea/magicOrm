@@ -42,6 +42,33 @@ func GetEntityType(entity any) (ret model.Type, err *cd.Result) {
 				IsPtr:   true,
 			},
 		}
+	case Object:
+		ret = &TypeImpl{
+			Name:    val.Name,
+			PkgPath: val.PkgPath,
+			Value:   model.TypeStructValue,
+			IsPtr:   true,
+		}
+	case ObjectValue:
+		ret = &TypeImpl{
+			Name:    val.Name,
+			PkgPath: val.PkgPath,
+			Value:   model.TypeStructValue,
+			IsPtr:   true,
+		}
+	case SliceObjectValue:
+		ret = &TypeImpl{
+			Name:    val.Name,
+			PkgPath: val.PkgPath,
+			Value:   model.TypeSliceValue,
+			IsPtr:   true,
+			ElemType: &TypeImpl{
+				Name:    val.Name,
+				PkgPath: val.PkgPath,
+				Value:   model.TypeStructValue,
+				IsPtr:   true,
+			},
+		}
 	default:
 		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal entity, entity:%v", entity))
 		return
