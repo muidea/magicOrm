@@ -2,7 +2,9 @@ package mysql
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
@@ -115,21 +117,15 @@ func (s *Builder) declareFieldInfo(vField model.Field) (ret string, err *cd.Resu
 	// Write default value if exists
 	fSpec := vField.GetSpec()
 	if fSpec != nil && fSpec.GetDefaultValue() != nil {
-		defaultValue := fSpec.GetDefaultValue()
-		strBuffer.WriteString(" DEFAULT ")
-
-		switch vField.GetType().GetValue() {
-		case model.TypeStringValue, model.TypeDateTimeValue:
-			strBuffer.WriteString("'")
-			strBuffer.WriteString(fmt.Sprintf("%v", defaultValue))
-			strBuffer.WriteString("'")
-		case model.TypeBooleanValue, model.TypeBitValue,
-			model.TypeSmallIntegerValue, model.TypePositiveBitValue,
-			model.TypeIntegerValue, model.TypeInteger32Value, model.TypePositiveSmallIntegerValue,
-			model.TypeBigIntegerValue, model.TypePositiveIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue,
-			model.TypeFloatValue, model.TypeDoubleValue:
-			strBuffer.WriteString(fmt.Sprintf("%v", defaultValue))
+		defaultValue, defaultErr := s.validDefaultValue(vField.GetType(), fSpec)
+		if defaultErr != nil {
+			err = defaultErr
+			log.Errorf("declareFieldInfo failed, validDefaultValue error:%s", err.Error())
+			return
 		}
+
+		strBuffer.WriteString(" DEFAULT ")
+		strBuffer.WriteString(defaultValue)
 	}
 
 	// Write auto increment if needed
@@ -138,5 +134,49 @@ func (s *Builder) declareFieldInfo(vField model.Field) (ret string, err *cd.Resu
 	}
 
 	ret = strBuffer.String()
+	return
+}
+
+func (s *Builder) validDefaultValue(vType model.Type, vSpec model.Spec) (ret string, err *cd.Result) {
+	if !model.IsBasic(vType) || vType.IsPtrType() {
+		err = cd.NewResult(cd.UnExpected, "default value must be basic type and not ptr type")
+		return
+	}
+
+	var defaultValue any
+	defaultValueDeclare := vSpec.GetDefaultValue()
+	if defaultValueDeclare != nil {
+		switch val := defaultValueDeclare.(type) {
+		case string:
+			if strings.Contains(val, "$referenceValue.") {
+				vTypeDefaultVal, _ := vType.Interface(nil)
+				defaultValue = vTypeDefaultVal.Get()
+			} else {
+				defaultValue = val
+			}
+		default:
+			byteVal, byteErr := json.Marshal(val)
+			if byteErr != nil {
+				err = cd.NewResult(cd.UnExpected, byteErr.Error())
+				return
+			}
+			defaultValue = string(byteVal)
+		}
+	} else {
+		vTypeDefaultVal, _ := vType.Interface(nil)
+		defaultValue = vTypeDefaultVal.Get()
+	}
+
+	switch vType.Elem().GetValue() {
+	case model.TypeStringValue, model.TypeDateTimeValue:
+		ret = fmt.Sprintf("'%v'", defaultValue)
+	case model.TypeBooleanValue, model.TypeBitValue,
+		model.TypeSmallIntegerValue, model.TypePositiveBitValue,
+		model.TypeIntegerValue, model.TypeInteger32Value, model.TypePositiveSmallIntegerValue,
+		model.TypeBigIntegerValue, model.TypePositiveIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue,
+		model.TypeFloatValue, model.TypeDoubleValue:
+		ret = fmt.Sprintf("%v", defaultValue)
+	}
+
 	return
 }

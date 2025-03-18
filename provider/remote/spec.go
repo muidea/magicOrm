@@ -1,10 +1,7 @@
 package remote
 
 import (
-	"strings"
-
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/utils"
 )
 
 type SpecImpl struct {
@@ -46,26 +43,7 @@ func (s SpecImpl) EnableView(viewSpec model.ViewDeclare) bool {
 // GetDefaultValue
 // 这里只允许是基本数值,不允许是表达式，不允许是[]any
 func (s SpecImpl) GetDefaultValue() any {
-	if s.DefaultValue == nil {
-		return nil
-	}
-
-	if !utils.IsReallyValidValue(s.DefaultValue) {
-		return nil
-	}
-
-	switch val := s.DefaultValue.(type) {
-	case string:
-		if strings.Contains(val, "$referenceValue.") {
-			return nil
-		}
-
-		return val
-	case []any:
-		return nil
-	default:
-		return s.DefaultValue
-	}
+	return s.DefaultValue
 }
 
 func (s SpecImpl) Copy() *SpecImpl {
