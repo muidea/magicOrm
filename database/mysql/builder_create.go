@@ -123,7 +123,7 @@ func (s *Builder) declareFieldInfo(vField model.Field) (ret string, err *cd.Resu
 			log.Errorf("declareFieldInfo failed, validDefaultValue error:%s", err.Error())
 			return
 		}
-		if defaultValue != "" {
+		if defaultValue != "''" && defaultValue != "" {
 			strBuffer.WriteString(" DEFAULT ")
 			strBuffer.WriteString(defaultValue)
 		}
