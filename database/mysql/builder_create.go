@@ -123,9 +123,10 @@ func (s *Builder) declareFieldInfo(vField model.Field) (ret string, err *cd.Resu
 			log.Errorf("declareFieldInfo failed, validDefaultValue error:%s", err.Error())
 			return
 		}
-
-		strBuffer.WriteString(" DEFAULT ")
-		strBuffer.WriteString(defaultValue)
+		if defaultValue != "" {
+			strBuffer.WriteString(" DEFAULT ")
+			strBuffer.WriteString(defaultValue)
+		}
 	}
 
 	// Write auto increment if needed
