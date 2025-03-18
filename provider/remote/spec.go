@@ -1,9 +1,10 @@
 package remote
 
 import (
-	"fmt"
+	"strings"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/utils"
 )
 
 type SpecImpl struct {
@@ -42,8 +43,29 @@ func (s SpecImpl) EnableView(viewSpec model.ViewDeclare) bool {
 	return false
 }
 
+// GetDefaultValue
+// 这里只允许是基本数值,不允许是表达式，不允许是[]any
 func (s SpecImpl) GetDefaultValue() any {
-	return s.DefaultValue
+	if s.DefaultValue == nil {
+		return nil
+	}
+
+	if !utils.IsReallyValidValue(s.DefaultValue) {
+		return nil
+	}
+
+	switch val := s.DefaultValue.(type) {
+	case string:
+		if strings.Contains(val, "$referenceValue.") {
+			return nil
+		}
+
+		return val
+	case []any:
+		return nil
+	default:
+		return s.DefaultValue
+	}
 }
 
 func (s SpecImpl) Copy() *SpecImpl {
@@ -56,10 +78,6 @@ func (s SpecImpl) Copy() *SpecImpl {
 	}
 
 	return &ret
-}
-
-func (s SpecImpl) dump() (ret string) {
-	return fmt.Sprintf("name=%s key=%v value=%v", s.GetFieldName(), s.IsPrimaryKey(), s.GetValueDeclare())
 }
 
 func compareSpec(l, r *SpecImpl) bool {
