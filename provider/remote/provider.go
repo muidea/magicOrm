@@ -101,7 +101,7 @@ func GetEntityValue(entity any) (ret model.Value, err *cd.Result) {
 		}
 	default:
 		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal entity, entity:%v", entity))
-		log.Errorf("GetEntityValue failed, err:%s", err.Error())
+		//log.Errorf("GetEntityValue failed, err:%s", err.Error())
 		return
 	}
 
