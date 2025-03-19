@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -116,21 +115,26 @@ func (s *Builder) declareFieldInfo(vField model.Field) (ret string, err *cd.Resu
 
 	// Write default value if exists
 	fSpec := vField.GetSpec()
-	if fSpec != nil && fSpec.GetDefaultValue() != nil {
-		defaultValue, defaultErr := s.validDefaultValue(vField.GetType(), fSpec)
-		if defaultErr != nil {
-			err = defaultErr
-			log.Errorf("declareFieldInfo failed, validDefaultValue error:%s", err.Error())
-			return
-		}
-		if defaultValue != "''" && defaultValue != "" {
-			strBuffer.WriteString(" DEFAULT ")
-			strBuffer.WriteString(defaultValue)
-		}
+	defaultValue, defaultErr := s.validDefaultValue(vField.GetType(), fSpec)
+	if defaultErr != nil {
+		err = defaultErr
+		log.Errorf("declareFieldInfo failed, validDefaultValue error:%s", err.Error())
+		return
+	}
+	// Write auto increment if needed
+	autoIncVal, autoIncErr := s.validAutoIncrement(vField.GetType(), vField.GetSpec())
+	if autoIncErr != nil {
+		err = autoIncErr
+		log.Errorf("declareFieldInfo failed, validAutoIncrement error:%s", err.Error())
+		return
 	}
 
-	// Write auto increment if needed
-	if fSpec != nil && model.IsAutoIncrementDeclare(fSpec.GetValueDeclare()) {
+	if !autoIncVal && defaultValue != "''" && defaultValue != "" {
+		strBuffer.WriteString(" DEFAULT ")
+		strBuffer.WriteString(defaultValue)
+	}
+
+	if autoIncVal {
 		strBuffer.WriteString(" AUTO_INCREMENT")
 	}
 
@@ -139,13 +143,17 @@ func (s *Builder) declareFieldInfo(vField model.Field) (ret string, err *cd.Resu
 }
 
 func (s *Builder) validDefaultValue(vType model.Type, vSpec model.Spec) (ret string, err *cd.Result) {
-	if !model.IsBasic(vType) || vType.IsPtrType() {
-		err = cd.NewResult(cd.UnExpected, "default value must be basic type and not ptr type")
+	if !model.IsBasic(vType) || vType.IsPtrType() || vType.GetValue().IsSliceType() || vType.Elem().GetValue().IsStringValueType() {
+		// 非基础类型和切片类型不需要设置默认值
+		// 指针类型不需要设置默认值
+		// 字符串类型不需要设置默认值，这里返回空
 		return
 	}
 
-	var defaultValue any
-	defaultValueDeclare := vSpec.GetDefaultValue()
+	var defaultValue, defaultValueDeclare any
+	if vSpec != nil {
+		defaultValueDeclare = vSpec.GetDefaultValue()
+	}
 	if defaultValueDeclare != nil {
 		switch val := defaultValueDeclare.(type) {
 		case string:
@@ -156,12 +164,7 @@ func (s *Builder) validDefaultValue(vType model.Type, vSpec model.Spec) (ret str
 				defaultValue = val
 			}
 		default:
-			byteVal, byteErr := json.Marshal(val)
-			if byteErr != nil {
-				err = cd.NewResult(cd.UnExpected, byteErr.Error())
-				return
-			}
-			defaultValue = string(byteVal)
+			defaultValue = val
 		}
 	} else {
 		vTypeDefaultVal, _ := vType.Interface(nil)
@@ -169,15 +172,24 @@ func (s *Builder) validDefaultValue(vType model.Type, vSpec model.Spec) (ret str
 	}
 
 	switch vType.Elem().GetValue() {
-	case model.TypeStringValue, model.TypeDateTimeValue:
+	case model.TypeBooleanValue:
+		if defaultValue.(bool) {
+			ret = "'1'"
+		} else {
+			ret = "'0'"
+		}
+	default:
 		ret = fmt.Sprintf("'%v'", defaultValue)
-	case model.TypeBooleanValue, model.TypeBitValue,
-		model.TypeSmallIntegerValue, model.TypePositiveBitValue,
-		model.TypeIntegerValue, model.TypeInteger32Value, model.TypePositiveSmallIntegerValue,
-		model.TypeBigIntegerValue, model.TypePositiveIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue,
-		model.TypeFloatValue, model.TypeDoubleValue:
-		ret = fmt.Sprintf("%v", defaultValue)
 	}
 
+	return
+}
+
+func (s *Builder) validAutoIncrement(vType model.Type, vSpec model.Spec) (ret bool, err *cd.Result) {
+	if vSpec == nil || !vSpec.IsPrimaryKey() || !vType.GetValue().IsNumberValueType() {
+		return
+	}
+
+	ret = model.IsAutoIncrementDeclare(vSpec.GetValueDeclare())
 	return
 }

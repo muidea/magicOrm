@@ -139,6 +139,14 @@ func (s TypeDeclare) IsSliceType() bool {
 	return s == TypeSliceValue
 }
 
+func (s TypeDeclare) IsStringValueType() bool {
+	return s == TypeStringValue || s == TypeDateTimeValue
+}
+
+func (s TypeDeclare) IsNumberValueType() bool {
+	return s > TypeBooleanValue && s <= TypePositiveBigIntegerValue
+}
+
 type ValueDeclare int
 
 const (

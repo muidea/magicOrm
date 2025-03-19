@@ -60,7 +60,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 	if err != nil {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 	}
-	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_Unit` (\n\t`uid` VARCHAR(32) NOT NULL,\n\t`name` TEXT NOT NULL,\n\t`value` DOUBLE NOT NULL,\n\t`ts` DATETIME NOT NULL,\n\tPRIMARY KEY (`uid`)\n)\n" {
+	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_Unit` (\n\t`uid` VARCHAR(32) NOT NULL,\n\t`name` TEXT NOT NULL,\n\t`value` DOUBLE NOT NULL DEFAULT '0',\n\t`ts` DATETIME NOT NULL,\n\tPRIMARY KEY (`uid`)\n)\n" {
 		t.Errorf("build create schema failed, str:%s", str)
 	}
 
@@ -158,7 +158,7 @@ func TestBuilderLocalReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 	}
-	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_Reference` (\n\t`eid` BIGINT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL,\n\t`value` DOUBLE NOT NULL,\n\t`description` TEXT,\n\tPRIMARY KEY (`eid`)\n)\n" {
+	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_Reference` (\n\t`eid` BIGINT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL,\n\t`value` DOUBLE NOT NULL DEFAULT '0',\n\t`description` TEXT,\n\tPRIMARY KEY (`eid`)\n)\n" {
 		t.Errorf("build create schema failed, str:%s", str)
 	}
 
@@ -357,7 +357,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 		return
 	}
-	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_Unit` (\n\t`uid` VARCHAR(32) NOT NULL,\n\t`name` TEXT NOT NULL,\n\t`value` DOUBLE NOT NULL,\n\t`ts` DATETIME NOT NULL,\n\tPRIMARY KEY (`uid`)\n)\n" {
+	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_Unit` (\n\t`uid` VARCHAR(32) NOT NULL,\n\t`name` TEXT NOT NULL,\n\t`value` DOUBLE NOT NULL DEFAULT '0',\n\t`ts` DATETIME NOT NULL,\n\tPRIMARY KEY (`uid`)\n)\n" {
 		t.Errorf("build create schema failed, str:%s", str)
 		return
 	}
@@ -609,7 +609,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 		return
 	}
-	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_Reference` (\n\t`eid` BIGINT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL,\n\t`value` DOUBLE NOT NULL,\n\t`description` TEXT NOT NULL,\n\tPRIMARY KEY (`eid`)\n)\n" {
+	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_Reference` (\n\t`eid` BIGINT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL,\n\t`value` DOUBLE NOT NULL DEFAULT '0',\n\t`description` TEXT NOT NULL,\n\tPRIMARY KEY (`eid`)\n)\n" {
 		t.Errorf("build create schema failed, str:%s", str)
 		return
 	}
