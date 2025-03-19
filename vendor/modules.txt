@@ -40,7 +40,7 @@ github.com/google/uuid
 github.com/leodido/go-urn
 github.com/leodido/go-urn/scim/schema
 # github.com/muidea/magicCommon v1.3.122 => ../magicCommon
-## explicit; go 1.22
+## explicit; go 1.23
 github.com/muidea/magicCommon/def
 github.com/muidea/magicCommon/foundation/cache
 github.com/muidea/magicCommon/foundation/log
