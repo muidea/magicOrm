@@ -152,9 +152,15 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *
 	case *ObjectValue:
 		err = assignObjectValue(vModel, val)
 	default:
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal model value, val:%v", val))
-		log.Errorf("SetModelValue failed, err:%s", err.Error())
-		return
+		if vVal.IsValid() {
+			err = vModel.SetPrimaryFieldValue(val)
+		} else {
+			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal model value, val:%v", val))
+		}
+		if err != nil {
+			log.Errorf("SetModelValue failed, err:%s", err.Error())
+			return
+		}
 	}
 
 	ret = vModel

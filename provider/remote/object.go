@@ -77,12 +77,63 @@ func (s *Object) GetFields() (ret model.Fields) {
 	return
 }
 
+func (s *Object) setBasicFileValue(sf *Field, val any) (err *cd.Result) {
+	eVal, eErr := EncodeValue(val, sf.Type)
+	if eErr != nil {
+		err = eErr
+		return
+	}
+	err = sf.SetValue(eVal)
+	return
+}
+
+func (s *Object) setSliceStructValue(sf *Field, val any) (err *cd.Result) {
+	switch val.(type) {
+	case *SliceObjectValue:
+		err = sf.SetValue(val)
+	case SliceObjectValue:
+		err = sf.SetValue(&val)
+	default:
+		err = cd.NewResult(cd.UnExpected, "illegal value type")
+	}
+	return
+}
+
+func (s *Object) setStructValue(sf *Field, val any) (err *cd.Result) {
+	switch val.(type) {
+	case *ObjectValue:
+		err = sf.SetValue(val)
+	case ObjectValue:
+		err = sf.SetValue(&val)
+	default:
+		err = cd.NewResult(cd.UnExpected, "illegal value type")
+	}
+	return
+}
+
 func (s *Object) SetFieldValue(name string, val any) (err *cd.Result) {
-	for _, item := range s.Fields {
-		if item.Name == name {
-			err = item.SetValue(val)
+	for _, sf := range s.Fields {
+		if sf.Name != name {
+			continue
+		}
+
+		if val == nil {
+			sf.SetValue(nil)
 			return
 		}
+
+		if model.IsBasicField(sf) {
+			err = s.setBasicFileValue(sf, val)
+			return
+		}
+
+		if model.IsSliceField(sf) {
+			err = s.setSliceStructValue(sf, val)
+			return
+		}
+
+		err = s.setStructValue(sf, val)
+		return
 	}
 
 	log.Warnf("SetFieldValue failed, field:%s not found", name)
@@ -92,7 +143,12 @@ func (s *Object) SetFieldValue(name string, val any) (err *cd.Result) {
 func (s *Object) SetPrimaryFieldValue(val any) (err *cd.Result) {
 	for _, sf := range s.Fields {
 		if model.IsPrimaryField(sf) {
-			err = sf.SetValue(val)
+			if val == nil {
+				sf.SetValue(nil)
+				return
+			}
+
+			err = s.setBasicFileValue(sf, val)
 			return
 		}
 	}
