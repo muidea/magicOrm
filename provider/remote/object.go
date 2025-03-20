@@ -81,6 +81,7 @@ func (s *Object) setBasicFileValue(sf *Field, val any) (err *cd.Result) {
 	eVal, eErr := EncodeValue(val, sf.Type)
 	if eErr != nil {
 		err = eErr
+		log.Errorf("setBasicFileValue failed, field:%s, value:%v, EncodeValue error:%v", sf.GetName(), val, err.Error())
 		return
 	}
 	err = sf.SetValue(eVal)
@@ -95,6 +96,7 @@ func (s *Object) setSliceStructValue(sf *Field, val any) (err *cd.Result) {
 		err = sf.SetValue(&val)
 	default:
 		err = cd.NewResult(cd.UnExpected, "illegal value type")
+		log.Errorf("set slice struct value failed, field:%s, value:%v, err:%s", sf.GetName(), val, err)
 	}
 	return
 }
@@ -107,6 +109,7 @@ func (s *Object) setStructValue(sf *Field, val any) (err *cd.Result) {
 		err = sf.SetValue(&val)
 	default:
 		err = cd.NewResult(cd.UnExpected, "illegal value type")
+		log.Errorf("set struct value failed, field:%s, value:%v, err:%s", sf.GetName(), val, err.Error())
 	}
 	return
 }
@@ -124,15 +127,27 @@ func (s *Object) SetFieldValue(name string, val any) (err *cd.Result) {
 
 		if model.IsBasicField(sf) {
 			err = s.setBasicFileValue(sf, val)
+			if err != nil {
+				log.Errorf("set basic value failed, field:%s, value:%v, err:%s", sf.GetName(), val, err.Error())
+				return
+			}
 			return
 		}
 
 		if model.IsSliceField(sf) {
 			err = s.setSliceStructValue(sf, val)
+			if err != nil {
+				log.Errorf("set slice value failed, field:%s, value:%v, err:%s", sf.GetName(), val, err.Error())
+				return
+			}
 			return
 		}
 
 		err = s.setStructValue(sf, val)
+		if err != nil {
+			log.Errorf("set struct value failed, field:%s, value:%v, err:%s", sf.GetName(), val, err.Error())
+			return
+		}
 		return
 	}
 
