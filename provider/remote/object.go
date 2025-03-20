@@ -120,34 +120,7 @@ func (s *Object) SetFieldValue(name string, val any) (err *cd.Result) {
 			continue
 		}
 
-		if val == nil {
-			sf.SetValue(nil)
-			return
-		}
-
-		if model.IsBasicField(sf) {
-			err = s.setBasicFileValue(sf, val)
-			if err != nil {
-				log.Errorf("set basic value failed, field:%s, value:%v, err:%s", sf.GetName(), val, err.Error())
-				return
-			}
-			return
-		}
-
-		if model.IsSliceField(sf) {
-			err = s.setSliceStructValue(sf, val)
-			if err != nil {
-				log.Errorf("set slice value failed, field:%s, value:%v, err:%s", sf.GetName(), val, err.Error())
-				return
-			}
-			return
-		}
-
-		err = s.setStructValue(sf, val)
-		if err != nil {
-			log.Errorf("set struct value failed, field:%s, value:%v, err:%s", sf.GetName(), val, err.Error())
-			return
-		}
+		sf.SetValue(val)
 		return
 	}
 
