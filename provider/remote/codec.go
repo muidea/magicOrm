@@ -869,6 +869,8 @@ func encodeSliceTemplate[T any](vVal reflect.Value, vType model.Type, _ T) (ret 
 
 	ret = []T{}
 	for _, val := range rSliceValList {
+		// 这里为了避免在使用[]any{},存储数据，通过这种方式取出实际的数据值
+		val := reflect.ValueOf(val.Interface())
 		encodeVal, encodeErr := encodeValue(val, vType)
 		if encodeErr != nil {
 			err = encodeErr

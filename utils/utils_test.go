@@ -8,6 +8,23 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 )
 
+func TestInterface(t *testing.T) {
+	interfaceSlice := []any{}
+	interfaceSlice = append(interfaceSlice, "test")
+	interfaceSlice = append(interfaceSlice, 1)
+	interfaceSlice = append(interfaceSlice, 1.1)
+	interfaceSlice = append(interfaceSlice, true)
+	interfaceSlice = append(interfaceSlice, time.Now())
+
+	rVal := reflect.ValueOf(interfaceSlice)
+	for idx := range rVal.Len() {
+		t.Logf("idx:%d, type:%v, value:%v", idx, rVal.Index(idx).Type(), rVal.Index(idx).Interface())
+
+		rawVal := reflect.ValueOf(rVal.Index(idx).Interface())
+		t.Logf("raw type:%v, value:%v", rawVal.Type(), rawVal.Interface())
+	}
+}
+
 // TestIsReallyValid tests the IsReallyValid function based on its documented behavior
 func TestIsReallyValid(t *testing.T) {
 	var strPtr *string
