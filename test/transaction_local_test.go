@@ -29,7 +29,7 @@ func TestLocalTransaction(t *testing.T) {
 
 	// 注册模型
 	objList := []any{&Unit{}}
-	modelList, modelErr := registerModel(localProvider, objList)
+	modelList, modelErr := registerLocalModel(localProvider, objList)
 	if modelErr != nil {
 		t.Errorf("register model failed. err:%s", modelErr.Error())
 		return
@@ -219,7 +219,7 @@ func TestLocalBatchOperation(t *testing.T) {
 
 	// 注册模型
 	objList := []any{&Unit{}}
-	modelList, modelErr := registerModel(localProvider, objList)
+	modelList, modelErr := registerLocalModel(localProvider, objList)
 	if modelErr != nil {
 		t.Errorf("register model failed. err:%s", modelErr.Error())
 		return

@@ -44,7 +44,7 @@ func TestLocalExecutor(t *testing.T) {
 	}
 
 	objList := []any{&Unit{}}
-	registerModel(localProvider, objList)
+	registerLocalModel(localProvider, objList)
 
 	objModel, objErr := localProvider.GetEntityModel(obj)
 	if objErr != nil {
@@ -134,7 +134,7 @@ func TestLocalDepends(t *testing.T) {
 	ext := &ExtUnit{Unit: obj}
 
 	objList := []any{&Unit{}, &ExtUnit{}, &ExtUnitList{}}
-	registerModel(provider, objList)
+	registerLocalModel(provider, objList)
 
 	extModel, extErr := provider.GetEntityModel(ext)
 	if extErr != nil {

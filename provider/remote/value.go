@@ -74,11 +74,11 @@ func (s *ValueImpl) IsZero() bool {
 
 	switch v := s.value.(type) {
 	case *ObjectValue:
-		return v == nil || len(v.Fields) == 0
+		return v == nil || len(v.Fields) == 0 || !v.IsAssigned()
 	case *SliceObjectValue:
 		return v == nil || len(v.Values) == 0
 	case ObjectValue:
-		return len(v.Fields) == 0
+		return len(v.Fields) == 0 || !v.IsAssigned()
 	case SliceObjectValue:
 		return len(v.Values) == 0
 	default:

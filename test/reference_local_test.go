@@ -38,7 +38,7 @@ func TestReferenceLocal(t *testing.T) {
 	composeDef := &Compose{}
 
 	entityList := []any{simpleDef, referenceDef, composeDef}
-	modelList, modelErr := registerModel(localProvider, entityList)
+	modelList, modelErr := registerLocalModel(localProvider, entityList)
 	if modelErr != nil {
 		err = modelErr
 		t.Errorf("register model failed. err:%s", err.Error())

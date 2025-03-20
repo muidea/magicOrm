@@ -25,7 +25,7 @@ func TestDefine(t *testing.T) {
 	}
 
 	objList := []any{&Sub{}, &Parent{}}
-	modelList, modelErr := registerModel(localProvider, objList)
+	modelList, modelErr := registerLocalModel(localProvider, objList)
 	if modelErr != nil {
 		err = modelErr
 		t.Errorf("register model failed. err:%s", err.Error())

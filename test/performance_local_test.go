@@ -53,7 +53,7 @@ func TestPerformance(t *testing.T) {
 
 	// 注册模型
 	objList := []any{&SimplePerf{}, &ComplexPerf{}}
-	modelList, modelErr := registerModel(localProvider, objList)
+	modelList, modelErr := registerLocalModel(localProvider, objList)
 	if modelErr != nil {
 		t.Errorf("register model failed. err:%s", modelErr.Error())
 		return

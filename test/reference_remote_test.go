@@ -40,7 +40,7 @@ func TestReferenceRemote(t *testing.T) {
 	composeDef, _ := helper.GetObject(&Compose{})
 
 	entityList := []any{simpleDef, referenceDef, composeDef}
-	modelList, modelErr := registerModel(remoteProvider, entityList)
+	modelList, modelErr := registerLocalModel(remoteProvider, entityList)
 	if modelErr != nil {
 		err = modelErr
 		t.Errorf("register model failed. err:%s", err.Error())

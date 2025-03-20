@@ -236,7 +236,7 @@ func TestComposeLocal(t *testing.T) {
 	composeDef := &Compose{}
 
 	entityList := []any{simpleDef, referenceDef, composeDef}
-	modelList, modelErr := registerModel(localProvider, entityList)
+	modelList, modelErr := registerLocalModel(localProvider, entityList)
 	if modelErr != nil {
 		err = modelErr
 		t.Errorf("register model failed. err:%s", err.Error())
@@ -402,12 +402,8 @@ func TestComposeRemote(t *testing.T) {
 		return
 	}
 
-	simpleDef, _ := helper.GetObject(&Simple{})
-	referenceDef, _ := helper.GetObject(&Reference{})
-	composeDef, _ := helper.GetObject(&Compose{})
-
-	entityList := []any{simpleDef, referenceDef, composeDef}
-	modelList, modelErr := registerModel(remoteProvider, entityList)
+	entityList := []any{&Simple{}, &Reference{}, &Compose{}}
+	modelList, modelErr := registerRemoteModel(remoteProvider, entityList)
 	if modelErr != nil {
 		err = modelErr
 		t.Errorf("register model failed. err:%s", err.Error())

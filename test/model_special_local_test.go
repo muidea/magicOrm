@@ -26,7 +26,7 @@ func TestKPI(t *testing.T) {
 	}
 
 	objList := []any{&Goal{}, &SpecialGoal{CheckDistrict: []string{}, CheckProduct: []string{}}, &KPI{}}
-	registerModel(localProvider, objList)
+	registerLocalModel(localProvider, objList)
 
 	goal := &Goal{Type: ByPiece, Value: 10}
 	goalModel, goalErr := localProvider.GetEntityModel(goal)

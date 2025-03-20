@@ -25,7 +25,7 @@ func TestLocalStore(t *testing.T) {
 	}
 
 	objList := []any{&SKUInfo{}, &Product{}, &Store{}, &GoodsInfo{}, &StockIn{}}
-	_, err = registerModel(localProvider, objList)
+	_, err = registerLocalModel(localProvider, objList)
 	if err != nil {
 		t.Errorf("register model failed. err:%s", err.Error())
 		return

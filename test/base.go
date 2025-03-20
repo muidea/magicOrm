@@ -241,15 +241,34 @@ func (l *Compose) IsSame(r *Compose) bool {
 	return true
 }
 
-func registerModel(provider provider.Provider, objList []any) (ret []model.Model, err *cd.Result) {
+func registerLocalModel(provider provider.Provider, objList []any) (ret []model.Model, err *cd.Result) {
 	for _, val := range objList {
-		m, mErr := provider.RegisterModel(val)
-		if mErr != nil {
-			err = mErr
+		modelVal, modelErr := provider.RegisterModel(val)
+		if modelErr != nil {
+			err = modelErr
 			return
 		}
 
-		ret = append(ret, m)
+		ret = append(ret, modelVal)
+	}
+
+	return
+}
+
+func registerRemoteModel(provider provider.Provider, objList []any) (ret []model.Model, err *cd.Result) {
+	for _, val := range objList {
+		remoteObjectPtr, remoteObjectErr := helper.GetObject(val)
+		if remoteObjectErr != nil {
+			err = remoteObjectErr
+			return
+		}
+		modelVal, modelErr := provider.RegisterModel(remoteObjectPtr)
+		if modelErr != nil {
+			err = modelErr
+			return
+		}
+
+		ret = append(ret, modelVal)
 	}
 
 	return
@@ -295,4 +314,22 @@ func getObjectValue(val any) (ret *remote.ObjectValue, err *cd.Result) {
 	}
 
 	return
+}
+
+// Entity accessLog entity type
+type Entity struct {
+	ID        int64  `json:"id" orm:"id key auto" view:"detail,lite"`
+	EName     string `json:"name" orm:"eName" view:"detail,lite"`
+	EID       int64  `json:"eID" orm:"eID" view:"detail,lite"`
+	EType     string `json:"eType" orm:"eType" view:"detail,lite"`
+	Namespace string `json:"namespace" orm:"namespace"`
+}
+
+type OnlineEntity struct {
+	ID          int64   `json:"id" orm:"id key auto" view:"detail,lite"`
+	SessionID   string  `json:"sessionID" orm:"sessionID" view:"detail,lite"`
+	Entity      *Entity `json:"entity" orm:"entity" view:"detail,lite"`
+	RefreshTime int64   `json:"refreshTime" orm:"refreshTime" view:"detail,lite"`
+	ExpireTime  int64   `json:"expireTime" orm:"expireTime" view:"detail,lite"`
+	Namespace   string  `json:"namespace" orm:"namespace" view:"detail,lite"`
 }

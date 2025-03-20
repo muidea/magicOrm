@@ -27,67 +27,32 @@ func TestRemoteGroup(t *testing.T) {
 	}
 
 	status := &Status{Value: 10}
-	statusDef, objErr := helper.GetObject(status)
+	_, objErr := helper.GetObject(status)
 	if objErr != nil {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
 	}
 
-	userDef, objErr := helper.GetObject(&User{})
-	if objErr != nil {
-		t.Errorf("GetObject failed, err:%s", objErr.Error())
-		return
-	}
 	group1 := &Group{Name: "testGroup1"}
 	group2 := &Group{Name: "testGroup2"}
 	group3 := &Group{Name: "testGroup3"}
 
-	groupDef, objErr := helper.GetObject(&Group{})
-	if objErr != nil {
-		t.Errorf("GetObject failed, err:%s", objErr.Error())
+	objList := []any{&Group{}, &User{}, status}
+	mList, mErr := registerRemoteModel(remoteProvider, objList)
+	if mErr != nil {
+		t.Errorf("registerRemoteModel failed, err:%s", mErr.Error())
 		return
 	}
 
-	objList := []any{groupDef, userDef, statusDef}
-	_, err = registerModel(remoteProvider, objList)
+	err = dropModel(o1, mList)
 	if err != nil {
-		t.Errorf("registerModel failed, err:%s", err.Error())
+		t.Errorf("dropModel failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Drop(statusDef)
+	err = createModel(o1, mList)
 	if err != nil {
-		t.Errorf("drop status failed, err:%s", err.Error())
-		return
-	}
-
-	err = o1.Create(statusDef)
-	if err != nil {
-		t.Errorf("create status failed, err:%s", err.Error())
-		return
-	}
-
-	err = o1.Drop(userDef)
-	if err != nil {
-		t.Errorf("drop user failed, err:%s", err.Error())
-		return
-	}
-
-	err = o1.Create(userDef)
-	if err != nil {
-		t.Errorf("create user failed, err:%s", err.Error())
-		return
-	}
-
-	err = o1.Drop(groupDef)
-	if err != nil {
-		t.Errorf("drop group failed, err:%s", err.Error())
-		return
-	}
-
-	err = o1.Create(groupDef)
-	if err != nil {
-		t.Errorf("create group failed, err:%s", err.Error())
+		t.Errorf("createModel failed, err:%s", err.Error())
 		return
 	}
 
@@ -262,29 +227,11 @@ func TestRemoteGroup(t *testing.T) {
 
 func TestRemoteUser(t *testing.T) {
 	status := &Status{Value: 10}
-	statusDef, objErr := helper.GetObject(status)
-	if objErr != nil {
-		t.Errorf("GetObject failed, err:%s", objErr.Error())
-		return
-	}
-
 	group1 := &Group{Name: "testGroup1"}
 	group2 := &Group{Name: "testGroup2"}
 	group3 := &Group{Name: "testGroup3"}
 
 	user0 := &User{}
-	userDef, objErr := helper.GetObject(user0)
-	if objErr != nil {
-		t.Errorf("GetObject failed, err:%s", objErr.Error())
-		return
-	}
-
-	groupDef, objErr := helper.GetObject(group1)
-	if objErr != nil {
-		t.Errorf("GetObject failed, err:%s", objErr.Error())
-		return
-	}
-
 	orm.Initialize()
 	defer orm.Uninitialized()
 
@@ -298,46 +245,21 @@ func TestRemoteUser(t *testing.T) {
 		return
 	}
 
-	objList := []any{groupDef, userDef, statusDef}
-	_, err = registerModel(remoteProvider, objList)
-	if err != nil {
-		t.Errorf("registerModel failed, err:%s", err.Error())
+	objList := []any{group1, user0, status}
+	mList, mErr := registerRemoteModel(remoteProvider, objList)
+	if mErr != nil {
+		t.Errorf("registerRemoteModel failed, err:%s", mErr.Error())
 		return
 	}
 
-	err = o1.Drop(statusDef)
+	err = dropModel(o1, mList)
 	if err != nil {
-		t.Errorf("drop status failed, err:%s", err.Error())
+		t.Errorf("dropModel failed, err:%s", err.Error())
 		return
 	}
-
-	err = o1.Create(statusDef)
+	err = createModel(o1, mList)
 	if err != nil {
-		t.Errorf("create status failed, err:%s", err.Error())
-		return
-	}
-
-	err = o1.Drop(userDef)
-	if err != nil {
-		t.Errorf("drop group failed, err:%s", err.Error())
-		return
-	}
-
-	err = o1.Create(userDef)
-	if err != nil {
-		t.Errorf("create group failed, err:%s", err.Error())
-		return
-	}
-
-	err = o1.Drop(groupDef)
-	if err != nil {
-		t.Errorf("drop group failed, err:%s", err.Error())
-		return
-	}
-
-	err = o1.Create(groupDef)
-	if err != nil {
-		t.Errorf("create group failed, err:%s", err.Error())
+		t.Errorf("createModel failed, err:%s", err.Error())
 		return
 	}
 
@@ -619,70 +541,27 @@ func TestRemoteSystem(t *testing.T) {
 	}
 
 	status := &Status{Value: 10}
-	statusDef, objErr := helper.GetObject(status)
-	if objErr != nil {
-		t.Errorf("GetObject failed, err:%s", objErr.Error())
-		return
-	}
-
 	user0 := &User{}
-	userDef, objErr := helper.GetObject(user0)
-	if objErr != nil {
-		t.Errorf("GetObject failed, err:%s", objErr.Error())
-		return
-	}
-
 	group0 := &Group{}
-	groupDef, objErr := helper.GetObject(group0)
-	if objErr != nil {
-		t.Errorf("GetObject failed, err:%s", objErr.Error())
-		return
-	}
-
 	sys0 := &System{}
-	sysDef, objErr := helper.GetObject(sys0)
-	if objErr != nil {
-		t.Errorf("GetObject failed, err:%s", objErr.Error())
-		return
-	}
-
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
-	objList := []any{groupDef, userDef, statusDef, sysDef}
-	_, err = registerModel(remoteProvider, objList)
-	if err != nil {
-		t.Errorf("registerModel failed, err:%s", err.Error())
+	objList := []any{group0, user0, status, sys0}
+	mList, mErr := registerRemoteModel(remoteProvider, objList)
+	if mErr != nil {
+		t.Errorf("registerRemoteModel failed, err:%s", mErr.Error())
 		return
 	}
 
-	err = o1.Drop(statusDef)
+	err = dropModel(o1, mList)
 	if err != nil {
-		t.Errorf("drop status failed, err:%s", err.Error())
+		t.Errorf("dropModel failed, err:%s", err.Error())
 		return
 	}
-
-	err = o1.Create(statusDef)
+	err = createModel(o1, mList)
 	if err != nil {
-		t.Errorf("create status failed, err:%s", err.Error())
-		return
-	}
-
-	err = o1.Drop(userDef)
-	if err != nil {
-		t.Errorf("drop user failed, err:%s", err.Error())
-		return
-	}
-
-	err = o1.Drop(sysDef)
-	if err != nil {
-		t.Errorf("drop system failed, err:%s", err.Error())
-		return
-	}
-
-	err = o1.Create(userDef)
-	if err != nil {
-		t.Errorf("create user failed, err:%s", err.Error())
+		t.Errorf("createModel failed, err:%s", err.Error())
 		return
 	}
 
@@ -756,12 +635,6 @@ func TestRemoteSystem(t *testing.T) {
 	users := []User{*user1, *user2}
 	sys1 := &System{Name: "sys1", Tags: []string{"aab", "ccd"}}
 	sys1.Users = &users
-
-	err = o1.Create(sysDef)
-	if err != nil {
-		t.Errorf("create system failed, err:%s", err.Error())
-		return
-	}
 
 	sys1Val, objErr := getObjectValue(sys1)
 	if objErr != nil {
@@ -866,12 +739,6 @@ func TestRemoteBatchQuery(t *testing.T) {
 	}
 
 	status := &Status{Value: 10}
-	statusDef, userObjectErr := helper.GetObject(status)
-	if userObjectErr != nil {
-		t.Errorf("GetObject failed, err:%s", userObjectErr.Error())
-		return
-	}
-
 	user0 := &User{}
 	userDef, userObjectErr := helper.GetObject(user0)
 	if userObjectErr != nil {
@@ -880,12 +747,6 @@ func TestRemoteBatchQuery(t *testing.T) {
 	}
 
 	group0 := &Group{}
-	groupDef, userObjectErr := helper.GetObject(group0)
-	if userObjectErr != nil {
-		t.Errorf("GetObject failed, err:%s", userObjectErr.Error())
-		return
-	}
-
 	group1 := &Group{Name: "testGroup1"}
 	group2 := &Group{Name: "testGroup2"}
 	group3 := &Group{Name: "testGroup3"}
@@ -893,33 +754,21 @@ func TestRemoteBatchQuery(t *testing.T) {
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
-	objList := []any{groupDef, userDef, statusDef}
-	_, err = registerModel(remoteProvider, objList)
-	if err != nil {
-		t.Errorf("registerModel failed, err:%s", err.Error())
+	objList := []any{group0, user0, status}
+	mList, mErr := registerRemoteModel(remoteProvider, objList)
+	if mErr != nil {
+		t.Errorf("registeregisterRemoteModelrLocalModel failed, err:%s", mErr.Error())
 		return
 	}
 
-	err = o1.Drop(statusDef)
+	err = dropModel(o1, mList)
 	if err != nil {
-		t.Errorf("drop status failed, err:%s", err.Error())
+		t.Errorf("dropModel failed, err:%s", err.Error())
 		return
 	}
-
-	err = o1.Create(statusDef)
+	err = createModel(o1, mList)
 	if err != nil {
-		t.Errorf("create status failed, err:%s", err.Error())
-		return
-	}
-
-	err = o1.Drop(groupDef)
-	if err != nil {
-		t.Errorf("drop group failed, err:%s", err.Error())
-		return
-	}
-	err = o1.Create(groupDef)
-	if err != nil {
-		t.Errorf("create group failed, err:%s", err.Error())
+		t.Errorf("createModel failed, err:%s", err.Error())
 		return
 	}
 
@@ -1189,9 +1038,9 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
 	objList := []any{groupDef, userDef, statusDef}
-	_, err = registerModel(remoteProvider, objList)
+	_, err = registerLocalModel(remoteProvider, objList)
 	if err != nil {
-		t.Errorf("registerModel failed, err:%s", err.Error())
+		t.Errorf("registerLocalModel failed, err:%s", err.Error())
 		return
 	}
 
@@ -1506,9 +1355,9 @@ func TestPolicy(t *testing.T) {
 	}
 
 	objList := []any{valueItemDef, valueScopeDef, statusDef, rewardPolicyDef}
-	_, err = registerModel(remoteProvider, objList)
+	_, err = registerLocalModel(remoteProvider, objList)
 	if err != nil {
-		t.Errorf("registerModel failed, err:%s", err.Error())
+		t.Errorf("registerLocalModel failed, err:%s", err.Error())
 		return
 	}
 

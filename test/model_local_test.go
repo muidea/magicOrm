@@ -25,7 +25,7 @@ func TestLocalGroup(t *testing.T) {
 	}
 
 	objList := []any{&Group{}, &User{}, &Status{}}
-	registerModel(provider, objList)
+	registerLocalModel(provider, objList)
 
 	group1 := &Group{Name: "testGroup1"}
 	group2 := &Group{Name: "testGroup2"}
@@ -160,7 +160,7 @@ func TestLocalUser(t *testing.T) {
 	group3 := &Group{Name: "testGroup3"}
 
 	objList := []any{&Group{}, &User{}, &Status{}}
-	registerModel(localProvider, objList)
+	registerLocalModel(localProvider, objList)
 
 	statusModel, statusErr := localProvider.GetEntityModel(status)
 	if statusErr != nil {
@@ -377,7 +377,7 @@ func TestLocalSystem(t *testing.T) {
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
 	objList := []any{&Group{}, &User{}, &System{}, &Status{}}
-	registerModel(localProvider, objList)
+	registerLocalModel(localProvider, objList)
 
 	userModel, userErr := localProvider.GetEntityModel(User{})
 	if userErr != nil {
@@ -538,7 +538,7 @@ func TestLocalBatchQuery(t *testing.T) {
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}
 
 	objList := []any{&Group{}, &User{}, &Status{}}
-	registerModel(localProvider, objList)
+	registerLocalModel(localProvider, objList)
 
 	statusModel, statusErr := localProvider.GetEntityModel(status)
 	if statusErr != nil {

@@ -180,31 +180,20 @@ func TestPartner(t *testing.T) {
 	}
 
 	objList := []any{statusObject, partnerObject}
-	_, err = registerModel(remoteProvider, objList)
-	if err != nil {
-		t.Errorf("register mode failed, err:%s", err.Error())
+	mList, mErr := registerLocalModel(remoteProvider, objList)
+	if mErr != nil {
+		t.Errorf("register mode failed, err:%s", mErr.Error())
 		return
 	}
 
-	err = o1.Drop(statusObject)
+	err = dropModel(o1, mList)
 	if err != nil {
-		t.Errorf("drop status failed, err:%s", err.Error())
+		t.Errorf("drop model failed, err:%s", err.Error())
 		return
 	}
-	err = o1.Drop(partnerObject)
+	err = createModel(o1, mList)
 	if err != nil {
-		t.Errorf("drop partner failed, err:%s", err.Error())
-		return
-	}
-
-	err = o1.Create(statusObject)
-	if err != nil {
-		t.Errorf("create status failed, err:%s", err.Error())
-		return
-	}
-	err = o1.Create(partnerObject)
-	if err != nil {
-		t.Errorf("create partner failed, err:%s", err.Error())
+		t.Errorf("create model failed, err:%s", err.Error())
 		return
 	}
 

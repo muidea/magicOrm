@@ -30,27 +30,20 @@ func TestRemoteSimple(t *testing.T) {
 		return
 	}
 
-	reference := &Simple{}
-	simpleDef, simpleErr := helper.GetObject(reference)
-	if simpleErr != nil {
-		t.Errorf("GetObject failed, err:%s", simpleErr.Error())
+	objList := []any{&Simple{}}
+	mList, mErr := registerRemoteModel(remoteProvider, objList)
+	if mErr != nil {
+		t.Errorf("registerRemoteModel failed, err:%s", mErr.Error())
 		return
 	}
 
-	objList := []any{simpleDef}
-	_, err = registerModel(remoteProvider, objList)
-	if err != nil {
-		t.Errorf("registerModel failed, err:%s", err.Error())
-		return
-	}
-
-	err = o1.Drop(simpleDef)
+	err = dropModel(o1, mList)
 	if err != nil {
 		t.Errorf("drop reference schema failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(simpleDef)
+	err = createModel(o1, mList)
 	if err != nil {
 		t.Errorf("create reference schema failed, err:%s", err.Error())
 		return
@@ -159,27 +152,20 @@ func TestRemoteReference(t *testing.T) {
 		return
 	}
 
-	ref := &Reference{}
-	refDef, refErr := helper.GetObject(ref)
-	if refErr != nil {
-		t.Errorf("GetObject failed, err:%s", refErr.Error())
+	objList := []any{&Reference{}}
+	mList, mErr := registerRemoteModel(remoteProvider, objList)
+	if mErr != nil {
+		t.Errorf("register model failed. err:%s", mErr.Error())
 		return
 	}
 
-	objList := []any{refDef}
-	_, err = registerModel(remoteProvider, objList)
-	if err != nil {
-		t.Errorf("register model failed. err:%s", err.Error())
-		return
-	}
-
-	err = o1.Drop(refDef)
+	err = dropModel(o1, mList)
 	if err != nil {
 		t.Errorf("drop reference schema failed, err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(refDef)
+	err = createModel(o1, mList)
 	if err != nil {
 		t.Errorf("create reference schema failed, err:%s", err.Error())
 		return
@@ -349,44 +335,24 @@ func TestRemoteCompose(t *testing.T) {
 		return
 	}
 
-	simpleDef, simpleErr := helper.GetObject(&Simple{})
-	if simpleErr != nil {
-		t.Errorf("GetObject failed, err:%s", simpleErr.Error())
-		return
-	}
-
-	referenceDef, referenceErr := helper.GetObject(&Reference{})
-	if referenceErr != nil {
-		t.Errorf("GetObject failed, err:%s", referenceErr.Error())
-		return
-	}
-
-	composeDef, composeErr := helper.GetObject(&Compose{})
-	if composeErr != nil {
-		t.Errorf("GetObject failed, err:%s", composeErr.Error())
-		return
-	}
-
-	objList := []any{simpleDef, referenceDef, composeDef}
-	mList, mErr := registerModel(remoteProvider, objList)
+	objList := []any{&Simple{}, &Reference{}, &Compose{}}
+	mList, mErr := registerRemoteModel(remoteProvider, objList)
 	if mErr != nil {
 		err = mErr
 		t.Errorf("register model failed. err:%s", err.Error())
 		return
 	}
 
-	for _, val := range mList {
-		err = o1.Drop(val)
-		if err != nil {
-			t.Errorf("drop object failed, err:%s", err.Error())
-		}
+	err = dropModel(o1, mList)
+	if err != nil {
+		t.Errorf("drop model failed. err:%s", err.Error())
+		return
 	}
 
-	for _, val := range mList {
-		err = o1.Create(val)
-		if err != nil {
-			t.Errorf("create object failed, err:%s", err.Error())
-		}
+	err = createModel(o1, mList)
+	if err != nil {
+		t.Errorf("create model failed. err:%s", err.Error())
+		return
 	}
 
 	ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
@@ -613,7 +579,7 @@ func TestRemoteQuery(t *testing.T) {
 	}
 
 	objList := []any{s1Def, r1Def, c1Def}
-	mList, mErr := registerModel(remoteProvider, objList)
+	mList, mErr := registerLocalModel(remoteProvider, objList)
 	if mErr != nil {
 		t.Errorf("register model failed. err:%s", mErr.Error())
 		return
@@ -857,5 +823,122 @@ func TestRemoteQuery(t *testing.T) {
 	if len(cModelList) != 3 {
 		t.Errorf("batch query compose failed")
 		return
+	}
+}
+
+func TestRemoteOnlineEntity(t *testing.T) {
+	orm.Initialize()
+	defer orm.Uninitialized()
+
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
+	remoteProvider := provider.NewRemoteProvider(remoteOwner)
+
+	o1, err := orm.NewOrm(remoteProvider, config, "abc")
+	defer o1.Release()
+	if err != nil {
+		t.Errorf("new Orm failed, err:%s", err.Error())
+		return
+	}
+
+	objList := []any{&Entity{}, &OnlineEntity{}}
+	mList, mErr := registerRemoteModel(remoteProvider, objList)
+	if mErr != nil {
+		t.Errorf("register model failed. err:%s", mErr.Error())
+		return
+	}
+
+	err = dropModel(o1, mList)
+	if err != nil {
+		t.Errorf("drop model failed. err:%s", err.Error())
+		return
+	}
+
+	err = createModel(o1, mList)
+	if err != nil {
+		t.Errorf("create model failed. err:%s", err.Error())
+		return
+	}
+
+	entityPtr := &Entity{EName: "test", EType: "test", EID: 10, Namespace: "test"}
+	remoteEntityVal, remoteEntityErr := getObjectValue(entityPtr)
+	if remoteEntityErr != nil {
+		t.Errorf("getObjectValue failed. err:%s", remoteEntityErr.Error())
+		return
+	}
+
+	entityModelVal, entityModelErr := remoteProvider.GetEntityModel(remoteEntityVal)
+	if entityModelErr != nil {
+		t.Errorf("get entity model failed, err:%s", entityModelErr.Error())
+		return
+	}
+
+	entityModelVal, entityModelErr = o1.Insert(entityModelVal)
+	if entityModelErr != nil {
+		t.Errorf("insert entity model failed, err:%s", entityModelErr.Error())
+		return
+	}
+
+	newRemoteEntityPtr := entityModelVal.Interface(true).(*remote.ObjectValue)
+	if len(newRemoteEntityPtr.Fields) != 5 {
+		t.Errorf("insert entity model failed")
+		return
+	}
+
+	entityPtr.ID = 1
+	onlineEntityPtr := &OnlineEntity{
+		SessionID:   "abc",
+		Entity:      entityPtr,
+		RefreshTime: 10000,
+		ExpireTime:  20000,
+		Namespace:   "test",
+	}
+	remoteOnlineEntityVal, remoteOnlineEntityErr := getObjectValue(onlineEntityPtr)
+	if remoteOnlineEntityErr != nil {
+		t.Errorf("get remote online entity value failed")
+		return
+	}
+
+	onlineEntityModelVal, onlineEntityModelErr := remoteProvider.GetEntityModel(remoteOnlineEntityVal)
+	if onlineEntityModelErr != nil {
+		t.Errorf("get online entity model failed, err:%s", onlineEntityModelErr.Error())
+		return
+	}
+	onlineEntityModelVal, onlineEntityModelErr = o1.Insert(onlineEntityModelVal)
+	if onlineEntityModelErr != nil {
+		t.Errorf("insert online entity failed, err:%s", onlineEntityModelErr.Error())
+		return
+	}
+	newOnlineEntityPtr := onlineEntityModelVal.Interface(true).(*remote.ObjectValue)
+	if len(newOnlineEntityPtr.Fields) != 6 {
+		t.Errorf("insert online entity failed")
+		return
+	}
+
+	queryOnlineEntityPtr := &OnlineEntity{
+		SessionID: onlineEntityPtr.SessionID,
+		Entity:    &Entity{},
+	}
+
+	remoteQueryVal, remoteQueryErr := getObjectValue(queryOnlineEntityPtr)
+	if remoteQueryErr != nil {
+		t.Errorf("getObjectValue failed, error:%s", remoteQueryErr.Error())
+		return
+	}
+
+	queryModelVal, queryModelErr := remoteProvider.GetEntityModel(remoteQueryVal)
+	if queryModelErr != nil {
+		t.Errorf("query online entity failed, error:%v", queryModelErr)
+		return
+	}
+
+	resultVal, resultErr := o1.Query(queryModelVal)
+	if resultErr != nil {
+		t.Errorf("query online entity failed, error:%v", resultErr)
+		return
+	}
+
+	qVal := resultVal.Interface(true).(*remote.ObjectValue)
+	if len(qVal.Fields) != 6 {
+		t.Errorf("query online entity failed")
 	}
 }

@@ -37,7 +37,7 @@ func TestOptional(t *testing.T) {
 	}
 
 	objList := []any{&Optional{}}
-	_, err = registerModel(localProvider, objList)
+	_, err = registerLocalModel(localProvider, objList)
 	if err != nil {
 		t.Errorf("register model failed. err:%s", err.Error())
 		return
@@ -138,7 +138,7 @@ func TestLocalSimple(t *testing.T) {
 	}
 
 	objList := []any{&Simple{}}
-	_, err = registerModel(localProvider, objList)
+	_, err = registerLocalModel(localProvider, objList)
 	if err != nil {
 		t.Errorf("register model failed. err:%s", err.Error())
 		return
@@ -219,7 +219,7 @@ func TestLocalReference(t *testing.T) {
 	}
 
 	objList := []any{&Reference{}}
-	_, err = registerModel(localProvider, objList)
+	_, err = registerLocalModel(localProvider, objList)
 	if err != nil {
 		t.Errorf("register model failed. err:%s", err.Error())
 		return
@@ -377,7 +377,7 @@ func TestLocalCompose(t *testing.T) {
 	}
 
 	objList := []any{&Simple{}, &Reference{}, &Compose{}}
-	mList, mErr := registerModel(localProvider, objList)
+	mList, mErr := registerLocalModel(localProvider, objList)
 	if mErr != nil {
 		err = mErr
 		t.Errorf("register model failed. err:%s", err.Error())
@@ -547,7 +547,7 @@ func TestLocalQuery(t *testing.T) {
 	}
 
 	objList := []any{&Simple{}, &Reference{}, &Compose{}}
-	mList, mErr := registerModel(localProvider, objList)
+	mList, mErr := registerLocalModel(localProvider, objList)
 	if mErr != nil {
 		t.Errorf("register model failed. err:%s", mErr.Error())
 		return
@@ -718,6 +718,106 @@ func TestLocalQuery(t *testing.T) {
 	}
 	if len(cModelList) != 3 {
 		t.Errorf("batch query compose failed")
+		return
+	}
+}
+
+func TestLocalOnlineEntity(t *testing.T) {
+	orm.Initialize()
+	defer orm.Uninitialized()
+
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
+	localProvider := provider.NewLocalProvider(localOwner)
+
+	o1, err := orm.NewOrm(localProvider, config, "abc")
+	defer o1.Release()
+	if err != nil {
+		t.Errorf("new Orm failed, err:%s", err.Error())
+		return
+	}
+
+	objList := []any{&Entity{}, &OnlineEntity{}}
+	mList, mErr := registerLocalModel(localProvider, objList)
+	if mErr != nil {
+		t.Errorf("register model failed. err:%s", mErr.Error())
+		return
+	}
+
+	err = dropModel(o1, mList)
+	if err != nil {
+		t.Errorf("drop model failed. err:%s", err.Error())
+		return
+	}
+
+	err = createModel(o1, mList)
+	if err != nil {
+		t.Errorf("create model failed. err:%s", err.Error())
+		return
+	}
+
+	entityPtr := &Entity{EName: "test", EType: "test", EID: 10, Namespace: "test"}
+	entityModelVal, entityModelErr := localProvider.GetEntityModel(entityPtr)
+	if entityModelErr != nil {
+		t.Errorf("get entity model failed, err:%s", entityModelErr.Error())
+		return
+	}
+
+	entityModelVal, entityModelErr = o1.Insert(entityModelVal)
+	if entityModelErr != nil {
+		t.Errorf("insert entity model failed, err:%s", entityModelErr.Error())
+		return
+	}
+
+	newEntityPtr := entityModelVal.Interface(true).(*Entity)
+	if newEntityPtr.Namespace != "test" || newEntityPtr.EType != "test" || newEntityPtr.EName != "test" {
+		t.Errorf("insert entity model failed")
+		return
+	}
+
+	onlineEntityPtr := &OnlineEntity{
+		SessionID:   "abc",
+		Entity:      newEntityPtr,
+		RefreshTime: 10000,
+		ExpireTime:  20000,
+		Namespace:   "test",
+	}
+
+	onlineEntityModelVal, onlineEntityModelErr := localProvider.GetEntityModel(onlineEntityPtr)
+	if onlineEntityModelErr != nil {
+		t.Errorf("get online entity model failed, err:%s", onlineEntityModelErr.Error())
+		return
+	}
+	onlineEntityModelVal, onlineEntityModelErr = o1.Insert(onlineEntityModelVal)
+	if onlineEntityModelErr != nil {
+		t.Errorf("insert online entity failed, err:%s", onlineEntityModelErr.Error())
+		return
+	}
+	newOnlineEntityPtr := onlineEntityModelVal.Interface(true).(*OnlineEntity)
+	if newOnlineEntityPtr.SessionID != onlineEntityPtr.SessionID || newOnlineEntityPtr.RefreshTime != onlineEntityPtr.RefreshTime || newOnlineEntityPtr.ExpireTime != onlineEntityPtr.ExpireTime {
+		t.Errorf("insert online entity failed")
+		return
+	}
+
+	queryOnlineEntityPtr := &OnlineEntity{
+		SessionID: onlineEntityPtr.SessionID,
+		Entity:    &Entity{},
+	}
+
+	queryModelVal, queryModelErr := localProvider.GetEntityModel(queryOnlineEntityPtr)
+	if queryModelErr != nil {
+		t.Errorf("query online entity failed, error:%v", queryModelErr)
+		return
+	}
+
+	resultVal, resultErr := o1.Query(queryModelVal)
+	if resultErr != nil {
+		t.Errorf("query online entity failed, error:%v", resultErr)
+		return
+	}
+
+	qVal := resultVal.Interface(true).(*OnlineEntity)
+	if qVal.ID != newOnlineEntityPtr.ID {
+		t.Errorf("query online entity failed")
 		return
 	}
 }

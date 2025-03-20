@@ -44,7 +44,7 @@ func TestBatchOperations(t *testing.T) {
 
 	// 注册模型
 	objList := []any{&BatchItem{}}
-	modelList, modelErr := registerModel(localProvider, objList)
+	modelList, modelErr := registerLocalModel(localProvider, objList)
 	if modelErr != nil {
 		t.Errorf("register model failed. err:%s", modelErr.Error())
 		return

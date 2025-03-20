@@ -70,7 +70,7 @@ func TestEdgeCases(t *testing.T) {
 // 测试空对象
 func testEmptyObject(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
 	objList := []any{&EmptyObject{}}
-	modelList, modelErr := registerModel(localProvider, objList)
+	modelList, modelErr := registerLocalModel(localProvider, objList)
 	if modelErr != nil {
 		t.Errorf("register empty object model failed. err:%s", modelErr.Error())
 		return
@@ -118,7 +118,7 @@ func testEmptyObject(t *testing.T, o1 orm.Orm, localProvider provider.Provider) 
 // 测试循环引用
 func testCircularReference(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
 	objList := []any{&CircularObject{}}
-	modelList, modelErr := registerModel(localProvider, objList)
+	modelList, modelErr := registerLocalModel(localProvider, objList)
 	if modelErr != nil {
 		t.Errorf("register circular object model failed. err:%s", modelErr.Error())
 		return
@@ -306,7 +306,7 @@ func testCircularReference(t *testing.T, o1 orm.Orm, localProvider provider.Prov
 // 测试大对象
 func testMaxSizeObject(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
 	objList := []any{&MaxSizeObject{}}
-	modelList, modelErr := registerModel(localProvider, objList)
+	modelList, modelErr := registerLocalModel(localProvider, objList)
 	if modelErr != nil {
 		t.Errorf("register max size object model failed. err:%s", modelErr.Error())
 		return
@@ -448,7 +448,7 @@ func TestErrorHandling(t *testing.T) {
 
 	// 3. 测试错误的数据类型
 	objList := []any{&Unit{}}
-	modelList, _ := registerModel(localProvider, objList)
+	modelList, _ := registerLocalModel(localProvider, objList)
 	dropModel(o1, modelList) // 确保表不存在
 	createModel(o1, modelList)
 
@@ -492,7 +492,7 @@ func TestCircularReference(t *testing.T) {
 
 	// 定义和测试循环引用
 	objList := []any{&CircularObject{}}
-	modelList, modelErr := registerModel(localProvider, objList)
+	modelList, modelErr := registerLocalModel(localProvider, objList)
 	if modelErr != nil {
 		t.Errorf("register circular object model failed. err:%s", modelErr.Error())
 		return
@@ -574,7 +574,7 @@ func TestMaxSizeObject(t *testing.T) {
 
 	// 注册大对象模型
 	objList := []any{&MaxSizeObject{}}
-	modelList, modelErr := registerModel(localProvider, objList)
+	modelList, modelErr := registerLocalModel(localProvider, objList)
 	if modelErr != nil {
 		t.Errorf("register max size object model failed. err:%s", modelErr.Error())
 		return
