@@ -14,14 +14,6 @@ import (
 
 const localOwner = "local"
 
-type Optional struct {
-	ID                int       `orm:"id key auto" view:"detail,lite"`
-	Name              string    `orm:"name" view:"detail,lite"`
-	Optional          *string   `orm:"optional" view:"detail,lite"`
-	StrArry           []string  `orm:"strArry" view:"detail,lite"`
-	OptionnalStrArray *[]string `orm:"optionnalStrArray" view:"detail,lite"`
-}
-
 func TestOptional(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()

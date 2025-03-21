@@ -25,65 +25,27 @@ func TestLocalStore(t *testing.T) {
 	}
 
 	objList := []any{&SKUInfo{}, &Product{}, &Store{}, &GoodsInfo{}, &StockIn{}}
-	_, err = registerLocalModel(localProvider, objList)
+	mList, mErr := registerLocalModel(localProvider, objList)
+	if mErr != nil {
+		t.Errorf("register model failed. err:%s", mErr.Error())
+		return
+	}
+
+	err = dropModel(o1, mList)
 	if err != nil {
-		t.Errorf("register model failed. err:%s", err.Error())
+		t.Errorf("dropModel failed. err:%s", err.Error())
 		return
 	}
-
-	skuInfo001 := &SKUInfo{
-		SKU:         "sk0001",
-		Description: "test sku info",
-		Image:       []string{"abc_url", "bcd_url", "cde_url"},
-		Namespace:   "xyz",
-	}
-
-	skuInfoModel, skuInfoErr := localProvider.GetEntityModel(skuInfo001)
-	if skuInfoErr != nil {
-		t.Errorf("localProvider.GetEntityModel failed, erro:%s", skuInfoErr.Error())
-		return
-	}
-
-	err = o1.Drop(skuInfoModel)
+	err = createModel(o1, mList)
 	if err != nil {
-		t.Errorf("o1.Drop failed. err:%s", err.Error())
+		t.Errorf("createModel failed. err:%s", err.Error())
 		return
 	}
 
-	err = o1.Create(skuInfoModel)
-	if err != nil {
-		t.Errorf("o1.Create failed. err:%s", err.Error())
-		return
-	}
-
-	skuInfoModel, skuInfoErr = o1.Insert(skuInfoModel)
-	if skuInfoErr != nil {
-		t.Errorf("o1.Insert failed, erro:%s", skuInfoErr.Error())
-		return
-	}
-	skuInfo001 = skuInfoModel.Interface(true).(*SKUInfo)
-
-	product001 := &Product{
-		Name:        "pro001",
-		Description: "test product",
-		SKUInfo:     []*SKUInfo{skuInfo001},
-		Image:       []string{"abc_url", "bcd_url", "cde_url"},
-		Expire:      123,
-	}
+	product001 := getLocalProduct()
 	productModel, productErr := localProvider.GetEntityModel(product001)
 	if productErr != nil {
 		t.Errorf("localProvider.GetEntityModel failed, erro:%s", productErr.Error())
-		return
-	}
-	err = o1.Drop(productModel)
-	if err != nil {
-		t.Errorf("o1.Drop failed. err:%s", err.Error())
-		return
-	}
-
-	err = o1.Create(productModel)
-	if err != nil {
-		t.Errorf("o1.Create failed. err:%s", err.Error())
 		return
 	}
 
@@ -94,68 +56,49 @@ func TestLocalStore(t *testing.T) {
 	}
 	product001 = productModel.Interface(true).(*Product)
 
-	store001 := &Store{
-		Code: "store001",
-		Name: "store001",
-	}
+	store001 := getLocalStore()
 	storeModel, storeErr := localProvider.GetEntityModel(store001)
 	if storeErr != nil {
 		t.Errorf("localProvider.GetEntityModel failed, erro:%s", storeErr.Error())
 		return
 	}
-	err = o1.Create(storeModel)
-	if err != nil {
-		t.Errorf("o1.Create failed. err:%s", err.Error())
-		return
-	}
-
 	storeModel, storeErr = o1.Insert(storeModel)
 	if storeErr != nil {
 		t.Errorf("o1.Insert failed, erro:%s", storeErr.Error())
 		return
 	}
 	store001 = storeModel.Interface(true).(*Store)
-
-	goodsInfo := &GoodsInfo{}
-	goodsInfoModel, goodsInfoErr := localProvider.GetEntityModel(goodsInfo)
-	if goodsInfoErr != nil {
-		t.Errorf("localProvider.GetEntityModel failed, erro:%s", goodsInfoErr.Error())
-		return
-	}
-	err = o1.Create(goodsInfoModel)
-	if err != nil {
-		t.Errorf("o1.Create failed. err:%s", err.Error())
-		return
-	}
-
-	stockIn001 := &StockIn{
-		SN: "si001",
-		GoodsInfo: []GoodsInfo{
-			{
-				SKU:     "sk0001",
-				Product: product001,
-				Count:   100,
-				Price:   23.45,
-			},
-		},
-		Description: "test stockIn",
-		Store:       store001,
-	}
+	stockIn001 := getLocalStockIn(product001, store001)
 	stockInModel, stockInErr := localProvider.GetEntityModel(stockIn001)
 	if stockInErr != nil {
 		t.Errorf("localProvider.GetEntityModel failed, erro:%s", stockInErr.Error())
 		return
 	}
-	err = o1.Create(stockInModel)
-	if err != nil {
-		t.Errorf("o1.Create failed. err:%s", err.Error())
-		return
-	}
-
 	stockInModel, stockInErr = o1.Insert(stockInModel)
 	if stockInErr != nil {
 		t.Errorf("o1.Insert failed, erro:%s", stockInErr.Error())
 		return
 	}
-	_ = stockInModel.Interface(true).(*StockIn)
+	stockIn001 = stockInModel.Interface(true).(*StockIn)
+
+	queryByIDStockIn := &StockIn{
+		ID:    stockIn001.ID,
+		Store: &Store{},
+	}
+
+	queryByIDStockInModel, queryByIDStockInErr := localProvider.GetEntityModel(queryByIDStockIn)
+	if queryByIDStockInErr != nil {
+		t.Errorf("localProvider.GetEntityModel failed, erro:%s", queryByIDStockInErr.Error())
+		return
+	}
+	queryByIDStockInModel, queryByIDStockInErr = o1.Query(queryByIDStockInModel)
+	if queryByIDStockInErr != nil {
+		t.Errorf("o1.Query failed, erro:%s", queryByIDStockInErr.Error())
+		return
+	}
+	queryByIDStockIn = queryByIDStockInModel.Interface(true).(*StockIn)
+	if queryByIDStockIn.ID != stockIn001.ID || queryByIDStockIn.SN != stockIn001.SN || len(queryByIDStockIn.GoodsInfo) != len(stockIn001.GoodsInfo) || queryByIDStockIn.Store == nil {
+		t.Errorf("queryByIDStockIn failed")
+		return
+	}
 }

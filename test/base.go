@@ -12,6 +12,14 @@ import (
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
+type Optional struct {
+	ID                int       `orm:"id key auto" view:"detail,lite"`
+	Name              string    `orm:"name" view:"detail,lite"`
+	Optional          *string   `orm:"optional" view:"detail,lite"`
+	StrArry           []string  `orm:"strArry" view:"detail,lite"`
+	OptionnalStrArray *[]string `orm:"optionnalStrArray" view:"detail,lite"`
+}
+
 type Simple struct {
 	ID        int       `orm:"id key auto" view:"detail,lite"`
 	I8        int8      `orm:"i8" view:"detail,lite"`
