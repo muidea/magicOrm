@@ -56,6 +56,29 @@ func TestLocalStore(t *testing.T) {
 	}
 	product001 = productModel.Interface(true).(*Product)
 
+	product001.SKUInfo = append(product001.SKUInfo, SKUInfo{
+		SKU:         "sku003",
+		Description: "sku003 description",
+		Image:       []string{"image"},
+		Namespace:   "xyz",
+	})
+	productModel, productErr = localProvider.GetEntityModel(product001)
+	if productErr != nil {
+		t.Errorf("localProvider.GetEntityModel failed, erro:%s", productErr.Error())
+		return
+	}
+
+	productModel, productErr = o1.Update(productModel)
+	if productErr != nil {
+		t.Errorf("o1.Update failed, erro:%s", productErr.Error())
+		return
+	}
+	newProduct001 := productModel.Interface(true).(*Product)
+	if len(newProduct001.SKUInfo) != len(product001.SKUInfo) {
+		t.Errorf("o1.Update failed")
+		return
+	}
+
 	store001 := getLocalStore()
 	storeModel, storeErr := localProvider.GetEntityModel(store001)
 	if storeErr != nil {

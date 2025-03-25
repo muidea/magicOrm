@@ -59,12 +59,16 @@ func (s *UpdateRunner) updateHost(vModel model.Model) (err *cd.Result) {
 }
 
 func (s *UpdateRunner) updateRelation(vModel model.Model, vField model.Field) (err *cd.Result) {
+	newVal := vField.GetValue().Get()
 	err = s.deleteRelation(vModel, vField, 0)
 	if err != nil {
 		log.Errorf("updateRelation failed, s.deleteRelation error:%s", err.Error())
 		return
 	}
-
+	// TODO 这里最合理的逻辑应该是先查询出当前值，与新值进行差异比较
+	// 再根据比较后的结果进行处理
+	// 目前先粗暴点，直接删除再插入
+	vField.SetValue(newVal)
 	err = s.insertRelation(vModel, vField)
 	if err != nil {
 		log.Errorf("updateRelation failed, s.insertRelation error:%s", err.Error())
