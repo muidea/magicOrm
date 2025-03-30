@@ -13,10 +13,10 @@ import (
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
-func EncodeObject(objPtr *remote.Object) (ret []byte, err *cd.Result) {
+func EncodeObject(objPtr *remote.Object) (ret []byte, err *cd.Error) {
 	byteVal, byteErr := json.Marshal(objPtr)
 	if byteErr != nil {
-		err = cd.NewResult(cd.UnExpected, byteErr.Error())
+		err = cd.NewError(cd.UnExpected, byteErr.Error())
 		return
 	}
 
@@ -24,11 +24,11 @@ func EncodeObject(objPtr *remote.Object) (ret []byte, err *cd.Result) {
 	return
 }
 
-func DecodeObject(data []byte) (ret *remote.Object, err *cd.Result) {
+func DecodeObject(data []byte) (ret *remote.Object, err *cd.Error) {
 	objPtr := &remote.Object{}
 	byteErr := json.Unmarshal(data, objPtr)
 	if byteErr != nil {
-		err = cd.NewResult(cd.UnExpected, byteErr.Error())
+		err = cd.NewError(cd.UnExpected, byteErr.Error())
 		return
 	}
 

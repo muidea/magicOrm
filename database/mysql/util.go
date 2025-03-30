@@ -19,7 +19,7 @@ func traceSQL() bool {
 	return false
 }
 
-func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err *cd.Result) {
+func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err *cd.Error) {
 	switch fType.GetValue() {
 	case model.TypeStringValue:
 		if fSpec.IsPrimaryKey() {
@@ -44,7 +44,7 @@ func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err *cd.Res
 	case model.TypeSliceValue:
 		ret = "TEXT"
 	default:
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("no support field type, type:%v", fType.GetPkgKey()))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("no support field type, type:%v", fType.GetPkgKey()))
 	}
 
 	if err != nil {
@@ -54,7 +54,7 @@ func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err *cd.Res
 	return
 }
 
-func getFieldPlaceHolder(fType model.Type) (ret interface{}, err *cd.Result) {
+func getFieldPlaceHolder(fType model.Type) (ret interface{}, err *cd.Error) {
 	switch fType.GetValue() {
 	case model.TypeStringValue, model.TypeDateTimeValue:
 		val := ""
@@ -97,10 +97,10 @@ func getFieldPlaceHolder(fType model.Type) (ret interface{}, err *cd.Result) {
 			val := ""
 			ret = &val
 		} else {
-			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("no support fileType, type:%v", fType.GetPkgKey()))
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("no support fileType, type:%v", fType.GetPkgKey()))
 		}
 	default:
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("no support fileType, type:%v", fType.GetPkgKey()))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("no support fileType, type:%v", fType.GetPkgKey()))
 	}
 
 	if err != nil {

@@ -9,7 +9,7 @@ type Type interface {
 	GetDescription() string
 	GetValue() TypeDeclare
 	IsPtrType() bool
-	Interface(initVal any) (Value, *cd.Result)
+	Interface(initVal any) (Value, *cd.Error)
 	// Elem 获取要素类型(如果非slice，则返回的是本身，如果是slice,则返回slice的elem类型)
 	Elem() Type
 }

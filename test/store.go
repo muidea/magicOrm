@@ -82,17 +82,17 @@ func getLocalStockIn(productPtr *Product, storePtr *Store) *StockIn {
 	}
 }
 
-func getRemoteProduct(productPtr *Product) (ret *remote.ObjectValue, err *cd.Result) {
+func getRemoteProduct(productPtr *Product) (ret *remote.ObjectValue, err *cd.Error) {
 	ret, err = getObjectValue(productPtr)
 	return
 }
 
-func getRemoteStore(storePtr *Store) (ret *remote.ObjectValue, err *cd.Result) {
+func getRemoteStore(storePtr *Store) (ret *remote.ObjectValue, err *cd.Error) {
 	ret, err = getObjectValue(storePtr)
 	return
 }
 
-func getRemoteStockIn(stockInPtr *StockIn) (ret *remote.ObjectValue, err *cd.Result) {
+func getRemoteStockIn(stockInPtr *StockIn) (ret *remote.ObjectValue, err *cd.Error) {
 	ret, err = getObjectValue(stockInPtr)
 	return
 }

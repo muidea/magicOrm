@@ -8,9 +8,9 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func GetEntityType(entity any) (ret model.Type, err *cd.Result) {
+func GetEntityType(entity any) (ret model.Type, err *cd.Error) {
 	if entity == nil {
-		err = cd.NewResult(cd.UnExpected, "entity is nil")
+		err = cd.NewError(cd.UnExpected, "entity is nil")
 		return
 	}
 
@@ -70,15 +70,15 @@ func GetEntityType(entity any) (ret model.Type, err *cd.Result) {
 			},
 		}
 	default:
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal entity, entity:%v", entity))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal entity, entity:%v", entity))
 		return
 	}
 	return
 }
 
-func GetEntityValue(entity any) (ret model.Value, err *cd.Result) {
+func GetEntityValue(entity any) (ret model.Value, err *cd.Error) {
 	if entity == nil {
-		err = cd.NewResult(cd.UnExpected, "entity is nil")
+		err = cd.NewError(cd.UnExpected, "entity is nil")
 		return
 	}
 
@@ -100,7 +100,7 @@ func GetEntityValue(entity any) (ret model.Value, err *cd.Result) {
 			value: &val,
 		}
 	default:
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal entity, entity:%v", entity))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal entity, entity:%v", entity))
 		//log.Errorf("GetEntityValue failed, err:%s", err.Error())
 		return
 	}
@@ -108,9 +108,9 @@ func GetEntityValue(entity any) (ret model.Value, err *cd.Result) {
 	return
 }
 
-func GetEntityModel(entity any) (ret model.Model, err *cd.Result) {
+func GetEntityModel(entity any) (ret model.Model, err *cd.Error) {
 	if entity == nil {
-		err = cd.NewResult(cd.UnExpected, "entity is nil")
+		err = cd.NewError(cd.UnExpected, "entity is nil")
 		return
 	}
 
@@ -120,17 +120,17 @@ func GetEntityModel(entity any) (ret model.Model, err *cd.Result) {
 	case Object:
 		ret = &val
 	default:
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal entity, entity:%v", entity))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal entity, entity:%v", entity))
 		log.Errorf("GetEntityModel failed, err:%s", err.Error())
 	}
 
 	return
 }
 
-func GetModelFilter(vModel model.Model) (ret model.Filter, err *cd.Result) {
+func GetModelFilter(vModel model.Model) (ret model.Filter, err *cd.Error) {
 	objectPtr, objectOK := vModel.(*Object)
 	if !objectOK {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal model, model:%v", vModel))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal model, model:%v", vModel))
 		log.Errorf("GetModelFilter failed, err:%s", err.Error())
 		return
 	}
@@ -139,10 +139,10 @@ func GetModelFilter(vModel model.Model) (ret model.Filter, err *cd.Result) {
 	return
 }
 
-func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *cd.Result) {
+func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *cd.Error) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
-			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("SetModelValue failed, illegal value, err:%v", errInfo))
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("SetModelValue failed, illegal value, err:%v", errInfo))
 			log.Errorf("SetModelValue failed, err:%s", err.Error())
 			return
 		}
@@ -155,7 +155,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *
 		if vVal.IsValid() {
 			err = vModel.SetPrimaryFieldValue(val)
 		} else {
-			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal model value, val:%v", val))
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal model value, val:%v", val))
 		}
 		if err != nil {
 			log.Errorf("SetModelValue failed, err:%s", err.Error())
@@ -167,7 +167,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *
 	return
 }
 
-func assignObjectValue(vModel model.Model, objectValuePtr *ObjectValue) (err *cd.Result) {
+func assignObjectValue(vModel model.Model, objectValuePtr *ObjectValue) (err *cd.Error) {
 	for idx := range objectValuePtr.Fields {
 		fieldVal := objectValuePtr.Fields[idx]
 		err = vModel.SetFieldValue(fieldVal.GetName(), fieldVal.Get())

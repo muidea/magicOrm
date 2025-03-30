@@ -14,7 +14,7 @@ type TypeImpl struct {
 	typeVal reflect.Type
 }
 
-func NewType(val reflect.Type) (ret *TypeImpl, err *cd.Result) {
+func NewType(val reflect.Type) (ret *TypeImpl, err *cd.Error) {
 	rType := val
 	if rType.Kind() == reflect.Ptr {
 		rType = rType.Elem()
@@ -57,7 +57,7 @@ func (s *TypeImpl) IsPtrType() bool {
 	return s.typeVal.Kind() == reflect.Ptr
 }
 
-func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
+func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 	tVal := reflect.New(s.getRawType()).Elem()
 	if initVal != nil {
 		switch s.GetValue() {
@@ -106,7 +106,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
 		default:
 			rInitVal := reflect.Indirect(reflect.ValueOf(initVal))
 			if rInitVal.Type() != tVal.Type() {
-				err = cd.NewResult(cd.UnExpected, "missmatch value type")
+				err = cd.NewError(cd.UnExpected, "missmatch value type")
 			} else {
 				tVal.Set(rInitVal)
 			}

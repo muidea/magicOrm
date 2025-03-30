@@ -12,7 +12,7 @@ import (
 	"github.com/muidea/magicOrm/utils"
 )
 
-type ValueConvertMap map[model.TypeDeclare]func(reflect.Value, model.Type) (any, *cd.Result)
+type ValueConvertMap map[model.TypeDeclare]func(reflect.Value, model.Type) (any, *cd.Error)
 
 var encodeValueConvertMap ValueConvertMap
 var encodeValueConvertSliceMap ValueConvertMap
@@ -22,7 +22,7 @@ var decodeConvertSliceMap ValueConvertMap
 
 func init() {
 	encodeValueConvertMap = ValueConvertMap{
-		model.TypeBooleanValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeBooleanValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			int8Val, int8Err := utils.ConvertToInt8(vVal)
 			if int8Err != nil {
 				err = int8Err
@@ -35,7 +35,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			int8Val, int8Err := utils.ConvertToInt8(vVal)
 			if int8Err != nil {
 				err = int8Err
@@ -48,7 +48,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeSmallIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeSmallIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			int16Val, int16Err := utils.ConvertToInt16(vVal)
 			if int16Err != nil {
 				err = int16Err
@@ -61,7 +61,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeInteger32Value: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeInteger32Value: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			int32Val, int32Err := utils.ConvertToInt32(vVal)
 			if int32Err != nil {
 				err = int32Err
@@ -74,7 +74,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeBigIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeBigIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			int64Val, int64Err := utils.ConvertToInt64(vVal)
 			if int64Err != nil {
 				err = int64Err
@@ -87,7 +87,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			intVal, intErr := utils.ConvertToInt(vVal)
 			if intErr != nil {
 				err = intErr
@@ -100,7 +100,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypePositiveBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uint8Val, uint8Err := utils.ConvertToUint8(vVal)
 			if uint8Err != nil {
 				err = uint8Err
@@ -113,7 +113,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveSmallIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypePositiveSmallIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uint16Val, uint16Err := utils.ConvertToUint16(vVal)
 			if uint16Err != nil {
 				err = uint16Err
@@ -126,7 +126,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveInteger32Value: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypePositiveInteger32Value: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uint32Val, uint32Err := utils.ConvertToUint32(vVal)
 			if uint32Err != nil {
 				err = uint32Err
@@ -139,7 +139,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveBigIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypePositiveBigIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uint64Val, uint64Err := utils.ConvertToUint64(vVal)
 			if uint64Err != nil {
 				err = uint64Err
@@ -152,7 +152,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypePositiveIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uintVal, uintErr := utils.ConvertToUint(vVal)
 			if uintErr != nil {
 				err = uintErr
@@ -165,7 +165,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeFloatValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeFloatValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			float32Val, float32Err := utils.ConvertToFloat32(vVal)
 			if float32Err != nil {
 				err = float32Err
@@ -178,7 +178,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeDoubleValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeDoubleValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			float64Val, float64Err := utils.ConvertToFloat64(vVal)
 			if float64Err != nil {
 				err = float64Err
@@ -191,7 +191,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeStringValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeStringValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			strVal, strErr := utils.ConvertToString(vVal)
 			if strErr != nil {
 				err = strErr
@@ -204,7 +204,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeDateTimeValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeDateTimeValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			strVal, strErr := utils.ConvertToString(vVal)
 			if strErr != nil {
 				err = strErr
@@ -221,7 +221,7 @@ func init() {
 	}
 
 	encodeValueConvertSliceMap = ValueConvertMap{
-		model.TypeBooleanValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeBooleanValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			boolSlice, boolErr := encodeSliceTemplate(vVal, vType.Elem(), int8(0))
 			if boolErr != nil {
 				err = boolErr
@@ -234,7 +234,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			int8Slice, int8Err := encodeSliceTemplate(vVal, vType.Elem(), int8(0))
 			if int8Err != nil {
 				err = int8Err
@@ -247,7 +247,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeSmallIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeSmallIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			int16Slice, int16Err := encodeSliceTemplate(vVal, vType.Elem(), int16(0))
 			if int16Err != nil {
 				err = int16Err
@@ -260,7 +260,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeInteger32Value: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeInteger32Value: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			int32Slice, int32Err := encodeSliceTemplate(vVal, vType.Elem(), int32(0))
 			if int32Err != nil {
 				err = int32Err
@@ -273,7 +273,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeBigIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeBigIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			int64Slice, int64Err := encodeSliceTemplate(vVal, vType.Elem(), int64(0))
 			if int64Err != nil {
 				err = int64Err
@@ -286,7 +286,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			intSlice, intErr := encodeSliceTemplate(vVal, vType.Elem(), int(0))
 			if intErr != nil {
 				err = intErr
@@ -299,7 +299,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypePositiveBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uint8Slice, uint8Err := encodeSliceTemplate(vVal, vType.Elem(), uint8(0))
 			if uint8Err != nil {
 				err = uint8Err
@@ -312,7 +312,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveSmallIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypePositiveSmallIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uint16Slice, uint16Err := encodeSliceTemplate(vVal, vType.Elem(), uint16(0))
 			if uint16Err != nil {
 				err = uint16Err
@@ -325,7 +325,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveInteger32Value: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypePositiveInteger32Value: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uint32Slice, uint32Err := encodeSliceTemplate(vVal, vType.Elem(), uint32(0))
 			if uint32Err != nil {
 				err = uint32Err
@@ -338,7 +338,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveBigIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypePositiveBigIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uint64Slice, uint64Err := encodeSliceTemplate(vVal, vType.Elem(), uint64(0))
 			if uint64Err != nil {
 				err = uint64Err
@@ -351,7 +351,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypePositiveIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uintSlice, uintErr := encodeSliceTemplate(vVal, vType.Elem(), uint(0))
 			if uintErr != nil {
 				err = uintErr
@@ -364,7 +364,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeFloatValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeFloatValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			float32Slice, float32Err := encodeSliceTemplate(vVal, vType.Elem(), float32(0))
 			if float32Err != nil {
 				err = float32Err
@@ -377,7 +377,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeDoubleValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeDoubleValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			float64Slice, float64Err := encodeSliceTemplate(vVal, vType.Elem(), float64(0))
 			if float64Err != nil {
 				err = float64Err
@@ -390,7 +390,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeStringValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeStringValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			strSlice, strErr := encodeSliceTemplate(vVal, vType.Elem(), "")
 			if strErr != nil {
 				err = strErr
@@ -403,7 +403,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeDateTimeValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeDateTimeValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			timeSlice, timeErr := encodeSliceTemplate(vVal, vType.Elem(), "")
 			if timeErr != nil {
 				err = timeErr
@@ -419,7 +419,7 @@ func init() {
 	}
 
 	decodeValueConvertMap = ValueConvertMap{
-		model.TypeBooleanValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeBooleanValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			boolVal, boolErr := utils.ConvertToBool(vVal)
 			if boolErr != nil {
 				err = boolErr
@@ -432,7 +432,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			int8Val, int8Err := utils.ConvertToInt8(vVal)
 			if int8Err != nil {
 				err = int8Err
@@ -445,7 +445,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeSmallIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeSmallIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			int16Val, int16Err := utils.ConvertToInt16(vVal)
 			if int16Err != nil {
 				err = int16Err
@@ -458,7 +458,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeInteger32Value: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeInteger32Value: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			int32Val, int32Err := utils.ConvertToInt32(vVal)
 			if int32Err != nil {
 				err = int32Err
@@ -471,7 +471,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeBigIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeBigIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			int64Val, int64Err := utils.ConvertToInt64(vVal)
 			if int64Err != nil {
 				err = int64Err
@@ -484,7 +484,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			intVal, intErr := utils.ConvertToInt(vVal)
 			if intErr != nil {
 				err = intErr
@@ -497,7 +497,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypePositiveBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uint8Val, uint8Err := utils.ConvertToUint8(vVal)
 			if uint8Err != nil {
 				err = uint8Err
@@ -510,7 +510,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveSmallIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypePositiveSmallIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uint16Val, uint16Err := utils.ConvertToUint16(vVal)
 			if uint16Err != nil {
 				err = uint16Err
@@ -523,7 +523,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveInteger32Value: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypePositiveInteger32Value: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uint32Val, uint32Err := utils.ConvertToUint32(vVal)
 			if uint32Err != nil {
 				err = uint32Err
@@ -536,7 +536,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveBigIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypePositiveBigIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uint64Val, uint64Err := utils.ConvertToUint64(vVal)
 			if uint64Err != nil {
 				err = uint64Err
@@ -549,7 +549,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypePositiveIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uintVal, uintErr := utils.ConvertToUint(vVal)
 			if uintErr != nil {
 				err = uintErr
@@ -562,7 +562,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeFloatValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeFloatValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			float32Val, float32Err := utils.ConvertToFloat32(vVal)
 			if float32Err != nil {
 				err = float32Err
@@ -575,7 +575,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeDoubleValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeDoubleValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			float64Val, float64Err := utils.ConvertToFloat64(vVal)
 			if float64Err != nil {
 				err = float64Err
@@ -588,7 +588,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeStringValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeStringValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			strVal, strErr := utils.ConvertToString(vVal)
 			if strErr != nil {
 				err = strErr
@@ -601,7 +601,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeDateTimeValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeDateTimeValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			strVal, strErr := utils.ConvertToDateTime(vVal)
 			if strErr != nil {
 				err = strErr
@@ -618,7 +618,7 @@ func init() {
 	}
 
 	decodeConvertSliceMap = ValueConvertMap{
-		model.TypeBooleanValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeBooleanValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			boolSlice, boolErr := decodeSliceTemplate(vVal, vType.Elem(), false)
 			if boolErr != nil {
 				err = boolErr
@@ -631,7 +631,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			int8Slice, int8Err := decodeSliceTemplate(vVal, vType.Elem(), int8(0))
 			if int8Err != nil {
 				err = int8Err
@@ -644,7 +644,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeSmallIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeSmallIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			int16Slice, int16Err := decodeSliceTemplate(vVal, vType.Elem(), int16(0))
 			if int16Err != nil {
 				err = int16Err
@@ -657,7 +657,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeInteger32Value: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeInteger32Value: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			int32Slice, int32Err := decodeSliceTemplate(vVal, vType.Elem(), int32(0))
 			if int32Err != nil {
 				err = int32Err
@@ -670,7 +670,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeBigIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeBigIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			int64Slice, int64Err := decodeSliceTemplate(vVal, vType.Elem(), int64(0))
 			if int64Err != nil {
 				err = int64Err
@@ -683,7 +683,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			intSlice, intErr := decodeSliceTemplate(vVal, vType.Elem(), int(0))
 			if intErr != nil {
 				err = intErr
@@ -696,7 +696,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypePositiveBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uint8Slice, uint8Err := decodeSliceTemplate(vVal, vType.Elem(), uint8(0))
 			if uint8Err != nil {
 				err = uint8Err
@@ -709,7 +709,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveSmallIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypePositiveSmallIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uint16Slice, uint16Err := decodeSliceTemplate(vVal, vType.Elem(), uint16(0))
 			if uint16Err != nil {
 				err = uint16Err
@@ -722,7 +722,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveInteger32Value: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypePositiveInteger32Value: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uint32Slice, uint32Err := decodeSliceTemplate(vVal, vType.Elem(), uint32(0))
 			if uint32Err != nil {
 				err = uint32Err
@@ -735,7 +735,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveBigIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypePositiveBigIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uint64Slice, uint64Err := decodeSliceTemplate(vVal, vType.Elem(), uint64(0))
 			if uint64Err != nil {
 				err = uint64Err
@@ -748,7 +748,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypePositiveIntegerValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uintSlice, uintErr := decodeSliceTemplate(vVal, vType.Elem(), uint(0))
 			if uintErr != nil {
 				err = uintErr
@@ -761,7 +761,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeFloatValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeFloatValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			float32Slice, float32Err := decodeSliceTemplate(vVal, vType.Elem(), float32(0))
 			if float32Err != nil {
 				err = float32Err
@@ -774,7 +774,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeDoubleValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeDoubleValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			float64Slice, float64Err := decodeSliceTemplate(vVal, vType.Elem(), float64(0))
 			if float64Err != nil {
 				err = float64Err
@@ -787,7 +787,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeStringValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeStringValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			strSlice, strErr := decodeSliceTemplate(vVal, vType.Elem(), "")
 			if strErr != nil {
 				err = strErr
@@ -800,7 +800,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeDateTimeValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+		model.TypeDateTimeValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			dateTimeSlice, dateTimeErr := decodeSliceTemplate(vVal, vType.Elem(), time.Time{})
 			if dateTimeErr != nil {
 				err = dateTimeErr
@@ -816,9 +816,9 @@ func init() {
 	}
 }
 
-func EncodeValue(vVal any, vType model.Type) (ret any, err *cd.Result) {
+func EncodeValue(vVal any, vType model.Type) (ret any, err *cd.Error) {
 	if !model.IsBasic(vType) {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("EncodeValue failed, illegal type, type pkgKey:%s", vType.GetPkgKey()))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("EncodeValue failed, illegal type, type pkgKey:%s", vType.GetPkgKey()))
 		return
 	}
 
@@ -827,15 +827,15 @@ func EncodeValue(vVal any, vType model.Type) (ret any, err *cd.Result) {
 	return
 }
 
-func encodeValue(rVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+func encodeValue(rVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 	if !rVal.IsValid() {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal value, type pkgKey:%s", vType.GetPkgKey()))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal value, type pkgKey:%s", vType.GetPkgKey()))
 		return
 	}
 
 	funcVal, funcOK := encodeValueConvertMap[vType.GetValue()]
 	if !funcOK {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, pkgKey:%s", vType.GetPkgKey()))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal type, pkgKey:%s", vType.GetPkgKey()))
 		return
 	}
 
@@ -843,16 +843,16 @@ func encodeValue(rVal reflect.Value, vType model.Type) (ret any, err *cd.Result)
 	return
 }
 
-func encodeSliceValue(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+func encodeSliceValue(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 	if !model.IsBasic(vType) {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, type pkgKey:%s", vType.GetPkgKey()))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal type, type pkgKey:%s", vType.GetPkgKey()))
 		return
 	}
 
 	eType := vType.Elem()
 	funcVal, funcOK := encodeValueConvertSliceMap[eType.GetValue()]
 	if !funcOK {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, type pkgKey:%s", vType.GetPkgKey()))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal type, type pkgKey:%s", vType.GetPkgKey()))
 		return
 	}
 
@@ -860,7 +860,7 @@ func encodeSliceValue(vVal reflect.Value, vType model.Type) (ret any, err *cd.Re
 	return
 }
 
-func encodeSliceTemplate[T any](vVal reflect.Value, vType model.Type, _ T) (ret []T, err *cd.Result) {
+func encodeSliceTemplate[T any](vVal reflect.Value, vType model.Type, _ T) (ret []T, err *cd.Error) {
 	rSliceValList, rSliceValErr := utils.ElemDependValue(vVal)
 	if rSliceValErr != nil {
 		err = rSliceValErr
@@ -879,7 +879,7 @@ func encodeSliceTemplate[T any](vVal reflect.Value, vType model.Type, _ T) (ret 
 
 		tVal, tOk := encodeVal.(T)
 		if !tOk {
-			err = cd.NewResult(cd.UnExpected, "illegal type")
+			err = cd.NewError(cd.UnExpected, "illegal type")
 			log.Errorf("encodeSliceTemplate failed, illegal type")
 			return
 		}
@@ -890,9 +890,9 @@ func encodeSliceTemplate[T any](vVal reflect.Value, vType model.Type, _ T) (ret 
 	return
 }
 
-func DecodeValue(vVal any, vType model.Type) (ret any, err *cd.Result) {
+func DecodeValue(vVal any, vType model.Type) (ret any, err *cd.Error) {
 	if !model.IsBasic(vType) {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, type pkgKey:%s", vType.GetPkgKey()))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal type, type pkgKey:%s", vType.GetPkgKey()))
 		return
 	}
 
@@ -901,14 +901,14 @@ func DecodeValue(vVal any, vType model.Type) (ret any, err *cd.Result) {
 	return
 }
 
-func decodeValue(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+func decodeValue(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 	if !vVal.IsValid() {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal value, type pkgKey:%s", vType.GetPkgKey()))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal value, type pkgKey:%s", vType.GetPkgKey()))
 		return
 	}
 	funcPtr, funcOK := decodeValueConvertMap[vType.GetValue()]
 	if !funcOK {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, type pkgKey:%s", vType.GetPkgKey()))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal type, type pkgKey:%s", vType.GetPkgKey()))
 		return
 	}
 
@@ -916,15 +916,15 @@ func decodeValue(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result)
 	return
 }
 
-func decodeSliceValue(vVal reflect.Value, vType model.Type) (ret any, err *cd.Result) {
+func decodeSliceValue(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 	if !model.IsBasic(vType) {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, type pkgKey:%s", vType.GetPkgKey()))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal type, type pkgKey:%s", vType.GetPkgKey()))
 		return
 	}
 
 	funcPtr, funcOK := decodeConvertSliceMap[vType.Elem().GetValue()]
 	if !funcOK {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, type pkgKey:%s", vType.GetPkgKey()))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal type, type pkgKey:%s", vType.GetPkgKey()))
 		return
 	}
 
@@ -932,7 +932,7 @@ func decodeSliceValue(vVal reflect.Value, vType model.Type) (ret any, err *cd.Re
 	return
 }
 
-func decodeSliceTemplate[T any](rSliceVal reflect.Value, vType model.Type, _ T) (ret []T, err *cd.Result) {
+func decodeSliceTemplate[T any](rSliceVal reflect.Value, vType model.Type, _ T) (ret []T, err *cd.Error) {
 	ret = []T{}
 	rSliceVal = reflect.Indirect(rSliceVal)
 	for idx := 0; idx < rSliceVal.Len(); idx++ {
@@ -946,7 +946,7 @@ func decodeSliceTemplate[T any](rSliceVal reflect.Value, vType model.Type, _ T) 
 
 		tVal, tOk := decodeVal.(T)
 		if !tOk {
-			err = cd.NewResult(cd.UnExpected, "illegal type")
+			err = cd.NewError(cd.UnExpected, "illegal type")
 			log.Errorf("decodeSliceTemplate failed, illegal type, vType:%v, decodeVal:%+v", vType.GetPkgKey(), decodeVal)
 			return
 		}

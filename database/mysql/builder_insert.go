@@ -10,7 +10,7 @@ import (
 )
 
 // BuildInsert  Build Insert
-func (s *Builder) BuildInsert(vModel model.Model) (ret *ResultStack, err *cd.Result) {
+func (s *Builder) BuildInsert(vModel model.Model) (ret *ResultStack, err *cd.Error) {
 	resultStackPtr := &ResultStack{}
 	fieldNames := ""
 	fieldValues := ""
@@ -57,7 +57,7 @@ func (s *Builder) BuildInsert(vModel model.Model) (ret *ResultStack, err *cd.Res
 }
 
 // BuildInsertRelation Build Insert Relation
-func (s *Builder) BuildInsertRelation(vModel model.Model, vField model.Field, rModel model.Model) (ret *ResultStack, err *cd.Result) {
+func (s *Builder) BuildInsertRelation(vModel model.Model, vField model.Field, rModel model.Model) (ret *ResultStack, err *cd.Error) {
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr

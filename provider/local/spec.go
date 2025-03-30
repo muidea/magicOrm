@@ -25,7 +25,7 @@ type SpecImpl struct {
 var emptySpec = SpecImpl{primaryKey: false, valueDeclare: model.Customer}
 
 // NewSpec name[key][auto]
-func NewSpec(tag reflect.StructTag) (ret *SpecImpl, err *cd.Result) {
+func NewSpec(tag reflect.StructTag) (ret *SpecImpl, err *cd.Error) {
 	ormSpec := tag.Get(ormTag)
 	ret, err = getOrmSpec(ormSpec)
 	if err != nil {
@@ -36,7 +36,7 @@ func NewSpec(tag reflect.StructTag) (ret *SpecImpl, err *cd.Result) {
 	return
 }
 
-func getOrmSpec(spec string) (ret *SpecImpl, err *cd.Result) {
+func getOrmSpec(spec string) (ret *SpecImpl, err *cd.Error) {
 	items := strings.Split(strings.TrimSpace(spec), " ")
 	ret = &SpecImpl{primaryKey: false, valueDeclare: model.Customer}
 	ret.fieldName = items[0]

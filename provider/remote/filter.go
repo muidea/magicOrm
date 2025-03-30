@@ -91,7 +91,7 @@ func (s *ObjectFilter) GetInt(key string) (ret int, ok bool) {
 	return
 }
 
-func (s *ObjectFilter) Equal(key string, val any) (err *cd.Result) {
+func (s *ObjectFilter) Equal(key string, val any) (err *cd.Error) {
 	switch val.(type) {
 	case bool,
 		int8, int16, int32, int, int64,
@@ -107,13 +107,13 @@ func (s *ObjectFilter) Equal(key string, val any) (err *cd.Result) {
 		}
 		s.EqualFilter = append(s.EqualFilter, item)
 	default:
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("equal failed, illegal value, key:%v, val:%v", key, val))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("equal failed, illegal value, key:%v, val:%v", key, val))
 	}
 
 	return
 }
 
-func (s *ObjectFilter) NotEqual(key string, val any) (err *cd.Result) {
+func (s *ObjectFilter) NotEqual(key string, val any) (err *cd.Error) {
 	switch val.(type) {
 	case bool,
 		int8, int16, int32, int, int64,
@@ -129,13 +129,13 @@ func (s *ObjectFilter) NotEqual(key string, val any) (err *cd.Result) {
 		}
 		s.NotEqualFilter = append(s.NotEqualFilter, item)
 	default:
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("not equal failed, illegal value, key:%v, val:%v", key, val))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("not equal failed, illegal value, key:%v, val:%v", key, val))
 	}
 
 	return
 }
 
-func (s *ObjectFilter) Below(key string, val any) (err *cd.Result) {
+func (s *ObjectFilter) Below(key string, val any) (err *cd.Error) {
 	switch val.(type) {
 	case int8, int16, int32, int, int64,
 		uint8, uint16, uint32, uint, uint64,
@@ -143,12 +143,12 @@ func (s *ObjectFilter) Below(key string, val any) (err *cd.Result) {
 		item := &FieldValue{Name: key, Value: val}
 		s.BelowFilter = append(s.BelowFilter, item)
 	default:
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("below failed, illegal value, key:%v, val:%v", key, val))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("below failed, illegal value, key:%v, val:%v", key, val))
 	}
 	return
 }
 
-func (s *ObjectFilter) Above(key string, val any) (err *cd.Result) {
+func (s *ObjectFilter) Above(key string, val any) (err *cd.Error) {
 	switch val.(type) {
 	case int8, int16, int32, int, int64,
 		uint8, uint16, uint32, uint, uint64,
@@ -156,12 +156,12 @@ func (s *ObjectFilter) Above(key string, val any) (err *cd.Result) {
 		item := &FieldValue{Name: key, Value: val}
 		s.AboveFilter = append(s.AboveFilter, item)
 	default:
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("above failed, illegal value, key:%v, val:%v", key, val))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("above failed, illegal value, key:%v, val:%v", key, val))
 	}
 	return
 }
 
-func (s *ObjectFilter) In(key string, val any) (err *cd.Result) {
+func (s *ObjectFilter) In(key string, val any) (err *cd.Error) {
 	switch val.(type) {
 	case []bool,
 		[]int8, []int16, []int32, []int, []int64,
@@ -178,13 +178,13 @@ func (s *ObjectFilter) In(key string, val any) (err *cd.Result) {
 		}
 		s.InFilter = append(s.InFilter, item)
 	default:
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("in failed, illegal value, key:%v, val:%v", key, val))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("in failed, illegal value, key:%v, val:%v", key, val))
 	}
 
 	return
 }
 
-func (s *ObjectFilter) NotIn(key string, val any) (err *cd.Result) {
+func (s *ObjectFilter) NotIn(key string, val any) (err *cd.Error) {
 	switch val.(type) {
 	case []bool,
 		[]int8, []int16, []int32, []int, []int64,
@@ -201,19 +201,19 @@ func (s *ObjectFilter) NotIn(key string, val any) (err *cd.Result) {
 		}
 		s.NotInFilter = append(s.NotInFilter, item)
 	default:
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("not in failed, illegal value, key:%v, val:%v", key, val))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("not in failed, illegal value, key:%v, val:%v", key, val))
 	}
 
 	return
 }
 
-func (s *ObjectFilter) Like(key string, val any) (err *cd.Result) {
+func (s *ObjectFilter) Like(key string, val any) (err *cd.Error) {
 	switch val.(type) {
 	case string:
 		item := &FieldValue{Name: key, Value: val}
 		s.LikeFilter = append(s.LikeFilter, item)
 	default:
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("like failed, illegal value, key:%v, val:%v", key, val))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("like failed, illegal value, key:%v, val:%v", key, val))
 	}
 
 	return
@@ -233,9 +233,9 @@ func (s *ObjectFilter) Sort(fieldName string, ascFlag bool) {
 	}
 }
 
-func (s *ObjectFilter) ValueMask(val any) (err *cd.Result) {
+func (s *ObjectFilter) ValueMask(val any) (err *cd.Error) {
 	if val == nil {
-		err = cd.NewResult(cd.UnExpected, "illegal mask value")
+		err = cd.NewError(cd.UnExpected, "illegal mask value")
 		return
 	}
 
@@ -250,7 +250,7 @@ func (s *ObjectFilter) ValueMask(val any) (err *cd.Result) {
 	case json.RawMessage:
 		objectValuePtr, err = DecodeObjectValue(v)
 	default:
-		err = cd.NewResult(cd.UnExpected, "illegal mask value")
+		err = cd.NewError(cd.UnExpected, "illegal mask value")
 	}
 
 	if err != nil {
@@ -326,7 +326,7 @@ func (s *ObjectFilter) GetFilterItem(key string) model.FilterItem {
 	return nil
 }
 
-func (s *ObjectFilter) getFilterValue(key string, items []*FieldValue) (ret *FieldValue, err *cd.Result) {
+func (s *ObjectFilter) getFilterValue(key string, items []*FieldValue) (ret *FieldValue, err *cd.Error) {
 	for _, val := range items {
 		if key == val.Name {
 			ret = val

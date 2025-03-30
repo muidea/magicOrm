@@ -9,8 +9,8 @@ type Model interface {
 	GetPkgKey() string
 	GetDescription() string
 	GetFields() Fields
-	SetFieldValue(name string, val any) *cd.Result
-	SetPrimaryFieldValue(val any) *cd.Result
+	SetFieldValue(name string, val any) *cd.Error
+	SetPrimaryFieldValue(val any) *cd.Error
 	GetPrimaryField() Field
 	GetField(name string) Field
 	Interface(ptrValue bool) any

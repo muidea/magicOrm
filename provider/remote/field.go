@@ -64,7 +64,7 @@ func (s *Field) GetValue() (ret model.Value) {
 	return
 }
 
-func (s *Field) SetValue(val any) *cd.Result {
+func (s *Field) SetValue(val any) *cd.Error {
 	if s.value == nil {
 		s.value = &ValueImpl{}
 	}
@@ -81,13 +81,13 @@ func (s *Field) GetSliceValue() (ret []model.Value) {
 	return
 }
 
-func (s *Field) AppendSliceValue(val any) (err *cd.Result) {
+func (s *Field) AppendSliceValue(val any) (err *cd.Error) {
 	if val == nil {
-		err = cd.NewResult(cd.UnExpected, "field append slice value is nil")
+		err = cd.NewError(cd.UnExpected, "field append slice value is nil")
 		return
 	}
 	if !model.IsSlice(s.Type) {
-		err = cd.NewResult(cd.UnExpected, "field is not slice")
+		err = cd.NewError(cd.UnExpected, "field is not slice")
 		return
 	}
 
@@ -146,7 +146,7 @@ func (s *Field) copy(viewSpec model.ViewDeclare) (ret *Field, err error) {
 	return
 }
 
-func (s *Field) verifyAutoIncrement(typeVal model.TypeDeclare) *cd.Result {
+func (s *Field) verifyAutoIncrement(typeVal model.TypeDeclare) *cd.Error {
 	switch typeVal {
 	case model.TypeBooleanValue,
 		model.TypeStringValue,
@@ -155,50 +155,50 @@ func (s *Field) verifyAutoIncrement(typeVal model.TypeDeclare) *cd.Result {
 		model.TypeDoubleValue,
 		model.TypeStructValue,
 		model.TypeSliceValue:
-		return cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal auto_increment field type, type:%v", typeVal))
+		return cd.NewError(cd.UnExpected, fmt.Sprintf("illegal auto_increment field type, type:%v", typeVal))
 	default:
 	}
 
 	return nil
 }
 
-func (s *Field) verifyUUID(typeVal model.TypeDeclare) *cd.Result {
+func (s *Field) verifyUUID(typeVal model.TypeDeclare) *cd.Error {
 	if typeVal != model.TypeStringValue {
-		return cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal uuid field type, type:%v", typeVal))
+		return cd.NewError(cd.UnExpected, fmt.Sprintf("illegal uuid field type, type:%v", typeVal))
 	}
 
 	return nil
 }
 
-func (s *Field) verifySnowFlake(typeVal model.TypeDeclare) *cd.Result {
+func (s *Field) verifySnowFlake(typeVal model.TypeDeclare) *cd.Error {
 	if typeVal != model.TypeBigIntegerValue {
-		return cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal snowflake field type, type:%v", typeVal))
+		return cd.NewError(cd.UnExpected, fmt.Sprintf("illegal snowflake field type, type:%v", typeVal))
 	}
 
 	return nil
 }
 
-func (s *Field) verifyDateTime(typeVal model.TypeDeclare) *cd.Result {
+func (s *Field) verifyDateTime(typeVal model.TypeDeclare) *cd.Error {
 	if typeVal != model.TypeDateTimeValue {
-		return cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal dateTime field type, type:%v", typeVal))
+		return cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime field type, type:%v", typeVal))
 	}
 
 	return nil
 }
 
-func (s *Field) verifyPK(typeVal model.TypeDeclare) *cd.Result {
+func (s *Field) verifyPK(typeVal model.TypeDeclare) *cd.Error {
 	switch typeVal {
 	case model.TypeStructValue, model.TypeSliceValue:
-		return cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal primary key field type, type:%v", typeVal))
+		return cd.NewError(cd.UnExpected, fmt.Sprintf("illegal primary key field type, type:%v", typeVal))
 	default:
 	}
 
 	return nil
 }
 
-func (s *Field) verify() (err *cd.Result) {
+func (s *Field) verify() (err *cd.Error) {
 	if s.Type == nil {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal filed, field type is null, name:%v", s.Name))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal filed, field type is null, name:%v", s.Name))
 		return
 	}
 

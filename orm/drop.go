@@ -20,7 +20,7 @@ func NewDropRunner(vModel model.Model, executor executor.Executor, provider prov
 	}
 }
 
-func (s *DropRunner) dropHost(vModel model.Model) (err *cd.Result) {
+func (s *DropRunner) dropHost(vModel model.Model) (err *cd.Error) {
 	dropResult, dropErr := s.hBuilder.BuildDropTable(vModel)
 	if dropErr != nil {
 		err = dropErr
@@ -35,7 +35,7 @@ func (s *DropRunner) dropHost(vModel model.Model) (err *cd.Result) {
 	return
 }
 
-func (s *DropRunner) dropRelation(vModel model.Model, vField model.Field) (err *cd.Result) {
+func (s *DropRunner) dropRelation(vModel model.Model, vField model.Field) (err *cd.Error) {
 	relationResult, relationErr := s.hBuilder.BuildDropRelationTable(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
@@ -50,7 +50,7 @@ func (s *DropRunner) dropRelation(vModel model.Model, vField model.Field) (err *
 	return
 }
 
-func (s *DropRunner) Drop() (err *cd.Result) {
+func (s *DropRunner) Drop() (err *cd.Error) {
 	err = s.dropHost(s.vModel)
 	if err != nil {
 		log.Errorf("Drop failed, s.dropHost error:%s", err.Error())
@@ -89,9 +89,9 @@ func (s *DropRunner) Drop() (err *cd.Result) {
 	return
 }
 
-func (s *impl) Drop(vModel model.Model) (err *cd.Result) {
+func (s *impl) Drop(vModel model.Model) (err *cd.Error) {
 	if vModel == nil {
-		err = cd.NewResult(cd.IllegalParam, "illegal model value")
+		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return
 	}
 

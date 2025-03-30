@@ -193,7 +193,7 @@ var typeEnumMap = map[reflect.Kind]model.TypeDeclare{
 	reflect.String:  model.TypeStringValue,
 }
 
-func GetTypeEnum(val reflect.Type) (ret model.TypeDeclare, err *cd.Result) {
+func GetTypeEnum(val reflect.Type) (ret model.TypeDeclare, err *cd.Error) {
 	if val.Kind() == reflect.Interface {
 		val = val.Elem()
 	}
@@ -218,7 +218,7 @@ func GetTypeEnum(val reflect.Type) (ret model.TypeDeclare, err *cd.Result) {
 			for i := 0; i < val.NumField(); i++ {
 				field := val.Field(i)
 				if !isValidFieldType(field.Type) {
-					err = cd.NewResult(cd.UnExpected, fmt.Sprintf("unsupported field type in struct: %v", field.Type))
+					err = cd.NewError(cd.UnExpected, fmt.Sprintf("unsupported field type in struct: %v", field.Type))
 					return
 				}
 			}
@@ -233,7 +233,7 @@ func GetTypeEnum(val reflect.Type) (ret model.TypeDeclare, err *cd.Result) {
 		}
 		ret = model.TypeSliceValue
 	default:
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("unsupported type: %v", val.String()))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("unsupported type: %v", val.String()))
 	}
 
 	return
@@ -347,8 +347,8 @@ func IsSameValue(firstVal, secondVal any) (ret bool) {
 // ConvertRawToBool convert raw bool
 // 如果val为指针值，尝试将其转换成*bool，否则转换成bool
 // 将转换后的结果以model.RawVal形式返回
-// 转换出错返回*cd.Result
-func ConvertRawToBool(val any) (ret bool, err *cd.Result) {
+// 转换出错返回*cd.Error
+func ConvertRawToBool(val any) (ret bool, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	rawVal, rawErr := ConvertToBool(rVal)
 	if rawErr != nil {
@@ -362,8 +362,8 @@ func ConvertRawToBool(val any) (ret bool, err *cd.Result) {
 // ConvertRawToInt convert raw int
 // 如果val为指针值，尝试将其转换成*int，否则转换成int
 // 将转换后的结果以model.RawVal形式返回
-// 转换出错返回*cd.Result
-func ConvertRawToInt(val any) (ret int, err *cd.Result) {
+// 转换出错返回*cd.Error
+func ConvertRawToInt(val any) (ret int, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	rawVal, rawErr := ConvertToInt(rVal)
 	if rawErr != nil {
@@ -377,8 +377,8 @@ func ConvertRawToInt(val any) (ret int, err *cd.Result) {
 // ConvertRawToInt8 convert raw int8
 // 如果val为指针值，尝试将其转换成*int8，否则转换成int8
 // 将转换后的结果以model.RawVal形式返回
-// 转换出错返回*cd.Result
-func ConvertRawToInt8(val any) (ret int8, err *cd.Result) {
+// 转换出错返回*cd.Error
+func ConvertRawToInt8(val any) (ret int8, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	rawVal, rawErr := ConvertToInt8(rVal)
 	if rawErr != nil {
@@ -392,8 +392,8 @@ func ConvertRawToInt8(val any) (ret int8, err *cd.Result) {
 // ConvertRawToInt16 convert raw int16
 // 如果val为指针值，尝试将其转换成*int16，否则转换成int16
 // 将转换后的结果以model.RawVal形式返回
-// 转换出错返回*cd.Result
-func ConvertRawToInt16(val any) (ret int16, err *cd.Result) {
+// 转换出错返回*cd.Error
+func ConvertRawToInt16(val any) (ret int16, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	rawVal, rawErr := ConvertToInt16(rVal)
 	if rawErr != nil {
@@ -407,8 +407,8 @@ func ConvertRawToInt16(val any) (ret int16, err *cd.Result) {
 // ConvertRawToInt32 convert raw int32
 // 如果val为指针值，尝试将其转换成*int32，否则转换成int32
 // 将转换后的结果以model.RawVal形式返回
-// 转换出错返回*cd.Result
-func ConvertRawToInt32(val any) (ret int32, err *cd.Result) {
+// 转换出错返回*cd.Error
+func ConvertRawToInt32(val any) (ret int32, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	rawVal, rawErr := ConvertToInt32(rVal)
 	if rawErr != nil {
@@ -422,8 +422,8 @@ func ConvertRawToInt32(val any) (ret int32, err *cd.Result) {
 // ConvertRawToInt64 convert raw int64
 // 如果val为指针值，尝试将其转换成*int64，否则转换成int64
 // 将转换后的结果以model.RawVal形式返回
-// 转换出错返回*cd.Result
-func ConvertRawToInt64(val any) (ret int64, err *cd.Result) {
+// 转换出错返回*cd.Error
+func ConvertRawToInt64(val any) (ret int64, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	rawVal, rawErr := ConvertToInt64(rVal)
 	if rawErr != nil {
@@ -437,8 +437,8 @@ func ConvertRawToInt64(val any) (ret int64, err *cd.Result) {
 // ConvertRawToUint convert raw uint
 // 如果val为指针值，尝试将其转换成*uint，否则转换成uint
 // 将转换后的结果以model.RawVal形式返回
-// 转换出错返回*cd.Result
-func ConvertRawToUint(val any) (ret uint, err *cd.Result) {
+// 转换出错返回*cd.Error
+func ConvertRawToUint(val any) (ret uint, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	rawVal, rawErr := ConvertToUint(rVal)
 	if rawErr != nil {
@@ -452,8 +452,8 @@ func ConvertRawToUint(val any) (ret uint, err *cd.Result) {
 // ConvertRawToUint8 convert raw uint8
 // 如果val为指针值，尝试将其转换成*uint8，否则转换成uint8
 // 将转换后的结果以model.RawVal形式返回
-// 转换出错返回*cd.Result
-func ConvertRawToUint8(val any) (ret uint8, err *cd.Result) {
+// 转换出错返回*cd.Error
+func ConvertRawToUint8(val any) (ret uint8, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	rawVal, rawErr := ConvertToUint8(rVal)
 	if rawErr != nil {
@@ -467,8 +467,8 @@ func ConvertRawToUint8(val any) (ret uint8, err *cd.Result) {
 // ConvertRawToUint16 convert raw uint16
 // 如果val为指针值，尝试将其转换成*uint16，否则转换成uint16
 // 将转换后的结果以model.RawVal形式返回
-// 转换出错返回*cd.Result
-func ConvertRawToUint16(val any) (ret uint16, err *cd.Result) {
+// 转换出错返回*cd.Error
+func ConvertRawToUint16(val any) (ret uint16, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	rawVal, rawErr := ConvertToUint16(rVal)
 	if rawErr != nil {
@@ -482,8 +482,8 @@ func ConvertRawToUint16(val any) (ret uint16, err *cd.Result) {
 // ConvertRawToUint32 convert raw uint32
 // 如果val为指针值，尝试将其转换成*uint32，否则转换成uint32
 // 将转换后的结果以model.RawVal形式返回
-// 转换出错返回*cd.Result
-func ConvertRawToUint32(val any) (ret uint32, err *cd.Result) {
+// 转换出错返回*cd.Error
+func ConvertRawToUint32(val any) (ret uint32, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	rawVal, rawErr := ConvertToUint32(rVal)
 	if rawErr != nil {
@@ -497,8 +497,8 @@ func ConvertRawToUint32(val any) (ret uint32, err *cd.Result) {
 // ConvertRawToUint64 convert raw uint64
 // 如果val为指针值，尝试将其转换成*uint64，否则转换成uint64
 // 将转换后的结果以model.RawVal形式返回
-// 转换出错返回*cd.Result
-func ConvertRawToUint64(val any) (ret uint64, err *cd.Result) {
+// 转换出错返回*cd.Error
+func ConvertRawToUint64(val any) (ret uint64, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	rawVal, rawErr := ConvertToUint64(rVal)
 	if rawErr != nil {
@@ -512,8 +512,8 @@ func ConvertRawToUint64(val any) (ret uint64, err *cd.Result) {
 // ConvertRawToFloat32 convert raw float32
 // 如果val为指针值，尝试将其转换成*float32，否则转换成float32
 // 将转换后的结果以model.RawVal形式返回
-// 转换出错返回*cd.Result
-func ConvertRawToFloat32(val any) (ret float32, err *cd.Result) {
+// 转换出错返回*cd.Error
+func ConvertRawToFloat32(val any) (ret float32, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	rawVal, rawErr := ConvertToFloat32(rVal)
 	if rawErr != nil {
@@ -527,8 +527,8 @@ func ConvertRawToFloat32(val any) (ret float32, err *cd.Result) {
 // ConvertRawToFloat64 convert raw float64
 // 如果val为指针值，尝试将其转换成*float64，否则转换成float64
 // 将转换后的结果以model.RawVal形式返回
-// 转换出错返回*cd.Result
-func ConvertRawToFloat64(val any) (ret float64, err *cd.Result) {
+// 转换出错返回*cd.Error
+func ConvertRawToFloat64(val any) (ret float64, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	rawVal, rawErr := ConvertToFloat64(rVal)
 	if rawErr != nil {
@@ -542,8 +542,8 @@ func ConvertRawToFloat64(val any) (ret float64, err *cd.Result) {
 // ConvertRawToString convert raw string
 // 如果val为指针值，尝试将其转换成*string，否则转换成string
 // 将转换后的结果以model.RawVal形式返回
-// 转换出错返回*cd.Result
-func ConvertRawToString(val any) (ret string, err *cd.Result) {
+// 转换出错返回*cd.Error
+func ConvertRawToString(val any) (ret string, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
 	rawVal, rawErr := ConvertToString(rVal)
 	if rawErr != nil {
@@ -557,11 +557,11 @@ func ConvertRawToString(val any) (ret string, err *cd.Result) {
 // ConvertRawToDateTime convert raw dateTime
 // 如果val为指针值，尝试将其转换成*time.Time，否则转换成time.Time
 // 将转换后的结果以model.RawVal形式返回
-// 转换出错返回*cd.Result
-func ConvertRawToDateTime(val any) (ret time.Time, err *cd.Result) {
+// 转换出错返回*cd.Error
+func ConvertRawToDateTime(val any) (ret time.Time, err *cd.Error) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
-			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val:%v", val))
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val:%v", val))
 		}
 	}()
 
@@ -581,7 +581,7 @@ func ConvertRawToDateTime(val any) (ret time.Time, err *cd.Result) {
 // rVal如果是数值类型，则大于0为true,否则为false
 // rVal如果是字符串类型，则尝试将其解析成bool，接受 "true"、"yes"、"1" 等常见 true 值（不区分大小写）
 // rVal其他类型返回错误
-func ConvertToBool(rVal reflect.Value) (ret bool, err *cd.Result) {
+func ConvertToBool(rVal reflect.Value) (ret bool, err *cd.Error) {
 	rVal = reflect.Indirect(rVal)
 	trueSynonyms := map[string]bool{
 		"true":  true,
@@ -607,7 +607,7 @@ func ConvertToBool(rVal reflect.Value) (ret bool, err *cd.Result) {
 		strVal := strings.ToLower(strings.TrimSpace(rVal.String()))
 		ret = trueSynonyms[strVal]
 	default:
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal bool value, val type:%v", rVal.Type().String()))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal bool value, val type:%v", rVal.Type().String()))
 	}
 
 	return
@@ -619,7 +619,7 @@ func ConvertToBool(rVal reflect.Value) (ret bool, err *cd.Result) {
 // rVal如果是数值类型，则转换成对应的Int
 // rVal如果是字符串类型，则尝试将其解析成Int
 // rVal其他类型返回错误
-func ConvertToInt(rVal reflect.Value) (ret int, err *cd.Result) {
+func ConvertToInt(rVal reflect.Value) (ret int, err *cd.Error) {
 	rVal = reflect.Indirect(rVal)
 	result, err := convertNumberVal(reflect.Int, rVal)
 	if err != nil {
@@ -635,7 +635,7 @@ func ConvertToInt(rVal reflect.Value) (ret int, err *cd.Result) {
 // rVal如果是数值类型，则转换成对应的Int8
 // rVal如果是字符串类型，则尝试将其解析成Int8
 // rVal其他类型返回错误
-func ConvertToInt8(rVal reflect.Value) (ret int8, err *cd.Result) {
+func ConvertToInt8(rVal reflect.Value) (ret int8, err *cd.Error) {
 	rVal = reflect.Indirect(rVal)
 	result, err := convertNumberVal(reflect.Int8, rVal)
 	if err != nil {
@@ -651,7 +651,7 @@ func ConvertToInt8(rVal reflect.Value) (ret int8, err *cd.Result) {
 // rVal如果是数值类型，则转换成对应的Int16
 // rVal如果是字符串类型，则尝试将其解析成Int16
 // rVal其他类型返回错误
-func ConvertToInt16(rVal reflect.Value) (ret int16, err *cd.Result) {
+func ConvertToInt16(rVal reflect.Value) (ret int16, err *cd.Error) {
 	rVal = reflect.Indirect(rVal)
 	result, err := convertNumberVal(reflect.Int16, rVal)
 	if err != nil {
@@ -667,7 +667,7 @@ func ConvertToInt16(rVal reflect.Value) (ret int16, err *cd.Result) {
 // rVal如果是数值类型，则转换成对应的Int32
 // rVal如果是字符串类型，则尝试将其解析成Int32
 // rVal其他类型返回错误
-func ConvertToInt32(rVal reflect.Value) (ret int32, err *cd.Result) {
+func ConvertToInt32(rVal reflect.Value) (ret int32, err *cd.Error) {
 	rVal = reflect.Indirect(rVal)
 	result, err := convertNumberVal(reflect.Int32, rVal)
 	if err != nil {
@@ -683,7 +683,7 @@ func ConvertToInt32(rVal reflect.Value) (ret int32, err *cd.Result) {
 // rVal如果是数值类型，则转换成对应的Int64
 // rVal如果是字符串类型，则尝试将其解析成Int64
 // rVal其他类型返回错误
-func ConvertToInt64(rVal reflect.Value) (ret int64, err *cd.Result) {
+func ConvertToInt64(rVal reflect.Value) (ret int64, err *cd.Error) {
 	rVal = reflect.Indirect(rVal)
 	result, err := convertNumberVal(reflect.Int64, rVal)
 	if err != nil {
@@ -699,7 +699,7 @@ func ConvertToInt64(rVal reflect.Value) (ret int64, err *cd.Result) {
 // rVal如果是数值类型，则转换成对应的Uint
 // rVal如果是字符串类型，则尝试将其解析成Uint
 // rVal其他类型返回错误
-func ConvertToUint(rVal reflect.Value) (ret uint, err *cd.Result) {
+func ConvertToUint(rVal reflect.Value) (ret uint, err *cd.Error) {
 	rVal = reflect.Indirect(rVal)
 	result, err := convertNumberVal(reflect.Uint, rVal)
 	if err != nil {
@@ -715,7 +715,7 @@ func ConvertToUint(rVal reflect.Value) (ret uint, err *cd.Result) {
 // rVal如果是数值类型，则转换成对应的Uint8
 // rVal如果是字符串类型，则尝试将其解析成Uint8
 // rVal其他类型返回错误
-func ConvertToUint8(rVal reflect.Value) (ret uint8, err *cd.Result) {
+func ConvertToUint8(rVal reflect.Value) (ret uint8, err *cd.Error) {
 	rVal = reflect.Indirect(rVal)
 	result, err := convertNumberVal(reflect.Uint8, rVal)
 	if err != nil {
@@ -731,7 +731,7 @@ func ConvertToUint8(rVal reflect.Value) (ret uint8, err *cd.Result) {
 // rVal如果是数值类型，则转换成对应的Uint16
 // rVal如果是字符串类型，则尝试将其解析成Uint16
 // rVal其他类型返回错误
-func ConvertToUint16(rVal reflect.Value) (ret uint16, err *cd.Result) {
+func ConvertToUint16(rVal reflect.Value) (ret uint16, err *cd.Error) {
 	rVal = reflect.Indirect(rVal)
 	result, err := convertNumberVal(reflect.Uint16, rVal)
 	if err != nil {
@@ -747,7 +747,7 @@ func ConvertToUint16(rVal reflect.Value) (ret uint16, err *cd.Result) {
 // rVal如果是数值类型，则转换成对应的Uint32
 // rVal如果是字符串类型，则尝试将其解析成Uint32
 // rVal其他类型返回错误
-func ConvertToUint32(rVal reflect.Value) (ret uint32, err *cd.Result) {
+func ConvertToUint32(rVal reflect.Value) (ret uint32, err *cd.Error) {
 	rVal = reflect.Indirect(rVal)
 	result, err := convertNumberVal(reflect.Uint32, rVal)
 	if err != nil {
@@ -763,7 +763,7 @@ func ConvertToUint32(rVal reflect.Value) (ret uint32, err *cd.Result) {
 // rVal如果是数值类型，则转换成对应的Uint64
 // rVal如果是字符串类型，则尝试将其解析成Uint64
 // rVal其他类型返回错误
-func ConvertToUint64(rVal reflect.Value) (ret uint64, err *cd.Result) {
+func ConvertToUint64(rVal reflect.Value) (ret uint64, err *cd.Error) {
 	rVal = reflect.Indirect(rVal)
 	result, err := convertNumberVal(reflect.Uint64, rVal)
 	if err != nil {
@@ -779,7 +779,7 @@ func ConvertToUint64(rVal reflect.Value) (ret uint64, err *cd.Result) {
 // rVal如果是数值类型，则转换成对应的Float32
 // rVal如果是字符串类型，则尝试将其解析成Float32
 // rVal其他类型返回错误
-func ConvertToFloat32(rVal reflect.Value) (ret float32, err *cd.Result) {
+func ConvertToFloat32(rVal reflect.Value) (ret float32, err *cd.Error) {
 	rVal = reflect.Indirect(rVal)
 	result, err := convertNumberVal(reflect.Float32, rVal)
 	if err != nil {
@@ -795,7 +795,7 @@ func ConvertToFloat32(rVal reflect.Value) (ret float32, err *cd.Result) {
 // rVal如果是数值类型，则转换成对应的Float64
 // rVal如果是字符串类型，则尝试将其解析成Float64
 // rVal其他类型返回错误
-func ConvertToFloat64(rVal reflect.Value) (ret float64, err *cd.Result) {
+func ConvertToFloat64(rVal reflect.Value) (ret float64, err *cd.Error) {
 	rVal = reflect.Indirect(rVal)
 	result, err := convertNumberVal(reflect.Float64, rVal)
 	if err != nil {
@@ -811,7 +811,7 @@ func ConvertToFloat64(rVal reflect.Value) (ret float64, err *cd.Result) {
 // rVal的类型如果是Bool,则将其格式化成"0"或"1"
 // rVal的类型如果是Struct,则要求值的类型是time.Time,将其以CSTLayout格式化("2006-01-02 15:04:05"),其他类型的Struct不支持
 // rVal如果是其他类型，则返回nil,并设置错误
-func ConvertToString(rVal reflect.Value) (ret string, err *cd.Result) {
+func ConvertToString(rVal reflect.Value) (ret string, err *cd.Error) {
 	rVal = reflect.Indirect(rVal)
 	switch rVal.Kind() {
 	case reflect.Bool:
@@ -833,10 +833,10 @@ func ConvertToString(rVal reflect.Value) (ret string, err *cd.Result) {
 		case "time.Time":
 			ret = rVal.Interface().(time.Time).Format(fu.CSTLayout)
 		default:
-			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal string value, val type:%v", rVal.Type().String()))
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal string value, val type:%v", rVal.Type().String()))
 		}
 	default:
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal string value, val type:%v", rVal.Type().String()))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal string value, val type:%v", rVal.Type().String()))
 	}
 
 	return
@@ -845,10 +845,10 @@ func ConvertToString(rVal reflect.Value) (ret string, err *cd.Result) {
 // ConvertToDateTime convert dateTime
 // rVal 对应的类型如果是String，则要求值的格式必须是符合CSTLayout的时间格式("2006-01-02 15:04:05")
 // rVal 对应的类型如果是Struct，则要求值是time.Time类型
-func ConvertToDateTime(rVal reflect.Value) (ret time.Time, err *cd.Result) {
+func ConvertToDateTime(rVal reflect.Value) (ret time.Time, err *cd.Error) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
-			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val:%v", rVal.Interface()))
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val:%v", rVal.Interface()))
 		}
 	}()
 
@@ -862,7 +862,7 @@ func ConvertToDateTime(rVal reflect.Value) (ret time.Time, err *cd.Result) {
 
 		tVal, tErr := time.Parse(fu.CSTLayout, rVal.String())
 		if tErr != nil {
-			err = cd.NewResult(cd.UnExpected, tErr.Error())
+			err = cd.NewError(cd.UnExpected, tErr.Error())
 			return
 		}
 		ret = tVal
@@ -871,10 +871,10 @@ func ConvertToDateTime(rVal reflect.Value) (ret time.Time, err *cd.Result) {
 		case "time.Time":
 			ret = rVal.Interface().(time.Time)
 		default:
-			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))
 		}
 	default:
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))
+		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))
 	}
 
 	return
@@ -885,9 +885,9 @@ func ConvertToDateTime(rVal reflect.Value) (ret time.Time, err *cd.Result) {
 // rVal 是要转换的 reflect.Value
 // 返回一个 interface{} 和一个错误
 // 要求返回值严格符合 kind 的类型
-func convertNumberVal(kind reflect.Kind, rVal reflect.Value) (result interface{}, err *cd.Result) {
+func convertNumberVal(kind reflect.Kind, rVal reflect.Value) (result interface{}, err *cd.Error) {
 	if !numberKindMap[kind] {
-		return nil, cd.NewResult(cd.UnExpected, fmt.Sprintf("unsupported target kind: %v", kind))
+		return nil, cd.NewError(cd.UnExpected, fmt.Sprintf("unsupported target kind: %v", kind))
 	}
 
 	switch rVal.Kind() {
@@ -902,11 +902,11 @@ func convertNumberVal(kind reflect.Kind, rVal reflect.Value) (result interface{}
 	case reflect.String:
 		return convertStringToNumber(kind, rVal.String())
 	default:
-		return nil, cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal %v value, val type:%v", kind, rVal.Type().String()))
+		return nil, cd.NewError(cd.UnExpected, fmt.Sprintf("illegal %v value, val type:%v", kind, rVal.Type().String()))
 	}
 }
 
-func convertBoolToNumber(kind reflect.Kind, val bool) (interface{}, *cd.Result) {
+func convertBoolToNumber(kind reflect.Kind, val bool) (interface{}, *cd.Error) {
 	var result interface{}
 	if val {
 		result = 1
@@ -940,11 +940,11 @@ func convertBoolToNumber(kind reflect.Kind, val bool) (interface{}, *cd.Result) 
 	case reflect.Float64:
 		return float64(result.(int)), nil
 	default:
-		return nil, cd.NewResult(cd.UnExpected, fmt.Sprintf("unsupported conversion from bool to %v", kind))
+		return nil, cd.NewError(cd.UnExpected, fmt.Sprintf("unsupported conversion from bool to %v", kind))
 	}
 }
 
-func convertIntToNumber(kind reflect.Kind, val int64) (interface{}, *cd.Result) {
+func convertIntToNumber(kind reflect.Kind, val int64) (interface{}, *cd.Error) {
 	switch kind {
 	case reflect.Int:
 		return int(val), nil
@@ -971,11 +971,11 @@ func convertIntToNumber(kind reflect.Kind, val int64) (interface{}, *cd.Result) 
 	case reflect.Float64:
 		return float64(val), nil
 	default:
-		return nil, cd.NewResult(cd.UnExpected, fmt.Sprintf("unsupported conversion from int64 to %v", kind))
+		return nil, cd.NewError(cd.UnExpected, fmt.Sprintf("unsupported conversion from int64 to %v", kind))
 	}
 }
 
-func convertUintToNumber(kind reflect.Kind, val uint64) (interface{}, *cd.Result) {
+func convertUintToNumber(kind reflect.Kind, val uint64) (interface{}, *cd.Error) {
 	switch kind {
 	case reflect.Int:
 		return int(val), nil
@@ -1002,11 +1002,11 @@ func convertUintToNumber(kind reflect.Kind, val uint64) (interface{}, *cd.Result
 	case reflect.Float64:
 		return float64(val), nil
 	default:
-		return nil, cd.NewResult(cd.UnExpected, fmt.Sprintf("unsupported conversion from uint64 to %v", kind))
+		return nil, cd.NewError(cd.UnExpected, fmt.Sprintf("unsupported conversion from uint64 to %v", kind))
 	}
 }
 
-func convertFloatToNumber(kind reflect.Kind, val float64) (interface{}, *cd.Result) {
+func convertFloatToNumber(kind reflect.Kind, val float64) (interface{}, *cd.Error) {
 	switch kind {
 	case reflect.Int:
 		return int(val), nil
@@ -1033,36 +1033,36 @@ func convertFloatToNumber(kind reflect.Kind, val float64) (interface{}, *cd.Resu
 	case reflect.Float64:
 		return val, nil
 	default:
-		return nil, cd.NewResult(cd.UnExpected, fmt.Sprintf("unsupported conversion from float64 to %v", kind))
+		return nil, cd.NewError(cd.UnExpected, fmt.Sprintf("unsupported conversion from float64 to %v", kind))
 	}
 }
 
-func convertStringToNumber(kind reflect.Kind, val string) (interface{}, *cd.Result) {
+func convertStringToNumber(kind reflect.Kind, val string) (interface{}, *cd.Error) {
 	switch {
 	case integerKindMap[kind]:
 		i, err := strconv.ParseInt(val, 10, 64)
 		if err != nil {
-			return nil, cd.NewResult(cd.UnExpected, fmt.Sprintf("parse int value failed, error:%s", err.Error()))
+			return nil, cd.NewError(cd.UnExpected, fmt.Sprintf("parse int value failed, error:%s", err.Error()))
 		}
 		return convertIntToNumber(kind, i)
 	case uintegerKindMap[kind]:
 		u, err := strconv.ParseUint(val, 10, 64)
 		if err != nil {
-			return nil, cd.NewResult(cd.UnExpected, fmt.Sprintf("parse uint value failed, error:%s", err.Error()))
+			return nil, cd.NewError(cd.UnExpected, fmt.Sprintf("parse uint value failed, error:%s", err.Error()))
 		}
 		return convertUintToNumber(kind, u)
 	case floatKindMap[kind]:
 		f, err := strconv.ParseFloat(val, 64)
 		if err != nil {
-			return nil, cd.NewResult(cd.UnExpected, fmt.Sprintf("parse float value failed, error:%s", err.Error()))
+			return nil, cd.NewError(cd.UnExpected, fmt.Sprintf("parse float value failed, error:%s", err.Error()))
 		}
 		return convertFloatToNumber(kind, f)
 	default:
-		return nil, cd.NewResult(cd.UnExpected, fmt.Sprintf("unsupported conversion from string to %v", kind))
+		return nil, cd.NewError(cd.UnExpected, fmt.Sprintf("unsupported conversion from string to %v", kind))
 	}
 }
 
-func ElemDependValue(vVal reflect.Value) (ret []reflect.Value, err *cd.Result) {
+func ElemDependValue(vVal reflect.Value) (ret []reflect.Value, err *cd.Error) {
 	if vVal.Kind() == reflect.Interface {
 		vVal = vVal.Elem()
 	}
@@ -1073,7 +1073,7 @@ func ElemDependValue(vVal reflect.Value) (ret []reflect.Value, err *cd.Result) {
 	}
 
 	if rVal.Kind() != reflect.Slice {
-		err = cd.NewResult(cd.UnExpected, "illegal slice value")
+		err = cd.NewError(cd.UnExpected, "illegal slice value")
 		return
 	}
 

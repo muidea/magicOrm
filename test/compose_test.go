@@ -19,7 +19,7 @@ import (
 const composeLocalOwner = "composeLocal"
 const composeRemoteOwner = "composeRemote"
 
-func prepareLocalData(localProvider provider.Provider, orm orm.Orm) (sPtr *Simple, rPtr *Reference, cPtr *Compose, err *cd.Result) {
+func prepareLocalData(localProvider provider.Provider, orm orm.Orm) (sPtr *Simple, rPtr *Reference, cPtr *Compose, err *cd.Error) {
 	ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	sVal := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
 
@@ -100,7 +100,7 @@ func prepareLocalData(localProvider provider.Provider, orm orm.Orm) (sPtr *Simpl
 	return
 }
 
-func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Simple, rPtr *Reference, cPtr *Compose, err *cd.Result) {
+func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Simple, rPtr *Reference, cPtr *Compose, err *cd.Error) {
 	ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	sVal := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
 
@@ -339,7 +339,7 @@ func TestComposeLocal(t *testing.T) {
 	queryVal = queryModel.Interface(true).(*Compose)
 
 	if !composePtr.IsSame(queryVal) {
-		err = cd.NewResult(cd.UnExpected, "compare value failed")
+		err = cd.NewError(cd.UnExpected, "compare value failed")
 		t.Errorf("IsSame failed. err:%s", err.Error())
 		return
 	}
@@ -542,7 +542,7 @@ func TestComposeRemote(t *testing.T) {
 	}
 
 	if !composePtr.IsSame(queryComposeVal) {
-		err = cd.NewResult(cd.UnExpected, "compare value failed")
+		err = cd.NewError(cd.UnExpected, "compare value failed")
 		t.Errorf("IsSame failed. err:%s", err.Error())
 		return
 	}

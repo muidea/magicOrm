@@ -249,7 +249,7 @@ func (l *Compose) IsSame(r *Compose) bool {
 	return true
 }
 
-func registerLocalModel(provider provider.Provider, objList []any) (ret []model.Model, err *cd.Result) {
+func registerLocalModel(provider provider.Provider, objList []any) (ret []model.Model, err *cd.Error) {
 	for _, val := range objList {
 		modelVal, modelErr := provider.RegisterModel(val)
 		if modelErr != nil {
@@ -263,7 +263,7 @@ func registerLocalModel(provider provider.Provider, objList []any) (ret []model.
 	return
 }
 
-func registerRemoteModel(provider provider.Provider, objList []any) (ret []model.Model, err *cd.Result) {
+func registerRemoteModel(provider provider.Provider, objList []any) (ret []model.Model, err *cd.Error) {
 	for _, val := range objList {
 		remoteObjectPtr, remoteObjectErr := helper.GetObject(val)
 		if remoteObjectErr != nil {
@@ -282,7 +282,7 @@ func registerRemoteModel(provider provider.Provider, objList []any) (ret []model
 	return
 }
 
-func createModel(orm orm.Orm, modelList []model.Model) (err *cd.Result) {
+func createModel(orm orm.Orm, modelList []model.Model) (err *cd.Error) {
 	for _, val := range modelList {
 		err = orm.Create(val)
 		if err != nil {
@@ -293,7 +293,7 @@ func createModel(orm orm.Orm, modelList []model.Model) (err *cd.Result) {
 	return
 }
 
-func dropModel(orm orm.Orm, modelList []model.Model) (err *cd.Result) {
+func dropModel(orm orm.Orm, modelList []model.Model) (err *cd.Error) {
 	for _, val := range modelList {
 		err = orm.Drop(val)
 		if err != nil {
@@ -304,7 +304,7 @@ func dropModel(orm orm.Orm, modelList []model.Model) (err *cd.Result) {
 	return
 }
 
-func getObjectValue(val any) (ret *remote.ObjectValue, err *cd.Result) {
+func getObjectValue(val any) (ret *remote.ObjectValue, err *cd.Error) {
 	objVal, objErr := helper.GetObjectValue(val)
 	if objErr != nil {
 		err = objErr

@@ -8,7 +8,7 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func checkEntityType(entity any) (ret *TypeImpl, err *cd.Result) {
+func checkEntityType(entity any) (ret *TypeImpl, err *cd.Error) {
 	typeImplPtr, typeImplErr := NewType(reflect.TypeOf(entity))
 	if typeImplErr != nil {
 		err = typeImplErr
@@ -16,7 +16,7 @@ func checkEntityType(entity any) (ret *TypeImpl, err *cd.Result) {
 		return
 	}
 	if !model.IsStruct(typeImplPtr.Elem()) {
-		err = cd.NewResult(cd.IllegalParam, "entity is invalid")
+		err = cd.NewError(cd.IllegalParam, "entity is invalid")
 		log.Errorf("checkEntityType failed, illegal entity type, err:%s", err.Error())
 		return
 	}
@@ -25,9 +25,9 @@ func checkEntityType(entity any) (ret *TypeImpl, err *cd.Result) {
 	return
 }
 
-func GetEntityType(entity any) (ret model.Type, err *cd.Result) {
+func GetEntityType(entity any) (ret model.Type, err *cd.Error) {
 	if entity == nil {
-		err = cd.NewResult(cd.IllegalParam, "entity is invalid")
+		err = cd.NewError(cd.IllegalParam, "entity is invalid")
 		return
 	}
 
@@ -42,9 +42,9 @@ func GetEntityType(entity any) (ret model.Type, err *cd.Result) {
 	return
 }
 
-func GetEntityValue(entity any) (ret model.Value, err *cd.Result) {
+func GetEntityValue(entity any) (ret model.Value, err *cd.Error) {
 	if entity == nil {
-		err = cd.NewResult(cd.IllegalParam, "entity is invalid")
+		err = cd.NewError(cd.IllegalParam, "entity is invalid")
 		return
 	}
 
@@ -58,9 +58,9 @@ func GetEntityValue(entity any) (ret model.Value, err *cd.Result) {
 	return
 }
 
-func GetEntityModel(entity any) (ret model.Model, err *cd.Result) {
+func GetEntityModel(entity any) (ret model.Model, err *cd.Error) {
 	if entity == nil {
-		err = cd.NewResult(cd.IllegalParam, "entity is invalid")
+		err = cd.NewError(cd.IllegalParam, "entity is invalid")
 		return
 	}
 
@@ -81,14 +81,14 @@ func GetEntityModel(entity any) (ret model.Model, err *cd.Result) {
 	return
 }
 
-func GetValueModel(vVal model.Value) (ret model.Model, err *cd.Result) {
+func GetValueModel(vVal model.Value) (ret model.Model, err *cd.Error) {
 	if vVal == nil {
-		err = cd.NewResult(cd.IllegalParam, "value is invalid")
+		err = cd.NewError(cd.IllegalParam, "value is invalid")
 		return
 	}
 	valueImplPtr, valueImplOK := vVal.(*ValueImpl)
 	if !valueImplOK {
-		err = cd.NewResult(cd.IllegalParam, "value is invalid")
+		err = cd.NewError(cd.IllegalParam, "value is invalid")
 		return
 	}
 
@@ -102,16 +102,16 @@ func GetValueModel(vVal model.Value) (ret model.Model, err *cd.Result) {
 	return
 }
 
-func GetModelFilter(vModel model.Model) (ret model.Filter, err *cd.Result) {
+func GetModelFilter(vModel model.Model) (ret model.Filter, err *cd.Error) {
 	valuePtr := NewValue(reflect.ValueOf(vModel.Interface(true)))
 	ret = newFilter(valuePtr)
 	return
 }
 
-func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *cd.Result) {
+func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *cd.Error) {
 	valImplPtr, valImplOK := vVal.(*ValueImpl)
 	if !valImplOK {
-		err = cd.NewResult(cd.IllegalParam, "value is invalid")
+		err = cd.NewError(cd.IllegalParam, "value is invalid")
 		log.Errorf("SetModelValue failed, err:%s", err.Error())
 		return
 	}

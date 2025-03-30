@@ -11,7 +11,7 @@ type Value interface {
 	IsValid() bool
 	IsZero() bool
 	Get() any
-	Set(val any) *cd.Result
+	Set(val any) *cd.Error
 	UnpackValue() []Value
 }
 

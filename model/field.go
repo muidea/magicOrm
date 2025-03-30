@@ -9,9 +9,9 @@ type Field interface {
 	GetType() Type
 	GetSpec() Spec
 	GetValue() Value
-	SetValue(val any) *cd.Result
+	SetValue(val any) *cd.Error
 	GetSliceValue() []Value
-	AppendSliceValue(val any) *cd.Result
+	AppendSliceValue(val any) *cd.Error
 	Reset()
 }
 

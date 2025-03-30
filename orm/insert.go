@@ -29,7 +29,7 @@ func NewInsertRunner(
 	}
 }
 
-func (s *InsertRunner) insertHost(vModel model.Model) (err *cd.Result) {
+func (s *InsertRunner) insertHost(vModel model.Model) (err *cd.Error) {
 	autoIncrementFlag := false
 	for _, field := range vModel.GetFields() {
 		if !model.IsBasicField(field) {
@@ -65,7 +65,7 @@ func (s *InsertRunner) insertHost(vModel model.Model) (err *cd.Result) {
 	return
 }
 
-func (s *InsertRunner) innerHost(vModel model.Model) (ret any, err *cd.Result) {
+func (s *InsertRunner) innerHost(vModel model.Model) (ret any, err *cd.Error) {
 	insertResult, insertErr := s.hBuilder.BuildInsert(vModel)
 	if insertErr != nil {
 		err = insertErr
@@ -84,7 +84,7 @@ func (s *InsertRunner) innerHost(vModel model.Model) (ret any, err *cd.Result) {
 	return
 }
 
-func (s *InsertRunner) insertRelation(vModel model.Model, vField model.Field) (err *cd.Result) {
+func (s *InsertRunner) insertRelation(vModel model.Model, vField model.Field) (err *cd.Error) {
 	if model.IsSliceField(vField) {
 		rErr := s.insertSliceRelation(vModel, vField)
 		if rErr != nil {
@@ -104,7 +104,7 @@ func (s *InsertRunner) insertRelation(vModel model.Model, vField model.Field) (e
 	return
 }
 
-func (s *InsertRunner) insertSingleRelation(vModel model.Model, vField model.Field) (err *cd.Result) {
+func (s *InsertRunner) insertSingleRelation(vModel model.Model, vField model.Field) (err *cd.Error) {
 	elemType := vField.GetType().Elem()
 	rModel, rErr := s.modelProvider.GetTypeModel(elemType)
 	if rErr != nil {
@@ -146,7 +146,7 @@ func (s *InsertRunner) insertSingleRelation(vModel model.Model, vField model.Fie
 	return
 }
 
-func (s *InsertRunner) insertSliceRelation(vModel model.Model, vField model.Field) (err *cd.Result) {
+func (s *InsertRunner) insertSliceRelation(vModel model.Model, vField model.Field) (err *cd.Error) {
 	fSliceValue := vField.GetSliceValue()
 	for _, fVal := range fSliceValue {
 		elemType := vField.GetType().Elem()
@@ -196,7 +196,7 @@ func (s *InsertRunner) insertSliceRelation(vModel model.Model, vField model.Fiel
 	return
 }
 
-func (s *InsertRunner) Insert() (ret model.Model, err *cd.Result) {
+func (s *InsertRunner) Insert() (ret model.Model, err *cd.Error) {
 	err = s.insertHost(s.vModel)
 	if err != nil {
 		log.Errorf("Insert failed, s.insertSingle error:%s", err.Error())
@@ -219,9 +219,9 @@ func (s *InsertRunner) Insert() (ret model.Model, err *cd.Result) {
 	return
 }
 
-func (s *impl) Insert(vModel model.Model) (ret model.Model, err *cd.Result) {
+func (s *impl) Insert(vModel model.Model) (ret model.Model, err *cd.Error) {
 	if vModel == nil {
-		err = cd.NewResult(cd.IllegalParam, "illegal model value")
+		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return
 	}
 

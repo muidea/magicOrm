@@ -10,7 +10,7 @@ import (
 )
 
 // BuildQuery build query sql
-func (s *Builder) BuildQuery(vModel model.Model, filter model.Filter) (ret *ResultStack, err *cd.Result) {
+func (s *Builder) BuildQuery(vModel model.Model, filter model.Filter) (ret *ResultStack, err *cd.Error) {
 	namesVal, nameErr := s.getFieldQueryNames(vModel)
 	if nameErr != nil {
 		err = nameErr
@@ -59,7 +59,7 @@ func (s *Builder) BuildQuery(vModel model.Model, filter model.Filter) (ret *Resu
 }
 
 // BuildQueryRelation build query relation sql
-func (s *Builder) BuildQueryRelation(vModel model.Model, vField model.Field) (ret *ResultStack, err *cd.Result) {
+func (s *Builder) BuildQueryRelation(vModel model.Model, vField model.Field) (ret *ResultStack, err *cd.Error) {
 	leftVal := vModel.GetPrimaryField().GetValue().Get()
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
@@ -80,7 +80,7 @@ func (s *Builder) BuildQueryRelation(vModel model.Model, vField model.Field) (re
 	return
 }
 
-func (s *Builder) getFieldQueryNames(vModel model.Model) (ret string, err *cd.Result) {
+func (s *Builder) getFieldQueryNames(vModel model.Model) (ret string, err *cd.Error) {
 	str := ""
 	for _, field := range vModel.GetFields() {
 		if !model.IsBasicField(field) || !model.IsValidField(field) {
@@ -98,11 +98,11 @@ func (s *Builder) getFieldQueryNames(vModel model.Model) (ret string, err *cd.Re
 	return
 }
 
-func (s *Builder) GetFieldPlaceHolder(vField model.Field) (ret any, err *cd.Result) {
+func (s *Builder) GetFieldPlaceHolder(vField model.Field) (ret any, err *cd.Error) {
 	return getFieldPlaceHolder(vField.GetType())
 }
 
-func (s *Builder) BuildQueryPlaceHolder(vModel model.Model) (ret []any, err *cd.Result) {
+func (s *Builder) BuildQueryPlaceHolder(vModel model.Model) (ret []any, err *cd.Error) {
 	items := []any{}
 	for _, field := range vModel.GetFields() {
 		if !model.IsBasicField(field) || !model.IsValidField(field) {
@@ -123,7 +123,7 @@ func (s *Builder) BuildQueryPlaceHolder(vModel model.Model) (ret []any, err *cd.
 	return
 }
 
-func (s *Builder) BuildQueryRelationPlaceHolder(vModel model.Model, vField model.Field) (ret any, err *cd.Result) {
+func (s *Builder) BuildQueryRelationPlaceHolder(vModel model.Model, vField model.Field) (ret any, err *cd.Error) {
 	rModelVal, rModelErr := s.modelProvider.GetTypeModel(vField.GetType().Elem())
 	if rModelErr != nil {
 		err = rModelErr

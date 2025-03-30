@@ -55,7 +55,7 @@ func (s *field) GetValue() (ret model.Value) {
 	return
 }
 
-func (s *field) SetValue(val any) *cd.Result {
+func (s *field) SetValue(val any) *cd.Error {
 	return s.valuePtr.Set(val)
 }
 
@@ -67,14 +67,14 @@ func (s *field) GetSliceValue() []model.Value {
 	return s.valuePtr.UnpackValue()
 }
 
-func (s *field) AppendSliceValue(val any) (err *cd.Result) {
+func (s *field) AppendSliceValue(val any) (err *cd.Error) {
 	if val == nil {
-		err = cd.NewResult(cd.UnExpected, "field append slice value is nil")
+		err = cd.NewError(cd.UnExpected, "field append slice value is nil")
 		return
 	}
 
 	if !model.IsSlice(s.typePtr) {
-		err = cd.NewResult(cd.UnExpected, "field is not slice")
+		err = cd.NewError(cd.UnExpected, "field is not slice")
 		return
 	}
 
@@ -86,7 +86,7 @@ func (s *field) Reset() {
 	s.valuePtr.reset(model.IsAssignedField(s))
 }
 
-func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Value, viewSpec model.ViewDeclare) (ret *field, err *cd.Result) {
+func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Value, viewSpec model.ViewDeclare) (ret *field, err *cd.Error) {
 	var typePtr *TypeImpl
 	var specPtr *SpecImpl
 	var valuePtr *ValueImpl

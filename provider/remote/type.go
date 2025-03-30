@@ -48,7 +48,7 @@ func (s *TypeImpl) IsPtrType() (ret bool) {
 	return
 }
 
-func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
+func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 	if initVal != nil {
 		switch s.GetValue() {
 		case model.TypeBooleanValue:

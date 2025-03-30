@@ -9,7 +9,7 @@ import (
 	"github.com/muidea/magicOrm/provider"
 )
 
-func getModelFilter(vModel model.Model, provider provider.Provider, modelCodec codec.Codec) (ret model.Filter, err *cd.Result) {
+func getModelFilter(vModel model.Model, provider provider.Provider, modelCodec codec.Codec) (ret model.Filter, err *cd.Error) {
 	filterVal, filterErr := provider.GetModelFilter(vModel)
 	if filterErr != nil {
 		err = filterErr

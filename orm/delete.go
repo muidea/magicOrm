@@ -30,7 +30,7 @@ func NewDeleteRunner(
 	}
 }
 
-func (s *DeleteRunner) deleteHost(vModel model.Model) (err *cd.Result) {
+func (s *DeleteRunner) deleteHost(vModel model.Model) (err *cd.Error) {
 	deleteResult, deleteErr := s.hBuilder.BuildDelete(vModel)
 	if deleteErr != nil {
 		err = deleteErr
@@ -45,7 +45,7 @@ func (s *DeleteRunner) deleteHost(vModel model.Model) (err *cd.Result) {
 	return
 }
 
-func (s *DeleteRunner) deleteRelation(vModel model.Model, vField model.Field, deepLevel int) (err *cd.Result) {
+func (s *DeleteRunner) deleteRelation(vModel model.Model, vField model.Field, deepLevel int) (err *cd.Error) {
 	hostResult, relationResult, resultErr := s.hBuilder.BuildDeleteRelation(vModel, vField)
 	if resultErr != nil {
 		err = resultErr
@@ -92,7 +92,7 @@ func (s *DeleteRunner) deleteRelation(vModel model.Model, vField model.Field, de
 	return
 }
 
-func (s *DeleteRunner) deleteRelationSingleStructInner(vField model.Field, deepLevel int) (err *cd.Result) {
+func (s *DeleteRunner) deleteRelationSingleStructInner(vField model.Field, deepLevel int) (err *cd.Error) {
 	rModel, rErr := s.modelProvider.GetTypeModel(vField.GetType())
 	if rErr != nil {
 		err = rErr
@@ -117,7 +117,7 @@ func (s *DeleteRunner) deleteRelationSingleStructInner(vField model.Field, deepL
 	return
 }
 
-func (s *DeleteRunner) deleteRelationSliceStructInner(vField model.Field, deepLevel int) (err *cd.Result) {
+func (s *DeleteRunner) deleteRelationSliceStructInner(vField model.Field, deepLevel int) (err *cd.Error) {
 	sliceVal := vField.GetSliceValue()
 	for _, val := range sliceVal {
 		rModel, rErr := s.modelProvider.GetTypeModel(vField.GetType().Elem())
@@ -144,7 +144,7 @@ func (s *DeleteRunner) deleteRelationSliceStructInner(vField model.Field, deepLe
 	return
 }
 
-func (s *DeleteRunner) Delete() (err *cd.Result) {
+func (s *DeleteRunner) Delete() (err *cd.Error) {
 	err = s.deleteHost(s.vModel)
 	if err != nil {
 		log.Errorf("Delete failed, s.deleteHost error:%s", err.Error())
@@ -166,9 +166,9 @@ func (s *DeleteRunner) Delete() (err *cd.Result) {
 	return
 }
 
-func (s *impl) Delete(vModel model.Model) (ret model.Model, err *cd.Result) {
+func (s *impl) Delete(vModel model.Model) (ret model.Model, err *cd.Error) {
 	if vModel == nil {
-		err = cd.NewResult(cd.IllegalParam, "illegal model value")
+		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return
 	}
 

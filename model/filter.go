@@ -37,16 +37,16 @@ type Paginationer interface {
 type Filter interface {
 	GetName() string
 	GetPkgPath() string
-	Equal(key string, val any) *cd.Result
-	NotEqual(key string, val any) *cd.Result
-	Below(key string, val any) *cd.Result
-	Above(key string, val any) *cd.Result
-	In(key string, val any) *cd.Result
-	NotIn(key string, val any) *cd.Result
-	Like(key string, val any) *cd.Result
+	Equal(key string, val any) *cd.Error
+	NotEqual(key string, val any) *cd.Error
+	Below(key string, val any) *cd.Error
+	Above(key string, val any) *cd.Error
+	In(key string, val any) *cd.Error
+	NotIn(key string, val any) *cd.Error
+	Like(key string, val any) *cd.Error
 	Pagination(pageNum, pageSize int)
 	Sort(fieldName string, ascFlag bool)
-	ValueMask(val any) *cd.Result
+	ValueMask(val any) *cd.Error
 
 	GetFilterItem(key string) FilterItem
 	Paginationer() Paginationer

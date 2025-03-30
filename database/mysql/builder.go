@@ -25,7 +25,7 @@ func New(provider provider.Provider, codec codec.Codec) *Builder {
 	}
 }
 
-func (s *Builder) buildFilter(vModel model.Model, filter model.Filter, resultStackPtr *ResultStack) (ret string, err *cd.Result) {
+func (s *Builder) buildFilter(vModel model.Model, filter model.Filter, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
 	if filter == nil {
 		return
 	}
@@ -73,7 +73,7 @@ func (s *Builder) buildFilter(vModel model.Model, filter model.Filter, resultSta
 	return
 }
 
-func (s *Builder) buildBasicFilterItem(vField model.Field, filterItem model.FilterItem, resultStackPtr *ResultStack) (ret string, err *cd.Result) {
+func (s *Builder) buildBasicFilterItem(vField model.Field, filterItem model.FilterItem, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
 	fieldVal, fieldErr := s.modelProvider.EncodeValue(oprValue.Get(), vField.GetType())
@@ -87,7 +87,7 @@ func (s *Builder) buildBasicFilterItem(vField model.Field, filterItem model.Filt
 	return
 }
 
-func (s *Builder) buildRelationFilterItem(vModel model.Model, vField model.Field, filterItem model.FilterItem, resultStackPtr *ResultStack) (ret string, err *cd.Result) {
+func (s *Builder) buildRelationFilterItem(vModel model.Model, vField model.Field, filterItem model.FilterItem, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
 
@@ -130,7 +130,7 @@ func (s *Builder) buildRelationFilterItem(vModel model.Model, vField model.Field
 	return
 }
 
-func (s *Builder) buildSorter(vModel model.Model, filter model.Sorter) (ret string, err *cd.Result) {
+func (s *Builder) buildSorter(vModel model.Model, filter model.Sorter) (ret string, err *cd.Error) {
 	if filter == nil {
 		return
 	}
@@ -142,12 +142,12 @@ func (s *Builder) buildSorter(vModel model.Model, filter model.Sorter) (ret stri
 		}
 	}
 
-	err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal sort field name:%s", filter.Name()))
+	err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal sort field name:%s", filter.Name()))
 	log.Errorf("buildSorter failed, err:%s", err.Error())
 	return
 }
 
-func (s *Builder) buildFieldFilter(vField model.Field, resultStackPtr *ResultStack) (ret string, err *cd.Result) {
+func (s *Builder) buildFieldFilter(vField model.Field, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
 	fieldName := vField.GetName()
 	resultStackPtr.PushArgs(vField.GetValue().Get())
 	ret = fmt.Sprintf("`%s` = ?", fieldName)

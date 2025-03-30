@@ -20,7 +20,7 @@ func NewCreateRunner(vModel model.Model, executor executor.Executor, provider pr
 	}
 }
 
-func (s *CreateRunner) createHost() (err *cd.Result) {
+func (s *CreateRunner) createHost() (err *cd.Error) {
 	createResult, createErr := s.hBuilder.BuildCreateTable(s.vModel)
 	if createErr != nil {
 		err = createErr
@@ -35,7 +35,7 @@ func (s *CreateRunner) createHost() (err *cd.Result) {
 	return
 }
 
-func (s *CreateRunner) createRelation(vField model.Field) (err *cd.Result) {
+func (s *CreateRunner) createRelation(vField model.Field) (err *cd.Error) {
 	relationResult, relationErr := s.hBuilder.BuildCreateRelationTable(s.vModel, vField)
 	if relationErr != nil {
 		err = relationErr
@@ -50,7 +50,7 @@ func (s *CreateRunner) createRelation(vField model.Field) (err *cd.Result) {
 	return
 }
 
-func (s *CreateRunner) Create() (err *cd.Result) {
+func (s *CreateRunner) Create() (err *cd.Error) {
 	err = s.createHost()
 	if err != nil {
 		log.Errorf("Create failed, s.createHost error:%s", err.Error())
@@ -89,9 +89,9 @@ func (s *CreateRunner) Create() (err *cd.Result) {
 	return
 }
 
-func (s *impl) Create(vModel model.Model) (err *cd.Result) {
+func (s *impl) Create(vModel model.Model) (err *cd.Error) {
 	if vModel == nil {
-		err = cd.NewResult(cd.IllegalParam, "illegal model value")
+		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return
 	}
 

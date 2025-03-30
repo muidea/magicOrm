@@ -43,7 +43,7 @@ func NewUpdateRunner(
 	}
 }
 
-func (s *UpdateRunner) updateHost(vModel model.Model) (err *cd.Result) {
+func (s *UpdateRunner) updateHost(vModel model.Model) (err *cd.Error) {
 	updateResult, updateErr := s.hBuilder.BuildUpdate(vModel)
 	if updateErr != nil {
 		err = updateErr
@@ -58,7 +58,7 @@ func (s *UpdateRunner) updateHost(vModel model.Model) (err *cd.Result) {
 	return
 }
 
-func (s *UpdateRunner) updateRelation(vModel model.Model, vField model.Field) (err *cd.Result) {
+func (s *UpdateRunner) updateRelation(vModel model.Model, vField model.Field) (err *cd.Error) {
 	newVal := vField.GetValue().Get()
 	err = s.deleteRelation(vModel, vField, 0)
 	if err != nil {
@@ -76,7 +76,7 @@ func (s *UpdateRunner) updateRelation(vModel model.Model, vField model.Field) (e
 	return
 }
 
-func (s *UpdateRunner) Update() (ret model.Model, err *cd.Result) {
+func (s *UpdateRunner) Update() (ret model.Model, err *cd.Error) {
 	err = s.updateHost(s.vModel)
 	if err != nil {
 		log.Errorf("Update failed, s.updateSingle error:%s", err.Error())
@@ -99,9 +99,9 @@ func (s *UpdateRunner) Update() (ret model.Model, err *cd.Result) {
 	return
 }
 
-func (s *impl) Update(vModel model.Model) (ret model.Model, err *cd.Result) {
+func (s *impl) Update(vModel model.Model) (ret model.Model, err *cd.Error) {
 	if vModel == nil {
-		err = cd.NewResult(cd.IllegalParam, "illegal model value")
+		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return
 	}
 

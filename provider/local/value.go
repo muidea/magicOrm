@@ -56,9 +56,9 @@ func (s *ValueImpl) IsZero() bool {
 	return s.value.IsZero()
 }
 
-func (s *ValueImpl) Set(val any) (err *cd.Result) {
+func (s *ValueImpl) Set(val any) (err *cd.Error) {
 	if !s.value.CanSet() {
-		err = cd.NewResult(cd.UnExpected, "Set failed, value is not settable")
+		err = cd.NewError(cd.UnExpected, "Set failed, value is not settable")
 		log.Warnf("Set failed, value is not settable")
 		return
 	}
@@ -71,7 +71,7 @@ func (s *ValueImpl) Set(val any) (err *cd.Result) {
 	isPtr := s.value.Kind() == reflect.Ptr
 	if !isPtr {
 		if rVal.Type() != s.value.Type() {
-			err = cd.NewResult(cd.UnExpected, "Set failed, value type is not match")
+			err = cd.NewError(cd.UnExpected, "Set failed, value type is not match")
 			log.Warnf("Set failed, value type is not match, data type:%+v, value type:%+v", rVal.Type(), s.value.Type())
 			return
 		}
@@ -82,7 +82,7 @@ func (s *ValueImpl) Set(val any) (err *cd.Result) {
 
 	rVal = reflect.Indirect(rVal)
 	if rVal.Type() != s.value.Type().Elem() {
-		err = cd.NewResult(cd.UnExpected, "Set failed, value type is not match")
+		err = cd.NewError(cd.UnExpected, "Set failed, value type is not match")
 		log.Warnf("Set failed, value type is not match")
 		return
 	}
@@ -114,10 +114,10 @@ func (s *ValueImpl) UnpackValue() (ret []model.Value) {
 }
 
 // Append appends the given value to the slice value.
-func (s *ValueImpl) Append(val reflect.Value) (err *cd.Result) {
+func (s *ValueImpl) Append(val reflect.Value) (err *cd.Error) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
-			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("%v", errInfo))
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("%v", errInfo))
 		}
 	}()
 

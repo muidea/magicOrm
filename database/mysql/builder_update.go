@@ -10,7 +10,7 @@ import (
 )
 
 // BuildUpdate  Build Update
-func (s *Builder) BuildUpdate(vModel model.Model) (ret *ResultStack, err *cd.Result) {
+func (s *Builder) BuildUpdate(vModel model.Model) (ret *ResultStack, err *cd.Error) {
 	resultStackPtr := &ResultStack{}
 	updateStr, updateErr := s.buildFieldUpdateValues(vModel, resultStackPtr)
 	if updateErr != nil {
@@ -35,7 +35,7 @@ func (s *Builder) BuildUpdate(vModel model.Model) (ret *ResultStack, err *cd.Res
 	return
 }
 
-func (s *Builder) buildFieldUpdateValues(vModel model.Model, resultStackPtr *ResultStack) (ret string, err *cd.Result) {
+func (s *Builder) buildFieldUpdateValues(vModel model.Model, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
 	str := ""
 	for _, field := range vModel.GetFields() {
 		if model.IsPrimaryField(field) {

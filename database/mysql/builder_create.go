@@ -11,7 +11,7 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *Builder) BuildCreateTable(vModel model.Model) (ret *ResultStack, err *cd.Result) {
+func (s *Builder) BuildCreateTable(vModel model.Model) (ret *ResultStack, err *cd.Error) {
 	createSQL := ""
 	for _, field := range vModel.GetFields() {
 		if !model.IsBasicField(field) {
@@ -40,12 +40,12 @@ func (s *Builder) BuildCreateTable(vModel model.Model) (ret *ResultStack, err *c
 		log.Infof("[SQL] create: %s", createSQL)
 	}
 
-	ret = NewResult(createSQL, nil)
+	ret = NewError(createSQL, nil)
 	return
 }
 
 // BuildCreateRelationTable Build CreateRelation Schema
-func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Field) (ret *ResultStack, err *cd.Result) {
+func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Field) (ret *ResultStack, err *cd.Error) {
 	lPKField := vModel.GetPrimaryField()
 	lPKType, lPKErr := getTypeDeclare(lPKField.GetType(), lPKField.GetSpec())
 	if lPKErr != nil {
@@ -82,7 +82,7 @@ func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Fiel
 		log.Infof("[SQL] create relation: %s", createRelationSQL)
 	}
 
-	ret = NewResult(createRelationSQL, nil)
+	ret = NewError(createRelationSQL, nil)
 	return
 }
 
@@ -91,7 +91,7 @@ func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Fiel
 // 类似以下信息
 // `id` int(11) NOT NULL AUTO_INCREMENT
 // `i8` tinyint(4) DEFAULT '100',
-func (s *Builder) declareFieldInfo(vField model.Field) (ret string, err *cd.Result) {
+func (s *Builder) declareFieldInfo(vField model.Field) (ret string, err *cd.Error) {
 	strBuffer := bytes.NewBufferString("")
 	// Write field name
 	strBuffer.WriteString("`")
@@ -142,7 +142,7 @@ func (s *Builder) declareFieldInfo(vField model.Field) (ret string, err *cd.Resu
 	return
 }
 
-func (s *Builder) validDefaultValue(vType model.Type, vSpec model.Spec) (ret string, err *cd.Result) {
+func (s *Builder) validDefaultValue(vType model.Type, vSpec model.Spec) (ret string, err *cd.Error) {
 	if !model.IsBasic(vType) || vType.IsPtrType() || vType.GetValue().IsSliceType() || vType.Elem().GetValue().IsStringValueType() {
 		// 非基础类型和切片类型不需要设置默认值
 		// 指针类型不需要设置默认值
@@ -185,7 +185,7 @@ func (s *Builder) validDefaultValue(vType model.Type, vSpec model.Spec) (ret str
 	return
 }
 
-func (s *Builder) validAutoIncrement(vType model.Type, vSpec model.Spec) (ret bool, err *cd.Result) {
+func (s *Builder) validAutoIncrement(vType model.Type, vSpec model.Spec) (ret bool, err *cd.Error) {
 	if vSpec == nil || !vSpec.IsPrimaryKey() || !vType.GetValue().IsNumberValueType() {
 		return
 	}

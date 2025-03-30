@@ -105,20 +105,20 @@ func IsPrimaryField(field Field) bool {
 // 3. 至少有一个PrimaryField
 // 4. 如果校验失败，则返回失败信息
 // 5. 校验通过返回nil
-func VerifyModel(vModel Model) (err *cd.Result) {
+func VerifyModel(vModel Model) (err *cd.Error) {
 	if vModel.GetName() == "" {
-		err = cd.NewResult(cd.UnExpected, "model name is empty")
+		err = cd.NewError(cd.UnExpected, "model name is empty")
 		return
 	}
 
 	if vModel.GetPkgPath() == "" {
-		err = cd.NewResult(cd.UnExpected, "model pkgPath is empty")
+		err = cd.NewError(cd.UnExpected, "model pkgPath is empty")
 		return
 	}
 
 	fieldNum := len(vModel.GetFields())
 	if fieldNum == 0 {
-		err = cd.NewResult(cd.UnExpected, "model fields is empty")
+		err = cd.NewError(cd.UnExpected, "model fields is empty")
 		return
 	}
 
@@ -130,7 +130,7 @@ func VerifyModel(vModel Model) (err *cd.Result) {
 		}
 
 		if _, exists := fieldNameMap[vField.GetName()]; exists {
-			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("model field name is duplicate, field name:%s", vField.GetName()))
+			err = cd.NewError(cd.UnExpected, fmt.Sprintf("model field name is duplicate, field name:%s", vField.GetName()))
 			return
 		}
 
@@ -138,7 +138,7 @@ func VerifyModel(vModel Model) (err *cd.Result) {
 	}
 
 	if primaryFieldNum == 0 {
-		err = cd.NewResult(cd.UnExpected, "model no primary field")
+		err = cd.NewError(cd.UnExpected, "model no primary field")
 		return
 	}
 

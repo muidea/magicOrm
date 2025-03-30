@@ -10,7 +10,7 @@ import (
 )
 
 // BuildDelete  BuildDelete
-func (s *Builder) BuildDelete(vModel model.Model) (ret *ResultStack, err *cd.Result) {
+func (s *Builder) BuildDelete(vModel model.Model) (ret *ResultStack, err *cd.Error) {
 	resultStackPtr := &ResultStack{}
 	filterStr, filterErr := s.buildFieldFilter(vModel.GetPrimaryField(), resultStackPtr)
 	if filterErr != nil {
@@ -30,7 +30,7 @@ func (s *Builder) BuildDelete(vModel model.Model) (ret *ResultStack, err *cd.Res
 }
 
 // BuildDeleteRelation BuildDeleteRelation
-func (s *Builder) BuildDeleteRelation(vModel model.Model, vField model.Field) (delHost, delRelation *ResultStack, err *cd.Result) {
+func (s *Builder) BuildDeleteRelation(vModel model.Model, vField model.Field) (delHost, delRelation *ResultStack, err *cd.Error) {
 	hostVal := vModel.GetPrimaryField().GetValue().Get()
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
