@@ -20,7 +20,7 @@ const (
 
 func getEntityType(entity interface{}) (ret *remote.TypeImpl, err *cd.Error) {
 	if entity == nil {
-		err = cd.NewError(cd.UnExpected, "illegal entity value")
+		err = cd.NewError(cd.Unexpected, "illegal entity value")
 		return
 	}
 
@@ -56,7 +56,7 @@ func newType(itemType reflect.Type) (ret *remote.TypeImpl, err *cd.Error) {
 			return
 		}
 		if model.IsSliceType(sliceVal) {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal slice type, type:%s", sliceType.String()))
+			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal slice type, type:%s", sliceType.String()))
 			return
 		}
 
@@ -86,7 +86,7 @@ func newSpec(tag reflect.StructTag) (ret *remote.SpecImpl, err *cd.Error) {
 func getOrmSpec(spec string) (ret remote.SpecImpl, err *cd.Error) {
 	items := strings.Split(spec, " ")
 	if len(items) < 1 {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal spec value, val:%s", spec))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal spec value, val:%s", spec))
 		return
 	}
 
@@ -185,7 +185,7 @@ func type2Object(entityType reflect.Type) (ret *remote.Object, err *cd.Error) {
 
 	typeImpl = typeImpl.Elem().(*remote.TypeImpl)
 	if !model.IsStructType(typeImpl.GetValue()) {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal object type, must be a struct obj, type:%s", entityType.String()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal object type, must be a struct obj, type:%s", entityType.String()))
 		log.Errorf("type2Object failed, check object type err:%s", err.Error())
 		return
 	}
@@ -207,7 +207,7 @@ func type2Object(entityType reflect.Type) (ret *remote.Object, err *cd.Error) {
 		}
 		if model.IsPrimaryField(fItem) {
 			if hasPrimaryField {
-				err = cd.NewError(cd.UnExpected, fmt.Sprintf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldType.Name, impl.GetName()))
+				err = cd.NewError(cd.Unexpected, fmt.Sprintf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldType.Name, impl.GetName()))
 				log.Errorf("type2Object failed, check primary key err:%s", err.Error())
 				return
 			}
@@ -219,13 +219,13 @@ func type2Object(entityType reflect.Type) (ret *remote.Object, err *cd.Error) {
 	}
 
 	if len(impl.Fields) == 0 {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("no define orm field, struct name:%s", impl.GetName()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("no define orm field, struct name:%s", impl.GetName()))
 		log.Errorf("type2Object failed, check fields err:%s", err.Error())
 		return
 	}
 
 	if !hasPrimaryField {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("no define primary key field, struct name:%s", impl.GetName()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("no define primary key field, struct name:%s", impl.GetName()))
 		log.Errorf("type2Object failed, check primary key err:%s", err.Error())
 		return
 	}
@@ -237,7 +237,7 @@ func type2Object(entityType reflect.Type) (ret *remote.Object, err *cd.Error) {
 // GetObject get object
 func GetObject(entity any) (ret *remote.Object, err *cd.Error) {
 	if entity == nil {
-		err = cd.NewError(cd.UnExpected, "nil object value")
+		err = cd.NewError(cd.Unexpected, "nil object value")
 		return
 	}
 
@@ -316,7 +316,7 @@ func getObjectValue(entityVal reflect.Value) (ret *remote.ObjectValue, err *cd.E
 		return
 	}
 	if !model.IsStruct(objType) || model.IsSlice(objType) {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal entity value, entity type:%s", entityType.String()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal entity value, entity type:%s", entityType.String()))
 		log.Errorf("getObjectValue failed, check object type err:%s", err.Error())
 		return
 	}
@@ -365,7 +365,7 @@ func getObjectValue(entityVal reflect.Value) (ret *remote.ObjectValue, err *cd.E
 // GetObjectValue get object value
 func GetObjectValue(entity any) (ret *remote.ObjectValue, err *cd.Error) {
 	if entity == nil {
-		err = cd.NewError(cd.UnExpected, "nil object value")
+		err = cd.NewError(cd.Unexpected, "nil object value")
 		return
 	}
 
@@ -405,14 +405,14 @@ func getSliceObjectValue(sliceVal reflect.Value) (ret *remote.SliceObjectValue, 
 	}
 
 	if !model.IsSliceType(sliceType.GetValue()) {
-		err = cd.NewError(cd.UnExpected, "illegal slice object value")
+		err = cd.NewError(cd.Unexpected, "illegal slice object value")
 		log.Errorf("getSliceObjectValue failed, check slice type err:%s", err.Error())
 		return
 	}
 
 	elemType := sliceType.Elem()
 	if !model.IsStructType(elemType.GetValue()) {
-		err = cd.NewError(cd.UnExpected, "illegal slice item type")
+		err = cd.NewError(cd.Unexpected, "illegal slice item type")
 		log.Errorf("getSliceObjectValue failed, check slice item err:%s", err.Error())
 		return
 	}
@@ -437,7 +437,7 @@ func getSliceObjectValue(sliceVal reflect.Value) (ret *remote.SliceObjectValue, 
 // GetSliceObjectValue get slice object value
 func GetSliceObjectValue(sliceEntity any) (ret *remote.SliceObjectValue, err *cd.Error) {
 	if sliceEntity == nil {
-		err = cd.NewError(cd.UnExpected, "nil slice object value")
+		err = cd.NewError(cd.Unexpected, "nil slice object value")
 		return
 	}
 
@@ -459,7 +459,7 @@ func GetSliceObjectValue(sliceEntity any) (ret *remote.SliceObjectValue, err *cd
 
 func UpdateEntity(remoteValuePtr *remote.ObjectValue, localEntity any) (err *cd.Error) {
 	if remoteValuePtr == nil {
-		err = cd.NewError(cd.UnExpected, "illegal remote object value")
+		err = cd.NewError(cd.Unexpected, "illegal remote object value")
 		log.Errorf("UpdateEntity failed, check object value err:%s", err.Error())
 		return
 	}
@@ -526,7 +526,7 @@ func updateSliceStructField(val any, localField model.Field) (err *cd.Error) {
 
 	sliceObjectValuePtr, sliceObjectValueOK := val.(*remote.SliceObjectValue)
 	if !sliceObjectValueOK {
-		err = cd.NewError(cd.UnExpected, "illegal slice object value")
+		err = cd.NewError(cd.Unexpected, "illegal slice object value")
 		log.Errorf("updateSliceStructField failed, filed name:%s, check slice object value err:%s", localField.GetName(), err.Error())
 		return
 	}
@@ -563,7 +563,7 @@ func updateStructField(val any, vField model.Field) (err *cd.Error) {
 
 	objectValuePtr, objectValueOK := val.(*remote.ObjectValue)
 	if !objectValueOK {
-		err = cd.NewError(cd.UnExpected, "illegal object value")
+		err = cd.NewError(cd.Unexpected, "illegal object value")
 		log.Errorf("updateStructField failed, filed name:%s, check object value err:%s", vField.GetName(), err.Error())
 		return
 	}
@@ -589,12 +589,12 @@ func updateStructField(val any, vField model.Field) (err *cd.Error) {
 
 func UpdateSliceEntity(remoteSliceValuePtr *remote.SliceObjectValue, localSliceValue any) (err *cd.Error) {
 	if remoteSliceValuePtr == nil {
-		err = cd.NewError(cd.UnExpected, "illegal remote slice object value")
+		err = cd.NewError(cd.Unexpected, "illegal remote slice object value")
 		log.Errorf("UpdateSliceEntity failed, check object value err:%s", err.Error())
 		return
 	}
 	if localSliceValue == nil {
-		err = cd.NewError(cd.UnExpected, "illegal local entity value")
+		err = cd.NewError(cd.Unexpected, "illegal local entity value")
 		log.Errorf("UpdateSliceEntity failed, check object value err:%s", err.Error())
 		return
 	}
@@ -606,7 +606,7 @@ func UpdateSliceEntity(remoteSliceValuePtr *remote.SliceObjectValue, localSliceV
 		return
 	}
 	if !model.IsSlice(localTypePtr) || !localTypePtr.IsPtrType() {
-		err = cd.NewError(cd.UnExpected, "illegal local entity type")
+		err = cd.NewError(cd.Unexpected, "illegal local entity type")
 		log.Errorf("UpdateSliceEntity failed, check object value err:%s", err.Error())
 		return
 	}

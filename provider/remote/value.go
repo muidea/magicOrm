@@ -128,7 +128,7 @@ func (s *ValueImpl) Set(val any) (err *cd.Error) {
 		err = rewriteSliceObjectValue(s.value.(*SliceObjectValue), &sliceObjectVal)
 	default:
 		if !utils.IsReallyValidValue(val) {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal value:%+v", val))
+			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal value:%+v", val))
 			return
 		}
 
@@ -177,7 +177,7 @@ func (s *ValueImpl) UnpackValue() (ret []model.Value) {
 // Append appends the given value to the slice value.
 func (s *ValueImpl) Append(val any) (err *cd.Error) {
 	if s.value == nil {
-		err = cd.NewError(cd.UnExpected, "value is nil")
+		err = cd.NewError(cd.Unexpected, "value is nil")
 		log.Warnf("Append failed, value is nil")
 		return
 	}
@@ -187,13 +187,13 @@ func (s *ValueImpl) Append(val any) (err *cd.Error) {
 		switch val.(type) {
 		case *ObjectValue:
 			if s.value.(*SliceObjectValue).GetPkgPath() != val.(*ObjectValue).GetPkgPath() {
-				err = cd.NewError(cd.UnExpected, "pkgPath is not match")
+				err = cd.NewError(cd.Unexpected, "pkgPath is not match")
 				log.Warnf("Append failed, pkgPath is not match")
 				return
 			}
 			s.value.(*SliceObjectValue).Values = append(s.value.(*SliceObjectValue).Values, val.(*ObjectValue))
 		default:
-			err = cd.NewError(cd.UnExpected, "value is not ObjectValue")
+			err = cd.NewError(cd.Unexpected, "value is not ObjectValue")
 		}
 	default:
 		s.value, err = appendBasicValue(s.value, val)

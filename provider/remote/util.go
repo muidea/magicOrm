@@ -128,7 +128,7 @@ func rewriteObjectValue(rawPtr *ObjectValue, newPtr *ObjectValue) (err *cd.Error
 		return
 	}
 	if rawPtr.PkgPath != newPtr.PkgPath {
-		err = cd.NewError(cd.UnExpected, "illegal object value")
+		err = cd.NewError(cd.Unexpected, "illegal object value")
 		return
 	}
 
@@ -141,7 +141,7 @@ func rewriteSliceObjectValue(rawPtr *SliceObjectValue, newPtr *SliceObjectValue)
 		return
 	}
 	if rawPtr.PkgPath != newPtr.PkgPath {
-		err = cd.NewError(cd.UnExpected, "illegal slice object value")
+		err = cd.NewError(cd.Unexpected, "illegal slice object value")
 		return
 	}
 
@@ -152,7 +152,7 @@ func rewriteSliceObjectValue(rawPtr *SliceObjectValue, newPtr *SliceObjectValue)
 func appendBasicValue(sliceVal, val any) (ret any, err *cd.Error) {
 	rVal := reflect.ValueOf(sliceVal)
 	if rVal.Kind() != reflect.Slice {
-		err = cd.NewError(cd.UnExpected, "value is not slice")
+		err = cd.NewError(cd.Unexpected, "value is not slice")
 		log.Warnf("Append failed, value is not slice")
 		return
 	}
@@ -162,7 +162,7 @@ func appendBasicValue(sliceVal, val any) (ret any, err *cd.Error) {
 	valType := reflect.TypeOf(val)
 
 	if !valType.AssignableTo(elemType) {
-		err = cd.NewError(cd.UnExpected, "type mismatch, expected: "+elemType.String()+", got: "+valType.String())
+		err = cd.NewError(cd.Unexpected, "type mismatch, expected: "+elemType.String()+", got: "+valType.String())
 		log.Warnf("Append failed, type mismatch, expected: %s, got: %s", elemType, valType)
 		return
 	}

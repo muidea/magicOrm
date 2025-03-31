@@ -44,7 +44,7 @@ func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err *cd.Err
 	case model.TypeSliceValue:
 		ret = "TEXT"
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("no support field type, type:%v", fType.GetPkgKey()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("no support field type, type:%v", fType.GetPkgKey()))
 	}
 
 	if err != nil {
@@ -97,10 +97,10 @@ func getFieldPlaceHolder(fType model.Type) (ret interface{}, err *cd.Error) {
 			val := ""
 			ret = &val
 		} else {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("no support fileType, type:%v", fType.GetPkgKey()))
+			err = cd.NewError(cd.Unexpected, fmt.Sprintf("no support fileType, type:%v", fType.GetPkgKey()))
 		}
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("no support fileType, type:%v", fType.GetPkgKey()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("no support fileType, type:%v", fType.GetPkgKey()))
 	}
 
 	if err != nil {

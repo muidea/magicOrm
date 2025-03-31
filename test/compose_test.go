@@ -339,7 +339,7 @@ func TestComposeLocal(t *testing.T) {
 	queryVal = queryModel.Interface(true).(*Compose)
 
 	if !composePtr.IsSame(queryVal) {
-		err = cd.NewError(cd.UnExpected, "compare value failed")
+		err = cd.NewError(cd.Unexpected, "compare value failed")
 		t.Errorf("IsSame failed. err:%s", err.Error())
 		return
 	}
@@ -542,7 +542,7 @@ func TestComposeRemote(t *testing.T) {
 	}
 
 	if !composePtr.IsSame(queryComposeVal) {
-		err = cd.NewError(cd.UnExpected, "compare value failed")
+		err = cd.NewError(cd.Unexpected, "compare value failed")
 		t.Errorf("IsSame failed. err:%s", err.Error())
 		return
 	}

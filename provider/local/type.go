@@ -106,7 +106,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 		default:
 			rInitVal := reflect.Indirect(reflect.ValueOf(initVal))
 			if rInitVal.Type() != tVal.Type() {
-				err = cd.NewError(cd.UnExpected, "missmatch value type")
+				err = cd.NewError(cd.Unexpected, "missmatch value type")
 			} else {
 				tVal.Set(rInitVal)
 			}

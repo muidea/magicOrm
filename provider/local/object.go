@@ -128,7 +128,7 @@ func getValueModel(entityValue reflect.Value, viewSpec model.ViewDeclare) (ret *
 		return
 	}
 	if typePtr.GetValue() != model.TypeStructValue {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal type, must be a struct entity, type:%s", entityType.String()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal type, must be a struct entity, type:%s", entityType.String()))
 		log.Errorf("getValueModel failed, err:%s", err.Error())
 		return
 	}
@@ -148,7 +148,7 @@ func getValueModel(entityValue reflect.Value, viewSpec model.ViewDeclare) (ret *
 
 		if model.IsPrimaryField(tField) {
 			if hasPrimaryKey {
-				err = cd.NewError(cd.UnExpected, fmt.Sprintf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldInfo.Name, impl.GetName()))
+				err = cd.NewError(cd.Unexpected, fmt.Sprintf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldInfo.Name, impl.GetName()))
 				log.Errorf("getValueModel failed, check primary key err:%s", err.Error())
 				return
 			}
@@ -160,12 +160,12 @@ func getValueModel(entityValue reflect.Value, viewSpec model.ViewDeclare) (ret *
 	}
 
 	if len(impl.fields) == 0 {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("no define orm field, struct name:%s", impl.GetName()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("no define orm field, struct name:%s", impl.GetName()))
 		log.Errorf("getValueModel failed, check fields err:%s", err.Error())
 		return
 	}
 	if !hasPrimaryKey {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("no define primary key field, struct name:%s", impl.GetName()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("no define primary key field, struct name:%s", impl.GetName()))
 		log.Errorf("getValueModel failed, check primary key err:%s", err.Error())
 		return
 	}

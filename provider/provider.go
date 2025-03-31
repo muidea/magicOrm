@@ -164,7 +164,7 @@ func (s *providerImpl) checkEntityModel(entity any, viewSpec model.ViewDeclare) 
 	pkgKey := entityType.Elem().GetPkgKey()
 	curModelVal := s.modelCache.Fetch(pkgKey)
 	if curModelVal == nil {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
 		log.Errorf("checkEntityModel failed, error:%v", err.Error())
 		return
 	}
@@ -202,7 +202,7 @@ func (s *providerImpl) GetEntityFilter(entity any, viewSpec model.ViewDeclare) (
 
 func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err *cd.Error) {
 	if model.IsBasic(vType) {
-		err = cd.NewError(cd.UnExpected, "illegal type value, type pkgKey:"+vType.GetPkgKey())
+		err = cd.NewError(cd.Unexpected, "illegal type value, type pkgKey:"+vType.GetPkgKey())
 		log.Errorf("GetTypeModel failed, error:%v", err.Error())
 		return
 	}
@@ -210,7 +210,7 @@ func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err *cd.
 	pkgKey := vType.Elem().GetPkgKey()
 	typeModelVal := s.modelCache.Fetch(pkgKey)
 	if typeModelVal == nil {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("can't fetch type model, must register type entity first, PkgKey:%s", pkgKey))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't fetch type model, must register type entity first, PkgKey:%s", pkgKey))
 		log.Errorf("GetTypeModel failed, error:%v", err.Error())
 		return
 	}
@@ -221,7 +221,7 @@ func (s *providerImpl) GetTypeModel(vType model.Type) (ret model.Model, err *cd.
 
 func (s *providerImpl) GetModelFilter(vModel model.Model) (ret model.Filter, err *cd.Error) {
 	if vModel == nil {
-		err = cd.NewError(cd.UnExpected, "illegal model value")
+		err = cd.NewError(cd.Unexpected, "illegal model value")
 		log.Errorf("GetModelFilter failed, error:%v", err.Error())
 		return
 	}
@@ -229,7 +229,7 @@ func (s *providerImpl) GetModelFilter(vModel model.Model) (ret model.Filter, err
 	pkgKey := vModel.GetPkgKey()
 	curModelVal := s.modelCache.Fetch(pkgKey)
 	if curModelVal == nil {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
 		log.Errorf("GetModelFilter failed, error:%v", err.Error())
 		return
 	}
@@ -247,7 +247,7 @@ func (s *providerImpl) GetModelFilter(vModel model.Model) (ret model.Filter, err
 
 func (s *providerImpl) GetTypeFilter(vType model.Type, viewSpec model.ViewDeclare) (ret model.Filter, err *cd.Error) {
 	if vType == nil {
-		err = cd.NewError(cd.UnExpected, "illegal type value")
+		err = cd.NewError(cd.Unexpected, "illegal type value")
 		log.Errorf("GetTypeFilter failed, error:%v", err.Error())
 		return
 	}
@@ -255,7 +255,7 @@ func (s *providerImpl) GetTypeFilter(vType model.Type, viewSpec model.ViewDeclar
 	pkgKey := vType.GetPkgKey()
 	curModelVal := s.modelCache.Fetch(pkgKey)
 	if curModelVal == nil {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
 		log.Errorf("GetTypeFilter failed, error:%v", err.Error())
 		return
 	}
@@ -275,7 +275,7 @@ func (s *providerImpl) SetModelValue(vModel model.Model, vVal model.Value) (ret 
 	pkgKey := vModel.GetPkgKey()
 	curModel := s.modelCache.Fetch(pkgKey)
 	if curModel == nil {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
 		log.Errorf("SetModelValue failed, error:%v", err.Error())
 		return
 	}
@@ -299,7 +299,7 @@ func (s *providerImpl) EncodeValue(vVal any, vType model.Type) (ret any, err *cd
 	pkgKey := vType.Elem().GetPkgKey()
 	curModelVal := s.modelCache.Fetch(pkgKey)
 	if curModelVal == nil {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
 		log.Errorf("EncodeValue failed, error:%v", err.Error())
 		return
 	}

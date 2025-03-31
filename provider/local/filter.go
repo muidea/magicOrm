@@ -57,7 +57,7 @@ func (s *filter) Equal(key string, val any) (err *cd.Error) {
 		return
 	}
 	if model.IsSliceType(qvType) {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("equal failed, illegal value type, type:%s", qv.Type().String()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("equal failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("Equal failed, err:%v", err.Error())
 		return
 	}
@@ -81,7 +81,7 @@ func (s *filter) NotEqual(key string, val any) (err *cd.Error) {
 		return
 	}
 	if model.IsSliceType(qvType) {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("NotEqual failed, illegal value type, type:%s", qv.Type().String()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("NotEqual failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("NotEqual failed, err:%v", err.Error())
 		return
 	}
@@ -105,7 +105,7 @@ func (s *filter) Below(key string, val any) (err *cd.Error) {
 		return
 	}
 	if !model.IsBasicType(qvType) {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("below failed, illegal value type, type:%s", qv.Type().String()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("below failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("Below failed, err:%v", err.Error())
 		return
 	}
@@ -129,7 +129,7 @@ func (s *filter) Above(key string, val any) (err *cd.Error) {
 		return
 	}
 	if !model.IsBasicType(qvType) {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("above failed, illegal value type, type:%s", qv.Type().String()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("above failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("Above failed, err:%v", err.Error())
 		return
 	}
@@ -153,7 +153,7 @@ func (s *filter) In(key string, val any) (err *cd.Error) {
 		return
 	}
 	if !model.IsSliceType(qvType) {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("in failed, illegal value type, type:%s", qv.Type().String()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("in failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("In failed, err:%v", err.Error())
 		return
 	}
@@ -177,7 +177,7 @@ func (s *filter) NotIn(key string, val any) (err *cd.Error) {
 		return
 	}
 	if !model.IsSliceType(qvType) {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("notIn failed, illegal value type, type:%s", qv.Type().String()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("notIn failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("NotIn failed, err:%v", err.Error())
 		return
 	}
@@ -195,7 +195,7 @@ func (s *filter) Like(key string, val any) (err *cd.Error) {
 
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	if qv.Kind() != reflect.String {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("like failed, illegal value type, type:%s", qv.Type().String()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("like failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("Like failed, illegal value type, err:%s", err.Error())
 		return
 	}
@@ -229,7 +229,7 @@ func (s *filter) ValueMask(val any) (err *cd.Error) {
 	bindType := reflect.Indirect(s.bindValue.value).Type().String()
 	maskType := reflect.Indirect(qv).Type().String()
 	if bindType != maskType {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("mismatch mask value, bindType:%v, maskType:%v", bindType, maskType))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("mismatch mask value, bindType:%v, maskType:%v", bindType, maskType))
 		log.Errorf("ValueMask failed, err:%v", err.Error())
 		return
 	}

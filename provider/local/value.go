@@ -58,7 +58,7 @@ func (s *ValueImpl) IsZero() bool {
 
 func (s *ValueImpl) Set(val any) (err *cd.Error) {
 	if !s.value.CanSet() {
-		err = cd.NewError(cd.UnExpected, "Set failed, value is not settable")
+		err = cd.NewError(cd.Unexpected, "Set failed, value is not settable")
 		log.Warnf("Set failed, value is not settable")
 		return
 	}
@@ -71,7 +71,7 @@ func (s *ValueImpl) Set(val any) (err *cd.Error) {
 	isPtr := s.value.Kind() == reflect.Ptr
 	if !isPtr {
 		if rVal.Type() != s.value.Type() {
-			err = cd.NewError(cd.UnExpected, "Set failed, value type is not match")
+			err = cd.NewError(cd.Unexpected, "Set failed, value type is not match")
 			log.Warnf("Set failed, value type is not match, data type:%+v, value type:%+v", rVal.Type(), s.value.Type())
 			return
 		}
@@ -82,7 +82,7 @@ func (s *ValueImpl) Set(val any) (err *cd.Error) {
 
 	rVal = reflect.Indirect(rVal)
 	if rVal.Type() != s.value.Type().Elem() {
-		err = cd.NewError(cd.UnExpected, "Set failed, value type is not match")
+		err = cd.NewError(cd.Unexpected, "Set failed, value type is not match")
 		log.Warnf("Set failed, value type is not match")
 		return
 	}
@@ -117,7 +117,7 @@ func (s *ValueImpl) UnpackValue() (ret []model.Value) {
 func (s *ValueImpl) Append(val reflect.Value) (err *cd.Error) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("%v", errInfo))
+			err = cd.NewError(cd.Unexpected, fmt.Sprintf("%v", errInfo))
 		}
 	}()
 

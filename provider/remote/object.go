@@ -95,7 +95,7 @@ func (s *Object) setSliceStructValue(sf *Field, val any) (err *cd.Error) {
 	case SliceObjectValue:
 		err = sf.SetValue(&val)
 	default:
-		err = cd.NewError(cd.UnExpected, "illegal value type")
+		err = cd.NewError(cd.Unexpected, "illegal value type")
 		log.Errorf("set slice struct value failed, field:%s, value:%v, err:%s", sf.GetName(), val, err)
 	}
 	return
@@ -108,7 +108,7 @@ func (s *Object) setStructValue(sf *Field, val any) (err *cd.Error) {
 	case ObjectValue:
 		err = sf.SetValue(&val)
 	default:
-		err = cd.NewError(cd.UnExpected, "illegal value type")
+		err = cd.NewError(cd.Unexpected, "illegal value type")
 		log.Errorf("set struct value failed, field:%s, value:%v, err:%s", sf.GetName(), val, err.Error())
 	}
 	return
@@ -246,7 +246,7 @@ func (s *Object) Reset() {
 
 func (s *Object) Verify() (err *cd.Error) {
 	if s.Name == "" {
-		err = cd.NewError(cd.UnExpected, "illegal object declare informain")
+		err = cd.NewError(cd.Unexpected, "illegal object declare informain")
 		return
 	}
 
@@ -420,7 +420,7 @@ func TransferObjectValue(name, pkgPath string, vals []*ObjectValue) (ret *SliceO
 func marshalHelper[T any](valPtr *T) (ret []byte, err *cd.Error) {
 	byteVal, byteErr := json.Marshal(valPtr)
 	if byteErr != nil {
-		err = cd.NewError(cd.UnExpected, byteErr.Error())
+		err = cd.NewError(cd.Unexpected, byteErr.Error())
 		return
 	}
 
@@ -444,7 +444,7 @@ func decodeObjectValueFromMap(mapVal map[string]any) (ret *ObjectValue, err *cd.
 	pkgPathVal, pkgPathOK := mapVal[PkgPathTag]
 	itemsVal, itemsOK := mapVal[FieldsTag]
 	if !nameOK || !pkgPathOK || !itemsOK {
-		err = cd.NewError(cd.UnExpected, "illegal ObjectValue")
+		err = cd.NewError(cd.Unexpected, "illegal ObjectValue")
 		return
 	}
 
@@ -462,7 +462,7 @@ func decodeObjectValueFromMap(mapVal map[string]any) (ret *ObjectValue, err *cd.
 	for _, val := range items {
 		item, itemOK := val.(map[string]any)
 		if !itemOK {
-			err = cd.NewError(cd.UnExpected, "illegal object field item value")
+			err = cd.NewError(cd.Unexpected, "illegal object field item value")
 			return
 		}
 
@@ -484,7 +484,7 @@ func decodeSliceObjectValueFromMap(mapVal map[string]any) (ret *SliceObjectValue
 	pkgPathVal, pkgPathOK := mapVal[PkgPathTag]
 	valuesVal, valuesOK := mapVal[ValuesTag]
 	if !nameOK || !pkgPathOK || !valuesOK {
-		err = cd.NewError(cd.UnExpected, "illegal SliceObjectValue")
+		err = cd.NewError(cd.Unexpected, "illegal SliceObjectValue")
 		return
 	}
 
@@ -502,7 +502,7 @@ func decodeSliceObjectValueFromMap(mapVal map[string]any) (ret *SliceObjectValue
 	for _, val := range values {
 		item, itemOK := val.(map[string]any)
 		if !itemOK {
-			err = cd.NewError(cd.UnExpected, "illegal slice object field item value")
+			err = cd.NewError(cd.Unexpected, "illegal slice object field item value")
 			return
 		}
 
@@ -521,19 +521,19 @@ func decodeSliceObjectValueFromMap(mapVal map[string]any) (ret *SliceObjectValue
 
 func decodeItemValue(itemVal map[string]any) (ret *FieldValue, err *cd.Error) {
 	if itemVal == nil {
-		err = cd.NewError(cd.UnExpected, "itemVal is nil")
+		err = cd.NewError(cd.Unexpected, "itemVal is nil")
 		return
 	}
 
 	nameVal, nameOK := itemVal[NameTag]
 	if !nameOK {
-		err = cd.NewError(cd.UnExpected, "illegal item value")
+		err = cd.NewError(cd.Unexpected, "illegal item value")
 		return
 	}
 
 	nameStr, ok := nameVal.(string)
 	if !ok {
-		err = cd.NewError(cd.UnExpected, "nameVal is not a string")
+		err = cd.NewError(cd.Unexpected, "nameVal is not a string")
 		return
 	}
 
@@ -618,7 +618,7 @@ func ConvertItem(val *FieldValue) (ret *FieldValue, err *cd.Error) {
 			return
 		}
 
-		err = cd.NewError(cd.UnExpected, "illegal itemValue")
+		err = cd.NewError(cd.Unexpected, "illegal itemValue")
 		return
 	}
 
@@ -636,7 +636,7 @@ func ConvertItem(val *FieldValue) (ret *FieldValue, err *cd.Error) {
 func unmarshalHelper[T any](data []byte, val *T, decodeFunc func(*T) (*T, *cd.Error)) (*T, *cd.Error) {
 	byteErr := json.Unmarshal(data, val)
 	if byteErr != nil {
-		return nil, cd.NewError(cd.UnExpected, byteErr.Error())
+		return nil, cd.NewError(cd.Unexpected, byteErr.Error())
 	}
 
 	ret, err := decodeFunc(val)

@@ -238,7 +238,7 @@ func TestReferenceRemote(t *testing.T) {
 		sVal := sValList[idx]
 		qVal := qValList[idx]
 		if !sVal.IsSame(qVal) {
-			err = cd.NewError(cd.UnExpected, "compare value failed")
+			err = cd.NewError(cd.Unexpected, "compare value failed")
 			t.Errorf("IsSame failed. err:%s", err.Error())
 			return
 		}

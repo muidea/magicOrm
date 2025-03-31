@@ -263,7 +263,7 @@ func (s *QueryRunner) innerQueryRelationSingleModel(id any, vField model.Field, 
 	if len(queryVal) > 1 {
 		errMsg := fmt.Sprintf("match more than one model, model:%s, id:%v", rModel.GetPkgKey(), id)
 		log.Warnf("innerQueryRelationSingleModel failed, errMsg:%s", errMsg)
-		err = cd.NewError(cd.UnExpected, errMsg)
+		err = cd.NewError(cd.Unexpected, errMsg)
 		return
 	}
 
@@ -328,7 +328,7 @@ func (s *QueryRunner) Query(filter model.Filter) (ret []model.Model, err *cd.Err
 		return
 	}
 	if !s.batchFilter && queryCount > 1 {
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("matched model:%s %d items value", s.vModel.GetPkgKey(), queryCount))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("matched model:%s %d items value", s.vModel.GetPkgKey(), queryCount))
 		log.Warnf("Query failed, s.innerQuery warning:%s", err.Error())
 		return
 	}

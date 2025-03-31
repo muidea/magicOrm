@@ -16,7 +16,7 @@ import (
 func EncodeObject(objPtr *remote.Object) (ret []byte, err *cd.Error) {
 	byteVal, byteErr := json.Marshal(objPtr)
 	if byteErr != nil {
-		err = cd.NewError(cd.UnExpected, byteErr.Error())
+		err = cd.NewError(cd.Unexpected, byteErr.Error())
 		return
 	}
 
@@ -28,7 +28,7 @@ func DecodeObject(data []byte) (ret *remote.Object, err *cd.Error) {
 	objPtr := &remote.Object{}
 	byteErr := json.Unmarshal(data, objPtr)
 	if byteErr != nil {
-		err = cd.NewError(cd.UnExpected, byteErr.Error())
+		err = cd.NewError(cd.Unexpected, byteErr.Error())
 		return
 	}
 

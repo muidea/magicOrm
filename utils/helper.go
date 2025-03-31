@@ -218,7 +218,7 @@ func GetTypeEnum(val reflect.Type) (ret model.TypeDeclare, err *cd.Error) {
 			for i := 0; i < val.NumField(); i++ {
 				field := val.Field(i)
 				if !isValidFieldType(field.Type) {
-					err = cd.NewError(cd.UnExpected, fmt.Sprintf("unsupported field type in struct: %v", field.Type))
+					err = cd.NewError(cd.Unexpected, fmt.Sprintf("unsupported field type in struct: %v", field.Type))
 					return
 				}
 			}
@@ -233,7 +233,7 @@ func GetTypeEnum(val reflect.Type) (ret model.TypeDeclare, err *cd.Error) {
 		}
 		ret = model.TypeSliceValue
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("unsupported type: %v", val.String()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("unsupported type: %v", val.String()))
 	}
 
 	return
@@ -561,7 +561,7 @@ func ConvertRawToString(val any) (ret string, err *cd.Error) {
 func ConvertRawToDateTime(val any) (ret time.Time, err *cd.Error) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val:%v", val))
+			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal dateTime value, val:%v", val))
 		}
 	}()
 
@@ -607,7 +607,7 @@ func ConvertToBool(rVal reflect.Value) (ret bool, err *cd.Error) {
 		strVal := strings.ToLower(strings.TrimSpace(rVal.String()))
 		ret = trueSynonyms[strVal]
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal bool value, val type:%v", rVal.Type().String()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal bool value, val type:%v", rVal.Type().String()))
 	}
 
 	return
@@ -833,10 +833,10 @@ func ConvertToString(rVal reflect.Value) (ret string, err *cd.Error) {
 		case "time.Time":
 			ret = rVal.Interface().(time.Time).Format(fu.CSTLayout)
 		default:
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal string value, val type:%v", rVal.Type().String()))
+			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal string value, val type:%v", rVal.Type().String()))
 		}
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal string value, val type:%v", rVal.Type().String()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal string value, val type:%v", rVal.Type().String()))
 	}
 
 	return
@@ -848,7 +848,7 @@ func ConvertToString(rVal reflect.Value) (ret string, err *cd.Error) {
 func ConvertToDateTime(rVal reflect.Value) (ret time.Time, err *cd.Error) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val:%v", rVal.Interface()))
+			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal dateTime value, val:%v", rVal.Interface()))
 		}
 	}()
 
@@ -862,7 +862,7 @@ func ConvertToDateTime(rVal reflect.Value) (ret time.Time, err *cd.Error) {
 
 		tVal, tErr := time.Parse(fu.CSTLayout, rVal.String())
 		if tErr != nil {
-			err = cd.NewError(cd.UnExpected, tErr.Error())
+			err = cd.NewError(cd.Unexpected, tErr.Error())
 			return
 		}
 		ret = tVal
@@ -871,10 +871,10 @@ func ConvertToDateTime(rVal reflect.Value) (ret time.Time, err *cd.Error) {
 		case "time.Time":
 			ret = rVal.Interface().(time.Time)
 		default:
-			err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))
+			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))
 		}
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))
 	}
 
 	return
@@ -887,7 +887,7 @@ func ConvertToDateTime(rVal reflect.Value) (ret time.Time, err *cd.Error) {
 // 要求返回值严格符合 kind 的类型
 func convertNumberVal(kind reflect.Kind, rVal reflect.Value) (result interface{}, err *cd.Error) {
 	if !numberKindMap[kind] {
-		return nil, cd.NewError(cd.UnExpected, fmt.Sprintf("unsupported target kind: %v", kind))
+		return nil, cd.NewError(cd.Unexpected, fmt.Sprintf("unsupported target kind: %v", kind))
 	}
 
 	switch rVal.Kind() {
@@ -902,7 +902,7 @@ func convertNumberVal(kind reflect.Kind, rVal reflect.Value) (result interface{}
 	case reflect.String:
 		return convertStringToNumber(kind, rVal.String())
 	default:
-		return nil, cd.NewError(cd.UnExpected, fmt.Sprintf("illegal %v value, val type:%v", kind, rVal.Type().String()))
+		return nil, cd.NewError(cd.Unexpected, fmt.Sprintf("illegal %v value, val type:%v", kind, rVal.Type().String()))
 	}
 }
 
@@ -940,7 +940,7 @@ func convertBoolToNumber(kind reflect.Kind, val bool) (interface{}, *cd.Error) {
 	case reflect.Float64:
 		return float64(result.(int)), nil
 	default:
-		return nil, cd.NewError(cd.UnExpected, fmt.Sprintf("unsupported conversion from bool to %v", kind))
+		return nil, cd.NewError(cd.Unexpected, fmt.Sprintf("unsupported conversion from bool to %v", kind))
 	}
 }
 
@@ -971,7 +971,7 @@ func convertIntToNumber(kind reflect.Kind, val int64) (interface{}, *cd.Error) {
 	case reflect.Float64:
 		return float64(val), nil
 	default:
-		return nil, cd.NewError(cd.UnExpected, fmt.Sprintf("unsupported conversion from int64 to %v", kind))
+		return nil, cd.NewError(cd.Unexpected, fmt.Sprintf("unsupported conversion from int64 to %v", kind))
 	}
 }
 
@@ -1002,7 +1002,7 @@ func convertUintToNumber(kind reflect.Kind, val uint64) (interface{}, *cd.Error)
 	case reflect.Float64:
 		return float64(val), nil
 	default:
-		return nil, cd.NewError(cd.UnExpected, fmt.Sprintf("unsupported conversion from uint64 to %v", kind))
+		return nil, cd.NewError(cd.Unexpected, fmt.Sprintf("unsupported conversion from uint64 to %v", kind))
 	}
 }
 
@@ -1033,7 +1033,7 @@ func convertFloatToNumber(kind reflect.Kind, val float64) (interface{}, *cd.Erro
 	case reflect.Float64:
 		return val, nil
 	default:
-		return nil, cd.NewError(cd.UnExpected, fmt.Sprintf("unsupported conversion from float64 to %v", kind))
+		return nil, cd.NewError(cd.Unexpected, fmt.Sprintf("unsupported conversion from float64 to %v", kind))
 	}
 }
 
@@ -1042,23 +1042,23 @@ func convertStringToNumber(kind reflect.Kind, val string) (interface{}, *cd.Erro
 	case integerKindMap[kind]:
 		i, err := strconv.ParseInt(val, 10, 64)
 		if err != nil {
-			return nil, cd.NewError(cd.UnExpected, fmt.Sprintf("parse int value failed, error:%s", err.Error()))
+			return nil, cd.NewError(cd.Unexpected, fmt.Sprintf("parse int value failed, error:%s", err.Error()))
 		}
 		return convertIntToNumber(kind, i)
 	case uintegerKindMap[kind]:
 		u, err := strconv.ParseUint(val, 10, 64)
 		if err != nil {
-			return nil, cd.NewError(cd.UnExpected, fmt.Sprintf("parse uint value failed, error:%s", err.Error()))
+			return nil, cd.NewError(cd.Unexpected, fmt.Sprintf("parse uint value failed, error:%s", err.Error()))
 		}
 		return convertUintToNumber(kind, u)
 	case floatKindMap[kind]:
 		f, err := strconv.ParseFloat(val, 64)
 		if err != nil {
-			return nil, cd.NewError(cd.UnExpected, fmt.Sprintf("parse float value failed, error:%s", err.Error()))
+			return nil, cd.NewError(cd.Unexpected, fmt.Sprintf("parse float value failed, error:%s", err.Error()))
 		}
 		return convertFloatToNumber(kind, f)
 	default:
-		return nil, cd.NewError(cd.UnExpected, fmt.Sprintf("unsupported conversion from string to %v", kind))
+		return nil, cd.NewError(cd.Unexpected, fmt.Sprintf("unsupported conversion from string to %v", kind))
 	}
 }
 
@@ -1073,7 +1073,7 @@ func ElemDependValue(vVal reflect.Value) (ret []reflect.Value, err *cd.Error) {
 	}
 
 	if rVal.Kind() != reflect.Slice {
-		err = cd.NewError(cd.UnExpected, "illegal slice value")
+		err = cd.NewError(cd.Unexpected, "illegal slice value")
 		return
 	}
 

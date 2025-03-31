@@ -99,7 +99,7 @@ func (s *codecImpl) getFieldRelation(vField model.Field) (ret relationType) {
 
 func (s *codecImpl) PackedBasicFieldValue(vField model.Field, fVal model.Value) (ret any, err *cd.Error) {
 	if !model.IsBasicField(vField) {
-		err = cd.NewError(cd.UnExpected, "illegal field type")
+		err = cd.NewError(cd.Unexpected, "illegal field type")
 		log.Errorf("PackedFieldValue failed, error:%s", err.Error())
 		return
 	}
@@ -113,7 +113,7 @@ func (s *codecImpl) PackedBasicFieldValue(vField model.Field, fVal model.Value) 
 		}
 		jsonVal, jsonErr := json.Marshal(sliceVal)
 		if jsonErr != nil {
-			err = cd.NewError(cd.UnExpected, jsonErr.Error())
+			err = cd.NewError(cd.Unexpected, jsonErr.Error())
 			return
 		}
 
@@ -131,7 +131,7 @@ func (s *codecImpl) PackedBasicFieldValue(vField model.Field, fVal model.Value) 
 
 func (s *codecImpl) PackedStructFieldValue(vField model.Field, fVal model.Value) (ret any, err *cd.Error) {
 	if !model.IsStructField(vField) || !model.IsStruct(vField.GetType().Elem()) {
-		err = cd.NewError(cd.UnExpected, "illegal field type")
+		err = cd.NewError(cd.Unexpected, "illegal field type")
 		log.Errorf("PackedStructFieldValue failed, error:%s", err.Error())
 		return
 	}
@@ -157,7 +157,7 @@ func (s *codecImpl) PackedStructFieldValue(vField model.Field, fVal model.Value)
 
 func (s *codecImpl) PackedSliceStructFieldValue(vField model.Field, fVal model.Value) (ret any, err *cd.Error) {
 	if !model.IsSliceField(vField) || model.IsStruct(vField.GetType().Elem()) {
-		err = cd.NewError(cd.UnExpected, "illegal field type")
+		err = cd.NewError(cd.Unexpected, "illegal field type")
 		log.Errorf("PackedSliceStructFieldValue failed, error:%s", err.Error())
 		return
 	}
@@ -202,7 +202,7 @@ func (s *codecImpl) ExtractBasicFieldValue(vField model.Field, eVal any) (ret an
 				vArray := []any{}
 				byteErr := json.Unmarshal([]byte(*strVal), &vArray)
 				if byteErr != nil {
-					err = cd.NewError(cd.UnExpected, byteErr.Error())
+					err = cd.NewError(cd.Unexpected, byteErr.Error())
 					return
 				}
 				ret, err = s.modelProvider.DecodeValue(vArray, vType)
@@ -210,7 +210,7 @@ func (s *codecImpl) ExtractBasicFieldValue(vField model.Field, eVal any) (ret an
 				ret, err = vType.Interface(nil)
 			}
 		} else {
-			err = cd.NewError(cd.UnExpected, "illegal field value")
+			err = cd.NewError(cd.Unexpected, "illegal field value")
 		}
 	default:
 		ret, err = s.modelProvider.DecodeValue(eVal, vType)

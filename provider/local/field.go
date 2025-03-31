@@ -69,12 +69,12 @@ func (s *field) GetSliceValue() []model.Value {
 
 func (s *field) AppendSliceValue(val any) (err *cd.Error) {
 	if val == nil {
-		err = cd.NewError(cd.UnExpected, "field append slice value is nil")
+		err = cd.NewError(cd.Unexpected, "field append slice value is nil")
 		return
 	}
 
 	if !model.IsSlice(s.typePtr) {
-		err = cd.NewError(cd.UnExpected, "field is not slice")
+		err = cd.NewError(cd.Unexpected, "field is not slice")
 		return
 	}
 

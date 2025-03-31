@@ -107,7 +107,7 @@ func (s *ObjectFilter) Equal(key string, val any) (err *cd.Error) {
 		}
 		s.EqualFilter = append(s.EqualFilter, item)
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("equal failed, illegal value, key:%v, val:%v", key, val))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("equal failed, illegal value, key:%v, val:%v", key, val))
 	}
 
 	return
@@ -129,7 +129,7 @@ func (s *ObjectFilter) NotEqual(key string, val any) (err *cd.Error) {
 		}
 		s.NotEqualFilter = append(s.NotEqualFilter, item)
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("not equal failed, illegal value, key:%v, val:%v", key, val))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("not equal failed, illegal value, key:%v, val:%v", key, val))
 	}
 
 	return
@@ -143,7 +143,7 @@ func (s *ObjectFilter) Below(key string, val any) (err *cd.Error) {
 		item := &FieldValue{Name: key, Value: val}
 		s.BelowFilter = append(s.BelowFilter, item)
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("below failed, illegal value, key:%v, val:%v", key, val))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("below failed, illegal value, key:%v, val:%v", key, val))
 	}
 	return
 }
@@ -156,7 +156,7 @@ func (s *ObjectFilter) Above(key string, val any) (err *cd.Error) {
 		item := &FieldValue{Name: key, Value: val}
 		s.AboveFilter = append(s.AboveFilter, item)
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("above failed, illegal value, key:%v, val:%v", key, val))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("above failed, illegal value, key:%v, val:%v", key, val))
 	}
 	return
 }
@@ -178,7 +178,7 @@ func (s *ObjectFilter) In(key string, val any) (err *cd.Error) {
 		}
 		s.InFilter = append(s.InFilter, item)
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("in failed, illegal value, key:%v, val:%v", key, val))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("in failed, illegal value, key:%v, val:%v", key, val))
 	}
 
 	return
@@ -201,7 +201,7 @@ func (s *ObjectFilter) NotIn(key string, val any) (err *cd.Error) {
 		}
 		s.NotInFilter = append(s.NotInFilter, item)
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("not in failed, illegal value, key:%v, val:%v", key, val))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("not in failed, illegal value, key:%v, val:%v", key, val))
 	}
 
 	return
@@ -213,7 +213,7 @@ func (s *ObjectFilter) Like(key string, val any) (err *cd.Error) {
 		item := &FieldValue{Name: key, Value: val}
 		s.LikeFilter = append(s.LikeFilter, item)
 	default:
-		err = cd.NewError(cd.UnExpected, fmt.Sprintf("like failed, illegal value, key:%v, val:%v", key, val))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("like failed, illegal value, key:%v, val:%v", key, val))
 	}
 
 	return
@@ -235,7 +235,7 @@ func (s *ObjectFilter) Sort(fieldName string, ascFlag bool) {
 
 func (s *ObjectFilter) ValueMask(val any) (err *cd.Error) {
 	if val == nil {
-		err = cd.NewError(cd.UnExpected, "illegal mask value")
+		err = cd.NewError(cd.Unexpected, "illegal mask value")
 		return
 	}
 
@@ -250,7 +250,7 @@ func (s *ObjectFilter) ValueMask(val any) (err *cd.Error) {
 	case json.RawMessage:
 		objectValuePtr, err = DecodeObjectValue(v)
 	default:
-		err = cd.NewError(cd.UnExpected, "illegal mask value")
+		err = cd.NewError(cd.Unexpected, "illegal mask value")
 	}
 
 	if err != nil {
