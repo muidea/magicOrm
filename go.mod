@@ -7,5 +7,5 @@ require (
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/leodido/go-urn v1.2.2 // indirect
 	github.com/muidea/magicCommon v0.0.0-20230309140401-af16a770717d
-	golang.org/x/crypto v0.17.0 // indirect
+	golang.org/x/crypto v0.31.0 // indirect
 )
