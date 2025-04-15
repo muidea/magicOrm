@@ -8,6 +8,13 @@
 # Test binary, build with `go test -c`
 *.test
 
+demo
+
+provider/helper/entity/
+provider/helper/model/
+provider/helper/serialize_test.go
+
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
-vendor
+#vendor
+!/database/mysql/demo/main.go

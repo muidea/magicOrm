@@ -1,21 +1,25 @@
+//go:build local
+// +build local
+
 package test
 
 import (
-	"github.com/muidea/magicOrm/provider"
 	"testing"
 	"time"
+
+	"github.com/muidea/magicOrm/provider"
 
 	"github.com/muidea/magicOrm/orm"
 )
 
 func TestLocalExecutor(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
-	provider := provider.NewLocalProvider("default")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
+	localProvider := provider.NewLocalProvider("default")
 
-	o1, err := orm.NewOrm(provider, config)
+	o1, err := orm.NewOrm(localProvider, config, "abc")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -23,12 +27,26 @@ func TestLocalExecutor(t *testing.T) {
 	}
 
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
-	obj := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
+	obj := &Unit{
+		ID:        10,
+		I8:        8,
+		I16:       1600,
+		I32:       323200,
+		I64:       uint64(78962222222),
+		Name:      "Hello world",
+		Value:     12.3456,
+		F64:       12.45678,
+		TimeStamp: now,
+		Flag:      true,
+		IArray:    []int{},
+		FArray:    []float32{},
+		StrArray:  []string{},
+	}
 
-	objList := []interface{}{&Unit{}}
-	registerModel(provider, objList)
+	objList := []any{&Unit{}}
+	registerLocalModel(localProvider, objList)
 
-	objModel, objErr := provider.GetEntityModel(obj)
+	objModel, objErr := localProvider.GetEntityModel(obj)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -41,27 +59,27 @@ func TestLocalExecutor(t *testing.T) {
 	}
 
 	objModel, objErr = o1.Insert(objModel)
-	if err != nil {
-		t.Errorf("insert obj failed, err:%s", err.Error())
+	if objErr != nil {
+		t.Errorf("insert obj failed, err:%s", objErr.Error())
 		return
 	}
 	obj = objModel.Interface(true).(*Unit)
 
 	obj.Name = "abababa"
 	obj.Value = 100.000
-	objModel, objErr = provider.GetEntityModel(obj)
+	objModel, objErr = localProvider.GetEntityModel(obj)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
 	}
-	objModel, objErr = o1.Update(objModel)
+	_, objErr = o1.Update(objModel)
 	if objErr != nil {
 		t.Errorf("update obj failed, err:%s", objErr.Error())
 		return
 	}
 
 	obj2 := &Unit{ID: obj.ID}
-	obj2Model, obj2Err := provider.GetEntityModel(obj2)
+	obj2Model, obj2Err := localProvider.GetEntityModel(obj2)
 	if obj2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", obj2Err.Error())
 		return
@@ -77,7 +95,14 @@ func TestLocalExecutor(t *testing.T) {
 		return
 	}
 
-	_, countErr := o1.Count(obj2Model, nil)
+	uModel, _ := localProvider.GetEntityModel(&Unit{})
+	filter, err := localProvider.GetModelFilter(uModel)
+	if err != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
+		return
+	}
+
+	_, countErr := o1.Count(filter)
 	if countErr != nil {
 		t.Errorf("count object failed, err:%s", countErr.Error())
 		return
@@ -92,12 +117,12 @@ func TestLocalExecutor(t *testing.T) {
 
 func TestLocalDepends(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	provider := provider.NewLocalProvider("default")
 
-	o1, err := orm.NewOrm(provider, config)
+	o1, err := orm.NewOrm(provider, config, "abc")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -105,11 +130,11 @@ func TestLocalDepends(t *testing.T) {
 	}
 
 	now, _ := time.Parse("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000")
-	obj := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
+	obj := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true, IArray: []int{}, FArray: []float32{}, StrArray: []string{}}
 	ext := &ExtUnit{Unit: obj}
 
-	objList := []interface{}{&Unit{}, &ExtUnit{}, &ExtUnitList{}}
-	registerModel(provider, objList)
+	objList := []any{&Unit{}, &ExtUnit{}, &ExtUnitList{}}
+	registerLocalModel(provider, objList)
 
 	extModel, extErr := provider.GetEntityModel(ext)
 	if extErr != nil {
@@ -134,7 +159,7 @@ func TestLocalDepends(t *testing.T) {
 		t.Errorf("insert ext failed, err:%s", extErr.Error())
 		return
 	}
-	ext = extModel.Interface(true).(*ExtUnit)
+	_ = extModel.Interface(true).(*ExtUnit)
 
 	objModel, objErr := provider.GetEntityModel(obj)
 	if objErr != nil {

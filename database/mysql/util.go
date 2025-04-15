@@ -2,184 +2,109 @@ package mysql
 
 import (
 	"fmt"
+	"os"
+
+	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
 )
 
-func verifyField(info model.Field) error {
-	fTag := info.GetTag()
-	if IsKeyWord(fTag.GetName()) {
-		return fmt.Errorf("illegal fieldTag, is a key word.[%s]", fTag)
+func traceSQL() bool {
+	enableTrace, enableOK := os.LookupEnv("TRACE_SQL")
+	if enableOK && enableTrace == "true" {
+		return true
 	}
 
-	return nil
+	return false
 }
 
-func verifyModel(info model.Model) error {
-	name := info.GetName()
-	if IsKeyWord(name) {
-		return fmt.Errorf("illegal structName, is a key word.[%s]", name)
-	}
-
-	for _, val := range info.GetFields() {
-		err := verifyField(val)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func declareFieldInfo(info model.Field) (ret string, err error) {
-	autoIncrement := ""
-	fTag := info.GetTag()
-	if fTag.IsAutoIncrement() {
-		autoIncrement = "AUTO_INCREMENT"
-	}
-
-	allowNull := "NOT NULL"
-	fType := info.GetType()
-	if fType.IsPtrType() {
-		allowNull = ""
-	}
-
-	infoVal, infoErr := getFieldType(info)
-	if infoErr != nil {
-		err = infoErr
-		return
-	}
-
-	ret = fmt.Sprintf("`%s` %s %s %s", fTag.GetName(), infoVal, allowNull, autoIncrement)
-	return
-}
-
-func getFieldType(info model.Field) (ret string, err error) {
-	fType := info.GetType()
+func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err *cd.Error) {
 	switch fType.GetValue() {
-	case util.TypeBooleanField:
-		ret = "TINYINT"
-		break
-	case util.TypeStringField:
-		ret = "TEXT"
-		break
-	case util.TypeDateTimeField:
+	case model.TypeStringValue:
+		if fSpec.IsPrimaryKey() {
+			ret = "VARCHAR(32)"
+		} else {
+			ret = "TEXT"
+		}
+	case model.TypeDateTimeValue:
 		ret = "DATETIME"
-		break
-	case util.TypeBitField:
+	case model.TypeBooleanValue, model.TypeBitValue:
 		ret = "TINYINT"
-		break
-	case util.TypeSmallIntegerField:
+	case model.TypeSmallIntegerValue, model.TypePositiveBitValue:
 		ret = "SMALLINT"
-		break
-	case util.TypeIntegerField:
+	case model.TypeIntegerValue, model.TypeInteger32Value, model.TypePositiveSmallIntegerValue:
 		ret = "INT"
-		break
-	case util.TypeInteger32Field:
-		ret = "INT"
-		break
-	case util.TypeBigIntegerField:
+	case model.TypeBigIntegerValue, model.TypePositiveIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue:
 		ret = "BIGINT"
-		break
-	case util.TypePositiveBitField:
-		ret = "SMALLINT"
-		break
-	case util.TypePositiveSmallIntegerField:
-		ret = "INT"
-		break
-	case util.TypePositiveIntegerField:
-		ret = "BIGINT"
-		break
-	case util.TypePositiveInteger32Field:
-		ret = "BIGINT"
-		break
-	case util.TypePositiveBigIntegerField:
-		ret = "BIGINT"
-		break
-	case util.TypeFloatField:
+	case model.TypeFloatValue:
 		ret = "FLOAT"
-		break
-	case util.TypeDoubleField:
+	case model.TypeDoubleValue:
 		ret = "DOUBLE"
-		break
-	case util.TypeSliceField:
+	case model.TypeSliceValue:
 		ret = "TEXT"
 	default:
-		err = fmt.Errorf("no support fileType, name:%s, type:%d", info.GetName(), fType.GetValue())
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("no support field type, type:%v", fType.GetPkgKey()))
+	}
+
+	if err != nil {
+		log.Errorf("getTypeDeclare failed, error:%s", err.Error())
 	}
 
 	return
 }
 
-func getFieldInitializeValue(field model.Field) (ret interface{}, err error) {
-	fType := field.GetType()
+func getFieldPlaceHolder(fType model.Type) (ret interface{}, err *cd.Error) {
 	switch fType.GetValue() {
-	case util.TypeBooleanField:
-		val := int8(0)
-		ret = &val
-		break
-	case util.TypeBitField:
-		val := int8(0)
-		ret = &val
-		break
-	case util.TypeSmallIntegerField:
-		val := int16(0)
-		ret = &val
-		break
-	case util.TypeIntegerField:
-		val := int(0)
-		ret = &val
-		break
-	case util.TypeInteger32Field:
-		val := int32(0)
-		ret = &val
-		break
-	case util.TypeBigIntegerField:
-		val := int64(0)
-		ret = &val
-		break
-	case util.TypePositiveBitField:
-		val := uint8(0)
-		ret = &val
-		break
-	case util.TypePositiveSmallIntegerField:
-		val := uint16(0)
-		ret = &val
-		break
-	case util.TypePositiveIntegerField:
-		val := uint(0)
-		ret = &val
-		break
-	case util.TypePositiveInteger32Field:
-		val := uint32(0)
-		ret = &val
-		break
-	case util.TypePositiveBigIntegerField:
-		val := uint64(0)
-		ret = &val
-		break
-	case util.TypeFloatField:
-		val := float32(0.00)
-		ret = &val
-		break
-	case util.TypeDoubleField:
-		val := 0.0000
-		ret = &val
-		break
-	case util.TypeStringField, util.TypeDateTimeField:
+	case model.TypeStringValue, model.TypeDateTimeValue:
 		val := ""
 		ret = &val
-		break
-	case util.TypeSliceField:
-		if fType.IsBasic() {
+	case model.TypeBooleanValue, model.TypeBitValue:
+		val := int8(0)
+		ret = &val
+	case model.TypeSmallIntegerValue:
+		val := int16(0)
+		ret = &val
+	case model.TypeIntegerValue:
+		val := int(0)
+		ret = &val
+	case model.TypeInteger32Value:
+		val := int32(0)
+		ret = &val
+	case model.TypeBigIntegerValue:
+		val := int64(0)
+		ret = &val
+	case model.TypePositiveBitValue:
+		val := uint16(0)
+		ret = &val
+	case model.TypePositiveSmallIntegerValue:
+		val := uint32(0)
+		ret = &val
+	case model.TypePositiveIntegerValue:
+		val := uint(0)
+		ret = &val
+	case model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue:
+		val := uint64(0)
+		ret = &val
+	case model.TypeFloatValue:
+		val := float32(0.00)
+		ret = &val
+	case model.TypeDoubleValue:
+		val := 0.0000
+		ret = &val
+	case model.TypeSliceValue:
+		if model.IsBasic(fType.Elem()) {
 			val := ""
 			ret = &val
 		} else {
-			err = fmt.Errorf("no support fileType, name:%s, type:%d", field.GetName(), fType.GetValue())
+			err = cd.NewError(cd.Unexpected, fmt.Sprintf("no support fileType, type:%v", fType.GetPkgKey()))
 		}
 	default:
-		err = fmt.Errorf("no support fileType, name:%s, type:%d", field.GetName(), fType.GetValue())
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("no support fileType, type:%v", fType.GetPkgKey()))
+	}
+
+	if err != nil {
+		log.Errorf("getFieldPlaceHolder failed, error:%s", err.Error())
 	}
 
 	return

@@ -69,27 +69,27 @@ localProvider:
 orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", true)
 defer orm.Uninitialize()
 
-o1, err := orm.NewOrm(localOwner)
+o1, err := orm.NewOrm(localOwner,"abc")
 defer o1.Release()
 if err != nil {
     t.Errorf("new Orm failed, err:%s", err.Error())
     return
 }
 
-provider := orm.GetProvider(localOwner)
+provider := orm.GetProvider(localOwner,"abc")
 
 remoteProvider:
 orm.Initialize(50, "root", "rootkit", "localhost:3306", "testdb", false)
 defer orm.Uninitialize()
 
-o1, err := orm.NewOrm(localOwner)
+o1, err := orm.NewOrm(localOwner,"abc")
 defer o1.Release()
 if err != nil {
     t.Errorf("new Orm failed, err:%s", err.Error())
     return
 }
 
-provider := orm.GetProvider(localOwner)
+provider := orm.GetProvider(localOwner,"abc")
 
 ```
 
@@ -103,17 +103,17 @@ referenceDef := &Reference{}
 composeDef := &Compose{}
 
 remoteProvider:
-simpleDef := remote.GetObject(&Simple{})
-referenceDef := remote.GetObject(&Reference{})
-composeDef := remote.GetObject(&Compose{})
+simpleDef := helper.GetObject(&Simple{})
+referenceDef := helper.GetObject(&Reference{})
+composeDef := helper.GetObject(&Compose{})
 
 ```
 
 ## 模型初始化
 ```go
 
-entityList := []interface{}{simpleDef, referenceDef, composeDef}
-modelList, modelErr := registerModel(provider, entityList)
+entityList := []any{simpleDef, referenceDef, composeDef}
+modelList, modelErr := registerLocalModel(provider, entityList)
 if modelErr != nil {
     err = modelErr
     t.Errorf("register model failed. err:%s", err.Error())
@@ -137,7 +137,7 @@ if err != nil {
 ## 简单对象CURD
 
 ```go
-ts, _ := time.Parse("2006-01-02 15:04:05", "2018-01-02 15:04:05")
+ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 sVal := Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
 sValList := []*Simple{}
 sModelList := []model.Model{}
@@ -166,7 +166,7 @@ for idx:=0; idx<100; idx++ {
     }
     
     sModelList[idx] = vModel
-    sValList[idx] = vModel.Interface(true).(*Simple)
+    sValList[idx] = vModel.Interface(true,0).(*Simple)
 }
 
 // update
@@ -191,7 +191,7 @@ for idx:=0; idx<100; idx++ {
     }
     
     sModelList[idx] = vModel
-    sValList[idx] = vModel.Interface(true).(*Simple)
+    sValList[idx] = vModel.Interface(true,0).(*Simple)
 }
 
 // query
@@ -220,7 +220,7 @@ for idx:=0; idx<100; idx++ {
     }
     
     qModelList[idx] = qModel
-    qValList[idx] = qModel.Interface(true).(*Simple)
+    qValList[idx] = qModel.Interface(true,0).(*Simple)
 }
 
 for idx:=0; idx<100; idx++ {
@@ -240,7 +240,7 @@ if bqErr != nil {
     return
 }
 
-filter := orm.GetFilter(localOwner)
+filter := orm.GetFilter(localOwner,"abc")
 filter.Equal("Name", "hi")
 filter.ValueMask(&Simple{})
 bqModelList, bqModelErr := o1.BatchQuery(bqModel, filter)

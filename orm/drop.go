@@ -1,107 +1,104 @@
 package orm
 
 import (
-	"github.com/muidea/magicOrm/builder"
+	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/log"
+
+	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider"
 )
 
-func (s *impl) dropSingle(modelInfo model.Model) (err error) {
-	builder := builder.NewBuilder(modelInfo, s.modelProvider)
-	tableName := builder.GetTableName()
+type DropRunner struct {
+	baseRunner
+}
 
-	existFlag, existErr := s.executor.CheckTableExist(tableName)
-	if existErr != nil {
-		err = existErr
+func NewDropRunner(vModel model.Model, executor executor.Executor, provider provider.Provider, modelCodec codec.Codec) *DropRunner {
+	return &DropRunner{
+		baseRunner: newBaseRunner(vModel, executor, provider, modelCodec, false, 0),
+	}
+}
+
+func (s *DropRunner) dropHost(vModel model.Model) (err *cd.Error) {
+	dropResult, dropErr := s.hBuilder.BuildDropTable(vModel)
+	if dropErr != nil {
+		err = dropErr
+		log.Errorf("dropHost failed, s.hBuilder.BuildDropTable error:%s", err.Error())
 		return
 	}
 
-	if existFlag {
-		sql, err := builder.BuildDropSchema()
-		if err != nil {
-			return err
-		}
-
-		_, err = s.executor.Execute(sql)
-	}
-
-	return
-}
-
-func (s *impl) dropRelation(modelInfo model.Model, fieldName string, relationInfo model.Model) (err error) {
-	builder := builder.NewBuilder(modelInfo, s.modelProvider)
-	tableName := builder.GetRelationTableName(fieldName, relationInfo)
-
-	existFlag, existErr := s.executor.CheckTableExist(tableName)
-	if existErr != nil {
-		err = existErr
-		return
-	}
-	if existFlag {
-		sql, err := builder.BuildDropRelationSchema(fieldName, relationInfo)
-		if err != nil {
-			return err
-		}
-
-		_, err = s.executor.Execute(sql)
-	}
-
-	return
-}
-
-func (s *impl) batchDropSchema(modelInfo model.Model) (err error) {
-	err = s.dropSingle(modelInfo)
+	_, _, err = s.executor.Execute(dropResult.SQL(), dropResult.Args()...)
 	if err != nil {
+		log.Errorf("dropHost failed, s.executor.Execute error:%s", err.Error())
+	}
+	return
+}
+
+func (s *DropRunner) dropRelation(vModel model.Model, vField model.Field) (err *cd.Error) {
+	relationResult, relationErr := s.hBuilder.BuildDropRelationTable(vModel, vField)
+	if relationErr != nil {
+		err = relationErr
+		log.Errorf("dropRelation failed, hBuilder.BuildDropRelationTable error:%s", err.Error())
 		return
 	}
 
-	for _, field := range modelInfo.GetFields() {
-		fType := field.GetType()
-		if fType.IsBasic() {
+	_, _, err = s.executor.Execute(relationResult.SQL(), relationResult.Args()...)
+	if err != nil {
+		log.Errorf("dropRelation failed, s.executor.Execute error:%s", err.Error())
+	}
+	return
+}
+
+func (s *DropRunner) Drop() (err *cd.Error) {
+	err = s.dropHost(s.vModel)
+	if err != nil {
+		log.Errorf("Drop failed, s.dropHost error:%s", err.Error())
+		return
+	}
+
+	for _, field := range s.vModel.GetFields() {
+		if model.IsBasicField(field) {
 			continue
 		}
 
-		relationInfo, relationErr := s.modelProvider.GetTypeModel(fType)
-		if relationErr != nil {
-			err = relationErr
-			return
-		}
-
-		elemType := fType.Elem()
+		elemType := field.GetType().Elem()
 		if !elemType.IsPtrType() {
-			err = s.dropSingle(relationInfo)
+			rModel, rErr := s.modelProvider.GetTypeModel(elemType)
+			if rErr != nil {
+				err = rErr
+				log.Errorf("Drop failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+				return
+			}
+
+			rRunner := NewDropRunner(rModel, s.executor, s.modelProvider, s.modelCodec)
+			err = rRunner.Drop()
 			if err != nil {
+				log.Errorf("Drop failed, rRunner.Drop() error:%s", err.Error())
 				return
 			}
 		}
 
-		err = s.dropRelation(modelInfo, field.GetName(), relationInfo)
+		err = s.dropRelation(s.vModel, field)
 		if err != nil {
-			break
+			log.Errorf("Drop failed, s.dropRelation error:%s", err.Error())
+			return
 		}
 	}
 
 	return
 }
 
-// Drop drop
-func (s *impl) Drop(entityModel model.Model) (err error) {
-	err = s.executor.BeginTransaction()
-	if err != nil {
+func (s *impl) Drop(vModel model.Model) (err *cd.Error) {
+	if vModel == nil {
+		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return
 	}
 
-	err = s.batchDropSchema(entityModel)
-	if err == nil {
-		cErr := s.executor.CommitTransaction()
-		if cErr != nil {
-			err = cErr
-		}
-	} else {
-		rErr := s.executor.RollbackTransaction()
-		if rErr != nil {
-			err = rErr
-		}
+	dropRunner := NewDropRunner(vModel, s.executor, s.modelProvider, s.modelCodec)
+	err = dropRunner.Drop()
+	if err != nil {
+		log.Errorf("Drop failed, dropRunner.Drop() error:%s", err.Error())
 	}
-
 	return
 }

@@ -1,97 +1,182 @@
 package remote
 
 import (
-	"fmt"
-	"reflect"
+	"path"
 
+	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
+	"github.com/muidea/magicOrm/utils"
 )
 
-// TypeImpl TypeImpl
 type TypeImpl struct {
-	Name     string    `json:"name"`
-	Value    int       `json:"value"`
-	PkgPath  string    `json:"pkgPath"`
-	IsPtr    bool      `json:"isPtr"`
-	ElemType *TypeImpl `json:"elemType"`
+	Name        string            `json:"name"`
+	PkgPath     string            `json:"pkgPath"`
+	Description string            `json:"description"`
+	Value       model.TypeDeclare `json:"value"`
+	IsPtr       bool              `json:"isPtr"`
+	ElemType    *TypeImpl         `json:"elemType"`
 }
 
-// newType new typeImpl
-func newType(itemType reflect.Type) (ret *TypeImpl, err error) {
-	isPtr := false
-	if itemType.Kind() == reflect.Ptr {
-		isPtr = true
-		itemType = itemType.Elem()
-	}
-
-	typeVal, typeErr := util.GetTypeEnum(itemType)
-	if typeErr != nil {
-		err = typeErr
-		return
-	}
-
-	if util.IsSliceType(typeVal) {
-		sliceType := itemType.Elem()
-		slicePtr := false
-		if sliceType.Kind() == reflect.Ptr {
-			sliceType = sliceType.Elem()
-			slicePtr = true
-		}
-		ret = &TypeImpl{Name: sliceType.String(), Value: typeVal, PkgPath: sliceType.PkgPath(), IsPtr: isPtr}
-
-		sliceVal, sliceErr := util.GetTypeEnum(sliceType)
-		if sliceErr != nil {
-			err = sliceErr
-			return
-		}
-		if util.IsSliceType(sliceVal) {
-			err = fmt.Errorf("illegal slice type, type:%s", sliceType.String())
-			return
-		}
-
-		ret.ElemType = &TypeImpl{Name: sliceType.String(), Value: sliceVal, PkgPath: sliceType.PkgPath(), IsPtr: slicePtr}
-		return
-	}
-
-	ret = &TypeImpl{Name: itemType.String(), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
-	ret.ElemType = &TypeImpl{Name: itemType.String(), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
-	return
-}
-
-// GetName GetName
 func (s *TypeImpl) GetName() (ret string) {
 	ret = s.Name
 	return
 }
 
-// GetEntityValue GetEntityValue
-func (s *TypeImpl) GetValue() (ret int) {
-	ret = s.Value
-	return
-}
-
-// GetPkgPath GetPkgPath
 func (s *TypeImpl) GetPkgPath() (ret string) {
 	ret = s.PkgPath
 	return
 }
 
-// IsPtrType IsPtrType
+func (s *TypeImpl) GetPkgKey() (ret string) {
+	ret = path.Join(s.PkgPath, s.Name)
+	return
+}
+
+func (s *TypeImpl) GetDescription() (ret string) {
+	ret = s.Description
+	return
+}
+
+func (s *TypeImpl) GetValue() (ret model.TypeDeclare) {
+	ret = s.Value
+	return
+}
+
 func (s *TypeImpl) IsPtrType() (ret bool) {
 	ret = s.IsPtr
 	return
 }
 
-// Interface Interface
-func (s *TypeImpl) Interface() (ret model.Value, err error) {
-	tVal, tErr := getInitializeValue(s)
-	if tErr != nil {
-		err = tErr
+func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
+	if initVal != nil {
+		switch s.GetValue() {
+		case model.TypeBooleanValue:
+			rawVal, rawErr := utils.ConvertRawToBool(initVal)
+			if rawErr != nil {
+				err = rawErr
+				log.Errorf("Interface failed, util.GetBool initVal:%+v, error:%s", initVal, err.Error())
+				return
+			}
+			initVal = rawVal
+		case model.TypeBitValue:
+			rawVal, rawErr := utils.ConvertRawToInt8(initVal)
+			if rawErr != nil {
+				err = rawErr
+				log.Errorf("Interface failed, util.GetInt8 initVal:%+v, error:%s", initVal, err.Error())
+				return
+			}
+			initVal = rawVal
+		case model.TypeSmallIntegerValue:
+			rawVal, rawErr := utils.ConvertRawToInt16(initVal)
+			if rawErr != nil {
+				err = rawErr
+				log.Errorf("Interface failed, util.GetInt16 initVal:%+v, error:%s", initVal, err.Error())
+				return
+			}
+			initVal = rawVal
+		case model.TypeInteger32Value:
+			rawVal, rawErr := utils.ConvertRawToInt32(initVal)
+			if rawErr != nil {
+				err = rawErr
+				log.Errorf("Interface failed, util.GetInt32 initVal:%+v, error:%s", initVal, err.Error())
+				return
+			}
+			initVal = rawVal
+		case model.TypeIntegerValue:
+			rawVal, rawErr := utils.ConvertRawToInt(initVal)
+			if rawErr != nil {
+				err = rawErr
+				log.Errorf("Interface failed, util.GetInt initVal:%+v, error:%s", initVal, err.Error())
+				return
+			}
+			initVal = rawVal
+		case model.TypeBigIntegerValue:
+			rawVal, rawErr := utils.ConvertRawToInt64(initVal)
+			if rawErr != nil {
+				err = rawErr
+				log.Errorf("Interface failed, util.GetInt64 initVal:%+v, error:%s", initVal, err.Error())
+				return
+			}
+			initVal = rawVal
+		case model.TypePositiveBitValue:
+			rawVal, rawErr := utils.ConvertRawToUint8(initVal)
+			if rawErr != nil {
+				err = rawErr
+				log.Errorf("Interface failed, utils.GetUint8 initVal:%+v, error:%s", initVal, err.Error())
+				return
+			}
+			initVal = rawVal
+		case model.TypePositiveSmallIntegerValue:
+			rawVal, rawErr := utils.ConvertRawToUint16(initVal)
+			if rawErr != nil {
+				err = rawErr
+				log.Errorf("Interface failed, utils.GetUint16 initVal:%+v, error:%s", initVal, err.Error())
+				return
+			}
+			initVal = rawVal
+		case model.TypePositiveInteger32Value:
+			rawVal, rawErr := utils.ConvertRawToUint32(initVal)
+			if rawErr != nil {
+				err = rawErr
+				log.Errorf("Interface failed, utils.GetUint32 initVal:%+v, error:%s", initVal, err.Error())
+				return
+			}
+			initVal = rawVal
+		case model.TypePositiveIntegerValue:
+			rawVal, rawErr := utils.ConvertRawToUint(initVal)
+			if rawErr != nil {
+				err = rawErr
+				log.Errorf("Interface failed, utils.GetUint initVal:%+v, error:%s", initVal, err.Error())
+				return
+			}
+			initVal = rawVal
+		case model.TypePositiveBigIntegerValue:
+			rawVal, rawErr := utils.ConvertRawToUint64(initVal)
+			if rawErr != nil {
+				err = rawErr
+				log.Errorf("Interface failed, utils.GetUint64 initVal:%+v, error:%s", initVal, err.Error())
+				return
+			}
+			initVal = rawVal
+		case model.TypeFloatValue:
+			rawVal, rawErr := utils.ConvertRawToFloat32(initVal)
+			if rawErr != nil {
+				err = rawErr
+				log.Errorf("Interface failed, utils.GetFloat32 initVal:%+v, error:%s", initVal, err.Error())
+				return
+			}
+			initVal = rawVal
+		case model.TypeDoubleValue:
+			rawVal, rawErr := utils.ConvertRawToFloat64(initVal)
+			if rawErr != nil {
+				err = rawErr
+				log.Errorf("Interface failed, utils.GetFloat64 initVal:%+v, error:%s", initVal, err.Error())
+				return
+			}
+			initVal = rawVal
+		case model.TypeDateTimeValue, model.TypeStringValue:
+			rawVal, rawErr := utils.ConvertRawToString(initVal)
+			if rawErr != nil {
+				err = rawErr
+				log.Errorf("Interface failed, utils.GetString initVal:%+v, error:%s", initVal, err.Error())
+				return
+			}
+			initVal = rawVal
+		case model.TypeSliceValue:
+			if !model.IsBasic(s.Elem()) {
+				initVal = nil
+			}
+		default:
+			initVal = nil
+		}
+	}
+	if initVal != nil {
+		ret = NewValue(initVal)
 		return
 	}
 
-	ret = newValue(tVal)
+	ret = NewValue(getInitializeValue(s))
 	return
 }
 
@@ -107,26 +192,19 @@ func (s *TypeImpl) Elem() model.Type {
 	return &eType
 }
 
-func (s *TypeImpl) IsBasic() bool {
-	if s.ElemType != nil {
-		return util.IsBasicType(s.ElemType.Value)
+func (s *TypeImpl) Copy() (ret *TypeImpl) {
+	ret = &TypeImpl{
+		Name:        s.Name,
+		PkgPath:     s.PkgPath,
+		Description: s.Description,
+		Value:       s.Value,
+		IsPtr:       s.IsPtr,
 	}
-
-	return util.IsBasicType(s.Value)
-}
-
-func (s *TypeImpl) copy() (ret *TypeImpl) {
-	ret = &TypeImpl{Name: s.Name, Value: s.Value, PkgPath: s.PkgPath, IsPtr: s.IsPtr}
 	if s.ElemType != nil {
-		ret.ElemType = s.ElemType.copy()
+		ret.ElemType = s.ElemType.Copy()
 	}
 
 	return
-}
-
-func (s *TypeImpl) dump() string {
-	val := s.GetValue()
-	return fmt.Sprintf("val:%d,name:%s,pkgPath:%s,isPtr:%v", val, s.GetName(), s.GetPkgPath(), s.IsPtrType())
 }
 
 func compareType(l, r *TypeImpl) bool {

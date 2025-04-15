@@ -1,14 +1,24 @@
 package model
 
 import (
-	"github.com/muidea/magicCommon/foundation/util"
+	cd "github.com/muidea/magicCommon/def"
 )
 
-type OprFunc func(string, interface{}) string
+const (
+	EqualOpr    = iota // =
+	NotEqualOpr        // !=
+	BelowOpr           // <
+	AboveOpr           // >
+	InOpr              // in
+	NotInOpr           // !in
+	LikeOpr            // like
+)
+
+type OprCode int
 
 // FilterItem FilterItem
 type FilterItem interface {
-	OprFunc() OprFunc
+	OprCode() OprCode
 	OprValue() Value
 }
 
@@ -18,21 +28,28 @@ type Sorter interface {
 	AscSort() bool
 }
 
+type Paginationer interface {
+	Limit() int64
+	Offset() int64
+}
+
 // Filter orm query filter
 type Filter interface {
-	Equal(key string, val interface{}) error
-	NotEqual(key string, val interface{}) error
-	Below(key string, val interface{}) error
-	Above(key string, val interface{}) error
-	In(key string, val interface{}) error
-	NotIn(key string, val interface{}) error
-	Like(key string, val interface{}) error
-	ValueMask(val interface{}) error
-	Page(filter *util.Pagination)
-	Sort(sorter *util.SortFilter)
+	GetName() string
+	GetPkgPath() string
+	Equal(key string, val any) *cd.Error
+	NotEqual(key string, val any) *cd.Error
+	Below(key string, val any) *cd.Error
+	Above(key string, val any) *cd.Error
+	In(key string, val any) *cd.Error
+	NotIn(key string, val any) *cd.Error
+	Like(key string, val any) *cd.Error
+	Pagination(pageNum, pageSize int)
+	Sort(fieldName string, ascFlag bool)
+	ValueMask(val any) *cd.Error
 
-	GetFilterItem(name string) FilterItem
-	Pagination() (limit, offset int, paging bool)
-	MaskModel() Model
+	GetFilterItem(key string) FilterItem
+	Paginationer() Paginationer
 	Sorter() Sorter
+	MaskModel() Model
 }

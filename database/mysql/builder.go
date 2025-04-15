@@ -2,112 +2,154 @@ package mysql
 
 import (
 	"fmt"
-	"strings"
 
+	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/log"
+
+	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
-	"github.com/muidea/magicOrm/util"
 )
 
 // Builder Builder
 type Builder struct {
-	modelInfo     model.Model
 	modelProvider provider.Provider
+	buildCodec    codec.Codec
 }
 
 // New create builder
-func New(vModel model.Model, modelProvider provider.Provider) *Builder {
-	return &Builder{modelInfo: vModel, modelProvider: modelProvider}
+func New(provider provider.Provider, codec codec.Codec) *Builder {
+	return &Builder{
+		modelProvider: provider,
+		buildCodec:    codec,
+	}
 }
 
-func (s *Builder) constructTableName(info model.Model) string {
-	items := strings.Split(info.GetName(), ".")
-	return items[len(items)-1]
-}
-
-// GetTableName GetTableName
-func (s *Builder) GetTableName() string {
-	return s.getHostTableName(s.modelInfo)
-}
-
-// getHostTableName getHostTableName
-func (s *Builder) getHostTableName(info model.Model) string {
-	//tableName := s.constructTableName(info)
-	//return fmt.Sprintf("%s_%s", s.modelProvider.Owner(), tableName)
-	return s.constructTableName(info)
-}
-
-func (s *Builder) GetRelationTableName(fieldName string, relationInfo model.Model) string {
-	leftName := s.constructTableName(s.modelInfo)
-	rightName := s.constructTableName(relationInfo)
-
-	//return fmt.Sprintf("%s_%s%s2%s", s.modelProvider.Owner(), leftName, fieldName, rightName)
-	return fmt.Sprintf("%s%s2%s", leftName, fieldName, rightName)
-}
-
-func (s *Builder) getRelationValue(rModel model.Model) (leftVal, rightVal interface{}, err error) {
-	infoVal, infoErr := s.getModelValue(s.modelInfo)
-	if infoErr != nil {
-		err = infoErr
+func (s *Builder) buildFilter(vModel model.Model, filter model.Filter, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
+	if filter == nil {
 		return
 	}
-	relationVal, relationErr := s.getModelValue(rModel)
+
+	filterSQL := ""
+	for _, field := range vModel.GetFields() {
+		filterItem := filter.GetFilterItem(field.GetName())
+		if filterItem == nil {
+			continue
+		}
+
+		if model.IsBasicField(field) {
+			basicSQL, basicErr := s.buildBasicFilterItem(field, filterItem, resultStackPtr)
+			if basicErr != nil {
+				err = basicErr
+				log.Errorf("buildFilter failed, s.buildBasicItem %s error:%s", field.GetName(), err.Error())
+				return
+			}
+
+			if filterSQL == "" {
+				filterSQL = basicSQL
+				continue
+			}
+
+			filterSQL = fmt.Sprintf("%s AND %s", filterSQL, basicSQL)
+			continue
+		}
+
+		relationSQL, relationErr := s.buildRelationFilterItem(vModel, field, filterItem, resultStackPtr)
+		if relationErr != nil {
+			err = relationErr
+			log.Errorf("buildFilter failed, s.buildRelationItem %s error:%s", field.GetName(), err.Error())
+			return
+		}
+
+		if filterSQL == "" {
+			filterSQL = relationSQL
+			continue
+		}
+
+		filterSQL = fmt.Sprintf("%s AND %s", filterSQL, relationSQL)
+	}
+
+	ret = filterSQL
+	return
+}
+
+func (s *Builder) buildBasicFilterItem(vField model.Field, filterItem model.FilterItem, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
+	oprValue := filterItem.OprValue()
+	oprFunc := getOprFunc(filterItem)
+	fieldVal, fieldErr := s.modelProvider.EncodeValue(oprValue.Get(), vField.GetType())
+	if fieldErr != nil {
+		err = fieldErr
+		log.Errorf("buildBasicItem %s failed, s.modelProvider.EncodeValue error:%s", vField.GetName(), err.Error())
+		return
+	}
+
+	ret = oprFunc(vField.GetName(), fieldVal, resultStackPtr)
+	return
+}
+
+func (s *Builder) buildRelationFilterItem(vModel model.Model, vField model.Field, filterItem model.FilterItem, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
+	oprValue := filterItem.OprValue()
+	oprFunc := getOprFunc(filterItem)
+
+	var fieldVal any
+	switch filterItem.OprCode() {
+	case model.InOpr, model.NotInOpr:
+		entitySlice := []any{}
+		fieldVals := oprValue.UnpackValue()
+		for _, val := range fieldVals {
+			subItemVal, subItemErr := s.modelProvider.EncodeValue(val.Get(), vField.GetType())
+			if subItemErr != nil {
+				err = subItemErr
+				log.Errorf("buildRelationItem %s failed, s.modelProvider.EncodeValue error:%s", vField.GetName(), err.Error())
+				return
+			}
+			entitySlice = append(entitySlice, subItemVal)
+		}
+		fieldVal = entitySlice
+	default:
+		fieldVal, err = s.modelProvider.EncodeValue(oprValue.Get(), vField.GetType())
+		if err != nil {
+			log.Errorf("buildRelationItem %s failed, s.modelProvider.EncodeValue error:%s", vField.GetName(), err.Error())
+			return
+		}
+	}
+
+	relationFilterSQL := ""
+	strVal := oprFunc("right", fieldVal, resultStackPtr)
+	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
+		log.Errorf("buildRelationItem %s failed, s.buildCodec.ConstructRelationTableName error:%s", vField.GetName(), err.Error())
 		return
 	}
 
-	leftVal = infoVal
-	rightVal = relationVal
-	return
-}
-
-func (s *Builder) GetInitializeValue(field model.Field) (ret interface{}, err error) {
-	return getFieldInitializeValue(field)
-}
-
-func (s *Builder) getModelValue(vModel model.Model) (ret interface{}, err error) {
 	pkField := vModel.GetPrimaryField()
-	if pkField == nil {
-		err = fmt.Errorf("no define primaryKey")
-		return
-	}
-
-	fStr, fErr := s.modelProvider.EncodeValue(pkField.GetValue(), pkField.GetType())
-	if fErr != nil {
-		err = fErr
-		return
-	}
-
-	ret = fStr
+	relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTableName, strVal)
+	relationFilterSQL = fmt.Sprintf("`%s` IN (%s)", pkField.GetName(), relationFilterSQL)
+	ret = relationFilterSQL
 	return
 }
 
-func (s *Builder) buildValue(vValue model.Value, vType model.Type) (ret interface{}, err error) {
-	fStr, fErr := s.modelProvider.EncodeValue(vValue, vType)
-	if fErr != nil {
-		err = fErr
+func (s *Builder) buildSorter(vModel model.Model, filter model.Sorter) (ret string, err *cd.Error) {
+	if filter == nil {
 		return
 	}
 
-	switch vType.GetValue() {
-	case util.TypeStringField, util.TypeDateTimeField, util.TypeSliceField:
-		ret = fmt.Sprintf("'%v'", strings.ReplaceAll(fmt.Sprintf("%v", fStr), "'", "''"))
-	default:
-		ret = fStr
+	for _, field := range vModel.GetFields() {
+		if field.GetName() == filter.Name() {
+			ret = SortOpr(filter.Name(), filter.AscSort())
+			return
+		}
 	}
 
+	err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal sort field name:%s", filter.Name()))
+	log.Errorf("buildSorter failed, err:%s", err.Error())
 	return
 }
 
-func (s *Builder) buildPKFilter(vModel model.Model) (ret string, err error) {
-	pkfVal, pkfErr := s.getModelValue(vModel)
-	if pkfErr != nil {
-		err = pkfErr
-		return
-	}
-
-	pkfTag := vModel.GetPrimaryField().GetTag().GetName()
-	ret = fmt.Sprintf("`%s`=%v", pkfTag, pkfVal)
+func (s *Builder) buildFieldFilter(vField model.Field, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
+	fieldName := vField.GetName()
+	resultStackPtr.PushArgs(vField.GetValue().Get())
+	ret = fmt.Sprintf("`%s` = ?", fieldName)
 	return
 }

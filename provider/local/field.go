@@ -1,149 +1,142 @@
 package local
 
 import (
-	"fmt"
 	"reflect"
 
-	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
+	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/log"
 
-	log "github.com/cihub/seelog"
+	"github.com/muidea/magicOrm/model"
 )
 
 // field single field impl
 type field struct {
-	Index int
-	Name  string
+	index int
+	name  string
 
-	Type  *typeImpl
-	Tag   *tagImpl
-	value *valueImpl
+	typePtr  *TypeImpl
+	specPtr  *SpecImpl
+	valuePtr *ValueImpl
 }
 
 func (s *field) GetIndex() int {
-	return s.Index
+	return s.index
 }
 
-// GetName GetName
 func (s *field) GetName() string {
-	return s.Name
+	return s.name
 }
 
-// GetEntityType GetEntityType
+func (s *field) GetShowName() string {
+	return s.name
+}
+
+func (s *field) GetDescription() string {
+	return ""
+}
+
 func (s *field) GetType() (ret model.Type) {
-	if s.Type != nil {
-		ret = s.Type
-	}
-
+	ret = s.typePtr
 	return
 }
 
-// GetTag GetTag
-func (s *field) GetTag() (ret model.Tag) {
-	if s.Tag != nil {
-		ret = s.Tag
+func (s *field) GetSpec() (ret model.Spec) {
+	if s.specPtr != nil {
+		ret = s.specPtr
+		return
 	}
 
+	ret = &emptySpec
 	return
 }
 
-// GetEntityValue GetEntityValue
 func (s *field) GetValue() (ret model.Value) {
-	if s.value != nil {
-		ret = s.value
-	}
-
+	ret = s.valuePtr
 	return
 }
 
-func (s *field) SetValue(val model.Value) (err error) {
-	err = s.value.Set(val.Get())
-	if err != nil {
-		log.Errorf("set field value failed, name:%s, err:%s", s.Name, err.Error())
+func (s *field) SetValue(val any) *cd.Error {
+	return s.valuePtr.Set(val)
+}
+
+func (s *field) GetSliceValue() []model.Value {
+	if !model.IsSlice(s.typePtr) || !s.valuePtr.IsValid() {
+		return nil
 	}
 
+	return s.valuePtr.UnpackValue()
+}
+
+func (s *field) AppendSliceValue(val any) (err *cd.Error) {
+	if val == nil {
+		err = cd.NewError(cd.Unexpected, "field append slice value is nil")
+		return
+	}
+
+	if !model.IsSlice(s.typePtr) {
+		err = cd.NewError(cd.Unexpected, "field is not slice")
+		return
+	}
+
+	err = s.valuePtr.Append(reflect.ValueOf(val))
 	return
 }
 
-func (s *field) IsPrimary() bool {
-	return s.Tag.IsPrimaryKey()
+func (s *field) Reset() {
+	s.valuePtr.reset(model.IsAssignedField(s))
 }
 
-func (s *field) copy() *field {
-	return &field{
-		Index: s.Index,
-		Name:  s.Name,
-		Type:  s.Type.copy(),
-		Tag:   s.Tag.copy(),
-		value: s.value.copy(),
-	}
-}
+func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Value, viewSpec model.ViewDeclare) (ret *field, err *cd.Error) {
+	var typePtr *TypeImpl
+	var specPtr *SpecImpl
+	var valuePtr *ValueImpl
 
-// verify verify
-func (s *field) verify() error {
-	if s.Tag.GetName() == "" {
-		return fmt.Errorf("no define field tag")
-	}
-
-	val := s.Type.GetValue()
-	if s.Tag.IsAutoIncrement() {
-		switch val {
-		case util.TypeBooleanField,
-			util.TypeStringField,
-			util.TypeDateTimeField,
-			util.TypeFloatField,
-			util.TypeDoubleField,
-			util.TypeStructField,
-			util.TypeSliceField:
-			return fmt.Errorf("illegal auto_increment field type, type:%s", s.Type.dump())
-		default:
-		}
-	}
-
-	if s.Tag.IsPrimaryKey() {
-		switch val {
-		case util.TypeStructField, util.TypeSliceField:
-			return fmt.Errorf("illegal primary key field type, type:%s", s.Type.dump())
-		default:
-		}
-	}
-
-	return nil
-}
-
-// dump dump
-func (s *field) dump() string {
-	str := fmt.Sprintf("index:%d,name:%s,type:[%s],tag:[%s]", s.Index, s.Name, s.Type.dump(), s.Tag.dump())
-	return str
-}
-
-func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Value) (ret *field, err error) {
-	typeImpl, typeErr := newType(fieldType.Type)
-	if typeErr != nil {
-		err = typeErr
-		return
-	}
-
-	tagImpl, tagErr := newTag(fieldType.Tag.Get("orm"))
-	if tagErr != nil {
-		err = tagErr
-		return
-	}
-
-	valueImpl := newValue(fieldValue)
-
-	field := &field{}
-	field.Index = idx
-	field.Name = fieldType.Name
-	field.Type = typeImpl
-	field.Tag = tagImpl
-	field.value = valueImpl
-
-	err = field.verify()
+	typePtr, err = NewType(fieldType.Type)
 	if err != nil {
 		return
 	}
 
-	ret = field
+	specPtr, err = NewSpec(fieldType.Tag)
+	if err != nil {
+		return
+	}
+
+	fieldPtr := &field{
+		index: idx,
+		name:  fieldType.Name,
+	}
+
+	if specPtr.GetFieldName() != "" {
+		fieldPtr.name = specPtr.GetFieldName()
+	}
+
+	valuePtr = NewValue(fieldValue)
+
+	switch viewSpec {
+	case model.MetaView:
+		if !typePtr.IsPtrType() {
+			valuePtr.reset(true)
+		} else {
+			valuePtr.reset(false)
+		}
+	case model.DetailView, model.LiteView:
+		if !specPtr.EnableView(viewSpec) {
+			// 如果spec未定义，则重置该value，不进行初始化
+			valuePtr.reset(false)
+		} else if !valuePtr.IsValid() {
+			// 如果spec定义，但是value无效，则重置该value，并进行初始化
+			valuePtr.reset(true)
+		}
+	case model.OriginView:
+		//  do nothing
+	default:
+		log.Warnf("fieldName:%s,unknown view spec:%v", fieldPtr.name, viewSpec)
+	}
+
+	fieldPtr.typePtr = typePtr
+	fieldPtr.specPtr = specPtr
+	fieldPtr.valuePtr = valuePtr
+
+	ret = fieldPtr
 	return
 }

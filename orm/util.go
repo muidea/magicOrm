@@ -1,88 +1,105 @@
 package orm
 
 import (
-	"github.com/muidea/magicOrm/builder"
+	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/log"
+
+	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
+	"github.com/muidea/magicOrm/provider"
 )
 
-func (s *impl) getModelFilter(vModel model.Model) (ret model.Filter, err error) {
-	filter := &queryFilter{params: map[string]model.FilterItem{}, modelProvider: s.modelProvider}
-
-	for _, field := range vModel.GetFields() {
-		vVal := field.GetValue()
-		vType := field.GetType()
-		if !s.modelProvider.IsAssigned(vVal, vType) {
-			continue
-		}
-
-		if util.IsSliceType(vType.GetValue()) && !vType.IsBasic() {
-			filter.inInternal(field.GetTag().GetName(), vVal)
-			continue
-		}
-
-		filter.equalInternal(field.GetTag().GetName(), vVal)
+func getModelFilter(vModel model.Model, provider provider.Provider, modelCodec codec.Codec) (ret model.Filter, err *cd.Error) {
+	filterVal, filterErr := provider.GetModelFilter(vModel)
+	if filterErr != nil {
+		err = filterErr
+		log.Errorf("getModelFilter failed, s.modelProvider.GetEntityFilter error:%s", err.Error())
+		return
 	}
 
-	ret = filter
-	return
-}
-
-func (s *impl) getFieldFilter(vField model.Field) (ret model.Filter, err error) {
-	filter := &queryFilter{params: map[string]model.FilterItem{}, modelProvider: s.modelProvider}
-	vVal := vField.GetValue()
-	if !vVal.IsNil() {
-		filter.equalInternal(vField.GetTag().GetName(), vField.GetValue())
-	}
-
-	ret = filter
-	return
-}
-
-func (s *impl) getInitializeValue(vModel model.Model, builder builder.Builder) (ret []interface{}, err error) {
-	var items []interface{}
-	for _, field := range vModel.GetFields() {
-		fType := field.GetType()
-		if !fType.IsBasic() {
-			continue
-		}
-
-		itemVal, itemErr := builder.GetInitializeValue(field)
-		if itemErr != nil {
-			err = itemErr
+	hasPKValue := false
+	pkField := vModel.GetPrimaryField()
+	if model.IsAssignedField(pkField) {
+		pkVal, pkErr := modelCodec.PackedBasicFieldValue(pkField, pkField.GetValue())
+		if pkErr != nil {
+			err = pkErr
+			log.Errorf("getModelFilter failed, modelCodec.PackedFieldValue error:%s", err.Error())
 			return
 		}
 
-		items = append(items, itemVal)
+		err = filterVal.Equal(pkField.GetName(), pkVal)
+		if err != nil {
+			log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
+			return
+		}
+		hasPKValue = true
 	}
-	ret = items
 
+	if hasPKValue {
+		ret = filterVal
+		return
+	}
+
+	for _, field := range vModel.GetFields() {
+		if model.IsPrimaryField(field) || !model.IsAssignedField(field) {
+			continue
+		}
+
+		// 这里需要考虑普通值和Struct以及Slice Struct值的分开处理
+		// basic, basic slice
+		if model.IsBasicField(field) {
+			//fieldVal, fieldErr := modelCodec.PackedBasicFieldValue(field, field.GetValue())
+			//if fieldErr != nil {
+			//	err = fieldErr
+			//	log.Errorf("getModelFilter failed, modelCodec.PackedFieldValue error:%s", err.Error())
+			//	return
+			//}
+			err = filterVal.Equal(field.GetName(), field.GetValue().Get())
+			if err != nil {
+				log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
+				return
+			}
+
+			continue
+		}
+
+		// struct
+		if model.IsStructField(field) {
+			//fieldVal, fieldErr := modelCodec.PackedStructFieldValue(field, field.GetValue())
+			//if fieldErr != nil {
+			//	err = fieldErr
+			//	log.Errorf("getModelFilter failed, modelCodec.PackedFieldValue error:%s", err.Error())
+			//	return
+			//}
+
+			err = filterVal.Equal(field.GetName(), field.GetValue().Get())
+			if err != nil {
+				log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
+				return
+			}
+
+			continue
+		}
+
+		// struct slice
+		if model.IsSliceField(field) {
+			//fieldVal, fieldErr := modelCodec.PackedSliceStructFieldValue(field, field.GetValue())
+			//if fieldErr != nil {
+			//	err = fieldErr
+			//	log.Errorf("getModelFilter failed, modelCodec.PackedFieldValue error:%s", err.Error())
+			//	return
+			//}
+
+			err = filterVal.In(field.GetName(), field.GetValue().Get())
+			if err != nil {
+				log.Errorf("getModelFilter failed, filterVal.In error:%s", err.Error())
+				return
+			}
+
+			continue
+		}
+	}
+
+	ret = filterVal
 	return
-}
-
-func (s *impl) needStripSlashes(fType model.Type) bool {
-	switch fType.GetValue() {
-	case util.TypeStringField, util.TypeDateTimeField:
-		return true
-	}
-
-	if !util.IsSliceType(fType.GetValue()) {
-		return false
-	}
-
-	return fType.IsBasic()
-}
-
-func (s *impl) stripSlashes(fType model.Type, val interface{}) interface{} {
-	if !s.needStripSlashes(fType) {
-		return val
-	}
-
-	strPtr, strOK := val.(*string)
-	if !strOK {
-		return val
-	}
-
-	strVal := util.StripSlashes(*strPtr)
-	return &strVal
 }

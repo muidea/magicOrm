@@ -1,115 +1,168 @@
 package local
 
 import (
-	"fmt"
-	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
+	"path"
 	"reflect"
+
+	cd "github.com/muidea/magicCommon/def"
+
+	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/utils"
 )
 
-type typeImpl struct {
-	typeImpl reflect.Type
+type TypeImpl struct {
+	typeVal reflect.Type
 }
 
-func getValueType(val reflect.Value) (ret *typeImpl, err error) {
-	if util.IsNil(val) {
-		err = fmt.Errorf("can't get nil value type")
+func NewType(val reflect.Type) (ret *TypeImpl, err *cd.Error) {
+	rType := val
+	if rType.Kind() == reflect.Ptr {
+		rType = rType.Elem()
+	}
+	_, tErr := utils.GetTypeEnum(rType)
+	if tErr != nil {
+		err = tErr
 		return
 	}
 
-	ret, err = newType(val.Type())
+	ret = &TypeImpl{typeVal: val}
 	return
 }
 
-// newType newType
-func newType(val reflect.Type) (ret *typeImpl, err error) {
-	rawType := val
-	if rawType.Kind() == reflect.Ptr {
-		rawType = rawType.Elem()
+func (s *TypeImpl) GetName() string {
+	rType := s.getElemType()
+	return rType.Name()
+}
+
+func (s *TypeImpl) GetPkgPath() string {
+	rType := s.getElemType()
+	return rType.PkgPath()
+}
+
+func (s *TypeImpl) GetPkgKey() string {
+	return path.Join(s.GetPkgPath(), s.GetName())
+}
+
+func (s *TypeImpl) GetDescription() string {
+	return ""
+}
+
+func (s *TypeImpl) GetValue() (ret model.TypeDeclare) {
+	rType := s.getRawType()
+	ret, _ = utils.GetTypeEnum(rType)
+	return
+}
+
+func (s *TypeImpl) IsPtrType() bool {
+	return s.typeVal.Kind() == reflect.Ptr
+}
+
+func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
+	tVal := reflect.New(s.getRawType()).Elem()
+	if initVal != nil {
+		switch s.GetValue() {
+		case model.TypeBooleanValue:
+			rawVal, rawErr := utils.ConvertRawToBool(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			tVal.SetBool(rawVal)
+		case model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeIntegerValue, model.TypeBigIntegerValue:
+			rawVal, rawErr := utils.ConvertRawToInt64(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			tVal.SetInt(rawVal)
+		case model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveIntegerValue, model.TypePositiveBigIntegerValue:
+			rawVal, rawErr := utils.ConvertRawToUint64(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			tVal.SetUint(rawVal)
+		case model.TypeFloatValue, model.TypeDoubleValue:
+			rawVal, rawErr := utils.ConvertRawToFloat64(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			tVal.SetFloat(rawVal)
+		case model.TypeStringValue:
+			rawVal, rawErr := utils.ConvertRawToString(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			tVal.SetString(rawVal)
+		case model.TypeDateTimeValue:
+			rawVal, rawErr := utils.ConvertRawToDateTime(initVal)
+			if rawErr != nil {
+				err = rawErr
+				return
+			}
+			tVal.Set(reflect.ValueOf(rawVal))
+		default:
+			rInitVal := reflect.Indirect(reflect.ValueOf(initVal))
+			if rInitVal.Type() != tVal.Type() {
+				err = cd.NewError(cd.Unexpected, "missmatch value type")
+			} else {
+				tVal.Set(rInitVal)
+			}
+		}
 	}
-	_, err = util.GetTypeEnum(rawType)
 	if err != nil {
 		return
 	}
 
-	ret = &typeImpl{typeImpl: val}
+	if s.IsPtrType() {
+		tVal = tVal.Addr()
+	}
+
+	ret = NewValue(tVal)
 	return
 }
 
-func (s *typeImpl) GetName() string {
-	tType := s.getType()
+func (s *TypeImpl) Elem() model.Type {
+	tType := s.getRawType()
 	if tType.Kind() == reflect.Slice {
-		tType = tType.Elem()
-	}
-	if tType.Kind() == reflect.Ptr {
-		tType = tType.Elem()
+		return &TypeImpl{typeVal: tType.Elem()}
 	}
 
-	return tType.String()
+	return &TypeImpl{typeVal: s.typeVal}
 }
 
-func (s *typeImpl) GetValue() (ret int) {
-	tType := s.getType()
-	ret, _ = util.GetTypeEnum(tType)
-	return
-}
-
-func (s *typeImpl) GetPkgPath() string {
-	tType := s.getType()
-	if tType.Kind() == reflect.Slice {
-		tType = tType.Elem()
-	}
-	if tType.Kind() == reflect.Ptr {
-		tType = tType.Elem()
-	}
-
-	return tType.PkgPath()
-}
-
-func (s *typeImpl) IsPtrType() bool {
-	return s.typeImpl.Kind() == reflect.Ptr
-}
-
-func (s *typeImpl) Interface() (ret model.Value, err error) {
-	tType := s.getType()
-	tVal := reflect.New(tType).Elem()
-
-	ret = newValue(tVal)
-	return
-}
-
-func (s *typeImpl) Elem() model.Type {
-	tType := s.getType()
-	if tType.Kind() == reflect.Slice {
-		return &typeImpl{typeImpl: tType.Elem()}
-	}
-
-	return &typeImpl{typeImpl: s.typeImpl}
-}
-
-func (s *typeImpl) IsBasic() bool {
+func (s *TypeImpl) IsBasic() bool {
 	elemType := s.Elem()
 
-	return util.IsBasicType(elemType.GetValue())
+	return model.IsBasicType(elemType.GetValue())
 }
 
-func (s *typeImpl) getType() reflect.Type {
-	if s.typeImpl.Kind() == reflect.Ptr {
-		return s.typeImpl.Elem()
+func (s *TypeImpl) IsStruct() bool {
+	elemType := s.Elem()
+	return model.IsStructType(elemType.GetValue())
+}
+
+func (s *TypeImpl) IsSlice() bool {
+	return model.IsSliceType(s.GetValue())
+}
+
+func (s *TypeImpl) getRawType() reflect.Type {
+	if s.typeVal.Kind() == reflect.Ptr {
+		return s.typeVal.Elem()
 	}
 
-	return s.typeImpl
+	return s.typeVal
 }
 
-func (s *typeImpl) copy() (ret *typeImpl) {
-	ret = &typeImpl{
-		typeImpl: s.typeImpl,
+func (s *TypeImpl) getElemType() reflect.Type {
+	rType := s.getRawType()
+	if rType.Kind() == reflect.Slice {
+		rType = rType.Elem()
 	}
-
-	return
-}
-
-func (s *typeImpl) dump() string {
-	val := s.GetValue()
-	return fmt.Sprintf("val:%d,name:%s,pkgPath:%s,isPtr:%v", val, s.GetName(), s.GetPkgPath(), s.IsPtrType())
+	if rType.Kind() == reflect.Ptr {
+		rType = rType.Elem()
+	}
+	return rType
 }

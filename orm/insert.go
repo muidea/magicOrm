@@ -1,132 +1,241 @@
 package orm
 
 import (
-	"github.com/muidea/magicOrm/builder"
+	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/log"
+
+	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider"
 )
 
-func (s *impl) insertSingle(modelInfo model.Model) (err error) {
-	builder := builder.NewBuilder(modelInfo, s.modelProvider)
-	sqlStr, sqlErr := builder.BuildInsert()
-	if sqlErr != nil {
-		err = sqlErr
-		return err
+type InsertRunner struct {
+	baseRunner
+	QueryRunner
+}
+
+func NewInsertRunner(
+	vModel model.Model,
+	executor executor.Executor,
+	provider provider.Provider,
+	modelCodec codec.Codec) *InsertRunner {
+	baseRunner := newBaseRunner(vModel, executor, provider, modelCodec, false, 0)
+	return &InsertRunner{
+		baseRunner: baseRunner,
+		QueryRunner: QueryRunner{
+			baseRunner: baseRunner,
+		},
+	}
+}
+
+func (s *InsertRunner) insertHost(vModel model.Model) (err *cd.Error) {
+	autoIncrementFlag := false
+	for _, field := range vModel.GetFields() {
+		if !model.IsBasicField(field) {
+			continue
+		}
+
+		if field.GetSpec().GetValueDeclare() == model.AutoIncrement {
+			autoIncrementFlag = true
+		}
 	}
 
-	id, idErr := s.executor.Insert(sqlStr)
+	pkVal, pkErr := s.innerHost(vModel)
+	if pkErr != nil {
+		err = pkErr
+		log.Errorf("insertHost failed, s.innerHost error:%s", err.Error())
+		return
+	}
+
+	if pkVal != nil && autoIncrementFlag {
+		pkFiled := vModel.GetPrimaryField()
+		vVal, vErr := s.modelCodec.ExtractBasicFieldValue(pkFiled, pkVal)
+		if vErr != nil {
+			err = vErr
+			log.Errorf("insertHost failed, s.modelCodec.ExtractFieldValue error:%s", err.Error())
+			return
+		}
+		err = pkFiled.SetValue(vVal)
+		if err != nil {
+			log.Errorf("insertHost failed, s.modelCodec.ExtractFieldValue error:%s", err.Error())
+			return
+		}
+	}
+	return
+}
+
+func (s *InsertRunner) innerHost(vModel model.Model) (ret any, err *cd.Error) {
+	insertResult, insertErr := s.hBuilder.BuildInsert(vModel)
+	if insertErr != nil {
+		err = insertErr
+		log.Errorf("innerHost failed, builder.BuildInsert error:%s", err.Error())
+		return
+	}
+
+	_, id, idErr := s.executor.Execute(insertResult.SQL(), insertResult.Args()...)
 	if idErr != nil {
 		err = idErr
+		log.Errorf("innerHost failed, s.executor.Execute error:%s", err.Error())
 		return
 	}
 
-	pk := modelInfo.GetPrimaryField()
-	tVal, tErr := s.modelProvider.DecodeValue(id, pk.GetType())
-	if tErr != nil {
-		err = tErr
-		return
-	}
-
-	err = pk.SetValue(tVal)
-	if err != nil {
-		return err
-	}
-
+	ret = id
 	return
 }
 
-func (s *impl) insertRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
-	fValue := fieldInfo.GetValue()
-	fType := fieldInfo.GetType()
-	if fType.IsBasic() || fValue.IsNil() /* || !s.modelProvider.IsAssigned(fValue, fType)*/ {
+func (s *InsertRunner) insertRelation(vModel model.Model, vField model.Field) (err *cd.Error) {
+	if model.IsSliceField(vField) {
+		rErr := s.insertSliceRelation(vModel, vField)
+		if rErr != nil {
+			err = rErr
+			log.Errorf("insertRelation failed, s.insertSliceRelation error:%s", err.Error())
+			return
+		}
 		return
 	}
 
-	fSliceValue, fSliceErr := s.modelProvider.ElemDependValue(fValue)
-	if fSliceErr != nil {
-		err = fSliceErr
+	rErr := s.insertSingleRelation(vModel, vField)
+	if rErr != nil {
+		err = rErr
+		log.Errorf("insertRelation failed, s.insertSingleRelation error:%s", err.Error())
+		return
+	}
+	return
+}
+
+func (s *InsertRunner) insertSingleRelation(vModel model.Model, vField model.Field) (err *cd.Error) {
+	elemType := vField.GetType().Elem()
+	rModel, rErr := s.modelProvider.GetTypeModel(elemType)
+	if rErr != nil {
+		err = rErr
+		log.Errorf("insertSingleRelation failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+		return
+	}
+	rModel, rErr = s.modelProvider.SetModelValue(rModel, vField.GetValue())
+	if rErr != nil {
+		err = rErr
+		log.Errorf("insertSingleRelation failed, s.modelProvider.SetModelValue error:%s", err.Error())
 		return
 	}
 
+	if !model.IsPtrField(vField) {
+		rInsertRunner := NewInsertRunner(rModel, s.executor, s.modelProvider, s.modelCodec)
+		rModel, rErr = rInsertRunner.Insert()
+		if rErr != nil {
+			err = rErr
+			log.Errorf("insertSingleRelation failed, rInsertRunner.Insert() error:%s", err.Error())
+			return
+		}
+	}
+
+	relationSQL, relationErr := s.hBuilder.BuildInsertRelation(vModel, vField, rModel)
+	if relationErr != nil {
+		err = relationErr
+		log.Errorf("insertSingleRelation failed, s.hBuilder.BuildInsertRelation error:%s", err.Error())
+		return
+	}
+
+	_, _, err = s.executor.Execute(relationSQL.SQL(), relationSQL.Args()...)
+	if err != nil {
+		log.Errorf("insertSingleRelation failed, s.executor.Execute error:%s", err.Error())
+		return
+	}
+
+	vField.SetValue(rModel.Interface(model.IsPtrField(vField)))
+	return
+}
+
+func (s *InsertRunner) insertSliceRelation(vModel model.Model, vField model.Field) (err *cd.Error) {
+	fSliceValue := vField.GetSliceValue()
 	for _, fVal := range fSliceValue {
-		relationInfo, relationErr := s.modelProvider.GetValueModel(fVal, fType)
-		if relationErr != nil {
-			err = relationErr
+		elemType := vField.GetType().Elem()
+		rModel, rErr := s.modelProvider.GetTypeModel(elemType)
+		if rErr != nil {
+			err = rErr
+			log.Errorf("insertSliceRelation failed, model:%s, filed name:%s, s.modelProvider.GetTypeModel error:%s", vModel.GetPkgKey(), vField.GetName(), err.Error())
+			return
+		}
+		rModel, rErr = s.modelProvider.SetModelValue(rModel, fVal)
+		if rErr != nil {
+			err = rErr
+			log.Errorf("insertSliceRelation failed, model:%s, filed name:%s, s.modelProvider.SetModelValue error:%s", vModel.GetPkgKey(), vField.GetName(), err.Error())
 			return
 		}
 
-		elemType := fType.Elem()
 		if !elemType.IsPtrType() {
-			err = s.insertSingle(relationInfo)
-			if err != nil {
+			rInsertRunner := NewInsertRunner(rModel, s.executor, s.modelProvider, s.modelCodec)
+			rModel, rErr = rInsertRunner.Insert()
+			if rErr != nil {
+				err = rErr
+				log.Errorf("insertSliceRelation failed, model:%s, filed name:%s, s.insertSingle error:%s", vModel.GetPkgKey(), vField.GetName(), err.Error())
 				return
 			}
-
-			for _, subField := range relationInfo.GetFields() {
-				err = s.insertRelation(relationInfo, subField)
-				if err != nil {
-					return
-				}
-			}
 		}
 
-		builder := builder.NewBuilder(modelInfo, s.modelProvider)
-		relationSQL, relationErr := builder.BuildInsertRelation(fieldInfo.GetName(), relationInfo)
+		relationResult, relationErr := s.hBuilder.BuildInsertRelation(vModel, vField, rModel)
 		if relationErr != nil {
 			err = relationErr
-			return err
-		}
-
-		_, err = s.executor.Insert(relationSQL)
-		if err != nil {
+			log.Errorf("insertSliceRelation failed, model:%s, filed name:%s, s.hBuilder.BuildInsertRelation error:%s", vModel.GetPkgKey(), vField.GetName(), err.Error())
 			return
 		}
 
-		rVal, _ := s.modelProvider.GetEntityValue(relationInfo.Interface(true))
-		fVal.Set(rVal.Get())
-	}
+		_, _, err = s.executor.Execute(relationResult.SQL(), relationResult.Args()...)
+		if err != nil {
+			log.Errorf("insertSliceRelation failed, model:%s, filed name:%s, s.executor.Execute error:%s", vModel.GetPkgKey(), vField.GetName(), err.Error())
+			return
+		}
 
+		// 这里只需要直接更新值就可以
+		err = fVal.Set(rModel.Interface(elemType.IsPtrType()))
+		if err != nil {
+			log.Errorf("insertSliceRelation failed, model:%s, filed name:%s, fVal.Set error:%s", vModel.GetPkgKey(), vField.GetName(), err.Error())
+			return
+		}
+	}
 	return
 }
 
-// Insert insert
-func (s *impl) Insert(entityModel model.Model) (ret model.Model, err error) {
+func (s *InsertRunner) Insert() (ret model.Model, err *cd.Error) {
+	err = s.insertHost(s.vModel)
+	if err != nil {
+		log.Errorf("Insert failed, s.insertSingle error:%s", err.Error())
+		return
+	}
+
+	for _, field := range s.vModel.GetFields() {
+		if model.IsBasicField(field) || !model.IsValidField(field) {
+			continue
+		}
+
+		err = s.insertRelation(s.vModel, field)
+		if err != nil {
+			log.Errorf("Insert failed, s.insertRelation error:%s", err.Error())
+			return
+		}
+	}
+
+	ret = s.vModel
+	return
+}
+
+func (s *impl) Insert(vModel model.Model) (ret model.Model, err *cd.Error) {
+	if vModel == nil {
+		err = cd.NewError(cd.IllegalParam, "illegal model value")
+		return
+	}
+
 	err = s.executor.BeginTransaction()
 	if err != nil {
 		return
 	}
+	defer s.finalTransaction(err)
 
-	for {
-		err = s.insertSingle(entityModel)
-		if err != nil {
-			break
-		}
-
-		for _, field := range entityModel.GetFields() {
-			err = s.insertRelation(entityModel, field)
-			if err != nil {
-				break
-			}
-		}
-
-		break
-	}
-
-	if err == nil {
-		cErr := s.executor.CommitTransaction()
-		if cErr != nil {
-			err = cErr
-		}
-	} else {
-		rErr := s.executor.RollbackTransaction()
-		if rErr != nil {
-			err = rErr
-		}
-	}
-
+	insertRunner := NewInsertRunner(vModel, s.executor, s.modelProvider, s.modelCodec)
+	ret, err = insertRunner.Insert()
 	if err != nil {
+		log.Errorf("Insert failed, insertRunner.Insert() error:%s", err.Error())
 		return
 	}
-
-	ret = entityModel
 	return
 }

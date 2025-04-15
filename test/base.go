@@ -3,24 +3,34 @@ package test
 import (
 	"time"
 
+	cd "github.com/muidea/magicCommon/def"
+
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
-
+	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
+type Optional struct {
+	ID                int       `orm:"id key auto" view:"detail,lite"`
+	Name              string    `orm:"name" view:"detail,lite"`
+	Optional          *string   `orm:"optional" view:"detail,lite"`
+	StrArry           []string  `orm:"strArry" view:"detail,lite"`
+	OptionnalStrArray *[]string `orm:"optionnalStrArray" view:"detail,lite"`
+}
+
 type Simple struct {
-	ID        int       `orm:"id key auto"`
-	I8        int8      `orm:"i8"`
-	I16       int16     `orm:"i16"`
-	I32       int32     `orm:"i32"`
-	I64       uint64    `orm:"i64"`
-	Name      string    `orm:"name"`
-	Value     float32   `orm:"value"`
-	F64       float64   `orm:"f64"`
-	TimeStamp time.Time `orm:"ts"`
-	Flag      bool      `orm:"flag"`
+	ID        int       `orm:"id key auto" view:"detail,lite"`
+	I8        int8      `orm:"i8" view:"detail,lite"`
+	I16       int16     `orm:"i16" view:"detail,lite"`
+	I32       int32     `orm:"i32" view:"detail,lite"`
+	I64       uint64    `orm:"i64" view:"detail,lite"`
+	Name      string    `orm:"name" view:"detail,lite"`
+	Value     float32   `orm:"value" view:"detail,lite"`
+	F64       float64   `orm:"f64" view:"detail,lite"`
+	TimeStamp time.Time `orm:"ts datetime" view:"detail,lite"`
+	Flag      bool      `orm:"flag" view:"detail,lite"`
 }
 
 func (l *Simple) IsSame(r *Simple) bool {
@@ -48,7 +58,7 @@ func (l *Simple) IsSame(r *Simple) bool {
 	if l.F64 != r.F64 {
 		return false
 	}
-	if l.TimeStamp.Sub(r.TimeStamp) != 0 {
+	if l.TimeStamp.Sub(r.TimeStamp) >= time.Second {
 		return false
 	}
 	if l.Flag != r.Flag {
@@ -59,19 +69,19 @@ func (l *Simple) IsSame(r *Simple) bool {
 }
 
 type Reference struct {
-	ID          int        `orm:"id key auto"`
-	Name        string     `orm:"name"`
-	FValue      *float32   `orm:"value"`
-	F64         float64    `orm:"f64"`
-	TimeStamp   *time.Time `orm:"ts"`
-	Flag        *bool      `orm:"flag"`
-	IArray      []int      `orm:"iArray"`
-	FArray      []float32  `orm:"fArray"`
-	StrArray    []string   `orm:"strArray"`
-	BArray      []bool     `orm:"bArray"`
-	PtrArray    *[]string  `orm:"ptrArray"`
-	StrPtrArray []*string  `orm:"strPtrArray"`
-	PtrStrArray *[]*string `orm:"ptrStrArray"`
+	ID          int       `orm:"id key auto" view:"detail,lite"`
+	Name        string    `orm:"name" view:"detail,lite"`
+	FValue      float32   `orm:"value" view:"detail,lite"`
+	F64         float64   `orm:"f64" view:"detail,lite"`
+	TimeStamp   time.Time `orm:"ts" view:"detail,lite"`
+	Flag        bool      `orm:"flag" view:"detail,lite"`
+	IArray      []int     `orm:"iArray" view:"detail,lite"`
+	FArray      []float32 `orm:"fArray" view:"detail,lite"`
+	StrArray    []string  `orm:"strArray" view:"detail,lite"`
+	BArray      []bool    `orm:"bArray" view:"detail,lite"`
+	PtrArray    *[]string `orm:"ptrArray" view:"detail,lite"`
+	StrPtrArray []string  `orm:"strPtrArray" view:"detail,lite"`
+	PtrStrArray *[]string `orm:"ptrStrArray" view:"detail,lite"`
 }
 
 func (l *Reference) IsSame(r *Reference) bool {
@@ -84,44 +94,14 @@ func (l *Reference) IsSame(r *Reference) bool {
 	if l.F64 != r.F64 {
 		return false
 	}
-	if l.FValue != nil {
-		if r.FValue == nil {
-			return false
-		}
-		if *l.FValue != *r.FValue {
-			return false
-		}
+	if l.FValue != r.FValue {
+		return false
 	}
-	if l.FValue == nil {
-		if r.FValue != nil {
-			return false
-		}
+	if l.TimeStamp != r.TimeStamp {
+		return false
 	}
-	if l.TimeStamp != nil {
-		if r.TimeStamp == nil {
-			return false
-		}
-		if l.TimeStamp.Sub(*r.TimeStamp) != 0 {
-			return false
-		}
-	}
-	if l.TimeStamp == nil {
-		if r.TimeStamp != nil {
-			return false
-		}
-	}
-	if l.Flag != nil {
-		if r.Flag == nil {
-			return false
-		}
-		if *l.Flag != *r.Flag {
-			return false
-		}
-	}
-	if l.Flag == nil {
-		if r.Flag != nil {
-			return false
-		}
+	if l.Flag != r.Flag {
+		return false
 	}
 	if len(l.IArray) != len(r.IArray) {
 		return false
@@ -169,19 +149,22 @@ func (l *Reference) IsSame(r *Reference) bool {
 }
 
 type Compose struct {
-	ID             int           `orm:"id key auto"`
-	Name           string        `orm:"name"`
-	Simple         Simple        `orm:"simple"`
-	PtrSimple      *Simple       `orm:"ptrSimple"`
-	SimpleArray    []Simple      `orm:"simpleArray"`
-	SimplePtrArray []*Simple     `orm:"simplePtrArray"`
-	PtrSimpleArray *[]Simple     `orm:"ptrSimpleArray"`
-	Reference      Reference     `orm:"reference"`
-	PtrReference   *Reference    `orm:"ptrReference"`
-	RefArray       []Reference   `orm:"refArray"`
-	RefPtrArray    []*Reference  `orm:"refPtrArray"`
-	PtrRefArray    *[]*Reference `orm:"ptrRefArray"`
-	PtrCompose     *Compose      `orm:"ptrCompose"`
+	ID   int    `orm:"id key auto" view:"detail,lite"`
+	Name string `orm:"name" view:"detail,lite"`
+	// 1
+	Simple Simple `orm:"simple" view:"detail,lite"`
+	// 3
+	SimplePtr *Simple `orm:"simplePtr" view:"detail,lite"`
+	// 2
+	SimpleArray []Simple `orm:"simpleArray" view:"detail,lite"`
+	// 4
+	SimplePtrArray    []*Simple    `orm:"simplePtrArray" view:"detail,lite"`
+	SimpleArrayPtr    *[]Simple    `orm:"simpleArrayPtr" view:"detail,lite"`
+	Reference         Reference    `orm:"reference" view:"detail,lite"`
+	ReferencePtr      *Reference   `orm:"referencePtr" view:"detail,lite"`
+	ReferenceArray    []Reference  `orm:"referenceArray" view:"detail,lite"`
+	ReferencePtrArray []*Reference `orm:"referencePtrArray" view:"detail,lite"`
+	ComposePtr        *Compose     `orm:"composePtr" view:"detail,lite"`
 }
 
 func (l *Compose) IsSame(r *Compose) bool {
@@ -194,16 +177,16 @@ func (l *Compose) IsSame(r *Compose) bool {
 	if l.Simple.ID != r.Simple.ID {
 		return false
 	}
-	if l.PtrSimple != nil {
-		if r.PtrSimple == nil {
+	if l.SimplePtr != nil {
+		if r.SimplePtr == nil {
 			return false
 		}
-		if l.PtrSimple.ID != r.PtrSimple.ID {
+		if l.SimplePtr.ID != r.SimplePtr.ID {
 			return false
 		}
 	}
-	if l.PtrSimple == nil {
-		if r.PtrSimple != nil {
+	if l.SimplePtr == nil {
+		if r.SimplePtr != nil {
 			return false
 		}
 	}
@@ -213,65 +196,52 @@ func (l *Compose) IsSame(r *Compose) bool {
 	if len(l.SimplePtrArray) != len(r.SimplePtrArray) {
 		return false
 	}
-	if l.PtrSimpleArray != nil && len(*l.PtrSimpleArray) > 0 {
-		if r.PtrSimpleArray == nil {
+	if l.SimpleArrayPtr != nil && len(*l.SimpleArrayPtr) > 0 {
+		if r.SimpleArrayPtr == nil {
 			return false
 		}
-		if len(*l.PtrSimpleArray) != len(*r.PtrSimpleArray) {
+		if len(*l.SimpleArrayPtr) != len(*r.SimpleArrayPtr) {
 			return false
 		}
 	}
-	if l.PtrSimpleArray == nil {
-		if r.PtrSimpleArray != nil && len(*r.PtrSimpleArray) > 0 {
+	if l.SimpleArrayPtr == nil {
+		if r.SimpleArrayPtr != nil && len(*r.SimpleArrayPtr) > 0 {
 			return false
 		}
 	}
 	if l.Reference.ID != r.Reference.ID {
 		return false
 	}
-	if l.PtrReference != nil {
-		if r.PtrReference == nil {
+	if l.ReferencePtr != nil {
+		if r.ReferencePtr == nil {
 			return false
 		}
-		if l.PtrReference.ID != r.PtrReference.ID {
-			return false
-		}
-	}
-	if l.PtrReference == nil {
-		if r.PtrReference != nil {
+		if l.ReferencePtr.ID != r.ReferencePtr.ID {
 			return false
 		}
 	}
-	if len(l.RefArray) != len(r.RefArray) {
+	if l.ReferencePtr == nil {
+		if r.ReferencePtr != nil {
+			return false
+		}
+	}
+	if len(l.ReferenceArray) != len(r.ReferenceArray) {
 		return false
 	}
-	if len(l.RefPtrArray) != len(r.RefPtrArray) {
+	if len(l.ReferencePtrArray) != len(r.ReferencePtrArray) {
 		return false
 	}
-	if l.PtrRefArray != nil && len(*l.PtrRefArray) > 0 {
-		if r.PtrRefArray == nil {
-			return false
-		}
-		if len(*l.PtrRefArray) != len(*r.PtrRefArray) {
-			return false
-		}
-	}
-	if l.PtrRefArray == nil {
-		if r.PtrRefArray != nil && len(*r.PtrRefArray) > 0 {
-			return false
-		}
-	}
-	if l.PtrCompose != nil {
-		if r.PtrCompose == nil {
+	if l.ComposePtr != nil {
+		if r.ComposePtr == nil {
 			return false
 		}
 
-		if l.PtrCompose.ID != r.PtrCompose.ID {
+		if l.ComposePtr.ID != r.ComposePtr.ID {
 			return false
 		}
 	}
-	if l.PtrCompose == nil {
-		if r.PtrCompose != nil {
+	if l.ComposePtr == nil {
+		if r.ComposePtr != nil {
 			return false
 		}
 	}
@@ -279,21 +249,40 @@ func (l *Compose) IsSame(r *Compose) bool {
 	return true
 }
 
-func registerModel(provider provider.Provider, objList []interface{}) (ret []model.Model, err error) {
+func registerLocalModel(provider provider.Provider, objList []any) (ret []model.Model, err *cd.Error) {
 	for _, val := range objList {
-		m, mErr := provider.RegisterModel(val)
-		if mErr != nil {
-			err = mErr
+		modelVal, modelErr := provider.RegisterModel(val)
+		if modelErr != nil {
+			err = modelErr
 			return
 		}
 
-		ret = append(ret, m)
+		ret = append(ret, modelVal)
 	}
 
 	return
 }
 
-func createModel(orm orm.Orm, modelList []model.Model) (err error) {
+func registerRemoteModel(provider provider.Provider, objList []any) (ret []model.Model, err *cd.Error) {
+	for _, val := range objList {
+		remoteObjectPtr, remoteObjectErr := helper.GetObject(val)
+		if remoteObjectErr != nil {
+			err = remoteObjectErr
+			return
+		}
+		modelVal, modelErr := provider.RegisterModel(remoteObjectPtr)
+		if modelErr != nil {
+			err = modelErr
+			return
+		}
+
+		ret = append(ret, modelVal)
+	}
+
+	return
+}
+
+func createModel(orm orm.Orm, modelList []model.Model) (err *cd.Error) {
 	for _, val := range modelList {
 		err = orm.Create(val)
 		if err != nil {
@@ -304,7 +293,7 @@ func createModel(orm orm.Orm, modelList []model.Model) (err error) {
 	return
 }
 
-func dropModel(orm orm.Orm, modelList []model.Model) (err error) {
+func dropModel(orm orm.Orm, modelList []model.Model) (err *cd.Error) {
 	for _, val := range modelList {
 		err = orm.Drop(val)
 		if err != nil {
@@ -315,8 +304,8 @@ func dropModel(orm orm.Orm, modelList []model.Model) (err error) {
 	return
 }
 
-func getObjectValue(val interface{}) (ret *remote.ObjectValue, err error) {
-	objVal, objErr := remote.GetObjectValue(val)
+func getObjectValue(val any) (ret *remote.ObjectValue, err *cd.Error) {
+	objVal, objErr := helper.GetObjectValue(val)
 	if objErr != nil {
 		err = objErr
 		return
@@ -333,4 +322,22 @@ func getObjectValue(val interface{}) (ret *remote.ObjectValue, err error) {
 	}
 
 	return
+}
+
+// Entity accessLog entity type
+type Entity struct {
+	ID        int64  `json:"id" orm:"id key auto" view:"detail,lite"`
+	EName     string `json:"name" orm:"eName" view:"detail,lite"`
+	EID       int64  `json:"eID" orm:"eID" view:"detail,lite"`
+	EType     string `json:"eType" orm:"eType" view:"detail,lite"`
+	Namespace string `json:"namespace" orm:"namespace"`
+}
+
+type OnlineEntity struct {
+	ID          int64   `json:"id" orm:"id key auto" view:"detail,lite"`
+	SessionID   string  `json:"sessionID" orm:"sessionID" view:"detail,lite"`
+	Entity      *Entity `json:"entity" orm:"entity" view:"detail,lite"`
+	RefreshTime int64   `json:"refreshTime" orm:"refreshTime" view:"detail,lite"`
+	ExpireTime  int64   `json:"expireTime" orm:"expireTime" view:"detail,lite"`
+	Namespace   string  `json:"namespace" orm:"namespace" view:"detail,lite"`
 }

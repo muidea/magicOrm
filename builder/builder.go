@@ -1,6 +1,8 @@
 package builder
 
 import (
+	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/database/mysql"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
@@ -8,62 +10,86 @@ import (
 
 // Builder orm builder
 type Builder interface {
-	GetTableName() string
-	BuildCreateSchema() (string, error)
-	BuildDropSchema() (string, error)
-	BuildInsert() (string, error)
-	BuildUpdate() (string, error)
-	BuildDelete() (string, error)
-	BuildQuery(filter model.Filter) (string, error)
-	BuildCount(filter model.Filter) (string, error)
-	BuildBatchQuery(filter model.Filter) (string, error)
+	BuildCreateTable(vModel model.Model) (Result, *cd.Error)
+	BuildDropTable(vModel model.Model) (Result, *cd.Error)
+	BuildInsert(vModel model.Model) (Result, *cd.Error)
+	BuildUpdate(vModel model.Model) (Result, *cd.Error)
+	BuildDelete(vModel model.Model) (Result, *cd.Error)
+	BuildQuery(vModel model.Model, vFilter model.Filter) (Result, *cd.Error)
+	BuildQueryPlaceHolder(vModel model.Model) ([]any, *cd.Error)
+	BuildCount(vModel model.Model, vFilter model.Filter) (Result, *cd.Error)
 
-	GetRelationTableName(fieldName string, relationInfo model.Model) string
-	BuildCreateRelationSchema(fieldName string, relationInfo model.Model) (string, error)
-	BuildDropRelationSchema(fieldName string, relationInfo model.Model) (string, error)
-	BuildInsertRelation(fieldName string, relationInfo model.Model) (string, error)
-	BuildDeleteRelation(fieldName string, relationInfo model.Model) (string, string, error)
-	BuildQueryRelation(fieldName string, relationInfo model.Model) (string, error)
+	BuildCreateRelationTable(vModel model.Model, vField model.Field) (Result, *cd.Error)
+	BuildDropRelationTable(vModel model.Model, vField model.Field) (Result, *cd.Error)
+	BuildInsertRelation(vModel model.Model, vField model.Field, rModel model.Model) (Result, *cd.Error)
+	BuildDeleteRelation(vModel model.Model, vField model.Field) (Result, Result, *cd.Error)
+	BuildQueryRelation(vModel model.Model, vField model.Field) (Result, *cd.Error)
+	BuildQueryRelationPlaceHolder(vModel model.Model, vField model.Field) (any, *cd.Error)
+}
 
-	GetInitializeValue(field model.Field) (interface{}, error)
+type builderImpl struct {
+	builder *mysql.Builder
+}
+
+func (s *builderImpl) BuildCreateTable(vModel model.Model) (Result, *cd.Error) {
+	return s.builder.BuildCreateTable(vModel)
+}
+
+func (s *builderImpl) BuildDropTable(vModel model.Model) (Result, *cd.Error) {
+	return s.builder.BuildDropTable(vModel)
+}
+
+func (s *builderImpl) BuildInsert(vModel model.Model) (Result, *cd.Error) {
+	return s.builder.BuildInsert(vModel)
+}
+
+func (s *builderImpl) BuildUpdate(vModel model.Model) (Result, *cd.Error) {
+	return s.builder.BuildUpdate(vModel)
+}
+
+func (s *builderImpl) BuildDelete(vModel model.Model) (Result, *cd.Error) {
+	return s.builder.BuildDelete(vModel)
+}
+
+func (s *builderImpl) BuildQuery(vModel model.Model, vFilter model.Filter) (Result, *cd.Error) {
+	return s.builder.BuildQuery(vModel, vFilter)
+}
+
+func (s *builderImpl) BuildQueryPlaceHolder(vModel model.Model) ([]any, *cd.Error) {
+	return s.builder.BuildQueryPlaceHolder(vModel)
+}
+
+func (s *builderImpl) BuildCount(vModel model.Model, vFilter model.Filter) (Result, *cd.Error) {
+	return s.builder.BuildCount(vModel, vFilter)
+}
+
+func (s *builderImpl) BuildCreateRelationTable(vModel model.Model, vField model.Field) (Result, *cd.Error) {
+	return s.builder.BuildCreateRelationTable(vModel, vField)
+}
+
+func (s *builderImpl) BuildDropRelationTable(vModel model.Model, vField model.Field) (Result, *cd.Error) {
+	return s.builder.BuildDropRelationTable(vModel, vField)
+}
+
+func (s *builderImpl) BuildInsertRelation(vModel model.Model, vField model.Field, rModel model.Model) (Result, *cd.Error) {
+	return s.builder.BuildInsertRelation(vModel, vField, rModel)
+}
+
+func (s *builderImpl) BuildDeleteRelation(vModel model.Model, vField model.Field) (Result, Result, *cd.Error) {
+	return s.builder.BuildDeleteRelation(vModel, vField)
+}
+
+func (s *builderImpl) BuildQueryRelation(vModel model.Model, vField model.Field) (Result, *cd.Error) {
+	return s.builder.BuildQueryRelation(vModel, vField)
+}
+
+func (s *builderImpl) BuildQueryRelationPlaceHolder(vModel model.Model, vField model.Field) (any, *cd.Error) {
+	return s.builder.BuildQueryRelationPlaceHolder(vModel, vField)
 }
 
 // NewBuilder new builder
-func NewBuilder(modelInfo model.Model, modelProvider provider.Provider) Builder {
-	return mysql.New(modelInfo, modelProvider)
-}
-
-// EqualOpr EqualOpr
-func EqualOpr(name string, val interface{}) string {
-	return mysql.EqualOpr(name, val)
-}
-
-// NotEqualOpr NotEqualOpr
-func NotEqualOpr(name string, val interface{}) string {
-	return mysql.NotEqualOpr(name, val)
-}
-
-// BelowOpr BelowOpr
-func BelowOpr(name string, val interface{}) string {
-	return mysql.BelowOpr(name, val)
-}
-
-// AboveOpr AboveOpr
-func AboveOpr(name string, val interface{}) string {
-	return mysql.AboveOpr(name, val)
-}
-
-// InOpr InOpr
-func InOpr(name string, val interface{}) string {
-	return mysql.InOpr(name, val)
-}
-
-// NotInOpr NotInOpr
-func NotInOpr(name string, val interface{}) string {
-	return mysql.NotInOpr(name, val)
-}
-
-// LikeOpr LikeOpr
-func LikeOpr(name string, val interface{}) string {
-	return mysql.LikeOpr(name, val)
+func NewBuilder(provider provider.Provider, codec codec.Codec) Builder {
+	return &builderImpl{
+		builder: mysql.New(provider, codec),
+	}
 }

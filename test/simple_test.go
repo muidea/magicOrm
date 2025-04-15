@@ -1,13 +1,20 @@
+//go:build mixed || all
+// +build mixed all
+
 package test
 
 import (
-	"fmt"
+	"testing"
+	"time"
+
+	cd "github.com/muidea/magicCommon/def"
+
+	"github.com/muidea/magicCommon/foundation/util"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
+	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/provider/remote"
-	"testing"
-	"time"
 )
 
 const simpleLocalOwner = "simpleLocal"
@@ -15,12 +22,13 @@ const simpleRemoteOwner = "simpleRemote"
 
 func TestSimpleLocal(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
+	loopSize := 10
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	localProvider := provider.NewLocalProvider(simpleLocalOwner)
 
-	o1, err := orm.NewOrm(localProvider, config)
+	o1, err := orm.NewOrm(localProvider, config, "abc")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -31,8 +39,8 @@ func TestSimpleLocal(t *testing.T) {
 	referenceDef := &Reference{}
 	composeDef := &Compose{}
 
-	entityList := []interface{}{simpleDef, referenceDef, composeDef}
-	modelList, modelErr := registerModel(localProvider, entityList)
+	entityList := []any{simpleDef, referenceDef, composeDef}
+	modelList, modelErr := registerLocalModel(localProvider, entityList)
 	if modelErr != nil {
 		err = modelErr
 		t.Errorf("register model failed. err:%s", err.Error())
@@ -51,13 +59,13 @@ func TestSimpleLocal(t *testing.T) {
 		return
 	}
 
-	ts, _ := time.Parse("2006-01-02 15:04:05", "2018-01-02 15:04:05")
+	//ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	sValList := []*Simple{}
 	sModelList := []model.Model{}
 
 	// insert
-	for idx := 0; idx < 100; idx++ {
-		sVal := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
+	for idx := 0; idx < loopSize; idx++ {
+		sVal := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, Flag: true}
 		sVal.I32 = int32(idx)
 		sValList = append(sValList, sVal)
 
@@ -71,7 +79,7 @@ func TestSimpleLocal(t *testing.T) {
 		sModelList = append(sModelList, sModel)
 	}
 
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		vModel, vErr := o1.Insert(sModelList[idx])
 		if vErr != nil {
 			err = vErr
@@ -84,7 +92,7 @@ func TestSimpleLocal(t *testing.T) {
 	}
 
 	// update
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		sVal := sValList[idx]
 		sVal.Name = "hi"
 		sModel, sErr := localProvider.GetEntityModel(sVal)
@@ -96,7 +104,7 @@ func TestSimpleLocal(t *testing.T) {
 
 		sModelList[idx] = sModel
 	}
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		vModel, vErr := o1.Update(sModelList[idx])
 		if vErr != nil {
 			err = vErr
@@ -111,7 +119,7 @@ func TestSimpleLocal(t *testing.T) {
 	// query
 	qValList := []*Simple{}
 	qModelList := []model.Model{}
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		qVal := &Simple{ID: sValList[idx].ID}
 		qValList = append(qValList, qVal)
 
@@ -125,7 +133,7 @@ func TestSimpleLocal(t *testing.T) {
 		qModelList = append(qModelList, qModel)
 	}
 
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		qModel, qErr := o1.Query(qModelList[idx])
 		if qErr != nil {
 			err = qErr
@@ -137,41 +145,40 @@ func TestSimpleLocal(t *testing.T) {
 		qValList[idx] = qModel.Interface(true).(*Simple)
 	}
 
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		sVal := sValList[idx]
 		qVal := qValList[idx]
 		if !sVal.IsSame(qVal) {
-			err = fmt.Errorf("compare value failed")
+			err = cd.NewError(cd.Unexpected, "compare value failed")
 			t.Errorf("IsSame failed. err:%s", err.Error())
 			return
 		}
 	}
 
-	bqValList := []*Simple{}
-	bqModel, bqErr := localProvider.GetEntityModel(&bqValList)
-	if bqErr != nil {
-		t.Errorf("GetEntityModel failed, err:%s", bqErr.Error())
+	simpleModel, _ := localProvider.GetEntityModel(&Simple{})
+	filter, err := localProvider.GetModelFilter(simpleModel)
+	if err != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
 	}
 
-	filter := orm.GetFilter(localProvider)
 	filter.Equal("name", "hi")
 	filter.ValueMask(&Simple{})
-	bqModelList, bqModelErr := o1.BatchQuery(bqModel, filter)
+	bqModelList, bqModelErr := o1.BatchQuery(filter)
 	if bqModelErr != nil {
 		t.Errorf("BatchQuery failed, err:%s", bqModelErr.Error())
 		return
 	}
-	if len(bqModelList) != 100 {
+	if len(bqModelList) != loopSize {
 		t.Errorf("batch query simple failed")
 		return
 	}
 
 	// delete
-	for idx := 0; idx < 100; idx++ {
+	for idx := 0; idx < loopSize; idx++ {
 		_, qErr := o1.Delete(bqModelList[idx])
 		if qErr != nil {
-			err = qErr
+			t.Errorf("Delete failed. err:%s", qErr.Error())
 			return
 		}
 	}
@@ -179,24 +186,24 @@ func TestSimpleLocal(t *testing.T) {
 
 func TestSimpleRemote(t *testing.T) {
 	orm.Initialize()
-	defer orm.Uninitialize()
+	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
+	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	remoteProvider := provider.NewRemoteProvider(simpleRemoteOwner)
 
-	o1, err := orm.NewOrm(remoteProvider, config)
+	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
 
-	simpleDef, _ := remote.GetObject(&Simple{})
-	referenceDef, _ := remote.GetObject(&Reference{})
-	composeDef, _ := remote.GetObject(&Compose{})
+	simpleDef, _ := helper.GetObject(&Simple{})
+	referenceDef, _ := helper.GetObject(&Reference{})
+	composeDef, _ := helper.GetObject(&Compose{})
 
-	entityList := []interface{}{simpleDef, referenceDef, composeDef}
-	modelList, modelErr := registerModel(remoteProvider, entityList)
+	entityList := []any{simpleDef, referenceDef, composeDef}
+	modelList, modelErr := registerLocalModel(remoteProvider, entityList)
 	if modelErr != nil {
 		err = modelErr
 		t.Errorf("register model failed. err:%s", err.Error())
@@ -215,7 +222,7 @@ func TestSimpleRemote(t *testing.T) {
 		return
 	}
 
-	ts, _ := time.Parse("2006-01-02 15:04:05", "2018-01-02 15:04:05")
+	ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	sValList := []*Simple{}
 	sObjectValList := []*remote.ObjectValue{}
 	sModelList := []model.Model{}
@@ -226,7 +233,7 @@ func TestSimpleRemote(t *testing.T) {
 		sVal.I32 = int32(idx)
 		sValList = append(sValList, &sVal)
 
-		sObjectVal, sObjectErr := remote.GetObjectValue(&sVal)
+		sObjectVal, sObjectErr := helper.GetObjectValue(&sVal)
 		if sObjectErr != nil {
 			err = sObjectErr
 			t.Errorf("GetObjectValue failed. err:%s", err.Error())
@@ -254,7 +261,7 @@ func TestSimpleRemote(t *testing.T) {
 
 		sObjectVal := vModel.Interface(true).(*remote.ObjectValue)
 		sVal := sValList[idx]
-		err = provider.UpdateEntity(sObjectVal, sVal)
+		err = helper.UpdateEntity(sObjectVal, sVal)
 		if err != nil {
 			t.Errorf("UpdateEntity failed. err:%s", err.Error())
 			return
@@ -268,7 +275,7 @@ func TestSimpleRemote(t *testing.T) {
 	for idx := 0; idx < 100; idx++ {
 		sVal := sValList[idx]
 		sVal.Name = "hi"
-		sObjectVal, sObjectErr := remote.GetObjectValue(sVal)
+		sObjectVal, sObjectErr := helper.GetObjectValue(sVal)
 		if sObjectErr != nil {
 			err = sObjectErr
 			t.Errorf("GetObjectValue failed. err:%s", err.Error())
@@ -295,7 +302,7 @@ func TestSimpleRemote(t *testing.T) {
 
 		sObjectVal := vModel.Interface(true).(*remote.ObjectValue)
 		sVal := sValList[idx]
-		err = provider.UpdateEntity(sObjectVal, sVal)
+		err = helper.UpdateEntity(sObjectVal, sVal)
 		if err != nil {
 			t.Errorf("UpdateEntity failed. err:%s", err.Error())
 			return
@@ -313,7 +320,7 @@ func TestSimpleRemote(t *testing.T) {
 		qVal := &Simple{ID: sValList[idx].ID}
 		qValList = append(qValList, qVal)
 
-		qObjectVal, qObjectErr := remote.GetObjectValue(qVal)
+		qObjectVal, qObjectErr := helper.GetObjectValue(qVal)
 		if qObjectErr != nil {
 			err = qObjectErr
 			t.Errorf("GetObjectValue failed. err:%s", err.Error())
@@ -341,7 +348,7 @@ func TestSimpleRemote(t *testing.T) {
 
 		qObjectVal := qModel.Interface(true).(*remote.ObjectValue)
 		qVal := qValList[idx]
-		err = provider.UpdateEntity(qObjectVal, qVal)
+		err = helper.UpdateEntity(qObjectVal, qVal)
 		if err != nil {
 			t.Errorf("UpdateEntity failed. err:%s", err.Error())
 			return
@@ -355,28 +362,24 @@ func TestSimpleRemote(t *testing.T) {
 		sVal := sValList[idx]
 		qVal := qValList[idx]
 		if !sVal.IsSame(qVal) {
-			err = fmt.Errorf("compare value failed")
+			err = cd.NewError(cd.Unexpected, "compare value failed")
 			t.Errorf("IsSame failed. err:%s", err.Error())
 			return
 		}
 	}
 
-	bqValList := []*Simple{}
-	bqSliceObject, bqSliceErr := remote.GetSliceObjectValue(&bqValList)
-	if bqSliceErr != nil {
-		t.Errorf("GetSliceObjectValue failed, err:%s", bqSliceErr.Error())
-		return
+	objectPtr, objectErr := helper.GetObject(&Simple{})
+	if objectErr != nil {
+		t.Errorf("GetObject failed, error:%s", objectErr.Error())
 	}
-	bqModel, bqErr := remoteProvider.GetEntityModel(bqSliceObject)
-	if bqErr != nil {
-		t.Errorf("GetEntityModel failed, err:%s", bqErr.Error())
+	filter, err := remoteProvider.GetModelFilter(objectPtr)
+	if err != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
 	}
 
-	filter := orm.GetFilter(remoteProvider)
 	filter.Equal("name", "hi")
-	filter.ValueMask(&Simple{})
-	bqModelList, bqModelErr := o1.BatchQuery(bqModel, filter)
+	bqModelList, bqModelErr := o1.BatchQuery(filter)
 	if bqModelErr != nil {
 		t.Errorf("BatchQuery failed, err:%s", bqModelErr.Error())
 		return
@@ -390,7 +393,7 @@ func TestSimpleRemote(t *testing.T) {
 	for idx := 0; idx < 100; idx++ {
 		_, qErr := o1.Delete(bqModelList[idx])
 		if qErr != nil {
-			err = qErr
+			t.Errorf("Delete failed. err:%s", qErr.Error())
 			return
 		}
 	}

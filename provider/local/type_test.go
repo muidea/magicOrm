@@ -5,478 +5,254 @@ import (
 	"testing"
 	"time"
 
-	"github.com/muidea/magicOrm/util"
+	"github.com/muidea/magicOrm/model"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestIntType(t *testing.T) {
-	var iVal int
-	iType, iErr := newType(reflect.TypeOf(iVal))
-	if iErr != nil {
-		t.Errorf("newType failed, err:%s", iErr.Error())
-		return
+type testStruct struct {
+	Field1 int
+	Field2 string
+}
+
+func TestNewType(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   reflect.Type
+		wantErr bool
+	}{
+		{
+			name:    "int type",
+			input:   reflect.TypeOf(0),
+			wantErr: false,
+		},
+		{
+			name:    "string type",
+			input:   reflect.TypeOf(""),
+			wantErr: false,
+		},
+		{
+			name:    "struct type",
+			input:   reflect.TypeOf(testStruct{}),
+			wantErr: false,
+		},
+		{
+			name:    "pointer type",
+			input:   reflect.TypeOf(&testStruct{}),
+			wantErr: false,
+		},
 	}
 
-	if iType.GetValue() != util.TypeIntegerField {
-		t.Errorf("get int type value failed.")
-		return
-	}
-
-	nVal, _ := iType.Interface()
-	newVal := nVal.Get()
-	riType, riErr := newType(newVal.Type())
-	if riErr != nil {
-		t.Errorf("newType failed, err:%s", riErr.Error())
-		return
-	}
-
-	if riType.GetValue() != util.TypeIntegerField {
-		t.Errorf("get int type value failed.")
-		return
-	}
-	if iType.GetName() != riType.GetName() {
-		t.Errorf("newType faild. illegal type name")
-		return
-	}
-	if iType.GetPkgPath() != riType.GetPkgPath() {
-		t.Errorf("newType faild. illegal type pkgPath")
-		return
-	}
-	if iType.GetValue() != riType.GetValue() {
-		t.Errorf("newType faild. illegal type value")
-		return
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := NewType(tt.input)
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			assert.Nil(t, err)
+			assert.NotNil(t, got)
+		})
 	}
 }
 
-func TestFloatType(t *testing.T) {
-	var fVal float32
-	fType, fErr := newType(reflect.TypeOf(fVal))
-	if fErr != nil {
-		t.Errorf("newType failed, err:%s", fErr.Error())
-		return
+func TestTypeImpl_GetName(t *testing.T) {
+	tests := []struct {
+		name  string
+		input reflect.Type
+		want  string
+	}{
+		{
+			name:  "int type",
+			input: reflect.TypeOf(0),
+			want:  "int",
+		},
+		{
+			name:  "struct type",
+			input: reflect.TypeOf(testStruct{}),
+			want:  "testStruct",
+		},
 	}
 
-	if fType.GetValue() != util.TypeFloatField {
-		t.Errorf("get float type value failed.")
-		return
-	}
-
-	nVal, _ := fType.Interface()
-	newVal := nVal.Get()
-	rfType, rfErr := newType(newVal.Type())
-	if rfErr != nil {
-		t.Errorf("newType failed, err:%s", rfErr.Error())
-		return
-	}
-
-	if rfType.GetValue() != util.TypeFloatField {
-		t.Errorf("get float type value failed.")
-		return
-	}
-	if fType.GetName() != rfType.GetName() {
-		t.Errorf("newType faild. illegal type name")
-		return
-	}
-	if fType.GetPkgPath() != rfType.GetPkgPath() {
-		t.Errorf("newType faild. illegal type pkgPath")
-		return
-	}
-	if fType.GetValue() != rfType.GetValue() {
-		t.Errorf("newType faild. illegal type value")
-		return
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			typ, _ := NewType(tt.input)
+			assert.Equal(t, tt.want, typ.GetName())
+		})
 	}
 }
 
-func TestBoolType(t *testing.T) {
-	var bVal bool
-	bType, bErr := newType(reflect.TypeOf(bVal))
-	if bErr != nil {
-		t.Errorf("newType failed, err:%s", bErr.Error())
-		return
+func TestTypeImpl_GetPkgPath(t *testing.T) {
+	typ, _ := NewType(reflect.TypeOf(testStruct{}))
+	assert.Contains(t, typ.GetPkgKey(), "testStruct")
+}
+
+func TestTypeImpl_GetValue(t *testing.T) {
+	tests := []struct {
+		name  string
+		input reflect.Type
+		want  model.TypeDeclare
+	}{
+		{
+			name:  "int type",
+			input: reflect.TypeOf(0),
+			want:  model.TypeIntegerValue,
+		},
+		{
+			name:  "string type",
+			input: reflect.TypeOf(""),
+			want:  model.TypeStringValue,
+		},
 	}
 
-	if bType.GetValue() != util.TypeBooleanField {
-		t.Errorf("get bool type value failed.")
-		return
-	}
-
-	nVal, _ := bType.Interface()
-	newVal := nVal.Get()
-	rbType, rbErr := newType(newVal.Type())
-	if rbErr != nil {
-		t.Errorf("newType failed, err:%s", rbErr.Error())
-		return
-	}
-
-	if rbType.GetValue() != util.TypeBooleanField {
-		t.Errorf("get bool type value failed.")
-		return
-	}
-	if bType.GetName() != rbType.GetName() {
-		t.Errorf("newType faild. illegal type name")
-		return
-	}
-	if bType.GetPkgPath() != rbType.GetPkgPath() {
-		t.Errorf("newType faild. illegal type pkgPath")
-		return
-	}
-	if bType.GetValue() != rbType.GetValue() {
-		t.Errorf("newType faild. illegal type value")
-		return
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			typ, _ := NewType(tt.input)
+			assert.Equal(t, tt.want, typ.GetValue())
+		})
 	}
 }
 
-func TestStringType(t *testing.T) {
-	var strVal string
-	strType, strErr := newType(reflect.TypeOf(strVal))
-	if strErr != nil {
-		t.Errorf("newType failed, err:%s", strErr.Error())
-		return
+func TestTypeImpl_Interface(t *testing.T) {
+	now := time.Now()
+	tests := []struct {
+		name    string
+		typ     reflect.Type
+		initVal any
+		wantErr bool
+	}{
+		{
+			name:    "int value",
+			typ:     reflect.TypeOf(0),
+			initVal: 123,
+			wantErr: false,
+		},
+		{
+			name:    "string value",
+			typ:     reflect.TypeOf(""),
+			initVal: "test",
+			wantErr: false,
+		},
+		{
+			name:    "time value",
+			typ:     reflect.TypeOf(time.Time{}),
+			initVal: now,
+			wantErr: false,
+		},
+		{
+			name:    "invalid value",
+			typ:     reflect.TypeOf(0),
+			initVal: "invalid",
+			wantErr: true,
+		},
 	}
 
-	if strType.GetValue() != util.TypeStringField {
-		t.Errorf("get string type value failed.")
-		return
-	}
-
-	nVal, _ := strType.Interface()
-	newVal := nVal.Get()
-	rstrType, rstrErr := newType(newVal.Type())
-	if rstrErr != nil {
-		t.Errorf("newType failed, err:%s", rstrErr.Error())
-		return
-	}
-
-	if rstrType.GetValue() != util.TypeStringField {
-		t.Errorf("get string type value failed.")
-		return
-	}
-	if strType.GetName() != rstrType.GetName() {
-		t.Errorf("newType faild. illegal type name")
-		return
-	}
-	if strType.GetPkgPath() != rstrType.GetPkgPath() {
-		t.Errorf("newType faild. illegal type pkgPath")
-		return
-	}
-	if strType.GetValue() != rstrType.GetValue() {
-		t.Errorf("newType faild. illegal type value")
-		return
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			typ, _ := NewType(tt.typ)
+			_, err := typ.Interface(tt.initVal)
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			assert.Nil(t, err)
+		})
 	}
 }
 
-func TestDateTimeType(t *testing.T) {
-	var dtVal time.Time
-	dtType, dtErr := newType(reflect.TypeOf(dtVal))
-	if dtErr != nil {
-		t.Errorf("newType failed, err:%s", dtErr.Error())
-		return
+func TestTypeImpl_Elem(t *testing.T) {
+	typ, _ := NewType(reflect.TypeOf([]int{}))
+	elem := typ.Elem()
+	assert.Equal(t, model.TypeIntegerValue, elem.GetValue())
+}
+
+func TestTypeImpl_IsBasic(t *testing.T) {
+	tests := []struct {
+		name  string
+		input reflect.Type
+		want  bool
+	}{
+		{
+			name:  "basic type",
+			input: reflect.TypeOf(0),
+			want:  true,
+		},
+		{
+			name:  "struct type",
+			input: reflect.TypeOf(testStruct{}),
+			want:  false,
+		},
 	}
 
-	if dtType.GetValue() != util.TypeDateTimeField {
-		t.Errorf("get DateTime type value failed.")
-		return
-	}
-
-	nVal, _ := dtType.Interface()
-	newVal := nVal.Get()
-	rdtType, rdtErr := newType(newVal.Type())
-	if rdtErr != nil {
-		t.Errorf("newType failed, err:%s", rdtErr.Error())
-		return
-	}
-
-	if rdtType.GetValue() != util.TypeDateTimeField {
-		t.Errorf("get DateTime type value failed.")
-		return
-	}
-	if dtType.GetName() != rdtType.GetName() {
-		t.Errorf("newType faild. illegal type name")
-		return
-	}
-	if dtType.GetPkgPath() != rdtType.GetPkgPath() {
-		t.Errorf("newType faild. illegal type pkgPath")
-		return
-	}
-	if dtType.GetValue() != rdtType.GetValue() {
-		t.Errorf("newType faild. illegal type value")
-		return
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			typ, _ := NewType(tt.input)
+			assert.Equal(t, tt.want, typ.IsBasic())
+		})
 	}
 }
 
-func TestStructType(t *testing.T) {
-	type Base struct {
-		iVal int
+func TestTypeImpl_IsStruct(t *testing.T) {
+	tests := []struct {
+		name  string
+		input reflect.Type
+		want  bool
+	}{
+		{
+			name:  "basic type",
+			input: reflect.TypeOf(0),
+			want:  false,
+		},
+		{
+			name:  "struct type",
+			input: reflect.TypeOf(testStruct{}),
+			want:  true,
+		},
 	}
 
-	var structVal Base
-	structType, structErr := newType(reflect.TypeOf(structVal))
-	if structErr != nil {
-		t.Errorf("newType failed, err:%s", structErr.Error())
-		return
-	}
-
-	if structType.GetValue() != util.TypeStructField {
-		t.Errorf("get DateTime type value failed.")
-		return
-	}
-
-	nVal, _ := structType.Interface()
-	newVal := nVal.Get()
-	rstructType, rstructErr := newType(newVal.Type())
-	if rstructErr != nil {
-		t.Errorf("newType failed, err:%s", rstructErr.Error())
-		return
-	}
-
-	if rstructType.GetValue() != util.TypeStructField {
-		t.Errorf("get DateTime type value failed.")
-		return
-	}
-	if structType.GetName() != rstructType.GetName() {
-		t.Errorf("newType faild. illegal type name")
-		return
-	}
-	if structType.GetPkgPath() != rstructType.GetPkgPath() {
-		t.Errorf("newType faild. illegal type pkgPath")
-		return
-	}
-	if structType.GetValue() != rstructType.GetValue() {
-		t.Errorf("newType faild. illegal type value")
-		return
-	}
-
-	if structType.IsPtrType() {
-		t.Errorf("unexpect isPtrType")
-		return
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			typ, _ := NewType(tt.input)
+			assert.Equal(t, tt.want, typ.IsStruct())
+		})
 	}
 }
 
-func TestSliceType(t *testing.T) {
-	var sliceVal []*uint16
-	sliceType, sliceErr := newType(reflect.TypeOf(sliceVal))
-	if sliceErr != nil {
-		t.Errorf("newType failed, err:%s", sliceErr.Error())
-		return
+func TestTypeImpl_IsSlice(t *testing.T) {
+	tests := []struct {
+		name  string
+		input reflect.Type
+		want  bool
+	}{
+		{
+			name:  "slice type",
+			input: reflect.TypeOf([]int{}),
+			want:  true,
+		},
+		{
+			name:  "non-slice type",
+			input: reflect.TypeOf(0),
+			want:  false,
+		},
 	}
 
-	if sliceType.GetValue() != util.TypeSliceField {
-		t.Errorf("get Slice type value failed.")
-		return
-	}
-
-	nVal, _ := sliceType.Interface()
-	newVal := nVal.Get()
-	rsliceType, rsliceErr := newType(newVal.Type())
-	if rsliceErr != nil {
-		t.Errorf("newType failed, err:%s", rsliceErr.Error())
-		return
-	}
-
-	if rsliceType.GetValue() != util.TypeSliceField {
-		t.Errorf("get Slice type value failed.")
-		return
-	}
-	if sliceType.GetName() != rsliceType.GetName() {
-		t.Errorf("newType faild. illegal type name")
-		return
-	}
-	if sliceType.GetPkgPath() != rsliceType.GetPkgPath() {
-		t.Errorf("newType faild. illegal type pkgPath")
-		return
-	}
-	if sliceType.GetValue() != rsliceType.GetValue() {
-		t.Errorf("newType faild. illegal type value")
-		return
-	}
-
-	dependType := sliceType.Elem()
-	if dependType == nil {
-		t.Errorf("illegal depend")
-		return
-	}
-
-	if dependType.GetValue() != util.TypePositiveSmallIntegerField {
-		t.Errorf("illegal depend type value")
-		return
-	}
-
-	if !dependType.IsPtrType() {
-		t.Errorf("illegal depend type value")
-		return
-	}
-
-	elemType := sliceType.Elem()
-	if elemType == nil {
-		t.Errorf("illegal elem")
-		return
-	}
-
-	if elemType.GetValue() != util.TypePositiveSmallIntegerField {
-		t.Errorf("illegal elem type value")
-		return
-	}
-
-	if !elemType.IsPtrType() {
-		t.Errorf("illegal elem type value")
-		return
-	}
-
-	if sliceType.IsPtrType() {
-		t.Errorf("unexpect isPtrType")
-		return
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			typ, _ := NewType(tt.input)
+			assert.Equal(t, tt.want, typ.IsSlice())
+		})
 	}
 }
 
-func TestPtrSliceType(t *testing.T) {
-	var sliceVal *[]*uint16
-	sliceType, sliceErr := newType(reflect.TypeOf(sliceVal))
-	if sliceErr != nil {
-		t.Errorf("newType failed, err:%s", sliceErr.Error())
-		return
-	}
-
-	if sliceType.GetValue() != util.TypeSliceField {
-		t.Errorf("get Slice type value failed.")
-		return
-	}
-
-	nVal, _ := sliceType.Interface()
-	newVal := nVal.Get()
-	rsliceType, rsliceErr := newType(newVal.Type())
-	if rsliceErr != nil {
-		t.Errorf("newType failed, err:%s", rsliceErr.Error())
-		return
-	}
-
-	if rsliceType.GetValue() != util.TypeSliceField {
-		t.Errorf("get Slice type value failed.")
-		return
-	}
-	if sliceType.GetName() != rsliceType.GetName() {
-		t.Errorf("newType faild. illegal type name")
-		return
-	}
-	if sliceType.GetPkgPath() != rsliceType.GetPkgPath() {
-		t.Errorf("newType faild. illegal type pkgPath")
-		return
-	}
-	if sliceType.GetValue() != rsliceType.GetValue() {
-		t.Errorf("newType faild. illegal type value")
-		return
-	}
-
-	dependType := sliceType.Elem()
-	if dependType == nil {
-		t.Errorf("illegal depend")
-		return
-	}
-
-	if dependType.GetValue() != util.TypePositiveSmallIntegerField {
-		t.Errorf("illegal depend type value")
-		return
-	}
-
-	if !dependType.IsPtrType() {
-		t.Errorf("illegal depend type value")
-		return
-	}
-
-	elemType := sliceType.Elem()
-	if elemType == nil {
-		t.Errorf("illegal elem")
-		return
-	}
-
-	if elemType.GetValue() != util.TypePositiveSmallIntegerField {
-		t.Errorf("illegal elem type value")
-		return
-	}
-
-	if !elemType.IsPtrType() {
-		t.Errorf("illegal elem type value")
-		return
-	}
-
-	if !sliceType.IsPtrType() {
-		t.Errorf("unexpect isPtrType")
-		return
-	}
-}
-
-func TestSliceStructType(t *testing.T) {
-	type Base struct {
-		iVal int
-	}
-	var sliceVal []*Base
-	sliceType, sliceErr := newType(reflect.TypeOf(sliceVal))
-	if sliceErr != nil {
-		t.Errorf("newType failed, err:%s", sliceErr.Error())
-		return
-	}
-
-	if sliceType.GetValue() != util.TypeSliceField {
-		t.Errorf("get Slice type value failed.")
-		return
-	}
-
-	nVal, _ := sliceType.Interface()
-	newVal := nVal.Get()
-	rsliceType, rsliceErr := newType(newVal.Type())
-	if rsliceErr != nil {
-		t.Errorf("newType failed, err:%s", rsliceErr.Error())
-		return
-	}
-
-	if rsliceType.GetValue() != util.TypeSliceField {
-		t.Errorf("get Slice type value failed.")
-		return
-	}
-	if sliceType.GetName() != rsliceType.GetName() {
-		t.Errorf("newType faild. illegal type name")
-		return
-	}
-	if sliceType.GetPkgPath() != rsliceType.GetPkgPath() {
-		t.Errorf("newType faild. illegal type pkgPath")
-		return
-	}
-	if sliceType.GetValue() != rsliceType.GetValue() {
-		t.Errorf("newType faild. illegal type value")
-		return
-	}
-
-	dependType := sliceType.Elem()
-	if dependType == nil {
-		t.Errorf("illegal depend")
-		return
-	}
-
-	if dependType.GetValue() != util.TypeStructField {
-		t.Errorf("illegal depend type value")
-		return
-	}
-
-	if !dependType.IsPtrType() {
-		t.Errorf("illegal depend type value")
-		return
-	}
-
-	elemType := sliceType.Elem()
-	if elemType == nil {
-		t.Errorf("illegal elem")
-		return
-	}
-
-	if elemType.GetValue() != util.TypeStructField {
-		t.Errorf("illegal elem type value")
-		return
-	}
-
-	if !elemType.IsPtrType() {
-		t.Errorf("illegal elem type value")
-		return
-	}
-	if sliceType.IsPtrType() {
-		t.Errorf("unexpect isPtrType")
-		return
-	}
+func TestTypeImpl_Interface_CanSet(t *testing.T) {
+	iVal := 100
+	intTypePtr, intTypeErr := NewType(reflect.TypeOf(iVal))
+	assert.Nil(t, intTypeErr)
+	assert.Equal(t, model.TypeIntegerValue, intTypePtr.GetValue())
+	valPtr, valErr := intTypePtr.Interface(nil)
+	assert.Nil(t, valErr)
+	assert.Equal(t, true, valPtr.IsValid())
+	assert.Equal(t, true, valPtr.IsZero())
+	valPtr.Set(iVal)
+	assert.Equal(t, false, valPtr.IsZero())
+	assert.Equal(t, iVal, valPtr.Get())
 }

@@ -2,272 +2,380 @@ package orm
 
 import (
 	"fmt"
+	"reflect"
 
-	"github.com/muidea/magicOrm/builder"
+	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/log"
+
+	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
+	"github.com/muidea/magicOrm/provider"
 )
 
-type resultItems []interface{}
+type resultItems []any
+type resultItemsList []resultItems
 
-func (s *impl) querySingle(vModel model.Model, filter model.Filter, deepLevel int) (ret model.Model, err error) {
-	var queryValue resultItems
-	func() {
-		builder := builder.NewBuilder(vModel, s.modelProvider)
-		sqlStr, sqlErr := builder.BuildQuery(filter)
-		if sqlErr != nil {
-			err = sqlErr
-			return
-		}
+type QueryRunner struct {
+	baseRunner
+}
 
-		err = s.executor.Query(sqlStr)
-		if err != nil {
-			return
-		}
+func NewQueryRunner(
+	vModel model.Model,
+	executor executor.Executor,
+	provider provider.Provider,
+	modelCodec codec.Codec,
+	batchFilter bool,
+	deepLevel int) *QueryRunner {
 
-		defer s.executor.Finish()
-		if !s.executor.Next() {
-			return
-		}
+	return &QueryRunner{
+		baseRunner: newBaseRunner(vModel, executor, provider, modelCodec, batchFilter, deepLevel),
+	}
+}
 
-		items, itemErr := s.getInitializeValue(vModel, builder)
+func (s *QueryRunner) innerQuery(vModel model.Model, filter model.Filter) (ret resultItemsList, err *cd.Error) {
+	queryResult, queryErr := s.hBuilder.BuildQuery(vModel, filter)
+	if queryErr != nil {
+		err = queryErr
+		log.Errorf("innerQuery failed, s.hBuilder.BuildQuery error:%s", err.Error())
+		return
+	}
+
+	_, err = s.executor.Query(queryResult.SQL(), false, queryResult.Args()...)
+	if err != nil {
+		log.Errorf("innerQuery failed, s.executor.Query error:%s", err.Error())
+		return
+	}
+	defer s.executor.Finish()
+
+	queryList := resultItemsList{}
+	for s.executor.Next() {
+		itemValues, itemErr := s.hBuilder.BuildQueryPlaceHolder(vModel)
 		if itemErr != nil {
 			err = itemErr
+			log.Errorf("innerQuery failed, getModelFieldsPlaceHolder error:%s", err.Error())
 			return
 		}
 
-		err = s.executor.GetField(items...)
+		err = s.executor.GetField(itemValues...)
 		if err != nil {
+			log.Errorf("innerQuery failed, s.executor.GetField error:%s", err.Error())
 			return
 		}
 
-		queryValue = items
-	}()
-	if err != nil || len(queryValue) == 0 {
-		return
+		queryList = append(queryList, itemValues)
 	}
 
-	modelVal, modelErr := s.assignSingleModel(vModel, queryValue, deepLevel)
-	if modelErr != nil {
-		err = modelErr
-		return
-	}
-
-	ret = modelVal
+	ret = queryList
 	return
 }
 
-func (s *impl) assignSingleModel(modelVal model.Model, queryVal resultItems, deepLevel int) (ret model.Model, err error) {
+func (s *QueryRunner) innerAssign(vModel model.Model, queryVal resultItems, deepLevel int) (ret model.Model, err *cd.Error) {
 	offset := 0
-	for _, field := range modelVal.GetFields() {
-		fType := field.GetType()
-		fValue := field.GetValue()
-		if !fType.IsBasic() {
-			if !fValue.IsNil() {
-				itemVal, itemErr := s.queryRelation(modelVal, field, deepLevel+1)
-				if itemErr != nil {
-					err = itemErr
-					return
-				}
-
-				err = field.SetValue(itemVal)
-				if err != nil {
-					return
-				}
-			}
-
-			//offset++
+	qModel := vModel.Copy(model.OriginView)
+	for _, field := range qModel.GetFields() {
+		if !model.IsBasicField(field) || !model.IsValidField(field) {
 			continue
 		}
-
-		if !fValue.IsNil() {
-			fVal, fErr := s.modelProvider.DecodeValue(s.stripSlashes(fType, queryVal[offset]), fType)
-			if fErr != nil {
-				err = fErr
-				return
-			}
-			err = field.SetValue(fVal)
-			if err != nil {
-				return
-			}
+		err = s.assignBasicField(field, queryVal[offset])
+		if err != nil {
+			log.Errorf("innerAssign field:%s failed, s.assignBasicField error:%v", field.GetName(), err.Error())
+			return
 		}
-
 		offset++
 	}
 
-	ret = modelVal
+	for _, field := range qModel.GetFields() {
+		if model.IsBasicField(field) || !model.IsValidField(field) {
+			continue
+		}
+		err = s.assignModelField(qModel, field, deepLevel)
+		if err != nil {
+			log.Errorf("innerAssign field:%s failed, s.assignModelField error:%v", field.GetName(), err.Error())
+			return
+		}
+	}
+
+	ret = qModel
 	return
 }
 
-func (s *impl) queryRelationSingle(id int, vModel model.Model, deepLevel int) (ret model.Model, err error) {
-	relationModel := vModel.Copy()
-	relationVal, relationErr := s.modelProvider.GetEntityValue(id)
-	if relationErr != nil {
-		err = fmt.Errorf("GetEntityValue failed, err:%s", relationErr)
+func (s *QueryRunner) assignModelField(vModel model.Model, vField model.Field, deepLevel int) (err *cd.Error) {
+	vErr := s.queryRelation(vModel, vField, deepLevel)
+	if vErr != nil {
+		err = vErr
+		log.Errorf("assignModelField field:%s failed, s.queryRelation error:%v", vField.GetName(), err.Error())
 		return
 	}
 
-	pkField := relationModel.GetPrimaryField()
-	pkField.SetValue(relationVal)
-	relationFilter, relationErr := s.getFieldFilter(pkField)
-	if relationErr != nil {
-		err = fmt.Errorf("GetEntityValue failed, err:%s", relationErr)
-		return
-	}
-
-	queryVal, queryErr := s.querySingle(relationModel, relationFilter, deepLevel)
-	if queryErr != nil {
-		err = queryErr
-		return
-	}
-
-	ret = queryVal
 	return
 }
 
-func (s *impl) queryRelationSlice(ids []int, vModel model.Model, deepLevel int) (ret []model.Model, err error) {
-	sliceVal := []model.Model{}
-	for _, item := range ids {
-		relationModel := vModel.Copy()
-		relationVal, relationErr := s.modelProvider.GetEntityValue(item)
-		if relationErr != nil {
-			err = fmt.Errorf("GetEntityValue failed, err:%s", relationErr)
-			return
-		}
-
-		pkField := relationModel.GetPrimaryField()
-		pkField.SetValue(relationVal)
-		relationFilter, relationErr := s.getFieldFilter(pkField)
-		if relationErr != nil {
-			err = fmt.Errorf("GetEntityValue failed, err:%s", relationErr)
-			return
-		}
-
-		queryVal, queryErr := s.querySingle(relationModel, relationFilter, deepLevel)
-		if queryErr != nil {
-			err = queryErr
-			return
-		}
-
-		if queryVal != nil {
-			sliceVal = append(sliceVal, queryVal)
-		}
+func (s *QueryRunner) assignBasicField(vField model.Field, val any) (err *cd.Error) {
+	fVal, fErr := s.modelCodec.ExtractBasicFieldValue(vField, val)
+	if fErr != nil {
+		err = fErr
+		log.Errorf("assignBasicField field:%s failed, s.modelProvider.DecodeValue error:%v", vField.GetName(), err.Error())
+		return
 	}
 
-	ret = sliceVal
+	vField.SetValue(fVal)
 	return
 }
 
-func (s *impl) queryRelation(modelInfo model.Model, fieldInfo model.Field, deepLevel int) (ret model.Value, err error) {
-	fieldType := fieldInfo.GetType()
-	if deepLevel > 3 {
-		ret, err = fieldType.Interface()
+func (s *QueryRunner) queryRelation(vModel model.Model, vField model.Field, deepLevel int) (err *cd.Error) {
+	if deepLevel > maxDeepLevel {
 		return
 	}
 
-	fieldModel, fieldErr := s.modelProvider.GetTypeModel(fieldType)
-	if fieldErr != nil {
-		err = fieldErr
+	if model.IsSliceField(vField) {
+		err = s.querySliceRelation(vModel, vField, deepLevel)
+		if err != nil {
+			log.Errorf("queryRelation field:%s failed, s.querySliceRelation error:%v", vField.GetName(), err.Error())
+		}
 		return
 	}
 
-	builder := builder.NewBuilder(modelInfo, s.modelProvider)
-	relationSQL, relationErr := builder.BuildQueryRelation(fieldInfo.GetName(), fieldModel)
+	err = s.querySingleRelation(vModel, vField, deepLevel)
+	if err != nil {
+		log.Errorf("queryRelation field:%s failed, s.querySingleRelation error:%v", vField.GetName(), err.Error())
+	}
+	return
+}
+
+func (s *QueryRunner) querySingleRelation(vModel model.Model, vField model.Field, deepLevel int) (err *cd.Error) {
+	valueList, valueErr := s.innerQueryRelationKeys(vModel, vField)
+	if valueErr != nil {
+		err = valueErr
+		log.Errorf("querySingleRelation failed, s.innerQueryRelationKeys error:%v", err.Error())
+		return
+	}
+
+	vType := vField.GetType()
+	valueSize := len(valueList)
+	if valueSize == 0 {
+		if vType.IsPtrType() {
+			return
+		}
+		log.Warnf("query relation failed, field name:%s", vField.GetName())
+		return
+	}
+
+	rvErr := s.innerQueryRelationSingleModel(valueList[0], vField, deepLevel)
+	if rvErr != nil {
+		log.Errorf("querySingleRelation failed, s.innerQueryRelationSingleModel error:%v", rvErr.Error())
+		err = rvErr
+		return
+	}
+	return
+}
+
+func (s *QueryRunner) querySliceRelation(vModel model.Model, vField model.Field, deepLevel int) (err *cd.Error) {
+	valueList, valueErr := s.innerQueryRelationKeys(vModel, vField)
+	if valueErr != nil {
+		err = valueErr
+		log.Errorf("querySliceRelation field:%s failed, s.innerQueryRelationKeys error:%sv", vField.GetName(), err.Error())
+		return
+	}
+	valueSize := len(valueList)
+	if valueSize == 0 {
+		return
+	}
+
+	rModelErr := s.innerQueryRelationSliceModel(valueList, vField, deepLevel)
+	if rModelErr != nil {
+		err = rModelErr
+		log.Errorf("querySliceRelation field:%s failed, s.innerQueryRelationSliceModel error:%sv", vField.GetName(), err.Error())
+		return
+	}
+	return
+}
+
+func (s *QueryRunner) innerQueryRelationKeys(vModel model.Model, vField model.Field) (ret resultItems, err *cd.Error) {
+	relationResult, relationErr := s.hBuilder.BuildQueryRelation(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
+		log.Errorf("innerQueryRelationKeys field:%s failed, hBuilder.BuildQueryRelation error:%v", vField.GetName(), err.Error())
 		return
 	}
 
-	var values []int
+	values := resultItems{}
 	func() {
-		err = s.executor.Query(relationSQL)
+		_, err = s.executor.Query(relationResult.SQL(), false, relationResult.Args()...)
 		if err != nil {
+			log.Errorf("innerQueryRelationKeys field:%s failed, s.executor.Query error:%v", vField.GetName(), err.Error())
 			return
 		}
-
 		defer s.executor.Finish()
+
 		for s.executor.Next() {
-			v := 0
-			err = s.executor.GetField(&v)
-			if err != nil {
+			itemValue, itemErr := s.hBuilder.BuildQueryRelationPlaceHolder(vModel, vField)
+			if itemErr != nil {
+				err = itemErr
+				log.Errorf("innerQueryRelationKeys field:%s failed, s.getModelPKFieldPlaceHolder error:%v", vField.GetName(), err.Error())
 				return
 			}
-			values = append(values, v)
+
+			err = s.executor.GetField(itemValue)
+			if err != nil {
+				log.Errorf("innerQueryRelationKeys field:%s failed, s.executor.GetField error:%v", vField.GetName(), err.Error())
+				return
+			}
+
+			// 这里需要去除指针
+			rawVal := reflect.Indirect(reflect.ValueOf(itemValue)).Interface()
+			values = append(values, rawVal)
 		}
 	}()
 
-	if err != nil || len(values) == 0 {
-		ret, err = fieldType.Interface()
+	if err != nil {
 		return
 	}
 
-	fieldValue, _ := fieldType.Interface()
-	if util.IsStructType(fieldType.GetValue()) {
-		queryVal, queryErr := s.queryRelationSingle(values[0], fieldModel, deepLevel+1)
-		if queryErr != nil {
-			err = queryErr
-			return
-		}
+	ret = values
+	return
+}
 
-		if queryVal != nil {
-			modelVal, modelErr := s.modelProvider.GetEntityValue(queryVal.Interface(true))
-			if modelErr != nil {
-				err = modelErr
-				return
-			}
-
-			fieldValue.Set(modelVal.Get())
-		}
-
-		ret = fieldValue
+func (s *QueryRunner) innerQueryRelationSingleModel(id any, vField model.Field, deepLevel int) (err *cd.Error) {
+	vField.Reset()
+	rModel, rErr := s.modelProvider.GetTypeModel(vField.GetType())
+	if rErr != nil {
+		err = rErr
+		log.Errorf("innerQueryRelationSingleModel failed, s.modelProvider.GetTypeModel field:%s, id:%v, error:%v", vField.GetType().GetPkgKey(), id, err.Error())
 		return
 	}
 
-	if util.IsSliceType(fieldType.GetValue()) {
-		queryVal, queryErr := s.queryRelationSlice(values, fieldModel, deepLevel+1)
-		if queryErr != nil {
-			err = queryErr
+	rModel.SetPrimaryFieldValue(id)
+	vFilter, vErr := getModelFilter(rModel, s.modelProvider, s.modelCodec)
+	if vErr != nil {
+		err = vErr
+		log.Errorf("innerQueryRelationSingleModel failed, getModelFilter model:%s, id:%v, error:%v", rModel.GetPkgKey(), id, err.Error())
+		return
+	}
+
+	rQueryRunner := NewQueryRunner(vFilter.MaskModel(), s.executor, s.modelProvider, s.modelCodec, false, deepLevel+1)
+	queryVal, queryErr := rQueryRunner.Query(vFilter)
+	if queryErr != nil {
+		err = queryErr
+		log.Errorf("innerQueryRelationSingleModel failed, s.querySingle model:%s, id:%v, error:%v", rModel.GetPkgKey(), id, err.Error())
+		return
+	}
+	if len(queryVal) > 1 {
+		errMsg := fmt.Sprintf("match more than one model, model:%s, id:%v", rModel.GetPkgKey(), id)
+		log.Warnf("innerQueryRelationSingleModel failed, errMsg:%s", errMsg)
+		err = cd.NewError(cd.Unexpected, errMsg)
+		return
+	}
+
+	if len(queryVal) > 0 {
+		vField.SetValue(queryVal[0].Interface(vField.GetType().Elem().IsPtrType()))
+		return
+	}
+
+	if deepLevel < maxDeepLevel {
+		// 到这里说明未查询到数据，说明存在数据表之间数据不一致
+		// 这种情况下直接返回nil，后续要考虑进行脏数据检测
+		log.Warnf("query relation failed, miss relation data, model:%s, id:%v", rModel.GetPkgKey(), id)
+	}
+	return
+}
+
+func (s *QueryRunner) innerQueryRelationSliceModel(ids []any, vField model.Field, deepLevel int) (err *cd.Error) {
+	// 这里主动重置，避免VFiled的旧数据干扰
+	vField.Reset()
+	for _, id := range ids {
+		svModel, svErr := s.modelProvider.GetTypeModel(vField.GetType().Elem())
+		if svErr != nil {
+			err = svErr
+			log.Errorf("innerQueryRelationSliceModel failed, s.modelProvider.GetTypeModel error:%v", err.Error())
 			return
 		}
 
-		for _, v := range queryVal {
-			modelVal, modelErr := s.modelProvider.GetEntityValue(v.Interface(true))
-			if modelErr != nil {
-				err = modelErr
-				return
-			}
+		svModel.SetPrimaryFieldValue(id)
+		vFilter, vErr := getModelFilter(svModel, s.modelProvider, s.modelCodec)
+		if vErr != nil {
+			err = vErr
+			log.Errorf("innerQueryRelationSliceModel failed, getModelFilter error:%v", err.Error())
+			return
+		}
 
-			fieldValue, fieldErr = s.modelProvider.AppendSliceValue(fieldValue, modelVal)
-			if fieldErr != nil {
-				err = fieldErr
-				return
-			}
+		rQueryRunner := NewQueryRunner(vFilter.MaskModel(), s.executor, s.modelProvider, s.modelCodec, false, deepLevel+1)
+		queryVal, queryErr := rQueryRunner.Query(vFilter)
+		if queryErr != nil {
+			err = queryErr
+			log.Errorf("innerQueryRelationSingleModel failed, s.querySingle error:%v", err.Error())
+			return
+		}
+
+		if len(queryVal) > 0 {
+			vField.AppendSliceValue(queryVal[0].Interface(vField.GetType().Elem().IsPtrType()))
 		}
 	}
-	ret = fieldValue
 
 	return
 }
 
-// Query query
-func (s *impl) Query(entityModel model.Model) (ret model.Model, err error) {
-	entityFilter, entityErr := s.getModelFilter(entityModel)
-	if entityErr != nil {
-		err = entityErr
+func (s *QueryRunner) Query(filter model.Filter) (ret []model.Model, err *cd.Error) {
+	queryValueList, queryValueErr := s.innerQuery(s.vModel, filter)
+	if queryValueErr != nil {
+		err = queryValueErr
+		log.Errorf("Query failed, s.innerQuery error:%s", err.Error())
 		return
 	}
 
-	queryVal, queryErr := s.querySingle(entityModel, entityFilter, 0)
+	queryCount := len(queryValueList)
+	if queryCount == 0 {
+		return
+	}
+	if !s.batchFilter && queryCount > 1 {
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("matched model:%s %d items value", s.vModel.GetPkgKey(), queryCount))
+		log.Warnf("Query failed, s.innerQuery warning:%s", err.Error())
+		return
+	}
+
+	sliceValue := []model.Model{}
+	for idx := 0; idx < len(queryValueList); idx++ {
+		modelVal, modelErr := s.innerAssign(s.vModel, queryValueList[idx], 0)
+		if modelErr != nil {
+			err = modelErr
+			log.Errorf("Query failed, s.innerAssign error:%s", err.Error())
+			return
+		}
+
+		sliceValue = append(sliceValue, modelVal)
+	}
+
+	ret = sliceValue
+	return
+}
+
+func (s *impl) Query(vModel model.Model) (ret model.Model, err *cd.Error) {
+	if vModel == nil {
+		err = cd.NewError(cd.IllegalParam, "illegal model value")
+		return
+	}
+
+	// 这里主动Copy一份出来，是为了避免在查询数据过程中对源数据产生了干扰
+	vModel = vModel.Copy(model.OriginView)
+	vFilter, vErr := getModelFilter(vModel, s.modelProvider, s.modelCodec)
+	if vErr != nil {
+		err = vErr
+		log.Errorf("Query failed, s.getModelFilter error:%v", err.Error())
+		return
+	}
+
+	vQueryRunner := NewQueryRunner(vFilter.MaskModel(), s.executor, s.modelProvider, s.modelCodec, false, 0)
+	queryVal, queryErr := vQueryRunner.Query(vFilter)
 	if queryErr != nil {
 		err = queryErr
+		log.Errorf("Query failed, vQueryRunner.Query error:%v", err.Error())
+		return
+	}
+	if len(queryVal) != 0 {
+		ret = queryVal[0]
 		return
 	}
 
-	if queryVal != nil {
-		ret = queryVal
-		return
-	}
-
-	err = fmt.Errorf("not exist model,name:%s,pkgPath:%s", entityModel.GetName(), entityModel.GetPkgPath())
+	err = cd.NewError(cd.NotFound, fmt.Sprintf("query model failed, model:%s", vModel.GetPkgKey()))
 	return
 }

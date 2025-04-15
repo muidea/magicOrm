@@ -2,56 +2,62 @@ package mysql
 
 import (
 	"fmt"
+
+	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/log"
+
 	"github.com/muidea/magicOrm/model"
-	"log"
 )
 
-// BuildUpdate  BuildUpdate
-func (s *Builder) BuildUpdate() (ret string, err error) {
-	updateStr, updateErr := s.getFieldUpdateValues(s.modelInfo)
+// BuildUpdate  Build Update
+func (s *Builder) BuildUpdate(vModel model.Model) (ret *ResultStack, err *cd.Error) {
+	resultStackPtr := &ResultStack{}
+	updateStr, updateErr := s.buildFieldUpdateValues(vModel, resultStackPtr)
 	if updateErr != nil {
 		err = updateErr
-		log.Printf("getFieldUpdateValues failed, err:%s", err.Error())
+		log.Errorf("BuildUpdate failed, s.buildFieldUpdateValues error:%s", err.Error())
 		return
 	}
-	filterStr, filterErr := s.buildPKFilter(s.modelInfo)
+	filterStr, filterErr := s.buildFieldFilter(vModel.GetPrimaryField(), resultStackPtr)
 	if filterErr != nil {
 		err = filterErr
-		log.Printf("buildPKFilter failed, err:%s", err.Error())
+		log.Errorf("BuildUpdate failed, s.BuildModelFilter error:%s", err.Error())
 		return
 	}
 
-	str := fmt.Sprintf("UPDATE `%s` SET %s WHERE %s", s.getHostTableName(s.modelInfo), updateStr, filterStr)
-	//log.Print(str)
-	ret = str
+	updateSQL := fmt.Sprintf("UPDATE `%s` SET %s WHERE %s", s.buildCodec.ConstructModelTableName(vModel), updateStr, filterStr)
+	if traceSQL() {
+		log.Infof("[SQL] update: %s", updateSQL)
+	}
 
+	resultStackPtr.SetSQL(updateSQL)
+	ret = resultStackPtr
 	return
 }
 
-func (s *Builder) getFieldUpdateValues(info model.Model) (ret string, err error) {
+func (s *Builder) buildFieldUpdateValues(vModel model.Model, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
 	str := ""
-	for _, field := range info.GetFields() {
-		if field.IsPrimary() {
+	for _, field := range vModel.GetFields() {
+		if model.IsPrimaryField(field) {
+			continue
+		}
+		if !model.IsBasicField(field) || !model.IsValidField(field) {
 			continue
 		}
 
-		fType := field.GetType()
-		fValue := field.GetValue()
-		if !fType.IsBasic() || fValue.IsNil() {
-			continue
-		}
-
-		fStr, fErr := s.buildValue(fValue, fType)
-		if fErr != nil {
-			err = fErr
+		fVal := field.GetValue()
+		encodeVal, encodeErr := s.buildCodec.PackedBasicFieldValue(field, fVal)
+		if encodeErr != nil {
+			err = encodeErr
+			log.Errorf("buildFieldUpdateValues %s failed, encodeFieldValue error:%s", field.GetName(), err.Error())
 			return
 		}
 
-		fTag := field.GetTag()
+		resultStackPtr.PushArgs(encodeVal)
 		if str == "" {
-			str = fmt.Sprintf("`%s`=%v", fTag.GetName(), fStr)
+			str = fmt.Sprintf("`%s` = ?", field.GetName())
 		} else {
-			str = fmt.Sprintf("%s,`%s`=%v", str, fTag.GetName(), fStr)
+			str = fmt.Sprintf("%s,`%s` = ?", str, field.GetName())
 		}
 	}
 

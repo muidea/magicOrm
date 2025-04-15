@@ -3,19 +3,38 @@ package orm
 import (
 	"database/sql"
 
-	"github.com/muidea/magicOrm/builder"
+	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/log"
+
+	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider"
 )
 
-func (s *impl) queryCount(modelInfo model.Model, filter model.Filter) (ret int64, err error) {
-	builder := builder.NewBuilder(modelInfo, s.modelProvider)
-	sqlStr, sqlErr := builder.BuildCount(filter)
-	if sqlErr != nil {
-		err = sqlErr
+type CountRunner struct {
+	baseRunner
+}
+
+func NewCountRunner(
+	vModel model.Model,
+	executor executor.Executor,
+	provider provider.Provider,
+	modelCodec codec.Codec) *CountRunner {
+	return &CountRunner{
+		baseRunner: newBaseRunner(vModel, executor, provider, modelCodec, false, 0),
+	}
+}
+
+func (s *CountRunner) Count(vFilter model.Filter) (ret int64, err *cd.Error) {
+	countResult, countErr := s.hBuilder.BuildCount(s.vModel, vFilter)
+	if countErr != nil {
+		err = countErr
+		log.Errorf("Count failed, hBuilder.BuildCount error:%s", err.Error())
 		return
 	}
 
-	err = s.executor.Query(sqlStr)
+	_, err = s.executor.Query(countResult.SQL(), false, countResult.Args()...)
 	if err != nil {
 		return
 	}
@@ -25,6 +44,7 @@ func (s *impl) queryCount(modelInfo model.Model, filter model.Filter) (ret int64
 		var countVal sql.NullInt64
 		err = s.executor.GetField(&countVal)
 		if err != nil {
+			log.Errorf("Count failed, s.executor.GetField error:%s", err.Error())
 			return
 		}
 
@@ -34,14 +54,21 @@ func (s *impl) queryCount(modelInfo model.Model, filter model.Filter) (ret int64
 	return
 }
 
-// Count count entity
-func (s *impl) Count(entityModel model.Model, filter model.Filter) (ret int64, err error) {
-	queryVal, queryErr := s.queryCount(entityModel, filter)
-	if queryErr != nil {
-		err = queryErr
+func (s *impl) Count(vFilter model.Filter) (ret int64, err *cd.Error) {
+	if vFilter == nil {
+		err = cd.NewError(cd.IllegalParam, "illegal filter value")
 		return
 	}
-	ret = queryVal
 
+	vModel := vFilter.MaskModel()
+	countRunner := NewCountRunner(vModel, s.executor, s.modelProvider, s.modelCodec)
+	queryVal, queryErr := countRunner.Count(vFilter)
+	if queryErr != nil {
+		err = queryErr
+		log.Errorf("Count failed, countRunner.Count error:%s", err.Error())
+		return
+	}
+
+	ret = queryVal
 	return
 }

@@ -1,29 +1,24 @@
 package model
 
-// Field Field
+import cd "github.com/muidea/magicCommon/def"
+
 type Field interface {
-	//@GetIndex Index
-	GetIndex() int
-	//@GetName Name
 	GetName() string
-	//@GetType Type
+	GetShowName() string
+	GetDescription() string
 	GetType() Type
-	//@GetTag Tag
-	GetTag() Tag
-	//@GetValue Value
+	GetSpec() Spec
 	GetValue() Value
-	//@SetValue 更新值
-	SetValue(val Value) error
-	//@IsPrimary 是否主键
-	IsPrimary() bool
+	SetValue(val any) *cd.Error
+	GetSliceValue() []Value
+	AppendSliceValue(val any) *cd.Error
+	Reset()
 }
 
 func CompareField(l, r Field) bool {
-	return l.GetIndex() == r.GetIndex() &&
-		l.GetName() == r.GetName() &&
-		l.IsPrimary() == r.IsPrimary() &&
+	return l.GetName() == r.GetName() &&
 		CompareType(l.GetType(), r.GetType()) &&
-		CompareTag(l.GetTag(), r.GetTag()) &&
+		CompareSpec(l.GetSpec(), r.GetSpec()) &&
 		CompareValue(l.GetValue(), r.GetValue())
 }
 
@@ -31,12 +26,12 @@ func CompareField(l, r Field) bool {
 type Fields []Field
 
 // Append Append
-func (s *Fields) Append(fieldInfo Field) bool {
+func (s *Fields) Append(vField Field) bool {
 	exist := false
-	newField := fieldInfo.GetTag()
+	newName := vField.GetName()
 	for _, val := range *s {
-		curField := val.GetTag()
-		if curField.GetName() == newField.GetName() {
+		curName := val.GetName()
+		if curName == newName {
 			exist = true
 			break
 		}
@@ -45,14 +40,14 @@ func (s *Fields) Append(fieldInfo Field) bool {
 		return false
 	}
 
-	*s = append(*s, fieldInfo)
+	*s = append(*s, vField)
 	return true
 }
 
 // GetPrimaryField get primary key field
 func (s *Fields) GetPrimaryField() Field {
 	for _, val := range *s {
-		if val.IsPrimary() {
+		if IsPrimaryField(val) {
 			return val
 		}
 	}

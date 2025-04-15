@@ -1,156 +1,190 @@
 package orm
 
 import (
-	"github.com/muidea/magicOrm/builder"
+	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/log"
+
+	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/util"
+	"github.com/muidea/magicOrm/provider"
 )
 
-func (s *impl) deleteSingle(modelInfo model.Model) (err error) {
-	builder := builder.NewBuilder(modelInfo, s.modelProvider)
-	sqlStr, sqlErr := builder.BuildDelete()
-	if sqlErr != nil {
-		err = sqlErr
+type DeleteRunner struct {
+	baseRunner
+	QueryRunner
+}
+
+func NewDeleteRunner(
+	vModel model.Model,
+	executor executor.Executor,
+	provider provider.Provider,
+	modelCodec codec.Codec,
+	deepLevel int) *DeleteRunner {
+	baseRunner := newBaseRunner(vModel, executor, provider, modelCodec, false, deepLevel)
+	return &DeleteRunner{
+		baseRunner: baseRunner,
+		QueryRunner: QueryRunner{
+			baseRunner: baseRunner,
+		},
+	}
+}
+
+func (s *DeleteRunner) deleteHost(vModel model.Model) (err *cd.Error) {
+	deleteResult, deleteErr := s.hBuilder.BuildDelete(vModel)
+	if deleteErr != nil {
+		err = deleteErr
+		log.Errorf("deleteHost failed, s.hBuilder.BuildDelete error:%s", err.Error())
 		return
 	}
 
-	_, numErr := s.executor.Delete(sqlStr)
-	if numErr != nil {
-		err = numErr
-		return
+	_, _, err = s.executor.Execute(deleteResult.SQL(), deleteResult.Args()...)
+	if err != nil {
+		log.Errorf("deleteHost failed, s.executor.Execute error:%s", err.Error())
 	}
-
-	// not need check affect items
-	//if numVal != 1 {
-	//	err = fmt.Errorf("delete %s failed", modelInfo.GetName())
-	//}
-
 	return
 }
 
-func (s *impl) deleteRelation(modelInfo model.Model, fieldInfo model.Field, deepLevel int) (err error) {
-	fType := fieldInfo.GetType()
-	if fType.IsBasic() {
+func (s *DeleteRunner) deleteRelation(vModel model.Model, vField model.Field, deepLevel int) (err *cd.Error) {
+	hostResult, relationResult, resultErr := s.hBuilder.BuildDeleteRelation(vModel, vField)
+	if resultErr != nil {
+		err = resultErr
+		log.Errorf("deleteRelation failed, s.hBuilder.BuildDeleteRelation error:%s", err.Error())
 		return
 	}
 
-	// disable check field value
-	//if !s.modelProvider.IsAssigned(fieldInfo.GetValue(), fieldInfo.GetType()) {
-	//	return
-	//}
-
-	relationInfo, relationErr := s.modelProvider.GetTypeModel(fType)
-	if relationErr != nil {
-		err = relationErr
-		return
-	}
-
-	builder := builder.NewBuilder(modelInfo, s.modelProvider)
-	rightSQL, relationSQL, relationErr := builder.BuildDeleteRelation(fieldInfo.GetName(), relationInfo)
-	if relationErr != nil {
-		err = relationErr
-		return
-	}
-
-	elemType := fType.Elem()
+	vType := vField.GetType()
+	// 这里使用ElemType 是因为vFiled的指针表示该字段是否可选，
+	elemType := vType.Elem()
 	if !elemType.IsPtrType() {
-		fieldVal, fieldErr := s.queryRelation(modelInfo, fieldInfo, deepLevel)
-		if fieldErr == nil && !fieldVal.IsNil() {
-			if util.IsStructType(fType.GetValue()) {
-				relationModel, relationErr := s.modelProvider.GetValueModel(fieldVal, fType)
-				if relationErr != nil {
-					err = relationErr
-					return
-				}
+		fieldErr := s.queryRelation(vModel, vField, maxDeepLevel-1)
+		if fieldErr != nil {
+			err = fieldErr
+			log.Errorf("deleteRelation failed, s.queryRelation error:%s", err.Error())
+			return
+		}
 
-				err = s.deleteSingle(relationModel)
-				if err != nil {
-					return
-				}
-
-				for _, field := range relationModel.GetFields() {
-					err = s.deleteRelation(relationModel, field, deepLevel+1)
-					if err != nil {
-						break
-					}
-				}
-			} else if util.IsSliceType(fType.GetValue()) {
-				elemVals, elemErr := s.modelProvider.ElemDependValue(fieldVal)
-				if elemErr != nil {
-					err = elemErr
-					return
-				}
-				for idx := 0; idx < len(elemVals); idx++ {
-					relationModel, relationErr := s.modelProvider.GetValueModel(elemVals[idx], fType.Elem())
-					if relationErr != nil {
-						err = relationErr
-						return
-					}
-
-					err = s.deleteSingle(relationModel)
-					if err != nil {
-						return
-					}
-
-					for _, field := range relationModel.GetFields() {
-						err = s.deleteRelation(relationModel, field, deepLevel+1)
-						if err != nil {
-							break
-						}
-					}
-				}
+		if model.IsStructType(vType.GetValue()) {
+			err = s.deleteRelationSingleStructInner(vField, deepLevel)
+			if err != nil {
+				log.Errorf("deleteRelation failed, s.deleteRelationSingleStructInner error:%s", err.Error())
+				return
+			}
+		} else if model.IsSliceType(vType.GetValue()) {
+			err = s.deleteRelationSliceStructInner(vField, deepLevel)
+			if err != nil {
+				log.Errorf("deleteRelation failed, s.deleteRelationSliceStructInner error:%s", err.Error())
+				return
 			}
 		}
 
-		_, err = s.executor.Delete(rightSQL)
+		_, _, err = s.executor.Execute(hostResult.SQL(), hostResult.Args()...)
 		if err != nil {
+			log.Errorf("deleteRelation failed, s.executor.Execute error:%s", err.Error())
 			return
 		}
 	}
 
-	_, err = s.executor.Delete(relationSQL)
+	_, _, err = s.executor.Execute(relationResult.SQL(), relationResult.Args()...)
+	if err != nil {
+		log.Errorf("deleteRelation failed, s.executor.Execute error:%s", err.Error())
+	}
+	return
+}
+
+func (s *DeleteRunner) deleteRelationSingleStructInner(vField model.Field, deepLevel int) (err *cd.Error) {
+	rModel, rErr := s.modelProvider.GetTypeModel(vField.GetType())
+	if rErr != nil {
+		err = rErr
+		log.Errorf("deleteRelationSingleStructInner failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+		return
+	}
+
+	rModel, rErr = s.modelProvider.SetModelValue(rModel, vField.GetValue())
+	if rErr != nil {
+		err = rErr
+		log.Errorf("deleteRelationSingleStructInner failed, s.modelProvider.SetModelValue error:%s", err.Error())
+		return
+	}
+
+	rRunner := NewDeleteRunner(rModel, s.executor, s.modelProvider, s.modelCodec, deepLevel+1)
+	err = rRunner.Delete()
+	if err != nil {
+		log.Errorf("deleteRelationSingleStructInner failed, rRunner.Delete error:%s", err.Error())
+		return
+	}
 
 	return
 }
 
-// Delete delete
-func (s *impl) Delete(entityModel model.Model) (ret model.Model, err error) {
+func (s *DeleteRunner) deleteRelationSliceStructInner(vField model.Field, deepLevel int) (err *cd.Error) {
+	sliceVal := vField.GetSliceValue()
+	for _, val := range sliceVal {
+		rModel, rErr := s.modelProvider.GetTypeModel(vField.GetType().Elem())
+		if rErr != nil {
+			err = rErr
+			log.Errorf("deleteRelationSliceStructInner failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+			return
+		}
+
+		rModel, rErr = s.modelProvider.SetModelValue(rModel, val)
+		if rErr != nil {
+			err = rErr
+			log.Errorf("deleteRelationSliceStructInner failed, s.modelProvider.SetModelValue error:%s", err.Error())
+			return
+		}
+		rRunner := NewDeleteRunner(rModel, s.executor, s.modelProvider, s.modelCodec, deepLevel+1)
+		err = rRunner.Delete()
+		if err != nil {
+			log.Errorf("deleteRelationSliceStructInner failed, rRunner.Delete error:%s", err.Error())
+			return
+		}
+	}
+
+	return
+}
+
+func (s *DeleteRunner) Delete() (err *cd.Error) {
+	err = s.deleteHost(s.vModel)
+	if err != nil {
+		log.Errorf("Delete failed, s.deleteHost error:%s", err.Error())
+		return
+	}
+
+	for _, field := range s.vModel.GetFields() {
+		if model.IsBasicField(field) {
+			continue
+		}
+
+		err = s.deleteRelation(s.vModel, field, 0)
+		if err != nil {
+			log.Errorf("Delete failed, s.deleteRelation error:%s", err.Error())
+			return
+		}
+	}
+
+	return
+}
+
+func (s *impl) Delete(vModel model.Model) (ret model.Model, err *cd.Error) {
+	if vModel == nil {
+		err = cd.NewError(cd.IllegalParam, "illegal model value")
+		return
+	}
+
 	err = s.executor.BeginTransaction()
 	if err != nil {
 		return
 	}
+	defer s.finalTransaction(err)
 
-	for {
-		err = s.deleteSingle(entityModel)
-		if err != nil {
-			break
-		}
-
-		for _, field := range entityModel.GetFields() {
-			err = s.deleteRelation(entityModel, field, 0)
-			if err != nil {
-				break
-			}
-		}
-
-		break
+	deleteRunner := NewDeleteRunner(vModel, s.executor, s.modelProvider, s.modelCodec, 0)
+	err = deleteRunner.Delete()
+	if err != nil {
+		log.Errorf("Delete failed, deleteRunner.Delete error:%s", err.Error())
+		return
 	}
 
-	if err == nil {
-		cErr := s.executor.CommitTransaction()
-		if cErr != nil {
-			err = cErr
-		}
-	} else {
-		rErr := s.executor.RollbackTransaction()
-		if rErr != nil {
-			err = rErr
-		}
-	}
-
-	if err == nil {
-		ret = entityModel
-	}
-
+	ret = vModel
 	return
 }

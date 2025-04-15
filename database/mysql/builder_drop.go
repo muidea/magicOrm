@@ -3,21 +3,39 @@ package mysql
 import (
 	"fmt"
 
+	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/log"
+
 	"github.com/muidea/magicOrm/model"
 )
 
-// BuildDropSchema  BuildDropSchema
-func (s *Builder) BuildDropSchema() (string, error) {
-	str := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", s.getHostTableName(s.modelInfo))
-	//log.Print(str)
+// BuildDropTable  BuildDropSchema
+func (s *Builder) BuildDropTable(vModel model.Model) (ret *ResultStack, err *cd.Error) {
+	dropSQL := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", s.buildCodec.ConstructModelTableName(vModel))
+	//log.Print(dropSQL)
+	if traceSQL() {
+		log.Infof("[SQL] drop: %s", dropSQL)
+	}
 
-	return str, nil
+	ret = NewError(dropSQL, nil)
+	return
 }
 
-// BuildDropRelationSchema Build DropRelation Schema
-func (s *Builder) BuildDropRelationSchema(fieldName string, relationInfo model.Model) (string, error) {
-	str := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", s.GetRelationTableName(fieldName, relationInfo))
-	//log.Print(str)
+// BuildDropRelationTable Build DropRelation Schema
+func (s *Builder) BuildDropRelationTable(vModel model.Model, vField model.Field) (ret *ResultStack, err *cd.Error) {
+	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
+	if relationErr != nil {
+		err = relationErr
+		log.Errorf("BuildDeleteRelation %s failed, s.buildCodec.ConstructRelationTableName error:%s", vField.GetName(), err.Error())
+		return
+	}
 
-	return str, nil
+	dropRelationSQL := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", relationTableName)
+	//log.Print(dropRelationSQL)
+	if traceSQL() {
+		log.Infof("[SQL] drop relation: %s", dropRelationSQL)
+	}
+
+	ret = NewError(dropRelationSQL, nil)
+	return
 }

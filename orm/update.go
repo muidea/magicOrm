@@ -1,81 +1,122 @@
 package orm
 
 import (
-	"github.com/muidea/magicOrm/builder"
+	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/log"
+
+	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/provider"
 )
 
-func (s *impl) updateSingle(modelInfo model.Model) (err error) {
-	builder := builder.NewBuilder(modelInfo, s.modelProvider)
-	sqlStr, sqlErr := builder.BuildUpdate()
-	if sqlErr != nil {
-		err = sqlErr
-		return err
-	}
-
-	_, err = s.executor.Update(sqlStr)
-
-	return err
+type UpdateRunner struct {
+	baseRunner
+	QueryRunner
+	InsertRunner
+	DeleteRunner
 }
 
-func (s *impl) updateRelation(modelInfo model.Model, fieldInfo model.Field) (err error) {
-	fType := fieldInfo.GetType()
-	if fType.IsBasic() {
+func NewUpdateRunner(
+	vModel model.Model,
+	executor executor.Executor,
+	provider provider.Provider,
+	modelCodec codec.Codec) *UpdateRunner {
+	baseRunner := newBaseRunner(vModel, executor, provider, modelCodec, false, 0)
+	return &UpdateRunner{
+		baseRunner: baseRunner,
+		QueryRunner: QueryRunner{
+			baseRunner: baseRunner,
+		},
+		InsertRunner: InsertRunner{
+			baseRunner: baseRunner,
+			QueryRunner: QueryRunner{
+				baseRunner: baseRunner,
+			},
+		},
+		DeleteRunner: DeleteRunner{
+			baseRunner: baseRunner,
+			QueryRunner: QueryRunner{
+				baseRunner: baseRunner,
+			},
+		},
+	}
+}
+
+func (s *UpdateRunner) updateHost(vModel model.Model) (err *cd.Error) {
+	updateResult, updateErr := s.hBuilder.BuildUpdate(vModel)
+	if updateErr != nil {
+		err = updateErr
+		log.Errorf("updateHost failed, s.hBuilder.BuildUpdate error:%s", err.Error())
 		return
 	}
 
-	err = s.deleteRelation(modelInfo, fieldInfo, 0)
+	_, _, err = s.executor.Execute(updateResult.SQL(), updateResult.Args()...)
 	if err != nil {
-		return
+		log.Errorf("updateHost failed, s.executor.Execute error:%s", err.Error())
 	}
-
-	err = s.insertRelation(modelInfo, fieldInfo)
-	if err != nil {
-		return
-	}
-
 	return
 }
 
-// Update update
-func (s *impl) Update(entityModel model.Model) (ret model.Model, err error) {
+func (s *UpdateRunner) updateRelation(vModel model.Model, vField model.Field) (err *cd.Error) {
+	newVal := vField.GetValue().Get()
+	err = s.deleteRelation(vModel, vField, 0)
+	if err != nil {
+		log.Errorf("updateRelation failed, s.deleteRelation error:%s", err.Error())
+		return
+	}
+	// TODO 这里最合理的逻辑应该是先查询出当前值，与新值进行差异比较
+	// 再根据比较后的结果进行处理
+	// 目前先粗暴点，直接删除再插入
+	vField.SetValue(newVal)
+	err = s.insertRelation(vModel, vField)
+	if err != nil {
+		log.Errorf("updateRelation failed, s.insertRelation error:%s", err.Error())
+	}
+	return
+}
+
+func (s *UpdateRunner) Update() (ret model.Model, err *cd.Error) {
+	err = s.updateHost(s.vModel)
+	if err != nil {
+		log.Errorf("Update failed, s.updateSingle error:%s", err.Error())
+		return
+	}
+
+	for _, field := range s.vModel.GetFields() {
+		if model.IsBasicField(field) || !model.IsValidField(field) {
+			continue
+		}
+
+		err = s.updateRelation(s.vModel, field)
+		if err != nil {
+			log.Errorf("Update failed, s.updateRelation error:%s", err.Error())
+			return
+		}
+	}
+
+	ret = s.vModel
+	return
+}
+
+func (s *impl) Update(vModel model.Model) (ret model.Model, err *cd.Error) {
+	if vModel == nil {
+		err = cd.NewError(cd.IllegalParam, "illegal model value")
+		return
+	}
+
 	err = s.executor.BeginTransaction()
 	if err != nil {
 		return
 	}
+	defer s.finalTransaction(err)
 
-	for {
-		err = s.updateSingle(entityModel)
-		if err != nil {
-			break
-		}
-
-		for _, field := range entityModel.GetFields() {
-			err = s.updateRelation(entityModel, field)
-			if err != nil {
-				break
-			}
-		}
-
-		break
-	}
-
-	if err == nil {
-		cErr := s.executor.CommitTransaction()
-		if cErr != nil {
-			err = cErr
-		}
-	} else {
-		rErr := s.executor.RollbackTransaction()
-		if rErr != nil {
-			err = rErr
-		}
-	}
-
+	updateRunner := NewUpdateRunner(vModel, s.executor, s.modelProvider, s.modelCodec)
+	ret, err = updateRunner.Update()
 	if err != nil {
+		log.Errorf("Update failed, updateRunner.Update() error:%s", err.Error())
 		return
 	}
 
-	ret = entityModel
 	return
 }

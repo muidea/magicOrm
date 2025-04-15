@@ -2,67 +2,134 @@ package mysql
 
 import (
 	"fmt"
-	"log"
+
+	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/model"
 )
 
-// BuildQuery BuildQuery
-func (s *Builder) BuildQuery(filter model.Filter) (ret string, err error) {
-	namesVal, nameErr := s.getFieldQueryNames(s.modelInfo)
+// BuildQuery build query sql
+func (s *Builder) BuildQuery(vModel model.Model, filter model.Filter) (ret *ResultStack, err *cd.Error) {
+	namesVal, nameErr := s.getFieldQueryNames(vModel)
 	if nameErr != nil {
 		err = nameErr
+		log.Errorf("BuildQuery failed, s.getFieldQueryNames error:%s", err.Error())
 		return
 	}
 
-	filterStr, filterErr := s.buildFilter(filter)
-	if filterErr != nil {
-		err = filterErr
-		log.Printf("buildFilter failed, err:%s", err.Error())
-		return
+	resultStackPtr := &ResultStack{}
+	querySQL := fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.buildCodec.ConstructModelTableName(vModel))
+	if filter != nil {
+		filterSQL, filterErr := s.buildFilter(vModel, filter, resultStackPtr)
+		if filterErr != nil {
+			err = filterErr
+			log.Errorf("BuildQuery failed, s.buildFilter error:%s", err.Error())
+			return
+		}
+
+		if filterSQL != "" {
+			querySQL = fmt.Sprintf("%s WHERE %s", querySQL, filterSQL)
+		}
+
+		sortVal, sortErr := s.buildSorter(vModel, filter.Sorter())
+		if sortErr != nil {
+			err = sortErr
+			log.Errorf("BuildQuery failed, s.buildSorter error:%s", err.Error())
+			return
+		}
+
+		if sortVal != "" {
+			querySQL = fmt.Sprintf("%s ORDER BY %s", querySQL, sortVal)
+		}
+
+		paginationer := filter.Paginationer()
+		if paginationer != nil {
+			resultStackPtr.PushArgs(paginationer.Limit(), paginationer.Offset())
+			querySQL = fmt.Sprintf("%s LIMIT ? OFFSET ?", querySQL)
+		}
+	}
+	if traceSQL() {
+		log.Infof("[SQL] query: %s", querySQL)
 	}
 
-	if filterStr != "" {
-		ret = fmt.Sprintf("SELECT %s FROM `%s` WHERE %s", namesVal, s.getHostTableName(s.modelInfo), filterStr)
-	} else {
-		ret = fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.getHostTableName(s.modelInfo))
-	}
-	//log.Print(ret)
-
+	resultStackPtr.SetSQL(querySQL)
+	ret = resultStackPtr
 	return
 }
 
-// BuildQueryRelation BuildQueryRelation
-func (s *Builder) BuildQueryRelation(fieldName string, relationInfo model.Model) (ret string, err error) {
-	pkfStr, pkfErr := s.getModelValue(s.modelInfo)
-	if pkfErr != nil {
-		err = pkfErr
+// BuildQueryRelation build query relation sql
+func (s *Builder) BuildQueryRelation(vModel model.Model, vField model.Field) (ret *ResultStack, err *cd.Error) {
+	leftVal := vModel.GetPrimaryField().GetValue().Get()
+	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
+	if relationErr != nil {
+		err = relationErr
+		log.Errorf("BuildQueryRelation %s failed, s.buildCodec.ConstructRelationTableName error:%s", vField.GetName(), err.Error())
 		return
 	}
 
-	ret = fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= %v", s.GetRelationTableName(fieldName, relationInfo), pkfStr)
-	//log.Print(ret)
+	resultStackPtr := &ResultStack{}
+	queryRelationSQL := fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= ?", relationTableName)
+	if traceSQL() {
+		log.Infof("[SQL] query relation: %s", queryRelationSQL)
+	}
 
+	resultStackPtr.PushArgs(leftVal)
+	resultStackPtr.SetSQL(queryRelationSQL)
+	ret = resultStackPtr
 	return
 }
 
-func (s *Builder) getFieldQueryNames(info model.Model) (ret string, err error) {
+func (s *Builder) getFieldQueryNames(vModel model.Model) (ret string, err *cd.Error) {
 	str := ""
-	for _, field := range info.GetFields() {
-		fType := field.GetType()
-		if !fType.IsBasic() {
+	for _, field := range vModel.GetFields() {
+		if !model.IsBasicField(field) || !model.IsValidField(field) {
 			continue
 		}
 
-		fTag := field.GetTag()
 		if str == "" {
-			str = fmt.Sprintf("`%s`", fTag.GetName())
+			str = fmt.Sprintf("`%s`", field.GetName())
 		} else {
-			str = fmt.Sprintf("%s,`%s`", str, fTag.GetName())
+			str = fmt.Sprintf("%s,`%s`", str, field.GetName())
 		}
 	}
 
 	ret = str
-
 	return
+}
+
+func (s *Builder) GetFieldPlaceHolder(vField model.Field) (ret any, err *cd.Error) {
+	return getFieldPlaceHolder(vField.GetType())
+}
+
+func (s *Builder) BuildQueryPlaceHolder(vModel model.Model) (ret []any, err *cd.Error) {
+	items := []any{}
+	for _, field := range vModel.GetFields() {
+		if !model.IsBasicField(field) || !model.IsValidField(field) {
+			continue
+		}
+
+		itemVal, itemErr := getFieldPlaceHolder(field.GetType())
+		if itemErr != nil {
+			err = itemErr
+			log.Errorf("BuildQueryPlaceHolder failed, getFieldPlaceHolder error:%s", err.Error())
+			return
+		}
+
+		items = append(items, itemVal)
+	}
+
+	ret = items
+	return
+}
+
+func (s *Builder) BuildQueryRelationPlaceHolder(vModel model.Model, vField model.Field) (ret any, err *cd.Error) {
+	rModelVal, rModelErr := s.modelProvider.GetTypeModel(vField.GetType().Elem())
+	if rModelErr != nil {
+		err = rModelErr
+		log.Errorf("BuildQueryRelationPlaceHolder failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+		return
+	}
+
+	return getFieldPlaceHolder(rModelVal.GetPrimaryField().GetType())
 }

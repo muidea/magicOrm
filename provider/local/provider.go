@@ -1,67 +1,77 @@
 package local
 
 import (
-	"fmt"
 	"reflect"
-	"strings"
 
+	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/helper"
-	"github.com/muidea/magicOrm/util"
 )
 
-var _helper helper.Helper
+func checkEntityType(entity any) (ret *TypeImpl, err *cd.Error) {
+	typeImplPtr, typeImplErr := NewType(reflect.TypeOf(entity))
+	if typeImplErr != nil {
+		err = typeImplErr
+		log.Errorf("checkEntityType failed, illegal entity type, err:%s", err.Error())
+		return
+	}
+	if !model.IsStruct(typeImplPtr.Elem()) {
+		err = cd.NewError(cd.IllegalParam, "entity is invalid")
+		log.Errorf("checkEntityType failed, illegal entity type, err:%s", err.Error())
+		return
+	}
 
-func init() {
-	_helper = helper.New(ElemDependValue)
-}
-
-func GetHelper() helper.Helper {
-	return _helper
-}
-
-func GetType(vType reflect.Type) (ret model.Type, err error) {
-	ret, err = newType(vType)
+	ret = typeImplPtr
 	return
 }
 
-func GetEntityType(entity interface{}) (ret model.Type, err error) {
-	rVal := reflect.ValueOf(entity)
-	vType, vErr := getValueType(rVal)
-	if vErr != nil {
-		err = vErr
+func GetEntityType(entity any) (ret model.Type, err *cd.Error) {
+	if entity == nil {
+		err = cd.NewError(cd.IllegalParam, "entity is invalid")
 		return
 	}
 
-	ret = vType
+	typeImplPtr, typeImplErr := checkEntityType(entity)
+	if typeImplErr != nil {
+		err = typeImplErr
+		log.Errorf("GetEntityType failed, err:%s", err.Error())
+		return
+	}
+
+	ret = typeImplPtr
 	return
 }
 
-func GetEntityValue(entity interface{}) (ret model.Value, err error) {
-	rVal := reflect.ValueOf(entity)
-	ret = newValue(rVal)
+func GetEntityValue(entity any) (ret model.Value, err *cd.Error) {
+	if entity == nil {
+		err = cd.NewError(cd.IllegalParam, "entity is invalid")
+		return
+	}
+
+	_, err = checkEntityType(entity)
+	if err != nil {
+		log.Errorf("GetEntityValue failed, err:%s", err.Error())
+		return
+	}
+
+	ret = NewValue(reflect.ValueOf(entity))
 	return
 }
 
-func GetEntityModel(entity interface{}) (ret model.Model, err error) {
-	rVal := reflect.ValueOf(entity)
-	if rVal.Kind() != reflect.Ptr {
-		err = fmt.Errorf("must be a pointer entity")
-		return
-	}
-	rVal = rVal.Elem()
-
-	vType, vErr := newType(rVal.Type())
-	if vErr != nil {
-		err = vErr
-		return
-	}
-	if !util.IsStructType(vType.GetValue()) {
-		err = fmt.Errorf("illegal entity, must be a struct entity")
+func GetEntityModel(entity any) (ret model.Model, err *cd.Error) {
+	if entity == nil {
+		err = cd.NewError(cd.IllegalParam, "entity is invalid")
 		return
 	}
 
-	implPtr, implErr := getValueModel(rVal)
+	reallyVal := reflect.Indirect(reflect.ValueOf(entity))
+	if !reallyVal.CanSet() {
+		newVal := reflect.New(reallyVal.Type()).Elem()
+		newVal.Set(reallyVal)
+		reallyVal = newVal
+	}
+
+	implPtr, implErr := getValueModel(reallyVal, model.OriginView)
 	if implErr != nil {
 		err = implErr
 		return
@@ -71,154 +81,60 @@ func GetEntityModel(entity interface{}) (ret model.Model, err error) {
 	return
 }
 
-func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err error) {
-	rVal := vVal.Get()
-	vType := rVal.Type()
-	if vType.Kind() != reflect.Struct {
-		err = fmt.Errorf("illegal model value, mode name:%s", vModel.GetName())
+func GetValueModel(vVal model.Value) (ret model.Model, err *cd.Error) {
+	if vVal == nil {
+		err = cd.NewError(cd.IllegalParam, "value is invalid")
+		return
+	}
+	valueImplPtr, valueImplOK := vVal.(*ValueImpl)
+	if !valueImplOK {
+		err = cd.NewError(cd.IllegalParam, "value is invalid")
 		return
 	}
 
-	fieldNum := vType.NumField()
-	for idx := 0; idx < fieldNum; idx++ {
-		fieldType := vType.Field(idx)
-		fieldVal := newValue(rVal.Field(idx))
-		if fieldVal.IsNil() {
+	implPtr, implErr := getValueModel(valueImplPtr.value, model.MetaView)
+	if implErr != nil {
+		err = implErr
+		return
+	}
+
+	ret = implPtr
+	return
+}
+
+func GetModelFilter(vModel model.Model) (ret model.Filter, err *cd.Error) {
+	valuePtr := NewValue(reflect.ValueOf(vModel.Interface(true)))
+	ret = newFilter(valuePtr)
+	return
+}
+
+func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *cd.Error) {
+	valImplPtr, valImplOK := vVal.(*ValueImpl)
+	if !valImplOK {
+		err = cd.NewError(cd.IllegalParam, "value is invalid")
+		log.Errorf("SetModelValue failed, err:%s", err.Error())
+		return
+	}
+	valueModel, valueModelErr := getValueModel(valImplPtr.value, model.OriginView)
+	if valueModelErr != nil {
+		err = valueModelErr
+		log.Errorf("SetModelValue failed, err:%s", err.Error())
+		return
+	}
+
+	fields := valueModel.GetFields()
+	for _, field := range fields {
+		if !model.IsValidField(field) {
 			continue
 		}
 
-		err = vModel.SetFieldValue(fieldType.Name, fieldVal)
+		err = vModel.SetFieldValue(field.GetName(), field.GetValue().Get())
 		if err != nil {
+			log.Errorf("SetModelValue failed, set field:%s value err:%s", field.GetName(), err.Error())
 			return
 		}
 	}
 
 	ret = vModel
-	return
-}
-
-func ElemDependValue(vVal model.Value) (ret []model.Value, err error) {
-	rVal := vVal.Get()
-	if rVal.Kind() == reflect.Struct {
-		ret = append(ret, vVal)
-		return
-	}
-
-	if rVal.Kind() != reflect.Slice {
-		err = fmt.Errorf("illegal slice value")
-		return
-	}
-
-	for idx := 0; idx < rVal.Len(); idx++ {
-		val := newValue(rVal.Index(idx))
-		ret = append(ret, val)
-	}
-
-	return
-}
-
-func AppendSliceValue(sliceVal model.Value, val model.Value) (ret model.Value, err error) {
-	rSliceVal := sliceVal.Get()
-	rSliceType := rSliceVal.Type()
-	if rSliceType.Kind() != reflect.Slice {
-		err = fmt.Errorf("illegal slice value, slice type:%s", rSliceType.String())
-		return
-	}
-
-	isElemPtr := false
-	rElemType := rSliceType.Elem()
-	if rElemType.Kind() == reflect.Ptr {
-		isElemPtr = true
-	}
-
-	rVal := val.Get()
-	if isElemPtr {
-		rVal = rVal.Addr()
-	}
-
-	rType := rVal.Type()
-	if rSliceType.Elem().String() != rType.String() {
-		err = fmt.Errorf("illegal slice item value, slice type:%s, item type:%s", rSliceType.String(), rType.String())
-		return
-	}
-
-	rNewVal := reflect.Append(rSliceVal, rVal)
-	rSliceVal.Set(rNewVal)
-
-	ret = newValue(rSliceVal)
-	return
-}
-
-func encodeModel(vVal model.Value, vType model.Type, mCache model.Cache, helper helper.Helper) (ret interface{}, err error) {
-	tModel := mCache.Fetch(vType.GetName())
-	if tModel == nil {
-		err = fmt.Errorf("illegal value type,type:%s", vType.GetName())
-		return
-	}
-
-	if vVal.IsBasic() {
-		pkField := tModel.GetPrimaryField()
-		vType := pkField.GetType()
-		ret, err = helper.Encode(vVal, vType)
-		return
-	}
-
-	vModel, vErr := SetModelValue(tModel.Copy(), vVal)
-	if vErr != nil {
-		err = vErr
-		return
-	}
-
-	pkField := vModel.GetPrimaryField()
-	ret, err = helper.Encode(pkField.GetValue(), pkField.GetType())
-	return
-}
-
-func encodeSliceModel(tVal model.Value, tType model.Type, mCache model.Cache, helper helper.Helper) (ret string, err error) {
-	vVals, vErr := ElemDependValue(tVal)
-	if vErr != nil {
-		err = vErr
-		return
-	}
-	if len(vVals) == 0 {
-		return
-	}
-
-	items := []string{}
-	for _, v := range vVals {
-		strVal, strErr := encodeModel(v, tType.Elem(), mCache, helper)
-		if strErr != nil {
-			err = strErr
-			return
-		}
-
-		items = append(items, fmt.Sprintf("%v", strVal))
-	}
-
-	ret = strings.Join(items, ",")
-	return
-}
-
-func EncodeValue(tVal model.Value, tType model.Type, mCache model.Cache) (ret interface{}, err error) {
-	if tType.IsBasic() {
-		ret, err = _helper.Encode(tVal, tType)
-		return
-	}
-	if util.IsStructType(tType.GetValue()) {
-		ret, err = encodeModel(tVal, tType, mCache, _helper)
-		return
-	}
-
-	ret, err = encodeSliceModel(tVal, tType, mCache, _helper)
-	return
-}
-
-func DecodeValue(tVal interface{}, tType model.Type, mCache model.Cache) (ret model.Value, err error) {
-	if tType.IsBasic() {
-		ret, err = _helper.Decode(tVal, tType)
-		return
-	}
-
-	err = fmt.Errorf("unexecption type, type name:%s", tType.GetName())
 	return
 }
