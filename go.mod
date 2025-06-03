@@ -1,6 +1,6 @@
 module github.com/muidea/magicOrm
 
-go 1.23
+go 1.24
 
 require github.com/muidea/magicCommon v1.3.122
 
