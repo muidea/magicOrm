@@ -1,6 +1,3 @@
-//go:build local || all
-// +build local all
-
 package test
 
 import (
@@ -118,14 +115,12 @@ func testBatchInsert(t *testing.T, o1 orm.Orm, localProvider provider.Provider) 
 	}
 
 	// 进行批量插入
-	insertResults := []model.Model{}
 	for _, m := range modelList {
-		insertModel, insertErr := o1.Insert(m)
+		_, insertErr := o1.Insert(m)
 		if insertErr != nil {
 			t.Errorf("insert failed, err:%s", insertErr.Error())
 			return
 		}
-		insertResults = append(insertResults, insertModel)
 	}
 
 	insertDuration := time.Since(insertStartTime)
@@ -291,14 +286,12 @@ func testBatchUpdate(t *testing.T, o1 orm.Orm, localProvider provider.Provider) 
 	}
 
 	// 执行批量更新
-	updateResults := []model.Model{}
 	for _, m := range modelList {
-		updatedModel, updateErr := o1.Update(m)
+		_, updateErr := o1.Update(m)
 		if updateErr != nil {
 			t.Errorf("update failed, err:%s", updateErr.Error())
 			return
 		}
-		updateResults = append(updateResults, updatedModel)
 	}
 
 	updateDuration := time.Since(updateStartTime)
@@ -347,14 +340,12 @@ func testBatchDelete(t *testing.T, o1 orm.Orm, localProvider provider.Provider) 
 
 	// 执行批量删除
 	deleteStartTime := time.Now()
-	deleteResults := []model.Model{}
 	for _, m := range modelList {
-		deletedModel, deleteErr := o1.Delete(m)
+		_, deleteErr := o1.Delete(m)
 		if deleteErr != nil {
 			t.Errorf("delete failed, err:%s", deleteErr.Error())
 			return
 		}
-		deleteResults = append(deleteResults, deletedModel)
 	}
 
 	deleteDuration := time.Since(deleteStartTime)
@@ -408,14 +399,12 @@ func testBatchPerformance(t *testing.T, o1 orm.Orm, localProvider provider.Provi
 
 	// 测试批量插入性能
 	insertStartTime := time.Now()
-	insertResults := []model.Model{}
 	for _, m := range modelList {
-		insertModel, insertErr := o1.Insert(m)
+		_, insertErr := o1.Insert(m)
 		if insertErr != nil {
 			t.Errorf("large batch insert failed, err:%s", insertErr.Error())
 			return
 		}
-		insertResults = append(insertResults, insertModel)
 	}
 	insertDuration := time.Since(insertStartTime)
 	t.Logf("Large batch insert of %d items took: %v, avg: %v per item",

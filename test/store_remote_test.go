@@ -1,6 +1,3 @@
-//go:build remote || all
-// +build remote all
-
 package test
 
 import (

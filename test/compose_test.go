@@ -1,6 +1,3 @@
-//go:build mixed || all
-// +build mixed all
-
 package test
 
 import (

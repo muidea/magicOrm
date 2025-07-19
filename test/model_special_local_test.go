@@ -1,6 +1,3 @@
-//go:build local || all
-// +build local all
-
 package test
 
 import (

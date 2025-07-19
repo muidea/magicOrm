@@ -1,6 +1,3 @@
-//go:build local || all
-// +build local all
-
 package test
 
 import (
@@ -273,7 +270,7 @@ func benchmarkQueryComplex(t *testing.T, o1 orm.Orm, localProvider provider.Prov
 			return
 		}
 
-		queryObjModel, queryObjErr = o1.Query(queryObjModel)
+		_, queryObjErr = o1.Query(queryObjModel)
 		if queryObjErr != nil {
 			t.Errorf("query complex object failed, err:%s", queryObjErr.Error())
 			return

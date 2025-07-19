@@ -1,6 +1,3 @@
-//go:build local
-// +build local
-
 package test
 
 import (
@@ -117,7 +114,7 @@ func TestLocalTransaction(t *testing.T) {
 		t.Errorf("insert obj2 in transaction failed, err:%s", obj2Err.Error())
 		return
 	}
-	obj2 = obj2Model.Interface(true).(*Unit)
+	_ = obj2Model.Interface(true).(*Unit)
 
 	// 提交事务
 	commitErr := o1.CommitTransaction()

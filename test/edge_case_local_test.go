@@ -1,13 +1,8 @@
-//go:build local || all
-// +build local all
-
 package test
 
 import (
 	"testing"
 	"time"
-
-	"fmt"
 
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
@@ -54,7 +49,7 @@ func TestEdgeCases(t *testing.T) {
 		return
 	}
 
-	t.Logf(fmt.Sprintf("TestEdgeCases: 综合边缘情况测试 - %s", time.Now().Format("2006-01-02")))
+	t.Logf("TestEdgeCases: 综合边缘情况测试 - %s", time.Now().Format("2006-01-02"))
 
 	// 使用子测试运行各个测试场景
 	t.Run("EmptyObject", func(t *testing.T) {
@@ -431,7 +426,7 @@ func TestErrorHandling(t *testing.T) {
 		return
 	}
 
-	t.Logf(fmt.Sprintf("Testing error handling for MagicOrm in %s", time.Now().Format("2006-01-02")))
+	t.Logf("Testing error handling for MagicOrm in %s", time.Now().Format("2006-01-02"))
 
 	// 1. 测试不存在的表
 	nonExistModel, _ := localProvider.GetEntityModel(&struct {
@@ -488,7 +483,7 @@ func TestCircularReference(t *testing.T) {
 		return
 	}
 
-	t.Logf(fmt.Sprintf("Testing circular references for MagicOrm in %s", time.Now().Format("2006-01-02")))
+	t.Logf("Testing circular references for MagicOrm in %s", time.Now().Format("2006-01-02"))
 
 	// 定义和测试循环引用
 	objList := []any{&CircularObject{}}
@@ -570,7 +565,7 @@ func TestMaxSizeObject(t *testing.T) {
 		return
 	}
 
-	t.Logf(fmt.Sprintf("Testing max size objects for MagicOrm in %s", time.Now().Format("2006-01-02")))
+	t.Logf("Testing max size objects for MagicOrm in %s", time.Now().Format("2006-01-02"))
 
 	// 注册大对象模型
 	objList := []any{&MaxSizeObject{}}
