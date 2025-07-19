@@ -130,12 +130,12 @@ func IntArray2Str(ids []int) string {
 	return sb.String()
 }
 
-func StringSlicesEqual(a, b []string) bool {
-	if len(a) != len(b) {
+func StringSlicesEqual(left, right []string) bool {
+	if len(left) != len(right) {
 		return false
 	}
-	for i := range a {
-		if a[i] != b[i] {
+	for i := range left {
+		if left[i] != right[i] {
 			return false
 		}
 	}
