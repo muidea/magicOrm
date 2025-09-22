@@ -34,100 +34,94 @@ func TestBuilderLocalUnit(t *testing.T) {
 	unit := &Unit{ID: "10", Name: "Hello world", Value: 12.3456, TimeStamp: now}
 
 	localProvider := provider.NewLocalProvider("default")
-	info, err := localProvider.RegisterModel(unit)
+	_, err := localProvider.RegisterModel(unit)
 	if err != nil {
 		t.Errorf("localProvider.RegisterModel failed, err:%s", err.Error())
-		return
 	}
 
-	filter, err := localProvider.GetModelFilter(info, model.OriginView)
-	if err != nil {
-		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
-		return
+	//filter, err := localProvider.GetModelFilter(info)
+	//if err != nil {
+	//	t.Errorf("GetEntityFilter failed, err:%s", err.Error())
+	//	return
+	//}
+
+	unitModel, unitErr := localProvider.GetEntityModel(unit)
+	if unitErr != nil {
+		t.Errorf("GetEntityModel failed, err:%s", unitErr.Error())
 	}
 
 	buildContext := codec.New(localProvider, "abc")
 	builder := NewBuilder(localProvider, buildContext)
 	if builder == nil {
 		t.Error("new Builder failed")
-		return
 	}
 
-	str, err := builder.BuildCreateTable(info)
+	str, err := builder.BuildCreateTable(unitModel)
 	if err != nil {
 		t.Errorf("build create schema failed, err:%s", err.Error())
-		return
 	}
-	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_Unit` (\n\t`uid` VARCHAR(32) NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\tPRIMARY KEY (`uid`)\n)\n" {
+	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_Unit` (\n\t`uid` VARCHAR(32) NOT NULL,\n\t`name` TEXT NOT NULL,\n\t`value` DOUBLE NOT NULL DEFAULT '0',\n\t`ts` DATETIME NOT NULL,\n\tPRIMARY KEY (`uid`)\n)\n" {
 		t.Errorf("build create schema failed, str:%s", str)
-		return
 	}
 
-	str, err = builder.BuildDropTable(info)
+	str, err = builder.BuildDropTable(unitModel)
 	if err != nil {
 		t.Errorf("build drop schema failed, err:%s", err.Error())
 		return
 	}
 	if str.SQL() != "DROP TABLE IF EXISTS `abc_Unit`" {
 		t.Error("build drop schema failed")
-		return
 	}
 
-	str, err = builder.BuildInsert(info)
+	str, err = builder.BuildInsert(unitModel)
 	if err != nil {
 		t.Errorf("build insert failed, err:%s", err.Error())
 	}
 	if str.SQL() != "INSERT INTO `abc_Unit` (`uid`,`name`,`value`,`ts`) VALUES (?,?,?,?)" || len(str.Args()) != 4 {
 		t.Errorf("build insert failed, str:%s", str)
-		return
 	}
 
-	str, err = builder.BuildUpdate(info)
+	str, err = builder.BuildUpdate(unitModel)
 	if err != nil {
 		t.Errorf("build update failed, err:%s", err.Error())
-		return
 	}
 	if str.SQL() != "UPDATE `abc_Unit` SET `name` = ?,`value` = ?,`ts` = ? WHERE `uid` = ?" || len(str.Args()) != 4 {
 		t.Errorf("build update failed, str:%s", str)
-		return
 	}
 
-	str, err = builder.BuildDelete(info)
+	str, err = builder.BuildDelete(unitModel)
 	if err != nil {
 		t.Errorf("build delete failed, err:%s", err.Error())
-		return
 	}
 	if str.SQL() != "DELETE FROM `abc_Unit` WHERE `uid` = ?" || len(str.Args()) != 1 {
 		t.Errorf("build delete failed, str:%s", str)
-		return
 	}
 
-	err = filter.Above("value", 12.23)
+	filterModel := unitModel.Copy(model.MetaView)
+	filterVal, filterErr := localProvider.GetModelFilter(filterModel)
+	if filterErr != nil {
+		t.Errorf("GetEntityFilter failed, err:%s", filterErr.Error())
+	}
+
+	err = filterVal.Above("value", 12.23)
 	if err != nil {
 		t.Errorf("filter.Above failed, err:%s", err.Error())
-		return
 	}
-	str, err = builder.BuildQuery(info, filter)
+	str, err = builder.BuildQuery(filterModel, filterVal)
 	if err != nil {
 		t.Errorf("build query failed, err:%s", err.Error())
-		return
 	}
 	if str.SQL() != "SELECT `uid`,`name`,`value`,`ts` FROM `abc_Unit` WHERE `value` > ?" || len(str.Args()) != 1 {
 		t.Errorf("build query failed, str:%s", str)
-		return
 	}
 
-	str, err = builder.BuildCount(info, filter)
+	str, err = builder.BuildCount(filterModel, filterVal)
 	if err != nil {
 		t.Errorf("build count failed, err:%s", err.Error())
-		return
 	}
 	if str.SQL() != "SELECT COUNT(`uid`) FROM `abc_Unit` WHERE `value` > ?" || len(str.Args()) != 1 {
 		t.Errorf("build count failed, str:%s", str)
-		return
 	}
-
-	return
 }
 
 func TestBuilderLocalReference(t *testing.T) {
@@ -148,6 +142,7 @@ func TestBuilderLocalReference(t *testing.T) {
 		t.Errorf("localProvider.RegisterModel failed, err:%s", referenceErr.Error())
 		return
 	}
+
 	unitModel, unitErr := localProvider.RegisterModel(unitVal)
 	if unitErr != nil {
 		t.Errorf("localProvider.RegisterModel failed, err:%s", unitErr.Error())
@@ -163,7 +158,7 @@ func TestBuilderLocalReference(t *testing.T) {
 	if err != nil {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 	}
-	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_Reference` (\n\t`eid` BIGINT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`value` DOUBLE NOT NULL ,\n\t`description` TEXT NOT NULL ,\n\tPRIMARY KEY (`eid`)\n)\n" {
+	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_Reference` (\n\t`eid` BIGINT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL,\n\t`value` DOUBLE NOT NULL DEFAULT '0',\n\t`description` TEXT,\n\tPRIMARY KEY (`eid`)\n)\n" {
 		t.Errorf("build create schema failed, str:%s", str)
 	}
 
@@ -212,7 +207,7 @@ func TestBuilderLocalReference(t *testing.T) {
 	}
 
 	uField := referenceModel.GetField("unit")
-	str, err = builder.BuildCreateRelationTable(referenceModel, uField, unitModel)
+	str, err = builder.BuildCreateRelationTable(referenceModel, uField)
 	if err != nil {
 		t.Errorf("BuildCreateRelationTable failed, err:%s", err.Error())
 		return
@@ -222,7 +217,7 @@ func TestBuilderLocalReference(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildDropRelationTable(referenceModel, uField, unitModel)
+	str, err = builder.BuildDropRelationTable(referenceModel, uField)
 	if err != nil {
 		t.Errorf("BuildDropRelationTable failed, err:%s", err.Error())
 		return
@@ -242,7 +237,7 @@ func TestBuilderLocalReference(t *testing.T) {
 		return
 	}
 
-	lStr, rStr, err := builder.BuildDeleteRelation(referenceModel, uField, unitModel)
+	lStr, rStr, err := builder.BuildDeleteRelation(referenceModel, uField)
 	if err != nil {
 		t.Errorf("BuildDeleteRelation failed, err:%s", err.Error())
 		return
@@ -256,7 +251,7 @@ func TestBuilderLocalReference(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildQueryRelation(referenceModel, uField, unitModel)
+	str, err = builder.BuildQueryRelation(referenceModel, uField)
 	if err != nil {
 		t.Errorf("BuildQueryRelation failed, err:%s", err.Error())
 		return
@@ -337,21 +332,21 @@ func TestBuilderRemoteUnit(t *testing.T) {
 		return
 	}
 
-	localProvider := provider.NewRemoteProvider("default")
-	info, err := localProvider.RegisterModel(uModel)
+	remoteProvider := provider.NewRemoteProvider("default")
+	info, err := remoteProvider.RegisterModel(uModel)
 	if err != nil {
 		t.Errorf("localProvider.RegisterModel failed, err:%s", err.Error())
 		return
 	}
 
-	filter, err := localProvider.GetModelFilter(info, model.OriginView)
+	filter, err := remoteProvider.GetModelFilter(info)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
 	}
 
-	buildContext := codec.New(localProvider, "abc")
-	builder := NewBuilder(localProvider, buildContext)
+	buildContext := codec.New(remoteProvider, "abc")
+	builder := NewBuilder(remoteProvider, buildContext)
 	if builder == nil {
 		t.Error("new Builder failed")
 		return
@@ -362,7 +357,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 		return
 	}
-	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_Unit` (\n\t`uid` VARCHAR(32) NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\tPRIMARY KEY (`uid`)\n)\n" {
+	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_Unit` (\n\t`uid` VARCHAR(32) NOT NULL,\n\t`name` TEXT NOT NULL,\n\t`value` DOUBLE NOT NULL DEFAULT '0',\n\t`ts` DATETIME NOT NULL,\n\tPRIMARY KEY (`uid`)\n)\n" {
 		t.Errorf("build create schema failed, str:%s", str)
 		return
 	}
@@ -430,8 +425,6 @@ func TestBuilderRemoteUnit(t *testing.T) {
 		t.Errorf("build count failed, str:%s", str)
 		return
 	}
-
-	return
 }
 
 func TestBuilderRemoteReference(t *testing.T) {
@@ -571,8 +564,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		},
 	}
 
-	uVal := remote.NewValue(unitObjectValue)
-	unitModel, uErr := remote.SetModelValue(unitObject, uVal)
+	unitModel, uErr := remote.SetModelValue(unitObject, remote.NewValue(unitObjectValue))
 	if uErr != nil {
 		t.Errorf("remote.SetModelValue failed")
 		return
@@ -585,7 +577,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		return
 	}
 
-	referenceModel.SetFieldValue("unit", uVal)
+	referenceModel.SetFieldValue("unit", unitObjectValue)
 
 	remoteProvider := provider.NewRemoteProvider("default")
 	_, extErr := remoteProvider.RegisterModel(referenceModel)
@@ -599,7 +591,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		return
 	}
 
-	extFilter, extErr := remoteProvider.GetModelFilter(referenceModel, model.DetailView)
+	extFilter, extErr := remoteProvider.GetModelFilter(referenceModel)
 	if extErr != nil {
 		t.Errorf("remoteProvider.GetModelFilter failed, err:%s", extErr.Error())
 		return
@@ -617,7 +609,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 		return
 	}
-	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_Reference` (\n\t`eid` BIGINT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL ,\n\t`value` DOUBLE NOT NULL ,\n\t`description` TEXT NOT NULL ,\n\tPRIMARY KEY (`eid`)\n)\n" {
+	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_Reference` (\n\t`eid` BIGINT NOT NULL AUTO_INCREMENT,\n\t`name` TEXT NOT NULL,\n\t`value` DOUBLE NOT NULL DEFAULT '0',\n\t`description` TEXT NOT NULL,\n\tPRIMARY KEY (`eid`)\n)\n" {
 		t.Errorf("build create schema failed, str:%s", str)
 		return
 	}
@@ -637,7 +629,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		t.Errorf("build insert failed, err:%s", err.Error())
 		return
 	}
-	if str.SQL() != "INSERT INTO `abc_Reference` (`name`,`value`,`description`) VALUES (?,?,?)" || len(str.Args()) != 3 {
+	if str.SQL() != "INSERT INTO `abc_Reference` (`name`) VALUES (?)" || len(str.Args()) != 1 {
 		t.Errorf("build insert failed, str:%v", str)
 		return
 	}
@@ -649,6 +641,18 @@ func TestBuilderRemoteReference(t *testing.T) {
 	}
 	if str.SQL() != "UPDATE `abc_Reference` SET `name` = ? WHERE `eid` = ?" || len(str.Args()) != 2 {
 		t.Errorf("build update failed, str:%s", str)
+		return
+	}
+
+	referenceModel.SetFieldValue("value", 12.3456)
+	referenceModel.SetFieldValue("description", "Hello world")
+	str, err = builder.BuildInsert(referenceModel)
+	if err != nil {
+		t.Errorf("build insert failed, err:%s", err.Error())
+		return
+	}
+	if str.SQL() != "INSERT INTO `abc_Reference` (`name`,`value`,`description`) VALUES (?,?,?)" || len(str.Args()) != 3 {
+		t.Errorf("build insert failed, str:%v", str)
 		return
 	}
 
@@ -683,7 +687,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 	}
 
 	uField := referenceModel.GetField("unit")
-	str, err = builder.BuildCreateRelationTable(referenceModel, uField, unitModel)
+	str, err = builder.BuildCreateRelationTable(referenceModel, uField)
 	if err != nil {
 		t.Errorf("BuildCreateRelationTable failed, err:%s", err.Error())
 		return
@@ -693,7 +697,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildDropRelationTable(referenceModel, uField, unitModel)
+	str, err = builder.BuildDropRelationTable(referenceModel, uField)
 	if err != nil {
 		t.Errorf("BuildDropRelationTable failed, err:%s", err.Error())
 		return
@@ -713,7 +717,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		return
 	}
 
-	lStr, rStr, err := builder.BuildDeleteRelation(referenceModel, uField, unitModel)
+	lStr, rStr, err := builder.BuildDeleteRelation(referenceModel, uField)
 	if err != nil {
 		t.Errorf("BuildDeleteRelation failed, err:%s", err.Error())
 		return
@@ -727,7 +731,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		return
 	}
 
-	str, err = builder.BuildQueryRelation(referenceModel, uField, unitModel)
+	str, err = builder.BuildQueryRelation(referenceModel, uField)
 	if err != nil {
 		t.Errorf("BuildQueryRelation failed, err:%s", err.Error())
 		return

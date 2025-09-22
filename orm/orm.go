@@ -17,17 +17,17 @@ const maxDeepLevel = 3
 
 // Orm orm interface
 type Orm interface {
-	Create(entity model.Model) *cd.Result
-	Drop(entity model.Model) *cd.Result
-	Insert(entity model.Model) (model.Model, *cd.Result)
-	Update(entity model.Model) (model.Model, *cd.Result)
-	Delete(entity model.Model) (model.Model, *cd.Result)
-	Query(entity model.Model) (model.Model, *cd.Result)
-	Count(filter model.Filter) (int64, *cd.Result)
-	BatchQuery(filter model.Filter) ([]model.Model, *cd.Result)
-	BeginTransaction() *cd.Result
-	CommitTransaction() *cd.Result
-	RollbackTransaction() *cd.Result
+	Create(entity model.Model) *cd.Error
+	Drop(entity model.Model) *cd.Error
+	Insert(entity model.Model) (model.Model, *cd.Error)
+	Update(entity model.Model) (model.Model, *cd.Error)
+	Delete(entity model.Model) (model.Model, *cd.Error)
+	Query(entity model.Model) (model.Model, *cd.Error)
+	Count(filter model.Filter) (int64, *cd.Error)
+	BatchQuery(filter model.Filter) ([]model.Model, *cd.Error)
+	BeginTransaction() *cd.Error
+	CommitTransaction() *cd.Error
+	RollbackTransaction() *cd.Error
 	Release()
 }
 
@@ -41,7 +41,7 @@ func NewPool() executor.Pool {
 }
 
 // NewExecutor NewExecutor
-func NewExecutor(config executor.Config) (executor.Executor, *cd.Result) {
+func NewExecutor(config executor.Config) (executor.Executor, *cd.Error) {
 	return executor.NewExecutor(config)
 }
 
@@ -70,7 +70,7 @@ func Uninitialized() {
 	})
 }
 
-func AddDatabase(dbServer, dbName, username, password, charSet string, maxConnNum int, owner string) (err *cd.Result) {
+func AddDatabase(dbServer, dbName, username, password, charSet string, maxConnNum int, owner string) (err *cd.Error) {
 	config := NewConfig(dbServer, dbName, username, password, charSet)
 
 	val, ok := name2Pool.Load(owner)
@@ -107,11 +107,11 @@ func DelDatabase(owner string) {
 }
 
 // NewOrm create new Orm
-func NewOrm(provider provider.Provider, cfg executor.Config, prefix string) (Orm, *cd.Result) {
+func NewOrm(provider provider.Provider, cfg executor.Config, prefix string) (Orm, *cd.Error) {
 	executorVal, executorErr := NewExecutor(cfg)
 	if executorErr != nil {
 		log.Errorf("NewOrm failed, NewExecutor error:%s", executorErr.Error())
-		return nil, cd.NewResult(cd.UnExpected, executorErr.Error())
+		return nil, cd.NewError(cd.Unexpected, executorErr.Error())
 	}
 
 	orm := &impl{executor: executorVal, modelProvider: provider, modelCodec: codec.New(provider, prefix)}
@@ -119,10 +119,10 @@ func NewOrm(provider provider.Provider, cfg executor.Config, prefix string) (Orm
 }
 
 // GetOrm get orm from pool
-func GetOrm(provider provider.Provider, prefix string) (ret Orm, err *cd.Result) {
+func GetOrm(provider provider.Provider, prefix string) (ret Orm, err *cd.Error) {
 	val, ok := name2Pool.Load(provider.Owner())
 	if !ok {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("can't find orm,name:%s", provider.Owner()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't find orm,name:%s", provider.Owner()))
 		log.Errorf("GetOrm failed, error:%s", err.Error())
 		return
 	}
@@ -147,7 +147,7 @@ type impl struct {
 }
 
 // BeginTransaction begin transaction
-func (s *impl) BeginTransaction() (err *cd.Result) {
+func (s *impl) BeginTransaction() (err *cd.Error) {
 	if s.executor != nil {
 		err = s.executor.BeginTransaction()
 		if err != nil {
@@ -159,7 +159,7 @@ func (s *impl) BeginTransaction() (err *cd.Result) {
 }
 
 // CommitTransaction commit transaction
-func (s *impl) CommitTransaction() (err *cd.Result) {
+func (s *impl) CommitTransaction() (err *cd.Error) {
 	if s.executor != nil {
 		err = s.executor.CommitTransaction()
 		if err != nil {
@@ -171,7 +171,7 @@ func (s *impl) CommitTransaction() (err *cd.Result) {
 }
 
 // RollbackTransaction rollback transaction
-func (s *impl) RollbackTransaction() (err *cd.Result) {
+func (s *impl) RollbackTransaction() (err *cd.Error) {
 	if s.executor != nil {
 		err = s.executor.RollbackTransaction()
 		if err != nil {
@@ -182,7 +182,7 @@ func (s *impl) RollbackTransaction() (err *cd.Result) {
 	return
 }
 
-func (s *impl) finalTransaction(err *cd.Result) {
+func (s *impl) finalTransaction(err *cd.Error) {
 	if err == nil {
 		err = s.executor.CommitTransaction()
 		if err != nil {

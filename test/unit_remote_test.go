@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
@@ -26,16 +25,24 @@ func TestRemoteExecutor(t *testing.T) {
 	}
 
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
-	val := &Unit{ID: 10, I8: 1, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
+	val := &Unit{
+		ID:        10,
+		I8:        1,
+		I64:       uint64(78962222222),
+		Name:      "Hello world",
+		Value:     12.3456,
+		TimeStamp: now,
+		Flag:      true,
+	}
 
-	objDef, objErr := remote.GetObject(val)
+	objDef, objErr := helper.GetObject(val)
 	if objErr != nil {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
 	}
 
 	objList := []any{objDef}
-	_, err = registerModel(remoteProvider, objList)
+	_, err = registerLocalModel(remoteProvider, objList)
 	if err != nil {
 		t.Errorf("register mode failed, err:%s", err.Error())
 		return
@@ -71,7 +78,7 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	err = helper.UpdateEntity(objModel.Interface(true, model.OriginView).(*remote.ObjectValue), val)
+	err = helper.UpdateEntity(objModel.Interface(true).(*remote.ObjectValue), val)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -114,7 +121,7 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	err = helper.UpdateEntity(obj2Model.Interface(true, model.OriginView).(*remote.ObjectValue), val2)
+	err = helper.UpdateEntity(obj2Model.Interface(true).(*remote.ObjectValue), val2)
 	if err != nil {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
@@ -150,27 +157,27 @@ func TestRemoteDepends(t *testing.T) {
 	val := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}
 	extVal := &ExtUnit{Unit: val}
 
-	objDef, objErr := remote.GetObject(val)
+	objDef, objErr := helper.GetObject(val)
 	if objErr != nil {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
 	}
 
-	extObjDef, objErr := remote.GetObject(extVal)
+	extObjDef, objErr := helper.GetObject(extVal)
 	if objErr != nil {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
 	}
 
 	extVal2 := &ExtUnitList{Unit: *val, UnitList: []Unit{}}
-	ext2ObjDef, objErr := remote.GetObject(extVal2)
+	ext2ObjDef, objErr := helper.GetObject(extVal2)
 	if objErr != nil {
 		t.Errorf("GetObject failed, err:%s", objErr.Error())
 		return
 	}
 
 	objList := []any{objDef, extObjDef, ext2ObjDef}
-	registerModel(remoteProvider, objList)
+	registerLocalModel(remoteProvider, objList)
 
 	err = o1.Drop(objDef)
 	if err != nil {

@@ -7,7 +7,7 @@ import (
 	"github.com/muidea/magicOrm/model"
 )
 
-type OprFunc func(string, model.RawVal, *ResultStack) string
+type OprFunc func(string, any, *ResultStack) string
 
 func getOprFunc(filterItem model.FilterItem) (ret OprFunc) {
 	switch filterItem.OprCode() {
@@ -31,34 +31,34 @@ func getOprFunc(filterItem model.FilterItem) (ret OprFunc) {
 }
 
 // EqualOpr Equal Opr
-func EqualOpr(name string, val model.RawVal, resultStackPtr *ResultStack) string {
-	resultStackPtr.PushArgs(val.Value())
+func EqualOpr(name string, val any, resultStackPtr *ResultStack) string {
+	resultStackPtr.PushArgs(val)
 	return fmt.Sprintf("`%s` = ?", name)
 }
 
 // NotEqualOpr NotEqual Opr
-func NotEqualOpr(name string, val model.RawVal, resultStackPtr *ResultStack) string {
-	resultStackPtr.PushArgs(val.Value())
+func NotEqualOpr(name string, val any, resultStackPtr *ResultStack) string {
+	resultStackPtr.PushArgs(val)
 	return fmt.Sprintf("`%s` != ?", name)
 }
 
 // BelowOpr Below Opr
-func BelowOpr(name string, val model.RawVal, resultStackPtr *ResultStack) string {
-	resultStackPtr.PushArgs(val.Value())
+func BelowOpr(name string, val any, resultStackPtr *ResultStack) string {
+	resultStackPtr.PushArgs(val)
 	return fmt.Sprintf("`%s` < ?", name)
 }
 
 // AboveOpr Above Opr
-func AboveOpr(name string, val model.RawVal, resultStackPtr *ResultStack) string {
-	resultStackPtr.PushArgs(val.Value())
+func AboveOpr(name string, val any, resultStackPtr *ResultStack) string {
+	resultStackPtr.PushArgs(val)
 	return fmt.Sprintf("`%s` > ?", name)
 }
 
 // InOpr In Opr
-func InOpr(name string, val model.RawVal, resultStackPtr *ResultStack) string {
-	sliceVal, sliceOK := val.Value().([]any)
+func InOpr(name string, val any, resultStackPtr *ResultStack) string {
+	sliceVal, sliceOK := val.([]any)
 	if !sliceOK {
-		resultStackPtr.PushArgs(val.Value())
+		resultStackPtr.PushArgs(val)
 		return fmt.Sprintf("`%s` in (?)", name)
 	}
 
@@ -72,10 +72,10 @@ func InOpr(name string, val model.RawVal, resultStackPtr *ResultStack) string {
 }
 
 // NotInOpr NotIn Opr
-func NotInOpr(name string, val model.RawVal, resultStackPtr *ResultStack) string {
-	sliceVal, sliceOK := val.Value().([]any)
+func NotInOpr(name string, val any, resultStackPtr *ResultStack) string {
+	sliceVal, sliceOK := val.([]any)
 	if !sliceOK {
-		resultStackPtr.PushArgs(val.Value())
+		resultStackPtr.PushArgs(val)
 		return fmt.Sprintf("`%s` not in (?)", name)
 	}
 
@@ -89,8 +89,8 @@ func NotInOpr(name string, val model.RawVal, resultStackPtr *ResultStack) string
 }
 
 // LikeOpr Like Opr
-func LikeOpr(name string, val model.RawVal, resultStackPtr *ResultStack) string {
-	resultStackPtr.PushArgs(fmt.Sprintf("%%%s%%", val.Value()))
+func LikeOpr(name string, val any, resultStackPtr *ResultStack) string {
+	resultStackPtr.PushArgs(fmt.Sprintf("%%%s%%", val))
 	return fmt.Sprintf("`%s` LIKE ?", name)
 }
 

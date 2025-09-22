@@ -8,8 +8,17 @@ import (
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
+	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/provider/remote"
 )
+
+type Optional struct {
+	ID                int       `orm:"id key auto" view:"detail,lite"`
+	Name              string    `orm:"name" view:"detail,lite"`
+	Optional          *string   `orm:"optional" view:"detail,lite"`
+	StrArry           []string  `orm:"strArry" view:"detail,lite"`
+	OptionnalStrArray *[]string `orm:"optionnalStrArray" view:"detail,lite"`
+}
 
 type Simple struct {
 	ID        int       `orm:"id key auto" view:"detail,lite"`
@@ -20,7 +29,7 @@ type Simple struct {
 	Name      string    `orm:"name" view:"detail,lite"`
 	Value     float32   `orm:"value" view:"detail,lite"`
 	F64       float64   `orm:"f64" view:"detail,lite"`
-	TimeStamp time.Time `orm:"ts dateTime" view:"detail,lite"`
+	TimeStamp time.Time `orm:"ts datetime" view:"detail,lite"`
 	Flag      bool      `orm:"flag" view:"detail,lite"`
 }
 
@@ -143,20 +152,19 @@ type Compose struct {
 	ID   int    `orm:"id key auto" view:"detail,lite"`
 	Name string `orm:"name" view:"detail,lite"`
 	// 1
-	H1 Simple `orm:"simple" view:"detail,lite"`
+	Simple Simple `orm:"simple" view:"detail,lite"`
 	// 3
-	R3 *Simple `orm:"ptrSimple" view:"detail,lite"`
+	SimplePtr *Simple `orm:"simplePtr" view:"detail,lite"`
 	// 2
-	H2 []Simple `orm:"simpleArray" view:"detail,lite"`
+	SimpleArray []Simple `orm:"simpleArray" view:"detail,lite"`
 	// 4
-	R4           []*Simple    `orm:"simplePtrArray" view:"detail,lite"`
-	PR4          *[]Simple    `orm:"ptrSimpleArray" view:"detail,lite"`
-	Reference    Reference    `orm:"reference" view:"detail,lite"`
-	PtrReference *Reference   `orm:"ptrReference" view:"detail,lite"`
-	RefArray     []Reference  `orm:"refArray" view:"detail,lite"`
-	RefPtrArray  []*Reference `orm:"refPtrArray" view:"detail,lite"`
-	PtrRefArray  []*Reference `orm:"ptrRefArray" view:"detail,lite"`
-	PtrCompose   *Compose     `orm:"ptrCompose" view:"detail,lite"`
+	SimplePtrArray    []*Simple    `orm:"simplePtrArray" view:"detail,lite"`
+	SimpleArrayPtr    *[]Simple    `orm:"simpleArrayPtr" view:"detail,lite"`
+	Reference         Reference    `orm:"reference" view:"detail,lite"`
+	ReferencePtr      *Reference   `orm:"referencePtr" view:"detail,lite"`
+	ReferenceArray    []Reference  `orm:"referenceArray" view:"detail,lite"`
+	ReferencePtrArray []*Reference `orm:"referencePtrArray" view:"detail,lite"`
+	ComposePtr        *Compose     `orm:"composePtr" view:"detail,lite"`
 }
 
 func (l *Compose) IsSame(r *Compose) bool {
@@ -166,87 +174,74 @@ func (l *Compose) IsSame(r *Compose) bool {
 	if l.Name != r.Name {
 		return false
 	}
-	if l.H1.ID != r.H1.ID {
+	if l.Simple.ID != r.Simple.ID {
 		return false
 	}
-	if l.R3 != nil {
-		if r.R3 == nil {
+	if l.SimplePtr != nil {
+		if r.SimplePtr == nil {
 			return false
 		}
-		if l.R3.ID != r.R3.ID {
-			return false
-		}
-	}
-	if l.R3 == nil {
-		if r.R3 != nil {
+		if l.SimplePtr.ID != r.SimplePtr.ID {
 			return false
 		}
 	}
-	if len(l.H2) != len(r.H2) {
+	if l.SimplePtr == nil {
+		if r.SimplePtr != nil {
+			return false
+		}
+	}
+	if len(l.SimpleArray) != len(r.SimpleArray) {
 		return false
 	}
-	if len(l.R4) != len(r.R4) {
+	if len(l.SimplePtrArray) != len(r.SimplePtrArray) {
 		return false
 	}
-	if l.PR4 != nil && len(*l.PR4) > 0 {
-		if r.PR4 == nil {
+	if l.SimpleArrayPtr != nil && len(*l.SimpleArrayPtr) > 0 {
+		if r.SimpleArrayPtr == nil {
 			return false
 		}
-		if len(*l.PR4) != len(*r.PR4) {
+		if len(*l.SimpleArrayPtr) != len(*r.SimpleArrayPtr) {
 			return false
 		}
 	}
-	if l.PR4 == nil {
-		if r.PR4 != nil && len(*r.PR4) > 0 {
+	if l.SimpleArrayPtr == nil {
+		if r.SimpleArrayPtr != nil && len(*r.SimpleArrayPtr) > 0 {
 			return false
 		}
 	}
 	if l.Reference.ID != r.Reference.ID {
 		return false
 	}
-	if l.PtrReference != nil {
-		if r.PtrReference == nil {
+	if l.ReferencePtr != nil {
+		if r.ReferencePtr == nil {
 			return false
 		}
-		if l.PtrReference.ID != r.PtrReference.ID {
-			return false
-		}
-	}
-	if l.PtrReference == nil {
-		if r.PtrReference != nil {
+		if l.ReferencePtr.ID != r.ReferencePtr.ID {
 			return false
 		}
 	}
-	if len(l.RefArray) != len(r.RefArray) {
+	if l.ReferencePtr == nil {
+		if r.ReferencePtr != nil {
+			return false
+		}
+	}
+	if len(l.ReferenceArray) != len(r.ReferenceArray) {
 		return false
 	}
-	if len(l.RefPtrArray) != len(r.RefPtrArray) {
+	if len(l.ReferencePtrArray) != len(r.ReferencePtrArray) {
 		return false
 	}
-	if len(l.PtrRefArray) > 0 {
-		if r.PtrRefArray == nil {
-			return false
-		}
-		if len(l.PtrRefArray) != len(r.PtrRefArray) {
-			return false
-		}
-	}
-	if l.PtrRefArray == nil {
-		if len(r.PtrRefArray) > 0 {
-			return false
-		}
-	}
-	if l.PtrCompose != nil {
-		if r.PtrCompose == nil {
+	if l.ComposePtr != nil {
+		if r.ComposePtr == nil {
 			return false
 		}
 
-		if l.PtrCompose.ID != r.PtrCompose.ID {
+		if l.ComposePtr.ID != r.ComposePtr.ID {
 			return false
 		}
 	}
-	if l.PtrCompose == nil {
-		if r.PtrCompose != nil {
+	if l.ComposePtr == nil {
+		if r.ComposePtr != nil {
 			return false
 		}
 	}
@@ -254,21 +249,40 @@ func (l *Compose) IsSame(r *Compose) bool {
 	return true
 }
 
-func registerModel(provider provider.Provider, objList []any) (ret []model.Model, err *cd.Result) {
+func registerLocalModel(provider provider.Provider, objList []any) (ret []model.Model, err *cd.Error) {
 	for _, val := range objList {
-		m, mErr := provider.RegisterModel(val)
-		if mErr != nil {
-			err = mErr
+		modelVal, modelErr := provider.RegisterModel(val)
+		if modelErr != nil {
+			err = modelErr
 			return
 		}
 
-		ret = append(ret, m)
+		ret = append(ret, modelVal)
 	}
 
 	return
 }
 
-func createModel(orm orm.Orm, modelList []model.Model) (err *cd.Result) {
+func registerRemoteModel(provider provider.Provider, objList []any) (ret []model.Model, err *cd.Error) {
+	for _, val := range objList {
+		remoteObjectPtr, remoteObjectErr := helper.GetObject(val)
+		if remoteObjectErr != nil {
+			err = remoteObjectErr
+			return
+		}
+		modelVal, modelErr := provider.RegisterModel(remoteObjectPtr)
+		if modelErr != nil {
+			err = modelErr
+			return
+		}
+
+		ret = append(ret, modelVal)
+	}
+
+	return
+}
+
+func createModel(orm orm.Orm, modelList []model.Model) (err *cd.Error) {
 	for _, val := range modelList {
 		err = orm.Create(val)
 		if err != nil {
@@ -279,7 +293,7 @@ func createModel(orm orm.Orm, modelList []model.Model) (err *cd.Result) {
 	return
 }
 
-func dropModel(orm orm.Orm, modelList []model.Model) (err *cd.Result) {
+func dropModel(orm orm.Orm, modelList []model.Model) (err *cd.Error) {
 	for _, val := range modelList {
 		err = orm.Drop(val)
 		if err != nil {
@@ -290,8 +304,8 @@ func dropModel(orm orm.Orm, modelList []model.Model) (err *cd.Result) {
 	return
 }
 
-func getObjectValue(val any) (ret *remote.ObjectValue, err *cd.Result) {
-	objVal, objErr := remote.GetObjectValue(val)
+func getObjectValue(val any) (ret *remote.ObjectValue, err *cd.Error) {
+	objVal, objErr := helper.GetObjectValue(val)
 	if objErr != nil {
 		err = objErr
 		return
@@ -308,4 +322,22 @@ func getObjectValue(val any) (ret *remote.ObjectValue, err *cd.Result) {
 	}
 
 	return
+}
+
+// Entity accessLog entity type
+type Entity struct {
+	ID        int64  `json:"id" orm:"id key auto" view:"detail,lite"`
+	EName     string `json:"name" orm:"eName" view:"detail,lite"`
+	EID       int64  `json:"eID" orm:"eID" view:"detail,lite"`
+	EType     string `json:"eType" orm:"eType" view:"detail,lite"`
+	Namespace string `json:"namespace" orm:"namespace"`
+}
+
+type OnlineEntity struct {
+	ID          int64   `json:"id" orm:"id key auto" view:"detail,lite"`
+	SessionID   string  `json:"sessionID" orm:"sessionID" view:"detail,lite"`
+	Entity      *Entity `json:"entity" orm:"entity" view:"detail,lite"`
+	RefreshTime int64   `json:"refreshTime" orm:"refreshTime" view:"detail,lite"`
+	ExpireTime  int64   `json:"expireTime" orm:"expireTime" view:"detail,lite"`
+	Namespace   string  `json:"namespace" orm:"namespace" view:"detail,lite"`
 }

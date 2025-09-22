@@ -43,7 +43,7 @@ func NewUpdateRunner(
 	}
 }
 
-func (s *UpdateRunner) updateHost(vModel model.Model) (err *cd.Result) {
+func (s *UpdateRunner) updateHost(vModel model.Model) (err *cd.Error) {
 	updateResult, updateErr := s.hBuilder.BuildUpdate(vModel)
 	if updateErr != nil {
 		err = updateErr
@@ -58,21 +58,25 @@ func (s *UpdateRunner) updateHost(vModel model.Model) (err *cd.Result) {
 	return
 }
 
-func (s *UpdateRunner) updateRelation(vModel model.Model, vField model.Field, rModel model.Model) (err *cd.Result) {
-	err = s.deleteRelation(vModel, vField, rModel, 0)
+func (s *UpdateRunner) updateRelation(vModel model.Model, vField model.Field) (err *cd.Error) {
+	newVal := vField.GetValue().Get()
+	err = s.deleteRelation(vModel, vField, 0)
 	if err != nil {
 		log.Errorf("updateRelation failed, s.deleteRelation error:%s", err.Error())
 		return
 	}
-
-	err = s.insertRelation(vModel, vField, rModel)
+	// TODO 这里最合理的逻辑应该是先查询出当前值，与新值进行差异比较
+	// 再根据比较后的结果进行处理
+	// 目前先粗暴点，直接删除再插入
+	vField.SetValue(newVal)
+	err = s.insertRelation(vModel, vField)
 	if err != nil {
 		log.Errorf("updateRelation failed, s.insertRelation error:%s", err.Error())
 	}
 	return
 }
 
-func (s *UpdateRunner) Update() (ret model.Model, err *cd.Result) {
+func (s *UpdateRunner) Update() (ret model.Model, err *cd.Error) {
 	err = s.updateHost(s.vModel)
 	if err != nil {
 		log.Errorf("Update failed, s.updateSingle error:%s", err.Error())
@@ -80,18 +84,11 @@ func (s *UpdateRunner) Update() (ret model.Model, err *cd.Result) {
 	}
 
 	for _, field := range s.vModel.GetFields() {
-		if field.IsBasic() || !field.GetValue().IsValid() {
+		if model.IsBasicField(field) || !model.IsValidField(field) {
 			continue
 		}
 
-		rModel, rErr := s.modelProvider.GetTypeModel(field.GetType())
-		if rErr != nil {
-			err = rErr
-			log.Errorf("Update failed, s.modelProvider.GetTypeModel error:%s", err.Error())
-			return
-		}
-
-		err = s.updateRelation(s.vModel, field, rModel)
+		err = s.updateRelation(s.vModel, field)
 		if err != nil {
 			log.Errorf("Update failed, s.updateRelation error:%s", err.Error())
 			return
@@ -102,9 +99,9 @@ func (s *UpdateRunner) Update() (ret model.Model, err *cd.Result) {
 	return
 }
 
-func (s *impl) Update(vModel model.Model) (ret model.Model, err *cd.Result) {
+func (s *impl) Update(vModel model.Model) (ret model.Model, err *cd.Error) {
 	if vModel == nil {
-		err = cd.NewResult(cd.IllegalParam, "illegal model value")
+		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return
 	}
 

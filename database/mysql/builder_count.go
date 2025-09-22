@@ -10,7 +10,7 @@ import (
 )
 
 // BuildCount build count
-func (s *Builder) BuildCount(vModel model.Model, filter model.Filter) (ret *ResultStack, err *cd.Result) {
+func (s *Builder) BuildCount(vModel model.Model, filter model.Filter) (ret *ResultStack, err *cd.Error) {
 	resultStackPtr := &ResultStack{}
 	pkFieldName := vModel.GetPrimaryField().GetName()
 	countSQL := fmt.Sprintf("SELECT COUNT(`%s`) FROM `%s`", pkFieldName, s.buildCodec.ConstructModelTableName(vModel))

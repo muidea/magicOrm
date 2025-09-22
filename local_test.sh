@@ -1,0 +1,3 @@
+#!/bin/bash
+
+go test -tags=local -count 1 ./test/...

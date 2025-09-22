@@ -16,22 +16,22 @@ type Config interface {
 // Executor 数据库访问对象
 type Executor interface {
 	Release()
-	BeginTransaction() *cd.Result
-	CommitTransaction() *cd.Result
-	RollbackTransaction() *cd.Result
-	Query(sql string, needCols bool, args ...any) (ret []string, err *cd.Result)
+	BeginTransaction() *cd.Error
+	CommitTransaction() *cd.Error
+	RollbackTransaction() *cd.Error
+	Query(sql string, needCols bool, args ...any) (ret []string, err *cd.Error)
 	Next() bool
 	Finish()
-	GetField(value ...interface{}) *cd.Result
-	Execute(sql string, args ...any) (rowsAffected int64, lastInsertID int64, err *cd.Result)
-	CheckTableExist(tableName string) (bool, *cd.Result)
+	GetField(value ...interface{}) *cd.Error
+	Execute(sql string, args ...any) (rowsAffected int64, lastInsertID int64, err *cd.Error)
+	CheckTableExist(tableName string) (bool, *cd.Error)
 }
 
 type Pool interface {
-	Initialize(maxConnNum int, config Config) *cd.Result
+	Initialize(maxConnNum int, config Config) *cd.Error
 	Uninitialized()
-	GetExecutor() (Executor, *cd.Result)
-	CheckConfig(config Config) *cd.Result
+	GetExecutor() (Executor, *cd.Error)
+	CheckConfig(config Config) *cd.Error
 	IncReference() int
 	DecReference() int
 }
@@ -40,7 +40,7 @@ func NewConfig(dbServer, dbName, username, password, charSet string) Config {
 	return mysql.NewConfig(dbServer, dbName, username, password, charSet)
 }
 
-func NewExecutor(config Config) (Executor, *cd.Result) {
+func NewExecutor(config Config) (Executor, *cd.Error) {
 	return mysql.NewExecutor(mysql.NewConfig(config.Server(), config.Database(), config.Username(), config.Password(), config.CharSet()))
 }
 
@@ -53,7 +53,7 @@ type poolImpl struct {
 	referenceCount int
 }
 
-func (s *poolImpl) Initialize(maxConnNum int, config Config) *cd.Result {
+func (s *poolImpl) Initialize(maxConnNum int, config Config) *cd.Error {
 	return s.Pool.Initialize(maxConnNum,
 		mysql.NewConfig(config.Server(), config.Database(), config.Username(), config.Password(), config.CharSet()))
 }
@@ -62,11 +62,11 @@ func (s *poolImpl) Uninitialized() {
 	s.Pool.Uninitialized()
 }
 
-func (s *poolImpl) GetExecutor() (Executor, *cd.Result) {
+func (s *poolImpl) GetExecutor() (Executor, *cd.Error) {
 	return s.Pool.GetExecutor()
 }
 
-func (s *poolImpl) CheckConfig(config Config) *cd.Result {
+func (s *poolImpl) CheckConfig(config Config) *cd.Error {
 	return s.Pool.CheckConfig(mysql.NewConfig(config.Server(), config.Database(), config.Username(), config.Password(), config.CharSet()))
 }
 

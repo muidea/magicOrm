@@ -1,21 +1,26 @@
 package model
 
-import "fmt"
+import (
+	"fmt"
+
+	cd "github.com/muidea/magicCommon/def"
+)
 
 // Value Value
 type Value interface {
 	IsValid() bool
 	IsZero() bool
-	Set(val any)
 	Get() any
-	Addr() Value
-	Interface() RawVal
-	IsBasic() bool
+	Set(val any) *cd.Error
+	UnpackValue() []Value
 }
 
 func CompareValue(l, r Value) bool {
 	if l != nil && r != nil {
-		return !l.IsValid() == !r.IsValid()
+		if l.IsValid() != r.IsValid() {
+			return false
+		}
+		return fmt.Sprintf("+%v", l.Get()) == fmt.Sprintf("+%v", r.Get())
 	}
 
 	if l == nil && r == nil {
@@ -31,31 +36,4 @@ func CompareValue(l, r Value) bool {
 	}
 
 	return false
-}
-
-type RawVal interface {
-	Value() any
-}
-
-type rawValImpl struct {
-	rawVal any
-}
-
-func (s *rawValImpl) Value() any {
-	return s.rawVal
-}
-
-func (s *rawValImpl) String() string {
-	switch s.rawVal.(type) {
-	case string:
-		return fmt.Sprintf("'%v'", s.rawVal)
-	default:
-	}
-	return fmt.Sprintf("%v", s.rawVal)
-}
-
-func NewRawVal(val any) RawVal {
-	return &rawValImpl{
-		rawVal: val,
-	}
 }

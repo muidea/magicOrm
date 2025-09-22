@@ -5,35 +5,72 @@ import (
 	"fmt"
 )
 
-type ErrorCode int
+type Code int
 
 const (
-	// Succeeded 成功
-	Succeeded = iota
-	// Warned 警告
-	Warned = 200000
-	// NoExist 对象不存在
-	NoExist = 200001
-	// Failed 失败
-	Failed = 500000
+	Success = iota
+	// UnKnownError 未知错误
+	UnKnownError
+	// NotFound 未找到
+	NotFound
+	// InvalidParam 无效参数
+	InvalidParameter
 	// IllegalParam 非法参数
-	IllegalParam = 500001
+	IllegalParam
 	// InvalidAuthority 非法授权
-	InvalidAuthority = 500002
-	// Redirect 对象转移
-	Redirect = 500003
-	// UnExpected 意外错误
-	UnExpected = 500004
+	InvalidAuthority
+	// Unexpected 意外错误
+	Unexpected
 	// Duplicated 重复
-	Duplicated = 500005
+	Duplicated
+	// DatabaseError 数据库错误
+	DatabaseError
+	// Timeout 超时
+	Timeout
+	// NetworkError 网络错误
+	NetworkError
+	// Unauthorized 未授权
+	Unauthorized
+	// Forbidden 禁止访问
+	Forbidden
+	// ResourceExhausted 资源耗尽
+	ResourceExhausted
+	// TooManyRequests 请求过多
+	TooManyRequests
+	// ServiceUnavailable 服务不可用
+	ServiceUnavailable
+	// NotImplemented 未实现
+	NotImplemented
+	// BadGateway 网关错误
+	BadGateway
+	// DataCorrupted 数据损坏
+	DataCorrupted
+	// VersionConflict 版本冲突
+	VersionConflict
+	// ExternalServiceError 外部服务错误
+	ExternalServiceError
+	// InvalidOperation 无效操作
+	InvalidOperation
 )
 
-// Result 处理结果
-// ErrorCode 错误码
-// Reason 错误信息
+type Error struct {
+	Code    Code   `json:"code"`
+	Message string `json:"message"`
+}
+
+func (e Error) Error() string {
+	return fmt.Sprintf("code:%d, message:%s", e.Code, e.Message)
+}
+
+func NewError(errorCode Code, errorMessage string) *Error {
+	return &Error{
+		Code:    errorCode,
+		Message: errorMessage,
+	}
+}
+
 type Result struct {
-	ErrorCode ErrorCode `json:"errorCode"`
-	Reason    string    `json:"reason"`
+	Error *Error `json:"error"`
 }
 
 type CommonResult struct {
@@ -49,34 +86,16 @@ type CommonSliceResult struct {
 
 // Success 成功
 func (s *Result) Success() bool {
-	return s.ErrorCode == Succeeded
-}
-
-func (s *Result) Warn() bool {
-	return s.ErrorCode >= Warned && s.ErrorCode < Failed
+	return s.Error == nil || s.Error.Code == Success
 }
 
 // Fail 失败
 func (s *Result) Fail() bool {
-	return s.ErrorCode != Succeeded
+	return s.Error != nil && s.Error.Code != Success
 }
 
-func (s *Result) Error() string {
-	if s.ErrorCode == Succeeded {
-		return ""
+func NewResult() *Result {
+	return &Result{
+		Error: NewError(Unexpected, "unexpected error"),
 	}
-
-	if s.Reason != "" {
-		return fmt.Sprintf("errorCode:%v, reason:%v", s.ErrorCode, s.Reason)
-	}
-
-	return fmt.Sprintf("errorCode:%v", s.ErrorCode)
-}
-
-func (s *Result) String() string {
-	return fmt.Sprintf("errorCode:%v, reason:%v", s.ErrorCode, s.Reason)
-}
-
-func NewResult(errCode ErrorCode, reason string) *Result {
-	return &Result{ErrorCode: errCode, Reason: reason}
 }

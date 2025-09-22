@@ -9,27 +9,34 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/utils"
 )
 
 type objectImpl struct {
-	objectType reflect.Type
-	fields     []*field
+	objectPtr   bool
+	objectValue reflect.Value
+	fields      []*field
 }
 
 func (s *objectImpl) GetName() string {
-	return s.objectType.Name()
+	return reflect.Indirect(s.objectValue).Type().Name()
+}
+
+func (s *objectImpl) GetShowName() string {
+	return s.GetName()
 }
 
 func (s *objectImpl) GetPkgPath() string {
-	return s.objectType.PkgPath()
-}
-
-func (s *objectImpl) GetDescription() string {
-	return ""
+	rType := reflect.Indirect(s.objectValue).Type()
+	return rType.PkgPath()
 }
 
 func (s *objectImpl) GetPkgKey() string {
 	return path.Join(s.GetPkgPath(), s.GetName())
+}
+
+func (s *objectImpl) GetDescription() string {
+	return ""
 }
 
 func (s *objectImpl) GetFields() (ret model.Fields) {
@@ -40,27 +47,32 @@ func (s *objectImpl) GetFields() (ret model.Fields) {
 	return
 }
 
-func (s *objectImpl) SetFieldValue(name string, val model.Value) {
+func (s *objectImpl) SetFieldValue(name string, val any) (err *cd.Error) {
 	for _, sf := range s.fields {
 		if sf.GetName() == name {
-			sf.SetValue(val)
+			err = sf.SetValue(val)
 			return
 		}
 	}
+
+	log.Warnf("SetFieldValue failed, field:%s not found", name)
+	return
 }
 
-func (s *objectImpl) SetPrimaryFieldValue(val model.Value) {
+func (s *objectImpl) SetPrimaryFieldValue(val any) (err *cd.Error) {
 	for _, sf := range s.fields {
-		if sf.IsPrimaryKey() {
-			sf.SetValue(val)
+		if model.IsPrimaryField(sf) {
+			err = sf.SetValue(val)
 			return
 		}
 	}
+
+	return
 }
 
 func (s *objectImpl) GetPrimaryField() (ret model.Field) {
 	for _, sf := range s.fields {
-		if sf.IsPrimaryKey() {
+		if model.IsPrimaryField(sf) {
 			ret = sf
 			return
 		}
@@ -80,177 +92,63 @@ func (s *objectImpl) GetField(name string) (ret model.Field) {
 	return
 }
 
-func (s *objectImpl) Interface(ptrValue bool, viewSpec model.ViewDeclare) (ret interface{}) {
-	retVal := reflect.New(s.objectType).Elem()
-
-	for _, sf := range s.fields {
-		fVal := sf.GetValue()
-		if viewSpec != model.OriginView {
-			if sf.specPtr != nil && sf.specPtr.EnableView(viewSpec) {
-				if !fVal.IsValid() {
-					fVal, _ = sf.typePtr.Interface(nil)
-					val := fVal.Get().(reflect.Value)
-					retVal.Field(sf.GetIndex()).Set(val)
-					continue
-				}
-
-				val := fVal.Get().(reflect.Value)
-				retVal.Field(sf.GetIndex()).Set(val)
-			}
-
-			continue
-		}
-
-		if !fVal.IsValid() {
-			continue
-		}
-
-		val := fVal.Get().(reflect.Value)
-		retVal.Field(sf.GetIndex()).Set(val)
-	}
-
+func (s *objectImpl) Interface(ptrValue bool) (ret interface{}) {
 	if ptrValue {
-		retVal = retVal.Addr()
+		ret = s.objectValue.Addr().Interface()
+		return
 	}
 
-	ret = retVal.Interface()
+	ret = s.objectValue.Interface()
 	return
 }
 
-func (s *objectImpl) Copy(reset bool) model.Model {
-	objectPtr := &objectImpl{objectType: s.objectType, fields: []*field{}}
+func (s *objectImpl) Copy(viewSpec model.ViewDeclare) model.Model {
+	if !s.objectValue.IsValid() {
+		return &objectImpl{}
+	}
+
+	modelImplPtr, _ := getValueModel(utils.DeepCopyForReflect(s.objectValue), viewSpec)
+	return modelImplPtr
+}
+
+func (s *objectImpl) Reset() {
 	for _, sf := range s.fields {
-		objectPtr.fields = append(objectPtr.fields, sf.copy(reset))
+		sf.Reset()
 	}
-
-	return objectPtr
 }
 
-func (s *objectImpl) Dump() (ret string) {
-	ret = "\nmodelImpl:\n"
-	ret = fmt.Sprintf("%s\tname:%s, pkgPath:%s\n", ret, s.GetName(), s.GetPkgPath())
-
-	ret = fmt.Sprintf("%s fields:\n", ret)
-	for _, sf := range s.fields {
-		ret = fmt.Sprintf("%s\t%s\n", ret, sf.dump())
-	}
-
-	return
-}
-
-func (s *objectImpl) verify() (err *cd.Result) {
-	if s.GetName() == "" || s.GetPkgPath() == "" {
-		err = cd.NewResult(cd.UnExpected, "illegal object declare informain")
-		return
-	}
-
-	for _, sf := range s.fields {
-		err = sf.verify()
-		if err != nil {
-			log.Errorf("verify field failed, idx:%d, name:%s, err:%s", sf.index, sf.name, err.Error())
-			return
-		}
-	}
-
-	return
-}
-
-func getTypeModel(entityType reflect.Type) (ret *objectImpl, err *cd.Result) {
-	if entityType.Kind() == reflect.Ptr {
-		entityType = entityType.Elem()
-	}
-
-	typeImpl, typeErr := NewType(entityType)
-	if typeErr != nil {
-		err = typeErr
-		log.Errorf("getTypeModel failed, err:%s", err.Error())
-		return
-	}
-	if typeImpl.GetValue() != model.TypeStructValue {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, must be a struct entity, type:%s", entityType.String()))
-		log.Errorf("getTypeModel failed, err:%s", err.Error())
-		return
-	}
-
-	hasPrimaryKey := false
-	impl := &objectImpl{objectType: entityType, fields: make([]*field, 0)}
-	fieldNum := entityType.NumField()
-	var fieldValue reflect.Value
-	for idx := 0; idx < fieldNum; idx++ {
-		fieldInfo := entityType.Field(idx)
-		tField, tErr := getFieldInfo(idx, fieldInfo, fieldValue)
-		if tErr != nil {
-			err = tErr
-			log.Errorf("getTypeModel failed, field idx:%d, field name:%s, struct name:%s, err:%s", idx, fieldInfo.Name, impl.GetName(), err.Error())
-			return
-		}
-
-		if tField.IsPrimaryKey() {
-			if hasPrimaryKey {
-				err = cd.NewResult(cd.UnExpected, fmt.Sprintf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldInfo.Name, impl.GetName()))
-
-				log.Errorf("getTypeModel failed, check primary key err:%s", err.Error())
-				return
-			}
-
-			hasPrimaryKey = true
-		}
-
-		impl.fields = append(impl.fields, tField)
-	}
-
-	if len(impl.fields) == 0 {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("no define orm field, struct name:%s", impl.GetName()))
-		log.Errorf("getTypeModel failed, check fields err:%s", err.Error())
-		return
-	}
-	if !hasPrimaryKey {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("no define primary key field, struct name:%s", impl.GetName()))
-		log.Errorf("getTypeModel failed, check primary key err:%s", err.Error())
-		return
-	}
-
-	err = impl.verify()
-	if err != nil {
-		log.Errorf("verify model failed, err:%s", err.Error())
-		return
-	}
-
-	ret = impl
-	return
-}
-
-func getValueModel(modelVal reflect.Value) (ret *objectImpl, err *cd.Result) {
-	modelVal = reflect.Indirect(modelVal)
-	entityType := modelVal.Type()
-	typeImpl, typeErr := NewType(entityType)
+func getValueModel(entityValue reflect.Value, viewSpec model.ViewDeclare) (ret *objectImpl, err *cd.Error) {
+	isPtr := entityValue.Kind() == reflect.Ptr
+	entityValue = reflect.Indirect(entityValue)
+	entityType := entityValue.Type()
+	typePtr, typeErr := NewType(entityType)
 	if typeErr != nil {
 		err = typeErr
 		log.Errorf("getValueModel failed, err:%s", err.Error())
 		return
 	}
-	if typeImpl.GetValue() != model.TypeStructValue {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal type, must be a struct entity, type:%s", entityType.String()))
+	if typePtr.GetValue() != model.TypeStructValue {
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal type, must be a struct entity, type:%s", entityType.String()))
 		log.Errorf("getValueModel failed, err:%s", err.Error())
 		return
 	}
 
 	hasPrimaryKey := false
-	impl := &objectImpl{objectType: entityType, fields: []*field{}}
+	impl := &objectImpl{objectValue: entityValue, objectPtr: isPtr, fields: []*field{}}
 	fieldNum := entityType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
-		fieldVal := modelVal.Field(idx)
+		fieldVal := entityValue.Field(idx)
 		fieldInfo := entityType.Field(idx)
-		tField, tErr := getFieldInfo(idx, fieldInfo, fieldVal)
+		tField, tErr := getFieldInfo(idx, fieldInfo, fieldVal, viewSpec)
 		if tErr != nil {
 			err = tErr
 			log.Errorf("getValueModel failed, field idx:%d, field name:%s, struct name:%s, err:%s", idx, fieldInfo.Name, impl.GetName(), err.Error())
 			return
 		}
 
-		if tField.IsPrimaryKey() {
+		if model.IsPrimaryField(tField) {
 			if hasPrimaryKey {
-				err = cd.NewResult(cd.UnExpected, fmt.Sprintf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldInfo.Name, impl.GetName()))
+				err = cd.NewError(cd.Unexpected, fmt.Sprintf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldInfo.Name, impl.GetName()))
 				log.Errorf("getValueModel failed, check primary key err:%s", err.Error())
 				return
 			}
@@ -262,22 +160,21 @@ func getValueModel(modelVal reflect.Value) (ret *objectImpl, err *cd.Result) {
 	}
 
 	if len(impl.fields) == 0 {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("no define orm field, struct name:%s", impl.GetName()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("no define orm field, struct name:%s", impl.GetName()))
 		log.Errorf("getValueModel failed, check fields err:%s", err.Error())
 		return
 	}
 	if !hasPrimaryKey {
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("no define primary key field, struct name:%s", impl.GetName()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("no define primary key field, struct name:%s", impl.GetName()))
 		log.Errorf("getValueModel failed, check primary key err:%s", err.Error())
 		return
 	}
 
-	err = impl.verify()
+	err = model.VerifyModel(impl)
 	if err != nil {
 		log.Errorf("verify model failed, err:%s", err.Error())
 		return
 	}
-
 	ret = impl
 	return
 }

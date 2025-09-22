@@ -10,7 +10,7 @@ import (
 )
 
 // BuildUpdate  Build Update
-func (s *Builder) BuildUpdate(vModel model.Model) (ret *ResultStack, err *cd.Result) {
+func (s *Builder) BuildUpdate(vModel model.Model) (ret *ResultStack, err *cd.Error) {
 	resultStackPtr := &ResultStack{}
 	updateStr, updateErr := s.buildFieldUpdateValues(vModel, resultStackPtr)
 	if updateErr != nil {
@@ -18,7 +18,7 @@ func (s *Builder) BuildUpdate(vModel model.Model) (ret *ResultStack, err *cd.Res
 		log.Errorf("BuildUpdate failed, s.buildFieldUpdateValues error:%s", err.Error())
 		return
 	}
-	filterStr, filterErr := s.buildFiledFilter(vModel.GetPrimaryField(), resultStackPtr)
+	filterStr, filterErr := s.buildFieldFilter(vModel.GetPrimaryField(), resultStackPtr)
 	if filterErr != nil {
 		err = filterErr
 		log.Errorf("BuildUpdate failed, s.BuildModelFilter error:%s", err.Error())
@@ -35,27 +35,25 @@ func (s *Builder) BuildUpdate(vModel model.Model) (ret *ResultStack, err *cd.Res
 	return
 }
 
-func (s *Builder) buildFieldUpdateValues(vModel model.Model, resultStackPtr *ResultStack) (ret string, err *cd.Result) {
+func (s *Builder) buildFieldUpdateValues(vModel model.Model, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
 	str := ""
 	for _, field := range vModel.GetFields() {
-		if field.IsPrimaryKey() {
+		if model.IsPrimaryField(field) {
+			continue
+		}
+		if !model.IsBasicField(field) || !model.IsValidField(field) {
 			continue
 		}
 
-		fType := field.GetType()
-		fValue := field.GetValue()
-		if !fType.IsBasic() || !fValue.IsValid() {
-			continue
-		}
-
-		fVal, fErr := s.buildCodec.BuildFieldValue(field)
-		if fErr != nil {
-			err = fErr
-			log.Errorf("buildFieldUpdateValues failed, BuildFieldValue error:%s", fErr.Error())
+		fVal := field.GetValue()
+		encodeVal, encodeErr := s.buildCodec.PackedBasicFieldValue(field, fVal)
+		if encodeErr != nil {
+			err = encodeErr
+			log.Errorf("buildFieldUpdateValues %s failed, encodeFieldValue error:%s", field.GetName(), err.Error())
 			return
 		}
 
-		resultStackPtr.PushArgs(fVal.Value())
+		resultStackPtr.PushArgs(encodeVal)
 		if str == "" {
 			str = fmt.Sprintf("`%s` = ?", field.GetName())
 		} else {

@@ -5,7 +5,7 @@ type ResultStack struct {
 	argsVal []any
 }
 
-func NewResult(sql string, args []any) *ResultStack {
+func NewError(sql string, args []any) *ResultStack {
 	return &ResultStack{
 		sqlVal:  sql,
 		argsVal: args,

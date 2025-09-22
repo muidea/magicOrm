@@ -12,37 +12,46 @@ import (
 	"github.com/muidea/magicOrm/provider"
 )
 
-type Codec interface {
-	ConstructModelTableName(vModel model.Model) string
-	ConstructRelationTableName(vModel model.Model, vField model.Field, rModel model.Model) (string, *cd.Result)
+type Identifier interface {
+	GetName() string
+	GetPkgPath() string
+	GetDescription() string
+}
 
-	BuildModelValue(vModel model.Model) (model.RawVal, *cd.Result)
-	BuildFieldValue(vField model.Field) (model.RawVal, *cd.Result)
-	BuildOprValue(vField model.Field, vValue model.Value) (model.RawVal, *cd.Result)
-	ExtractFiledValue(vField model.Field, eVal model.RawVal) (model.Value, *cd.Result)
+type Codec interface {
+	ConstructModelTableName(vIdentifier Identifier) string
+	ConstructRelationTableName(vModel model.Model, vField model.Field) (string, *cd.Error)
+
+	PackedBasicFieldValue(vField model.Field, vVal model.Value) (any, *cd.Error)
+	PackedStructFieldValue(vField model.Field, vVal model.Value) (any, *cd.Error)
+	PackedSliceStructFieldValue(vField model.Field, vVal model.Value) (any, *cd.Error)
+	ExtractBasicFieldValue(vField model.Field, eVal any) (any, *cd.Error)
 }
 
 type codecImpl struct {
-	modelProvider provider.Provider
 	specialPrefix string
+	modelProvider provider.Provider
 }
 
-func New(modelProvider provider.Provider, prefix string) Codec {
-	return &codecImpl{modelProvider: modelProvider, specialPrefix: prefix}
+func New(provider provider.Provider, prefix string) Codec {
+	return &codecImpl{
+		modelProvider: provider,
+		specialPrefix: prefix,
+	}
 }
 
-func (s *codecImpl) constructTableName(vModel model.Model) string {
-	strName := vModel.GetName()
+func (s *codecImpl) constructTableName(vIdentifier Identifier) string {
+	strName := vIdentifier.GetName()
 	return strings.ToUpper(strName[:1]) + strName[1:]
 }
 
-func (s *codecImpl) constructInfix(vFiled model.Field) string {
-	strName := vFiled.GetName()
+func (s *codecImpl) constructInfix(vField model.Field) string {
+	strName := vField.GetName()
 	return strings.ToUpper(strName[:1]) + strName[1:]
 }
 
-func (s *codecImpl) ConstructModelTableName(vModel model.Model) string {
-	tableName := s.constructTableName(vModel)
+func (s *codecImpl) ConstructModelTableName(vIdentifier Identifier) string {
+	tableName := s.constructTableName(vIdentifier)
 	if s.specialPrefix != "" {
 		tableName = fmt.Sprintf("%s_%s", s.specialPrefix, tableName)
 	}
@@ -50,9 +59,9 @@ func (s *codecImpl) ConstructModelTableName(vModel model.Model) string {
 	return tableName
 }
 
-func (s *codecImpl) ConstructRelationTableName(vModel model.Model, vField model.Field, rModel model.Model) (ret string, err *cd.Result) {
+func (s *codecImpl) ConstructRelationTableName(vModel model.Model, vField model.Field) (ret string, err *cd.Error) {
 	leftName := s.constructTableName(vModel)
-	rightName := s.constructTableName(rModel)
+	rightName := s.constructTableName(vField.GetType())
 	infixVal := s.constructInfix(vField)
 
 	tableName := fmt.Sprintf("%s%s%s%s", leftName, infixVal, s.getFieldRelation(vField), rightName)
@@ -64,188 +73,8 @@ func (s *codecImpl) ConstructRelationTableName(vModel model.Model, vField model.
 	return
 }
 
-func (s *codecImpl) BuildModelValue(vModel model.Model) (ret model.RawVal, err *cd.Result) {
-	entityVal, entityErr := s.buildModelValue(vModel)
-	if entityErr != nil {
-		err = entityErr
-		log.Errorf("BuildModelValue failed, s.EncodeModelValue error:%s", err.Error())
-		return
-	}
-
-	ret = entityVal
-	return
-}
-
-func (s *codecImpl) BuildFieldValue(vField model.Field) (ret model.RawVal, err *cd.Result) {
-	vType := vField.GetType()
-	vValue := vField.GetValue()
-	if !vValue.IsValid() {
-		defaultVal, defaultErr := s.getBasicTypeDefaultValue(vType)
-		if defaultErr != nil {
-			err = defaultErr
-			return
-		}
-
-		ret = model.NewRawVal(defaultVal)
-		return
-	}
-
-	switch vType.GetValue() {
-	case model.TypeStringValue, model.TypeDateTimeValue:
-		ret, err = s.encodeStringValue(vType, vValue)
-	case model.TypeBooleanValue, model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeBigIntegerValue, model.TypeIntegerValue,
-		model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue, model.TypePositiveIntegerValue:
-		ret, err = s.encodeIntValue(vType, vValue)
-	case model.TypeFloatValue, model.TypeDoubleValue:
-		ret, err = s.encodeFloatValue(vType, vValue)
-	case model.TypeSliceValue:
-		fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
-		if fEncodeErr != nil {
-			err = fEncodeErr
-			log.Errorf("encodeIntValue failed, s.EncodeValue error:%s", err.Error())
-			return
-		}
-		byteVal, byteErr := json.Marshal(fEncodeVal.Value())
-		if byteErr != nil {
-			err = cd.NewResult(cd.UnExpected, fmt.Sprintf("%v", byteErr.Error()))
-			return
-		}
-		ret = model.NewRawVal(strings.ReplaceAll(string(byteVal), "'", "''"))
-	default:
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal filed type %s", vType.GetPkgKey()))
-	}
-	return
-}
-
-func (s *codecImpl) BuildOprValue(vField model.Field, vValue model.Value) (ret model.RawVal, err *cd.Result) {
-	if !vValue.IsValid() {
-		err = cd.NewResult(cd.UnExpected, "nil opr value")
-		return
-	}
-
-	vType := vField.GetType()
-	switch vType.GetValue() {
-	case model.TypeStringValue, model.TypeDateTimeValue:
-		ret, err = s.encodeStringValue(vType, vValue)
-	case model.TypeBooleanValue, model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeBigIntegerValue, model.TypeIntegerValue,
-		model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue, model.TypePositiveIntegerValue:
-		ret, err = s.encodeIntValue(vType, vValue)
-	case model.TypeFloatValue, model.TypeDoubleValue:
-		ret, err = s.encodeFloatValue(vType, vValue)
-	case model.TypeStructValue:
-		ret, err = s.encodeStructValue(vType, vValue)
-	case model.TypeSliceValue:
-		ret, err = s.encodeSliceValue(vType, vValue)
-	default:
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal filed type %s", vType.GetPkgKey()))
-	}
-	return
-}
-
-func (s *codecImpl) ExtractFiledValue(vField model.Field, eVal model.RawVal) (ret model.Value, err *cd.Result) {
-	vType := vField.GetType()
-	switch vType.GetValue() {
-	case model.TypeSliceValue:
-		strVal, strOK := eVal.Value().(*string)
-		if strOK {
-			if *strVal != "" {
-				vArray := []any{}
-				byteErr := json.Unmarshal([]byte(*strVal), &vArray)
-				if byteErr != nil {
-					err = cd.NewResult(cd.UnExpected, byteErr.Error())
-					return
-				}
-				ret, err = s.modelProvider.DecodeValue(model.NewRawVal(vArray), vType)
-			} else {
-				ret, err = vType.Interface(nil)
-			}
-		} else {
-			err = cd.NewResult(cd.UnExpected, "illegal field value")
-		}
-	default:
-		ret, err = s.modelProvider.DecodeValue(eVal, vType)
-	}
-	return
-}
-
-func (s *codecImpl) buildModelValue(vModel model.Model) (ret model.RawVal, err *cd.Result) {
-	pkField := vModel.GetPrimaryField()
-	switch pkField.GetType().GetValue() {
-	case model.TypeStringValue:
-		ret, err = s.encodeStringValue(pkField.GetType(), pkField.GetValue())
-	case model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeBigIntegerValue, model.TypeIntegerValue,
-		model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue, model.TypePositiveIntegerValue:
-		ret, err = s.encodeIntValue(pkField.GetType(), pkField.GetValue())
-	default:
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("illegal pkFiled type %s", pkField.GetType().GetPkgKey()))
-	}
-	return
-}
-
-func (s *codecImpl) encodeStringValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
-	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
-	if fEncodeErr != nil {
-		err = fEncodeErr
-		log.Errorf("encodeStringValue failed, s.EncodeValue error:%s", err.Error())
-		return
-	}
-
-	ret = fEncodeVal
-	return
-}
-
-func (s *codecImpl) encodeIntValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
-	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
-	if fEncodeErr != nil {
-		err = fEncodeErr
-		log.Errorf("encodeIntValue failed, s.EncodeValue error:%s", err.Error())
-		return
-	}
-	ret = fEncodeVal
-	return
-}
-
-func (s *codecImpl) encodeFloatValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
-	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
-	if fEncodeErr != nil {
-		err = fEncodeErr
-		log.Errorf("encodeFloatValue failed, s.EncodeValue error:%s", err.Error())
-		return
-	}
-	ret = fEncodeVal
-	return
-}
-
-func (s *codecImpl) encodeStructValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
-	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
-	if fEncodeErr != nil {
-		err = fEncodeErr
-		log.Errorf("encodeStructValue failed, s.EncodeValue error:%s", err.Error())
-		return
-	}
-
-	ret = fEncodeVal
-	return
-}
-
-func (s *codecImpl) encodeSliceValue(vType model.Type, vValue model.Value) (ret model.RawVal, err *cd.Result) {
-	fEncodeVal, fEncodeErr := s.modelProvider.EncodeValue(vValue, vType)
-	if fEncodeErr != nil {
-		err = fEncodeErr
-		log.Errorf("encodeSliceValue failed, s.EncodeValue error:%s", err.Error())
-		return
-	}
-
-	ret = fEncodeVal
-	return
-}
-
 func (s *codecImpl) getFieldRelation(vField model.Field) (ret relationType) {
 	fType := vField.GetType()
-	if fType.IsBasic() {
-		return
-	}
-
 	isPtr := fType.Elem().IsPtrType()
 	isSlice := model.IsSliceType(fType.GetValue())
 
@@ -268,25 +97,123 @@ func (s *codecImpl) getFieldRelation(vField model.Field) (ret relationType) {
 	return
 }
 
-func (s *codecImpl) getBasicTypeDefaultValue(fType model.Type) (ret any, err *cd.Result) {
-	switch fType.GetValue() {
-	case model.TypeBooleanValue, model.TypeBitValue,
-		model.TypeSmallIntegerValue, model.TypePositiveBitValue,
-		model.TypeIntegerValue, model.TypeInteger32Value, model.TypePositiveSmallIntegerValue,
-		model.TypeBigIntegerValue, model.TypePositiveIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue,
-		model.TypeFloatValue, model.TypeDoubleValue:
-		ret = 0
-	case model.TypeStringValue,
-		model.TypeDateTimeValue,
-		model.TypeSliceValue:
-		ret = ""
+func (s *codecImpl) PackedBasicFieldValue(vField model.Field, fVal model.Value) (ret any, err *cd.Error) {
+	if !model.IsBasicField(vField) {
+		err = cd.NewError(cd.Unexpected, "illegal field type")
+		log.Errorf("PackedFieldValue failed, error:%s", err.Error())
+		return
+	}
+
+	switch vField.GetType().GetValue() {
+	case model.TypeSliceValue:
+		sliceVal, sliceErr := s.modelProvider.EncodeValue(fVal.Get(), vField.GetType())
+		if sliceErr != nil {
+			err = sliceErr
+			return
+		}
+		jsonVal, jsonErr := json.Marshal(sliceVal)
+		if jsonErr != nil {
+			err = cd.NewError(cd.Unexpected, jsonErr.Error())
+			return
+		}
+
+		ret = string(jsonVal)
 	default:
-		err = cd.NewResult(cd.UnExpected, fmt.Sprintf("no support field type, type:%v", fType.GetPkgKey()))
+		ret, err = s.modelProvider.EncodeValue(fVal.Get(), vField.GetType())
 	}
 
 	if err != nil {
-		log.Errorf("getBasicTypeDefaultValue failed, error:%s", err.Error())
+		log.Errorf("PackedFieldValue failed, error:%s", err.Error())
 	}
 
+	return
+}
+
+func (s *codecImpl) PackedStructFieldValue(vField model.Field, fVal model.Value) (ret any, err *cd.Error) {
+	if !model.IsStructField(vField) || !model.IsStruct(vField.GetType().Elem()) {
+		err = cd.NewError(cd.Unexpected, "illegal field type")
+		log.Errorf("PackedStructFieldValue failed, error:%s", err.Error())
+		return
+	}
+
+	vModelVal, modelValErr := s.modelProvider.GetTypeModel(vField.GetType().Elem())
+	if modelValErr != nil {
+		err = modelValErr
+		log.Errorf("PackedStructFieldValue failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+		return
+	}
+
+	vModelVal, modelValErr = s.modelProvider.SetModelValue(vModelVal, fVal)
+	if modelValErr != nil {
+		err = modelValErr
+		log.Errorf("PackedStructFieldValue failed, s.modelProvider.SetModelValue error:%s", err.Error())
+		return
+	}
+
+	pkField := vModelVal.GetPrimaryField()
+	ret, err = s.PackedBasicFieldValue(pkField, pkField.GetValue())
+	return
+}
+
+func (s *codecImpl) PackedSliceStructFieldValue(vField model.Field, fVal model.Value) (ret any, err *cd.Error) {
+	if !model.IsSliceField(vField) || model.IsStruct(vField.GetType().Elem()) {
+		err = cd.NewError(cd.Unexpected, "illegal field type")
+		log.Errorf("PackedSliceStructFieldValue failed, error:%s", err.Error())
+		return
+	}
+
+	vModelVal, modelValErr := s.modelProvider.GetTypeModel(vField.GetType().Elem())
+	if modelValErr != nil {
+		err = modelValErr
+		log.Errorf("PackedSliceStructFieldValue failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+		return
+	}
+
+	valueList := []any{}
+	sliceVal := vField.GetSliceValue()
+	for _, val := range sliceVal {
+		vModelVal, modelValErr = s.modelProvider.SetModelValue(vModelVal.Copy(model.LiteView), val)
+		if modelValErr != nil {
+			err = modelValErr
+			log.Errorf("PackedSliceStructFieldValue failed, s.modelProvider.SetModelValue error:%s", err.Error())
+			return
+		}
+		pkField := vModelVal.GetPrimaryField()
+		pkVal, pkErr := s.PackedBasicFieldValue(pkField, pkField.GetValue())
+		if pkErr != nil {
+			err = pkErr
+			log.Errorf("PackedSliceStructFieldValue failed, s.PackedBasicFieldValue error:%s", err.Error())
+			return
+		}
+		valueList = append(valueList, pkVal)
+	}
+
+	ret = valueList
+	return
+}
+
+func (s *codecImpl) ExtractBasicFieldValue(vField model.Field, eVal any) (ret any, err *cd.Error) {
+	vType := vField.GetType()
+	switch vType.GetValue() {
+	case model.TypeSliceValue:
+		strVal, strOK := eVal.(*string)
+		if strOK {
+			if *strVal != "" {
+				vArray := []any{}
+				byteErr := json.Unmarshal([]byte(*strVal), &vArray)
+				if byteErr != nil {
+					err = cd.NewError(cd.Unexpected, byteErr.Error())
+					return
+				}
+				ret, err = s.modelProvider.DecodeValue(vArray, vType)
+			} else {
+				ret, err = vType.Interface(nil)
+			}
+		} else {
+			err = cd.NewError(cd.Unexpected, "illegal field value")
+		}
+	default:
+		ret, err = s.modelProvider.DecodeValue(eVal, vType)
+	}
 	return
 }

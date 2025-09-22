@@ -8,9 +8,9 @@ import (
 )
 
 // BatchQuery batch query
-func (s *impl) BatchQuery(filter model.Filter) (ret []model.Model, err *cd.Result) {
+func (s *impl) BatchQuery(filter model.Filter) (ret []model.Model, err *cd.Error) {
 	if filter == nil {
-		err = cd.NewResult(cd.IllegalParam, "illegal model value")
+		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		log.Errorf("BatchQuery failed, illegal model value")
 		return
 	}
@@ -19,11 +19,7 @@ func (s *impl) BatchQuery(filter model.Filter) (ret []model.Model, err *cd.Resul
 	queryVal, queryErr := vQueryRunner.Query(filter)
 	if queryErr != nil {
 		err = queryErr
-		if err.Fail() {
-			log.Errorf("BatchQuery failed, vQueryRunner.Query error:%v", err.Error())
-		} else if err.Warn() {
-			log.Warnf("BatchQuery failed, vQueryRunner.Query error:%v", err.Error())
-		}
+		log.Errorf("BatchQuery failed, vQueryRunner.Query error:%v", err.Error())
 		return
 	}
 

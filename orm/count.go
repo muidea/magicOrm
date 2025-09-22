@@ -26,7 +26,7 @@ func NewCountRunner(
 	}
 }
 
-func (s *CountRunner) Count(vFilter model.Filter) (ret int64, err *cd.Result) {
+func (s *CountRunner) Count(vFilter model.Filter) (ret int64, err *cd.Error) {
 	countResult, countErr := s.hBuilder.BuildCount(s.vModel, vFilter)
 	if countErr != nil {
 		err = countErr
@@ -54,9 +54,9 @@ func (s *CountRunner) Count(vFilter model.Filter) (ret int64, err *cd.Result) {
 	return
 }
 
-func (s *impl) Count(vFilter model.Filter) (ret int64, err *cd.Result) {
+func (s *impl) Count(vFilter model.Filter) (ret int64, err *cd.Error) {
 	if vFilter == nil {
-		err = cd.NewResult(cd.IllegalParam, "illegal filter value")
+		err = cd.NewError(cd.IllegalParam, "illegal filter value")
 		return
 	}
 

@@ -113,7 +113,7 @@ composeDef := helper.GetObject(&Compose{})
 ```go
 
 entityList := []any{simpleDef, referenceDef, composeDef}
-modelList, modelErr := registerModel(provider, entityList)
+modelList, modelErr := registerLocalModel(provider, entityList)
 if modelErr != nil {
     err = modelErr
     t.Errorf("register model failed. err:%s", err.Error())

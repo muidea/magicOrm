@@ -1,37 +1,27 @@
 package local
 
 import (
-	"fmt"
 	"path"
 	"reflect"
 
 	cd "github.com/muidea/magicCommon/def"
 
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/util"
+	"github.com/muidea/magicOrm/utils"
 )
 
 type TypeImpl struct {
 	typeVal reflect.Type
 }
 
-func getValueType(val reflect.Value) (ret *TypeImpl, err *cd.Result) {
-	if util.IsNil(val) {
-		err = cd.NewResult(cd.UnExpected, "can't get nil value type")
-		return
-	}
-
-	ret, err = NewType(val.Type())
-	return
-}
-
-func NewType(val reflect.Type) (ret *TypeImpl, err *cd.Result) {
+func NewType(val reflect.Type) (ret *TypeImpl, err *cd.Error) {
 	rType := val
 	if rType.Kind() == reflect.Ptr {
 		rType = rType.Elem()
 	}
-	_, err = util.GetTypeEnum(rType)
-	if err != nil {
+	_, tErr := utils.GetTypeEnum(rType)
+	if tErr != nil {
+		err = tErr
 		return
 	}
 
@@ -49,76 +39,74 @@ func (s *TypeImpl) GetPkgPath() string {
 	return rType.PkgPath()
 }
 
+func (s *TypeImpl) GetPkgKey() string {
+	return path.Join(s.GetPkgPath(), s.GetName())
+}
+
 func (s *TypeImpl) GetDescription() string {
 	return ""
 }
 
 func (s *TypeImpl) GetValue() (ret model.TypeDeclare) {
 	rType := s.getRawType()
-	ret, _ = util.GetTypeEnum(rType)
+	ret, _ = utils.GetTypeEnum(rType)
 	return
-}
-
-func (s *TypeImpl) GetPkgKey() string {
-	rType := s.getElemType()
-	return path.Join(rType.PkgPath(), rType.Name())
 }
 
 func (s *TypeImpl) IsPtrType() bool {
 	return s.typeVal.Kind() == reflect.Ptr
 }
 
-func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
+func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 	tVal := reflect.New(s.getRawType()).Elem()
-
 	if initVal != nil {
 		switch s.GetValue() {
 		case model.TypeBooleanValue:
-			rawVal, rawErr := util.GetBool(initVal)
+			rawVal, rawErr := utils.ConvertRawToBool(initVal)
 			if rawErr != nil {
 				err = rawErr
 				return
 			}
-			tVal.SetBool(rawVal.Value().(bool))
+			tVal.SetBool(rawVal)
 		case model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeIntegerValue, model.TypeBigIntegerValue:
-			rawVal, rawErr := util.GetInt64(initVal)
+			rawVal, rawErr := utils.ConvertRawToInt64(initVal)
 			if rawErr != nil {
 				err = rawErr
 				return
 			}
-			tVal.SetInt(rawVal.Value().(int64))
+			tVal.SetInt(rawVal)
 		case model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveIntegerValue, model.TypePositiveBigIntegerValue:
-			rawVal, rawErr := util.GetUint64(initVal)
+			rawVal, rawErr := utils.ConvertRawToUint64(initVal)
 			if rawErr != nil {
 				err = rawErr
 				return
 			}
-			tVal.SetUint(rawVal.Value().(uint64))
+			tVal.SetUint(rawVal)
 		case model.TypeFloatValue, model.TypeDoubleValue:
-			rawVal, rawErr := util.GetFloat64(initVal)
+			rawVal, rawErr := utils.ConvertRawToFloat64(initVal)
 			if rawErr != nil {
 				err = rawErr
 				return
 			}
-			tVal.SetFloat(rawVal.Value().(float64))
+			tVal.SetFloat(rawVal)
 		case model.TypeStringValue:
-			rawVal, rawErr := util.GetString(initVal)
+			rawVal, rawErr := utils.ConvertRawToString(initVal)
 			if rawErr != nil {
 				err = rawErr
 				return
 			}
-			tVal.SetString(rawVal.Value().(string))
+			tVal.SetString(rawVal)
 		case model.TypeDateTimeValue:
-			rawVal, rawErr := util.GetDateTime(initVal)
+			rawVal, rawErr := utils.ConvertRawToDateTime(initVal)
 			if rawErr != nil {
 				err = rawErr
 				return
 			}
-			tVal.Set(reflect.ValueOf(rawVal.Value()))
+			tVal.Set(reflect.ValueOf(rawVal))
 		default:
 			rInitVal := reflect.Indirect(reflect.ValueOf(initVal))
 			if rInitVal.Type() != tVal.Type() {
-				err = cd.NewResult(cd.UnExpected, "missmatch value type")
+				err = cd.NewError(cd.Unexpected, "missmatch value type")
 			} else {
 				tVal.Set(rInitVal)
 			}
@@ -177,17 +165,4 @@ func (s *TypeImpl) getElemType() reflect.Type {
 		rType = rType.Elem()
 	}
 	return rType
-}
-
-func (s *TypeImpl) copy() (ret *TypeImpl) {
-	ret = &TypeImpl{
-		typeVal: s.typeVal,
-	}
-
-	return
-}
-
-func (s *TypeImpl) dump() string {
-	val := s.GetValue()
-	return fmt.Sprintf("val:%d,name:%s,pkgPath:%s,isPtr:%v", val, s.GetName(), s.GetPkgPath(), s.IsPtrType())
 }

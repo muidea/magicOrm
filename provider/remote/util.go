@@ -2,7 +2,10 @@ package remote
 
 import (
 	"fmt"
+	"reflect"
 
+	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/model"
 )
 
@@ -111,11 +114,61 @@ func getStructInitValue(tType model.Type) (ret any) {
 }
 
 func getInitializeValue(tType model.Type) (ret any) {
-	if !tType.IsBasic() {
+	if !model.IsBasic(tType) {
 		ret = getStructInitValue(tType)
 		return
 	}
 
 	ret = getBasicInitValue(tType)
+	return
+}
+
+func rewriteObjectValue(rawPtr *ObjectValue, newPtr *ObjectValue) (err *cd.Error) {
+	if rawPtr == nil || newPtr == nil {
+		return
+	}
+	if rawPtr.PkgPath != newPtr.PkgPath {
+		err = cd.NewError(cd.Unexpected, "illegal object value")
+		return
+	}
+
+	rawPtr.Fields = newPtr.Fields
+	return
+}
+
+func rewriteSliceObjectValue(rawPtr *SliceObjectValue, newPtr *SliceObjectValue) (err *cd.Error) {
+	if rawPtr == nil || newPtr == nil {
+		return
+	}
+	if rawPtr.PkgPath != newPtr.PkgPath {
+		err = cd.NewError(cd.Unexpected, "illegal slice object value")
+		return
+	}
+
+	rawPtr.Values = newPtr.Values
+	return
+}
+
+func appendBasicValue(sliceVal, val any) (ret any, err *cd.Error) {
+	rVal := reflect.ValueOf(sliceVal)
+	if rVal.Kind() != reflect.Slice {
+		err = cd.NewError(cd.Unexpected, "value is not slice")
+		log.Warnf("Append failed, value is not slice")
+		return
+	}
+
+	// Check if the types are compatible
+	elemType := rVal.Type().Elem()
+	valType := reflect.TypeOf(val)
+
+	if !valType.AssignableTo(elemType) {
+		err = cd.NewError(cd.Unexpected, "type mismatch, expected: "+elemType.String()+", got: "+valType.String())
+		log.Warnf("Append failed, type mismatch, expected: %s, got: %s", elemType, valType)
+		return
+	}
+
+	// Create a new slice with the appended value
+	newSlice := reflect.Append(rVal, reflect.ValueOf(val))
+	ret = newSlice.Interface()
 	return
 }

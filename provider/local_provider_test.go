@@ -4,10 +4,7 @@ import (
 	"testing"
 	"time"
 
-	fu "github.com/muidea/magicCommon/foundation/util"
-
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/util"
 )
 
 type Simple struct {
@@ -27,13 +24,13 @@ type Simple struct {
 func TestNewLocalProvider(t *testing.T) {
 	s001 := &Simple{}
 	provider := NewLocalProvider("t001")
-	sModelVal, sModelErr := provider.RegisterModel(s001)
+	_, sModelErr := provider.RegisterModel(s001)
 	if sModelErr != nil {
 		t.Errorf("%s", sModelErr.Error())
 		return
 	}
 
-	sModelVal, sModelErr = provider.GetEntityModel(s001)
+	_, sModelErr = provider.GetEntityModel(s001)
 	if sModelErr != nil {
 		t.Errorf("%s", sModelErr.Error())
 		return
@@ -50,163 +47,22 @@ func TestNewLocalProvider(t *testing.T) {
 	s001.TimeStamp = time.Now()
 	s001.Flag = true
 	s001.Namespace = "t001"
-	sValueVal, sValueErr := provider.GetEntityValue(s001)
+	_, sValueErr := provider.GetEntityValue(s001)
 	if sValueErr != nil {
 		t.Errorf("%s", sValueErr.Error())
 		return
 	}
 
-	sTypeVal, sTypeErr := provider.GetEntityType(s001)
+	_, sTypeErr := provider.GetEntityType(s001)
 	if sTypeErr != nil {
 		t.Errorf("%s", sTypeErr.Error())
 		return
 	}
 
-	_, sFilterErr := provider.GetEntityFilter(s001, model.LiteView)
+	_, sFilterErr := provider.GetEntityFilter(s001, model.MetaView)
 	if sFilterErr != nil {
 		t.Errorf("%s", sFilterErr.Error())
 		return
 	}
 
-	eVal, eErr := provider.EncodeValue(sValueVal, sTypeVal)
-	if eErr != nil {
-		t.Errorf("%s", eErr.Error())
-		return
-	}
-	iVal, iOK := eVal.Value().(int)
-	if !iOK || iVal != 100 {
-		t.Errorf("provider.EncodeValue failed, illegal value")
-		return
-	}
-
-	sModelVal, sModelErr = provider.SetModelValue(sModelVal, sValueVal)
-	if sModelErr != nil {
-		t.Errorf("%s", sModelErr.Error())
-		return
-	}
-	s001NewVal := sModelVal.Interface(true, model.OriginView).(*Simple)
-	if !util.IsSameValue(s001, s001NewVal) {
-		t.Errorf("get value model failed")
-		return
-	}
-
-	s001NewVal.ID = 987654
-	sValueVal, sValueErr = provider.DecodeValue(model.NewRawVal(s001NewVal), sTypeVal)
-	if sValueErr != nil {
-		t.Errorf("%s", sValueErr)
-		return
-	}
-	s001NewVal2 := sValueVal.Interface().Value().(*Simple)
-	if !util.IsSameValue(s001NewVal, s001NewVal2) {
-		t.Errorf("decode value model failed")
-		return
-	}
-
-	sValueVal, sValueErr = provider.DecodeValue(model.NewRawVal(23456), sTypeVal)
-	if sValueErr != nil {
-		t.Errorf("%s", sValueErr)
-		return
-	}
-	s001NewVal3 := sValueVal.Interface().Value().(*Simple)
-	if s001NewVal3.ID != 23456 {
-		t.Errorf("decode value model failed")
-		return
-	}
-
-	dt001 := time.Now().UTC()
-	dt001Str := dt001.Format(fu.CSTLayout)
-	dtValueVal, dtValueErr := provider.GetEntityValue(dt001)
-	if dtValueErr != nil {
-		t.Errorf("%s", dtValueErr.Error())
-		return
-	}
-
-	dtTypeVal, dtTypeErr := provider.GetEntityType(dt001)
-	if dtTypeErr != nil {
-		t.Errorf("%s", dtTypeErr.Error())
-		return
-	}
-	if dtTypeVal.IsPtrType() {
-		t.Errorf("illetal type value")
-		return
-	}
-	eVal, eErr = provider.EncodeValue(dtValueVal, dtTypeVal)
-	if eErr != nil {
-		t.Errorf("%s", eErr.Error())
-		return
-	}
-	switch eVal.Value().(type) {
-	case string:
-		t.Logf("%s", eVal.Value().(string))
-	default:
-		t.Errorf("illegal value")
-		return
-	}
-
-	dtValueVal, dtValueErr = provider.DecodeValue(model.NewRawVal(dt001Str), dtTypeVal)
-	if dtValueErr != nil {
-		t.Errorf("%s", dtValueErr.Error())
-		return
-	}
-
-	dVal := dtValueVal.Interface()
-	switch dVal.Value().(type) {
-	case time.Time:
-	default:
-		t.Errorf("decodeValue failed")
-	}
-
-	gap := dtValueVal.Interface().Value().(time.Time).Sub(dt001)
-	if gap >= time.Second || gap < -1*time.Second {
-		t.Errorf("illegal decode value")
-	}
-
-	dtSlice := []time.Time{}
-	dtSliceValueVal, dtSliceValueErr := provider.GetEntityValue(dtSlice)
-	if dtSliceValueErr != nil {
-		t.Errorf("%s", dtSliceValueErr.Error())
-		return
-	}
-	dtSliceTypeVal, dtSliceTypeErr := provider.GetEntityType(dtSlice)
-	if dtSliceTypeErr != nil {
-		t.Errorf("%s", dtSliceTypeErr.Error())
-		return
-	}
-
-	dtSliceValueVal, dtSliceValueErr = provider.AppendSliceValue(dtSliceValueVal, dtValueVal)
-	if dtSliceValueErr != nil {
-		t.Errorf("%s", dtSliceValueErr.Error())
-		return
-	}
-	dtSliceValueVal, dtSliceValueErr = provider.AppendSliceValue(dtSliceValueVal, dtValueVal)
-	if dtSliceValueErr != nil {
-		t.Errorf("%s", dtSliceValueErr.Error())
-		return
-	}
-
-	eVal, eErr = provider.EncodeValue(dtSliceValueVal, dtSliceTypeVal)
-	if eErr != nil {
-		t.Errorf("%s", eErr.Error())
-		return
-	}
-	switch eVal.Value().(type) {
-	case []interface{}:
-		t.Logf("%v", eVal.Value().([]interface{}))
-	default:
-		t.Errorf("illegal value")
-		return
-	}
-
-	eVal = model.NewRawVal([]string{"2024-09-21 03:12:31", "2024-09-21 03:12:31"})
-	dtSliceValueVal, dtSliceValueErr = provider.DecodeValue(eVal, dtSliceTypeVal)
-	if dtSliceValueErr != nil {
-		t.Errorf("%s", dtSliceValueErr.Error())
-		return
-	}
-	dtSlice = dtSliceValueVal.Interface().Value().([]time.Time)
-	if len(dtSlice) != 2 {
-		t.Errorf("decodeValue failed")
-	}
-
-	provider.UnregisterModel(s001)
 }

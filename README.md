@@ -6,7 +6,7 @@ Golang对象的orm框架，目前仅支持mySQL数据库。
 
 ## 基本约束
 
-1. 如果Filed类型为isPtr为true,则标识该字段为可选类型
+1. 如果Field类型为isPtr为true,则标识该字段为可选类型
 
 ## 怎么使用
 

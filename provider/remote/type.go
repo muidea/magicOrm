@@ -1,14 +1,12 @@
 package remote
 
 import (
-	"fmt"
 	"path"
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-
 	"github.com/muidea/magicOrm/model"
-	"github.com/muidea/magicOrm/provider/util"
+	"github.com/muidea/magicOrm/utils"
 )
 
 type TypeImpl struct {
@@ -30,6 +28,11 @@ func (s *TypeImpl) GetPkgPath() (ret string) {
 	return
 }
 
+func (s *TypeImpl) GetPkgKey() (ret string) {
+	ret = path.Join(s.PkgPath, s.Name)
+	return
+}
+
 func (s *TypeImpl) GetDescription() (ret string) {
 	ret = s.Description
 	return
@@ -40,132 +43,128 @@ func (s *TypeImpl) GetValue() (ret model.TypeDeclare) {
 	return
 }
 
-func (s *TypeImpl) GetPkgKey() string {
-	return path.Join(s.GetPkgPath(), s.GetName())
-}
-
 func (s *TypeImpl) IsPtrType() (ret bool) {
 	ret = s.IsPtr
 	return
 }
 
-func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Result) {
+func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 	if initVal != nil {
 		switch s.GetValue() {
 		case model.TypeBooleanValue:
-			rawVal, rawErr := util.GetBool(initVal)
+			rawVal, rawErr := utils.ConvertRawToBool(initVal)
 			if rawErr != nil {
 				err = rawErr
 				log.Errorf("Interface failed, util.GetBool initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
-			initVal = rawVal.Value()
+			initVal = rawVal
 		case model.TypeBitValue:
-			rawVal, rawErr := util.GetInt8(initVal)
+			rawVal, rawErr := utils.ConvertRawToInt8(initVal)
 			if rawErr != nil {
 				err = rawErr
 				log.Errorf("Interface failed, util.GetInt8 initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
-			initVal = rawVal.Value()
+			initVal = rawVal
 		case model.TypeSmallIntegerValue:
-			rawVal, rawErr := util.GetInt16(initVal)
+			rawVal, rawErr := utils.ConvertRawToInt16(initVal)
 			if rawErr != nil {
 				err = rawErr
 				log.Errorf("Interface failed, util.GetInt16 initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
-			initVal = rawVal.Value()
+			initVal = rawVal
 		case model.TypeInteger32Value:
-			rawVal, rawErr := util.GetInt32(initVal)
+			rawVal, rawErr := utils.ConvertRawToInt32(initVal)
 			if rawErr != nil {
 				err = rawErr
 				log.Errorf("Interface failed, util.GetInt32 initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
-			initVal = rawVal.Value()
+			initVal = rawVal
 		case model.TypeIntegerValue:
-			rawVal, rawErr := util.GetInt(initVal)
+			rawVal, rawErr := utils.ConvertRawToInt(initVal)
 			if rawErr != nil {
 				err = rawErr
 				log.Errorf("Interface failed, util.GetInt initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
-			initVal = rawVal.Value()
+			initVal = rawVal
 		case model.TypeBigIntegerValue:
-			rawVal, rawErr := util.GetInt64(initVal)
+			rawVal, rawErr := utils.ConvertRawToInt64(initVal)
 			if rawErr != nil {
 				err = rawErr
 				log.Errorf("Interface failed, util.GetInt64 initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
-			initVal = rawVal.Value()
+			initVal = rawVal
 		case model.TypePositiveBitValue:
-			rawVal, rawErr := util.GetUint8(initVal)
+			rawVal, rawErr := utils.ConvertRawToUint8(initVal)
 			if rawErr != nil {
 				err = rawErr
-				log.Errorf("Interface failed, util.GetUint8 initVal:%+v, error:%s", initVal, err.Error())
+				log.Errorf("Interface failed, utils.GetUint8 initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
-			initVal = rawVal.Value()
+			initVal = rawVal
 		case model.TypePositiveSmallIntegerValue:
-			rawVal, rawErr := util.GetUint16(initVal)
+			rawVal, rawErr := utils.ConvertRawToUint16(initVal)
 			if rawErr != nil {
 				err = rawErr
-				log.Errorf("Interface failed, util.GetUint16 initVal:%+v, error:%s", initVal, err.Error())
+				log.Errorf("Interface failed, utils.GetUint16 initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
-			initVal = rawVal.Value()
+			initVal = rawVal
 		case model.TypePositiveInteger32Value:
-			rawVal, rawErr := util.GetUint32(initVal)
+			rawVal, rawErr := utils.ConvertRawToUint32(initVal)
 			if rawErr != nil {
 				err = rawErr
-				log.Errorf("Interface failed, util.GetUint32 initVal:%+v, error:%s", initVal, err.Error())
+				log.Errorf("Interface failed, utils.GetUint32 initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
-			initVal = rawVal.Value()
+			initVal = rawVal
 		case model.TypePositiveIntegerValue:
-			rawVal, rawErr := util.GetUint(initVal)
+			rawVal, rawErr := utils.ConvertRawToUint(initVal)
 			if rawErr != nil {
 				err = rawErr
-				log.Errorf("Interface failed, util.GetUint initVal:%+v, error:%s", initVal, err.Error())
+				log.Errorf("Interface failed, utils.GetUint initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
-			initVal = rawVal.Value()
+			initVal = rawVal
 		case model.TypePositiveBigIntegerValue:
-			rawVal, rawErr := util.GetUint64(initVal)
+			rawVal, rawErr := utils.ConvertRawToUint64(initVal)
 			if rawErr != nil {
 				err = rawErr
-				log.Errorf("Interface failed, util.GetUint64 initVal:%+v, error:%s", initVal, err.Error())
+				log.Errorf("Interface failed, utils.GetUint64 initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
-			initVal = rawVal.Value()
+			initVal = rawVal
 		case model.TypeFloatValue:
-			rawVal, rawErr := util.GetFloat32(initVal)
+			rawVal, rawErr := utils.ConvertRawToFloat32(initVal)
 			if rawErr != nil {
 				err = rawErr
-				log.Errorf("Interface failed, util.GetFloat32 initVal:%+v, error:%s", initVal, err.Error())
+				log.Errorf("Interface failed, utils.GetFloat32 initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
-			initVal = rawVal.Value()
+			initVal = rawVal
 		case model.TypeDoubleValue:
-			rawVal, rawErr := util.GetFloat64(initVal)
+			rawVal, rawErr := utils.ConvertRawToFloat64(initVal)
 			if rawErr != nil {
 				err = rawErr
-				log.Errorf("Interface failed, util.GetFloat64 initVal:%+v, error:%s", initVal, err.Error())
+				log.Errorf("Interface failed, utils.GetFloat64 initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
-			initVal = rawVal.Value()
+			initVal = rawVal
 		case model.TypeDateTimeValue, model.TypeStringValue:
-			rawVal, rawErr := util.GetString(initVal)
+			rawVal, rawErr := utils.ConvertRawToString(initVal)
 			if rawErr != nil {
 				err = rawErr
-				log.Errorf("Interface failed, util.GetString initVal:%+v, error:%s", initVal, err.Error())
+				log.Errorf("Interface failed, utils.GetString initVal:%+v, error:%s", initVal, err.Error())
 				return
 			}
-			initVal = rawVal.Value()
+			initVal = rawVal
 		case model.TypeSliceValue:
-			if !s.Elem().IsBasic() {
+			if !model.IsBasic(s.Elem()) {
 				initVal = nil
 			}
 		default:
@@ -193,27 +192,7 @@ func (s *TypeImpl) Elem() model.Type {
 	return &eType
 }
 
-func (s *TypeImpl) IsBasic() bool {
-	if s.ElemType != nil {
-		return model.IsBasicType(s.ElemType.Value)
-	}
-
-	return model.IsBasicType(s.Value)
-}
-
-func (s *TypeImpl) IsStruct() bool {
-	if s.ElemType != nil {
-		return model.IsStructType(s.ElemType.Value)
-	}
-
-	return model.IsStructType(s.Value)
-}
-
-func (s *TypeImpl) IsSlice() bool {
-	return model.IsSliceType(s.Value)
-}
-
-func (s *TypeImpl) copy() (ret *TypeImpl) {
+func (s *TypeImpl) Copy() (ret *TypeImpl) {
 	ret = &TypeImpl{
 		Name:        s.Name,
 		PkgPath:     s.PkgPath,
@@ -222,15 +201,10 @@ func (s *TypeImpl) copy() (ret *TypeImpl) {
 		IsPtr:       s.IsPtr,
 	}
 	if s.ElemType != nil {
-		ret.ElemType = s.ElemType.copy()
+		ret.ElemType = s.ElemType.Copy()
 	}
 
 	return
-}
-
-func (s *TypeImpl) dump() string {
-	val := s.GetValue()
-	return fmt.Sprintf("val:%d,name:%s,pkgPath:%s,isPtr:%v", val, s.GetName(), s.GetPkgPath(), s.IsPtrType())
 }
 
 func compareType(l, r *TypeImpl) bool {

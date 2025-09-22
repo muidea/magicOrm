@@ -73,7 +73,7 @@ type Executor struct {
 }
 
 // NewExecutor 新建一个数据访问对象
-func NewExecutor(config *Config) (ret *Executor, err *cd.Result) {
+func NewExecutor(config *Config) (ret *Executor, err *cd.Error) {
 	connectStr := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=%s", config.Username(), config.Password(), config.Server(), config.Database(), config.CharSet())
 
 	executorPtr := &Executor{connectStr: connectStr, dbHandle: nil, dbTx: nil, rowsHandle: nil, dbName: config.Database()}
@@ -87,10 +87,10 @@ func NewExecutor(config *Config) (ret *Executor, err *cd.Result) {
 	return
 }
 
-func (s *Executor) Connect() (err *cd.Result) {
+func (s *Executor) Connect() (err *cd.Error) {
 	dbHandle, dbErr := sql.Open("mysql", s.connectStr)
 	if dbErr != nil {
-		err = cd.NewResult(cd.UnExpected, dbErr.Error())
+		err = cd.NewError(cd.Unexpected, dbErr.Error())
 		log.Errorf("open database exception, connectStr:%s, err:%s", s.connectStr, err.Error())
 		return
 	}
@@ -100,7 +100,7 @@ func (s *Executor) Connect() (err *cd.Result) {
 
 	dbErr = dbHandle.Ping()
 	if dbErr != nil {
-		err = cd.NewResult(cd.UnExpected, dbErr.Error())
+		err = cd.NewError(cd.Unexpected, dbErr.Error())
 		log.Errorf("ping database failed, connectStr:%s, err:%s", s.connectStr, err.Error())
 		return
 	}
@@ -109,16 +109,16 @@ func (s *Executor) Connect() (err *cd.Result) {
 	return
 }
 
-func (s *Executor) Ping() (err *cd.Result) {
+func (s *Executor) Ping() (err *cd.Error) {
 	if s.dbHandle == nil {
-		err = cd.NewResult(cd.UnExpected, "must connect to database first")
+		err = cd.NewError(cd.Unexpected, "must connect to database first")
 		log.Errorf("Ping failed, error:%s", err.Error())
 		return
 	}
 
 	dbErr := s.dbHandle.Ping()
 	if dbErr != nil {
-		err = cd.NewResult(cd.UnExpected, dbErr.Error())
+		err = cd.NewError(cd.Unexpected, dbErr.Error())
 	}
 	return
 }
@@ -156,7 +156,7 @@ func (s *Executor) idle() bool {
 	return time.Since(s.finishTime) > 10*time.Minute
 }
 
-func (s *Executor) BeginTransaction() (err *cd.Result) {
+func (s *Executor) BeginTransaction() (err *cd.Error) {
 	atomic.AddInt32(&s.dbTxCount, 1)
 	if s.dbTx == nil && s.dbTxCount == 1 {
 		if s.rowsHandle != nil {
@@ -166,7 +166,7 @@ func (s *Executor) BeginTransaction() (err *cd.Result) {
 
 		tx, txErr := s.dbHandle.Begin()
 		if txErr != nil {
-			err = cd.NewResult(cd.UnExpected, txErr.Error())
+			err = cd.NewError(cd.Unexpected, txErr.Error())
 			log.Errorf("BeginTransaction failed, s.dbHandle.Begin error:%s", err.Error())
 			return
 		}
@@ -178,13 +178,13 @@ func (s *Executor) BeginTransaction() (err *cd.Result) {
 	return
 }
 
-func (s *Executor) CommitTransaction() (err *cd.Result) {
+func (s *Executor) CommitTransaction() (err *cd.Error) {
 	atomic.AddInt32(&s.dbTxCount, -1)
 	if s.dbTx != nil && s.dbTxCount == 0 {
 		dbErr := s.dbTx.Commit()
 		if dbErr != nil {
 			s.dbTx = nil
-			err = cd.NewResult(cd.UnExpected, dbErr.Error())
+			err = cd.NewError(cd.Unexpected, dbErr.Error())
 			log.Errorf("CommitTransaction failed, s.dbTx.Commit error:%s", err.Error())
 			return
 		}
@@ -196,13 +196,13 @@ func (s *Executor) CommitTransaction() (err *cd.Result) {
 	return
 }
 
-func (s *Executor) RollbackTransaction() (err *cd.Result) {
+func (s *Executor) RollbackTransaction() (err *cd.Error) {
 	atomic.AddInt32(&s.dbTxCount, -1)
 	if s.dbTx != nil && s.dbTxCount == 0 {
 		dbErr := s.dbTx.Rollback()
 		if dbErr != nil {
 			s.dbTx = nil
-			err = cd.NewResult(cd.UnExpected, dbErr.Error())
+			err = cd.NewError(cd.Unexpected, dbErr.Error())
 			log.Errorf("RollbackTransaction failed, s.dbTx.Rollback error:%s", err.Error())
 			return
 		}
@@ -214,7 +214,7 @@ func (s *Executor) RollbackTransaction() (err *cd.Result) {
 	return
 }
 
-func (s *Executor) Query(sql string, needCols bool, args ...any) (ret []string, err *cd.Result) {
+func (s *Executor) Query(sql string, needCols bool, args ...any) (ret []string, err *cd.Error) {
 	//log.Infof("Query, sql:%s", sql)
 	startTime := time.Now()
 	defer func() {
@@ -241,14 +241,14 @@ func (s *Executor) Query(sql string, needCols bool, args ...any) (ret []string, 
 
 		rows, rowErr := s.dbHandle.Query(sql, args...)
 		if rowErr != nil {
-			err = cd.NewResult(cd.UnExpected, rowErr.Error())
+			err = cd.NewError(cd.Unexpected, rowErr.Error())
 			log.Errorf("Query failed, s.dbHandle.Query:%s, args:%+v, error:%s", sql, args, rowErr.Error())
 			return
 		}
 		if needCols {
 			cols, colsErr := rows.Columns()
 			if colsErr != nil {
-				err = cd.NewResult(cd.UnExpected, colsErr.Error())
+				err = cd.NewError(cd.Unexpected, colsErr.Error())
 				log.Errorf("Query failed, rows.Columns:%s, error:%s", sql, colsErr.Error())
 				return
 			}
@@ -264,14 +264,14 @@ func (s *Executor) Query(sql string, needCols bool, args ...any) (ret []string, 
 
 		rows, rowErr := s.dbTx.Query(sql, args...)
 		if rowErr != nil {
-			err = cd.NewResult(cd.UnExpected, rowErr.Error())
+			err = cd.NewError(cd.Unexpected, rowErr.Error())
 			log.Errorf("Query failed, s.dbTx.Query:%s, error:%s", sql, rowErr.Error())
 			return
 		}
 		if needCols {
 			cols, colsErr := rows.Columns()
 			if colsErr != nil {
-				err = cd.NewResult(cd.UnExpected, colsErr.Error())
+				err = cd.NewError(cd.Unexpected, colsErr.Error())
 				log.Errorf("Query failed, rows.Columns:%s, error:%s", sql, colsErr.Error())
 				return
 			}
@@ -306,21 +306,21 @@ func (s *Executor) Finish() {
 	}
 }
 
-func (s *Executor) GetField(value ...interface{}) (err *cd.Result) {
+func (s *Executor) GetField(value ...interface{}) (err *cd.Error) {
 	if s.rowsHandle == nil {
 		panic("rowsHandle is nil")
 	}
 
 	dbErr := s.rowsHandle.Scan(value...)
 	if dbErr != nil {
-		err = cd.NewResult(cd.UnExpected, dbErr.Error())
+		err = cd.NewError(cd.Unexpected, dbErr.Error())
 		log.Errorf("GetField failed, s.rowsHandle.Scan error:%s", err.Error())
 	}
 
 	return
 }
 
-func (s *Executor) Execute(sql string, args ...any) (rowsAffected int64, lastInsertID int64, err *cd.Result) {
+func (s *Executor) Execute(sql string, args ...any) (rowsAffected int64, lastInsertID int64, err *cd.Error) {
 	startTime := time.Now()
 	defer func() {
 		endTime := time.Now()
@@ -347,7 +347,7 @@ func (s *Executor) Execute(sql string, args ...any) (rowsAffected int64, lastIns
 
 		result, resultErr := s.dbHandle.Exec(sql, args...)
 		if resultErr != nil {
-			err = cd.NewResult(cd.UnExpected, resultErr.Error())
+			err = cd.NewError(cd.Unexpected, resultErr.Error())
 			log.Errorf("Execute failed, s.dbHandle.Exec error:%s", resultErr.Error())
 			return
 		}
@@ -359,7 +359,7 @@ func (s *Executor) Execute(sql string, args ...any) (rowsAffected int64, lastIns
 
 	result, resultErr := s.dbTx.Exec(sql, args...)
 	if resultErr != nil {
-		err = cd.NewResult(cd.UnExpected, resultErr.Error())
+		err = cd.NewError(cd.Unexpected, resultErr.Error())
 		log.Errorf("Execute failed, s.dbTx.Exec error:%s", resultErr.Error())
 		return
 	}
@@ -370,7 +370,7 @@ func (s *Executor) Execute(sql string, args ...any) (rowsAffected int64, lastIns
 }
 
 // CheckTableExist Check Table Exist
-func (s *Executor) CheckTableExist(tableName string) (ret bool, err *cd.Result) {
+func (s *Executor) CheckTableExist(tableName string) (ret bool, err *cd.Error) {
 	strSQL := "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_NAME =? and TABLE_SCHEMA =?"
 	_, err = s.Query(strSQL, false, tableName, s.dbName)
 	if err != nil {
@@ -409,7 +409,7 @@ func NewPool() *Pool {
 }
 
 // Initialize initialize executor pool
-func (s *Pool) Initialize(maxConnNum int, configPtr *Config) (err *cd.Result) {
+func (s *Pool) Initialize(maxConnNum int, configPtr *Config) (err *cd.Error) {
 	initConnNum := 0
 	if 0 < maxConnNum {
 		if maxConnNum < 16 {
@@ -476,7 +476,7 @@ func (s *Pool) Uninitialized() {
 	s.maxSize = 0
 }
 
-func (s *Pool) GetExecutor() (ret *Executor, err *cd.Result) {
+func (s *Pool) GetExecutor() (ret *Executor, err *cd.Error) {
 	executorPtr, executorErr := s.FetchOut()
 	if executorErr != nil {
 		err = executorErr
@@ -487,16 +487,16 @@ func (s *Pool) GetExecutor() (ret *Executor, err *cd.Result) {
 	return
 }
 
-func (s *Pool) CheckConfig(cfgPtr *Config) *cd.Result {
+func (s *Pool) CheckConfig(cfgPtr *Config) *cd.Error {
 	if s.config.Same(cfgPtr) {
 		return nil
 	}
 
-	return cd.NewResult(cd.UnExpected, "mismatch database config")
+	return cd.NewError(cd.Unexpected, "mismatch database config")
 }
 
 // FetchOut FetchOut Executor
-func (s *Pool) FetchOut() (ret *Executor, err *cd.Result) {
+func (s *Pool) FetchOut() (ret *Executor, err *cd.Error) {
 	defer func() {
 		if ret != nil {
 			ret.startTime = time.Now()
@@ -527,7 +527,7 @@ func (s *Pool) FetchOut() (ret *Executor, err *cd.Result) {
 		}
 	}
 
-	// if ping *cd.Result, reconnect...
+	// if ping *cd.Error, reconnect...
 	if executorPtr.Ping() != nil {
 		err = executorPtr.Connect()
 		if err != nil {
@@ -559,7 +559,7 @@ func (s *Pool) PutIn(val *Executor) {
 	go s.verifyIdle()
 }
 
-func (s *Pool) getFromCache(blockFlag bool) (ret *Executor, err *cd.Result) {
+func (s *Pool) getFromCache(blockFlag bool) (ret *Executor, err *cd.Error) {
 	if !blockFlag {
 		var val *Executor
 		select {
@@ -576,7 +576,7 @@ func (s *Pool) getFromCache(blockFlag bool) (ret *Executor, err *cd.Result) {
 	return
 }
 
-func (s *Pool) getFromIdle() (ret *Executor, err *cd.Result) {
+func (s *Pool) getFromIdle() (ret *Executor, err *cd.Error) {
 	s.executorLock.Lock()
 	defer s.executorLock.Unlock()
 	if s.curSize >= s.maxSize {

@@ -1,8 +1,6 @@
 package remote
 
 import (
-	"fmt"
-
 	"github.com/muidea/magicOrm/model"
 )
 
@@ -29,8 +27,8 @@ func (s SpecImpl) GetValueDeclare() model.ValueDeclare {
 }
 
 func (s SpecImpl) EnableView(viewSpec model.ViewDeclare) bool {
-	if s.ViewDeclare == nil {
-		return false
+	if viewSpec == model.MetaView {
+		return true
 	}
 
 	for _, val := range s.ViewDeclare {
@@ -42,11 +40,13 @@ func (s SpecImpl) EnableView(viewSpec model.ViewDeclare) bool {
 	return false
 }
 
-func (s SpecImpl) GetDefaultValue() model.RawVal {
-	return model.NewRawVal(s.DefaultValue)
+// GetDefaultValue
+// 这里只允许是基本数值,不允许是表达式，不允许是[]any
+func (s SpecImpl) GetDefaultValue() any {
+	return s.DefaultValue
 }
 
-func (s SpecImpl) copy() *SpecImpl {
+func (s SpecImpl) Copy() *SpecImpl {
 	ret := SpecImpl{
 		FieldName:    s.FieldName,
 		PrimaryKey:   s.PrimaryKey,
@@ -56,10 +56,6 @@ func (s SpecImpl) copy() *SpecImpl {
 	}
 
 	return &ret
-}
-
-func (s SpecImpl) dump() (ret string) {
-	return fmt.Sprintf("name=%s key=%v value=%v", s.GetFieldName(), s.IsPrimaryKey(), s.GetValueDeclare())
 }
 
 func compareSpec(l, r *SpecImpl) bool {

@@ -7,7 +7,6 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/util"
 
-	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
@@ -17,7 +16,7 @@ import (
 const composeLocalOwner = "composeLocal"
 const composeRemoteOwner = "composeRemote"
 
-func prepareLocalData(localProvider provider.Provider, orm orm.Orm) (sPtr *Simple, rPtr *Reference, cPtr *Compose, err *cd.Result) {
+func prepareLocalData(localProvider provider.Provider, orm orm.Orm) (sPtr *Simple, rPtr *Reference, cPtr *Compose, err *cd.Error) {
 	ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	sVal := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
 
@@ -32,7 +31,7 @@ func prepareLocalData(localProvider provider.Provider, orm orm.Orm) (sPtr *Simpl
 		err = sErr
 		return
 	}
-	sPtr = sModel.Interface(true, model.OriginView).(*Simple)
+	sPtr = sModel.Interface(true).(*Simple)
 
 	strValue := "test code"
 	fValue := float32(12.34)
@@ -68,20 +67,19 @@ func prepareLocalData(localProvider provider.Provider, orm orm.Orm) (sPtr *Simpl
 		err = rErr
 		return
 	}
-	rPtr = rModel.Interface(true, model.OriginView).(*Reference)
+	rPtr = rModel.Interface(true).(*Reference)
 
 	refPtrArray := []*Reference{rPtr}
 	cVal := &Compose{
-		Name:         strValue,
-		H1:           *sPtr,
-		R3:           sPtr,
-		H2:           []Simple{*sPtr, *sPtr},
-		R4:           []*Simple{sPtr, sPtr},
-		Reference:    *rPtr,
-		PtrReference: rPtr,
-		RefArray:     []Reference{*rPtr, *rPtr, *rPtr},
-		RefPtrArray:  refPtrArray,
-		PtrRefArray:  refPtrArray,
+		Name:              strValue,
+		Simple:            *sPtr,
+		SimplePtr:         sPtr,
+		SimpleArray:       []Simple{*sPtr, *sPtr},
+		SimplePtrArray:    []*Simple{sPtr, sPtr},
+		Reference:         *rPtr,
+		ReferencePtr:      rPtr,
+		ReferenceArray:    []Reference{*rPtr, *rPtr, *rPtr},
+		ReferencePtrArray: refPtrArray,
 	}
 	cModel, cErr := localProvider.GetEntityModel(cVal)
 	if cErr != nil {
@@ -94,16 +92,16 @@ func prepareLocalData(localProvider provider.Provider, orm orm.Orm) (sPtr *Simpl
 		err = cErr
 		return
 	}
-	cPtr = cModel.Interface(true, model.OriginView).(*Compose)
+	cPtr = cModel.Interface(true).(*Compose)
 
 	return
 }
 
-func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Simple, rPtr *Reference, cPtr *Compose, err *cd.Result) {
+func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Simple, rPtr *Reference, cPtr *Compose, err *cd.Error) {
 	ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	sVal := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
 
-	sObjectVal, _ := remote.GetObjectValue(sVal)
+	sObjectVal, _ := helper.GetObjectValue(sVal)
 	sModel, sErr := remoteProvider.GetEntityModel(sObjectVal)
 	if sErr != nil {
 		err = sErr
@@ -115,7 +113,7 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 		err = sErr
 		return
 	}
-	sObjectVal = sModel.Interface(true, model.OriginView).(*remote.ObjectValue)
+	sObjectVal = sModel.Interface(true).(*remote.ObjectValue)
 	sPtr = &Simple{}
 	sErr = helper.UpdateEntity(sObjectVal, sPtr)
 	if sErr != nil {
@@ -146,7 +144,7 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 		PtrStrArray: &strPtrArray,
 	}
 
-	rObjectVal, _ := remote.GetObjectValue(rVal)
+	rObjectVal, _ := helper.GetObjectValue(rVal)
 	rModel, rErr := remoteProvider.GetEntityModel(rObjectVal)
 	if rErr != nil {
 		err = rErr
@@ -158,7 +156,7 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 		err = rErr
 		return
 	}
-	rObjectVal = rModel.Interface(true, model.OriginView).(*remote.ObjectValue)
+	rObjectVal = rModel.Interface(true).(*remote.ObjectValue)
 	var fVal float32
 	var ts2 time.Time
 	var flag2 bool
@@ -174,18 +172,17 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 
 	refPtrArray := []*Reference{rPtr}
 	cVal := &Compose{
-		Name:         strValue,
-		H1:           *sPtr,
-		R3:           sPtr,
-		H2:           []Simple{*sPtr, *sPtr},
-		R4:           []*Simple{sPtr, sPtr},
-		Reference:    *rPtr,
-		PtrReference: rPtr,
-		RefArray:     []Reference{*rPtr, *rPtr, *rPtr},
-		RefPtrArray:  refPtrArray,
-		PtrRefArray:  refPtrArray,
+		Name:              strValue,
+		Simple:            *sPtr,
+		SimplePtr:         sPtr,
+		SimpleArray:       []Simple{*sPtr, *sPtr},
+		SimplePtrArray:    []*Simple{sPtr, sPtr},
+		Reference:         *rPtr,
+		ReferencePtr:      rPtr,
+		ReferenceArray:    []Reference{*rPtr, *rPtr, *rPtr},
+		ReferencePtrArray: refPtrArray,
 	}
-	cObjectVal, _ := remote.GetObjectValue(cVal)
+	cObjectVal, _ := helper.GetObjectValue(cVal)
 	cModel, cErr := remoteProvider.GetEntityModel(cObjectVal)
 	if cErr != nil {
 		err = cErr
@@ -197,17 +194,16 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 		err = cErr
 		return
 	}
-	cObjectVal = cModel.Interface(true, model.OriginView).(*remote.ObjectValue)
+	cObjectVal = cModel.Interface(true).(*remote.ObjectValue)
 	cPtr = &Compose{
-		R3:           &Simple{},
-		H2:           []Simple{},
-		R4:           []*Simple{},
-		PR4:          &[]Simple{},
-		PtrReference: &Reference{},
-		RefArray:     []Reference{},
-		RefPtrArray:  []*Reference{},
-		PtrRefArray:  []*Reference{},
-		PtrCompose:   &Compose{},
+		SimplePtr:         &Simple{},
+		SimpleArray:       []Simple{},
+		SimplePtrArray:    []*Simple{},
+		SimpleArrayPtr:    &[]Simple{},
+		ReferencePtr:      &Reference{},
+		ReferenceArray:    []Reference{},
+		ReferencePtrArray: []*Reference{},
+		ComposePtr:        &Compose{},
 	}
 	cErr = helper.UpdateEntity(cObjectVal, cPtr)
 	if cErr != nil {
@@ -237,7 +233,7 @@ func TestComposeLocal(t *testing.T) {
 	composeDef := &Compose{}
 
 	entityList := []any{simpleDef, referenceDef, composeDef}
-	modelList, modelErr := registerModel(localProvider, entityList)
+	modelList, modelErr := registerLocalModel(localProvider, entityList)
 	if modelErr != nil {
 		err = modelErr
 		t.Errorf("register model failed. err:%s", err.Error())
@@ -266,17 +262,16 @@ func TestComposeLocal(t *testing.T) {
 	// insert
 	refPtrArray := []*Reference{rPtr}
 	composePtr := &Compose{
-		Name:         strValue,
-		H1:           *sPtr,
-		R3:           sPtr,
-		H2:           []Simple{*sPtr, *sPtr},
-		R4:           []*Simple{sPtr, sPtr},
-		Reference:    *rPtr,
-		PtrReference: rPtr,
-		RefArray:     []Reference{*rPtr, *rPtr, *rPtr},
-		RefPtrArray:  refPtrArray,
-		PtrRefArray:  refPtrArray,
-		PtrCompose:   cPtr,
+		Name:              strValue,
+		Simple:            *sPtr,
+		SimplePtr:         sPtr,
+		SimpleArray:       []Simple{*sPtr, *sPtr},
+		SimplePtrArray:    []*Simple{sPtr, sPtr},
+		Reference:         *rPtr,
+		ReferencePtr:      rPtr,
+		ReferenceArray:    []Reference{*rPtr, *rPtr, *rPtr},
+		ReferencePtrArray: refPtrArray,
+		ComposePtr:        cPtr,
 	}
 
 	composeModel, composeErr := localProvider.GetEntityModel(composePtr)
@@ -294,7 +289,7 @@ func TestComposeLocal(t *testing.T) {
 	}
 
 	// update
-	composePtr = composeModel.Interface(true, model.OriginView).(*Compose)
+	composePtr = composeModel.Interface(true).(*Compose)
 	composePtr.Name = "hi"
 	composeModel, composeErr = localProvider.GetEntityModel(composePtr)
 	if composeErr != nil {
@@ -310,20 +305,19 @@ func TestComposeLocal(t *testing.T) {
 		return
 	}
 
-	composePtr = composeModel.Interface(true, model.OriginView).(*Compose)
+	composePtr = composeModel.Interface(true).(*Compose)
 
 	// query
 	queryVal := &Compose{
-		ID:           composePtr.ID,
-		R3:           &Simple{},
-		H2:           []Simple{},
-		R4:           []*Simple{},
-		PR4:          &[]Simple{},
-		PtrReference: &Reference{},
-		RefArray:     []Reference{},
-		RefPtrArray:  []*Reference{},
-		PtrRefArray:  []*Reference{},
-		PtrCompose:   &Compose{},
+		ID:                composePtr.ID,
+		SimplePtr:         &Simple{},
+		SimpleArray:       []Simple{},
+		SimplePtrArray:    []*Simple{},
+		SimpleArrayPtr:    &[]Simple{},
+		ReferencePtr:      &Reference{},
+		ReferenceArray:    []Reference{},
+		ReferencePtrArray: []*Reference{},
+		ComposePtr:        &Compose{},
 	}
 
 	queryModel, queryErr := localProvider.GetEntityModel(queryVal)
@@ -339,16 +333,16 @@ func TestComposeLocal(t *testing.T) {
 		t.Errorf("Query failed, err:%s", err.Error())
 		return
 	}
-	queryVal = queryModel.Interface(true, model.OriginView).(*Compose)
+	queryVal = queryModel.Interface(true).(*Compose)
 
 	if !composePtr.IsSame(queryVal) {
-		err = cd.NewResult(cd.UnExpected, "compare value failed")
+		err = cd.NewError(cd.Unexpected, "compare value failed")
 		t.Errorf("IsSame failed. err:%s", err.Error())
 		return
 	}
 
 	cModel, _ := localProvider.GetEntityModel(&Compose{})
-	filter, err := localProvider.GetModelFilter(cModel, model.OriginView)
+	filter, err := localProvider.GetModelFilter(cModel)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -360,15 +354,14 @@ func TestComposeLocal(t *testing.T) {
 		return
 	}
 	err = filter.ValueMask(&Compose{
-		R3:           &Simple{},
-		H2:           []Simple{},
-		R4:           []*Simple{},
-		PR4:          &[]Simple{},
-		PtrReference: &Reference{},
-		RefArray:     []Reference{},
-		RefPtrArray:  []*Reference{},
-		PtrRefArray:  []*Reference{},
-		PtrCompose:   &Compose{},
+		SimplePtr:         &Simple{},
+		SimpleArray:       []Simple{},
+		SimplePtrArray:    []*Simple{},
+		SimpleArrayPtr:    &[]Simple{},
+		ReferencePtr:      &Reference{},
+		ReferenceArray:    []Reference{},
+		ReferencePtrArray: []*Reference{},
+		ComposePtr:        &Compose{},
 	})
 	if err != nil {
 		t.Errorf("filter.ValueMask failed, err:%s", err.Error())
@@ -406,12 +399,8 @@ func TestComposeRemote(t *testing.T) {
 		return
 	}
 
-	simpleDef, _ := remote.GetObject(&Simple{})
-	referenceDef, _ := remote.GetObject(&Reference{})
-	composeDef, _ := remote.GetObject(&Compose{})
-
-	entityList := []any{simpleDef, referenceDef, composeDef}
-	modelList, modelErr := registerModel(remoteProvider, entityList)
+	entityList := []any{&Simple{}, &Reference{}, &Compose{}}
+	modelList, modelErr := registerRemoteModel(remoteProvider, entityList)
 	if modelErr != nil {
 		err = modelErr
 		t.Errorf("register model failed. err:%s", err.Error())
@@ -440,19 +429,18 @@ func TestComposeRemote(t *testing.T) {
 	// insert
 	refPtrArray := []*Reference{rPtr}
 	composePtr := &Compose{
-		Name:         strValue,
-		H1:           *sPtr,
-		R3:           sPtr,
-		H2:           []Simple{*sPtr, *sPtr},
-		R4:           []*Simple{sPtr, sPtr},
-		Reference:    *rPtr,
-		PtrReference: rPtr,
-		RefArray:     []Reference{*rPtr, *rPtr, *rPtr},
-		RefPtrArray:  refPtrArray,
-		PtrRefArray:  refPtrArray,
-		PtrCompose:   cPtr,
+		Name:              strValue,
+		Simple:            *sPtr,
+		SimplePtr:         sPtr,
+		SimpleArray:       []Simple{*sPtr, *sPtr},
+		SimplePtrArray:    []*Simple{sPtr, sPtr},
+		Reference:         *rPtr,
+		ReferencePtr:      rPtr,
+		ReferenceArray:    []Reference{*rPtr, *rPtr, *rPtr},
+		ReferencePtrArray: refPtrArray,
+		ComposePtr:        cPtr,
 	}
-	composeObjectValue, composeObjectErr := remote.GetObjectValue(composePtr)
+	composeObjectValue, composeObjectErr := helper.GetObjectValue(composePtr)
 	if composeObjectErr != nil {
 		err = composeObjectErr
 		t.Errorf("GetObjectValue failed. err:%s", err.Error())
@@ -473,7 +461,7 @@ func TestComposeRemote(t *testing.T) {
 		return
 	}
 
-	composeObjectValue = composeModel.Interface(true, model.OriginView).(*remote.ObjectValue)
+	composeObjectValue = composeModel.Interface(true).(*remote.ObjectValue)
 	err = helper.UpdateEntity(composeObjectValue, composePtr)
 	if err != nil {
 		t.Errorf("UpdateEntity failed. err:%s", err.Error())
@@ -481,7 +469,7 @@ func TestComposeRemote(t *testing.T) {
 	}
 
 	composePtr.Name = "hi"
-	composeObjectValue, composeObjectErr = remote.GetObjectValue(composePtr)
+	composeObjectValue, composeObjectErr = helper.GetObjectValue(composePtr)
 	if composeObjectErr != nil {
 		err = composeObjectErr
 		t.Errorf("GetObjectValue failed. err:%s", err.Error())
@@ -502,7 +490,7 @@ func TestComposeRemote(t *testing.T) {
 		return
 	}
 
-	composeObjectValue = vModel.Interface(true, model.OriginView).(*remote.ObjectValue)
+	composeObjectValue = vModel.Interface(true).(*remote.ObjectValue)
 	err = helper.UpdateEntity(composeObjectValue, composePtr)
 	if err != nil {
 		t.Errorf("UpdateEntity failed. err:%s", err.Error())
@@ -511,19 +499,18 @@ func TestComposeRemote(t *testing.T) {
 
 	// query
 	queryComposeVal := &Compose{
-		ID:           composePtr.ID,
-		R3:           &Simple{},
-		H2:           []Simple{},
-		R4:           []*Simple{},
-		PR4:          &[]Simple{},
-		PtrReference: &Reference{},
-		RefArray:     []Reference{},
-		RefPtrArray:  []*Reference{},
-		PtrRefArray:  []*Reference{},
-		PtrCompose:   &Compose{},
+		ID:                composePtr.ID,
+		SimplePtr:         &Simple{},
+		SimpleArray:       []Simple{},
+		SimplePtrArray:    []*Simple{},
+		SimpleArrayPtr:    &[]Simple{},
+		ReferencePtr:      &Reference{},
+		ReferenceArray:    []Reference{},
+		ReferencePtrArray: []*Reference{},
+		ComposePtr:        &Compose{},
 	}
 
-	queryObjectValue, queryObjectErr := remote.GetObjectValue(queryComposeVal)
+	queryObjectValue, queryObjectErr := helper.GetObjectValue(queryComposeVal)
 	if queryObjectErr != nil {
 		err = queryObjectErr
 		t.Errorf("GetObjectValue failed. err:%s", err.Error())
@@ -544,7 +531,7 @@ func TestComposeRemote(t *testing.T) {
 		return
 	}
 
-	queryObjectVal := queryModel.Interface(true, model.OriginView).(*remote.ObjectValue)
+	queryObjectVal := queryModel.Interface(true).(*remote.ObjectValue)
 	err = helper.UpdateEntity(queryObjectVal, queryComposeVal)
 	if err != nil {
 		t.Errorf("UpdateEntity failed. err:%s", err.Error())
@@ -552,19 +539,19 @@ func TestComposeRemote(t *testing.T) {
 	}
 
 	if !composePtr.IsSame(queryComposeVal) {
-		err = cd.NewResult(cd.UnExpected, "compare value failed")
+		err = cd.NewError(cd.Unexpected, "compare value failed")
 		t.Errorf("IsSame failed. err:%s", err.Error())
 		return
 	}
 
 	composePtr = &Compose{}
-	composeObjectPtr, composeObjectErr := remote.GetObject(composePtr)
+	composeObjectPtr, composeObjectErr := helper.GetObject(composePtr)
 	if composeObjectErr != nil {
 		t.Errorf("GetObject failed, err:%s", composeObjectErr.Error())
 		return
 	}
 
-	filter, err := remoteProvider.GetModelFilter(composeObjectPtr, model.OriginView)
+	filter, err := remoteProvider.GetModelFilter(composeObjectPtr)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -577,18 +564,17 @@ func TestComposeRemote(t *testing.T) {
 	}
 
 	maskComposePtr := &Compose{
-		R3:           &Simple{},
-		H2:           []Simple{},
-		R4:           []*Simple{},
-		PR4:          &[]Simple{},
-		PtrReference: &Reference{},
-		RefArray:     []Reference{},
-		RefPtrArray:  []*Reference{},
-		PtrRefArray:  []*Reference{},
-		PtrCompose:   &Compose{},
+		SimplePtr:         &Simple{},
+		SimpleArray:       []Simple{},
+		SimplePtrArray:    []*Simple{},
+		SimpleArrayPtr:    &[]Simple{},
+		ReferencePtr:      &Reference{},
+		ReferenceArray:    []Reference{},
+		ReferencePtrArray: []*Reference{},
+		ComposePtr:        &Compose{},
 	}
 
-	maskObjectValuePtr, maskObjectValueErr := remote.GetObjectValue(maskComposePtr)
+	maskObjectValuePtr, maskObjectValueErr := helper.GetObjectValue(maskComposePtr)
 	if maskObjectValueErr != nil {
 		t.Errorf("GetObjectValue failed, err:%s", maskObjectValueErr.Error())
 		return
