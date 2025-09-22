@@ -7,20 +7,20 @@ import (
 	"sync/atomic"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql" //引入Mysql驱动
+	_ "github.com/lib/pq" //引入PostgreSQL驱动
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 )
 
-const defaultCharSet = "utf8mb4"
+const defaultSSLMode = "disable"
 
 type Config struct {
 	dbServer string
 	dbName   string
 	username string
 	password string
-	charSet  string
+	sslMode  string
 }
 
 func (s *Config) Server() string {
@@ -39,12 +39,12 @@ func (s *Config) Password() string {
 	return s.password
 }
 
-func (s *Config) CharSet() string {
-	if s.charSet == "" {
-		return defaultCharSet
+func (s *Config) SSLMode() string {
+	if s.sslMode == "" {
+		return defaultSSLMode
 	}
 
-	return s.charSet
+	return s.sslMode
 }
 
 func (s *Config) Same(cfg *Config) bool {
@@ -54,8 +54,8 @@ func (s *Config) Same(cfg *Config) bool {
 		s.password == cfg.password
 }
 
-func NewConfig(dbServer, dbName, username, password, charSet string) *Config {
-	return &Config{dbServer: dbServer, dbName: dbName, username: username, password: password, charSet: charSet}
+func NewConfig(dbServer, dbName, username, password, sslMode string) *Config {
+	return &Config{dbServer: dbServer, dbName: dbName, username: username, password: password, sslMode: sslMode}
 }
 
 // Executor Executor
@@ -74,7 +74,7 @@ type Executor struct {
 
 // NewExecutor 新建一个数据访问对象
 func NewExecutor(config *Config) (ret *Executor, err *cd.Error) {
-	connectStr := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=%s", config.Username(), config.Password(), config.Server(), config.Database(), config.CharSet())
+	connectStr := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=%s", config.Server(), config.Username(), config.Password(), config.Database(), config.SSLMode())
 
 	executorPtr := &Executor{connectStr: connectStr, dbHandle: nil, dbTx: nil, rowsHandle: nil, dbName: config.Database()}
 	err = executorPtr.Connect()
@@ -88,7 +88,7 @@ func NewExecutor(config *Config) (ret *Executor, err *cd.Error) {
 }
 
 func (s *Executor) Connect() (err *cd.Error) {
-	dbHandle, dbErr := sql.Open("mysql", s.connectStr)
+	dbHandle, dbErr := sql.Open("postgres", s.connectStr)
 	if dbErr != nil {
 		err = cd.NewError(cd.Unexpected, dbErr.Error())
 		log.Errorf("open database exception, connectStr:%s, err:%s", s.connectStr, err.Error())
@@ -371,8 +371,8 @@ func (s *Executor) Execute(sql string, args ...any) (rowsAffected int64, lastIns
 
 // CheckTableExist Check Table Exist
 func (s *Executor) CheckTableExist(tableName string) (ret bool, err *cd.Error) {
-	strSQL := "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_NAME =? and TABLE_SCHEMA =?"
-	_, err = s.Query(strSQL, false, tableName, s.dbName)
+	strSQL := "SELECT tablename FROM pg_tables WHERE tablename = $1 AND schemaname = 'public'"
+	_, err = s.Query(strSQL, false, tableName)
 	if err != nil {
 		log.Errorf("CheckTableExist failed, s.Query error:%s", err.Error())
 		return

@@ -20,6 +20,12 @@ func traceSQL() bool {
 }
 
 func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err *cd.Error) {
+	// 检查是否为自增字段
+	isAutoIncrement := false
+	if fSpec != nil && fSpec.IsPrimaryKey() && fType.GetValue().IsNumberValueType() {
+		isAutoIncrement = model.IsAutoIncrementDeclare(fSpec.GetValueDeclare())
+	}
+
 	switch fType.GetValue() {
 	case model.TypeStringValue:
 		if fSpec.IsPrimaryKey() {
@@ -28,19 +34,33 @@ func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err *cd.Err
 			ret = "TEXT"
 		}
 	case model.TypeDateTimeValue:
-		ret = "DATETIME"
-	case model.TypeBooleanValue, model.TypeBitValue:
-		ret = "TINYINT"
-	case model.TypeSmallIntegerValue, model.TypePositiveBitValue:
+		ret = "TIMESTAMP"
+	case model.TypeBooleanValue:
+		ret = "BOOLEAN"
+	case model.TypeBitValue:
 		ret = "SMALLINT"
+	case model.TypeSmallIntegerValue, model.TypePositiveBitValue:
+		if isAutoIncrement {
+			ret = "SMALLSERIAL"
+		} else {
+			ret = "SMALLINT"
+		}
 	case model.TypeIntegerValue, model.TypeInteger32Value, model.TypePositiveSmallIntegerValue:
-		ret = "INT"
+		if isAutoIncrement {
+			ret = "SERIAL"
+		} else {
+			ret = "INTEGER"
+		}
 	case model.TypeBigIntegerValue, model.TypePositiveIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue:
-		ret = "BIGINT"
+		if isAutoIncrement {
+			ret = "BIGSERIAL"
+		} else {
+			ret = "BIGINT"
+		}
 	case model.TypeFloatValue:
-		ret = "FLOAT"
+		ret = "REAL"
 	case model.TypeDoubleValue:
-		ret = "DOUBLE"
+		ret = "DOUBLE PRECISION"
 	case model.TypeSliceValue:
 		ret = "TEXT"
 	default:

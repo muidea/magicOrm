@@ -33,9 +33,9 @@ func (s *Builder) BuildCreateTable(vModel model.Model) (ret *ResultStack, err *c
 	}
 
 	pkFieldName := vModel.GetPrimaryField().GetName()
-	createSQL = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", createSQL, pkFieldName)
+	createSQL = fmt.Sprintf("%s,\n\tPRIMARY KEY (\"%s\")", createSQL, pkFieldName)
 
-	createSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", s.buildCodec.ConstructModelTableName(vModel), createSQL)
+	createSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS \"%s\" (\n%s\n)\n", s.buildCodec.ConstructModelTableName(vModel), createSQL)
 	if traceSQL() {
 		log.Infof("[SQL] create: %s", createSQL)
 	}
@@ -47,7 +47,7 @@ func (s *Builder) BuildCreateTable(vModel model.Model) (ret *ResultStack, err *c
 // BuildCreateRelationTable Build CreateRelation Schema
 func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Field) (ret *ResultStack, err *cd.Error) {
 	lPKField := vModel.GetPrimaryField()
-	lPKType, lPKErr := getTypeDeclare(lPKField.GetType(), lPKField.GetSpec())
+	_, lPKErr := getTypeDeclare(lPKField.GetType(), lPKField.GetSpec())
 	if lPKErr != nil {
 		err = lPKErr
 		log.Errorf("BuildCreateRelationTable failed, getTypeDeclare error:%s", err.Error())
@@ -76,8 +76,8 @@ func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Fiel
 		return
 	}
 
-	createRelationSQL := fmt.Sprintf("\t`id` BIGINT NOT NULL AUTO_INCREMENT,\n\t`left` %s NOT NULL,\n\t`right` %s NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`)", lPKType, rPKType)
-	createRelationSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", relationTableName, createRelationSQL)
+	createRelationSQL := fmt.Sprintf("\t\"id\" BIGSERIAL NOT NULL,\n\t\"left\" %s NOT NULL,\n\t\"right\" %s NOT NULL,\n\tPRIMARY KEY (\"id\"),\n\tINDEX(\"left\")", "BIGINT", rPKType)
+	createRelationSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS \"%s\" (\n%s\n)\n", relationTableName, createRelationSQL)
 	if traceSQL() {
 		log.Infof("[SQL] create relation: %s", createRelationSQL)
 	}
@@ -89,14 +89,14 @@ func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Fiel
 // declareFieldInfo declare field info
 // 根据字段类型和字段特性生成字段定义
 // 类似以下信息
-// `id` int(11) NOT NULL AUTO_INCREMENT
-// `i8` tinyint(4) DEFAULT '100',
+// "id" int(11) NOT NULL AUTO_INCREMENT
+// "i8" tinyint(4) DEFAULT '100',
 func (s *Builder) declareFieldInfo(vField model.Field) (ret string, err *cd.Error) {
 	strBuffer := bytes.NewBufferString("")
 	// Write field name
-	strBuffer.WriteString("`")
+	strBuffer.WriteString("\"")
 	strBuffer.WriteString(vField.GetName())
-	strBuffer.WriteString("`")
+	strBuffer.WriteString("\"")
 
 	// Write field type
 	typeVal, typeErr := getTypeDeclare(vField.GetType(), vField.GetSpec())
@@ -135,7 +135,9 @@ func (s *Builder) declareFieldInfo(vField model.Field) (ret string, err *cd.Erro
 	}
 
 	if autoIncVal {
-		strBuffer.WriteString(" AUTO_INCREMENT")
+		// PostgreSQL 使用 SERIAL 类型代替 AUTO_INCREMENT
+		// 这里需要修改字段类型而不是添加 AUTO_INCREMENT 关键字
+		// 在 getTypeDeclare 中已经处理了 SERIAL 类型
 	}
 
 	ret = strBuffer.String()

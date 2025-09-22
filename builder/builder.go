@@ -3,7 +3,7 @@ package builder
 import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/database/mysql"
+	"github.com/muidea/magicOrm/database/postgres"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
 )
@@ -28,7 +28,7 @@ type Builder interface {
 }
 
 type builderImpl struct {
-	builder *mysql.Builder
+	builder *postgres.Builder
 }
 
 func (s *builderImpl) BuildCreateTable(vModel model.Model) (Result, *cd.Error) {
@@ -90,6 +90,6 @@ func (s *builderImpl) BuildQueryRelationPlaceHolder(vModel model.Model, vField m
 // NewBuilder new builder
 func NewBuilder(provider provider.Provider, codec codec.Codec) Builder {
 	return &builderImpl{
-		builder: mysql.New(provider, codec),
+		builder: postgres.New(provider, codec),
 	}
 }

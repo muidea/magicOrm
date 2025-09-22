@@ -19,7 +19,7 @@ func (s *Builder) BuildDelete(vModel model.Model) (ret *ResultStack, err *cd.Err
 		return
 	}
 
-	deleteSQL := fmt.Sprintf("DELETE FROM `%s` WHERE %s", s.buildCodec.ConstructModelTableName(vModel), filterStr)
+	deleteSQL := fmt.Sprintf("DELETE FROM \"%s\" WHERE %s", s.buildCodec.ConstructModelTableName(vModel), filterStr)
 	if traceSQL() {
 		log.Infof("[SQL] delete: %s", deleteSQL)
 	}
@@ -47,7 +47,7 @@ func (s *Builder) BuildDeleteRelation(vModel model.Model, vField model.Field) (d
 	}
 
 	delHostStackPtr := &ResultStack{}
-	delHostSQL := fmt.Sprintf("DELETE FROM `%s` WHERE `%s` IN (SELECT `right` FROM `%s` WHERE `left`=?)",
+	delHostSQL := fmt.Sprintf("DELETE FROM \"%s\" WHERE \"%s\" IN (SELECT \"right\" FROM \"%s\" WHERE \"left\"=?)",
 		s.buildCodec.ConstructModelTableName(vField.GetType()),
 		rModel.GetPrimaryField().GetName(),
 		relationTableName)
@@ -56,7 +56,7 @@ func (s *Builder) BuildDeleteRelation(vModel model.Model, vField model.Field) (d
 	delHost = delHostStackPtr
 
 	delRelationStackPtr := &ResultStack{}
-	delRelationSQL := fmt.Sprintf("DELETE FROM `%s` WHERE `left`=?", relationTableName)
+	delRelationSQL := fmt.Sprintf("DELETE FROM \"%s\" WHERE \"left\"=?", relationTableName)
 	delRelationStackPtr.SetSQL(delRelationSQL)
 	delRelationStackPtr.PushArgs(hostVal)
 	delRelation = delRelationStackPtr

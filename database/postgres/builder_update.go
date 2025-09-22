@@ -25,7 +25,7 @@ func (s *Builder) BuildUpdate(vModel model.Model) (ret *ResultStack, err *cd.Err
 		return
 	}
 
-	updateSQL := fmt.Sprintf("UPDATE `%s` SET %s WHERE %s", s.buildCodec.ConstructModelTableName(vModel), updateStr, filterStr)
+	updateSQL := fmt.Sprintf("UPDATE \"%s\" SET %s WHERE %s", s.buildCodec.ConstructModelTableName(vModel), updateStr, filterStr)
 	if traceSQL() {
 		log.Infof("[SQL] update: %s", updateSQL)
 	}
@@ -55,9 +55,9 @@ func (s *Builder) buildFieldUpdateValues(vModel model.Model, resultStackPtr *Res
 
 		resultStackPtr.PushArgs(encodeVal)
 		if str == "" {
-			str = fmt.Sprintf("`%s` = ?", field.GetName())
+			str = fmt.Sprintf("\"%s\" = ?", field.GetName())
 		} else {
-			str = fmt.Sprintf("%s,`%s` = ?", str, field.GetName())
+			str = fmt.Sprintf("%s,\"%s\" = ?", str, field.GetName())
 		}
 	}
 

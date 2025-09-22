@@ -13,7 +13,7 @@ import (
 func (s *Builder) BuildCount(vModel model.Model, filter model.Filter) (ret *ResultStack, err *cd.Error) {
 	resultStackPtr := &ResultStack{}
 	pkFieldName := vModel.GetPrimaryField().GetName()
-	countSQL := fmt.Sprintf("SELECT COUNT(`%s`) FROM `%s`", pkFieldName, s.buildCodec.ConstructModelTableName(vModel))
+	countSQL := fmt.Sprintf("SELECT COUNT(\"%s\") FROM \"%s\"", pkFieldName, s.buildCodec.ConstructModelTableName(vModel))
 	if filter != nil {
 		filterSQL, filterErr := s.buildFilter(vModel, filter, resultStackPtr)
 		if filterErr != nil {

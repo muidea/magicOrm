@@ -124,8 +124,8 @@ func (s *Builder) buildRelationFilterItem(vModel model.Model, vField model.Field
 	}
 
 	pkField := vModel.GetPrimaryField()
-	relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(`left`) `id`  FROM `%s` WHERE %s", relationTableName, strVal)
-	relationFilterSQL = fmt.Sprintf("`%s` IN (%s)", pkField.GetName(), relationFilterSQL)
+	relationFilterSQL = fmt.Sprintf("SELECT DISTINCT(\"left\") \"id\"  FROM \"%s\" WHERE %s", relationTableName, strVal)
+	relationFilterSQL = fmt.Sprintf("\"%s\" IN (%s)", pkField.GetName(), relationFilterSQL)
 	ret = relationFilterSQL
 	return
 }
@@ -150,6 +150,6 @@ func (s *Builder) buildSorter(vModel model.Model, filter model.Sorter) (ret stri
 func (s *Builder) buildFieldFilter(vField model.Field, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
 	fieldName := vField.GetName()
 	resultStackPtr.PushArgs(vField.GetValue().Get())
-	ret = fmt.Sprintf("`%s` = ?", fieldName)
+	ret = fmt.Sprintf("\"%s\" = ?", fieldName)
 	return
 }

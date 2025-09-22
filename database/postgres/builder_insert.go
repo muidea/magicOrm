@@ -33,9 +33,9 @@ func (s *Builder) BuildInsert(vModel model.Model) (ret *ResultStack, err *cd.Err
 		}
 
 		if fieldNames == "" {
-			fieldNames = fmt.Sprintf("`%s`", field.GetName())
+			fieldNames = fmt.Sprintf("\"%s\"", field.GetName())
 		} else {
-			fieldNames = fmt.Sprintf("%s,`%s`", fieldNames, field.GetName())
+			fieldNames = fmt.Sprintf("%s,\"%s\"", fieldNames, field.GetName())
 		}
 
 		resultStackPtr.PushArgs(encodeVal)
@@ -46,7 +46,7 @@ func (s *Builder) BuildInsert(vModel model.Model) (ret *ResultStack, err *cd.Err
 		}
 	}
 
-	insertSQL := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.buildCodec.ConstructModelTableName(vModel), fieldNames, fieldValues)
+	insertSQL := fmt.Sprintf("INSERT INTO \"%s\" (%s) VALUES (%s)", s.buildCodec.ConstructModelTableName(vModel), fieldNames, fieldValues)
 	if traceSQL() {
 		log.Infof("[SQL] insert: %s", insertSQL)
 	}
@@ -68,7 +68,7 @@ func (s *Builder) BuildInsertRelation(vModel model.Model, vField model.Field, rM
 	leftVal := vModel.GetPrimaryField().GetValue().Get()
 	rightVal := rModel.GetPrimaryField().GetValue().Get()
 	resultStackPtr := &ResultStack{}
-	insertRelationSQL := fmt.Sprintf("INSERT INTO `%s` (`left`, `right`) VALUES (?,?)", relationTableName)
+	insertRelationSQL := fmt.Sprintf("INSERT INTO \"%s\" (\"left\", \"right\") VALUES (?,?)", relationTableName)
 	resultStackPtr.PushArgs(leftVal, rightVal)
 	resultStackPtr.SetSQL(insertRelationSQL)
 	//log.Print(ret)

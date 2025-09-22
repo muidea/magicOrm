@@ -39,6 +39,11 @@ github.com/google/uuid
 ## explicit; go 1.18
 github.com/leodido/go-urn
 github.com/leodido/go-urn/scim/schema
+# github.com/lib/pq v1.10.9
+## explicit; go 1.13
+github.com/lib/pq
+github.com/lib/pq/oid
+github.com/lib/pq/scram
 # github.com/muidea/magicCommon v1.4.13 => ../magicCommon
 ## explicit; go 1.24
 github.com/muidea/magicCommon/def

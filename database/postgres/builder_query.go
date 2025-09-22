@@ -19,7 +19,7 @@ func (s *Builder) BuildQuery(vModel model.Model, filter model.Filter) (ret *Resu
 	}
 
 	resultStackPtr := &ResultStack{}
-	querySQL := fmt.Sprintf("SELECT %s FROM `%s`", namesVal, s.buildCodec.ConstructModelTableName(vModel))
+	querySQL := fmt.Sprintf("SELECT %s FROM \"%s\"", namesVal, s.buildCodec.ConstructModelTableName(vModel))
 	if filter != nil {
 		filterSQL, filterErr := s.buildFilter(vModel, filter, resultStackPtr)
 		if filterErr != nil {
@@ -69,7 +69,7 @@ func (s *Builder) BuildQueryRelation(vModel model.Model, vField model.Field) (re
 	}
 
 	resultStackPtr := &ResultStack{}
-	queryRelationSQL := fmt.Sprintf("SELECT `right` FROM `%s` WHERE `left`= ?", relationTableName)
+	queryRelationSQL := fmt.Sprintf("SELECT \"right\" FROM \"%s\" WHERE \"left\"= ?", relationTableName)
 	if traceSQL() {
 		log.Infof("[SQL] query relation: %s", queryRelationSQL)
 	}
@@ -88,9 +88,9 @@ func (s *Builder) getFieldQueryNames(vModel model.Model) (ret string, err *cd.Er
 		}
 
 		if str == "" {
-			str = fmt.Sprintf("`%s`", field.GetName())
+			str = fmt.Sprintf("\"%s\"", field.GetName())
 		} else {
-			str = fmt.Sprintf("%s,`%s`", str, field.GetName())
+			str = fmt.Sprintf("%s,\"%s\"", str, field.GetName())
 		}
 	}
 
