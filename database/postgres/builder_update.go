@@ -55,9 +55,9 @@ func (s *Builder) buildFieldUpdateValues(vModel model.Model, resultStackPtr *Res
 
 		resultStackPtr.PushArgs(encodeVal)
 		if str == "" {
-			str = fmt.Sprintf("\"%s\" = ?", field.GetName())
+			str = fmt.Sprintf("\"%s\" = $%d", field.GetName(), len(resultStackPtr.Args()))
 		} else {
-			str = fmt.Sprintf("%s,\"%s\" = ?", str, field.GetName())
+			str = fmt.Sprintf("%s,\"%s\" = $%d", str, field.GetName(), len(resultStackPtr.Args()))
 		}
 	}
 

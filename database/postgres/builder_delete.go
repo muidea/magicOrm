@@ -47,7 +47,7 @@ func (s *Builder) BuildDeleteRelation(vModel model.Model, vField model.Field) (d
 	}
 
 	delHostStackPtr := &ResultStack{}
-	delHostSQL := fmt.Sprintf("DELETE FROM \"%s\" WHERE \"%s\" IN (SELECT \"right\" FROM \"%s\" WHERE \"left\"=?)",
+	delHostSQL := fmt.Sprintf("DELETE FROM \"%s\" WHERE \"%s\" IN (SELECT \"right\" FROM \"%s\" WHERE \"left\"=$1)",
 		s.buildCodec.ConstructModelTableName(vField.GetType()),
 		rModel.GetPrimaryField().GetName(),
 		relationTableName)
@@ -56,7 +56,7 @@ func (s *Builder) BuildDeleteRelation(vModel model.Model, vField model.Field) (d
 	delHost = delHostStackPtr
 
 	delRelationStackPtr := &ResultStack{}
-	delRelationSQL := fmt.Sprintf("DELETE FROM \"%s\" WHERE \"left\"=?", relationTableName)
+	delRelationSQL := fmt.Sprintf("DELETE FROM \"%s\" WHERE \"left\"=$1", relationTableName)
 	delRelationStackPtr.SetSQL(delRelationSQL)
 	delRelationStackPtr.PushArgs(hostVal)
 	delRelation = delRelationStackPtr

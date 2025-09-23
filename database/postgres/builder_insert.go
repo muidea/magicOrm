@@ -14,6 +14,7 @@ func (s *Builder) BuildInsert(vModel model.Model) (ret *ResultStack, err *cd.Err
 	resultStackPtr := &ResultStack{}
 	fieldNames := ""
 	fieldValues := ""
+	offset := 0
 	for _, field := range vModel.GetFields() {
 		if !model.IsBasicField(field) || !model.IsValidField(field) {
 			continue
@@ -40,10 +41,11 @@ func (s *Builder) BuildInsert(vModel model.Model) (ret *ResultStack, err *cd.Err
 
 		resultStackPtr.PushArgs(encodeVal)
 		if fieldValues == "" {
-			fieldValues = fmt.Sprintf("%v", "?")
+			fieldValues = fmt.Sprintf("$%d", offset+1)
 		} else {
-			fieldValues = fmt.Sprintf("%s,%v", fieldValues, "?")
+			fieldValues = fmt.Sprintf("%s,$%d", fieldValues, offset+1)
 		}
+		offset++
 	}
 
 	insertSQL := fmt.Sprintf("INSERT INTO \"%s\" (%s) VALUES (%s)", s.buildCodec.ConstructModelTableName(vModel), fieldNames, fieldValues)
@@ -68,7 +70,7 @@ func (s *Builder) BuildInsertRelation(vModel model.Model, vField model.Field, rM
 	leftVal := vModel.GetPrimaryField().GetValue().Get()
 	rightVal := rModel.GetPrimaryField().GetValue().Get()
 	resultStackPtr := &ResultStack{}
-	insertRelationSQL := fmt.Sprintf("INSERT INTO \"%s\" (\"left\", \"right\") VALUES (?,?)", relationTableName)
+	insertRelationSQL := fmt.Sprintf("INSERT INTO \"%s\" (\"left\", \"right\") VALUES ($1,$2)", relationTableName)
 	resultStackPtr.PushArgs(leftVal, rightVal)
 	resultStackPtr.SetSQL(insertRelationSQL)
 	//log.Print(ret)

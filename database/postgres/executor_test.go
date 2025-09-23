@@ -16,10 +16,10 @@ const (
 	monkeyDDL = 3
 )
 
-var databaseServer = "localhost"
-var databaseName = "testdb"
+var databaseServer = "localhost:5432"
+var databaseName = "magicplatform_db"
 var databaseUsername = "postgres"
-var databasePassword = "postgres"
+var databasePassword = "rootkit"
 var threadSize = 20
 var itemSize = 1
 var mode = 1

@@ -11,11 +11,12 @@ import (
 
 const localOwner = "local"
 
+var config = orm.NewConfig("localhost:5432", "magicplatform_db", "postgres", "rootkit", "")
+
 func TestOptional(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	localProvider := provider.NewLocalProvider(localOwner)
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")
@@ -116,7 +117,6 @@ func TestLocalSimple(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	localProvider := provider.NewLocalProvider(localOwner)
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")
@@ -197,7 +197,6 @@ func TestLocalReference(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	localProvider := provider.NewLocalProvider(localOwner)
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")
@@ -355,7 +354,6 @@ func TestLocalCompose(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	localProvider := provider.NewLocalProvider(localOwner)
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")
@@ -525,7 +523,6 @@ func TestLocalQuery(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	localProvider := provider.NewLocalProvider(localOwner)
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")
@@ -715,7 +712,6 @@ func TestLocalOnlineEntity(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	localProvider := provider.NewLocalProvider(localOwner)
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")

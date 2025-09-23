@@ -150,6 +150,6 @@ func (s *Builder) buildSorter(vModel model.Model, filter model.Sorter) (ret stri
 func (s *Builder) buildFieldFilter(vField model.Field, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
 	fieldName := vField.GetName()
 	resultStackPtr.PushArgs(vField.GetValue().Get())
-	ret = fmt.Sprintf("\"%s\" = ?", fieldName)
+	ret = fmt.Sprintf("\"%s\" = $%d", fieldName, len(resultStackPtr.Args()))
 	return
 }

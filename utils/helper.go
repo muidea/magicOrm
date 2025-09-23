@@ -91,7 +91,7 @@ func GetCurrentDateTime() (ret time.Time) {
 }
 
 func GetCurrentDateTimeStr() (ret string) {
-	ret = time.Now().UTC().Format(fu.CSTLayout)
+	ret = time.Now().UTC().Format(time.RFC3339)
 	return
 }
 
@@ -831,7 +831,7 @@ func ConvertToString(rVal reflect.Value) (ret string, err *cd.Error) {
 	case reflect.Struct:
 		switch rVal.Type().String() {
 		case "time.Time":
-			ret = rVal.Interface().(time.Time).Format(fu.CSTLayout)
+			ret = rVal.Interface().(time.Time).Format(time.RFC3339)
 		default:
 			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal string value, val type:%v", rVal.Type().String()))
 		}
@@ -860,7 +860,7 @@ func ConvertToDateTime(rVal reflect.Value) (ret time.Time, err *cd.Error) {
 			return
 		}
 
-		tVal, tErr := time.Parse(fu.CSTLayout, rVal.String())
+		tVal, tErr := time.Parse(time.RFC3339, rVal.String())
 		if tErr != nil {
 			err = cd.NewError(cd.Unexpected, tErr.Error())
 			return

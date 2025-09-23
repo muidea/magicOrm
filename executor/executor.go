@@ -2,7 +2,7 @@ package executor
 
 import (
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicOrm/database/mysql"
+	"github.com/muidea/magicOrm/database/postgres"
 )
 
 type Config interface {
@@ -37,11 +37,11 @@ type Pool interface {
 }
 
 func NewConfig(dbServer, dbName, username, password, charSet string) Config {
-	return mysql.NewConfig(dbServer, dbName, username, password, charSet)
+	return postgres.NewConfig(dbServer, dbName, username, password, charSet)
 }
 
 func NewExecutor(config Config) (Executor, *cd.Error) {
-	return mysql.NewExecutor(mysql.NewConfig(config.Server(), config.Database(), config.Username(), config.Password(), config.CharSet()))
+	return postgres.NewExecutor(postgres.NewConfig(config.Server(), config.Database(), config.Username(), config.Password(), config.CharSet()))
 }
 
 func NewPool() Pool {
@@ -49,13 +49,13 @@ func NewPool() Pool {
 }
 
 type poolImpl struct {
-	mysql.Pool
+	postgres.Pool
 	referenceCount int
 }
 
 func (s *poolImpl) Initialize(maxConnNum int, config Config) *cd.Error {
 	return s.Pool.Initialize(maxConnNum,
-		mysql.NewConfig(config.Server(), config.Database(), config.Username(), config.Password(), config.CharSet()))
+		postgres.NewConfig(config.Server(), config.Database(), config.Username(), config.Password(), config.CharSet()))
 }
 
 func (s *poolImpl) Uninitialized() {
@@ -67,7 +67,7 @@ func (s *poolImpl) GetExecutor() (Executor, *cd.Error) {
 }
 
 func (s *poolImpl) CheckConfig(config Config) *cd.Error {
-	return s.Pool.CheckConfig(mysql.NewConfig(config.Server(), config.Database(), config.Username(), config.Password(), config.CharSet()))
+	return s.Pool.CheckConfig(postgres.NewConfig(config.Server(), config.Database(), config.Username(), config.Password(), config.CharSet()))
 }
 
 func (s *poolImpl) IncReference() int {

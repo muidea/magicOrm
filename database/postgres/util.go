@@ -79,7 +79,10 @@ func getFieldPlaceHolder(fType model.Type) (ret interface{}, err *cd.Error) {
 	case model.TypeStringValue, model.TypeDateTimeValue:
 		val := ""
 		ret = &val
-	case model.TypeBooleanValue, model.TypeBitValue:
+	case model.TypeBooleanValue:
+		val := false
+		ret = &val
+	case model.TypeBitValue:
 		val := int8(0)
 		ret = &val
 	case model.TypeSmallIntegerValue:

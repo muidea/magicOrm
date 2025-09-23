@@ -14,6 +14,7 @@ import (
 )
 
 const defaultSSLMode = "disable"
+const defaultCharSet = "UTF8"
 
 type Config struct {
 	dbServer string
@@ -21,6 +22,7 @@ type Config struct {
 	username string
 	password string
 	sslMode  string
+	charSet  string
 }
 
 func (s *Config) Server() string {
@@ -47,6 +49,14 @@ func (s *Config) SSLMode() string {
 	return s.sslMode
 }
 
+func (s *Config) CharSet() string {
+	if s.charSet == "" {
+		return defaultCharSet
+	}
+
+	return s.charSet
+}
+
 func (s *Config) Same(cfg *Config) bool {
 	return s.dbServer == cfg.dbServer &&
 		s.dbName == cfg.dbName &&
@@ -54,8 +64,8 @@ func (s *Config) Same(cfg *Config) bool {
 		s.password == cfg.password
 }
 
-func NewConfig(dbServer, dbName, username, password, sslMode string) *Config {
-	return &Config{dbServer: dbServer, dbName: dbName, username: username, password: password, sslMode: sslMode}
+func NewConfig(dbServer, dbName, username, password, charSet string) *Config {
+	return &Config{dbServer: dbServer, dbName: dbName, username: username, password: password, sslMode: "disable"}
 }
 
 // Executor Executor
@@ -74,7 +84,7 @@ type Executor struct {
 
 // NewExecutor 新建一个数据访问对象
 func NewExecutor(config *Config) (ret *Executor, err *cd.Error) {
-	connectStr := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=%s", config.Server(), config.Username(), config.Password(), config.Database(), config.SSLMode())
+	connectStr := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=%s", config.Username(), config.Password(), config.Server(), config.Database(), config.SSLMode())
 
 	executorPtr := &Executor{connectStr: connectStr, dbHandle: nil, dbTx: nil, rowsHandle: nil, dbName: config.Database()}
 	err = executorPtr.Connect()
