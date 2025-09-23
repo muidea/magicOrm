@@ -133,7 +133,7 @@ func TestLocalSimple(t *testing.T) {
 		return
 	}
 
-	ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
+	ts, _ := time.Parse(time.RFC3339, "2018-01-02T15:04:05Z")
 	s1 := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
 
 	s1Model, s1Err := localProvider.GetEntityModel(s1)
