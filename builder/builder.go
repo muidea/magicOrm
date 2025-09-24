@@ -55,10 +55,6 @@ func (s *builderImpl) BuildQuery(vModel model.Model, vFilter model.Filter) (Resu
 	return s.builder.BuildQuery(vModel, vFilter)
 }
 
-func (s *builderImpl) GetModuleValueHolder(vModel model.Model) ([]any, *cd.Error) {
-	return s.builder.GetModuleValueHolder(vModel)
-}
-
 func (s *builderImpl) BuildCount(vModel model.Model, vFilter model.Filter) (Result, *cd.Error) {
 	return s.builder.BuildCount(vModel, vFilter)
 }
@@ -81,6 +77,10 @@ func (s *builderImpl) BuildDeleteRelation(vModel model.Model, vField model.Field
 
 func (s *builderImpl) BuildQueryRelation(vModel model.Model, vField model.Field) (Result, *cd.Error) {
 	return s.builder.BuildQueryRelation(vModel, vField)
+}
+
+func (s *builderImpl) GetModuleValueHolder(vModel model.Model) ([]any, *cd.Error) {
+	return s.builder.GetModuleValueHolder(vModel)
 }
 
 // NewBuilder new builder
