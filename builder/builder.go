@@ -24,8 +24,6 @@ type Builder interface {
 	BuildDeleteRelation(vModel model.Model, vField model.Field) (Result, Result, *cd.Error)
 	BuildQueryRelation(vModel model.Model, vField model.Field) (Result, *cd.Error)
 
-	GetFieldValueHolder(vField model.Field) (any, *cd.Error)
-	GetRelationFieldValueHolder(vModel model.Model, vField model.Field) (any, *cd.Error)
 	GetModuleValueHolder(vModel model.Model) ([]any, *cd.Error)
 }
 
@@ -79,14 +77,6 @@ func (s *builderImpl) BuildDeleteRelation(vModel model.Model, vField model.Field
 
 func (s *builderImpl) BuildQueryRelation(vModel model.Model, vField model.Field) (Result, *cd.Error) {
 	return s.builder.BuildQueryRelation(vModel, vField)
-}
-
-func (s *builderImpl) GetFieldValueHolder(vField model.Field) (any, *cd.Error) {
-	return s.builder.GetFieldValueHolder(vField)
-}
-
-func (s *builderImpl) GetRelationFieldValueHolder(vModel model.Model, vField model.Field) (any, *cd.Error) {
-	return s.builder.GetRelationFieldValueHolder(vModel, vField)
 }
 
 func (s *builderImpl) GetModuleValueHolder(vModel model.Model) ([]any, *cd.Error) {

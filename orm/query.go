@@ -239,7 +239,13 @@ func (s *QueryRunner) innerQueryRelationSingleModel(id any, vField model.Field, 
 		return
 	}
 
-	rModel.SetPrimaryFieldValue(id)
+	rVal, rErr := s.modelCodec.ExtractBasicFieldValue(rModel.GetPrimaryField(), id)
+	if rErr != nil {
+		err = rErr
+		log.Errorf("innerQueryRelationSingleModel failed, s.modelCodec.ExtractBasicFieldValue field:%s, id:%v, error:%v", rModel.GetPrimaryField().GetType().GetPkgKey(), id, err.Error())
+		return
+	}
+	rModel.SetPrimaryFieldValue(rVal)
 	vFilter, vErr := getModelFilter(rModel, s.modelProvider, s.modelCodec)
 	if vErr != nil {
 		err = vErr
@@ -284,8 +290,13 @@ func (s *QueryRunner) innerQueryRelationSliceModel(ids []any, vField model.Field
 			log.Errorf("innerQueryRelationSliceModel failed, s.modelProvider.GetTypeModel error:%v", err.Error())
 			return
 		}
-
-		svModel.SetPrimaryFieldValue(id)
+		rVal, rErr := s.modelCodec.ExtractBasicFieldValue(svModel.GetPrimaryField(), id)
+		if rErr != nil {
+			err = rErr
+			log.Errorf("innerQueryRelationSliceModel failed, s.modelCodec.ExtractBasicFieldValue error:%v", err.Error())
+			return
+		}
+		svModel.SetPrimaryFieldValue(rVal)
 		vFilter, vErr := getModelFilter(svModel, s.modelProvider, s.modelCodec)
 		if vErr != nil {
 			err = vErr

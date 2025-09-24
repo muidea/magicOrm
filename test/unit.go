@@ -23,13 +23,15 @@ type Unit struct {
 
 // ExtUnit ExtUnit
 type ExtUnit struct {
-	ID   int   `orm:"id key auto" view:"detail,lite"`
-	Unit *Unit `orm:"unit" view:"detail,lite"`
+	ID   int    `orm:"id key auto" view:"detail,lite"`
+	Name string `orm:"name" view:"detail,lite"`
+	Unit *Unit  `orm:"unit" view:"detail,lite"`
 }
 
 // ExtUnitList ExtUnitList
 type ExtUnitList struct {
 	ID       int    `orm:"id key auto" view:"detail,lite"`
+	Name     string `orm:"name" view:"detail,lite"`
 	Unit     Unit   `orm:"unit" view:"detail,lite"`
 	UnitList []Unit `orm:"unitlist" view:"detail,lite"`
 }

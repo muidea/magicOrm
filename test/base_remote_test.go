@@ -168,7 +168,7 @@ func TestRemoteReference(t *testing.T) {
 		return
 	}
 
-	ts, _ := time.ParseInLocation(util.CSTLayout, "2018-01-02 15:04:05", time.Local)
+	ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	strValue := "test code"
 	fValue := float32(12.34)
 	flag := true

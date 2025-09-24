@@ -19,16 +19,16 @@ func traceSQL() bool {
 	return false
 }
 
-func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err *cd.Error) {
+func getTypeDeclare(fType model.Type, fSpec model.Spec, atPKField bool) (ret string, err *cd.Error) {
 	// 检查是否为自增字段
 	isAutoIncrement := false
-	if fSpec != nil && fSpec.IsPrimaryKey() && fType.GetValue().IsNumberValueType() {
+	if fSpec != nil && fSpec.IsPrimaryKey() && fType.GetValue().IsNumberValueType() && atPKField {
 		isAutoIncrement = model.IsAutoIncrementDeclare(fSpec.GetValueDeclare())
 	}
 
 	switch fType.GetValue() {
 	case model.TypeStringValue:
-		if fSpec.IsPrimaryKey() {
+		if fSpec != nil && fSpec.IsPrimaryKey() {
 			ret = "VARCHAR(32)"
 		} else {
 			ret = "TEXT"

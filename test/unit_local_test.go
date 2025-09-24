@@ -126,26 +126,31 @@ func TestLocalDepends(t *testing.T) {
 
 	now, _ := time.Parse("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000")
 	obj := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true, IArray: []int{}, FArray: []float32{}, StrArray: []string{}}
-	ext := &ExtUnit{Unit: obj}
+	ext := &ExtUnit{
+		Name: "ExtUnit",
+		Unit: obj,
+	}
 
 	objList := []any{&Unit{}, &ExtUnit{}, &ExtUnitList{}}
-	registerLocalModel(provider, objList)
+	modelList, modelErr := registerLocalModel(provider, objList)
+	if modelErr != nil {
+		t.Errorf("register model failed, err:%s", modelErr.Error())
+		return
+	}
+	modelErr = dropModel(o1, modelList)
+	if modelErr != nil {
+		t.Errorf("drop model failed, err:%s", modelErr.Error())
+		return
+	}
+	modelErr = createModel(o1, modelList)
+	if modelErr != nil {
+		t.Errorf("create model failed, err:%s", modelErr.Error())
+		return
+	}
 
 	extModel, extErr := provider.GetEntityModel(ext)
 	if extErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", extErr.Error())
-		return
-	}
-
-	err = o1.Drop(extModel)
-	if err != nil {
-		t.Errorf("drop ext failed, err:%s", err.Error())
-		return
-	}
-
-	err = o1.Create(extModel)
-	if err != nil {
-		t.Errorf("create ext failed, err:%s", err.Error())
 		return
 	}
 
@@ -168,7 +173,11 @@ func TestLocalDepends(t *testing.T) {
 	}
 	obj = objModel.Interface(true).(*Unit)
 
-	ext2 := &ExtUnitList{Unit: *obj, UnitList: []Unit{}}
+	ext2 := &ExtUnitList{
+		Name:     "ext2",
+		Unit:     *obj,
+		UnitList: []Unit{},
+	}
 	ext2.UnitList = append(ext2.UnitList, *obj)
 	ext2Model, ext2Err := provider.GetEntityModel(ext2)
 	if ext2Err != nil {

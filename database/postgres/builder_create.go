@@ -61,7 +61,7 @@ func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Fiel
 	}
 
 	lPKField := vModel.GetPrimaryField()
-	lPKType, lPKErr := getTypeDeclare(lPKField.GetType(), nil)
+	lPKType, lPKErr := getTypeDeclare(lPKField.GetType(), lPKField.GetSpec(), false)
 	if lPKErr != nil {
 		err = lPKErr
 		log.Errorf("BuildCreateRelationTable %s failed, getTypeDeclare error:%s", lPKField.GetName(), err.Error())
@@ -69,7 +69,7 @@ func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Fiel
 	}
 
 	rPKField := rModel.GetPrimaryField()
-	rPKType, rPKErr := getTypeDeclare(rPKField.GetType(), nil)
+	rPKType, rPKErr := getTypeDeclare(rPKField.GetType(), rPKField.GetSpec(), false)
 	if rPKErr != nil {
 		err = rPKErr
 		log.Errorf("BuildCreateRelationTable %s failed, getTypeDeclare error:%s", rPKField.GetName(), err.Error())
@@ -78,7 +78,7 @@ func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Fiel
 
 	createRelationSQL := fmt.Sprintf("\t\"id\" BIGSERIAL NOT NULL,\n\t\"left\" %s NOT NULL,\n\t\"right\" %s NOT NULL,\n\tPRIMARY KEY (\"id\")", lPKType, rPKType)
 	createRelationSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS \"%s\" (\n%s\n)", relationTableName, createRelationSQL)
-	createRelationSQL = fmt.Sprintf("%s;\nCREATE INDEX \"%s_index\" ON \"%s\" (\"left\")", createRelationSQL, relationTableName, relationTableName)
+	createRelationSQL = fmt.Sprintf("%s;\nCREATE INDEX IF NOT EXISTS \"%s_index\" ON \"%s\" (\"left\")", createRelationSQL, relationTableName, relationTableName)
 	if traceSQL() {
 		log.Infof("[SQL] create relation: %s", createRelationSQL)
 	}
@@ -100,7 +100,7 @@ func (s *Builder) declareFieldInfo(vField model.Field) (ret string, err *cd.Erro
 	strBuffer.WriteString("\"")
 
 	// Write field type
-	typeVal, typeErr := getTypeDeclare(vField.GetType(), vField.GetSpec())
+	typeVal, typeErr := getTypeDeclare(vField.GetType(), vField.GetSpec(), true)
 	if typeErr != nil {
 		err = typeErr
 		log.Errorf("declareFieldInfo failed, getTypeDeclare error:%s", err.Error())

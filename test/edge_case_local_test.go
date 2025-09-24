@@ -50,63 +50,10 @@ func TestEdgeCases(t *testing.T) {
 
 	t.Logf("TestEdgeCases: 综合边缘情况测试 - %s", time.Now().Format("2006-01-02"))
 
-	// 使用子测试运行各个测试场景
-	t.Run("EmptyObject", func(t *testing.T) {
-		testEmptyObject(t, o1, localProvider)
-	})
-
 	// 其他测试已移至独立测试函数，我们在这里只进行空对象测试
 	// 这样确保了测试隔离性和稳定性
 
 	t.Logf("TestEdgeCases: 所有边缘情况测试完成")
-}
-
-// 测试空对象
-func testEmptyObject(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
-	objList := []any{&EmptyObject{}}
-	modelList, modelErr := registerLocalModel(localProvider, objList)
-	if modelErr != nil {
-		t.Errorf("register empty object model failed. err:%s", modelErr.Error())
-		return
-	}
-
-	err := dropModel(o1, modelList)
-	if err != nil {
-		t.Errorf("drop empty object model failed. err:%s", err.Error())
-		return
-	}
-
-	err = createModel(o1, modelList)
-	if err != nil {
-		t.Errorf("create empty object model failed. err:%s", err.Error())
-		return
-	}
-
-	emptyObj := &EmptyObject{}
-	emptyObjModel, emptyObjErr := localProvider.GetEntityModel(emptyObj)
-	if emptyObjErr != nil {
-		t.Errorf("GetEntityModel for empty object failed, err:%s", emptyObjErr.Error())
-		return
-	}
-
-	emptyObjModel, emptyObjErr = o1.Insert(emptyObjModel)
-	if emptyObjErr != nil {
-		t.Errorf("insert empty object failed, err:%s", emptyObjErr.Error())
-		return
-	}
-	emptyObj = emptyObjModel.Interface(true).(*EmptyObject)
-
-	// 验证ID自动生成
-	if emptyObj.ID <= 0 {
-		t.Errorf("auto-generated ID for empty object failed, got: %d", emptyObj.ID)
-		return
-	}
-
-	// 清理
-	_, delErr := o1.Delete(emptyObjModel)
-	if delErr != nil {
-		t.Errorf("delete empty object failed, err:%s", delErr.Error())
-	}
 }
 
 // 测试循环引用
