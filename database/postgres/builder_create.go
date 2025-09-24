@@ -46,14 +46,6 @@ func (s *Builder) BuildCreateTable(vModel model.Model) (ret *ResultStack, err *c
 
 // BuildCreateRelationTable Build CreateRelation Schema
 func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Field) (ret *ResultStack, err *cd.Error) {
-	lPKField := vModel.GetPrimaryField()
-	_, lPKErr := getTypeDeclare(lPKField.GetType(), lPKField.GetSpec())
-	if lPKErr != nil {
-		err = lPKErr
-		log.Errorf("BuildCreateRelationTable failed, getTypeDeclare error:%s", err.Error())
-		return
-	}
-
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
@@ -68,15 +60,23 @@ func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Fiel
 		return
 	}
 
-	rPKField := rModel.GetPrimaryField()
-	rPKType, rPKErr := getTypeDeclare(rPKField.GetType(), rPKField.GetSpec())
-	if rPKErr != nil {
-		err = rPKErr
-		log.Errorf("BuildCreateRelationTable failed, getTypeDeclare error:%s", err.Error())
+	lPKField := vModel.GetPrimaryField()
+	lPKType, lPKErr := getTypeDeclare(lPKField.GetType(), nil)
+	if lPKErr != nil {
+		err = lPKErr
+		log.Errorf("BuildCreateRelationTable %s failed, getTypeDeclare error:%s", lPKField.GetName(), err.Error())
 		return
 	}
 
-	createRelationSQL := fmt.Sprintf("\t\"id\" BIGSERIAL NOT NULL,\n\t\"left\" %s NOT NULL,\n\t\"right\" %s NOT NULL,\n\tPRIMARY KEY (\"id\")", "BIGINT", rPKType)
+	rPKField := rModel.GetPrimaryField()
+	rPKType, rPKErr := getTypeDeclare(rPKField.GetType(), nil)
+	if rPKErr != nil {
+		err = rPKErr
+		log.Errorf("BuildCreateRelationTable %s failed, getTypeDeclare error:%s", rPKField.GetName(), err.Error())
+		return
+	}
+
+	createRelationSQL := fmt.Sprintf("\t\"id\" BIGSERIAL NOT NULL,\n\t\"left\" %s NOT NULL,\n\t\"right\" %s NOT NULL,\n\tPRIMARY KEY (\"id\")", lPKType, rPKType)
 	createRelationSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS \"%s\" (\n%s\n)", relationTableName, createRelationSQL)
 	createRelationSQL = fmt.Sprintf("%s;\nCREATE INDEX \"%s_index\" ON \"%s\" (\"left\")", createRelationSQL, relationTableName, relationTableName)
 	if traceSQL() {

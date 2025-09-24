@@ -25,8 +25,6 @@ type Builder interface {
 	BuildQueryRelation(vModel model.Model, vField model.Field) (Result, *cd.Error)
 
 	GetModuleValueHolder(vModel model.Model) ([]any, *cd.Error)
-	GetFieldValueHolder(vField model.Field) (any, *cd.Error)
-	GetRelationFieldValueHolder(vModel model.Model, vField model.Field) (any, *cd.Error)
 }
 
 type builderImpl struct {
@@ -61,10 +59,6 @@ func (s *builderImpl) GetModuleValueHolder(vModel model.Model) ([]any, *cd.Error
 	return s.builder.GetModuleValueHolder(vModel)
 }
 
-func (s *builderImpl) GetFieldValueHolder(vField model.Field) (any, *cd.Error) {
-	return s.builder.GetFieldPlaceHolder(vField)
-}
-
 func (s *builderImpl) BuildCount(vModel model.Model, vFilter model.Filter) (Result, *cd.Error) {
 	return s.builder.BuildCount(vModel, vFilter)
 }
@@ -87,10 +81,6 @@ func (s *builderImpl) BuildDeleteRelation(vModel model.Model, vField model.Field
 
 func (s *builderImpl) BuildQueryRelation(vModel model.Model, vField model.Field) (Result, *cd.Error) {
 	return s.builder.BuildQueryRelation(vModel, vField)
-}
-
-func (s *builderImpl) GetRelationFieldValueHolder(vModel model.Model, vField model.Field) (any, *cd.Error) {
-	return s.builder.GetRelationFieldValueHolder(vModel, vField)
 }
 
 // NewBuilder new builder

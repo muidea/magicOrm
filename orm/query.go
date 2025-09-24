@@ -2,7 +2,6 @@ package orm
 
 import (
 	"fmt"
-	"reflect"
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
@@ -209,22 +208,13 @@ func (s *QueryRunner) innerQueryRelationKeys(vModel model.Model, vField model.Fi
 		defer s.executor.Finish()
 
 		for s.executor.Next() {
-			itemValue, itemErr := s.hBuilder.GetRelationFieldValueHolder(vModel, vField)
-			if itemErr != nil {
-				err = itemErr
-				log.Errorf("innerQueryRelationKeys field:%s failed, s.getModelPKFieldPlaceHolder error:%v", vField.GetName(), err.Error())
-				return
-			}
-
-			err = s.executor.GetField(itemValue)
+			var idVal any
+			err = s.executor.GetField(&idVal)
 			if err != nil {
 				log.Errorf("innerQueryRelationKeys field:%s failed, s.executor.GetField error:%v", vField.GetName(), err.Error())
 				return
 			}
-
-			// 这里需要去除指针
-			rawVal := reflect.Indirect(reflect.ValueOf(itemValue)).Interface()
-			values = append(values, rawVal)
+			values = append(values, idVal)
 		}
 	}()
 
