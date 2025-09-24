@@ -55,8 +55,12 @@ func (s *QueryRunner) innerQuery(vModel model.Model, filter model.Filter) (ret r
 			log.Errorf("innerQuery failed, getModelFieldsPlaceHolder error:%s", err.Error())
 			return
 		}
+		referenceVal := make([]any, len(itemValues))
+		for idx := range itemValues {
+			referenceVal[idx] = &itemValues[idx]
+		}
 
-		err = s.executor.GetField(itemValues...)
+		err = s.executor.GetField(referenceVal...)
 		if err != nil {
 			log.Errorf("innerQuery failed, s.executor.GetField error:%s", err.Error())
 			return

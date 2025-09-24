@@ -73,13 +73,19 @@ func (s *InsertRunner) innerHost(vModel model.Model) (ret any, err *cd.Error) {
 		return
 	}
 
-	idErr := s.executor.ExecuteInsert(insertResult.SQL(), &ret, insertResult.Args()...)
+	idVal, idErr := s.hBuilder.GetFieldValueHolder(vModel.GetPrimaryField())
+	if idErr != nil {
+		err = idErr
+		return
+	}
+	idErr = s.executor.ExecuteInsert(insertResult.SQL(), &idVal, insertResult.Args()...)
 	if idErr != nil {
 		err = idErr
 		log.Errorf("innerHost failed, s.executor.Execute error:%s", err.Error())
 		return
 	}
 
+	ret = idVal
 	return
 }
 

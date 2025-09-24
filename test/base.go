@@ -97,7 +97,7 @@ func (l *Reference) IsSame(r *Reference) bool {
 	if l.FValue != r.FValue {
 		return false
 	}
-	if l.TimeStamp != r.TimeStamp {
+	if !l.TimeStamp.Equal(r.TimeStamp) {
 		return false
 	}
 	if l.Flag != r.Flag {

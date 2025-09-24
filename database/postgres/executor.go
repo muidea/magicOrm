@@ -260,7 +260,7 @@ func (s *ConnExecutor) Finish() {
 	}
 }
 
-func (s *ConnExecutor) GetField(value ...interface{}) (err *cd.Error) {
+func (s *ConnExecutor) GetField(value ...any) (err *cd.Error) {
 	if s.rowsHandle == nil {
 		panic("rowsHandle is nil")
 	}
@@ -566,7 +566,7 @@ func (s *HostExecutor) Finish() {
 	}
 }
 
-func (s *HostExecutor) GetField(value ...interface{}) (err *cd.Error) {
+func (s *HostExecutor) GetField(value ...any) (err *cd.Error) {
 	if s.rowsHandle == nil {
 		panic("rowsHandle is nil")
 	}

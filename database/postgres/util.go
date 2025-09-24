@@ -74,51 +74,37 @@ func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err *cd.Err
 	return
 }
 
-func GetFieldValueHolder(fType model.Type) (ret interface{}, err *cd.Error) {
+func getFieldValueHolder(fType model.Type) (ret any, err *cd.Error) {
 	switch fType.GetValue() {
 	case model.TypeStringValue, model.TypeDateTimeValue:
-		val := ""
-		ret = &val
+		ret = ""
 	case model.TypeBooleanValue:
-		val := false
-		ret = &val
+		ret = false
 	case model.TypeBitValue:
-		val := int8(0)
-		ret = &val
+		ret = int8(0)
 	case model.TypeSmallIntegerValue:
-		val := int16(0)
-		ret = &val
+		ret = int16(0)
 	case model.TypeIntegerValue:
-		val := int(0)
-		ret = &val
+		ret = int(0)
 	case model.TypeInteger32Value:
-		val := int32(0)
-		ret = &val
+		ret = int32(0)
 	case model.TypeBigIntegerValue:
-		val := int64(0)
-		ret = &val
+		ret = int64(0)
 	case model.TypePositiveBitValue:
-		val := uint16(0)
-		ret = &val
+		ret = uint16(0)
 	case model.TypePositiveSmallIntegerValue:
-		val := uint32(0)
-		ret = &val
+		ret = uint32(0)
 	case model.TypePositiveIntegerValue:
-		val := uint(0)
-		ret = &val
+		ret = uint(0)
 	case model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue:
-		val := uint64(0)
-		ret = &val
+		ret = uint64(0)
 	case model.TypeFloatValue:
-		val := float32(0.00)
-		ret = &val
+		ret = float32(0.00)
 	case model.TypeDoubleValue:
-		val := 0.0000
-		ret = &val
+		ret = 0.0000
 	case model.TypeSliceValue:
 		if model.IsBasic(fType.Elem()) {
-			val := ""
-			ret = &val
+			ret = ""
 		} else {
 			err = cd.NewError(cd.Unexpected, fmt.Sprintf("no support fileType, type:%v", fType.GetPkgKey()))
 		}

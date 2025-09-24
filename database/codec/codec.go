@@ -196,11 +196,11 @@ func (s *codecImpl) ExtractBasicFieldValue(vField model.Field, eVal any) (ret an
 	vType := vField.GetType()
 	switch vType.GetValue() {
 	case model.TypeSliceValue:
-		strVal, strOK := eVal.(*string)
+		strVal, strOK := eVal.(string)
 		if strOK {
-			if *strVal != "" {
+			if strVal != "" {
 				vArray := []any{}
-				byteErr := json.Unmarshal([]byte(*strVal), &vArray)
+				byteErr := json.Unmarshal([]byte(strVal), &vArray)
 				if byteErr != nil {
 					err = cd.NewError(cd.Unexpected, byteErr.Error())
 					return

@@ -98,8 +98,8 @@ func (s *Builder) getFieldQueryNames(vModel model.Model) (ret string, err *cd.Er
 	return
 }
 
-func (s *Builder) GetFieldPlaceHolder(vField model.Field) (any, *cd.Error) {
-	return GetFieldValueHolder(vField.GetType())
+func (s *Builder) GetFieldValueHolder(vField model.Field) (any, *cd.Error) {
+	return getFieldValueHolder(vField.GetType())
 }
 
 func (s *Builder) GetModuleValueHolder(vModel model.Model) (ret []any, err *cd.Error) {
@@ -109,7 +109,7 @@ func (s *Builder) GetModuleValueHolder(vModel model.Model) (ret []any, err *cd.E
 			continue
 		}
 
-		itemVal, itemErr := GetFieldValueHolder(field.GetType())
+		itemVal, itemErr := getFieldValueHolder(field.GetType())
 		if itemErr != nil {
 			err = itemErr
 			log.Errorf("GetModuleValueHolder failed, getFieldPlaceHolder error:%s", err.Error())
@@ -131,5 +131,5 @@ func (s *Builder) GetRelationFieldValueHolder(vModel model.Model, vField model.F
 		return
 	}
 
-	return GetFieldValueHolder(rModelVal.GetPrimaryField().GetType())
+	return getFieldValueHolder(rModelVal.GetPrimaryField().GetType())
 }
