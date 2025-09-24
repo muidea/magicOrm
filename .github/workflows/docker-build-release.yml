@@ -9,14 +9,15 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      mysql:
-        image: mysql:5.7
+      postgres:
+        image: docker.io/postgres:17.2-alpine
         env:
-          MYSQL_DATABASE: testdb
-          MYSQL_ROOT_PASSWORD: rootkit
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: rootkit
+          POSTGRES_DB: magicplatform_db
         ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+          - 5432:5432
+        options: --health-cmd="pg_isready -U postgres" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
       - uses: actions/checkout@v4
