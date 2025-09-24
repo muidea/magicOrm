@@ -76,8 +76,9 @@ func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Fiel
 		return
 	}
 
-	createRelationSQL := fmt.Sprintf("\t\"id\" BIGSERIAL NOT NULL,\n\t\"left\" %s NOT NULL,\n\t\"right\" %s NOT NULL,\n\tPRIMARY KEY (\"id\"),\n\tINDEX(\"left\")", "BIGINT", rPKType)
-	createRelationSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS \"%s\" (\n%s\n)\n", relationTableName, createRelationSQL)
+	createRelationSQL := fmt.Sprintf("\t\"id\" BIGSERIAL NOT NULL,\n\t\"left\" %s NOT NULL,\n\t\"right\" %s NOT NULL,\n\tPRIMARY KEY (\"id\")", "BIGINT", rPKType)
+	createRelationSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS \"%s\" (\n%s\n)", relationTableName, createRelationSQL)
+	createRelationSQL = fmt.Sprintf("%s;\nCREATE INDEX \"%s_index\" ON \"%s\" (\"left\")", createRelationSQL, relationTableName, relationTableName)
 	if traceSQL() {
 		log.Infof("[SQL] create relation: %s", createRelationSQL)
 	}

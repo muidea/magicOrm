@@ -1,6 +1,8 @@
 package executor
 
 import (
+	"context"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/database/postgres"
 )
@@ -22,15 +24,16 @@ type Executor interface {
 	Query(sql string, needCols bool, args ...any) (ret []string, err *cd.Error)
 	Next() bool
 	Finish()
-	GetField(value ...interface{}) *cd.Error
-	Execute(sql string, args ...any) (rowsAffected int64, lastInsertID int64, err *cd.Error)
+	GetField(value ...any) *cd.Error
+	Execute(sql string, args ...any) (rowsAffected int64, err *cd.Error)
+	ExecuteInsert(sql string, pkValOut any, args ...any) (err *cd.Error)
 	CheckTableExist(tableName string) (bool, *cd.Error)
 }
 
 type Pool interface {
 	Initialize(maxConnNum int, config Config) *cd.Error
 	Uninitialized()
-	GetExecutor() (Executor, *cd.Error)
+	GetExecutor(ctx context.Context) (Executor, *cd.Error)
 	CheckConfig(config Config) *cd.Error
 	IncReference() int
 	DecReference() int
@@ -41,7 +44,8 @@ func NewConfig(dbServer, dbName, username, password, charSet string) Config {
 }
 
 func NewExecutor(config Config) (Executor, *cd.Error) {
-	return postgres.NewExecutor(postgres.NewConfig(config.Server(), config.Database(), config.Username(), config.Password(), config.CharSet()))
+	return postgres.NewExecutor(
+		postgres.NewConfig(config.Server(), config.Database(), config.Username(), config.Password(), config.CharSet()))
 }
 
 func NewPool() Pool {
@@ -62,8 +66,8 @@ func (s *poolImpl) Uninitialized() {
 	s.Pool.Uninitialized()
 }
 
-func (s *poolImpl) GetExecutor() (Executor, *cd.Error) {
-	return s.Pool.GetExecutor()
+func (s *poolImpl) GetExecutor(ctx context.Context) (Executor, *cd.Error) {
+	return s.Pool.GetExecutor(ctx)
 }
 
 func (s *poolImpl) CheckConfig(config Config) *cd.Error {

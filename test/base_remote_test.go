@@ -13,11 +13,12 @@ import (
 
 const remoteOwner = "remote"
 
+//var config = orm.NewConfig("localhost:5432", "magicplatform_db", "postgres", "rootkit", "")
+
 func TestRemoteSimple(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	remoteProvider := provider.NewRemoteProvider(remoteOwner)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
@@ -139,7 +140,6 @@ func TestRemoteReference(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	remoteProvider := provider.NewRemoteProvider(remoteOwner)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
@@ -322,7 +322,6 @@ func TestRemoteCompose(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	remoteProvider := provider.NewRemoteProvider(remoteOwner)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
@@ -544,7 +543,6 @@ func TestRemoteQuery(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	remoteProvider := provider.NewRemoteProvider(remoteOwner)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
@@ -827,7 +825,6 @@ func TestRemoteOnlineEntity(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	remoteProvider := provider.NewRemoteProvider(remoteOwner)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")

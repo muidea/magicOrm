@@ -14,7 +14,7 @@ func TestEncodeValue(t *testing.T) {
 		input    interface{}
 		expected interface{}
 	}{
-		{"encode bool", true, int8(1)},
+		{"encode bool", true, true},
 		{"encode int8", int8(8), int8(8)},
 		{"encode int16", int16(16), int16(16)},
 		{"encode int32", int32(32), int32(32)},
@@ -27,7 +27,7 @@ func TestEncodeValue(t *testing.T) {
 		{"encode uint", uint(42), uint(42)},
 		{"encode float32", float32(3.14), float32(3.14)},
 		{"encode float64", 3.14, float64(3.14)},
-		{"encode []bool", []bool{true, false, true}, []int8{1, 0, 1}},
+		{"encode []bool", []bool{true, false, true}, []bool{true, false, true}},
 		{"encode []int", []int{1, 2, 3}, []int{1, 2, 3}},
 		{"encode []float64", []float64{1.23, 2.34, 3.45}, []float64{1.23, 2.34, 3.45}},
 		{"encode []string", []string{"a", "b", "c"}, []string{"a", "b", "c"}},

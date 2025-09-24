@@ -51,7 +51,7 @@ func (s *UpdateRunner) updateHost(vModel model.Model) (err *cd.Error) {
 		return
 	}
 
-	_, _, err = s.executor.Execute(updateResult.SQL(), updateResult.Args()...)
+	_, err = s.executor.Execute(updateResult.SQL(), updateResult.Args()...)
 	if err != nil {
 		log.Errorf("updateHost failed, s.executor.Execute error:%s", err.Error())
 	}

@@ -14,8 +14,11 @@ func (s *Builder) BuildInsert(vModel model.Model) (ret *ResultStack, err *cd.Err
 	resultStackPtr := &ResultStack{}
 	fieldNames := ""
 	fieldValues := ""
-	offset := 0
+	pkName := ""
 	for _, field := range vModel.GetFields() {
+		if model.IsPrimaryField(field) {
+			pkName = field.GetName()
+		}
 		if !model.IsBasicField(field) || !model.IsValidField(field) {
 			continue
 		}
@@ -41,14 +44,13 @@ func (s *Builder) BuildInsert(vModel model.Model) (ret *ResultStack, err *cd.Err
 
 		resultStackPtr.PushArgs(encodeVal)
 		if fieldValues == "" {
-			fieldValues = fmt.Sprintf("$%d", offset+1)
+			fieldValues = fmt.Sprintf("$%d", len(resultStackPtr.argsVal))
 		} else {
-			fieldValues = fmt.Sprintf("%s,$%d", fieldValues, offset+1)
+			fieldValues = fmt.Sprintf("%s,$%d", fieldValues, len(resultStackPtr.argsVal))
 		}
-		offset++
 	}
 
-	insertSQL := fmt.Sprintf("INSERT INTO \"%s\" (%s) VALUES (%s)", s.buildCodec.ConstructModelTableName(vModel), fieldNames, fieldValues)
+	insertSQL := fmt.Sprintf("INSERT INTO \"%s\" (%s) VALUES (%s) RETURNING %s", s.buildCodec.ConstructModelTableName(vModel), fieldNames, fieldValues, pkName)
 	if traceSQL() {
 		log.Infof("[SQL] insert: %s", insertSQL)
 	}
@@ -70,7 +72,7 @@ func (s *Builder) BuildInsertRelation(vModel model.Model, vField model.Field, rM
 	leftVal := vModel.GetPrimaryField().GetValue().Get()
 	rightVal := rModel.GetPrimaryField().GetValue().Get()
 	resultStackPtr := &ResultStack{}
-	insertRelationSQL := fmt.Sprintf("INSERT INTO \"%s\" (\"left\", \"right\") VALUES ($1,$2)", relationTableName)
+	insertRelationSQL := fmt.Sprintf("INSERT INTO \"%s\" (\"left\", \"right\") VALUES ($1,$2) RETURNING id", relationTableName)
 	resultStackPtr.PushArgs(leftVal, rightVal)
 	resultStackPtr.SetSQL(insertRelationSQL)
 	//log.Print(ret)

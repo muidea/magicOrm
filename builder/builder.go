@@ -16,7 +16,6 @@ type Builder interface {
 	BuildUpdate(vModel model.Model) (Result, *cd.Error)
 	BuildDelete(vModel model.Model) (Result, *cd.Error)
 	BuildQuery(vModel model.Model, vFilter model.Filter) (Result, *cd.Error)
-	BuildQueryPlaceHolder(vModel model.Model) ([]any, *cd.Error)
 	BuildCount(vModel model.Model, vFilter model.Filter) (Result, *cd.Error)
 
 	BuildCreateRelationTable(vModel model.Model, vField model.Field) (Result, *cd.Error)
@@ -24,7 +23,10 @@ type Builder interface {
 	BuildInsertRelation(vModel model.Model, vField model.Field, rModel model.Model) (Result, *cd.Error)
 	BuildDeleteRelation(vModel model.Model, vField model.Field) (Result, Result, *cd.Error)
 	BuildQueryRelation(vModel model.Model, vField model.Field) (Result, *cd.Error)
-	BuildQueryRelationPlaceHolder(vModel model.Model, vField model.Field) (any, *cd.Error)
+
+	GetModuleValueHolder(vModel model.Model) ([]any, *cd.Error)
+	GetFieldValueHolder(vField model.Field) (any, *cd.Error)
+	GetRelationFieldValueHolder(vModel model.Model, vField model.Field) (any, *cd.Error)
 }
 
 type builderImpl struct {
@@ -55,8 +57,12 @@ func (s *builderImpl) BuildQuery(vModel model.Model, vFilter model.Filter) (Resu
 	return s.builder.BuildQuery(vModel, vFilter)
 }
 
-func (s *builderImpl) BuildQueryPlaceHolder(vModel model.Model) ([]any, *cd.Error) {
-	return s.builder.BuildQueryPlaceHolder(vModel)
+func (s *builderImpl) GetModuleValueHolder(vModel model.Model) ([]any, *cd.Error) {
+	return s.builder.GetModuleValueHolder(vModel)
+}
+
+func (s *builderImpl) GetFieldValueHolder(vField model.Field) (any, *cd.Error) {
+	return s.builder.GetFieldPlaceHolder(vField)
 }
 
 func (s *builderImpl) BuildCount(vModel model.Model, vFilter model.Filter) (Result, *cd.Error) {
@@ -83,8 +89,8 @@ func (s *builderImpl) BuildQueryRelation(vModel model.Model, vField model.Field)
 	return s.builder.BuildQueryRelation(vModel, vField)
 }
 
-func (s *builderImpl) BuildQueryRelationPlaceHolder(vModel model.Model, vField model.Field) (any, *cd.Error) {
-	return s.builder.BuildQueryRelationPlaceHolder(vModel, vField)
+func (s *builderImpl) GetRelationFieldValueHolder(vModel model.Model, vField model.Field) (any, *cd.Error) {
+	return s.builder.GetRelationFieldValueHolder(vModel, vField)
 }
 
 // NewBuilder new builder

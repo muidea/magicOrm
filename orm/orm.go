@@ -1,6 +1,7 @@
 package orm
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
@@ -128,7 +129,7 @@ func GetOrm(provider provider.Provider, prefix string) (ret Orm, err *cd.Error) 
 	}
 
 	pool := val.(executor.Pool)
-	executorVal, executorErr := pool.GetExecutor()
+	executorVal, executorErr := pool.GetExecutor(context.Background())
 	if executorErr != nil {
 		err = executorErr
 		log.Errorf("GetOrm failed, pool.GetExecutor error:%s", err.Error())

@@ -102,7 +102,7 @@ func (s *Builder) GetFieldPlaceHolder(vField model.Field) (ret any, err *cd.Erro
 	return getFieldPlaceHolder(vField.GetType())
 }
 
-func (s *Builder) BuildQueryPlaceHolder(vModel model.Model) (ret []any, err *cd.Error) {
+func (s *Builder) GetModuleValueHolder(vModel model.Model) (ret []any, err *cd.Error) {
 	items := []any{}
 	for _, field := range vModel.GetFields() {
 		if !model.IsBasicField(field) || !model.IsValidField(field) {
@@ -112,7 +112,7 @@ func (s *Builder) BuildQueryPlaceHolder(vModel model.Model) (ret []any, err *cd.
 		itemVal, itemErr := getFieldPlaceHolder(field.GetType())
 		if itemErr != nil {
 			err = itemErr
-			log.Errorf("BuildQueryPlaceHolder failed, getFieldPlaceHolder error:%s", err.Error())
+			log.Errorf("GetModuleValueHolder failed, getFieldPlaceHolder error:%s", err.Error())
 			return
 		}
 
@@ -123,11 +123,11 @@ func (s *Builder) BuildQueryPlaceHolder(vModel model.Model) (ret []any, err *cd.
 	return
 }
 
-func (s *Builder) BuildQueryRelationPlaceHolder(vModel model.Model, vField model.Field) (ret any, err *cd.Error) {
+func (s *Builder) GetRelationFieldValueHolder(vModel model.Model, vField model.Field) (ret any, err *cd.Error) {
 	rModelVal, rModelErr := s.modelProvider.GetTypeModel(vField.GetType().Elem())
 	if rModelErr != nil {
 		err = rModelErr
-		log.Errorf("BuildQueryRelationPlaceHolder failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+		log.Errorf("GetRelationFieldValueHolder failed, s.modelProvider.GetTypeModel error:%s", err.Error())
 		return
 	}
 

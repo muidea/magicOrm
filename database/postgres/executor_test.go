@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"math/rand"
 	"sync"
 	"testing"
@@ -26,39 +27,7 @@ var mode = 1
 
 var finishFlag = false
 
-type funcPtr func(executor *Executor) *cd.Error
-
-func TestMasterSlaver(t *testing.T) {
-	pool := NewPool()
-	config := NewConfig(databaseServer, databaseName, databaseUsername, databasePassword, "")
-	pool.Initialize(50, config)
-	defer pool.Uninitialized()
-
-	executePtr, executeErr := pool.FetchOut()
-	if executeErr != nil {
-		t.Errorf("pool.FetchOut failed")
-		return
-	}
-
-	sql := "SELECT version()"
-	cols, queryErr := executePtr.Query(sql, true)
-	if queryErr != nil {
-		t.Errorf("executePtr.Query failed, error:%s", queryErr.Error())
-		return
-	}
-	if executePtr.Next() {
-		//executePtr.GetField()
-		t.Logf("ok, cols:%v", cols)
-	}
-
-	sql = "SELECT current_user"
-	_, _, executeErr = executePtr.Execute(sql)
-	if executeErr != nil {
-		t.Errorf("pool.FetchOut failed")
-		return
-	}
-
-}
+type funcPtr func(executor *ConnExecutor) *cd.Error
 
 func TestNewPool(t *testing.T) {
 	pool := NewPool()
@@ -100,7 +69,7 @@ func testDML(wg *sync.WaitGroup, pool *Pool) {
 	pickExecutor(pool, wg, createSchema)
 
 	wg.Add(1)
-	pickExecutor(pool, wg, func(executor *Executor) (err *cd.Error) {
+	pickExecutor(pool, wg, func(executor *ConnExecutor) (err *cd.Error) {
 		bVal, bErr := checkSchema(executor)
 		if bErr != nil {
 			log.Errorf("checkSchema failed, error:%s", bErr.Error())
@@ -159,7 +128,9 @@ func randomDDL(wg *sync.WaitGroup, pool *Pool) {
 }
 
 func pickExecutor(pool *Pool, wg *sync.WaitGroup, fPtr funcPtr) {
-	executorPtr, executorErr := pool.FetchOut()
+	executorPtr, executorErr := pool.GetExecutor(context.Background())
+	defer executorPtr.Release()
+
 	if executorErr != nil {
 		return
 	}
@@ -171,70 +142,68 @@ func pickExecutor(pool *Pool, wg *sync.WaitGroup, fPtr funcPtr) {
 		}
 	}
 
-	pool.PutIn(executorPtr)
-
 	wg.Done()
 }
 
-func createSchema(executor *Executor) (err *cd.Error) {
+func createSchema(executor *ConnExecutor) (err *cd.Error) {
 	sql := "CREATE TABLE \"Unit001\" (\n\t\"id\" SERIAL PRIMARY KEY,\n\t\"i8\" SMALLINT NOT NULL ,\n\t\"i16\" SMALLINT NOT NULL ,\n\t\"i32\" INTEGER NOT NULL ,\n\t\"i64\" BIGINT NOT NULL ,\n\t\"name\" TEXT NOT NULL ,\n\t\"value\" REAL NOT NULL ,\n\t\"f64\" DOUBLE PRECISION NOT NULL ,\n\t\"ts\" TIMESTAMP NOT NULL ,\n\t\"flag\" SMALLINT NOT NULL ,\n\t\"iArray\" TEXT NOT NULL ,\n\t\"fArray\" TEXT NOT NULL ,\n\t\"strArray\" TEXT NOT NULL \n)"
-	_, _, err = executor.Execute(sql)
+	_, err = executor.Execute(sql)
 	return
 }
 
-func dropSchema(executor *Executor) (err *cd.Error) {
+func dropSchema(executor *ConnExecutor) (err *cd.Error) {
 	sql := "DROP TABLE IF EXISTS \"Unit001\""
-	_, _, err = executor.Execute(sql)
+	_, err = executor.Execute(sql)
 	return
 }
 
-func checkSchema(executor *Executor) (ret bool, err *cd.Error) {
+func checkSchema(executor *ConnExecutor) (ret bool, err *cd.Error) {
 	ret, err = executor.CheckTableExist("Unit001")
 	return
 }
 
-func insertValue(executor *Executor) (err *cd.Error) {
+func insertValue(executor *ConnExecutor) (err *cd.Error) {
 	sql := "INSERT INTO \"Unit001\" (\"i8\",\"i16\",\"i32\",\"i64\",\"name\",\"value\",\"f64\",\"ts\",\"flag\",\"iArray\",\"fArray\",\"strArray\") VALUES (8,1600,323200,78962222222,'Hello world',12.345600128173828,12.45678,'2018-01-02 15:04:05',1,'12','12.34','abcdef')"
 	idx := 0
 	for idx < itemSize/threadSize {
-		_, _, err = executor.Execute(sql)
+		_, err = executor.Execute(sql)
 		idx++
 	}
 	return
 }
 
-func alterSchemaAdd(executor *Executor) (err *cd.Error) {
+func alterSchemaAdd(executor *ConnExecutor) (err *cd.Error) {
 	sql := "ALTER TABLE \"Unit001\" ADD dVal DATE"
-	_, _, err = executor.Execute(sql)
+	_, err = executor.Execute(sql)
 	return
 }
 
-func alterSchemaDrop(executor *Executor) (err *cd.Error) {
+func alterSchemaDrop(executor *ConnExecutor) (err *cd.Error) {
 	sql := "ALTER TABLE \"Unit001\" DROP dVal"
-	_, _, err = executor.Execute(sql)
+	_, err = executor.Execute(sql)
 	return
 }
 
-func alterSchemaOlnDDLAdd(executor *Executor) (err *cd.Error) {
+func alterSchemaOlnDDLAdd(executor *ConnExecutor) (err *cd.Error) {
 	sql := "ALTER TABLE \"Unit001\" ADD dVal2 DATE"
-	_, _, err = executor.Execute(sql)
+	_, err = executor.Execute(sql)
 	return
 }
 
-func alterSchemaOlnDDLDrop(executor *Executor) (err *cd.Error) {
+func alterSchemaOlnDDLDrop(executor *ConnExecutor) (err *cd.Error) {
 	sql := "ALTER TABLE \"Unit001\" DROP dVal2"
-	_, _, err = executor.Execute(sql)
+	_, err = executor.Execute(sql)
 	return
 }
 
-func createSchemaDDL(executor *Executor) (err *cd.Error) {
+func createSchemaDDL(executor *ConnExecutor) (err *cd.Error) {
 	sql := "CREATE TABLE \"Unit002\" (\n\t\"id\" SERIAL PRIMARY KEY,\n\t\"i8\" SMALLINT NOT NULL ,\n\t\"i16\" SMALLINT NOT NULL ,\n\t\"i32\" INTEGER NOT NULL ,\n\t\"i64\" BIGINT NOT NULL ,\n\t\"name\" TEXT NOT NULL ,\n\t\"value\" REAL NOT NULL ,\n\t\"f64\" DOUBLE PRECISION NOT NULL ,\n\t\"ts\" TIMESTAMP NOT NULL ,\n\t\"flag\" SMALLINT NOT NULL ,\n\t\"iArray\" TEXT NOT NULL ,\n\t\"fArray\" TEXT NOT NULL ,\n\t\"strArray\" TEXT NOT NULL \n)"
-	_, _, err = executor.Execute(sql)
+	_, err = executor.Execute(sql)
 	return
 }
 
-func dropSchemaDDL(executor *Executor) (err *cd.Error) {
+func dropSchemaDDL(executor *ConnExecutor) (err *cd.Error) {
 	sql := "DROP TABLE IF EXISTS \"Unit002\""
-	_, _, err = executor.Execute(sql)
+	_, err = executor.Execute(sql)
 	return
 }

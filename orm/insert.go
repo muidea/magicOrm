@@ -73,14 +73,13 @@ func (s *InsertRunner) innerHost(vModel model.Model) (ret any, err *cd.Error) {
 		return
 	}
 
-	_, id, idErr := s.executor.Execute(insertResult.SQL(), insertResult.Args()...)
+	idErr := s.executor.ExecuteInsert(insertResult.SQL(), &ret, insertResult.Args()...)
 	if idErr != nil {
 		err = idErr
 		log.Errorf("innerHost failed, s.executor.Execute error:%s", err.Error())
 		return
 	}
 
-	ret = id
 	return
 }
 
@@ -136,7 +135,8 @@ func (s *InsertRunner) insertSingleRelation(vModel model.Model, vField model.Fie
 		return
 	}
 
-	_, _, err = s.executor.Execute(relationSQL.SQL(), relationSQL.Args()...)
+	var idVal any
+	err = s.executor.ExecuteInsert(relationSQL.SQL(), &idVal, relationSQL.Args()...)
 	if err != nil {
 		log.Errorf("insertSingleRelation failed, s.executor.Execute error:%s", err.Error())
 		return
@@ -180,7 +180,8 @@ func (s *InsertRunner) insertSliceRelation(vModel model.Model, vField model.Fiel
 			return
 		}
 
-		_, _, err = s.executor.Execute(relationResult.SQL(), relationResult.Args()...)
+		var idVal any
+		err = s.executor.ExecuteInsert(relationResult.SQL(), &idVal, relationResult.Args()...)
 		if err != nil {
 			log.Errorf("insertSliceRelation failed, model:%s, filed name:%s, s.executor.Execute error:%s", vModel.GetPkgKey(), vField.GetName(), err.Error())
 			return

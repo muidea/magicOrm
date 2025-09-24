@@ -11,8 +11,6 @@ import (
 
 const localOwner = "local"
 
-var config = orm.NewConfig("localhost:5432", "magicplatform_db", "postgres", "rootkit", "")
-
 func TestOptional(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()

@@ -33,25 +33,25 @@ func getOprFunc(filterItem model.FilterItem) (ret OprFunc) {
 // EqualOpr Equal Opr
 func EqualOpr(name string, val any, resultStackPtr *ResultStack) string {
 	resultStackPtr.PushArgs(val)
-	return fmt.Sprintf("\"%s\" = ?", name)
+	return fmt.Sprintf("\"%s\" = $%d", name, len(resultStackPtr.argsVal))
 }
 
 // NotEqualOpr NotEqual Opr
 func NotEqualOpr(name string, val any, resultStackPtr *ResultStack) string {
 	resultStackPtr.PushArgs(val)
-	return fmt.Sprintf("\"%s\" != ?", name)
+	return fmt.Sprintf("\"%s\" != $%d", name, len(resultStackPtr.argsVal))
 }
 
 // BelowOpr Below Opr
 func BelowOpr(name string, val any, resultStackPtr *ResultStack) string {
 	resultStackPtr.PushArgs(val)
-	return fmt.Sprintf("\"%s\" < ?", name)
+	return fmt.Sprintf("\"%s\" < $%d", name, len(resultStackPtr.argsVal))
 }
 
 // AboveOpr Above Opr
 func AboveOpr(name string, val any, resultStackPtr *ResultStack) string {
 	resultStackPtr.PushArgs(val)
-	return fmt.Sprintf("\"%s\" > ?", name)
+	return fmt.Sprintf("\"%s\" > $%d", name, len(resultStackPtr.argsVal))
 }
 
 // InOpr In Opr
@@ -59,16 +59,16 @@ func InOpr(name string, val any, resultStackPtr *ResultStack) string {
 	sliceVal, sliceOK := val.([]any)
 	if !sliceOK {
 		resultStackPtr.PushArgs(val)
-		return fmt.Sprintf("\"%s\" in (?)", name)
+		return fmt.Sprintf("\"%s\" IN ($%d)", name, len(resultStackPtr.argsVal))
 	}
 
 	placeHolder := []string{}
 	for _, sv := range sliceVal {
 		resultStackPtr.PushArgs(sv)
-		placeHolder = append(placeHolder, "?")
+		placeHolder = append(placeHolder, fmt.Sprintf("$%d", len(resultStackPtr.argsVal)))
 	}
 
-	return fmt.Sprintf("\"%s\" in (%s)", name, strings.Join(placeHolder, ","))
+	return fmt.Sprintf("\"%s\" IN (%s)", name, strings.Join(placeHolder, ","))
 }
 
 // NotInOpr NotIn Opr
@@ -76,22 +76,22 @@ func NotInOpr(name string, val any, resultStackPtr *ResultStack) string {
 	sliceVal, sliceOK := val.([]any)
 	if !sliceOK {
 		resultStackPtr.PushArgs(val)
-		return fmt.Sprintf("\"%s\" not in (?)", name)
+		return fmt.Sprintf("\"%s\" NOT IN ($%d)", name, len(resultStackPtr.argsVal))
 	}
 
 	placeHolder := []string{}
 	for _, sv := range sliceVal {
 		resultStackPtr.PushArgs(sv)
-		placeHolder = append(placeHolder, "?")
+		placeHolder = append(placeHolder, fmt.Sprintf("$%d", len(resultStackPtr.argsVal)))
 	}
 
-	return fmt.Sprintf("\"%s\" not in (%s)", name, strings.Join(placeHolder, ","))
+	return fmt.Sprintf("\"%s\" NOT IN (%s)", name, strings.Join(placeHolder, ","))
 }
 
 // LikeOpr Like Opr
 func LikeOpr(name string, val any, resultStackPtr *ResultStack) string {
 	resultStackPtr.PushArgs(fmt.Sprintf("%%%s%%", val))
-	return fmt.Sprintf("\"%s\" LIKE ?", name)
+	return fmt.Sprintf("\"%s\" LIKE $%d", name, len(resultStackPtr.argsVal))
 }
 
 // SortOpr sort opr

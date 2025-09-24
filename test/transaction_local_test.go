@@ -14,7 +14,6 @@ func TestLocalTransaction(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	localProvider := provider.NewLocalProvider("transaction_local")
 
 	o1, err := orm.NewOrm(localProvider, config, "transaction_test")
@@ -204,7 +203,6 @@ func TestLocalBatchOperation(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	localProvider := provider.NewLocalProvider("batch_local")
 
 	o1, err := orm.NewOrm(localProvider, config, "batch_test")

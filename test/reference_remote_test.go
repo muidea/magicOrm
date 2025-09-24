@@ -22,7 +22,6 @@ func TestReferenceRemote(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	remoteProvider := provider.NewRemoteProvider(referenceRemoteOwner)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")

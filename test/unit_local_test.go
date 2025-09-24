@@ -13,7 +13,6 @@ func TestLocalExecutor(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	localProvider := provider.NewLocalProvider("default")
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")
@@ -116,7 +115,6 @@ func TestLocalDepends(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	provider := provider.NewLocalProvider("default")
 
 	o1, err := orm.NewOrm(provider, config, "abc")

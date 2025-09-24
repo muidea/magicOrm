@@ -28,7 +28,7 @@ func (s *CreateRunner) createHost() (err *cd.Error) {
 		return
 	}
 
-	_, _, err = s.executor.Execute(createResult.SQL(), createResult.Args()...)
+	_, err = s.executor.Execute(createResult.SQL(), createResult.Args()...)
 	if err != nil {
 		log.Errorf("createHost failed, s.executor.Execute error:%s", err.Error())
 	}
@@ -43,7 +43,7 @@ func (s *CreateRunner) createRelation(vField model.Field) (err *cd.Error) {
 		return
 	}
 
-	_, _, err = s.executor.Execute(relationResult.SQL(), relationResult.Args()...)
+	_, err = s.executor.Execute(relationResult.SQL(), relationResult.Args()...)
 	if err != nil {
 		log.Errorf("createRelation failed, s.executor.Execute error:%s", err.Error())
 	}

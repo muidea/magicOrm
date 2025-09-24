@@ -222,7 +222,7 @@ func init() {
 
 	encodeValueConvertSliceMap = ValueConvertMap{
 		model.TypeBooleanValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
-			boolSlice, boolErr := encodeSliceTemplate(vVal, vType.Elem(), int8(0))
+			boolSlice, boolErr := encodeSliceTemplate(vVal, vType.Elem(), false)
 			if boolErr != nil {
 				err = boolErr
 				return

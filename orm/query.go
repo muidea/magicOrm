@@ -50,7 +50,7 @@ func (s *QueryRunner) innerQuery(vModel model.Model, filter model.Filter) (ret r
 
 	queryList := resultItemsList{}
 	for s.executor.Next() {
-		itemValues, itemErr := s.hBuilder.BuildQueryPlaceHolder(vModel)
+		itemValues, itemErr := s.hBuilder.GetModuleValueHolder(vModel)
 		if itemErr != nil {
 			err = itemErr
 			log.Errorf("innerQuery failed, getModelFieldsPlaceHolder error:%s", err.Error())
@@ -209,7 +209,7 @@ func (s *QueryRunner) innerQueryRelationKeys(vModel model.Model, vField model.Fi
 		defer s.executor.Finish()
 
 		for s.executor.Next() {
-			itemValue, itemErr := s.hBuilder.BuildQueryRelationPlaceHolder(vModel, vField)
+			itemValue, itemErr := s.hBuilder.GetRelationFieldValueHolder(vModel, vField)
 			if itemErr != nil {
 				err = itemErr
 				log.Errorf("innerQueryRelationKeys field:%s failed, s.getModelPKFieldPlaceHolder error:%v", vField.GetName(), err.Error())

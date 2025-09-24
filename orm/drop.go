@@ -28,7 +28,7 @@ func (s *DropRunner) dropHost(vModel model.Model) (err *cd.Error) {
 		return
 	}
 
-	_, _, err = s.executor.Execute(dropResult.SQL(), dropResult.Args()...)
+	_, err = s.executor.Execute(dropResult.SQL(), dropResult.Args()...)
 	if err != nil {
 		log.Errorf("dropHost failed, s.executor.Execute error:%s", err.Error())
 	}
@@ -43,7 +43,7 @@ func (s *DropRunner) dropRelation(vModel model.Model, vField model.Field) (err *
 		return
 	}
 
-	_, _, err = s.executor.Execute(relationResult.SQL(), relationResult.Args()...)
+	_, err = s.executor.Execute(relationResult.SQL(), relationResult.Args()...)
 	if err != nil {
 		log.Errorf("dropRelation failed, s.executor.Execute error:%s", err.Error())
 	}

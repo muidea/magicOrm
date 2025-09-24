@@ -38,7 +38,7 @@ func (s *DeleteRunner) deleteHost(vModel model.Model) (err *cd.Error) {
 		return
 	}
 
-	_, _, err = s.executor.Execute(deleteResult.SQL(), deleteResult.Args()...)
+	_, err = s.executor.Execute(deleteResult.SQL(), deleteResult.Args()...)
 	if err != nil {
 		log.Errorf("deleteHost failed, s.executor.Execute error:%s", err.Error())
 	}
@@ -78,14 +78,14 @@ func (s *DeleteRunner) deleteRelation(vModel model.Model, vField model.Field, de
 			}
 		}
 
-		_, _, err = s.executor.Execute(hostResult.SQL(), hostResult.Args()...)
+		_, err = s.executor.Execute(hostResult.SQL(), hostResult.Args()...)
 		if err != nil {
 			log.Errorf("deleteRelation failed, s.executor.Execute error:%s", err.Error())
 			return
 		}
 	}
 
-	_, _, err = s.executor.Execute(relationResult.SQL(), relationResult.Args()...)
+	_, err = s.executor.Execute(relationResult.SQL(), relationResult.Args()...)
 	if err != nil {
 		log.Errorf("deleteRelation failed, s.executor.Execute error:%s", err.Error())
 	}

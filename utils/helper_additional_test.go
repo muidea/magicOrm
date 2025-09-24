@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-
-	fu "github.com/muidea/magicCommon/foundation/util"
 )
 
 // TestSortFilter 测试排序过滤器
@@ -379,7 +377,7 @@ func TestTimeHelpers(t *testing.T) {
 	// 测试GetCurrentDateTimeStr
 	dateTimeStr := GetCurrentDateTimeStr()
 	// 应该是合法的时间字符串
-	_, parseErr := time.Parse(fu.CSTLayout, dateTimeStr)
+	_, parseErr := time.Parse(time.RFC3339, dateTimeStr)
 	if parseErr != nil {
 		t.Errorf("GetCurrentDateTimeStr should return valid RFC3339 time string: %s", parseErr.Error())
 	}

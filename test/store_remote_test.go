@@ -13,7 +13,6 @@ func TestRemoteStore(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	remoteProvider := provider.NewRemoteProvider("remote")
 
 	o1, err := orm.NewOrm(remoteProvider, config, "remote")

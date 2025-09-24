@@ -22,7 +22,6 @@ func TestSimpleLocal(t *testing.T) {
 	defer orm.Uninitialized()
 
 	loopSize := 10
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	localProvider := provider.NewLocalProvider(simpleLocalOwner)
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")
@@ -185,7 +184,6 @@ func TestSimpleRemote(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	remoteProvider := provider.NewRemoteProvider(simpleRemoteOwner)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")

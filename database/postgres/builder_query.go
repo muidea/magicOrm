@@ -46,7 +46,7 @@ func (s *Builder) BuildQuery(vModel model.Model, filter model.Filter) (ret *Resu
 		paginationer := filter.Paginationer()
 		if paginationer != nil {
 			resultStackPtr.PushArgs(paginationer.Limit(), paginationer.Offset())
-			querySQL = fmt.Sprintf("%s LIMIT ? OFFSET ?", querySQL)
+			querySQL = fmt.Sprintf("%s LIMIT $%d OFFSET $%d", querySQL, len(resultStackPtr.argsVal)-1, len(resultStackPtr.argsVal))
 		}
 	}
 	if traceSQL() {
@@ -69,12 +69,12 @@ func (s *Builder) BuildQueryRelation(vModel model.Model, vField model.Field) (re
 	}
 
 	resultStackPtr := &ResultStack{}
-	queryRelationSQL := fmt.Sprintf("SELECT \"right\" FROM \"%s\" WHERE \"left\"= ?", relationTableName)
+	resultStackPtr.PushArgs(leftVal)
+	queryRelationSQL := fmt.Sprintf("SELECT \"right\" FROM \"%s\" WHERE \"left\"= $%d", relationTableName, len(resultStackPtr.argsVal))
 	if traceSQL() {
 		log.Infof("[SQL] query relation: %s", queryRelationSQL)
 	}
 
-	resultStackPtr.PushArgs(leftVal)
 	resultStackPtr.SetSQL(queryRelationSQL)
 	ret = resultStackPtr
 	return
@@ -98,21 +98,21 @@ func (s *Builder) getFieldQueryNames(vModel model.Model) (ret string, err *cd.Er
 	return
 }
 
-func (s *Builder) GetFieldPlaceHolder(vField model.Field) (ret any, err *cd.Error) {
-	return getFieldPlaceHolder(vField.GetType())
+func (s *Builder) GetFieldPlaceHolder(vField model.Field) (any, *cd.Error) {
+	return GetFieldValueHolder(vField.GetType())
 }
 
-func (s *Builder) BuildQueryPlaceHolder(vModel model.Model) (ret []any, err *cd.Error) {
+func (s *Builder) GetModuleValueHolder(vModel model.Model) (ret []any, err *cd.Error) {
 	items := []any{}
 	for _, field := range vModel.GetFields() {
 		if !model.IsBasicField(field) || !model.IsValidField(field) {
 			continue
 		}
 
-		itemVal, itemErr := getFieldPlaceHolder(field.GetType())
+		itemVal, itemErr := GetFieldValueHolder(field.GetType())
 		if itemErr != nil {
 			err = itemErr
-			log.Errorf("BuildQueryPlaceHolder failed, getFieldPlaceHolder error:%s", err.Error())
+			log.Errorf("GetModuleValueHolder failed, getFieldPlaceHolder error:%s", err.Error())
 			return
 		}
 
@@ -123,13 +123,13 @@ func (s *Builder) BuildQueryPlaceHolder(vModel model.Model) (ret []any, err *cd.
 	return
 }
 
-func (s *Builder) BuildQueryRelationPlaceHolder(vModel model.Model, vField model.Field) (ret any, err *cd.Error) {
+func (s *Builder) GetRelationFieldValueHolder(vModel model.Model, vField model.Field) (ret any, err *cd.Error) {
 	rModelVal, rModelErr := s.modelProvider.GetTypeModel(vField.GetType().Elem())
 	if rModelErr != nil {
 		err = rModelErr
-		log.Errorf("BuildQueryRelationPlaceHolder failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+		log.Errorf("GetRelationFieldValueHolder failed, s.modelProvider.GetTypeModel error:%s", err.Error())
 		return
 	}
 
-	return getFieldPlaceHolder(rModelVal.GetPrimaryField().GetType())
+	return GetFieldValueHolder(rModelVal.GetPrimaryField().GetType())
 }

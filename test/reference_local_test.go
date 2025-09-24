@@ -20,7 +20,6 @@ func TestReferenceLocal(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	config := orm.NewConfig("localhost:3306", "testdb", "root", "rootkit", "")
 	localProvider := provider.NewLocalProvider(referenceLocalOwner)
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")
