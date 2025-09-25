@@ -6,6 +6,7 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
+	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
@@ -18,7 +19,7 @@ type Builder struct {
 }
 
 // New create builder
-func New(provider provider.Provider, codec codec.Codec) *Builder {
+func NewBuilder(provider provider.Provider, codec codec.Codec) database.Builder {
 	return &Builder{
 		modelProvider: provider,
 		buildCodec:    codec,

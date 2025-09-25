@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"math/rand"
@@ -10,6 +11,7 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 
+	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/mysql"
 )
 
@@ -32,7 +34,7 @@ var mode = 1
 var disableStatic = true
 var finishFlag = false
 
-type funcPtr func(executor *mysql.Executor) *cd.Error
+type funcPtr func(executor database.Executor) *cd.Error
 
 var currentSize atomic.Int64
 
@@ -148,7 +150,7 @@ func pickExecutor(pool *mysql.Pool, wg *sync.WaitGroup, fPtr funcPtr) {
 		wg.Add(1)
 		defer wg.Done()
 
-		executorPtr, executorErr := pool.FetchOut()
+		executorPtr, executorErr := pool.GetExecutor(context.Background())
 		if executorErr != nil {
 			return
 		}
@@ -156,8 +158,6 @@ func pickExecutor(pool *mysql.Pool, wg *sync.WaitGroup, fPtr funcPtr) {
 		if fPtr != nil {
 			err = fPtr(executorPtr)
 		}
-
-		pool.PutIn(executorPtr)
 	}()
 
 	if err != nil {
@@ -165,39 +165,37 @@ func pickExecutor(pool *mysql.Pool, wg *sync.WaitGroup, fPtr funcPtr) {
 	}
 }
 
-func createSchema(executor *mysql.Executor) (err *cd.Error) {
+func createSchema(executor database.Executor) (err *cd.Error) {
 	sql := fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`i8` TINYINT NOT NULL ,\n\t`i16` SMALLINT NOT NULL ,\n\t`i32` INT NOT NULL ,\n\t`i64` BIGINT NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` FLOAT NOT NULL ,\n\t`f64` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\t`flag` TINYINT NOT NULL ,\n\t`iArray` TEXT NOT NULL ,\n\t`fArray` TEXT NOT NULL ,\n\t`strArray` TEXT NOT NULL ,\n\tPRIMARY KEY (`id`)\n)", tableName)
-	_, _, err = executor.Execute(sql)
+	_, err = executor.Execute(sql)
 	return
 }
 
-func dropSchema(executor *mysql.Executor) (err *cd.Error) {
+func dropSchema(executor database.Executor) (err *cd.Error) {
 	sql := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", tableName)
-	_, _, err = executor.Execute(sql)
+	_, err = executor.Execute(sql)
 	return
 }
 
-func checkSchema(tableName string, executor *mysql.Executor) (ret bool, err *cd.Error) {
+func checkSchema(tableName string, executor database.Executor) (ret bool, err *cd.Error) {
 	ret, err = executor.CheckTableExist(tableName)
 	return
 }
 
-func insertValue(executor *mysql.Executor) (err *cd.Error) {
+func insertValue(executor database.Executor) (err *cd.Error) {
 	sql := fmt.Sprintf("INSERT INTO `%s` (`i8`,`i16`,`i32`,`i64`,`name`,`value`,`f64`,`ts`,`flag`,`iArray`,`fArray`,`strArray`) VALUES (8,1600,323200,78962222222,'Hello world',12.345600128173828,12.45678,'2018-01-02 15:04:05',1,'12','12.34','abcdef')", tableName)
 	idx := 0
 	if itemSize == -1 {
 		for {
-			_, _, err = executor.Execute(sql)
+			_, err = executor.Execute(sql)
 			if err == nil {
 				currentSize.Add(1)
 			}
 		}
-
-		return
 	}
 
 	for idx < itemSize/threadSize {
-		_, _, err = executor.Execute(sql)
+		_, err = executor.Execute(sql)
 		if err == nil {
 			currentSize.Add(1)
 		}
@@ -206,52 +204,52 @@ func insertValue(executor *mysql.Executor) (err *cd.Error) {
 	return
 }
 
-func truncateSchema(executor *mysql.Executor) (err *cd.Error) {
+func truncateSchema(executor database.Executor) (err *cd.Error) {
 	sql := fmt.Sprintf("TRUNCATE TABLE `%s`", tableName)
-	_, _, err = executor.Execute(sql)
+	_, err = executor.Execute(sql)
 
 	currentSize.Swap(0)
 
 	return
 }
 
-func alterSchemaAdd(executor *mysql.Executor) (err *cd.Error) {
+func alterSchemaAdd(executor database.Executor) (err *cd.Error) {
 	sql := fmt.Sprintf("ALTER TABLE `%s` ADD dVal DATE", tableName)
-	_, _, err = executor.Execute(sql)
+	_, err = executor.Execute(sql)
 	return
 }
 
-func alterSchemaDrop(executor *mysql.Executor) (err *cd.Error) {
+func alterSchemaDrop(executor database.Executor) (err *cd.Error) {
 	sql := fmt.Sprintf("ALTER TABLE `%s` DROP dVal", tableName)
-	_, _, err = executor.Execute(sql)
+	_, err = executor.Execute(sql)
 	return
 }
 
-func alterSchemaOlnDDLAdd(executor *mysql.Executor) (err *cd.Error) {
+func alterSchemaOlnDDLAdd(executor database.Executor) (err *cd.Error) {
 	sql := fmt.Sprintf("ALTER TABLE `%s` ADD dVal2 DATE, ALGORITHM=DEFAULT, LOCK=NONE", tableName)
-	_, _, err = executor.Execute(sql)
+	_, err = executor.Execute(sql)
 	return
 }
 
-func alterSchemaOlnDDLDrop(executor *mysql.Executor) (err *cd.Error) {
+func alterSchemaOlnDDLDrop(executor database.Executor) (err *cd.Error) {
 	sql := fmt.Sprintf("ALTER TABLE `%s` DROP dVal2, ALGORITHM=DEFAULT, LOCK=NONE", tableName)
-	_, _, err = executor.Execute(sql)
+	_, err = executor.Execute(sql)
 	return
 }
 
-func createSchemaDDL(executor *mysql.Executor) (err *cd.Error) {
+func createSchemaDDL(executor database.Executor) (err *cd.Error) {
 	sql := fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s002` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`i8` TINYINT NOT NULL ,\n\t`i16` SMALLINT NOT NULL ,\n\t`i32` INT NOT NULL ,\n\t`i64` BIGINT NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` FLOAT NOT NULL ,\n\t`f64` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\t`flag` TINYINT NOT NULL ,\n\t`iArray` TEXT NOT NULL ,\n\t`fArray` TEXT NOT NULL ,\n\t`strArray` TEXT NOT NULL ,\n\tPRIMARY KEY (`id`)\n)", tableName)
-	_, _, err = executor.Execute(sql)
+	_, err = executor.Execute(sql)
 	return
 }
 
-func dropSchemaDDL(executor *mysql.Executor) (err *cd.Error) {
+func dropSchemaDDL(executor database.Executor) (err *cd.Error) {
 	sql := fmt.Sprintf("DROP TABLE IF EXISTS `%s002`", tableName)
-	_, _, err = executor.Execute(sql)
+	_, err = executor.Execute(sql)
 	return
 }
 
-func specialCheck(executor *mysql.Executor) (err *cd.Error) {
+func specialCheck(executor database.Executor) (err *cd.Error) {
 	ok, _ := checkSchema("rbac_menuinfo", executor)
 	if ok {
 		alterSpecialSchemaOlnDDLAdd(executor)
@@ -261,14 +259,14 @@ func specialCheck(executor *mysql.Executor) (err *cd.Error) {
 	return
 }
 
-func alterSpecialSchemaOlnDDLAdd(executor *mysql.Executor) (err *cd.Error) {
+func alterSpecialSchemaOlnDDLAdd(executor database.Executor) (err *cd.Error) {
 	sql := "ALTER TABLE `rbac_menuinfo` ADD dVal200 DATE, ALGORITHM=DEFAULT, LOCK=NONE"
-	_, _, err = executor.Execute(sql)
+	_, err = executor.Execute(sql)
 	return
 }
 
-func alterSpecialSchemaOlnDDLDrop(executor *mysql.Executor) (err *cd.Error) {
+func alterSpecialSchemaOlnDDLDrop(executor database.Executor) (err *cd.Error) {
 	sql := "ALTER TABLE `rbac_menuinfo` DROP dVal200, ALGORITHM=DEFAULT, LOCK=NONE"
-	_, _, err = executor.Execute(sql)
+	_, err = executor.Execute(sql)
 	return
 }

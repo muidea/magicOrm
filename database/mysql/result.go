@@ -1,11 +1,13 @@
 package mysql
 
+import "github.com/muidea/magicOrm/database"
+
 type ResultStack struct {
 	sqlVal  string
 	argsVal []any
 }
 
-func NewError(sql string, args []any) *ResultStack {
+func NewError(sql string, args []any) database.Result {
 	return &ResultStack{
 		sqlVal:  sql,
 		argsVal: args,

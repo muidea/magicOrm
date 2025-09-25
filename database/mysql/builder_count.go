@@ -6,11 +6,12 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
+	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/model"
 )
 
 // BuildCount build count
-func (s *Builder) BuildCount(vModel model.Model, filter model.Filter) (ret *ResultStack, err *cd.Error) {
+func (s *Builder) BuildCount(vModel model.Model, filter model.Filter) (ret database.Result, err *cd.Error) {
 	resultStackPtr := &ResultStack{}
 	pkFieldName := vModel.GetPrimaryField().GetName()
 	countSQL := fmt.Sprintf("SELECT COUNT(`%s`) FROM `%s`", pkFieldName, s.buildCodec.ConstructModelTableName(vModel))
