@@ -11,6 +11,7 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
+	"github.com/muidea/magicOrm/executor"
 )
 
 const defaultSSLMode = "disable"
@@ -73,7 +74,7 @@ func NewConfig(dbServer, dbName, username, password string) *Config {
 }
 
 // NewExecutor 新建一个数据访问对象
-func NewExecutor(configPtr *Config) (ret *HostExecutor, err *cd.Error) {
+func NewExecutor(configPtr executor.Config) (ret *HostExecutor, err *cd.Error) {
 	dsn := configPtr.GetDsn()
 	dbHandle, dbErr := sql.Open("postgres", dsn)
 	if dbErr != nil {
@@ -704,8 +705,9 @@ func (s *HostExecutor) CheckTableExist(tableName string) (ret bool, err *cd.Erro
 
 // Pool executorPool
 type Pool struct {
-	config   *Config
-	dbHandle *sql.DB
+	config         *Config
+	dbHandle       *sql.DB
+	referenceCount int
 }
 
 // NewPool new pool
@@ -714,7 +716,7 @@ func NewPool() *Pool {
 }
 
 // Initialize initialize executor pool
-func (s *Pool) Initialize(maxConnNum int, config *Config) (err *cd.Error) {
+func (s *Pool) Initialize(maxConnNum int, config executor.Config) (err *cd.Error) {
 	if err = s.connect(config.GetDsn(), maxConnNum); err != nil {
 		return
 	}
@@ -754,7 +756,7 @@ func (s *Pool) Uninitialized() {
 	}
 }
 
-func (s *Pool) GetExecutor(ctx context.Context) (ret *ConnExecutor, err *cd.Error) {
+func (s *Pool) GetExecutor(ctx context.Context) (ret executor.Executor, err *cd.Error) {
 	connPtr, connErr := s.dbHandle.Conn(ctx)
 	if connErr != nil {
 		err = cd.NewError(cd.DatabaseError, connErr.Error())
@@ -768,10 +770,26 @@ func (s *Pool) GetExecutor(ctx context.Context) (ret *ConnExecutor, err *cd.Erro
 	return
 }
 
-func (s *Pool) CheckConfig(cfgPtr *Config) *cd.Error {
-	if s.config.Same(cfgPtr) {
+func (s *Pool) CheckConfig(cfgPtr executor.Config) *cd.Error {
+	newDsn := cfgPtr.GetDsn()
+	preDsn := s.config.GetDsn()
+	if newDsn == preDsn {
 		return nil
 	}
 
 	return cd.NewError(cd.Unexpected, "mismatch database config")
+}
+
+func (s *Pool) IncReference() int {
+	s.referenceCount++
+	return s.referenceCount
+}
+
+func (s *Pool) DecReference() int {
+	s.referenceCount--
+	if s.referenceCount < 0 {
+		s.referenceCount = 0
+	}
+
+	return s.referenceCount
 }

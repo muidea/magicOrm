@@ -9,6 +9,7 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
+	"github.com/muidea/magicOrm/executor"
 )
 
 const (
@@ -27,7 +28,7 @@ var mode = 1
 
 var finishFlag = false
 
-type funcPtr func(executor *ConnExecutor) *cd.Error
+type funcPtr func(executor executor.Executor) *cd.Error
 
 func TestNewPool(t *testing.T) {
 	pool := NewPool()
@@ -69,7 +70,7 @@ func testDML(wg *sync.WaitGroup, pool *Pool) {
 	pickExecutor(pool, wg, createSchema)
 
 	wg.Add(1)
-	pickExecutor(pool, wg, func(executor *ConnExecutor) (err *cd.Error) {
+	pickExecutor(pool, wg, func(executor executor.Executor) (err *cd.Error) {
 		bVal, bErr := checkSchema(executor)
 		if bErr != nil {
 			log.Errorf("checkSchema failed, error:%s", bErr.Error())
@@ -145,24 +146,24 @@ func pickExecutor(pool *Pool, wg *sync.WaitGroup, fPtr funcPtr) {
 	wg.Done()
 }
 
-func createSchema(executor *ConnExecutor) (err *cd.Error) {
+func createSchema(executor executor.Executor) (err *cd.Error) {
 	sql := "CREATE TABLE \"Unit001\" (\n\t\"id\" SERIAL PRIMARY KEY,\n\t\"i8\" SMALLINT NOT NULL ,\n\t\"i16\" SMALLINT NOT NULL ,\n\t\"i32\" INTEGER NOT NULL ,\n\t\"i64\" BIGINT NOT NULL ,\n\t\"name\" TEXT NOT NULL ,\n\t\"value\" REAL NOT NULL ,\n\t\"f64\" DOUBLE PRECISION NOT NULL ,\n\t\"ts\" TIMESTAMP NOT NULL ,\n\t\"flag\" SMALLINT NOT NULL ,\n\t\"iArray\" TEXT NOT NULL ,\n\t\"fArray\" TEXT NOT NULL ,\n\t\"strArray\" TEXT NOT NULL \n)"
 	_, err = executor.Execute(sql)
 	return
 }
 
-func dropSchema(executor *ConnExecutor) (err *cd.Error) {
+func dropSchema(executor executor.Executor) (err *cd.Error) {
 	sql := "DROP TABLE IF EXISTS \"Unit001\""
 	_, err = executor.Execute(sql)
 	return
 }
 
-func checkSchema(executor *ConnExecutor) (ret bool, err *cd.Error) {
+func checkSchema(executor executor.Executor) (ret bool, err *cd.Error) {
 	ret, err = executor.CheckTableExist("Unit001")
 	return
 }
 
-func insertValue(executor *ConnExecutor) (err *cd.Error) {
+func insertValue(executor executor.Executor) (err *cd.Error) {
 	sql := "INSERT INTO \"Unit001\" (\"i8\",\"i16\",\"i32\",\"i64\",\"name\",\"value\",\"f64\",\"ts\",\"flag\",\"iArray\",\"fArray\",\"strArray\") VALUES (8,1600,323200,78962222222,'Hello world',12.345600128173828,12.45678,'2018-01-02 15:04:05',1,'12','12.34','abcdef')"
 	idx := 0
 	for idx < itemSize/threadSize {
@@ -172,37 +173,37 @@ func insertValue(executor *ConnExecutor) (err *cd.Error) {
 	return
 }
 
-func alterSchemaAdd(executor *ConnExecutor) (err *cd.Error) {
+func alterSchemaAdd(executor executor.Executor) (err *cd.Error) {
 	sql := "ALTER TABLE \"Unit001\" ADD dVal DATE"
 	_, err = executor.Execute(sql)
 	return
 }
 
-func alterSchemaDrop(executor *ConnExecutor) (err *cd.Error) {
+func alterSchemaDrop(executor executor.Executor) (err *cd.Error) {
 	sql := "ALTER TABLE \"Unit001\" DROP dVal"
 	_, err = executor.Execute(sql)
 	return
 }
 
-func alterSchemaOlnDDLAdd(executor *ConnExecutor) (err *cd.Error) {
+func alterSchemaOlnDDLAdd(executor executor.Executor) (err *cd.Error) {
 	sql := "ALTER TABLE \"Unit001\" ADD dVal2 DATE"
 	_, err = executor.Execute(sql)
 	return
 }
 
-func alterSchemaOlnDDLDrop(executor *ConnExecutor) (err *cd.Error) {
+func alterSchemaOlnDDLDrop(executor executor.Executor) (err *cd.Error) {
 	sql := "ALTER TABLE \"Unit001\" DROP dVal2"
 	_, err = executor.Execute(sql)
 	return
 }
 
-func createSchemaDDL(executor *ConnExecutor) (err *cd.Error) {
+func createSchemaDDL(executor executor.Executor) (err *cd.Error) {
 	sql := "CREATE TABLE \"Unit002\" (\n\t\"id\" SERIAL PRIMARY KEY,\n\t\"i8\" SMALLINT NOT NULL ,\n\t\"i16\" SMALLINT NOT NULL ,\n\t\"i32\" INTEGER NOT NULL ,\n\t\"i64\" BIGINT NOT NULL ,\n\t\"name\" TEXT NOT NULL ,\n\t\"value\" REAL NOT NULL ,\n\t\"f64\" DOUBLE PRECISION NOT NULL ,\n\t\"ts\" TIMESTAMP NOT NULL ,\n\t\"flag\" SMALLINT NOT NULL ,\n\t\"iArray\" TEXT NOT NULL ,\n\t\"fArray\" TEXT NOT NULL ,\n\t\"strArray\" TEXT NOT NULL \n)"
 	_, err = executor.Execute(sql)
 	return
 }
 
-func dropSchemaDDL(executor *ConnExecutor) (err *cd.Error) {
+func dropSchemaDDL(executor executor.Executor) (err *cd.Error) {
 	sql := "DROP TABLE IF EXISTS \"Unit002\""
 	_, err = executor.Execute(sql)
 	return

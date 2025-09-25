@@ -33,6 +33,6 @@ func newBaseRunner(
 		executor:      executor,
 		modelProvider: provider,
 		modelCodec:    modelCodec,
-		sqlBuilder:    builder.NewBuilder(provider, modelCodec),
+		sqlBuilder:    NewBuilder(provider, modelCodec),
 	}
 }

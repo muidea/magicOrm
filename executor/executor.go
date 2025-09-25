@@ -4,7 +4,6 @@ import (
 	"context"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicOrm/database/postgres"
 )
 
 type Config interface {
@@ -12,6 +11,7 @@ type Config interface {
 	Username() string
 	Password() string
 	Database() string
+	GetDsn() string
 }
 
 // Executor 数据库访问对象
@@ -36,52 +36,4 @@ type Pool interface {
 	CheckConfig(config Config) *cd.Error
 	IncReference() int
 	DecReference() int
-}
-
-func NewConfig(dbServer, dbName, username, password string) Config {
-	return postgres.NewConfig(dbServer, dbName, username, password)
-}
-
-func NewExecutor(config Config) (Executor, *cd.Error) {
-	return postgres.NewExecutor(
-		postgres.NewConfig(config.Server(), config.Database(), config.Username(), config.Password()))
-}
-
-func NewPool() Pool {
-	return &poolImpl{}
-}
-
-type poolImpl struct {
-	postgres.Pool
-	referenceCount int
-}
-
-func (s *poolImpl) Initialize(maxConnNum int, config Config) *cd.Error {
-	return s.Pool.Initialize(maxConnNum, postgres.NewConfig(config.Server(), config.Database(), config.Username(), config.Password()))
-}
-
-func (s *poolImpl) Uninitialized() {
-	s.Pool.Uninitialized()
-}
-
-func (s *poolImpl) GetExecutor(ctx context.Context) (Executor, *cd.Error) {
-	return s.Pool.GetExecutor(ctx)
-}
-
-func (s *poolImpl) CheckConfig(config Config) *cd.Error {
-	return s.Pool.CheckConfig(postgres.NewConfig(config.Server(), config.Database(), config.Username(), config.Password()))
-}
-
-func (s *poolImpl) IncReference() int {
-	s.referenceCount++
-	return s.referenceCount
-}
-
-func (s *poolImpl) DecReference() int {
-	s.referenceCount--
-	if s.referenceCount < 0 {
-		s.referenceCount = 0
-	}
-
-	return s.referenceCount
 }

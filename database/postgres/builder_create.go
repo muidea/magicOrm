@@ -8,10 +8,11 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
+	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
 )
 
-func (s *Builder) BuildCreateTable(vModel model.Model) (ret *ResultStack, err *cd.Error) {
+func (s *Builder) BuildCreateTable(vModel model.Model) (ret builder.Result, err *cd.Error) {
 	createSQL := ""
 	for _, field := range vModel.GetFields() {
 		if !model.IsBasicField(field) {
@@ -45,7 +46,7 @@ func (s *Builder) BuildCreateTable(vModel model.Model) (ret *ResultStack, err *c
 }
 
 // BuildCreateRelationTable Build CreateRelation Schema
-func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Field) (ret *ResultStack, err *cd.Error) {
+func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Field) (ret builder.Result, err *cd.Error) {
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr

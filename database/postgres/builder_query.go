@@ -6,11 +6,12 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
+	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
 )
 
 // BuildQuery build query sql
-func (s *Builder) BuildQuery(vModel model.Model, filter model.Filter) (ret *ResultStack, err *cd.Error) {
+func (s *Builder) BuildQuery(vModel model.Model, filter model.Filter) (ret builder.Result, err *cd.Error) {
 	namesVal, nameErr := s.getFieldQueryNames(vModel)
 	if nameErr != nil {
 		err = nameErr
@@ -59,7 +60,7 @@ func (s *Builder) BuildQuery(vModel model.Model, filter model.Filter) (ret *Resu
 }
 
 // BuildQueryRelation build query relation sql
-func (s *Builder) BuildQueryRelation(vModel model.Model, vField model.Field) (ret *ResultStack, err *cd.Error) {
+func (s *Builder) BuildQueryRelation(vModel model.Model, vField model.Field) (ret builder.Result, err *cd.Error) {
 	leftVal := vModel.GetPrimaryField().GetValue().Get()
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
@@ -98,11 +99,7 @@ func (s *Builder) getFieldQueryNames(vModel model.Model) (ret string, err *cd.Er
 	return
 }
 
-func (s *Builder) GetFieldValueHolder(vField model.Field) (any, *cd.Error) {
-	return getFieldValueHolder(vField.GetType())
-}
-
-func (s *Builder) GetModuleValueHolder(vModel model.Model) (ret []any, err *cd.Error) {
+func (s *Builder) BuildModuleValueHolder(vModel model.Model) (ret []any, err *cd.Error) {
 	items := []any{}
 	for _, field := range vModel.GetFields() {
 		if !model.IsBasicField(field) || !model.IsValidField(field) {
@@ -112,7 +109,7 @@ func (s *Builder) GetModuleValueHolder(vModel model.Model) (ret []any, err *cd.E
 		itemVal, itemErr := getFieldValueHolder(field.GetType())
 		if itemErr != nil {
 			err = itemErr
-			log.Errorf("GetModuleValueHolder failed, getFieldPlaceHolder error:%s", err.Error())
+			log.Errorf("BuildModuleValueHolder failed, getFieldPlaceHolder error:%s", err.Error())
 			return
 		}
 
@@ -121,15 +118,4 @@ func (s *Builder) GetModuleValueHolder(vModel model.Model) (ret []any, err *cd.E
 
 	ret = items
 	return
-}
-
-func (s *Builder) GetRelationFieldValueHolder(vModel model.Model, vField model.Field) (ret any, err *cd.Error) {
-	rModelVal, rModelErr := s.modelProvider.GetTypeModel(vField.GetType().Elem())
-	if rModelErr != nil {
-		err = rModelErr
-		log.Errorf("GetRelationFieldValueHolder failed, s.modelProvider.GetTypeModel error:%s", err.Error())
-		return
-	}
-
-	return getFieldValueHolder(rModelVal.GetPrimaryField().GetType())
 }

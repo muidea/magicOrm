@@ -18,7 +18,7 @@ type Builder struct {
 }
 
 // New create builder
-func New(provider provider.Provider, codec codec.Codec) *Builder {
+func NewBuilder(provider provider.Provider, codec codec.Codec) *Builder {
 	return &Builder{
 		modelProvider: provider,
 		buildCodec:    codec,

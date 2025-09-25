@@ -6,11 +6,12 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
+	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/model"
 )
 
 // BuildUpdate  Build Update
-func (s *Builder) BuildUpdate(vModel model.Model) (ret *ResultStack, err *cd.Error) {
+func (s *Builder) BuildUpdate(vModel model.Model) (ret builder.Result, err *cd.Error) {
 	resultStackPtr := &ResultStack{}
 	updateStr, updateErr := s.buildFieldUpdateValues(vModel, resultStackPtr)
 	if updateErr != nil {

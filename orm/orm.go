@@ -8,7 +8,6 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
-	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
@@ -36,24 +35,6 @@ type Orm interface {
 var name2Pool sync.Map
 var name2PoolInitializeOnce sync.Once
 var name2PoolUninitializedOnce sync.Once
-
-// NewPool new executor pool
-func NewPool() executor.Pool {
-	return executor.NewPool()
-}
-
-// NewExecutor NewExecutor
-func NewExecutor(config executor.Config) (executor.Executor, *cd.Error) {
-	return executor.NewExecutor(config)
-}
-
-func NewConfig(dbServer, dbName, username, password string) executor.Config {
-	return executor.NewConfig(dbServer, dbName, username, password)
-}
-
-func NewBuilder(provider provider.Provider, modelCodec codec.Codec) builder.Builder {
-	return builder.NewBuilder(provider, modelCodec)
-}
 
 // Initialize InitOrm
 func Initialize() {
