@@ -13,7 +13,7 @@ type baseRunner struct {
 	executor      executor.Executor
 	modelProvider provider.Provider
 	modelCodec    codec.Codec
-	hBuilder      builder.Builder
+	sqlBuilder    builder.Builder
 
 	batchFilter bool
 	deepLevel   int
@@ -33,6 +33,6 @@ func newBaseRunner(
 		executor:      executor,
 		modelProvider: provider,
 		modelCodec:    modelCodec,
-		hBuilder:      builder.NewBuilder(provider, modelCodec),
+		sqlBuilder:    builder.NewBuilder(provider, modelCodec),
 	}
 }

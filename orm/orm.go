@@ -8,6 +8,7 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
+	"github.com/muidea/magicOrm/builder"
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
@@ -48,6 +49,10 @@ func NewExecutor(config executor.Config) (executor.Executor, *cd.Error) {
 
 func NewConfig(dbServer, dbName, username, password string) executor.Config {
 	return executor.NewConfig(dbServer, dbName, username, password)
+}
+
+func NewBuilder(provider provider.Provider, modelCodec codec.Codec) builder.Builder {
+	return builder.NewBuilder(provider, modelCodec)
 }
 
 // Initialize InitOrm

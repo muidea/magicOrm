@@ -66,7 +66,7 @@ func (s *InsertRunner) insertHost(vModel model.Model) (err *cd.Error) {
 }
 
 func (s *InsertRunner) innerHost(vModel model.Model) (ret any, err *cd.Error) {
-	insertResult, insertErr := s.hBuilder.BuildInsert(vModel)
+	insertResult, insertErr := s.sqlBuilder.BuildInsert(vModel)
 	if insertErr != nil {
 		err = insertErr
 		log.Errorf("innerHost failed, builder.BuildInsert error:%s", err.Error())
@@ -130,10 +130,10 @@ func (s *InsertRunner) insertSingleRelation(vModel model.Model, vField model.Fie
 		}
 	}
 
-	relationSQL, relationErr := s.hBuilder.BuildInsertRelation(vModel, vField, rModel)
+	relationSQL, relationErr := s.sqlBuilder.BuildInsertRelation(vModel, vField, rModel)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("insertSingleRelation failed, s.hBuilder.BuildInsertRelation error:%s", err.Error())
+		log.Errorf("insertSingleRelation failed, s.sqlBuilder.BuildInsertRelation error:%s", err.Error())
 		return
 	}
 
@@ -175,10 +175,10 @@ func (s *InsertRunner) insertSliceRelation(vModel model.Model, vField model.Fiel
 			}
 		}
 
-		relationResult, relationErr := s.hBuilder.BuildInsertRelation(vModel, vField, rModel)
+		relationResult, relationErr := s.sqlBuilder.BuildInsertRelation(vModel, vField, rModel)
 		if relationErr != nil {
 			err = relationErr
-			log.Errorf("insertSliceRelation failed, model:%s, filed name:%s, s.hBuilder.BuildInsertRelation error:%s", vModel.GetPkgKey(), vField.GetName(), err.Error())
+			log.Errorf("insertSliceRelation failed, model:%s, filed name:%s, s.sqlBuilder.BuildInsertRelation error:%s", vModel.GetPkgKey(), vField.GetName(), err.Error())
 			return
 		}
 

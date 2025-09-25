@@ -27,6 +27,13 @@ type Builder interface {
 	BuildModuleValueHolder(vModel model.Model) ([]any, *cd.Error)
 }
 
+// NewBuilder new builder
+func NewBuilder(provider provider.Provider, codec codec.Codec) Builder {
+	return &builderImpl{
+		builder: postgres.New(provider, codec),
+	}
+}
+
 type builderImpl struct {
 	builder *postgres.Builder
 }
@@ -81,11 +88,4 @@ func (s *builderImpl) BuildQueryRelation(vModel model.Model, vField model.Field)
 
 func (s *builderImpl) BuildModuleValueHolder(vModel model.Model) ([]any, *cd.Error) {
 	return s.builder.GetModuleValueHolder(vModel)
-}
-
-// NewBuilder new builder
-func NewBuilder(provider provider.Provider, codec codec.Codec) Builder {
-	return &builderImpl{
-		builder: postgres.New(provider, codec),
-	}
 }

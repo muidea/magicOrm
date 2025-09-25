@@ -33,10 +33,10 @@ func NewQueryRunner(
 }
 
 func (s *QueryRunner) innerQuery(vModel model.Model, filter model.Filter) (ret resultItemsList, err *cd.Error) {
-	queryResult, queryErr := s.hBuilder.BuildQuery(vModel, filter)
+	queryResult, queryErr := s.sqlBuilder.BuildQuery(vModel, filter)
 	if queryErr != nil {
 		err = queryErr
-		log.Errorf("innerQuery failed, s.hBuilder.BuildQuery error:%s", err.Error())
+		log.Errorf("innerQuery failed, s.sqlBuilder.BuildQuery error:%s", err.Error())
 		return
 	}
 
@@ -49,7 +49,7 @@ func (s *QueryRunner) innerQuery(vModel model.Model, filter model.Filter) (ret r
 
 	queryList := resultItemsList{}
 	for s.executor.Next() {
-		itemValues, itemErr := s.hBuilder.BuildModuleValueHolder(vModel)
+		itemValues, itemErr := s.sqlBuilder.BuildModuleValueHolder(vModel)
 		if itemErr != nil {
 			err = itemErr
 			log.Errorf("innerQuery failed, getModelFieldsPlaceHolder error:%s", err.Error())
@@ -195,10 +195,10 @@ func (s *QueryRunner) querySliceRelation(vModel model.Model, vField model.Field,
 }
 
 func (s *QueryRunner) innerQueryRelationKeys(vModel model.Model, vField model.Field) (ret resultItems, err *cd.Error) {
-	relationResult, relationErr := s.hBuilder.BuildQueryRelation(vModel, vField)
+	relationResult, relationErr := s.sqlBuilder.BuildQueryRelation(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("innerQueryRelationKeys field:%s failed, hBuilder.BuildQueryRelation error:%v", vField.GetName(), err.Error())
+		log.Errorf("innerQueryRelationKeys field:%s failed, sqlBuilder.BuildQueryRelation error:%v", vField.GetName(), err.Error())
 		return
 	}
 

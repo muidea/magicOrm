@@ -31,10 +31,10 @@ func NewDeleteRunner(
 }
 
 func (s *DeleteRunner) deleteHost(vModel model.Model) (err *cd.Error) {
-	deleteResult, deleteErr := s.hBuilder.BuildDelete(vModel)
+	deleteResult, deleteErr := s.sqlBuilder.BuildDelete(vModel)
 	if deleteErr != nil {
 		err = deleteErr
-		log.Errorf("deleteHost failed, s.hBuilder.BuildDelete error:%s", err.Error())
+		log.Errorf("deleteHost failed, s.sqlBuilder.BuildDelete error:%s", err.Error())
 		return
 	}
 
@@ -46,10 +46,10 @@ func (s *DeleteRunner) deleteHost(vModel model.Model) (err *cd.Error) {
 }
 
 func (s *DeleteRunner) deleteRelation(vModel model.Model, vField model.Field, deepLevel int) (err *cd.Error) {
-	hostResult, relationResult, resultErr := s.hBuilder.BuildDeleteRelation(vModel, vField)
+	hostResult, relationResult, resultErr := s.sqlBuilder.BuildDeleteRelation(vModel, vField)
 	if resultErr != nil {
 		err = resultErr
-		log.Errorf("deleteRelation failed, s.hBuilder.BuildDeleteRelation error:%s", err.Error())
+		log.Errorf("deleteRelation failed, s.sqlBuilder.BuildDeleteRelation error:%s", err.Error())
 		return
 	}
 

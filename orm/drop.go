@@ -21,10 +21,10 @@ func NewDropRunner(vModel model.Model, executor executor.Executor, provider prov
 }
 
 func (s *DropRunner) dropHost(vModel model.Model) (err *cd.Error) {
-	dropResult, dropErr := s.hBuilder.BuildDropTable(vModel)
+	dropResult, dropErr := s.sqlBuilder.BuildDropTable(vModel)
 	if dropErr != nil {
 		err = dropErr
-		log.Errorf("dropHost failed, s.hBuilder.BuildDropTable error:%s", err.Error())
+		log.Errorf("dropHost failed, s.sqlBuilder.BuildDropTable error:%s", err.Error())
 		return
 	}
 
@@ -36,10 +36,10 @@ func (s *DropRunner) dropHost(vModel model.Model) (err *cd.Error) {
 }
 
 func (s *DropRunner) dropRelation(vModel model.Model, vField model.Field) (err *cd.Error) {
-	relationResult, relationErr := s.hBuilder.BuildDropRelationTable(vModel, vField)
+	relationResult, relationErr := s.sqlBuilder.BuildDropRelationTable(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("dropRelation failed, hBuilder.BuildDropRelationTable error:%s", err.Error())
+		log.Errorf("dropRelation failed, sqlBuilder.BuildDropRelationTable error:%s", err.Error())
 		return
 	}
 

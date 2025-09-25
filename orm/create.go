@@ -21,10 +21,10 @@ func NewCreateRunner(vModel model.Model, executor executor.Executor, provider pr
 }
 
 func (s *CreateRunner) createHost() (err *cd.Error) {
-	createResult, createErr := s.hBuilder.BuildCreateTable(s.vModel)
+	createResult, createErr := s.sqlBuilder.BuildCreateTable(s.vModel)
 	if createErr != nil {
 		err = createErr
-		log.Errorf("createHost failed, s.hBuilder.BuildCreateTable error:%s", err.Error())
+		log.Errorf("createHost failed, s.sqlBuilder.BuildCreateTable error:%s", err.Error())
 		return
 	}
 
@@ -36,10 +36,10 @@ func (s *CreateRunner) createHost() (err *cd.Error) {
 }
 
 func (s *CreateRunner) createRelation(vField model.Field) (err *cd.Error) {
-	relationResult, relationErr := s.hBuilder.BuildCreateRelationTable(s.vModel, vField)
+	relationResult, relationErr := s.sqlBuilder.BuildCreateRelationTable(s.vModel, vField)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("createRelation failed, hBuilder.BuildCreateRelationTable error:%s", err.Error())
+		log.Errorf("createRelation failed, sqlBuilder.BuildCreateRelationTable error:%s", err.Error())
 		return
 	}
 

@@ -44,10 +44,10 @@ func NewUpdateRunner(
 }
 
 func (s *UpdateRunner) updateHost(vModel model.Model) (err *cd.Error) {
-	updateResult, updateErr := s.hBuilder.BuildUpdate(vModel)
+	updateResult, updateErr := s.sqlBuilder.BuildUpdate(vModel)
 	if updateErr != nil {
 		err = updateErr
-		log.Errorf("updateHost failed, s.hBuilder.BuildUpdate error:%s", err.Error())
+		log.Errorf("updateHost failed, s.sqlBuilder.BuildUpdate error:%s", err.Error())
 		return
 	}
 

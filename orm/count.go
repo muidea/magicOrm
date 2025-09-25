@@ -27,10 +27,10 @@ func NewCountRunner(
 }
 
 func (s *CountRunner) Count(vFilter model.Filter) (ret int64, err *cd.Error) {
-	countResult, countErr := s.hBuilder.BuildCount(s.vModel, vFilter)
+	countResult, countErr := s.sqlBuilder.BuildCount(s.vModel, vFilter)
 	if countErr != nil {
 		err = countErr
-		log.Errorf("Count failed, hBuilder.BuildCount error:%s", err.Error())
+		log.Errorf("Count failed, sqlBuilder.BuildCount error:%s", err.Error())
 		return
 	}
 
