@@ -46,8 +46,8 @@ func NewExecutor(config executor.Config) (executor.Executor, *cd.Error) {
 	return executor.NewExecutor(config)
 }
 
-func NewConfig(dbServer, dbName, username, password, charSet string) executor.Config {
-	return executor.NewConfig(dbServer, dbName, username, password, charSet)
+func NewConfig(dbServer, dbName, username, password string) executor.Config {
+	return executor.NewConfig(dbServer, dbName, username, password)
 }
 
 // Initialize InitOrm
@@ -71,8 +71,8 @@ func Uninitialized() {
 	})
 }
 
-func AddDatabase(dbServer, dbName, username, password, charSet string, maxConnNum int, owner string) (err *cd.Error) {
-	config := NewConfig(dbServer, dbName, username, password, charSet)
+func AddDatabase(dbServer, dbName, username, password string, maxConnNum int, owner string) (err *cd.Error) {
+	config := NewConfig(dbServer, dbName, username, password)
 
 	val, ok := name2Pool.Load(owner)
 	if ok {

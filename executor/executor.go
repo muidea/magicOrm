@@ -12,7 +12,6 @@ type Config interface {
 	Username() string
 	Password() string
 	Database() string
-	CharSet() string
 }
 
 // Executor 数据库访问对象
@@ -39,13 +38,13 @@ type Pool interface {
 	DecReference() int
 }
 
-func NewConfig(dbServer, dbName, username, password, charSet string) Config {
-	return postgres.NewConfig(dbServer, dbName, username, password, charSet)
+func NewConfig(dbServer, dbName, username, password string) Config {
+	return postgres.NewConfig(dbServer, dbName, username, password)
 }
 
 func NewExecutor(config Config) (Executor, *cd.Error) {
 	return postgres.NewExecutor(
-		postgres.NewConfig(config.Server(), config.Database(), config.Username(), config.Password(), config.CharSet()))
+		postgres.NewConfig(config.Server(), config.Database(), config.Username(), config.Password()))
 }
 
 func NewPool() Pool {
@@ -58,8 +57,7 @@ type poolImpl struct {
 }
 
 func (s *poolImpl) Initialize(maxConnNum int, config Config) *cd.Error {
-	return s.Pool.Initialize(maxConnNum,
-		postgres.NewConfig(config.Server(), config.Database(), config.Username(), config.Password(), config.CharSet()))
+	return s.Pool.Initialize(maxConnNum, postgres.NewConfig(config.Server(), config.Database(), config.Username(), config.Password()))
 }
 
 func (s *poolImpl) Uninitialized() {
@@ -71,7 +69,7 @@ func (s *poolImpl) GetExecutor(ctx context.Context) (Executor, *cd.Error) {
 }
 
 func (s *poolImpl) CheckConfig(config Config) *cd.Error {
-	return s.Pool.CheckConfig(postgres.NewConfig(config.Server(), config.Database(), config.Username(), config.Password(), config.CharSet()))
+	return s.Pool.CheckConfig(postgres.NewConfig(config.Server(), config.Database(), config.Username(), config.Password()))
 }
 
 func (s *poolImpl) IncReference() int {

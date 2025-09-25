@@ -68,7 +68,7 @@ func (s *Config) GetDsn() string {
 	return fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=%s", s.Username(), s.Password(), s.Server(), s.Database(), s.SSLMode())
 }
 
-func NewConfig(dbServer, dbName, username, password, charSet string) *Config {
+func NewConfig(dbServer, dbName, username, password string) *Config {
 	return &Config{dbServer: dbServer, dbName: dbName, username: username, password: password, sslMode: "disable"}
 }
 
@@ -706,8 +706,6 @@ func (s *HostExecutor) CheckTableExist(tableName string) (ret bool, err *cd.Erro
 type Pool struct {
 	config   *Config
 	dbHandle *sql.DB
-
-	maxSize int
 }
 
 // NewPool new pool
@@ -717,21 +715,22 @@ func NewPool() *Pool {
 
 // Initialize initialize executor pool
 func (s *Pool) Initialize(maxConnNum int, config *Config) (err *cd.Error) {
-	if err = s.connect(config.GetDsn()); err != nil {
+	if err = s.connect(config.GetDsn(), maxConnNum); err != nil {
 		return
 	}
 
-	s.maxSize = maxConnNum
 	return
 }
 
-func (s *Pool) connect(dsn string) (err *cd.Error) {
+func (s *Pool) connect(dsn string, maxConnNum int) (err *cd.Error) {
 	dbHandle, dbErr := sql.Open("postgres", dsn)
 	if dbErr != nil {
 		err = cd.NewError(cd.Unexpected, dbErr.Error())
 		log.Errorf("open database exception, connectStr:%s, err:%s", dsn, err.Error())
 		return
 	}
+
+	dbHandle.SetMaxOpenConns(maxConnNum)
 
 	//log.Print("open database connection...")
 	s.dbHandle = dbHandle
@@ -753,7 +752,6 @@ func (s *Pool) Uninitialized() {
 		_ = s.dbHandle.Close()
 		s.dbHandle = nil
 	}
-	s.maxSize = 0
 }
 
 func (s *Pool) GetExecutor(ctx context.Context) (ret *ConnExecutor, err *cd.Error) {
