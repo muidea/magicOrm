@@ -342,22 +342,43 @@ func (s *ConnExecutor) ExecuteInsert(sql string, pkValOut any, args ...any) (err
 			log.Errorf("ExecuteInsert failed, s.dbHandle.Exec error:%s", execErr.Error())
 			return
 		}
-		execResult.LastInsertId()
+		idVal, idErr := execResult.LastInsertId()
+		if idErr != nil {
+			err = cd.NewError(cd.Unexpected, idErr.Error())
+			log.Errorf("ExecuteInsert failed, s.dbHandle.Exec error:%s", idErr.Error())
+			return
+		}
+		if pkValOut != nil {
+			switch raw := pkValOut.(type) {
+			case *any:
+				*raw = idVal
+			default:
+				err = cd.NewError(cd.Unexpected, "pkValOut type error, must be *any")
+			}
+		}
 
 		return
 	}
 
-	rowPtr := s.dbTx.QueryRowContext(s.executeContetxt, sql, args...)
-	if qErr := rowPtr.Err(); qErr != nil {
-		err = cd.NewError(cd.Unexpected, qErr.Error())
-		log.Errorf("ExecuteInsert failed, rowPtr.Err error:%s", qErr.Error())
+	execResult, execErr := s.dbTx.ExecContext(s.executeContetxt, sql, args...)
+	if execErr != nil {
+		err = cd.NewError(cd.Unexpected, execErr.Error())
+		log.Errorf("ExecuteInsert failed, s.dbHandle.Exec error:%s", execErr.Error())
 		return
 	}
-
-	if rErr := rowPtr.Scan(pkValOut); rErr != nil {
-		err = cd.NewError(cd.Unexpected, rErr.Error())
-		log.Errorf("ExecuteInsert failed, rowPtr.Scan error:%s", rErr.Error())
+	idVal, idErr := execResult.LastInsertId()
+	if idErr != nil {
+		err = cd.NewError(cd.Unexpected, idErr.Error())
+		log.Errorf("ExecuteInsert failed, s.dbHandle.Exec error:%s", idErr.Error())
 		return
+	}
+	if pkValOut != nil {
+		switch raw := pkValOut.(type) {
+		case *any:
+			*raw = idVal
+		default:
+			err = cd.NewError(cd.Unexpected, "pkValOut type error, must be *any")
+		}
 	}
 
 	return
@@ -637,35 +658,50 @@ func (s *HostExecutor) ExecuteInsert(sql string, pkValOut any, args ...any) (err
 			panic("dbHandle is nil")
 		}
 
-		rowPtr := s.dbHandle.QueryRow(sql, args...)
-		if qErr := rowPtr.Err(); qErr != nil {
-			err = cd.NewError(cd.Unexpected, qErr.Error())
-			log.Errorf("ExecuteInsert failed, rowPtr.Err error:%s", qErr.Error())
+		execResult, execErr := s.dbHandle.Exec(sql, args...)
+		if execErr != nil {
+			err = cd.NewError(cd.Unexpected, execErr.Error())
+			log.Errorf("ExecuteInsert failed, s.dbHandle.Exec error:%s", execErr.Error())
 			return
 		}
-
-		if rErr := rowPtr.Scan(pkValOut); rErr != nil {
-			err = cd.NewError(cd.Unexpected, rErr.Error())
-			log.Errorf("ExecuteInsert failed, rowPtr.Scan error:%s", rErr.Error())
+		idVal, idErr := execResult.LastInsertId()
+		if idErr != nil {
+			err = cd.NewError(cd.Unexpected, idErr.Error())
+			log.Errorf("ExecuteInsert failed, s.dbHandle.Exec error:%s", idErr.Error())
 			return
+		}
+		if pkValOut != nil {
+			switch raw := pkValOut.(type) {
+			case *any:
+				*raw = idVal
+			default:
+				err = cd.NewError(cd.Unexpected, "pkValOut type error, must be *any")
+			}
 		}
 
 		return
 	}
 
-	rowPtr := s.dbTx.QueryRow(sql, args...)
-	if qErr := rowPtr.Err(); qErr != nil {
-		err = cd.NewError(cd.Unexpected, qErr.Error())
-		log.Errorf("ExecuteInsert failed, rowPtr.Err error:%s", qErr.Error())
+	execResult, execErr := s.dbTx.Exec(sql, args...)
+	if execErr != nil {
+		err = cd.NewError(cd.Unexpected, execErr.Error())
+		log.Errorf("ExecuteInsert failed, s.dbHandle.Exec error:%s", execErr.Error())
 		return
 	}
-
-	if rErr := rowPtr.Scan(pkValOut); rErr != nil {
-		err = cd.NewError(cd.Unexpected, rErr.Error())
-		log.Errorf("ExecuteInsert failed, rowPtr.Scan error:%s", rErr.Error())
+	idVal, idErr := execResult.LastInsertId()
+	if idErr != nil {
+		err = cd.NewError(cd.Unexpected, idErr.Error())
+		log.Errorf("ExecuteInsert failed, s.dbHandle.Exec error:%s", idErr.Error())
 		return
 	}
-
+	if pkValOut != nil {
+		switch raw := pkValOut.(type) {
+		case *any:
+			*raw = idVal
+		default:
+			err = cd.NewError(cd.Unexpected, "pkValOut type error, must be *any")
+		}
+	}
 	return
 }
 
