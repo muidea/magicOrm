@@ -49,7 +49,7 @@ func (s *QueryRunner) innerQuery(vModel model.Model, filter model.Filter) (ret r
 
 	queryList := resultItemsList{}
 	for s.executor.Next() {
-		itemValues, itemErr := s.hBuilder.GetModuleValueHolder(vModel)
+		itemValues, itemErr := s.hBuilder.BuildModuleValueHolder(vModel)
 		if itemErr != nil {
 			err = itemErr
 			log.Errorf("innerQuery failed, getModelFieldsPlaceHolder error:%s", err.Error())

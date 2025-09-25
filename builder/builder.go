@@ -24,7 +24,7 @@ type Builder interface {
 	BuildDeleteRelation(vModel model.Model, vField model.Field) (Result, Result, *cd.Error)
 	BuildQueryRelation(vModel model.Model, vField model.Field) (Result, *cd.Error)
 
-	GetModuleValueHolder(vModel model.Model) ([]any, *cd.Error)
+	BuildModuleValueHolder(vModel model.Model) ([]any, *cd.Error)
 }
 
 type builderImpl struct {
@@ -79,7 +79,7 @@ func (s *builderImpl) BuildQueryRelation(vModel model.Model, vField model.Field)
 	return s.builder.BuildQueryRelation(vModel, vField)
 }
 
-func (s *builderImpl) GetModuleValueHolder(vModel model.Model) ([]any, *cd.Error) {
+func (s *builderImpl) BuildModuleValueHolder(vModel model.Model) ([]any, *cd.Error) {
 	return s.builder.GetModuleValueHolder(vModel)
 }
 
