@@ -1,5 +1,5 @@
-//go:build postgres
-// +build postgres
+//go:build !mysql
+// +build !mysql
 
 package orm
 
