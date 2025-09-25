@@ -745,7 +745,7 @@ func (s *Pool) Initialize(maxConnNum int, config database.Config) (err *cd.Error
 }
 
 func (s *Pool) connect(dsn string, maxConnNum int) (err *cd.Error) {
-	dbHandle, dbErr := sql.Open("postgres", dsn)
+	dbHandle, dbErr := sql.Open("mysql", dsn)
 	if dbErr != nil {
 		err = cd.NewError(cd.Unexpected, dbErr.Error())
 		log.Errorf("open database exception, connectStr:%s, err:%s", dsn, err.Error())
