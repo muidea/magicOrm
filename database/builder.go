@@ -1,4 +1,4 @@
-package builder
+package database
 
 import (
 	cd "github.com/muidea/magicCommon/def"

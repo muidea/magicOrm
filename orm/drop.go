@@ -4,8 +4,8 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
+	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
 )
@@ -14,7 +14,7 @@ type DropRunner struct {
 	baseRunner
 }
 
-func NewDropRunner(vModel model.Model, executor executor.Executor, provider provider.Provider, modelCodec codec.Codec) *DropRunner {
+func NewDropRunner(vModel model.Model, executor database.Executor, provider provider.Provider, modelCodec codec.Codec) *DropRunner {
 	return &DropRunner{
 		baseRunner: newBaseRunner(vModel, executor, provider, modelCodec, false, 0),
 	}

@@ -6,8 +6,8 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
+	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
 )
@@ -21,7 +21,7 @@ type QueryRunner struct {
 
 func NewQueryRunner(
 	vModel model.Model,
-	executor executor.Executor,
+	executor database.Executor,
 	provider provider.Provider,
 	modelCodec codec.Codec,
 	batchFilter bool,

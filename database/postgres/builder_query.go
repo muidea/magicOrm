@@ -6,12 +6,12 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
-	"github.com/muidea/magicOrm/builder"
+	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/model"
 )
 
 // BuildQuery build query sql
-func (s *Builder) BuildQuery(vModel model.Model, filter model.Filter) (ret builder.Result, err *cd.Error) {
+func (s *Builder) BuildQuery(vModel model.Model, filter model.Filter) (ret database.Result, err *cd.Error) {
 	namesVal, nameErr := s.getFieldQueryNames(vModel)
 	if nameErr != nil {
 		err = nameErr
@@ -60,7 +60,7 @@ func (s *Builder) BuildQuery(vModel model.Model, filter model.Filter) (ret build
 }
 
 // BuildQueryRelation build query relation sql
-func (s *Builder) BuildQueryRelation(vModel model.Model, vField model.Field) (ret builder.Result, err *cd.Error) {
+func (s *Builder) BuildQueryRelation(vModel model.Model, vField model.Field) (ret database.Result, err *cd.Error) {
 	leftVal := vModel.GetPrimaryField().GetValue().Get()
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {

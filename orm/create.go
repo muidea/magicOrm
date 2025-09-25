@@ -4,8 +4,8 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
+	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
 )
@@ -14,7 +14,7 @@ type CreateRunner struct {
 	baseRunner
 }
 
-func NewCreateRunner(vModel model.Model, executor executor.Executor, provider provider.Provider, modelCodec codec.Codec) *CreateRunner {
+func NewCreateRunner(vModel model.Model, executor database.Executor, provider provider.Provider, modelCodec codec.Codec) *CreateRunner {
 	return &CreateRunner{
 		baseRunner: newBaseRunner(vModel, executor, provider, modelCodec, false, 0),
 	}

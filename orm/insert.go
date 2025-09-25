@@ -4,8 +4,8 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
+	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
 )
@@ -17,7 +17,7 @@ type InsertRunner struct {
 
 func NewInsertRunner(
 	vModel model.Model,
-	executor executor.Executor,
+	executor database.Executor,
 	provider provider.Provider,
 	modelCodec codec.Codec) *InsertRunner {
 	baseRunner := newBaseRunner(vModel, executor, provider, modelCodec, false, 0)

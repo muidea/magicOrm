@@ -8,8 +8,8 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
+	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
 )
@@ -47,7 +47,7 @@ func Initialize() {
 func Uninitialized() {
 	name2PoolUninitializedOnce.Do(func() {
 		name2Pool.Range(func(_, val any) bool {
-			pool := val.(executor.Pool)
+			pool := val.(database.Pool)
 			pool.Uninitialized()
 
 			return true
@@ -62,7 +62,7 @@ func AddDatabase(dbServer, dbName, username, password string, maxConnNum int, ow
 
 	val, ok := name2Pool.Load(owner)
 	if ok {
-		pool := val.(executor.Pool)
+		pool := val.(database.Pool)
 		pool.IncReference()
 		err = pool.CheckConfig(config)
 		return
@@ -86,7 +86,7 @@ func DelDatabase(owner string) {
 		return
 	}
 
-	pool := val.(executor.Pool)
+	pool := val.(database.Pool)
 	if pool.DecReference() == 0 {
 		pool.Uninitialized()
 		name2Pool.Delete(owner)
@@ -94,7 +94,7 @@ func DelDatabase(owner string) {
 }
 
 // NewOrm create new Orm
-func NewOrm(provider provider.Provider, cfg executor.Config, prefix string) (Orm, *cd.Error) {
+func NewOrm(provider provider.Provider, cfg database.Config, prefix string) (Orm, *cd.Error) {
 	executorVal, executorErr := NewExecutor(cfg)
 	if executorErr != nil {
 		log.Errorf("NewOrm failed, NewExecutor error:%s", executorErr.Error())
@@ -114,7 +114,7 @@ func GetOrm(provider provider.Provider, prefix string) (ret Orm, err *cd.Error) 
 		return
 	}
 
-	pool := val.(executor.Pool)
+	pool := val.(database.Pool)
 	executorVal, executorErr := pool.GetExecutor(context.Background())
 	if executorErr != nil {
 		err = executorErr
@@ -128,7 +128,7 @@ func GetOrm(provider provider.Provider, prefix string) (ret Orm, err *cd.Error) 
 
 // impl orm
 type impl struct {
-	executor      executor.Executor
+	executor      database.Executor
 	modelProvider provider.Provider
 	modelCodec    codec.Codec
 }

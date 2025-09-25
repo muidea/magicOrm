@@ -11,7 +11,7 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-	"github.com/muidea/magicOrm/executor"
+	"github.com/muidea/magicOrm/database"
 )
 
 const defaultSSLMode = "disable"
@@ -74,7 +74,7 @@ func NewConfig(dbServer, dbName, username, password string) *Config {
 }
 
 // NewExecutor 新建一个数据访问对象
-func NewExecutor(configPtr executor.Config) (ret *HostExecutor, err *cd.Error) {
+func NewExecutor(configPtr database.Config) (ret *HostExecutor, err *cd.Error) {
 	dsn := configPtr.GetDsn()
 	dbHandle, dbErr := sql.Open("postgres", dsn)
 	if dbErr != nil {
@@ -716,7 +716,7 @@ func NewPool() *Pool {
 }
 
 // Initialize initialize executor pool
-func (s *Pool) Initialize(maxConnNum int, config executor.Config) (err *cd.Error) {
+func (s *Pool) Initialize(maxConnNum int, config database.Config) (err *cd.Error) {
 	if err = s.connect(config.GetDsn(), maxConnNum); err != nil {
 		return
 	}
@@ -756,7 +756,7 @@ func (s *Pool) Uninitialized() {
 	}
 }
 
-func (s *Pool) GetExecutor(ctx context.Context) (ret executor.Executor, err *cd.Error) {
+func (s *Pool) GetExecutor(ctx context.Context) (ret database.Executor, err *cd.Error) {
 	connPtr, connErr := s.dbHandle.Conn(ctx)
 	if connErr != nil {
 		err = cd.NewError(cd.DatabaseError, connErr.Error())
@@ -770,7 +770,7 @@ func (s *Pool) GetExecutor(ctx context.Context) (ret executor.Executor, err *cd.
 	return
 }
 
-func (s *Pool) CheckConfig(cfgPtr executor.Config) *cd.Error {
+func (s *Pool) CheckConfig(cfgPtr database.Config) *cd.Error {
 	newDsn := cfgPtr.GetDsn()
 	preDsn := s.config.GetDsn()
 	if newDsn == preDsn {

@@ -1,19 +1,18 @@
 package orm
 
 import (
-	"github.com/muidea/magicOrm/builder"
+	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/executor"
 	"github.com/muidea/magicOrm/model"
 	"github.com/muidea/magicOrm/provider"
 )
 
 type baseRunner struct {
 	vModel        model.Model
-	executor      executor.Executor
+	executor      database.Executor
 	modelProvider provider.Provider
 	modelCodec    codec.Codec
-	sqlBuilder    builder.Builder
+	sqlBuilder    database.Builder
 
 	batchFilter bool
 	deepLevel   int
@@ -21,7 +20,7 @@ type baseRunner struct {
 
 func newBaseRunner(
 	vModel model.Model,
-	executor executor.Executor,
+	executor database.Executor,
 	provider provider.Provider,
 	modelCodec codec.Codec,
 	batchFilter bool,

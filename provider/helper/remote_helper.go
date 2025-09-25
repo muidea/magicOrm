@@ -64,18 +64,9 @@ func SerializeEntity(entity any, destinationPath string) {
 	}
 	defer fileHandle.Close()
 
-	writeOK := false
-	for {
-		_, writeErr := byteStream.WriteTo(fileHandle)
-		if writeErr != nil {
-			log.Errorf("SerializeEntity failed, fileHandle.Write %s error:%s", fileName, writeErr.Error())
-			break
-		}
-
-		writeOK = true
-		break
-	}
-	if !writeOK {
+	_, writeErr := byteStream.WriteTo(fileHandle)
+	if writeErr != nil {
+		log.Errorf("SerializeEntity failed, fileHandle.Write %s error:%s", fileName, writeErr.Error())
 		_ = os.Remove(fileName)
 		return
 	}
