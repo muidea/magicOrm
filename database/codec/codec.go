@@ -196,21 +196,26 @@ func (s *codecImpl) ExtractBasicFieldValue(vField model.Field, eVal any) (ret an
 	vType := vField.GetType()
 	switch vType.GetValue() {
 	case model.TypeSliceValue:
-		strVal, strOK := eVal.(string)
-		if strOK {
-			if strVal != "" {
-				vArray := []any{}
-				byteErr := json.Unmarshal([]byte(strVal), &vArray)
-				if byteErr != nil {
-					err = cd.NewError(cd.Unexpected, byteErr.Error())
-					return
-				}
-				ret, err = s.modelProvider.DecodeValue(vArray, vType)
-			} else {
-				ret, err = vType.Interface(nil)
-			}
-		} else {
+		var strVal string
+		switch raw := eVal.(type) {
+		case string:
+			strVal = raw
+		case []uint8:
+			strVal = string(raw)
+		default:
 			err = cd.NewError(cd.Unexpected, "illegal field value")
+			return
+		}
+		if strVal != "" {
+			vArray := []any{}
+			byteErr := json.Unmarshal([]byte(strVal), &vArray)
+			if byteErr != nil {
+				err = cd.NewError(cd.Unexpected, byteErr.Error())
+				return
+			}
+			ret, err = s.modelProvider.DecodeValue(vArray, vType)
+		} else {
+			ret, err = vType.Interface(nil)
 		}
 	default:
 		ret, err = s.modelProvider.DecodeValue(eVal, vType)

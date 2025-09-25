@@ -28,7 +28,7 @@ func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err *cd.Err
 			ret = "TEXT"
 		}
 	case model.TypeDateTimeValue:
-		ret = "DATETIME"
+		ret = "DATETIME(3)"
 	case model.TypeBooleanValue, model.TypeBitValue:
 		ret = "TINYINT"
 	case model.TypeSmallIntegerValue, model.TypePositiveBitValue:

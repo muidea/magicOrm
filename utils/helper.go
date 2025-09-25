@@ -91,7 +91,7 @@ func GetCurrentDateTime() (ret time.Time) {
 }
 
 func GetCurrentDateTimeStr() (ret string) {
-	ret = time.Now().UTC().Format(time.RFC3339)
+	ret = time.Now().UTC().Format(fu.CSTLayoutWithMillisecond)
 	return
 }
 
@@ -831,10 +831,12 @@ func ConvertToString(rVal reflect.Value) (ret string, err *cd.Error) {
 	case reflect.Struct:
 		switch rVal.Type().String() {
 		case "time.Time":
-			ret = rVal.Interface().(time.Time).Format(time.RFC3339)
+			ret = rVal.Interface().(time.Time).Format(fu.CSTLayoutWithMillisecond)
 		default:
 			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal string value, val type:%v", rVal.Type().String()))
 		}
+	case reflect.Array, reflect.Slice:
+		ret = fmt.Sprintf("%s", rVal.Interface())
 	default:
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal string value, val type:%v", rVal.Type().String()))
 	}
@@ -860,7 +862,7 @@ func ConvertToDateTime(rVal reflect.Value) (ret time.Time, err *cd.Error) {
 			return
 		}
 
-		tVal, tErr := time.Parse(time.RFC3339, rVal.String())
+		tVal, tErr := time.Parse(fu.CSTLayoutWithMillisecond, rVal.String())
 		if tErr != nil {
 			err = cd.NewError(cd.Unexpected, tErr.Error())
 			return
@@ -873,6 +875,13 @@ func ConvertToDateTime(rVal reflect.Value) (ret time.Time, err *cd.Error) {
 		default:
 			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))
 		}
+	case reflect.Array, reflect.Slice:
+		tVal, tErr := time.Parse(fu.CSTLayoutWithMillisecond, fmt.Sprintf("%s", rVal.Interface()))
+		if tErr != nil {
+			err = cd.NewError(cd.Unexpected, tErr.Error())
+			return
+		}
+		ret = tVal
 	default:
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))
 	}

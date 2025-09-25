@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	fu "github.com/muidea/magicCommon/foundation/util"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -377,7 +378,7 @@ func TestTimeHelpers(t *testing.T) {
 	// 测试GetCurrentDateTimeStr
 	dateTimeStr := GetCurrentDateTimeStr()
 	// 应该是合法的时间字符串
-	_, parseErr := time.Parse(time.RFC3339, dateTimeStr)
+	_, parseErr := time.Parse(fu.CSTLayoutWithMillisecond, dateTimeStr)
 	if parseErr != nil {
 		t.Errorf("GetCurrentDateTimeStr should return valid RFC3339 time string: %s", parseErr.Error())
 	}

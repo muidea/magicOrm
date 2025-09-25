@@ -34,7 +34,7 @@ func getTypeDeclare(fType model.Type, fSpec model.Spec, atPKField bool) (ret str
 			ret = "TEXT"
 		}
 	case model.TypeDateTimeValue:
-		ret = "TIMESTAMP"
+		ret = "TIMESTAMP(3)"
 	case model.TypeBooleanValue:
 		ret = "BOOLEAN"
 	case model.TypeBitValue:
