@@ -63,7 +63,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 	if err != nil {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 	}
-	if str.SQL() != "CREATE TABLE IF NOT EXISTS \"abc_Unit\" (\n\t\"uid\" VARCHAR(32) NOT NULL,\n\t\"name\" TEXT NOT NULL,\n\t\"value\" DOUBLE PRECISION NOT NULL DEFAULT '0',\n\t\"ts\" TIMESTAMP NOT NULL,\n\tPRIMARY KEY (\"uid\")\n)\n" {
+	if str.SQL() != "CREATE TABLE IF NOT EXISTS \"abc_Unit\" (\n\t\"uid\" VARCHAR(32) NOT NULL,\n\t\"name\" TEXT NOT NULL,\n\t\"value\" DOUBLE PRECISION NOT NULL DEFAULT '0',\n\t\"ts\" TIMESTAMP(3) NOT NULL,\n\tPRIMARY KEY (\"uid\")\n)\n" {
 		t.Errorf("build create schema failed, str:%s", str)
 	}
 
@@ -360,7 +360,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 		t.Errorf("build create schema failed, err:%s", err.Error())
 		return
 	}
-	if str.SQL() != "CREATE TABLE IF NOT EXISTS \"abc_Unit\" (\n\t\"uid\" VARCHAR(32) NOT NULL,\n\t\"name\" TEXT NOT NULL,\n\t\"value\" DOUBLE PRECISION NOT NULL DEFAULT '0',\n\t\"ts\" TIMESTAMP NOT NULL,\n\tPRIMARY KEY (\"uid\")\n)\n" {
+	if str.SQL() != "CREATE TABLE IF NOT EXISTS \"abc_Unit\" (\n\t\"uid\" VARCHAR(32) NOT NULL,\n\t\"name\" TEXT NOT NULL,\n\t\"value\" DOUBLE PRECISION NOT NULL DEFAULT '0',\n\t\"ts\" TIMESTAMP(3) NOT NULL,\n\tPRIMARY KEY (\"uid\")\n)\n" {
 		t.Errorf("build create schema failed, str:%s", str)
 		return
 	}

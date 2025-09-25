@@ -1,7 +1,7 @@
-//go:build !mysql
-// +build !mysql
+//go:build mysql
+// +build mysql
 
-package postgres
+package mysql
 
 import (
 	"context"
@@ -21,9 +21,9 @@ const (
 	monkeyDDL = 3
 )
 
-var databaseServer = "localhost:5432"
-var databaseName = "magicplatform_db"
-var databaseUsername = "postgres"
+var databaseServer = "127.0.0.1:3306"
+var databaseName = "testdb"
+var databaseUsername = "root"
 var databasePassword = "rootkit"
 var threadSize = 20
 var itemSize = 1
@@ -33,9 +33,41 @@ var finishFlag = false
 
 type funcPtr func(executor database.Executor) *cd.Error
 
+func TestMasterSlaver(t *testing.T) {
+	pool := NewPool()
+	config := NewConfig(databaseServer, databaseName, databaseUsername, databasePassword, "")
+	pool.Initialize(50, config)
+	defer pool.Uninitialized()
+
+	executePtr, executeErr := pool.GetExecutor(context.Background())
+	if executeErr != nil {
+		t.Errorf("pool.FetchOut failed")
+		return
+	}
+
+	sql := "show slave status"
+	cols, queryErr := executePtr.Query(sql, true)
+	if queryErr != nil {
+		t.Errorf("executePtr.Query failed, error:%s", queryErr.Error())
+		return
+	}
+	if executePtr.Next() {
+		//executePtr.GetField()
+		t.Logf("ok, cols:%v", cols)
+	}
+
+	sql = "grant replication slave on *.* to 'root'@'%' identified by 'rootkit';"
+	_, executeErr = executePtr.Execute(sql)
+	if executeErr != nil {
+		t.Errorf("pool.FetchOut failed")
+		return
+	}
+
+}
+
 func TestNewPool(t *testing.T) {
 	pool := NewPool()
-	config := NewConfig(databaseServer, databaseName, databaseUsername, databasePassword)
+	config := NewConfig(databaseServer, databaseName, databaseUsername, databasePassword, "")
 	pool.Initialize(50, config)
 	defer pool.Uninitialized()
 
@@ -133,8 +165,6 @@ func randomDDL(wg *sync.WaitGroup, pool *Pool) {
 
 func pickExecutor(pool *Pool, wg *sync.WaitGroup, fPtr funcPtr) {
 	executorPtr, executorErr := pool.GetExecutor(context.Background())
-	defer executorPtr.Release()
-
 	if executorErr != nil {
 		return
 	}
@@ -150,24 +180,24 @@ func pickExecutor(pool *Pool, wg *sync.WaitGroup, fPtr funcPtr) {
 }
 
 func createSchema(executor database.Executor) (err *cd.Error) {
-	sql := "CREATE TABLE \"Unit001\" (\n\t\"id\" SERIAL PRIMARY KEY,\n\t\"i8\" SMALLINT NOT NULL ,\n\t\"i16\" SMALLINT NOT NULL ,\n\t\"i32\" INTEGER NOT NULL ,\n\t\"i64\" BIGINT NOT NULL ,\n\t\"name\" TEXT NOT NULL ,\n\t\"value\" REAL NOT NULL ,\n\t\"f64\" DOUBLE PRECISION NOT NULL ,\n\t\"ts\" TIMESTAMP NOT NULL ,\n\t\"flag\" SMALLINT NOT NULL ,\n\t\"iArray\" TEXT NOT NULL ,\n\t\"fArray\" TEXT NOT NULL ,\n\t\"strArray\" TEXT NOT NULL \n)"
+	sql := "CREATE TABLE `Unit001` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`i8` TINYINT NOT NULL ,\n\t`i16` SMALLINT NOT NULL ,\n\t`i32` INT NOT NULL ,\n\t`i64` BIGINT NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` FLOAT NOT NULL ,\n\t`f64` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\t`flag` TINYINT NOT NULL ,\n\t`iArray` TEXT NOT NULL ,\n\t`fArray` TEXT NOT NULL ,\n\t`strArray` TEXT NOT NULL ,\n\tPRIMARY KEY (`id`)\n)"
 	_, err = executor.Execute(sql)
 	return
 }
 
 func dropSchema(executor database.Executor) (err *cd.Error) {
-	sql := "DROP TABLE IF EXISTS \"Unit001\""
+	sql := "DROP TABLE IF EXISTS `Unit001`"
 	_, err = executor.Execute(sql)
 	return
 }
 
 func checkSchema(executor database.Executor) (ret bool, err *cd.Error) {
-	ret, err = executor.CheckTableExist("Unit001")
+	ret, err = executor.CheckTableExist(`Unit001`)
 	return
 }
 
 func insertValue(executor database.Executor) (err *cd.Error) {
-	sql := "INSERT INTO \"Unit001\" (\"i8\",\"i16\",\"i32\",\"i64\",\"name\",\"value\",\"f64\",\"ts\",\"flag\",\"iArray\",\"fArray\",\"strArray\") VALUES (8,1600,323200,78962222222,'Hello world',12.345600128173828,12.45678,'2018-01-02 15:04:05',1,'12','12.34','abcdef')"
+	sql := "INSERT INTO `Unit001` (`i8`,`i16`,`i32`,`i64`,`name`,`value`,`f64`,`ts`,`flag`,`iArray`,`fArray`,`strArray`) VALUES (8,1600,323200,78962222222,'Hello world',12.345600128173828,12.45678,'2018-01-02 15:04:05',1,'12','12.34','abcdef')"
 	idx := 0
 	for idx < itemSize/threadSize {
 		_, err = executor.Execute(sql)
@@ -177,37 +207,37 @@ func insertValue(executor database.Executor) (err *cd.Error) {
 }
 
 func alterSchemaAdd(executor database.Executor) (err *cd.Error) {
-	sql := "ALTER TABLE \"Unit001\" ADD dVal DATE"
+	sql := "ALTER TABLE `Unit001` ADD dVal DATE"
 	_, err = executor.Execute(sql)
 	return
 }
 
 func alterSchemaDrop(executor database.Executor) (err *cd.Error) {
-	sql := "ALTER TABLE \"Unit001\" DROP dVal"
+	sql := "ALTER TABLE `Unit001` DROP dVal"
 	_, err = executor.Execute(sql)
 	return
 }
 
 func alterSchemaOlnDDLAdd(executor database.Executor) (err *cd.Error) {
-	sql := "ALTER TABLE \"Unit001\" ADD dVal2 DATE"
+	sql := "ALTER TABLE `Unit001` ADD dVal2 DATE, ALGORITHM=DEFAULT, LOCK=NONE"
 	_, err = executor.Execute(sql)
 	return
 }
 
 func alterSchemaOlnDDLDrop(executor database.Executor) (err *cd.Error) {
-	sql := "ALTER TABLE \"Unit001\" DROP dVal2"
+	sql := "ALTER TABLE `Unit001` DROP dVal2, ALGORITHM=DEFAULT, LOCK=NONE"
 	_, err = executor.Execute(sql)
 	return
 }
 
 func createSchemaDDL(executor database.Executor) (err *cd.Error) {
-	sql := "CREATE TABLE \"Unit002\" (\n\t\"id\" SERIAL PRIMARY KEY,\n\t\"i8\" SMALLINT NOT NULL ,\n\t\"i16\" SMALLINT NOT NULL ,\n\t\"i32\" INTEGER NOT NULL ,\n\t\"i64\" BIGINT NOT NULL ,\n\t\"name\" TEXT NOT NULL ,\n\t\"value\" REAL NOT NULL ,\n\t\"f64\" DOUBLE PRECISION NOT NULL ,\n\t\"ts\" TIMESTAMP NOT NULL ,\n\t\"flag\" SMALLINT NOT NULL ,\n\t\"iArray\" TEXT NOT NULL ,\n\t\"fArray\" TEXT NOT NULL ,\n\t\"strArray\" TEXT NOT NULL \n)"
+	sql := "CREATE TABLE `Unit002` (\n\t`id` INT NOT NULL AUTO_INCREMENT,\n\t`i8` TINYINT NOT NULL ,\n\t`i16` SMALLINT NOT NULL ,\n\t`i32` INT NOT NULL ,\n\t`i64` BIGINT NOT NULL ,\n\t`name` TEXT NOT NULL ,\n\t`value` FLOAT NOT NULL ,\n\t`f64` DOUBLE NOT NULL ,\n\t`ts` DATETIME NOT NULL ,\n\t`flag` TINYINT NOT NULL ,\n\t`iArray` TEXT NOT NULL ,\n\t`fArray` TEXT NOT NULL ,\n\t`strArray` TEXT NOT NULL ,\n\tPRIMARY KEY (`id`)\n)"
 	_, err = executor.Execute(sql)
 	return
 }
 
 func dropSchemaDDL(executor database.Executor) (err *cd.Error) {
-	sql := "DROP TABLE IF EXISTS \"Unit002\""
+	sql := "DROP TABLE IF EXISTS `Unit002`"
 	_, err = executor.Execute(sql)
 	return
 }
