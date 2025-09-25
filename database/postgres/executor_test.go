@@ -22,7 +22,7 @@ const (
 )
 
 var databaseServer = "localhost:5432"
-var databaseName = "magicplatform_db"
+var databaseName = "magicplatform_db/testdb"
 var databaseUsername = "postgres"
 var databasePassword = "rootkit"
 var threadSize = 20

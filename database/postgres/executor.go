@@ -23,7 +23,6 @@ type Config struct {
 	username string
 	password string
 	sslMode  string
-	charSet  string
 }
 
 func (s *Config) Server() string {
@@ -50,14 +49,6 @@ func (s *Config) SSLMode() string {
 	return s.sslMode
 }
 
-func (s *Config) CharSet() string {
-	if s.charSet == "" {
-		return defaultCharSet
-	}
-
-	return s.charSet
-}
-
 func (s *Config) Same(cfg *Config) bool {
 	return s.dbServer == cfg.dbServer &&
 		s.dbName == cfg.dbName &&
@@ -66,7 +57,26 @@ func (s *Config) Same(cfg *Config) bool {
 }
 
 func (s *Config) GetDsn() string {
-	return fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=%s", s.Username(), s.Password(), s.Server(), s.Database(), s.SSLMode())
+	// dbName在实际转递时会存在databaseName/schemaName这种情况，其中schemaName是可选
+	// 所以在这里转换成dsn字符串时，进行区分处理databaseName/schemaName,databaseName这两种情况
+	dbName := s.Database()
+	schemaName := "public" // 默认schema
+	
+	// 检查dbName是否包含schema名称（格式：databaseName/schemaName）
+	if idx := len(dbName) - 1; idx >= 0 {
+		// 从后往前查找最后一个"/"的位置
+		for i := idx; i >= 0; i-- {
+			if dbName[i] == '/' {
+				// 找到分隔符，分割数据库名和schema名
+				schemaName = dbName[i+1:]
+				dbName = dbName[:i]
+				break
+			}
+		}
+	}
+	
+	return fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=%s&options=-c%%20search_path=%s",
+		s.Username(), s.Password(), s.Server(), dbName, s.SSLMode(), schemaName)
 }
 
 func NewConfig(dbServer, dbName, username, password string) *Config {
