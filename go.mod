@@ -2,7 +2,7 @@ module github.com/muidea/magicOrm
 
 go 1.24
 
-require github.com/muidea/magicCommon v1.4.13
+require github.com/muidea/magicCommon v1.5.0
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
