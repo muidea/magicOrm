@@ -15,7 +15,6 @@ import (
 )
 
 const defaultSSLMode = "disable"
-const defaultCharSet = "UTF8"
 
 type Config struct {
 	dbServer string
@@ -61,7 +60,7 @@ func (s *Config) GetDsn() string {
 	// 所以在这里转换成dsn字符串时，进行区分处理databaseName/schemaName,databaseName这两种情况
 	dbName := s.Database()
 	schemaName := "public" // 默认schema
-	
+
 	// 检查dbName是否包含schema名称（格式：databaseName/schemaName）
 	if idx := len(dbName) - 1; idx >= 0 {
 		// 从后往前查找最后一个"/"的位置
@@ -74,7 +73,7 @@ func (s *Config) GetDsn() string {
 			}
 		}
 	}
-	
+
 	return fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=%s&options=-c%%20search_path=%s",
 		s.Username(), s.Password(), s.Server(), dbName, s.SSLMode(), schemaName)
 }
@@ -715,7 +714,7 @@ func (s *HostExecutor) CheckTableExist(tableName string) (ret bool, err *cd.Erro
 
 // Pool executorPool
 type Pool struct {
-	config         *Config
+	dbDSN          string
 	dbHandle       *sql.DB
 	referenceCount int
 }
@@ -754,6 +753,7 @@ func (s *Pool) connect(dsn string, maxConnNum int) (err *cd.Error) {
 		return
 	}
 
+	s.dbDSN = dsn
 	s.dbHandle = dbHandle
 	return
 }
@@ -782,8 +782,7 @@ func (s *Pool) GetExecutor(ctx context.Context) (ret database.Executor, err *cd.
 
 func (s *Pool) CheckConfig(cfgPtr database.Config) *cd.Error {
 	newDsn := cfgPtr.GetDsn()
-	preDsn := s.config.GetDsn()
-	if newDsn == preDsn {
+	if newDsn == s.dbDSN {
 		return nil
 	}
 
