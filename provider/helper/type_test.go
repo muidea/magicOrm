@@ -231,6 +231,24 @@ func TestTypeConversion(t *testing.T) {
 			expectError:  false,
 		},
 		{
+			name:         "int slice conversion",
+			value:        []int{10, 20},
+			expectedType: model.TypeSliceValue,
+			expectError:  false,
+		},
+		{
+			name:         "Time slice conversion",
+			value:        []time.Time{time.Now(), time.Now()},
+			expectedType: model.TypeSliceValue,
+			expectError:  false,
+		},
+		{
+			name:         "Struct conversion",
+			value:        TestStruct{},
+			expectedType: model.TypeStructValue,
+			expectError:  false,
+		},
+		{
 			name:        "Nil conversion",
 			value:       nil,
 			expectError: true,
