@@ -44,12 +44,33 @@ import "fmt"
 
 type TypeDeclare int
 
+const (
+	TypeBooleanName              = "bool"
+	TypeByteName                 = "int8"
+	TypeSmallIntegerName         = "int16"
+	TypeInteger32Name            = "int32"
+	TypeIntegerName              = "int"
+	TypeBigIntegerName           = "int64"
+	TypePositiveByteName         = "uint8"
+	TypePositiveSmallIntegerName = "uint16"
+	TypePositiveInteger32Name    = "uint32"
+	TypePositiveIntegerName      = "uint"
+	TypePositiveBigIntegerName   = "uint64"
+	TypeFloatName                = "float32"
+	TypeDoubleName               = "float64"
+	TypeStringName               = "string"
+	TypeDateTimeName             = "datetime"
+	TypeStructTimeName           = "time.Time"
+	TypeStructName               = "struct"
+	TypeSliceName                = "array"
+)
+
 // Define the Type enum
 const (
 	// TypeBooleanValue bool
 	TypeBooleanValue TypeDeclare = iota + 100
-	// TypeBitValue int8
-	TypeBitValue
+	// TypeByteValue int8
+	TypeByteValue
 	// TypeSmallIntegerValue int16
 	TypeSmallIntegerValue
 	// TypeInteger32Value int32
@@ -58,8 +79,8 @@ const (
 	TypeIntegerValue
 	// TypeBigIntegerValue int64
 	TypeBigIntegerValue
-	// TypePositiveBitValue uint8
-	TypePositiveBitValue
+	// TypePositiveByteValue uint8
+	TypePositiveByteValue
 	// TypePositiveSmallIntegerValue uint16
 	TypePositiveSmallIntegerValue
 	// TypePositiveInteger32Value uint32
@@ -82,42 +103,62 @@ const (
 	TypeSliceValue
 )
 
+var typeName2ValueMap = map[string]TypeDeclare{
+	TypeBooleanName:              TypeBooleanValue,
+	TypeByteName:                 TypeByteValue,
+	TypeSmallIntegerName:         TypeSmallIntegerValue,
+	TypeInteger32Name:            TypeInteger32Value,
+	TypeIntegerName:              TypeIntegerValue,
+	TypeBigIntegerName:           TypeBigIntegerValue,
+	TypePositiveByteName:         TypePositiveByteValue,
+	TypePositiveSmallIntegerName: TypePositiveSmallIntegerValue,
+	TypePositiveInteger32Name:    TypePositiveInteger32Value,
+	TypePositiveIntegerName:      TypePositiveIntegerValue,
+	TypePositiveBigIntegerName:   TypePositiveBigIntegerValue,
+	TypeFloatName:                TypeFloatValue,
+	TypeDoubleName:               TypeDoubleValue,
+	TypeStringName:               TypeStringValue,
+	TypeDateTimeName:             TypeDateTimeValue,
+	TypeStructTimeName:           TypeDateTimeValue,
+	TypeSliceName:                TypeSliceValue,
+}
+
 func (s TypeDeclare) String() string {
 	switch s {
 	case TypeBooleanValue:
-		return "bool"
-	case TypeBitValue:
-		return "int8"
+		return TypeBooleanName
+	case TypeByteValue:
+		return TypeByteName
 	case TypeSmallIntegerValue:
-		return "int16"
+		return TypeSmallIntegerName
 	case TypeInteger32Value:
-		return "int32"
+		return TypeInteger32Name
 	case TypeIntegerValue:
-		return "int"
+		return TypeIntegerName
 	case TypeBigIntegerValue:
-		return "int64"
-	case TypePositiveBitValue:
-		return "uint8"
+		return TypeBigIntegerName
+	case TypePositiveByteValue:
+		return TypePositiveByteName
 	case TypePositiveSmallIntegerValue:
-		return "uint16"
+		return TypePositiveSmallIntegerName
 	case TypePositiveInteger32Value:
-		return "uint32"
+		return TypePositiveInteger32Name
 	case TypePositiveIntegerValue:
-		return "uint"
+		return TypePositiveIntegerName
 	case TypePositiveBigIntegerValue:
-		return "uint64"
+		return TypePositiveBigIntegerName
 	case TypeFloatValue:
-		return "float32"
+		return TypeFloatName
 	case TypeDoubleValue:
-		return "float64"
+		return TypeDoubleName
 	case TypeStringValue:
-		return "string"
+		return TypeStringName
 	case TypeDateTimeValue:
-		return "time"
+		return TypeDateTimeName
 	case TypeStructValue:
-		return "struct"
+		return TypeStructName
 	case TypeSliceValue:
-		return "array"
+		return TypeSliceName
 	default:
 		return fmt.Sprintf("illegal type decare value %d", s)
 	}

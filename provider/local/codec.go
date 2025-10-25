@@ -35,7 +35,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
+		model.TypeByteValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			int8Val, int8Err := utils.ConvertToInt8(vVal)
 			if int8Err != nil {
 				err = int8Err
@@ -100,7 +100,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
+		model.TypePositiveByteValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uint8Val, uint8Err := utils.ConvertToUint8(vVal)
 			if uint8Err != nil {
 				err = uint8Err
@@ -234,7 +234,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
+		model.TypeByteValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			int8Slice, int8Err := encodeSliceTemplate(vVal, vType.Elem(), int8(0))
 			if int8Err != nil {
 				err = int8Err
@@ -299,7 +299,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
+		model.TypePositiveByteValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uint8Slice, uint8Err := encodeSliceTemplate(vVal, vType.Elem(), uint8(0))
 			if uint8Err != nil {
 				err = uint8Err
@@ -432,7 +432,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
+		model.TypeByteValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			int8Val, int8Err := utils.ConvertToInt8(vVal)
 			if int8Err != nil {
 				err = int8Err
@@ -497,7 +497,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
+		model.TypePositiveByteValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uint8Val, uint8Err := utils.ConvertToUint8(vVal)
 			if uint8Err != nil {
 				err = uint8Err
@@ -631,7 +631,7 @@ func init() {
 			}
 			return
 		},
-		model.TypeBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
+		model.TypeByteValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			int8Slice, int8Err := decodeSliceTemplate(vVal, vType.Elem(), int8(0))
 			if int8Err != nil {
 				err = int8Err
@@ -696,7 +696,7 @@ func init() {
 			}
 			return
 		},
-		model.TypePositiveBitValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
+		model.TypePositiveByteValue: func(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) {
 			uint8Slice, uint8Err := decodeSliceTemplate(vVal, vType.Elem(), uint8(0))
 			if uint8Err != nil {
 				err = uint8Err

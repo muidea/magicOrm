@@ -37,9 +37,9 @@ func getTypeDeclare(fType model.Type, fSpec model.Spec, atPKField bool) (ret str
 		ret = "TIMESTAMP(3)"
 	case model.TypeBooleanValue:
 		ret = "BOOLEAN"
-	case model.TypeBitValue:
+	case model.TypeByteValue:
 		ret = "SMALLINT"
-	case model.TypeSmallIntegerValue, model.TypePositiveBitValue:
+	case model.TypeSmallIntegerValue, model.TypePositiveByteValue:
 		if isAutoIncrement {
 			ret = "SMALLSERIAL"
 		} else {
@@ -80,7 +80,7 @@ func getFieldValueHolder(fType model.Type) (ret any, err *cd.Error) {
 		ret = ""
 	case model.TypeBooleanValue:
 		ret = false
-	case model.TypeBitValue:
+	case model.TypeByteValue:
 		ret = int8(0)
 	case model.TypeSmallIntegerValue:
 		ret = int16(0)
@@ -90,7 +90,7 @@ func getFieldValueHolder(fType model.Type) (ret any, err *cd.Error) {
 		ret = int32(0)
 	case model.TypeBigIntegerValue:
 		ret = int64(0)
-	case model.TypePositiveBitValue:
+	case model.TypePositiveByteValue:
 		ret = uint16(0)
 	case model.TypePositiveSmallIntegerValue:
 		ret = uint32(0)

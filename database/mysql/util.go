@@ -29,9 +29,9 @@ func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err *cd.Err
 		}
 	case model.TypeDateTimeValue:
 		ret = "DATETIME(3)"
-	case model.TypeBooleanValue, model.TypeBitValue:
+	case model.TypeBooleanValue, model.TypeByteValue:
 		ret = "TINYINT"
-	case model.TypeSmallIntegerValue, model.TypePositiveBitValue:
+	case model.TypeSmallIntegerValue, model.TypePositiveByteValue:
 		ret = "SMALLINT"
 	case model.TypeIntegerValue, model.TypeInteger32Value, model.TypePositiveSmallIntegerValue:
 		ret = "INT"
@@ -59,7 +59,7 @@ func getFieldPlaceHolder(fType model.Type) (ret interface{}, err *cd.Error) {
 	case model.TypeStringValue, model.TypeDateTimeValue:
 		val := ""
 		ret = &val
-	case model.TypeBooleanValue, model.TypeBitValue:
+	case model.TypeBooleanValue, model.TypeByteValue:
 		val := int8(0)
 		ret = &val
 	case model.TypeSmallIntegerValue:
@@ -74,7 +74,7 @@ func getFieldPlaceHolder(fType model.Type) (ret interface{}, err *cd.Error) {
 	case model.TypeBigIntegerValue:
 		val := int64(0)
 		ret = &val
-	case model.TypePositiveBitValue:
+	case model.TypePositiveByteValue:
 		val := uint16(0)
 		ret = &val
 	case model.TypePositiveSmallIntegerValue:

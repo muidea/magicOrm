@@ -41,6 +41,17 @@ func IsSliceType(typeValue TypeDeclare) bool {
 	return typeValue == TypeSliceValue
 }
 
+func GetTypeValue(typeName string) (ret TypeDeclare) {
+	tVal, tOK := typeName2ValueMap[typeName]
+	if tOK {
+		ret = tVal
+		return
+	}
+
+	ret = TypeStructValue
+	return
+}
+
 func IsCustomerDeclare(val ValueDeclare) bool {
 	return val == Customer
 }

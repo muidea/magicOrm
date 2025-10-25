@@ -13,7 +13,7 @@ type TypeImpl struct {
 	Name        string            `json:"name"`
 	PkgPath     string            `json:"pkgPath"`
 	Description string            `json:"description"`
-	Value       model.TypeDeclare `json:"value"`
+	Value       model.TypeDeclare `json:"-"`
 	IsPtr       bool              `json:"isPtr"`
 	ElemType    *TypeImpl         `json:"elemType"`
 }
@@ -39,7 +39,23 @@ func (s *TypeImpl) GetDescription() (ret string) {
 }
 
 func (s *TypeImpl) GetValue() (ret model.TypeDeclare) {
+	if s.Value == 0 {
+		// 由于Value字段是会序列化，如果当前值为0，则需要重新根据name，pkgPath及ElemType重新计算
+		s.Value = s.validateValue()
+	}
+
 	ret = s.Value
+	return
+}
+
+func (s *TypeImpl) validateValue() (ret model.TypeDeclare) {
+	tVal := model.GetTypeValue(s.Name)
+	if s.ElemType == nil {
+		ret = tVal
+		return
+	}
+
+	ret = model.TypeSliceValue
 	return
 }
 
@@ -59,7 +75,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 				return
 			}
 			initVal = rawVal
-		case model.TypeBitValue:
+		case model.TypeByteValue:
 			rawVal, rawErr := utils.ConvertRawToInt8(initVal)
 			if rawErr != nil {
 				err = rawErr
@@ -99,7 +115,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 				return
 			}
 			initVal = rawVal
-		case model.TypePositiveBitValue:
+		case model.TypePositiveByteValue:
 			rawVal, rawErr := utils.ConvertRawToUint8(initVal)
 			if rawErr != nil {
 				err = rawErr
@@ -211,7 +227,7 @@ func compareType(l, r *TypeImpl) bool {
 	if l.Name != r.Name {
 		return false
 	}
-	if l.Value != r.Value {
+	if l.GetValue() != r.GetValue() {
 		return false
 	}
 	if l.PkgPath != r.PkgPath {

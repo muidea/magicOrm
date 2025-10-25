@@ -152,7 +152,12 @@ func IsString(tType reflect.Type) bool {
 }
 
 func IsDateTime(tType reflect.Type) bool {
-	return tType.String() == "time.Time"
+	switch tType.String() {
+	case model.TypeStructTimeName:
+		return true
+	default:
+		return false
+	}
 }
 
 func IsSlice(tType reflect.Type) bool {
@@ -177,8 +182,8 @@ func IsPtr(tType reflect.Type) bool {
 
 // typeEnumMap 用于快速查找基础类型的枚举值
 var typeEnumMap = map[reflect.Kind]model.TypeDeclare{
-	reflect.Int8:    model.TypeBitValue,
-	reflect.Uint8:   model.TypePositiveBitValue,
+	reflect.Int8:    model.TypeByteValue,
+	reflect.Uint8:   model.TypePositiveByteValue,
 	reflect.Int16:   model.TypeSmallIntegerValue,
 	reflect.Uint16:  model.TypePositiveSmallIntegerValue,
 	reflect.Int32:   model.TypeInteger32Value,
@@ -211,7 +216,7 @@ func GetTypeEnum(val reflect.Type) (ret model.TypeDeclare, err *cd.Error) {
 	// 处理特殊类型
 	switch val.Kind() {
 	case reflect.Struct:
-		if val.String() == "time.Time" {
+		if val.String() == model.TypeStructTimeName {
 			ret = model.TypeDateTimeValue
 		} else {
 			ret = model.TypeStructValue
@@ -830,7 +835,7 @@ func ConvertToString(rVal reflect.Value) (ret string, err *cd.Error) {
 		ret = rVal.String()
 	case reflect.Struct:
 		switch rVal.Type().String() {
-		case "time.Time":
+		case model.TypeStructTimeName:
 			ret = rVal.Interface().(time.Time).Format(fu.CSTLayoutWithMillisecond)
 		default:
 			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal string value, val type:%v", rVal.Type().String()))
@@ -870,7 +875,7 @@ func ConvertToDateTime(rVal reflect.Value) (ret time.Time, err *cd.Error) {
 		ret = tVal
 	case reflect.Struct:
 		switch rVal.Type().String() {
-		case "time.Time":
+		case model.TypeStructTimeName:
 			ret = rVal.Interface().(time.Time)
 		default:
 			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))

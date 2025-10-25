@@ -155,7 +155,7 @@ func TestTypeConversion(t *testing.T) {
 		{
 			name:         "Int8 conversion",
 			value:        int8(123),
-			expectedType: model.TypeBitValue,
+			expectedType: model.TypeByteValue,
 			expectError:  false,
 		},
 		{
@@ -185,7 +185,7 @@ func TestTypeConversion(t *testing.T) {
 		{
 			name:         "Uint8 conversion",
 			value:        uint8(123),
-			expectedType: model.TypePositiveBitValue,
+			expectedType: model.TypePositiveByteValue,
 			expectError:  false,
 		},
 		{

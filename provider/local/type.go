@@ -68,14 +68,14 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 				return
 			}
 			tVal.SetBool(rawVal)
-		case model.TypeBitValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeIntegerValue, model.TypeBigIntegerValue:
+		case model.TypeByteValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeIntegerValue, model.TypeBigIntegerValue:
 			rawVal, rawErr := utils.ConvertRawToInt64(initVal)
 			if rawErr != nil {
 				err = rawErr
 				return
 			}
 			tVal.SetInt(rawVal)
-		case model.TypePositiveBitValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveIntegerValue, model.TypePositiveBigIntegerValue:
+		case model.TypePositiveByteValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveIntegerValue, model.TypePositiveBigIntegerValue:
 			rawVal, rawErr := utils.ConvertRawToUint64(initVal)
 			if rawErr != nil {
 				err = rawErr

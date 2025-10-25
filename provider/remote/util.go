@@ -20,7 +20,7 @@ func getSliceInitValue(tType model.Type) (ret any) {
 	case model.TypeStringValue,
 		model.TypeDateTimeValue:
 		ret = []string{}
-	case model.TypeBitValue:
+	case model.TypeByteValue:
 		ret = []int8{}
 	case model.TypeSmallIntegerValue:
 		ret = []int16{}
@@ -30,7 +30,7 @@ func getSliceInitValue(tType model.Type) (ret any) {
 		ret = []int{}
 	case model.TypeBigIntegerValue:
 		ret = []int64{}
-	case model.TypePositiveBitValue:
+	case model.TypePositiveByteValue:
 		ret = []uint8{}
 	case model.TypePositiveSmallIntegerValue:
 		ret = []uint16{}
@@ -59,7 +59,7 @@ func getBasicInitValue(tType model.Type) (ret any) {
 	case model.TypeStringValue,
 		model.TypeDateTimeValue:
 		ret = ""
-	case model.TypeBitValue:
+	case model.TypeByteValue:
 		ret = int8(0)
 	case model.TypeSmallIntegerValue:
 		ret = int16(0)
@@ -69,7 +69,7 @@ func getBasicInitValue(tType model.Type) (ret any) {
 		ret = 0
 	case model.TypeBigIntegerValue:
 		ret = int64(0)
-	case model.TypePositiveBitValue:
+	case model.TypePositiveByteValue:
 		ret = uint8(0)
 	case model.TypePositiveSmallIntegerValue:
 		ret = uint16(0)
