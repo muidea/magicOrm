@@ -105,7 +105,9 @@ func (s *ObjectFilter) Equal(key string, val any) (err *cd.Error) {
 		if err != nil {
 			return
 		}
-		s.EqualFilter = append(s.EqualFilter, item)
+		if item != nil {
+			s.EqualFilter = append(s.EqualFilter, item)
+		}
 	default:
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("equal failed, illegal value, key:%v, val:%v", key, val))
 	}
@@ -127,7 +129,9 @@ func (s *ObjectFilter) NotEqual(key string, val any) (err *cd.Error) {
 		if err != nil {
 			return
 		}
-		s.NotEqualFilter = append(s.NotEqualFilter, item)
+		if item != nil {
+			s.NotEqualFilter = append(s.NotEqualFilter, item)
+		}
 	default:
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("not equal failed, illegal value, key:%v, val:%v", key, val))
 	}
@@ -176,7 +180,9 @@ func (s *ObjectFilter) In(key string, val any) (err *cd.Error) {
 		if err != nil {
 			return
 		}
-		s.InFilter = append(s.InFilter, item)
+		if item != nil {
+			s.InFilter = append(s.InFilter, item)
+		}
 	default:
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("in failed, illegal value, key:%v, val:%v", key, val))
 	}
@@ -199,7 +205,9 @@ func (s *ObjectFilter) NotIn(key string, val any) (err *cd.Error) {
 		if err != nil {
 			return
 		}
-		s.NotInFilter = append(s.NotInFilter, item)
+		if item != nil {
+			s.NotInFilter = append(s.NotInFilter, item)
+		}
 	default:
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("not in failed, illegal value, key:%v, val:%v", key, val))
 	}

@@ -472,6 +472,10 @@ func decodeObjectValueFromMap(mapVal map[string]any) (ret *ObjectValue, err *cd.
 			return
 		}
 
+		if itemVal == nil {
+			continue
+		}
+
 		objVal.Fields = append(objVal.Fields, itemVal)
 	}
 
@@ -618,7 +622,6 @@ func ConvertItem(val *FieldValue) (ret *FieldValue, err *cd.Error) {
 			return
 		}
 
-		err = cd.NewError(cd.Unexpected, "illegal itemValue")
 		return
 	}
 
@@ -664,6 +667,10 @@ func ConvertObjectValue(objVal *ObjectValue) (ret *ObjectValue, err *cd.Error) {
 		if itemErr != nil {
 			err = itemErr
 			return
+		}
+
+		if item == nil {
+			continue
 		}
 
 		cur.Value = item.Value
