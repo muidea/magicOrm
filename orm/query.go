@@ -115,6 +115,10 @@ func (s *QueryRunner) assignModelField(vModel model.Model, vField model.Field, d
 }
 
 func (s *QueryRunner) assignBasicField(vField model.Field, val any) (err *cd.Error) {
+	if val == nil {
+		return
+	}
+
 	fVal, fErr := s.modelCodec.ExtractBasicFieldValue(vField, val)
 	if fErr != nil {
 		err = fErr

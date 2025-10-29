@@ -893,7 +893,7 @@ func encodeSliceTemplate[T any](vVal reflect.Value, vType model.Type, _ T) (ret 
 
 func DecodeValue(vVal any, vType model.Type) (ret any, err *cd.Error) {
 	if !model.IsBasic(vType) {
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal type, type pkgKey:%s", vType.GetPkgKey()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal value type, type pkgKey:%s", vType.GetPkgKey()))
 		return
 	}
 
@@ -909,7 +909,7 @@ func decodeValue(vVal reflect.Value, vType model.Type) (ret any, err *cd.Error) 
 	}
 	funcPtr, funcOK := decodeValueConvertMap[vType.GetValue()]
 	if !funcOK {
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal type, type pkgKey:%s", vType.GetPkgKey()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("mismatch decodeFunc, type pkgKey:%s", vType.GetPkgKey()))
 		return
 	}
 
