@@ -2,6 +2,7 @@ package remote
 
 import (
 	"path"
+	"reflect"
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
@@ -180,9 +181,31 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 			}
 			initVal = rawVal
 		case model.TypeSliceValue:
-			if !model.IsBasic(s.Elem()) {
-				initVal = nil
+			if s.Elem().GetValue().IsBasicType() {
+				rawVal, rawErr := s.convertRawBasicToSlice(initVal)
+				if rawErr != nil {
+					err = rawErr
+					log.Errorf("Interface failed, convertRawToSlice initVal:%+v, error:%s", initVal, err.Error())
+					return
+				}
+				initVal = rawVal
+			} else {
+				rawVal, rawErr := s.convertRawStructToSlice(initVal)
+				if rawErr != nil {
+					err = rawErr
+					log.Errorf("Interface failed, convertRawStructToSlice initVal:%+v, error:%s", initVal, err.Error())
+					return
+				}
+				initVal = rawVal
 			}
+		case model.TypeStructValue:
+			rawVal, rawErr := s.convertRawStruct(initVal)
+			if rawErr != nil {
+				err = rawErr
+				log.Errorf("Interface failed, convertRawStruct initVal:%+v, error:%s", initVal, err.Error())
+				return
+			}
+			initVal = rawVal
 		default:
 			initVal = nil
 		}
@@ -193,6 +216,113 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 	}
 
 	ret = NewValue(getInitializeValue(s))
+	return
+}
+
+func (s *TypeImpl) convertRawBasicToSlice(initVal any) (ret any, err *cd.Error) {
+	rVal := reflect.ValueOf(initVal)
+	rVal = reflect.Indirect(rVal)
+	if rVal.Kind() != reflect.Slice {
+		err = cd.NewError(cd.Unexpected, "value is not slice")
+		log.Warnf("convertRawSlice failed, value is not slice")
+		return
+	}
+
+	sliceVal := getSliceInitValue(s)
+	rSliceVal := reflect.ValueOf(sliceVal)
+	for idx := 0; idx < rVal.Len(); idx++ {
+		val := rVal.Index(idx)
+		vVal, vErr := s.Elem().Interface(val.Interface())
+		if vErr != nil {
+			err = vErr
+			return
+		}
+		rSliceVal = reflect.Append(rSliceVal, reflect.ValueOf(vVal.Get()))
+	}
+
+	ret = rSliceVal.Interface()
+	return
+}
+
+func (s *TypeImpl) convertRawStructToSlice(initVal any) (ret *SliceObjectValue, err *cd.Error) {
+	rVal := reflect.ValueOf(initVal)
+	rVal = reflect.Indirect(rVal)
+	sliceVal := getSliceStructInitValue(s)
+	switch rVal.Kind() {
+	case reflect.Slice, reflect.Array:
+		for idx := 0; idx < rVal.Len(); idx++ {
+			val := rVal.Index(idx)
+			vVal, vErr := s.ElemType.convertRawStruct(val.Interface())
+			if vErr != nil {
+				err = vErr
+				return
+			}
+			sliceVal.Values = append(sliceVal.Values, vVal)
+		}
+	case reflect.Struct:
+		initSliceObjectValPtr, initSliceObjectOK := initVal.(*SliceObjectValue)
+		if initSliceObjectOK {
+			sliceVal.Values = append(sliceVal.Values, initSliceObjectValPtr.Values...)
+		} else {
+			initSliceObjectVal, initSliceObjectOK := initVal.(SliceObjectValue)
+			if initSliceObjectOK {
+				sliceVal.Values = append(sliceVal.Values, initSliceObjectVal.Values...)
+			} else {
+				err = cd.NewError(cd.Unexpected, "value is not slice")
+			}
+		}
+	default:
+		err = cd.NewError(cd.Unexpected, "value is not slice")
+	}
+
+	if err == nil {
+		ret = sliceVal
+	}
+	return
+}
+
+func (s *TypeImpl) convertRawStruct(initVal any) (ret *ObjectValue, err *cd.Error) {
+	rVal := reflect.ValueOf(initVal)
+	rVal = reflect.Indirect(rVal)
+	if rVal.Kind() != reflect.Struct && rVal.Kind() != reflect.Map {
+		log.Warnf("convertRawStruct failed, value is not struct or map")
+		return
+	}
+	objectStructVal := getStructInitValue(s)
+	objectVal := objectStructVal
+
+	switch rVal.Kind() {
+	case reflect.Struct:
+		initObjectValPtr, initObjectOK := initVal.(*ObjectValue)
+		if initObjectOK {
+			// 将initObjectValue的所有FieldValue复制到objectStructPtr
+			for _, field := range initObjectValPtr.Fields {
+				objectVal.SetFieldValue(field.Name, field.Value)
+			}
+		} else {
+			initObjectVal, initObjectOK := initVal.(ObjectValue)
+			if initObjectOK {
+				// 将initObjectValue的所有FieldValue复制到objectStructPtr
+				for _, field := range initObjectVal.Fields {
+					objectVal.SetFieldValue(field.Name, field.Value)
+				}
+			} else {
+				err = cd.NewError(cd.IllegalParam, "init value is not a struct")
+			}
+		}
+	case reflect.Map:
+		// 遍历Map, 将转换成ObjectValue的FieldValue
+		for _, key := range rVal.MapKeys() {
+			fieldValue := rVal.MapIndex(key)
+			objectVal.SetFieldValue(key.String(), fieldValue.Interface())
+		}
+	default:
+		err = cd.NewError(cd.Unexpected, "value is not struct or map")
+		log.Warnf("convertRawStruct failed, value is not struct or map")
+		return
+	}
+
+	ret = objectVal
 	return
 }
 

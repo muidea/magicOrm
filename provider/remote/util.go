@@ -93,15 +93,7 @@ func getBasicInitValue(tType model.Type) (ret any) {
 	return
 }
 
-func getStructInitValue(tType model.Type) (ret any) {
-	if model.IsSliceType(tType.GetValue()) {
-		sliceVal := _declareObjectSliceValue.Copy()
-		sliceVal.Name = tType.GetName()
-		sliceVal.PkgPath = tType.GetPkgPath()
-		ret = sliceVal
-		return
-	}
-
+func getStructInitValue(tType model.Type) (ret *ObjectValue) {
 	if model.IsStructType(tType.GetValue()) {
 		valPtr := _declareObjectValue.Copy()
 		valPtr.Name = tType.GetName()
@@ -113,8 +105,25 @@ func getStructInitValue(tType model.Type) (ret any) {
 	return
 }
 
+func getSliceStructInitValue(tType model.Type) (ret *SliceObjectValue) {
+	if model.IsSliceType(tType.GetValue()) {
+		sliceVal := _declareObjectSliceValue.Copy()
+		sliceVal.Name = tType.GetName()
+		sliceVal.PkgPath = tType.GetPkgPath()
+		ret = sliceVal
+		return
+	}
+
+	return
+}
+
 func getInitializeValue(tType model.Type) (ret any) {
 	if !model.IsBasic(tType) {
+		if tType.GetValue().IsSliceType() {
+			ret = getSliceStructInitValue(tType)
+			return
+		}
+
 		ret = getStructInitValue(tType)
 		return
 	}
@@ -170,5 +179,46 @@ func appendBasicValue(sliceVal, val any) (ret any, err *cd.Error) {
 	// Create a new slice with the appended value
 	newSlice := reflect.Append(rVal, reflect.ValueOf(val))
 	ret = newSlice.Interface()
+	return
+}
+
+func convertValue(vType model.Type, val any) (ret any, err *cd.Error) {
+	if val == nil {
+		return
+	}
+
+	vVal, vErr := vType.Interface(val)
+	if vErr != nil {
+		err = vErr
+		return
+	}
+
+	ret = vVal.Get()
+	return
+}
+
+func convertSliceValue(vType model.Type, val any) (ret any, err *cd.Error) {
+	if val == nil {
+		return
+	}
+	rVal := reflect.ValueOf(val)
+	rVal = reflect.Indirect(rVal)
+	if rVal.Kind() != reflect.Slice {
+		err = cd.NewError(cd.Unexpected, "value is not slice")
+		log.Warnf("convertSliceValue failed, value is not slice")
+		return
+	}
+	sliceVal := []any{}
+	for idx := 0; idx < rVal.Len(); idx++ {
+		val := rVal.Index(idx)
+		vVal, vErr := vType.Interface(val.Interface())
+		if vErr != nil {
+			err = vErr
+			return
+		}
+		sliceVal = append(sliceVal, vVal.Get())
+	}
+
+	ret = sliceVal
 	return
 }

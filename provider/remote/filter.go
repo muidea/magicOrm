@@ -2,7 +2,6 @@ package remote
 
 import (
 	"encoding/json"
-	"fmt"
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
@@ -92,138 +91,116 @@ func (s *ObjectFilter) GetInt(key string) (ret int, ok bool) {
 }
 
 func (s *ObjectFilter) Equal(key string, val any) (err *cd.Error) {
-	switch val.(type) {
-	case bool,
-		int8, int16, int32, int, int64,
-		uint8, uint16, uint32, uint, uint64,
-		float32, float64,
-		string,
-		map[string]any,
-		*ObjectValue:
-		item := &FieldValue{Name: key, Value: val}
-		item, err = ConvertItem(item)
-		if err != nil {
-			return
-		}
-		if item != nil {
-			s.EqualFilter = append(s.EqualFilter, item)
-		}
-	default:
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("equal failed, illegal value, key:%v, val:%v", key, val))
+	vField := s.bindObject.GetField(key)
+	if vField == nil {
+		return
 	}
 
+	vVal, vErr := convertValue(vField.GetType(), val)
+	if vErr != nil || vVal == nil {
+		return
+	}
+
+	item := &FieldValue{Name: key, Value: vVal}
+	s.EqualFilter = append(s.EqualFilter, item)
 	return
 }
 
 func (s *ObjectFilter) NotEqual(key string, val any) (err *cd.Error) {
-	switch val.(type) {
-	case bool,
-		int8, int16, int32, int, int64,
-		uint8, uint16, uint32, uint, uint64,
-		float32, float64,
-		string,
-		map[string]any,
-		*ObjectValue:
-		item := &FieldValue{Name: key, Value: val}
-		item, err = ConvertItem(item)
-		if err != nil {
-			return
-		}
-		if item != nil {
-			s.NotEqualFilter = append(s.NotEqualFilter, item)
-		}
-	default:
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("not equal failed, illegal value, key:%v, val:%v", key, val))
+	vField := s.bindObject.GetField(key)
+	if vField == nil {
+		return
 	}
+
+	vVal, vErr := convertValue(vField.GetType(), val)
+	if vErr != nil || vVal == nil {
+		return
+	}
+
+	item := &FieldValue{Name: key, Value: vVal}
+	s.NotEqualFilter = append(s.NotEqualFilter, item)
 
 	return
 }
 
 func (s *ObjectFilter) Below(key string, val any) (err *cd.Error) {
-	switch val.(type) {
-	case int8, int16, int32, int, int64,
-		uint8, uint16, uint32, uint, uint64,
-		float32, float64:
-		item := &FieldValue{Name: key, Value: val}
-		s.BelowFilter = append(s.BelowFilter, item)
-	default:
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("below failed, illegal value, key:%v, val:%v", key, val))
+	vField := s.bindObject.GetField(key)
+	if vField == nil {
+		return
 	}
+
+	vVal, vErr := convertValue(vField.GetType(), val)
+	if vErr != nil || vVal == nil {
+		return
+	}
+
+	item := &FieldValue{Name: key, Value: vVal}
+	s.BelowFilter = append(s.BelowFilter, item)
 	return
 }
 
 func (s *ObjectFilter) Above(key string, val any) (err *cd.Error) {
-	switch val.(type) {
-	case int8, int16, int32, int, int64,
-		uint8, uint16, uint32, uint, uint64,
-		float32, float64:
-		item := &FieldValue{Name: key, Value: val}
-		s.AboveFilter = append(s.AboveFilter, item)
-	default:
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("above failed, illegal value, key:%v, val:%v", key, val))
+	vField := s.bindObject.GetField(key)
+	if vField == nil {
+		return
 	}
+
+	vVal, vErr := convertValue(vField.GetType(), val)
+	if vErr != nil || vVal == nil {
+		return
+	}
+
+	item := &FieldValue{Name: key, Value: vVal}
+	s.AboveFilter = append(s.AboveFilter, item)
 	return
 }
 
 func (s *ObjectFilter) In(key string, val any) (err *cd.Error) {
-	switch val.(type) {
-	case []bool,
-		[]int8, []int16, []int32, []int, []int64,
-		[]uint8, []uint16, []uint32, []uint, []uint64,
-		[]float32, []float64,
-		[]string,
-		[]any,
-		map[string]any,
-		*SliceObjectValue:
-		item := &FieldValue{Name: key, Value: val}
-		item, err = ConvertItem(item)
-		if err != nil {
-			return
-		}
-		if item != nil {
-			s.InFilter = append(s.InFilter, item)
-		}
-	default:
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("in failed, illegal value, key:%v, val:%v", key, val))
+	vField := s.bindObject.GetField(key)
+	if vField == nil {
+		return
 	}
+
+	vVal, vErr := convertSliceValue(vField.GetType(), val)
+	if vErr != nil || vVal == nil {
+		return
+	}
+
+	item := &FieldValue{Name: key, Value: vVal}
+	s.InFilter = append(s.InFilter, item)
 
 	return
 }
 
 func (s *ObjectFilter) NotIn(key string, val any) (err *cd.Error) {
-	switch val.(type) {
-	case []bool,
-		[]int8, []int16, []int32, []int, []int64,
-		[]uint8, []uint16, []uint32, []uint, []uint64,
-		[]float32, []float64,
-		[]string,
-		[]any,
-		map[string]any,
-		*SliceObjectValue:
-		item := &FieldValue{Name: key, Value: val}
-		item, err = ConvertItem(item)
-		if err != nil {
-			return
-		}
-		if item != nil {
-			s.NotInFilter = append(s.NotInFilter, item)
-		}
-	default:
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("not in failed, illegal value, key:%v, val:%v", key, val))
+	vField := s.bindObject.GetField(key)
+	if vField == nil {
+		return
 	}
 
+	vVal, vErr := convertSliceValue(vField.GetType(), val)
+	if vErr != nil || vVal == nil {
+		return
+	}
+
+	item := &FieldValue{Name: key, Value: vVal}
+	s.NotInFilter = append(s.NotInFilter, item)
 	return
 }
 
 func (s *ObjectFilter) Like(key string, val any) (err *cd.Error) {
-	switch val.(type) {
-	case string:
-		item := &FieldValue{Name: key, Value: val}
-		s.LikeFilter = append(s.LikeFilter, item)
-	default:
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("like failed, illegal value, key:%v, val:%v", key, val))
+	vField := s.bindObject.GetField(key)
+	if vField == nil {
+		return
 	}
 
+	vVal, vErr := convertValue(vField.GetType(), val)
+	if vErr != nil || vVal == nil {
+		return
+	}
+
+	item := &FieldValue{Name: key, Value: vVal}
+	s.LikeFilter = append(s.LikeFilter, item)
 	return
 }
 
