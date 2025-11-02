@@ -132,29 +132,25 @@ func getInitializeValue(tType model.Type) (ret any) {
 	return
 }
 
-func rewriteObjectValue(rawPtr *ObjectValue, newPtr *ObjectValue) (err *cd.Error) {
-	if rawPtr == nil || newPtr == nil {
-		return
-	}
-	if rawPtr.PkgPath != newPtr.PkgPath {
-		err = cd.NewError(cd.Unexpected, "illegal object value")
+func rewriteObjectValue(rawPtr *ObjectValue, srcPtr *ObjectValue) (err *cd.Error) {
+	if rawPtr == nil || srcPtr == nil {
 		return
 	}
 
-	rawPtr.Fields = newPtr.Fields
+	rawPtr.Fields = srcPtr.Fields
 	return
 }
 
-func rewriteSliceObjectValue(rawPtr *SliceObjectValue, newPtr *SliceObjectValue) (err *cd.Error) {
-	if rawPtr == nil || newPtr == nil {
+func rewriteSliceObjectValue(rawPtr *SliceObjectValue, srcPtr *SliceObjectValue) (err *cd.Error) {
+	if rawPtr == nil || srcPtr == nil {
 		return
 	}
-	if rawPtr.PkgPath != newPtr.PkgPath {
-		err = cd.NewError(cd.Unexpected, "illegal slice object value")
-		return
-	}
+	//if rawPtr.PkgPath != srcPtr.PkgPath {
+	//	err = cd.NewError(cd.Unexpected, "illegal slice object value")
+	//	return
+	//}
 
-	rawPtr.Values = newPtr.Values
+	rawPtr.Values = srcPtr.Values
 	return
 }
 
