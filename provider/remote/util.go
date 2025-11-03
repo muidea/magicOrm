@@ -136,7 +136,6 @@ func rewriteObjectValue(rawPtr *ObjectValue, srcPtr *ObjectValue) (err *cd.Error
 	if rawPtr == nil || srcPtr == nil {
 		return
 	}
-
 	rawPtr.Fields = srcPtr.Fields
 	return
 }
@@ -145,10 +144,6 @@ func rewriteSliceObjectValue(rawPtr *SliceObjectValue, srcPtr *SliceObjectValue)
 	if rawPtr == nil || srcPtr == nil {
 		return
 	}
-	//if rawPtr.PkgPath != srcPtr.PkgPath {
-	//	err = cd.NewError(cd.Unexpected, "illegal slice object value")
-	//	return
-	//}
 
 	rawPtr.Values = srcPtr.Values
 	return
