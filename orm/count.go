@@ -8,7 +8,7 @@ import (
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
 
@@ -17,7 +17,7 @@ type CountRunner struct {
 }
 
 func NewCountRunner(
-	vModel model.Model,
+	vModel models.Model,
 	executor database.Executor,
 	provider provider.Provider,
 	modelCodec codec.Codec) *CountRunner {
@@ -26,7 +26,7 @@ func NewCountRunner(
 	}
 }
 
-func (s *CountRunner) Count(vFilter model.Filter) (ret int64, err *cd.Error) {
+func (s *CountRunner) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
 	countResult, countErr := s.sqlBuilder.BuildCount(s.vModel, vFilter)
 	if countErr != nil {
 		err = countErr
@@ -54,7 +54,7 @@ func (s *CountRunner) Count(vFilter model.Filter) (ret int64, err *cd.Error) {
 	return
 }
 
-func (s *impl) Count(vFilter model.Filter) (ret int64, err *cd.Error) {
+func (s *impl) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
 	if vFilter == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal filter value")
 		return

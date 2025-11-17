@@ -6,8 +6,7 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 func traceSQL() bool {
@@ -19,29 +18,29 @@ func traceSQL() bool {
 	return false
 }
 
-func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err *cd.Error) {
+func getTypeDeclare(fType models.Type, fSpec models.Spec) (ret string, err *cd.Error) {
 	switch fType.GetValue() {
-	case model.TypeStringValue:
+	case models.TypeStringValue:
 		if fSpec.IsPrimaryKey() {
 			ret = "VARCHAR(32)"
 		} else {
 			ret = "TEXT"
 		}
-	case model.TypeDateTimeValue:
+	case models.TypeDateTimeValue:
 		ret = "DATETIME(3)"
-	case model.TypeBooleanValue, model.TypeByteValue:
+	case models.TypeBooleanValue, models.TypeByteValue:
 		ret = "TINYINT"
-	case model.TypeSmallIntegerValue, model.TypePositiveByteValue:
+	case models.TypeSmallIntegerValue, models.TypePositiveByteValue:
 		ret = "SMALLINT"
-	case model.TypeIntegerValue, model.TypeInteger32Value, model.TypePositiveSmallIntegerValue:
+	case models.TypeIntegerValue, models.TypeInteger32Value, models.TypePositiveSmallIntegerValue:
 		ret = "INT"
-	case model.TypeBigIntegerValue, model.TypePositiveIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue:
+	case models.TypeBigIntegerValue, models.TypePositiveIntegerValue, models.TypePositiveInteger32Value, models.TypePositiveBigIntegerValue:
 		ret = "BIGINT"
-	case model.TypeFloatValue:
+	case models.TypeFloatValue:
 		ret = "FLOAT"
-	case model.TypeDoubleValue:
+	case models.TypeDoubleValue:
 		ret = "DOUBLE"
-	case model.TypeSliceValue:
+	case models.TypeSliceValue:
 		ret = "TEXT"
 	default:
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("no support field type, type:%v", fType.GetPkgKey()))
@@ -54,46 +53,46 @@ func getTypeDeclare(fType model.Type, fSpec model.Spec) (ret string, err *cd.Err
 	return
 }
 
-func getFieldPlaceHolder(fType model.Type) (ret interface{}, err *cd.Error) {
+func getFieldPlaceHolder(fType models.Type) (ret interface{}, err *cd.Error) {
 	switch fType.GetValue() {
-	case model.TypeStringValue, model.TypeDateTimeValue:
+	case models.TypeStringValue, models.TypeDateTimeValue:
 		val := ""
 		ret = &val
-	case model.TypeBooleanValue, model.TypeByteValue:
+	case models.TypeBooleanValue, models.TypeByteValue:
 		val := int8(0)
 		ret = &val
-	case model.TypeSmallIntegerValue:
+	case models.TypeSmallIntegerValue:
 		val := int16(0)
 		ret = &val
-	case model.TypeIntegerValue:
+	case models.TypeIntegerValue:
 		val := int(0)
 		ret = &val
-	case model.TypeInteger32Value:
+	case models.TypeInteger32Value:
 		val := int32(0)
 		ret = &val
-	case model.TypeBigIntegerValue:
+	case models.TypeBigIntegerValue:
 		val := int64(0)
 		ret = &val
-	case model.TypePositiveByteValue:
+	case models.TypePositiveByteValue:
 		val := uint16(0)
 		ret = &val
-	case model.TypePositiveSmallIntegerValue:
+	case models.TypePositiveSmallIntegerValue:
 		val := uint32(0)
 		ret = &val
-	case model.TypePositiveIntegerValue:
+	case models.TypePositiveIntegerValue:
 		val := uint(0)
 		ret = &val
-	case model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue:
+	case models.TypePositiveInteger32Value, models.TypePositiveBigIntegerValue:
 		val := uint64(0)
 		ret = &val
-	case model.TypeFloatValue:
+	case models.TypeFloatValue:
 		val := float32(0.00)
 		ret = &val
-	case model.TypeDoubleValue:
+	case models.TypeDoubleValue:
 		val := 0.0000
 		ret = &val
-	case model.TypeSliceValue:
-		if model.IsBasic(fType.Elem()) {
+	case models.TypeSliceValue:
+		if models.IsBasic(fType.Elem()) {
 			val := ""
 			ret = &val
 		} else {

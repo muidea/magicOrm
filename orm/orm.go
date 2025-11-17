@@ -10,7 +10,7 @@ import (
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
 
@@ -18,14 +18,14 @@ const maxDeepLevel = 3
 
 // Orm orm interface
 type Orm interface {
-	Create(entity model.Model) *cd.Error
-	Drop(entity model.Model) *cd.Error
-	Insert(entity model.Model) (model.Model, *cd.Error)
-	Update(entity model.Model) (model.Model, *cd.Error)
-	Delete(entity model.Model) (model.Model, *cd.Error)
-	Query(entity model.Model) (model.Model, *cd.Error)
-	Count(filter model.Filter) (int64, *cd.Error)
-	BatchQuery(filter model.Filter) ([]model.Model, *cd.Error)
+	Create(entity models.Model) *cd.Error
+	Drop(entity models.Model) *cd.Error
+	Insert(entity models.Model) (models.Model, *cd.Error)
+	Update(entity models.Model) (models.Model, *cd.Error)
+	Delete(entity models.Model) (models.Model, *cd.Error)
+	Query(entity models.Model) (models.Model, *cd.Error)
+	Count(filter models.Filter) (int64, *cd.Error)
+	BatchQuery(filter models.Filter) ([]models.Model, *cd.Error)
 	BeginTransaction() *cd.Error
 	CommitTransaction() *cd.Error
 	RollbackTransaction() *cd.Error

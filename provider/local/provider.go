@@ -5,7 +5,7 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 func checkEntityType(entity any) (ret *TypeImpl, err *cd.Error) {
@@ -15,7 +15,7 @@ func checkEntityType(entity any) (ret *TypeImpl, err *cd.Error) {
 		log.Errorf("checkEntityType failed, illegal entity type, err:%s", err.Error())
 		return
 	}
-	if !model.IsStruct(typeImplPtr.Elem()) {
+	if !models.IsStruct(typeImplPtr.Elem()) {
 		err = cd.NewError(cd.IllegalParam, "entity is invalid")
 		log.Errorf("checkEntityType failed, illegal entity type, err:%s", err.Error())
 		return
@@ -25,7 +25,7 @@ func checkEntityType(entity any) (ret *TypeImpl, err *cd.Error) {
 	return
 }
 
-func GetEntityType(entity any) (ret model.Type, err *cd.Error) {
+func GetEntityType(entity any) (ret models.Type, err *cd.Error) {
 	if entity == nil {
 		err = cd.NewError(cd.IllegalParam, "entity is invalid")
 		return
@@ -42,7 +42,7 @@ func GetEntityType(entity any) (ret model.Type, err *cd.Error) {
 	return
 }
 
-func GetEntityValue(entity any) (ret model.Value, err *cd.Error) {
+func GetEntityValue(entity any) (ret models.Value, err *cd.Error) {
 	if entity == nil {
 		err = cd.NewError(cd.IllegalParam, "entity is invalid")
 		return
@@ -58,7 +58,7 @@ func GetEntityValue(entity any) (ret model.Value, err *cd.Error) {
 	return
 }
 
-func GetEntityModel(entity any) (ret model.Model, err *cd.Error) {
+func GetEntityModel(entity any) (ret models.Model, err *cd.Error) {
 	if entity == nil {
 		err = cd.NewError(cd.IllegalParam, "entity is invalid")
 		return
@@ -71,7 +71,7 @@ func GetEntityModel(entity any) (ret model.Model, err *cd.Error) {
 		reallyVal = newVal
 	}
 
-	implPtr, implErr := getValueModel(reallyVal, model.OriginView)
+	implPtr, implErr := getValueModel(reallyVal, models.OriginView)
 	if implErr != nil {
 		err = implErr
 		return
@@ -81,7 +81,7 @@ func GetEntityModel(entity any) (ret model.Model, err *cd.Error) {
 	return
 }
 
-func GetValueModel(vVal model.Value) (ret model.Model, err *cd.Error) {
+func GetValueModel(vVal models.Value) (ret models.Model, err *cd.Error) {
 	if vVal == nil {
 		err = cd.NewError(cd.IllegalParam, "value is invalid")
 		return
@@ -92,7 +92,7 @@ func GetValueModel(vVal model.Value) (ret model.Model, err *cd.Error) {
 		return
 	}
 
-	implPtr, implErr := getValueModel(valueImplPtr.value, model.MetaView)
+	implPtr, implErr := getValueModel(valueImplPtr.value, models.MetaView)
 	if implErr != nil {
 		err = implErr
 		return
@@ -102,20 +102,20 @@ func GetValueModel(vVal model.Value) (ret model.Model, err *cd.Error) {
 	return
 }
 
-func GetModelFilter(vModel model.Model) (ret model.Filter, err *cd.Error) {
+func GetModelFilter(vModel models.Model) (ret models.Filter, err *cd.Error) {
 	valuePtr := NewValue(reflect.ValueOf(vModel.Interface(true)))
 	ret = newFilter(valuePtr)
 	return
 }
 
-func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *cd.Error) {
+func SetModelValue(vModel models.Model, vVal models.Value) (ret models.Model, err *cd.Error) {
 	valImplPtr, valImplOK := vVal.(*ValueImpl)
 	if !valImplOK {
 		err = cd.NewError(cd.IllegalParam, "value is invalid")
 		log.Errorf("SetModelValue failed, err:%s", err.Error())
 		return
 	}
-	valueModel, valueModelErr := getValueModel(valImplPtr.value, model.OriginView)
+	valueModel, valueModelErr := getValueModel(valImplPtr.value, models.OriginView)
 	if valueModelErr != nil {
 		err = valueModelErr
 		log.Errorf("SetModelValue failed, err:%s", err.Error())
@@ -124,7 +124,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *
 
 	fields := valueModel.GetFields()
 	for _, field := range fields {
-		if !model.IsValidField(field) {
+		if !models.IsValidField(field) {
 			continue
 		}
 

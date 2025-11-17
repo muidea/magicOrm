@@ -140,7 +140,7 @@ if err != nil {
 ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 sVal := Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
 sValList := []*Simple{}
-sModelList := []model.Model{}
+sModelList := []models.Model{}
 
 // insert
 for idx:=0; idx<100; idx++ {
@@ -196,7 +196,7 @@ for idx:=0; idx<100; idx++ {
 
 // query
 qValList := []*Simple{}
-qModelList := []model.Model{}
+qModelList := []models.Model{}
 for idx:=0; idx<100; idx++ {
     qVal := &Simple{ID: sValList[idx].ID}
     qValList = append(qValList, qVal)

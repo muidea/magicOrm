@@ -2,19 +2,19 @@
 
 ## 功能概述
 
-本模块通过反射机制，将包含基础数据类型的Go结构体转换为ORM模型定义（model.Model对象），转换结果遵循magicOrm/model目录下的模型规范。
+本模块通过反射机制，将包含基础数据类型的Go结构体转换为ORM模型定义（models.Model对象），转换结果遵循magicOrm/model目录下的模型规范。
 
 ## 转换规则详解
 
 ### 一、结构体转Model对象
 
 1. **模型命名规则**
-   - `model.Name` = 结构体类型名（reflect.Type.Name()）
-   - `model.PkgPath` = 结构体包路径（reflect.Type.PkgPath()）
-   - `model.PkgKey` = 组合标识：`${PkgPath}/${Name}`
+   - `models.Name` = 结构体类型名（reflect.Type.Name()）
+   - `models.PkgPath` = 结构体包路径（reflect.Type.PkgPath()）
+   - `models.PkgKey` = 组合标识：`${PkgPath}/${Name}`
 
 2. **字段处理规则**
-   - 每个结构体字段转换为model.Field对象：
+   - 每个结构体字段转换为models.Field对象：
      - `field.Name` ← 字段名称
      - `field.Type` ← 字段类型
      - `field.Value` ← 字段值

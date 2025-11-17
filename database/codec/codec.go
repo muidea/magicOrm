@@ -8,7 +8,7 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
 
@@ -20,12 +20,12 @@ type Identifier interface {
 
 type Codec interface {
 	ConstructModelTableName(vIdentifier Identifier) string
-	ConstructRelationTableName(vModel model.Model, vField model.Field) (string, *cd.Error)
+	ConstructRelationTableName(vModel models.Model, vField models.Field) (string, *cd.Error)
 
-	PackedBasicFieldValue(vField model.Field, vVal model.Value) (any, *cd.Error)
-	PackedStructFieldValue(vField model.Field, vVal model.Value) (any, *cd.Error)
-	PackedSliceStructFieldValue(vField model.Field, vVal model.Value) (any, *cd.Error)
-	ExtractBasicFieldValue(vField model.Field, eVal any) (any, *cd.Error)
+	PackedBasicFieldValue(vField models.Field, vVal models.Value) (any, *cd.Error)
+	PackedStructFieldValue(vField models.Field, vVal models.Value) (any, *cd.Error)
+	PackedSliceStructFieldValue(vField models.Field, vVal models.Value) (any, *cd.Error)
+	ExtractBasicFieldValue(vField models.Field, eVal any) (any, *cd.Error)
 }
 
 type codecImpl struct {
@@ -45,7 +45,7 @@ func (s *codecImpl) constructTableName(vIdentifier Identifier) string {
 	return strings.ToUpper(strName[:1]) + strName[1:]
 }
 
-func (s *codecImpl) constructInfix(vField model.Field) string {
+func (s *codecImpl) constructInfix(vField models.Field) string {
 	strName := vField.GetName()
 	return strings.ToUpper(strName[:1]) + strName[1:]
 }
@@ -59,7 +59,7 @@ func (s *codecImpl) ConstructModelTableName(vIdentifier Identifier) string {
 	return tableName
 }
 
-func (s *codecImpl) ConstructRelationTableName(vModel model.Model, vField model.Field) (ret string, err *cd.Error) {
+func (s *codecImpl) ConstructRelationTableName(vModel models.Model, vField models.Field) (ret string, err *cd.Error) {
 	leftName := s.constructTableName(vModel)
 	rightName := s.constructTableName(vField.GetType())
 	infixVal := s.constructInfix(vField)
@@ -73,10 +73,10 @@ func (s *codecImpl) ConstructRelationTableName(vModel model.Model, vField model.
 	return
 }
 
-func (s *codecImpl) getFieldRelation(vField model.Field) (ret relationType) {
+func (s *codecImpl) getFieldRelation(vField models.Field) (ret relationType) {
 	fType := vField.GetType()
 	isPtr := fType.Elem().IsPtrType()
-	isSlice := model.IsSliceType(fType.GetValue())
+	isSlice := models.IsSliceType(fType.GetValue())
 
 	if !isPtr && !isSlice {
 		ret = relationHas1v1
@@ -97,15 +97,15 @@ func (s *codecImpl) getFieldRelation(vField model.Field) (ret relationType) {
 	return
 }
 
-func (s *codecImpl) PackedBasicFieldValue(vField model.Field, fVal model.Value) (ret any, err *cd.Error) {
-	if !model.IsBasicField(vField) {
+func (s *codecImpl) PackedBasicFieldValue(vField models.Field, fVal models.Value) (ret any, err *cd.Error) {
+	if !models.IsBasicField(vField) {
 		err = cd.NewError(cd.Unexpected, "illegal field type")
 		log.Errorf("PackedFieldValue failed, error:%s", err.Error())
 		return
 	}
 
 	switch vField.GetType().GetValue() {
-	case model.TypeSliceValue:
+	case models.TypeSliceValue:
 		sliceVal, sliceErr := s.modelProvider.EncodeValue(fVal.Get(), vField.GetType())
 		if sliceErr != nil {
 			err = sliceErr
@@ -129,8 +129,8 @@ func (s *codecImpl) PackedBasicFieldValue(vField model.Field, fVal model.Value) 
 	return
 }
 
-func (s *codecImpl) PackedStructFieldValue(vField model.Field, fVal model.Value) (ret any, err *cd.Error) {
-	if !model.IsStructField(vField) || !model.IsStruct(vField.GetType().Elem()) {
+func (s *codecImpl) PackedStructFieldValue(vField models.Field, fVal models.Value) (ret any, err *cd.Error) {
+	if !models.IsStructField(vField) || !models.IsStruct(vField.GetType().Elem()) {
 		err = cd.NewError(cd.Unexpected, "illegal field type")
 		log.Errorf("PackedStructFieldValue failed, error:%s", err.Error())
 		return
@@ -155,8 +155,8 @@ func (s *codecImpl) PackedStructFieldValue(vField model.Field, fVal model.Value)
 	return
 }
 
-func (s *codecImpl) PackedSliceStructFieldValue(vField model.Field, fVal model.Value) (ret any, err *cd.Error) {
-	if !model.IsSliceField(vField) || model.IsStruct(vField.GetType().Elem()) {
+func (s *codecImpl) PackedSliceStructFieldValue(vField models.Field, fVal models.Value) (ret any, err *cd.Error) {
+	if !models.IsSliceField(vField) || models.IsStruct(vField.GetType().Elem()) {
 		err = cd.NewError(cd.Unexpected, "illegal field type")
 		log.Errorf("PackedSliceStructFieldValue failed, error:%s", err.Error())
 		return
@@ -172,7 +172,7 @@ func (s *codecImpl) PackedSliceStructFieldValue(vField model.Field, fVal model.V
 	valueList := []any{}
 	sliceVal := vField.GetSliceValue()
 	for _, val := range sliceVal {
-		vModelVal, modelValErr = s.modelProvider.SetModelValue(vModelVal.Copy(model.LiteView), val)
+		vModelVal, modelValErr = s.modelProvider.SetModelValue(vModelVal.Copy(models.LiteView), val)
 		if modelValErr != nil {
 			err = modelValErr
 			log.Errorf("PackedSliceStructFieldValue failed, s.modelProvider.SetModelValue error:%s", err.Error())
@@ -192,10 +192,10 @@ func (s *codecImpl) PackedSliceStructFieldValue(vField model.Field, fVal model.V
 	return
 }
 
-func (s *codecImpl) ExtractBasicFieldValue(vField model.Field, eVal any) (ret any, err *cd.Error) {
+func (s *codecImpl) ExtractBasicFieldValue(vField models.Field, eVal any) (ret any, err *cd.Error) {
 	vType := vField.GetType()
 	switch vType.GetValue() {
-	case model.TypeSliceValue:
+	case models.TypeSliceValue:
 		var strVal string
 		switch raw := eVal.(type) {
 		case string:

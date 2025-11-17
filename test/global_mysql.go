@@ -5,7 +5,7 @@ package test
 
 import (
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
@@ -14,7 +14,7 @@ import (
 
 var config = orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
 
-func registerLocalModel(provider provider.Provider, objList []any) (ret []model.Model, err *cd.Error) {
+func registerLocalModel(provider provider.Provider, objList []any) (ret []models.Model, err *cd.Error) {
 	for _, val := range objList {
 		modelVal, modelErr := provider.RegisterModel(val)
 		if modelErr != nil {
@@ -28,7 +28,7 @@ func registerLocalModel(provider provider.Provider, objList []any) (ret []model.
 	return
 }
 
-func registerRemoteModel(provider provider.Provider, objList []any) (ret []model.Model, err *cd.Error) {
+func registerRemoteModel(provider provider.Provider, objList []any) (ret []models.Model, err *cd.Error) {
 	for _, val := range objList {
 		remoteObjectPtr, remoteObjectErr := helper.GetObject(val)
 		if remoteObjectErr != nil {
@@ -47,7 +47,7 @@ func registerRemoteModel(provider provider.Provider, objList []any) (ret []model
 	return
 }
 
-func createModel(orm orm.Orm, modelList []model.Model) (err *cd.Error) {
+func createModel(orm orm.Orm, modelList []models.Model) (err *cd.Error) {
 	for _, val := range modelList {
 		err = orm.Create(val)
 		if err != nil {
@@ -58,7 +58,7 @@ func createModel(orm orm.Orm, modelList []model.Model) (err *cd.Error) {
 	return
 }
 
-func dropModel(orm orm.Orm, modelList []model.Model) (err *cd.Error) {
+func dropModel(orm orm.Orm, modelList []models.Model) (err *cd.Error) {
 	for _, val := range modelList {
 		err = orm.Drop(val)
 		if err != nil {

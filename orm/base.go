@@ -3,12 +3,12 @@ package orm
 import (
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
 
 type baseRunner struct {
-	vModel        model.Model
+	vModel        models.Model
 	executor      database.Executor
 	modelProvider provider.Provider
 	modelCodec    codec.Codec
@@ -19,7 +19,7 @@ type baseRunner struct {
 }
 
 func newBaseRunner(
-	vModel model.Model,
+	vModel models.Model,
 	executor database.Executor,
 	provider provider.Provider,
 	modelCodec codec.Codec,

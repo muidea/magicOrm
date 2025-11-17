@@ -1,7 +1,7 @@
 package remote
 
 /*
-Value 实现model.Value接口
+Value 实现models.Value接口
 
 value值对应的数值类型：
 1. 基本数值类型：bool, int8, int16, int32, int, int64, uint8, uint16, uint32, uint, uint64, float32, float64, string
@@ -20,7 +20,7 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/utils"
 )
 
@@ -140,7 +140,7 @@ func (s *ValueImpl) Set(val any) (err *cd.Error) {
 // UnpackValue expands the contained value into individual elements.
 // For slices, it returns the slice directly.
 // For non-slice values, returns a single-element slice of the appropriate type.
-func (s *ValueImpl) UnpackValue() (ret []model.Value) {
+func (s *ValueImpl) UnpackValue() (ret []models.Value) {
 	if s.value == nil {
 		return
 	}

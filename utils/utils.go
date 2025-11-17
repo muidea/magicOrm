@@ -5,7 +5,7 @@ import (
 	"reflect"
 
 	"github.com/muidea/magicCommon/foundation/log"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 // 基本数值类型辅助函数
@@ -42,7 +42,7 @@ func IsReallyValidValueForReflect(vVal reflect.Value) bool {
 		}
 		return IsReallyValidValueForReflect(vVal.Elem())
 	case reflect.Struct:
-		if vVal.Type().String() == model.TypeStructTimeName {
+		if vVal.Type().String() == models.TypeStructTimeName {
 			return true
 		}
 		if !vVal.IsValid() {
@@ -90,7 +90,7 @@ func IsReallyZeroForReflect(vVal reflect.Value) bool {
 		reflect.Array:
 		return vVal.IsZero()
 	case reflect.Struct:
-		if vVal.Type().String() == model.TypeStructTimeName {
+		if vVal.Type().String() == models.TypeStructTimeName {
 			return vVal.IsZero()
 		}
 		// 到这里说明是不支持的类型，当前先主动打印一些日志
@@ -133,7 +133,7 @@ func IsReallyValidTypeForReflect(vType reflect.Type) bool {
 		}
 		return IsReallyValidTypeForReflect(eType)
 	case reflect.Struct:
-		if vType.String() == model.TypeStructTimeName {
+		if vType.String() == models.TypeStructTimeName {
 			return true
 		}
 	case reflect.Slice, reflect.Array:

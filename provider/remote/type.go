@@ -6,17 +6,17 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/utils"
 )
 
 type TypeImpl struct {
-	Name        string            `json:"name"`
-	PkgPath     string            `json:"pkgPath"`
-	Description string            `json:"description"`
-	Value       model.TypeDeclare `json:"-"`
-	IsPtr       bool              `json:"isPtr"`
-	ElemType    *TypeImpl         `json:"elemType"`
+	Name        string             `json:"name"`
+	PkgPath     string             `json:"pkgPath"`
+	Description string             `json:"description"`
+	Value       models.TypeDeclare `json:"-"`
+	IsPtr       bool               `json:"isPtr"`
+	ElemType    *TypeImpl          `json:"elemType"`
 }
 
 func (s *TypeImpl) GetName() (ret string) {
@@ -39,7 +39,7 @@ func (s *TypeImpl) GetDescription() (ret string) {
 	return
 }
 
-func (s *TypeImpl) GetValue() (ret model.TypeDeclare) {
+func (s *TypeImpl) GetValue() (ret models.TypeDeclare) {
 	if s.Value == 0 {
 		// 由于Value字段是会序列化，如果当前值为0，则需要重新根据name，pkgPath及ElemType重新计算
 		s.Value = s.validateValue()
@@ -49,14 +49,14 @@ func (s *TypeImpl) GetValue() (ret model.TypeDeclare) {
 	return
 }
 
-func (s *TypeImpl) validateValue() (ret model.TypeDeclare) {
-	tVal := model.GetTypeValue(s.Name)
+func (s *TypeImpl) validateValue() (ret models.TypeDeclare) {
+	tVal := models.GetTypeValue(s.Name)
 	if s.ElemType == nil {
 		ret = tVal
 		return
 	}
 
-	ret = model.TypeSliceValue
+	ret = models.TypeSliceValue
 	return
 }
 
@@ -65,10 +65,10 @@ func (s *TypeImpl) IsPtrType() (ret bool) {
 	return
 }
 
-func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
+func (s *TypeImpl) Interface(initVal any) (ret models.Value, err *cd.Error) {
 	if initVal != nil {
 		switch s.GetValue() {
-		case model.TypeBooleanValue:
+		case models.TypeBooleanValue:
 			rawVal, rawErr := utils.ConvertRawToBool(initVal)
 			if rawErr != nil {
 				err = rawErr
@@ -76,7 +76,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 				return
 			}
 			initVal = rawVal
-		case model.TypeByteValue:
+		case models.TypeByteValue:
 			rawVal, rawErr := utils.ConvertRawToInt8(initVal)
 			if rawErr != nil {
 				err = rawErr
@@ -84,7 +84,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 				return
 			}
 			initVal = rawVal
-		case model.TypeSmallIntegerValue:
+		case models.TypeSmallIntegerValue:
 			rawVal, rawErr := utils.ConvertRawToInt16(initVal)
 			if rawErr != nil {
 				err = rawErr
@@ -92,7 +92,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 				return
 			}
 			initVal = rawVal
-		case model.TypeInteger32Value:
+		case models.TypeInteger32Value:
 			rawVal, rawErr := utils.ConvertRawToInt32(initVal)
 			if rawErr != nil {
 				err = rawErr
@@ -100,7 +100,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 				return
 			}
 			initVal = rawVal
-		case model.TypeIntegerValue:
+		case models.TypeIntegerValue:
 			rawVal, rawErr := utils.ConvertRawToInt(initVal)
 			if rawErr != nil {
 				err = rawErr
@@ -108,7 +108,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 				return
 			}
 			initVal = rawVal
-		case model.TypeBigIntegerValue:
+		case models.TypeBigIntegerValue:
 			rawVal, rawErr := utils.ConvertRawToInt64(initVal)
 			if rawErr != nil {
 				err = rawErr
@@ -116,7 +116,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 				return
 			}
 			initVal = rawVal
-		case model.TypePositiveByteValue:
+		case models.TypePositiveByteValue:
 			rawVal, rawErr := utils.ConvertRawToUint8(initVal)
 			if rawErr != nil {
 				err = rawErr
@@ -124,7 +124,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 				return
 			}
 			initVal = rawVal
-		case model.TypePositiveSmallIntegerValue:
+		case models.TypePositiveSmallIntegerValue:
 			rawVal, rawErr := utils.ConvertRawToUint16(initVal)
 			if rawErr != nil {
 				err = rawErr
@@ -132,7 +132,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 				return
 			}
 			initVal = rawVal
-		case model.TypePositiveInteger32Value:
+		case models.TypePositiveInteger32Value:
 			rawVal, rawErr := utils.ConvertRawToUint32(initVal)
 			if rawErr != nil {
 				err = rawErr
@@ -140,7 +140,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 				return
 			}
 			initVal = rawVal
-		case model.TypePositiveIntegerValue:
+		case models.TypePositiveIntegerValue:
 			rawVal, rawErr := utils.ConvertRawToUint(initVal)
 			if rawErr != nil {
 				err = rawErr
@@ -148,7 +148,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 				return
 			}
 			initVal = rawVal
-		case model.TypePositiveBigIntegerValue:
+		case models.TypePositiveBigIntegerValue:
 			rawVal, rawErr := utils.ConvertRawToUint64(initVal)
 			if rawErr != nil {
 				err = rawErr
@@ -156,7 +156,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 				return
 			}
 			initVal = rawVal
-		case model.TypeFloatValue:
+		case models.TypeFloatValue:
 			rawVal, rawErr := utils.ConvertRawToFloat32(initVal)
 			if rawErr != nil {
 				err = rawErr
@@ -164,7 +164,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 				return
 			}
 			initVal = rawVal
-		case model.TypeDoubleValue:
+		case models.TypeDoubleValue:
 			rawVal, rawErr := utils.ConvertRawToFloat64(initVal)
 			if rawErr != nil {
 				err = rawErr
@@ -172,7 +172,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 				return
 			}
 			initVal = rawVal
-		case model.TypeDateTimeValue, model.TypeStringValue:
+		case models.TypeDateTimeValue, models.TypeStringValue:
 			rawVal, rawErr := utils.ConvertRawToString(initVal)
 			if rawErr != nil {
 				err = rawErr
@@ -180,7 +180,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 				return
 			}
 			initVal = rawVal
-		case model.TypeSliceValue:
+		case models.TypeSliceValue:
 			if s.Elem().GetValue().IsBasicType() {
 				rawVal, rawErr := s.convertRawBasicToSlice(initVal)
 				if rawErr != nil {
@@ -198,7 +198,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 				}
 				initVal = rawVal
 			}
-		case model.TypeStructValue:
+		case models.TypeStructValue:
 			rawVal, rawErr := s.convertRawStruct(initVal)
 			if rawErr != nil {
 				err = rawErr
@@ -327,7 +327,7 @@ func (s *TypeImpl) convertRawStruct(initVal any) (ret *ObjectValue, err *cd.Erro
 }
 
 // Elem get element type
-func (s *TypeImpl) Elem() model.Type {
+func (s *TypeImpl) Elem() models.Type {
 	var eType TypeImpl
 	if s.ElemType == nil {
 		eType = *s

@@ -5,11 +5,11 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
 
-func getModelFilter(vModel model.Model, provider provider.Provider, modelCodec codec.Codec) (ret model.Filter, err *cd.Error) {
+func getModelFilter(vModel models.Model, provider provider.Provider, modelCodec codec.Codec) (ret models.Filter, err *cd.Error) {
 	filterVal, filterErr := provider.GetModelFilter(vModel)
 	if filterErr != nil {
 		err = filterErr
@@ -19,7 +19,7 @@ func getModelFilter(vModel model.Model, provider provider.Provider, modelCodec c
 
 	hasPKValue := false
 	pkField := vModel.GetPrimaryField()
-	if model.IsAssignedField(pkField) {
+	if models.IsAssignedField(pkField) {
 		pkVal, pkErr := modelCodec.PackedBasicFieldValue(pkField, pkField.GetValue())
 		if pkErr != nil {
 			err = pkErr
@@ -41,13 +41,13 @@ func getModelFilter(vModel model.Model, provider provider.Provider, modelCodec c
 	}
 
 	for _, field := range vModel.GetFields() {
-		if model.IsPrimaryField(field) || !model.IsAssignedField(field) {
+		if models.IsPrimaryField(field) || !models.IsAssignedField(field) {
 			continue
 		}
 
 		// 这里需要考虑普通值和Struct以及Slice Struct值的分开处理
 		// basic, basic slice
-		if model.IsBasicField(field) {
+		if models.IsBasicField(field) {
 			//fieldVal, fieldErr := modelCodec.PackedBasicFieldValue(field, field.GetValue())
 			//if fieldErr != nil {
 			//	err = fieldErr
@@ -64,7 +64,7 @@ func getModelFilter(vModel model.Model, provider provider.Provider, modelCodec c
 		}
 
 		// struct
-		if model.IsStructField(field) {
+		if models.IsStructField(field) {
 			//fieldVal, fieldErr := modelCodec.PackedStructFieldValue(field, field.GetValue())
 			//if fieldErr != nil {
 			//	err = fieldErr
@@ -82,7 +82,7 @@ func getModelFilter(vModel model.Model, provider provider.Provider, modelCodec c
 		}
 
 		// struct slice
-		if model.IsSliceField(field) {
+		if models.IsSliceField(field) {
 			//fieldVal, fieldErr := modelCodec.PackedSliceStructFieldValue(field, field.GetValue())
 			//if fieldErr != nil {
 			//	err = fieldErr

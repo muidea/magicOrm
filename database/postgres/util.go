@@ -6,8 +6,7 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 func traceSQL() bool {
@@ -19,49 +18,49 @@ func traceSQL() bool {
 	return false
 }
 
-func getTypeDeclare(fType model.Type, fSpec model.Spec, atPKField bool) (ret string, err *cd.Error) {
+func getTypeDeclare(fType models.Type, fSpec models.Spec, atPKField bool) (ret string, err *cd.Error) {
 	// 检查是否为自增字段
 	isAutoIncrement := false
 	if fSpec != nil && fSpec.IsPrimaryKey() && fType.GetValue().IsNumberValueType() && atPKField {
-		isAutoIncrement = model.IsAutoIncrementDeclare(fSpec.GetValueDeclare())
+		isAutoIncrement = models.IsAutoIncrementDeclare(fSpec.GetValueDeclare())
 	}
 
 	switch fType.GetValue() {
-	case model.TypeStringValue:
+	case models.TypeStringValue:
 		if fSpec != nil && fSpec.IsPrimaryKey() {
 			ret = "VARCHAR(32)"
 		} else {
 			ret = "TEXT"
 		}
-	case model.TypeDateTimeValue:
+	case models.TypeDateTimeValue:
 		ret = "TIMESTAMP(3)"
-	case model.TypeBooleanValue:
+	case models.TypeBooleanValue:
 		ret = "BOOLEAN"
-	case model.TypeByteValue:
+	case models.TypeByteValue:
 		ret = "SMALLINT"
-	case model.TypeSmallIntegerValue, model.TypePositiveByteValue:
+	case models.TypeSmallIntegerValue, models.TypePositiveByteValue:
 		if isAutoIncrement {
 			ret = "SMALLSERIAL"
 		} else {
 			ret = "SMALLINT"
 		}
-	case model.TypeIntegerValue, model.TypeInteger32Value, model.TypePositiveSmallIntegerValue:
+	case models.TypeIntegerValue, models.TypeInteger32Value, models.TypePositiveSmallIntegerValue:
 		if isAutoIncrement {
 			ret = "SERIAL"
 		} else {
 			ret = "INTEGER"
 		}
-	case model.TypeBigIntegerValue, model.TypePositiveIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue:
+	case models.TypeBigIntegerValue, models.TypePositiveIntegerValue, models.TypePositiveInteger32Value, models.TypePositiveBigIntegerValue:
 		if isAutoIncrement {
 			ret = "BIGSERIAL"
 		} else {
 			ret = "BIGINT"
 		}
-	case model.TypeFloatValue:
+	case models.TypeFloatValue:
 		ret = "REAL"
-	case model.TypeDoubleValue:
+	case models.TypeDoubleValue:
 		ret = "DOUBLE PRECISION"
-	case model.TypeSliceValue:
+	case models.TypeSliceValue:
 		ret = "TEXT"
 	default:
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("no support field type, type:%v", fType.GetPkgKey()))
@@ -74,36 +73,36 @@ func getTypeDeclare(fType model.Type, fSpec model.Spec, atPKField bool) (ret str
 	return
 }
 
-func getFieldValueHolder(fType model.Type) (ret any, err *cd.Error) {
+func getFieldValueHolder(fType models.Type) (ret any, err *cd.Error) {
 	switch fType.GetValue() {
-	case model.TypeStringValue, model.TypeDateTimeValue:
+	case models.TypeStringValue, models.TypeDateTimeValue:
 		ret = ""
-	case model.TypeBooleanValue:
+	case models.TypeBooleanValue:
 		ret = false
-	case model.TypeByteValue:
+	case models.TypeByteValue:
 		ret = int8(0)
-	case model.TypeSmallIntegerValue:
+	case models.TypeSmallIntegerValue:
 		ret = int16(0)
-	case model.TypeIntegerValue:
+	case models.TypeIntegerValue:
 		ret = int(0)
-	case model.TypeInteger32Value:
+	case models.TypeInteger32Value:
 		ret = int32(0)
-	case model.TypeBigIntegerValue:
+	case models.TypeBigIntegerValue:
 		ret = int64(0)
-	case model.TypePositiveByteValue:
+	case models.TypePositiveByteValue:
 		ret = uint16(0)
-	case model.TypePositiveSmallIntegerValue:
+	case models.TypePositiveSmallIntegerValue:
 		ret = uint32(0)
-	case model.TypePositiveIntegerValue:
+	case models.TypePositiveIntegerValue:
 		ret = uint(0)
-	case model.TypePositiveInteger32Value, model.TypePositiveBigIntegerValue:
+	case models.TypePositiveInteger32Value, models.TypePositiveBigIntegerValue:
 		ret = uint64(0)
-	case model.TypeFloatValue:
+	case models.TypeFloatValue:
 		ret = float32(0.00)
-	case model.TypeDoubleValue:
+	case models.TypeDoubleValue:
 		ret = 0.0000
-	case model.TypeSliceValue:
-		if model.IsBasic(fType.Elem()) {
+	case models.TypeSliceValue:
+		if models.IsBasic(fType.Elem()) {
 			ret = ""
 		} else {
 			err = cd.NewError(cd.Unexpected, fmt.Sprintf("no support fileType, type:%v", fType.GetPkgKey()))

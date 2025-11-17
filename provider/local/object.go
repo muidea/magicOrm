@@ -8,7 +8,7 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/utils"
 )
 
@@ -39,7 +39,7 @@ func (s *objectImpl) GetDescription() string {
 	return ""
 }
 
-func (s *objectImpl) GetFields() (ret model.Fields) {
+func (s *objectImpl) GetFields() (ret models.Fields) {
 	for _, sf := range s.fields {
 		ret = append(ret, sf)
 	}
@@ -61,7 +61,7 @@ func (s *objectImpl) SetFieldValue(name string, val any) (err *cd.Error) {
 
 func (s *objectImpl) SetPrimaryFieldValue(val any) (err *cd.Error) {
 	for _, sf := range s.fields {
-		if model.IsPrimaryField(sf) {
+		if models.IsPrimaryField(sf) {
 			err = sf.SetValue(val)
 			return
 		}
@@ -70,9 +70,9 @@ func (s *objectImpl) SetPrimaryFieldValue(val any) (err *cd.Error) {
 	return
 }
 
-func (s *objectImpl) GetPrimaryField() (ret model.Field) {
+func (s *objectImpl) GetPrimaryField() (ret models.Field) {
 	for _, sf := range s.fields {
-		if model.IsPrimaryField(sf) {
+		if models.IsPrimaryField(sf) {
 			ret = sf
 			return
 		}
@@ -81,7 +81,7 @@ func (s *objectImpl) GetPrimaryField() (ret model.Field) {
 	return
 }
 
-func (s *objectImpl) GetField(name string) (ret model.Field) {
+func (s *objectImpl) GetField(name string) (ret models.Field) {
 	for _, sf := range s.fields {
 		if sf.GetName() == name {
 			ret = sf
@@ -102,7 +102,7 @@ func (s *objectImpl) Interface(ptrValue bool) (ret interface{}) {
 	return
 }
 
-func (s *objectImpl) Copy(viewSpec model.ViewDeclare) model.Model {
+func (s *objectImpl) Copy(viewSpec models.ViewDeclare) models.Model {
 	if !s.objectValue.IsValid() {
 		return &objectImpl{}
 	}
@@ -117,7 +117,7 @@ func (s *objectImpl) Reset() {
 	}
 }
 
-func getValueModel(entityValue reflect.Value, viewSpec model.ViewDeclare) (ret *objectImpl, err *cd.Error) {
+func getValueModel(entityValue reflect.Value, viewSpec models.ViewDeclare) (ret *objectImpl, err *cd.Error) {
 	isPtr := entityValue.Kind() == reflect.Ptr
 	entityValue = reflect.Indirect(entityValue)
 	entityType := entityValue.Type()
@@ -127,7 +127,7 @@ func getValueModel(entityValue reflect.Value, viewSpec model.ViewDeclare) (ret *
 		log.Errorf("getValueModel failed, err:%s", err.Error())
 		return
 	}
-	if typePtr.GetValue() != model.TypeStructValue {
+	if typePtr.GetValue() != models.TypeStructValue {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal type, must be a struct entity, type:%s", entityType.String()))
 		log.Errorf("getValueModel failed, err:%s", err.Error())
 		return
@@ -146,7 +146,7 @@ func getValueModel(entityValue reflect.Value, viewSpec model.ViewDeclare) (ret *
 			return
 		}
 
-		if model.IsPrimaryField(tField) {
+		if models.IsPrimaryField(tField) {
 			if hasPrimaryKey {
 				err = cd.NewError(cd.Unexpected, fmt.Sprintf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldInfo.Name, impl.GetName()))
 				log.Errorf("getValueModel failed, check primary key err:%s", err.Error())
@@ -170,7 +170,7 @@ func getValueModel(entityValue reflect.Value, viewSpec model.ViewDeclare) (ret *
 		return
 	}
 
-	err = model.VerifyModel(impl)
+	err = models.VerifyModel(impl)
 	if err != nil {
 		log.Errorf("verify model failed, err:%s", err.Error())
 		return

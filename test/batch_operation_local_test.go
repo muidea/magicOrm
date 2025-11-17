@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
 )
@@ -91,7 +91,7 @@ func TestBatchOperations(t *testing.T) {
 // 测试批量插入
 func testBatchInsert(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
 	itemCount := 100
-	modelList := make([]model.Model, itemCount)
+	modelList := make([]models.Model, itemCount)
 
 	insertStartTime := time.Now()
 
@@ -376,7 +376,7 @@ func testBatchPerformance(t *testing.T, o1 orm.Orm, localProvider provider.Provi
 
 	// 大批量数据测试
 	largeCount := 1000
-	modelList := make([]model.Model, largeCount)
+	modelList := make([]models.Model, largeCount)
 
 	// 准备批量插入的数据
 	for i := 0; i < largeCount; i++ {

@@ -70,15 +70,15 @@ Object描述数据模型信息，模型信息使用json格式进行序列化保�
         Name        string            `json:"name"`
         PkgPath     string            `json:"pkgPath"`
         Description string            `json:"description"`
-        Value       model.TypeDeclare `json:"value"`
+        Value       models.TypeDeclare `json:"value"`
         IsPtr       bool              `json:"isPtr"`
         ElemType    *TypeImpl         `json:"elemType"`
     }
 
     type SpecImpl struct {
         PrimaryKey   bool                `json:"primaryKey"`
-        ValueDeclare model.ValueDeclare  `json:"valueDeclare"`
-        ViewDeclare  []model.ViewDeclare `json:"viewDeclare"`
+        ValueDeclare models.ValueDeclare  `json:"valueDeclare"`
+        ViewDeclare  []models.ViewDeclare `json:"viewDeclare"`
         DefaultValue any                 `json:"defaultValue"`
     }
 

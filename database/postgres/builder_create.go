@@ -9,13 +9,13 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/database"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
-func (s *Builder) BuildCreateTable(vModel model.Model) (ret database.Result, err *cd.Error) {
+func (s *Builder) BuildCreateTable(vModel models.Model) (ret database.Result, err *cd.Error) {
 	createSQL := ""
 	for _, field := range vModel.GetFields() {
-		if !model.IsBasicField(field) {
+		if !models.IsBasicField(field) {
 			continue
 		}
 
@@ -46,7 +46,7 @@ func (s *Builder) BuildCreateTable(vModel model.Model) (ret database.Result, err
 }
 
 // BuildCreateRelationTable Build CreateRelation Schema
-func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Field) (ret database.Result, err *cd.Error) {
+func (s *Builder) BuildCreateRelationTable(vModel models.Model, vField models.Field) (ret database.Result, err *cd.Error) {
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
@@ -93,7 +93,7 @@ func (s *Builder) BuildCreateRelationTable(vModel model.Model, vField model.Fiel
 // 类似以下信息
 // "id" int(11) NOT NULL AUTO_INCREMENT
 // "i8" tinyint(4) DEFAULT '100',
-func (s *Builder) declareFieldInfo(vField model.Field) (ret string, err *cd.Error) {
+func (s *Builder) declareFieldInfo(vField models.Field) (ret string, err *cd.Error) {
 	strBuffer := bytes.NewBufferString("")
 	// Write field name
 	strBuffer.WriteString("\"")
@@ -146,8 +146,8 @@ func (s *Builder) declareFieldInfo(vField model.Field) (ret string, err *cd.Erro
 	return
 }
 
-func (s *Builder) validDefaultValue(vType model.Type, vSpec model.Spec) (ret string, err *cd.Error) {
-	if !model.IsBasic(vType) || vType.IsPtrType() || vType.GetValue().IsSliceType() || vType.Elem().GetValue().IsStringValueType() {
+func (s *Builder) validDefaultValue(vType models.Type, vSpec models.Spec) (ret string, err *cd.Error) {
+	if !models.IsBasic(vType) || vType.IsPtrType() || vType.GetValue().IsSliceType() || vType.Elem().GetValue().IsStringValueType() {
 		// 非基础类型和切片类型不需要设置默认值
 		// 指针类型不需要设置默认值
 		// 字符串类型不需要设置默认值，这里返回空
@@ -176,7 +176,7 @@ func (s *Builder) validDefaultValue(vType model.Type, vSpec model.Spec) (ret str
 	}
 
 	switch vType.Elem().GetValue() {
-	case model.TypeBooleanValue:
+	case models.TypeBooleanValue:
 		if defaultValue.(bool) {
 			ret = "'1'"
 		} else {
@@ -189,11 +189,11 @@ func (s *Builder) validDefaultValue(vType model.Type, vSpec model.Spec) (ret str
 	return
 }
 
-func (s *Builder) validAutoIncrement(vType model.Type, vSpec model.Spec) (ret bool, err *cd.Error) {
+func (s *Builder) validAutoIncrement(vType models.Type, vSpec models.Spec) (ret bool, err *cd.Error) {
 	if vSpec == nil || !vSpec.IsPrimaryKey() || !vType.GetValue().IsNumberValueType() {
 		return
 	}
 
-	ret = model.IsAutoIncrementDeclare(vSpec.GetValueDeclare())
+	ret = models.IsAutoIncrementDeclare(vSpec.GetValueDeclare())
 	return
 }

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 type TestStruct struct {
@@ -18,7 +18,7 @@ func TestTypeImpl_convertRawToSlice(t *testing.T) {
 		Name        string
 		PkgPath     string
 		Description string
-		Value       model.TypeDeclare
+		Value       models.TypeDeclare
 		IsPtr       bool
 		ElemType    *TypeImpl
 	}
@@ -123,7 +123,7 @@ func TestTypeImpl_convertRawStruct(t *testing.T) {
 		Name        string
 		PkgPath     string
 		Description string
-		Value       model.TypeDeclare
+		Value       models.TypeDeclare
 		IsPtr       bool
 		ElemType    *TypeImpl
 	}
@@ -143,7 +143,7 @@ func TestTypeImpl_convertRawStruct(t *testing.T) {
 				Name:        "TestStruct",
 				PkgPath:     "remote",
 				Description: "",
-				Value:       model.TypeStructValue,
+				Value:       models.TypeStructValue,
 				IsPtr:       false,
 				ElemType:    nil,
 			},
@@ -159,7 +159,7 @@ func TestTypeImpl_convertRawStruct(t *testing.T) {
 				Name:        "TestStruct",
 				PkgPath:     "remote",
 				Description: "",
-				Value:       model.TypeStructValue,
+				Value:       models.TypeStructValue,
 				IsPtr:       false,
 				ElemType:    nil,
 			},
@@ -182,7 +182,7 @@ func TestTypeImpl_convertRawStruct(t *testing.T) {
 				Name:        "TestStruct",
 				PkgPath:     "remote",
 				Description: "",
-				Value:       model.TypeStructValue,
+				Value:       models.TypeStructValue,
 				IsPtr:       false,
 				ElemType:    nil,
 			},
@@ -234,7 +234,7 @@ func TestTypeImpl_convertRawStructToSlice(t *testing.T) {
 		Name        string
 		PkgPath     string
 		Description string
-		Value       model.TypeDeclare
+		Value       models.TypeDeclare
 		IsPtr       bool
 		ElemType    *TypeImpl
 	}

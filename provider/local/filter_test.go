@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/utils"
 )
 
@@ -72,7 +72,7 @@ func TestFilterEqual(t *testing.T) {
 		return
 	}
 
-	if idFilter.OprCode() != model.EqualOpr {
+	if idFilter.OprCode() != models.EqualOpr {
 		t.Errorf("Expected EqualOpr, got %v", idFilter.OprCode())
 	}
 
@@ -290,7 +290,7 @@ func TestFilterValueMask(t *testing.T) {
 	if idField == nil {
 		t.Errorf("GetField('id') returned nil for masked model")
 	}
-	if !model.IsValidField(idField) {
+	if !models.IsValidField(idField) {
 		t.Errorf("GetField('id') returned valid field for masked model")
 	}
 
@@ -298,7 +298,7 @@ func TestFilterValueMask(t *testing.T) {
 	if nameField == nil {
 		t.Errorf("GetField('name') returned nil for masked model")
 	}
-	if !model.IsValidField(nameField) {
+	if !models.IsValidField(nameField) {
 		t.Errorf("GetField('name') returned valid field for masked model")
 	}
 
@@ -306,7 +306,7 @@ func TestFilterValueMask(t *testing.T) {
 	if strPtrField == nil {
 		t.Errorf("GetField('strPtr') returned nil for masked model")
 	}
-	if model.IsValidField(strPtrField) {
+	if models.IsValidField(strPtrField) {
 		t.Errorf("GetField('strPtr') returned invalid field for masked model")
 	}
 }
@@ -409,17 +409,17 @@ func TestFilterCombinedOperations(t *testing.T) {
 
 	// Verify all filter items exist
 	idFilter := filter.GetFilterItem("id")
-	if idFilter == nil || idFilter.OprCode() != model.EqualOpr {
+	if idFilter == nil || idFilter.OprCode() != models.EqualOpr {
 		t.Errorf("Expected 'id' filter with EqualOpr, got %v", idFilter)
 	}
 
 	scoreFilter := filter.GetFilterItem("score")
-	if scoreFilter == nil || scoreFilter.OprCode() != model.AboveOpr {
+	if scoreFilter == nil || scoreFilter.OprCode() != models.AboveOpr {
 		t.Errorf("Expected 'score' filter with AboveOpr, got %v", scoreFilter)
 	}
 
 	nameFilter := filter.GetFilterItem("name")
-	if nameFilter == nil || nameFilter.OprCode() != model.LikeOpr {
+	if nameFilter == nil || nameFilter.OprCode() != models.LikeOpr {
 		t.Errorf("Expected 'name' filter with LikeOpr, got %v", nameFilter)
 	}
 
@@ -453,7 +453,7 @@ func TestFilterReplacement(t *testing.T) {
 
 	// Verify filter
 	idFilter := filter.GetFilterItem("id")
-	if idFilter == nil || idFilter.OprCode() != model.EqualOpr {
+	if idFilter == nil || idFilter.OprCode() != models.EqualOpr {
 		t.Errorf("Expected 'id' filter with EqualOpr, got %v", idFilter)
 		return
 	}
@@ -467,7 +467,7 @@ func TestFilterReplacement(t *testing.T) {
 
 	// Verify filter was replaced
 	idFilter = filter.GetFilterItem("id")
-	if idFilter == nil || idFilter.OprCode() != model.NotEqualOpr {
+	if idFilter == nil || idFilter.OprCode() != models.NotEqualOpr {
 		t.Errorf("Expected 'id' filter to be replaced with NotEqualOpr, got %v", idFilter)
 	}
 }

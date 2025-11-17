@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 func TestObjectImplementation(t *testing.T) {
@@ -16,13 +16,13 @@ func TestObjectImplementation(t *testing.T) {
 		Fields: []*Field{
 			{
 				Name:  "id",
-				Type:  &TypeImpl{Name: "int64", Value: model.TypeBigIntegerValue},
+				Type:  &TypeImpl{Name: "int64", Value: models.TypeBigIntegerValue},
 				Spec:  &SpecImpl{FieldName: "id", PrimaryKey: true},
 				value: NewValue(int64(123)),
 			},
 			{
 				Name:  "name",
-				Type:  &TypeImpl{Name: "string", Value: model.TypeStringValue},
+				Type:  &TypeImpl{Name: "string", Value: models.TypeStringValue},
 				Spec:  &SpecImpl{FieldName: "name"},
 				value: NewValue("test name"),
 			},
@@ -96,13 +96,13 @@ func TestObjectCopy(t *testing.T) {
 		Fields: []*Field{
 			{
 				Name:  "id",
-				Type:  &TypeImpl{Name: "int64", Value: model.TypeBigIntegerValue},
+				Type:  &TypeImpl{Name: "int64", Value: models.TypeBigIntegerValue},
 				Spec:  &SpecImpl{FieldName: "id", PrimaryKey: true},
 				value: NewValue(int64(123)),
 			},
 			{
 				Name:  "name",
-				Type:  &TypeImpl{Name: "string", Value: model.TypeStringValue},
+				Type:  &TypeImpl{Name: "string", Value: models.TypeStringValue},
 				Spec:  &SpecImpl{FieldName: "name"},
 				value: NewValue("test name"),
 			},
@@ -110,7 +110,7 @@ func TestObjectCopy(t *testing.T) {
 	}
 
 	// Test Copy with reset=true
-	copiedObj := obj.Copy(model.MetaView)
+	copiedObj := obj.Copy(models.MetaView)
 	if copiedObj.GetName() != obj.GetName() ||
 		copiedObj.GetPkgPath() != obj.GetPkgPath() ||
 		copiedObj.GetDescription() != obj.GetDescription() {
@@ -131,7 +131,7 @@ func TestObjectCopy(t *testing.T) {
 	}
 
 	// Test Copy with reset=false
-	copiedObj2 := obj.Copy(model.OriginView)
+	copiedObj2 := obj.Copy(models.OriginView)
 	if copiedObj2.GetName() != obj.GetName() ||
 		copiedObj2.GetPkgPath() != obj.GetPkgPath() ||
 		copiedObj2.GetDescription() != obj.GetDescription() {
@@ -156,20 +156,20 @@ func TestObjectInterface(t *testing.T) {
 		Fields: []*Field{
 			{
 				Name:  "id",
-				Type:  &TypeImpl{Name: "int64", Value: model.TypeBigIntegerValue},
-				Spec:  &SpecImpl{FieldName: "id", PrimaryKey: true, ViewDeclare: []model.ViewDeclare{model.DetailView, model.LiteView}},
+				Type:  &TypeImpl{Name: "int64", Value: models.TypeBigIntegerValue},
+				Spec:  &SpecImpl{FieldName: "id", PrimaryKey: true, ViewDeclare: []models.ViewDeclare{models.DetailView, models.LiteView}},
 				value: NewValue(int64(123)),
 			},
 			{
 				Name:  "name",
-				Type:  &TypeImpl{Name: "string", Value: model.TypeStringValue},
-				Spec:  &SpecImpl{FieldName: "name", ViewDeclare: []model.ViewDeclare{model.DetailView, model.LiteView}},
+				Type:  &TypeImpl{Name: "string", Value: models.TypeStringValue},
+				Spec:  &SpecImpl{FieldName: "name", ViewDeclare: []models.ViewDeclare{models.DetailView, models.LiteView}},
 				value: NewValue("test name"),
 			},
 			{
 				Name:  "description",
-				Type:  &TypeImpl{Name: "string", Value: model.TypeStringValue},
-				Spec:  &SpecImpl{FieldName: "description", ViewDeclare: []model.ViewDeclare{model.DetailView}},
+				Type:  &TypeImpl{Name: "string", Value: models.TypeStringValue},
+				Spec:  &SpecImpl{FieldName: "description", ViewDeclare: []models.ViewDeclare{models.DetailView}},
 				value: NewValue("test description"),
 			},
 		},
@@ -191,7 +191,7 @@ func TestObjectInterface(t *testing.T) {
 		t.Errorf("Interface with OriginView failed, expected 3 fields, got %d", len(objVal.Fields))
 	}
 
-	detailView := obj.Copy(model.DetailView)
+	detailView := obj.Copy(models.DetailView)
 	// Test Interface with DetailView
 	result = detailView.Interface(false)
 	objVal, ok = result.(*ObjectValue)
@@ -204,7 +204,7 @@ func TestObjectInterface(t *testing.T) {
 		t.Errorf("Interface with DetailView failed, expected 3 fields, got %d", len(objVal.Fields))
 	}
 
-	liteView := obj.Copy(model.LiteView)
+	liteView := obj.Copy(models.LiteView)
 	// Test Interface with LiteView
 	result = liteView.Interface(false)
 	objVal, ok = result.(*ObjectValue)

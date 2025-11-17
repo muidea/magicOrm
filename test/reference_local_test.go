@@ -7,7 +7,7 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 
 	"github.com/muidea/magicCommon/foundation/util"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
 )
@@ -54,7 +54,7 @@ func TestReferenceLocal(t *testing.T) {
 	}
 
 	sValList := []*Reference{}
-	sModelList := []model.Model{}
+	sModelList := []models.Model{}
 
 	ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	strValue := "test code"
@@ -133,7 +133,7 @@ func TestReferenceLocal(t *testing.T) {
 
 	// query
 	qValList := []*Reference{}
-	qModelList := []model.Model{}
+	qModelList := []models.Model{}
 	for idx := 0; idx < localLoop; idx++ {
 		var fVal float32
 		var ts time.Time

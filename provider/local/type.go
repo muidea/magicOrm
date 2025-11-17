@@ -6,7 +6,7 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/utils"
 )
 
@@ -47,7 +47,7 @@ func (s *TypeImpl) GetDescription() string {
 	return ""
 }
 
-func (s *TypeImpl) GetValue() (ret model.TypeDeclare) {
+func (s *TypeImpl) GetValue() (ret models.TypeDeclare) {
 	rType := s.getRawType()
 	ret, _ = utils.GetTypeEnum(rType)
 	return
@@ -57,46 +57,46 @@ func (s *TypeImpl) IsPtrType() bool {
 	return s.typeVal.Kind() == reflect.Ptr
 }
 
-func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
+func (s *TypeImpl) Interface(initVal any) (ret models.Value, err *cd.Error) {
 	tVal := reflect.New(s.getRawType()).Elem()
 	if initVal != nil {
 		switch s.GetValue() {
-		case model.TypeBooleanValue:
+		case models.TypeBooleanValue:
 			rawVal, rawErr := utils.ConvertRawToBool(initVal)
 			if rawErr != nil {
 				err = rawErr
 				return
 			}
 			tVal.SetBool(rawVal)
-		case model.TypeByteValue, model.TypeSmallIntegerValue, model.TypeInteger32Value, model.TypeIntegerValue, model.TypeBigIntegerValue:
+		case models.TypeByteValue, models.TypeSmallIntegerValue, models.TypeInteger32Value, models.TypeIntegerValue, models.TypeBigIntegerValue:
 			rawVal, rawErr := utils.ConvertRawToInt64(initVal)
 			if rawErr != nil {
 				err = rawErr
 				return
 			}
 			tVal.SetInt(rawVal)
-		case model.TypePositiveByteValue, model.TypePositiveSmallIntegerValue, model.TypePositiveInteger32Value, model.TypePositiveIntegerValue, model.TypePositiveBigIntegerValue:
+		case models.TypePositiveByteValue, models.TypePositiveSmallIntegerValue, models.TypePositiveInteger32Value, models.TypePositiveIntegerValue, models.TypePositiveBigIntegerValue:
 			rawVal, rawErr := utils.ConvertRawToUint64(initVal)
 			if rawErr != nil {
 				err = rawErr
 				return
 			}
 			tVal.SetUint(rawVal)
-		case model.TypeFloatValue, model.TypeDoubleValue:
+		case models.TypeFloatValue, models.TypeDoubleValue:
 			rawVal, rawErr := utils.ConvertRawToFloat64(initVal)
 			if rawErr != nil {
 				err = rawErr
 				return
 			}
 			tVal.SetFloat(rawVal)
-		case model.TypeStringValue:
+		case models.TypeStringValue:
 			rawVal, rawErr := utils.ConvertRawToString(initVal)
 			if rawErr != nil {
 				err = rawErr
 				return
 			}
 			tVal.SetString(rawVal)
-		case model.TypeDateTimeValue:
+		case models.TypeDateTimeValue:
 			rawVal, rawErr := utils.ConvertRawToDateTime(initVal)
 			if rawErr != nil {
 				err = rawErr
@@ -124,7 +124,7 @@ func (s *TypeImpl) Interface(initVal any) (ret model.Value, err *cd.Error) {
 	return
 }
 
-func (s *TypeImpl) Elem() model.Type {
+func (s *TypeImpl) Elem() models.Type {
 	tType := s.getRawType()
 	if tType.Kind() == reflect.Slice {
 		return &TypeImpl{typeVal: tType.Elem()}
@@ -136,16 +136,16 @@ func (s *TypeImpl) Elem() model.Type {
 func (s *TypeImpl) IsBasic() bool {
 	elemType := s.Elem()
 
-	return model.IsBasicType(elemType.GetValue())
+	return models.IsBasicType(elemType.GetValue())
 }
 
 func (s *TypeImpl) IsStruct() bool {
 	elemType := s.Elem()
-	return model.IsStructType(elemType.GetValue())
+	return models.IsStructType(elemType.GetValue())
 }
 
 func (s *TypeImpl) IsSlice() bool {
-	return model.IsSliceType(s.GetValue())
+	return models.IsSliceType(s.GetValue())
 }
 
 func (s *TypeImpl) getRawType() reflect.Type {

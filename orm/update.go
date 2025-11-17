@@ -6,7 +6,7 @@ import (
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
 
@@ -18,7 +18,7 @@ type UpdateRunner struct {
 }
 
 func NewUpdateRunner(
-	vModel model.Model,
+	vModel models.Model,
 	executor database.Executor,
 	provider provider.Provider,
 	modelCodec codec.Codec) *UpdateRunner {
@@ -43,7 +43,7 @@ func NewUpdateRunner(
 	}
 }
 
-func (s *UpdateRunner) updateHost(vModel model.Model) (err *cd.Error) {
+func (s *UpdateRunner) updateHost(vModel models.Model) (err *cd.Error) {
 	updateResult, updateErr := s.sqlBuilder.BuildUpdate(vModel)
 	if updateErr != nil {
 		err = updateErr
@@ -58,7 +58,7 @@ func (s *UpdateRunner) updateHost(vModel model.Model) (err *cd.Error) {
 	return
 }
 
-func (s *UpdateRunner) updateRelation(vModel model.Model, vField model.Field) (err *cd.Error) {
+func (s *UpdateRunner) updateRelation(vModel models.Model, vField models.Field) (err *cd.Error) {
 	newVal := vField.GetValue().Get()
 	err = s.deleteRelation(vModel, vField, 0)
 	if err != nil {
@@ -76,7 +76,7 @@ func (s *UpdateRunner) updateRelation(vModel model.Model, vField model.Field) (e
 	return
 }
 
-func (s *UpdateRunner) Update() (ret model.Model, err *cd.Error) {
+func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
 	err = s.updateHost(s.vModel)
 	if err != nil {
 		log.Errorf("Update failed, s.updateSingle error:%s", err.Error())
@@ -84,7 +84,7 @@ func (s *UpdateRunner) Update() (ret model.Model, err *cd.Error) {
 	}
 
 	for _, field := range s.vModel.GetFields() {
-		if model.IsBasicField(field) || !model.IsValidField(field) {
+		if models.IsBasicField(field) || !models.IsValidField(field) {
 			continue
 		}
 
@@ -99,7 +99,7 @@ func (s *UpdateRunner) Update() (ret model.Model, err *cd.Error) {
 	return
 }
 
-func (s *impl) Update(vModel model.Model) (ret model.Model, err *cd.Error) {
+func (s *impl) Update(vModel models.Model) (ret models.Model, err *cd.Error) {
 	if vModel == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return

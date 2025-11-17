@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider/remote"
 	"github.com/stretchr/testify/assert"
 )
@@ -58,7 +58,7 @@ func TestSpec(t *testing.T) {
 		t.Errorf("illegal spec define")
 		return
 	}
-	if itemSpec.GetValueDeclare() == model.AutoIncrement {
+	if itemSpec.GetValueDeclare() == models.AutoIncrement {
 		t.Errorf("illegal spec define")
 		return
 	}
@@ -77,7 +77,7 @@ func TestSpec(t *testing.T) {
 		t.Errorf("illegal spec define")
 		return
 	}
-	if itemSpec.GetValueDeclare() != model.AutoIncrement {
+	if itemSpec.GetValueDeclare() != models.AutoIncrement {
 		t.Errorf("illegal spec define")
 		return
 	}
@@ -195,7 +195,7 @@ func TestGetObjectWithStructPointers(t *testing.T) {
 		return
 	}
 
-	if !model.IsPtrField(objPtrField) {
+	if !models.IsPtrField(objPtrField) {
 		t.Errorf("objPtr field should be a pointer type")
 		return
 	}
@@ -231,7 +231,7 @@ func TestComplexObjInfo(t *testing.T) {
 		return
 	}
 
-	if !model.IsStructField(infoField) {
+	if !models.IsStructField(infoField) {
 		t.Errorf("info field should be a struct type")
 		return
 	}
@@ -242,7 +242,7 @@ func TestComplexObjInfo(t *testing.T) {
 		return
 	}
 
-	if !model.IsSliceField(arrayField) {
+	if !models.IsSliceField(arrayField) {
 		t.Errorf("array field should be a slice type")
 		return
 	}

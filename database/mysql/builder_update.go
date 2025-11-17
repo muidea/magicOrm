@@ -7,11 +7,11 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/database"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 // BuildUpdate  Build Update
-func (s *Builder) BuildUpdate(vModel model.Model) (ret database.Result, err *cd.Error) {
+func (s *Builder) BuildUpdate(vModel models.Model) (ret database.Result, err *cd.Error) {
 	resultStackPtr := &ResultStack{}
 	updateStr, updateErr := s.buildFieldUpdateValues(vModel, resultStackPtr)
 	if updateErr != nil {
@@ -36,13 +36,13 @@ func (s *Builder) BuildUpdate(vModel model.Model) (ret database.Result, err *cd.
 	return
 }
 
-func (s *Builder) buildFieldUpdateValues(vModel model.Model, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
+func (s *Builder) buildFieldUpdateValues(vModel models.Model, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
 	str := ""
 	for _, field := range vModel.GetFields() {
-		if model.IsPrimaryField(field) {
+		if models.IsPrimaryField(field) {
 			continue
 		}
-		if !model.IsBasicField(field) || !model.IsValidField(field) {
+		if !models.IsBasicField(field) || !models.IsValidField(field) {
 			continue
 		}
 

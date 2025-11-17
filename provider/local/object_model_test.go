@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 // ComplexFieldModelStruct represents a struct with fields of various types
@@ -45,7 +45,7 @@ func TestObjectSetFieldValue(t *testing.T) {
 	}
 
 	entityValue := reflect.ValueOf(&entity)
-	objModel, err := getValueModel(entityValue, model.MetaView)
+	objModel, err := getValueModel(entityValue, models.MetaView)
 	if err != nil {
 		t.Errorf("getValueModel failed: %s", err.Error())
 		return
@@ -87,7 +87,7 @@ func TestObjectInterface(t *testing.T) {
 	}
 
 	entityValue := reflect.ValueOf(&entity)
-	objModel, err := getValueModel(entityValue, model.OriginView)
+	objModel, err := getValueModel(entityValue, models.OriginView)
 	if err != nil {
 		t.Errorf("getValueModel failed: %s", err.Error())
 		return
@@ -127,7 +127,7 @@ func TestObjectInterface(t *testing.T) {
 		t.Errorf("Interface returned incorrect data for DetailView")
 	}
 
-	liteModel := objModel.Copy(model.LiteView)
+	liteModel := objModel.Copy(models.LiteView)
 	// Test Interface with ptrValue=false, for Lite view
 	liteInterface := liteModel.Interface(false)
 	if liteInterface == nil {
@@ -170,14 +170,14 @@ func TestComplexObjectCopy(t *testing.T) {
 	}
 
 	entityValue := reflect.ValueOf(&entity)
-	objModel, err := getValueModel(entityValue, model.OriginView)
+	objModel, err := getValueModel(entityValue, models.OriginView)
 	if err != nil {
 		t.Errorf("getValueModel failed: %s", err.Error())
 		return
 	}
 
 	// Test Copy with reset=false
-	copiedModel := objModel.Copy(model.OriginView)
+	copiedModel := objModel.Copy(models.OriginView)
 	if copiedModel == nil {
 		t.Errorf("Copy failed, returned nil")
 		return
@@ -207,7 +207,7 @@ func TestComplexObjectCopy(t *testing.T) {
 	}
 
 	// Test Copy with reset=true
-	resetModel := objModel.Copy(model.MetaView)
+	resetModel := objModel.Copy(models.MetaView)
 	if resetModel == nil {
 		t.Errorf("Copy with reset failed, returned nil")
 		return
@@ -251,7 +251,7 @@ func TestNestedObjectModel(t *testing.T) {
 	}
 
 	entityValue := reflect.ValueOf(&nested)
-	objModel, err := getValueModel(entityValue, model.OriginView)
+	objModel, err := getValueModel(entityValue, models.OriginView)
 	if err != nil {
 		t.Errorf("getValueModel failed for nested struct: %s", err.Error())
 		return
@@ -273,7 +273,7 @@ func TestNestedObjectModel(t *testing.T) {
 		return
 	}
 
-	if !model.IsStructField(complexField) {
+	if !models.IsStructField(complexField) {
 		t.Errorf("Field type check failed, complex should be a struct")
 	}
 
@@ -284,7 +284,7 @@ func TestNestedObjectModel(t *testing.T) {
 		return
 	}
 
-	if !model.IsStructField(complexPField) || !model.IsPtrField(complexPField) {
+	if !models.IsStructField(complexPField) || !models.IsPtrField(complexPField) {
 		t.Errorf("Field type check failed, complexP should be a struct pointer")
 	}
 

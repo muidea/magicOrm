@@ -10,7 +10,7 @@ import (
 	"github.com/muidea/magicCommon/foundation/util"
 
 	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/remote"
 )
@@ -100,7 +100,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 		t.Errorf("build delete failed, str:%s", str)
 	}
 
-	filterModel := unitModel.Copy(model.MetaView)
+	filterModel := unitModel.Copy(models.MetaView)
 	filterVal, filterErr := localProvider.GetModelFilter(filterModel)
 	if filterErr != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", filterErr.Error())
@@ -278,7 +278,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 				},
 				Spec: &remote.SpecImpl{
 					PrimaryKey:   true,
-					ValueDeclare: model.UUID,
+					ValueDeclare: models.UUID,
 				},
 			},
 			{
@@ -443,10 +443,10 @@ func TestBuilderRemoteReference(t *testing.T) {
 				},
 				Spec: &remote.SpecImpl{
 					PrimaryKey:   true,
-					ValueDeclare: model.AutoIncrement,
-					ViewDeclare: []model.ViewDeclare{
-						model.DetailView,
-						model.LiteView,
+					ValueDeclare: models.AutoIncrement,
+					ViewDeclare: []models.ViewDeclare{
+						models.DetailView,
+						models.LiteView,
 					},
 				},
 			},
@@ -457,9 +457,9 @@ func TestBuilderRemoteReference(t *testing.T) {
 					Value: 113,
 				},
 				Spec: &remote.SpecImpl{
-					ViewDeclare: []model.ViewDeclare{
-						model.DetailView,
-						model.LiteView,
+					ViewDeclare: []models.ViewDeclare{
+						models.DetailView,
+						models.LiteView,
 					},
 				},
 			},
@@ -470,9 +470,9 @@ func TestBuilderRemoteReference(t *testing.T) {
 					Value: 112,
 				},
 				Spec: &remote.SpecImpl{
-					ViewDeclare: []model.ViewDeclare{
-						model.DetailView,
-						model.LiteView,
+					ViewDeclare: []models.ViewDeclare{
+						models.DetailView,
+						models.LiteView,
 					},
 				},
 			},
@@ -483,9 +483,9 @@ func TestBuilderRemoteReference(t *testing.T) {
 					Value: 113,
 				},
 				Spec: &remote.SpecImpl{
-					ViewDeclare: []model.ViewDeclare{
-						model.DetailView,
-						model.LiteView,
+					ViewDeclare: []models.ViewDeclare{
+						models.DetailView,
+						models.LiteView,
 					},
 				},
 			},
@@ -503,9 +503,9 @@ func TestBuilderRemoteReference(t *testing.T) {
 					},
 				},
 				Spec: &remote.SpecImpl{
-					ViewDeclare: []model.ViewDeclare{
-						model.DetailView,
-						model.LiteView,
+					ViewDeclare: []models.ViewDeclare{
+						models.DetailView,
+						models.LiteView,
 					},
 				},
 			},
@@ -539,7 +539,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 				},
 				Spec: &remote.SpecImpl{
 					PrimaryKey:   true,
-					ValueDeclare: model.UUID,
+					ValueDeclare: models.UUID,
 				},
 			},
 			{

@@ -5,7 +5,7 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/utils"
 )
 
@@ -39,12 +39,12 @@ func (s *Field) GetDescription() string {
 	return s.Description
 }
 
-func (s *Field) GetType() (ret model.Type) {
+func (s *Field) GetType() (ret models.Type) {
 	ret = s.Type
 	return
 }
 
-func (s *Field) GetSpec() (ret model.Spec) {
+func (s *Field) GetSpec() (ret models.Spec) {
 	if s.Spec != nil {
 		ret = s.Spec
 		return
@@ -54,7 +54,7 @@ func (s *Field) GetSpec() (ret model.Spec) {
 	return
 }
 
-func (s *Field) GetValue() (ret model.Value) {
+func (s *Field) GetValue() (ret models.Value) {
 	if s.value != nil {
 		ret = s.value
 		return
@@ -72,8 +72,8 @@ func (s *Field) SetValue(val any) *cd.Error {
 	return s.value.Set(val)
 }
 
-func (s *Field) GetSliceValue() (ret []model.Value) {
-	if !model.IsSlice(s.Type) || !s.value.IsValid() {
+func (s *Field) GetSliceValue() (ret []models.Value) {
+	if !models.IsSlice(s.Type) || !s.value.IsValid() {
 		return
 	}
 
@@ -86,7 +86,7 @@ func (s *Field) AppendSliceValue(val any) (err *cd.Error) {
 		err = cd.NewError(cd.Unexpected, "field append slice value is nil")
 		return
 	}
-	if !model.IsSlice(s.Type) {
+	if !models.IsSlice(s.Type) {
 		err = cd.NewError(cd.Unexpected, "field is not slice")
 		return
 	}
@@ -104,7 +104,7 @@ func (s *Field) Reset() {
 	s.value = &ValueImpl{}
 }
 
-func (s *Field) copy(viewSpec model.ViewDeclare) (ret *Field, err error) {
+func (s *Field) copy(viewSpec models.ViewDeclare) (ret *Field, err error) {
 	ret = &Field{
 		Name:        s.Name,
 		ShowName:    s.ShowName,
@@ -119,19 +119,19 @@ func (s *Field) copy(viewSpec model.ViewDeclare) (ret *Field, err error) {
 	}
 
 	switch viewSpec {
-	case model.MetaView:
+	case models.MetaView:
 		if !s.Type.IsPtrType() {
 			ret.value = NewValue(getInitializeValue(s.Type))
 		} else {
 			ret.value = &ValueImpl{}
 		}
-	case model.DetailView, model.LiteView:
+	case models.DetailView, models.LiteView:
 		if !ret.Spec.EnableView(viewSpec) {
 			ret.value = &ValueImpl{}
 		} else {
 			ret.value = NewValue(getInitializeValue(s.Type))
 		}
-	case model.OriginView:
+	case models.OriginView:
 		if s.value != nil {
 			ret.value, _ = s.value.copy()
 		} else {
@@ -146,15 +146,15 @@ func (s *Field) copy(viewSpec model.ViewDeclare) (ret *Field, err error) {
 	return
 }
 
-func (s *Field) verifyAutoIncrement(typeVal model.TypeDeclare) *cd.Error {
+func (s *Field) verifyAutoIncrement(typeVal models.TypeDeclare) *cd.Error {
 	switch typeVal {
-	case model.TypeBooleanValue,
-		model.TypeStringValue,
-		model.TypeDateTimeValue,
-		model.TypeFloatValue,
-		model.TypeDoubleValue,
-		model.TypeStructValue,
-		model.TypeSliceValue:
+	case models.TypeBooleanValue,
+		models.TypeStringValue,
+		models.TypeDateTimeValue,
+		models.TypeFloatValue,
+		models.TypeDoubleValue,
+		models.TypeStructValue,
+		models.TypeSliceValue:
 		return cd.NewError(cd.Unexpected, fmt.Sprintf("illegal auto_increment field type, type:%v", typeVal))
 	default:
 	}
@@ -162,33 +162,33 @@ func (s *Field) verifyAutoIncrement(typeVal model.TypeDeclare) *cd.Error {
 	return nil
 }
 
-func (s *Field) verifyUUID(typeVal model.TypeDeclare) *cd.Error {
-	if typeVal != model.TypeStringValue {
+func (s *Field) verifyUUID(typeVal models.TypeDeclare) *cd.Error {
+	if typeVal != models.TypeStringValue {
 		return cd.NewError(cd.Unexpected, fmt.Sprintf("illegal uuid field type, type:%v", typeVal))
 	}
 
 	return nil
 }
 
-func (s *Field) verifySnowFlake(typeVal model.TypeDeclare) *cd.Error {
-	if typeVal != model.TypeBigIntegerValue {
+func (s *Field) verifySnowFlake(typeVal models.TypeDeclare) *cd.Error {
+	if typeVal != models.TypeBigIntegerValue {
 		return cd.NewError(cd.Unexpected, fmt.Sprintf("illegal snowflake field type, type:%v", typeVal))
 	}
 
 	return nil
 }
 
-func (s *Field) verifyDateTime(typeVal model.TypeDeclare) *cd.Error {
-	if typeVal != model.TypeDateTimeValue {
+func (s *Field) verifyDateTime(typeVal models.TypeDeclare) *cd.Error {
+	if typeVal != models.TypeDateTimeValue {
 		return cd.NewError(cd.Unexpected, fmt.Sprintf("illegal dateTime field type, type:%v", typeVal))
 	}
 
 	return nil
 }
 
-func (s *Field) verifyPK(typeVal model.TypeDeclare) *cd.Error {
+func (s *Field) verifyPK(typeVal models.TypeDeclare) *cd.Error {
 	switch typeVal {
-	case model.TypeStructValue, model.TypeSliceValue:
+	case models.TypeStructValue, models.TypeSliceValue:
 		return cd.NewError(cd.Unexpected, fmt.Sprintf("illegal primary key field type, type:%v", typeVal))
 	default:
 	}
@@ -207,28 +207,28 @@ func (s *Field) verify() (err *cd.Error) {
 	}
 
 	val := s.Type.GetValue()
-	if s.Spec.GetValueDeclare() == model.AutoIncrement {
+	if s.Spec.GetValueDeclare() == models.AutoIncrement {
 		err = s.verifyAutoIncrement(val)
 		if err != nil {
 			return
 		}
 	}
 
-	if s.Spec.GetValueDeclare() == model.UUID {
+	if s.Spec.GetValueDeclare() == models.UUID {
 		err = s.verifyUUID(val)
 		if err != nil {
 			return
 		}
 	}
 
-	if s.Spec.GetValueDeclare() == model.SnowFlake {
+	if s.Spec.GetValueDeclare() == models.SnowFlake {
 		err = s.verifySnowFlake(val)
 		if err != nil {
 			return
 		}
 	}
 
-	if s.Spec.GetValueDeclare() == model.DateTime {
+	if s.Spec.GetValueDeclare() == models.DateTime {
 		err = s.verifyDateTime(val)
 		if err != nil {
 			return
@@ -318,7 +318,7 @@ func (s *FieldValue) GetName() string {
 	return s.Name
 }
 
-func (s *FieldValue) GetValue() model.Value {
+func (s *FieldValue) GetValue() models.Value {
 	return &ValueImpl{value: s.Value}
 }
 

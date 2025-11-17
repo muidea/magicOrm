@@ -3,12 +3,11 @@ package orm
 import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 // BatchQuery batch query
-func (s *impl) BatchQuery(filter model.Filter) (ret []model.Model, err *cd.Error) {
+func (s *impl) BatchQuery(filter models.Filter) (ret []models.Model, err *cd.Error) {
 	if filter == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		log.Errorf("BatchQuery failed, illegal model value")

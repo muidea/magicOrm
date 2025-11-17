@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 // ViewSpecStruct defines a struct for testing view specifications
@@ -89,7 +89,7 @@ func TestModelViewInterfaces(t *testing.T) {
 	}
 
 	entityValue := reflect.ValueOf(&entity)
-	objModel, err := getValueModel(entityValue, model.DetailView)
+	objModel, err := getValueModel(entityValue, models.DetailView)
 	if err != nil {
 		t.Errorf("getValueModel failed: %s", err.Error())
 		return
@@ -115,7 +115,7 @@ func TestModelViewInterfaces(t *testing.T) {
 		t.Errorf("Interface included fields not in DetailView")
 	}
 
-	objModel, err = getValueModel(entityValue, model.LiteView)
+	objModel, err = getValueModel(entityValue, models.LiteView)
 	if err != nil {
 		t.Errorf("getValueModel failed: %s", err.Error())
 		return
@@ -141,7 +141,7 @@ func TestModelViewInterfaces(t *testing.T) {
 }
 
 // Add GetViewFields function to object implementation
-func (s *objectImpl) GetViewFields(viewDecl model.ViewDeclare) (ret model.Fields) {
+func (s *objectImpl) GetViewFields(viewDecl models.ViewDeclare) (ret models.Fields) {
 	for _, field := range s.GetFields() {
 		spec := field.GetSpec()
 		if spec != nil && spec.EnableView(viewDecl) {

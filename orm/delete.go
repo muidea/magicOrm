@@ -6,7 +6,7 @@ import (
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
 
@@ -16,7 +16,7 @@ type DeleteRunner struct {
 }
 
 func NewDeleteRunner(
-	vModel model.Model,
+	vModel models.Model,
 	executor database.Executor,
 	provider provider.Provider,
 	modelCodec codec.Codec,
@@ -30,7 +30,7 @@ func NewDeleteRunner(
 	}
 }
 
-func (s *DeleteRunner) deleteHost(vModel model.Model) (err *cd.Error) {
+func (s *DeleteRunner) deleteHost(vModel models.Model) (err *cd.Error) {
 	deleteResult, deleteErr := s.sqlBuilder.BuildDelete(vModel)
 	if deleteErr != nil {
 		err = deleteErr
@@ -45,7 +45,7 @@ func (s *DeleteRunner) deleteHost(vModel model.Model) (err *cd.Error) {
 	return
 }
 
-func (s *DeleteRunner) deleteRelation(vModel model.Model, vField model.Field, deepLevel int) (err *cd.Error) {
+func (s *DeleteRunner) deleteRelation(vModel models.Model, vField models.Field, deepLevel int) (err *cd.Error) {
 	hostResult, relationResult, resultErr := s.sqlBuilder.BuildDeleteRelation(vModel, vField)
 	if resultErr != nil {
 		err = resultErr
@@ -64,13 +64,13 @@ func (s *DeleteRunner) deleteRelation(vModel model.Model, vField model.Field, de
 			return
 		}
 
-		if model.IsStructType(vType.GetValue()) {
+		if models.IsStructType(vType.GetValue()) {
 			err = s.deleteRelationSingleStructInner(vField, deepLevel)
 			if err != nil {
 				log.Errorf("deleteRelation failed, s.deleteRelationSingleStructInner error:%s", err.Error())
 				return
 			}
-		} else if model.IsSliceType(vType.GetValue()) {
+		} else if models.IsSliceType(vType.GetValue()) {
 			err = s.deleteRelationSliceStructInner(vField, deepLevel)
 			if err != nil {
 				log.Errorf("deleteRelation failed, s.deleteRelationSliceStructInner error:%s", err.Error())
@@ -92,7 +92,7 @@ func (s *DeleteRunner) deleteRelation(vModel model.Model, vField model.Field, de
 	return
 }
 
-func (s *DeleteRunner) deleteRelationSingleStructInner(vField model.Field, deepLevel int) (err *cd.Error) {
+func (s *DeleteRunner) deleteRelationSingleStructInner(vField models.Field, deepLevel int) (err *cd.Error) {
 	rModel, rErr := s.modelProvider.GetTypeModel(vField.GetType())
 	if rErr != nil {
 		err = rErr
@@ -117,7 +117,7 @@ func (s *DeleteRunner) deleteRelationSingleStructInner(vField model.Field, deepL
 	return
 }
 
-func (s *DeleteRunner) deleteRelationSliceStructInner(vField model.Field, deepLevel int) (err *cd.Error) {
+func (s *DeleteRunner) deleteRelationSliceStructInner(vField models.Field, deepLevel int) (err *cd.Error) {
 	sliceVal := vField.GetSliceValue()
 	for _, val := range sliceVal {
 		rModel, rErr := s.modelProvider.GetTypeModel(vField.GetType().Elem())
@@ -152,7 +152,7 @@ func (s *DeleteRunner) Delete() (err *cd.Error) {
 	}
 
 	for _, field := range s.vModel.GetFields() {
-		if model.IsBasicField(field) {
+		if models.IsBasicField(field) {
 			continue
 		}
 
@@ -166,7 +166,7 @@ func (s *DeleteRunner) Delete() (err *cd.Error) {
 	return
 }
 
-func (s *impl) Delete(vModel model.Model) (ret model.Model, err *cd.Error) {
+func (s *impl) Delete(vModel models.Model) (ret models.Model, err *cd.Error) {
 	if vModel == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return

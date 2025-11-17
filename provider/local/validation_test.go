@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 // ValidationTestStruct is a struct for testing various validation scenarios
@@ -183,7 +183,7 @@ func TestSpecValidation(t *testing.T) {
 	if err != nil {
 		t.Errorf("NewSpec failed for auto tag: %s", err.Error())
 	}
-	if autoSpec.GetValueDeclare() != model.AutoIncrement {
+	if autoSpec.GetValueDeclare() != models.AutoIncrement {
 		t.Errorf("GetValueDeclare should return AutoIncrement for auto tag")
 	}
 
@@ -192,7 +192,7 @@ func TestSpecValidation(t *testing.T) {
 	if err != nil {
 		t.Errorf("NewSpec failed for uuid tag: %s", err.Error())
 	}
-	if uuidSpec.GetValueDeclare() != model.UUID {
+	if uuidSpec.GetValueDeclare() != models.UUID {
 		t.Errorf("GetValueDeclare should return UUID for uuid tag")
 	}
 
@@ -201,7 +201,7 @@ func TestSpecValidation(t *testing.T) {
 	if err != nil {
 		t.Errorf("NewSpec failed for snowflake tag: %s", err.Error())
 	}
-	if snowFlakeSpec.GetValueDeclare() != model.SnowFlake {
+	if snowFlakeSpec.GetValueDeclare() != models.SnowFlake {
 		t.Errorf("GetValueDeclare should return SnowFlake for snowflake tag")
 	}
 
@@ -210,7 +210,7 @@ func TestSpecValidation(t *testing.T) {
 	if err != nil {
 		t.Errorf("NewSpec failed for dateTime tag: %s", err.Error())
 	}
-	if dateTimeSpec.GetValueDeclare() != model.DateTime {
+	if dateTimeSpec.GetValueDeclare() != models.DateTime {
 		t.Errorf("GetValueDeclare should return DateTime for dateTime tag")
 	}
 }

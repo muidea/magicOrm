@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 // TestFieldProperties tests the properties of fields
@@ -38,22 +38,22 @@ func TestFieldProperties(t *testing.T) {
 		// Check field types are properly detected
 		switch field.GetName() {
 		case "id":
-			if !model.IsBasicField(field) || model.IsSliceField(field) || model.IsStructField(field) {
+			if !models.IsBasicField(field) || models.IsSliceField(field) || models.IsStructField(field) {
 				t.Errorf("ID field should be a basic type")
 			}
-			if !model.IsPrimaryField(field) {
+			if !models.IsPrimaryField(field) {
 				t.Errorf("ID field should be a primary key")
 			}
 		case "name":
-			if !model.IsBasicField(field) || model.IsPtrField(field) {
+			if !models.IsBasicField(field) || models.IsPtrField(field) {
 				t.Errorf("Name field should be a basic non-pointer type")
 			}
 		case "updatedAt":
-			if !model.IsPtrField(field) {
+			if !models.IsPtrField(field) {
 				t.Errorf("UpdatedAt field should be a pointer type")
 			}
 		case "created":
-			if !model.IsBasicField(field) {
+			if !models.IsBasicField(field) {
 				t.Errorf("Created field should be a struct type")
 			}
 		}
@@ -90,7 +90,7 @@ func TestFieldCompare(t *testing.T) {
 	}
 
 	// Primary key status should be different
-	if model.IsPrimaryField(idField) == model.IsPrimaryField(nameField) {
+	if models.IsPrimaryField(idField) == models.IsPrimaryField(nameField) {
 		t.Errorf("Primary key status should be different")
 	}
 
@@ -133,12 +133,12 @@ func TestFieldValueDeclare(t *testing.T) {
 	// Test cases
 	testCases := []struct {
 		fieldName    string
-		valueDeclare model.ValueDeclare
+		valueDeclare models.ValueDeclare
 	}{
-		{"id", model.AutoIncrement},
-		{"uuid", model.UUID},
-		{"snowflake", model.SnowFlake},
-		{"created", model.DateTime},
+		{"id", models.AutoIncrement},
+		{"uuid", models.UUID},
+		{"snowflake", models.SnowFlake},
+		{"created", models.DateTime},
 	}
 
 	for _, tc := range testCases {

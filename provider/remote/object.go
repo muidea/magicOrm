@@ -8,7 +8,7 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/utils"
 )
 
@@ -69,7 +69,7 @@ func (s *Object) GetDescription() (ret string) {
 	return
 }
 
-func (s *Object) GetFields() (ret model.Fields) {
+func (s *Object) GetFields() (ret models.Fields) {
 	for _, val := range s.Fields {
 		ret = append(ret, val)
 	}
@@ -125,7 +125,7 @@ func (s *Object) SetFieldValue(name string, val any) (err *cd.Error) {
 			return
 		}
 
-		if model.IsBasicField(sf) {
+		if models.IsBasicField(sf) {
 			err = s.setBasicFileValue(sf, val)
 			if err != nil {
 				log.Errorf("set basic value failed, field:%s, value:%v, err:%s", sf.GetName(), val, err.Error())
@@ -134,7 +134,7 @@ func (s *Object) SetFieldValue(name string, val any) (err *cd.Error) {
 			return
 		}
 
-		if model.IsSliceField(sf) {
+		if models.IsSliceField(sf) {
 			err = s.setSliceStructValue(sf, val)
 			if err != nil {
 				log.Errorf("set slice value failed, field:%s, value:%v, err:%s", sf.GetName(), val, err.Error())
@@ -157,7 +157,7 @@ func (s *Object) SetFieldValue(name string, val any) (err *cd.Error) {
 
 func (s *Object) SetPrimaryFieldValue(val any) (err *cd.Error) {
 	for _, sf := range s.Fields {
-		if model.IsPrimaryField(sf) {
+		if models.IsPrimaryField(sf) {
 			if val == nil {
 				sf.SetValue(nil)
 				return
@@ -171,9 +171,9 @@ func (s *Object) SetPrimaryFieldValue(val any) (err *cd.Error) {
 	return
 }
 
-func (s *Object) GetPrimaryField() (ret model.Field) {
+func (s *Object) GetPrimaryField() (ret models.Field) {
 	for _, sf := range s.Fields {
-		if model.IsPrimaryField(sf) {
+		if models.IsPrimaryField(sf) {
 			ret = sf
 			return
 		}
@@ -182,7 +182,7 @@ func (s *Object) GetPrimaryField() (ret model.Field) {
 	return
 }
 
-func (s *Object) GetField(name string) (ret model.Field) {
+func (s *Object) GetField(name string) (ret models.Field) {
 	for _, v := range s.Fields {
 		if v.GetName() == name {
 			ret = v
@@ -214,7 +214,7 @@ func (s *Object) Interface(_ bool) (ret any) {
 	return
 }
 
-func (s *Object) Copy(viewSpec model.ViewDeclare) (ret model.Model) {
+func (s *Object) Copy(viewSpec models.ViewDeclare) (ret models.Model) {
 	obj := &Object{
 		ID:          s.ID,
 		Name:        s.Name,

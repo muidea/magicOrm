@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 // All these test structs represent different cases we need to test according
@@ -95,7 +95,7 @@ type ValueDeclareStruct struct {
 	TimeField time.Time `orm:"timeField,dateTime"`
 }
 
-// TestStructToModelConversion tests rule 1: struct object to model.Model conversion
+// TestStructToModelConversion tests rule 1: struct object to models.Model conversion
 func TestStructToModelConversion(t *testing.T) {
 	// Test BasicTypes struct conversion
 	basicStruct := &BasicTypes{Id: 1, IntValue: 10, StringValue: "test"}
@@ -117,7 +117,7 @@ func TestStructToModelConversion(t *testing.T) {
 	}
 }
 
-// TestFieldConversion tests rule 2: struct fields to model.Field conversion
+// TestFieldConversion tests rule 2: struct fields to models.Field conversion
 func TestFieldConversion(t *testing.T) {
 	basicStruct := &BasicTypes{
 		Id:           1,
@@ -142,29 +142,29 @@ func TestFieldConversion(t *testing.T) {
 	t.Logf("Number of fields in model: %d", len(fields))
 	for i, field := range fields {
 		t.Logf("Field[%d]: Name=%s, Type=%v, IsPrimaryField=%v",
-			i, field.GetName(), field.GetType().GetValue(), model.IsPrimaryField(field))
+			i, field.GetName(), field.GetType().GetValue(), models.IsPrimaryField(field))
 
 		// Test rule 2.1: field names should match the ORM tag names
 		switch field.GetName() {
 		case "id":
-			if !model.IsPrimaryField(field) {
+			if !models.IsPrimaryField(field) {
 				t.Errorf("Rule 2.1 failed: Field 'id' should be marked as primary key")
 			}
 		case "intValue":
 			// Check that it's an integer type using GetValue()
-			if field.GetType().GetValue() != model.TypeIntegerValue {
+			if field.GetType().GetValue() != models.TypeIntegerValue {
 				t.Errorf("Rule 2.1 failed: Field 'intValue' should be of type int, got %v", field.GetType().GetValue())
 			}
 		case "floatValue":
-			if field.GetType().GetValue() != model.TypeFloatValue {
+			if field.GetType().GetValue() != models.TypeFloatValue {
 				t.Errorf("Rule 2.1 failed: Field 'floatValue' should be of type float, got %v", field.GetType().GetValue())
 			}
 		case "boolValue":
-			if field.GetType().GetValue() != model.TypeBooleanValue {
+			if field.GetType().GetValue() != models.TypeBooleanValue {
 				t.Errorf("Rule 2.1 failed: Field 'boolValue' should be of type bool, got %v", field.GetType().GetValue())
 			}
 		case "stringValue":
-			if field.GetType().GetValue() != model.TypeStringValue {
+			if field.GetType().GetValue() != models.TypeStringValue {
 				t.Errorf("Rule 2.1 failed: Field 'stringValue' should be of type string, got %v", field.GetType().GetValue())
 			}
 		}
@@ -189,16 +189,16 @@ func TestNestedStructConversion(t *testing.T) {
 	t.Logf("Number of fields in model: %d", len(fields))
 	for i, field := range fields {
 		t.Logf("Field[%d]: Name=%s, Type=%v, IsStruct=%v",
-			i, field.GetName(), field.GetType().GetValue(), model.IsStructField(field))
+			i, field.GetName(), field.GetType().GetValue(), models.IsStructField(field))
 
 		// Check nested struct fields
 		switch field.GetName() {
 		case "basic":
-			if !model.IsStructField(field) {
+			if !models.IsStructField(field) {
 				t.Errorf("Rule 2.5 failed: Field 'basic' should be marked as a struct")
 			}
 		case "timeVal":
-			if !model.IsStructField(field) {
+			if !models.IsStructField(field) {
 				t.Errorf("Rule 2.5 failed: Field 'timeVal' should be marked as a struct")
 			}
 		}
@@ -248,15 +248,15 @@ func TestAllowedFieldTypes(t *testing.T) {
 		// Check pointer types
 		switch field.GetName() {
 		case "intPtr":
-			if !model.IsPtrField(field) {
+			if !models.IsPtrField(field) {
 				t.Errorf("Rule 2.6 failed: Field 'intPtr' should be marked as a pointer type")
 			}
 		case "stringPtr":
-			if !model.IsPtrField(field) {
+			if !models.IsPtrField(field) {
 				t.Errorf("Rule 2.6 failed: Field 'stringPtr' should be marked as a pointer type")
 			}
 		case "basicPtr":
-			if !model.IsPtrField(field) {
+			if !models.IsPtrField(field) {
 				t.Errorf("Rule 2.6 failed: Field 'basicPtr' should be marked as a pointer type")
 			}
 		}
@@ -285,24 +285,24 @@ func TestSliceFieldTypes(t *testing.T) {
 	t.Logf("Number of fields in model: %d", len(fields))
 	for i, field := range fields {
 		t.Logf("Field[%d]: Name=%s, Type=%v, IsSlice=%v",
-			i, field.GetName(), field.GetType().GetValue(), model.IsSliceField(field))
+			i, field.GetName(), field.GetType().GetValue(), models.IsSliceField(field))
 
 		// Check slice types
 		switch field.GetName() {
 		case "intSlice":
-			if !model.IsSliceField(field) {
+			if !models.IsSliceField(field) {
 				t.Errorf("Rule 2.7 failed: Field 'intSlice' should be marked as a slice type")
 			}
 		case "stringSlice":
-			if !model.IsSliceField(field) {
+			if !models.IsSliceField(field) {
 				t.Errorf("Rule 2.7 failed: Field 'stringSlice' should be marked as a slice type")
 			}
 		case "basicSlice":
-			if !model.IsSliceField(field) {
+			if !models.IsSliceField(field) {
 				t.Errorf("Rule 2.7 failed: Field 'basicSlice' should be marked as a slice type")
 			}
 		case "timeSlice":
-			if !model.IsSliceField(field) {
+			if !models.IsSliceField(field) {
 				t.Errorf("Rule 2.7 failed: Field 'timeSlice' should be marked as a slice type")
 			}
 		}
@@ -338,37 +338,37 @@ func TestComplexStructConversion(t *testing.T) {
 	t.Logf("Number of fields in model: %d", len(fields))
 	for i, field := range fields {
 		t.Logf("Field[%d]: Name=%s, Type=%v, IsStruct=%v, IsSlice=%v, IsPtrType=%v",
-			i, field.GetName(), field.GetType().GetValue(), model.IsStructField(field),
-			model.IsSliceField(field), model.IsPtrField(field))
+			i, field.GetName(), field.GetType().GetValue(), models.IsStructField(field),
+			models.IsSliceField(field), models.IsPtrField(field))
 
 		// Comprehensive test - verify all field types are correctly identified
 		switch field.GetName() {
 		case "id":
-			if model.IsStructField(field) || model.IsSliceField(field) || model.IsPtrField(field) {
+			if models.IsStructField(field) || models.IsSliceField(field) || models.IsPtrField(field) {
 				t.Errorf("Field 'id' should not be a struct, slice, or pointer type")
 			}
 		case "basic":
-			if !model.IsStructField(field) {
+			if !models.IsStructField(field) {
 				t.Errorf("Field 'basic' should be marked as a struct")
 			}
 		case "nested":
-			if !model.IsStructField(field) {
+			if !models.IsStructField(field) {
 				t.Errorf("Field 'nested' should be marked as a struct")
 			}
 		case "timeVal":
-			if model.IsStructField(field) || model.IsSliceField(field) || model.IsPtrField(field) {
+			if models.IsStructField(field) || models.IsSliceField(field) || models.IsPtrField(field) {
 				t.Errorf("Field 'timeVal' should not be a struct, slice, or pointer type")
 			}
 		case "ptrField":
-			if !model.IsStructField(field) || !model.IsPtrField(field) {
+			if !models.IsStructField(field) || !models.IsPtrField(field) {
 				t.Errorf("Field 'ptrField' should be marked as a struct and pointer type")
 			}
 		case "sliceField":
-			if !model.IsSliceField(field) {
+			if !models.IsSliceField(field) {
 				t.Errorf("Field 'sliceField' should be marked as a slice type")
 			}
 		case "ptrSlice":
-			if !model.IsSliceField(field) || !model.IsPtrField(field) {
+			if !models.IsSliceField(field) || !models.IsPtrField(field) {
 				t.Errorf("Field 'ptrSlice' should be marked as a slice and pointer type")
 			}
 		}
@@ -455,14 +455,14 @@ func TestViewTagSpecification(t *testing.T) {
 		t.Errorf("Interface(false, OriginView) should return a value, not a pointer")
 	}
 
-	mdDetail := mdl.Copy(model.DetailView)
+	mdDetail := mdl.Copy(models.DetailView)
 	// Test with different view specifications
 	detailObj := mdDetail.Interface(false).(ViewTagStruct)
 	if detailObj.Id != 1 || detailObj.Name != "Test Name" || detailObj.Description != "Test Description" {
 		t.Errorf("Interface with DetailView should return fields tagged with detail")
 	}
 
-	mdLite := mdl.Copy(model.LiteView)
+	mdLite := mdl.Copy(models.LiteView)
 	liteObj := mdLite.Interface(false).(ViewTagStruct)
 	if liteObj.Id != 1 || liteObj.Name != "Test Name" {
 		t.Errorf("Interface with LiteView should return fields tagged with lite")
@@ -531,7 +531,7 @@ func TestModelCopyFunction(t *testing.T) {
 	}
 
 	// Test Copy with reset=false (should preserve values)
-	copiedMdl := mdl.Copy(model.OriginView)
+	copiedMdl := mdl.Copy(models.OriginView)
 
 	// Convert back to struct and verify values are preserved
 	copiedStruct := copiedMdl.Interface(false).(BasicTypes)
@@ -545,7 +545,7 @@ func TestModelCopyFunction(t *testing.T) {
 	}
 
 	// Test Copy with reset=true (should reset all values to defaults)
-	resetMdl := mdl.Copy(model.MetaView)
+	resetMdl := mdl.Copy(models.MetaView)
 
 	// Convert back to struct and verify values are reset
 	resetStruct := resetMdl.Interface(false).(BasicTypes)
@@ -583,7 +583,7 @@ func TestInterfaceFunction(t *testing.T) {
 		t.Errorf("Interface(false, OriginView) should return a value, not a pointer")
 	}
 
-	mdlOrigin := mdl.Copy(model.MetaView)
+	mdlOrigin := mdl.Copy(models.MetaView)
 	// Test Interface with ptrValue=true, should return a pointer
 	ptrObj := mdlOrigin.Interface(true)
 	_, isPointer = ptrObj.(*ViewTagStruct)
@@ -591,14 +591,14 @@ func TestInterfaceFunction(t *testing.T) {
 		t.Errorf("Interface(true, OriginView) should return a pointer")
 	}
 
-	mdlDetail := mdl.Copy(model.DetailView)
+	mdlDetail := mdl.Copy(models.DetailView)
 	// Test with different view specifications
 	detailObj := mdlDetail.Interface(false).(ViewTagStruct)
 	if detailObj.Id != 123 || detailObj.Name != "Test Object" || detailObj.Description != "This is a test object" {
 		t.Errorf("Interface with DetailView should return fields tagged with detail")
 	}
 
-	mdlLite := mdl.Copy(model.LiteView)
+	mdlLite := mdl.Copy(models.LiteView)
 	liteObj := mdlLite.Interface(false).(ViewTagStruct)
 	if liteObj.Id != 123 || liteObj.Name != "Test Object" {
 		t.Errorf("Interface with LiteView should return fields tagged with lite")

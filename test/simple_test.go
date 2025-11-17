@@ -7,7 +7,7 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 
 	"github.com/muidea/magicCommon/foundation/util"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
@@ -57,7 +57,7 @@ func TestSimpleLocal(t *testing.T) {
 
 	//ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	sValList := []*Simple{}
-	sModelList := []model.Model{}
+	sModelList := []models.Model{}
 
 	// insert
 	for idx := 0; idx < loopSize; idx++ {
@@ -114,7 +114,7 @@ func TestSimpleLocal(t *testing.T) {
 
 	// query
 	qValList := []*Simple{}
-	qModelList := []model.Model{}
+	qModelList := []models.Model{}
 	for idx := 0; idx < loopSize; idx++ {
 		qVal := &Simple{ID: sValList[idx].ID}
 		qValList = append(qValList, qVal)
@@ -220,7 +220,7 @@ func TestSimpleRemote(t *testing.T) {
 	ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	sValList := []*Simple{}
 	sObjectValList := []*remote.ObjectValue{}
-	sModelList := []model.Model{}
+	sModelList := []models.Model{}
 
 	// insert
 	for idx := 0; idx < 100; idx++ {
@@ -310,7 +310,7 @@ func TestSimpleRemote(t *testing.T) {
 	// query
 	qValList := []*Simple{}
 	qObjectValList := []*remote.ObjectValue{}
-	qModelList := []model.Model{}
+	qModelList := []models.Model{}
 	for idx := 0; idx < 100; idx++ {
 		qVal := &Simple{ID: sValList[idx].ID}
 		qValList = append(qValList, qVal)

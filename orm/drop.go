@@ -6,7 +6,7 @@ import (
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
 
@@ -14,13 +14,13 @@ type DropRunner struct {
 	baseRunner
 }
 
-func NewDropRunner(vModel model.Model, executor database.Executor, provider provider.Provider, modelCodec codec.Codec) *DropRunner {
+func NewDropRunner(vModel models.Model, executor database.Executor, provider provider.Provider, modelCodec codec.Codec) *DropRunner {
 	return &DropRunner{
 		baseRunner: newBaseRunner(vModel, executor, provider, modelCodec, false, 0),
 	}
 }
 
-func (s *DropRunner) dropHost(vModel model.Model) (err *cd.Error) {
+func (s *DropRunner) dropHost(vModel models.Model) (err *cd.Error) {
 	dropResult, dropErr := s.sqlBuilder.BuildDropTable(vModel)
 	if dropErr != nil {
 		err = dropErr
@@ -35,7 +35,7 @@ func (s *DropRunner) dropHost(vModel model.Model) (err *cd.Error) {
 	return
 }
 
-func (s *DropRunner) dropRelation(vModel model.Model, vField model.Field) (err *cd.Error) {
+func (s *DropRunner) dropRelation(vModel models.Model, vField models.Field) (err *cd.Error) {
 	relationResult, relationErr := s.sqlBuilder.BuildDropRelationTable(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
@@ -58,7 +58,7 @@ func (s *DropRunner) Drop() (err *cd.Error) {
 	}
 
 	for _, field := range s.vModel.GetFields() {
-		if model.IsBasicField(field) {
+		if models.IsBasicField(field) {
 			continue
 		}
 
@@ -89,7 +89,7 @@ func (s *DropRunner) Drop() (err *cd.Error) {
 	return
 }
 
-func (s *impl) Drop(vModel model.Model) (err *cd.Error) {
+func (s *impl) Drop(vModel models.Model) (err *cd.Error) {
 	if vModel == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return

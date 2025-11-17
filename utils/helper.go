@@ -11,8 +11,7 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	fu "github.com/muidea/magicCommon/foundation/util"
-
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 const (
@@ -153,7 +152,7 @@ func IsString(tType reflect.Type) bool {
 
 func IsDateTime(tType reflect.Type) bool {
 	switch tType.String() {
-	case model.TypeStructTimeName:
+	case models.TypeStructTimeName:
 		return true
 	default:
 		return false
@@ -181,24 +180,24 @@ func IsPtr(tType reflect.Type) bool {
 }
 
 // typeEnumMap 用于快速查找基础类型的枚举值
-var typeEnumMap = map[reflect.Kind]model.TypeDeclare{
-	reflect.Int8:    model.TypeByteValue,
-	reflect.Uint8:   model.TypePositiveByteValue,
-	reflect.Int16:   model.TypeSmallIntegerValue,
-	reflect.Uint16:  model.TypePositiveSmallIntegerValue,
-	reflect.Int32:   model.TypeInteger32Value,
-	reflect.Uint32:  model.TypePositiveInteger32Value,
-	reflect.Int64:   model.TypeBigIntegerValue,
-	reflect.Uint64:  model.TypePositiveBigIntegerValue,
-	reflect.Int:     model.TypeIntegerValue,
-	reflect.Uint:    model.TypePositiveIntegerValue,
-	reflect.Float32: model.TypeFloatValue,
-	reflect.Float64: model.TypeDoubleValue,
-	reflect.Bool:    model.TypeBooleanValue,
-	reflect.String:  model.TypeStringValue,
+var typeEnumMap = map[reflect.Kind]models.TypeDeclare{
+	reflect.Int8:    models.TypeByteValue,
+	reflect.Uint8:   models.TypePositiveByteValue,
+	reflect.Int16:   models.TypeSmallIntegerValue,
+	reflect.Uint16:  models.TypePositiveSmallIntegerValue,
+	reflect.Int32:   models.TypeInteger32Value,
+	reflect.Uint32:  models.TypePositiveInteger32Value,
+	reflect.Int64:   models.TypeBigIntegerValue,
+	reflect.Uint64:  models.TypePositiveBigIntegerValue,
+	reflect.Int:     models.TypeIntegerValue,
+	reflect.Uint:    models.TypePositiveIntegerValue,
+	reflect.Float32: models.TypeFloatValue,
+	reflect.Float64: models.TypeDoubleValue,
+	reflect.Bool:    models.TypeBooleanValue,
+	reflect.String:  models.TypeStringValue,
 }
 
-func GetTypeEnum(val reflect.Type) (ret model.TypeDeclare, err *cd.Error) {
+func GetTypeEnum(val reflect.Type) (ret models.TypeDeclare, err *cd.Error) {
 	if val.Kind() == reflect.Interface {
 		val = val.Elem()
 	}
@@ -216,10 +215,10 @@ func GetTypeEnum(val reflect.Type) (ret model.TypeDeclare, err *cd.Error) {
 	// 处理特殊类型
 	switch val.Kind() {
 	case reflect.Struct:
-		if val.String() == model.TypeStructTimeName {
-			ret = model.TypeDateTimeValue
+		if val.String() == models.TypeStructTimeName {
+			ret = models.TypeDateTimeValue
 		} else {
-			ret = model.TypeStructValue
+			ret = models.TypeStructValue
 			for i := 0; i < val.NumField(); i++ {
 				field := val.Field(i)
 				if !isValidFieldType(field.Type) {
@@ -236,7 +235,7 @@ func GetTypeEnum(val reflect.Type) (ret model.TypeDeclare, err *cd.Error) {
 		if _, err = GetTypeEnum(eType); err != nil {
 			return
 		}
-		ret = model.TypeSliceValue
+		ret = models.TypeSliceValue
 	default:
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("unsupported type: %v", val.String()))
 	}
@@ -351,7 +350,7 @@ func IsSameValue(firstVal, secondVal any) (ret bool) {
 
 // ConvertRawToBool convert raw bool
 // 如果val为指针值，尝试将其转换成*bool，否则转换成bool
-// 将转换后的结果以model.RawVal形式返回
+// 将转换后的结果以models.RawVal形式返回
 // 转换出错返回*cd.Error
 func ConvertRawToBool(val any) (ret bool, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
@@ -366,7 +365,7 @@ func ConvertRawToBool(val any) (ret bool, err *cd.Error) {
 
 // ConvertRawToInt convert raw int
 // 如果val为指针值，尝试将其转换成*int，否则转换成int
-// 将转换后的结果以model.RawVal形式返回
+// 将转换后的结果以models.RawVal形式返回
 // 转换出错返回*cd.Error
 func ConvertRawToInt(val any) (ret int, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
@@ -381,7 +380,7 @@ func ConvertRawToInt(val any) (ret int, err *cd.Error) {
 
 // ConvertRawToInt8 convert raw int8
 // 如果val为指针值，尝试将其转换成*int8，否则转换成int8
-// 将转换后的结果以model.RawVal形式返回
+// 将转换后的结果以models.RawVal形式返回
 // 转换出错返回*cd.Error
 func ConvertRawToInt8(val any) (ret int8, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
@@ -396,7 +395,7 @@ func ConvertRawToInt8(val any) (ret int8, err *cd.Error) {
 
 // ConvertRawToInt16 convert raw int16
 // 如果val为指针值，尝试将其转换成*int16，否则转换成int16
-// 将转换后的结果以model.RawVal形式返回
+// 将转换后的结果以models.RawVal形式返回
 // 转换出错返回*cd.Error
 func ConvertRawToInt16(val any) (ret int16, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
@@ -411,7 +410,7 @@ func ConvertRawToInt16(val any) (ret int16, err *cd.Error) {
 
 // ConvertRawToInt32 convert raw int32
 // 如果val为指针值，尝试将其转换成*int32，否则转换成int32
-// 将转换后的结果以model.RawVal形式返回
+// 将转换后的结果以models.RawVal形式返回
 // 转换出错返回*cd.Error
 func ConvertRawToInt32(val any) (ret int32, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
@@ -426,7 +425,7 @@ func ConvertRawToInt32(val any) (ret int32, err *cd.Error) {
 
 // ConvertRawToInt64 convert raw int64
 // 如果val为指针值，尝试将其转换成*int64，否则转换成int64
-// 将转换后的结果以model.RawVal形式返回
+// 将转换后的结果以models.RawVal形式返回
 // 转换出错返回*cd.Error
 func ConvertRawToInt64(val any) (ret int64, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
@@ -441,7 +440,7 @@ func ConvertRawToInt64(val any) (ret int64, err *cd.Error) {
 
 // ConvertRawToUint convert raw uint
 // 如果val为指针值，尝试将其转换成*uint，否则转换成uint
-// 将转换后的结果以model.RawVal形式返回
+// 将转换后的结果以models.RawVal形式返回
 // 转换出错返回*cd.Error
 func ConvertRawToUint(val any) (ret uint, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
@@ -456,7 +455,7 @@ func ConvertRawToUint(val any) (ret uint, err *cd.Error) {
 
 // ConvertRawToUint8 convert raw uint8
 // 如果val为指针值，尝试将其转换成*uint8，否则转换成uint8
-// 将转换后的结果以model.RawVal形式返回
+// 将转换后的结果以models.RawVal形式返回
 // 转换出错返回*cd.Error
 func ConvertRawToUint8(val any) (ret uint8, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
@@ -471,7 +470,7 @@ func ConvertRawToUint8(val any) (ret uint8, err *cd.Error) {
 
 // ConvertRawToUint16 convert raw uint16
 // 如果val为指针值，尝试将其转换成*uint16，否则转换成uint16
-// 将转换后的结果以model.RawVal形式返回
+// 将转换后的结果以models.RawVal形式返回
 // 转换出错返回*cd.Error
 func ConvertRawToUint16(val any) (ret uint16, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
@@ -486,7 +485,7 @@ func ConvertRawToUint16(val any) (ret uint16, err *cd.Error) {
 
 // ConvertRawToUint32 convert raw uint32
 // 如果val为指针值，尝试将其转换成*uint32，否则转换成uint32
-// 将转换后的结果以model.RawVal形式返回
+// 将转换后的结果以models.RawVal形式返回
 // 转换出错返回*cd.Error
 func ConvertRawToUint32(val any) (ret uint32, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
@@ -501,7 +500,7 @@ func ConvertRawToUint32(val any) (ret uint32, err *cd.Error) {
 
 // ConvertRawToUint64 convert raw uint64
 // 如果val为指针值，尝试将其转换成*uint64，否则转换成uint64
-// 将转换后的结果以model.RawVal形式返回
+// 将转换后的结果以models.RawVal形式返回
 // 转换出错返回*cd.Error
 func ConvertRawToUint64(val any) (ret uint64, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
@@ -516,7 +515,7 @@ func ConvertRawToUint64(val any) (ret uint64, err *cd.Error) {
 
 // ConvertRawToFloat32 convert raw float32
 // 如果val为指针值，尝试将其转换成*float32，否则转换成float32
-// 将转换后的结果以model.RawVal形式返回
+// 将转换后的结果以models.RawVal形式返回
 // 转换出错返回*cd.Error
 func ConvertRawToFloat32(val any) (ret float32, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
@@ -531,7 +530,7 @@ func ConvertRawToFloat32(val any) (ret float32, err *cd.Error) {
 
 // ConvertRawToFloat64 convert raw float64
 // 如果val为指针值，尝试将其转换成*float64，否则转换成float64
-// 将转换后的结果以model.RawVal形式返回
+// 将转换后的结果以models.RawVal形式返回
 // 转换出错返回*cd.Error
 func ConvertRawToFloat64(val any) (ret float64, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
@@ -546,7 +545,7 @@ func ConvertRawToFloat64(val any) (ret float64, err *cd.Error) {
 
 // ConvertRawToString convert raw string
 // 如果val为指针值，尝试将其转换成*string，否则转换成string
-// 将转换后的结果以model.RawVal形式返回
+// 将转换后的结果以models.RawVal形式返回
 // 转换出错返回*cd.Error
 func ConvertRawToString(val any) (ret string, err *cd.Error) {
 	rVal := reflect.Indirect(reflect.ValueOf(val))
@@ -561,7 +560,7 @@ func ConvertRawToString(val any) (ret string, err *cd.Error) {
 
 // ConvertRawToDateTime convert raw dateTime
 // 如果val为指针值，尝试将其转换成*time.Time，否则转换成time.Time
-// 将转换后的结果以model.RawVal形式返回
+// 将转换后的结果以models.RawVal形式返回
 // 转换出错返回*cd.Error
 func ConvertRawToDateTime(val any) (ret time.Time, err *cd.Error) {
 	defer func() {
@@ -835,7 +834,7 @@ func ConvertToString(rVal reflect.Value) (ret string, err *cd.Error) {
 		ret = rVal.String()
 	case reflect.Struct:
 		switch rVal.Type().String() {
-		case model.TypeStructTimeName:
+		case models.TypeStructTimeName:
 			ret = rVal.Interface().(time.Time).Format(fu.CSTLayoutWithMillisecond)
 		default:
 			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal string value, val type:%v", rVal.Type().String()))
@@ -875,7 +874,7 @@ func ConvertToDateTime(rVal reflect.Value) (ret time.Time, err *cd.Error) {
 		ret = tVal
 	case reflect.Struct:
 		switch rVal.Type().String() {
-		case model.TypeStructTimeName:
+		case models.TypeStructTimeName:
 			ret = rVal.Interface().(time.Time)
 		default:
 			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))

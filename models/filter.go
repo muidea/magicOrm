@@ -1,4 +1,4 @@
-package model
+package models
 
 import (
 	cd "github.com/muidea/magicCommon/def"

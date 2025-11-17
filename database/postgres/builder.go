@@ -7,7 +7,7 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
 
@@ -25,7 +25,7 @@ func NewBuilder(provider provider.Provider, codec codec.Codec) *Builder {
 	}
 }
 
-func (s *Builder) buildFilter(vModel model.Model, filter model.Filter, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
+func (s *Builder) buildFilter(vModel models.Model, filter models.Filter, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
 	if filter == nil {
 		return
 	}
@@ -37,7 +37,7 @@ func (s *Builder) buildFilter(vModel model.Model, filter model.Filter, resultSta
 			continue
 		}
 
-		if model.IsBasicField(field) {
+		if models.IsBasicField(field) {
 			basicSQL, basicErr := s.buildBasicFilterItem(field, filterItem, resultStackPtr)
 			if basicErr != nil {
 				err = basicErr
@@ -73,7 +73,7 @@ func (s *Builder) buildFilter(vModel model.Model, filter model.Filter, resultSta
 	return
 }
 
-func (s *Builder) buildBasicFilterItem(vField model.Field, filterItem model.FilterItem, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
+func (s *Builder) buildBasicFilterItem(vField models.Field, filterItem models.FilterItem, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
 	fieldVal, fieldErr := s.modelProvider.EncodeValue(oprValue.Get(), vField.GetType())
@@ -87,13 +87,13 @@ func (s *Builder) buildBasicFilterItem(vField model.Field, filterItem model.Filt
 	return
 }
 
-func (s *Builder) buildRelationFilterItem(vModel model.Model, vField model.Field, filterItem model.FilterItem, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
+func (s *Builder) buildRelationFilterItem(vModel models.Model, vField models.Field, filterItem models.FilterItem, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
 
 	var fieldVal any
 	switch filterItem.OprCode() {
-	case model.InOpr, model.NotInOpr:
+	case models.InOpr, models.NotInOpr:
 		entitySlice := []any{}
 		fieldVals := oprValue.UnpackValue()
 		for _, val := range fieldVals {
@@ -130,7 +130,7 @@ func (s *Builder) buildRelationFilterItem(vModel model.Model, vField model.Field
 	return
 }
 
-func (s *Builder) buildSorter(vModel model.Model, filter model.Sorter) (ret string, err *cd.Error) {
+func (s *Builder) buildSorter(vModel models.Model, filter models.Sorter) (ret string, err *cd.Error) {
 	if filter == nil {
 		return
 	}
@@ -147,7 +147,7 @@ func (s *Builder) buildSorter(vModel model.Model, filter model.Sorter) (ret stri
 	return
 }
 
-func (s *Builder) buildFieldFilter(vField model.Field, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
+func (s *Builder) buildFieldFilter(vField models.Field, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
 	fieldName := vField.GetName()
 	resultStackPtr.PushArgs(vField.GetValue().Get())
 	ret = fmt.Sprintf("\"%s\" = $%d", fieldName, len(resultStackPtr.Args()))

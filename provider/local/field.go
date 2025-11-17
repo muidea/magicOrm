@@ -5,8 +5,7 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 // field single field impl
@@ -35,12 +34,12 @@ func (s *field) GetDescription() string {
 	return ""
 }
 
-func (s *field) GetType() (ret model.Type) {
+func (s *field) GetType() (ret models.Type) {
 	ret = s.typePtr
 	return
 }
 
-func (s *field) GetSpec() (ret model.Spec) {
+func (s *field) GetSpec() (ret models.Spec) {
 	if s.specPtr != nil {
 		ret = s.specPtr
 		return
@@ -50,7 +49,7 @@ func (s *field) GetSpec() (ret model.Spec) {
 	return
 }
 
-func (s *field) GetValue() (ret model.Value) {
+func (s *field) GetValue() (ret models.Value) {
 	ret = s.valuePtr
 	return
 }
@@ -59,8 +58,8 @@ func (s *field) SetValue(val any) *cd.Error {
 	return s.valuePtr.Set(val)
 }
 
-func (s *field) GetSliceValue() []model.Value {
-	if !model.IsSlice(s.typePtr) || !s.valuePtr.IsValid() {
+func (s *field) GetSliceValue() []models.Value {
+	if !models.IsSlice(s.typePtr) || !s.valuePtr.IsValid() {
 		return nil
 	}
 
@@ -73,7 +72,7 @@ func (s *field) AppendSliceValue(val any) (err *cd.Error) {
 		return
 	}
 
-	if !model.IsSlice(s.typePtr) {
+	if !models.IsSlice(s.typePtr) {
 		err = cd.NewError(cd.Unexpected, "field is not slice")
 		return
 	}
@@ -83,10 +82,10 @@ func (s *field) AppendSliceValue(val any) (err *cd.Error) {
 }
 
 func (s *field) Reset() {
-	s.valuePtr.reset(model.IsAssignedField(s))
+	s.valuePtr.reset(models.IsAssignedField(s))
 }
 
-func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Value, viewSpec model.ViewDeclare) (ret *field, err *cd.Error) {
+func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Value, viewSpec models.ViewDeclare) (ret *field, err *cd.Error) {
 	var typePtr *TypeImpl
 	var specPtr *SpecImpl
 	var valuePtr *ValueImpl
@@ -113,13 +112,13 @@ func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Val
 	valuePtr = NewValue(fieldValue)
 
 	switch viewSpec {
-	case model.MetaView:
+	case models.MetaView:
 		if !typePtr.IsPtrType() {
 			valuePtr.reset(true)
 		} else {
 			valuePtr.reset(false)
 		}
-	case model.DetailView, model.LiteView:
+	case models.DetailView, models.LiteView:
 		if !specPtr.EnableView(viewSpec) {
 			// 如果spec未定义，则重置该value，不进行初始化
 			valuePtr.reset(false)
@@ -127,7 +126,7 @@ func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Val
 			// 如果spec定义，但是value无效，则重置该value，并进行初始化
 			valuePtr.reset(true)
 		}
-	case model.OriginView:
+	case models.OriginView:
 		//  do nothing
 	default:
 		log.Warnf("fieldName:%s,unknown view spec:%v", fieldPtr.name, viewSpec)

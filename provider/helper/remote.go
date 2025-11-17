@@ -7,7 +7,7 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider/local"
 	"github.com/muidea/magicOrm/provider/remote"
 	"github.com/muidea/magicOrm/utils"
@@ -41,7 +41,7 @@ func newType(itemType reflect.Type) (ret *remote.TypeImpl, err *cd.Error) {
 		return
 	}
 
-	if model.IsSliceType(typeVal) {
+	if models.IsSliceType(typeVal) {
 		sliceType := itemType.Elem()
 		slicePtr := false
 		if sliceType.Kind() == reflect.Ptr {
@@ -55,7 +55,7 @@ func newType(itemType reflect.Type) (ret *remote.TypeImpl, err *cd.Error) {
 			err = sliceErr
 			return
 		}
-		if model.IsSliceType(sliceVal) {
+		if models.IsSliceType(sliceVal) {
 			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal slice type, type:%s", sliceType.String()))
 			return
 		}
@@ -90,18 +90,18 @@ func getOrmSpec(spec string) (ret remote.SpecImpl, err *cd.Error) {
 		return
 	}
 
-	ret = remote.SpecImpl{PrimaryKey: false, ValueDeclare: model.Customer}
+	ret = remote.SpecImpl{PrimaryKey: false, ValueDeclare: models.Customer}
 	ret.FieldName = items[0]
 	for idx := 1; idx < len(items); idx++ {
 		switch items[idx] {
 		case utils.Auto:
-			ret.ValueDeclare = model.AutoIncrement
+			ret.ValueDeclare = models.AutoIncrement
 		case utils.UUID:
-			ret.ValueDeclare = model.UUID
+			ret.ValueDeclare = models.UUID
 		case utils.SnowFlake:
-			ret.ValueDeclare = model.SnowFlake
+			ret.ValueDeclare = models.SnowFlake
 		case utils.DateTime:
-			ret.ValueDeclare = model.DateTime
+			ret.ValueDeclare = models.DateTime
 		case utils.Key:
 			ret.PrimaryKey = true
 		}
@@ -110,15 +110,15 @@ func getOrmSpec(spec string) (ret remote.SpecImpl, err *cd.Error) {
 	return
 }
 
-func getViewItems(spec string) (ret []model.ViewDeclare) {
-	ret = []model.ViewDeclare{}
+func getViewItems(spec string) (ret []models.ViewDeclare) {
+	ret = []models.ViewDeclare{}
 	items := strings.Split(spec, ",")
 	for _, sv := range items {
 		switch strings.TrimSpace(sv) {
-		case model.DetailView:
-			ret = append(ret, model.DetailView)
-		case model.LiteView:
-			ret = append(ret, model.LiteView)
+		case models.DetailView:
+			ret = append(ret, models.DetailView)
+		case models.LiteView:
+			ret = append(ret, models.LiteView)
 		}
 	}
 	return
@@ -184,7 +184,7 @@ func type2Object(entityType reflect.Type) (ret *remote.Object, err *cd.Error) {
 	}
 
 	typeImpl = typeImpl.Elem().(*remote.TypeImpl)
-	if !model.IsStructType(typeImpl.GetValue()) {
+	if !models.IsStructType(typeImpl.GetValue()) {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal object type, must be a struct obj, type:%s", entityType.String()))
 		log.Errorf("type2Object failed, check object type err:%s", err.Error())
 		return
@@ -205,7 +205,7 @@ func type2Object(entityType reflect.Type) (ret *remote.Object, err *cd.Error) {
 			log.Errorf("type2Object failed, getItemInfo err:%s", err.Error())
 			return
 		}
-		if model.IsPrimaryField(fItem) {
+		if models.IsPrimaryField(fItem) {
 			if hasPrimaryField {
 				err = cd.NewError(cd.Unexpected, fmt.Sprintf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldType.Name, impl.GetName()))
 				log.Errorf("type2Object failed, check primary key err:%s", err.Error())
@@ -250,7 +250,7 @@ func GetObject(entity any) (ret *remote.Object, err *cd.Error) {
 		return
 	}
 
-	err = model.VerifyModel(objectPtr)
+	err = models.VerifyModel(objectPtr)
 	if err != nil {
 		log.Errorf("GetObject failed, VerifyModel err:%s", err.Error())
 		return
@@ -266,7 +266,7 @@ func getFieldValue(fieldName string, itemType *remote.TypeImpl, itemValue reflec
 		return
 	}
 
-	if model.IsBasic(itemType) {
+	if models.IsBasic(itemType) {
 		if itemType.IsPtrType() && !utils.IsReallyValidValueForReflect(itemValue) {
 			ret = &remote.FieldValue{Name: fieldName, Value: nil}
 			return
@@ -283,7 +283,7 @@ func getFieldValue(fieldName string, itemType *remote.TypeImpl, itemValue reflec
 		return
 	}
 
-	if model.IsSlice(itemType) {
+	if models.IsSlice(itemType) {
 		objVal, objErr := getSliceObjectValue(itemValue)
 		if objErr != nil {
 			err = objErr
@@ -315,7 +315,7 @@ func getObjectValue(entityVal reflect.Value) (ret *remote.ObjectValue, err *cd.E
 		log.Errorf("getObjectValue failed, newType err:%s", err.Error())
 		return
 	}
-	if !model.IsStruct(objType) || model.IsSlice(objType) {
+	if !models.IsStruct(objType) || models.IsSlice(objType) {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal entity value, entity type:%s", entityType.String()))
 		log.Errorf("getObjectValue failed, check object type err:%s", err.Error())
 		return
@@ -404,14 +404,14 @@ func getSliceObjectValue(sliceVal reflect.Value) (ret *remote.SliceObjectValue, 
 		return
 	}
 
-	if !model.IsSliceType(sliceType.GetValue()) {
+	if !models.IsSliceType(sliceType.GetValue()) {
 		err = cd.NewError(cd.Unexpected, "illegal slice object value")
 		log.Errorf("getSliceObjectValue failed, check slice type err:%s", err.Error())
 		return
 	}
 
 	elemType := sliceType.Elem()
-	if !model.IsStructType(elemType.GetValue()) {
+	if !models.IsStructType(elemType.GetValue()) {
 		err = cd.NewError(cd.Unexpected, "illegal slice item type")
 		log.Errorf("getSliceObjectValue failed, check slice item err:%s", err.Error())
 		return
@@ -475,14 +475,14 @@ func UpdateEntity(remoteValuePtr *remote.ObjectValue, localEntity any) (err *cd.
 	return
 }
 
-func updateLocalModel(remoteValuePtr *remote.ObjectValue, localModel model.Model) (err *cd.Error) {
+func updateLocalModel(remoteValuePtr *remote.ObjectValue, localModel models.Model) (err *cd.Error) {
 	for _, fieldValue := range remoteValuePtr.Fields {
 		localField := localModel.GetField(fieldValue.Name)
 		if localField == nil || !fieldValue.IsValid() {
 			continue
 		}
 
-		if model.IsBasicField(localField) {
+		if models.IsBasicField(localField) {
 			rVal, rErr := local.DecodeValue(fieldValue.Get(), localField.GetType())
 			if rErr != nil {
 				err = rErr
@@ -496,7 +496,7 @@ func updateLocalModel(remoteValuePtr *remote.ObjectValue, localModel model.Model
 			}
 			continue
 		}
-		if model.IsSliceField(localField) {
+		if models.IsSliceField(localField) {
 			err = updateSliceStructField(fieldValue.Get(), localField)
 			if err != nil {
 				log.Errorf("UpdateEntity failed, filed name:%s, vField.SetValue err:%s", fieldValue.Name, err.Error())
@@ -505,7 +505,7 @@ func updateLocalModel(remoteValuePtr *remote.ObjectValue, localModel model.Model
 
 			continue
 		}
-		if model.IsStructField(localField) {
+		if models.IsStructField(localField) {
 			err = updateStructField(fieldValue.Get(), localField)
 			if err != nil {
 				log.Errorf("UpdateEntity failed, filed name:%s, vField.SetValue err:%s", fieldValue.Name, err.Error())
@@ -519,7 +519,7 @@ func updateLocalModel(remoteValuePtr *remote.ObjectValue, localModel model.Model
 	return
 }
 
-func updateSliceStructField(val any, localField model.Field) (err *cd.Error) {
+func updateSliceStructField(val any, localField models.Field) (err *cd.Error) {
 	if val == nil {
 		return
 	}
@@ -556,7 +556,7 @@ func updateSliceStructField(val any, localField model.Field) (err *cd.Error) {
 	return
 }
 
-func updateStructField(val any, vField model.Field) (err *cd.Error) {
+func updateStructField(val any, vField models.Field) (err *cd.Error) {
 	if val == nil {
 		return
 	}
@@ -605,7 +605,7 @@ func UpdateSliceEntity(remoteSliceValuePtr *remote.SliceObjectValue, localSliceV
 		log.Errorf("UpdateSliceEntity failed, local.NewType err:%s", err.Error())
 		return
 	}
-	if !model.IsSlice(localTypePtr) || !localTypePtr.IsPtrType() {
+	if !models.IsSlice(localTypePtr) || !localTypePtr.IsPtrType() {
 		err = cd.NewError(cd.Unexpected, "illegal local entity type")
 		log.Errorf("UpdateSliceEntity failed, check object value err:%s", err.Error())
 		return

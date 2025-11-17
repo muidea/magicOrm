@@ -3,7 +3,7 @@ package helper
 import (
 	"testing"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
@@ -24,7 +24,7 @@ func TestSpecImplementation(t *testing.T) {
 	}
 
 	// Test GetValueDeclare (default)
-	if spec.GetValueDeclare() != model.Customer {
+	if spec.GetValueDeclare() != models.Customer {
 		t.Errorf("GetValueDeclare failed, expected Customer by default, got %v", spec.GetValueDeclare())
 	}
 
@@ -41,36 +41,36 @@ func TestSpecImplementation(t *testing.T) {
 	// Test value declare spec
 	autoSpec := &remote.SpecImpl{
 		FieldName:    "autoField",
-		ValueDeclare: model.AutoIncrement,
+		ValueDeclare: models.AutoIncrement,
 	}
 
-	if autoSpec.GetValueDeclare() != model.AutoIncrement {
+	if autoSpec.GetValueDeclare() != models.AutoIncrement {
 		t.Errorf("GetValueDeclare failed, expected AutoIncrement, got %v", autoSpec.GetValueDeclare())
 	}
 
 	// Test view declare spec
 	viewSpec := &remote.SpecImpl{
 		FieldName:   "viewField",
-		ViewDeclare: []model.ViewDeclare{model.DetailView, model.LiteView},
+		ViewDeclare: []models.ViewDeclare{models.DetailView, models.LiteView},
 	}
 
 	// Test EnableView for DetailView
-	if !viewSpec.EnableView(model.DetailView) {
+	if !viewSpec.EnableView(models.DetailView) {
 		t.Errorf("EnableView for DetailView failed, expected true, got false")
 	}
 
 	// Test EnableView for LiteView
-	if !viewSpec.EnableView(model.LiteView) {
+	if !viewSpec.EnableView(models.LiteView) {
 		t.Errorf("EnableView for LiteView failed, expected true, got false")
 	}
 
 	// Test negative view case
 	nonDetailSpec := &remote.SpecImpl{
 		FieldName:   "nonDetailField",
-		ViewDeclare: []model.ViewDeclare{model.LiteView},
+		ViewDeclare: []models.ViewDeclare{models.LiteView},
 	}
 
-	if nonDetailSpec.EnableView(model.DetailView) {
+	if nonDetailSpec.EnableView(models.DetailView) {
 		t.Errorf("EnableView failed, expected false for non-detail field, got true")
 	}
 
@@ -78,8 +78,8 @@ func TestSpecImplementation(t *testing.T) {
 	originalSpec := &remote.SpecImpl{
 		FieldName:    "originalField",
 		PrimaryKey:   true,
-		ValueDeclare: model.AutoIncrement,
-		ViewDeclare:  []model.ViewDeclare{model.DetailView, model.LiteView},
+		ValueDeclare: models.AutoIncrement,
+		ViewDeclare:  []models.ViewDeclare{models.DetailView, models.LiteView},
 	}
 
 	copiedSpec := originalSpec.Copy()
@@ -91,13 +91,13 @@ func TestSpecImplementation(t *testing.T) {
 	}
 
 	// Check view declarations
-	if !copiedSpec.EnableView(model.DetailView) || !copiedSpec.EnableView(model.LiteView) {
+	if !copiedSpec.EnableView(models.DetailView) || !copiedSpec.EnableView(models.LiteView) {
 		t.Errorf("Copy failed, view declarations don't match")
 	}
 
 	// Make sure it's a deep copy
-	originalSpec.ViewDeclare = []model.ViewDeclare{model.DetailView} // Remove LiteView
-	if !copiedSpec.EnableView(model.LiteView) {
+	originalSpec.ViewDeclare = []models.ViewDeclare{models.DetailView} // Remove LiteView
+	if !copiedSpec.EnableView(models.LiteView) {
 		t.Errorf("Copy failed, should be a deep copy unaffected by changes to original")
 	}
 }
@@ -108,7 +108,7 @@ func TestOrmSpecParsing(t *testing.T) {
 		specStr        string
 		expectedName   string
 		expectedPK     bool
-		expectedValue  model.ValueDeclare
+		expectedValue  models.ValueDeclare
 		expectedDetail bool
 		expectedLite   bool
 		expectError    bool
@@ -118,7 +118,7 @@ func TestOrmSpecParsing(t *testing.T) {
 			specStr:        "",
 			expectedName:   "",
 			expectedPK:     false,
-			expectedValue:  model.Customer,
+			expectedValue:  models.Customer,
 			expectedDetail: false,
 			expectedLite:   false,
 			expectError:    false,
@@ -128,7 +128,7 @@ func TestOrmSpecParsing(t *testing.T) {
 			specStr:        "username",
 			expectedName:   "username",
 			expectedPK:     false,
-			expectedValue:  model.Customer,
+			expectedValue:  models.Customer,
 			expectedDetail: false,
 			expectedLite:   false,
 			expectError:    false,
@@ -138,7 +138,7 @@ func TestOrmSpecParsing(t *testing.T) {
 			specStr:        "id key",
 			expectedName:   "id",
 			expectedPK:     true,
-			expectedValue:  model.Customer,
+			expectedValue:  models.Customer,
 			expectedDetail: false,
 			expectedLite:   false,
 			expectError:    false,
@@ -148,7 +148,7 @@ func TestOrmSpecParsing(t *testing.T) {
 			specStr:        "id auto key",
 			expectedName:   "id",
 			expectedPK:     true,
-			expectedValue:  model.AutoIncrement,
+			expectedValue:  models.AutoIncrement,
 			expectedDetail: false,
 			expectedLite:   false,
 			expectError:    false,
@@ -158,7 +158,7 @@ func TestOrmSpecParsing(t *testing.T) {
 			specStr:        "id uuid",
 			expectedName:   "id",
 			expectedPK:     false,
-			expectedValue:  model.UUID,
+			expectedValue:  models.UUID,
 			expectedDetail: false,
 			expectedLite:   false,
 			expectError:    false,
@@ -168,7 +168,7 @@ func TestOrmSpecParsing(t *testing.T) {
 			specStr:        "id uuid key",
 			expectedName:   "id",
 			expectedPK:     true,
-			expectedValue:  model.UUID,
+			expectedValue:  models.UUID,
 			expectedDetail: false,
 			expectedLite:   false,
 			expectError:    false,
@@ -178,7 +178,7 @@ func TestOrmSpecParsing(t *testing.T) {
 			specStr:        "id snowflake",
 			expectedName:   "id",
 			expectedPK:     false,
-			expectedValue:  model.SnowFlake,
+			expectedValue:  models.SnowFlake,
 			expectedDetail: false,
 			expectedLite:   false,
 			expectError:    false,
@@ -188,7 +188,7 @@ func TestOrmSpecParsing(t *testing.T) {
 			specStr:        "createTime datetime",
 			expectedName:   "createTime",
 			expectedPK:     false,
-			expectedValue:  model.DateTime,
+			expectedValue:  models.DateTime,
 			expectedDetail: false,
 			expectedLite:   false,
 			expectError:    false,
@@ -198,7 +198,7 @@ func TestOrmSpecParsing(t *testing.T) {
 			specStr:        "id auto key",
 			expectedName:   "id",
 			expectedPK:     true,
-			expectedValue:  model.AutoIncrement,
+			expectedValue:  models.AutoIncrement,
 			expectedDetail: false,
 			expectedLite:   false,
 			expectError:    false,
@@ -208,7 +208,7 @@ func TestOrmSpecParsing(t *testing.T) {
 			specStr:        "id invalid",
 			expectedName:   "id",
 			expectedPK:     false,
-			expectedValue:  model.Customer, // Should default to Customer
+			expectedValue:  models.Customer, // Should default to Customer
 			expectedDetail: false,
 			expectedLite:   false,
 			expectError:    false, // Not expecting error, just ignores invalid option
@@ -250,14 +250,14 @@ func TestOrmSpecParsing(t *testing.T) {
 			}
 
 			// Check view declarations
-			if test.expectedDetail && !spec.EnableView(model.DetailView) {
+			if test.expectedDetail && !spec.EnableView(models.DetailView) {
 				t.Errorf("Detail view mismatch, expected %v, got %v",
-					test.expectedDetail, spec.EnableView(model.DetailView))
+					test.expectedDetail, spec.EnableView(models.DetailView))
 			}
 
-			if test.expectedLite && !spec.EnableView(model.LiteView) {
+			if test.expectedLite && !spec.EnableView(models.LiteView) {
 				t.Errorf("Lite view mismatch, expected %v, got %v",
-					test.expectedLite, spec.EnableView(model.LiteView))
+					test.expectedLite, spec.EnableView(models.LiteView))
 			}
 		})
 	}
@@ -336,13 +336,13 @@ func TestViewSpecParsing(t *testing.T) {
 			spec.ViewDeclare = viewDeclare
 
 			// Check view declarations
-			detailResult := spec.EnableView(model.DetailView)
+			detailResult := spec.EnableView(models.DetailView)
 			if detailResult != test.expectedDetail {
 				t.Errorf("Detail view mismatch, name:%s, expected %v, got %v", test.name,
 					test.expectedDetail, detailResult)
 			}
 
-			liteResult := spec.EnableView(model.LiteView)
+			liteResult := spec.EnableView(models.LiteView)
 			if liteResult != test.expectedLite {
 				t.Errorf("Lite view mismatch, name:%s, expected %v, got %v", test.name,
 					test.expectedLite, liteResult)
@@ -359,7 +359,7 @@ func TestCombinedSpecAndViewParsing(t *testing.T) {
 		viewStr        string
 		expectedName   string
 		expectedPK     bool
-		expectedValue  model.ValueDeclare
+		expectedValue  models.ValueDeclare
 		expectedDetail bool
 		expectedLite   bool
 	}{
@@ -369,7 +369,7 @@ func TestCombinedSpecAndViewParsing(t *testing.T) {
 			viewStr:        "detail,lite",
 			expectedName:   "id",
 			expectedPK:     true,
-			expectedValue:  model.Customer,
+			expectedValue:  models.Customer,
 			expectedDetail: true,
 			expectedLite:   true,
 		},
@@ -379,7 +379,7 @@ func TestCombinedSpecAndViewParsing(t *testing.T) {
 			viewStr:        "detail",
 			expectedName:   "id",
 			expectedPK:     true,
-			expectedValue:  model.AutoIncrement,
+			expectedValue:  models.AutoIncrement,
 			expectedDetail: true,
 			expectedLite:   false,
 		},
@@ -389,7 +389,7 @@ func TestCombinedSpecAndViewParsing(t *testing.T) {
 			viewStr:        "lite",
 			expectedName:   "id",
 			expectedPK:     false,
-			expectedValue:  model.UUID,
+			expectedValue:  models.UUID,
 			expectedDetail: false,
 			expectedLite:   true,
 		},
@@ -399,7 +399,7 @@ func TestCombinedSpecAndViewParsing(t *testing.T) {
 			viewStr:        "",
 			expectedName:   "description",
 			expectedPK:     false,
-			expectedValue:  model.Customer,
+			expectedValue:  models.Customer,
 			expectedDetail: false,
 			expectedLite:   false,
 		},
@@ -434,13 +434,13 @@ func TestCombinedSpecAndViewParsing(t *testing.T) {
 			}
 
 			// Check view declarations
-			detailResult := spec.EnableView(model.DetailView)
+			detailResult := spec.EnableView(models.DetailView)
 			if detailResult != test.expectedDetail {
 				t.Errorf("Detail view mismatch, expected %v, got %v",
 					test.expectedDetail, detailResult)
 			}
 
-			liteResult := spec.EnableView(model.LiteView)
+			liteResult := spec.EnableView(models.LiteView)
 			if liteResult != test.expectedLite {
 				t.Errorf("Lite view mismatch, expected %v, got %v",
 					test.expectedLite, liteResult)

@@ -1,18 +1,16 @@
 package remote
 
-import (
-	"github.com/muidea/magicOrm/model"
-)
+import "github.com/muidea/magicOrm/models"
 
 type SpecImpl struct {
-	FieldName    string              `json:"fieldName"`
-	PrimaryKey   bool                `json:"primaryKey"`
-	ValueDeclare model.ValueDeclare  `json:"valueDeclare"`
-	ViewDeclare  []model.ViewDeclare `json:"viewDeclare"`
-	DefaultValue any                 `json:"defaultValue"`
+	FieldName    string               `json:"fieldName"`
+	PrimaryKey   bool                 `json:"primaryKey"`
+	ValueDeclare models.ValueDeclare  `json:"valueDeclare"`
+	ViewDeclare  []models.ViewDeclare `json:"viewDeclare"`
+	DefaultValue any                  `json:"defaultValue"`
 }
 
-var emptySpec = SpecImpl{PrimaryKey: false, ValueDeclare: model.Customer}
+var emptySpec = SpecImpl{PrimaryKey: false, ValueDeclare: models.Customer}
 
 func (s SpecImpl) GetFieldName() string {
 	return s.FieldName
@@ -22,12 +20,12 @@ func (s SpecImpl) IsPrimaryKey() bool {
 	return s.PrimaryKey
 }
 
-func (s SpecImpl) GetValueDeclare() model.ValueDeclare {
+func (s SpecImpl) GetValueDeclare() models.ValueDeclare {
 	return s.ValueDeclare
 }
 
-func (s SpecImpl) EnableView(viewSpec model.ViewDeclare) bool {
-	if viewSpec == model.MetaView {
+func (s SpecImpl) EnableView(viewSpec models.ViewDeclare) bool {
+	if viewSpec == models.MetaView {
 		return true
 	}
 

@@ -6,43 +6,43 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 var _declareObjectSliceValue SliceObjectValue
 var _declareObjectValue ObjectValue
 
-func getSliceInitValue(tType model.Type) (ret any) {
+func getSliceInitValue(tType models.Type) (ret any) {
 	eType := tType.Elem()
 	switch eType.GetValue() {
-	case model.TypeBooleanValue:
+	case models.TypeBooleanValue:
 		ret = []bool{}
-	case model.TypeStringValue,
-		model.TypeDateTimeValue:
+	case models.TypeStringValue,
+		models.TypeDateTimeValue:
 		ret = []string{}
-	case model.TypeByteValue:
+	case models.TypeByteValue:
 		ret = []int8{}
-	case model.TypeSmallIntegerValue:
+	case models.TypeSmallIntegerValue:
 		ret = []int16{}
-	case model.TypeInteger32Value:
+	case models.TypeInteger32Value:
 		ret = []int32{}
-	case model.TypeIntegerValue:
+	case models.TypeIntegerValue:
 		ret = []int{}
-	case model.TypeBigIntegerValue:
+	case models.TypeBigIntegerValue:
 		ret = []int64{}
-	case model.TypePositiveByteValue:
+	case models.TypePositiveByteValue:
 		ret = []uint8{}
-	case model.TypePositiveSmallIntegerValue:
+	case models.TypePositiveSmallIntegerValue:
 		ret = []uint16{}
-	case model.TypePositiveInteger32Value:
+	case models.TypePositiveInteger32Value:
 		ret = []uint32{}
-	case model.TypePositiveIntegerValue:
+	case models.TypePositiveIntegerValue:
 		ret = []uint{}
-	case model.TypePositiveBigIntegerValue:
+	case models.TypePositiveBigIntegerValue:
 		ret = []uint64{}
-	case model.TypeFloatValue:
+	case models.TypeFloatValue:
 		ret = []float32{}
-	case model.TypeDoubleValue:
+	case models.TypeDoubleValue:
 		ret = []float64{}
 	default:
 		err := fmt.Errorf("unexpected slice item type, name:%s, type:%d", tType.GetName(), tType.GetValue())
@@ -52,38 +52,38 @@ func getSliceInitValue(tType model.Type) (ret any) {
 	return
 }
 
-func getBasicInitValue(tType model.Type) (ret any) {
+func getBasicInitValue(tType models.Type) (ret any) {
 	switch tType.GetValue() {
-	case model.TypeBooleanValue:
+	case models.TypeBooleanValue:
 		ret = false
-	case model.TypeStringValue,
-		model.TypeDateTimeValue:
+	case models.TypeStringValue,
+		models.TypeDateTimeValue:
 		ret = ""
-	case model.TypeByteValue:
+	case models.TypeByteValue:
 		ret = int8(0)
-	case model.TypeSmallIntegerValue:
+	case models.TypeSmallIntegerValue:
 		ret = int16(0)
-	case model.TypeInteger32Value:
+	case models.TypeInteger32Value:
 		ret = int32(0)
-	case model.TypeIntegerValue:
+	case models.TypeIntegerValue:
 		ret = 0
-	case model.TypeBigIntegerValue:
+	case models.TypeBigIntegerValue:
 		ret = int64(0)
-	case model.TypePositiveByteValue:
+	case models.TypePositiveByteValue:
 		ret = uint8(0)
-	case model.TypePositiveSmallIntegerValue:
+	case models.TypePositiveSmallIntegerValue:
 		ret = uint16(0)
-	case model.TypePositiveInteger32Value:
+	case models.TypePositiveInteger32Value:
 		ret = uint32(0)
-	case model.TypePositiveIntegerValue:
+	case models.TypePositiveIntegerValue:
 		ret = uint(0)
-	case model.TypePositiveBigIntegerValue:
+	case models.TypePositiveBigIntegerValue:
 		ret = uint64(0)
-	case model.TypeFloatValue:
+	case models.TypeFloatValue:
 		ret = float32(0.00)
-	case model.TypeDoubleValue:
+	case models.TypeDoubleValue:
 		ret = 0.00
-	case model.TypeSliceValue:
+	case models.TypeSliceValue:
 		ret = getSliceInitValue(tType)
 	default:
 		err := fmt.Errorf("unexpected basic item type, name:%s, type:%d", tType.GetName(), tType.GetValue())
@@ -93,8 +93,8 @@ func getBasicInitValue(tType model.Type) (ret any) {
 	return
 }
 
-func getStructInitValue(tType model.Type) (ret *ObjectValue) {
-	if model.IsStructType(tType.GetValue()) {
+func getStructInitValue(tType models.Type) (ret *ObjectValue) {
+	if models.IsStructType(tType.GetValue()) {
 		valPtr := _declareObjectValue.Copy()
 		valPtr.Name = tType.GetName()
 		valPtr.PkgPath = tType.GetPkgPath()
@@ -105,8 +105,8 @@ func getStructInitValue(tType model.Type) (ret *ObjectValue) {
 	return
 }
 
-func getSliceStructInitValue(tType model.Type) (ret *SliceObjectValue) {
-	if model.IsSliceType(tType.GetValue()) {
+func getSliceStructInitValue(tType models.Type) (ret *SliceObjectValue) {
+	if models.IsSliceType(tType.GetValue()) {
 		sliceVal := _declareObjectSliceValue.Copy()
 		sliceVal.Name = tType.GetName()
 		sliceVal.PkgPath = tType.GetPkgPath()
@@ -117,8 +117,8 @@ func getSliceStructInitValue(tType model.Type) (ret *SliceObjectValue) {
 	return
 }
 
-func getInitializeValue(tType model.Type) (ret any) {
-	if !model.IsBasic(tType) {
+func getInitializeValue(tType models.Type) (ret any) {
+	if !models.IsBasic(tType) {
 		if tType.GetValue().IsSliceType() {
 			ret = getSliceStructInitValue(tType)
 			return
@@ -173,7 +173,7 @@ func appendBasicValue(sliceVal, val any) (ret any, err *cd.Error) {
 	return
 }
 
-func convertValue(vType model.Type, val any) (ret any, err *cd.Error) {
+func convertValue(vType models.Type, val any) (ret any, err *cd.Error) {
 	if val == nil {
 		return
 	}
@@ -188,7 +188,7 @@ func convertValue(vType model.Type, val any) (ret any, err *cd.Error) {
 	return
 }
 
-func convertSliceValue(vType model.Type, val any) (ret any, err *cd.Error) {
+func convertSliceValue(vType models.Type, val any) (ret any, err *cd.Error) {
 	if val == nil {
 		return
 	}

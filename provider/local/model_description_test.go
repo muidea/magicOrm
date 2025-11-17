@@ -3,7 +3,7 @@ package local
 import (
 	"testing"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 // TestModelProperties tests the basic properties of model
@@ -39,7 +39,7 @@ func TestModelProperties(t *testing.T) {
 	idField := simpleModel.GetField("id")
 	if idField == nil {
 		t.Errorf("GetField(id) returned nil")
-	} else if !model.IsPrimaryField(idField) {
+	} else if !models.IsPrimaryField(idField) {
 		t.Errorf("id field should be primary key")
 	}
 
@@ -101,7 +101,7 @@ func TestModelWithNestedStruct(t *testing.T) {
 	addressField := nestedModel.GetField("address")
 	if addressField == nil {
 		t.Errorf("GetField(address) returned nil")
-	} else if !model.IsStructField(addressField) {
+	} else if !models.IsStructField(addressField) {
 		t.Errorf("address field should be a struct type")
 	}
 }
@@ -126,14 +126,14 @@ func TestModelWithSliceFields(t *testing.T) {
 	namesField := sliceModel.GetField("names")
 	if namesField == nil {
 		t.Errorf("GetField(names) returned nil")
-	} else if !model.IsSliceField(namesField) {
+	} else if !models.IsSliceField(namesField) {
 		t.Errorf("names field should be a slice type")
 	}
 
 	scoresField := sliceModel.GetField("scores")
 	if scoresField == nil {
 		t.Errorf("GetField(scores) returned nil")
-	} else if !model.IsSliceField(scoresField) {
+	} else if !models.IsSliceField(scoresField) {
 		t.Errorf("scores field should be a slice type")
 	}
 }

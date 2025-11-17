@@ -5,10 +5,10 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
-func GetEntityType(entity any) (ret model.Type, err *cd.Error) {
+func GetEntityType(entity any) (ret models.Type, err *cd.Error) {
 	if entity == nil {
 		err = cd.NewError(cd.Unexpected, "entity is nil")
 		return
@@ -19,26 +19,26 @@ func GetEntityType(entity any) (ret model.Type, err *cd.Error) {
 		ret = &TypeImpl{
 			Name:    val.Name,
 			PkgPath: val.PkgPath,
-			Value:   model.TypeStructValue,
+			Value:   models.TypeStructValue,
 			IsPtr:   true,
 		}
 	case *ObjectValue:
 		ret = &TypeImpl{
 			Name:    val.Name,
 			PkgPath: val.PkgPath,
-			Value:   model.TypeStructValue,
+			Value:   models.TypeStructValue,
 			IsPtr:   true,
 		}
 	case *SliceObjectValue:
 		ret = &TypeImpl{
 			Name:    val.Name,
 			PkgPath: val.PkgPath,
-			Value:   model.TypeSliceValue,
+			Value:   models.TypeSliceValue,
 			IsPtr:   true,
 			ElemType: &TypeImpl{
 				Name:    val.Name,
 				PkgPath: val.PkgPath,
-				Value:   model.TypeStructValue,
+				Value:   models.TypeStructValue,
 				IsPtr:   true,
 			},
 		}
@@ -46,26 +46,26 @@ func GetEntityType(entity any) (ret model.Type, err *cd.Error) {
 		ret = &TypeImpl{
 			Name:    val.Name,
 			PkgPath: val.PkgPath,
-			Value:   model.TypeStructValue,
+			Value:   models.TypeStructValue,
 			IsPtr:   true,
 		}
 	case ObjectValue:
 		ret = &TypeImpl{
 			Name:    val.Name,
 			PkgPath: val.PkgPath,
-			Value:   model.TypeStructValue,
+			Value:   models.TypeStructValue,
 			IsPtr:   true,
 		}
 	case SliceObjectValue:
 		ret = &TypeImpl{
 			Name:    val.Name,
 			PkgPath: val.PkgPath,
-			Value:   model.TypeSliceValue,
+			Value:   models.TypeSliceValue,
 			IsPtr:   true,
 			ElemType: &TypeImpl{
 				Name:    val.Name,
 				PkgPath: val.PkgPath,
-				Value:   model.TypeStructValue,
+				Value:   models.TypeStructValue,
 				IsPtr:   true,
 			},
 		}
@@ -76,7 +76,7 @@ func GetEntityType(entity any) (ret model.Type, err *cd.Error) {
 	return
 }
 
-func GetEntityValue(entity any) (ret model.Value, err *cd.Error) {
+func GetEntityValue(entity any) (ret models.Value, err *cd.Error) {
 	if entity == nil {
 		err = cd.NewError(cd.Unexpected, "entity is nil")
 		return
@@ -108,7 +108,7 @@ func GetEntityValue(entity any) (ret model.Value, err *cd.Error) {
 	return
 }
 
-func GetEntityModel(entity any) (ret model.Model, err *cd.Error) {
+func GetEntityModel(entity any) (ret models.Model, err *cd.Error) {
 	if entity == nil {
 		err = cd.NewError(cd.Unexpected, "entity is nil")
 		return
@@ -127,7 +127,7 @@ func GetEntityModel(entity any) (ret model.Model, err *cd.Error) {
 	return
 }
 
-func GetModelFilter(vModel model.Model) (ret model.Filter, err *cd.Error) {
+func GetModelFilter(vModel models.Model) (ret models.Filter, err *cd.Error) {
 	objectPtr, objectOK := vModel.(*Object)
 	if !objectOK {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal model, model:%v", vModel))
@@ -139,7 +139,7 @@ func GetModelFilter(vModel model.Model) (ret model.Filter, err *cd.Error) {
 	return
 }
 
-func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *cd.Error) {
+func SetModelValue(vModel models.Model, vVal models.Value) (ret models.Model, err *cd.Error) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
 			err = cd.NewError(cd.Unexpected, fmt.Sprintf("SetModelValue failed, illegal value, err:%v", errInfo))
@@ -167,7 +167,7 @@ func SetModelValue(vModel model.Model, vVal model.Value) (ret model.Model, err *
 	return
 }
 
-func assignObjectValue(vModel model.Model, objectValuePtr *ObjectValue) (err *cd.Error) {
+func assignObjectValue(vModel models.Model, objectValuePtr *ObjectValue) (err *cd.Error) {
 	for idx := range objectValuePtr.Fields {
 		fieldVal := objectValuePtr.Fields[idx]
 		err = vModel.SetFieldValue(fieldVal.GetName(), fieldVal.Get())

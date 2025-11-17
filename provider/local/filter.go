@@ -6,20 +6,20 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/utils"
 )
 
 type filterItem struct {
-	oprCode model.OprCode
+	oprCode models.OprCode
 	value   *ValueImpl
 }
 
-func (s *filterItem) OprCode() model.OprCode {
+func (s *filterItem) OprCode() models.OprCode {
 	return s.oprCode
 }
 
-func (s *filterItem) OprValue() model.Value {
+func (s *filterItem) OprValue() models.Value {
 	return s.value
 }
 
@@ -56,14 +56,14 @@ func (s *filter) Equal(key string, val any) (err *cd.Error) {
 		log.Errorf("Equal failed, illegal value type, err:%s", err.Error())
 		return
 	}
-	if model.IsSliceType(qvType) {
+	if models.IsSliceType(qvType) {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("equal failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("Equal failed, err:%v", err.Error())
 		return
 	}
 
 	//s.equalFilter = append(s.equalFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: model.EqualOpr, value: NewValue(qv)}
+	s.params[key] = &filterItem{oprCode: models.EqualOpr, value: NewValue(qv)}
 	return
 }
 
@@ -80,14 +80,14 @@ func (s *filter) NotEqual(key string, val any) (err *cd.Error) {
 		log.Errorf("NotEqual failed, illegal value type, err:%s", err.Error())
 		return
 	}
-	if model.IsSliceType(qvType) {
+	if models.IsSliceType(qvType) {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("NotEqual failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("NotEqual failed, err:%v", err.Error())
 		return
 	}
 
 	//s.notEqualFilter = append(s.notEqualFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: model.NotEqualOpr, value: NewValue(qv)}
+	s.params[key] = &filterItem{oprCode: models.NotEqualOpr, value: NewValue(qv)}
 	return
 }
 
@@ -104,14 +104,14 @@ func (s *filter) Below(key string, val any) (err *cd.Error) {
 		log.Errorf("Below failed, illegal value type, err:%s", err.Error())
 		return
 	}
-	if !model.IsBasicType(qvType) {
+	if !models.IsBasicType(qvType) {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("below failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("Below failed, err:%v", err.Error())
 		return
 	}
 
 	//s.belowFilter = append(s.belowFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: model.BelowOpr, value: NewValue(qv)}
+	s.params[key] = &filterItem{oprCode: models.BelowOpr, value: NewValue(qv)}
 	return
 }
 
@@ -128,14 +128,14 @@ func (s *filter) Above(key string, val any) (err *cd.Error) {
 		log.Errorf("Above failed, illegal value type, err:%s", err.Error())
 		return
 	}
-	if !model.IsBasicType(qvType) {
+	if !models.IsBasicType(qvType) {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("above failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("Above failed, err:%v", err.Error())
 		return
 	}
 
 	//s.aboveFilter = append(s.aboveFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: model.AboveOpr, value: NewValue(qv)}
+	s.params[key] = &filterItem{oprCode: models.AboveOpr, value: NewValue(qv)}
 	return
 }
 
@@ -152,14 +152,14 @@ func (s *filter) In(key string, val any) (err *cd.Error) {
 		log.Errorf("In failed, illegal value type, err:%s", err.Error())
 		return
 	}
-	if !model.IsSliceType(qvType) {
+	if !models.IsSliceType(qvType) {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("in failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("In failed, err:%v", err.Error())
 		return
 	}
 
 	//s.inFilter = append(s.inFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: model.InOpr, value: NewValue(qv)}
+	s.params[key] = &filterItem{oprCode: models.InOpr, value: NewValue(qv)}
 	return
 }
 
@@ -176,14 +176,14 @@ func (s *filter) NotIn(key string, val any) (err *cd.Error) {
 		log.Errorf("NotIn failed, illegal value type, err:%s", err.Error())
 		return
 	}
-	if !model.IsSliceType(qvType) {
+	if !models.IsSliceType(qvType) {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("notIn failed, illegal value type, type:%s", qv.Type().String()))
 		log.Errorf("NotIn failed, err:%v", err.Error())
 		return
 	}
 
 	//s.notInFilter = append(s.notInFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: model.NotInOpr, value: NewValue(qv)}
+	s.params[key] = &filterItem{oprCode: models.NotInOpr, value: NewValue(qv)}
 	return
 }
 
@@ -201,7 +201,7 @@ func (s *filter) Like(key string, val any) (err *cd.Error) {
 	}
 
 	//s.likeFilter = append(s.likeFilter, &itemValue{name: key, value: newValue(qv)})
-	s.params[key] = &filterItem{oprCode: model.LikeOpr, value: NewValue(qv)}
+	s.params[key] = &filterItem{oprCode: models.LikeOpr, value: NewValue(qv)}
 	return
 }
 
@@ -238,7 +238,7 @@ func (s *filter) ValueMask(val any) (err *cd.Error) {
 	return
 }
 
-func (s *filter) GetFilterItem(key string) model.FilterItem {
+func (s *filter) GetFilterItem(key string) models.FilterItem {
 	v, ok := s.params[key]
 	if ok {
 		return v
@@ -247,7 +247,7 @@ func (s *filter) GetFilterItem(key string) model.FilterItem {
 	return nil
 }
 
-func (s *filter) Paginationer() model.Paginationer {
+func (s *filter) Paginationer() models.Paginationer {
 	if s.pageFilter == nil {
 		return nil
 	}
@@ -255,7 +255,7 @@ func (s *filter) Paginationer() model.Paginationer {
 	return s.pageFilter
 }
 
-func (s *filter) Sorter() model.Sorter {
+func (s *filter) Sorter() models.Sorter {
 	if s.sortFilter == nil {
 		return nil
 	}
@@ -263,13 +263,13 @@ func (s *filter) Sorter() model.Sorter {
 	return s.sortFilter
 }
 
-func (s *filter) MaskModel() model.Model {
+func (s *filter) MaskModel() models.Model {
 	maskVal := s.bindValue
 	if s.maskValue != nil {
 		maskVal = s.maskValue
 	}
 
-	objPtr, objErr := getValueModel(maskVal.value, model.OriginView)
+	objPtr, objErr := getValueModel(maskVal.value, models.OriginView)
 	if objErr != nil {
 		log.Errorf("MaskModel failed, getValueModel error:%s", objErr.Error())
 		return nil

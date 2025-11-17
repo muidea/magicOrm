@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
@@ -25,35 +25,35 @@ func TestTypeInterface(t *testing.T) {
 	}{
 		{
 			name:         "Boolean Interface",
-			typeImpl:     &remote.TypeImpl{Name: "bool", Value: model.TypeBooleanValue},
+			typeImpl:     &remote.TypeImpl{Name: "bool", Value: models.TypeBooleanValue},
 			initVal:      true,
 			expectedType: true,
 			expectError:  false,
 		},
 		{
 			name:         "Integer Interface",
-			typeImpl:     &remote.TypeImpl{Name: "int", Value: model.TypeIntegerValue},
+			typeImpl:     &remote.TypeImpl{Name: "int", Value: models.TypeIntegerValue},
 			initVal:      123,
 			expectedType: int(123),
 			expectError:  false,
 		},
 		{
 			name:         "Float Interface",
-			typeImpl:     &remote.TypeImpl{Name: "float64", Value: model.TypeFloatValue},
+			typeImpl:     &remote.TypeImpl{Name: "float64", Value: models.TypeFloatValue},
 			initVal:      float32(123.45),
 			expectedType: float32(123.45),
 			expectError:  false,
 		},
 		{
 			name:         "String Interface",
-			typeImpl:     &remote.TypeImpl{Name: "string", Value: model.TypeStringValue},
+			typeImpl:     &remote.TypeImpl{Name: "string", Value: models.TypeStringValue},
 			initVal:      "test",
 			expectedType: "test",
 			expectError:  false,
 		},
 		{
 			name:         "DateTime Interface",
-			typeImpl:     &remote.TypeImpl{Name: "time.Time", Value: model.TypeDateTimeValue},
+			typeImpl:     &remote.TypeImpl{Name: "time.Time", Value: models.TypeDateTimeValue},
 			initVal:      "2024-01-01T00:00:00Z",
 			expectedType: "2024-01-01T00:00:00Z",
 			expectError:  false,
@@ -137,115 +137,115 @@ func TestTypeConversion(t *testing.T) {
 	tests := []struct {
 		name         string
 		value        interface{}
-		expectedType model.TypeDeclare
+		expectedType models.TypeDeclare
 		expectError  bool
 	}{
 		{
 			name:         "Boolean conversion",
 			value:        true,
-			expectedType: model.TypeBooleanValue,
+			expectedType: models.TypeBooleanValue,
 			expectError:  false,
 		},
 		{
 			name:         "Int conversion",
 			value:        123,
-			expectedType: model.TypeIntegerValue,
+			expectedType: models.TypeIntegerValue,
 			expectError:  false,
 		},
 		{
 			name:         "Int8 conversion",
 			value:        int8(123),
-			expectedType: model.TypeByteValue,
+			expectedType: models.TypeByteValue,
 			expectError:  false,
 		},
 		{
 			name:         "Int16 conversion",
 			value:        int16(123),
-			expectedType: model.TypeSmallIntegerValue,
+			expectedType: models.TypeSmallIntegerValue,
 			expectError:  false,
 		},
 		{
 			name:         "Int32 conversion",
 			value:        int32(123),
-			expectedType: model.TypeInteger32Value,
+			expectedType: models.TypeInteger32Value,
 			expectError:  false,
 		},
 		{
 			name:         "Int64 conversion",
 			value:        int64(123),
-			expectedType: model.TypeBigIntegerValue,
+			expectedType: models.TypeBigIntegerValue,
 			expectError:  false,
 		},
 		{
 			name:         "Uint conversion",
 			value:        uint(123),
-			expectedType: model.TypePositiveIntegerValue,
+			expectedType: models.TypePositiveIntegerValue,
 			expectError:  false,
 		},
 		{
 			name:         "Uint8 conversion",
 			value:        uint8(123),
-			expectedType: model.TypePositiveByteValue,
+			expectedType: models.TypePositiveByteValue,
 			expectError:  false,
 		},
 		{
 			name:         "Uint16 conversion",
 			value:        uint16(123),
-			expectedType: model.TypePositiveSmallIntegerValue,
+			expectedType: models.TypePositiveSmallIntegerValue,
 			expectError:  false,
 		},
 		{
 			name:         "Uint32 conversion",
 			value:        uint32(123),
-			expectedType: model.TypePositiveInteger32Value,
+			expectedType: models.TypePositiveInteger32Value,
 			expectError:  false,
 		},
 		{
 			name:         "Uint64 conversion",
 			value:        uint64(123),
-			expectedType: model.TypePositiveBigIntegerValue,
+			expectedType: models.TypePositiveBigIntegerValue,
 			expectError:  false,
 		},
 		{
 			name:         "Float32 conversion",
 			value:        float32(123.45),
-			expectedType: model.TypeFloatValue,
+			expectedType: models.TypeFloatValue,
 			expectError:  false,
 		},
 		{
 			name:         "Float64 conversion",
 			value:        float64(123.45),
-			expectedType: model.TypeDoubleValue,
+			expectedType: models.TypeDoubleValue,
 			expectError:  false,
 		},
 		{
 			name:         "String conversion",
 			value:        "test",
-			expectedType: model.TypeStringValue,
+			expectedType: models.TypeStringValue,
 			expectError:  false,
 		},
 		{
 			name:         "Time conversion",
 			value:        time.Now(),
-			expectedType: model.TypeDateTimeValue,
+			expectedType: models.TypeDateTimeValue,
 			expectError:  false,
 		},
 		{
 			name:         "int slice conversion",
 			value:        []int{10, 20},
-			expectedType: model.TypeSliceValue,
+			expectedType: models.TypeSliceValue,
 			expectError:  false,
 		},
 		{
 			name:         "Time slice conversion",
 			value:        []time.Time{time.Now(), time.Now()},
-			expectedType: model.TypeSliceValue,
+			expectedType: models.TypeSliceValue,
 			expectError:  false,
 		},
 		{
 			name:         "Struct conversion",
 			value:        TestStruct{},
-			expectedType: model.TypeStructValue,
+			expectedType: models.TypeStructValue,
 			expectError:  false,
 		},
 		{

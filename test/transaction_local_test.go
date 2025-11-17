@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
 )
@@ -237,7 +237,7 @@ func TestLocalBatchOperation(t *testing.T) {
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
 	batchSize := 20
 	unitList := make([]*Unit, 0, batchSize)
-	modelList = make([]model.Model, 0, batchSize)
+	modelList = make([]models.Model, 0, batchSize)
 
 	// 准备数据
 	for i := 0; i < batchSize; i++ {
@@ -267,7 +267,7 @@ func TestLocalBatchOperation(t *testing.T) {
 	}
 
 	// 批量插入 (单独插入多条)
-	insertedModelList := make([]model.Model, 0, batchSize)
+	insertedModelList := make([]models.Model, 0, batchSize)
 	for idx := 0; idx < batchSize; idx++ {
 		unitModel, unitErr := o1.Insert(modelList[idx])
 		if unitErr != nil {

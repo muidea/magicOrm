@@ -7,7 +7,7 @@ import (
 
 	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicCommon/foundation/util"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 // Unit 单元信息
@@ -128,13 +128,13 @@ func TestReference(t *testing.T) {
 
 	cdVal := reflect.ValueOf(&CD{}).Elem()
 	demoVal := reflect.ValueOf(&Demo{AB: &AB{}}).Elem()
-	_, err := getValueModel(demoVal, model.MetaView)
+	_, err := getValueModel(demoVal, models.MetaView)
 	if err != nil {
 		t.Errorf("getValueModel failed, err:%s", err.Error())
 		return
 	}
 
-	_, err = getValueModel(cdVal, model.MetaView)
+	_, err = getValueModel(cdVal, models.MetaView)
 	if err != nil {
 		t.Errorf("getValueModel failed, err:%s", err.Error())
 	}
@@ -149,7 +149,7 @@ type TT struct {
 func TestGetModelValue(t *testing.T) {
 	t1 := TT{Aa: 12, Bb: 23}
 	ttVal := reflect.ValueOf(&t1).Elem()
-	_, t1Err := getValueModel(ttVal, model.MetaView)
+	_, t1Err := getValueModel(ttVal, models.MetaView)
 	if t1Err != nil {
 		t.Errorf("getValueModel t1 failed, err:%s", t1Err.Error())
 		return
@@ -157,7 +157,7 @@ func TestGetModelValue(t *testing.T) {
 
 	t2 := &TT{Aa: 34, Bb: 45}
 	//reflect.TypeOf(t2)
-	_, t2Err := getValueModel(reflect.ValueOf(t2).Elem(), model.MetaView)
+	_, t2Err := getValueModel(reflect.ValueOf(t2).Elem(), models.MetaView)
 	if t2Err != nil {
 		t.Errorf("getValueModel t2 failed, err:%s", t2Err.Error())
 		return
@@ -185,177 +185,177 @@ func TestObjectCopy(t *testing.T) {
 	if refModelErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", refModelErr.Error())
 	}
-	if !model.IsValidField(refModelVal.GetField("id")) {
+	if !models.IsValidField(refModelVal.GetField("id")) {
 		t.Errorf("check refModelVal field id valid failed, really false, expect true")
 	}
-	if !model.IsValidField(refModelVal.GetField("bArray")) {
+	if !models.IsValidField(refModelVal.GetField("bArray")) {
 		t.Errorf("check refModelVal field bArray valid failed, really false, expect true")
 	}
-	if !model.IsValidField(refModelVal.GetField("strArray")) {
+	if !models.IsValidField(refModelVal.GetField("strArray")) {
 		t.Errorf("check refModelVal field strArray valid failed, really false, expect true")
 	}
-	if !model.IsValidField(refModelVal.GetField("ptrArray")) {
+	if !models.IsValidField(refModelVal.GetField("ptrArray")) {
 		t.Errorf("check refModelVal field ptrArray valid failed, really false, expect true")
 	}
-	if !model.IsValidField(refModelVal.GetField("ptrStrArray")) {
+	if !models.IsValidField(refModelVal.GetField("ptrStrArray")) {
 		t.Errorf("check refModelVal field ptrStrArray valid failed, really false, expect true")
 	}
-	if !model.IsAssignedField(refModelVal.GetField("id")) {
+	if !models.IsAssignedField(refModelVal.GetField("id")) {
 		t.Errorf("check refModelVal field id assigned failed, really false, expect true")
 	}
-	if !model.IsAssignedField(refModelVal.GetField("bArray")) {
+	if !models.IsAssignedField(refModelVal.GetField("bArray")) {
 		t.Errorf("check refModelVal field bArray assigned failed, really false, expect true")
 	}
-	if !model.IsAssignedField(refModelVal.GetField("strArray")) {
+	if !models.IsAssignedField(refModelVal.GetField("strArray")) {
 		t.Errorf("check refModelVal field strArray assigned failed, really false, expect true")
 	}
-	if !model.IsAssignedField(refModelVal.GetField("ptrArray")) {
+	if !models.IsAssignedField(refModelVal.GetField("ptrArray")) {
 		t.Errorf("check refModelVal field ptrArray assigned failed, really false, expect true")
 	}
-	if !model.IsAssignedField(refModelVal.GetField("ptrStrArray")) {
+	if !models.IsAssignedField(refModelVal.GetField("ptrStrArray")) {
 		t.Errorf("check refModelVal field ptrStrArray assigned failed, really false, expect true")
 	}
 
-	originRefModelVal := refModelVal.Copy(model.OriginView)
+	originRefModelVal := refModelVal.Copy(models.OriginView)
 	if originRefModelVal == nil {
 		t.Errorf("Copy originRefModelVal model failed")
 	}
-	if !model.CompareModel(refModelVal, originRefModelVal) {
+	if !models.CompareModel(refModelVal, originRefModelVal) {
 		t.Errorf("compare originRefModelVal model failed")
 	}
-	if !model.IsValidField(originRefModelVal.GetField("id")) {
+	if !models.IsValidField(originRefModelVal.GetField("id")) {
 		t.Errorf("check originRefModelVal model id field failed, really false, expect true")
 	}
-	if !model.IsValidField(originRefModelVal.GetField("bArray")) {
+	if !models.IsValidField(originRefModelVal.GetField("bArray")) {
 		t.Errorf("check originRefModelVal model bArray field failed, really false, expect true")
 	}
-	if !model.IsValidField(originRefModelVal.GetField("strArray")) {
+	if !models.IsValidField(originRefModelVal.GetField("strArray")) {
 		t.Errorf("check originRefModelVal model strArray field failed, really false, expect true")
 	}
-	if !model.IsValidField(originRefModelVal.GetField("ptrArray")) {
+	if !models.IsValidField(originRefModelVal.GetField("ptrArray")) {
 		t.Errorf("check originRefModelVal model ptrArray field failed, really false, expect true")
 	}
-	if !model.IsValidField(originRefModelVal.GetField("ptrStrArray")) {
+	if !models.IsValidField(originRefModelVal.GetField("ptrStrArray")) {
 		t.Errorf("check originRefModelVal model ptrStrArray field failed, really false, expect true")
 	}
-	if !model.IsAssignedField(originRefModelVal.GetField("id")) {
+	if !models.IsAssignedField(originRefModelVal.GetField("id")) {
 		t.Errorf("check originRefModelVal model id field assigned failed, really false, expect true")
 	}
-	if !model.IsAssignedField(originRefModelVal.GetField("bArray")) {
+	if !models.IsAssignedField(originRefModelVal.GetField("bArray")) {
 		t.Errorf("check originRefModelVal model bArray field assigned failed, really false, expect true")
 	}
-	if !model.IsAssignedField(originRefModelVal.GetField("strArray")) {
+	if !models.IsAssignedField(originRefModelVal.GetField("strArray")) {
 		t.Errorf("check originRefModelVal model strArray field assigned failed, really false, expect true")
 	}
-	if !model.IsAssignedField(originRefModelVal.GetField("ptrArray")) {
+	if !models.IsAssignedField(originRefModelVal.GetField("ptrArray")) {
 		t.Errorf("check originRefModelVal model ptrArray field assigned failed, really false, expect true")
 	}
 
-	metaRefModelVal := refModelVal.Copy(model.MetaView)
+	metaRefModelVal := refModelVal.Copy(models.MetaView)
 	if metaRefModelVal == nil {
 		t.Errorf("Copy metaRefModelVal model failed")
 	}
-	if model.CompareModel(refModelVal, metaRefModelVal) {
+	if models.CompareModel(refModelVal, metaRefModelVal) {
 		t.Errorf("compare metaRefModelVal model failed")
 	}
-	if !model.IsValidField(metaRefModelVal.GetField("id")) {
+	if !models.IsValidField(metaRefModelVal.GetField("id")) {
 		t.Errorf("check metaRefModelVal model id field failed, really false, expect true")
 	}
-	if !model.IsValidField(metaRefModelVal.GetField("bArray")) {
+	if !models.IsValidField(metaRefModelVal.GetField("bArray")) {
 		t.Errorf("check metaRefModelVal model bArray field failed, really false, expect true")
 	}
-	if !model.IsValidField(metaRefModelVal.GetField("strArray")) {
+	if !models.IsValidField(metaRefModelVal.GetField("strArray")) {
 		t.Errorf("check metaRefModelVal model strArray field failed, really false, expect true")
 	}
-	if model.IsValidField(metaRefModelVal.GetField("ptrArray")) {
+	if models.IsValidField(metaRefModelVal.GetField("ptrArray")) {
 		t.Errorf("check metaRefModelVal model ptrArray field failed, really true, expect false")
 	}
-	if model.IsValidField(metaRefModelVal.GetField("ptrStrArray")) {
+	if models.IsValidField(metaRefModelVal.GetField("ptrStrArray")) {
 		t.Errorf("check metaRefModelVal model ptrStrArray field failed, really true, expect false")
 	}
-	if model.IsAssignedField(metaRefModelVal.GetField("id")) {
+	if models.IsAssignedField(metaRefModelVal.GetField("id")) {
 		t.Errorf("check metaRefModelVal model id field assigned failed, really true, expect false")
 	}
-	if model.IsAssignedField(metaRefModelVal.GetField("bArray")) {
+	if models.IsAssignedField(metaRefModelVal.GetField("bArray")) {
 		t.Errorf("check metaRefModelVal model bArray field assigned failed, really true, expect false")
 	}
-	if model.IsAssignedField(metaRefModelVal.GetField("strArray")) {
+	if models.IsAssignedField(metaRefModelVal.GetField("strArray")) {
 		t.Errorf("check metaRefModelVal model strArray field assigned failed, really true, expect false")
 	}
-	if model.IsAssignedField(metaRefModelVal.GetField("ptrArray")) {
+	if models.IsAssignedField(metaRefModelVal.GetField("ptrArray")) {
 		t.Errorf("check metaRefModelVal model ptrArray field assigned failed, really true, expect false")
 	}
-	if model.IsAssignedField(metaRefModelVal.GetField("ptrStrArray")) {
+	if models.IsAssignedField(metaRefModelVal.GetField("ptrStrArray")) {
 		t.Errorf("check metaRefModelVal model ptrStrArray field assigned failed, really true, expect false")
 	}
 
-	detailRefModelVal := refModelVal.Copy(model.DetailView)
+	detailRefModelVal := refModelVal.Copy(models.DetailView)
 	if detailRefModelVal == nil {
 		t.Errorf("Copy detailRefModelVal model failed")
 	}
-	if !model.IsValidField(detailRefModelVal.GetField("id")) {
+	if !models.IsValidField(detailRefModelVal.GetField("id")) {
 		t.Errorf("check detailRefModelVal field id valid failed, really false, expect true")
 	}
-	if !model.IsValidField(detailRefModelVal.GetField("bArray")) {
+	if !models.IsValidField(detailRefModelVal.GetField("bArray")) {
 		t.Errorf("check detailRefModelVal field bArray valid failed, really false, expect true")
 	}
-	if !model.IsValidField(detailRefModelVal.GetField("strArray")) {
+	if !models.IsValidField(detailRefModelVal.GetField("strArray")) {
 		t.Errorf("check detailRefModelVal field strArray valid failed, really false, expect true")
 	}
-	if !model.IsValidField(detailRefModelVal.GetField("ptrArray")) {
+	if !models.IsValidField(detailRefModelVal.GetField("ptrArray")) {
 		t.Errorf("check detailRefModelVal field ptrArray valid failed, really false, expect true")
 	}
-	if !model.IsValidField(detailRefModelVal.GetField("ptrStrArray")) {
+	if !models.IsValidField(detailRefModelVal.GetField("ptrStrArray")) {
 		t.Errorf("check detailRefModelVal field ptrStrArray valid failed, really false, expect true")
 	}
-	if !model.IsAssignedField(detailRefModelVal.GetField("id")) {
+	if !models.IsAssignedField(detailRefModelVal.GetField("id")) {
 		t.Errorf("check detailRefModelVal field id assigned failed, really false, expect true")
 	}
-	if !model.IsAssignedField(detailRefModelVal.GetField("bArray")) {
+	if !models.IsAssignedField(detailRefModelVal.GetField("bArray")) {
 		t.Errorf("check detailRefModelVal field bArray assigned failed, really false, expect true")
 	}
-	if !model.IsAssignedField(detailRefModelVal.GetField("strArray")) {
+	if !models.IsAssignedField(detailRefModelVal.GetField("strArray")) {
 		t.Errorf("check detailRefModelVal field strArray assigned failed, really false, expect true")
 	}
-	if !model.IsAssignedField(detailRefModelVal.GetField("ptrArray")) {
+	if !models.IsAssignedField(detailRefModelVal.GetField("ptrArray")) {
 		t.Errorf("check detailRefModelVal field ptrArray assigned failed, really false, expect true")
 	}
-	if !model.IsAssignedField(detailRefModelVal.GetField("ptrStrArray")) {
+	if !models.IsAssignedField(detailRefModelVal.GetField("ptrStrArray")) {
 		t.Errorf("check detailRefModelVal field ptrStrArray assigned failed, really false, expect true")
 	}
 
-	liteRefModelVal := refModelVal.Copy(model.LiteView)
+	liteRefModelVal := refModelVal.Copy(models.LiteView)
 	if liteRefModelVal == nil {
 		t.Errorf("Copy liteRefModelVal model failed")
 	}
-	if !model.IsValidField(liteRefModelVal.GetField("id")) {
+	if !models.IsValidField(liteRefModelVal.GetField("id")) {
 		t.Errorf("check liteRefModelVal field id valid failed, really false, expect true")
 	}
-	if !model.IsValidField(liteRefModelVal.GetField("bArray")) {
+	if !models.IsValidField(liteRefModelVal.GetField("bArray")) {
 		t.Errorf("check liteRefModelVal field bArray valid failed, really false, expect true")
 	}
-	if !model.IsValidField(liteRefModelVal.GetField("strArray")) {
+	if !models.IsValidField(liteRefModelVal.GetField("strArray")) {
 		t.Errorf("check liteRefModelVal field strArray valid failed, really false, expect true")
 	}
-	if !model.IsValidField(liteRefModelVal.GetField("ptrArray")) {
+	if !models.IsValidField(liteRefModelVal.GetField("ptrArray")) {
 		t.Errorf("check liteRefModelVal field ptrArray valid failed, really false, expect true")
 	}
-	if model.IsValidField(liteRefModelVal.GetField("ptrStrArray")) {
+	if models.IsValidField(liteRefModelVal.GetField("ptrStrArray")) {
 		t.Errorf("check liteRefModelVal field ptrStrArray valid failed, really true, expect false")
 	}
-	if !model.IsAssignedField(liteRefModelVal.GetField("id")) {
+	if !models.IsAssignedField(liteRefModelVal.GetField("id")) {
 		t.Errorf("check liteRefModelVal field id assigned failed, really false, expect true")
 	}
-	if !model.IsAssignedField(liteRefModelVal.GetField("bArray")) {
+	if !models.IsAssignedField(liteRefModelVal.GetField("bArray")) {
 		t.Errorf("check liteRefModelVal field bArray assigned failed, really false, expect true")
 	}
-	if !model.IsAssignedField(liteRefModelVal.GetField("strArray")) {
+	if !models.IsAssignedField(liteRefModelVal.GetField("strArray")) {
 		t.Errorf("check liteRefModelVal field strArray assigned failed, really false, expect true")
 	}
-	if !model.IsAssignedField(liteRefModelVal.GetField("ptrArray")) {
+	if !models.IsAssignedField(liteRefModelVal.GetField("ptrArray")) {
 		t.Errorf("check liteRefModelVal field ptrArray assigned failed, really false, expect true")
 	}
-	if model.IsAssignedField(liteRefModelVal.GetField("ptrStrArray")) {
+	if models.IsAssignedField(liteRefModelVal.GetField("ptrStrArray")) {
 		t.Errorf("check liteRefModelVal field ptrStrArray assigned failed, really true, expect flase")
 	}
 }
@@ -379,7 +379,7 @@ func TestObjectCopy2(t *testing.T) {
 	}
 
 	// Test normal copy (with values)
-	copiedModel := entityModel.Copy(model.OriginView)
+	copiedModel := entityModel.Copy(models.OriginView)
 	if copiedModel == nil {
 		t.Errorf("Model.Copy() returned nil")
 		return
@@ -414,7 +414,7 @@ func TestObjectCopy2(t *testing.T) {
 	}
 
 	// Test reset copy (without values)
-	resetModel := entityModel.Copy(model.MetaView)
+	resetModel := entityModel.Copy(models.MetaView)
 	if resetModel == nil {
 		t.Errorf("Model.Copy(true) returned nil")
 		return
@@ -480,7 +480,7 @@ func TestObjectSetFieldValue2(t *testing.T) {
 	// Verify updates worked
 	updatedUnit, ok := unitModel.Interface(false).(Unit)
 	if !ok {
-		t.Errorf("model.Interface() failed to convert to Unit")
+		t.Errorf("models.Interface() failed to convert to Unit")
 		return
 	}
 
@@ -542,7 +542,7 @@ func TestObjectViews(t *testing.T) {
 	// Detail view should include ID, Name, Value but not Description
 	detailObj, ok := entityEodel.Interface(false).(ViewTestStruct)
 	if !ok {
-		t.Errorf("model.Interface() failed to convert to ViewTestStruct for detail view")
+		t.Errorf("models.Interface() failed to convert to ViewTestStruct for detail view")
 		return
 	}
 
@@ -559,11 +559,11 @@ func TestObjectViews(t *testing.T) {
 		t.Errorf("Value should be included in detail view")
 	}
 
-	liteModel := entityEodel.Copy(model.LiteView)
+	liteModel := entityEodel.Copy(models.LiteView)
 	// Lite view should only include ID and Name
 	liteObj, ok := liteModel.Interface(false).(ViewTestStruct)
 	if !ok {
-		t.Errorf("model.Interface() failed to convert to ViewTestStruct for lite view")
+		t.Errorf("models.Interface() failed to convert to ViewTestStruct for lite view")
 		return
 	}
 
@@ -616,7 +616,7 @@ func TestNestedObjects(t *testing.T) {
 		return
 	}
 
-	if !model.IsStructField(baseField) {
+	if !models.IsStructField(baseField) {
 		t.Errorf("Base field should be a struct")
 	}
 
@@ -698,7 +698,7 @@ func TestObjectsWithPointers(t *testing.T) {
 	// Check if interface can be retrieved
 	retrievedObj, ok := entityModel.Interface(false).(PointerStruct)
 	if !ok {
-		t.Errorf("model.Interface() failed to convert to PointerStruct")
+		t.Errorf("models.Interface() failed to convert to PointerStruct")
 		return
 	}
 
@@ -726,7 +726,7 @@ func TestObjectsWithPointers(t *testing.T) {
 	// Verify update worked
 	updatedObj, ok := entityModel.Interface(false).(PointerStruct)
 	if !ok {
-		t.Errorf("model.Interface() failed to convert to PointerStruct")
+		t.Errorf("models.Interface() failed to convert to PointerStruct")
 		return
 	}
 
@@ -758,7 +758,7 @@ func TestAssign(t *testing.T) {
 		t.Errorf("GetEntityModel failed, err: %s", modelErr.Error())
 	}
 
-	zeroModelVal := modelVal.Copy(model.MetaView)
+	zeroModelVal := modelVal.Copy(models.MetaView)
 
 	var id = 18
 	var intPtr = &id
@@ -886,7 +886,7 @@ func TestAssign(t *testing.T) {
 	log.Infof("newVal:%+v", newVal)
 	log.Infof("updatedVal:%+v", updatedVal002)
 
-	zero02Model := zeroModelVal.Copy(model.MetaView)
+	zero02Model := zeroModelVal.Copy(models.MetaView)
 	slicePtrField = zero02Model.GetField("slicePtr")
 	err = slicePtrField.AppendSliceValue(100)
 	if err != nil {

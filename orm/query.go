@@ -8,7 +8,7 @@ import (
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
 
@@ -20,7 +20,7 @@ type QueryRunner struct {
 }
 
 func NewQueryRunner(
-	vModel model.Model,
+	vModel models.Model,
 	executor database.Executor,
 	provider provider.Provider,
 	modelCodec codec.Codec,
@@ -32,7 +32,7 @@ func NewQueryRunner(
 	}
 }
 
-func (s *QueryRunner) innerQuery(vModel model.Model, filter model.Filter) (ret resultItemsList, err *cd.Error) {
+func (s *QueryRunner) innerQuery(vModel models.Model, filter models.Filter) (ret resultItemsList, err *cd.Error) {
 	queryResult, queryErr := s.sqlBuilder.BuildQuery(vModel, filter)
 	if queryErr != nil {
 		err = queryErr
@@ -73,11 +73,11 @@ func (s *QueryRunner) innerQuery(vModel model.Model, filter model.Filter) (ret r
 	return
 }
 
-func (s *QueryRunner) innerAssign(vModel model.Model, queryVal resultItems, deepLevel int) (ret model.Model, err *cd.Error) {
+func (s *QueryRunner) innerAssign(vModel models.Model, queryVal resultItems, deepLevel int) (ret models.Model, err *cd.Error) {
 	offset := 0
-	qModel := vModel.Copy(model.OriginView)
+	qModel := vModel.Copy(models.OriginView)
 	for _, field := range qModel.GetFields() {
-		if !model.IsBasicField(field) || !model.IsValidField(field) {
+		if !models.IsBasicField(field) || !models.IsValidField(field) {
 			continue
 		}
 		err = s.assignBasicField(field, queryVal[offset])
@@ -89,7 +89,7 @@ func (s *QueryRunner) innerAssign(vModel model.Model, queryVal resultItems, deep
 	}
 
 	for _, field := range qModel.GetFields() {
-		if model.IsBasicField(field) || !model.IsValidField(field) {
+		if models.IsBasicField(field) || !models.IsValidField(field) {
 			continue
 		}
 		err = s.assignModelField(qModel, field, deepLevel)
@@ -103,7 +103,7 @@ func (s *QueryRunner) innerAssign(vModel model.Model, queryVal resultItems, deep
 	return
 }
 
-func (s *QueryRunner) assignModelField(vModel model.Model, vField model.Field, deepLevel int) (err *cd.Error) {
+func (s *QueryRunner) assignModelField(vModel models.Model, vField models.Field, deepLevel int) (err *cd.Error) {
 	vErr := s.queryRelation(vModel, vField, deepLevel)
 	if vErr != nil {
 		err = vErr
@@ -114,7 +114,7 @@ func (s *QueryRunner) assignModelField(vModel model.Model, vField model.Field, d
 	return
 }
 
-func (s *QueryRunner) assignBasicField(vField model.Field, val any) (err *cd.Error) {
+func (s *QueryRunner) assignBasicField(vField models.Field, val any) (err *cd.Error) {
 	if val == nil {
 		return
 	}
@@ -130,12 +130,12 @@ func (s *QueryRunner) assignBasicField(vField model.Field, val any) (err *cd.Err
 	return
 }
 
-func (s *QueryRunner) queryRelation(vModel model.Model, vField model.Field, deepLevel int) (err *cd.Error) {
+func (s *QueryRunner) queryRelation(vModel models.Model, vField models.Field, deepLevel int) (err *cd.Error) {
 	if deepLevel > maxDeepLevel {
 		return
 	}
 
-	if model.IsSliceField(vField) {
+	if models.IsSliceField(vField) {
 		err = s.querySliceRelation(vModel, vField, deepLevel)
 		if err != nil {
 			log.Errorf("queryRelation field:%s failed, s.querySliceRelation error:%v", vField.GetName(), err.Error())
@@ -150,7 +150,7 @@ func (s *QueryRunner) queryRelation(vModel model.Model, vField model.Field, deep
 	return
 }
 
-func (s *QueryRunner) querySingleRelation(vModel model.Model, vField model.Field, deepLevel int) (err *cd.Error) {
+func (s *QueryRunner) querySingleRelation(vModel models.Model, vField models.Field, deepLevel int) (err *cd.Error) {
 	valueList, valueErr := s.innerQueryRelationKeys(vModel, vField)
 	if valueErr != nil {
 		err = valueErr
@@ -177,7 +177,7 @@ func (s *QueryRunner) querySingleRelation(vModel model.Model, vField model.Field
 	return
 }
 
-func (s *QueryRunner) querySliceRelation(vModel model.Model, vField model.Field, deepLevel int) (err *cd.Error) {
+func (s *QueryRunner) querySliceRelation(vModel models.Model, vField models.Field, deepLevel int) (err *cd.Error) {
 	valueList, valueErr := s.innerQueryRelationKeys(vModel, vField)
 	if valueErr != nil {
 		err = valueErr
@@ -198,7 +198,7 @@ func (s *QueryRunner) querySliceRelation(vModel model.Model, vField model.Field,
 	return
 }
 
-func (s *QueryRunner) innerQueryRelationKeys(vModel model.Model, vField model.Field) (ret resultItems, err *cd.Error) {
+func (s *QueryRunner) innerQueryRelationKeys(vModel models.Model, vField models.Field) (ret resultItems, err *cd.Error) {
 	relationResult, relationErr := s.sqlBuilder.BuildQueryRelation(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
@@ -234,7 +234,7 @@ func (s *QueryRunner) innerQueryRelationKeys(vModel model.Model, vField model.Fi
 	return
 }
 
-func (s *QueryRunner) innerQueryRelationSingleModel(id any, vField model.Field, deepLevel int) (err *cd.Error) {
+func (s *QueryRunner) innerQueryRelationSingleModel(id any, vField models.Field, deepLevel int) (err *cd.Error) {
 	vField.Reset()
 	rModel, rErr := s.modelProvider.GetTypeModel(vField.GetType())
 	if rErr != nil {
@@ -284,7 +284,7 @@ func (s *QueryRunner) innerQueryRelationSingleModel(id any, vField model.Field, 
 	return
 }
 
-func (s *QueryRunner) innerQueryRelationSliceModel(ids []any, vField model.Field, deepLevel int) (err *cd.Error) {
+func (s *QueryRunner) innerQueryRelationSliceModel(ids []any, vField models.Field, deepLevel int) (err *cd.Error) {
 	// 这里主动重置，避免VFiled的旧数据干扰
 	vField.Reset()
 	for _, id := range ids {
@@ -324,7 +324,7 @@ func (s *QueryRunner) innerQueryRelationSliceModel(ids []any, vField model.Field
 	return
 }
 
-func (s *QueryRunner) Query(filter model.Filter) (ret []model.Model, err *cd.Error) {
+func (s *QueryRunner) Query(filter models.Filter) (ret []models.Model, err *cd.Error) {
 	queryValueList, queryValueErr := s.innerQuery(s.vModel, filter)
 	if queryValueErr != nil {
 		err = queryValueErr
@@ -342,7 +342,7 @@ func (s *QueryRunner) Query(filter model.Filter) (ret []model.Model, err *cd.Err
 		return
 	}
 
-	sliceValue := []model.Model{}
+	sliceValue := []models.Model{}
 	for idx := 0; idx < len(queryValueList); idx++ {
 		modelVal, modelErr := s.innerAssign(s.vModel, queryValueList[idx], 0)
 		if modelErr != nil {
@@ -358,14 +358,14 @@ func (s *QueryRunner) Query(filter model.Filter) (ret []model.Model, err *cd.Err
 	return
 }
 
-func (s *impl) Query(vModel model.Model) (ret model.Model, err *cd.Error) {
+func (s *impl) Query(vModel models.Model) (ret models.Model, err *cd.Error) {
 	if vModel == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return
 	}
 
 	// 这里主动Copy一份出来，是为了避免在查询数据过程中对源数据产生了干扰
-	vModel = vModel.Copy(model.OriginView)
+	vModel = vModel.Copy(models.OriginView)
 	vFilter, vErr := getModelFilter(vModel, s.modelProvider, s.modelCodec)
 	if vErr != nil {
 		err = vErr

@@ -6,7 +6,7 @@ import (
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
 
@@ -14,7 +14,7 @@ type CreateRunner struct {
 	baseRunner
 }
 
-func NewCreateRunner(vModel model.Model, executor database.Executor, provider provider.Provider, modelCodec codec.Codec) *CreateRunner {
+func NewCreateRunner(vModel models.Model, executor database.Executor, provider provider.Provider, modelCodec codec.Codec) *CreateRunner {
 	return &CreateRunner{
 		baseRunner: newBaseRunner(vModel, executor, provider, modelCodec, false, 0),
 	}
@@ -35,7 +35,7 @@ func (s *CreateRunner) createHost() (err *cd.Error) {
 	return
 }
 
-func (s *CreateRunner) createRelation(vField model.Field) (err *cd.Error) {
+func (s *CreateRunner) createRelation(vField models.Field) (err *cd.Error) {
 	relationResult, relationErr := s.sqlBuilder.BuildCreateRelationTable(s.vModel, vField)
 	if relationErr != nil {
 		err = relationErr
@@ -58,7 +58,7 @@ func (s *CreateRunner) Create() (err *cd.Error) {
 	}
 
 	for _, field := range s.vModel.GetFields() {
-		if model.IsBasicField(field) {
+		if models.IsBasicField(field) {
 			continue
 		}
 
@@ -89,7 +89,7 @@ func (s *CreateRunner) Create() (err *cd.Error) {
 	return
 }
 
-func (s *impl) Create(vModel model.Model) (err *cd.Error) {
+func (s *impl) Create(vModel models.Model) (err *cd.Error) {
 	if vModel == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return

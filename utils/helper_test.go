@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 type TestVal struct {
@@ -47,7 +47,7 @@ func TestTypeEnumEdgeCases(t *testing.T) {
 	if enumErr != nil {
 		t.Errorf("GetTypeEnum for slice of pointers should not error, got: %v", enumErr)
 	}
-	if enumVal != model.TypeSliceValue {
+	if enumVal != models.TypeSliceValue {
 		t.Errorf("GetTypeEnum for slice of pointers expected TypeSliceValue, got: %v", enumVal)
 	}
 

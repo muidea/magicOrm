@@ -7,11 +7,11 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/database"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 // BuildDelete  BuildDelete
-func (s *Builder) BuildDelete(vModel model.Model) (ret database.Result, err *cd.Error) {
+func (s *Builder) BuildDelete(vModel models.Model) (ret database.Result, err *cd.Error) {
 	resultStackPtr := &ResultStack{}
 	filterStr, filterErr := s.buildFieldFilter(vModel.GetPrimaryField(), resultStackPtr)
 	if filterErr != nil {
@@ -31,7 +31,7 @@ func (s *Builder) BuildDelete(vModel model.Model) (ret database.Result, err *cd.
 }
 
 // BuildDeleteRelation BuildDeleteRelation
-func (s *Builder) BuildDeleteRelation(vModel model.Model, vField model.Field) (delHost, delRelation database.Result, err *cd.Error) {
+func (s *Builder) BuildDeleteRelation(vModel models.Model, vField models.Field) (delHost, delRelation database.Result, err *cd.Error) {
 	hostVal := vModel.GetPrimaryField().GetValue().Get()
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -90,17 +90,17 @@ func TestTypeImpl_GetValue(t *testing.T) {
 	tests := []struct {
 		name  string
 		input reflect.Type
-		want  model.TypeDeclare
+		want  models.TypeDeclare
 	}{
 		{
 			name:  "int type",
 			input: reflect.TypeOf(0),
-			want:  model.TypeIntegerValue,
+			want:  models.TypeIntegerValue,
 		},
 		{
 			name:  "string type",
 			input: reflect.TypeOf(""),
-			want:  model.TypeStringValue,
+			want:  models.TypeStringValue,
 		},
 	}
 
@@ -162,7 +162,7 @@ func TestTypeImpl_Interface(t *testing.T) {
 func TestTypeImpl_Elem(t *testing.T) {
 	typ, _ := NewType(reflect.TypeOf([]int{}))
 	elem := typ.Elem()
-	assert.Equal(t, model.TypeIntegerValue, elem.GetValue())
+	assert.Equal(t, models.TypeIntegerValue, elem.GetValue())
 }
 
 func TestTypeImpl_IsBasic(t *testing.T) {
@@ -247,7 +247,7 @@ func TestTypeImpl_Interface_CanSet(t *testing.T) {
 	iVal := 100
 	intTypePtr, intTypeErr := NewType(reflect.TypeOf(iVal))
 	assert.Nil(t, intTypeErr)
-	assert.Equal(t, model.TypeIntegerValue, intTypePtr.GetValue())
+	assert.Equal(t, models.TypeIntegerValue, intTypePtr.GetValue())
 	valPtr, valErr := intTypePtr.Interface(nil)
 	assert.Nil(t, valErr)
 	assert.Equal(t, true, valPtr.IsValid())

@@ -3,7 +3,7 @@ package local
 import (
 	"testing"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 func TestSpec(t *testing.T) {
@@ -16,7 +16,7 @@ func TestSpec(t *testing.T) {
 	if specPtr.GetFieldName() != "spec" {
 		t.Errorf("NewSpec failed,current:%s, expect:%s", specPtr.GetFieldName(), "spec")
 	}
-	if specPtr.GetValueDeclare() == model.AutoIncrement || specPtr.IsPrimaryKey() {
+	if specPtr.GetValueDeclare() == models.AutoIncrement || specPtr.IsPrimaryKey() {
 		t.Errorf("NewSpec failed")
 		return
 	}
@@ -30,7 +30,7 @@ func TestSpec(t *testing.T) {
 	if specPtr.GetFieldName() != "spec" {
 		t.Errorf("NewSpec failed,current:%s, expect:%s", specPtr.GetFieldName(), "spec")
 	}
-	if specPtr.GetValueDeclare() != model.AutoIncrement || specPtr.IsPrimaryKey() {
+	if specPtr.GetValueDeclare() != models.AutoIncrement || specPtr.IsPrimaryKey() {
 		t.Errorf("NewSpec failed")
 		return
 	}
@@ -44,7 +44,7 @@ func TestSpec(t *testing.T) {
 	if specPtr.GetFieldName() != "spec" {
 		t.Errorf("NewSpec failed,current:%s, expect:%s", specPtr.GetFieldName(), "spec")
 	}
-	if specPtr.GetValueDeclare() != model.AutoIncrement || !specPtr.IsPrimaryKey() {
+	if specPtr.GetValueDeclare() != models.AutoIncrement || !specPtr.IsPrimaryKey() {
 		t.Errorf("NewSpec failed")
 		return
 	}
@@ -58,7 +58,7 @@ func TestSpec(t *testing.T) {
 	if specPtr.GetFieldName() != "spec" {
 		t.Errorf("NewSpec failed,current:%s, expect:%s", specPtr.GetFieldName(), "spec")
 	}
-	if specPtr.GetValueDeclare() != model.AutoIncrement || !specPtr.IsPrimaryKey() {
+	if specPtr.GetValueDeclare() != models.AutoIncrement || !specPtr.IsPrimaryKey() {
 		t.Errorf("NewSpec failed")
 		return
 	}
@@ -70,19 +70,19 @@ func TestSpecValueDeclares(t *testing.T) {
 		name         string
 		spec         string
 		fieldName    string
-		valueDeclare model.ValueDeclare
+		valueDeclare models.ValueDeclare
 		isPrimaryKey bool
 	}{
-		{"Default", "field", "field", model.Customer, false},
-		{"Auto", "field auto", "field", model.AutoIncrement, false},
-		{"AutoAbbrev", "field auto", "field", model.AutoIncrement, false},
-		{"UUID", "field uuid", "field", model.UUID, false},
-		{"SnowFlake", "field snowflake", "field", model.SnowFlake, false},
-		{"DateTime", "field datetime", "field", model.DateTime, false},
-		{"PrimaryKey", "field key", "field", model.Customer, true},
-		{"Primary", "field key", "field", model.Customer, true},
-		{"PrimaryAndAuto", "field key auto", "field", model.AutoIncrement, true},
-		{"ComplexName", "complex_field_name", "complex_field_name", model.Customer, false},
+		{"Default", "field", "field", models.Customer, false},
+		{"Auto", "field auto", "field", models.AutoIncrement, false},
+		{"AutoAbbrev", "field auto", "field", models.AutoIncrement, false},
+		{"UUID", "field uuid", "field", models.UUID, false},
+		{"SnowFlake", "field snowflake", "field", models.SnowFlake, false},
+		{"DateTime", "field datetime", "field", models.DateTime, false},
+		{"PrimaryKey", "field key", "field", models.Customer, true},
+		{"Primary", "field key", "field", models.Customer, true},
+		{"PrimaryAndAuto", "field key auto", "field", models.AutoIncrement, true},
+		{"ComplexName", "complex_field_name", "complex_field_name", models.Customer, false},
 	}
 
 	for _, tc := range testCases {
@@ -127,9 +127,9 @@ func TestSpecDescription(t *testing.T) {
 			"field", specPtr.GetFieldName())
 	}
 
-	if specPtr.GetValueDeclare() != model.AutoIncrement {
+	if specPtr.GetValueDeclare() != models.AutoIncrement {
 		t.Errorf("Value declare mismatch, expected: %v, got: %v",
-			model.AutoIncrement, specPtr.GetValueDeclare())
+			models.AutoIncrement, specPtr.GetValueDeclare())
 	}
 
 	if !specPtr.IsPrimaryKey() {
@@ -155,7 +155,7 @@ func TestInvalidSpecs(t *testing.T) {
 			t.Logf("Case %d: Got expected error: %s", i, err.Error())
 		} else {
 			// If no error, it should have created a spec with default value
-			if invalid == "field invalid" && specPtr.GetValueDeclare() != model.Customer {
+			if invalid == "field invalid" && specPtr.GetValueDeclare() != models.Customer {
 				t.Errorf("Case %d: Invalid value declare should default to Customer", i)
 			}
 		}

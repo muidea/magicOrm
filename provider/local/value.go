@@ -6,7 +6,7 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 type ValueImpl struct {
@@ -100,8 +100,8 @@ func (s *ValueImpl) Get() any {
 // UnpackValue expands the contained value into individual elements.
 // For slices, it returns each element as separate reflect.Value entries.
 // For non-slice values, returns a single-element slice containing the value.
-func (s *ValueImpl) UnpackValue() (ret []model.Value) {
-	ret = []model.Value{}
+func (s *ValueImpl) UnpackValue() (ret []models.Value) {
+	ret = []models.Value{}
 	realVal := reflect.Indirect(s.value)
 	if realVal.Kind() == reflect.Slice {
 		for idx := 0; idx < realVal.Len(); idx++ {

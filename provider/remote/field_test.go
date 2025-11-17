@@ -3,7 +3,7 @@ package remote
 import (
 	"testing"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 func TestFieldImplementation(t *testing.T) {
@@ -12,7 +12,7 @@ func TestFieldImplementation(t *testing.T) {
 		Name:        "testField",
 		ShowName:    "Test Field",
 		Description: "Test field description",
-		Type:        &TypeImpl{Name: "int64", Value: model.TypeBigIntegerValue},
+		Type:        &TypeImpl{Name: "int64", Value: models.TypeBigIntegerValue},
 		Spec:        &SpecImpl{FieldName: "testField", PrimaryKey: true},
 		value:       NewValue(int64(123)),
 	}
@@ -70,27 +70,27 @@ func TestFieldImplementation(t *testing.T) {
 	}
 
 	// Test IsPrimaryField
-	if !model.IsPrimaryField(field) {
+	if !models.IsPrimaryField(field) {
 		t.Errorf("IsPrimaryField failed, expected true, got false")
 	}
 
 	// Test IsBasic
-	if !model.IsBasicField(field) {
+	if !models.IsBasicField(field) {
 		t.Errorf("IsBasic failed, expected true, got false")
 	}
 
 	// Test IsStruct
-	if model.IsStructField(field) {
+	if models.IsStructField(field) {
 		t.Errorf("IsStruct failed, expected false, got true")
 	}
 
 	// Test IsSlice
-	if model.IsSliceField(field) {
+	if models.IsSliceField(field) {
 		t.Errorf("IsSlice failed, expected false, got true")
 	}
 
 	// Test IsPtrType
-	if model.IsPtrField(field) {
+	if models.IsPtrField(field) {
 		t.Errorf("IsPtrType failed, expected false, got true")
 	}
 }
@@ -101,13 +101,13 @@ func TestFieldCopy(t *testing.T) {
 		Name:        "testField",
 		ShowName:    "Test Field",
 		Description: "Test field description",
-		Type:        &TypeImpl{Name: "int64", Value: model.TypeBigIntegerValue},
+		Type:        &TypeImpl{Name: "int64", Value: models.TypeBigIntegerValue},
 		Spec:        &SpecImpl{FieldName: "testField", PrimaryKey: true},
 		value:       NewValue(int64(123)),
 	}
 
 	// Test copy with reset=false
-	copiedField, err := field.copy(model.OriginView)
+	copiedField, err := field.copy(models.OriginView)
 	if err != nil {
 		t.Errorf("Field copy(false) failed with error: %v", err)
 		return
@@ -125,7 +125,7 @@ func TestFieldCopy(t *testing.T) {
 	}
 
 	// Test copy with reset=true
-	resetField, err := field.copy(model.MetaView)
+	resetField, err := field.copy(models.MetaView)
 	if err != nil {
 		t.Errorf("Field copy(true) failed with error: %v", err)
 		return
@@ -154,7 +154,7 @@ func TestFieldValueVerification(t *testing.T) {
 			name: "Valid integer primary key",
 			field: &Field{
 				Name: "id",
-				Type: &TypeImpl{Name: "int64", Value: model.TypeBigIntegerValue},
+				Type: &TypeImpl{Name: "int64", Value: models.TypeBigIntegerValue},
 				Spec: &SpecImpl{FieldName: "id", PrimaryKey: true},
 			},
 			expectedToPass: true,
@@ -163,7 +163,7 @@ func TestFieldValueVerification(t *testing.T) {
 			name: "Valid string primary key",
 			field: &Field{
 				Name: "id",
-				Type: &TypeImpl{Name: "string", Value: model.TypeStringValue},
+				Type: &TypeImpl{Name: "string", Value: models.TypeStringValue},
 				Spec: &SpecImpl{FieldName: "id", PrimaryKey: true},
 			},
 			expectedToPass: true,
@@ -172,8 +172,8 @@ func TestFieldValueVerification(t *testing.T) {
 			name: "Valid auto-increment field",
 			field: &Field{
 				Name: "id",
-				Type: &TypeImpl{Name: "int64", Value: model.TypeBigIntegerValue},
-				Spec: &SpecImpl{FieldName: "id", ValueDeclare: model.AutoIncrement},
+				Type: &TypeImpl{Name: "int64", Value: models.TypeBigIntegerValue},
+				Spec: &SpecImpl{FieldName: "id", ValueDeclare: models.AutoIncrement},
 			},
 			expectedToPass: true,
 		},
@@ -181,8 +181,8 @@ func TestFieldValueVerification(t *testing.T) {
 			name: "Invalid auto-increment on string field",
 			field: &Field{
 				Name: "id",
-				Type: &TypeImpl{Name: "string", Value: model.TypeStringValue},
-				Spec: &SpecImpl{FieldName: "id", ValueDeclare: model.AutoIncrement},
+				Type: &TypeImpl{Name: "string", Value: models.TypeStringValue},
+				Spec: &SpecImpl{FieldName: "id", ValueDeclare: models.AutoIncrement},
 			},
 			expectedToPass: false,
 		},
@@ -190,8 +190,8 @@ func TestFieldValueVerification(t *testing.T) {
 			name: "Valid UUID field",
 			field: &Field{
 				Name: "id",
-				Type: &TypeImpl{Name: "string", Value: model.TypeStringValue},
-				Spec: &SpecImpl{FieldName: "id", ValueDeclare: model.UUID},
+				Type: &TypeImpl{Name: "string", Value: models.TypeStringValue},
+				Spec: &SpecImpl{FieldName: "id", ValueDeclare: models.UUID},
 			},
 			expectedToPass: true,
 		},
@@ -199,8 +199,8 @@ func TestFieldValueVerification(t *testing.T) {
 			name: "Invalid UUID on integer field",
 			field: &Field{
 				Name: "id",
-				Type: &TypeImpl{Name: "int64", Value: model.TypeBigIntegerValue},
-				Spec: &SpecImpl{FieldName: "id", ValueDeclare: model.UUID},
+				Type: &TypeImpl{Name: "int64", Value: models.TypeBigIntegerValue},
+				Spec: &SpecImpl{FieldName: "id", ValueDeclare: models.UUID},
 			},
 			expectedToPass: false,
 		},
@@ -208,8 +208,8 @@ func TestFieldValueVerification(t *testing.T) {
 			name: "Valid SnowFlake field",
 			field: &Field{
 				Name: "id",
-				Type: &TypeImpl{Name: "int64", Value: model.TypeBigIntegerValue},
-				Spec: &SpecImpl{FieldName: "id", ValueDeclare: model.SnowFlake},
+				Type: &TypeImpl{Name: "int64", Value: models.TypeBigIntegerValue},
+				Spec: &SpecImpl{FieldName: "id", ValueDeclare: models.SnowFlake},
 			},
 			expectedToPass: true,
 		},
@@ -217,8 +217,8 @@ func TestFieldValueVerification(t *testing.T) {
 			name: "Invalid SnowFlake on string field",
 			field: &Field{
 				Name: "id",
-				Type: &TypeImpl{Name: "string", Value: model.TypeStringValue},
-				Spec: &SpecImpl{FieldName: "id", ValueDeclare: model.SnowFlake},
+				Type: &TypeImpl{Name: "string", Value: models.TypeStringValue},
+				Spec: &SpecImpl{FieldName: "id", ValueDeclare: models.SnowFlake},
 			},
 			expectedToPass: false,
 		},
@@ -226,8 +226,8 @@ func TestFieldValueVerification(t *testing.T) {
 			name: "Valid DateTime field",
 			field: &Field{
 				Name: "createdAt",
-				Type: &TypeImpl{Name: "time.Time", Value: model.TypeDateTimeValue},
-				Spec: &SpecImpl{FieldName: "createdAt", ValueDeclare: model.DateTime},
+				Type: &TypeImpl{Name: "time.Time", Value: models.TypeDateTimeValue},
+				Spec: &SpecImpl{FieldName: "createdAt", ValueDeclare: models.DateTime},
 			},
 			expectedToPass: true,
 		},
@@ -235,8 +235,8 @@ func TestFieldValueVerification(t *testing.T) {
 			name: "Invalid DateTime on string field",
 			field: &Field{
 				Name: "createdAt",
-				Type: &TypeImpl{Name: "string", Value: model.TypeStringValue},
-				Spec: &SpecImpl{FieldName: "createdAt", ValueDeclare: model.DateTime},
+				Type: &TypeImpl{Name: "string", Value: models.TypeStringValue},
+				Spec: &SpecImpl{FieldName: "createdAt", ValueDeclare: models.DateTime},
 			},
 			expectedToPass: false,
 		},
@@ -244,7 +244,7 @@ func TestFieldValueVerification(t *testing.T) {
 			name: "Invalid primary key on struct field",
 			field: &Field{
 				Name: "objField",
-				Type: &TypeImpl{Name: "TestStruct", Value: model.TypeStructValue},
+				Type: &TypeImpl{Name: "TestStruct", Value: models.TypeStructValue},
 				Spec: &SpecImpl{FieldName: "objField", PrimaryKey: true},
 			},
 			expectedToPass: false,
@@ -253,7 +253,7 @@ func TestFieldValueVerification(t *testing.T) {
 			name: "Invalid primary key on slice field",
 			field: &Field{
 				Name: "sliceField",
-				Type: &TypeImpl{Name: "[]int", Value: model.TypeSliceValue},
+				Type: &TypeImpl{Name: "[]int", Value: models.TypeSliceValue},
 				Spec: &SpecImpl{FieldName: "sliceField", PrimaryKey: true},
 			},
 			expectedToPass: false,

@@ -5,20 +5,20 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/utils"
 )
 
 type filterItem struct {
-	oprCode model.OprCode
+	oprCode models.OprCode
 	value   *ValueImpl
 }
 
-func (s *filterItem) OprCode() model.OprCode {
+func (s *filterItem) OprCode() models.OprCode {
 	return s.oprCode
 }
 
-func (s *filterItem) OprValue() model.Value {
+func (s *filterItem) OprValue() models.Value {
 	return s.value
 }
 
@@ -251,13 +251,13 @@ func (s *ObjectFilter) ValueMask(val any) (err *cd.Error) {
 	return
 }
 
-func (s *ObjectFilter) GetFilterItem(key string) model.FilterItem {
+func (s *ObjectFilter) GetFilterItem(key string) models.FilterItem {
 	itemVal, itemErr := s.getFilterValue(key, s.EqualFilter)
 	if itemErr != nil {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: model.EqualOpr, value: NewValue(itemVal.Get())}
+		return &filterItem{oprCode: models.EqualOpr, value: NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.NotEqualFilter)
@@ -265,7 +265,7 @@ func (s *ObjectFilter) GetFilterItem(key string) model.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: model.NotEqualOpr, value: NewValue(itemVal.Get())}
+		return &filterItem{oprCode: models.NotEqualOpr, value: NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.BelowFilter)
@@ -273,7 +273,7 @@ func (s *ObjectFilter) GetFilterItem(key string) model.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: model.BelowOpr, value: NewValue(itemVal.Get())}
+		return &filterItem{oprCode: models.BelowOpr, value: NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.AboveFilter)
@@ -281,7 +281,7 @@ func (s *ObjectFilter) GetFilterItem(key string) model.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: model.AboveOpr, value: NewValue(itemVal.Get())}
+		return &filterItem{oprCode: models.AboveOpr, value: NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.InFilter)
@@ -289,7 +289,7 @@ func (s *ObjectFilter) GetFilterItem(key string) model.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: model.InOpr, value: NewValue(itemVal.Get())}
+		return &filterItem{oprCode: models.InOpr, value: NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.NotInFilter)
@@ -297,7 +297,7 @@ func (s *ObjectFilter) GetFilterItem(key string) model.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: model.NotInOpr, value: NewValue(itemVal.Get())}
+		return &filterItem{oprCode: models.NotInOpr, value: NewValue(itemVal.Get())}
 	}
 
 	itemVal, itemErr = s.getFilterValue(key, s.LikeFilter)
@@ -305,7 +305,7 @@ func (s *ObjectFilter) GetFilterItem(key string) model.FilterItem {
 		return nil
 	}
 	if itemVal != nil {
-		return &filterItem{oprCode: model.LikeOpr, value: NewValue(itemVal.Get())}
+		return &filterItem{oprCode: models.LikeOpr, value: NewValue(itemVal.Get())}
 	}
 
 	return nil
@@ -325,7 +325,7 @@ func (s *ObjectFilter) getFilterValue(key string, items []*FieldValue) (ret *Fie
 	return
 }
 
-func (s *ObjectFilter) Paginationer() model.Paginationer {
+func (s *ObjectFilter) Paginationer() models.Paginationer {
 	if s.PageFilter == nil {
 		return nil
 	}
@@ -333,7 +333,7 @@ func (s *ObjectFilter) Paginationer() model.Paginationer {
 	return s.PageFilter
 }
 
-func (s *ObjectFilter) Sorter() model.Sorter {
+func (s *ObjectFilter) Sorter() models.Sorter {
 	if s.SortFilter == nil {
 		return nil
 	}
@@ -341,7 +341,7 @@ func (s *ObjectFilter) Sorter() model.Sorter {
 	return s.SortFilter
 }
 
-func (s *ObjectFilter) MaskModel() model.Model {
+func (s *ObjectFilter) MaskModel() models.Model {
 	maskObject := s.bindObject
 	if s.MaskValue != nil {
 		for _, val := range s.MaskValue.Fields {
@@ -349,5 +349,5 @@ func (s *ObjectFilter) MaskModel() model.Model {
 		}
 	}
 
-	return maskObject.Copy(model.OriginView)
+	return maskObject.Copy(models.OriginView)
 }

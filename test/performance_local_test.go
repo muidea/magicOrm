@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
 )
@@ -307,7 +307,7 @@ func benchmarkFilterPerformance(t *testing.T, o1 orm.Orm, localProvider provider
 	// 2. 范围查询
 	rangeFilterStart := time.Now()
 
-	rangeFilter, err := localProvider.GetEntityFilter(&SimplePerf{}, model.MetaView)
+	rangeFilter, err := localProvider.GetEntityFilter(&SimplePerf{}, models.MetaView)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
@@ -349,7 +349,7 @@ func benchmarkFilterPerformance(t *testing.T, o1 orm.Orm, localProvider provider
 	// 4. 复合查询
 	complexFilterStart := time.Now()
 
-	complexFilter, err := localProvider.GetEntityFilter(&SimplePerf{}, model.MetaView)
+	complexFilter, err := localProvider.GetEntityFilter(&SimplePerf{}, models.MetaView)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return

@@ -6,7 +6,7 @@ import (
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
 
@@ -16,7 +16,7 @@ type InsertRunner struct {
 }
 
 func NewInsertRunner(
-	vModel model.Model,
+	vModel models.Model,
 	executor database.Executor,
 	provider provider.Provider,
 	modelCodec codec.Codec) *InsertRunner {
@@ -29,14 +29,14 @@ func NewInsertRunner(
 	}
 }
 
-func (s *InsertRunner) insertHost(vModel model.Model) (err *cd.Error) {
+func (s *InsertRunner) insertHost(vModel models.Model) (err *cd.Error) {
 	autoIncrementFlag := false
 	for _, field := range vModel.GetFields() {
-		if !model.IsBasicField(field) {
+		if !models.IsBasicField(field) {
 			continue
 		}
 
-		if field.GetSpec().GetValueDeclare() == model.AutoIncrement {
+		if field.GetSpec().GetValueDeclare() == models.AutoIncrement {
 			autoIncrementFlag = true
 		}
 	}
@@ -65,7 +65,7 @@ func (s *InsertRunner) insertHost(vModel model.Model) (err *cd.Error) {
 	return
 }
 
-func (s *InsertRunner) innerHost(vModel model.Model) (ret any, err *cd.Error) {
+func (s *InsertRunner) innerHost(vModel models.Model) (ret any, err *cd.Error) {
 	insertResult, insertErr := s.sqlBuilder.BuildInsert(vModel)
 	if insertErr != nil {
 		err = insertErr
@@ -85,8 +85,8 @@ func (s *InsertRunner) innerHost(vModel model.Model) (ret any, err *cd.Error) {
 	return
 }
 
-func (s *InsertRunner) insertRelation(vModel model.Model, vField model.Field) (err *cd.Error) {
-	if model.IsSliceField(vField) {
+func (s *InsertRunner) insertRelation(vModel models.Model, vField models.Field) (err *cd.Error) {
+	if models.IsSliceField(vField) {
 		rErr := s.insertSliceRelation(vModel, vField)
 		if rErr != nil {
 			err = rErr
@@ -105,7 +105,7 @@ func (s *InsertRunner) insertRelation(vModel model.Model, vField model.Field) (e
 	return
 }
 
-func (s *InsertRunner) insertSingleRelation(vModel model.Model, vField model.Field) (err *cd.Error) {
+func (s *InsertRunner) insertSingleRelation(vModel models.Model, vField models.Field) (err *cd.Error) {
 	elemType := vField.GetType().Elem()
 	rModel, rErr := s.modelProvider.GetTypeModel(elemType)
 	if rErr != nil {
@@ -120,7 +120,7 @@ func (s *InsertRunner) insertSingleRelation(vModel model.Model, vField model.Fie
 		return
 	}
 
-	if !model.IsPtrField(vField) {
+	if !models.IsPtrField(vField) {
 		rInsertRunner := NewInsertRunner(rModel, s.executor, s.modelProvider, s.modelCodec)
 		rModel, rErr = rInsertRunner.Insert()
 		if rErr != nil {
@@ -144,11 +144,11 @@ func (s *InsertRunner) insertSingleRelation(vModel model.Model, vField model.Fie
 		return
 	}
 
-	vField.SetValue(rModel.Interface(model.IsPtrField(vField)))
+	vField.SetValue(rModel.Interface(models.IsPtrField(vField)))
 	return
 }
 
-func (s *InsertRunner) insertSliceRelation(vModel model.Model, vField model.Field) (err *cd.Error) {
+func (s *InsertRunner) insertSliceRelation(vModel models.Model, vField models.Field) (err *cd.Error) {
 	fSliceValue := vField.GetSliceValue()
 	for _, fVal := range fSliceValue {
 		elemType := vField.GetType().Elem()
@@ -199,7 +199,7 @@ func (s *InsertRunner) insertSliceRelation(vModel model.Model, vField model.Fiel
 	return
 }
 
-func (s *InsertRunner) Insert() (ret model.Model, err *cd.Error) {
+func (s *InsertRunner) Insert() (ret models.Model, err *cd.Error) {
 	err = s.insertHost(s.vModel)
 	if err != nil {
 		log.Errorf("Insert failed, s.insertSingle error:%s", err.Error())
@@ -207,7 +207,7 @@ func (s *InsertRunner) Insert() (ret model.Model, err *cd.Error) {
 	}
 
 	for _, field := range s.vModel.GetFields() {
-		if model.IsBasicField(field) || !model.IsValidField(field) {
+		if models.IsBasicField(field) || !models.IsValidField(field) {
 			continue
 		}
 
@@ -222,7 +222,7 @@ func (s *InsertRunner) Insert() (ret model.Model, err *cd.Error) {
 	return
 }
 
-func (s *impl) Insert(vModel model.Model) (ret model.Model, err *cd.Error) {
+func (s *impl) Insert(vModel models.Model) (ret models.Model, err *cd.Error) {
 	if vModel == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return

@@ -7,11 +7,11 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/database"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 // BuildQuery build query sql
-func (s *Builder) BuildQuery(vModel model.Model, filter model.Filter) (ret database.Result, err *cd.Error) {
+func (s *Builder) BuildQuery(vModel models.Model, filter models.Filter) (ret database.Result, err *cd.Error) {
 	namesVal, nameErr := s.getFieldQueryNames(vModel)
 	if nameErr != nil {
 		err = nameErr
@@ -60,7 +60,7 @@ func (s *Builder) BuildQuery(vModel model.Model, filter model.Filter) (ret datab
 }
 
 // BuildQueryRelation build query relation sql
-func (s *Builder) BuildQueryRelation(vModel model.Model, vField model.Field) (ret database.Result, err *cd.Error) {
+func (s *Builder) BuildQueryRelation(vModel models.Model, vField models.Field) (ret database.Result, err *cd.Error) {
 	leftVal := vModel.GetPrimaryField().GetValue().Get()
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
@@ -81,10 +81,10 @@ func (s *Builder) BuildQueryRelation(vModel model.Model, vField model.Field) (re
 	return
 }
 
-func (s *Builder) getFieldQueryNames(vModel model.Model) (ret string, err *cd.Error) {
+func (s *Builder) getFieldQueryNames(vModel models.Model) (ret string, err *cd.Error) {
 	str := ""
 	for _, field := range vModel.GetFields() {
-		if !model.IsBasicField(field) || !model.IsValidField(field) {
+		if !models.IsBasicField(field) || !models.IsValidField(field) {
 			continue
 		}
 
@@ -99,10 +99,10 @@ func (s *Builder) getFieldQueryNames(vModel model.Model) (ret string, err *cd.Er
 	return
 }
 
-func (s *Builder) BuildModuleValueHolder(vModel model.Model) (ret []any, err *cd.Error) {
+func (s *Builder) BuildModuleValueHolder(vModel models.Model) (ret []any, err *cd.Error) {
 	items := []any{}
 	for _, field := range vModel.GetFields() {
-		if !model.IsBasicField(field) || !model.IsValidField(field) {
+		if !models.IsBasicField(field) || !models.IsValidField(field) {
 			continue
 		}
 

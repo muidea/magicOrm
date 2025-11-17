@@ -4,26 +4,26 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 type OprFunc func(string, any, *ResultStack) string
 
-func getOprFunc(filterItem model.FilterItem) (ret OprFunc) {
+func getOprFunc(filterItem models.FilterItem) (ret OprFunc) {
 	switch filterItem.OprCode() {
-	case model.EqualOpr:
+	case models.EqualOpr:
 		return EqualOpr
-	case model.NotEqualOpr:
+	case models.NotEqualOpr:
 		return NotEqualOpr
-	case model.BelowOpr:
+	case models.BelowOpr:
 		return BelowOpr
-	case model.AboveOpr:
+	case models.AboveOpr:
 		return AboveOpr
-	case model.InOpr:
+	case models.InOpr:
 		return InOpr
-	case model.NotInOpr:
+	case models.NotInOpr:
 		return NotInOpr
-	case model.LikeOpr:
+	case models.LikeOpr:
 		return LikeOpr
 	}
 

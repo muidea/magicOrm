@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/muidea/magicCommon/foundation/log"
-	"github.com/muidea/magicOrm/model"
+	"github.com/muidea/magicOrm/models"
 )
 
 func TestArray(t *testing.T) {
@@ -225,12 +225,12 @@ func TestUnpackValue(t *testing.T) {
 	tests := []struct {
 		name     string
 		value    any
-		expected []model.Value
+		expected []models.Value
 	}{
 		{
 			name:  "slice value",
 			value: []int{1, 2, 3},
-			expected: []model.Value{
+			expected: []models.Value{
 				NewValue(reflect.ValueOf(1)),
 				NewValue(reflect.ValueOf(2)),
 				NewValue(reflect.ValueOf(3)),
@@ -239,12 +239,12 @@ func TestUnpackValue(t *testing.T) {
 		{
 			name:     "non-slice value",
 			value:    42,
-			expected: []model.Value{NewValue(reflect.ValueOf(42))},
+			expected: []models.Value{NewValue(reflect.ValueOf(42))},
 		},
 		{
 			name:     "empty slice value",
 			value:    []int{},
-			expected: []model.Value{},
+			expected: []models.Value{},
 		},
 	}
 
