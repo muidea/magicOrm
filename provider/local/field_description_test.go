@@ -137,7 +137,7 @@ func TestFieldValueDeclare(t *testing.T) {
 	}{
 		{"id", models.AutoIncrement},
 		{"uuid", models.UUID},
-		{"snowflake", models.SnowFlake},
+		{"snowflake", models.Snowflake},
 		{"created", models.DateTime},
 	}
 

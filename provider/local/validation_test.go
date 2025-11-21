@@ -201,16 +201,16 @@ func TestSpecValidation(t *testing.T) {
 	if err != nil {
 		t.Errorf("NewSpec failed for snowflake tag: %s", err.Error())
 	}
-	if snowFlakeSpec.GetValueDeclare() != models.SnowFlake {
-		t.Errorf("GetValueDeclare should return SnowFlake for snowflake tag")
+	if snowFlakeSpec.GetValueDeclare() != models.Snowflake {
+		t.Errorf("GetValueDeclare should return Snowflake for snowflake tag")
 	}
 
 	dateTimeTag := reflect.StructTag(`orm:"time datetime"`)
 	dateTimeSpec, err := NewSpec(dateTimeTag)
 	if err != nil {
-		t.Errorf("NewSpec failed for dateTime tag: %s", err.Error())
+		t.Errorf("NewSpec failed for datetime tag: %s", err.Error())
 	}
 	if dateTimeSpec.GetValueDeclare() != models.DateTime {
-		t.Errorf("GetValueDeclare should return DateTime for dateTime tag")
+		t.Errorf("GetValueDeclare should return DateTime for datetime tag")
 	}
 }

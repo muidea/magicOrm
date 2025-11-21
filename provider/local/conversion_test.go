@@ -91,8 +91,8 @@ type ViewTagStruct struct {
 type ValueDeclareStruct struct {
 	Id        int       `orm:"id key"`
 	UUIDField string    `orm:"uuidField,uuid"`
-	SnowField int64     `orm:"snowField,snowFlake"`
-	TimeField time.Time `orm:"timeField,dateTime"`
+	SnowField int64     `orm:"snowField,snowflake"`
+	TimeField time.Time `orm:"timeField,datetime"`
 }
 
 // TestStructToModelConversion tests rule 1: struct object to models.Model conversion
@@ -498,16 +498,16 @@ func TestValueDeclarations(t *testing.T) {
 		// Check value declarations based on field name
 		switch field.GetName() {
 		case "uuidField":
-			if field.GetSpec().GetValueDeclare() != 2 { // UUID = 2
-				t.Errorf("Field 'uuidField' should have UUID value declaration, got %d", field.GetSpec().GetValueDeclare())
+			if field.GetSpec().GetValueDeclare() != models.UUID { // UUID = 2
+				t.Errorf("Field 'uuidField' should have UUID value declaration, got %s", field.GetSpec().GetValueDeclare())
 			}
 		case "snowField":
-			if field.GetSpec().GetValueDeclare() != 3 { // SnowFlake = 3
-				t.Errorf("Field 'snowField' should have SnowFlake value declaration, got %d", field.GetSpec().GetValueDeclare())
+			if field.GetSpec().GetValueDeclare() != models.Snowflake { // Snowflake = 3
+				t.Errorf("Field 'snowField' should have Snowflake value declaration, got %s", field.GetSpec().GetValueDeclare())
 			}
 		case "timeField":
-			if field.GetSpec().GetValueDeclare() != 4 { // DateTime = 4
-				t.Errorf("Field 'timeField' should have DateTime value declaration, got %d", field.GetSpec().GetValueDeclare())
+			if field.GetSpec().GetValueDeclare() != models.DateTime { // DateTime = 4
+				t.Errorf("Field 'timeField' should have DateTime value declaration, got %s", field.GetSpec().GetValueDeclare())
 			}
 		}
 	}

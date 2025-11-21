@@ -14,15 +14,9 @@ import (
 	"github.com/muidea/magicOrm/models"
 )
 
-const (
-	Key       = "key"
-	Auto      = "auto"
-	UUID      = "uuid"
-	SnowFlake = "snowflake"
-	DateTime  = "datetime"
-)
+const ()
 
-var snowFlakeNodePtr *fu.SnowFlakeNode
+var snowFlakeNodePtr *fu.SnowflakeNode
 var snowFlakeOnce sync.Once
 
 func init() {
@@ -36,7 +30,7 @@ func init() {
 			nodeID = 1
 		}
 
-		snowFlakeNodePtr, _ = fu.NewSnowFlakeNode(nodeID)
+		snowFlakeNodePtr, _ = fu.NewSnowflakeNode(nodeID)
 	})
 }
 
@@ -99,7 +93,7 @@ func GetNewUUID() (ret string) {
 	return
 }
 
-func GetNewSnowFlakeID() (ret int64) {
+func GetNewSnowflakeID() (ret int64) {
 	ret = snowFlakeNodePtr.Generate().Int64()
 	return
 }
@@ -558,14 +552,14 @@ func ConvertRawToString(val any) (ret string, err *cd.Error) {
 	return
 }
 
-// ConvertRawToDateTime convert raw dateTime
+// ConvertRawToDateTime convert raw datetime
 // 如果val为指针值，尝试将其转换成*time.Time，否则转换成time.Time
 // 将转换后的结果以models.RawVal形式返回
 // 转换出错返回*cd.Error
 func ConvertRawToDateTime(val any) (ret time.Time, err *cd.Error) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
-			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal dateTime value, val:%v", val))
+			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal datetime value, val:%v", val))
 		}
 	}()
 
@@ -848,13 +842,13 @@ func ConvertToString(rVal reflect.Value) (ret string, err *cd.Error) {
 	return
 }
 
-// ConvertToDateTime convert dateTime
+// ConvertToDateTime convert datetime
 // rVal 对应的类型如果是String，则要求值的格式必须是符合CSTLayout的时间格式("2006-01-02 15:04:05")
 // rVal 对应的类型如果是Struct，则要求值是time.Time类型
 func ConvertToDateTime(rVal reflect.Value) (ret time.Time, err *cd.Error) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
-			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal dateTime value, val:%v", rVal.Interface()))
+			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal datetime value, val:%v", rVal.Interface()))
 		}
 	}()
 
@@ -877,7 +871,7 @@ func ConvertToDateTime(rVal reflect.Value) (ret time.Time, err *cd.Error) {
 		case models.TypeStructTimeName:
 			ret = rVal.Interface().(time.Time)
 		default:
-			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))
+			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal datetime value, val type:%v", rVal.Type().String()))
 		}
 	case reflect.Array, reflect.Slice:
 		tVal, tErr := time.Parse(fu.CSTLayoutWithMillisecond, fmt.Sprintf("%s", rVal.Interface()))
@@ -887,7 +881,7 @@ func ConvertToDateTime(rVal reflect.Value) (ret time.Time, err *cd.Error) {
 		}
 		ret = tVal
 	default:
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal dateTime value, val type:%v", rVal.Type().String()))
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal datetime value, val type:%v", rVal.Type().String()))
 	}
 
 	return

@@ -54,7 +54,7 @@ Object描述数据模型信息，模型信息使用json格式进行序列化保�
         Customer ValueDeclare = iota
         AutoIncrement
         UUID
-        SnowFlake
+        Snowflake
         DateTime
     )
 

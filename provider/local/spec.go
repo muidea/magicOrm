@@ -7,7 +7,6 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 
 	"github.com/muidea/magicOrm/models"
-	"github.com/muidea/magicOrm/utils"
 )
 
 const (
@@ -42,15 +41,15 @@ func getOrmSpec(spec string) (ret *SpecImpl, err *cd.Error) {
 	ret.fieldName = items[0]
 	for idx := 1; idx < len(items); idx++ {
 		switch items[idx] {
-		case utils.Auto:
+		case models.AutoIncrement:
 			ret.valueDeclare = models.AutoIncrement
-		case utils.UUID:
+		case models.UUID:
 			ret.valueDeclare = models.UUID
-		case utils.SnowFlake:
-			ret.valueDeclare = models.SnowFlake
-		case utils.DateTime:
+		case models.Snowflake:
+			ret.valueDeclare = models.Snowflake
+		case models.DateTime:
 			ret.valueDeclare = models.DateTime
-		case utils.Key:
+		case models.Key:
 			ret.primaryKey = true
 		}
 	}

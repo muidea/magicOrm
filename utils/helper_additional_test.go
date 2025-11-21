@@ -368,9 +368,9 @@ func TestGetValueFunctions(t *testing.T) {
 func TestTimeHelpers(t *testing.T) {
 	// 测试GetCurrentDateTime
 	now := time.Now()
-	dateTime := GetCurrentDateTime()
+	datetime := GetCurrentDateTime()
 	// 应该近似相等，允许几秒误差
-	diff := dateTime.Sub(now)
+	diff := datetime.Sub(now)
 	if diff < -5*time.Second || diff > 5*time.Second {
 		t.Errorf("GetCurrentDateTime should return current time, diff: %v", diff)
 	}
@@ -398,16 +398,16 @@ func TestIDGenerators(t *testing.T) {
 		t.Errorf("UUID should be 32 characters long, got %d: %s", len(uuid1), uuid1)
 	}
 
-	// 测试GetNewSnowFlakeID
-	id1 := GetNewSnowFlakeID()
-	id2 := GetNewSnowFlakeID()
-	// SnowFlake ID应该不同
+	// 测试GetNewSnowflakeID
+	id1 := GetNewSnowflakeID()
+	id2 := GetNewSnowflakeID()
+	// Snowflake ID应该不同
 	if id1 == id2 {
-		t.Errorf("GetNewSnowFlakeID should return different values: %d vs %d", id1, id2)
+		t.Errorf("GetNewSnowflakeID should return different values: %d vs %d", id1, id2)
 	}
 	// ID应该大于0
 	if id1 <= 0 || id2 <= 0 {
-		t.Errorf("SnowFlake IDs should be positive: %d, %d", id1, id2)
+		t.Errorf("Snowflake IDs should be positive: %d, %d", id1, id2)
 	}
 }
 

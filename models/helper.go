@@ -64,8 +64,8 @@ func IsUUIDDeclare(val ValueDeclare) bool {
 	return val == UUID
 }
 
-func IsSnowFlakeDeclare(val ValueDeclare) bool {
-	return val == SnowFlake
+func IsSnowflakeDeclare(val ValueDeclare) bool {
+	return val == Snowflake
 }
 
 func IsDateTimeDeclare(val ValueDeclare) bool {

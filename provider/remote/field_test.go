@@ -205,20 +205,20 @@ func TestFieldValueVerification(t *testing.T) {
 			expectedToPass: false,
 		},
 		{
-			name: "Valid SnowFlake field",
+			name: "Valid Snowflake field",
 			field: &Field{
 				Name: "id",
 				Type: &TypeImpl{Name: "int64", Value: models.TypeBigIntegerValue},
-				Spec: &SpecImpl{FieldName: "id", ValueDeclare: models.SnowFlake},
+				Spec: &SpecImpl{FieldName: "id", ValueDeclare: models.Snowflake},
 			},
 			expectedToPass: true,
 		},
 		{
-			name: "Invalid SnowFlake on string field",
+			name: "Invalid Snowflake on string field",
 			field: &Field{
 				Name: "id",
 				Type: &TypeImpl{Name: "string", Value: models.TypeStringValue},
-				Spec: &SpecImpl{FieldName: "id", ValueDeclare: models.SnowFlake},
+				Spec: &SpecImpl{FieldName: "id", ValueDeclare: models.Snowflake},
 			},
 			expectedToPass: false,
 		},

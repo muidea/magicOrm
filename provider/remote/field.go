@@ -170,7 +170,7 @@ func (s *Field) verifyUUID(typeVal models.TypeDeclare) *cd.Error {
 	return nil
 }
 
-func (s *Field) verifySnowFlake(typeVal models.TypeDeclare) *cd.Error {
+func (s *Field) verifySnowflake(typeVal models.TypeDeclare) *cd.Error {
 	if typeVal != models.TypeBigIntegerValue {
 		return cd.NewError(cd.Unexpected, fmt.Sprintf("illegal snowflake field type, type:%v", typeVal))
 	}
@@ -180,7 +180,7 @@ func (s *Field) verifySnowFlake(typeVal models.TypeDeclare) *cd.Error {
 
 func (s *Field) verifyDateTime(typeVal models.TypeDeclare) *cd.Error {
 	if typeVal != models.TypeDateTimeValue {
-		return cd.NewError(cd.Unexpected, fmt.Sprintf("illegal dateTime field type, type:%v", typeVal))
+		return cd.NewError(cd.Unexpected, fmt.Sprintf("illegal datetime field type, type:%v", typeVal))
 	}
 
 	return nil
@@ -221,8 +221,8 @@ func (s *Field) verify() (err *cd.Error) {
 		}
 	}
 
-	if s.Spec.GetValueDeclare() == models.SnowFlake {
-		err = s.verifySnowFlake(val)
+	if s.Spec.GetValueDeclare() == models.Snowflake {
+		err = s.verifySnowflake(val)
 		if err != nil {
 			return
 		}

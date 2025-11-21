@@ -178,7 +178,7 @@ func TestOrmSpecParsing(t *testing.T) {
 			specStr:        "id snowflake",
 			expectedName:   "id",
 			expectedPK:     false,
-			expectedValue:  models.SnowFlake,
+			expectedValue:  models.Snowflake,
 			expectedDetail: false,
 			expectedLite:   false,
 			expectError:    false,

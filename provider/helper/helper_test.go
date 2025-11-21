@@ -11,7 +11,7 @@ type TestEntity struct {
 	ID        int       `orm:"id key auto" view:"detail,lite"`
 	Name      string    `orm:"name" view:"detail,lite"`
 	Value     float32   `orm:"value" view:"detail,lite"`
-	TimeStamp time.Time `orm:"ts dateTime" view:"detail,lite"`
+	TimeStamp time.Time `orm:"ts datetime" view:"detail,lite"`
 	Flag      bool      `orm:"flag" view:"detail,lite"`
 	Items     []int     `orm:"items" view:"detail,lite"`
 }

@@ -298,7 +298,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 			{
 				Name: "ts",
 				Type: &remote.TypeImpl{
-					Name:  "dateTime",
+					Name:  "datetime",
 					Value: 114,
 				},
 			},

@@ -32,7 +32,7 @@ var statusDef = `
       },
       "spec": {
         "primaryKey": true,
-        "valueDeclare": 1,
+        "valueDeclare": "auto",
         "viewDeclare": [
           "detail",
           "lite"
@@ -101,7 +101,7 @@ var partnerDef = `
       },
       "spec": {
         "primaryKey": true,
-        "valueDeclare": 1,
+        "valueDeclare": "auto",
         "viewDeclare": [
           "detail",
           "lite"

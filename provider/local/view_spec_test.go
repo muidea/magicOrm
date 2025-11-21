@@ -23,8 +23,8 @@ type ViewSpecStruct struct {
 type ValueDeclareTestStruct struct {
 	ID            int       `orm:"id key auto" view:"detail,lite"`
 	UUID          string    `orm:"uuid,uuid" view:"detail,lite"`
-	SnowflakeID   int64     `orm:"snowflakeId,snowFlake" view:"detail,lite"`
-	CreatedTime   time.Time `orm:"createdTime,dateTime" view:"detail"`
+	SnowflakeID   int64     `orm:"snowflakeId,snowflake" view:"detail,lite"`
+	CreatedTime   time.Time `orm:"createdTime,datetime" view:"detail"`
 	AutoValue     int       `orm:"autoValue auto" view:"detail"`
 	RegularString string    `orm:"regularString" view:"detail"`
 }

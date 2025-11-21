@@ -45,9 +45,9 @@ func (s *InsertRunner) insertHost(vModel models.Model) (err *cd.Error) {
 			if vVal.IsZero() {
 				vVal.Set(utils.GetNewUUID())
 			}
-		case models.SnowFlake:
+		case models.Snowflake:
 			if vVal.IsZero() {
-				vVal.Set(utils.GetNewSnowFlakeID())
+				vVal.Set(utils.GetNewSnowflakeID())
 			}
 		case models.DateTime:
 			if vVal.IsZero() {

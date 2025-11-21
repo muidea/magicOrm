@@ -94,15 +94,15 @@ func getOrmSpec(spec string) (ret remote.SpecImpl, err *cd.Error) {
 	ret.FieldName = items[0]
 	for idx := 1; idx < len(items); idx++ {
 		switch items[idx] {
-		case utils.Auto:
+		case models.AutoIncrement:
 			ret.ValueDeclare = models.AutoIncrement
-		case utils.UUID:
+		case models.UUID:
 			ret.ValueDeclare = models.UUID
-		case utils.SnowFlake:
-			ret.ValueDeclare = models.SnowFlake
-		case utils.DateTime:
+		case models.Snowflake:
+			ret.ValueDeclare = models.Snowflake
+		case models.DateTime:
 			ret.ValueDeclare = models.DateTime
-		case utils.Key:
+		case models.Key:
 			ret.PrimaryKey = true
 		}
 	}

@@ -77,7 +77,7 @@ func TestSpecValueDeclares(t *testing.T) {
 		{"Auto", "field auto", "field", models.AutoIncrement, false},
 		{"AutoAbbrev", "field auto", "field", models.AutoIncrement, false},
 		{"UUID", "field uuid", "field", models.UUID, false},
-		{"SnowFlake", "field snowflake", "field", models.SnowFlake, false},
+		{"Snowflake", "field snowflake", "field", models.Snowflake, false},
 		{"DateTime", "field datetime", "field", models.DateTime, false},
 		{"PrimaryKey", "field key", "field", models.Customer, true},
 		{"Primary", "field key", "field", models.Customer, true},

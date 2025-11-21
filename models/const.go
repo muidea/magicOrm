@@ -7,12 +7,12 @@ import "fmt"
 // 基本数值类型
 // 基本数值类型包括:
 // bool、int8、int16、int32、int、int64、uint8、uint16、uint32、uint、uint64、float32、float64、string、dateTime
-// []bool、[]int8、[]int16、[]int32、[]int、[]int64、[]uint8、[]uint16、[]uint32、[]uint、[]uint64、[]float32、[]float64、[]string、[]dateTime
+// []bool、[]int8、[]int16、[]int32、[]int、[]int64、[]uint8、[]uint16、[]uint32、[]uint、[]uint64、[]float32、[]float64、[]string、[]datetime
 // 以及以上类型对应的指针
-// *bool, *int8, *int16, *int32, *int, *int64, *uint8, *uint16, *uint32, *uint, *uint64, *float32, *float64, *string, *dateTime
-// []*bool、[]*int8、[]*int16、[]*int32、[]*int、[]*int64、[]*uint8、[]*uint16、[]*uint32、[]*uint、[]*uint64、[]*float32、[]*float64、[]*string、[]*dateTime
-// *[]bool, *[]int8, *[]int16, *[]int32, *[]int, *[]int64, *[]uint8, *[]uint16, *[]uint32, *[]uint, *[]uint64, *[]float32, *[]float64, *[]string, *[]dateTime
-// *[]*bool、*[]*int8、*[]*int16、*[]*int32、*[]*int、*[]*int64、*[]*uint8、*[]*uint16、*[]*uint32、*[]*uint、*[]*uint64、*[]*float32、*[]*float64、*[]*string、*[]*dateTime
+// *bool, *int8, *int16, *int32, *int, *int64, *uint8, *uint16, *uint32, *uint, *uint64, *float32, *float64, *string, *datetime
+// []*bool、[]*int8、[]*int16、[]*int32、[]*int、[]*int64、[]*uint8、[]*uint16、[]*uint32、[]*uint、[]*uint64、[]*float32、[]*float64、[]*string、[]*datetime
+// *[]bool, *[]int8, *[]int16, *[]int32, *[]int, *[]int64, *[]uint8, *[]uint16, *[]uint32, *[]uint, *[]uint64, *[]float32, *[]float64, *[]string, *[]datetime
+// *[]*bool、*[]*int8、*[]*int16、*[]*int32、*[]*int、*[]*int64、*[]*uint8、*[]*uint16、*[]*uint32、*[]*uint、*[]*uint64、*[]*float32、*[]*float64、*[]*string、*[]*datetime
 
 // 复合数值类型
 // 复合数值类型包括:
@@ -22,10 +22,10 @@ import "fmt"
 
 // 基本数据值申明
 // 基本数据值申明包括:
-// autoIncrement, uuid, snowFlake, dateTime
+// autoIncrement, uuid, snowflake, datetime
 // autoIncrement: 自增长，数值类型是int64，系统自动赋值
 // uuid: 唯一标识，数值类型是string，系统自动赋值
-// snowFlake: 雪花算法，数值类型是int64，系统自动赋值
+// snowflake: 雪花算法，数值类型是int64，系统自动赋值
 
 // 基本数据视图申明
 // 基本数据视图申明包括:
@@ -188,30 +188,15 @@ func (s TypeDeclare) IsNumberValueType() bool {
 	return s > TypeBooleanValue && s <= TypePositiveBigIntegerValue
 }
 
-type ValueDeclare int
+type ValueDeclare string
 
 const (
-	Customer ValueDeclare = iota
-	AutoIncrement
-	UUID
-	SnowFlake
-	DateTime
+	Customer      = ""
+	AutoIncrement = "auto"
+	UUID          = "uuid"
+	Snowflake     = "snowflake"
+	DateTime      = "datetime"
 )
-
-func (s ValueDeclare) String() string {
-	switch s {
-	case AutoIncrement:
-		return "autoIncrement"
-	case UUID:
-		return "uuid"
-	case SnowFlake:
-		return "snowFlake"
-	case DateTime:
-		return "dateTime"
-	default:
-		return "customer"
-	}
-}
 
 func (s ValueDeclare) IsCustomer() bool {
 	return s == Customer
@@ -225,8 +210,8 @@ func (s ValueDeclare) IsUUID() bool {
 	return s == UUID
 }
 
-func (s ValueDeclare) IsSnowFlake() bool {
-	return s == SnowFlake
+func (s ValueDeclare) IsSnowflake() bool {
+	return s == Snowflake
 }
 
 func (s ValueDeclare) IsDateTime() bool {
@@ -245,4 +230,8 @@ const (
 	DetailView = "detail"
 	// LiteView 简单数据，在类型定义时需要主动定义
 	LiteView = "lite"
+)
+
+const (
+	Key = "key"
 )
