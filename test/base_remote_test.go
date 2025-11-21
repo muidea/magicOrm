@@ -13,7 +13,7 @@ import (
 
 const remoteOwner = "remote"
 
-//var config = orm.NewConfig("localhost:5432", "magicplatform_db", "postgres", "rootkit", "")
+//var config = orm.NewConfig("localhost:5432", "testdb", "postgres", "rootkit", "")
 
 func TestRemoteSimple(t *testing.T) {
 	orm.Initialize()

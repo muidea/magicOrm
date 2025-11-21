@@ -8,6 +8,7 @@ import (
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
+	"github.com/muidea/magicOrm/utils"
 )
 
 type InsertRunner struct {
@@ -36,8 +37,22 @@ func (s *InsertRunner) insertHost(vModel models.Model) (err *cd.Error) {
 			continue
 		}
 
-		if field.GetSpec().GetValueDeclare() == models.AutoIncrement {
+		vVal := field.GetValue()
+		switch field.GetSpec().GetValueDeclare() {
+		case models.AutoIncrement:
 			autoIncrementFlag = true
+		case models.UUID:
+			if vVal.IsZero() {
+				vVal.Set(utils.GetNewUUID())
+			}
+		case models.SnowFlake:
+			if vVal.IsZero() {
+				vVal.Set(utils.GetNewSnowFlakeID())
+			}
+		case models.DateTime:
+			if vVal.IsZero() {
+				vVal.Set(utils.GetCurrentDateTime())
+			}
 		}
 	}
 

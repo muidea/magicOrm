@@ -27,7 +27,7 @@ var snowFlakeOnce sync.Once
 
 func init() {
 	snowFlakeOnce.Do(func() {
-		strNodeID := os.Getenv("node_id")
+		strNodeID := os.Getenv("NODE_ID")
 		if strNodeID == "" {
 			strNodeID = "1"
 		}
