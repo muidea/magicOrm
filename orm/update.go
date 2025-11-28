@@ -80,6 +80,10 @@ func (s *UpdateRunner) updateRelation(vModel models.Model, vField models.Field) 
 }
 
 func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
+	if err = s.checkContext(); err != nil {
+		return
+	}
+
 	err = s.updateHost(s.vModel)
 	if err != nil {
 		log.Errorf("Update failed, s.updateSingle error:%s", err.Error())
@@ -103,6 +107,10 @@ func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
 }
 
 func (s *impl) Update(vModel models.Model) (ret models.Model, err *cd.Error) {
+	if err = s.CheckContext(); err != nil {
+		return
+	}
+
 	if vModel == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return

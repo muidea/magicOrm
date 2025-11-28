@@ -218,6 +218,10 @@ func (s *InsertRunner) insertSliceRelation(vModel models.Model, vField models.Fi
 }
 
 func (s *InsertRunner) Insert() (ret models.Model, err *cd.Error) {
+	if err = s.checkContext(); err != nil {
+		return
+	}
+
 	err = s.insertHost(s.vModel)
 	if err != nil {
 		log.Errorf("Insert failed, s.insertSingle error:%s", err.Error())
@@ -241,6 +245,10 @@ func (s *InsertRunner) Insert() (ret models.Model, err *cd.Error) {
 }
 
 func (s *impl) Insert(vModel models.Model) (ret models.Model, err *cd.Error) {
+	if err = s.CheckContext(); err != nil {
+		return
+	}
+
 	if vModel == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return

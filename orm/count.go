@@ -29,6 +29,10 @@ func NewCountRunner(
 }
 
 func (s *CountRunner) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
+	if err = s.checkContext(); err != nil {
+		return
+	}
+
 	countResult, countErr := s.sqlBuilder.BuildCount(s.vModel, vFilter)
 	if countErr != nil {
 		err = countErr
@@ -57,6 +61,10 @@ func (s *CountRunner) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
 }
 
 func (s *impl) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
+	if err = s.CheckContext(); err != nil {
+		return
+	}
+
 	if vFilter == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal filter value")
 		return

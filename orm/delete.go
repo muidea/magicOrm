@@ -148,6 +148,10 @@ func (s *DeleteRunner) deleteRelationSliceStructInner(vField models.Field, deepL
 }
 
 func (s *DeleteRunner) Delete() (err *cd.Error) {
+	if err = s.checkContext(); err != nil {
+		return
+	}
+
 	err = s.deleteHost(s.vModel)
 	if err != nil {
 		log.Errorf("Delete failed, s.deleteHost error:%s", err.Error())
@@ -170,6 +174,10 @@ func (s *DeleteRunner) Delete() (err *cd.Error) {
 }
 
 func (s *impl) Delete(vModel models.Model) (ret models.Model, err *cd.Error) {
+	if err = s.CheckContext(); err != nil {
+		return
+	}
+
 	if vModel == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return

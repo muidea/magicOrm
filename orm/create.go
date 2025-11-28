@@ -53,6 +53,10 @@ func (s *CreateRunner) createRelation(vField models.Field) (err *cd.Error) {
 }
 
 func (s *CreateRunner) Create() (err *cd.Error) {
+	if err = s.checkContext(); err != nil {
+		return
+	}
+
 	err = s.createHost()
 	if err != nil {
 		log.Errorf("Create failed, s.createHost error:%s", err.Error())
@@ -92,6 +96,10 @@ func (s *CreateRunner) Create() (err *cd.Error) {
 }
 
 func (s *impl) Create(vModel models.Model) (err *cd.Error) {
+	if err = s.CheckContext(); err != nil {
+		return
+	}
+
 	if vModel == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return

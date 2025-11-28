@@ -327,6 +327,10 @@ func (s *QueryRunner) innerQueryRelationSliceModel(ids []any, vField models.Fiel
 }
 
 func (s *QueryRunner) Query(filter models.Filter) (ret []models.Model, err *cd.Error) {
+	if err = s.checkContext(); err != nil {
+		return
+	}
+
 	queryValueList, queryValueErr := s.innerQuery(s.vModel, filter)
 	if queryValueErr != nil {
 		err = queryValueErr
@@ -361,6 +365,10 @@ func (s *QueryRunner) Query(filter models.Filter) (ret []models.Model, err *cd.E
 }
 
 func (s *impl) Query(vModel models.Model) (ret models.Model, err *cd.Error) {
+	if err = s.CheckContext(); err != nil {
+		return
+	}
+
 	if vModel == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return
