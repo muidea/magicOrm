@@ -101,12 +101,14 @@ func NewOrm(provider provider.Provider, cfg database.Config, prefix string) (Orm
 		return nil, cd.NewError(cd.Unexpected, executorErr.Error())
 	}
 
-	orm := &impl{executor: executorVal, modelProvider: provider, modelCodec: codec.New(provider, prefix)}
+	orm := &impl{
+		context:  context.Background(),
+		executor: executorVal, modelProvider: provider, modelCodec: codec.New(provider, prefix)}
 	return orm, nil
 }
 
 // GetOrm get orm from pool
-func GetOrm(provider provider.Provider, prefix string) (ret Orm, err *cd.Error) {
+func GetOrm(ctx context.Context, provider provider.Provider, prefix string) (ret Orm, err *cd.Error) {
 	val, ok := name2Pool.Load(provider.Owner())
 	if !ok {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't find orm,name:%s", provider.Owner()))
@@ -115,19 +117,22 @@ func GetOrm(provider provider.Provider, prefix string) (ret Orm, err *cd.Error) 
 	}
 
 	pool := val.(database.Pool)
-	executorVal, executorErr := pool.GetExecutor(context.Background())
+	executorVal, executorErr := pool.GetExecutor(ctx)
 	if executorErr != nil {
 		err = executorErr
 		log.Errorf("GetOrm failed, pool.GetExecutor error:%s", err.Error())
 		return
 	}
 
-	ret = &impl{executor: executorVal, modelProvider: provider, modelCodec: codec.New(provider, prefix)}
+	ret = &impl{
+		context:  ctx,
+		executor: executorVal, modelProvider: provider, modelCodec: codec.New(provider, prefix)}
 	return
 }
 
 // impl orm
 type impl struct {
+	context       context.Context
 	executor      database.Executor
 	modelProvider provider.Provider
 	modelCodec    codec.Codec

@@ -1,6 +1,8 @@
 package orm
 
 import (
+	"context"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
@@ -14,9 +16,9 @@ type DropRunner struct {
 	baseRunner
 }
 
-func NewDropRunner(vModel models.Model, executor database.Executor, provider provider.Provider, modelCodec codec.Codec) *DropRunner {
+func NewDropRunner(ctx context.Context, vModel models.Model, executor database.Executor, provider provider.Provider, modelCodec codec.Codec) *DropRunner {
 	return &DropRunner{
-		baseRunner: newBaseRunner(vModel, executor, provider, modelCodec, false, 0),
+		baseRunner: newBaseRunner(ctx, vModel, executor, provider, modelCodec, false, 0),
 	}
 }
 
@@ -71,7 +73,7 @@ func (s *DropRunner) Drop() (err *cd.Error) {
 				return
 			}
 
-			rRunner := NewDropRunner(rModel, s.executor, s.modelProvider, s.modelCodec)
+			rRunner := NewDropRunner(s.context, rModel, s.executor, s.modelProvider, s.modelCodec)
 			err = rRunner.Drop()
 			if err != nil {
 				log.Errorf("Drop failed, rRunner.Drop() error:%s", err.Error())
@@ -95,7 +97,7 @@ func (s *impl) Drop(vModel models.Model) (err *cd.Error) {
 		return
 	}
 
-	dropRunner := NewDropRunner(vModel, s.executor, s.modelProvider, s.modelCodec)
+	dropRunner := NewDropRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec)
 	err = dropRunner.Drop()
 	if err != nil {
 		log.Errorf("Drop failed, dropRunner.Drop() error:%s", err.Error())

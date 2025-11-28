@@ -1,6 +1,8 @@
 package orm
 
 import (
+	"context"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
@@ -17,11 +19,12 @@ type InsertRunner struct {
 }
 
 func NewInsertRunner(
+	ctx context.Context,
 	vModel models.Model,
 	executor database.Executor,
 	provider provider.Provider,
 	modelCodec codec.Codec) *InsertRunner {
-	baseRunner := newBaseRunner(vModel, executor, provider, modelCodec, false, 0)
+	baseRunner := newBaseRunner(ctx, vModel, executor, provider, modelCodec, false, 0)
 	return &InsertRunner{
 		baseRunner: baseRunner,
 		QueryRunner: QueryRunner{
@@ -136,7 +139,7 @@ func (s *InsertRunner) insertSingleRelation(vModel models.Model, vField models.F
 	}
 
 	if !models.IsPtrField(vField) {
-		rInsertRunner := NewInsertRunner(rModel, s.executor, s.modelProvider, s.modelCodec)
+		rInsertRunner := NewInsertRunner(s.context, rModel, s.executor, s.modelProvider, s.modelCodec)
 		rModel, rErr = rInsertRunner.Insert()
 		if rErr != nil {
 			err = rErr
@@ -181,7 +184,7 @@ func (s *InsertRunner) insertSliceRelation(vModel models.Model, vField models.Fi
 		}
 
 		if !elemType.IsPtrType() {
-			rInsertRunner := NewInsertRunner(rModel, s.executor, s.modelProvider, s.modelCodec)
+			rInsertRunner := NewInsertRunner(s.context, rModel, s.executor, s.modelProvider, s.modelCodec)
 			rModel, rErr = rInsertRunner.Insert()
 			if rErr != nil {
 				err = rErr
@@ -249,7 +252,7 @@ func (s *impl) Insert(vModel models.Model) (ret models.Model, err *cd.Error) {
 	}
 	defer s.finalTransaction(err)
 
-	insertRunner := NewInsertRunner(vModel, s.executor, s.modelProvider, s.modelCodec)
+	insertRunner := NewInsertRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec)
 	ret, err = insertRunner.Insert()
 	if err != nil {
 		log.Errorf("Insert failed, insertRunner.Insert() error:%s", err.Error())

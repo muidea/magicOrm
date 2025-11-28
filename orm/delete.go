@@ -1,6 +1,8 @@
 package orm
 
 import (
+	"context"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
@@ -16,12 +18,13 @@ type DeleteRunner struct {
 }
 
 func NewDeleteRunner(
+	ctx context.Context,
 	vModel models.Model,
 	executor database.Executor,
 	provider provider.Provider,
 	modelCodec codec.Codec,
 	deepLevel int) *DeleteRunner {
-	baseRunner := newBaseRunner(vModel, executor, provider, modelCodec, false, deepLevel)
+	baseRunner := newBaseRunner(ctx, vModel, executor, provider, modelCodec, false, deepLevel)
 	return &DeleteRunner{
 		baseRunner: baseRunner,
 		QueryRunner: QueryRunner{
@@ -107,7 +110,7 @@ func (s *DeleteRunner) deleteRelationSingleStructInner(vField models.Field, deep
 		return
 	}
 
-	rRunner := NewDeleteRunner(rModel, s.executor, s.modelProvider, s.modelCodec, deepLevel+1)
+	rRunner := NewDeleteRunner(s.context, rModel, s.executor, s.modelProvider, s.modelCodec, deepLevel+1)
 	err = rRunner.Delete()
 	if err != nil {
 		log.Errorf("deleteRelationSingleStructInner failed, rRunner.Delete error:%s", err.Error())
@@ -133,7 +136,7 @@ func (s *DeleteRunner) deleteRelationSliceStructInner(vField models.Field, deepL
 			log.Errorf("deleteRelationSliceStructInner failed, s.modelProvider.SetModelValue error:%s", err.Error())
 			return
 		}
-		rRunner := NewDeleteRunner(rModel, s.executor, s.modelProvider, s.modelCodec, deepLevel+1)
+		rRunner := NewDeleteRunner(s.context, rModel, s.executor, s.modelProvider, s.modelCodec, deepLevel+1)
 		err = rRunner.Delete()
 		if err != nil {
 			log.Errorf("deleteRelationSliceStructInner failed, rRunner.Delete error:%s", err.Error())
@@ -178,7 +181,7 @@ func (s *impl) Delete(vModel models.Model) (ret models.Model, err *cd.Error) {
 	}
 	defer s.finalTransaction(err)
 
-	deleteRunner := NewDeleteRunner(vModel, s.executor, s.modelProvider, s.modelCodec, 0)
+	deleteRunner := NewDeleteRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec, 0)
 	err = deleteRunner.Delete()
 	if err != nil {
 		log.Errorf("Delete failed, deleteRunner.Delete error:%s", err.Error())

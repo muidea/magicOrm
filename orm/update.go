@@ -1,6 +1,8 @@
 package orm
 
 import (
+	"context"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
@@ -18,11 +20,12 @@ type UpdateRunner struct {
 }
 
 func NewUpdateRunner(
+	ctx context.Context,
 	vModel models.Model,
 	executor database.Executor,
 	provider provider.Provider,
 	modelCodec codec.Codec) *UpdateRunner {
-	baseRunner := newBaseRunner(vModel, executor, provider, modelCodec, false, 0)
+	baseRunner := newBaseRunner(ctx, vModel, executor, provider, modelCodec, false, 0)
 	return &UpdateRunner{
 		baseRunner: baseRunner,
 		QueryRunner: QueryRunner{
@@ -111,7 +114,7 @@ func (s *impl) Update(vModel models.Model) (ret models.Model, err *cd.Error) {
 	}
 	defer s.finalTransaction(err)
 
-	updateRunner := NewUpdateRunner(vModel, s.executor, s.modelProvider, s.modelCodec)
+	updateRunner := NewUpdateRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec)
 	ret, err = updateRunner.Update()
 	if err != nil {
 		log.Errorf("Update failed, updateRunner.Update() error:%s", err.Error())

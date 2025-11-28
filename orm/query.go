@@ -1,6 +1,7 @@
 package orm
 
 import (
+	"context"
 	"fmt"
 
 	cd "github.com/muidea/magicCommon/def"
@@ -20,6 +21,7 @@ type QueryRunner struct {
 }
 
 func NewQueryRunner(
+	ctx context.Context,
 	vModel models.Model,
 	executor database.Executor,
 	provider provider.Provider,
@@ -28,7 +30,7 @@ func NewQueryRunner(
 	deepLevel int) *QueryRunner {
 
 	return &QueryRunner{
-		baseRunner: newBaseRunner(vModel, executor, provider, modelCodec, batchFilter, deepLevel),
+		baseRunner: newBaseRunner(ctx, vModel, executor, provider, modelCodec, batchFilter, deepLevel),
 	}
 }
 
@@ -257,7 +259,7 @@ func (s *QueryRunner) innerQueryRelationSingleModel(id any, vField models.Field,
 		return
 	}
 
-	rQueryRunner := NewQueryRunner(vFilter.MaskModel(), s.executor, s.modelProvider, s.modelCodec, false, deepLevel+1)
+	rQueryRunner := NewQueryRunner(s.context, vFilter.MaskModel(), s.executor, s.modelProvider, s.modelCodec, false, deepLevel+1)
 	queryVal, queryErr := rQueryRunner.Query(vFilter)
 	if queryErr != nil {
 		err = queryErr
@@ -308,7 +310,7 @@ func (s *QueryRunner) innerQueryRelationSliceModel(ids []any, vField models.Fiel
 			return
 		}
 
-		rQueryRunner := NewQueryRunner(vFilter.MaskModel(), s.executor, s.modelProvider, s.modelCodec, false, deepLevel+1)
+		rQueryRunner := NewQueryRunner(s.context, vFilter.MaskModel(), s.executor, s.modelProvider, s.modelCodec, false, deepLevel+1)
 		queryVal, queryErr := rQueryRunner.Query(vFilter)
 		if queryErr != nil {
 			err = queryErr
@@ -373,7 +375,7 @@ func (s *impl) Query(vModel models.Model) (ret models.Model, err *cd.Error) {
 		return
 	}
 
-	vQueryRunner := NewQueryRunner(vFilter.MaskModel(), s.executor, s.modelProvider, s.modelCodec, false, 0)
+	vQueryRunner := NewQueryRunner(s.context, vFilter.MaskModel(), s.executor, s.modelProvider, s.modelCodec, false, 0)
 	queryVal, queryErr := vQueryRunner.Query(vFilter)
 	if queryErr != nil {
 		err = queryErr

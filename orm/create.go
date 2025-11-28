@@ -1,6 +1,8 @@
 package orm
 
 import (
+	"context"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 
@@ -14,9 +16,9 @@ type CreateRunner struct {
 	baseRunner
 }
 
-func NewCreateRunner(vModel models.Model, executor database.Executor, provider provider.Provider, modelCodec codec.Codec) *CreateRunner {
+func NewCreateRunner(ctx context.Context, vModel models.Model, executor database.Executor, provider provider.Provider, modelCodec codec.Codec) *CreateRunner {
 	return &CreateRunner{
-		baseRunner: newBaseRunner(vModel, executor, provider, modelCodec, false, 0),
+		baseRunner: newBaseRunner(ctx, vModel, executor, provider, modelCodec, false, 0),
 	}
 }
 
@@ -71,7 +73,7 @@ func (s *CreateRunner) Create() (err *cd.Error) {
 				return
 			}
 
-			rRunner := NewCreateRunner(rModel, s.executor, s.modelProvider, s.modelCodec)
+			rRunner := NewCreateRunner(s.context, rModel, s.executor, s.modelProvider, s.modelCodec)
 			err = rRunner.Create()
 			if err != nil {
 				log.Errorf("Create failed, rRunner.Create() error:%s", err.Error())
@@ -95,7 +97,7 @@ func (s *impl) Create(vModel models.Model) (err *cd.Error) {
 		return
 	}
 
-	createRunner := NewCreateRunner(vModel, s.executor, s.modelProvider, s.modelCodec)
+	createRunner := NewCreateRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec)
 	err = createRunner.Create()
 	if err != nil {
 		log.Errorf("Create failed, createRunner.Create() error:%s", err.Error())

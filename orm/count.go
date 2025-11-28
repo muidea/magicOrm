@@ -1,6 +1,7 @@
 package orm
 
 import (
+	"context"
 	"database/sql"
 
 	cd "github.com/muidea/magicCommon/def"
@@ -17,12 +18,13 @@ type CountRunner struct {
 }
 
 func NewCountRunner(
+	ctx context.Context,
 	vModel models.Model,
 	executor database.Executor,
 	provider provider.Provider,
 	modelCodec codec.Codec) *CountRunner {
 	return &CountRunner{
-		baseRunner: newBaseRunner(vModel, executor, provider, modelCodec, false, 0),
+		baseRunner: newBaseRunner(ctx, vModel, executor, provider, modelCodec, false, 0),
 	}
 }
 
@@ -61,7 +63,7 @@ func (s *impl) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
 	}
 
 	vModel := vFilter.MaskModel()
-	countRunner := NewCountRunner(vModel, s.executor, s.modelProvider, s.modelCodec)
+	countRunner := NewCountRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec)
 	queryVal, queryErr := countRunner.Count(vFilter)
 	if queryErr != nil {
 		err = queryErr

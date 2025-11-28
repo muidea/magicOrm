@@ -1,6 +1,8 @@
 package orm
 
 import (
+	"context"
+
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/models"
@@ -8,6 +10,7 @@ import (
 )
 
 type baseRunner struct {
+	context       context.Context
 	vModel        models.Model
 	executor      database.Executor
 	modelProvider provider.Provider
@@ -19,6 +22,7 @@ type baseRunner struct {
 }
 
 func newBaseRunner(
+	ctx context.Context,
 	vModel models.Model,
 	executor database.Executor,
 	provider provider.Provider,
@@ -26,6 +30,7 @@ func newBaseRunner(
 	batchFilter bool,
 	deepLevel int) baseRunner {
 	return baseRunner{
+		context:       ctx,
 		vModel:        vModel,
 		batchFilter:   batchFilter,
 		deepLevel:     deepLevel,
