@@ -151,7 +151,7 @@ func (s *Object) SetFieldValue(name string, val any) (err *cd.Error) {
 		return
 	}
 
-	log.Warnf("SetFieldValue failed, field:%s not found", name)
+	//log.Warnf("SetFieldValue failed, field:%s not found", name)
 	return
 }
 

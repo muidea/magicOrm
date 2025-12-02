@@ -395,6 +395,6 @@ func (s *impl) Query(vModel models.Model) (ret models.Model, err *cd.Error) {
 		return
 	}
 
-	err = cd.NewError(cd.NotFound, fmt.Sprintf("query model failed, model:%s", vModel.GetPkgKey()))
+	err = cd.NewError(cd.NotFound, fmt.Sprintf("can't query model value, model:%s", vModel.GetPkgKey()))
 	return
 }
