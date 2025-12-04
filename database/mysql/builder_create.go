@@ -158,7 +158,7 @@ func (s *Builder) validDefaultValue(vType models.Type, vSpec models.Spec) (ret s
 	if defaultValueDeclare != nil {
 		switch val := defaultValueDeclare.(type) {
 		case string:
-			if strings.Contains(val, "$referenceValue.") {
+			if strings.HasPrefix(val, "$reference") {
 				vTypeDefaultVal, _ := vType.Interface(nil)
 				defaultValue = vTypeDefaultVal.Get()
 			} else {
