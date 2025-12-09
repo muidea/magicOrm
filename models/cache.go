@@ -16,12 +16,12 @@ type Cache interface {
 }
 
 type impl struct {
-	kvCache cache.KVCache
+	kvCache cache.KVCacheGeneric[string, Model]
 }
 
 // NewCache new modelInfo cache
 func NewCache() Cache {
-	return &impl{kvCache: cache.NewKVCache(nil)}
+	return &impl{kvCache: cache.NewGenericKVCache[string, Model](nil)}
 }
 
 func (s *impl) Reset() {
@@ -33,18 +33,7 @@ func (s *impl) Put(name string, vModel Model) {
 }
 
 func (s *impl) Fetch(name string) (ret Model) {
-	defer func() {
-		if err := recover(); err != nil {
-			ret = nil
-		}
-	}()
-
-	val := s.kvCache.Fetch(name)
-	if val == nil {
-		return nil
-	}
-
-	ret = val.(Model)
+	ret = s.kvCache.Fetch(name)
 	return
 }
 
