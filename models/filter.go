@@ -44,7 +44,7 @@ type Filter interface {
 	In(key string, val any) *cd.Error
 	NotIn(key string, val any) *cd.Error
 	Like(key string, val any) *cd.Error
-	Pagination(pageNum, pageSize int64)
+	Pagination(pageNum, pageSize int)
 	Sort(fieldName string, ascFlag bool)
 	ValueMask(val any) *cd.Error
 

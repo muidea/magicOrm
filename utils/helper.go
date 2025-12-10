@@ -35,8 +35,8 @@ func init() {
 }
 
 type Pagination struct {
-	PageNum  int64 `json:"pageNum"`
-	PageSize int64 `json:"pageSize"`
+	PageNum  int `json:"pageNum"`
+	PageSize int `json:"pageSize"`
 }
 
 func (s *Pagination) Limit() int64 {
