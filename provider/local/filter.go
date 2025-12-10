@@ -205,7 +205,7 @@ func (s *filter) Like(key string, val any) (err *cd.Error) {
 	return
 }
 
-func (s *filter) Pagination(pageNum, pageSize int) {
+func (s *filter) Pagination(pageNum, pageSize int64) {
 	s.pageFilter = &utils.Pagination{
 		PageNum:  pageNum,
 		PageSize: pageSize,

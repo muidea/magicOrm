@@ -323,7 +323,7 @@ func TestLocalBatchOperation(t *testing.T) {
 		return
 	}
 	pageSize := 5
-	filter3.Pagination(0, pageSize) // 第一页，每页5条
+	filter3.Pagination(0, int64(pageSize)) // 第一页，每页5条
 	bq3ModelList, bq3ModelErr := o1.BatchQuery(filter3)
 	if bq3ModelErr != nil {
 		t.Errorf("BatchQuery with pagination failed, err:%s", bq3ModelErr.Error())

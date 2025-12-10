@@ -370,8 +370,8 @@ func benchmarkFilterPerformance(t *testing.T, o1 orm.Orm, localProvider provider
 		len(complexModelList), complexFilterDuration)
 
 	// 5. 分页查询
-	for pageSize := 10; pageSize <= 100; pageSize *= 10 {
-		for pageIndex := 0; pageIndex < 3; pageIndex++ {
+	for pageSize := int64(10); pageSize <= 100; pageSize *= 10 {
+		for pageIndex := int64(0); pageIndex < 3; pageIndex++ {
 			pageFilterStart := time.Now()
 
 			pageFilter, err := localProvider.GetModelFilter(simplePerfModel)

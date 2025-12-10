@@ -4,7 +4,7 @@ package cache
 const ForeverAgeValue = -1
 const OneMinuteAgeValue = 60
 const TenMinutesAgeValue = 600
-const HalfHourAgeValue = 1800
+const HalfAnHourAgeValue = 1800
 
 type commandAction int
 
