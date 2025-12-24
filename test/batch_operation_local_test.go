@@ -134,7 +134,7 @@ func testBatchInsert(t *testing.T, o1 orm.Orm, localProvider provider.Provider) 
 		return
 	}
 
-	filter.Like("name", "Batch_Insert_Item")
+	filter.Like("name", "Batch_Insert_Item%")
 	queryModelList, queryErr := o1.BatchQuery(filter)
 	if queryErr != nil {
 		t.Errorf("batch query failed, err:%s", queryErr.Error())
@@ -303,7 +303,7 @@ func testBatchUpdate(t *testing.T, o1 orm.Orm, localProvider provider.Provider) 
 		t.Errorf("GetModelFilter failed, err:%s", err.Error())
 		return
 	}
-	updatedFilter.Like("name", "_Updated")
+	updatedFilter.Like("name", "%_Updated")
 	updatedModelList, updatedQueryErr := o1.BatchQuery(updatedFilter)
 	if updatedQueryErr != nil {
 		t.Errorf("query after batch update failed, err:%s", updatedQueryErr.Error())
@@ -417,7 +417,7 @@ func testBatchPerformance(t *testing.T, o1 orm.Orm, localProvider provider.Provi
 		t.Errorf("GetModelFilter failed, err:%s", err.Error())
 		return
 	}
-	filter.Like("name", "Perf_Item")
+	filter.Like("name", "Perf_Item%")
 	queryModelList, queryErr := o1.BatchQuery(filter)
 	if queryErr != nil {
 		t.Errorf("large batch query failed, err:%s", queryErr.Error())

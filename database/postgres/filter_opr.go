@@ -90,7 +90,7 @@ func NotInOpr(name string, val any, resultStackPtr *ResultStack) string {
 
 // LikeOpr Like Opr
 func LikeOpr(name string, val any, resultStackPtr *ResultStack) string {
-	resultStackPtr.PushArgs(fmt.Sprintf("%%%s%%", val))
+	resultStackPtr.PushArgs(val)
 	return fmt.Sprintf("\"%s\" LIKE $%d", name, len(resultStackPtr.argsVal))
 }
 

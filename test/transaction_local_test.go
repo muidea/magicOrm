@@ -305,7 +305,7 @@ func TestLocalBatchOperation(t *testing.T) {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
 		return
 	}
-	filter2.Like("name", "Batch Item")
+	filter2.Like("name", "Batch Item%")
 	bq2ModelList, bq2ModelErr := o1.BatchQuery(filter2)
 	if bq2ModelErr != nil {
 		t.Errorf("BatchQuery with LIKE failed, err:%s", bq2ModelErr.Error())
