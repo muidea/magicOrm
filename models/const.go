@@ -228,6 +228,8 @@ const (
 	MetaView = "meta"
 	// DetailView 详细数据，在类型定义时需要主动定义
 	DetailView = "detail"
+	// ListView 列表数据，在类型定义时需要主动定义
+	BasicView = "basic"
 	// LiteView 简单数据，在类型定义时需要主动定义
 	LiteView = "lite"
 )
