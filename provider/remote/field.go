@@ -261,33 +261,11 @@ func compareItem(l, r *Field) bool {
 }
 
 func (s *FieldValue) IsValid() bool {
-	if s.Value == nil {
-		return false
-	}
-
-	switch v := s.Value.(type) {
-	case *ObjectValue:
-		return v != nil
-	case *SliceObjectValue:
-		return v != nil
-	default:
-		return utils.IsReallyValidValue(s.Value)
-	}
+	return isValid(s.Value)
 }
 
 func (s *FieldValue) IsZero() bool {
-	if s.Value == nil {
-		return true
-	}
-
-	switch v := s.Value.(type) {
-	case *ObjectValue:
-		return v == nil || len(v.Fields) == 0
-	case *SliceObjectValue:
-		return v == nil || len(v.Values) == 0
-	default:
-		return utils.IsReallyZeroValue(s.Value)
-	}
+	return isZero(s.Value)
 }
 
 func (s *FieldValue) Set(val any) {

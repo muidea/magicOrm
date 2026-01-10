@@ -2,6 +2,7 @@ package orm
 
 import (
 	"context"
+	"fmt"
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
@@ -229,8 +230,21 @@ func (s *InsertRunner) Insert() (ret models.Model, err *cd.Error) {
 	}
 
 	for _, field := range s.vModel.GetFields() {
-		if models.IsBasicField(field) || !models.IsValidField(field) {
+		// 忽略基础字段
+		if models.IsBasicField(field) {
 			continue
+		}
+
+		if !models.IsAssignedField(field) {
+			// 未赋值, 如果是可选字段，或者是空slice字段，则忽略
+			if field.GetType().IsPtrType() || models.IsSliceField(field) {
+				continue
+			}
+
+			// 未赋值，但是是必选字段，则需要报错提示
+			err = cd.NewError(cd.IllegalParam, fmt.Sprintf("illegal field value, field:%s", field.GetName()))
+			log.Errorf("Insert failed, s.insertSingle error:%s", err.Error())
+			return
 		}
 
 		err = s.insertRelation(s.vModel, field)

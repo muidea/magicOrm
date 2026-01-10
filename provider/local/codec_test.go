@@ -11,8 +11,8 @@ import (
 func TestEncodeValue(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    interface{}
-		expected interface{}
+		input    any
+		expected any
 	}{
 		{"encode bool", true, true},
 		{"encode int8", int8(8), int8(8)},

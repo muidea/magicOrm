@@ -416,8 +416,8 @@ func TestConvertNumberVal(t *testing.T) {
 	tests := []struct {
 		name     string
 		kind     reflect.Kind
-		input    interface{}
-		expected interface{}
+		input    any
+		expected any
 		hasError bool
 	}{
 		{"Bool to Int", reflect.Int, true, int(1), false},

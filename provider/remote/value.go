@@ -57,33 +57,13 @@ func NewValue(val any) (ret *ValueImpl) {
 // IsValid checks if the value is valid
 // 如果对应的值是ObjectValue,SliceObjectValue或者对应的指针值，还需要继续判断是否包含Fields，Fields的包含的items为0也认为是invalid
 func (s *ValueImpl) IsValid() (ret bool) {
-	if s.value == nil {
-		return false
-	}
-
-	// 不用继续检查，在赋值时已经做过校验
-	return true
+	return isValid(s.value)
 }
 
 // IsZero checks if the value is zero.
 // 如果对应的值是ObjectValue,SliceObjectValue或者对应的指针值，还需要继续判断是否包含Fields，Fields的包含的items为0也认为是0
 func (s *ValueImpl) IsZero() bool {
-	if s.value == nil {
-		return true
-	}
-
-	switch v := s.value.(type) {
-	case *ObjectValue:
-		return v == nil || len(v.Fields) == 0 || !v.IsAssigned()
-	case *SliceObjectValue:
-		return v == nil || len(v.Values) == 0
-	case ObjectValue:
-		return len(v.Fields) == 0 || !v.IsAssigned()
-	case SliceObjectValue:
-		return len(v.Values) == 0
-	default:
-		return utils.IsReallyZeroValue(s.value)
-	}
+	return isZero(s.value)
 }
 
 // Get 获取值

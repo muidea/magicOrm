@@ -21,7 +21,7 @@ import (
 // 1. 必须是是合法的基本数值类型,否则返回false
 // 2. 如果是指针类型，则该指针指向的实际值的类型也必须是合法的基本数值类型，并且该指针已经赋值，否则返回false
 // 3. 如果是slice/array, 则该slice/array的item类型也必须是合法的基本数值类型，并且该slice已经初始化， 否则返回false
-func IsReallyValidValue(val interface{}) bool {
+func IsReallyValidValue(val any) bool {
 	if val == nil {
 		return false
 	}
@@ -67,7 +67,7 @@ func IsReallyValidValueForReflect(vVal reflect.Value) bool {
 // IsReallyZeroValue 判断一个基本数值类型是否为零值
 // 1. 必须是合法的基本数值类型
 // 2. 如果是指针类型，则判断该指针指向的实际值是否为零值
-func IsReallyZeroValue(val interface{}) bool {
+func IsReallyZeroValue(val any) bool {
 	if val == nil {
 		return true
 	}
@@ -110,7 +110,7 @@ func IsReallyZeroForReflect(vVal reflect.Value) bool {
 
 // IsReallyValidType 判断是否时一个合法的基本数值类型
 // 1. 必须是合法的基本数值类型
-func IsReallyValidType(val interface{}) bool {
+func IsReallyValidType(val any) bool {
 	if val == nil {
 		return false
 	}
@@ -156,7 +156,7 @@ func IsReallyValidTypeForReflect(vType reflect.Type) bool {
 }
 
 // IsReallyNil 判断是否是nil
-func IsReallyNil(val interface{}) bool {
+func IsReallyNil(val any) bool {
 	if val == nil {
 		return true
 	}
@@ -166,7 +166,7 @@ func IsReallyNil(val interface{}) bool {
 }
 
 // DeepCopy 深度复制val的值
-func DeepCopy(value interface{}) (interface{}, error) {
+func DeepCopy(value any) (any, error) {
 	val := reflect.ValueOf(value)
 	if val.Kind() == reflect.Ptr {
 		if val.IsNil() {

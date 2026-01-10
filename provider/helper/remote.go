@@ -18,7 +18,7 @@ const (
 	viewTag = "view"
 )
 
-func getEntityType(entity interface{}) (ret *remote.TypeImpl, err *cd.Error) {
+func getEntityType(entity any) (ret *remote.TypeImpl, err *cd.Error) {
 	if entity == nil {
 		err = cd.NewError(cd.Unexpected, "illegal entity value")
 		return

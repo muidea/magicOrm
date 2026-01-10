@@ -12,7 +12,7 @@ import (
 
 // CompareWithNumericConversion 支持安全类型转换的比较函数
 // 返回值：是否相等，差异描述
-func CompareWithNumericConversion(a, b interface{}, opts ...cmp.Option) (bool, string) {
+func CompareWithNumericConversion(a, b any, opts ...cmp.Option) (bool, string) {
 	// 防御性代码：处理nil值比较
 	if a == nil && b == nil {
 		return true, ""
@@ -24,7 +24,7 @@ func CompareWithNumericConversion(a, b interface{}, opts ...cmp.Option) (bool, s
 	// 合并默认选项和用户自定义选项
 	defaultOpts := cmp.Options{
 		cmp.FilterValues(
-			func(x, y interface{}) bool {
+			func(x, y any) bool {
 				// 仅当两个值都是数字类型时应用比较器
 				_, xOk := toFloat64(x)
 				_, yOk := toFloat64(y)
@@ -45,7 +45,7 @@ func CompareWithNumericConversion(a, b interface{}, opts ...cmp.Option) (bool, s
 }
 
 // toFloat64 将数字类型统一转换为float64进行比较
-func toFloat64(v interface{}) (float64, bool) {
+func toFloat64(v any) (float64, bool) {
 	rv := reflect.ValueOf(v)
 
 	// 处理nil指针
@@ -72,7 +72,7 @@ func toFloat64(v interface{}) (float64, bool) {
 }
 
 // compareNumbers 实现数字类型自动转换比较
-func compareNumbers(x, y interface{}) bool {
+func compareNumbers(x, y any) bool {
 	xVal, xOk := toFloat64(x)
 	yVal, yOk := toFloat64(y)
 	if !xOk || !yOk {

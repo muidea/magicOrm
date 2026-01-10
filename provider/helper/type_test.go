@@ -19,8 +19,8 @@ func TestTypeInterface(t *testing.T) {
 	tests := []struct {
 		name         string
 		typeImpl     *remote.TypeImpl
-		initVal      interface{}
-		expectedType interface{}
+		initVal      any
+		expectedType any
 		expectError  bool
 	}{
 		{
@@ -136,7 +136,7 @@ func TestTypeInterface(t *testing.T) {
 func TestTypeConversion(t *testing.T) {
 	tests := []struct {
 		name         string
-		value        interface{}
+		value        any
 		expectedType models.TypeDeclare
 		expectError  bool
 	}{
@@ -293,7 +293,7 @@ func TestTypeConversion(t *testing.T) {
 func TestCopyTypeInfo(t *testing.T) {
 	tests := []struct {
 		name  string
-		value interface{}
+		value any
 	}{
 		{
 			name:  "String type",
@@ -361,7 +361,7 @@ func TestCopyTypeInfo(t *testing.T) {
 func TestEntityTypeDetection(t *testing.T) {
 	tests := []struct {
 		name        string
-		value       interface{}
+		value       any
 		expectedErr bool
 	}{
 		{

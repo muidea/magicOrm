@@ -24,7 +24,7 @@ type Test2 struct {
 func TestCompare(t *testing.T) {
 	t.Run("基本类型比较", func(t *testing.T) {
 		testCases := []struct {
-			a, b  interface{}
+			a, b  any
 			match bool
 		}{
 			{10, 10.0, true},

@@ -9,7 +9,6 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/models"
-	"github.com/muidea/magicOrm/utils"
 )
 
 const (
@@ -335,7 +334,9 @@ func (s *ObjectValue) isFieldAssigned(val *FieldValue) (ret bool) {
 		}
 	}()
 
-	ret = !utils.IsReallyZeroValue(val.Value)
+	ret = !val.IsZero()
+
+	//ret = !utils.IsReallyZeroValue(val.Value)
 	//valPtr := NewValue(val.Value)
 	//ret = !valPtr.IsZero()
 	return
@@ -547,7 +548,7 @@ func decodeItemValue(itemVal map[string]any) (ret *FieldValue, err *cd.Error) {
 	return
 }
 
-func convertAnySlice(slieceVal []interface{}) interface{} {
+func convertAnySlice(slieceVal []any) any {
 	if len(slieceVal) == 0 {
 		return slieceVal
 	}

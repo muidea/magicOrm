@@ -890,9 +890,9 @@ func ConvertToDateTime(rVal reflect.Value) (ret time.Time, err *cd.Error) {
 // convertNumberVal 是一个通用的数值转换函数，用于各种整数和浮点数转换
 // kind 指定要转换的类型，例如 reflect.Int64
 // rVal 是要转换的 reflect.Value
-// 返回一个 interface{} 和一个错误
+// 返回一个 any 和一个错误
 // 要求返回值严格符合 kind 的类型
-func convertNumberVal(kind reflect.Kind, rVal reflect.Value) (result interface{}, err *cd.Error) {
+func convertNumberVal(kind reflect.Kind, rVal reflect.Value) (result any, err *cd.Error) {
 	if !numberKindMap[kind] {
 		return nil, cd.NewError(cd.Unexpected, fmt.Sprintf("unsupported target kind: %v", kind))
 	}
@@ -913,8 +913,8 @@ func convertNumberVal(kind reflect.Kind, rVal reflect.Value) (result interface{}
 	}
 }
 
-func convertBoolToNumber(kind reflect.Kind, val bool) (interface{}, *cd.Error) {
-	var result interface{}
+func convertBoolToNumber(kind reflect.Kind, val bool) (any, *cd.Error) {
+	var result any
 	if val {
 		result = 1
 	} else {
@@ -951,7 +951,7 @@ func convertBoolToNumber(kind reflect.Kind, val bool) (interface{}, *cd.Error) {
 	}
 }
 
-func convertIntToNumber(kind reflect.Kind, val int64) (interface{}, *cd.Error) {
+func convertIntToNumber(kind reflect.Kind, val int64) (any, *cd.Error) {
 	switch kind {
 	case reflect.Int:
 		return int(val), nil
@@ -982,7 +982,7 @@ func convertIntToNumber(kind reflect.Kind, val int64) (interface{}, *cd.Error) {
 	}
 }
 
-func convertUintToNumber(kind reflect.Kind, val uint64) (interface{}, *cd.Error) {
+func convertUintToNumber(kind reflect.Kind, val uint64) (any, *cd.Error) {
 	switch kind {
 	case reflect.Int:
 		return int(val), nil
@@ -1013,7 +1013,7 @@ func convertUintToNumber(kind reflect.Kind, val uint64) (interface{}, *cd.Error)
 	}
 }
 
-func convertFloatToNumber(kind reflect.Kind, val float64) (interface{}, *cd.Error) {
+func convertFloatToNumber(kind reflect.Kind, val float64) (any, *cd.Error) {
 	switch kind {
 	case reflect.Int:
 		return int(val), nil
@@ -1044,7 +1044,7 @@ func convertFloatToNumber(kind reflect.Kind, val float64) (interface{}, *cd.Erro
 	}
 }
 
-func convertStringToNumber(kind reflect.Kind, val string) (interface{}, *cd.Error) {
+func convertStringToNumber(kind reflect.Kind, val string) (any, *cd.Error) {
 	switch {
 	case integerKindMap[kind]:
 		i, err := strconv.ParseInt(val, 10, 64)

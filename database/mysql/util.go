@@ -53,7 +53,7 @@ func getTypeDeclare(fType models.Type, fSpec models.Spec) (ret string, err *cd.E
 	return
 }
 
-func getFieldPlaceHolder(fType models.Type) (ret interface{}, err *cd.Error) {
+func getFieldPlaceHolder(fType models.Type) (ret any, err *cd.Error) {
 	switch fType.GetValue() {
 	case models.TypeStringValue, models.TypeDateTimeValue:
 		val := ""

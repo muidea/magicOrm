@@ -41,7 +41,7 @@ func TestIsReallyValid(t *testing.T) {
 		t.Errorf("strPtrRVal should be valid")
 	}
 
-	var interfaceVal interface{}
+	var interfaceVal any
 
 	emptyIntSlice := []int{}
 	noEmptyIntSlice := []int{1, 2, 3}
@@ -51,7 +51,7 @@ func TestIsReallyValid(t *testing.T) {
 
 	tests := []struct {
 		name  string
-		value interface{}
+		value any
 		want  bool
 	}{
 		// Basic value types tests
@@ -76,15 +76,15 @@ func TestIsReallyValid(t *testing.T) {
 
 		// Pointer type tests
 		{"nil pointer", (*int)(nil), false},
-		{"pointer to int", func() interface{} { v := 42; return &v }(), true},
-		{"pointer to string", func() interface{} { v := "hello"; return &v }(), true},
+		{"pointer to int", func() any { v := 42; return &v }(), true},
+		{"pointer to string", func() any { v := "hello"; return &v }(), true},
 		{"nil pointer time.Time", (*time.Time)(nil), false},
-		{"pointer to time.Time", func() interface{} { v := time.Now(); return &v }(), true},
+		{"pointer to time.Time", func() any { v := time.Now(); return &v }(), true},
 
-		{"interface, empty int slice", func() interface{} { interfaceVal = emptyIntSlice; return interfaceVal }(), true},
-		{"interface, noEmpty int slice", func() interface{} { interfaceVal = noEmptyIntSlice; return interfaceVal }(), true},
-		{"interface, empty int array", func() interface{} { interfaceVal = emptyArray; return interfaceVal }(), true},
-		{"interface, noEmpty float32 array", func() interface{} { interfaceVal = float32Array; return interfaceVal }(), true},
+		{"interface, empty int slice", func() any { interfaceVal = emptyIntSlice; return interfaceVal }(), true},
+		{"interface, noEmpty int slice", func() any { interfaceVal = noEmptyIntSlice; return interfaceVal }(), true},
+		{"interface, empty int array", func() any { interfaceVal = emptyArray; return interfaceVal }(), true},
+		{"interface, noEmpty float32 array", func() any { interfaceVal = float32Array; return interfaceVal }(), true},
 
 		// Slice type tests
 		{"nil slice", ([]int)(nil), false},
@@ -112,7 +112,7 @@ func TestIsReallyValid(t *testing.T) {
 
 // TestIsReallyZero tests the IsReallyZero function based on its documented behavior
 func TestIsReallyZero(t *testing.T) {
-	var interfaceVal interface{}
+	var interfaceVal any
 
 	emptyIntSlice := []int{}
 	noEmptyIntSlice := []int{1, 2, 3}
@@ -128,7 +128,7 @@ func TestIsReallyZero(t *testing.T) {
 
 	tests := []struct {
 		name  string
-		value interface{}
+		value any
 		want  bool
 	}{
 		// Basic value types tests
@@ -166,13 +166,13 @@ func TestIsReallyZero(t *testing.T) {
 
 		// Pointer type tests
 		{"nil pointer", (*int)(nil), true},
-		{"pointer to zero", func() interface{} { v := 0; return &v }(), true},
-		{"pointer to non-zero", func() interface{} { v := 42; return &v }(), false},
+		{"pointer to zero", func() any { v := 0; return &v }(), true},
+		{"pointer to non-zero", func() any { v := 42; return &v }(), false},
 		{"nil pointer time.Time", (*time.Time)(nil), true},
-		{"pointer to non-empty time.Time", func() interface{} { v := time.Now(); return &v }(), false},
+		{"pointer to non-empty time.Time", func() any { v := time.Now(); return &v }(), false},
 
-		{"empty slice", func() interface{} { interfaceVal = emptyIntSlice; return interfaceVal }(), true},
-		{"noEmpty slice", func() interface{} { interfaceVal = noEmptyIntSlice; return interfaceVal }(), false},
+		{"empty slice", func() any { interfaceVal = emptyIntSlice; return interfaceVal }(), true},
+		{"noEmpty slice", func() any { interfaceVal = noEmptyIntSlice; return interfaceVal }(), false},
 
 		// Invalid types (should return default Go zero value determination)
 		{"map", map[string]int{"a": 1}, false},
@@ -194,7 +194,7 @@ func TestIsReallyZero(t *testing.T) {
 func TestIsReallyValidType(t *testing.T) {
 	tests := []struct {
 		name  string
-		value interface{}
+		value any
 		want  bool
 	}{
 		// Basic value types tests
@@ -216,8 +216,8 @@ func TestIsReallyValidType(t *testing.T) {
 
 		// Pointer type tests
 		{"nil pointer", (*int)(nil), true},
-		{"pointer to int", func() interface{} { v := 42; return &v }(), true},
-		{"pointer to string", func() interface{} { v := "hello"; return &v }(), true},
+		{"pointer to int", func() any { v := 42; return &v }(), true},
+		{"pointer to string", func() any { v := "hello"; return &v }(), true},
 
 		// Slice type tests
 		{"nil slice", ([]int)(nil), true},
@@ -241,10 +241,10 @@ func TestIsReallyValidType(t *testing.T) {
 		})
 	}
 
-	sliceArray := []interface{}{}
+	sliceArray := []any{}
 	sliceArray = append(sliceArray, 1, 2, 3)
 	if IsReallyValidType(sliceArray) {
-		t.Errorf("IsReallyValidType([]interface{}) = true, want false")
+		t.Errorf("IsReallyValidType([]any) = true, want false")
 	}
 }
 
@@ -273,7 +273,7 @@ func TestNestedTypes(t *testing.T) {
 // TestBasicTypesFull provides an exhaustive test of all basic types
 func TestBasicTypesFull(t *testing.T) {
 	// Test all basic value types are considered valid
-	validTypes := []interface{}{
+	validTypes := []any{
 		// Bool
 		true, false,
 		// Integer types
@@ -293,7 +293,7 @@ func TestBasicTypesFull(t *testing.T) {
 	}
 
 	// Test all non-basic types are considered invalid
-	invalidTypes := []interface{}{
+	invalidTypes := []any{
 		struct{}{},
 		map[string]int{},
 		[]struct{}{},
@@ -328,21 +328,21 @@ func TestPointersDeep(t *testing.T) {
 
 // TestEdgeCases tests edge cases for each function
 func TestEdgeCases(t *testing.T) {
-	// IsReallyValidType with interface{}
-	var iface interface{} = 42
+	// IsReallyValidType with any
+	var iface any = 42
 	if !IsReallyValidType(iface) {
-		t.Errorf("IsReallyValidType(interface{}=42) = false, want true")
+		t.Errorf("IsReallyValidType(any=42) = false, want true")
 	}
 
-	// IsReallyValid with interface{}
+	// IsReallyValid with any
 	if !IsReallyValidValue(iface) {
-		t.Errorf("IsReallyValid(interface{}=42) = false, want true")
+		t.Errorf("IsReallyValid(any=42) = false, want true")
 	}
 
-	// IsReallyZero with interface{}
+	// IsReallyZero with any
 	iface = 0
 	if !IsReallyZeroValue(iface) {
-		t.Errorf("IsReallyZero(interface{}=0) = false, want true")
+		t.Errorf("IsReallyZero(any=0) = false, want true")
 	}
 
 	// Empty slices of various types
@@ -358,14 +358,14 @@ func TestEdgeCases(t *testing.T) {
 func TestDeepCopy(t *testing.T) {
 	tests := []struct {
 		name  string
-		value interface{}
+		value any
 	}{
 		{"int", 42},
 		{"string", "hello"},
 		{"bool", true},
 		{"float64", 3.14},
 		{"slice", []int{1, 2, 3}},
-		{"pointer", func() interface{} { v := 10; return &v }()},
+		{"pointer", func() any { v := 10; return &v }()},
 	}
 
 	for _, tt := range tests {

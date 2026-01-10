@@ -7,6 +7,7 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/models"
+	"github.com/muidea/magicOrm/utils"
 )
 
 var _declareObjectSliceValue SliceObjectValue
@@ -212,4 +213,38 @@ func convertSliceValue(vType models.Type, val any) (ret any, err *cd.Error) {
 
 	ret = sliceVal
 	return
+}
+
+func isValid(val any) bool {
+	if val == nil {
+		return false
+	}
+
+	switch v := val.(type) {
+	case *ObjectValue:
+		return v != nil
+	case *SliceObjectValue:
+		return v != nil
+	default:
+		return utils.IsReallyValidValue(val)
+	}
+}
+
+func isZero(val any) (ret bool) {
+	if val == nil {
+		return true
+	}
+
+	switch v := val.(type) {
+	case *ObjectValue:
+		return v == nil || len(v.Fields) == 0 || !v.IsAssigned()
+	case *SliceObjectValue:
+		return v == nil || len(v.Values) == 0
+	case ObjectValue:
+		return len(v.Fields) == 0 || !v.IsAssigned()
+	case SliceObjectValue:
+		return len(v.Values) == 0
+	default:
+		return utils.IsReallyZeroValue(val)
+	}
 }

@@ -91,7 +91,9 @@ func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
 	}
 
 	for _, field := range s.vModel.GetFields() {
-		if models.IsBasicField(field) || !models.IsValidField(field) {
+		// 忽略基础字段和未赋值的字段
+		// 未赋值则认为不需要对该字段进行更新
+		if models.IsBasicField(field) || !models.IsAssignedField(field) {
 			continue
 		}
 

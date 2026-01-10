@@ -92,7 +92,7 @@ func (s *objectImpl) GetField(name string) (ret models.Field) {
 	return
 }
 
-func (s *objectImpl) Interface(ptrValue bool) (ret interface{}) {
+func (s *objectImpl) Interface(ptrValue bool) (ret any) {
 	if ptrValue {
 		ret = s.objectValue.Addr().Interface()
 		return
