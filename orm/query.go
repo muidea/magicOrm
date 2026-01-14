@@ -349,7 +349,7 @@ func (s *QueryRunner) Query(filter models.Filter) (ret []models.Model, err *cd.E
 	}
 
 	sliceValue := []models.Model{}
-	for idx := 0; idx < len(queryValueList); idx++ {
+	for idx := range queryValueList {
 		modelVal, modelErr := s.innerAssign(s.vModel, queryValueList[idx], 0)
 		if modelErr != nil {
 			err = modelErr
