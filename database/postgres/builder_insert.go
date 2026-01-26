@@ -17,15 +17,21 @@ func (s *Builder) BuildInsert(vModel models.Model) (ret database.Result, err *cd
 	fieldValues := ""
 	pkName := ""
 	for _, field := range vModel.GetFields() {
+		fSpec := field.GetSpec()
+		// 检查 req 约束
+		constraints := fSpec.GetConstraints()
+		if constraints != nil && constraints.Has(models.KeyRequired) {
+			if !models.IsAssignedField(field) {
+				err = cd.NewError(cd.IllegalParam, fmt.Sprintf("field '%s' is required, cannot be zero value", field.GetName()))
+				log.Errorf("BuildInsert failed, required field '%s' is zero value", field.GetName())
+				return
+			}
+		}
+
 		if models.IsPrimaryField(field) {
 			pkName = field.GetName()
 		}
 		if !models.IsBasicField(field) || !models.IsValidField(field) {
-			continue
-		}
-
-		fSpec := field.GetSpec()
-		if fSpec.GetValueDeclare() == models.AutoIncrement {
 			continue
 		}
 

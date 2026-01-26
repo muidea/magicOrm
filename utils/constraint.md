@@ -35,7 +35,7 @@
 | **`req`** | 无 | **Required**: 必填/必传 | 校验值不能为零值（0, "", nil）。 |
 | **`ro`** | 无 | **Read-Only**: 只读 | 输出接口展示，但更新接口忽略此字段。 |
 | **`wo`** | 无 | **Write-Only**: 只写 | 敏感字段（如密码），禁止在展示接口输出。 |
-| **`inc`** | 无 | **Immutable**: 不可变 | 仅允许在 Create 时赋值，Update 时视为只读。 |
+| **`imm`** | 无 | **Immutable**: 不可变 | 仅允许在 Create 时赋值，Update 时视为只读。 |
 | **`opt`** | 无 | **Optional**: 可选 | 若字段为空，则跳过后续所有校验指令。 |
 
 ### B. 内容值约束 (Data Validation)
