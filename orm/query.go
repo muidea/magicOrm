@@ -82,6 +82,14 @@ func (s *QueryRunner) innerAssign(vModel models.Model, queryVal resultItems, dee
 		if !models.IsBasicField(field) || !models.IsValidField(field) {
 			continue
 		}
+
+		// 检查 wo 约束，这些字段在查询时应该被排除
+		fSpec := field.GetSpec()
+		constraints := fSpec.GetConstraints()
+		if constraints != nil && constraints.Has(models.KeyWriteOnly) {
+			continue
+		}
+
 		err = s.assignBasicField(field, queryVal[offset])
 		if err != nil {
 			log.Errorf("innerAssign field:%s failed, s.assignBasicField error:%v", field.GetName(), err.Error())

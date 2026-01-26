@@ -46,6 +46,7 @@ func (s *filter) GetPkgPath() string {
 func (s *filter) Equal(key string, val any) (err *cd.Error) {
 	if val == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal equal value")
+		log.Errorf("Equal failed, key:%v, val:%v, err:%s", key, val, err.Error())
 		return
 	}
 
@@ -53,12 +54,12 @@ func (s *filter) Equal(key string, val any) (err *cd.Error) {
 	qvType, qvErr := utils.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
-		log.Errorf("Equal failed, illegal value type, err:%s", err.Error())
+		log.Errorf("Equal failed, key:%v, val:%v, err:%s", key, val, err.Error())
 		return
 	}
 	if models.IsSliceType(qvType) {
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("equal failed, illegal value type, type:%s", qv.Type().String()))
-		log.Errorf("Equal failed, err:%v", err.Error())
+		err = cd.NewError(cd.Unexpected, "equal failed, illegal value type")
+		log.Errorf("Equal failed, key:%v, val:%v, err:%s", key, val, err.Error())
 		return
 	}
 
@@ -70,6 +71,7 @@ func (s *filter) Equal(key string, val any) (err *cd.Error) {
 func (s *filter) NotEqual(key string, val any) (err *cd.Error) {
 	if val == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal not equal value")
+		log.Errorf("NotEqual failed, key:%v, val:%v, err:%s", key, val, err.Error())
 		return
 	}
 
@@ -77,12 +79,12 @@ func (s *filter) NotEqual(key string, val any) (err *cd.Error) {
 	qvType, qvErr := utils.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
-		log.Errorf("NotEqual failed, illegal value type, err:%s", err.Error())
+		log.Errorf("NotEqual failed, key:%v, val:%v, err:%s", key, val, err.Error())
 		return
 	}
 	if models.IsSliceType(qvType) {
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("NotEqual failed, illegal value type, type:%s", qv.Type().String()))
-		log.Errorf("NotEqual failed, err:%v", err.Error())
+		err = cd.NewError(cd.Unexpected, "NotEqual failed, illegal value type")
+		log.Errorf("NotEqual failed, key:%v, val:%v, err:%s", key, val, err.Error())
 		return
 	}
 
@@ -94,6 +96,7 @@ func (s *filter) NotEqual(key string, val any) (err *cd.Error) {
 func (s *filter) Below(key string, val any) (err *cd.Error) {
 	if val == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal below value")
+		log.Errorf("Below failed, key:%v, val:%v, err:%s", key, val, err.Error())
 		return
 	}
 
@@ -101,12 +104,12 @@ func (s *filter) Below(key string, val any) (err *cd.Error) {
 	qvType, qvErr := utils.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
-		log.Errorf("Below failed, illegal value type, err:%s", err.Error())
+		log.Errorf("Below failed, key:%v, val:%v, err:%s", key, val, err.Error())
 		return
 	}
 	if !models.IsBasicType(qvType) {
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("below failed, illegal value type, type:%s", qv.Type().String()))
-		log.Errorf("Below failed, err:%v", err.Error())
+		err = cd.NewError(cd.Unexpected, "below failed, illegal value type")
+		log.Errorf("Below failed, key:%v, val:%v, err:%s", key, val, err.Error())
 		return
 	}
 
@@ -118,6 +121,7 @@ func (s *filter) Below(key string, val any) (err *cd.Error) {
 func (s *filter) Above(key string, val any) (err *cd.Error) {
 	if val == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal above value")
+		log.Errorf("Above failed, key:%v, val:%v, err:%s", key, val, err.Error())
 		return
 	}
 
@@ -125,12 +129,12 @@ func (s *filter) Above(key string, val any) (err *cd.Error) {
 	qvType, qvErr := utils.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
-		log.Errorf("Above failed, illegal value type, err:%s", err.Error())
+		log.Errorf("Above failed, key:%v, val:%v, err:%s", key, val, err.Error())
 		return
 	}
 	if !models.IsBasicType(qvType) {
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("above failed, illegal value type, type:%s", qv.Type().String()))
-		log.Errorf("Above failed, err:%v", err.Error())
+		err = cd.NewError(cd.Unexpected, "above failed, illegal value type")
+		log.Errorf("Above failed, key:%v, val:%v, err:%s", key, val, err.Error())
 		return
 	}
 
@@ -142,6 +146,7 @@ func (s *filter) Above(key string, val any) (err *cd.Error) {
 func (s *filter) In(key string, val any) (err *cd.Error) {
 	if val == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal in value")
+		log.Errorf("In failed, key:%v, val:%v, err:%s", key, val, err.Error())
 		return
 	}
 
@@ -149,12 +154,12 @@ func (s *filter) In(key string, val any) (err *cd.Error) {
 	qvType, qvErr := utils.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
-		log.Errorf("In failed, illegal value type, err:%s", err.Error())
+		log.Errorf("In failed, key:%v, val:%v, err:%s", key, val, err.Error())
 		return
 	}
 	if !models.IsSliceType(qvType) {
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("in failed, illegal value type, type:%s", qv.Type().String()))
-		log.Errorf("In failed, err:%v", err.Error())
+		err = cd.NewError(cd.Unexpected, "in failed, illegal value type")
+		log.Errorf("In failed, key:%v, val:%v, err:%s", key, val, err.Error())
 		return
 	}
 
@@ -166,6 +171,7 @@ func (s *filter) In(key string, val any) (err *cd.Error) {
 func (s *filter) NotIn(key string, val any) (err *cd.Error) {
 	if val == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal not in value")
+		log.Errorf("NotIn failed, key:%v, val:%v, err:%s", key, val, err.Error())
 		return
 	}
 
@@ -173,12 +179,12 @@ func (s *filter) NotIn(key string, val any) (err *cd.Error) {
 	qvType, qvErr := utils.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
-		log.Errorf("NotIn failed, illegal value type, err:%s", err.Error())
+		log.Errorf("NotIn failed, key:%v, val:%v, err:%s", key, val, err.Error())
 		return
 	}
 	if !models.IsSliceType(qvType) {
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("notIn failed, illegal value type, type:%s", qv.Type().String()))
-		log.Errorf("NotIn failed, err:%v", err.Error())
+		err = cd.NewError(cd.Unexpected, "notIn failed, illegal value type")
+		log.Errorf("NotIn failed, key:%v, val:%v, err:%s", key, val, err.Error())
 		return
 	}
 
@@ -190,13 +196,14 @@ func (s *filter) NotIn(key string, val any) (err *cd.Error) {
 func (s *filter) Like(key string, val any) (err *cd.Error) {
 	if val == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal like value")
+		log.Errorf("Like failed, key:%v, val:%v, err:%s", key, val, err.Error())
 		return
 	}
 
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	if qv.Kind() != reflect.String {
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("like failed, illegal value type, type:%s", qv.Type().String()))
-		log.Errorf("Like failed, illegal value type, err:%s", err.Error())
+		err = cd.NewError(cd.Unexpected, "like failed, illegal value type")
+		log.Errorf("Like failed, key:%v, val:%v, err:%s", key, val, err.Error())
 		return
 	}
 

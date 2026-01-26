@@ -84,6 +84,13 @@ func (s *Builder) BuildQueryRelation(vModel models.Model, vField models.Field) (
 func (s *Builder) getFieldQueryNames(vModel models.Model) (ret string, err *cd.Error) {
 	str := ""
 	for _, field := range vModel.GetFields() {
+		// 检查 wo 约束，这些字段在查询时应该被排除
+		fSpec := field.GetSpec()
+		constraints := fSpec.GetConstraints()
+		if constraints != nil && constraints.Has(models.KeyWriteOnly) {
+			continue
+		}
+
 		if !models.IsBasicField(field) || !models.IsValidField(field) {
 			continue
 		}
@@ -102,6 +109,13 @@ func (s *Builder) getFieldQueryNames(vModel models.Model) (ret string, err *cd.E
 func (s *Builder) BuildModuleValueHolder(vModel models.Model) (ret []any, err *cd.Error) {
 	items := []any{}
 	for _, field := range vModel.GetFields() {
+		// 检查 wo 约束，这些字段在查询时应该被排除
+		fSpec := field.GetSpec()
+		constraints := fSpec.GetConstraints()
+		if constraints != nil && constraints.Has(models.KeyWriteOnly) {
+			continue
+		}
+
 		if !models.IsBasicField(field) || !models.IsValidField(field) {
 			continue
 		}

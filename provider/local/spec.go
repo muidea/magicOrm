@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	constraintsTag = "constraints"
+	constraintsTag = "constraint"
 	ormTag         = "orm"
 	viewTag        = "view"
 )

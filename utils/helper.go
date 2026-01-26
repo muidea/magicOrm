@@ -1045,6 +1045,20 @@ func convertFloatToNumber(kind reflect.Kind, val float64) (any, *cd.Error) {
 }
 
 func convertStringToNumber(kind reflect.Kind, val string) (any, *cd.Error) {
+	// 处理空字符串，将其转换为0
+	if val == "" {
+		switch {
+		case integerKindMap[kind]:
+			return convertIntToNumber(kind, 0)
+		case uintegerKindMap[kind]:
+			return convertUintToNumber(kind, 0)
+		case floatKindMap[kind]:
+			return convertFloatToNumber(kind, 0.0)
+		default:
+			return nil, cd.NewError(cd.Unexpected, fmt.Sprintf("unsupported conversion from string to %v", kind))
+		}
+	}
+
 	switch {
 	case integerKindMap[kind]:
 		i, err := strconv.ParseInt(val, 10, 64)

@@ -35,6 +35,10 @@ func (s *Builder) BuildInsert(vModel models.Model) (ret database.Result, err *cd
 			continue
 		}
 
+		if fSpec.GetValueDeclare() == models.AutoIncrement {
+			continue
+		}
+
 		fValue := field.GetValue()
 		encodeVal, encodeErr := s.buildCodec.PackedBasicFieldValue(field, fValue)
 		if encodeErr != nil {

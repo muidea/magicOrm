@@ -136,7 +136,7 @@ func getValueModel(entityValue reflect.Value, viewSpec models.ViewDeclare) (ret 
 	hasPrimaryKey := false
 	impl := &objectImpl{objectValue: entityValue, objectPtr: isPtr, fields: []*field{}}
 	fieldNum := entityType.NumField()
-	for idx := 0; idx < fieldNum; idx++ {
+	for idx := range fieldNum {
 		fieldVal := entityValue.Field(idx)
 		fieldInfo := entityType.Field(idx)
 		tField, tErr := getFieldInfo(idx, fieldInfo, fieldVal, viewSpec)

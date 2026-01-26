@@ -39,6 +39,15 @@ func (s *Builder) BuildUpdate(vModel models.Model) (ret database.Result, err *cd
 func (s *Builder) buildFieldUpdateValues(vModel models.Model, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
 	str := ""
 	for _, field := range vModel.GetFields() {
+		// 检查 ro 和 imm 约束，这些字段在更新时应该被忽略
+		fSpec := field.GetSpec()
+		constraints := fSpec.GetConstraints()
+		if constraints != nil {
+			if constraints.Has(models.KeyReadOnly) || constraints.Has(models.KeyImmutable) {
+				continue
+			}
+		}
+
 		if models.IsPrimaryField(field) {
 			continue
 		}
