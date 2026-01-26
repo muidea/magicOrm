@@ -3,6 +3,7 @@ package models
 type Spec interface {
 	IsPrimaryKey() bool
 	GetValueDeclare() ValueDeclare
+	GetConstraints() Constraints
 	EnableView(ViewDeclare) bool
 	GetDefaultValue() any
 }

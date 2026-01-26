@@ -235,5 +235,5 @@ const (
 )
 
 const (
-	Key = "key"
+	KeyTag = "key"
 )

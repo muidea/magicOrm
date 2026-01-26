@@ -102,7 +102,7 @@ func getOrmSpec(spec string) (ret remote.SpecImpl, err *cd.Error) {
 			ret.ValueDeclare = models.Snowflake
 		case models.DateTime:
 			ret.ValueDeclare = models.DateTime
-		case models.Key:
+		case models.KeyTag:
 			ret.PrimaryKey = true
 		}
 	}

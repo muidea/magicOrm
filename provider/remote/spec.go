@@ -1,35 +1,53 @@
 package remote
 
-import "github.com/muidea/magicOrm/models"
+import (
+	"github.com/muidea/magicOrm/models"
+	"github.com/muidea/magicOrm/utils"
+)
 
 type SpecImpl struct {
 	FieldName    string               `json:"fieldName"`
 	PrimaryKey   bool                 `json:"primaryKey"`
 	ValueDeclare models.ValueDeclare  `json:"valueDeclare"`
 	ViewDeclare  []models.ViewDeclare `json:"viewDeclare"`
-	DefaultValue any                  `json:"defaultValue"`
+
+	Constraints  string `json:"constraints"`
+	DefaultValue any    `json:"defaultValue"`
+
+	// 这里是为了避免在使用时多次解析
+	constraintsVal models.Constraints
 }
 
 var emptySpec = SpecImpl{PrimaryKey: false, ValueDeclare: models.Customer}
 
-func (s SpecImpl) GetFieldName() string {
-	return s.FieldName
+func (m SpecImpl) GetFieldName() string {
+	return m.FieldName
 }
 
-func (s SpecImpl) IsPrimaryKey() bool {
-	return s.PrimaryKey
+func (m SpecImpl) IsPrimaryKey() bool {
+	return m.PrimaryKey
 }
 
-func (s SpecImpl) GetValueDeclare() models.ValueDeclare {
-	return s.ValueDeclare
+func (m SpecImpl) GetValueDeclare() models.ValueDeclare {
+	return m.ValueDeclare
 }
 
-func (s SpecImpl) EnableView(viewSpec models.ViewDeclare) bool {
+func (m SpecImpl) GetConstraints() models.Constraints {
+	if m.constraintsVal == nil {
+		if m.Constraints != "" {
+			m.constraintsVal = utils.ParseConstraints(m.Constraints)
+		}
+	}
+
+	return m.constraintsVal
+}
+
+func (m SpecImpl) EnableView(viewSpec models.ViewDeclare) bool {
 	if viewSpec == models.MetaView {
 		return true
 	}
 
-	for _, val := range s.ViewDeclare {
+	for _, val := range m.ViewDeclare {
 		if val == viewSpec {
 			return true
 		}
@@ -40,17 +58,18 @@ func (s SpecImpl) EnableView(viewSpec models.ViewDeclare) bool {
 
 // GetDefaultValue
 // 这里只允许是基本数值,不允许是表达式，不允许是[]any
-func (s SpecImpl) GetDefaultValue() any {
-	return s.DefaultValue
+func (m SpecImpl) GetDefaultValue() any {
+	return m.DefaultValue
 }
 
-func (s SpecImpl) Copy() *SpecImpl {
+func (m SpecImpl) Copy() *SpecImpl {
 	ret := SpecImpl{
-		FieldName:    s.FieldName,
-		PrimaryKey:   s.PrimaryKey,
-		ValueDeclare: s.ValueDeclare,
-		ViewDeclare:  s.ViewDeclare,
-		DefaultValue: s.DefaultValue,
+		FieldName:    m.FieldName,
+		PrimaryKey:   m.PrimaryKey,
+		ValueDeclare: m.ValueDeclare,
+		ViewDeclare:  m.ViewDeclare,
+		Constraints:  m.Constraints,
+		DefaultValue: m.DefaultValue,
 	}
 
 	return &ret

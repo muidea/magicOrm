@@ -7,16 +7,20 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 
 	"github.com/muidea/magicOrm/models"
+	"github.com/muidea/magicOrm/utils"
 )
 
 const (
-	ormTag  = "orm"
-	viewTag = "view"
+	constraintsTag = "constraints"
+	ormTag         = "orm"
+	viewTag        = "view"
 )
 
 type SpecImpl struct {
-	fieldName    string
-	primaryKey   bool
+	fieldName  string
+	primaryKey bool
+
+	constraints  models.Constraints
 	valueDeclare models.ValueDeclare
 	viewDeclare  []models.ViewDeclare
 }
@@ -30,6 +34,11 @@ func NewSpec(tag reflect.StructTag) (ret *SpecImpl, err *cd.Error) {
 	if err != nil {
 		return
 	}
+	constraints := tag.Get(constraintsTag)
+	if constraints != "" {
+		ret.constraints = utils.ParseConstraints(constraints)
+	}
+
 	viewSpec := tag.Get(viewTag)
 	ret.viewDeclare = getViewItems(viewSpec)
 	return
@@ -49,7 +58,7 @@ func getOrmSpec(spec string) (ret *SpecImpl, err *cd.Error) {
 			ret.valueDeclare = models.Snowflake
 		case models.DateTime:
 			ret.valueDeclare = models.DateTime
-		case models.Key:
+		case models.KeyTag:
 			ret.primaryKey = true
 		}
 	}
@@ -82,6 +91,10 @@ func (s *SpecImpl) IsPrimaryKey() bool {
 
 func (s *SpecImpl) GetValueDeclare() models.ValueDeclare {
 	return s.valueDeclare
+}
+
+func (s *SpecImpl) GetConstraints() models.Constraints {
+	return s.constraints
 }
 
 func (s *SpecImpl) EnableView(viewSpec models.ViewDeclare) bool {
