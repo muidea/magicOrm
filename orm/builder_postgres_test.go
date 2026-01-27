@@ -329,7 +329,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 	}
 
 	rVal := remote.NewValue(unitObjectValue)
-	uModel, uErr := remote.SetModelValue(unitObject, rVal)
+	uModel, uErr := remote.SetModelValue(unitObject, rVal, true)
 	if uErr != nil {
 		t.Errorf("remote.SetModelValue failed")
 		return
@@ -567,14 +567,14 @@ func TestBuilderRemoteReference(t *testing.T) {
 		},
 	}
 
-	unitModel, uErr := remote.SetModelValue(unitObject, remote.NewValue(unitObjectValue))
+	unitModel, uErr := remote.SetModelValue(unitObject, remote.NewValue(unitObjectValue), true)
 	if uErr != nil {
 		t.Errorf("remote.SetModelValue failed")
 		return
 	}
 
 	eVal := remote.NewValue(referenceObjectValue)
-	referenceModel, eErr := remote.SetModelValue(referenceObject, eVal)
+	referenceModel, eErr := remote.SetModelValue(referenceObject, eVal, true)
 	if eErr != nil {
 		t.Errorf("remote.SetModelValue failed")
 		return

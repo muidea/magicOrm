@@ -839,23 +839,30 @@ func testContentConstraintFailures(t *testing.T, o1 orm.Orm, localProvider provi
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			objModel, objErr := localProvider.GetEntityModel(tc.obj, false)
-			if objErr != nil {
-				t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
-				return
-			}
-
-			// 尝试插入对象
-			_, insertErr := o1.Insert(objModel)
 
 			if tc.expectedErr {
-				// 期望插入失败
-				if insertErr == nil {
-					t.Errorf("Expected constraint violation error for %s, but insert succeeded", tc.name)
+				// 期望获取模型失败（因为验证在GetEntityModel阶段就进行了）
+				if objErr == nil {
+					// 如果获取模型成功，尝试插入应该失败
+					_, insertErr := o1.Insert(objModel)
+					if insertErr == nil {
+						t.Errorf("Expected constraint violation error for %s, but insert succeeded", tc.name)
+					} else {
+						t.Logf("Constraint violation detected as expected for %s: %s", tc.name, insertErr.Error())
+					}
 				} else {
-					t.Logf("Constraint violation detected as expected for %s: %s", tc.name, insertErr.Error())
+					// GetEntityModel失败是预期的
+					t.Logf("Constraint violation detected as expected for %s at GetEntityModel: %s", tc.name, objErr.Error())
 				}
 			} else {
+				// 期望获取模型成功
+				if objErr != nil {
+					t.Errorf("Expected GetEntityModel to succeed for %s, but got error: %s", tc.name, objErr.Error())
+					return
+				}
+
 				// 期望插入成功
+				_, insertErr := o1.Insert(objModel)
 				if insertErr != nil {
 					t.Errorf("Expected insert to succeed for %s, but got error: %s", tc.name, insertErr.Error())
 				}
