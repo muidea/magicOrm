@@ -77,6 +77,7 @@ func GetEntityModel(entity any, valueValidator models.ValueValidator) (ret model
 		return
 	}
 
+	implPtr.valueValidator = valueValidator
 	ret = implPtr
 	return
 }

@@ -38,6 +38,7 @@ type Directive interface {
 type Constraints interface {
 	Has(key Key) bool
 	Get(key Key) (Directive, bool)
+	Directives() []Directive
 }
 
 type ValidatorFunc func(val any, args []string) error

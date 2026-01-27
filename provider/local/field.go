@@ -16,6 +16,9 @@ type field struct {
 	typePtr  *TypeImpl
 	specPtr  *SpecImpl
 	valuePtr *ValueImpl
+
+	// 临时变量不进行数据序列化传递
+	valueValidator models.ValueValidator
 }
 
 func (s *field) GetIndex() int {
@@ -54,7 +57,17 @@ func (s *field) GetValue() (ret models.Value) {
 	return
 }
 
-func (s *field) SetValue(val any) *cd.Error {	
+func (s *field) SetValue(val any) *cd.Error {
+	if s.valueValidator != nil {
+		constraintVal := s.GetSpec().GetConstraints()
+		if constraintVal != nil {
+			err := s.valueValidator.ValidateValue(val, constraintVal.Directives())
+			if err != nil {
+				return cd.NewError(cd.Unexpected, err.Error())
+			}
+		}
+	}
+
 	return s.valuePtr.Set(val)
 }
 

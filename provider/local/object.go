@@ -16,6 +16,9 @@ type objectImpl struct {
 	objectPtr   bool
 	objectValue reflect.Value
 	fields      []*field
+
+	// 临时变量不进行数据序列化传递
+	valueValidator models.ValueValidator
 }
 
 func (s *objectImpl) GetName() string {
@@ -49,6 +52,7 @@ func (s *objectImpl) GetFields() (ret models.Fields) {
 
 func (s *objectImpl) SetFieldValue(name string, val any) (err *cd.Error) {
 	for _, sf := range s.fields {
+		sf.valueValidator = s.valueValidator
 		if sf.GetName() == name {
 			err = sf.SetValue(val)
 			return

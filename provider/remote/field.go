@@ -16,6 +16,8 @@ type Field struct {
 	Type        *TypeImpl  `json:"type"`
 	Spec        *SpecImpl  `json:"spec"`
 	value       *ValueImpl `json:"-"`
+
+	valueValidator models.ValueValidator `json:"-"`
 }
 
 type FieldValue struct {
@@ -67,6 +69,16 @@ func (s *Field) GetValue() (ret models.Value) {
 func (s *Field) SetValue(val any) *cd.Error {
 	if s.value == nil {
 		s.value = &ValueImpl{}
+	}
+
+	if s.valueValidator != nil {
+		constraintVal := s.GetSpec().GetConstraints()
+		if constraintVal != nil {
+			err := s.valueValidator.ValidateValue(val, constraintVal.Directives())
+			if err != nil {
+				return cd.NewError(cd.Unexpected, err.Error())
+			}
+		}
 	}
 
 	return s.value.Set(val)

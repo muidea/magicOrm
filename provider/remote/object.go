@@ -122,6 +122,8 @@ func (s *Object) SetFieldValue(name string, val any) (err *cd.Error) {
 			continue
 		}
 
+		sf.valueValidator = s.valueValidator
+
 		if val == nil {
 			sf.SetValue(nil)
 			return

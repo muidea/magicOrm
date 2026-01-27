@@ -37,6 +37,17 @@ func (m constraintsImpl) Get(key models.Key) (models.Directive, bool) {
 	return val, ok
 }
 
+func (m constraintsImpl) Directives() []models.Directive {
+	ret := make([]models.Directive, 0, len(m))
+	idx := 0
+	for _, v := range m {
+		ret[idx] = &v
+		idx++
+	}
+
+	return ret
+}
+
 // parseConstraints 将 "req,min=1:100,ro" 解析为结构化 Map
 func ParseConstraints(tagStr string) models.Constraints {
 	directives := constraintsImpl{}
