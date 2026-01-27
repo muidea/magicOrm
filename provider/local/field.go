@@ -58,7 +58,11 @@ func (s *field) GetValue() (ret models.Value) {
 }
 
 func (s *field) SetValue(val any) *cd.Error {
-	if s.valueValidator != nil {
+	return s.innerSetValue(val, false)
+}
+
+func (s *field) innerSetValue(val any, disableValidator bool) *cd.Error {
+	if s.valueValidator != nil && !disableValidator {
 		constraintVal := s.GetSpec().GetConstraints()
 		if constraintVal != nil {
 			err := s.valueValidator.ValidateValue(val, constraintVal.Directives())

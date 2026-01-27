@@ -84,7 +84,7 @@ func TestLocalTransaction(t *testing.T) {
 	}
 
 	// 在事务中插入第一个对象
-	obj1Model, obj1Err := localProvider.GetEntityModel(obj1)
+	obj1Model, obj1Err := localProvider.GetEntityModel(obj1, true)
 	if obj1Err != nil {
 		o1.RollbackTransaction()
 		t.Errorf("GetEntityModel failed, err:%s", obj1Err.Error())
@@ -100,7 +100,7 @@ func TestLocalTransaction(t *testing.T) {
 	obj1 = obj1Model.Interface(true).(*Unit)
 
 	// 在事务中插入第二个对象
-	obj2Model, obj2Err := localProvider.GetEntityModel(obj2)
+	obj2Model, obj2Err := localProvider.GetEntityModel(obj2, true)
 	if obj2Err != nil {
 		o1.RollbackTransaction()
 		t.Errorf("GetEntityModel failed, err:%s", obj2Err.Error())
@@ -124,7 +124,7 @@ func TestLocalTransaction(t *testing.T) {
 
 	// 验证事务提交后的数据
 	queryObj1 := &Unit{ID: obj1.ID}
-	queryObj1Model, queryObj1Err := localProvider.GetEntityModel(queryObj1)
+	queryObj1Model, queryObj1Err := localProvider.GetEntityModel(queryObj1, true)
 	if queryObj1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", queryObj1Err.Error())
 		return
@@ -146,7 +146,7 @@ func TestLocalTransaction(t *testing.T) {
 
 	// 修改对象1
 	queryObj1.Name = "Modified in transaction and will rollback"
-	modObj1Model, modObj1Err := localProvider.GetEntityModel(queryObj1)
+	modObj1Model, modObj1Err := localProvider.GetEntityModel(queryObj1, true)
 	if modObj1Err != nil {
 		o1.RollbackTransaction()
 		t.Errorf("GetEntityModel failed, err:%s", modObj1Err.Error())
@@ -165,7 +165,7 @@ func TestLocalTransaction(t *testing.T) {
 
 	// 验证回滚后的数据
 	checkObj1 := &Unit{ID: obj1.ID}
-	checkObj1Model, checkObj1Err := localProvider.GetEntityModel(checkObj1)
+	checkObj1Model, checkObj1Err := localProvider.GetEntityModel(checkObj1, true)
 	if checkObj1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", checkObj1Err.Error())
 		return
@@ -257,7 +257,7 @@ func TestLocalBatchOperation(t *testing.T) {
 		}
 		unitList = append(unitList, unit)
 
-		unitModel, unitErr := localProvider.GetEntityModel(unit)
+		unitModel, unitErr := localProvider.GetEntityModel(unit, true)
 		if unitErr != nil {
 			err = unitErr
 			t.Errorf("GetEntityModel failed. err:%s", err.Error())
@@ -280,7 +280,7 @@ func TestLocalBatchOperation(t *testing.T) {
 	}
 
 	// 使用过滤器批量查询
-	unitModel, _ := localProvider.GetEntityModel(&Unit{})
+	unitModel, _ := localProvider.GetEntityModel(&Unit{}, true)
 	filter, err := localProvider.GetModelFilter(unitModel)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())

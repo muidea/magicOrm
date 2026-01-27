@@ -51,15 +51,26 @@ func (s *objectImpl) GetFields() (ret models.Fields) {
 }
 
 func (s *objectImpl) SetFieldValue(name string, val any) (err *cd.Error) {
+	err = s.innerSetFieldValue(name, val, false)
+	if err != nil {
+		log.Errorf("SetFieldValue failed, field:%s, value:%v, err:%s", name, val, err.Error())
+		return
+	}
+
+	//log.Warnf("SetFieldValue failed, field:%s not found", name)
+	return
+}
+
+func (s *objectImpl) innerSetFieldValue(name string, val any, disableValidator bool) (err *cd.Error) {
 	for _, sf := range s.fields {
 		sf.valueValidator = s.valueValidator
 		if sf.GetName() == name {
-			err = sf.SetValue(val)
+			err = sf.innerSetValue(val, disableValidator)
 			return
 		}
 	}
 
-	log.Warnf("SetFieldValue failed, field:%s not found", name)
+	log.Warnf("innerSetFieldValue failed, field:%s not found", name)
 	return
 }
 

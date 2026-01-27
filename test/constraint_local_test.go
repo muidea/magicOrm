@@ -101,7 +101,7 @@ func testRequiredFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 		WriteOnly:  "write_only_value",
 	}
 
-	objModel, objErr := localProvider.GetEntityModel(obj)
+	objModel, objErr := localProvider.GetEntityModel(obj, true)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -139,7 +139,7 @@ func testReadOnlyFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 		WriteOnly:  "write_value",
 	}
 
-	objModel, objErr := localProvider.GetEntityModel(obj)
+	objModel, objErr := localProvider.GetEntityModel(obj, false)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -166,7 +166,7 @@ func testReadOnlyFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 		WriteOnly:  "updated_write",
 	}
 
-	updateModel, updateErr := localProvider.GetEntityModel(updateObj)
+	updateModel, updateErr := localProvider.GetEntityModel(updateObj, false)
 	if updateErr != nil {
 		t.Errorf("GetEntityModel for update failed, err:%s", updateErr.Error())
 		return
@@ -180,7 +180,7 @@ func testReadOnlyFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 
 	// 查询对象以验证只读字段是否被保护
 	queryObj := &ConstraintTestModel{ID: objID}
-	queryModel, queryErr := localProvider.GetEntityModel(queryObj)
+	queryModel, queryErr := localProvider.GetEntityModel(queryObj, true)
 	if queryErr != nil {
 		t.Errorf("GetEntityModel for query failed, err:%s", queryErr.Error())
 		return
@@ -226,7 +226,7 @@ func testWriteOnlyFields(t *testing.T, o1 orm.Orm, localProvider provider.Provid
 		WriteOnly:  "sensitive_data", // 只写字段
 	}
 
-	objModel, objErr := localProvider.GetEntityModel(obj)
+	objModel, objErr := localProvider.GetEntityModel(obj, false)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -243,7 +243,7 @@ func testWriteOnlyFields(t *testing.T, o1 orm.Orm, localProvider provider.Provid
 
 	// 查询对象
 	queryObj := &ConstraintTestModel{ID: objID}
-	queryModel, queryErr := localProvider.GetEntityModel(queryObj)
+	queryModel, queryErr := localProvider.GetEntityModel(queryObj, true)
 	if queryErr != nil {
 		t.Errorf("GetEntityModel for query failed, err:%s", queryErr.Error())
 		return
@@ -283,7 +283,7 @@ func testImmutableFields(t *testing.T, o1 orm.Orm, localProvider provider.Provid
 		WriteOnly:  "write_data",
 	}
 
-	objModel, objErr := localProvider.GetEntityModel(obj)
+	objModel, objErr := localProvider.GetEntityModel(obj, false)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -310,7 +310,7 @@ func testImmutableFields(t *testing.T, o1 orm.Orm, localProvider provider.Provid
 		WriteOnly:  "updated_write",
 	}
 
-	updateModel, updateErr := localProvider.GetEntityModel(updateObj)
+	updateModel, updateErr := localProvider.GetEntityModel(updateObj, false)
 	if updateErr != nil {
 		t.Errorf("GetEntityModel for update failed, err:%s", updateErr.Error())
 		return
@@ -324,7 +324,7 @@ func testImmutableFields(t *testing.T, o1 orm.Orm, localProvider provider.Provid
 
 	// 查询对象验证不可变字段是否被保护
 	queryObj := &ConstraintTestModel{ID: objID}
-	queryModel, queryErr := localProvider.GetEntityModel(queryObj)
+	queryModel, queryErr := localProvider.GetEntityModel(queryObj, true)
 	if queryErr != nil {
 		t.Errorf("GetEntityModel for query failed, err:%s", queryErr.Error())
 		return
@@ -368,7 +368,7 @@ func testOptionalFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 		// Email字段是可选字段，不设置
 	}
 
-	obj1Model, obj1Err := localProvider.GetEntityModel(obj1)
+	obj1Model, obj1Err := localProvider.GetEntityModel(obj1, false)
 	if obj1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", obj1Err.Error())
 		return
@@ -385,7 +385,7 @@ func testOptionalFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 
 	// 查询验证可选字段为空
 	query1Obj := &ConstraintTestModel{ID: obj1ID}
-	query1Model, query1Err := localProvider.GetEntityModel(query1Obj)
+	query1Model, query1Err := localProvider.GetEntityModel(query1Obj, true)
 	if query1Err != nil {
 		t.Errorf("GetEntityModel for query failed, err:%s", query1Err.Error())
 		return
@@ -414,7 +414,7 @@ func testOptionalFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 		Email:      "test@example.com", // 提供可选字段
 	}
 
-	obj2Model, obj2Err := localProvider.GetEntityModel(obj2)
+	obj2Model, obj2Err := localProvider.GetEntityModel(obj2, false)
 	if obj2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", obj2Err.Error())
 		return
@@ -431,7 +431,7 @@ func testOptionalFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 
 	// 查询验证可选字段被保存
 	query2Obj := &ConstraintTestModel{ID: obj2ID}
-	query2Model, query2Err := localProvider.GetEntityModel(query2Obj)
+	query2Model, query2Err := localProvider.GetEntityModel(query2Obj, true)
 	if query2Err != nil {
 		t.Errorf("GetEntityModel for query failed, err:%s", query2Err.Error())
 		return
@@ -467,7 +467,7 @@ func testContentConstraints(t *testing.T, o1 orm.Orm, localProvider provider.Pro
 		Code:        "ABC-123",                     // 符合正则格式
 	}
 
-	objModel, objErr := localProvider.GetEntityModel(validObj)
+	objModel, objErr := localProvider.GetEntityModel(validObj, false)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -517,7 +517,7 @@ func testContentConstraints(t *testing.T, o1 orm.Orm, localProvider provider.Pro
 
 	// 测试2: 查询对象
 	queryObj := &ContentConstraintTestModel{ID: insertedObj.ID}
-	queryModel, queryErr := localProvider.GetEntityModel(queryObj)
+	queryModel, queryErr := localProvider.GetEntityModel(queryObj, true)
 	if queryErr != nil {
 		t.Errorf("GetEntityModel for query failed, err:%s", queryErr.Error())
 		return
@@ -549,7 +549,7 @@ func testContentConstraints(t *testing.T, o1 orm.Orm, localProvider provider.Pro
 		Code:        "XYZ-789",                // 符合正则格式
 	}
 
-	updateModel, updateErr := localProvider.GetEntityModel(updateObj)
+	updateModel, updateErr := localProvider.GetEntityModel(updateObj, false)
 	if updateErr != nil {
 		t.Errorf("GetEntityModel for update failed, err:%s", updateErr.Error())
 		return
@@ -563,7 +563,7 @@ func testContentConstraints(t *testing.T, o1 orm.Orm, localProvider provider.Pro
 
 	// 查询验证更新
 	queryObj2 := &ContentConstraintTestModel{ID: insertedObj.ID}
-	queryModel2, queryErr2 := localProvider.GetEntityModel(queryObj2)
+	queryModel2, queryErr2 := localProvider.GetEntityModel(queryObj2, true)
 	if queryErr2 != nil {
 		t.Errorf("GetEntityModel for query failed, err:%s", queryErr2.Error())
 		return
@@ -838,7 +838,7 @@ func testContentConstraintFailures(t *testing.T, o1 orm.Orm, localProvider provi
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			objModel, objErr := localProvider.GetEntityModel(tc.obj)
+			objModel, objErr := localProvider.GetEntityModel(tc.obj, false)
 			if objErr != nil {
 				t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 				return
@@ -866,7 +866,7 @@ func testContentConstraintFailures(t *testing.T, o1 orm.Orm, localProvider provi
 
 // cleanupConstraintTest 清理约束测试数据
 func cleanupConstraintTest(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
-	constraintModel, _ := localProvider.GetEntityModel(&ConstraintTestModel{})
+	constraintModel, _ := localProvider.GetEntityModel(&ConstraintTestModel{}, true)
 	filter, err := localProvider.GetModelFilter(constraintModel)
 	if err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", err.Error())

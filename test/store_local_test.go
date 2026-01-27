@@ -39,7 +39,7 @@ func TestLocalStore(t *testing.T) {
 	}
 
 	product001 := getLocalProduct()
-	productModel, productErr := localProvider.GetEntityModel(product001)
+	productModel, productErr := localProvider.GetEntityModel(product001, true)
 	if productErr != nil {
 		t.Errorf("localProvider.GetEntityModel failed, erro:%s", productErr.Error())
 		return
@@ -58,7 +58,7 @@ func TestLocalStore(t *testing.T) {
 		Image:       []string{"image"},
 		Namespace:   "xyz",
 	})
-	productModel, productErr = localProvider.GetEntityModel(product001)
+	productModel, productErr = localProvider.GetEntityModel(product001, true)
 	if productErr != nil {
 		t.Errorf("localProvider.GetEntityModel failed, erro:%s", productErr.Error())
 		return
@@ -76,7 +76,7 @@ func TestLocalStore(t *testing.T) {
 	}
 
 	store001 := getLocalStore()
-	storeModel, storeErr := localProvider.GetEntityModel(store001)
+	storeModel, storeErr := localProvider.GetEntityModel(store001, true)
 	if storeErr != nil {
 		t.Errorf("localProvider.GetEntityModel failed, erro:%s", storeErr.Error())
 		return
@@ -88,7 +88,7 @@ func TestLocalStore(t *testing.T) {
 	}
 	store001 = storeModel.Interface(true).(*Store)
 	stockIn001 := getLocalStockIn(product001, store001)
-	stockInModel, stockInErr := localProvider.GetEntityModel(stockIn001)
+	stockInModel, stockInErr := localProvider.GetEntityModel(stockIn001, true)
 	if stockInErr != nil {
 		t.Errorf("localProvider.GetEntityModel failed, erro:%s", stockInErr.Error())
 		return
@@ -105,7 +105,7 @@ func TestLocalStore(t *testing.T) {
 		Store: &Store{},
 	}
 
-	queryByIDStockInModel, queryByIDStockInErr := localProvider.GetEntityModel(queryByIDStockIn)
+	queryByIDStockInModel, queryByIDStockInErr := localProvider.GetEntityModel(queryByIDStockIn, true)
 	if queryByIDStockInErr != nil {
 		t.Errorf("localProvider.GetEntityModel failed, erro:%s", queryByIDStockInErr.Error())
 		return

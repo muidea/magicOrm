@@ -65,7 +65,7 @@ func TestSimpleLocal(t *testing.T) {
 		sVal.I32 = int32(idx)
 		sValList = append(sValList, sVal)
 
-		sModel, sErr := localProvider.GetEntityModel(sVal)
+		sModel, sErr := localProvider.GetEntityModel(sVal, true)
 		if sErr != nil {
 			err = sErr
 			t.Errorf("GetEntityModel failed. err:%s", err.Error())
@@ -91,7 +91,7 @@ func TestSimpleLocal(t *testing.T) {
 	for idx := 0; idx < loopSize; idx++ {
 		sVal := sValList[idx]
 		sVal.Name = "hi"
-		sModel, sErr := localProvider.GetEntityModel(sVal)
+		sModel, sErr := localProvider.GetEntityModel(sVal, true)
 		if sErr != nil {
 			err = sErr
 			t.Errorf("GetEntityModel failed. err:%s", err.Error())
@@ -119,7 +119,7 @@ func TestSimpleLocal(t *testing.T) {
 		qVal := &Simple{ID: sValList[idx].ID}
 		qValList = append(qValList, qVal)
 
-		qModel, qErr := localProvider.GetEntityModel(qVal)
+		qModel, qErr := localProvider.GetEntityModel(qVal, true)
 		if qErr != nil {
 			err = qErr
 			t.Errorf("GetEntityModel failed. err:%s", err.Error())
@@ -151,7 +151,7 @@ func TestSimpleLocal(t *testing.T) {
 		}
 	}
 
-	simpleModel, _ := localProvider.GetEntityModel(&Simple{})
+	simpleModel, _ := localProvider.GetEntityModel(&Simple{}, true)
 	filter, err := localProvider.GetModelFilter(simpleModel)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
@@ -236,7 +236,7 @@ func TestSimpleRemote(t *testing.T) {
 		}
 		sObjectValList = append(sObjectValList, sObjectVal)
 
-		sModel, sErr := remoteProvider.GetEntityModel(sObjectVal)
+		sModel, sErr := remoteProvider.GetEntityModel(sObjectVal, true)
 		if sErr != nil {
 			err = sErr
 			t.Errorf("GetEntityModel failed. err:%s", err.Error())
@@ -278,7 +278,7 @@ func TestSimpleRemote(t *testing.T) {
 		}
 		sObjectValList[idx] = sObjectVal
 
-		sModel, sErr := remoteProvider.GetEntityModel(sObjectVal)
+		sModel, sErr := remoteProvider.GetEntityModel(sObjectVal, true)
 		if sErr != nil {
 			err = sErr
 			t.Errorf("GetEntityModel failed. err:%s", err.Error())
@@ -323,7 +323,7 @@ func TestSimpleRemote(t *testing.T) {
 		}
 		qObjectValList = append(qObjectValList, qObjectVal)
 
-		qModel, qErr := remoteProvider.GetEntityModel(qObjectVal)
+		qModel, qErr := remoteProvider.GetEntityModel(qObjectVal, true)
 		if qErr != nil {
 			err = qErr
 			t.Errorf("GetEntityModel failed. err:%s", err.Error())

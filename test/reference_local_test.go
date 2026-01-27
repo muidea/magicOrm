@@ -84,7 +84,7 @@ func TestReferenceLocal(t *testing.T) {
 		}
 		sValList = append(sValList, sVal)
 
-		sModel, sErr := localProvider.GetEntityModel(sVal)
+		sModel, sErr := localProvider.GetEntityModel(sVal, true)
 		if sErr != nil {
 			err = sErr
 			t.Errorf("GetEntityModel failed. err:%s", err.Error())
@@ -110,7 +110,7 @@ func TestReferenceLocal(t *testing.T) {
 	for idx := 0; idx < localLoop; idx++ {
 		sVal := sValList[idx]
 		sVal.Name = "hi"
-		sModel, sErr := localProvider.GetEntityModel(sVal)
+		sModel, sErr := localProvider.GetEntityModel(sVal, true)
 		if sErr != nil {
 			err = sErr
 			t.Errorf("GetEntityModel failed. err:%s", err.Error())
@@ -156,7 +156,7 @@ func TestReferenceLocal(t *testing.T) {
 		}
 		qValList = append(qValList, qVal)
 
-		qModel, qErr := localProvider.GetEntityModel(qVal)
+		qModel, qErr := localProvider.GetEntityModel(qVal, true)
 		if qErr != nil {
 			err = qErr
 			t.Errorf("GetEntityModel failed. err:%s", err.Error())
@@ -194,7 +194,7 @@ func TestReferenceLocal(t *testing.T) {
 	strArray2 := []string{}
 	ptrStrArray := []string{}
 
-	referenceModel, _ := localProvider.GetEntityModel(&Reference{})
+	referenceModel, _ := localProvider.GetEntityModel(&Reference{}, true)
 	filter, err := localProvider.GetModelFilter(referenceModel)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())

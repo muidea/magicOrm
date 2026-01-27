@@ -79,23 +79,23 @@ func (s *Object) GetFields() (ret models.Fields) {
 	return
 }
 
-func (s *Object) setBasicFileValue(sf *Field, val any) (err *cd.Error) {
+func (s *Object) setBasicFileValue(sf *Field, val any, disableValidator bool) (err *cd.Error) {
 	eVal, eErr := EncodeValue(val, sf.Type)
 	if eErr != nil {
 		err = eErr
 		log.Errorf("setBasicFileValue failed, field:%s, value:%v, EncodeValue error:%v", sf.GetName(), val, err.Error())
 		return
 	}
-	err = sf.SetValue(eVal)
+	err = sf.innerSetValue(eVal, disableValidator)
 	return
 }
 
-func (s *Object) setSliceStructValue(sf *Field, val any) (err *cd.Error) {
+func (s *Object) setSliceStructValue(sf *Field, val any, disableValidator bool) (err *cd.Error) {
 	switch val.(type) {
 	case *SliceObjectValue:
-		err = sf.SetValue(val)
+		err = sf.innerSetValue(val, disableValidator)
 	case SliceObjectValue:
-		err = sf.SetValue(&val)
+		err = sf.innerSetValue(&val, disableValidator)
 	default:
 		err = cd.NewError(cd.Unexpected, "illegal value type")
 		log.Errorf("set slice struct value failed, field:%s, value:%v, err:%s", sf.GetName(), val, err)
@@ -103,12 +103,12 @@ func (s *Object) setSliceStructValue(sf *Field, val any) (err *cd.Error) {
 	return
 }
 
-func (s *Object) setStructValue(sf *Field, val any) (err *cd.Error) {
+func (s *Object) setStructValue(sf *Field, val any, disableValidator bool) (err *cd.Error) {
 	switch val.(type) {
 	case *ObjectValue:
-		err = sf.SetValue(val)
+		err = sf.innerSetValue(val, disableValidator)
 	case ObjectValue:
-		err = sf.SetValue(&val)
+		err = sf.innerSetValue(&val, disableValidator)
 	default:
 		err = cd.NewError(cd.Unexpected, "illegal value type")
 		log.Errorf("set struct value failed, field:%s, value:%v, err:%s", sf.GetName(), val, err.Error())
@@ -117,6 +117,17 @@ func (s *Object) setStructValue(sf *Field, val any) (err *cd.Error) {
 }
 
 func (s *Object) SetFieldValue(name string, val any) (err *cd.Error) {
+	err = s.innerSetFieldValue(name, val, false)
+	if err != nil {
+		log.Errorf("SetFieldValue failed, field:%s, value:%v, err:%s", name, val, err.Error())
+		return
+	}
+
+	//log.Warnf("SetFieldValue failed, field:%s not found", name)
+	return
+}
+
+func (s *Object) innerSetFieldValue(name string, val any, disableValidator bool) (err *cd.Error) {
 	for _, sf := range s.Fields {
 		if sf.Name != name {
 			continue
@@ -130,7 +141,7 @@ func (s *Object) SetFieldValue(name string, val any) (err *cd.Error) {
 		}
 
 		if models.IsBasicField(sf) {
-			err = s.setBasicFileValue(sf, val)
+			err = s.setBasicFileValue(sf, val, disableValidator)
 			if err != nil {
 				log.Errorf("set basic value failed, field:%s, value:%v, err:%s", sf.GetName(), val, err.Error())
 				return
@@ -139,7 +150,7 @@ func (s *Object) SetFieldValue(name string, val any) (err *cd.Error) {
 		}
 
 		if models.IsSliceField(sf) {
-			err = s.setSliceStructValue(sf, val)
+			err = s.setSliceStructValue(sf, val, disableValidator)
 			if err != nil {
 				log.Errorf("set slice value failed, field:%s, value:%v, err:%s", sf.GetName(), val, err.Error())
 				return
@@ -147,7 +158,7 @@ func (s *Object) SetFieldValue(name string, val any) (err *cd.Error) {
 			return
 		}
 
-		err = s.setStructValue(sf, val)
+		err = s.setStructValue(sf, val, disableValidator)
 		if err != nil {
 			log.Errorf("set struct value failed, field:%s, value:%v, err:%s", sf.GetName(), val, err.Error())
 			return
@@ -160,6 +171,11 @@ func (s *Object) SetFieldValue(name string, val any) (err *cd.Error) {
 }
 
 func (s *Object) SetPrimaryFieldValue(val any) (err *cd.Error) {
+	err = s.innerSetPrimaryFieldValue(val, false)
+	return
+}
+
+func (s *Object) innerSetPrimaryFieldValue(val any, disableValidator bool) (err *cd.Error) {
 	for _, sf := range s.Fields {
 		if models.IsPrimaryField(sf) {
 			if val == nil {
@@ -167,7 +183,7 @@ func (s *Object) SetPrimaryFieldValue(val any) (err *cd.Error) {
 				return
 			}
 
-			err = s.setBasicFileValue(sf, val)
+			err = s.setBasicFileValue(sf, val, disableValidator)
 			return
 		}
 	}

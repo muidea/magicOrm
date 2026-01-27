@@ -146,7 +146,7 @@ func GetModelFilter(vModel models.Model) (ret models.Filter, err *cd.Error) {
 	return
 }
 
-func SetModelValue(vModel models.Model, vVal models.Value) (ret models.Model, err *cd.Error) {
+func SetModelValue(vModel models.Model, vVal models.Value, disableValidator bool) (ret models.Model, err *cd.Error) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
 			err = cd.NewError(cd.Unexpected, fmt.Sprintf("SetModelValue failed, illegal value, err:%v", errInfo))
@@ -155,12 +155,13 @@ func SetModelValue(vModel models.Model, vVal models.Value) (ret models.Model, er
 		}
 	}()
 
+	vObjectPtr := vModel.(*Object)
 	switch val := vVal.Get().(type) {
 	case *ObjectValue:
-		err = assignObjectValue(vModel, val)
+		err = assignObjectValue(vObjectPtr, val, disableValidator)
 	default:
 		if vVal.IsValid() {
-			err = vModel.SetPrimaryFieldValue(val)
+			err = vObjectPtr.innerSetPrimaryFieldValue(val, disableValidator)
 		} else {
 			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal model value, val:%v", val))
 		}
@@ -174,10 +175,10 @@ func SetModelValue(vModel models.Model, vVal models.Value) (ret models.Model, er
 	return
 }
 
-func assignObjectValue(vModel models.Model, objectValuePtr *ObjectValue) (err *cd.Error) {
+func assignObjectValue(vObjectPtr *Object, objectValuePtr *ObjectValue, disableValidator bool) (err *cd.Error) {
 	for idx := range objectValuePtr.Fields {
 		fieldVal := objectValuePtr.Fields[idx]
-		err = vModel.SetFieldValue(fieldVal.GetName(), fieldVal.Get())
+		err = vObjectPtr.innerSetFieldValue(fieldVal.GetName(), fieldVal.Get(), disableValidator)
 		if err != nil {
 			log.Errorf("assignObjectValue failed, err:%s", err.Error())
 			return

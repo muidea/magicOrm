@@ -42,7 +42,7 @@ func TestLocalExecutor(t *testing.T) {
 	objList := []any{&Unit{}}
 	registerLocalModel(localProvider, objList)
 
-	objModel, objErr := localProvider.GetEntityModel(obj)
+	objModel, objErr := localProvider.GetEntityModel(obj, true)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -63,7 +63,7 @@ func TestLocalExecutor(t *testing.T) {
 
 	obj.Name = "abababa"
 	obj.Value = 100.000
-	objModel, objErr = localProvider.GetEntityModel(obj)
+	objModel, objErr = localProvider.GetEntityModel(obj, true)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -75,7 +75,7 @@ func TestLocalExecutor(t *testing.T) {
 	}
 
 	obj2 := &Unit{ID: obj.ID}
-	obj2Model, obj2Err := localProvider.GetEntityModel(obj2)
+	obj2Model, obj2Err := localProvider.GetEntityModel(obj2, true)
 	if obj2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", obj2Err.Error())
 		return
@@ -91,7 +91,7 @@ func TestLocalExecutor(t *testing.T) {
 		return
 	}
 
-	uModel, _ := localProvider.GetEntityModel(&Unit{})
+	uModel, _ := localProvider.GetEntityModel(&Unit{}, true)
 	filter, err := localProvider.GetModelFilter(uModel)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
@@ -148,7 +148,7 @@ func TestLocalDepends(t *testing.T) {
 		return
 	}
 
-	extModel, extErr := provider.GetEntityModel(ext)
+	extModel, extErr := provider.GetEntityModel(ext, true)
 	if extErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", extErr.Error())
 		return
@@ -161,7 +161,7 @@ func TestLocalDepends(t *testing.T) {
 	}
 	_ = extModel.Interface(true).(*ExtUnit)
 
-	objModel, objErr := provider.GetEntityModel(obj)
+	objModel, objErr := provider.GetEntityModel(obj, true)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -179,7 +179,7 @@ func TestLocalDepends(t *testing.T) {
 		UnitList: []Unit{},
 	}
 	ext2.UnitList = append(ext2.UnitList, *obj)
-	ext2Model, ext2Err := provider.GetEntityModel(ext2)
+	ext2Model, ext2Err := provider.GetEntityModel(ext2, true)
 	if ext2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", ext2Err.Error())
 		return

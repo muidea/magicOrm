@@ -211,7 +211,7 @@ func TestPartner(t *testing.T) {
 			},
 		},
 	}
-	status001Model, status001Err := remoteProvider.GetEntityModel(status001ObjectValue)
+	status001Model, status001Err := remoteProvider.GetEntityModel(status001ObjectValue, true)
 	if status001Err != nil {
 		t.Errorf("remoteProvider.GetEntityModel failed, error:%s", status001Err.Error())
 		return
@@ -241,7 +241,7 @@ func TestPartner(t *testing.T) {
 			},
 		},
 	}
-	status002Model, status002Err := remoteProvider.GetEntityModel(status002ObjectValue)
+	status002Model, status002Err := remoteProvider.GetEntityModel(status002ObjectValue, true)
 	if status002Err != nil {
 		t.Errorf("remoteProvider.GetEntityModel failed, error:%s", status002Err.Error())
 		return
@@ -263,7 +263,7 @@ func TestPartner(t *testing.T) {
 			},
 		},
 	}
-	partnerModel, partnerErr := remoteProvider.GetEntityModel(partnerObjectValue)
+	partnerModel, partnerErr := remoteProvider.GetEntityModel(partnerObjectValue, true)
 	if partnerErr != nil {
 		t.Errorf("remoteProvider.GetEntityModel failed, error:%s", partnerErr.Error())
 		return

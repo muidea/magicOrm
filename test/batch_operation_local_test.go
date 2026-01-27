@@ -104,7 +104,7 @@ func testBatchInsert(t *testing.T, o1 orm.Orm, localProvider provider.Provider) 
 			CreatedAt: time.Now(),
 		}
 
-		itemModel, itemErr := localProvider.GetEntityModel(item)
+		itemModel, itemErr := localProvider.GetEntityModel(item, true)
 		if itemErr != nil {
 			t.Errorf("GetEntityModel failed, err:%s", itemErr.Error())
 			return
@@ -127,7 +127,7 @@ func testBatchInsert(t *testing.T, o1 orm.Orm, localProvider provider.Provider) 
 		itemCount, insertDuration, insertDuration/time.Duration(itemCount))
 
 	// 验证插入的数据
-	batchItemModel, _ := localProvider.GetEntityModel(&BatchItem{})
+	batchItemModel, _ := localProvider.GetEntityModel(&BatchItem{}, true)
 	filter, err := localProvider.GetModelFilter(batchItemModel)
 	if err != nil {
 		t.Errorf("GetModelFilter failed, err:%s", err.Error())
@@ -149,7 +149,7 @@ func testBatchInsert(t *testing.T, o1 orm.Orm, localProvider provider.Provider) 
 // 测试批量查询
 func testBatchQuery(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
 	// 进行各种条件的批量查询测试
-	batchItemModel, _ := localProvider.GetEntityModel(&BatchItem{})
+	batchItemModel, _ := localProvider.GetEntityModel(&BatchItem{}, true)
 
 	// 1. 等值查询
 	equalStartTime := time.Now()
@@ -248,7 +248,7 @@ func testBatchQuery(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
 // 测试批量更新
 func testBatchUpdate(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
 	// 首先查询要更新的数据
-	batchItemModel, _ := localProvider.GetEntityModel(&BatchItem{})
+	batchItemModel, _ := localProvider.GetEntityModel(&BatchItem{}, true)
 	filter, err := localProvider.GetModelFilter(batchItemModel)
 	if err != nil {
 		t.Errorf("GetModelFilter failed, err:%s", err.Error())
@@ -275,7 +275,7 @@ func testBatchUpdate(t *testing.T, o1 orm.Orm, localProvider provider.Provider) 
 		item.Value = item.Value + 1000.0
 		item.Name = item.Name + "_Updated"
 
-		updatedModel, updateErr := localProvider.GetEntityModel(item)
+		updatedModel, updateErr := localProvider.GetEntityModel(item, true)
 		if updateErr != nil {
 			t.Errorf("GetEntityModel for update failed, err:%s", updateErr.Error())
 			continue
@@ -318,7 +318,7 @@ func testBatchUpdate(t *testing.T, o1 orm.Orm, localProvider provider.Provider) 
 // 测试批量删除
 func testBatchDelete(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
 	// 首先查询要删除的数据
-	batchItemModel, _ := localProvider.GetEntityModel(&BatchItem{})
+	batchItemModel, _ := localProvider.GetEntityModel(&BatchItem{}, true)
 	filter, err := localProvider.GetModelFilter(batchItemModel)
 	if err != nil {
 		t.Errorf("GetModelFilter failed, err:%s", err.Error())
@@ -387,7 +387,7 @@ func testBatchPerformance(t *testing.T, o1 orm.Orm, localProvider provider.Provi
 			CreatedAt: time.Now(),
 		}
 
-		itemModel, itemErr := localProvider.GetEntityModel(item)
+		itemModel, itemErr := localProvider.GetEntityModel(item, true)
 		if itemErr != nil {
 			t.Errorf("GetEntityModel failed, err:%s", itemErr.Error())
 			return
@@ -411,7 +411,7 @@ func testBatchPerformance(t *testing.T, o1 orm.Orm, localProvider provider.Provi
 
 	// 测试批量查询性能
 	queryStartTime := time.Now()
-	batchItemModel, _ := localProvider.GetEntityModel(&BatchItem{})
+	batchItemModel, _ := localProvider.GetEntityModel(&BatchItem{}, true)
 	filter, err := localProvider.GetModelFilter(batchItemModel)
 	if err != nil {
 		t.Errorf("GetModelFilter failed, err:%s", err.Error())
@@ -437,7 +437,7 @@ func testBatchPerformance(t *testing.T, o1 orm.Orm, localProvider provider.Provi
 			CreatedAt: time.Now(),
 		}
 
-		itemModel, itemErr := localProvider.GetEntityModel(item)
+		itemModel, itemErr := localProvider.GetEntityModel(item, true)
 		if itemErr != nil {
 			t.Errorf("GetEntityModel failed, err:%s", itemErr.Error())
 			continue
@@ -462,7 +462,7 @@ func testBatchPerformance(t *testing.T, o1 orm.Orm, localProvider provider.Provi
 
 // 清理批量操作测试中创建的数据
 func cleanupBatchTest(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
-	batchItemModel, _ := localProvider.GetEntityModel(&BatchItem{})
+	batchItemModel, _ := localProvider.GetEntityModel(&BatchItem{}, true)
 	filter, err := localProvider.GetModelFilter(batchItemModel)
 	if err != nil {
 		t.Errorf("GetModelFilter failed, err:%s", err.Error())

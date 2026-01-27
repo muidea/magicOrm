@@ -98,7 +98,7 @@ func testRequiredFieldsRemote(t *testing.T, o1 orm.Orm, remoteProvider provider.
 		return
 	}
 
-	objModel, objErr := remoteProvider.GetEntityModel(objValue)
+	objModel, objErr := remoteProvider.GetEntityModel(objValue, true)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -149,7 +149,7 @@ func testReadOnlyFieldsRemote(t *testing.T, o1 orm.Orm, remoteProvider provider.
 		return
 	}
 
-	objModel, objErr := remoteProvider.GetEntityModel(objValue)
+	objModel, objErr := remoteProvider.GetEntityModel(objValue, true)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -189,7 +189,7 @@ func testReadOnlyFieldsRemote(t *testing.T, o1 orm.Orm, remoteProvider provider.
 		return
 	}
 
-	updateModel, updateErr := remoteProvider.GetEntityModel(updateValue)
+	updateModel, updateErr := remoteProvider.GetEntityModel(updateValue, true)
 	if updateErr != nil {
 		t.Errorf("GetEntityModel for update failed, err:%s", updateErr.Error())
 		return
@@ -219,7 +219,7 @@ func testReadOnlyFieldsRemote(t *testing.T, o1 orm.Orm, remoteProvider provider.
 		return
 	}
 
-	queryModel, queryErr := remoteProvider.GetEntityModel(queryValue)
+	queryModel, queryErr := remoteProvider.GetEntityModel(queryValue, true)
 	if queryErr != nil {
 		t.Errorf("GetEntityModel for query failed, err:%s", queryErr.Error())
 		return
@@ -277,7 +277,7 @@ func testWriteOnlyFieldsRemote(t *testing.T, o1 orm.Orm, remoteProvider provider
 		return
 	}
 
-	objModel, objErr := remoteProvider.GetEntityModel(objValue)
+	objModel, objErr := remoteProvider.GetEntityModel(objValue, true)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -317,7 +317,7 @@ func testWriteOnlyFieldsRemote(t *testing.T, o1 orm.Orm, remoteProvider provider
 		return
 	}
 
-	queryModel, queryErr := remoteProvider.GetEntityModel(queryValue)
+	queryModel, queryErr := remoteProvider.GetEntityModel(queryValue, true)
 	if queryErr != nil {
 		t.Errorf("GetEntityModel for query failed, err:%s", queryErr.Error())
 		return
@@ -369,7 +369,7 @@ func testImmutableFieldsRemote(t *testing.T, o1 orm.Orm, remoteProvider provider
 		return
 	}
 
-	objModel, objErr := remoteProvider.GetEntityModel(objValue)
+	objModel, objErr := remoteProvider.GetEntityModel(objValue, true)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -409,7 +409,7 @@ func testImmutableFieldsRemote(t *testing.T, o1 orm.Orm, remoteProvider provider
 		return
 	}
 
-	updateModel, updateErr := remoteProvider.GetEntityModel(updateValue)
+	updateModel, updateErr := remoteProvider.GetEntityModel(updateValue, true)
 	if updateErr != nil {
 		t.Errorf("GetEntityModel for update failed, err:%s", updateErr.Error())
 		return
@@ -439,7 +439,7 @@ func testImmutableFieldsRemote(t *testing.T, o1 orm.Orm, remoteProvider provider
 		return
 	}
 
-	queryModel, queryErr := remoteProvider.GetEntityModel(queryValue)
+	queryModel, queryErr := remoteProvider.GetEntityModel(queryValue, true)
 	if queryErr != nil {
 		t.Errorf("GetEntityModel for query failed, err:%s", queryErr.Error())
 		return
@@ -495,7 +495,7 @@ func testOptionalFieldsRemote(t *testing.T, o1 orm.Orm, remoteProvider provider.
 		return
 	}
 
-	obj1Model, obj1Err := remoteProvider.GetEntityModel(obj1Value)
+	obj1Model, obj1Err := remoteProvider.GetEntityModel(obj1Value, true)
 	if obj1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", obj1Err.Error())
 		return
@@ -536,7 +536,7 @@ func testOptionalFieldsRemote(t *testing.T, o1 orm.Orm, remoteProvider provider.
 		return
 	}
 
-	query1Model, query1Err := remoteProvider.GetEntityModel(query1Value)
+	query1Model, query1Err := remoteProvider.GetEntityModel(query1Value, true)
 	if query1Err != nil {
 		t.Errorf("GetEntityModel for query failed, err:%s", query1Err.Error())
 		return
@@ -578,7 +578,7 @@ func testOptionalFieldsRemote(t *testing.T, o1 orm.Orm, remoteProvider provider.
 		return
 	}
 
-	obj2Model, obj2Err := remoteProvider.GetEntityModel(obj2Value)
+	obj2Model, obj2Err := remoteProvider.GetEntityModel(obj2Value, true)
 	if obj2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", obj2Err.Error())
 		return
@@ -619,7 +619,7 @@ func testOptionalFieldsRemote(t *testing.T, o1 orm.Orm, remoteProvider provider.
 		return
 	}
 
-	query2Model, query2Err := remoteProvider.GetEntityModel(query2Value)
+	query2Model, query2Err := remoteProvider.GetEntityModel(query2Value, true)
 	if query2Err != nil {
 		t.Errorf("GetEntityModel for query failed, err:%s", query2Err.Error())
 		return
@@ -668,7 +668,7 @@ func testContentConstraintsRemote(t *testing.T, o1 orm.Orm, remoteProvider provi
 		return
 	}
 
-	objModel, objErr := remoteProvider.GetEntityModel(objValue)
+	objModel, objErr := remoteProvider.GetEntityModel(objValue, true)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -744,7 +744,7 @@ func testContentConstraintsRemote(t *testing.T, o1 orm.Orm, remoteProvider provi
 		return
 	}
 
-	queryModel, queryErr := remoteProvider.GetEntityModel(queryValue)
+	queryModel, queryErr := remoteProvider.GetEntityModel(queryValue, true)
 	if queryErr != nil {
 		t.Errorf("GetEntityModel for query failed, err:%s", queryErr.Error())
 		return
@@ -789,7 +789,7 @@ func testContentConstraintsRemote(t *testing.T, o1 orm.Orm, remoteProvider provi
 		return
 	}
 
-	updateModel, updateErr := remoteProvider.GetEntityModel(updateValue)
+	updateModel, updateErr := remoteProvider.GetEntityModel(updateValue, true)
 	if updateErr != nil {
 		t.Errorf("GetEntityModel for update failed, err:%s", updateErr.Error())
 		return
@@ -822,7 +822,7 @@ func testContentConstraintsRemote(t *testing.T, o1 orm.Orm, remoteProvider provi
 		return
 	}
 
-	queryModel2, queryErr2 := remoteProvider.GetEntityModel(queryValue2)
+	queryModel2, queryErr2 := remoteProvider.GetEntityModel(queryValue2, true)
 	if queryErr2 != nil {
 		t.Errorf("GetEntityModel for query failed, err:%s", queryErr2.Error())
 		return
@@ -873,7 +873,7 @@ func cleanupConstraintTestRemote(t *testing.T, o1 orm.Orm, remoteProvider provid
 		return
 	}
 
-	constraintModel, err := remoteProvider.GetEntityModel(constraintValue)
+	constraintModel, err := remoteProvider.GetEntityModel(constraintValue, true)
 	if err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", err.Error())
 		return

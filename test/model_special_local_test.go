@@ -25,7 +25,7 @@ func TestKPI(t *testing.T) {
 	registerLocalModel(localProvider, objList)
 
 	goal := &Goal{Type: ByPiece, Value: 10}
-	goalModel, goalErr := localProvider.GetEntityModel(goal)
+	goalModel, goalErr := localProvider.GetEntityModel(goal, true)
 	if goalErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", goalErr.Error())
 		return
@@ -44,7 +44,7 @@ func TestKPI(t *testing.T) {
 	}
 
 	specailGoal := &SpecialGoal{CheckDistrict: []string{"123", "234"}, CheckProduct: []string{"111"}, CheckType: CheckSingle, CheckValue: *goal}
-	specailGoalModel, specailGoalErr := localProvider.GetEntityModel(specailGoal)
+	specailGoalModel, specailGoalErr := localProvider.GetEntityModel(specailGoal, true)
 	if specailGoalErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", specailGoalErr.Error())
 		return
@@ -62,7 +62,7 @@ func TestKPI(t *testing.T) {
 	}
 
 	kpi := &KPI{Title: "testKPI", JoinValue: *goal, PerMonthValue: *goal, SpecialValue: *specailGoal}
-	kpiModel, kpiErr := localProvider.GetEntityModel(kpi)
+	kpiModel, kpiErr := localProvider.GetEntityModel(kpi, true)
 	if kpiErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", kpiErr.Error())
 		return
@@ -88,7 +88,7 @@ func TestKPI(t *testing.T) {
 
 	goal1 := &Goal{Type: ByMoney, Value: 1234}
 	newKpi.JoinValue = *goal1
-	newKpiModel, newKpiErr := localProvider.GetEntityModel(newKpi)
+	newKpiModel, newKpiErr := localProvider.GetEntityModel(newKpi, true)
 	if newKpiErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", newKpiErr.Error())
 		return

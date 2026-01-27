@@ -20,7 +20,7 @@ type Provider interface {
 
 	GetEntityValue(entity any) (ret models.Value, err *cd.Error)
 
-	GetEntityModel(entity any) (ret models.Model, err *cd.Error)
+	GetEntityModel(entity any, disableValidator bool) (ret models.Model, err *cd.Error)
 
 	GetEntityFilter(entity any, viewSpec models.ViewDeclare) (ret models.Filter, err *cd.Error)
 
@@ -88,7 +88,7 @@ type providerImpl struct {
 	getEntityValueFunc func(any) (models.Value, *cd.Error)
 	getEntityModelFunc func(any, models.ValueValidator) (models.Model, *cd.Error)
 	getModelFilterFunc func(models.Model) (models.Filter, *cd.Error)
-	setModelValueFunc  func(models.Model, models.Value) (models.Model, *cd.Error)
+	setModelValueFunc  func(models.Model, models.Value, bool) (models.Model, *cd.Error)
 	encodeValueFunc    func(any, models.Type) (any, *cd.Error)
 	decodeValueFunc    func(any, models.Type) (any, *cd.Error)
 }
@@ -146,8 +146,8 @@ func (s *providerImpl) GetEntityValue(entity any) (ret models.Value, err *cd.Err
 	return
 }
 
-func (s *providerImpl) GetEntityModel(entity any) (ret models.Model, err *cd.Error) {
-	ret, err = s.checkEntityModel(entity, models.MetaView)
+func (s *providerImpl) GetEntityModel(entity any, disableValidator bool) (ret models.Model, err *cd.Error) {
+	ret, err = s.checkEntityModel(entity, models.MetaView, disableValidator)
 	if err != nil {
 		log.Errorf("GetEntityModel failed, s.checkEntityModel error:%v", err.Error())
 	}
@@ -157,7 +157,7 @@ func (s *providerImpl) GetEntityModel(entity any) (ret models.Model, err *cd.Err
 // checkEntityModel check entity model
 // entity 可以是struct model type or model value
 // 这里需要先进行判断
-func (s *providerImpl) checkEntityModel(entity any, viewSpec models.ViewDeclare) (ret models.Model, err *cd.Error) {
+func (s *providerImpl) checkEntityModel(entity any, viewSpec models.ViewDeclare, disableValidator bool) (ret models.Model, err *cd.Error) {
 	entityType, entityTypeErr := s.getEntityTypeFunc(entity)
 	if entityTypeErr != nil {
 		err = entityTypeErr
@@ -179,7 +179,7 @@ func (s *providerImpl) checkEntityModel(entity any, viewSpec models.ViewDeclare)
 		return
 	}
 
-	entityModelVal, entityModelErr := s.setModelValueFunc(curModelVal.Copy(viewSpec), entityValue)
+	entityModelVal, entityModelErr := s.setModelValueFunc(curModelVal.Copy(viewSpec), entityValue, disableValidator)
 	if entityModelErr != nil {
 		err = entityModelErr
 		log.Errorf("checkEntityModel failed, s.setModelValueFunc error:%v", err.Error())
@@ -190,7 +190,7 @@ func (s *providerImpl) checkEntityModel(entity any, viewSpec models.ViewDeclare)
 }
 
 func (s *providerImpl) GetEntityFilter(entity any, viewSpec models.ViewDeclare) (ret models.Filter, err *cd.Error) {
-	entityModelVal, entityModelErr := s.checkEntityModel(entity, viewSpec)
+	entityModelVal, entityModelErr := s.checkEntityModel(entity, viewSpec, true)
 	if entityModelErr != nil {
 		err = entityModelErr
 		log.Errorf("GetEntityFilter failed, s.checkEntityModel error:%v", err.Error())
@@ -284,7 +284,7 @@ func (s *providerImpl) SetModelValue(vModel models.Model, vVal models.Value) (re
 		return
 	}
 
-	ret, err = s.setModelValueFunc(vModel, vVal)
+	ret, err = s.setModelValueFunc(vModel, vVal, true)
 	if err != nil {
 		log.Errorf("SetModelValue failed, s.setModelValueFunc error:%v", err.Error())
 	}
@@ -314,7 +314,7 @@ func (s *providerImpl) EncodeValue(vVal any, vType models.Type) (ret any, err *c
 		log.Errorf("EncodeValue failed, s.getEntityValueFunc error:%v", err.Error())
 		return
 	}
-	vModelVal, vModelErr := s.setModelValueFunc(curModelVal.Copy(models.LiteView), eVal)
+	vModelVal, vModelErr := s.setModelValueFunc(curModelVal.Copy(models.LiteView), eVal, true)
 	if vModelErr != nil {
 		err = vModelErr
 		log.Errorf("EncodeValue failed, s.setModelValueFunc error:%v", err.Error())

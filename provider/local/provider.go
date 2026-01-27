@@ -109,7 +109,7 @@ func GetModelFilter(vModel models.Model) (ret models.Filter, err *cd.Error) {
 	return
 }
 
-func SetModelValue(vModel models.Model, vVal models.Value) (ret models.Model, err *cd.Error) {
+func SetModelValue(vModel models.Model, vVal models.Value, disableValidator bool) (ret models.Model, err *cd.Error) {
 	valImplPtr, valImplOK := vVal.(*ValueImpl)
 	if !valImplOK {
 		err = cd.NewError(cd.IllegalParam, "value is invalid")
@@ -123,13 +123,14 @@ func SetModelValue(vModel models.Model, vVal models.Value) (ret models.Model, er
 		return
 	}
 
+	vModelImplPtr := vModel.(*objectImpl)
 	fields := valueModel.GetFields()
 	for _, field := range fields {
 		if !models.IsValidField(field) {
 			continue
 		}
 
-		err = vModel.SetFieldValue(field.GetName(), field.GetValue().Get())
+		err = vModelImplPtr.innerSetFieldValue(field.GetName(), field.GetValue().Get(), disableValidator)
 		if err != nil {
 			log.Errorf("SetModelValue failed, set field:%s value err:%s", field.GetName(), err.Error())
 			return

@@ -20,7 +20,7 @@ func prepareLocalData(localProvider provider.Provider, orm orm.Orm) (sPtr *Simpl
 	ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	sVal := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
 
-	sModel, sErr := localProvider.GetEntityModel(sVal)
+	sModel, sErr := localProvider.GetEntityModel(sVal, true)
 	if sErr != nil {
 		err = sErr
 		return
@@ -56,7 +56,7 @@ func prepareLocalData(localProvider provider.Provider, orm orm.Orm) (sPtr *Simpl
 		PtrStrArray: &strPtrArray,
 	}
 
-	rModel, rErr := localProvider.GetEntityModel(rVal)
+	rModel, rErr := localProvider.GetEntityModel(rVal, true)
 	if rErr != nil {
 		err = rErr
 		return
@@ -81,7 +81,7 @@ func prepareLocalData(localProvider provider.Provider, orm orm.Orm) (sPtr *Simpl
 		ReferenceArray:    []Reference{*rPtr, *rPtr, *rPtr},
 		ReferencePtrArray: refPtrArray,
 	}
-	cModel, cErr := localProvider.GetEntityModel(cVal)
+	cModel, cErr := localProvider.GetEntityModel(cVal, true)
 	if cErr != nil {
 		err = cErr
 		return
@@ -102,7 +102,7 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 	sVal := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
 
 	sObjectVal, _ := helper.GetObjectValue(sVal)
-	sModel, sErr := remoteProvider.GetEntityModel(sObjectVal)
+	sModel, sErr := remoteProvider.GetEntityModel(sObjectVal, true)
 	if sErr != nil {
 		err = sErr
 		return
@@ -145,7 +145,7 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 	}
 
 	rObjectVal, _ := helper.GetObjectValue(rVal)
-	rModel, rErr := remoteProvider.GetEntityModel(rObjectVal)
+	rModel, rErr := remoteProvider.GetEntityModel(rObjectVal, true)
 	if rErr != nil {
 		err = rErr
 		return
@@ -183,7 +183,7 @@ func prepareRemoteData(remoteProvider provider.Provider, orm orm.Orm) (sPtr *Sim
 		ReferencePtrArray: refPtrArray,
 	}
 	cObjectVal, _ := helper.GetObjectValue(cVal)
-	cModel, cErr := remoteProvider.GetEntityModel(cObjectVal)
+	cModel, cErr := remoteProvider.GetEntityModel(cObjectVal, true)
 	if cErr != nil {
 		err = cErr
 		return
@@ -273,7 +273,7 @@ func TestComposeLocal(t *testing.T) {
 		ComposePtr:        cPtr,
 	}
 
-	composeModel, composeErr := localProvider.GetEntityModel(composePtr)
+	composeModel, composeErr := localProvider.GetEntityModel(composePtr, true)
 	if composeErr != nil {
 		err = composeErr
 		t.Errorf("GetEntityModel failed. err:%s", err.Error())
@@ -290,7 +290,7 @@ func TestComposeLocal(t *testing.T) {
 	// update
 	composePtr = composeModel.Interface(true).(*Compose)
 	composePtr.Name = "hi"
-	composeModel, composeErr = localProvider.GetEntityModel(composePtr)
+	composeModel, composeErr = localProvider.GetEntityModel(composePtr, true)
 	if composeErr != nil {
 		err = composeErr
 		t.Errorf("GetEntityModel failed. err:%s", err.Error())
@@ -319,7 +319,7 @@ func TestComposeLocal(t *testing.T) {
 		ComposePtr:        &Compose{},
 	}
 
-	queryModel, queryErr := localProvider.GetEntityModel(queryVal)
+	queryModel, queryErr := localProvider.GetEntityModel(queryVal, true)
 	if queryErr != nil {
 		err = queryErr
 		t.Errorf("GetEntityModel failed. err:%s", err.Error())
@@ -340,7 +340,7 @@ func TestComposeLocal(t *testing.T) {
 		return
 	}
 
-	cModel, _ := localProvider.GetEntityModel(&Compose{})
+	cModel, _ := localProvider.GetEntityModel(&Compose{}, true)
 	filter, err := localProvider.GetModelFilter(cModel)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
@@ -445,7 +445,7 @@ func TestComposeRemote(t *testing.T) {
 		return
 	}
 
-	composeModel, composeErr := remoteProvider.GetEntityModel(composeObjectValue)
+	composeModel, composeErr := remoteProvider.GetEntityModel(composeObjectValue, true)
 	if composeErr != nil {
 		err = composeErr
 		t.Errorf("GetEntityModel failed. err:%s", err.Error())
@@ -474,7 +474,7 @@ func TestComposeRemote(t *testing.T) {
 		return
 	}
 
-	composeModel, composeErr = remoteProvider.GetEntityModel(composeObjectValue)
+	composeModel, composeErr = remoteProvider.GetEntityModel(composeObjectValue, true)
 	if composeErr != nil {
 		err = composeErr
 		t.Errorf("GetEntityModel failed. err:%s", err.Error())
@@ -515,7 +515,7 @@ func TestComposeRemote(t *testing.T) {
 		return
 	}
 
-	queryModel, queryErr := remoteProvider.GetEntityModel(queryObjectValue)
+	queryModel, queryErr := remoteProvider.GetEntityModel(queryObjectValue, true)
 	if queryErr != nil {
 		err = queryErr
 		t.Errorf("GetEntityModel failed. err:%s", err.Error())

@@ -81,7 +81,7 @@ func TestErrorHandling(t *testing.T) {
 	nonExistModel, _ := localProvider.GetEntityModel(&struct {
 		ID   int    `orm:"id key auto"`
 		Name string `orm:"name"`
-	}{})
+	}{}, true)
 
 	_, queryErr := o1.Query(nonExistModel)
 	if queryErr == nil {
@@ -103,7 +103,7 @@ func TestErrorHandling(t *testing.T) {
 		Name:      "Test Invalid Type",
 		TimeStamp: time.Now(),
 	}
-	invalidUnitModel, _ := localProvider.GetEntityModel(invalidUnit)
+	invalidUnitModel, _ := localProvider.GetEntityModel(invalidUnit, true)
 	_, invalidUnitErr := o1.Insert(invalidUnitModel)
 	if invalidUnitErr != nil {
 		t.Logf("获取到无效单元插入错误（预期）: %s", invalidUnitErr.Error())
@@ -158,7 +158,7 @@ func TestCircularReference(t *testing.T) {
 		Name:     "Parent",
 		Children: []*CircularObject{},
 	}
-	parentObjModel, parentObjErr := localProvider.GetEntityModel(parentObj)
+	parentObjModel, parentObjErr := localProvider.GetEntityModel(parentObj, true)
 	if parentObjErr != nil {
 		t.Errorf("GetEntityModel for parent object failed, err:%s", parentObjErr.Error())
 		return
@@ -175,7 +175,7 @@ func TestCircularReference(t *testing.T) {
 
 	// 验证父对象被正确保存
 	queryParent := &CircularObject{ID: parentObj.ID}
-	queryParentModel, _ := localProvider.GetEntityModel(queryParent)
+	queryParentModel, _ := localProvider.GetEntityModel(queryParent, true)
 	queryParentModel, queryErr := o1.Query(queryParentModel)
 	if queryErr != nil {
 		t.Errorf("无法查询父对象: %s", queryErr.Error())
@@ -249,7 +249,7 @@ func TestMaxSizeObject(t *testing.T) {
 	}
 
 	// 插入大对象
-	maxObjModel, maxObjErr := localProvider.GetEntityModel(maxObj)
+	maxObjModel, maxObjErr := localProvider.GetEntityModel(maxObj, true)
 	if maxObjErr != nil {
 		t.Errorf("GetEntityModel for max size object failed, err:%s", maxObjErr.Error())
 		return
@@ -266,7 +266,7 @@ func TestMaxSizeObject(t *testing.T) {
 
 	// 查询大对象
 	queryObj := &MaxSizeObject{ID: maxObj.ID}
-	queryModel, queryErr := localProvider.GetEntityModel(queryObj)
+	queryModel, queryErr := localProvider.GetEntityModel(queryObj, true)
 	if queryErr != nil {
 		t.Errorf("GetEntityModel for query failed, err:%s", queryErr.Error())
 		return

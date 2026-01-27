@@ -88,7 +88,7 @@ func insertIndexTestData(t *testing.T, o1 orm.Orm, localProvider provider.Provid
 			CreatedAt: time.Now(),
 		}
 
-		itemModel, itemErr := localProvider.GetEntityModel(item)
+		itemModel, itemErr := localProvider.GetEntityModel(item, true)
 		if itemErr != nil {
 			t.Errorf("GetEntityModel failed, err:%s", itemErr.Error())
 			return
@@ -109,7 +109,7 @@ func testSingleColumnIndexPerformance(t *testing.T, o1 orm.Orm, localProvider pr
 	insertIndexTestData(t, o1, localProvider, dataCount)
 
 	// 测试使用索引字段查询
-	indexTestItemModel, _ := localProvider.GetEntityModel(&IndexTestItem{})
+	indexTestItemModel, _ := localProvider.GetEntityModel(&IndexTestItem{}, true)
 
 	// 测试使用 Name 索引的查询性能
 	startTimeNameIndex := time.Now()
@@ -170,7 +170,7 @@ func testSingleColumnIndexPerformance(t *testing.T, o1 orm.Orm, localProvider pr
 
 // 测试组合索引性能
 func testCompositeIndexPerformance(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
-	indexTestItemModel, _ := localProvider.GetEntityModel(&IndexTestItem{})
+	indexTestItemModel, _ := localProvider.GetEntityModel(&IndexTestItem{}, true)
 
 	// 测试使用组合索引的所有字段查询
 	startTimeFullCompositeIndex := time.Now()
@@ -233,7 +233,7 @@ func testCompositeIndexPerformance(t *testing.T, o1 orm.Orm, localProvider provi
 
 // 清理索引测试中创建的数据
 func cleanupIndexTest(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
-	indexTestItemModel, _ := localProvider.GetEntityModel(&IndexTestItem{})
+	indexTestItemModel, _ := localProvider.GetEntityModel(&IndexTestItem{}, true)
 	filter, err := localProvider.GetModelFilter(indexTestItemModel)
 	if err != nil {
 		t.Errorf("GetModelFilter failed, err:%s", err.Error())

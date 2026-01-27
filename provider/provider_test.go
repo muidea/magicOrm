@@ -36,7 +36,7 @@ func TestProviderReset(t *testing.T) {
 	}
 
 	// 检查模型是否已注册
-	model2, err2 := localProvider.GetEntityModel(s)
+	model2, err2 := localProvider.GetEntityModel(s, true)
 	if err2 != nil {
 		t.Errorf("GetEntityModel failed for local provider: %s", err2.Error())
 		return
@@ -51,7 +51,7 @@ func TestProviderReset(t *testing.T) {
 	localProvider.Reset()
 
 	// 重置后应该找不到已注册的模型
-	_, err3 := localProvider.GetEntityModel(s)
+	_, err3 := localProvider.GetEntityModel(s, true)
 	if err3 == nil {
 		t.Errorf("After Reset, GetEntityModel should fail but didn't")
 		return
@@ -79,7 +79,7 @@ func TestProviderReset(t *testing.T) {
 	remoteProvider.Reset()
 
 	// 重置后应该找不到已注册的模型
-	_, err5 := remoteProvider.GetEntityModel(remoteComplexObj)
+	_, err5 := remoteProvider.GetEntityModel(remoteComplexObj, true)
 	if err5 == nil {
 		t.Errorf("After Reset, GetEntityModel should fail but didn't")
 		return
@@ -126,7 +126,7 @@ func TestUnregisterModel(t *testing.T) {
 	}
 
 	// 尝试获取已注销的模型
-	_, err3 := localProvider.GetEntityModel(s)
+	_, err3 := localProvider.GetEntityModel(s, true)
 	if err3 == nil {
 		t.Errorf("GetEntityModel after UnregisterModel should fail but didn't")
 		return
@@ -155,7 +155,7 @@ func TestUnregisterModel(t *testing.T) {
 	}
 
 	// 尝试获取已注销的模型
-	_, err6 := remoteProvider.GetEntityModel(remoteComplexObj)
+	_, err6 := remoteProvider.GetEntityModel(remoteComplexObj, true)
 	if err6 == nil {
 		t.Errorf("GetEntityModel after UnregisterModel should fail but didn't")
 		return
@@ -264,7 +264,7 @@ func TestErrorCases(t *testing.T) {
 		return
 	}
 
-	_, err4 := localProvider.GetEntityModel(nil)
+	_, err4 := localProvider.GetEntityModel(nil, true)
 	if err4 == nil {
 		t.Errorf("GetEntityModel with nil should fail but didn't")
 		return

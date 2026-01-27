@@ -108,7 +108,7 @@ func benchmarkBulkInsertSimple(t *testing.T, o1 orm.Orm, localProvider provider.
 			Value: i,
 		}
 
-		simpleObjModel, simpleObjErr := localProvider.GetEntityModel(simpleObj)
+		simpleObjModel, simpleObjErr := localProvider.GetEntityModel(simpleObj, true)
 		if simpleObjErr != nil {
 			t.Errorf("GetEntityModel failed, err:%s", simpleObjErr.Error())
 			return
@@ -130,7 +130,7 @@ func benchmarkBulkInsertSimple(t *testing.T, o1 orm.Orm, localProvider provider.
 func benchmarkBulkQuerySimple(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
 	startTime := time.Now()
 
-	simplePerfModel, _ := localProvider.GetEntityModel(&SimplePerf{})
+	simplePerfModel, _ := localProvider.GetEntityModel(&SimplePerf{}, true)
 	filter, err := localProvider.GetModelFilter(simplePerfModel)
 	if err != nil {
 		t.Errorf("GetModelFilter failed, err:%s", err.Error())
@@ -159,7 +159,7 @@ func benchmarkInsertComplex(t *testing.T, o1 orm.Orm, localProvider provider.Pro
 			Value: i * 100,
 		}
 
-		simpleObjModel, simpleObjErr := localProvider.GetEntityModel(simpleObj)
+		simpleObjModel, simpleObjErr := localProvider.GetEntityModel(simpleObj, true)
 		if simpleObjErr != nil {
 			t.Errorf("GetEntityModel failed, err:%s", simpleObjErr.Error())
 			return
@@ -204,7 +204,7 @@ func benchmarkInsertComplex(t *testing.T, o1 orm.Orm, localProvider provider.Pro
 			SimplePtrList: simplePtrList,
 		}
 
-		complexObjModel, complexObjErr := localProvider.GetEntityModel(complexObj)
+		complexObjModel, complexObjErr := localProvider.GetEntityModel(complexObj, true)
 		if complexObjErr != nil {
 			t.Errorf("GetEntityModel failed, err:%s", complexObjErr.Error())
 			return
@@ -226,7 +226,7 @@ func benchmarkInsertComplex(t *testing.T, o1 orm.Orm, localProvider provider.Pro
 func benchmarkQueryComplex(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
 	startTime := time.Now()
 
-	complexPerfModel, _ := localProvider.GetEntityModel(&ComplexPerf{})
+	complexPerfModel, _ := localProvider.GetEntityModel(&ComplexPerf{}, true)
 	filter, err := localProvider.GetModelFilter(complexPerfModel)
 	if err != nil {
 		t.Errorf("GetModelFilter failed, err:%s", err.Error())
@@ -263,7 +263,7 @@ func benchmarkQueryComplex(t *testing.T, o1 orm.Orm, localProvider provider.Prov
 		singleQueryStart := time.Now()
 
 		queryObj := &ComplexPerf{ID: complexObj.ID}
-		queryObjModel, queryObjErr := localProvider.GetEntityModel(queryObj)
+		queryObjModel, queryObjErr := localProvider.GetEntityModel(queryObj, true)
 		if queryObjErr != nil {
 			t.Errorf("GetEntityModel failed, err:%s", queryObjErr.Error())
 			return
@@ -282,7 +282,7 @@ func benchmarkQueryComplex(t *testing.T, o1 orm.Orm, localProvider provider.Prov
 
 // 过滤器性能测试
 func benchmarkFilterPerformance(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
-	simplePerfModel, _ := localProvider.GetEntityModel(&SimplePerf{})
+	simplePerfModel, _ := localProvider.GetEntityModel(&SimplePerf{}, true)
 
 	// 1. 等值查询
 	equalFilterStart := time.Now()
@@ -399,7 +399,7 @@ func benchmarkFilterPerformance(t *testing.T, o1 orm.Orm, localProvider provider
 // 清理性能测试中创建的数据
 func cleanupPerformanceTest(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
 	// 删除复杂对象
-	complexPerfModel, _ := localProvider.GetEntityModel(&ComplexPerf{})
+	complexPerfModel, _ := localProvider.GetEntityModel(&ComplexPerf{}, true)
 	complexFilter, err := localProvider.GetModelFilter(complexPerfModel)
 	if err != nil {
 		t.Errorf("GetModelFilter failed, err:%s", err.Error())
@@ -420,7 +420,7 @@ func cleanupPerformanceTest(t *testing.T, o1 orm.Orm, localProvider provider.Pro
 	}
 
 	// 删除简单对象
-	simplePerfModel, _ := localProvider.GetEntityModel(&SimplePerf{})
+	simplePerfModel, _ := localProvider.GetEntityModel(&SimplePerf{}, true)
 	simpleFilter, err := localProvider.GetModelFilter(simplePerfModel)
 	if err != nil {
 		t.Errorf("GetModelFilter failed, err:%s", err.Error())

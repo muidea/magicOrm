@@ -46,7 +46,7 @@ func TestRemoteStore(t *testing.T) {
 		t.Errorf("getRemoteProduct failed, err:%s", productErr.Error())
 		return
 	}
-	productModel, productErr := remoteProvider.GetEntityModel(productValue)
+	productModel, productErr := remoteProvider.GetEntityModel(productValue, true)
 	if productErr != nil {
 		t.Errorf("remoteProvider.GetEntityModel failed, erro:%s", productErr.Error())
 		return
@@ -75,7 +75,7 @@ func TestRemoteStore(t *testing.T) {
 		t.Errorf("getRemoteStore failed, err:%s", storeErr.Error())
 		return
 	}
-	storeModel, storeErr := remoteProvider.GetEntityModel(storeValue)
+	storeModel, storeErr := remoteProvider.GetEntityModel(storeValue, true)
 	if storeErr != nil {
 		t.Errorf("remoteProvider.GetEntityModel failed, erro:%s", storeErr.Error())
 		return
@@ -103,7 +103,7 @@ func TestRemoteStore(t *testing.T) {
 		t.Errorf("getRemoteStockIn failed, err:%s", stockInErr.Error())
 		return
 	}
-	stockInModel, stockInErr := remoteProvider.GetEntityModel(stockInValue)
+	stockInModel, stockInErr := remoteProvider.GetEntityModel(stockInValue, true)
 	if stockInErr != nil {
 		t.Errorf("remoteProvider.GetEntityModel failed, erro:%s", stockInErr.Error())
 		return
@@ -137,7 +137,7 @@ func TestRemoteStore(t *testing.T) {
 		t.Errorf("getRemoteStockIn failed, err:%s", queryStockInErr.Error())
 		return
 	}
-	queryByIDStockInModel, queryByIDStockInErr := remoteProvider.GetEntityModel(queryStockInValue)
+	queryByIDStockInModel, queryByIDStockInErr := remoteProvider.GetEntityModel(queryStockInValue, true)
 	if queryByIDStockInErr != nil {
 		t.Errorf("localProvider.GetEntityModel failed, erro:%s", queryByIDStockInErr.Error())
 		return

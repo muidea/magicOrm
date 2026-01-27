@@ -95,7 +95,7 @@ func TestReferenceRemote(t *testing.T) {
 		}
 		sObjectValList = append(sObjectValList, sObjectVal)
 
-		sModel, sErr := remoteProvider.GetEntityModel(sObjectVal)
+		sModel, sErr := remoteProvider.GetEntityModel(sObjectVal, true)
 		if sErr != nil {
 			err = sErr
 			t.Errorf("GetEntityModel failed. err:%s", err.Error())
@@ -137,7 +137,7 @@ func TestReferenceRemote(t *testing.T) {
 		}
 		sObjectValList[idx] = sObjectVal
 
-		sModel, sErr := remoteProvider.GetEntityModel(sObjectVal)
+		sModel, sErr := remoteProvider.GetEntityModel(sObjectVal, true)
 		if sErr != nil {
 			err = sErr
 			t.Errorf("GetEntityModel failed. err:%s", err.Error())
@@ -200,7 +200,7 @@ func TestReferenceRemote(t *testing.T) {
 		}
 		qObjectValList = append(qObjectValList, qObjectVal)
 
-		qModel, qErr := remoteProvider.GetEntityModel(qObjectVal)
+		qModel, qErr := remoteProvider.GetEntityModel(qObjectVal, true)
 		if qErr != nil {
 			err = qErr
 			t.Errorf("GetEntityModel failed. err:%s", err.Error())

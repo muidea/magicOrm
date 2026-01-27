@@ -65,7 +65,7 @@ func TestRemoteExecutor(t *testing.T) {
 		return
 	}
 
-	objModel, objErr := remoteProvider.GetEntityModel(objVal)
+	objModel, objErr := remoteProvider.GetEntityModel(objVal, true)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -91,7 +91,7 @@ func TestRemoteExecutor(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	objModel, objErr = remoteProvider.GetEntityModel(objVal)
+	objModel, objErr = remoteProvider.GetEntityModel(objVal, true)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -108,7 +108,7 @@ func TestRemoteExecutor(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", objErr.Error())
 		return
 	}
-	obj2Model, obj2Err := remoteProvider.GetEntityModel(obj2Val)
+	obj2Model, obj2Err := remoteProvider.GetEntityModel(obj2Val, true)
 	if obj2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", obj2Err.Error())
 		return
@@ -207,7 +207,7 @@ func TestRemoteDepends(t *testing.T) {
 		return
 	}
 
-	extObjModel, extObjErr := remoteProvider.GetEntityModel(extObjVal)
+	extObjModel, extObjErr := remoteProvider.GetEntityModel(extObjVal, true)
 	if extObjErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", extObjErr.Error())
 		return
@@ -238,7 +238,7 @@ func TestRemoteDepends(t *testing.T) {
 		t.Errorf("GetObjectValue failed, err:%s", ext2ObjErr.Error())
 		return
 	}
-	ext2ObjModel, ext2ObjErr := remoteProvider.GetEntityModel(ext2ObjVal)
+	ext2ObjModel, ext2ObjErr := remoteProvider.GetEntityModel(ext2ObjVal, true)
 	if ext2ObjErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", ext2ObjErr.Error())
 		return

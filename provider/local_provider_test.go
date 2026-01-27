@@ -30,7 +30,7 @@ func TestNewLocalProvider(t *testing.T) {
 		return
 	}
 
-	_, sModelErr = provider.GetEntityModel(s001)
+	_, sModelErr = provider.GetEntityModel(s001, true)
 	if sModelErr != nil {
 		t.Errorf("%s", sModelErr.Error())
 		return

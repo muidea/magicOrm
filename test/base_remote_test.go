@@ -67,7 +67,7 @@ func TestRemoteSimple(t *testing.T) {
 		t.Errorf("decode object value failed, err:%s", s1Err.Error())
 		return
 	}
-	s1Model, s1Err := remoteProvider.GetEntityModel(s1Value)
+	s1Model, s1Err := remoteProvider.GetEntityModel(s1Value, true)
 	if s1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s1Err.Error())
 		return
@@ -91,7 +91,7 @@ func TestRemoteSimple(t *testing.T) {
 		return
 	}
 
-	s1Model, s1Err = remoteProvider.GetEntityModel(s1Value)
+	s1Model, s1Err = remoteProvider.GetEntityModel(s1Value, true)
 	if s1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s1Err.Error())
 		return
@@ -114,7 +114,7 @@ func TestRemoteSimple(t *testing.T) {
 		t.Errorf("getObjectValue failed, err:%s", s2Err.Error())
 		return
 	}
-	s2Model, s2Err := remoteProvider.GetEntityModel(s2Value)
+	s2Model, s2Err := remoteProvider.GetEntityModel(s2Value, true)
 	if s2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s2Err.Error())
 		return
@@ -198,7 +198,7 @@ func TestRemoteReference(t *testing.T) {
 		return
 	}
 
-	s1Model, s1Err := remoteProvider.GetEntityModel(s1Value)
+	s1Model, s1Err := remoteProvider.GetEntityModel(s1Value, true)
 	if s1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s1Err.Error())
 		return
@@ -222,7 +222,7 @@ func TestRemoteReference(t *testing.T) {
 		t.Errorf("getObjectValue failed, err:%s", s1Err.Error())
 		return
 	}
-	s1Model, s1Err = remoteProvider.GetEntityModel(s1Value)
+	s1Model, s1Err = remoteProvider.GetEntityModel(s1Value, true)
 	if s1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s1Err.Error())
 		return
@@ -262,7 +262,7 @@ func TestRemoteReference(t *testing.T) {
 		t.Errorf("getObjectValue failed, err:%s", s2Err.Error())
 		return
 	}
-	s2Model, s2Err := remoteProvider.GetEntityModel(s2Value)
+	s2Model, s2Err := remoteProvider.GetEntityModel(s2Value, true)
 	if s2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s2Err.Error())
 		return
@@ -292,7 +292,7 @@ func TestRemoteReference(t *testing.T) {
 		t.Errorf("getObjectValue failed, err:%s", s4Err.Error())
 		return
 	}
-	s4Model, s4Err := remoteProvider.GetEntityModel(s4Value)
+	s4Model, s4Err := remoteProvider.GetEntityModel(s4Value, true)
 	if s4Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s4Err.Error())
 		return
@@ -360,7 +360,7 @@ func TestRemoteCompose(t *testing.T) {
 		return
 	}
 
-	s1Model, s1Err := remoteProvider.GetEntityModel(s1Val)
+	s1Model, s1Err := remoteProvider.GetEntityModel(s1Val, true)
 	if s1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s1Err.Error())
 		return
@@ -405,7 +405,7 @@ func TestRemoteCompose(t *testing.T) {
 		return
 	}
 
-	r1Model, r1Err := remoteProvider.GetEntityModel(r1Val)
+	r1Model, r1Err := remoteProvider.GetEntityModel(r1Val, true)
 	if r1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", r1Err.Error())
 		return
@@ -441,7 +441,7 @@ func TestRemoteCompose(t *testing.T) {
 		t.Errorf("getObjectValue failed, err:%s", c1Err.Error())
 		return
 	}
-	c1Model, c1Err := remoteProvider.GetEntityModel(c1Val)
+	c1Model, c1Err := remoteProvider.GetEntityModel(c1Val, true)
 	if c1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", c1Err.Error())
 		return
@@ -477,7 +477,7 @@ func TestRemoteCompose(t *testing.T) {
 		t.Errorf("getObjectValue failed, err:%s", c2Err.Error())
 		return
 	}
-	c2Model, c2Err := remoteProvider.GetEntityModel(c2Val)
+	c2Model, c2Err := remoteProvider.GetEntityModel(c2Val, true)
 	if c2Err != nil {
 		t.Errorf("GetEntityModel failed,err:%s", c2Err.Error())
 		return
@@ -511,7 +511,7 @@ func TestRemoteCompose(t *testing.T) {
 		t.Errorf("getObjectValue failed, err:%s", c3Err.Error())
 		return
 	}
-	c3Model, c3Err := remoteProvider.GetEntityModel(c3Val)
+	c3Model, c3Err := remoteProvider.GetEntityModel(c3Val, true)
 	if c3Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", c3Err.Error())
 		return
@@ -601,7 +601,7 @@ func TestRemoteQuery(t *testing.T) {
 		t.Errorf("getObjectValue failed, err:%s", s1Err.Error())
 		return
 	}
-	s1Model, s1Err := remoteProvider.GetEntityModel(s1Value)
+	s1Model, s1Err := remoteProvider.GetEntityModel(s1Value, true)
 	if s1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s1Err.Error())
 		return
@@ -646,7 +646,7 @@ func TestRemoteQuery(t *testing.T) {
 		t.Errorf("getObjectValue failed, err:%s", r1Err.Error())
 		return
 	}
-	r1Model, r1Err := remoteProvider.GetEntityModel(r1Value)
+	r1Model, r1Err := remoteProvider.GetEntityModel(r1Value, true)
 	if r1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", r1Err.Error())
 		return
@@ -679,7 +679,7 @@ func TestRemoteQuery(t *testing.T) {
 		t.Errorf("getObjectValue failed, err:%s", c1Err.Error())
 		return
 	}
-	c1Model, c1Err := remoteProvider.GetEntityModel(c1Value)
+	c1Model, c1Err := remoteProvider.GetEntityModel(c1Value, true)
 	if c1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", c1Err.Error())
 		return
@@ -715,7 +715,7 @@ func TestRemoteQuery(t *testing.T) {
 		t.Errorf("getObjectValue failed, err:%s", c2Err.Error())
 		return
 	}
-	c2Model, c2Err := remoteProvider.GetEntityModel(c2Value)
+	c2Model, c2Err := remoteProvider.GetEntityModel(c2Value, true)
 	if c2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", c2Err.Error())
 		return
@@ -734,7 +734,7 @@ func TestRemoteQuery(t *testing.T) {
 
 	c3 := &Compose{ID: c2.ID, SimplePtr: &Simple{}, SimpleArrayPtr: &[]Simple{}, ReferencePtr: &Reference{}, ComposePtr: &Compose{}}
 	c3Value := c2Value
-	c3Model, c3Err := remoteProvider.GetEntityModel(c3Value)
+	c3Model, c3Err := remoteProvider.GetEntityModel(c3Value, true)
 	if c3Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", c3Err.Error())
 		return
@@ -754,7 +754,7 @@ func TestRemoteQuery(t *testing.T) {
 
 	c4 := &Compose{}
 	c4Value := c2Value
-	c4Model, c4Err := remoteProvider.GetEntityModel(c4Value)
+	c4Model, c4Err := remoteProvider.GetEntityModel(c4Value, true)
 	if c4Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", c4Err.Error())
 		return
@@ -860,7 +860,7 @@ func TestRemoteOnlineEntity(t *testing.T) {
 		return
 	}
 
-	entityModelVal, entityModelErr := remoteProvider.GetEntityModel(remoteEntityVal)
+	entityModelVal, entityModelErr := remoteProvider.GetEntityModel(remoteEntityVal, true)
 	if entityModelErr != nil {
 		t.Errorf("get entity model failed, err:%s", entityModelErr.Error())
 		return
@@ -892,7 +892,7 @@ func TestRemoteOnlineEntity(t *testing.T) {
 		return
 	}
 
-	onlineEntityModelVal, onlineEntityModelErr := remoteProvider.GetEntityModel(remoteOnlineEntityVal)
+	onlineEntityModelVal, onlineEntityModelErr := remoteProvider.GetEntityModel(remoteOnlineEntityVal, true)
 	if onlineEntityModelErr != nil {
 		t.Errorf("get online entity model failed, err:%s", onlineEntityModelErr.Error())
 		return
@@ -919,7 +919,7 @@ func TestRemoteOnlineEntity(t *testing.T) {
 		return
 	}
 
-	queryModelVal, queryModelErr := remoteProvider.GetEntityModel(remoteQueryVal)
+	queryModelVal, queryModelErr := remoteProvider.GetEntityModel(remoteQueryVal, true)
 	if queryModelErr != nil {
 		t.Errorf("query online entity failed, error:%v", queryModelErr)
 		return

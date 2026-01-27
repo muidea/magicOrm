@@ -114,7 +114,7 @@ func TestSkipNestedTest(t *testing.T) {
 // 创建复杂嵌套对象并测试
 func testComplexNesting(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
 	// 先确认是否有可用的 Level1 对象
-	level1ItemModel, _ := localProvider.GetEntityModel(&Level1Item{})
+	level1ItemModel, _ := localProvider.GetEntityModel(&Level1Item{}, true)
 	level1Filter, err := localProvider.GetModelFilter(level1ItemModel)
 	if err != nil {
 		t.Errorf("GetModelFilter failed for Level1Item, err:%s", err.Error())
@@ -136,7 +136,7 @@ func testComplexNesting(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 			Value: 100,
 		}
 
-		l3Model, l3Err := localProvider.GetEntityModel(&level3Item)
+		l3Model, l3Err := localProvider.GetEntityModel(&level3Item, true)
 		if l3Err != nil {
 			t.Errorf("GetEntityModel failed for Level3Item, err:%s", l3Err.Error())
 			return
@@ -157,7 +157,7 @@ func testComplexNesting(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 			Items:     []Level3Item{level3Item},
 		}
 
-		l2Model, l2Err := localProvider.GetEntityModel(&level2Item)
+		l2Model, l2Err := localProvider.GetEntityModel(&level2Item, true)
 		if l2Err != nil {
 			t.Errorf("GetEntityModel failed for Level2Item, err:%s", l2Err.Error())
 			return
@@ -181,7 +181,7 @@ func testComplexNesting(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 			OtherItems:  []Level2Item{level2Item},
 		}
 
-		l1Model, l1Err := localProvider.GetEntityModel(&newLevel1Item)
+		l1Model, l1Err := localProvider.GetEntityModel(&newLevel1Item, true)
 		if l1Err != nil {
 			t.Errorf("GetEntityModel failed for Level1Item, err:%s", l1Err.Error())
 			return
@@ -223,7 +223,7 @@ func testComplexNesting(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 			Value: 200,
 		}
 
-		l3Model, l3Err := localProvider.GetEntityModel(&level3Item)
+		l3Model, l3Err := localProvider.GetEntityModel(&level3Item, true)
 		if l3Err != nil {
 			t.Errorf("GetEntityModel failed for extra Level3Item, err:%s", l3Err.Error())
 			return
@@ -244,7 +244,7 @@ func testComplexNesting(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 			Items:     []Level3Item{level3Item},
 		}
 
-		l2Model, l2Err := localProvider.GetEntityModel(&level2Item)
+		l2Model, l2Err := localProvider.GetEntityModel(&level2Item, true)
 		if l2Err != nil {
 			t.Errorf("GetEntityModel failed for extra Level2Item, err:%s", l2Err.Error())
 			return
@@ -268,7 +268,7 @@ func testComplexNesting(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 			OtherItems:  []Level2Item{level2Item},
 		}
 
-		extraL1Model, extraL1Err := localProvider.GetEntityModel(extraL1Item)
+		extraL1Model, extraL1Err := localProvider.GetEntityModel(extraL1Item, true)
 		if extraL1Err != nil {
 			t.Errorf("GetEntityModel failed for extra Level1Item, err:%s", extraL1Err.Error())
 			return
@@ -308,7 +308,7 @@ func testComplexNesting(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 	}
 
 	// 查询是否已存在复杂嵌套对象
-	complexModel, _ := localProvider.GetEntityModel(&ComplexNestedItem{})
+	complexModel, _ := localProvider.GetEntityModel(&ComplexNestedItem{}, true)
 	complexFilter, complexErr := localProvider.GetModelFilter(complexModel)
 	if complexErr != nil {
 		t.Errorf("GetModelFilter failed for ComplexNestedItem, err:%s", complexErr.Error())
@@ -319,7 +319,7 @@ func testComplexNesting(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 
 	if len(complexModelList) == 0 {
 		// 创建新的复杂嵌套对象
-		complexModel, complexErr = localProvider.GetEntityModel(&complexItem)
+		complexModel, complexErr = localProvider.GetEntityModel(&complexItem, true)
 		if complexErr != nil {
 			t.Errorf("GetEntityModel failed for ComplexNestedItem, err:%s", complexErr.Error())
 			return
@@ -343,7 +343,7 @@ func testComplexNesting(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 
 	// 查询复杂嵌套对象
 	queryComplex := &ComplexNestedItem{ID: complexItem.ID}
-	queryComplexModel, queryComplexErr := localProvider.GetEntityModel(queryComplex)
+	queryComplexModel, queryComplexErr := localProvider.GetEntityModel(queryComplex, true)
 	if queryComplexErr != nil {
 		t.Errorf("GetEntityModel failed for query complex, err:%s", queryComplexErr.Error())
 		return
@@ -403,7 +403,7 @@ func testComplexNesting(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 // 清理嵌套测试中创建的数据
 func cleanupNestedTest(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
 	// 先删除 ComplexNestedItem
-	complexModel, _ := localProvider.GetEntityModel(&ComplexNestedItem{})
+	complexModel, _ := localProvider.GetEntityModel(&ComplexNestedItem{}, true)
 	complexFilter, err := localProvider.GetModelFilter(complexModel)
 	if err != nil {
 		t.Logf("GetModelFilter for cleanup failed: %s", err.Error())

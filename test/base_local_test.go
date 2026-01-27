@@ -32,7 +32,7 @@ func TestOptional(t *testing.T) {
 	}
 
 	opt001 := Optional{Name: "abc", StrArry: []string{"a", "b", "c"}}
-	optionalModel, err := localProvider.GetEntityModel(opt001)
+	optionalModel, err := localProvider.GetEntityModel(opt001, true)
 	if err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", err.Error())
 		return
@@ -134,7 +134,7 @@ func TestLocalSimple(t *testing.T) {
 	ts, _ := time.Parse(util.CSTLayoutWithMillisecond, "2018-01-02 15:04:05.000")
 	s1 := &Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
 
-	s1Model, s1Err := localProvider.GetEntityModel(s1)
+	s1Model, s1Err := localProvider.GetEntityModel(s1, true)
 	if s1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s1Err.Error())
 		return
@@ -160,7 +160,7 @@ func TestLocalSimple(t *testing.T) {
 	s1 = s1Model.Interface(true).(*Simple)
 
 	s1.Name = "hello"
-	s1Model, s1Err = localProvider.GetEntityModel(s1)
+	s1Model, s1Err = localProvider.GetEntityModel(s1, true)
 	if s1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s1Err.Error())
 		return
@@ -173,7 +173,7 @@ func TestLocalSimple(t *testing.T) {
 	s1 = s1Model.Interface(true).(*Simple)
 
 	s2 := Simple{ID: s1.ID}
-	s2Model, s2Err := localProvider.GetEntityModel(&s2)
+	s2Model, s2Err := localProvider.GetEntityModel(&s2, true)
 	if s2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s2Err.Error())
 		return
@@ -235,7 +235,7 @@ func TestLocalReference(t *testing.T) {
 		PtrStrArray: &strPtrArray,
 	}
 
-	s1Model, s1Err := localProvider.GetEntityModel(s1)
+	s1Model, s1Err := localProvider.GetEntityModel(s1, true)
 	if s1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s1Err.Error())
 		return
@@ -260,7 +260,7 @@ func TestLocalReference(t *testing.T) {
 	s1 = s1Model.Interface(true).(*Reference)
 
 	s1.Name = "hello"
-	s1Model, s1Err = localProvider.GetEntityModel(s1)
+	s1Model, s1Err = localProvider.GetEntityModel(s1, true)
 	if s1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s1Err.Error())
 		return
@@ -292,7 +292,7 @@ func TestLocalReference(t *testing.T) {
 		PtrStrArray: &ptrArray2,
 	}
 
-	s2Model, s2Err := localProvider.GetEntityModel(&s2)
+	s2Model, s2Err := localProvider.GetEntityModel(&s2, true)
 	if s2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s2Err.Error())
 		return
@@ -326,7 +326,7 @@ func TestLocalReference(t *testing.T) {
 		ID:       s1.ID,
 		PtrArray: &newPtrArray,
 	}
-	s4Model, s4Err := localProvider.GetEntityModel(&s4)
+	s4Model, s4Err := localProvider.GetEntityModel(&s4, true)
 	if s4Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s4Err.Error())
 		return
@@ -385,7 +385,7 @@ func TestLocalCompose(t *testing.T) {
 
 	ts, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	s1 := Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
-	s1Model, s1Err := localProvider.GetEntityModel(s1)
+	s1Model, s1Err := localProvider.GetEntityModel(s1, true)
 	if s1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s1Err.Error())
 		return
@@ -420,7 +420,7 @@ func TestLocalCompose(t *testing.T) {
 		PtrStrArray: &strPtrArray,
 	}
 
-	r1Model, r1Err := localProvider.GetEntityModel(&r1)
+	r1Model, r1Err := localProvider.GetEntityModel(&r1, true)
 	if r1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", r1Err.Error())
 		return
@@ -446,7 +446,7 @@ func TestLocalCompose(t *testing.T) {
 		ReferenceArray:    []Reference{r1, r1, r1},
 		ReferencePtrArray: refPtrArray,
 	}
-	c1Model, c1Err := localProvider.GetEntityModel(c1)
+	c1Model, c1Err := localProvider.GetEntityModel(c1, true)
 	if c1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", c1Err.Error())
 		return
@@ -470,7 +470,7 @@ func TestLocalCompose(t *testing.T) {
 		ReferencePtrArray: refPtrArray,
 		ComposePtr:        c1,
 	}
-	c2Model, c2Err := localProvider.GetEntityModel(&c2)
+	c2Model, c2Err := localProvider.GetEntityModel(&c2, true)
 	if c2Err != nil {
 		t.Errorf("GetEntityModel failed,err:%s", c2Err.Error())
 		return
@@ -494,7 +494,7 @@ func TestLocalCompose(t *testing.T) {
 		ReferencePtrArray: []*Reference{},
 		ComposePtr:        &Compose{},
 	}
-	c3Model, c3Err := localProvider.GetEntityModel(&c3)
+	c3Model, c3Err := localProvider.GetEntityModel(&c3, true)
 	if c3Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", c3Err.Error())
 		return
@@ -553,7 +553,7 @@ func TestLocalQuery(t *testing.T) {
 
 	ts, _ := time.ParseInLocation(util.CSTLayout, "2018-01-02 15:04:05", time.Local)
 	s1 := Simple{I8: 12, I16: 23, I32: 34, I64: 45, Name: "test code", Value: 12.345, F64: 23.456, TimeStamp: ts, Flag: true}
-	s1Model, s1Err := localProvider.GetEntityModel(s1)
+	s1Model, s1Err := localProvider.GetEntityModel(s1, true)
 	if s1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s1Err.Error())
 		return
@@ -588,7 +588,7 @@ func TestLocalQuery(t *testing.T) {
 		StrPtrArray: strPtrArray,
 		PtrStrArray: &strPtrArray,
 	}
-	r1Model, r1Err := localProvider.GetEntityModel(r1)
+	r1Model, r1Err := localProvider.GetEntityModel(r1, true)
 	if r1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", r1Err.Error())
 		return
@@ -612,7 +612,7 @@ func TestLocalQuery(t *testing.T) {
 		ReferenceArray:    []Reference{r1, r1, r1},
 		ReferencePtrArray: refPtrArray,
 	}
-	c1Model, c1Err := localProvider.GetEntityModel(c1)
+	c1Model, c1Err := localProvider.GetEntityModel(c1, true)
 	if c1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", c1Err.Error())
 		return
@@ -638,7 +638,7 @@ func TestLocalQuery(t *testing.T) {
 		ReferencePtrArray: refPtrArray,
 		ComposePtr:        &c1,
 	}
-	c2Model, c2Err := localProvider.GetEntityModel(c2)
+	c2Model, c2Err := localProvider.GetEntityModel(c2, true)
 	if c2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", c2Err.Error())
 		return
@@ -652,7 +652,7 @@ func TestLocalQuery(t *testing.T) {
 	c2 = c2Model.Interface(false).(Compose)
 
 	c3 := c2
-	c3Model, c3Err := localProvider.GetEntityModel(c3)
+	c3Model, c3Err := localProvider.GetEntityModel(c3, true)
 	if c3Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", c3Err.Error())
 		return
@@ -665,7 +665,7 @@ func TestLocalQuery(t *testing.T) {
 	_ = c3Model.Interface(false).(Compose)
 
 	c4 := c2
-	c4Model, c4Err := localProvider.GetEntityModel(c4)
+	c4Model, c4Err := localProvider.GetEntityModel(c4, true)
 	if c4Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", c4Err.Error())
 		return
@@ -677,7 +677,7 @@ func TestLocalQuery(t *testing.T) {
 	}
 	_ = c4Model.Interface(false).(Compose)
 
-	cModel, _ := localProvider.GetEntityModel(&Compose{})
+	cModel, _ := localProvider.GetEntityModel(&Compose{}, true)
 	filter, err := localProvider.GetModelFilter(cModel)
 	if err != nil {
 		t.Errorf("GetEntityFilter failed, err:%s", err.Error())
@@ -739,7 +739,7 @@ func TestLocalOnlineEntity(t *testing.T) {
 	}
 
 	entityPtr := &Entity{EName: "test", EType: "test", EID: 10, Namespace: "test"}
-	entityModelVal, entityModelErr := localProvider.GetEntityModel(entityPtr)
+	entityModelVal, entityModelErr := localProvider.GetEntityModel(entityPtr, true)
 	if entityModelErr != nil {
 		t.Errorf("get entity model failed, err:%s", entityModelErr.Error())
 		return
@@ -765,7 +765,7 @@ func TestLocalOnlineEntity(t *testing.T) {
 		Namespace:   "test",
 	}
 
-	onlineEntityModelVal, onlineEntityModelErr := localProvider.GetEntityModel(onlineEntityPtr)
+	onlineEntityModelVal, onlineEntityModelErr := localProvider.GetEntityModel(onlineEntityPtr, true)
 	if onlineEntityModelErr != nil {
 		t.Errorf("get online entity model failed, err:%s", onlineEntityModelErr.Error())
 		return
@@ -786,7 +786,7 @@ func TestLocalOnlineEntity(t *testing.T) {
 		Entity:    &Entity{},
 	}
 
-	queryModelVal, queryModelErr := localProvider.GetEntityModel(queryOnlineEntityPtr)
+	queryModelVal, queryModelErr := localProvider.GetEntityModel(queryOnlineEntityPtr, true)
 	if queryModelErr != nil {
 		t.Errorf("query online entity failed, error:%v", queryModelErr)
 		return

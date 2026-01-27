@@ -48,7 +48,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 	//	return
 	//}
 
-	unitModel, unitErr := localProvider.GetEntityModel(unit)
+	unitModel, unitErr := localProvider.GetEntityModel(unit,true)
 	if unitErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", unitErr.Error())
 	}
@@ -173,13 +173,13 @@ func TestBuilderLocalReference(t *testing.T) {
 		t.Errorf("build drop schema failed, str:%s", str)
 	}
 
-	referenceModel, referenceErr = localProvider.GetEntityModel(referenceVal)
+	referenceModel, referenceErr = localProvider.GetEntityModel(referenceVal,true)
 	if referenceErr != nil {
 		t.Errorf("localProvider.GetEntityModel failed, err:%s", referenceErr.Error())
 		return
 	}
 
-	unitModel, unitErr = localProvider.GetEntityModel(unitVal)
+	unitModel, unitErr = localProvider.GetEntityModel(unitVal,true)
 	if unitErr != nil {
 		t.Errorf("localProvider.GetEntityModel failed, err:%s", unitErr.Error())
 		return
