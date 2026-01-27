@@ -309,21 +309,3 @@ func generateLargeText(size int) string {
 	}
 	return string(result)
 }
-
-// 辅助函数：生成整数数组
-func generateIntArray(size int) []int {
-	result := make([]int, size)
-	for i := 0; i < size; i++ {
-		result[i] = i
-	}
-	return result
-}
-
-// 辅助函数：生成字符串数组
-func generateStringArray(size int) []string {
-	result := make([]string, size)
-	for i := 0; i < size; i++ {
-		result[i] = "str_" + string(rune(65+i%26))
-	}
-	return result
-}
