@@ -5,6 +5,7 @@ import (
 
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
+	"github.com/muidea/magicOrm/utils"
 )
 
 const constraintLocalOwner = "constraint_local"
@@ -13,7 +14,8 @@ func TestConstraintLocal(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	localProvider := provider.NewLocalProvider(constraintLocalOwner, nil)
+	validator := utils.NewValueValidator()
+	localProvider := provider.NewLocalProvider(constraintLocalOwner, validator)
 
 	o1, err := orm.NewOrm(localProvider, config, "constraint_test")
 	defer o1.Release()
@@ -23,7 +25,7 @@ func TestConstraintLocal(t *testing.T) {
 	}
 
 	// 注册模型
-	objList := []any{&ConstraintTestModel{}}
+	objList := []any{&ConstraintTestModel{}, &ContentConstraintTestModel{}}
 	modelList, modelErr := registerLocalModel(localProvider, objList)
 	if modelErr != nil {
 		t.Errorf("register model failed. err:%s", modelErr.Error())
@@ -66,6 +68,11 @@ func TestConstraintLocal(t *testing.T) {
 	// 测试5: 测试可选字段
 	t.Run("TestOptionalFields", func(t *testing.T) {
 		testOptionalFields(t, o1, localProvider)
+	})
+
+	// 测试6: 测试内容值约束
+	t.Run("TestContentConstraints", func(t *testing.T) {
+		testContentConstraints(t, o1, localProvider)
 	})
 
 	// 清理测试数据
@@ -439,12 +446,150 @@ func testOptionalFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 	t.Logf("Optional field test passed: Email=%s", queried2Obj.Email)
 }
 
+// testContentConstraints 测试内容值约束
+func testContentConstraints(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
+	// 测试1: 创建符合所有约束的对象
+	validObj := &ContentConstraintTestModel{
+		Name:        "John Doe",                    // 长度在3-50之间
+		Age:         25,                            // 在0-150之间
+		Score:       85.5,                          // 在0.0-100.0之间
+		Status:      "active",                      // 在枚举中
+		Email:       "john.doe@example.com",        // 符合邮箱正则
+		Description: "This is a valid description", // 长度小于500
+		ItemCount:   5,                             // 大于等于1
+		Price:       99.99,                         // 在0.01-9999.99之间
+		Category:    "A",                           // 在枚举A:B:C:D中
+		Code:        "ABC-123",                     // 符合正则格式
+	}
+
+	objModel, objErr := localProvider.GetEntityModel(validObj)
+	if objErr != nil {
+		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
+		return
+	}
+
+	// 插入对象
+	insertedModel, insertErr := o1.Insert(objModel)
+	if insertErr != nil {
+		t.Errorf("Insert valid object failed, err:%s", insertErr.Error())
+		return
+	}
+
+	insertedObj := insertedModel.Interface(true).(*ContentConstraintTestModel)
+	t.Logf("Inserted content constraint object ID: %d", insertedObj.ID)
+
+	// 验证插入的数据
+	if insertedObj.Name != "John Doe" {
+		t.Errorf("Name field mismatch, expected: John Doe, got: %s", insertedObj.Name)
+	}
+	if insertedObj.Age != 25 {
+		t.Errorf("Age field mismatch, expected: 25, got: %d", insertedObj.Age)
+	}
+	if insertedObj.Score != 85.5 {
+		t.Errorf("Score field mismatch, expected: 85.5, got: %f", insertedObj.Score)
+	}
+	if insertedObj.Status != "active" {
+		t.Errorf("Status field mismatch, expected: active, got: %s", insertedObj.Status)
+	}
+	if insertedObj.Email != "john.doe@example.com" {
+		t.Errorf("Email field mismatch, expected: john.doe@example.com, got: %s", insertedObj.Email)
+	}
+	if insertedObj.Description != "This is a valid description" {
+		t.Errorf("Description field mismatch, expected: This is a valid description, got: %s", insertedObj.Description)
+	}
+	if insertedObj.ItemCount != 5 {
+		t.Errorf("ItemCount field mismatch, expected: 5, got: %d", insertedObj.ItemCount)
+	}
+	if insertedObj.Price != 99.99 {
+		t.Errorf("Price field mismatch, expected: 99.99, got: %f", insertedObj.Price)
+	}
+	if insertedObj.Category != "A" {
+		t.Errorf("Category field mismatch, expected: A, got: %s", insertedObj.Category)
+	}
+	if insertedObj.Code != "ABC-123" {
+		t.Errorf("Code field mismatch, expected: ABC-123, got: %s", insertedObj.Code)
+	}
+
+	// 测试2: 查询对象
+	queryObj := &ContentConstraintTestModel{ID: insertedObj.ID}
+	queryModel, queryErr := localProvider.GetEntityModel(queryObj)
+	if queryErr != nil {
+		t.Errorf("GetEntityModel for query failed, err:%s", queryErr.Error())
+		return
+	}
+
+	queriedModel, queryErr := o1.Query(queryModel)
+	if queryErr != nil {
+		t.Errorf("Query failed, err:%s", queryErr.Error())
+		return
+	}
+
+	queriedObj := queriedModel.Interface(true).(*ContentConstraintTestModel)
+	if !queriedObj.Equal(insertedObj) {
+		t.Errorf("Queried object does not match inserted object")
+	}
+
+	// 测试3: 更新对象（测试约束在更新时是否生效）
+	updateObj := &ContentConstraintTestModel{
+		ID:          insertedObj.ID,
+		Name:        "Jane Smith",             // 仍然符合长度约束
+		Age:         30,                       // 仍然符合范围
+		Score:       95.0,                     // 仍然符合范围
+		Status:      "inactive",               // 仍然在枚举中
+		Email:       "jane.smith@example.com", // 符合邮箱正则
+		Description: "Updated description",    // 长度小于500
+		ItemCount:   10,                       // 大于等于1
+		Price:       49.99,                    // 在范围内
+		Category:    "B",                      // 在枚举中
+		Code:        "XYZ-789",                // 符合正则格式
+	}
+
+	updateModel, updateErr := localProvider.GetEntityModel(updateObj)
+	if updateErr != nil {
+		t.Errorf("GetEntityModel for update failed, err:%s", updateErr.Error())
+		return
+	}
+
+	_, updateErr = o1.Update(updateModel)
+	if updateErr != nil {
+		t.Errorf("Update failed, err:%s", updateErr.Error())
+		return
+	}
+
+	// 查询验证更新
+	queryObj2 := &ContentConstraintTestModel{ID: insertedObj.ID}
+	queryModel2, queryErr2 := localProvider.GetEntityModel(queryObj2)
+	if queryErr2 != nil {
+		t.Errorf("GetEntityModel for query failed, err:%s", queryErr2.Error())
+		return
+	}
+
+	queriedModel2, queryErr2 := o1.Query(queryModel2)
+	if queryErr2 != nil {
+		t.Errorf("Query failed, err:%s", queryErr2.Error())
+		return
+	}
+
+	queriedObj2 := queriedModel2.Interface(true).(*ContentConstraintTestModel)
+	if queriedObj2.Name != "Jane Smith" {
+		t.Errorf("Updated Name field mismatch, expected: Jane Smith, got: %s", queriedObj2.Name)
+	}
+	if queriedObj2.Age != 30 {
+		t.Errorf("Updated Age field mismatch, expected: 30, got: %d", queriedObj2.Age)
+	}
+	if queriedObj2.Status != "inactive" {
+		t.Errorf("Updated Status field mismatch, expected: inactive, got: %s", queriedObj2.Status)
+	}
+
+	t.Logf("Content constraint test passed: all constraints validated")
+}
+
 // cleanupConstraintTest 清理约束测试数据
 func cleanupConstraintTest(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
 	constraintModel, _ := localProvider.GetEntityModel(&ConstraintTestModel{})
 	filter, err := localProvider.GetModelFilter(constraintModel)
 	if err != nil {
-		t.Errorf("GetModelFilter failed, err:%s", err.Error())
+		t.Errorf("GetEntityModel failed, err:%s", err.Error())
 		return
 	}
 
