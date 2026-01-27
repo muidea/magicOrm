@@ -12,19 +12,19 @@ import (
 
 type ValidatorFunc func(val any, args []string) error
 
-type SingleValueValidator struct {
+type ValueValidator struct {
 	registry map[models.Key]ValidatorFunc
 }
 
-func NewSingleValueValidator() *SingleValueValidator {
-	sv := &SingleValueValidator{registry: make(map[models.Key]ValidatorFunc)}
+func NewValueValidator() *ValueValidator {
+	sv := &ValueValidator{registry: make(map[models.Key]ValidatorFunc)}
 	sv.loadBuiltins()
 	return sv
 }
 
-func (sv *SingleValueValidator) Register(k models.Key, fn ValidatorFunc) { sv.registry[k] = fn }
+func (sv *ValueValidator) Register(k models.Key, fn ValidatorFunc) { sv.registry[k] = fn }
 
-func (sv *SingleValueValidator) ValidateValue(val any, directives []models.Directive) error {
+func (sv *ValueValidator) ValidateValue(val any, directives []models.Directive) error {
 	for _, d := range directives {
 		k := models.Key(d.Key())
 		if fn, ok := sv.registry[k]; ok {
@@ -36,7 +36,7 @@ func (sv *SingleValueValidator) ValidateValue(val any, directives []models.Direc
 	return nil
 }
 
-func (sv *SingleValueValidator) loadBuiltins() {
+func (sv *ValueValidator) loadBuiltins() {
 	// req
 	sv.Register(models.KeyRequired, func(v any, _ []string) error {
 		if IsReallyZeroValue(v) {
