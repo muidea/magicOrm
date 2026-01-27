@@ -36,7 +36,7 @@ type ObjectFilter struct {
 	PageFilter     *utils.Pagination `json:"page"`
 	SortFilter     *utils.SortFilter `json:"sort"`
 
-	bindObject *Object
+	bindObject *Object `json:"-"`
 }
 
 func NewFilter(objectPtr *Object) *ObjectFilter {

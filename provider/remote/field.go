@@ -10,12 +10,12 @@ import (
 )
 
 type Field struct {
-	Name        string    `json:"name"`
-	ShowName    string    `json:"showName"`
-	Description string    `json:"description"`
-	Type        *TypeImpl `json:"type"`
-	Spec        *SpecImpl `json:"spec"`
-	value       *ValueImpl
+	Name        string     `json:"name"`
+	ShowName    string     `json:"showName"`
+	Description string     `json:"description"`
+	Type        *TypeImpl  `json:"type"`
+	Spec        *SpecImpl  `json:"spec"`
+	value       *ValueImpl `json:"-"`
 }
 
 type FieldValue struct {

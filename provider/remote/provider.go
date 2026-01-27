@@ -114,16 +114,23 @@ func GetEntityModel(entity any, valueValidator models.ValueValidator) (ret model
 		return
 	}
 
+	var objectPtr *Object
 	switch val := entity.(type) {
 	case *Object:
-		ret = val
+		objectPtr = val
 	case Object:
-		ret = &val
+		objectPtr = &val
 	default:
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal entity, entity:%v", entity))
 		log.Errorf("GetEntityModel failed, err:%s", err.Error())
 	}
 
+	if err != nil {
+		return
+	}
+
+	objectPtr.valueValidator = valueValidator
+	ret = objectPtr
 	return
 }
 

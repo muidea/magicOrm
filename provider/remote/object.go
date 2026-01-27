@@ -27,6 +27,9 @@ type Object struct {
 	PkgPath     string   `json:"pkgPath"`
 	Description string   `json:"description"`
 	Fields      []*Field `json:"fields"`
+
+	// 临时变量不进行数据序列化传递
+	valueValidator models.ValueValidator `json:"-"`
 }
 
 // ObjectValue Object value
@@ -222,6 +225,8 @@ func (s *Object) Copy(viewSpec models.ViewDeclare) (ret models.Model) {
 		PkgPath:     s.PkgPath,
 		Description: s.Description,
 		Fields:      []*Field{},
+
+		valueValidator: s.valueValidator,
 	}
 	for _, val := range s.Fields {
 		valPtr, valErr := val.copy(viewSpec)
