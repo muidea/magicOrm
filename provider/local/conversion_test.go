@@ -101,7 +101,7 @@ func TestStructToModelConversion(t *testing.T) {
 	basicStruct := &BasicTypes{Id: 1, IntValue: 10, StringValue: "test"}
 
 	// Get model from struct
-	mdl, err := GetEntityModel(basicStruct)
+	mdl, err := GetEntityModel(basicStruct, nil)
 	if err != nil {
 		t.Fatalf("Failed to convert BasicTypes struct to model: %v", err)
 	}
@@ -133,7 +133,7 @@ func TestFieldConversion(t *testing.T) {
 		StringValue:  "test",
 	}
 
-	mdl, err := GetEntityModel(basicStruct)
+	mdl, err := GetEntityModel(basicStruct, nil)
 	if err != nil {
 		t.Fatalf("Failed to convert struct to model: %v", err)
 	}
@@ -179,7 +179,7 @@ func TestNestedStructConversion(t *testing.T) {
 		TimeVal: TimeType{Id: 100, Created: time.Now()},
 	}
 
-	mdl, err := GetEntityModel(nestedStruct)
+	mdl, err := GetEntityModel(nestedStruct, nil)
 	if err != nil {
 		t.Fatalf("Failed to convert NestedStruct to model: %v", err)
 	}
@@ -209,7 +209,7 @@ func TestNestedStructConversion(t *testing.T) {
 func TestAllowedFieldTypes(t *testing.T) {
 	// Test time.Time type
 	timeStruct := &TimeType{Id: 1, Created: time.Now()}
-	mdl, err := GetEntityModel(timeStruct)
+	mdl, err := GetEntityModel(timeStruct, nil)
 	if err != nil {
 		t.Errorf("Rule 2.6 failed: time.Time should be an allowed type: %v", err)
 	}
@@ -232,7 +232,7 @@ func TestAllowedFieldTypes(t *testing.T) {
 		BasicPtr:  &BasicTypes{Id: 10},
 	}
 
-	mdl, err = GetEntityModel(pointerStruct)
+	mdl, err = GetEntityModel(pointerStruct, nil)
 	if err != nil {
 		t.Errorf("Rule 2.6 failed: pointer types should be allowed: %v", err)
 		return
@@ -274,7 +274,7 @@ func TestSliceFieldTypes(t *testing.T) {
 		TimeSlice:   []time.Time{time.Now(), time.Now()},
 	}
 
-	mdl, err := GetEntityModel(sliceStruct)
+	mdl, err := GetEntityModel(sliceStruct, nil)
 	if err != nil {
 		t.Errorf("Rule 2.7 failed: slice types should be allowed: %v", err)
 		return
@@ -328,7 +328,7 @@ func TestComplexStructConversion(t *testing.T) {
 		PtrSlice:   &strSlice,
 	}
 
-	mdl, err := GetEntityModel(complexStruct)
+	mdl, err := GetEntityModel(complexStruct, nil)
 	if err != nil {
 		t.Fatalf("Failed to convert ComplexStruct to model: %v", err)
 	}
@@ -405,7 +405,7 @@ func TestViewTagSpecification(t *testing.T) {
 		CreatedTime: time.Now(),
 	}
 
-	mdl, err := GetEntityModel(&viewStruct)
+	mdl, err := GetEntityModel(&viewStruct, nil)
 	if err != nil {
 		t.Fatalf("Failed to convert struct to model: %v", err)
 	}
@@ -483,7 +483,7 @@ func TestValueDeclarations(t *testing.T) {
 	t.Logf("Test struct: %+v", declareStruct)
 
 	// Convert to model
-	mdl, err := GetEntityModel(&declareStruct)
+	mdl, err := GetEntityModel(&declareStruct, nil)
 	if err != nil {
 		t.Fatalf("Failed to convert struct to model: %v", err)
 	}
@@ -525,7 +525,7 @@ func TestModelCopyFunction(t *testing.T) {
 	}
 
 	// Convert to model
-	mdl, err := GetEntityModel(&basicStruct)
+	mdl, err := GetEntityModel(&basicStruct, nil)
 	if err != nil {
 		t.Fatalf("Failed to convert struct to model: %v", err)
 	}
@@ -571,7 +571,7 @@ func TestInterfaceFunction(t *testing.T) {
 	}
 
 	// Convert to model
-	mdl, err := GetEntityModel(&testStruct)
+	mdl, err := GetEntityModel(&testStruct, nil)
 	if err != nil {
 		t.Fatalf("Failed to convert struct to model: %v", err)
 	}

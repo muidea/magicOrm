@@ -21,7 +21,7 @@ func TestFieldProperties(t *testing.T) {
 	}
 
 	// Get model for test struct
-	testModel, err := GetEntityModel(&TestStruct{})
+	testModel, err := GetEntityModel(&TestStruct{}, nil)
 	if err != nil {
 		t.Errorf("GetEntityModel failed: %s", err.Error())
 		return
@@ -69,7 +69,7 @@ func TestFieldCompare(t *testing.T) {
 	}
 
 	// Get model for test struct
-	testModel, err := GetEntityModel(&TestStruct{})
+	testModel, err := GetEntityModel(&TestStruct{}, nil)
 	if err != nil {
 		t.Errorf("GetEntityModel failed: %s", err.Error())
 		return
@@ -124,7 +124,7 @@ func TestFieldValueDeclare(t *testing.T) {
 		UUID:      "uuid",
 		Snowflake: 123,
 		Created:   time.Now(),
-	})
+	}, nil)
 	if err != nil {
 		t.Errorf("GetEntityModel failed: %s", err.Error())
 		return

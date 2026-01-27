@@ -44,7 +44,7 @@ type Test struct {
 func TestModelValue(t *testing.T) {
 	now, _ := time.Parse(util.CSTLayout, "2018-01-02 15:04:05")
 	unit := Unit{Name: "AA", T1: Test{Val: 123}, TimeStamp: now}
-	eModel, eErr := GetEntityModel(&unit)
+	eModel, eErr := GetEntityModel(&unit, nil)
 	if eErr != nil {
 		t.Errorf("GetEntityModel failed, error %s", eErr.Error())
 		return
@@ -70,7 +70,7 @@ func TestModelValue(t *testing.T) {
 		return
 	}
 
-	eModel, eErr = GetEntityModel(&unit)
+	eModel, eErr = GetEntityModel(&unit, nil)
 	if eErr != nil {
 		t.Errorf("GetEntityModel failed, error %s", eErr.Error())
 		return
@@ -181,7 +181,7 @@ func TestObjectCopy(t *testing.T) {
 		PtrStrArray: &[]string{"ptrStr1", "ptrStr2"},
 	}
 
-	refModelVal, refModelErr := GetEntityModel(refValue)
+	refModelVal, refModelErr := GetEntityModel(refValue, nil)
 	if refModelErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", refModelErr.Error())
 	}
@@ -372,7 +372,7 @@ func TestObjectCopy2(t *testing.T) {
 	}
 
 	// Get entity entityModel
-	entityModel, err := GetEntityModel(&unit)
+	entityModel, err := GetEntityModel(&unit, nil)
 	if err != nil {
 		t.Errorf("GetEntityModel failed: %s", err.Error())
 		return
@@ -450,7 +450,7 @@ func TestObjectSetFieldValue2(t *testing.T) {
 	}
 
 	// Get entity unitModel
-	unitModel, err := GetEntityModel(&unit)
+	unitModel, err := GetEntityModel(&unit, nil)
 	if err != nil {
 		t.Errorf("GetEntityModel failed: %s", err.Error())
 		return
@@ -520,7 +520,7 @@ func TestObjectViews(t *testing.T) {
 	}
 
 	// Get entity entityEodel
-	entityEodel, err := GetEntityModel(viewTest)
+	entityEodel, err := GetEntityModel(viewTest, nil)
 	if err != nil {
 		t.Errorf("GetEntityModel failed: %s", err.Error())
 		return
@@ -603,7 +603,7 @@ func TestNestedObjects(t *testing.T) {
 	}
 
 	// Get entity entityModel
-	entityModel, err := GetEntityModel(&testObj)
+	entityModel, err := GetEntityModel(&testObj, nil)
 	if err != nil {
 		t.Errorf("GetEntityModel failed: %s", err.Error())
 		return
@@ -639,7 +639,7 @@ func TestObjectWithNil(t *testing.T) {
 			}
 		}()
 
-		_, err := GetEntityModel(nil)
+		_, err := GetEntityModel(nil, nil)
 		if err == nil {
 			t.Errorf("GetEntityModel should fail with nil entity")
 		} else {
@@ -657,7 +657,7 @@ func TestObjectWithNil(t *testing.T) {
 		}()
 
 		var nilUnit *Unit
-		_, err := GetEntityModel(nilUnit)
+		_, err := GetEntityModel(nilUnit, nil)
 		if err == nil {
 			t.Errorf("GetEntityModel should fail with nil struct pointer")
 		} else {
@@ -689,7 +689,7 @@ func TestObjectsWithPointers(t *testing.T) {
 	}
 
 	// Get entity entityModel
-	entityModel, entityErr := GetEntityModel(&ptrObj)
+	entityModel, entityErr := GetEntityModel(&ptrObj, nil)
 	if entityErr != nil {
 		t.Errorf("GetEntityModel failed: %s", entityErr.Error())
 		return
@@ -753,7 +753,7 @@ func TestAssign(t *testing.T) {
 	ptrSlicePtrVal := &ptrSliceVal
 
 	rawVal := &AssignStruct{Ptr: ptrVal, Slice: sliceVal, PtrSlice: ptrSliceVal, SlicePtr: slicePtrVal, PtrSlicePtr: ptrSlicePtrVal}
-	modelVal, modelErr := GetEntityModel(rawVal)
+	modelVal, modelErr := GetEntityModel(rawVal, nil)
 	if modelErr != nil {
 		t.Errorf("GetEntityModel failed, err: %s", modelErr.Error())
 	}

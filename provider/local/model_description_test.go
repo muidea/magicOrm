@@ -15,7 +15,7 @@ func TestModelProperties(t *testing.T) {
 	}
 
 	// Get model for simple struct
-	simpleModel, err := GetEntityModel(&SimpleStruct{})
+	simpleModel, err := GetEntityModel(&SimpleStruct{}, nil)
 	if err != nil {
 		t.Errorf("GetEntityModel failed: %s", err.Error())
 		return
@@ -85,7 +85,7 @@ func TestModelWithNestedStruct(t *testing.T) {
 	}
 
 	// Get model for struct with nested struct
-	nestedModel, err := GetEntityModel(&PersonWithAddress{})
+	nestedModel, err := GetEntityModel(&PersonWithAddress{}, nil)
 	if err != nil {
 		t.Errorf("GetEntityModel failed: %s", err.Error())
 		return
@@ -116,7 +116,7 @@ func TestModelWithSliceFields(t *testing.T) {
 	}
 
 	// Get model for struct with slices
-	sliceModel, err := GetEntityModel(&WithSlices{})
+	sliceModel, err := GetEntityModel(&WithSlices{}, nil)
 	if err != nil {
 		t.Errorf("GetEntityModel failed: %s", err.Error())
 		return

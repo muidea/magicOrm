@@ -39,3 +39,10 @@ type Constraints interface {
 	Has(key Key) bool
 	Get(key Key) (Directive, bool)
 }
+
+type ValidatorFunc func(val any, args []string) error
+
+type ValueValidator interface {
+	Register(k Key, fn ValidatorFunc)
+	ValidateValue(val any, directives []Directive) error
+}

@@ -9,6 +9,7 @@ import (
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider/local"
 	"github.com/muidea/magicOrm/provider/remote"
+	"github.com/muidea/magicOrm/utils"
 )
 
 type Provider interface {
@@ -46,6 +47,7 @@ func NewLocalProvider(owner string) Provider {
 	ret := &providerImpl{
 		owner:              owner,
 		modelCache:         models.NewCache(),
+		valueValidator:     utils.NewValueValidator(),
 		getEntityTypeFunc:  local.GetEntityType,
 		getEntityValueFunc: local.GetEntityValue,
 		getEntityModelFunc: local.GetEntityModel,
@@ -80,9 +82,11 @@ type providerImpl struct {
 
 	modelCache models.Cache
 
+	valueValidator models.ValueValidator
+
 	getEntityTypeFunc  func(any) (models.Type, *cd.Error)
 	getEntityValueFunc func(any) (models.Value, *cd.Error)
-	getEntityModelFunc func(any) (models.Model, *cd.Error)
+	getEntityModelFunc func(any, models.ValueValidator) (models.Model, *cd.Error)
 	getModelFilterFunc func(models.Model) (models.Filter, *cd.Error)
 	setModelValueFunc  func(models.Model, models.Value) (models.Model, *cd.Error)
 	encodeValueFunc    func(any, models.Type) (any, *cd.Error)
@@ -90,7 +94,7 @@ type providerImpl struct {
 }
 
 func (s *providerImpl) RegisterModel(entity any) (ret models.Model, err *cd.Error) {
-	entityModel, entityErr := s.getEntityModelFunc(entity)
+	entityModel, entityErr := s.getEntityModelFunc(entity, s.valueValidator)
 	if entityErr != nil {
 		err = entityErr
 		log.Errorf("RegisterModel failed, s.getModelFunc error:%v", err.Error())

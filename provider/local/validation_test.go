@@ -73,21 +73,21 @@ func TestTypeValidation(t *testing.T) {
 func TestStructValidation(t *testing.T) {
 	// Test valid struct
 	validStruct := ValidationTestStruct{ID: 1, Name: "test"}
-	_, err := GetEntityModel(&validStruct)
+	_, err := GetEntityModel(&validStruct, nil)
 	if err != nil {
 		t.Errorf("GetEntityModel failed for valid struct: %s", err.Error())
 	}
 
 	// Test struct with no primary key
 	invalidKeyStruct := InvalidKeyStruct{Name: "test", Value: 123.45}
-	_, err = GetEntityModel(&invalidKeyStruct)
+	_, err = GetEntityModel(&invalidKeyStruct, nil)
 	if err == nil {
 		t.Errorf("GetEntityModel should fail for struct with no primary key")
 	}
 
 	// Test struct with duplicate field names
 	duplicateFieldStruct := DuplicateFieldStruct{ID: 1, Name: "test", Alias: "alias"}
-	_, err = GetEntityModel(duplicateFieldStruct)
+	_, err = GetEntityModel(duplicateFieldStruct, nil)
 	if err == nil {
 		t.Errorf("GetEntityModel should fail for struct with duplicate field names")
 	}
@@ -99,13 +99,13 @@ func TestStructValidation(t *testing.T) {
 		Func:    func() {},
 		Map:     map[string]int{},
 	}
-	_, err = GetEntityModel(unsupportedTypeStruct)
+	_, err = GetEntityModel(unsupportedTypeStruct, nil)
 	if err == nil {
 		t.Errorf("GetEntityModel should fail for struct with unsupported field types")
 	}
 
 	// Test nil entity
-	_, err = GetEntityModel(nil)
+	_, err = GetEntityModel(nil, nil)
 	if err == nil {
 		t.Errorf("GetEntityModel should fail for nil entity")
 	}

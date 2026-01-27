@@ -470,7 +470,7 @@ func UpdateEntity(remoteValuePtr *remote.ObjectValue, localEntity any) (err *cd.
 		return
 	}
 
-	localModel, localErr := local.GetEntityModel(localEntity)
+	localModel, localErr := local.GetEntityModel(localEntity, nil)
 	if localErr != nil {
 		err = localErr
 		log.Errorf("UpdateEntity failed, local.GetEntityModel err:%s", err.Error())

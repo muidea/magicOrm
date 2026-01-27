@@ -108,7 +108,7 @@ func GetEntityValue(entity any) (ret models.Value, err *cd.Error) {
 	return
 }
 
-func GetEntityModel(entity any) (ret models.Model, err *cd.Error) {
+func GetEntityModel(entity any, valueValidator models.ValueValidator) (ret models.Model, err *cd.Error) {
 	if entity == nil {
 		err = cd.NewError(cd.Unexpected, "entity is nil")
 		return

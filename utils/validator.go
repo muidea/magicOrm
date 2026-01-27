@@ -10,21 +10,19 @@ import (
 	"github.com/muidea/magicOrm/models"
 )
 
-type ValidatorFunc func(val any, args []string) error
-
-type ValueValidator struct {
-	registry map[models.Key]ValidatorFunc
+type valueValidator struct {
+	registry map[models.Key]models.ValidatorFunc
 }
 
-func NewValueValidator() *ValueValidator {
-	sv := &ValueValidator{registry: make(map[models.Key]ValidatorFunc)}
+func NewValueValidator() models.ValueValidator {
+	sv := &valueValidator{registry: make(map[models.Key]models.ValidatorFunc)}
 	sv.loadBuiltins()
 	return sv
 }
 
-func (sv *ValueValidator) Register(k models.Key, fn ValidatorFunc) { sv.registry[k] = fn }
+func (sv *valueValidator) Register(k models.Key, fn models.ValidatorFunc) { sv.registry[k] = fn }
 
-func (sv *ValueValidator) ValidateValue(val any, directives []models.Directive) error {
+func (sv *valueValidator) ValidateValue(val any, directives []models.Directive) error {
 	for _, d := range directives {
 		k := models.Key(d.Key())
 		if fn, ok := sv.registry[k]; ok {
@@ -36,7 +34,7 @@ func (sv *ValueValidator) ValidateValue(val any, directives []models.Directive) 
 	return nil
 }
 
-func (sv *ValueValidator) loadBuiltins() {
+func (sv *valueValidator) loadBuiltins() {
 	// req
 	sv.Register(models.KeyRequired, func(v any, _ []string) error {
 		if IsReallyZeroValue(v) {
