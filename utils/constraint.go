@@ -58,8 +58,8 @@ func ParseConstraints(tagStr string) models.Constraints {
 			dir.key = models.Key(strings.TrimSpace(parts[0]))
 			dir.hasArgs = true
 			// 3. 按冒号拆分参数
-			argParts := strings.Split(parts[1], ":")
-			for _, arg := range argParts {
+			argParts := strings.SplitSeq(parts[1], ":")
+			for arg := range argParts {
 				dir.args = append(dir.args, strings.TrimSpace(arg))
 			}
 		} else {

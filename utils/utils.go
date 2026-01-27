@@ -77,35 +77,34 @@ func IsReallyZeroValue(val any) bool {
 }
 
 func IsReallyZeroForReflect(vVal reflect.Value) bool {
+	// 1. 基础合法性检查
+	if !vVal.IsValid() {
+		return true
+	}
+
+	// 2. 指针穿透处理：递归获取指针指向的最底层内容
+	// 逻辑：如果是指针，只要它是 nil 或者指向的内容是“零值”，就返回 true
 	if vVal.Kind() == reflect.Ptr {
 		if vVal.IsNil() {
 			return true
 		}
-		vVal = vVal.Elem()
+		return IsReallyZeroForReflect(vVal.Elem())
 	}
+
+	// 3. 特殊容器类型处理
+	// 对于 Slice, Map, Chan，业务上通常认为长度为 0 即为零值
 	switch vVal.Kind() {
-	case reflect.Bool, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int, reflect.Int64,
-		reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint, reflect.Uint64,
-		reflect.Float32, reflect.Float64, reflect.String,
-		reflect.Array:
-		return vVal.IsZero()
-	case reflect.Struct:
-		if vVal.Type().String() == models.TypeStructTimeName {
-			return vVal.IsZero()
-		}
-		// 到这里说明是不支持的类型，当前先主动打印一些日志
-		log.Warnf("IsReallyZeroValue failed, unsupported type:%s", vVal.Type().String())
-		return vVal.IsZero()
-	case reflect.Slice:
-		if vVal.IsNil() {
-			return true
-		}
+	case reflect.Slice, reflect.Map, reflect.Chan:
 		return vVal.Len() == 0
-	default:
-		// 到这里说明是不支持的类型，当前先主动打印一些日志
-		log.Warnf("IsReallyZeroValue failed, unsupported type:%s", vVal.Type().String())
-		return vVal.IsZero()
 	}
+
+	// 4. 通用零值检查
+	// reflect.Value.IsZero() 已经内置了对以下类型的优化处理：
+	// - 基础类型 (int, float, bool, string)
+	// - 结构体 (递归检查所有字段)
+	// - 接口 (检查是否为 nil)
+	// - time.Time (它会自动调用 time.IsZero() 方法)
+	return vVal.IsZero()
 }
 
 // IsReallyValidType 判断是否时一个合法的基本数值类型

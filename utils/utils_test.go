@@ -176,7 +176,7 @@ func TestIsReallyZero(t *testing.T) {
 
 		// Invalid types (should return default Go zero value determination)
 		{"map", map[string]int{"a": 1}, false},
-		{"empty map", map[string]int{}, false},
+		{"empty map", map[string]int{}, true},
 		{"struct with values", struct{ Name string }{"John"}, false},
 		{"empty struct", struct{ Name string }{}, true},
 	}
