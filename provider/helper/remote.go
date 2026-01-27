@@ -14,8 +14,9 @@ import (
 )
 
 const (
-	ormTag  = "orm"
-	viewTag = "view"
+	ormTag         = "orm"
+	viewTag        = "view"
+	constraintsTag = "constraint"
 )
 
 func getEntityType(entity any) (ret *remote.TypeImpl, err *cd.Error) {
@@ -78,6 +79,11 @@ func newSpec(tag reflect.StructTag) (ret *remote.SpecImpl, err *cd.Error) {
 
 	viewSpec := tag.Get(viewTag)
 	val.ViewDeclare = getViewItems(viewSpec)
+
+	constraints := tag.Get(constraintsTag)
+	if constraints != "" {
+		val.Constraints = constraints
+	}
 
 	ret = &val
 	return

@@ -5,58 +5,17 @@ import (
 
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
+	"github.com/muidea/magicOrm/provider/helper"
+	"github.com/muidea/magicOrm/provider/remote"
 )
 
-// ConstraintTestModel 用于测试访问约束的模型
-type ConstraintTestModel struct {
-	ID         int    `orm:"id key auto" constraint:"ro"`  // 自增主键，只读（不应该有req约束，因为它是自增的）
-	Name       string `orm:"name" constraint:"req"`        // 必填
-	Password   string `orm:"password" constraint:"wo"`     // 只写（敏感字段）
-	CreateTime int64  `orm:"create_time" constraint:"imm"` // 不可变
-	UpdateTime int64  `orm:"update_time"`                  // 普通字段
-	Email      string `orm:"email" constraint:"opt"`       // 可选
-	Status     int    `orm:"status" constraint:"req,ro"`   // 必填且只读
-	ReadOnlyID int    `orm:"readonly_id" constraint:"ro"`  // 只读
-	WriteOnly  string `orm:"write_only" constraint:"wo"`   // 只写
-}
-
-// Equal 比较两个ConstraintTestModel是否相等
-func (s *ConstraintTestModel) Equal(r *ConstraintTestModel) bool {
-	if s.ID != r.ID {
-		return false
-	}
-	if s.Name != r.Name {
-		return false
-	}
-	// 密码字段是只写的，查询时不应该返回，所以不比较
-	if s.CreateTime != r.CreateTime {
-		return false
-	}
-	if s.UpdateTime != r.UpdateTime {
-		return false
-	}
-	if s.Email != r.Email {
-		return false
-	}
-	if s.Status != r.Status {
-		return false
-	}
-	if s.ReadOnlyID != r.ReadOnlyID {
-		return false
-	}
-	// WriteOnly字段是只写的，查询时不应该返回，所以不比较
-	return true
-}
-
-const constraintLocalOwner = "constraint_local"
-
-func TestConstraintLocal(t *testing.T) {
+func TestConstraintRemote(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	localProvider := provider.NewLocalProvider(constraintLocalOwner)
+	remoteProvider := provider.NewRemoteProvider("constraint_remote")
 
-	o1, err := orm.NewOrm(localProvider, config, "constraint_test")
+	o1, err := orm.NewOrm(remoteProvider, config, "constraint_test")
 	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
@@ -65,7 +24,7 @@ func TestConstraintLocal(t *testing.T) {
 
 	// 注册模型
 	objList := []any{&ConstraintTestModel{}}
-	modelList, modelErr := registerLocalModel(localProvider, objList)
+	modelList, modelErr := registerRemoteModel(remoteProvider, objList)
 	if modelErr != nil {
 		t.Errorf("register model failed. err:%s", modelErr.Error())
 		return
@@ -86,39 +45,35 @@ func TestConstraintLocal(t *testing.T) {
 
 	// 测试1: 创建对象 - 测试必填字段
 	t.Run("TestRequiredFields", func(t *testing.T) {
-		testRequiredFields(t, o1, localProvider)
+		testRequiredFieldsRemote(t, o1, remoteProvider)
 	})
 
 	// 测试2: 测试只读字段
 	t.Run("TestReadOnlyFields", func(t *testing.T) {
-		testReadOnlyFields(t, o1, localProvider)
+		testReadOnlyFieldsRemote(t, o1, remoteProvider)
 	})
 
 	// 测试3: 测试只写字段
 	t.Run("TestWriteOnlyFields", func(t *testing.T) {
-		testWriteOnlyFields(t, o1, localProvider)
+		testWriteOnlyFieldsRemote(t, o1, remoteProvider)
 	})
 
 	// 测试4: 测试不可变字段
 	t.Run("TestImmutableFields", func(t *testing.T) {
-		testImmutableFields(t, o1, localProvider)
+		testImmutableFieldsRemote(t, o1, remoteProvider)
 	})
 
 	// 测试5: 测试可选字段
 	t.Run("TestOptionalFields", func(t *testing.T) {
-		testOptionalFields(t, o1, localProvider)
+		testOptionalFieldsRemote(t, o1, remoteProvider)
 	})
 
 	// 清理测试数据
-	cleanupConstraintTest(t, o1, localProvider)
+	cleanupConstraintTestRemote(t, o1, remoteProvider)
 }
 
-// testRequiredFields 测试必填字段约束
-func testRequiredFields(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
-	// 测试缺少必填字段的情况
-	// 注意：由于ORM层可能已经处理了验证，这里主要测试正常流程
-	// 实际验证可能在业务层进行
-
+// testRequiredFieldsRemote 测试必填字段约束（remote provider）
+func testRequiredFieldsRemote(t *testing.T, o1 orm.Orm, remoteProvider provider.Provider) {
 	// 创建包含所有必填字段的对象
 	obj := &ConstraintTestModel{
 		Name:       "test_user",
@@ -130,7 +85,13 @@ func testRequiredFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 		WriteOnly:  "write_only_value",
 	}
 
-	objModel, objErr := localProvider.GetEntityModel(obj)
+	objValue, objErr := getObjectValue(obj)
+	if objErr != nil {
+		t.Errorf("getObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+
+	objModel, objErr := remoteProvider.GetEntityModel(objValue)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -143,7 +104,14 @@ func testRequiredFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 		return
 	}
 
-	insertedObj := insertedModel.Interface(true).(*ConstraintTestModel)
+	insertedValue := insertedModel.Interface(true).(*remote.ObjectValue)
+	insertedObj := &ConstraintTestModel{}
+	err := helper.UpdateEntity(insertedValue, insertedObj)
+	if err != nil {
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
+		return
+	}
+
 	t.Logf("Inserted object ID: %d", insertedObj.ID)
 
 	// 验证插入的数据
@@ -155,8 +123,8 @@ func testRequiredFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 	}
 }
 
-// testReadOnlyFields 测试只读字段约束
-func testReadOnlyFields(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
+// testReadOnlyFieldsRemote 测试只读字段约束（remote provider）
+func testReadOnlyFieldsRemote(t *testing.T, o1 orm.Orm, remoteProvider provider.Provider) {
 	// 首先创建一个对象
 	obj := &ConstraintTestModel{
 		Name:       "readonly_test",
@@ -168,7 +136,13 @@ func testReadOnlyFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 		WriteOnly:  "write_value",
 	}
 
-	objModel, objErr := localProvider.GetEntityModel(obj)
+	objValue, objErr := getObjectValue(obj)
+	if objErr != nil {
+		t.Errorf("getObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+
+	objModel, objErr := remoteProvider.GetEntityModel(objValue)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -180,7 +154,14 @@ func testReadOnlyFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 		return
 	}
 
-	insertedObj := insertedModel.Interface(true).(*ConstraintTestModel)
+	insertedValue := insertedModel.Interface(true).(*remote.ObjectValue)
+	insertedObj := &ConstraintTestModel{}
+	err := helper.UpdateEntity(insertedValue, insertedObj)
+	if err != nil {
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
+		return
+	}
+
 	objID := insertedObj.ID
 
 	// 尝试更新只读字段
@@ -195,7 +176,13 @@ func testReadOnlyFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 		WriteOnly:  "updated_write",
 	}
 
-	updateModel, updateErr := localProvider.GetEntityModel(updateObj)
+	updateValue, updateErr := getObjectValue(updateObj)
+	if updateErr != nil {
+		t.Errorf("getObjectValue for update failed, err:%s", updateErr.Error())
+		return
+	}
+
+	updateModel, updateErr := remoteProvider.GetEntityModel(updateValue)
 	if updateErr != nil {
 		t.Errorf("GetEntityModel for update failed, err:%s", updateErr.Error())
 		return
@@ -209,7 +196,13 @@ func testReadOnlyFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 
 	// 查询对象以验证只读字段是否被保护
 	queryObj := &ConstraintTestModel{ID: objID}
-	queryModel, queryErr := localProvider.GetEntityModel(queryObj)
+	queryValue, queryErr := getObjectValue(queryObj)
+	if queryErr != nil {
+		t.Errorf("getObjectValue for query failed, err:%s", queryErr.Error())
+		return
+	}
+
+	queryModel, queryErr := remoteProvider.GetEntityModel(queryValue)
 	if queryErr != nil {
 		t.Errorf("GetEntityModel for query failed, err:%s", queryErr.Error())
 		return
@@ -221,7 +214,13 @@ func testReadOnlyFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 		return
 	}
 
-	queriedObj := queriedModel.Interface(true).(*ConstraintTestModel)
+	queriedValue := queriedModel.Interface(true).(*remote.ObjectValue)
+	queriedObj := &ConstraintTestModel{}
+	err = helper.UpdateEntity(queriedValue, queriedObj)
+	if err != nil {
+		t.Errorf("UpdateEntity for query failed, err:%s", err.Error())
+		return
+	}
 
 	// 验证只读字段没有被修改
 	if queriedObj.Status != insertedObj.Status {
@@ -242,8 +241,8 @@ func testReadOnlyFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 	t.Logf("Read-only fields test passed: Status=%d, ReadOnlyID=%d", queriedObj.Status, queriedObj.ReadOnlyID)
 }
 
-// testWriteOnlyFields 测试只写字段约束
-func testWriteOnlyFields(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
+// testWriteOnlyFieldsRemote 测试只写字段约束（remote provider）
+func testWriteOnlyFieldsRemote(t *testing.T, o1 orm.Orm, remoteProvider provider.Provider) {
 	// 创建包含只写字段的对象
 	obj := &ConstraintTestModel{
 		Name:       "writeonly_test",
@@ -255,7 +254,13 @@ func testWriteOnlyFields(t *testing.T, o1 orm.Orm, localProvider provider.Provid
 		WriteOnly:  "sensitive_data", // 只写字段
 	}
 
-	objModel, objErr := localProvider.GetEntityModel(obj)
+	objValue, objErr := getObjectValue(obj)
+	if objErr != nil {
+		t.Errorf("getObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+
+	objModel, objErr := remoteProvider.GetEntityModel(objValue)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -267,12 +272,25 @@ func testWriteOnlyFields(t *testing.T, o1 orm.Orm, localProvider provider.Provid
 		return
 	}
 
-	insertedObj := insertedModel.Interface(true).(*ConstraintTestModel)
+	insertedValue := insertedModel.Interface(true).(*remote.ObjectValue)
+	insertedObj := &ConstraintTestModel{}
+	err := helper.UpdateEntity(insertedValue, insertedObj)
+	if err != nil {
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
+		return
+	}
+
 	objID := insertedObj.ID
 
 	// 查询对象
 	queryObj := &ConstraintTestModel{ID: objID}
-	queryModel, queryErr := localProvider.GetEntityModel(queryObj)
+	queryValue, queryErr := getObjectValue(queryObj)
+	if queryErr != nil {
+		t.Errorf("getObjectValue for query failed, err:%s", queryErr.Error())
+		return
+	}
+
+	queryModel, queryErr := remoteProvider.GetEntityModel(queryValue)
 	if queryErr != nil {
 		t.Errorf("GetEntityModel for query failed, err:%s", queryErr.Error())
 		return
@@ -284,7 +302,13 @@ func testWriteOnlyFields(t *testing.T, o1 orm.Orm, localProvider provider.Provid
 		return
 	}
 
-	queriedObj := queriedModel.Interface(true).(*ConstraintTestModel)
+	queriedValue := queriedModel.Interface(true).(*remote.ObjectValue)
+	queriedObj := &ConstraintTestModel{}
+	err = helper.UpdateEntity(queriedValue, queriedObj)
+	if err != nil {
+		t.Errorf("UpdateEntity for query failed, err:%s", err.Error())
+		return
+	}
 
 	// 验证只写字段在查询结果中为空或默认值
 	// 注意：根据约束定义，只写字段禁止在展示接口输出
@@ -299,8 +323,8 @@ func testWriteOnlyFields(t *testing.T, o1 orm.Orm, localProvider provider.Provid
 	t.Logf("Write-only fields test passed: Password is hidden, WriteOnly is hidden")
 }
 
-// testImmutableFields 测试不可变字段约束
-func testImmutableFields(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
+// testImmutableFieldsRemote 测试不可变字段约束（remote provider）
+func testImmutableFieldsRemote(t *testing.T, o1 orm.Orm, remoteProvider provider.Provider) {
 	// 创建对象
 	obj := &ConstraintTestModel{
 		Name:       "immutable_test",
@@ -312,7 +336,13 @@ func testImmutableFields(t *testing.T, o1 orm.Orm, localProvider provider.Provid
 		WriteOnly:  "write_data",
 	}
 
-	objModel, objErr := localProvider.GetEntityModel(obj)
+	objValue, objErr := getObjectValue(obj)
+	if objErr != nil {
+		t.Errorf("getObjectValue failed, err:%s", objErr.Error())
+		return
+	}
+
+	objModel, objErr := remoteProvider.GetEntityModel(objValue)
 	if objErr != nil {
 		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
 		return
@@ -324,7 +354,14 @@ func testImmutableFields(t *testing.T, o1 orm.Orm, localProvider provider.Provid
 		return
 	}
 
-	insertedObj := insertedModel.Interface(true).(*ConstraintTestModel)
+	insertedValue := insertedModel.Interface(true).(*remote.ObjectValue)
+	insertedObj := &ConstraintTestModel{}
+	err := helper.UpdateEntity(insertedValue, insertedObj)
+	if err != nil {
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
+		return
+	}
+
 	objID := insertedObj.ID
 
 	// 尝试更新不可变字段
@@ -339,7 +376,13 @@ func testImmutableFields(t *testing.T, o1 orm.Orm, localProvider provider.Provid
 		WriteOnly:  "updated_write",
 	}
 
-	updateModel, updateErr := localProvider.GetEntityModel(updateObj)
+	updateValue, updateErr := getObjectValue(updateObj)
+	if updateErr != nil {
+		t.Errorf("getObjectValue for update failed, err:%s", updateErr.Error())
+		return
+	}
+
+	updateModel, updateErr := remoteProvider.GetEntityModel(updateValue)
 	if updateErr != nil {
 		t.Errorf("GetEntityModel for update failed, err:%s", updateErr.Error())
 		return
@@ -353,7 +396,13 @@ func testImmutableFields(t *testing.T, o1 orm.Orm, localProvider provider.Provid
 
 	// 查询对象验证不可变字段是否被保护
 	queryObj := &ConstraintTestModel{ID: objID}
-	queryModel, queryErr := localProvider.GetEntityModel(queryObj)
+	queryValue, queryErr := getObjectValue(queryObj)
+	if queryErr != nil {
+		t.Errorf("getObjectValue for query failed, err:%s", queryErr.Error())
+		return
+	}
+
+	queryModel, queryErr := remoteProvider.GetEntityModel(queryValue)
 	if queryErr != nil {
 		t.Errorf("GetEntityModel for query failed, err:%s", queryErr.Error())
 		return
@@ -365,7 +414,13 @@ func testImmutableFields(t *testing.T, o1 orm.Orm, localProvider provider.Provid
 		return
 	}
 
-	queriedObj := queriedModel.Interface(true).(*ConstraintTestModel)
+	queriedValue := queriedModel.Interface(true).(*remote.ObjectValue)
+	queriedObj := &ConstraintTestModel{}
+	err = helper.UpdateEntity(queriedValue, queriedObj)
+	if err != nil {
+		t.Errorf("UpdateEntity for query failed, err:%s", err.Error())
+		return
+	}
 
 	// 验证不可变字段没有被修改
 	if queriedObj.CreateTime != 1111111111 {
@@ -383,8 +438,8 @@ func testImmutableFields(t *testing.T, o1 orm.Orm, localProvider provider.Provid
 	t.Logf("Immutable field test passed: CreateTime=%d (unchanged)", queriedObj.CreateTime)
 }
 
-// testOptionalFields 测试可选字段约束
-func testOptionalFields(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
+// testOptionalFieldsRemote 测试可选字段约束（remote provider）
+func testOptionalFieldsRemote(t *testing.T, o1 orm.Orm, remoteProvider provider.Provider) {
 	// 测试1: 创建时不提供可选字段
 	obj1 := &ConstraintTestModel{
 		Name:       "optional_test1",
@@ -397,7 +452,13 @@ func testOptionalFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 		// Email字段是可选字段，不设置
 	}
 
-	obj1Model, obj1Err := localProvider.GetEntityModel(obj1)
+	obj1Value, obj1Err := getObjectValue(obj1)
+	if obj1Err != nil {
+		t.Errorf("getObjectValue failed, err:%s", obj1Err.Error())
+		return
+	}
+
+	obj1Model, obj1Err := remoteProvider.GetEntityModel(obj1Value)
 	if obj1Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", obj1Err.Error())
 		return
@@ -409,12 +470,25 @@ func testOptionalFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 		return
 	}
 
-	inserted1Obj := inserted1Model.Interface(true).(*ConstraintTestModel)
+	inserted1Value := inserted1Model.Interface(true).(*remote.ObjectValue)
+	inserted1Obj := &ConstraintTestModel{}
+	err := helper.UpdateEntity(inserted1Value, inserted1Obj)
+	if err != nil {
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
+		return
+	}
+
 	obj1ID := inserted1Obj.ID
 
 	// 查询验证可选字段为空
 	query1Obj := &ConstraintTestModel{ID: obj1ID}
-	query1Model, query1Err := localProvider.GetEntityModel(query1Obj)
+	query1Value, query1Err := getObjectValue(query1Obj)
+	if query1Err != nil {
+		t.Errorf("getObjectValue for query failed, err:%s", query1Err.Error())
+		return
+	}
+
+	query1Model, query1Err := remoteProvider.GetEntityModel(query1Value)
 	if query1Err != nil {
 		t.Errorf("GetEntityModel for query failed, err:%s", query1Err.Error())
 		return
@@ -426,7 +500,14 @@ func testOptionalFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 		return
 	}
 
-	queried1Obj := queried1Model.Interface(true).(*ConstraintTestModel)
+	queried1Value := queried1Model.Interface(true).(*remote.ObjectValue)
+	queried1Obj := &ConstraintTestModel{}
+	err = helper.UpdateEntity(queried1Value, queried1Obj)
+	if err != nil {
+		t.Errorf("UpdateEntity for query failed, err:%s", err.Error())
+		return
+	}
+
 	if queried1Obj.Email != "" {
 		t.Errorf("Optional Email field should be empty when not provided, got: %s", queried1Obj.Email)
 	}
@@ -443,7 +524,13 @@ func testOptionalFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 		Email:      "test@example.com", // 提供可选字段
 	}
 
-	obj2Model, obj2Err := localProvider.GetEntityModel(obj2)
+	obj2Value, obj2Err := getObjectValue(obj2)
+	if obj2Err != nil {
+		t.Errorf("getObjectValue failed, err:%s", obj2Err.Error())
+		return
+	}
+
+	obj2Model, obj2Err := remoteProvider.GetEntityModel(obj2Value)
 	if obj2Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", obj2Err.Error())
 		return
@@ -455,12 +542,25 @@ func testOptionalFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 		return
 	}
 
-	inserted2Obj := inserted2Model.Interface(true).(*ConstraintTestModel)
+	inserted2Value := inserted2Model.Interface(true).(*remote.ObjectValue)
+	inserted2Obj := &ConstraintTestModel{}
+	err = helper.UpdateEntity(inserted2Value, inserted2Obj)
+	if err != nil {
+		t.Errorf("UpdateEntity failed, err:%s", err.Error())
+		return
+	}
+
 	obj2ID := inserted2Obj.ID
 
 	// 查询验证可选字段被保存
 	query2Obj := &ConstraintTestModel{ID: obj2ID}
-	query2Model, query2Err := localProvider.GetEntityModel(query2Obj)
+	query2Value, query2Err := getObjectValue(query2Obj)
+	if query2Err != nil {
+		t.Errorf("getObjectValue for query failed, err:%s", query2Err.Error())
+		return
+	}
+
+	query2Model, query2Err := remoteProvider.GetEntityModel(query2Value)
 	if query2Err != nil {
 		t.Errorf("GetEntityModel for query failed, err:%s", query2Err.Error())
 		return
@@ -472,7 +572,14 @@ func testOptionalFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 		return
 	}
 
-	queried2Obj := queried2Model.Interface(true).(*ConstraintTestModel)
+	queried2Value := queried2Model.Interface(true).(*remote.ObjectValue)
+	queried2Obj := &ConstraintTestModel{}
+	err = helper.UpdateEntity(queried2Value, queried2Obj)
+	if err != nil {
+		t.Errorf("UpdateEntity for query failed, err:%s", err.Error())
+		return
+	}
+
 	if queried2Obj.Email != "test@example.com" {
 		t.Errorf("Optional Email field should be saved, expected: test@example.com, got: %s", queried2Obj.Email)
 	}
@@ -480,10 +587,22 @@ func testOptionalFields(t *testing.T, o1 orm.Orm, localProvider provider.Provide
 	t.Logf("Optional field test passed: Email=%s", queried2Obj.Email)
 }
 
-// cleanupConstraintTest 清理约束测试数据
-func cleanupConstraintTest(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
-	constraintModel, _ := localProvider.GetEntityModel(&ConstraintTestModel{})
-	filter, err := localProvider.GetModelFilter(constraintModel)
+// cleanupConstraintTestRemote 清理远程约束测试数据
+func cleanupConstraintTestRemote(t *testing.T, o1 orm.Orm, remoteProvider provider.Provider) {
+	constraintObj := &ConstraintTestModel{}
+	constraintValue, err := getObjectValue(constraintObj)
+	if err != nil {
+		t.Errorf("getObjectValue failed, err:%s", err.Error())
+		return
+	}
+
+	constraintModel, err := remoteProvider.GetEntityModel(constraintValue)
+	if err != nil {
+		t.Errorf("GetEntityModel failed, err:%s", err.Error())
+		return
+	}
+
+	filter, err := remoteProvider.GetModelFilter(constraintModel)
 	if err != nil {
 		t.Errorf("GetModelFilter failed, err:%s", err.Error())
 		return

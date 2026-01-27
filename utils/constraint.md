@@ -36,7 +36,6 @@
 | **`ro`** | 无 | **Read-Only**: 只读 | 输出接口展示，但更新接口忽略此字段。 |
 | **`wo`** | 无 | **Write-Only**: 只写 | 敏感字段（如密码），禁止在展示接口输出。 |
 | **`imm`** | 无 | **Immutable**: 不可变 | 仅允许在 Create 时赋值，Update 时视为只读。 |
-| **`opt`** | 无 | **Optional**: 可选 | 若字段为空，则跳过后续所有校验指令。 |
 
 ### B. 内容值约束 (Data Validation)
 这类指令用于定义字段具体内容的合法性范围。
@@ -51,16 +50,6 @@
 
 ---
 
-## 4. 复杂类型处理
-
-对于集合类型（如 `Slice`, `Array`），引入以下特殊指令：
-
-- **`dive`**: 
-  - **用法**: `constraint:"req,dive,min=5"`
-  - **定义**: 表示后续的约束指令（如 `min=5`）不作用于集合本身，而是作用于集合内的每一个元素。
-
----
-
 ## 5. 开发者示例
 
 ```go
@@ -68,7 +57,6 @@ type UserAccount struct {
     // ID 是必填且只读的
     ID       int    `constraint:"req,ro"`
     // 状态有默认值，且只能是 active 或 disabled 之一
-    Status   string `constraint:"def=active,in=active:disabled"`
-    // 标签数组可选，但如果传了，每个元素长度至少为 2
-    Tags     []string `constraint:"opt,dive,min=2"`
+    Status   string `constraint:"in=active:disabled"`
 }
+```
