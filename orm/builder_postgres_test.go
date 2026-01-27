@@ -122,7 +122,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 	if err != nil {
 		t.Errorf("build count failed, err:%s", err.Error())
 	}
-	if str.SQL() != "SELECT COUNT(\"uid\") FROM \"abc_Unit\" WHERE \"value\" > $1" || len(str.Args()) != 1 {
+	if str.SQL() != "SELECT COUNT(*) FROM \"abc_Unit\" WHERE \"value\" > $1" || len(str.Args()) != 1 {
 		t.Errorf("build count failed, str:%s", str)
 	}
 }
@@ -424,7 +424,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 		t.Errorf("build count failed, err:%s", err.Error())
 		return
 	}
-	if str.SQL() != "SELECT COUNT(\"uid\") FROM \"abc_Unit\" WHERE \"value\" > $1" || len(str.Args()) != 1 {
+	if str.SQL() != "SELECT COUNT(*) FROM \"abc_Unit\" WHERE \"value\" > $1" || len(str.Args()) != 1 {
 		t.Errorf("build count failed, str:%s", str)
 		return
 	}
