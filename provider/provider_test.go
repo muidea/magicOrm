@@ -22,7 +22,7 @@ type ComplexObj struct {
 // TestProviderReset 测试Provider的Reset方法
 func TestProviderReset(t *testing.T) {
 	// 测试LocalProvider的Reset
-	localProvider := NewLocalProvider("test")
+	localProvider := NewLocalProvider("test", nil)
 	s := &Simple{}
 	model1, err1 := localProvider.RegisterModel(s)
 	if err1 != nil {
@@ -58,7 +58,7 @@ func TestProviderReset(t *testing.T) {
 	}
 
 	// 测试RemoteProvider的Reset
-	remoteProvider := NewRemoteProvider("test")
+	remoteProvider := NewRemoteProvider("test", nil)
 	remoteComplexObj, remoteErr := helper.GetObject(&ComplexObj{})
 	if remoteErr != nil {
 		t.Errorf("Failed to get remote object: %s", remoteErr.Error())
@@ -91,14 +91,14 @@ func TestProviderOwner(t *testing.T) {
 	owner := "test_owner_123"
 
 	// 测试LocalProvider的Owner
-	localProvider := NewLocalProvider(owner)
+	localProvider := NewLocalProvider(owner, nil)
 	if localProvider.Owner() != owner {
 		t.Errorf("LocalProvider.Owner() = %s, want %s", localProvider.Owner(), owner)
 		return
 	}
 
 	// 测试RemoteProvider的Owner
-	remoteProvider := NewRemoteProvider(owner)
+	remoteProvider := NewRemoteProvider(owner, nil)
 	if remoteProvider.Owner() != owner {
 		t.Errorf("RemoteProvider.Owner() = %s, want %s", remoteProvider.Owner(), owner)
 		return
@@ -108,7 +108,7 @@ func TestProviderOwner(t *testing.T) {
 // TestUnregisterModel 测试UnregisterModel方法
 func TestUnregisterModel(t *testing.T) {
 	// 测试LocalProvider的UnregisterModel
-	localProvider := NewLocalProvider("test")
+	localProvider := NewLocalProvider("test", nil)
 	s := &Simple{}
 
 	// 注册模型
@@ -133,7 +133,7 @@ func TestUnregisterModel(t *testing.T) {
 	}
 
 	// 测试RemoteProvider的UnregisterModel
-	remoteProvider := NewRemoteProvider("test")
+	remoteProvider := NewRemoteProvider("test", nil)
 
 	remoteComplexObj, remoteErr := helper.GetObject(&ComplexObj{})
 	if remoteErr != nil {
@@ -164,7 +164,7 @@ func TestUnregisterModel(t *testing.T) {
 
 // TestGetTypeModel 测试GetTypeModel方法
 func TestGetTypeModel(t *testing.T) {
-	localProvider := NewLocalProvider("test")
+	localProvider := NewLocalProvider("test", nil)
 	s := &Simple{}
 
 	// 注册模型
@@ -208,7 +208,7 @@ func TestGetTypeModel(t *testing.T) {
 
 // TestGetValueModel 测试GetValueModel方法
 func TestGetValueModel(t *testing.T) {
-	localProvider := NewLocalProvider("test")
+	localProvider := NewLocalProvider("test", nil)
 	s := &Simple{
 		ID:        123,
 		Name:      "test_name",
@@ -243,7 +243,7 @@ func TestGetValueModel(t *testing.T) {
 
 // TestErrorCases 测试异常情况处理
 func TestErrorCases(t *testing.T) {
-	localProvider := NewLocalProvider("test")
+	localProvider := NewLocalProvider("test", nil)
 
 	// 测试nil值的情况
 	_, err1 := localProvider.RegisterModel(nil)

@@ -11,7 +11,7 @@ func TestDefine(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	localProvider := provider.NewLocalProvider("localOwner")
+	localProvider := provider.NewLocalProvider("localOwner", nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")
 	defer o1.Release()

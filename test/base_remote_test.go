@@ -19,7 +19,7 @@ func TestRemoteSimple(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	remoteProvider := provider.NewRemoteProvider(remoteOwner)
+	remoteProvider := provider.NewRemoteProvider(remoteOwner, nil)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()
@@ -140,7 +140,7 @@ func TestRemoteReference(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	remoteProvider := provider.NewRemoteProvider(remoteOwner)
+	remoteProvider := provider.NewRemoteProvider(remoteOwner, nil)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()
@@ -322,7 +322,7 @@ func TestRemoteCompose(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	remoteProvider := provider.NewRemoteProvider(remoteOwner)
+	remoteProvider := provider.NewRemoteProvider(remoteOwner, nil)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()
@@ -543,7 +543,7 @@ func TestRemoteQuery(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	remoteProvider := provider.NewRemoteProvider(remoteOwner)
+	remoteProvider := provider.NewRemoteProvider(remoteOwner, nil)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()
@@ -825,7 +825,7 @@ func TestRemoteOnlineEntity(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	remoteProvider := provider.NewRemoteProvider(remoteOwner)
+	remoteProvider := provider.NewRemoteProvider(remoteOwner, nil)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()

@@ -11,7 +11,7 @@ func TestLocalStore(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	localProvider := provider.NewLocalProvider("localOwner")
+	localProvider := provider.NewLocalProvider("localOwner", nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "xyz")
 	defer o1.Release()

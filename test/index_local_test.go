@@ -29,7 +29,7 @@ func TestIndexFeatures(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	localProvider := provider.NewLocalProvider("index_local")
+	localProvider := provider.NewLocalProvider("index_local", nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "index_test")
 	defer o1.Release()

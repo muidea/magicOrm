@@ -9,7 +9,6 @@ import (
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider/local"
 	"github.com/muidea/magicOrm/provider/remote"
-	"github.com/muidea/magicOrm/utils"
 )
 
 type Provider interface {
@@ -43,11 +42,11 @@ type Provider interface {
 }
 
 // NewRemoteProvider model provider
-func NewLocalProvider(owner string) Provider {
+func NewLocalProvider(owner string, validator models.ValueValidator) Provider {
 	ret := &providerImpl{
 		owner:              owner,
 		modelCache:         models.NewCache(),
-		valueValidator:     utils.NewValueValidator(),
+		valueValidator:     validator,
 		getEntityTypeFunc:  local.GetEntityType,
 		getEntityValueFunc: local.GetEntityValue,
 		getEntityModelFunc: local.GetEntityModel,
@@ -61,10 +60,11 @@ func NewLocalProvider(owner string) Provider {
 }
 
 // NewRemoteProvider model provider
-func NewRemoteProvider(owner string) Provider {
+func NewRemoteProvider(owner string, validator models.ValueValidator) Provider {
 	ret := &providerImpl{
 		owner:              owner,
 		modelCache:         models.NewCache(),
+		valueValidator:     validator,
 		getEntityTypeFunc:  remote.GetEntityType,
 		getEntityValueFunc: remote.GetEntityValue,
 		getEntityModelFunc: remote.GetEntityModel,

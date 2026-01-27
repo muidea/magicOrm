@@ -20,7 +20,7 @@ func TestReferenceLocal(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	localProvider := provider.NewLocalProvider(referenceLocalOwner)
+	localProvider := provider.NewLocalProvider(referenceLocalOwner, nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")
 	defer o1.Release()

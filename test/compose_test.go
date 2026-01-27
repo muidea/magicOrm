@@ -218,7 +218,7 @@ func TestComposeLocal(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	localProvider := provider.NewLocalProvider(composeLocalOwner)
+	localProvider := provider.NewLocalProvider(composeLocalOwner, nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")
 	defer o1.Release()
@@ -388,7 +388,7 @@ func TestComposeLocal(t *testing.T) {
 func TestComposeRemote(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
-	remoteProvider := provider.NewRemoteProvider(composeRemoteOwner)
+	remoteProvider := provider.NewRemoteProvider(composeRemoteOwner, nil)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()

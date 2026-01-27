@@ -22,7 +22,7 @@ func TestSimpleLocal(t *testing.T) {
 	defer orm.Uninitialized()
 
 	loopSize := 10
-	localProvider := provider.NewLocalProvider(simpleLocalOwner)
+	localProvider := provider.NewLocalProvider(simpleLocalOwner, nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")
 	defer o1.Release()
@@ -184,7 +184,7 @@ func TestSimpleRemote(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	remoteProvider := provider.NewRemoteProvider(simpleRemoteOwner)
+	remoteProvider := provider.NewRemoteProvider(simpleRemoteOwner, nil)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()

@@ -23,7 +23,7 @@ type Simple struct {
 
 func TestNewLocalProvider(t *testing.T) {
 	s001 := &Simple{}
-	provider := NewLocalProvider("t001")
+	provider := NewLocalProvider("t001", nil)
 	_, sModelErr := provider.RegisterModel(s001)
 	if sModelErr != nil {
 		t.Errorf("%s", sModelErr.Error())

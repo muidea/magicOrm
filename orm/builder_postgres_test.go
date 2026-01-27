@@ -36,7 +36,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 	now, _ := time.ParseInLocation(util.CSTLayout, "2018-01-02 15:04:05", time.Local)
 	unit := &Unit{ID: "10", Name: "Hello world", Value: 12.3456, TimeStamp: now}
 
-	localProvider := provider.NewLocalProvider("default")
+	localProvider := provider.NewLocalProvider("default", nil)
 	_, err := localProvider.RegisterModel(unit)
 	if err != nil {
 		t.Errorf("localProvider.RegisterModel failed, err:%s", err.Error())
@@ -139,7 +139,7 @@ func TestBuilderLocalReference(t *testing.T) {
 		},
 	}
 
-	localProvider := provider.NewLocalProvider("default")
+	localProvider := provider.NewLocalProvider("default", nil)
 	referenceModel, referenceErr := localProvider.RegisterModel(referenceVal)
 	if referenceErr != nil {
 		t.Errorf("localProvider.RegisterModel failed, err:%s", referenceErr.Error())
@@ -335,7 +335,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 		return
 	}
 
-	remoteProvider := provider.NewRemoteProvider("default")
+	remoteProvider := provider.NewRemoteProvider("default", nil)
 	info, err := remoteProvider.RegisterModel(uModel)
 	if err != nil {
 		t.Errorf("localProvider.RegisterModel failed, err:%s", err.Error())
@@ -582,7 +582,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 
 	referenceModel.SetFieldValue("unit", unitObjectValue)
 
-	remoteProvider := provider.NewRemoteProvider("default")
+	remoteProvider := provider.NewRemoteProvider("default", nil)
 	_, extErr := remoteProvider.RegisterModel(referenceModel)
 	if extErr != nil {
 		t.Errorf("remoteProvider.RegisterModel failed, err:%s", extErr.Error())

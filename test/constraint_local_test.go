@@ -13,7 +13,7 @@ func TestConstraintLocal(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	localProvider := provider.NewLocalProvider(constraintLocalOwner)
+	localProvider := provider.NewLocalProvider(constraintLocalOwner, nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "constraint_test")
 	defer o1.Release()

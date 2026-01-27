@@ -13,7 +13,7 @@ func TestRemoteStore(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	remoteProvider := provider.NewRemoteProvider("remote")
+	remoteProvider := provider.NewRemoteProvider("remote", nil)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "remote")
 	defer o1.Release()

@@ -13,7 +13,7 @@ func TestLocalExecutor(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	localProvider := provider.NewLocalProvider("default")
+	localProvider := provider.NewLocalProvider("default", nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")
 	defer o1.Release()
@@ -115,7 +115,7 @@ func TestLocalDepends(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	provider := provider.NewLocalProvider("default")
+	provider := provider.NewLocalProvider("default", nil)
 
 	o1, err := orm.NewOrm(provider, config, "abc")
 	defer o1.Release()

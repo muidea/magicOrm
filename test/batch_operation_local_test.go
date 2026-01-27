@@ -29,7 +29,7 @@ func TestBatchOperations(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	localProvider := provider.NewLocalProvider("batch_local")
+	localProvider := provider.NewLocalProvider("batch_local", nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "batch_test")
 	defer o1.Release()

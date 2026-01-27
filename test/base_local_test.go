@@ -15,7 +15,7 @@ func TestOptional(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	localProvider := provider.NewLocalProvider(localOwner)
+	localProvider := provider.NewLocalProvider(localOwner, nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")
 	defer o1.Release()
@@ -115,7 +115,7 @@ func TestLocalSimple(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	localProvider := provider.NewLocalProvider(localOwner)
+	localProvider := provider.NewLocalProvider(localOwner, nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")
 	defer o1.Release()
@@ -195,7 +195,7 @@ func TestLocalReference(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	localProvider := provider.NewLocalProvider(localOwner)
+	localProvider := provider.NewLocalProvider(localOwner, nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")
 	defer o1.Release()
@@ -352,7 +352,7 @@ func TestLocalCompose(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	localProvider := provider.NewLocalProvider(localOwner)
+	localProvider := provider.NewLocalProvider(localOwner, nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")
 	defer o1.Release()
@@ -521,7 +521,7 @@ func TestLocalQuery(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	localProvider := provider.NewLocalProvider(localOwner)
+	localProvider := provider.NewLocalProvider(localOwner, nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")
 	defer o1.Release()
@@ -710,7 +710,7 @@ func TestLocalOnlineEntity(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	localProvider := provider.NewLocalProvider(localOwner)
+	localProvider := provider.NewLocalProvider(localOwner, nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")
 	defer o1.Release()

@@ -38,7 +38,7 @@ func TestPerformance(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	localProvider := provider.NewLocalProvider("performance_local")
+	localProvider := provider.NewLocalProvider("performance_local", nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "performance_test")
 	defer o1.Release()

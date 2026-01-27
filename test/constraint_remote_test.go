@@ -13,7 +13,7 @@ func TestConstraintRemote(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	remoteProvider := provider.NewRemoteProvider("constraint_remote")
+	remoteProvider := provider.NewRemoteProvider("constraint_remote", nil)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "constraint_test")
 	defer o1.Release()

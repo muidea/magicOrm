@@ -22,7 +22,7 @@ func TestReferenceRemote(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	remoteProvider := provider.NewRemoteProvider(referenceRemoteOwner)
+	remoteProvider := provider.NewRemoteProvider(referenceRemoteOwner, nil)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()

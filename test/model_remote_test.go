@@ -13,7 +13,7 @@ func TestRemoteGroup(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	remoteProvider := provider.NewRemoteProvider("default")
+	remoteProvider := provider.NewRemoteProvider("default", nil)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()
@@ -231,7 +231,7 @@ func TestRemoteUser(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	remoteProvider := provider.NewRemoteProvider("default")
+	remoteProvider := provider.NewRemoteProvider("default", nil)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()
@@ -525,7 +525,7 @@ func TestRemoteSystem(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	remoteProvider := provider.NewRemoteProvider("default")
+	remoteProvider := provider.NewRemoteProvider("default", nil)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()
@@ -722,7 +722,7 @@ func TestRemoteBatchQuery(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	remoteProvider := provider.NewRemoteProvider("default")
+	remoteProvider := provider.NewRemoteProvider("default", nil)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()
@@ -992,7 +992,7 @@ func TestRemoteBatchQueryPtr(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	remoteProvider := provider.NewRemoteProvider("default")
+	remoteProvider := provider.NewRemoteProvider("default", nil)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()
@@ -1310,7 +1310,7 @@ func TestPolicy(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	remoteProvider := provider.NewRemoteProvider("default")
+	remoteProvider := provider.NewRemoteProvider("default", nil)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
 	defer o1.Release()

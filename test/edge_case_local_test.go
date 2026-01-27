@@ -39,7 +39,7 @@ func TestEdgeCases(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	localProvider := provider.NewLocalProvider("edge_case_local")
+	localProvider := provider.NewLocalProvider("edge_case_local", nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "edge_case_test")
 	defer o1.Release()
@@ -66,7 +66,7 @@ func TestErrorHandling(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	localProvider := provider.NewLocalProvider("error_handling_local")
+	localProvider := provider.NewLocalProvider("error_handling_local", nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "error_handling_test")
 	defer o1.Release()
@@ -122,7 +122,7 @@ func TestCircularReference(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	localProvider := provider.NewLocalProvider("circular_ref_local")
+	localProvider := provider.NewLocalProvider("circular_ref_local", nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "circular_ref_test")
 	defer o1.Release()
@@ -203,7 +203,7 @@ func TestMaxSizeObject(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	localProvider := provider.NewLocalProvider("max_size_local")
+	localProvider := provider.NewLocalProvider("max_size_local", nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "max_size_test")
 	defer o1.Release()

@@ -57,7 +57,7 @@ func TestDeepNesting(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 
-	localProvider := provider.NewLocalProvider("nested_local")
+	localProvider := provider.NewLocalProvider("nested_local", nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "nested_test")
 	defer o1.Release()
