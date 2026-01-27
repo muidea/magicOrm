@@ -112,6 +112,8 @@ func (s *objectImpl) Copy(viewSpec models.ViewDeclare) models.Model {
 	}
 
 	modelImplPtr, _ := getValueModel(utils.DeepCopyForReflect(s.objectValue), viewSpec)
+
+	modelImplPtr.valueValidator = s.valueValidator
 	return modelImplPtr
 }
 

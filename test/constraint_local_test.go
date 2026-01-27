@@ -75,6 +75,11 @@ func TestConstraintLocal(t *testing.T) {
 		testContentConstraints(t, o1, localProvider)
 	})
 
+	// 测试7: 测试内容值约束失败情况
+	t.Run("TestContentConstraintFailures", func(t *testing.T) {
+		testContentConstraintFailures(t, o1, localProvider)
+	})
+
 	// 清理测试数据
 	cleanupConstraintTest(t, o1, localProvider)
 }
@@ -582,6 +587,281 @@ func testContentConstraints(t *testing.T, o1 orm.Orm, localProvider provider.Pro
 	}
 
 	t.Logf("Content constraint test passed: all constraints validated")
+}
+
+// testContentConstraintFailures 测试内容值约束失败的情况
+func testContentConstraintFailures(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
+	// 测试各种违反约束的情况
+	testCases := []struct {
+		name        string
+		obj         *ContentConstraintTestModel
+		expectedErr bool
+	}{
+		{
+			name: "Name too short",
+			obj: &ContentConstraintTestModel{
+				Name:        "Jo", // 长度小于3
+				Age:         25,
+				Score:       85.5,
+				Status:      "active",
+				Email:       "test@example.com",
+				Description: "Valid description",
+				ItemCount:   5,
+				Price:       99.99,
+				Category:    "A",
+				Code:        "ABC-123",
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Name too long",
+			obj: &ContentConstraintTestModel{
+				Name:        "This is a very long name that exceeds the maximum allowed length of fifty characters", // 长度大于50
+				Age:         25,
+				Score:       85.5,
+				Status:      "active",
+				Email:       "test@example.com",
+				Description: "Valid description",
+				ItemCount:   5,
+				Price:       99.99,
+				Category:    "A",
+				Code:        "ABC-123",
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Age below minimum",
+			obj: &ContentConstraintTestModel{
+				Name:        "John Doe",
+				Age:         -5, // 小于0
+				Score:       85.5,
+				Status:      "active",
+				Email:       "test@example.com",
+				Description: "Valid description",
+				ItemCount:   5,
+				Price:       99.99,
+				Category:    "A",
+				Code:        "ABC-123",
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Age above maximum",
+			obj: &ContentConstraintTestModel{
+				Name:        "John Doe",
+				Age:         200, // 大于150
+				Score:       85.5,
+				Status:      "active",
+				Email:       "test@example.com",
+				Description: "Valid description",
+				ItemCount:   5,
+				Price:       99.99,
+				Category:    "A",
+				Code:        "ABC-123",
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Score below range",
+			obj: &ContentConstraintTestModel{
+				Name:        "John Doe",
+				Age:         25,
+				Score:       -10.0, // 小于0.0
+				Status:      "active",
+				Email:       "test@example.com",
+				Description: "Valid description",
+				ItemCount:   5,
+				Price:       99.99,
+				Category:    "A",
+				Code:        "ABC-123",
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Score above range",
+			obj: &ContentConstraintTestModel{
+				Name:        "John Doe",
+				Age:         25,
+				Score:       150.0, // 大于100.0
+				Status:      "active",
+				Email:       "test@example.com",
+				Description: "Valid description",
+				ItemCount:   5,
+				Price:       99.99,
+				Category:    "A",
+				Code:        "ABC-123",
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Invalid status",
+			obj: &ContentConstraintTestModel{
+				Name:        "John Doe",
+				Age:         25,
+				Score:       85.5,
+				Status:      "invalid", // 不在枚举中
+				Email:       "test@example.com",
+				Description: "Valid description",
+				ItemCount:   5,
+				Price:       99.99,
+				Category:    "A",
+				Code:        "ABC-123",
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Invalid email format",
+			obj: &ContentConstraintTestModel{
+				Name:        "John Doe",
+				Age:         25,
+				Score:       85.5,
+				Status:      "active",
+				Email:       "invalid-email", // 不符合邮箱正则
+				Description: "Valid description",
+				ItemCount:   5,
+				Price:       99.99,
+				Category:    "A",
+				Code:        "ABC-123",
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Description too long",
+			obj: &ContentConstraintTestModel{
+				Name:   "John Doe",
+				Age:    25,
+				Score:  85.5,
+				Status: "active",
+				Email:  "test@example.com",
+				Description: "This description is way too long. " + // 长度大于500
+					"Lorem ipsum dolor sit amet, consectetur adipiscing elit. " +
+					"Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. " +
+					"Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris " +
+					"nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in " +
+					"reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla " +
+					"pariatur. Excepteur sint occaecat cupidatat non proident, sunt in " +
+					"culpa qui officia deserunt mollit anim id est laborum. " +
+					"Sed ut perspiciatis unde omnis iste natus error sit voluptatem " +
+					"accusantium doloremque laudantium, totam rem aperiam, eaque ipsa " +
+					"quae ab illo inventore veritatis et quasi architecto beatae vitae " +
+					"dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit " +
+					"aspernatur aut odit aut fugit, sed quia consequuntur magni dolores " +
+					"eos qui ratione voluptatem sequi nesciunt.",
+				ItemCount: 5,
+				Price:     99.99,
+				Category:  "A",
+				Code:      "ABC-123",
+			},
+			expectedErr: true,
+		},
+		{
+			name: "ItemCount below minimum",
+			obj: &ContentConstraintTestModel{
+				Name:        "John Doe",
+				Age:         25,
+				Score:       85.5,
+				Status:      "active",
+				Email:       "test@example.com",
+				Description: "Valid description",
+				ItemCount:   0, // 小于1
+				Price:       99.99,
+				Category:    "A",
+				Code:        "ABC-123",
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Price below range",
+			obj: &ContentConstraintTestModel{
+				Name:        "John Doe",
+				Age:         25,
+				Score:       85.5,
+				Status:      "active",
+				Email:       "test@example.com",
+				Description: "Valid description",
+				ItemCount:   5,
+				Price:       0.0, // 小于0.01
+				Category:    "A",
+				Code:        "ABC-123",
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Price above range",
+			obj: &ContentConstraintTestModel{
+				Name:        "John Doe",
+				Age:         25,
+				Score:       85.5,
+				Status:      "active",
+				Email:       "test@example.com",
+				Description: "Valid description",
+				ItemCount:   5,
+				Price:       10000.0, // 大于9999.99
+				Category:    "A",
+				Code:        "ABC-123",
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Invalid category",
+			obj: &ContentConstraintTestModel{
+				Name:        "John Doe",
+				Age:         25,
+				Score:       85.5,
+				Status:      "active",
+				Email:       "test@example.com",
+				Description: "Valid description",
+				ItemCount:   5,
+				Price:       99.99,
+				Category:    "E", // 不在枚举A:B:C:D中
+				Code:        "ABC-123",
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Invalid code format",
+			obj: &ContentConstraintTestModel{
+				Name:        "John Doe",
+				Age:         25,
+				Score:       85.5,
+				Status:      "active",
+				Email:       "test@example.com",
+				Description: "Valid description",
+				ItemCount:   5,
+				Price:       99.99,
+				Category:    "A",
+				Code:        "invalid", // 不符合正则格式
+			},
+			expectedErr: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			objModel, objErr := localProvider.GetEntityModel(tc.obj)
+			if objErr != nil {
+				t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
+				return
+			}
+
+			// 尝试插入对象
+			_, insertErr := o1.Insert(objModel)
+
+			if tc.expectedErr {
+				// 期望插入失败
+				if insertErr == nil {
+					t.Errorf("Expected constraint violation error for %s, but insert succeeded", tc.name)
+				} else {
+					t.Logf("Constraint violation detected as expected for %s: %s", tc.name, insertErr.Error())
+				}
+			} else {
+				// 期望插入成功
+				if insertErr != nil {
+					t.Errorf("Expected insert to succeed for %s, but got error: %s", tc.name, insertErr.Error())
+				}
+			}
+		})
+	}
 }
 
 // cleanupConstraintTest 清理约束测试数据
