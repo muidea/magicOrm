@@ -11,7 +11,7 @@ type SpecImpl struct {
 	ValueDeclare models.ValueDeclare  `json:"valueDeclare"`
 	ViewDeclare  []models.ViewDeclare `json:"viewDeclare"`
 
-	Constraints  string `json:"constraints"`
+	Constraint   string `json:"constraint"`
 	DefaultValue any    `json:"defaultValue"`
 
 	// 这里是为了避免在使用时多次解析
@@ -34,8 +34,8 @@ func (m SpecImpl) GetValueDeclare() models.ValueDeclare {
 
 func (m SpecImpl) GetConstraints() models.Constraints {
 	if m.constraintsVal == nil {
-		if m.Constraints != "" {
-			m.constraintsVal = utils.ParseConstraints(m.Constraints)
+		if m.Constraint != "" {
+			m.constraintsVal = utils.ParseConstraints(m.Constraint)
 		}
 	}
 
@@ -68,7 +68,7 @@ func (m SpecImpl) Copy() *SpecImpl {
 		PrimaryKey:   m.PrimaryKey,
 		ValueDeclare: m.ValueDeclare,
 		ViewDeclare:  m.ViewDeclare,
-		Constraints:  m.Constraints,
+		Constraint:   m.Constraint,
 		DefaultValue: m.DefaultValue,
 	}
 

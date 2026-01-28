@@ -82,7 +82,7 @@ func newSpec(tag reflect.StructTag) (ret *remote.SpecImpl, err *cd.Error) {
 
 	constraints := tag.Get(constraintsTag)
 	if constraints != "" {
-		val.Constraints = constraints
+		val.Constraint = constraints
 	}
 
 	ret = &val
