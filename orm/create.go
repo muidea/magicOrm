@@ -73,21 +73,21 @@ func (s *CreateRunner) Create() (err *cd.Error) {
 			rModel, rErr := s.modelProvider.GetTypeModel(elemType)
 			if rErr != nil {
 				err = rErr
-				log.Errorf("Create failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+				log.Errorf("Create relation field:%s model failed, s.modelProvider.GetTypeModel error:%s", field.GetName(), err.Error())
 				return
 			}
 
 			rRunner := NewCreateRunner(s.context, rModel, s.executor, s.modelProvider, s.modelCodec)
 			err = rRunner.Create()
 			if err != nil {
-				log.Errorf("Create failed, rRunner.Create() error:%s", err.Error())
+				log.Errorf("Create relation field:%s model failed, rRunner.Create() error:%s", field.GetName(), err.Error())
 				return
 			}
 		}
 
 		err = s.createRelation(field)
 		if err != nil {
-			log.Errorf("Create failed, s.createRelation error:%s", err.Error())
+			log.Errorf("Create field:%s relation failed, s.createRelation error:%s", field.GetName(), err.Error())
 			return
 		}
 	}

@@ -165,7 +165,7 @@ func (s *DeleteRunner) Delete() (err *cd.Error) {
 
 		err = s.deleteRelation(s.vModel, field, 0)
 		if err != nil {
-			log.Errorf("Delete failed, s.deleteRelation error:%s", err.Error())
+			log.Errorf("Delete relation field:%s failed, s.deleteRelation error:%s", field.GetName(), err.Error())
 			return
 		}
 	}

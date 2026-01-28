@@ -69,21 +69,21 @@ func (s *DropRunner) Drop() (err *cd.Error) {
 			rModel, rErr := s.modelProvider.GetTypeModel(elemType)
 			if rErr != nil {
 				err = rErr
-				log.Errorf("Drop failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+				log.Errorf("Drop relation field:%s model failed, s.modelProvider.GetTypeModel error:%s", field.GetName(), err.Error())
 				return
 			}
 
 			rRunner := NewDropRunner(s.context, rModel, s.executor, s.modelProvider, s.modelCodec)
 			err = rRunner.Drop()
 			if err != nil {
-				log.Errorf("Drop failed, rRunner.Drop() error:%s", err.Error())
+				log.Errorf("Drop relation field:%s model failed, rRunner.Drop() error:%s", field.GetName(), err.Error())
 				return
 			}
 		}
 
 		err = s.dropRelation(s.vModel, field)
 		if err != nil {
-			log.Errorf("Drop failed, s.dropRelation error:%s", err.Error())
+			log.Errorf("Drop field:%s relation failed, s.dropRelation error:%s", field.GetName(), err.Error())
 			return
 		}
 	}

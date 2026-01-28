@@ -243,13 +243,13 @@ func (s *InsertRunner) Insert() (ret models.Model, err *cd.Error) {
 
 			// 未赋值，但是是必选字段，则需要报错提示
 			err = cd.NewError(cd.IllegalParam, fmt.Sprintf("illegal field value, field:%s", field.GetName()))
-			log.Errorf("Insert failed, s.insertSingle error:%s", err.Error())
+			log.Errorf("Insert field:%s model failed, s.insertRelation error:%s", field.GetName(), err.Error())
 			return
 		}
 
 		err = s.insertRelation(s.vModel, field)
 		if err != nil {
-			log.Errorf("Insert failed, s.insertRelation error:%s", err.Error())
+			log.Errorf("Insert relation field:%s failed, s.insertRelation error:%s", field.GetName(), err.Error())
 			return
 		}
 	}

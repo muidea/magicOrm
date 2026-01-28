@@ -99,7 +99,7 @@ func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
 
 		err = s.updateRelation(s.vModel, field)
 		if err != nil {
-			log.Errorf("Update failed, s.updateRelation error:%s", err.Error())
+			log.Errorf("Update relation field:%s failed, s.updateRelation error:%s", field.GetName(), err.Error())
 			return
 		}
 	}
