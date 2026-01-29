@@ -247,7 +247,7 @@ type User struct {
     UU_ID  string   `orm:"uuid key uuid" view:"detail,lite"`                // UUID主键
     Status *Status  `orm:"status" view:"detail,lite"`                       // 可选关联
     Group  []*Group `orm:"group" view:"detail,lite"`                        // 多对多关联
-    Time   time.Time `orm:"created_at datetime" constraint:"imm" view:"detail"` // 不可变时间
+    Time   time.Time `orm:"created_at datetime" constraint:"ro" view:"detail"` // 不可变时间
 }
 ```
 
@@ -278,7 +278,6 @@ constraint:"指令1,指令2=参数1,指令3=参数1:参数2"
 | **`req`** | 无 | **Required**: 必填/必传 | 校验值不能为零值（0, "", nil） |
 | **`ro`** | 无 | **Read-Only**: 只读 | 输出接口展示，更新接口忽略此字段 |
 | **`wo`** | 无 | **Write-Only**: 只写 | 敏感字段（如密码），禁止在展示接口输出 |
-| **`imm`** | 无 | **Immutable**: 不可变 | 仅允许在Create时赋值，Update时视为只读 |
 
 #### 内容值约束
 
@@ -298,7 +297,7 @@ type UserAccount struct {
     ID         int    `orm:"id key auto" constraint:"ro"`           // 自增主键，只读
     Name       string `orm:"name" constraint:"req"`                // 必填
     Password   string `orm:"password" constraint:"wo"`              // 只写（敏感字段）
-    CreateTime int64  `orm:"create_time" constraint:"imm"`         // 不可变
+    CreateTime int64  `orm:"create_time" constraint:"ro"`         // 不可变
     Email      string `orm:"email" constraint:"req,re=^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,64}$"`
     UpdateTime int64  `orm:"update_time"`                          // 普通字段
     Status     int    `orm:"status" constraint:"req,ro"`           // 必填且只读

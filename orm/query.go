@@ -378,7 +378,7 @@ func (s *impl) Query(vModel models.Model) (ret models.Model, err *cd.Error) {
 	}
 
 	if vModel == nil {
-		err = cd.NewError(cd.IllegalParam, "illegal model value")
+		err = cd.NewError(cd.IllegalParam, "query model is nil")
 		return
 	}
 
@@ -403,6 +403,6 @@ func (s *impl) Query(vModel models.Model) (ret models.Model, err *cd.Error) {
 		return
 	}
 
-	err = cd.NewError(cd.NotFound, fmt.Sprintf("can't query model value, model:%s", vModel.GetPkgKey()))
+	err = cd.NewError(cd.NotFound, fmt.Sprintf("no records found matching the model criteria, model pkgKey: %s, filter: %v", vModel.GetPkgKey(), vFilter))
 	return
 }

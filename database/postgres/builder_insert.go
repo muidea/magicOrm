@@ -20,7 +20,7 @@ func (s *Builder) BuildInsert(vModel models.Model) (ret database.Result, err *cd
 		fSpec := field.GetSpec()
 		// 检查 req 约束
 		constraints := fSpec.GetConstraints()
-		if constraints != nil && (constraints.Has(models.KeyRequired) || constraints.Has(models.KeyImmutable)) {
+		if constraints != nil && constraints.Has(models.KeyRequired) {
 			if !models.IsAssignedField(field) {
 				err = cd.NewError(cd.IllegalParam, fmt.Sprintf("field '%s' is required, cannot be zero value", field.GetName()))
 				log.Errorf("BuildInsert failed, required field '%s' is zero value", field.GetName())

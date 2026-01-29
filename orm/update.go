@@ -74,7 +74,7 @@ func (s *UpdateRunner) updateRelation(vModel models.Model, vField models.Field) 
 	vField.SetValue(newVal)
 	err = s.insertRelation(vModel, vField)
 	if err != nil {
-		log.Errorf("updateRelation failed, s.insertRelation error:%s", err.Error())
+		log.Errorf("updateRelation failed, field:%s, s.insertRelation error:%s", vField.GetName(), err.Error())
 	}
 	return
 }

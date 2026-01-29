@@ -60,11 +60,6 @@ func TestConstraintLocal(t *testing.T) {
 		testWriteOnlyFields(t, o1, localProvider)
 	})
 
-	// 测试4: 测试不可变字段
-	t.Run("TestImmutableFields", func(t *testing.T) {
-		testImmutableFields(t, o1, localProvider)
-	})
-
 	// 测试5: 测试可选字段
 	t.Run("TestOptionalFields", func(t *testing.T) {
 		testOptionalFields(t, o1, localProvider)
@@ -268,90 +263,6 @@ func testWriteOnlyFields(t *testing.T, o1 orm.Orm, localProvider provider.Provid
 	}
 
 	t.Logf("Write-only fields test passed: Password is hidden, WriteOnly is hidden")
-}
-
-// testImmutableFields 测试不可变字段约束
-func testImmutableFields(t *testing.T, o1 orm.Orm, localProvider provider.Provider) {
-	// 创建对象
-	obj := &ConstraintTestModel{
-		Name:       "immutable_test",
-		Password:   "password123",
-		CreateTime: 1111111111, // 初始创建时间
-		UpdateTime: 1111111111,
-		Status:     1,
-		ReadOnlyID: 500,
-		WriteOnly:  "write_data",
-	}
-
-	objModel, objErr := localProvider.GetEntityModel(obj, false)
-	if objErr != nil {
-		t.Errorf("GetEntityModel failed, err:%s", objErr.Error())
-		return
-	}
-
-	insertedModel, insertErr := o1.Insert(objModel)
-	if insertErr != nil {
-		t.Errorf("Insert failed, err:%s", insertErr.Error())
-		return
-	}
-
-	insertedObj := insertedModel.Interface(true).(*ConstraintTestModel)
-	objID := insertedObj.ID
-
-	// 尝试更新不可变字段
-	updateObj := &ConstraintTestModel{
-		ID:         objID,
-		Name:       "updated_immutable_test",
-		Password:   "new_password",
-		CreateTime: 9999999999, // 尝试修改不可变字段
-		UpdateTime: 2222222222, // 修改普通字段
-		Status:     1,
-		ReadOnlyID: 500,
-		WriteOnly:  "updated_write",
-	}
-
-	updateModel, updateErr := localProvider.GetEntityModel(updateObj, false)
-	if updateErr != nil {
-		t.Errorf("GetEntityModel for update failed, err:%s", updateErr.Error())
-		return
-	}
-
-	_, updateErr = o1.Update(updateModel)
-	if updateErr != nil {
-		t.Errorf("Update failed, err:%s", updateErr.Error())
-		return
-	}
-
-	// 查询对象验证不可变字段是否被保护
-	queryObj := &ConstraintTestModel{ID: objID}
-	queryModel, queryErr := localProvider.GetEntityModel(queryObj, true)
-	if queryErr != nil {
-		t.Errorf("GetEntityModel for query failed, err:%s", queryErr.Error())
-		return
-	}
-
-	queriedModel, queryErr := o1.Query(queryModel)
-	if queryErr != nil {
-		t.Errorf("Query failed, err:%s", queryErr.Error())
-		return
-	}
-
-	queriedObj := queriedModel.Interface(true).(*ConstraintTestModel)
-
-	// 验证不可变字段没有被修改
-	if queriedObj.CreateTime != 1111111111 {
-		t.Errorf("Immutable CreateTime field was modified, expected: 1111111111, got: %d", queriedObj.CreateTime)
-	}
-
-	// 验证普通字段被修改了
-	if queriedObj.Name != "updated_immutable_test" {
-		t.Errorf("Name field was not updated, expected: updated_immutable_test, got: %s", queriedObj.Name)
-	}
-	if queriedObj.UpdateTime != 2222222222 {
-		t.Errorf("UpdateTime field was not updated, expected: 2222222222, got: %d", queriedObj.UpdateTime)
-	}
-
-	t.Logf("Immutable field test passed: CreateTime=%d (unchanged)", queriedObj.CreateTime)
 }
 
 // testOptionalFields 测试可选字段约束

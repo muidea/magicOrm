@@ -68,16 +68,16 @@ func (s *InsertRunner) insertHost(vModel models.Model) (err *cd.Error) {
 	}
 
 	if pkVal != nil && autoIncrementFlag {
-		pkFiled := vModel.GetPrimaryField()
-		vVal, vErr := s.modelCodec.ExtractBasicFieldValue(pkFiled, pkVal)
+		pkField := vModel.GetPrimaryField()
+		vVal, vErr := s.modelCodec.ExtractBasicFieldValue(pkField, pkVal)
 		if vErr != nil {
 			err = vErr
-			log.Errorf("insertHost failed, s.modelCodec.ExtractFieldValue error:%s", err.Error())
+			log.Errorf("insertHost failed, extract pkField:%s, pkField type:%s, s.modelCodec.ExtractFieldValue error:%s", pkField.GetName(), pkField.GetType().GetPkgKey(), err.Error())
 			return
 		}
-		err = pkFiled.SetValue(vVal)
+		err = pkField.SetValue(vVal)
 		if err != nil {
-			log.Errorf("insertHost failed, s.modelCodec.ExtractFieldValue error:%s", err.Error())
+			log.Errorf("insertHost failed, set pkField:%s, pkField type:%s, s.modelCodec.ExtractFieldValue error:%s", pkField.GetName(), pkField.GetType().GetPkgKey(), err.Error())
 			return
 		}
 	}
@@ -109,7 +109,7 @@ func (s *InsertRunner) insertRelation(vModel models.Model, vField models.Field) 
 		rErr := s.insertSliceRelation(vModel, vField)
 		if rErr != nil {
 			err = rErr
-			log.Errorf("insertRelation failed, s.insertSliceRelation error:%s", err.Error())
+			log.Errorf("insertRelation failed, field:%s, s.insertSliceRelation error:%s", vField.GetName(), err.Error())
 			return
 		}
 		return
@@ -118,7 +118,7 @@ func (s *InsertRunner) insertRelation(vModel models.Model, vField models.Field) 
 	rErr := s.insertSingleRelation(vModel, vField)
 	if rErr != nil {
 		err = rErr
-		log.Errorf("insertRelation failed, s.insertSingleRelation error:%s", err.Error())
+		log.Errorf("insertRelation failed, field:%s, s.insertSingleRelation error:%s", vField.GetName(), err.Error())
 		return
 	}
 	return

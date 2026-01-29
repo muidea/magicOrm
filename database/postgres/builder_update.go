@@ -43,7 +43,7 @@ func (s *Builder) buildFieldUpdateValues(vModel models.Model, resultStackPtr *Re
 		fSpec := field.GetSpec()
 		constraints := fSpec.GetConstraints()
 		if constraints != nil {
-			if constraints.Has(models.KeyReadOnly) || constraints.Has(models.KeyImmutable) {
+			if constraints.Has(models.KeyReadOnly) {
 				continue
 			}
 		}
