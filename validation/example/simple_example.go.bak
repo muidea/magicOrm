@@ -1,0 +1,126 @@
+package main
+
+import (
+	"fmt"
+
+	"github.com/muidea/magicOrm/validation"
+	"github.com/muidea/magicOrm/validation/errors"
+)
+
+func main() {
+	fmt.Println("=== MagicORM Validation System Example ===")
+
+	// Create validation manager with default configuration
+	config := validation.DefaultConfig()
+	manager := validation.NewValidationManager(config)
+
+	// Example 1: Basic validation
+	fmt.Println("\n1. Basic Validation Examples:")
+	testBasicValidation(manager)
+
+	// Example 2: Error collection
+	fmt.Println("\n2. Error Collection Examples:")
+	testErrorCollection(manager)
+
+	// Example 3: Scenario-aware validation
+	fmt.Println("\n3. Scenario-Aware Validation Examples:")
+	testScenarioValidation(manager)
+
+	fmt.Println("\n=== Example Completed Successfully ===")
+}
+
+func testBasicValidation(manager validation.ValidationManager) {
+	// Create a simple context
+	ctx := validation.NewContext(
+		errors.ScenarioInsert,
+		validation.OperationCreate,
+		nil,
+		"postgresql",
+	)
+
+	// Test basic values
+	testCases := []struct {
+		name  string
+		value any
+	}{
+		{"String", "test"},
+		{"Integer", 42},
+		{"Float", 3.14},
+		{"Boolean", true},
+		{"Nil", nil},
+	}
+
+	for _, tc := range testCases {
+		err := manager.Validate(tc.value, ctx)
+		if err != nil {
+			fmt.Printf("  ❌ %s failed: %v\n", tc.name, err)
+		} else {
+			fmt.Printf("  ✓ %s passed\n", tc.name)
+		}
+	}
+}
+
+func testErrorCollection(manager validation.ValidationManager) {
+	collector := errors.NewErrorCollector()
+
+	// Add test errors
+	collector.AddError(errors.NewConstraintError(
+		"name",
+		"min",
+		"Jo",
+		3,
+	).WithScenario(errors.ScenarioInsert))
+
+	collector.AddError(errors.NewConstraintError(
+		"email",
+		"re",
+		"invalid",
+		"valid email",
+	).WithScenario(errors.ScenarioInsert))
+
+	collector.AddError(errors.NewTypeError(
+		"age",
+		"not a number",
+		"int",
+	).WithScenario(errors.ScenarioInsert))
+
+	fmt.Println("  Collected errors:")
+	for i, err := range collector.GetErrors() {
+		fmt.Printf("    %d. Field: %s, Constraint: %s, Error: %s\n",
+			i+1, err.GetField(), err.GetConstraint(), err.Error())
+	}
+
+	fmt.Printf("  Error summary:\n%s\n", collector.GetErrorSummary())
+
+	// Convert to rich error
+	richErr := collector.ToRichError()
+	if richErr != nil {
+		fmt.Printf("  Combined error: %v\n", richErr)
+	}
+}
+
+func testScenarioValidation(manager validation.ValidationManager) {
+	scenarios := []errors.Scenario{
+		errors.ScenarioInsert,
+		errors.ScenarioUpdate,
+		errors.ScenarioQuery,
+		errors.ScenarioDelete,
+	}
+
+	fmt.Println("  Different validation strategies per scenario:")
+	for _, scenario := range scenarios {
+		fmt.Printf("    %s: ", scenario)
+
+		// Show expected behavior
+		switch scenario {
+		case errors.ScenarioInsert:
+			fmt.Println("strict validation, all constraints apply")
+		case errors.ScenarioUpdate:
+			fmt.Println("relaxed validation, skip read-only fields")
+		case errors.ScenarioQuery:
+			fmt.Println("read-only validation, skip write-only fields")
+		case errors.ScenarioDelete:
+			fmt.Println("minimal validation, only required fields")
+		}
+	}
+}

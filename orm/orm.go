@@ -12,6 +12,8 @@ import (
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
+	"github.com/muidea/magicOrm/validation"
+	"github.com/muidea/magicOrm/validation/errors"
 )
 
 const maxDeepLevel = 3
@@ -101,9 +103,20 @@ func NewOrm(provider provider.Provider, cfg database.Config, prefix string) (Orm
 		return nil, cd.NewError(cd.Unexpected, executorErr.Error())
 	}
 
+	// Create validation manager
+	validationFactory := validation.NewValidationFactory()
+	validationConfig := validation.DefaultConfig()
+	validationConfig.EnableCaching = true // Enable caching by default
+	validationMgr := validationFactory.CreateValidationManager(validationConfig)
+
 	orm := &impl{
-		context:  context.Background(),
-		executor: executorVal, modelProvider: provider, modelCodec: codec.New(provider, prefix)}
+		context:         context.Background(),
+		executor:        executorVal,
+		modelProvider:   provider,
+		modelCodec:      codec.New(provider, prefix),
+		validationMgr:   validationMgr,
+		validationCache: true,
+	}
 	return orm, nil
 }
 
@@ -124,18 +137,31 @@ func GetOrm(ctx context.Context, provider provider.Provider, prefix string) (ret
 		return
 	}
 
+	// Create validation manager
+	validationFactory := validation.NewValidationFactory()
+	validationConfig := validation.DefaultConfig()
+	validationConfig.EnableCaching = true // Enable caching by default
+	validationMgr := validationFactory.CreateValidationManager(validationConfig)
+
 	ret = &impl{
-		context:  ctx,
-		executor: executorVal, modelProvider: provider, modelCodec: codec.New(provider, prefix)}
+		context:         ctx,
+		executor:        executorVal,
+		modelProvider:   provider,
+		modelCodec:      codec.New(provider, prefix),
+		validationMgr:   validationMgr,
+		validationCache: true,
+	}
 	return
 }
 
 // impl orm
 type impl struct {
-	context       context.Context
-	executor      database.Executor
-	modelProvider provider.Provider
-	modelCodec    codec.Codec
+	context         context.Context
+	executor        database.Executor
+	modelProvider   provider.Provider
+	modelCodec      codec.Codec
+	validationMgr   validation.ValidationManager
+	validationCache bool
 }
 
 // BeginTransaction begin transaction
@@ -194,4 +220,83 @@ func (s *impl) Release() {
 		s.executor.Release()
 		s.executor = nil
 	}
+}
+
+// Validation methods
+
+// validateModel validates a model with scenario-aware validation
+func (s *impl) validateModel(model models.Model, scenario errors.Scenario) *cd.Error {
+	if s.validationMgr == nil {
+		return nil
+	}
+
+	// Create validation context without database type
+	// Database-specific validation will be handled by the validation system internally
+	ctx := validation.NewContext(
+		scenario,
+		s.getOperationType(scenario),
+		nil, // Model adapter would be created from model
+		"",  // Database type not specified here
+	)
+
+	// Perform validation
+	err := s.validationMgr.ValidateModel(model, ctx)
+	if err != nil {
+		return cd.NewError(cd.IllegalParam, err.Error())
+	}
+
+	return nil
+}
+
+// validateField validates a single field with scenario-aware validation
+func (s *impl) validateField(field models.Field, value any, scenario errors.Scenario) *cd.Error {
+	if s.validationMgr == nil {
+		return nil
+	}
+
+	// Create validation context
+	ctx := validation.NewContext(
+		scenario,
+		s.getOperationType(scenario),
+		nil,
+		"", // Database type not specified here
+	)
+
+	// Perform validation
+	err := s.validationMgr.ValidateField(field, value, ctx)
+	if err != nil {
+		return cd.NewError(cd.IllegalParam, err.Error())
+	}
+
+	return nil
+}
+
+// getOperationType maps scenario to operation type
+func (s *impl) getOperationType(scenario errors.Scenario) validation.OperationType {
+	switch scenario {
+	case errors.ScenarioInsert:
+		return validation.OperationCreate
+	case errors.ScenarioUpdate:
+		return validation.OperationUpdate
+	case errors.ScenarioQuery:
+		return validation.OperationRead
+	case errors.ScenarioDelete:
+		return validation.OperationDelete
+	default:
+		return validation.OperationCreate
+	}
+}
+
+// GetValidationManager returns the validation manager
+func (s *impl) GetValidationManager() validation.ValidationManager {
+	return s.validationMgr
+}
+
+// ConfigureValidation configures validation settings
+func (s *impl) ConfigureValidation(config validation.ValidationConfig) error {
+	// Recreate validation manager with new configuration
+	factory := validation.NewValidationFactory()
+	s.validationMgr = factory.CreateValidationManager(config)
+	s.validationCache = config.EnableCaching
+	return nil
 }

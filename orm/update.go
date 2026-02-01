@@ -10,6 +10,7 @@ import (
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
+	"github.com/muidea/magicOrm/validation/errors"
 )
 
 type UpdateRunner struct {
@@ -115,6 +116,13 @@ func (s *impl) Update(vModel models.Model) (ret models.Model, err *cd.Error) {
 
 	if vModel == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal model value")
+		return
+	}
+
+	// Validate model before update
+	validationErr := s.validateModel(vModel, errors.ScenarioUpdate)
+	if validationErr != nil {
+		err = validationErr
 		return
 	}
 

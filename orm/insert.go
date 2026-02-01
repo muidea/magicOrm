@@ -12,6 +12,7 @@ import (
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/utils"
+	"github.com/muidea/magicOrm/validation/errors"
 )
 
 type InsertRunner struct {
@@ -265,6 +266,13 @@ func (s *impl) Insert(vModel models.Model) (ret models.Model, err *cd.Error) {
 
 	if vModel == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal model value")
+		return
+	}
+
+	// Validate model before insertion
+	validationErr := s.validateModel(vModel, errors.ScenarioInsert)
+	if validationErr != nil {
+		err = validationErr
 		return
 	}
 

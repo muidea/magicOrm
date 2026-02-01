@@ -39,20 +39,20 @@ func (s *Builder) BuildUpdate(vModel models.Model) (ret database.Result, err *cd
 func (s *Builder) buildFieldUpdateValues(vModel models.Model, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
 	str := ""
 	for _, field := range vModel.GetFields() {
-		// 检查 ro 和 imm 约束，这些字段在更新时应该被忽略
-		fSpec := field.GetSpec()
-		constraints := fSpec.GetConstraints()
-		if constraints != nil {
-			if constraints.Has(models.KeyReadOnly) {
-				continue
-			}
-		}
 
 		if models.IsPrimaryField(field) {
 			continue
 		}
 		if !models.IsBasicField(field) || !models.IsValidField(field) {
 			continue
+		}
+		// Skip read-only fields in update
+		if spec := field.GetSpec(); spec != nil {
+			if constraints := spec.GetConstraints(); constraints != nil {
+				if constraints.Has(models.KeyReadOnly) {
+					continue
+				}
+			}
 		}
 
 		fVal := field.GetValue()

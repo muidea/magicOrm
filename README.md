@@ -8,9 +8,11 @@ Golang对象的ORM框架，支持PostgreSQL和MySQL数据库。一个所见即�
 - **类型安全**: 完整的Go类型映射支持
 - **灵活的关系映射**: 支持一对一、一对多、多对多关系
 - **强大的约束系统**: 内置数据验证和业务规则
+- **四层验证架构**: 类型、约束、数据库、场景分层验证
+- **场景感知验证**: 支持Insert/Update/Query/Delete不同策略
 - **视图模式**: 支持detail/lite视图控制字段输出
 - **事务支持**: 完整的ACID事务处理
-- **高性能**: 连接池和批量操作优化
+- **高性能**: 连接池、批量操作和验证缓存优化
 
 ## 安装
 
@@ -317,6 +319,278 @@ type Product struct {
 }
 ```
 
+## 验证系统
+
+MagicORM 实现了先进的四层验证架构，提供场景感知的验证策略和丰富的错误处理。
+
+### 四层验证架构
+
+#### 1. 类型验证层 (`validation/types/`)
+- **职责**: 基础类型验证和转换
+- 验证Go类型与数据库类型的兼容性
+- 处理类型转换（字符串↔整数、时间格式等）
+- 确保基本的数据完整性
+
+#### 2. 约束验证层 (`validation/constraints/`)
+- **职责**: 业务约束验证
+- 验证结构体标签中定义的业务规则（`req`, `min`, `max`, `range`, `in`, `re`）
+- 处理访问行为约束（`ro`, `wo`）
+- 支持场景感知验证（Insert vs Update）
+
+#### 3. 数据库验证层 (`validation/database/`)
+- **职责**: 数据库特定约束验证
+- 验证数据库级约束（NOT NULL, UNIQUE, FOREIGN KEY等）
+- 处理数据库类型兼容性
+- 提供数据库特定的错误消息
+
+#### 4. 场景适配层 (`validation/scenario/`)
+- **职责**: 场景感知验证编排
+- 基于操作类型编排验证（Insert, Update, Query, Delete）
+- 为不同场景应用不同的验证策略
+- 为其他层提供验证上下文
+
+### 验证使用示例
+
+#### 基本验证配置
+
+```go
+import (
+    "github.com/muidea/magicOrm/validation"
+    "github.com/muidea/magicOrm/validation/errors"
+)
+
+// 使用默认配置
+config := validation.DefaultConfig()
+manager := validation.NewValidationManager(config)
+
+// 创建验证上下文
+ctx := validation.NewContext(
+    errors.ScenarioInsert,      // 插入场景
+    validation.OperationCreate, // 创建操作
+    nil,                        // 模型适配器
+    "postgresql",               // 数据库类型
+)
+
+// 验证值
+err := manager.Validate("test value", ctx)
+if err != nil {
+    // 处理验证错误
+    fmt.Printf("验证失败: %v\n", err)
+}
+```
+
+#### 场景感知验证
+
+```go
+// 定义带约束的模型
+type User struct {
+    ID       int    `orm:"id key auto" constraint:"ro"`
+    Username string `orm:"username" constraint:"req,min=3,max=20"`
+    Email    string `orm:"email" constraint:"req,re=^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"`
+    Age      int    `orm:"age" constraint:"min=18,max=120"`
+    Status   string `orm:"status" constraint:"in=active:inactive:suspended"`
+}
+
+// 不同场景的验证策略
+scenarios := []errors.Scenario{
+    errors.ScenarioInsert,  // 插入：严格验证
+    errors.ScenarioUpdate,  // 更新：跳过只读字段
+    errors.ScenarioQuery,   // 查询：跳过只写字段
+    errors.ScenarioDelete,  // 删除：最小验证
+}
+
+for _, scenario := range scenarios {
+    ctx := validation.NewContext(
+        scenario,
+        validation.OperationCreate,
+        nil,
+        "postgresql",
+    )
+    
+    // 执行场景特定的验证
+    err := manager.ValidateModel(model, ctx)
+    if err != nil {
+        fmt.Printf("%s 场景验证失败: %v\n", scenario, err)
+    }
+}
+```
+
+#### 错误处理
+
+```go
+// 创建错误收集器
+collector := errors.NewErrorCollector()
+
+// 创建带错误收集器的上下文
+ctx := validation.NewContextWithCollector(
+    errors.ScenarioInsert,
+    collector,
+)
+
+// 执行验证（收集所有错误）
+err := manager.ValidateModel(model, ctx)
+if collector.HasErrors() {
+    // 获取所有错误
+    allErrors := collector.GetErrors()
+    
+    // 按字段获取错误
+    fieldErrors := collector.GetErrorsByField("username")
+    
+    // 按验证层获取错误
+    typeErrors := collector.GetErrorsByLayer(errors.LayerType)
+    constraintErrors := collector.GetErrorsByLayer(errors.LayerConstraint)
+    
+    // 获取错误摘要
+    summary := collector.GetErrorSummary()
+    fmt.Printf("验证错误摘要:\n%s\n", summary)
+}
+```
+
+### 验证配置
+
+#### 默认配置
+
+```go
+// 默认配置（推荐用于大多数场景）
+config := validation.DefaultConfig()
+// 启用所有验证层
+// 启用缓存（5分钟TTL）
+// 收集所有错误（不提前停止）
+```
+
+#### 简单配置
+
+```go
+// 简单配置（基本验证需求）
+config := validation.SimpleConfig()
+// 启用类型和约束验证
+// 禁用数据库验证和场景适配
+// 禁用缓存
+// 遇到第一个错误即停止
+```
+
+#### 性能优化配置
+
+```go
+// 性能优化配置
+config := validation.ValidationConfig{
+    EnableTypeValidation:       true,
+    EnableConstraintValidation: true,
+    EnableDatabaseValidation:   false, // 跳过数据库验证以提高性能
+    EnableScenarioAdaptation:   true,
+    EnableCaching:              true,
+    CacheTTL:                   10 * time.Minute, // 更长TTL
+    MaxCacheSize:               2000,             // 更大缓存
+    DefaultOptions: validation.ValidationOptions{
+        StopOnFirstError:        true, // 提前停止以提高性能
+        IncludeFieldPathInError: false,
+        ValidateReadOnlyFields:  true,
+        ValidateWriteOnlyFields: true,
+    },
+}
+```
+
+#### 严格验证配置
+
+```go
+// 严格验证配置
+config := validation.ValidationConfig{
+    EnableTypeValidation:       true,
+    EnableConstraintValidation: true,
+    EnableDatabaseValidation:   true,
+    EnableScenarioAdaptation:   true,
+    EnableCaching:              false, // 禁用缓存以确保严格验证
+    DefaultOptions: validation.ValidationOptions{
+        StopOnFirstError:        false, // 收集所有错误
+        IncludeFieldPathInError: true,  // 包含字段路径
+        ValidateReadOnlyFields:  true,
+        ValidateWriteOnlyFields: true,
+    },
+}
+```
+
+### 验证缓存
+
+验证系统支持多层缓存以提高性能：
+
+```go
+// 启用缓存
+config := validation.DefaultConfig()
+config.EnableCaching = true
+config.CacheTTL = 5 * time.Minute
+config.MaxCacheSize = 1000
+
+manager := validation.NewValidationManager(config)
+
+// 缓存统计
+stats := manager.GetValidationStats()
+fmt.Printf("缓存命中率: %.2f%%\n", stats.CacheHitRate*100)
+fmt.Printf("类型验证次数: %d\n", stats.TypeValidations)
+fmt.Printf("约束验证次数: %d\n", stats.ConstraintValidations)
+```
+
+### 自定义验证
+
+#### 注册自定义约束
+
+```go
+// 创建约束验证器
+validator := constraints.NewConstraintValidator(true)
+
+// 注册自定义约束
+validator.RegisterCustomConstraint("custom", func(value any, args []string) error {
+    // 自定义验证逻辑
+    strValue, ok := value.(string)
+    if !ok {
+        return fmt.Errorf("值必须是字符串类型")
+    }
+    
+    // 检查自定义规则
+    if len(strValue) < 5 {
+        return fmt.Errorf("值长度必须至少为5个字符")
+    }
+    
+    return nil
+})
+
+// 使用自定义约束
+type CustomModel struct {
+    ID   int    `orm:"id key auto"`
+    Code string `orm:"code" constraint:"custom"` // 使用自定义约束
+}
+```
+
+#### 注册自定义类型处理器
+
+```go
+// 创建类型验证器
+typeValidator := types.NewTypeValidator()
+
+// 注册自定义类型处理器
+typeValidator.RegisterTypeHandler("MyCustomType", &myTypeHandler{})
+
+// 自定义类型处理器实现
+type myTypeHandler struct{}
+
+func (h *myTypeHandler) Validate(value any) error {
+    // 验证自定义类型
+    return nil
+}
+
+func (h *myTypeHandler) Convert(value any) (any, error) {
+    // 转换到自定义类型
+    return value, nil
+}
+
+func (h *myTypeHandler) GetZeroValue() any {
+    return MyCustomType{}
+}
+
+func (h *myTypeHandler) GetType() reflect.Type {
+    return reflect.TypeOf(MyCustomType{})
+}
+```
+
 ## 高级特性
 
 ### 视图模式
@@ -404,22 +678,82 @@ config := &orm.Options{
 
 ## 最佳实践
 
+### 数据库和ORM
 1. **合理选择数据库**: 根据项目需求选择合适的数据库
 2. **合理使用视图**: 对于大对象，使用 `lite` 视图减少数据传输
 3. **事务处理**: 对于复杂操作，使用事务确保数据一致性
 4. **连接池配置**: 根据应用负载合理配置连接池参数
 5. **错误处理**: 始终检查和处理ORM操作返回的错误
-6. **约束验证**: 充分利用约束系统进行数据验证
-7. **批量操作**: 对于大量数据操作，使用批量查询和插入提高性能
+6. **批量操作**: 对于大量数据操作，使用批量查询和插入提高性能
+
+### 验证系统
+7. **场景感知验证**: 根据操作类型使用不同的验证策略
+   - **Insert**: 严格验证所有约束
+   - **Update**: 跳过只读字段验证
+   - **Query**: 跳过只写字段验证
+   - **Delete**: 最小化验证
+
+8. **性能优化配置**:
+   - 生产环境：启用缓存，设置合理的TTL
+   - 开发环境：禁用缓存以便调试
+   - 测试环境：启用所有错误收集
+
+9. **错误处理策略**:
+   - 用户输入验证：收集所有错误，提供完整反馈
+   - 内部数据处理：遇到第一个错误即停止，快速失败
+   - 日志记录：记录详细的验证错误信息
+
+10. **约束设计原则**:
+    - 必填字段使用 `req` 约束
+    - 敏感字段使用 `wo`（只写）约束
+    - 不可变字段使用 `ro`（只读）约束
+    - 使用 `min`/`max` 约束确保数据范围
+    - 使用 `in` 约束限制枚举值
+    - 使用 `re` 约束验证格式
+
+11. **缓存策略**:
+    - 静态数据：使用较长TTL（10分钟+）
+    - 动态数据：使用较短TTL（1-5分钟）
+    - 根据内存限制调整缓存大小
+    - 监控缓存命中率和性能
+
+12. **环境特定配置**:
+    - **开发环境**: 禁用缓存，启用详细错误
+    - **测试环境**: 启用所有验证层，收集所有错误
+    - **预发布环境**: 启用缓存，监控性能
+    - **生产环境**: 优化配置，确保稳定性和性能
 
 ## 示例和参考
 
+### 基础示例
 完整的使用示例请参考 `test/` 目录下的测试文件：
 
 - `test/simple_test.go` - 基础CRUD操作
 - `test/model_local_test.go` - 模型关系示例
 - `test/batch_operation_local_test.go` - 批量操作示例
 - `orm/builder_postgres_test.go` - PostgreSQL构建器测试
+
+### 验证系统示例
+验证系统的完整示例请参考 `validation/` 目录：
+
+- `validation/example/usage_example.go` - 验证系统使用示例
+- `validation/example/configuration_example.go` - 验证配置示例
+- `validation/test/simple_test.go` - 基础验证测试
+- `validation/test/integration_test.go` - 集成测试
+
+### 约束测试示例
+约束系统的测试示例请参考 `test/` 目录：
+
+- `test/constraint_local_test.go` - Local Provider约束测试
+- `test/constraint_remote_test.go` - Remote Provider约束测试
+- `test/constraint.go` - 约束测试模型定义
+
+### 架构文档
+详细的架构设计文档：
+
+- `VALIDATION_ARCHITECTURE.md` - 四层验证架构设计
+- `VALIDATION_IMPLEMENTATION_PLAN.md` - 验证系统实施计划
+- `AGENTS.md` - 开发指南和命令参考
 
 ## 许可证
 

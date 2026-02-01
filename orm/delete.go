@@ -10,6 +10,7 @@ import (
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
+	"github.com/muidea/magicOrm/validation/errors"
 )
 
 type DeleteRunner struct {
@@ -180,6 +181,13 @@ func (s *impl) Delete(vModel models.Model) (ret models.Model, err *cd.Error) {
 
 	if vModel == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal model value")
+		return
+	}
+
+	// Validate model before deletion (minimal validation for delete scenario)
+	validationErr := s.validateModel(vModel, errors.ScenarioDelete)
+	if validationErr != nil {
+		err = validationErr
 		return
 	}
 
