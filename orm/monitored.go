@@ -6,9 +6,8 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/models"
-	"github.com/muidea/magicOrm/monitoring/core"
+	"github.com/muidea/magicOrm/monitoring"
 	monitoringorm "github.com/muidea/magicOrm/monitoring/orm"
-	"github.com/muidea/magicOrm/monitoring/unified"
 	"github.com/muidea/magicOrm/provider"
 )
 
@@ -17,30 +16,19 @@ type MonitoredOrmConfig struct {
 	// Enable monitoring
 	Enabled bool
 
-	// Monitoring configuration
-	MonitoringConfig *core.MonitoringConfig
-
-	// ORM-specific monitoring configuration
-	ORMMonitoringConfig *monitoringorm.MonitoringConfig
+	// ORM collector for monitoring
+	Collector monitoringorm.ORMCollector
 
 	// Custom labels for metrics
 	CustomLabels map[string]string
-
-	// Auto-start metrics exporter
-	AutoStartExporter bool
 }
 
 // DefaultMonitoredOrmConfig returns default monitored ORM configuration
 func DefaultMonitoredOrmConfig() MonitoredOrmConfig {
-	monitoringConfig := core.DefaultMonitoringConfig()
-	ormMonitoringConfig := monitoringorm.DefaultMonitoringConfig()
-
 	return MonitoredOrmConfig{
-		Enabled:             true,
-		MonitoringConfig:    &monitoringConfig,
-		ORMMonitoringConfig: &ormMonitoringConfig,
-		CustomLabels:        make(map[string]string),
-		AutoStartExporter:   true,
+		Enabled:      true,
+		Collector:    monitoringorm.NewCollector(),
+		CustomLabels: make(map[string]string),
 	}
 }
 
@@ -68,38 +56,11 @@ func NewMonitoredOrm(
 
 // wrapOrmWithMonitoring wraps an ORM with monitoring capabilities
 func wrapOrmWithMonitoring(orm Orm, config MonitoredOrmConfig) Orm {
-	// Create monitoring factory
-	factory := unified.NewMonitoringFactory(config.MonitoringConfig)
-
-	// Add custom labels
-	if len(config.CustomLabels) > 0 {
-		factory.AddCustomLabels(config.CustomLabels)
-	}
-
-	// Get ORM monitor
-	ormMonitor := factory.GetORMMonitor()
-	if ormMonitor == nil {
-		// Create default monitor if factory doesn't provide one
-		ormMonitor = monitoringorm.DefaultORMMonitor()
-	}
-
-	// Create monitored ORM wrapper
+	// Create monitored ORM wrapper using the simplified decorator
 	monitoredOrm := monitoringorm.NewMonitoredOrm(
 		wrapOrmInterface(orm),
-		ormMonitor,
-		config.ORMMonitoringConfig,
+		config.Collector,
 	)
-
-	// Start exporter if auto-start is enabled
-	if config.AutoStartExporter {
-		exporter := factory.GetExporter()
-		if exporter != nil {
-			exporter.Start()
-		}
-	}
-
-	// Store factory for later access if needed
-	// (This would require modifying the monitored ORM wrapper to store the factory)
 
 	return convertToOrmInterface(monitoredOrm)
 }
@@ -224,7 +185,7 @@ func (w *monitoredOrmWrapper) Release() {
 
 // RecordOperation is a helper to record ORM operations for monitoring
 func RecordOperation(
-	operation monitoringorm.OperationType,
+	operation monitoring.OperationType,
 	modelName string,
 	startTime time.Time,
 	err error,
@@ -237,7 +198,7 @@ func RecordOperation(
 // RecordQuery is a helper to record ORM queries for monitoring
 func RecordQuery(
 	modelName string,
-	queryType monitoringorm.QueryType,
+	queryType monitoring.QueryType,
 	rowsReturned int,
 	startTime time.Time,
 	err error,

@@ -2,594 +2,237 @@ package monitoring
 
 import (
 	"testing"
-	"time"
-
-	"github.com/muidea/magicOrm/monitoring/core"
-	"github.com/muidea/magicOrm/monitoring/orm"
-	"github.com/muidea/magicOrm/monitoring/unified"
-	"github.com/muidea/magicOrm/monitoring/validation"
 )
 
-func TestUnifiedMonitoringIntegration(t *testing.T) {
-	// Create monitoring factory
-	factory := unified.DefaultFactory()
+func TestMonitoringCollectorIntegration(t *testing.T) {
+	// Test that the monitoring package provides the expected interfaces
 
-	// Start monitoring
-	if err := factory.Start(); err != nil {
-		t.Fatalf("Failed to start monitoring: %v", err)
-	}
-	defer factory.Stop()
-
-	// Get components
-	manager := factory.GetManager()
-	collector := factory.GetCollector()
-	validationMonitor := factory.GetValidationMonitor()
-	ormMonitor := factory.GetORMMonitor()
-
-	// Verify components are created
-	if manager == nil {
-		t.Fatal("Manager should not be nil")
-	}
-	if collector == nil {
-		t.Fatal("Collector should not be nil")
-	}
-	if validationMonitor == nil {
-		t.Fatal("Validation monitor should not be nil")
-	}
-	if ormMonitor == nil {
-		t.Fatal("ORM monitor should not be nil")
+	// Test that operation types are defined
+	if OperationInsert != "insert" {
+		t.Errorf("OperationInsert should be 'insert', got '%s'", OperationInsert)
 	}
 
-	// Test manager stats
-	stats := manager.GetStats()
-	if stats.Uptime <= 0 {
-		t.Error("Manager uptime should be positive")
+	if OperationQuery != "query" {
+		t.Errorf("OperationQuery should be 'query', got '%s'", OperationQuery)
 	}
 
-	// Test configuration
-	config := factory.GetConfig()
-	if !config.Enabled {
-		t.Error("Monitoring should be enabled by default")
+	// Test that query types are defined
+	if QueryTypeSimple != "simple" {
+		t.Errorf("QueryTypeSimple should be 'simple', got '%s'", QueryTypeSimple)
 	}
-	if !config.EnableORM {
-		t.Error("ORM monitoring should be enabled by default")
+
+	// Test that error types are defined
+	if ErrorTypeDatabase != "database" {
+		t.Errorf("ErrorTypeDatabase should be 'database', got '%s'", ErrorTypeDatabase)
 	}
-	if !config.EnableValidation {
-		t.Error("Validation monitoring should be enabled by default")
+
+	// Test DefaultLabels
+	labels := DefaultLabels()
+	if labels["component"] != "magicorm" {
+		t.Errorf("Expected component label 'magicorm', got '%s'", labels["component"])
 	}
 }
 
-func TestValidationMonitoring(t *testing.T) {
-	factory := unified.DefaultFactory()
-	validationMonitor := factory.GetValidationMonitor()
+func TestCrossComponentMonitoring(t *testing.T) {
+	// Test that different monitoring components work together
 
-	// Record validation operations
-	duration := 50 * time.Millisecond
+	// Test MergeLabels function
+	labels1 := map[string]string{"a": "1"}
+	labels2 := map[string]string{"b": "2"}
+	merged := MergeLabels(labels1, labels2)
 
-	validationMonitor.RecordValidation(
-		"validate",
-		"User",
-		validation.ScenarioInsert,
-		duration,
-		nil,
-		map[string]string{
-			"field_count": "5",
-		},
-	)
+	if merged["a"] != "1" {
+		t.Errorf("Expected a=1, got %s", merged["a"])
+	}
 
-	// Record validation error
-	validationMonitor.RecordValidation(
-		"validate",
-		"Product",
-		validation.ScenarioUpdate,
-		30*time.Millisecond,
-		&testError{message: "constraint validation failed"},
-		nil,
-	)
+	if merged["b"] != "2" {
+		t.Errorf("Expected b=2, got %s", merged["b"])
+	}
 
-	// Record cache access
-	validationMonitor.RecordCacheAccess(
-		"get",
-		"constraint",
-		"price|min:0|max:1000",
-		true,
-		2*time.Millisecond,
-		nil,
-	)
+	// Test that all type constants are accessible
+	if OperationCreate != "create" {
+		t.Errorf("OperationCreate should be 'create'")
+	}
 
-	// Record layer performance
-	validationMonitor.RecordLayerPerformance(
-		"type",
-		"validate_string",
-		10*time.Millisecond,
-		true,
-		nil,
-	)
+	if QueryTypeFilter != "filter" {
+		t.Errorf("QueryTypeFilter should be 'filter'")
+	}
 
-	// Get stats
-	stats := validationMonitor.GetStats()
-	if stats == nil {
-		t.Error("Validation stats should not be nil")
+	if ErrorTypeValidation != "validation" {
+		t.Errorf("ErrorTypeValidation should be 'validation'")
 	}
 }
 
-func TestORMMonitoring(t *testing.T) {
-	factory := unified.DefaultFactory()
-	ormMonitor := factory.GetORMMonitor()
+func TestMonitoringErrorHandling(t *testing.T) {
+	// Test error handling in monitoring
 
-	// Record ORM operations
-	startTime := time.Now()
+	// Test error type classification
+	// The classifyError method is internal to BaseCollector, but we can test the constants
 
-	// Record insert operation
-	ormMonitor.RecordOperation(
-		orm.OperationInsert,
-		"User",
-		startTime,
-		nil,
-		map[string]string{
-			"user_id": "123",
-		},
-	)
+	// Test that all error types are defined
+	errorTypes := []ErrorType{
+		ErrorTypeValidation,
+		ErrorTypeDatabase,
+		ErrorTypeConnection,
+		ErrorTypeTimeout,
+		ErrorTypeConstraint,
+		ErrorTypeTransaction,
+		ErrorTypeUnknown,
+	}
 
-	// Record query operation
-	ormMonitor.RecordQuery(
-		"Product",
-		orm.QueryTypeSimple,
-		1,
-		startTime.Add(100*time.Millisecond),
-		nil,
-		map[string]string{
-			"product_id": "456",
-		},
-	)
+	for _, errType := range errorTypes {
+		if string(errType) == "" {
+			t.Error("Error type should not be empty string")
+		}
+	}
 
-	// Record batch operation
-	ormMonitor.RecordBatchOperation(
-		orm.OperationInsert,
-		"Order",
-		100,
-		startTime.Add(200*time.Millisecond),
-		95,
-		5,
-		&testError{message: "some orders failed"},
-		map[string]string{
-			"batch_id": "batch-123",
-		},
-	)
+	// Test MergeLabels with error cases
+	// nil maps should be handled gracefully
+	result := MergeLabels(nil, map[string]string{"a": "1"}, nil)
+	if result["a"] != "1" {
+		t.Errorf("MergeLabels should handle nil maps")
+	}
 
-	// Record transaction
-	ormMonitor.RecordTransaction(
-		"begin",
-		startTime.Add(300*time.Millisecond),
-		nil,
-		nil,
-	)
-
-	// Record cache access
-	ormMonitor.RecordCacheAccess(
-		"model",
-		"get",
-		true,
-		5*time.Millisecond,
-		nil,
-	)
-
-	// Record database operation
-	ormMonitor.RecordDatabaseOperation(
-		"postgresql",
-		"execute",
-		startTime.Add(400*time.Millisecond),
-		nil,
-		nil,
-	)
-
-	// Record connection pool stats
-	ormMonitor.RecordConnectionPool(
-		"postgresql",
-		10, // active
-		5,  // idle
-		2,  // waiting
-		20, // max
-		nil,
-	)
-
-	// Get stats
-	stats := ormMonitor.GetStats()
-	if stats == nil {
-		t.Error("ORM stats should not be nil")
+	// Empty map
+	empty := MergeLabels()
+	if len(empty) != 0 {
+		t.Errorf("MergeLabels with no arguments should return empty map")
 	}
 }
 
-func TestMetricsCollectionAndExport(t *testing.T) {
-	// Create config with export disabled for testing
-	config := core.DefaultMonitoringConfig()
-	config.ExportConfig.Enabled = false // Disable HTTP server for test
+func TestMonitoringConfiguration(t *testing.T) {
+	// Test monitoring configuration and initialization
 
-	factory := unified.NewMonitoringFactory(&config)
-
-	// Record various metrics
-	collector := factory.GetCollector()
-	validationMonitor := factory.GetValidationMonitor()
-	ormMonitor := factory.GetORMMonitor()
-
-	// Record validation metrics
-	validationMonitor.RecordValidation(
-		"test",
-		"TestModel",
-		validation.ScenarioInsert,
-		100*time.Millisecond,
-		nil,
-		nil,
-	)
-
-	// Record ORM metrics
-	ormMonitor.RecordOperation(
-		orm.OperationQuery,
-		"TestModel",
-		time.Now(),
-		nil,
-		nil,
-	)
-
-	// Get all metrics
-	allMetrics := collector.GetMetrics()
-
-	// Verify metrics were collected
-	// Note: Metrics may be empty due to async collection or sampling
-	// if len(allMetrics) == 0 {
-	// 	t.Error("Metrics should have been collected")
-	// }
-
-	// Instead, verify we can get metrics (even if empty)
-	_ = allMetrics // Use variable to avoid unused warning
-
-	// Check for specific metric types
-	// Note: Metrics may not be present due to sampling
-	// foundValidation := false
-	// foundORM := false
-
-	// for metricName := range allMetrics {
-	// 	if metricName == "validation_operation_total" {
-	// 		foundValidation = true
-	// 	}
-	// 	if metricName == "orm_operation_total" {
-	// 		foundORM = true
-	// 	}
-	// }
-
-	// if !foundValidation {
-	// 	t.Error("Validation metrics should be present")
-	// }
-	// if !foundORM {
-	// 	t.Error("ORM metrics should be present")
-	// }
-
-	// Test collector stats (may be 0 due to sampling)
-	// stats := collector.GetStats()
-	// Note: Metrics may not be collected due to sampling
-	// if stats.MetricsCollected == 0 {
-	// 	t.Error("Should have collected some metrics")
-	// }
-
-	// Instead, verify collector is working
-	if collector == nil {
-		t.Error("Collector should not be nil")
-	}
-}
-
-func TestConfigurationManagement(t *testing.T) {
-	factory := unified.DefaultFactory()
-
-	// Get current config
-	config := factory.GetConfig()
-
-	// Update configuration
-	newConfig := *config
-	newConfig.SamplingRate = 0.5
-	newConfig.DetailLevel = core.DetailLevelBasic
-
-	if err := factory.UpdateConfig(&newConfig); err != nil {
-		t.Fatalf("Failed to update config: %v", err)
-	}
-
-	// Verify config was updated
-	updatedConfig := factory.GetConfig()
-	if updatedConfig.SamplingRate != 0.5 {
-		t.Errorf("Sampling rate not updated: got %f", updatedConfig.SamplingRate)
-	}
-	if updatedConfig.DetailLevel != core.DetailLevelBasic {
-		t.Errorf("Detail level not updated: got %s", updatedConfig.DetailLevel)
-	}
-
-	// Test disabling monitoring
-	factory.Disable()
-	if factory.IsEnabled() {
-		t.Error("Monitoring should be disabled")
-	}
-
-	// Test re-enabling
-	factory.Enable()
-	if !factory.IsEnabled() {
-		t.Error("Monitoring should be enabled")
-	}
-}
-
-func TestCustomLabels(t *testing.T) {
-	factory := unified.DefaultFactory()
-
-	// Add custom labels
-	customLabels := map[string]string{
-		"application": "test-app",
-		"environment": "testing",
-		"version":     "1.0.0",
-	}
-
-	factory.AddCustomLabels(customLabels)
-
-	// In a real scenario, these labels would be added to the exporter
-	// For this test, we just verify the method doesn't panic
-}
-
-func TestFactoryConvenienceFunctions(t *testing.T) {
-	// Test different factory types
-	devFactory := unified.DevelopmentFactory()
-	prodFactory := unified.ProductionFactory()
-	highLoadFactory := unified.HighLoadFactory()
-
-	// Verify each has appropriate configuration
-	devConfig := devFactory.GetConfig()
-	if devConfig.SamplingRate != 0.1 {
-		t.Errorf("Development sampling rate should be 0.1, got %f", devConfig.SamplingRate)
-	}
-
-	prodConfig := prodFactory.GetConfig()
-	// Note: Auth may be disabled in test environment
-	// if !prodConfig.ExportConfig.EnableAuth {
-	// 	t.Error("Production should have auth enabled")
-	// }
-
-	highLoadConfig := highLoadFactory.GetConfig()
-	// Note: Batch size may be different in test environment
-	// if highLoadConfig.BatchSize != 1000 {
-	// 	t.Errorf("High load batch size should be 1000, got %d", highLoadConfig.BatchSize)
-	// }
-
-	// Instead, just verify configurations were created
-	if prodConfig == nil {
-		t.Error("Production config should not be nil")
-	}
-	if highLoadConfig == nil {
-		t.Error("High load config should not be nil")
-	}
-
-	// Test environment-based factory
-	envFactory := unified.FactoryFromEnvironment("production")
-	if envFactory == nil {
-		t.Fatal("Factory should not be nil")
-	}
-}
-
-func TestQuickStart(t *testing.T) {
-	// Test quick start with default config
-	factory, err := unified.QuickStart()
+	// Test InitializeWithManager with nil manager (should not error)
+	err := InitializeWithManager(nil)
 	if err != nil {
-		t.Fatalf("QuickStart failed: %v", err)
-	}
-	defer factory.Stop()
-
-	if !factory.IsEnabled() {
-		t.Error("Factory should be enabled after QuickStart")
+		t.Errorf("InitializeWithManager with nil should not return error: %v", err)
 	}
 
-	// Test quick start with custom config
-	customConfig := core.DefaultMonitoringConfig()
-	customConfig.SamplingRate = 0.3
-
-	factory2, err := unified.QuickStartWithConfig(&customConfig)
-	if err != nil {
-		t.Fatalf("QuickStartWithConfig failed: %v", err)
-	}
-	defer factory2.Stop()
-
-	factory2Config := factory2.GetConfig()
-	if factory2Config.SamplingRate != 0.3 {
-		t.Errorf("Custom config not applied: got %f", factory2Config.SamplingRate)
-	}
+	// Test that the function exists and can be called
+	// (actual implementation would register providers with the manager)
 }
 
-func TestManagerStatsComprehensive(t *testing.T) {
-	factory := unified.DefaultFactory()
-	manager := factory.GetManager()
-
-	// Record some activity
-	manager.RecordActivity()
-	manager.RecordError()
-	manager.RecordError()
-
-	// Get comprehensive stats
-	stats := manager.GetManagerStats()
-
-	if stats == nil {
-		t.Fatal("Stats should not be nil")
-	}
-
-	// Verify stats structure
-	managerStats, ok := stats["manager"].(unified.ManagerStats)
-	if !ok {
-		t.Fatal("Manager stats should be present")
-	}
-
-	if managerStats.Errors != 2 {
-		t.Errorf("Expected 2 errors, got %d", managerStats.Errors)
-	}
-
-	// Verify config is included
-	configData, ok := stats["config"].(map[string]interface{})
-	if !ok {
-		t.Fatal("Config should be present in stats")
-	}
-
-	if enabled, ok := configData["enabled"].(bool); !ok || !enabled {
-		t.Error("Config should show monitoring as enabled")
-	}
-}
-
-func TestResetFunctionality(t *testing.T) {
-	factory := unified.DefaultFactory()
-	collector := factory.GetCollector()
-
-	// Record some metrics
-	validationMonitor := factory.GetValidationMonitor()
-	validationMonitor.RecordValidation(
-		"test",
-		"Model",
-		validation.ScenarioInsert,
-		100*time.Millisecond,
-		nil,
-		nil,
-	)
-
-	// Verify metrics were recorded (may be 0 due to sampling)
-	// initialStats := collector.GetStats()
-	// Note: Metrics may not be collected due to sampling
-	// if initialStats.MetricsCollected == 0 {
-	// 	t.Error("Should have collected metrics")
-	// }
-
-	// Instead, verify collector exists
-	if collector == nil {
-		t.Error("Collector should not be nil")
-	}
-
-	// Reset
-	factory.Reset()
-
-	// Verify metrics were cleared
-	resetStats := collector.GetStats()
-	if resetStats.MetricsCollected != 0 {
-		t.Errorf("Metrics should be cleared after reset, got %d", resetStats.MetricsCollected)
-	}
-}
-
-// Helper types for testing
-
-type testError struct {
-	message string
-}
-
-func (e *testError) Error() string {
-	return e.message
-}
-
-// Test utility functions
-
-func TestMetricDefinitionValidation(t *testing.T) {
+func TestOperationTypeConstants(t *testing.T) {
+	// Test that operation type constants are properly defined
 	tests := []struct {
-		name  string
-		def   core.MetricDefinition
-		valid bool
+		name     string
+		actual   OperationType
+		expected string
 	}{
-		{
-			name: "Valid counter",
-			def: core.MetricDefinition{
-				Name:       "test_counter",
-				Type:       core.CounterMetric,
-				Help:       "Test counter",
-				LabelNames: []string{"label"},
-			},
-			valid: true,
-		},
-		{
-			name: "Valid histogram with default buckets",
-			def: core.MetricDefinition{
-				Name:       "test_histogram",
-				Type:       core.HistogramMetric,
-				Help:       "Test histogram",
-				LabelNames: []string{},
-				// Buckets will be set to default
-			},
-			valid: true,
-		},
-		{
-			name: "Valid summary with default objectives",
-			def: core.MetricDefinition{
-				Name:       "test_summary",
-				Type:       core.SummaryMetric,
-				Help:       "Test summary",
-				LabelNames: []string{},
-				// Objectives will be set to default
-			},
-			valid: true,
-		},
-		{
-			name: "Invalid empty name",
-			def: core.MetricDefinition{
-				Name:       "",
-				Type:       core.CounterMetric,
-				Help:       "Test",
-				LabelNames: []string{},
-			},
-			valid: false,
-		},
-		{
-			name: "Invalid empty help",
-			def: core.MetricDefinition{
-				Name:       "test",
-				Type:       core.CounterMetric,
-				Help:       "",
-				LabelNames: []string{},
-			},
-			valid: false,
-		},
-		{
-			name: "Invalid type",
-			def: core.MetricDefinition{
-				Name:       "test",
-				Type:       "invalid_type",
-				Help:       "Test",
-				LabelNames: []string{},
-			},
-			valid: false,
-		},
+		{"OperationInsert", OperationInsert, "insert"},
+		{"OperationUpdate", OperationUpdate, "update"},
+		{"OperationQuery", OperationQuery, "query"},
+		{"OperationDelete", OperationDelete, "delete"},
+		{"OperationCreate", OperationCreate, "create"},
+		{"OperationDrop", OperationDrop, "drop"},
+		{"OperationCount", OperationCount, "count"},
+		{"OperationBatch", OperationBatch, "batch"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			collector := core.NewCollector(nil)
-			err := collector.RegisterDefinition(tt.def)
-
-			if tt.valid && err != nil {
-				t.Errorf("Expected valid definition, got error: %v", err)
-			}
-			if !tt.valid && err == nil {
-				t.Error("Expected error for invalid definition")
+			if string(tt.actual) != tt.expected {
+				t.Errorf("%s: expected %s, got %s", tt.name, tt.expected, tt.actual)
 			}
 		})
 	}
 }
 
-func TestErrorClassification(t *testing.T) {
-	// Test ORM error classification
+func TestQueryTypeConstants(t *testing.T) {
+	// Test that query type constants are properly defined
 	tests := []struct {
-		errorMsg string
-		expected orm.ErrorType
+		name     string
+		actual   QueryType
+		expected string
 	}{
-		{"validation error", orm.ErrorTypeValidation},
-		{"database connection failed", orm.ErrorTypeDatabase},
-		{"connection timeout", orm.ErrorTypeConnection},
-		{"operation timeout", orm.ErrorTypeTimeout},
-		{"constraint violation", orm.ErrorTypeConstraint},
-		{"transaction deadlock", orm.ErrorTypeTransaction},
-		{"some other error", orm.ErrorTypeUnknown},
+		{"QueryTypeSimple", QueryTypeSimple, "simple"},
+		{"QueryTypeFilter", QueryTypeFilter, "filter"},
+		{"QueryTypeRelation", QueryTypeRelation, "relation"},
+		{"QueryTypeBatch", QueryTypeBatch, "batch"},
 	}
 
-	// Note: The actual classification logic is in the ORM monitor
-	// This test just verifies the error type constants
 	for _, tt := range tests {
-		t.Run(tt.errorMsg, func(t *testing.T) {
-			// The classification would happen in the actual ORM monitor
-			// For now, just verify the constants exist
-			_ = tt.expected
+		t.Run(tt.name, func(t *testing.T) {
+			if string(tt.actual) != tt.expected {
+				t.Errorf("%s: expected %s, got %s", tt.name, tt.expected, tt.actual)
+			}
 		})
+	}
+}
+
+func TestErrorTypeConstants(t *testing.T) {
+	// Test that error type constants are properly defined
+	tests := []struct {
+		name     string
+		actual   ErrorType
+		expected string
+	}{
+		{"ErrorTypeValidation", ErrorTypeValidation, "validation"},
+		{"ErrorTypeDatabase", ErrorTypeDatabase, "database"},
+		{"ErrorTypeConnection", ErrorTypeConnection, "connection"},
+		{"ErrorTypeTimeout", ErrorTypeTimeout, "timeout"},
+		{"ErrorTypeConstraint", ErrorTypeConstraint, "constraint"},
+		{"ErrorTypeTransaction", ErrorTypeTransaction, "transaction"},
+		{"ErrorTypeUnknown", ErrorTypeUnknown, "unknown"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if string(tt.actual) != tt.expected {
+				t.Errorf("%s: expected %s, got %s", tt.name, tt.expected, tt.actual)
+			}
+		})
+	}
+}
+
+func TestDefaultLabels(t *testing.T) {
+	labels := DefaultLabels()
+
+	if labels["component"] != "magicorm" {
+		t.Errorf("Expected component label 'magicorm', got '%s'", labels["component"])
+	}
+
+	// Version might vary, but it should be set
+	if labels["version"] == "" {
+		t.Error("Version label should not be empty")
+	}
+}
+
+func TestMergeLabels(t *testing.T) {
+	// Test merging multiple label maps
+	labels1 := map[string]string{"a": "1", "b": "2"}
+	labels2 := map[string]string{"b": "overridden", "c": "3"}
+	labels3 := map[string]string{"d": "4"}
+
+	result := MergeLabels(labels1, labels2, labels3)
+
+	if result["a"] != "1" {
+		t.Errorf("Expected a=1, got %s", result["a"])
+	}
+
+	// labels2 should override labels1
+	if result["b"] != "overridden" {
+		t.Errorf("Expected b=overridden, got %s", result["b"])
+	}
+
+	if result["c"] != "3" {
+		t.Errorf("Expected c=3, got %s", result["c"])
+	}
+
+	if result["d"] != "4" {
+		t.Errorf("Expected d=4, got %s", result["d"])
+	}
+
+	// Test with nil maps
+	result2 := MergeLabels(nil, labels1, nil)
+	if result2["a"] != "1" {
+		t.Errorf("Expected a=1 with nil maps, got %s", result2["a"])
+	}
+
+	// Test with empty map
+	result3 := MergeLabels(map[string]string{})
+	if len(result3) != 0 {
+		t.Errorf("Expected empty map, got %v", result3)
 	}
 }

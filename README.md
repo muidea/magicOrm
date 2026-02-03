@@ -591,6 +591,221 @@ func (h *myTypeHandler) GetType() reflect.Type {
 }
 ```
 
+## 监控系统
+
+MagicORM 提供了简洁的监控系统，专注于数据收集，支持 ORM 操作、验证系统和数据库执行的监控。
+
+### 架构设计
+
+**核心原则**：MagicORM 只负责数据收集，不负责导出和管理。监控数据由外部系统处理。
+
+**文件结构**：
+```
+monitoring/
+├── collector.go                    # 顶层collector接口和类型定义
+├── init.go                         # 初始化集成
+├── e2e_test.go                     # 端到端测试
+├── core/                           # 核心类型定义
+├── orm/                            # ORM监控
+├── validation/                     # 验证监控
+├── database/                       # 数据库监控
+└── example/                        # 使用示例
+```
+
+### 快速开始
+
+#### 基本使用
+
+```go
+import "github.com/muidea/magicOrm/monitoring"
+
+// 创建collector
+collector := monitoring.NewCollector()
+
+// 记录ORM操作
+collector.RecordORMOperation(
+    monitoring.OperationInsert,
+    "User",
+    true,
+    150*time.Millisecond,
+    nil,
+    map[string]string{"database": "postgresql"},
+)
+
+// 记录验证操作
+collector.RecordValidationOperation(
+    "validate_user",
+    "User",
+    monitoring.ScenarioInsert,
+    50*time.Millisecond,
+    nil,
+    map[string]string{"field_count": "5"},
+)
+
+// 记录数据库操作
+collector.RecordDatabaseOperation(
+    "postgresql",
+    monitoring.QueryTypeSelect,
+    true,
+    200*time.Millisecond,
+    10,
+    nil,
+    map[string]string{"table": "users"},
+)
+```
+
+#### 集成到现有代码
+
+```go
+import (
+    "github.com/muidea/magicOrm/monitoring"
+    "github.com/muidea/magicOrm/orm"
+)
+
+// 创建带监控的ORM
+func createMonitoredORM(provider orm.Provider, config *orm.Options) (*orm.Orm, monitoring.Collector) {
+    collector := monitoring.NewCollector()
+    
+    // 创建ORM实例
+    o, err := orm.NewOrm(provider, config, "schema_prefix")
+    if err != nil {
+        return nil, nil
+    }
+    
+    // 包装为带监控的ORM
+    monitoredOrm := monitoring.NewMonitoredOrm(o, collector)
+    return monitoredOrm, collector
+}
+```
+
+### 监控数据类型
+
+#### ORM 操作监控
+- **操作类型**: Insert, Update, Delete, Query, BatchQuery
+- **指标**: 成功率、延迟、错误类型
+- **标签**: 模型名称、数据库类型、操作类型
+
+#### 验证系统监控
+- **场景**: Insert, Update, Query, Delete
+- **指标**: 验证延迟、缓存命中率、错误统计
+- **标签**: 验证器名称、模型名称、场景类型
+
+#### 数据库执行监控
+- **查询类型**: Select, Insert, Update, Delete, Transaction
+- **指标**: 查询延迟、返回行数、连接状态
+- **标签**: 数据库类型、表名、操作类型
+
+### 标签系统
+
+支持灵活的标签系统，用于分类和过滤监控数据：
+
+```go
+// 基本标签
+labels := map[string]string{
+    "database": "postgresql",
+    "table":    "users",
+    "operation": "insert",
+}
+
+// 合并默认标签
+collector.WithDefaultLabels(map[string]string{
+    "environment": "production",
+    "service":     "user-service",
+})
+
+// 记录带标签的操作
+collector.RecordORMOperation(
+    monitoring.OperationInsert,
+    "User",
+    true,
+    150*time.Millisecond,
+    nil,
+    labels,
+)
+```
+
+### 错误处理
+
+监控系统支持详细的错误分类：
+
+```go
+// 错误类型定义
+type ErrorType string
+
+const (
+    ErrorTypeDatabase   ErrorType = "database"
+    ErrorTypeValidation ErrorType = "validation"
+    ErrorTypeConstraint ErrorType = "constraint"
+    ErrorTypeType       ErrorType = "type"
+    ErrorTypeSystem     ErrorType = "system"
+)
+
+// 记录带错误信息的操作
+collector.RecordORMOperation(
+    monitoring.OperationInsert,
+    "User",
+    false, // 操作失败
+    150*time.Millisecond,
+    &monitoring.ErrorInfo{
+        Type:    monitoring.ErrorTypeDatabase,
+        Message: "duplicate key value violates unique constraint",
+        Code:    "23505",
+    },
+    labels,
+)
+```
+
+### 性能优化
+
+监控系统设计为低开销：
+
+1. **异步收集**：默认启用异步收集，减少对业务逻辑的影响
+2. **采样率控制**：支持配置采样率，控制监控数据量
+3. **内存优化**：使用高效的数据结构，避免内存泄漏
+4. **零分配设计**：关键路径避免内存分配
+
+### 测试和验证
+
+```bash
+# 运行监控系统测试
+go test ./monitoring/... -v
+
+# 运行端到端测试
+go test ./monitoring/e2e_test.go -v
+
+# 运行示例程序
+cd monitoring/example && go run example.go
+```
+
+### 与外部系统集成
+
+监控数据可以通过多种方式导出：
+
+```go
+// 获取原始监控数据
+data := collector.GetMetrics()
+
+// 转换为JSON格式
+jsonData, _ := json.Marshal(data)
+
+// 转换为Prometheus格式
+prometheusData := collector.ToPrometheusFormat()
+
+// 自定义导出处理器
+collector.SetExportHandler(func(metrics []monitoring.Metric) {
+    // 发送到外部监控系统
+    sendToExternalSystem(metrics)
+})
+```
+
+### 最佳实践
+
+1. **合理使用标签**：使用有意义的标签便于数据分析和过滤
+2. **控制数据量**：根据需求调整采样率和数据保留策略
+3. **错误分类**：使用详细的错误类型便于问题排查
+4. **性能监控**：监控监控系统本身的性能
+5. **集成测试**：在生产环境前充分测试监控集成
+
 ## 高级特性
 
 ### 视图模式
@@ -754,6 +969,7 @@ config := &orm.Options{
 - `VALIDATION_ARCHITECTURE.md` - 四层验证架构设计
 - `VALIDATION_IMPLEMENTATION_PLAN.md` - 验证系统实施计划
 - `AGENTS.md` - 开发指南和命令参考
+- `monitoring/README.md` - 监控系统详细文档
 
 ## 许可证
 

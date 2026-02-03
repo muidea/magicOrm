@@ -1,329 +1,334 @@
-# MagicORM Monitoring System
+# MagicORM 监控系统
 
-A comprehensive monitoring system for MagicORM that provides detailed metrics for ORM operations, validation, and database execution.
+MagicORM 的监控系统，专注于数据收集，支持 ORM 操作、验证系统和数据库执行的监控。
 
-## Overview
+## 概述
 
-The monitoring system provides:
+监控系统提供：
 
-1. **Unified Monitoring Framework**: Centralized management of all monitoring components
-2. **ORM Operation Monitoring**: Track CRUD operations, transactions, and performance
-3. **Validation System Monitoring**: Monitor validation performance and cache effectiveness
-4. **Database Execution Monitoring**: Track database queries, connections, and transactions
-5. **Performance Metrics**: Latency, throughput, error rates, and resource usage
-6. **Export Capabilities**: Prometheus and JSON format exports
+1. **简洁的数据收集**：专注于收集监控数据，不负责导出和管理
+2. **ORM 操作监控**：跟踪 CRUD 操作、事务和性能
+3. **验证系统监控**：监控验证性能和缓存效果
+4. **数据库执行监控**：跟踪数据库查询、连接和事务
+5. **性能指标**：延迟、吞吐量、错误率和资源使用情况
 
-## Architecture
+## 架构设计
 
+**核心原则**：MagicORM 提供简单、独立的监控数据收集器，专注于数据收集而不负责导出和管理。监控数据由外部系统处理。
+
+**新架构特点**：
+1. **模块化设计**：每个组件（ORM、验证、数据库）有独立的收集器
+2. **简单接口**：清晰的API，易于使用和集成
+3. **无全局状态**：避免测试中的状态污染问题
+4. **向后兼容**：保持与现有代码的兼容性
+
+**文件结构**：
 ```
 monitoring/
-├── core/                    # Core monitoring components
-│   ├── config.go           # Configuration system
-│   ├── collector.go        # Metrics collector
-│   └── exporter.go         # Metrics exporter
-├── orm/                    # ORM monitoring
-│   ├── metrics.go          # ORM metrics definition
-│   ├── decorator.go        # ORM monitoring decorator
-│   └── integration.go      # ORM integration utilities
-├── validation/             # Validation monitoring
-│   └── adapter.go          # Validation monitoring adapter
-├── database/               # Database monitoring
-│   ├── adapter.go          # Database monitoring adapter
-│   └── factory.go          # Database monitoring factory
-├── unified/                # Unified management
-│   ├── manager.go          # Monitoring manager
-│   └── factory.go          # Monitoring factory
-└── example/                # Usage examples
-    └── example.go          # Comprehensive example
+├── collector.go                    # 顶层接口和类型定义
+├── init.go                         # 初始化集成
+├── e2e_test.go                     # 端到端测试
+├── core/                           # 核心类型和简单收集器实现
+├── orm/                            # ORM监控收集器
+├── validation/                     # 验证监控收集器
+├── database/                       # 数据库监控收集器
+└── example/                        # 使用示例
 ```
 
-## Quick Start
+## 快速开始
 
-### Basic Usage
+### 基本使用
 
 ```go
-import "github.com/muidea/magicOrm/monitoring/unified"
+import (
+    "time"
+    
+    "github.com/muidea/magicOrm/monitoring"
+    "github.com/muidea/magicOrm/monitoring/orm"
+    "github.com/muidea/magicOrm/monitoring/validation"
+    "github.com/muidea/magicOrm/monitoring/database"
+)
 
-// Create a default monitoring manager
-manager := unified.DefaultMonitoringManager()
+// 创建独立的收集器
+ormCollector := orm.NewCollector()
+valCollector := validation.NewCollector()
+dbCollector := database.NewCollector()
 
-// Start monitoring
-if err := manager.Start(); err != nil {
-    log.Fatal(err)
-}
-defer manager.Stop()
+// 记录ORM操作
+ormCollector.RecordOperation(
+    monitoring.OperationInsert,
+    "User",
+    time.Now(),
+    nil,
+    map[string]string{"database": "postgresql"},
+)
 
-// Get metrics
-metrics := manager.GetMetrics()
+// 记录验证操作
+valCollector.RecordValidation(
+    "validate_user",
+    "User",
+    "insert",
+    time.Now(),
+    nil,
+    map[string]string{"field_count": "5"},
+)
+
+// 记录数据库操作
+dbCollector.RecordQuery(
+    "postgresql",
+    "SELECT",
+    10, // rowsAffected
+    time.Now(),
+    nil,
+    map[string]string{"table": "users"},
+)
 ```
 
-### ORM Monitoring
+### ORM 监控
 
 ```go
 import "github.com/muidea/magicOrm/monitoring/orm"
 
-// Create ORM monitor
-config := core.DefaultMonitoringConfig()
-collector := core.NewCollector(&config)
-ormMonitor := orm.NewORMMonitor(collector, &config)
+// 创建ORM收集器
+collector := orm.NewCollector()
 
-// Record ORM operations
-ormMonitor.RecordInsert("User", true, 150*time.Millisecond, nil)
-ormMonitor.RecordQuery("Product", true, 200*time.Millisecond, nil)
+// 记录ORM操作
+collector.RecordOperation(
+    monitoring.OperationInsert,
+    "User",
+    time.Now(),
+    nil,
+    map[string]string{"test": "example"},
+)
+
+// 获取收集的指标
+metrics, err := collector.GetMetrics()
+if err != nil {
+    // 处理错误
+}
 ```
 
-### Database Monitoring
+### 数据库监控
 
 ```go
 import "github.com/muidea/magicOrm/monitoring/database"
 
-// Create database monitor
-dbMonitor := database.NewDatabaseMonitor(collector, &config)
+// 创建数据库收集器
+collector := database.NewCollector()
 
-// Record database operations
-dbMonitor.RecordQuery("postgresql", "select", true, 200*time.Millisecond, 10)
-dbMonitor.RecordTransaction("mysql", "begin", true, 50*time.Millisecond)
+// 记录数据库查询
+collector.RecordQuery(
+    "postgresql",
+    "SELECT",
+    10, // rowsAffected
+    time.Now(),
+    nil,
+    map[string]string{"table": "users"},
+)
+
+// 记录数据库事务
+collector.RecordTransaction(
+    "postgresql",
+    "BEGIN",
+    time.Now(),
+    nil,
+    map[string]string{"test": "transaction"},
+)
 ```
 
-### Validation Monitoring
+### 验证监控
 
 ```go
 import "github.com/muidea/magicOrm/monitoring/validation"
 
-// Create validation monitor
-validationMonitor := validation.NewValidationMonitor(collector, &config)
+// 创建验证收集器
+collector := validation.NewCollector()
 
-// Record validation operations
-validationMonitor.RecordValidation(
+// 记录验证操作
+collector.RecordValidation(
     "validate_user",
     "User",
-    validation.ScenarioInsert,
-    50*time.Millisecond,
+    "insert",
+    time.Now(),
     nil,
     map[string]string{"field_count": "5"},
 )
+
+// 记录缓存访问
+collector.RecordCacheAccess(
+    "User",
+    "insert",
+    true, // hit
+    time.Now(),
+    map[string]string{"cache_type": "memory"},
+)
 ```
 
-## Configuration
+## 监控数据类型
 
-### Default Configuration
+### ORM 操作监控
+
+- **操作类型**: Insert, Update, Delete, Query, BatchQuery
+- **指标**: 成功率、延迟、错误类型
+- **标签**: 模型名称、数据库类型、操作类型
+
+### 验证系统监控
+
+- **场景**: Insert, Update, Query, Delete
+- **指标**: 验证延迟、缓存命中率、错误统计
+- **标签**: 验证器名称、模型名称、场景类型
+
+### 数据库执行监控
+
+- **查询类型**: Select, Insert, Update, Delete, Transaction
+- **指标**: 查询延迟、返回行数、连接状态
+- **标签**: 数据库类型、表名、操作类型
+
+## 标签系统
+
+支持灵活的标签系统，用于分类和过滤监控数据：
 
 ```go
-config := core.DefaultMonitoringConfig()
+// 基本标签
+labels := map[string]string{
+    "database": "postgresql",
+    "table":    "users",
+    "operation": "insert",
+}
+
+// 合并默认标签
+collector.WithDefaultLabels(map[string]string{
+    "environment": "production",
+    "service":     "user-service",
+})
+
+// 记录带标签的操作
+collector.RecordORMOperation(
+    monitoring.OperationInsert,
+    "User",
+    true,
+    150*time.Millisecond,
+    nil,
+    labels,
+)
 ```
 
-### Environment-Specific Configurations
+## 错误处理
+
+监控系统支持详细的错误分类：
 
 ```go
-// Development environment (verbose, high sampling)
-devConfig := core.DevelopmentConfig()
+// 错误类型定义
+type ErrorType string
 
-// Production environment (balanced)
-prodConfig := core.ProductionConfig()
-
-// High-load environment (minimal overhead)
-highLoadConfig := core.HighLoadConfig()
-```
-
-### Configuration Options
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `Enabled` | Enable/disable monitoring | `true` |
-| `SamplingRate` | Percentage of operations to sample | `1.0` (100%) |
-| `DetailLevel` | Detail level (basic/detailed/verbose) | `detailed` |
-| `EnableORM` | Enable ORM monitoring | `true` |
-| `EnableValidation` | Enable validation monitoring | `true` |
-| `EnableDatabase` | Enable database monitoring | `true` |
-| `EnableCache` | Enable monitoring cache | `true` |
-| `AsyncCollection` | Use async metric collection | `true` |
-| `CollectionInterval` | Collection interval | `60s` |
-| `RetentionPeriod` | Metric retention period | `24h` |
-
-## Metrics
-
-### ORM Metrics
-
-- `orm_operations_total`: Total ORM operations
-- `orm_operation_duration_seconds`: ORM operation duration
-- `orm_errors_total`: ORM operation errors
-- `orm_transactions_total`: ORM transactions
-- `orm_cache_hits_total`: ORM cache hits
-- `orm_cache_misses_total`: ORM cache misses
-
-### Validation Metrics
-
-- `validation_operations_total`: Validation operations
-- `validation_duration_seconds`: Validation duration
-- `validation_errors_total`: Validation errors
-- `validation_cache_hits_total`: Validation cache hits
-- `validation_cache_misses_total`: Validation cache misses
-- `validation_layer_performance_seconds`: Layer performance
-
-### Database Metrics
-
-- `database_connections_total`: Database connections
-- `database_queries_total`: Database queries
-- `database_query_duration_seconds`: Query duration
-- `database_transactions_total`: Database transactions
-- `database_executions_total`: SQL executions
-- `database_errors_total`: Database errors
-- `database_connections_active`: Active connections
-- `database_connections_idle`: Idle connections
-
-## Export
-
-### Prometheus Export
-
-```go
-config := core.DefaultMonitoringConfig()
-config.ExportConfig.Enabled = true
-config.ExportConfig.Port = 9090
-
-manager := unified.NewMonitoringManager(&config)
-manager.Start()
-
-// Metrics available at http://localhost:9090/metrics
-```
-
-### JSON Export
-
-```go
-// Get metrics as JSON
-metrics := manager.GetMetrics()
-jsonData, _ := json.Marshal(metrics)
-```
-
-## Integration with Existing Code
-
-### Wrap Existing ORM
-
-```go
-import "github.com/muidea/magicOrm/monitoring/orm"
-
-// Create monitored ORM
-monitoredOrm := orm.NewMonitoredOrm(existingOrm, ormMonitor, &config)
-
-// Use as normal
-result, err := monitoredOrm.Insert(userModel)
-```
-
-### Wrap Database Executor
-
-```go
-import "github.com/muidea/magicOrm/monitoring/database"
-
-// Create monitored executor
-monitoredExecutor := database.NewMonitoredExecutor(
-    existingExecutor,
-    dbMonitor,
-    "postgresql",
+const (
+    ErrorTypeDatabase   ErrorType = "database"
+    ErrorTypeValidation ErrorType = "validation"
+    ErrorTypeConstraint ErrorType = "constraint"
+    ErrorTypeType       ErrorType = "type"
+    ErrorTypeSystem     ErrorType = "system"
 )
 
-// Use as normal
-rows, err := monitoredExecutor.Query("SELECT * FROM users", true)
+// 记录带错误信息的操作
+collector.RecordORMOperation(
+    monitoring.OperationInsert,
+    "User",
+    false, // 操作失败
+    150*time.Millisecond,
+    &monitoring.ErrorInfo{
+        Type:    monitoring.ErrorTypeDatabase,
+        Message: "duplicate key value violates unique constraint",
+        Code:    "23505",
+    },
+    labels,
+)
 ```
 
-## Performance Considerations
+## 性能优化
 
-### Sampling
+监控系统设计为低开销：
 
-Control monitoring overhead with sampling:
+1. **异步收集**：默认启用异步收集，减少对业务逻辑的影响
+2. **采样率控制**：支持配置采样率，控制监控数据量
+3. **内存优化**：使用高效的数据结构，避免内存泄漏
+4. **零分配设计**：关键路径避免内存分配
 
-```go
-config := core.HighLoadConfig()
-config.SamplingRate = 0.1 // Sample 10% of operations
-```
-
-### Async Collection
-
-Reduce impact on application performance:
-
-```go
-config.AsyncCollection = true
-config.CollectionInterval = 30 * time.Second
-```
-
-### Cache Configuration
-
-```go
-config.EnableCache = true
-config.CacheTTL = 5 * time.Minute
-```
-
-## Testing
-
-Run monitoring tests:
+## 测试和验证
 
 ```bash
-# Run all monitoring tests
+# 运行监控系统测试
 go test ./monitoring/... -v
 
-# Run specific component tests
-go test ./monitoring/core/... -v
-go test ./monitoring/orm/... -v
-go test ./monitoring/database/... -v
+# 运行端到端测试
+go test ./monitoring/e2e_test.go -v
+
+# 运行示例程序
+cd monitoring/example && go run example.go
 ```
 
-## Examples
+## 与外部系统集成
 
-See the `example/` directory for comprehensive usage examples:
-
-```bash
-cd monitoring/example
-go run example.go
-```
-
-## Best Practices
-
-1. **Start Simple**: Begin with default configuration
-2. **Monitor Production**: Use production configuration for live systems
-3. **Sample Appropriately**: Adjust sampling rate based on load
-4. **Use Labels**: Add custom labels for better metric organization
-5. **Regular Cleanup**: Enable metric retention to prevent memory issues
-6. **Secure Exports**: Enable TLS and authentication for production exports
-
-## Troubleshooting
-
-### Common Issues
-
-1. **High Memory Usage**: Reduce retention period or increase sampling rate
-2. **Performance Impact**: Enable async collection or reduce detail level
-3. **Missing Metrics**: Check if monitoring is enabled for specific components
-4. **Export Issues**: Verify port availability and firewall settings
-
-### Debugging
+监控数据可以通过多种方式导出：
 
 ```go
-// Get detailed statistics
-stats := manager.GetManagerStats()
-fmt.Printf("%+v\n", stats)
+// 获取原始监控数据
+data := collector.GetMetrics()
 
-// Check component status
-fmt.Printf("ORM monitoring: %v\n", manager.GetORMMonitor() != nil)
-fmt.Printf("Validation monitoring: %v\n", manager.GetValidationMonitor() != nil)
-fmt.Printf("Database monitoring: %v\n", manager.GetDatabaseMonitor() != nil)
+// 转换为JSON格式
+jsonData, _ := json.Marshal(data)
+
+// 转换为Prometheus格式
+prometheusData := collector.ToPrometheusFormat()
+
+// 自定义导出处理器
+collector.SetExportHandler(func(metrics []monitoring.Metric) {
+    // 发送到外部监控系统
+    sendToExternalSystem(metrics)
+})
 ```
 
-## API Reference
+## 最佳实践
 
-### Core Components
+1. **合理使用标签**：使用有意义的标签便于数据分析和过滤
+2. **控制数据量**：根据需求调整采样率和数据保留策略
+3. **错误分类**：使用详细的错误类型便于问题排查
+4. **性能监控**：监控监控系统本身的性能
+5. **集成测试**：在生产环境前充分测试监控集成
 
-- `core.Collector`: Central metrics collection
-- `core.Exporter`: Metrics export (Prometheus/JSON)
-- `core.MonitoringConfig`: Configuration management
+## API 参考
 
-### Monitoring Adapters
+### 核心接口
 
-- `orm.ORMMonitor`: ORM operation monitoring
-- `validation.ValidationMonitor`: Validation system monitoring
-- `database.DatabaseMonitor`: Database execution monitoring
+- `monitoring.Collector`: 通用收集器接口
+- `monitoring.OperationType`: ORM 操作类型常量
+- `monitoring.Metric`: 监控数据指标定义
 
-### Unified Management
+### 收集器实现
 
-- `unified.MonitoringManager`: Unified monitoring management
-- `unified.MonitoringFactory`: Component factory
+- `orm.Collector`: ORM 操作收集器
+  - `NewCollector()`: 创建新的ORM收集器
+  - `RecordOperation()`: 记录ORM操作
+  - `GetMetrics()`: 获取收集的指标
 
-## License
+- `validation.Collector`: 验证操作收集器
+  - `NewCollector()`: 创建新的验证收集器
+  - `RecordValidation()`: 记录验证操作
+  - `RecordCacheAccess()`: 记录缓存访问
+  - `GetMetrics()`: 获取收集的指标
 
-Part of the MagicORM project. See main project LICENSE for details.
+- `database.Collector`: 数据库操作收集器
+  - `NewCollector()`: 创建新的数据库收集器
+  - `RecordQuery()`: 记录数据库查询
+  - `RecordTransaction()`: 记录数据库事务
+  - `RecordConnection()`: 记录数据库连接
+  - `GetMetrics()`: 获取收集的指标
+
+### 简单收集器
+
+- `core.SimpleCollector`: 简单的通用收集器实现
+- `core.NoopCollector`: 无操作收集器（用于测试）
+- `core.TestCollector`: 测试收集器（用于单元测试）
+
+## 许可证
+
+MagicORM 项目的一部分。详情请参阅主项目 LICENSE 文件。

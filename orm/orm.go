@@ -13,7 +13,7 @@ import (
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/validation"
-	"github.com/muidea/magicOrm/validation/errors"
+	verrors "github.com/muidea/magicOrm/validation/errors"
 )
 
 const maxDeepLevel = 3
@@ -34,9 +34,11 @@ type Orm interface {
 	Release()
 }
 
-var name2Pool sync.Map
-var name2PoolInitializeOnce sync.Once
-var name2PoolUninitializedOnce sync.Once
+var (
+	name2Pool                  sync.Map
+	name2PoolInitializeOnce    sync.Once
+	name2PoolUninitializedOnce sync.Once
+)
 
 // Initialize InitOrm
 func Initialize() {
@@ -225,7 +227,7 @@ func (s *impl) Release() {
 // Validation methods
 
 // validateModel validates a model with scenario-aware validation
-func (s *impl) validateModel(model models.Model, scenario errors.Scenario) *cd.Error {
+func (s *impl) validateModel(model models.Model, scenario verrors.Scenario) *cd.Error {
 	if s.validationMgr == nil {
 		return nil
 	}
@@ -249,7 +251,7 @@ func (s *impl) validateModel(model models.Model, scenario errors.Scenario) *cd.E
 }
 
 // validateField validates a single field with scenario-aware validation
-func (s *impl) validateField(field models.Field, value any, scenario errors.Scenario) *cd.Error {
+func (s *impl) validateField(field models.Field, value any, scenario verrors.Scenario) *cd.Error {
 	if s.validationMgr == nil {
 		return nil
 	}
@@ -272,15 +274,15 @@ func (s *impl) validateField(field models.Field, value any, scenario errors.Scen
 }
 
 // getOperationType maps scenario to operation type
-func (s *impl) getOperationType(scenario errors.Scenario) validation.OperationType {
+func (s *impl) getOperationType(scenario verrors.Scenario) validation.OperationType {
 	switch scenario {
-	case errors.ScenarioInsert:
+	case verrors.ScenarioInsert:
 		return validation.OperationCreate
-	case errors.ScenarioUpdate:
+	case verrors.ScenarioUpdate:
 		return validation.OperationUpdate
-	case errors.ScenarioQuery:
+	case verrors.ScenarioQuery:
 		return validation.OperationRead
-	case errors.ScenarioDelete:
+	case verrors.ScenarioDelete:
 		return validation.OperationDelete
 	default:
 		return validation.OperationCreate

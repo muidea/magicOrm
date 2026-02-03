@@ -53,6 +53,9 @@ github.com/muidea/magicCommon/def
 github.com/muidea/magicCommon/foundation/cache
 github.com/muidea/magicCommon/foundation/log
 github.com/muidea/magicCommon/foundation/util
+github.com/muidea/magicCommon/monitoring
+github.com/muidea/magicCommon/monitoring/core
+github.com/muidea/magicCommon/monitoring/types
 # github.com/muidea/seelog v1.0.0
 ## explicit
 github.com/muidea/seelog
