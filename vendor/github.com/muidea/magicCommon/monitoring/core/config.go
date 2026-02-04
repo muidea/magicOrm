@@ -50,7 +50,7 @@ type MonitoringConfig struct {
 	Timeout            time.Duration `json:"timeout"`
 
 	// Provider-specific configuration
-	ProviderConfigs map[string]interface{} `json:"provider_configs,omitempty"`
+	ProviderConfigs map[string]any `json:"provider_configs,omitempty"`
 
 	// Environment-specific settings
 	Environment string `json:"environment"`
@@ -100,7 +100,7 @@ func DefaultMonitoringConfig() MonitoringConfig {
 		BufferSize:         1000,
 		MaxConcurrentTasks: 10,
 		Timeout:            10 * time.Second,
-		ProviderConfigs:    make(map[string]interface{}),
+		ProviderConfigs:    make(map[string]any),
 		Environment:        "development",
 	}
 }
@@ -120,7 +120,7 @@ func DefaultExportConfig() ExportConfig {
 		ScrapeTimeout:    10 * time.Second,
 		EnableTLS:        false,
 		EnableAuth:       false,
-		AllowedHosts:     []string{"localhost", "127.0.0.1"},
+		AllowedHosts:     []string{},
 	}
 }
 

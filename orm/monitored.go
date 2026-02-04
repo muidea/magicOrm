@@ -6,28 +6,22 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/models"
-	"github.com/muidea/magicOrm/monitoring"
-	monitoringorm "github.com/muidea/magicOrm/monitoring/orm"
 	"github.com/muidea/magicOrm/provider"
 )
 
 // MonitoredOrmConfig holds configuration for monitored ORM
 type MonitoredOrmConfig struct {
-	// Enable monitoring
+	// Enable monitoring (deprecated - MagicORM no longer collects data)
 	Enabled bool
 
-	// ORM collector for monitoring
-	Collector monitoringorm.ORMCollector
-
-	// Custom labels for metrics
+	// Custom labels for metrics (deprecated - MagicORM no longer collects data)
 	CustomLabels map[string]string
 }
 
 // DefaultMonitoredOrmConfig returns default monitored ORM configuration
 func DefaultMonitoredOrmConfig() MonitoredOrmConfig {
 	return MonitoredOrmConfig{
-		Enabled:      true,
-		Collector:    monitoringorm.NewCollector(),
+		Enabled:      false, // MagicORM no longer collects data
 		CustomLabels: make(map[string]string),
 	}
 }
@@ -56,156 +50,38 @@ func NewMonitoredOrm(
 
 // wrapOrmWithMonitoring wraps an ORM with monitoring capabilities
 func wrapOrmWithMonitoring(orm Orm, config MonitoredOrmConfig) Orm {
-	// Create monitored ORM wrapper using the simplified decorator
-	monitoredOrm := monitoringorm.NewMonitoredOrm(
-		wrapOrmInterface(orm),
-		config.Collector,
-	)
-
-	return convertToOrmInterface(monitoredOrm)
-}
-
-// wrapOrmInterface wraps the Orm interface for the monitoring package
-func wrapOrmInterface(orm Orm) monitoringorm.Orm {
-	return &ormWrapper{orm: orm}
-}
-
-// convertToOrmInterface converts monitored ORM back to Orm interface
-func convertToOrmInterface(monitoredOrm *monitoringorm.MonitoredOrm) Orm {
-	return &monitoredOrmWrapper{monitoredOrm: monitoredOrm}
-}
-
-// Wrapper types for interface conversion
-
-type ormWrapper struct {
-	orm Orm
-}
-
-func (w *ormWrapper) Create(entity models.Model) *cd.Error {
-	return w.orm.Create(entity)
-}
-
-func (w *ormWrapper) Drop(entity models.Model) *cd.Error {
-	return w.orm.Drop(entity)
-}
-
-func (w *ormWrapper) Insert(entity models.Model) (models.Model, *cd.Error) {
-	return w.orm.Insert(entity)
-}
-
-func (w *ormWrapper) Update(entity models.Model) (models.Model, *cd.Error) {
-	return w.orm.Update(entity)
-}
-
-func (w *ormWrapper) Delete(entity models.Model) (models.Model, *cd.Error) {
-	return w.orm.Delete(entity)
-}
-
-func (w *ormWrapper) Query(entity models.Model) (models.Model, *cd.Error) {
-	return w.orm.Query(entity)
-}
-
-func (w *ormWrapper) Count(filter models.Filter) (int64, *cd.Error) {
-	return w.orm.Count(filter)
-}
-
-func (w *ormWrapper) BatchQuery(filter models.Filter) ([]models.Model, *cd.Error) {
-	return w.orm.BatchQuery(filter)
-}
-
-func (w *ormWrapper) BeginTransaction() *cd.Error {
-	return w.orm.BeginTransaction()
-}
-
-func (w *ormWrapper) CommitTransaction() *cd.Error {
-	return w.orm.CommitTransaction()
-}
-
-func (w *ormWrapper) RollbackTransaction() *cd.Error {
-	return w.orm.RollbackTransaction()
-}
-
-func (w *ormWrapper) Release() {
-	w.orm.Release()
-}
-
-type monitoredOrmWrapper struct {
-	monitoredOrm *monitoringorm.MonitoredOrm
-}
-
-func (w *monitoredOrmWrapper) Create(entity models.Model) *cd.Error {
-	return w.monitoredOrm.Create(entity)
-}
-
-func (w *monitoredOrmWrapper) Drop(entity models.Model) *cd.Error {
-	return w.monitoredOrm.Drop(entity)
-}
-
-func (w *monitoredOrmWrapper) Insert(entity models.Model) (models.Model, *cd.Error) {
-	return w.monitoredOrm.Insert(entity)
-}
-
-func (w *monitoredOrmWrapper) Update(entity models.Model) (models.Model, *cd.Error) {
-	return w.monitoredOrm.Update(entity)
-}
-
-func (w *monitoredOrmWrapper) Delete(entity models.Model) (models.Model, *cd.Error) {
-	return w.monitoredOrm.Delete(entity)
-}
-
-func (w *monitoredOrmWrapper) Query(entity models.Model) (models.Model, *cd.Error) {
-	return w.monitoredOrm.Query(entity)
-}
-
-func (w *monitoredOrmWrapper) Count(filter models.Filter) (int64, *cd.Error) {
-	return w.monitoredOrm.Count(filter)
-}
-
-func (w *monitoredOrmWrapper) BatchQuery(filter models.Filter) ([]models.Model, *cd.Error) {
-	return w.monitoredOrm.BatchQuery(filter)
-}
-
-func (w *monitoredOrmWrapper) BeginTransaction() *cd.Error {
-	return w.monitoredOrm.BeginTransaction()
-}
-
-func (w *monitoredOrmWrapper) CommitTransaction() *cd.Error {
-	return w.monitoredOrm.CommitTransaction()
-}
-
-func (w *monitoredOrmWrapper) RollbackTransaction() *cd.Error {
-	return w.monitoredOrm.RollbackTransaction()
-}
-
-func (w *monitoredOrmWrapper) Release() {
-	w.monitoredOrm.Release()
+	// MagicORM no longer collects data - return the original ORM
+	// Monitoring is now handled by magicCommon/monitoring system
+	return orm
 }
 
 // Helper functions for monitoring integration
+// Note: MagicORM no longer collects data - these are now no-op functions
+// Data collection is handled by magicCommon/monitoring system
 
 // RecordOperation is a helper to record ORM operations for monitoring
 func RecordOperation(
-	operation monitoring.OperationType,
+	operation string,
 	modelName string,
 	startTime time.Time,
 	err error,
 	additionalLabels map[string]string,
 ) {
-	// This would integrate with a global monitoring system
-	// For now, it's a no-op
+	// MagicORM no longer collects data - this is a no-op
+	// Data collection is handled by magicCommon/monitoring system
 }
 
 // RecordQuery is a helper to record ORM queries for monitoring
 func RecordQuery(
 	modelName string,
-	queryType monitoring.QueryType,
+	queryType string,
 	rowsReturned int,
 	startTime time.Time,
 	err error,
 	additionalLabels map[string]string,
 ) {
-	// This would integrate with a global monitoring system
-	// For now, it's a no-op
+	// MagicORM no longer collects data - this is a no-op
+	// Data collection is handled by magicCommon/monitoring system
 }
 
 // RecordTransaction is a helper to record transactions for monitoring
@@ -215,8 +91,8 @@ func RecordTransaction(
 	err error,
 	additionalLabels map[string]string,
 ) {
-	// This would integrate with a global monitoring system
-	// For now, it's a no-op
+	// MagicORM no longer collects data - this is a no-op
+	// Data collection is handled by magicCommon/monitoring system
 }
 
 // GetModelName extracts model name for monitoring
@@ -266,44 +142,44 @@ func WrapExistingOrmWithDefaultMonitoring(orm Orm) Orm {
 }
 
 // Monitoring integration points for existing ORM implementation
-
-// These functions can be called from the existing ORM implementation
-// to add monitoring without modifying the core logic
+// Note: MagicORM no longer collects data - these functions are now deprecated
+// Data collection is handled by magicCommon/monitoring system
 
 var globalMonitoringEnabled = false
 var globalMonitoringConfig = DefaultMonitoredOrmConfig()
 
 // EnableGlobalMonitoring enables global monitoring for all ORM operations
+// Deprecated: MagicORM no longer collects data
 func EnableGlobalMonitoring(config MonitoredOrmConfig) {
-	globalMonitoringEnabled = true
-	globalMonitoringConfig = config
+	globalMonitoringEnabled = false // Always disabled - MagicORM no longer collects data
 }
 
 // DisableGlobalMonitoring disables global monitoring
+// Deprecated: MagicORM no longer collects data
 func DisableGlobalMonitoring() {
 	globalMonitoringEnabled = false
 }
 
 // IsGlobalMonitoringEnabled returns whether global monitoring is enabled
+// Deprecated: MagicORM no longer collects data
 func IsGlobalMonitoringEnabled() bool {
-	return globalMonitoringEnabled
+	return false // Always false - MagicORM no longer collects data
 }
 
 // GetGlobalMonitoringConfig returns the global monitoring configuration
+// Deprecated: MagicORM no longer collects data
 func GetGlobalMonitoringConfig() MonitoredOrmConfig {
-	return globalMonitoringConfig
+	return DefaultMonitoredOrmConfig()
 }
 
 // CreateOrmWithGlobalMonitoring creates an ORM with global monitoring configuration
+// Deprecated: MagicORM no longer collects data
 func CreateOrmWithGlobalMonitoring(
 	provider provider.Provider,
 	cfg database.Config,
 	prefix string,
 ) (Orm, *cd.Error) {
 
-	if globalMonitoringEnabled {
-		return NewMonitoredOrm(provider, cfg, prefix, globalMonitoringConfig)
-	}
-
+	// MagicORM no longer collects data - always return base ORM
 	return NewOrm(provider, cfg, prefix)
 }
