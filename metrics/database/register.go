@@ -2,13 +2,13 @@
 package database
 
 import (
+	"github.com/muidea/magicCommon/monitoring"
 	"github.com/muidea/magicCommon/monitoring/types"
-	"github.com/muidea/magicOrm/metrics/registry"
 )
 
 func init() {
 	// 自动注册到 MagicORM metrics 系统（延迟注册到 GlobalManager）
-	registry.Register(
+	monitoring.RegisterGlobalProvider(
 		"magicorm_database",
 		func() types.MetricProvider {
 			return NewDatabaseMetricProvider()
