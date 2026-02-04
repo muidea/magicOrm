@@ -3,6 +3,7 @@ package orm
 import (
 	"context"
 	"fmt"
+	"time"
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
@@ -260,6 +261,15 @@ func (s *InsertRunner) Insert() (ret models.Model, err *cd.Error) {
 }
 
 func (s *impl) Insert(vModel models.Model) (ret models.Model, err *cd.Error) {
+	startTime := time.Now()
+
+	defer func() {
+		duration := time.Since(startTime)
+		if ormMetricCollector != nil {
+			ormMetricCollector.RecordOperation("insert", vModel, duration, err)
+		}
+	}()
+
 	if err = s.CheckContext(); err != nil {
 		return
 	}

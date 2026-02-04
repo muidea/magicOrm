@@ -2,6 +2,7 @@ package orm
 
 import (
 	"context"
+	"time"
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
@@ -96,6 +97,15 @@ func (s *CreateRunner) Create() (err *cd.Error) {
 }
 
 func (s *impl) Create(vModel models.Model) (err *cd.Error) {
+	startTime := time.Now()
+
+	defer func() {
+		duration := time.Since(startTime)
+		if ormMetricCollector != nil {
+			ormMetricCollector.RecordOperation("create", vModel, duration, err)
+		}
+	}()
+
 	if err = s.CheckContext(); err != nil {
 		return
 	}

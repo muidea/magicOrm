@@ -3,6 +3,7 @@ package orm
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
@@ -61,6 +62,20 @@ func (s *CountRunner) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
 }
 
 func (s *impl) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
+	startTime := time.Now()
+
+	defer func() {
+		duration := time.Since(startTime)
+		if ormMetricCollector != nil {
+			// Count操作没有具体的model，使用filter的mask model
+			var model models.Model
+			if vFilter != nil {
+				model = vFilter.MaskModel()
+			}
+			ormMetricCollector.RecordOperation("count", model, duration, err)
+		}
+	}()
+
 	if err = s.CheckContext(); err != nil {
 		return
 	}

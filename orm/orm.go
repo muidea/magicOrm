@@ -7,9 +7,12 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
+	"github.com/muidea/magicCommon/monitoring"
+	"github.com/muidea/magicCommon/monitoring/types"
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/metrics/orm"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/validation"
@@ -38,13 +41,50 @@ var (
 	name2Pool                  sync.Map
 	name2PoolInitializeOnce    sync.Once
 	name2PoolUninitializedOnce sync.Once
+
+	ormMetricProvider  *orm.ORMMetricProvider
+	ormMetricCollector *orm.ORMMetricsCollector
 )
 
 // Initialize InitOrm
 func Initialize() {
 	name2PoolInitializeOnce.Do(func() {
 		name2Pool = sync.Map{}
+
+		// 总是创建metrics收集器，但只在GlobalManager存在时注册provider
+		registerORMMetrics()
 	})
+}
+
+// registerORMMetrics 注册ORM监控provider
+func registerORMMetrics() {
+	// 创建全局metrics收集器（无论GlobalManager是否存在都创建）
+	ormMetricCollector = orm.NewORMMetricsCollector()
+
+	// 只有在GlobalManager存在时才注册provider
+	if mgr := monitoring.GetGlobalManager(); mgr != nil {
+		// 创建provider并传递collector
+		ormMetricProvider = orm.NewORMMetricProvider(ormMetricCollector)
+
+		// 尝试注册ORMMetricProvider
+		if err := monitoring.RegisterGlobalProvider(
+			"magicorm_orm",
+			func() types.MetricProvider {
+				return ormMetricProvider
+			},
+			true, // 自动初始化
+			100,  // 优先级
+		); err != nil {
+			ormMetricProvider = nil
+			// 记录错误但不影响ORM初始化
+			log.Warnf("Failed to register ORM metrics provider: %v", err)
+		} else {
+			log.Infof("ORM metrics provider registered successfully")
+		}
+	} else {
+		// GlobalManager不存在，只创建collector不注册provider
+		log.Debugf("GlobalManager not available, ORM metrics collector created but provider not registered")
+	}
 }
 
 // Uninitialized orm
@@ -175,6 +215,12 @@ func (s *impl) BeginTransaction() (err *cd.Error) {
 		}
 	}
 
+	// Record transaction metric
+	if ormMetricCollector != nil {
+		success := err == nil
+		ormMetricCollector.RecordTransaction("begin", success)
+	}
+
 	return
 }
 
@@ -187,6 +233,12 @@ func (s *impl) CommitTransaction() (err *cd.Error) {
 		}
 	}
 
+	// Record transaction metric
+	if ormMetricCollector != nil {
+		success := err == nil
+		ormMetricCollector.RecordTransaction("commit", success)
+	}
+
 	return
 }
 
@@ -197,6 +249,12 @@ func (s *impl) RollbackTransaction() (err *cd.Error) {
 		if err != nil {
 			log.Errorf("RollbackTransaction failed, s.executor.RollbackTransaction error:%s", err.Error())
 		}
+	}
+
+	// Record transaction metric
+	if ormMetricCollector != nil {
+		success := err == nil
+		ormMetricCollector.RecordTransaction("rollback", success)
 	}
 
 	return
@@ -243,29 +301,6 @@ func (s *impl) validateModel(model models.Model, scenario verrors.Scenario) *cd.
 
 	// Perform validation
 	err := s.validationMgr.ValidateModel(model, ctx)
-	if err != nil {
-		return cd.NewError(cd.IllegalParam, err.Error())
-	}
-
-	return nil
-}
-
-// validateField validates a single field with scenario-aware validation
-func (s *impl) validateField(field models.Field, value any, scenario verrors.Scenario) *cd.Error {
-	if s.validationMgr == nil {
-		return nil
-	}
-
-	// Create validation context
-	ctx := validation.NewContext(
-		scenario,
-		s.getOperationType(scenario),
-		nil,
-		"", // Database type not specified here
-	)
-
-	// Perform validation
-	err := s.validationMgr.ValidateField(field, value, ctx)
 	if err != nil {
 		return cd.NewError(cd.IllegalParam, err.Error())
 	}

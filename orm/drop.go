@@ -2,6 +2,7 @@ package orm
 
 import (
 	"context"
+	"time"
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
@@ -92,6 +93,15 @@ func (s *DropRunner) Drop() (err *cd.Error) {
 }
 
 func (s *impl) Drop(vModel models.Model) (err *cd.Error) {
+	startTime := time.Now()
+
+	defer func() {
+		duration := time.Since(startTime)
+		if ormMetricCollector != nil {
+			ormMetricCollector.RecordOperation("drop", vModel, duration, err)
+		}
+	}()
+
 	if vModel == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		return

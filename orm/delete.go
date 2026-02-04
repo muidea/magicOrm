@@ -2,6 +2,7 @@ package orm
 
 import (
 	"context"
+	"time"
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
@@ -175,6 +176,15 @@ func (s *DeleteRunner) Delete() (err *cd.Error) {
 }
 
 func (s *impl) Delete(vModel models.Model) (ret models.Model, err *cd.Error) {
+	startTime := time.Now()
+
+	defer func() {
+		duration := time.Since(startTime)
+		if ormMetricCollector != nil {
+			ormMetricCollector.RecordOperation("delete", vModel, duration, err)
+		}
+	}()
+
 	if err = s.CheckContext(); err != nil {
 		return
 	}

@@ -1,6 +1,8 @@
 package orm
 
 import (
+	"time"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/models"
@@ -8,6 +10,20 @@ import (
 
 // BatchQuery batch query
 func (s *impl) BatchQuery(filter models.Filter) (ret []models.Model, err *cd.Error) {
+	startTime := time.Now()
+
+	defer func() {
+		duration := time.Since(startTime)
+		if ormMetricCollector != nil {
+			// BatchQuery使用filter的mask model
+			var model models.Model
+			if filter != nil {
+				model = filter.MaskModel()
+			}
+			ormMetricCollector.RecordOperation("batch", model, duration, err)
+		}
+	}()
+
 	if filter == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal model value")
 		log.Errorf("BatchQuery failed, illegal model value")
