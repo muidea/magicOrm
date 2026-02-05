@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/muidea/magicOrm/metrics"
 	"github.com/muidea/magicOrm/models"
 )
 
@@ -31,6 +32,10 @@ type ORMMetricsCollector struct {
 
 	// Connection statistics
 	activeConnections int64
+
+	// LRU tracking for duration keys to prevent unlimited growth
+	durationKeyLRU  []string
+	maxDurationKeys int
 }
 
 // NewORMMetricsCollector creates a new ORM metrics collector.
@@ -40,6 +45,8 @@ func NewORMMetricsCollector() *ORMMetricsCollector {
 		errorCounters:       make(map[string]int64),
 		operationDurations:  make(map[string][]time.Duration),
 		transactionCounters: make(map[string]int64),
+		durationKeyLRU:      make([]string, 0, 1000),
+		maxDurationKeys:     1000,
 	}
 }
 
@@ -65,24 +72,16 @@ func (c *ORMMetricsCollector) RecordOperation(
 		status = "error"
 		// Record error with classification
 		errorType := c.classifyError(err)
-		errorKey := operation + "_" + modelName + "_" + errorType
+		errorKey := metrics.BuildKey(operation, modelName, errorType)
 		c.errorCounters[errorKey]++
 	}
 
 	// Record operation counter
-	opKey := operation + "_" + modelName + "_" + status
+	opKey := metrics.BuildKey(operation, modelName, status)
 	c.operationCounters[opKey]++
 
-	// Record duration (keep last 1000 samples per key to avoid memory leak)
-	if c.operationDurations[opKey] == nil {
-		c.operationDurations[opKey] = make([]time.Duration, 0, 1000)
-	}
-	durations := c.operationDurations[opKey]
-	if len(durations) >= 1000 {
-		// Keep only the last 1000 samples
-		durations = durations[1:]
-	}
-	c.operationDurations[opKey] = append(durations, duration)
+	// Record duration with LRU management
+	c.recordDurationWithLRU(opKey, duration)
 }
 
 // RecordTransaction records a transaction operation.
@@ -94,7 +93,7 @@ func (c *ORMMetricsCollector) RecordTransaction(txType string, success bool) {
 	if !success {
 		status = "error"
 	}
-	key := txType + "_" + status
+	key := metrics.BuildKey(txType, status)
 	c.transactionCounters[key]++
 }
 
@@ -184,6 +183,46 @@ func (c *ORMMetricsCollector) GetActiveConnections() int64 {
 	return c.activeConnections
 }
 
+// recordDurationWithLRU records a duration with LRU key management.
+func (c *ORMMetricsCollector) recordDurationWithLRU(key string, duration time.Duration) {
+	// Initialize if needed
+	if c.operationDurations[key] == nil {
+		c.operationDurations[key] = make([]time.Duration, 0, 1000)
+
+		// Check if we need to evict old keys
+		if len(c.durationKeyLRU) >= c.maxDurationKeys {
+			// Remove oldest key
+			oldestKey := c.durationKeyLRU[0]
+			delete(c.operationDurations, oldestKey)
+			c.durationKeyLRU = c.durationKeyLRU[1:]
+		}
+
+		// Add new key to LRU
+		c.durationKeyLRU = append(c.durationKeyLRU, key)
+	} else {
+		// Move key to end of LRU (most recently used)
+		for i, k := range c.durationKeyLRU {
+			if k == key {
+				// Remove from current position
+				c.durationKeyLRU = append(c.durationKeyLRU[:i], c.durationKeyLRU[i+1:]...)
+				// Add to end
+				c.durationKeyLRU = append(c.durationKeyLRU, key)
+				break
+			}
+		}
+	}
+
+	// Record duration (keep last 1000 samples per key)
+	durations := c.operationDurations[key]
+	if len(durations) >= 1000 {
+		// Keep only the last 1000 samples - copy to avoid modifying the slice in place
+		newDurations := make([]time.Duration, 999, 1000)
+		copy(newDurations, durations[1:])
+		durations = newDurations
+	}
+	c.operationDurations[key] = append(durations, duration)
+}
+
 // Clear clears all collected metrics (useful for testing).
 func (c *ORMMetricsCollector) Clear() {
 	c.mu.Lock()
@@ -196,6 +235,7 @@ func (c *ORMMetricsCollector) Clear() {
 	c.cacheHits = 0
 	c.cacheMisses = 0
 	c.activeConnections = 0
+	c.durationKeyLRU = make([]string, 0, 1000)
 }
 
 // classifyError classifies an error into error types for metrics.
@@ -205,13 +245,21 @@ func (c *ORMMetricsCollector) classifyError(err error) string {
 	}
 
 	// 使用recover安全地获取错误字符串
-	defer func() {
-		if r := recover(); r != nil {
-			// 如果获取错误字符串时发生panic，返回"unknown"
-		}
+	var errStr string
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				// 如果获取错误字符串时发生panic，设置errStr为空
+				errStr = ""
+			}
+		}()
+		errStr = err.Error()
 	}()
 
-	errStr := err.Error()
+	if errStr == "" {
+		return "unknown"
+	}
+
 	switch {
 	case strings.Contains(errStr, "validation"):
 		return "validation"

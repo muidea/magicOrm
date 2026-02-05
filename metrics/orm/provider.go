@@ -3,10 +3,10 @@
 package orm
 
 import (
-	"strings"
 	"time"
 
 	"github.com/muidea/magicCommon/monitoring/types"
+	"github.com/muidea/magicOrm/metrics"
 )
 
 // ORMMetricProvider implements types.MetricProvider interface for ORM metrics.
@@ -42,12 +42,11 @@ func (p *ORMMetricProvider) Metrics() []types.MetricDefinition {
 			map[string]string{"component": "orm"},
 		),
 
-		// ORM operation duration histogram
-		types.NewHistogramDefinition(
+		// ORM operation duration gauge (average)
+		types.NewGaugeDefinition(
 			"magicorm_orm_operation_duration_seconds",
-			"Duration of ORM operations in seconds",
+			"Average duration of ORM operations in seconds",
 			[]string{"operation", "model", "status"},
-			[]float64{0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0, 5.0},
 			map[string]string{"component": "orm"},
 		),
 
@@ -95,15 +94,15 @@ func (p *ORMMetricProvider) Collect() ([]types.Metric, *types.Error) {
 		return []types.Metric{}, nil
 	}
 
-	var metrics []types.Metric
+	var metricList []types.Metric
 
 	// Collect operation counters
 	operationCounters := p.collector.GetOperationCounters()
 	for key, count := range operationCounters {
-		parts := parseKey(key)
+		parts := metrics.ParseKey(key)
 		if len(parts) >= 3 {
 			operation, model, status := parts[0], parts[1], parts[2]
-			metrics = append(metrics, types.NewCounter(
+			metricList = append(metricList, types.NewCounter(
 				"magicorm_orm_operations_total",
 				float64(count),
 				map[string]string{
@@ -118,10 +117,10 @@ func (p *ORMMetricProvider) Collect() ([]types.Metric, *types.Error) {
 	// Collect error counters
 	errorCounters := p.collector.GetErrorCounters()
 	for key, count := range errorCounters {
-		parts := parseKey(key)
+		parts := metrics.ParseKey(key)
 		if len(parts) >= 3 {
 			operation, model, errorType := parts[0], parts[1], parts[2]
-			metrics = append(metrics, types.NewCounter(
+			metricList = append(metricList, types.NewCounter(
 				"magicorm_orm_errors_total",
 				float64(count),
 				map[string]string{
@@ -137,7 +136,7 @@ func (p *ORMMetricProvider) Collect() ([]types.Metric, *types.Error) {
 	operationDurations := p.collector.GetOperationDurations()
 	for key, durations := range operationDurations {
 		if len(durations) > 0 {
-			parts := parseKey(key)
+			parts := metrics.ParseKey(key)
 			if len(parts) >= 3 {
 				operation, model, status := parts[0], parts[1], parts[2]
 
@@ -148,9 +147,8 @@ func (p *ORMMetricProvider) Collect() ([]types.Metric, *types.Error) {
 				}
 				avgDuration := total.Seconds() / float64(len(durations))
 
-				metrics = append(metrics, types.NewMetric(
+				metricList = append(metricList, types.NewGauge(
 					"magicorm_orm_operation_duration_seconds",
-					types.HistogramMetric,
 					avgDuration,
 					map[string]string{
 						"operation": operation,
@@ -165,10 +163,10 @@ func (p *ORMMetricProvider) Collect() ([]types.Metric, *types.Error) {
 	// Collect transaction counters
 	transactionCounters := p.collector.GetTransactionCounters()
 	for key, count := range transactionCounters {
-		parts := parseKey(key)
+		parts := metrics.ParseKey(key)
 		if len(parts) >= 2 {
 			txType, status := parts[0], parts[1]
-			metrics = append(metrics, types.NewCounter(
+			metricList = append(metricList, types.NewCounter(
 				"magicorm_orm_transactions_total",
 				float64(count),
 				map[string]string{
@@ -183,7 +181,7 @@ func (p *ORMMetricProvider) Collect() ([]types.Metric, *types.Error) {
 	cacheHits, cacheMisses := p.collector.GetCacheStats()
 	if cacheHits+cacheMisses > 0 {
 		hitRatio := float64(cacheHits) / float64(cacheHits+cacheMisses)
-		metrics = append(metrics, types.NewGauge(
+		metricList = append(metricList, types.NewGauge(
 			"magicorm_orm_cache_hit_ratio",
 			hitRatio,
 			map[string]string{"cache_type": "default"},
@@ -192,7 +190,7 @@ func (p *ORMMetricProvider) Collect() ([]types.Metric, *types.Error) {
 
 	// Collect active connections
 	activeConnections := p.collector.GetActiveConnections()
-	metrics = append(metrics, types.NewGauge(
+	metricList = append(metricList, types.NewGauge(
 		"magicorm_orm_active_connections",
 		float64(activeConnections),
 		map[string]string{"database": "default"},
@@ -200,9 +198,9 @@ func (p *ORMMetricProvider) Collect() ([]types.Metric, *types.Error) {
 
 	// Update collection statistics
 	duration := time.Since(startTime)
-	p.UpdateCollectionStats(true, duration, len(metrics))
+	p.UpdateCollectionStats(true, duration, len(metricList))
 
-	return metrics, nil
+	return metricList, nil
 }
 
 // Name returns the provider name.
@@ -225,5 +223,5 @@ func (p *ORMMetricProvider) Shutdown() *types.Error {
 
 // parseKey parses a metric key into its components.
 func parseKey(key string) []string {
-	return strings.Split(key, "_")
+	return metrics.ParseKey(key)
 }

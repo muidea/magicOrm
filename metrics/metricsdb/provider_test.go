@@ -1,7 +1,8 @@
-package database
+package metricsdb
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -43,11 +44,23 @@ func TestMetricsDefinitions(t *testing.T) {
 func TestCollectMetrics(t *testing.T) {
 	provider := NewDatabaseMetricProvider()
 
-	// Collect metrics - should return empty since MagicORM no longer collects data
+	// Collect metrics - should return empty since no collector is attached
 	metrics, err := provider.Collect()
 	assert.Nil(t, err)
 	assert.NotNil(t, metrics)
-	assert.Equal(t, 0, len(metrics), "MagicORM no longer collects data - only provides definitions")
+	assert.Equal(t, 0, len(metrics), "No collector attached - should return empty metrics")
+
+	// Test with collector
+	collector := NewDatabaseMetricsCollector()
+	collector.RecordQuery("postgresql", "select", 100*time.Millisecond, nil)
+	collector.RecordTransaction("postgresql", "begin", true)
+	collector.UpdateConnectionStats("postgresql", "active", 5)
+
+	providerWithCollector := NewDatabaseMetricProviderWithCollector(collector)
+	metrics, err = providerWithCollector.Collect()
+	assert.Nil(t, err)
+	assert.NotNil(t, metrics)
+	assert.True(t, len(metrics) > 0, "Should collect metrics with collector attached")
 }
 
 func TestProviderLifecycle(t *testing.T) {
