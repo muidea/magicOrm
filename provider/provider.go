@@ -7,8 +7,6 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/models"
-	"github.com/muidea/magicOrm/provider/local"
-	"github.com/muidea/magicOrm/provider/remote"
 )
 
 type Provider interface {
@@ -41,40 +39,16 @@ type Provider interface {
 	Reset()
 }
 
-// NewRemoteProvider model provider
+// NewLocalProvider creates a local provider with the given owner and validator
+// Deprecated: Use NewLocalProviderWithOptions for more flexible configuration
 func NewLocalProvider(owner string, validator models.ValueValidator) Provider {
-	ret := &providerImpl{
-		owner:              owner,
-		modelCache:         models.NewCache(),
-		valueValidator:     validator,
-		getEntityTypeFunc:  local.GetEntityType,
-		getEntityValueFunc: local.GetEntityValue,
-		getEntityModelFunc: local.GetEntityModel,
-		getModelFilterFunc: local.GetModelFilter,
-		setModelValueFunc:  local.SetModelValue,
-		encodeValueFunc:    local.EncodeValue,
-		decodeValueFunc:    local.DecodeValue,
-	}
-
-	return ret
+	return NewLocalProviderWithOptions(owner, WithValueValidator(validator))
 }
 
-// NewRemoteProvider model provider
+// NewRemoteProvider creates a remote provider with the given owner and validator
+// Deprecated: Use NewRemoteProviderWithOptions for more flexible configuration
 func NewRemoteProvider(owner string, validator models.ValueValidator) Provider {
-	ret := &providerImpl{
-		owner:              owner,
-		modelCache:         models.NewCache(),
-		valueValidator:     validator,
-		getEntityTypeFunc:  remote.GetEntityType,
-		getEntityValueFunc: remote.GetEntityValue,
-		getEntityModelFunc: remote.GetEntityModel,
-		getModelFilterFunc: remote.GetModelFilter,
-		setModelValueFunc:  remote.SetModelValue,
-		encodeValueFunc:    remote.EncodeValue,
-		decodeValueFunc:    remote.DecodeValue,
-	}
-
-	return ret
+	return NewRemoteProviderWithOptions(owner, WithValueValidator(validator))
 }
 
 type providerImpl struct {
@@ -97,7 +71,7 @@ func (s *providerImpl) RegisterModel(entity any) (ret models.Model, err *cd.Erro
 	entityModel, entityErr := s.getEntityModelFunc(entity, s.valueValidator)
 	if entityErr != nil {
 		err = entityErr
-		log.Errorf("RegisterModel failed, s.getModelFunc error:%v", err.Error())
+		logError("RegisterModel", "s.getModelFunc", err)
 		return
 	}
 
@@ -118,7 +92,7 @@ func (s *providerImpl) UnregisterModel(entity any) (err *cd.Error) {
 	modelType, modelErr := s.getEntityTypeFunc(entity)
 	if modelErr != nil {
 		err = modelErr
-		log.Errorf("UnregisterModel failed, s.getTypeFunc error:%v", err.Error())
+		logError("UnregisterModel", "s.getTypeFunc", err)
 		return
 	}
 
@@ -132,25 +106,19 @@ func (s *providerImpl) UnregisterModel(entity any) (err *cd.Error) {
 
 func (s *providerImpl) GetEntityType(entity any) (ret models.Type, err *cd.Error) {
 	ret, err = s.getEntityTypeFunc(entity)
-	if err != nil {
-		log.Errorf("GetEntityType failed, s.getTypeFunc error:%v", err.Error())
-	}
+	logError("GetEntityType", "s.getTypeFunc", err)
 	return
 }
 
 func (s *providerImpl) GetEntityValue(entity any) (ret models.Value, err *cd.Error) {
 	ret, err = s.getEntityValueFunc(entity)
-	if err != nil {
-		log.Errorf("GetEntityValue failed, s.getValueFunc error:%v", err.Error())
-	}
+	logError("GetEntityValue", "s.getValueFunc", err)
 	return
 }
 
 func (s *providerImpl) GetEntityModel(entity any, disableValidator bool) (ret models.Model, err *cd.Error) {
 	ret, err = s.checkEntityModel(entity, models.MetaView, disableValidator)
-	if err != nil {
-		log.Errorf("GetEntityModel failed, s.checkEntityModel error:%v", err.Error())
-	}
+	logError("GetEntityModel", "s.checkEntityModel", err)
 	return
 }
 
@@ -161,7 +129,7 @@ func (s *providerImpl) checkEntityModel(entity any, viewSpec models.ViewDeclare,
 	entityType, entityTypeErr := s.getEntityTypeFunc(entity)
 	if entityTypeErr != nil {
 		err = entityTypeErr
-		log.Errorf("checkEntityModel failed, s.getEntityTypeFunc error:%v", err.Error())
+		logError("checkEntityModel", "s.getEntityTypeFunc", err)
 		return
 	}
 
@@ -169,7 +137,7 @@ func (s *providerImpl) checkEntityModel(entity any, viewSpec models.ViewDeclare,
 	curModelVal := s.modelCache.Fetch(pkgKey)
 	if curModelVal == nil {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
-		log.Errorf("checkEntityModel failed, error:%v", err.Error())
+		logError("checkEntityModel", "", err)
 		return
 	}
 	entityValue, entityValueErr := s.getEntityValueFunc(entity)
@@ -182,7 +150,7 @@ func (s *providerImpl) checkEntityModel(entity any, viewSpec models.ViewDeclare,
 	entityModelVal, entityModelErr := s.setModelValueFunc(curModelVal.Copy(viewSpec), entityValue, disableValidator)
 	if entityModelErr != nil {
 		err = entityModelErr
-		log.Errorf("checkEntityModel failed, s.setModelValueFunc error:%v", err.Error())
+		logError("checkEntityModel", "s.setModelValueFunc", err)
 	}
 
 	ret = entityModelVal
@@ -193,14 +161,12 @@ func (s *providerImpl) GetEntityFilter(entity any, viewSpec models.ViewDeclare) 
 	entityModelVal, entityModelErr := s.checkEntityModel(entity, viewSpec, true)
 	if entityModelErr != nil {
 		err = entityModelErr
-		log.Errorf("GetEntityFilter failed, s.checkEntityModel error:%v", err.Error())
+		logError("GetEntityFilter", "s.checkEntityModel", err)
 		return
 	}
 
 	ret, err = s.getModelFilterFunc(entityModelVal)
-	if err != nil {
-		log.Errorf("GetEntityFilter failed, s.getModelFilterFunc error:%v", err.Error())
-	}
+	logError("GetEntityFilter", "s.getModelFilterFunc", err)
 	return
 }
 

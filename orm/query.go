@@ -10,6 +10,7 @@ import (
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/internal/errors"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
@@ -39,13 +40,12 @@ func (s *QueryRunner) innerQuery(vModel models.Model, filter models.Filter) (ret
 	queryResult, queryErr := s.sqlBuilder.BuildQuery(vModel, filter)
 	if queryErr != nil {
 		err = queryErr
-		log.Errorf("innerQuery failed, s.sqlBuilder.BuildQuery error:%s", err.Error())
+		errors.LogError("innerQuery", "s.sqlBuilder.BuildQuery", err)
 		return
 	}
 
 	_, err = s.executor.Query(queryResult.SQL(), false, queryResult.Args()...)
-	if err != nil {
-		log.Errorf("innerQuery failed, s.executor.Query error:%s", err.Error())
+	if errors.MustReturn("innerQuery", "s.executor.Query", err) {
 		return
 	}
 	defer s.executor.Finish()
@@ -55,7 +55,7 @@ func (s *QueryRunner) innerQuery(vModel models.Model, filter models.Filter) (ret
 		itemValues, itemErr := s.sqlBuilder.BuildModuleValueHolder(vModel)
 		if itemErr != nil {
 			err = itemErr
-			log.Errorf("innerQuery failed, getModelFieldsPlaceHolder error:%s", err.Error())
+			errors.LogError("innerQuery", "getModelFieldsPlaceHolder", err)
 			return
 		}
 		referenceVal := make([]any, len(itemValues))
