@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/validation"
 	"github.com/muidea/magicOrm/validation/errors"
+	"log/slog"
 )
 
 // ValidationExtension provides scenario-aware validation for remote provider
@@ -76,13 +76,13 @@ func (e *validationExtensionImpl) SetModelValueWithScenario(vModel models.Model,
 
 			if targetField == nil {
 				err = cd.NewError(cd.Unexpected, fmt.Sprintf("field not found: %s", fieldVal.Name))
-				log.Errorf("SetModelValueWithScenario failed, err:%s", err.Error())
+				slog.Error("error occurred", "error", "operation failed")
 				return
 			}
 
 			err = e.ValidateFieldWithScenario(targetField, fieldVal.Value, scenario, false)
 			if err != nil {
-				log.Errorf("SetModelValueWithScenario failed, validate field:%s value err:%s", fieldVal.Name, err.Error())
+				slog.Error("error occurred", "error", "operation failed")
 				return
 			}
 
@@ -90,7 +90,7 @@ func (e *validationExtensionImpl) SetModelValueWithScenario(vModel models.Model,
 			setErr := vObjectPtr.innerSetFieldValue(fieldVal.Name, fieldVal.Value, true)
 			if setErr != nil {
 				err = setErr
-				log.Errorf("SetModelValueWithScenario failed, set field:%s value err:%s", fieldVal.Name, err.Error())
+				slog.Error("error occurred", "error", "operation failed")
 				return
 			}
 		}
@@ -102,7 +102,7 @@ func (e *validationExtensionImpl) SetModelValueWithScenario(vModel models.Model,
 			if primaryField != nil {
 				err = e.ValidateFieldWithScenario(primaryField, val, scenario, false)
 				if err != nil {
-					log.Errorf("SetModelValueWithScenario failed, validate primary field:%s value err:%s", primaryField.GetName(), err.Error())
+					slog.Error("error occurred", "error", err.Error())
 					return
 				}
 			}
@@ -110,12 +110,12 @@ func (e *validationExtensionImpl) SetModelValueWithScenario(vModel models.Model,
 			// Set the value after validation
 			err = vObjectPtr.innerSetPrimaryFieldValue(val, true)
 			if err != nil {
-				log.Errorf("SetModelValueWithScenario failed, set primary field value err:%s", err.Error())
+				slog.Error("error occurred", "error", "operation failed")
 				return
 			}
 		} else {
 			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal model value, val:%v", val))
-			log.Errorf("SetModelValueWithScenario failed, err:%s", err.Error())
+			slog.Error("error occurred", "error", "operation failed")
 			return
 		}
 	}

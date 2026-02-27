@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/models"
+	"log/slog"
 )
 
 // BuildUpdate  Build Update
@@ -16,19 +16,19 @@ func (s *Builder) BuildUpdate(vModel models.Model) (ret database.Result, err *cd
 	updateStr, updateErr := s.buildFieldUpdateValues(vModel, resultStackPtr)
 	if updateErr != nil {
 		err = updateErr
-		log.Errorf("BuildUpdate failed, s.buildFieldUpdateValues error:%s", err.Error())
+		slog.Error("BuildUpdate failed", "operation", "s.buildFieldUpdateValues", "error", err.Error())
 		return
 	}
 	filterStr, filterErr := s.buildFieldFilter(vModel.GetPrimaryField(), resultStackPtr)
 	if filterErr != nil {
 		err = filterErr
-		log.Errorf("BuildUpdate failed, s.BuildModelFilter error:%s", err.Error())
+		slog.Error("BuildUpdate failed", "operation", "s.BuildModelFilter", "error", err.Error())
 		return
 	}
 
 	updateSQL := fmt.Sprintf("UPDATE \"%s\" SET %s WHERE %s", s.buildCodec.ConstructModelTableName(vModel), updateStr, filterStr)
 	if traceSQL() {
-		log.Infof("[SQL] update: %s", updateSQL)
+		slog.Info("[SQL] update", "sql", updateSQL)
 	}
 
 	resultStackPtr.SetSQL(updateSQL)
@@ -59,7 +59,7 @@ func (s *Builder) buildFieldUpdateValues(vModel models.Model, resultStackPtr *Re
 		encodeVal, encodeErr := s.buildCodec.PackedBasicFieldValue(field, fVal)
 		if encodeErr != nil {
 			err = encodeErr
-			log.Errorf("buildFieldUpdateValues %s failed, encodeFieldValue error:%s", field.GetName(), err.Error())
+			slog.Error("buildFieldUpdateValues failed", "field", field.GetName(), "operation", "encodeFieldValue", "error", err.Error())
 			return
 		}
 

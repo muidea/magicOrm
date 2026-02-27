@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/utils"
+	"log/slog"
 )
 
 type Field struct {
@@ -156,7 +156,7 @@ func (s *Field) copy(viewSpec models.ViewDeclare) (ret *Field, err error) {
 			}
 		}
 	default:
-		log.Warnf("fieldName:%s,unknown view spec:%v", s.Name, viewSpec)
+		slog.Warn("message")
 	}
 
 	return

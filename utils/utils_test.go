@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/muidea/magicCommon/foundation/log"
+	"log/slog"
 )
 
 func TestInterface(t *testing.T) {
@@ -29,14 +29,14 @@ func TestInterface(t *testing.T) {
 func TestIsReallyValid(t *testing.T) {
 	var strPtr *string
 	strPtrRVal := reflect.ValueOf(strPtr)
-	log.Infof("strPtrRVal Type:%v", strPtrRVal.Type())
+	slog.Info("strPtrRVal Type", "type", strPtrRVal.Type())
 	strPtrRVal = reflect.New(strPtrRVal.Type().Elem()).Elem()
-	log.Infof("strPtrRVal Type:%v", strPtrRVal.Type())
+	slog.Info("strPtrRVal Type", "type", strPtrRVal.Type())
 	if !IsReallyValidValueForReflect(strPtrRVal) {
 		t.Errorf("strPtrRVal should be valid")
 	}
 	strPtrRVal = strPtrRVal.Addr()
-	log.Infof("strPtrRVal Type:%v", strPtrRVal.Type())
+	slog.Info("strPtrRVal Type", "type", strPtrRVal.Type())
 	if !IsReallyValidValueForReflect(strPtrRVal) {
 		t.Errorf("strPtrRVal should be valid")
 	}

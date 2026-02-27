@@ -5,8 +5,8 @@ import (
 	"reflect"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/models"
+	"log/slog"
 )
 
 type ValueImpl struct {
@@ -59,11 +59,11 @@ func (s *ValueImpl) IsZero() bool {
 func (s *ValueImpl) Set(val any) (err *cd.Error) {
 	if !s.value.CanSet() {
 		err = cd.NewError(cd.Unexpected, "Set failed, value is not settable")
-		log.Warnf("Set failed, value is not settable")
+		slog.Warn("Set failed, value is not settable", "message", "warning")
 		return
 	}
 	if !s.value.IsValid() {
-		log.Errorf("Set failed, value is not valid, s.value canSet:%+v", s.value.CanSet())
+		slog.Error("error occurred", "error", "operation failed")
 		return
 	}
 
@@ -72,7 +72,7 @@ func (s *ValueImpl) Set(val any) (err *cd.Error) {
 	if !isPtr {
 		if rVal.Type() != s.value.Type() {
 			err = cd.NewError(cd.Unexpected, "Set failed, value type is not match")
-			log.Warnf("Set failed, value type is not match, data type:%+v, value type:%+v", rVal.Type(), s.value.Type())
+			slog.Warn("warning", "type", s.value.Type())
 			return
 		}
 
@@ -83,7 +83,7 @@ func (s *ValueImpl) Set(val any) (err *cd.Error) {
 	rVal = reflect.Indirect(rVal)
 	if rVal.Type() != s.value.Type().Elem() {
 		err = cd.NewError(cd.Unexpected, "Set failed, value type is not match")
-		log.Warnf("Set failed, value type is not match")
+		slog.Warn("Set failed, value type is not match", "message", "warning")
 		return
 	}
 

@@ -6,12 +6,12 @@ import (
 	"time"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
+	"log/slog"
 )
 
 type CountRunner struct {
@@ -37,7 +37,7 @@ func (s *CountRunner) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
 	countResult, countErr := s.sqlBuilder.BuildCount(s.vModel, vFilter)
 	if countErr != nil {
 		err = countErr
-		log.Errorf("Count failed, sqlBuilder.BuildCount error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 
@@ -51,7 +51,7 @@ func (s *CountRunner) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
 		var countVal sql.NullInt64
 		err = s.executor.GetField(&countVal)
 		if err != nil {
-			log.Errorf("Count failed, s.executor.GetField error:%s", err.Error())
+			slog.Error("operation failed", "error", "operation failed")
 			return
 		}
 
@@ -90,7 +90,7 @@ func (s *impl) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
 	queryVal, queryErr := countRunner.Count(vFilter)
 	if queryErr != nil {
 		err = queryErr
-		log.Errorf("Count failed, countRunner.Count error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 

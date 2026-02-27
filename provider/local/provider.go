@@ -4,20 +4,20 @@ import (
 	"reflect"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/models"
+	"log/slog"
 )
 
 func checkEntityType(entity any) (ret *TypeImpl, err *cd.Error) {
 	typeImplPtr, typeImplErr := NewType(reflect.TypeOf(entity))
 	if typeImplErr != nil {
 		err = typeImplErr
-		log.Errorf("checkEntityType failed, illegal entity type, err:%s", err.Error())
+		slog.Error("error occurred", "error", "operation failed")
 		return
 	}
 	if !models.IsStruct(typeImplPtr.Elem()) {
 		err = cd.NewError(cd.IllegalParam, "entity is invalid")
-		log.Errorf("checkEntityType failed, illegal entity type, err:%s", err.Error())
+		slog.Error("error occurred", "error", "operation failed")
 		return
 	}
 
@@ -34,7 +34,7 @@ func GetEntityType(entity any) (ret models.Type, err *cd.Error) {
 	typeImplPtr, typeImplErr := checkEntityType(entity)
 	if typeImplErr != nil {
 		err = typeImplErr
-		log.Errorf("GetEntityType failed, err:%s", err.Error())
+		slog.Error("error occurred", "error", "operation failed")
 		return
 	}
 
@@ -50,7 +50,7 @@ func GetEntityValue(entity any) (ret models.Value, err *cd.Error) {
 
 	_, err = checkEntityType(entity)
 	if err != nil {
-		log.Errorf("GetEntityValue failed, err:%s", err.Error())
+		slog.Error("error occurred", "error", "operation failed")
 		return
 	}
 
@@ -113,13 +113,13 @@ func SetModelValue(vModel models.Model, vVal models.Value, disableValidator bool
 	valImplPtr, valImplOK := vVal.(*ValueImpl)
 	if !valImplOK {
 		err = cd.NewError(cd.IllegalParam, "value is invalid")
-		log.Errorf("SetModelValue failed, err:%s", err.Error())
+		slog.Error("error occurred", "error", "operation failed")
 		return
 	}
 	valueModel, valueModelErr := getValueModel(valImplPtr.value, models.OriginView)
 	if valueModelErr != nil {
 		err = valueModelErr
-		log.Errorf("SetModelValue failed, err:%s", err.Error())
+		slog.Error("error occurred", "error", "operation failed")
 		return
 	}
 
@@ -132,7 +132,7 @@ func SetModelValue(vModel models.Model, vVal models.Value, disableValidator bool
 
 		err = vModelImplPtr.innerSetFieldValue(field.GetName(), field.GetValue().Get(), disableValidator)
 		if err != nil {
-			log.Errorf("SetModelValue failed, set field:%s value err:%s", field.GetName(), err.Error())
+			slog.Error("error occurred", "error", err.Error())
 			return
 		}
 	}

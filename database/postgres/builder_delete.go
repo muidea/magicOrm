@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/models"
+	"log/slog"
 )
 
 // BuildDelete  BuildDelete
@@ -16,13 +16,13 @@ func (s *Builder) BuildDelete(vModel models.Model) (ret database.Result, err *cd
 	filterStr, filterErr := s.buildFieldFilter(vModel.GetPrimaryField(), resultStackPtr)
 	if filterErr != nil {
 		err = filterErr
-		log.Errorf("BuildDelete failed, s.BuildModelFilter error:%s", err.Error())
+		slog.Error("BuildDelete failed", "operation", "s.BuildModelFilter", "error", err.Error())
 		return
 	}
 
 	deleteSQL := fmt.Sprintf("DELETE FROM \"%s\" WHERE %s", s.buildCodec.ConstructModelTableName(vModel), filterStr)
 	if traceSQL() {
-		log.Infof("[SQL] delete: %s", deleteSQL)
+		slog.Info("[SQL] delete", "sql", deleteSQL)
 	}
 
 	resultStackPtr.SetSQL(deleteSQL)
@@ -36,14 +36,14 @@ func (s *Builder) BuildDeleteRelation(vModel models.Model, vField models.Field) 
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("BuildDeleteRelation %s failed, s.buildCodec.ConstructRelationTableName error:%s", vField.GetName(), err.Error())
+		slog.Error("BuildDeleteRelation failed", "field", vField.GetName(), "operation", "s.buildCodec.ConstructRelationTableName", "error", err.Error())
 		return
 	}
 
 	rModel, rErr := s.modelProvider.GetTypeModel(vField.GetType())
 	if rErr != nil {
 		err = rErr
-		log.Errorf("BuildDeleteRelation %s failed, s.modelProvider.GetTypeModel error:%s", vField.GetName(), err.Error())
+		slog.Error("BuildDeleteRelation failed", "field", vField.GetName(), "operation", "s.modelProvider.GetTypeModel", "error", err.Error())
 		return
 	}
 
@@ -63,7 +63,7 @@ func (s *Builder) BuildDeleteRelation(vModel models.Model, vField models.Field) 
 	delRelation = delRelationStackPtr
 
 	if traceSQL() {
-		log.Infof("[SQL] delete host: %s, delete relation: %s", delHostSQL, delRelationSQL)
+		slog.Info("[SQL] delete host and relation", "host_sql", delHostSQL, "relation_sql", delRelationSQL)
 	}
 
 	return

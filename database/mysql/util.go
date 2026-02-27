@@ -5,8 +5,8 @@ import (
 	"os"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/models"
+	"log/slog"
 )
 
 func traceSQL() bool {
@@ -47,7 +47,7 @@ func getTypeDeclare(fType models.Type, fSpec models.Spec) (ret string, err *cd.E
 	}
 
 	if err != nil {
-		log.Errorf("getTypeDeclare failed, error:%s", err.Error())
+		slog.Error("getTypeDeclare failed, error:%s", "error", err.Error())
 	}
 
 	return
@@ -103,7 +103,7 @@ func getFieldPlaceHolder(fType models.Type) (ret any, err *cd.Error) {
 	}
 
 	if err != nil {
-		log.Errorf("getFieldPlaceHolder failed, error:%s", err.Error())
+		slog.Error("getFieldPlaceHolder failed, error:%s", "error", err.Error())
 	}
 
 	return

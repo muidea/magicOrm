@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
+	"log/slog"
 )
 
 type Identifier interface {
@@ -100,7 +100,7 @@ func (s *codecImpl) getFieldRelation(vField models.Field) (ret relationType) {
 func (s *codecImpl) PackedBasicFieldValue(vField models.Field, fVal models.Value) (ret any, err *cd.Error) {
 	if !models.IsBasicField(vField) {
 		err = cd.NewError(cd.Unexpected, "illegal field type")
-		log.Errorf("PackedFieldValue failed, error:%s", err.Error())
+		slog.Error("PackedFieldValue failed", "error", err.Error())
 		return
 	}
 
@@ -123,7 +123,7 @@ func (s *codecImpl) PackedBasicFieldValue(vField models.Field, fVal models.Value
 	}
 
 	if err != nil {
-		log.Errorf("PackedFieldValue failed, error:%s", err.Error())
+		slog.Error("PackedFieldValue failed", "error", err.Error())
 	}
 
 	return
@@ -132,21 +132,21 @@ func (s *codecImpl) PackedBasicFieldValue(vField models.Field, fVal models.Value
 func (s *codecImpl) PackedStructFieldValue(vField models.Field, fVal models.Value) (ret any, err *cd.Error) {
 	if !models.IsStructField(vField) || !models.IsStruct(vField.GetType().Elem()) {
 		err = cd.NewError(cd.Unexpected, "illegal field type")
-		log.Errorf("PackedStructFieldValue failed, error:%s", err.Error())
+		slog.Error("PackedStructFieldValue failed", "error", err.Error())
 		return
 	}
 
 	vModelVal, modelValErr := s.modelProvider.GetTypeModel(vField.GetType().Elem())
 	if modelValErr != nil {
 		err = modelValErr
-		log.Errorf("PackedStructFieldValue failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+		slog.Error("PackedStructFieldValue failed", "error", err.Error())
 		return
 	}
 
 	vModelVal, modelValErr = s.modelProvider.SetModelValue(vModelVal, fVal)
 	if modelValErr != nil {
 		err = modelValErr
-		log.Errorf("PackedStructFieldValue failed, s.modelProvider.SetModelValue error:%s", err.Error())
+		slog.Error("PackedStructFieldValue failed", "value", "s.modelProvider.SetModelValue", "error", err.Error())
 		return
 	}
 
@@ -158,14 +158,14 @@ func (s *codecImpl) PackedStructFieldValue(vField models.Field, fVal models.Valu
 func (s *codecImpl) PackedSliceStructFieldValue(vField models.Field, fVal models.Value) (ret any, err *cd.Error) {
 	if !models.IsSliceField(vField) || models.IsStruct(vField.GetType().Elem()) {
 		err = cd.NewError(cd.Unexpected, "illegal field type")
-		log.Errorf("PackedSliceStructFieldValue failed, error:%s", err.Error())
+		slog.Error("PackedSliceStructFieldValue failed", "error", err.Error())
 		return
 	}
 
 	vModelVal, modelValErr := s.modelProvider.GetTypeModel(vField.GetType().Elem())
 	if modelValErr != nil {
 		err = modelValErr
-		log.Errorf("PackedSliceStructFieldValue failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+		slog.Error("PackedSliceStructFieldValue failed", "value", "s.modelProvider.GetTypeModel", "error", err.Error())
 		return
 	}
 
@@ -175,14 +175,14 @@ func (s *codecImpl) PackedSliceStructFieldValue(vField models.Field, fVal models
 		vModelVal, modelValErr = s.modelProvider.SetModelValue(vModelVal.Copy(models.LiteView), val)
 		if modelValErr != nil {
 			err = modelValErr
-			log.Errorf("PackedSliceStructFieldValue failed, s.modelProvider.SetModelValue error:%s", err.Error())
+			slog.Error("PackedSliceStructFieldValue failed", "value", "s.modelProvider.SetModelValue", "error", err.Error())
 			return
 		}
 		pkField := vModelVal.GetPrimaryField()
 		pkVal, pkErr := s.PackedBasicFieldValue(pkField, pkField.GetValue())
 		if pkErr != nil {
 			err = pkErr
-			log.Errorf("PackedSliceStructFieldValue failed, s.PackedBasicFieldValue error:%s", err.Error())
+			slog.Error("PackedSliceStructFieldValue failed", "value", "s.PackedBasicFieldValue", "error", err.Error())
 			return
 		}
 		valueList = append(valueList, pkVal)

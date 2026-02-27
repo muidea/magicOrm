@@ -5,9 +5,9 @@ import (
 	"reflect"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/utils"
+	"log/slog"
 )
 
 var _declareObjectSliceValue SliceObjectValue
@@ -154,7 +154,7 @@ func appendBasicValue(sliceVal, val any) (ret any, err *cd.Error) {
 	rVal := reflect.ValueOf(sliceVal)
 	if rVal.Kind() != reflect.Slice {
 		err = cd.NewError(cd.Unexpected, "value is not slice")
-		log.Warnf("Append failed, value is not slice")
+		slog.Error("error occurred", "error", "operation failed")
 		return
 	}
 
@@ -164,7 +164,7 @@ func appendBasicValue(sliceVal, val any) (ret any, err *cd.Error) {
 
 	if !valType.AssignableTo(elemType) {
 		err = cd.NewError(cd.Unexpected, "type mismatch, expected: "+elemType.String()+", got: "+valType.String())
-		log.Warnf("Append failed, type mismatch, expected: %s, got: %s", elemType, valType)
+		slog.Warn("message")
 		return
 	}
 
@@ -197,7 +197,7 @@ func convertSliceValue(vType models.Type, val any) (ret any, err *cd.Error) {
 	rVal = reflect.Indirect(rVal)
 	if rVal.Kind() != reflect.Slice {
 		err = cd.NewError(cd.Unexpected, "value is not slice")
-		log.Warnf("convertSliceValue failed, value is not slice")
+		slog.Error("error occurred", "error", "operation failed")
 		return
 	}
 	sliceVal := []any{}

@@ -11,8 +11,8 @@ import (
 	"time"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/database"
+	"log/slog"
 )
 
 const (
@@ -76,7 +76,7 @@ func TestNewPool(t *testing.T) {
 		endTime := time.Now()
 		elapse := endTime.Sub(startTime)
 		if err := recover(); err != nil {
-			log.Errorf("execute failed, elapse:%v, err:%v", elapse, err)
+			slog.Errorf("execute failed, elapse:%v, err:%v", elapse, err)
 			return
 		}
 	}()
@@ -108,12 +108,12 @@ func testDML(wg *sync.WaitGroup, pool *Pool) {
 	pickExecutor(pool, wg, func(executor database.Executor) (err *cd.Error) {
 		bVal, bErr := checkSchema(executor)
 		if bErr != nil {
-			log.Errorf("checkSchema failed, error:%s", bErr.Error())
+			slog.Errorf("checkSchema failed, error:%s", bErr.Error())
 			err = bErr
 			return
 		}
 		if !bVal {
-			log.Errorf("checkSchema failed")
+			sslog.Error("checkSchema failed", "error", "operation failed")
 		}
 
 		return

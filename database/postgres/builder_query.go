@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/models"
+	"log/slog"
 )
 
 // BuildQuery build query sql
@@ -15,7 +15,7 @@ func (s *Builder) BuildQuery(vModel models.Model, filter models.Filter) (ret dat
 	namesVal, nameErr := s.getFieldQueryNames(vModel)
 	if nameErr != nil {
 		err = nameErr
-		log.Errorf("BuildQuery failed, s.getFieldQueryNames error:%s", err.Error())
+		slog.Error("BuildQuery failed", "operation", "s.getFieldQueryNames", "error", err.Error())
 		return
 	}
 
@@ -25,7 +25,7 @@ func (s *Builder) BuildQuery(vModel models.Model, filter models.Filter) (ret dat
 		filterSQL, filterErr := s.buildFilter(vModel, filter, resultStackPtr)
 		if filterErr != nil {
 			err = filterErr
-			log.Errorf("BuildQuery failed, s.buildFilter error:%s", err.Error())
+			slog.Error("BuildQuery failed", "operation", "s.buildFilter", "error", err.Error())
 			return
 		}
 
@@ -36,7 +36,7 @@ func (s *Builder) BuildQuery(vModel models.Model, filter models.Filter) (ret dat
 		sortVal, sortErr := s.buildSorter(vModel, filter.Sorter())
 		if sortErr != nil {
 			err = sortErr
-			log.Errorf("BuildQuery failed, s.buildSorter error:%s", err.Error())
+			slog.Error("BuildQuery failed", "operation", "s.buildSorter", "error", err.Error())
 			return
 		}
 
@@ -51,7 +51,7 @@ func (s *Builder) BuildQuery(vModel models.Model, filter models.Filter) (ret dat
 		}
 	}
 	if traceSQL() {
-		log.Infof("[SQL] query: %s", querySQL)
+		slog.Info("[SQL] query", "sql", querySQL)
 	}
 
 	resultStackPtr.SetSQL(querySQL)
@@ -65,7 +65,7 @@ func (s *Builder) BuildQueryRelation(vModel models.Model, vField models.Field) (
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("BuildQueryRelation %s failed, s.buildCodec.ConstructRelationTableName error:%s", vField.GetName(), err.Error())
+		slog.Error("BuildQueryRelation failed", "field", vField.GetName(), "operation", "s.buildCodec.ConstructRelationTableName", "error", err.Error())
 		return
 	}
 
@@ -73,7 +73,7 @@ func (s *Builder) BuildQueryRelation(vModel models.Model, vField models.Field) (
 	resultStackPtr.PushArgs(leftVal)
 	queryRelationSQL := fmt.Sprintf("SELECT \"right\" FROM \"%s\" WHERE \"left\"= $%d", relationTableName, len(resultStackPtr.argsVal))
 	if traceSQL() {
-		log.Infof("[SQL] query relation: %s", queryRelationSQL)
+		slog.Info("[SQL] query relation", "sql", queryRelationSQL)
 	}
 
 	resultStackPtr.SetSQL(queryRelationSQL)
@@ -123,7 +123,7 @@ func (s *Builder) BuildModuleValueHolder(vModel models.Model) (ret []any, err *c
 		itemVal, itemErr := getFieldValueHolder(field.GetType())
 		if itemErr != nil {
 			err = itemErr
-			log.Errorf("BuildModuleValueHolder failed, getFieldPlaceHolder error:%s", err.Error())
+			slog.Error("BuildModuleValueHolder failed", "operation", "getFieldPlaceHolder", "error", err.Error())
 			return
 		}
 

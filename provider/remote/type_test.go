@@ -151,7 +151,7 @@ func TestTypeImpl_convertRawStruct(t *testing.T) {
 				initVal: 123,
 			},
 			wantRet: nilObjectValuePtr,
-			wantErr: nil, // 预期返回nil，因为log.Warnf后直接返回
+			wantErr: nil, // 预期返回nil，因为slog.Warnf后直接返回
 		},
 		{
 			name: "map to ObjectValue",

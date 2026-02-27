@@ -2,10 +2,10 @@ package local
 
 import (
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/validation"
 	"github.com/muidea/magicOrm/validation/errors"
+	"log/slog"
 )
 
 // ValidationExtension provides scenario-aware validation for local provider
@@ -59,14 +59,14 @@ func (e *validationExtensionImpl) SetModelValueWithScenario(vModel models.Model,
 	valImplPtr, valImplOK := vVal.(*ValueImpl)
 	if !valImplOK {
 		err = cd.NewError(cd.IllegalParam, "value is invalid")
-		log.Errorf("SetModelValueWithScenario failed, err:%s", err.Error())
+		slog.Error("error occurred", "error", "operation failed")
 		return
 	}
 
 	valueModel, valueModelErr := getValueModel(valImplPtr.value, models.OriginView)
 	if valueModelErr != nil {
 		err = valueModelErr
-		log.Errorf("SetModelValueWithScenario failed, err:%s", err.Error())
+		slog.Error("error occurred", "error", "operation failed")
 		return
 	}
 
@@ -82,7 +82,7 @@ func (e *validationExtensionImpl) SetModelValueWithScenario(vModel models.Model,
 		fieldValue := field.GetValue().Get()
 		err = e.ValidateFieldWithScenario(field, fieldValue, scenario, false)
 		if err != nil {
-			log.Errorf("SetModelValueWithScenario failed, validate field:%s value err:%s", field.GetName(), err.Error())
+			slog.Error("error occurred", "error", err.Error())
 			return
 		}
 
@@ -90,7 +90,7 @@ func (e *validationExtensionImpl) SetModelValueWithScenario(vModel models.Model,
 		setErr := vModelImplPtr.innerSetFieldValue(field.GetName(), fieldValue, true)
 		if setErr != nil {
 			err = setErr
-			log.Errorf("SetModelValueWithScenario failed, set field:%s value err:%s", field.GetName(), err.Error())
+			slog.Error("error occurred", "error", err.Error())
 			return
 		}
 	}
@@ -240,6 +240,6 @@ func (s *objectImpl) innerSetFieldValueWithScenario(name string, val any, scenar
 		}
 	}
 
-	log.Warnf("innerSetFieldValueWithScenario failed, field:%s not found", name)
+	slog.Warn("warning", "message", "warning")
 	return
 }

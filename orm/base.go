@@ -4,11 +4,11 @@ import (
 	"context"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
+	"log/slog"
 )
 
 type baseRunner struct {
@@ -60,7 +60,7 @@ func isContextValid(ctx context.Context) bool {
 // checkContext 检查 context 是否失效，如果失效则返回错误
 func (s *baseRunner) checkContext() *cd.Error {
 	if !isContextValid(s.context) {
-		log.Errorf("Context is invalid or cancelled, operation terminated")
+		slog.Error("message")
 		return cd.NewError(cd.Unexpected, "context is invalid or cancelled")
 	}
 	return nil
@@ -69,7 +69,7 @@ func (s *baseRunner) checkContext() *cd.Error {
 // CheckContext 检查 context 是否失效，如果失效则返回错误
 func (s *impl) CheckContext() *cd.Error {
 	if !isContextValid(s.context) {
-		log.Errorf("Context is invalid or cancelled, operation terminated")
+		slog.Error("message")
 		return cd.NewError(cd.Unexpected, "context is invalid or cancelled")
 	}
 	return nil

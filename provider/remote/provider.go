@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/models"
+	"log/slog"
 )
 
 func GetEntityType(entity any) (ret models.Type, err *cd.Error) {
@@ -101,7 +101,7 @@ func GetEntityValue(entity any) (ret models.Value, err *cd.Error) {
 		}
 	default:
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal entity, entity:%v", entity))
-		//log.Errorf("GetEntityValue failed, err:%s", err.Error())
+		//slog.Error("GetEntityValue failed, err:%s", err.Error())
 		return
 	}
 
@@ -122,7 +122,7 @@ func GetEntityModel(entity any, valueValidator models.ValueValidator) (ret model
 		objectPtr = &val
 	default:
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal entity, entity:%v", entity))
-		log.Errorf("GetEntityModel failed, err:%s", err.Error())
+		slog.Error("GetEntityModel failed", "error", err.Error())
 	}
 
 	if err != nil {
@@ -138,7 +138,7 @@ func GetModelFilter(vModel models.Model) (ret models.Filter, err *cd.Error) {
 	objectPtr, objectOK := vModel.(*Object)
 	if !objectOK {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal model, model:%v", vModel))
-		log.Errorf("GetModelFilter failed, err:%s", err.Error())
+		slog.Error("GetModelFilter failed", "error", err.Error())
 		return
 	}
 
@@ -150,7 +150,7 @@ func SetModelValue(vModel models.Model, vVal models.Value, disableValidator bool
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
 			err = cd.NewError(cd.Unexpected, fmt.Sprintf("SetModelValue failed, illegal value, err:%v", errInfo))
-			log.Errorf("SetModelValue failed, err:%s", err.Error())
+			slog.Error("SetModelValue failed", "error", err.Error())
 			return
 		}
 	}()
@@ -166,7 +166,7 @@ func SetModelValue(vModel models.Model, vVal models.Value, disableValidator bool
 			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal model value, val:%v", val))
 		}
 		if err != nil {
-			log.Errorf("SetModelValue failed, err:%s", err.Error())
+			slog.Error("SetModelValue failed", "error", err.Error())
 			return
 		}
 	}
@@ -180,7 +180,7 @@ func assignObjectValue(vObjectPtr *Object, objectValuePtr *ObjectValue, disableV
 		fieldVal := objectValuePtr.Fields[idx]
 		err = vObjectPtr.innerSetFieldValue(fieldVal.GetName(), fieldVal.Get(), disableValidator)
 		if err != nil {
-			log.Errorf("assignObjectValue failed, err:%s", err.Error())
+			slog.Error("assignObjectValue failed", "error", err.Error())
 			return
 		}
 	}

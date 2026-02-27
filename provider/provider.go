@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/models"
+	"log/slog"
 )
 
 type Provider interface {
@@ -173,7 +173,7 @@ func (s *providerImpl) GetEntityFilter(entity any, viewSpec models.ViewDeclare) 
 func (s *providerImpl) GetTypeModel(vType models.Type) (ret models.Model, err *cd.Error) {
 	if models.IsBasic(vType) {
 		err = cd.NewError(cd.Unexpected, "illegal type value, type pkgKey:"+vType.GetPkgKey())
-		log.Errorf("GetTypeModel failed, error:%v", err.Error())
+		slog.Error("error occurred", "error", err.Error())
 		return
 	}
 
@@ -181,7 +181,7 @@ func (s *providerImpl) GetTypeModel(vType models.Type) (ret models.Model, err *c
 	typeModelVal := s.modelCache.Fetch(pkgKey)
 	if typeModelVal == nil {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't fetch type model, must register type entity first, PkgKey:%s", pkgKey))
-		log.Errorf("GetTypeModel failed, error:%v", err.Error())
+		slog.Error("error occurred", "error", err.Error())
 		return
 	}
 
@@ -192,7 +192,7 @@ func (s *providerImpl) GetTypeModel(vType models.Type) (ret models.Model, err *c
 func (s *providerImpl) GetModelFilter(vModel models.Model) (ret models.Filter, err *cd.Error) {
 	if vModel == nil {
 		err = cd.NewError(cd.Unexpected, "illegal model value")
-		log.Errorf("GetModelFilter failed, error:%v", err.Error())
+		slog.Error("error occurred", "error", err.Error())
 		return
 	}
 
@@ -200,14 +200,14 @@ func (s *providerImpl) GetModelFilter(vModel models.Model) (ret models.Filter, e
 	curModelVal := s.modelCache.Fetch(pkgKey)
 	if curModelVal == nil {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
-		log.Errorf("GetModelFilter failed, error:%v", err.Error())
+		slog.Error("error occurred", "error", err.Error())
 		return
 	}
 
 	filterVal, filterErr := s.getModelFilterFunc(vModel)
 	if filterErr != nil {
 		err = filterErr
-		log.Errorf("GetModelFilter failed, getFilterFunc error:%v", err.Error())
+		slog.Error("error occurred", "error", filterErr.Error())
 		return
 	}
 
@@ -218,7 +218,7 @@ func (s *providerImpl) GetModelFilter(vModel models.Model) (ret models.Filter, e
 func (s *providerImpl) GetTypeFilter(vType models.Type, viewSpec models.ViewDeclare) (ret models.Filter, err *cd.Error) {
 	if vType == nil {
 		err = cd.NewError(cd.Unexpected, "illegal type value")
-		log.Errorf("GetTypeFilter failed, error:%v", err.Error())
+		slog.Error("error occurred", "error", err.Error())
 		return
 	}
 
@@ -226,14 +226,14 @@ func (s *providerImpl) GetTypeFilter(vType models.Type, viewSpec models.ViewDecl
 	curModelVal := s.modelCache.Fetch(pkgKey)
 	if curModelVal == nil {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
-		log.Errorf("GetTypeFilter failed, error:%v", err.Error())
+		slog.Error("error occurred", "error", err.Error())
 		return
 	}
 
 	filterVal, filterErr := s.getModelFilterFunc(curModelVal.Copy(viewSpec))
 	if filterErr != nil {
 		err = filterErr
-		log.Errorf("GetTypeFilter failed, getFilterFunc error:%v", err.Error())
+		slog.Error("error occurred", "error", filterErr.Error())
 		return
 	}
 
@@ -246,13 +246,13 @@ func (s *providerImpl) SetModelValue(vModel models.Model, vVal models.Value) (re
 	curModel := s.modelCache.Fetch(pkgKey)
 	if curModel == nil {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
-		log.Errorf("SetModelValue failed, error:%v", err.Error())
+		slog.Error("error occurred", "error", err.Error())
 		return
 	}
 
 	ret, err = s.setModelValueFunc(vModel, vVal, true)
 	if err != nil {
-		log.Errorf("SetModelValue failed, s.setModelValueFunc error:%v", err.Error())
+		slog.Error("error occurred", "error", err.Error())
 	}
 	return
 }
@@ -261,7 +261,7 @@ func (s *providerImpl) EncodeValue(vVal any, vType models.Type) (ret any, err *c
 	if models.IsBasic(vType) {
 		ret, err = s.encodeValueFunc(vVal, vType)
 		if err != nil {
-			log.Errorf("EncodeValue failed, s.encodeValueFunc error:%v", err.Error())
+			slog.Error("error occurred", "error", err.Error())
 		}
 		return
 	}
@@ -270,20 +270,20 @@ func (s *providerImpl) EncodeValue(vVal any, vType models.Type) (ret any, err *c
 	curModelVal := s.modelCache.Fetch(pkgKey)
 	if curModelVal == nil {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
-		log.Errorf("EncodeValue failed, error:%v", err.Error())
+		slog.Error("error occurred", "error", err.Error())
 		return
 	}
 
 	eVal, eErr := s.getEntityValueFunc(vVal)
 	if eErr != nil {
 		err = eErr
-		log.Errorf("EncodeValue failed, s.getEntityValueFunc error:%v", err.Error())
+		slog.Error("error occurred", "error", eErr.Error())
 		return
 	}
 	vModelVal, vModelErr := s.setModelValueFunc(curModelVal.Copy(models.LiteView), eVal, true)
 	if vModelErr != nil {
 		err = vModelErr
-		log.Errorf("EncodeValue failed, s.setModelValueFunc error:%v", err.Error())
+		slog.Error("error occurred", "error", vModelErr.Error())
 		return
 	}
 
@@ -295,7 +295,7 @@ func (s *providerImpl) EncodeValue(vVal any, vType models.Type) (ret any, err *c
 func (s *providerImpl) DecodeValue(vVal any, vType models.Type) (ret any, err *cd.Error) {
 	ret, err = s.decodeValueFunc(vVal, vType)
 	if err != nil {
-		log.Errorf("DecodeValue failed, s.decodeValueFunc error:%v", err.Error())
+		slog.Error("error occurred", "error", err.Error())
 	}
 	return
 }

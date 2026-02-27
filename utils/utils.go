@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/models"
+	"log/slog"
 )
 
 // 基本数值类型辅助函数
@@ -48,7 +48,7 @@ func IsReallyValidValueForReflect(vVal reflect.Value) bool {
 		if !vVal.IsValid() {
 			return true
 		}
-		log.Warnf("IsReallyValidTypeForReflect failed, unsupported type:%s", vVal.Type().String())
+		slog.Warn("IsReallyValidTypeForReflect failed", "unsupported_type", vVal.Type().String())
 	case reflect.Slice:
 		if vVal.IsNil() {
 			// 未初始化认为不合法

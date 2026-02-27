@@ -6,11 +6,11 @@ import (
 	"strings"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider/local"
 	"github.com/muidea/magicOrm/provider/remote"
 	"github.com/muidea/magicOrm/utils"
+	"log/slog"
 )
 
 const (
@@ -185,14 +185,16 @@ func type2Object(entityType reflect.Type) (ret *remote.Object, err *cd.Error) {
 	typeImpl, typeErr := newType(entityType)
 	if typeErr != nil {
 		err = typeErr
-		log.Errorf("type2Object failed, check entity type err:%s", err.Error())
+
+		slog.Error("message")
 		return
 	}
 
 	typeImpl = typeImpl.Elem().(*remote.TypeImpl)
 	if !models.IsStructType(typeImpl.GetValue()) {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal object type, must be a struct obj, type:%s", entityType.String()))
-		log.Errorf("type2Object failed, check object type err:%s", err.Error())
+
+		slog.Error("message")
 		return
 	}
 
@@ -208,13 +210,15 @@ func type2Object(entityType reflect.Type) (ret *remote.Object, err *cd.Error) {
 		fItem, fErr := getItemInfo(fieldType)
 		if fErr != nil {
 			err = fErr
-			log.Errorf("type2Object failed, getItemInfo err:%s", err.Error())
+
+			slog.Error("message")
 			return
 		}
 		if models.IsPrimaryField(fItem) {
 			if hasPrimaryField {
 				err = cd.NewError(cd.Unexpected, fmt.Sprintf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldType.Name, impl.GetName()))
-				log.Errorf("type2Object failed, check primary key err:%s", err.Error())
+
+				slog.Error("message")
 				return
 			}
 
@@ -226,13 +230,15 @@ func type2Object(entityType reflect.Type) (ret *remote.Object, err *cd.Error) {
 
 	if len(impl.Fields) == 0 {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("no define orm field, struct name:%s", impl.GetName()))
-		log.Errorf("type2Object failed, check fields err:%s", err.Error())
+
+		slog.Error("message")
 		return
 	}
 
 	if !hasPrimaryField {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("no define primary key field, struct name:%s", impl.GetName()))
-		log.Errorf("type2Object failed, check primary key err:%s", err.Error())
+
+		slog.Error("message")
 		return
 	}
 
@@ -252,13 +258,14 @@ func GetObject(entity any) (ret *remote.Object, err *cd.Error) {
 	objectPtr, objectErr := type2Object(entityType)
 	if objectErr != nil {
 		err = objectErr
-		log.Errorf("GetObject failed, type2Object err:%s", err.Error())
+		slog.Error("error occurred", "error", err.Error())
 		return
 	}
 
 	err = models.VerifyModel(objectPtr)
 	if err != nil {
-		log.Errorf("GetObject failed, VerifyModel err:%s", err.Error())
+
+		slog.Error("message")
 		return
 	}
 
@@ -281,7 +288,7 @@ func getFieldValue(fieldName string, itemType *remote.TypeImpl, itemValue reflec
 		itemVal, itemErr := local.EncodeValue(itemValue.Interface(), itemType)
 		if itemErr != nil {
 			err = itemErr
-			log.Errorf("getFieldValue failed, fieldName:%s, itemPkgKey:%s, Encode err:%s", fieldName, itemType.GetPkgKey(), itemErr.Error())
+			slog.Error("error occurred", "error", fieldName, "pkgKey", itemType.GetPkgKey(), "itemErr", itemErr.Error())
 			return
 		}
 
@@ -293,7 +300,8 @@ func getFieldValue(fieldName string, itemType *remote.TypeImpl, itemValue reflec
 		objVal, objErr := getSliceObjectValue(itemValue)
 		if objErr != nil {
 			err = objErr
-			log.Errorf("getFieldValue failed, fieldName:%s, itemPkgKey:%s, getSliceObjectValue err:%s", fieldName, itemType.GetPkgKey(), err.Error())
+
+			slog.Error("error occurred", "error", err.Error())
 			return
 		}
 
@@ -304,7 +312,8 @@ func getFieldValue(fieldName string, itemType *remote.TypeImpl, itemValue reflec
 	objVal, objErr := getObjectValue(itemValue)
 	if objErr != nil {
 		err = objErr
-		log.Errorf("getFieldValue failed, filedName:%s, itemPkgKey:%s, getObjectValue err:%s", fieldName, itemType.GetPkgKey(), err.Error())
+
+		slog.Error("error occurred", "error", err.Error())
 		return
 	}
 
@@ -318,12 +327,13 @@ func getObjectValue(entityVal reflect.Value) (ret *remote.ObjectValue, err *cd.E
 	objType, objErr := newType(entityType)
 	if objErr != nil {
 		err = objErr
-		log.Errorf("getObjectValue failed, newType err:%s", err.Error())
+		slog.Error("error occurred", "error", err.Error())
 		return
 	}
 	if !models.IsStruct(objType) || models.IsSlice(objType) {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal entity value, entity type:%s", entityType.String()))
-		log.Errorf("getObjectValue failed, check object type err:%s", err.Error())
+
+		slog.Error("message")
 		return
 	}
 
@@ -334,28 +344,32 @@ func getObjectValue(entityVal reflect.Value) (ret *remote.ObjectValue, err *cd.E
 		fieldName, fieldErr := getFieldName(fieldType)
 		if fieldErr != nil {
 			err = fieldErr
-			log.Errorf("get entity name failed, field name:%s, err:%s", fieldType.Name, err.Error())
+
+			slog.Error("message")
 			return
 		}
 
 		typePtr, typeErr := newType(fieldType.Type)
 		if typeErr != nil {
 			err = typeErr
-			log.Errorf("get entity type failed, field name:%s, err:%s", fieldType.Name, err.Error())
+
+			slog.Error("message")
 			return
 		}
 
 		val, valErr := getFieldValue(fieldName, typePtr, entityVal.Field(idx))
 		if valErr != nil {
 			err = valErr
-			log.Errorf("getFieldValue failed, field name:%s, err:%s", fieldType.Name, err.Error())
+
+			slog.Error("message")
 			return
 		}
 
 		specPtr, specErr := newSpec(fieldType.Tag)
 		if specErr != nil {
 			err = specErr
-			log.Errorf("get entity spec failed, field name:%s, err:%s", fieldType.Name, err.Error())
+
+			slog.Error("message")
 		}
 
 		if specPtr.IsPrimaryKey() && val.IsValid() {
@@ -406,20 +420,22 @@ func getSliceObjectValue(sliceVal reflect.Value) (ret *remote.SliceObjectValue, 
 	sliceType, sliceErr := newType(sliceVal.Type())
 	if sliceErr != nil {
 		err = sliceErr
-		log.Errorf("getSliceObjectValue failed, newType err:%v", err.Error())
+		slog.Error("message")
 		return
 	}
 
 	if !models.IsSliceType(sliceType.GetValue()) {
 		err = cd.NewError(cd.Unexpected, "illegal slice object value")
-		log.Errorf("getSliceObjectValue failed, check slice type err:%s", err.Error())
+
+		slog.Error("message")
 		return
 	}
 
 	elemType := sliceType.Elem()
 	if !models.IsStructType(elemType.GetValue()) {
 		err = cd.NewError(cd.Unexpected, "illegal slice item type")
-		log.Errorf("getSliceObjectValue failed, check slice item err:%s", err.Error())
+
+		slog.Error("message")
 		return
 	}
 
@@ -430,7 +446,8 @@ func getSliceObjectValue(sliceVal reflect.Value) (ret *remote.SliceObjectValue, 
 		objVal, objErr := getObjectValue(val)
 		if objErr != nil {
 			err = objErr
-			log.Errorf("getSliceObjectValue failed, getObjectValue err:%s", err.Error())
+
+			slog.Error("message")
 			return
 		}
 
@@ -466,14 +483,15 @@ func GetSliceObjectValue(sliceEntity any) (ret *remote.SliceObjectValue, err *cd
 func UpdateEntity(remoteValuePtr *remote.ObjectValue, localEntity any) (err *cd.Error) {
 	if remoteValuePtr == nil {
 		err = cd.NewError(cd.Unexpected, "illegal remote object value")
-		log.Errorf("UpdateEntity failed, check object value err:%s", err.Error())
+		slog.Error("error occurred", "error", err.Error())
 		return
 	}
 
 	localModel, localErr := local.GetEntityModel(localEntity, nil)
 	if localErr != nil {
 		err = localErr
-		log.Errorf("UpdateEntity failed, local.GetEntityModel err:%s", err.Error())
+
+		slog.Error("message")
 		return
 	}
 
@@ -497,7 +515,7 @@ func updateLocalModel(remoteValuePtr *remote.ObjectValue, localModel models.Mode
 
 			err = localField.SetValue(rVal)
 			if err != nil {
-				log.Errorf("UpdateEntity failed, filed name:%s, vField.SetValue err:%s", fieldValue.Name, err.Error())
+				slog.Error("error occurred", "val", fieldValue.Name, "error", err.Error())
 				return
 			}
 			continue
@@ -505,7 +523,8 @@ func updateLocalModel(remoteValuePtr *remote.ObjectValue, localModel models.Mode
 		if models.IsSliceField(localField) {
 			err = updateSliceStructField(fieldValue.Get(), localField)
 			if err != nil {
-				log.Errorf("UpdateEntity failed, filed name:%s, vField.SetValue err:%s", fieldValue.Name, err.Error())
+
+				slog.Error("message")
 				return
 			}
 
@@ -514,7 +533,8 @@ func updateLocalModel(remoteValuePtr *remote.ObjectValue, localModel models.Mode
 		if models.IsStructField(localField) {
 			err = updateStructField(fieldValue.Get(), localField)
 			if err != nil {
-				log.Errorf("UpdateEntity failed, filed name:%s, vField.SetValue err:%s", fieldValue.Name, err.Error())
+
+				slog.Error("message")
 				return
 			}
 
@@ -533,7 +553,7 @@ func updateSliceStructField(val any, localField models.Field) (err *cd.Error) {
 	sliceObjectValuePtr, sliceObjectValueOK := val.(*remote.SliceObjectValue)
 	if !sliceObjectValueOK {
 		err = cd.NewError(cd.Unexpected, "illegal slice object value")
-		log.Errorf("updateSliceStructField failed, filed name:%s, check slice object value err:%s", localField.GetName(), err.Error())
+		slog.Error("error occurred", "val", localField.GetName(), "error", err.Error())
 		return
 	}
 
@@ -544,17 +564,20 @@ func updateSliceStructField(val any, localField models.Field) (err *cd.Error) {
 		localSubModel, localSubErr := local.GetValueModel(localSubVal)
 		if localSubErr != nil {
 			err = localSubErr
-			log.Errorf("updateSliceStructField failed, filed name:%s, local.GetValueModel err:%s", localField.GetName(), err.Error())
+
+			slog.Error("error occurred", "error", err.Error())
 			return
 		}
 		err = updateLocalModel(objectValuePtr, localSubModel)
 		if err != nil {
-			log.Errorf("updateSliceStructField failed, filed name:%s, UpdateEntity err:%s", localField.GetName(), err.Error())
+
+			slog.Error("error occurred", "error", err.Error())
 			return
 		}
 		err = localField.AppendSliceValue(localSubModel.Interface(elemType.IsPtrType()))
 		if err != nil {
-			log.Errorf("updateSliceStructField failed, filed name:%s, AppendSliceValue err:%s", localField.GetName(), err.Error())
+
+			slog.Error("error occurred", "error", err.Error())
 			return
 		}
 	}
@@ -570,7 +593,7 @@ func updateStructField(val any, vField models.Field) (err *cd.Error) {
 	objectValuePtr, objectValueOK := val.(*remote.ObjectValue)
 	if !objectValueOK {
 		err = cd.NewError(cd.Unexpected, "illegal object value")
-		log.Errorf("updateStructField failed, filed name:%s, check object value err:%s", vField.GetName(), err.Error())
+		slog.Error("error occurred", "val", vField.GetName(), "error", err.Error())
 		return
 	}
 
@@ -579,13 +602,15 @@ func updateStructField(val any, vField models.Field) (err *cd.Error) {
 	localModelVal, localModelErr := local.GetValueModel(localFileVal)
 	if localModelErr != nil {
 		err = localModelErr
-		log.Errorf("updateStructField failed, filed name:%s, local.GetValueModel err:%s", vField.GetName(), err.Error())
+
+		slog.Error("error occurred", "error", err.Error())
 		return
 
 	}
 	err = updateLocalModel(objectValuePtr, localModelVal)
 	if err != nil {
-		log.Errorf("updateStructField failed, filed name:%s, vField.SetValue err:%s", vField.GetName(), err.Error())
+
+		slog.Error("error occurred", "error", err.Error())
 		return
 	}
 
@@ -596,24 +621,27 @@ func updateStructField(val any, vField models.Field) (err *cd.Error) {
 func UpdateSliceEntity(remoteSliceValuePtr *remote.SliceObjectValue, localSliceValue any) (err *cd.Error) {
 	if remoteSliceValuePtr == nil {
 		err = cd.NewError(cd.Unexpected, "illegal remote slice object value")
-		log.Errorf("UpdateSliceEntity failed, check object value err:%s", err.Error())
+		slog.Error("error occurred", "error", err.Error())
 		return
 	}
 	if localSliceValue == nil {
 		err = cd.NewError(cd.Unexpected, "illegal local entity value")
-		log.Errorf("UpdateSliceEntity failed, check object value err:%s", err.Error())
+
+		slog.Error("message")
 		return
 	}
 
 	localTypePtr, localTypeErr := local.NewType(reflect.TypeOf(localSliceValue))
 	if localTypeErr != nil {
 		err = localTypeErr
-		log.Errorf("UpdateSliceEntity failed, local.NewType err:%s", err.Error())
+
+		slog.Error("message")
 		return
 	}
 	if !models.IsSlice(localTypePtr) || !localTypePtr.IsPtrType() {
 		err = cd.NewError(cd.Unexpected, "illegal local entity type")
-		log.Errorf("UpdateSliceEntity failed, check object value err:%s", err.Error())
+
+		slog.Error("message")
 		return
 	}
 
@@ -625,19 +653,22 @@ func UpdateSliceEntity(remoteSliceValuePtr *remote.SliceObjectValue, localSliceV
 		localItemModel, localItemErr := local.GetValueModel(localItemVal)
 		if localItemErr != nil {
 			err = localItemErr
-			log.Errorf("UpdateSliceEntity failed, local.GetValueModel err:%s", err.Error())
+
+			slog.Error("message")
 			return
 		}
 		err = updateLocalModel(val, localItemModel)
 		if err != nil {
-			log.Errorf("UpdateSliceEntity failed, UpdateEntity err:%s", err.Error())
+
+			slog.Error("message")
 			return
 		}
 
 		localRawVal := localItemModel.Interface(elemType.IsPtrType())
 		err = localValuePtr.Append(reflect.ValueOf(localRawVal))
 		if err != nil {
-			log.Errorf("UpdateSliceEntity failed, Append err:%s", err.Error())
+
+			slog.Error("message")
 			return
 		}
 	}

@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicCommon/foundation/util"
 	"github.com/muidea/magicOrm/models"
+	"log/slog"
 )
 
 // Unit 单元信息
@@ -836,9 +836,8 @@ func TestAssign(t *testing.T) {
 	if !reflect.DeepEqual(newVal.PtrSlicePtr, intPtrSlicePtr) {
 		t.Errorf("Assign failed, expected: %v, got: %v", intPtrSlicePtr, newVal.PtrSlicePtr)
 	}
-
-	log.Infof("rawVal:%+v", rawVal)
-	log.Infof("newVal:%+v", newVal)
+	slog.Info("rawVal", "value", rawVal)
+	slog.Info("info")
 
 	err = zeroModelVal.SetFieldValue("id", id)
 	if err != nil {
@@ -871,20 +870,20 @@ func TestAssign(t *testing.T) {
 		t.Errorf("SetFieldValue->ptrSlicePtr failed, err: %s", err.Error())
 	}
 
-	updatedVal001 := zeroModelVal.Interface(true)
-	log.Infof("rawVal:%+v", rawVal)
-	log.Infof("newVal:%+v", newVal)
-	log.Infof("updatedVal:%+v", updatedVal001)
+	_ = zeroModelVal.Interface(true)
+	slog.Info("message")
+	slog.Info("message")
+	slog.Info("message")
 
 	zeroModelVal.SetFieldValue("id", 100)
 	err = sliceField.AppendSliceValue(100)
 	if err != nil {
 		t.Errorf("AppendSliceValue->id failed, err: %s", err.Error())
 	}
-	updatedVal002 := zeroModelVal.Interface(true)
-	log.Infof("rawVal:%+v", rawVal)
-	log.Infof("newVal:%+v", newVal)
-	log.Infof("updatedVal:%+v", updatedVal002)
+	_ = zeroModelVal.Interface(true)
+	slog.Info("message")
+	slog.Info("message")
+	slog.Info("message")
 
 	zero02Model := zeroModelVal.Copy(models.MetaView)
 	slicePtrField = zero02Model.GetField("slicePtr")
@@ -892,8 +891,8 @@ func TestAssign(t *testing.T) {
 	if err != nil {
 		t.Errorf("AppendSliceValue->slicePtr failed, err: %s", err.Error())
 	}
-	updatedVal003 := zero02Model.Interface(true)
-	log.Infof("rawVal:%+v", rawVal)
-	log.Infof("newVal:%+v", newVal)
-	log.Infof("updatedVal:%+v", updatedVal003)
+	_ = zero02Model.Interface(true)
+	slog.Info("message")
+	slog.Info("message")
+	slog.Info("message")
 }

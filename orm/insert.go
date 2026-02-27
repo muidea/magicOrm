@@ -6,7 +6,6 @@ import (
 	"time"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
@@ -14,6 +13,7 @@ import (
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/utils"
 	"github.com/muidea/magicOrm/validation/errors"
+	"log/slog"
 )
 
 type InsertRunner struct {
@@ -49,15 +49,21 @@ func (s *InsertRunner) insertHost(vModel models.Model) (err *cd.Error) {
 			autoIncrementFlag = true
 		case models.UUID:
 			if vVal.IsZero() {
-				vVal.Set(utils.GetNewUUID())
+				if setErr := vVal.Set(utils.GetNewUUID()); setErr != nil {
+					slog.Warn("Failed to set UUID value", "error", setErr)
+				}
 			}
 		case models.Snowflake:
 			if vVal.IsZero() {
-				vVal.Set(utils.GetNewSnowflakeID())
+				if setErr := vVal.Set(utils.GetNewSnowflakeID()); setErr != nil {
+					slog.Warn("Failed to set snowflake ID", "error", setErr)
+				}
 			}
 		case models.DateTime:
 			if vVal.IsZero() {
-				vVal.Set(utils.GetCurrentDateTime())
+				if setErr := vVal.Set(utils.GetCurrentDateTime()); setErr != nil {
+					slog.Warn("Failed to set datetime", "error", setErr)
+				}
 			}
 		}
 	}
@@ -65,7 +71,7 @@ func (s *InsertRunner) insertHost(vModel models.Model) (err *cd.Error) {
 	pkVal, pkErr := s.innerHost(vModel)
 	if pkErr != nil {
 		err = pkErr
-		log.Errorf("insertHost failed, s.innerHost error:%s", err.Error())
+		slog.Error("Insert operation failed in innerHost", "error", pkErr)
 		return
 	}
 
@@ -74,12 +80,12 @@ func (s *InsertRunner) insertHost(vModel models.Model) (err *cd.Error) {
 		vVal, vErr := s.modelCodec.ExtractBasicFieldValue(pkField, pkVal)
 		if vErr != nil {
 			err = vErr
-			log.Errorf("insertHost failed, extract pkField:%s, pkField type:%s, s.modelCodec.ExtractFieldValue error:%s", pkField.GetName(), pkField.GetType().GetPkgKey(), err.Error())
+			slog.Error("operation failed", "value", pkField.GetType().GetPkgKey(), "error", err.Error())
 			return
 		}
 		err = pkField.SetValue(vVal)
 		if err != nil {
-			log.Errorf("insertHost failed, set pkField:%s, pkField type:%s, s.modelCodec.ExtractFieldValue error:%s", pkField.GetName(), pkField.GetType().GetPkgKey(), err.Error())
+			slog.Error("operation failed", "value", pkField.GetType().GetPkgKey(), "error", err.Error())
 			return
 		}
 	}
@@ -90,7 +96,7 @@ func (s *InsertRunner) innerHost(vModel models.Model) (ret any, err *cd.Error) {
 	insertResult, insertErr := s.sqlBuilder.BuildInsert(vModel)
 	if insertErr != nil {
 		err = insertErr
-		log.Errorf("innerHost failed, builder.BuildInsert error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 
@@ -98,7 +104,7 @@ func (s *InsertRunner) innerHost(vModel models.Model) (ret any, err *cd.Error) {
 	idErr := s.executor.ExecuteInsert(insertResult.SQL(), &idVal, insertResult.Args()...)
 	if idErr != nil {
 		err = idErr
-		log.Errorf("innerHost failed, s.executor.Execute error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 
@@ -111,7 +117,7 @@ func (s *InsertRunner) insertRelation(vModel models.Model, vField models.Field) 
 		rErr := s.insertSliceRelation(vModel, vField)
 		if rErr != nil {
 			err = rErr
-			log.Errorf("insertRelation failed, field:%s, s.insertSliceRelation error:%s", vField.GetName(), err.Error())
+			slog.Error("operation failed", "error", err.Error())
 			return
 		}
 		return
@@ -120,7 +126,7 @@ func (s *InsertRunner) insertRelation(vModel models.Model, vField models.Field) 
 	rErr := s.insertSingleRelation(vModel, vField)
 	if rErr != nil {
 		err = rErr
-		log.Errorf("insertRelation failed, field:%s, s.insertSingleRelation error:%s", vField.GetName(), err.Error())
+		slog.Error("operation failed", "error", err.Error())
 		return
 	}
 	return
@@ -131,13 +137,13 @@ func (s *InsertRunner) insertSingleRelation(vModel models.Model, vField models.F
 	rModel, rErr := s.modelProvider.GetTypeModel(elemType)
 	if rErr != nil {
 		err = rErr
-		log.Errorf("insertSingleRelation failed, s.modelProvider.GetTypeModel error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 	rModel, rErr = s.modelProvider.SetModelValue(rModel, vField.GetValue())
 	if rErr != nil {
 		err = rErr
-		log.Errorf("insertSingleRelation failed, s.modelProvider.SetModelValue error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 
@@ -146,7 +152,7 @@ func (s *InsertRunner) insertSingleRelation(vModel models.Model, vField models.F
 		rModel, rErr = rInsertRunner.Insert()
 		if rErr != nil {
 			err = rErr
-			log.Errorf("insertSingleRelation failed, rInsertRunner.Insert() error:%s", err.Error())
+			slog.Error("Insert operation failed in relation", "error", rErr, "model", vModel.GetPkgKey())
 			return
 		}
 	}
@@ -154,14 +160,14 @@ func (s *InsertRunner) insertSingleRelation(vModel models.Model, vField models.F
 	relationSQL, relationErr := s.sqlBuilder.BuildInsertRelation(vModel, vField, rModel)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("insertSingleRelation failed, s.sqlBuilder.BuildInsertRelation error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 
 	var idVal any
 	err = s.executor.ExecuteInsert(relationSQL.SQL(), &idVal, relationSQL.Args()...)
 	if err != nil {
-		log.Errorf("insertSingleRelation failed, s.executor.Execute error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 
@@ -176,13 +182,13 @@ func (s *InsertRunner) insertSliceRelation(vModel models.Model, vField models.Fi
 		rModel, rErr := s.modelProvider.GetTypeModel(elemType)
 		if rErr != nil {
 			err = rErr
-			log.Errorf("insertSliceRelation failed, model:%s, filed name:%s, s.modelProvider.GetTypeModel error:%s", vModel.GetPkgKey(), vField.GetName(), err.Error())
+			slog.Error("operation failed", "value", vField.GetName(), "error", err.Error())
 			return
 		}
 		rModel, rErr = s.modelProvider.SetModelValue(rModel, fVal)
 		if rErr != nil {
 			err = rErr
-			log.Errorf("insertSliceRelation failed, model:%s, filed name:%s, s.modelProvider.SetModelValue error:%s", vModel.GetPkgKey(), vField.GetName(), err.Error())
+			slog.Error("operation failed", "value", vField.GetName(), "error", err.Error())
 			return
 		}
 
@@ -191,7 +197,7 @@ func (s *InsertRunner) insertSliceRelation(vModel models.Model, vField models.Fi
 			rModel, rErr = rInsertRunner.Insert()
 			if rErr != nil {
 				err = rErr
-				log.Errorf("insertSliceRelation failed, model:%s, filed name:%s, s.insertSingle error:%s", vModel.GetPkgKey(), vField.GetName(), err.Error())
+				slog.Error("operation failed", "value", vField.GetName(), "error", err.Error())
 				return
 			}
 		}
@@ -199,21 +205,21 @@ func (s *InsertRunner) insertSliceRelation(vModel models.Model, vField models.Fi
 		relationResult, relationErr := s.sqlBuilder.BuildInsertRelation(vModel, vField, rModel)
 		if relationErr != nil {
 			err = relationErr
-			log.Errorf("insertSliceRelation failed, model:%s, filed name:%s, s.sqlBuilder.BuildInsertRelation error:%s", vModel.GetPkgKey(), vField.GetName(), err.Error())
+			slog.Error("operation failed", "value", vField.GetName(), "error", err.Error())
 			return
 		}
 
 		var idVal any
 		err = s.executor.ExecuteInsert(relationResult.SQL(), &idVal, relationResult.Args()...)
 		if err != nil {
-			log.Errorf("insertSliceRelation failed, model:%s, filed name:%s, s.executor.Execute error:%s", vModel.GetPkgKey(), vField.GetName(), err.Error())
+			slog.Error("operation failed", "value", vField.GetName(), "error", err.Error())
 			return
 		}
 
 		// 这里只需要直接更新值就可以
 		err = fVal.Set(rModel.Interface(elemType.IsPtrType()))
 		if err != nil {
-			log.Errorf("insertSliceRelation failed, model:%s, filed name:%s, fVal.Set error:%s", vModel.GetPkgKey(), vField.GetName(), err.Error())
+			slog.Error("operation failed", "value", vField.GetName(), "error", err.Error())
 			return
 		}
 	}
@@ -227,7 +233,7 @@ func (s *InsertRunner) Insert() (ret models.Model, err *cd.Error) {
 
 	err = s.insertHost(s.vModel)
 	if err != nil {
-		log.Errorf("Insert failed, s.insertSingle error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 
@@ -245,13 +251,13 @@ func (s *InsertRunner) Insert() (ret models.Model, err *cd.Error) {
 
 			// 未赋值，但是是必选字段，则需要报错提示
 			err = cd.NewError(cd.IllegalParam, fmt.Sprintf("illegal field value, field:%s", field.GetName()))
-			log.Errorf("Insert field:%s model failed, s.insertRelation error:%s", field.GetName(), err.Error())
+			slog.Error("operation failed", "error", err.Error())
 			return
 		}
 
 		err = s.insertRelation(s.vModel, field)
 		if err != nil {
-			log.Errorf("Insert relation field:%s failed, s.insertRelation error:%s", field.GetName(), err.Error())
+			slog.Error("operation failed", "error", err.Error())
 			return
 		}
 	}
@@ -295,7 +301,7 @@ func (s *impl) Insert(vModel models.Model) (ret models.Model, err *cd.Error) {
 	insertRunner := NewInsertRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec)
 	ret, err = insertRunner.Insert()
 	if err != nil {
-		log.Errorf("Insert failed, insertRunner.Insert() error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 	return

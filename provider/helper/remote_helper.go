@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/provider/remote"
+	"log/slog"
 )
 
 func EncodeObject(objPtr *remote.Object) (ret []byte, err *cd.Error) {
@@ -39,19 +39,19 @@ func DecodeObject(data []byte) (ret *remote.Object, err *cd.Error) {
 func SerializeEntity(entity any, destinationPath string) {
 	objectPtr, objectErr := GetObject(entity)
 	if objectErr != nil {
-		log.Errorf("SerializeEntity failed, GetObject error:%s", objectErr.Error())
+		slog.Error("message")
 		return
 	}
 
 	byteVal, byteErr := json.Marshal(objectPtr)
 	if byteErr != nil {
-		log.Errorf("SerializeEntity failed, json.Marshal error:%s", byteErr.Error())
+		slog.Error("message")
 		return
 	}
 	var byteStream bytes.Buffer
 	byteErr = json.Indent(&byteStream, byteVal, "", "\t")
 	if byteErr != nil {
-		log.Errorf("SerializeEntity failed, json.Indent error:%s", byteErr.Error())
+		slog.Error("message")
 		return
 	}
 
@@ -59,17 +59,17 @@ func SerializeEntity(entity any, destinationPath string) {
 	fileName = path.Join(destinationPath, fileName)
 	fileHandle, fileErr := os.OpenFile(fileName, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
 	if fileErr != nil {
-		log.Errorf("SerializeEntity failed, os.Open %s error:%s", fileName, fileErr.Error())
+		slog.Error("message")
 		return
 	}
 	defer fileHandle.Close()
 
 	_, writeErr := byteStream.WriteTo(fileHandle)
 	if writeErr != nil {
-		log.Errorf("SerializeEntity failed, fileHandle.Write %s error:%s", fileName, writeErr.Error())
+		slog.Error("message")
 		_ = os.Remove(fileName)
 		return
 	}
 
-	log.Infof("SerializeEntity %s ok!", fileName)
+	slog.Info("info")
 }

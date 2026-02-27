@@ -19,9 +19,9 @@ import (
 	"reflect"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/utils"
+	"log/slog"
 )
 
 type ValueImpl struct {
@@ -158,7 +158,7 @@ func (s *ValueImpl) UnpackValue() (ret []models.Value) {
 func (s *ValueImpl) Append(val any) (err *cd.Error) {
 	if s.value == nil {
 		err = cd.NewError(cd.Unexpected, "value is nil")
-		log.Warnf("Append failed, value is nil")
+		slog.Warn("message")
 		return
 	}
 
@@ -168,7 +168,7 @@ func (s *ValueImpl) Append(val any) (err *cd.Error) {
 		case *ObjectValue:
 			if s.value.(*SliceObjectValue).GetPkgPath() != val.(*ObjectValue).GetPkgPath() {
 				err = cd.NewError(cd.Unexpected, "pkgPath is not match")
-				log.Warnf("Append failed, pkgPath is not match")
+				slog.Warn("message")
 				return
 			}
 			s.value.(*SliceObjectValue).Values = append(s.value.(*SliceObjectValue).Values, val.(*ObjectValue))
@@ -200,7 +200,7 @@ func (s *ValueImpl) copy() (ret *ValueImpl, err error) {
 		copiedVal, copiedErr := utils.DeepCopy(s.value)
 		if copiedErr != nil {
 			err = copiedErr
-			log.Errorf("copy failed, copiedErr:%v", copiedErr.Error())
+			slog.Error("error occurred", "error", "operation failed")
 			return
 		}
 		ret.value = copiedVal

@@ -1,8 +1,9 @@
 package provider
 
 import (
+	"log/slog"
+
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 )
 
 // logError 统一错误日志记录辅助函数
@@ -12,9 +13,9 @@ import (
 func logError(methodName, operation string, err *cd.Error) {
 	if err != nil {
 		if operation != "" {
-			log.Errorf("%s failed, %s error:%v", methodName, operation, err.Error())
+			slog.Error("message")
 		} else {
-			log.Errorf("%s failed, error:%v", methodName, err.Error())
+			slog.Error("message")
 		}
 	}
 }

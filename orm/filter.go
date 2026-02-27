@@ -4,8 +4,8 @@ import (
 	"time"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/models"
+	"log/slog"
 )
 
 // BatchQuery batch query
@@ -26,7 +26,7 @@ func (s *impl) BatchQuery(filter models.Filter) (ret []models.Model, err *cd.Err
 
 	if filter == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal model value")
-		log.Errorf("BatchQuery failed, illegal model value")
+		slog.Error("message")
 		return
 	}
 
@@ -34,7 +34,7 @@ func (s *impl) BatchQuery(filter models.Filter) (ret []models.Model, err *cd.Err
 	queryVal, queryErr := vQueryRunner.Query(filter)
 	if queryErr != nil {
 		err = queryErr
-		log.Errorf("BatchQuery failed, vQueryRunner.Query error:%v", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 

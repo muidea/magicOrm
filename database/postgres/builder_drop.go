@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/models"
+	"log/slog"
 )
 
 // BuildDropTable  BuildDropSchema
@@ -15,7 +15,7 @@ func (s *Builder) BuildDropTable(vModel models.Model) (ret database.Result, err 
 	dropSQL := fmt.Sprintf("DROP TABLE IF EXISTS \"%s\"", s.buildCodec.ConstructModelTableName(vModel))
 	//log.Print(dropSQL)
 	if traceSQL() {
-		log.Infof("[SQL] drop: %s", dropSQL)
+		slog.Info("[SQL] drop", "sql", dropSQL)
 	}
 
 	ret = NewError(dropSQL, nil)
@@ -27,14 +27,14 @@ func (s *Builder) BuildDropRelationTable(vModel models.Model, vField models.Fiel
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("BuildDeleteRelation %s failed, s.buildCodec.ConstructRelationTableName error:%s", vField.GetName(), err.Error())
+		slog.Error("BuildDeleteRelation failed", "field", vField.GetName(), "operation", "s.buildCodec.ConstructRelationTableName", "error", err.Error())
 		return
 	}
 
 	dropRelationSQL := fmt.Sprintf("DROP INDEX IF EXISTS \"%s_index\";\nDROP TABLE IF EXISTS \"%s\"", relationTableName, relationTableName)
 	//log.Print(dropRelationSQL)
 	if traceSQL() {
-		log.Infof("[SQL] drop relation: %s", dropRelationSQL)
+		slog.Info("[SQL] drop relation", "sql", dropRelationSQL)
 	}
 
 	ret = NewError(dropRelationSQL, nil)

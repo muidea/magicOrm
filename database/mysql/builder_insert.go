@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/models"
+	"log/slog"
 )
 
 // BuildInsert  Build Insert
@@ -29,7 +29,7 @@ func (s *Builder) BuildInsert(vModel models.Model) (ret database.Result, err *cd
 		encodeVal, encodeErr := s.buildCodec.PackedBasicFieldValue(field, fValue)
 		if encodeErr != nil {
 			err = encodeErr
-			log.Errorf("BuildInsert %s failed, encodeFieldValue error:%s", field.GetName(), err.Error())
+			slog.Error("BuildInsert %s failed", "error", "encodeFieldValue", field.GetName(), err.Error())
 			return
 		}
 
@@ -49,7 +49,7 @@ func (s *Builder) BuildInsert(vModel models.Model) (ret database.Result, err *cd
 
 	insertSQL := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", s.buildCodec.ConstructModelTableName(vModel), fieldNames, fieldValues)
 	if traceSQL() {
-		log.Infof("[SQL] insert: %s", insertSQL)
+		slog.Info("[SQL] insert", "sql", insertSQL)
 	}
 
 	resultStackPtr.SetSQL(insertSQL)
@@ -62,7 +62,7 @@ func (s *Builder) BuildInsertRelation(vModel models.Model, vField models.Field, 
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("BuildInsertRelation %s failed, s.buildCodec.ConstructRelationTableName error:%s", vField.GetName(), err.Error())
+		slog.Error("BuildInsertRelation %s failed", "error", "s.buildCodec.ConstructRelationTableName", vField.GetName(), err.Error())
 		return
 	}
 
@@ -74,7 +74,7 @@ func (s *Builder) BuildInsertRelation(vModel models.Model, vField models.Field, 
 	resultStackPtr.SetSQL(insertRelationSQL)
 	//log.Print(ret)
 	if traceSQL() {
-		log.Infof("[SQL] insert relation: %s", insertRelationSQL)
+		slog.Info("[SQL] insert relation", "sql", insertRelationSQL)
 	}
 
 	ret = resultStackPtr

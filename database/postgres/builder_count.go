@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/models"
+	"log/slog"
 )
 
 // BuildCount build count
@@ -18,7 +18,7 @@ func (s *Builder) BuildCount(vModel models.Model, filter models.Filter) (ret dat
 		filterSQL, filterErr := s.buildFilter(vModel, filter, resultStackPtr)
 		if filterErr != nil {
 			err = filterErr
-			log.Errorf("BuildCount failed, s.buildFilter error:%s", err.Error())
+			slog.Error("BuildCount failed", "operation", "s.buildFilter", "error", err.Error())
 			return
 		}
 
@@ -28,7 +28,7 @@ func (s *Builder) BuildCount(vModel models.Model, filter models.Filter) (ret dat
 	}
 
 	if traceSQL() {
-		log.Infof("[SQL] count: %s", countSQL)
+		slog.Info("[SQL] count", "sql", countSQL)
 	}
 
 	resultStackPtr.SetSQL(countSQL)

@@ -2,18 +2,18 @@ package orm
 
 import (
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
+	"log/slog"
 )
 
 func getModelFilter(vModel models.Model, provider provider.Provider, modelCodec codec.Codec) (ret models.Filter, err *cd.Error) {
 	filterVal, filterErr := provider.GetModelFilter(vModel)
 	if filterErr != nil {
 		err = filterErr
-		log.Errorf("getModelFilter failed, s.modelProvider.GetEntityFilter error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 
@@ -23,13 +23,13 @@ func getModelFilter(vModel models.Model, provider provider.Provider, modelCodec 
 		pkVal, pkErr := modelCodec.PackedBasicFieldValue(pkField, pkField.GetValue())
 		if pkErr != nil {
 			err = pkErr
-			log.Errorf("getModelFilter failed, modelCodec.PackedFieldValue error:%s", err.Error())
+			slog.Error("operation failed", "error", "operation failed")
 			return
 		}
 
 		err = filterVal.Equal(pkField.GetName(), pkVal)
 		if err != nil {
-			log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
+			slog.Error("operation failed", "error", "operation failed")
 			return
 		}
 		hasPKValue = true
@@ -51,12 +51,12 @@ func getModelFilter(vModel models.Model, provider provider.Provider, modelCodec 
 			//fieldVal, fieldErr := modelCodec.PackedBasicFieldValue(field, field.GetValue())
 			//if fieldErr != nil {
 			//	err = fieldErr
-			//	log.Errorf("getModelFilter failed, modelCodec.PackedFieldValue error:%s", err.Error())
+			//	slog.Error("operation failed", "error", "operation failed")
 			//	return
 			//}
 			err = filterVal.Equal(field.GetName(), field.GetValue().Get())
 			if err != nil {
-				log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
+				slog.Error("operation failed", "error", "operation failed")
 				return
 			}
 
@@ -68,13 +68,13 @@ func getModelFilter(vModel models.Model, provider provider.Provider, modelCodec 
 			//fieldVal, fieldErr := modelCodec.PackedStructFieldValue(field, field.GetValue())
 			//if fieldErr != nil {
 			//	err = fieldErr
-			//	log.Errorf("getModelFilter failed, modelCodec.PackedFieldValue error:%s", err.Error())
+			//	slog.Error("operation failed", "error", "operation failed")
 			//	return
 			//}
 
 			err = filterVal.Equal(field.GetName(), field.GetValue().Get())
 			if err != nil {
-				log.Errorf("getModelFilter failed, filterVal.Equal error:%s", err.Error())
+				slog.Error("operation failed", "error", "operation failed")
 				return
 			}
 
@@ -86,13 +86,13 @@ func getModelFilter(vModel models.Model, provider provider.Provider, modelCodec 
 			//fieldVal, fieldErr := modelCodec.PackedSliceStructFieldValue(field, field.GetValue())
 			//if fieldErr != nil {
 			//	err = fieldErr
-			//	log.Errorf("getModelFilter failed, modelCodec.PackedFieldValue error:%s", err.Error())
+			//	slog.Error("operation failed", "error", "operation failed")
 			//	return
 			//}
 
 			err = filterVal.In(field.GetName(), field.GetValue().Get())
 			if err != nil {
-				log.Errorf("getModelFilter failed, filterVal.In error:%s", err.Error())
+				slog.Error("operation failed", "error", "operation failed")
 				return
 			}
 

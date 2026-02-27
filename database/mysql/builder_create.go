@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/models"
+	"log/slog"
 )
 
 func (s *Builder) BuildCreateTable(vModel models.Model) (ret database.Result, err *cd.Error) {
@@ -22,7 +22,7 @@ func (s *Builder) BuildCreateTable(vModel models.Model) (ret database.Result, er
 		infoVal, infoErr := s.declareFieldInfo(field)
 		if infoErr != nil {
 			err = infoErr
-			log.Errorf("BuildCreateTable failed, declareFieldInfo error:%s", err.Error())
+			slog.Error("BuildCreateTable failed", "value", "declareFieldInfo", "error", err.Error())
 			return
 		}
 
@@ -38,7 +38,7 @@ func (s *Builder) BuildCreateTable(vModel models.Model) (ret database.Result, er
 
 	createSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", s.buildCodec.ConstructModelTableName(vModel), createSQL)
 	if traceSQL() {
-		log.Infof("[SQL] create: %s", createSQL)
+		slog.Info("[SQL] create", "sql", createSQL)
 	}
 
 	ret = NewError(createSQL, nil)
@@ -51,21 +51,21 @@ func (s *Builder) BuildCreateRelationTable(vModel models.Model, vField models.Fi
 	lPKType, lPKErr := getTypeDeclare(lPKField.GetType(), lPKField.GetSpec())
 	if lPKErr != nil {
 		err = lPKErr
-		log.Errorf("BuildCreateRelationTable failed, getTypeDeclare error:%s", err.Error())
+		slog.Error("BuildCreateRelationTable failed", "value", "getTypeDeclare", "error", err.Error())
 		return
 	}
 
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("BuildCreateRelationTable %s failed, s.buildCodec.ConstructRelationTableName error:%s", vField.GetName(), err.Error())
+		slog.Error("BuildCreateRelationTable %s failed", "error", "s.buildCodec.ConstructRelationTableName", vField.GetName(), err.Error())
 		return
 	}
 
 	rModel, rErr := s.modelProvider.GetTypeModel(vField.GetType().Elem())
 	if rErr != nil {
 		err = rErr
-		log.Errorf("BuildCreateRelationTable %s failed, s.modelProvider.GetTypeModel error:%s", vField.GetName(), err.Error())
+		slog.Error("BuildCreateRelationTable %s failed", "error", "s.modelProvider.GetTypeModel", vField.GetName(), err.Error())
 		return
 	}
 
@@ -73,14 +73,14 @@ func (s *Builder) BuildCreateRelationTable(vModel models.Model, vField models.Fi
 	rPKType, rPKErr := getTypeDeclare(rPKField.GetType(), rPKField.GetSpec())
 	if rPKErr != nil {
 		err = rPKErr
-		log.Errorf("BuildCreateRelationTable failed, getTypeDeclare error:%s", err.Error())
+		slog.Error("BuildCreateRelationTable failed", "value", "getTypeDeclare", "error", err.Error())
 		return
 	}
 
 	createRelationSQL := fmt.Sprintf("\t`id` BIGINT NOT NULL AUTO_INCREMENT,\n\t`left` %s NOT NULL,\n\t`right` %s NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`)", lPKType, rPKType)
 	createRelationSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", relationTableName, createRelationSQL)
 	if traceSQL() {
-		log.Infof("[SQL] create relation: %s", createRelationSQL)
+		slog.Info("[SQL] create relation", "sql", createRelationSQL)
 	}
 
 	ret = NewError(createRelationSQL, nil)
@@ -103,7 +103,7 @@ func (s *Builder) declareFieldInfo(vField models.Field) (ret string, err *cd.Err
 	typeVal, typeErr := getTypeDeclare(vField.GetType(), vField.GetSpec())
 	if typeErr != nil {
 		err = typeErr
-		log.Errorf("declareFieldInfo failed, getTypeDeclare error:%s", err.Error())
+		slog.Error("declareFieldInfo failed", "value", "getTypeDeclare", "error", err.Error())
 		return
 	}
 	strBuffer.WriteString(" ")
@@ -119,14 +119,14 @@ func (s *Builder) declareFieldInfo(vField models.Field) (ret string, err *cd.Err
 	defaultValue, defaultErr := s.validDefaultValue(vField.GetType(), fSpec)
 	if defaultErr != nil {
 		err = defaultErr
-		log.Errorf("declareFieldInfo failed, validDefaultValue error:%s", err.Error())
+		slog.Error("declareFieldInfo failed", "value", "validDefaultValue", "error", err.Error())
 		return
 	}
 	// Write auto increment if needed
 	autoIncVal, autoIncErr := s.validAutoIncrement(vField.GetType(), vField.GetSpec())
 	if autoIncErr != nil {
 		err = autoIncErr
-		log.Errorf("declareFieldInfo failed, validAutoIncrement error:%s", err.Error())
+		slog.Error("declareFieldInfo failed", "value", "validAutoIncrement", "error", err.Error())
 		return
 	}
 

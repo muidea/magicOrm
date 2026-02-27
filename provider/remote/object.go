@@ -6,7 +6,7 @@ import (
 	"path"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
+	"log/slog"
 
 	"github.com/muidea/magicOrm/models"
 )
@@ -83,7 +83,7 @@ func (s *Object) setBasicFileValue(sf *Field, val any, disableValidator bool) (e
 	eVal, eErr := EncodeValue(val, sf.Type)
 	if eErr != nil {
 		err = eErr
-		log.Errorf("setBasicFileValue failed, field:%s, value:%v, EncodeValue error:%v", sf.GetName(), val, err.Error())
+		slog.Error("setBasicFileValue failed", "field", sf.GetName(), "value", val, "error", err.Error())
 		return
 	}
 	err = sf.innerSetValue(eVal, disableValidator)
@@ -98,7 +98,7 @@ func (s *Object) setSliceStructValue(sf *Field, val any, disableValidator bool) 
 		err = sf.innerSetValue(&val, disableValidator)
 	default:
 		err = cd.NewError(cd.Unexpected, "illegal value type")
-		log.Errorf("set slice struct value failed, field:%s, value:%v, err:%s", sf.GetName(), val, err)
+		slog.Error("set slice struct value failed", "field", sf.GetName(), "value", val, "error", err.Error())
 	}
 	return
 }
@@ -111,7 +111,7 @@ func (s *Object) setStructValue(sf *Field, val any, disableValidator bool) (err 
 		err = sf.innerSetValue(&val, disableValidator)
 	default:
 		err = cd.NewError(cd.Unexpected, "illegal value type")
-		log.Errorf("set struct value failed, field:%s, value:%v, err:%s", sf.GetName(), val, err.Error())
+		slog.Error("set struct value failed", "field", sf.GetName(), "value", val, "error", err.Error())
 	}
 	return
 }
@@ -119,11 +119,11 @@ func (s *Object) setStructValue(sf *Field, val any, disableValidator bool) (err 
 func (s *Object) SetFieldValue(name string, val any) (err *cd.Error) {
 	err = s.innerSetFieldValue(name, val, false)
 	if err != nil {
-		log.Errorf("SetFieldValue failed, field:%s, value:%v, err:%s", name, val, err.Error())
+		slog.Error("SetFieldValue failed", "field", name, "value", val, "error", err.Error())
 		return
 	}
 
-	//log.Warnf("SetFieldValue failed, field:%s not found", name)
+	//slog.Warn("SetFieldValue failed, field:%s not found", name)
 	return
 }
 
@@ -143,7 +143,7 @@ func (s *Object) innerSetFieldValue(name string, val any, disableValidator bool)
 		if models.IsBasicField(sf) {
 			err = s.setBasicFileValue(sf, val, disableValidator)
 			if err != nil {
-				log.Errorf("set basic value failed, field:%s, value:%v, err:%s", sf.GetName(), val, err.Error())
+				slog.Error("set basic value failed", "field", sf.GetName(), "value", val, "error", err.Error())
 				return
 			}
 			return
@@ -152,7 +152,7 @@ func (s *Object) innerSetFieldValue(name string, val any, disableValidator bool)
 		if models.IsSliceField(sf) {
 			err = s.setSliceStructValue(sf, val, disableValidator)
 			if err != nil {
-				log.Errorf("set slice value failed, field:%s, value:%v, err:%s", sf.GetName(), val, err.Error())
+				slog.Error("set slice value failed", "field", sf.GetName(), "value", val, "error", err.Error())
 				return
 			}
 			return
@@ -160,13 +160,13 @@ func (s *Object) innerSetFieldValue(name string, val any, disableValidator bool)
 
 		err = s.setStructValue(sf, val, disableValidator)
 		if err != nil {
-			log.Errorf("set struct value failed, field:%s, value:%v, err:%s", sf.GetName(), val, err.Error())
+			slog.Error("set struct value failed", "field", sf.GetName(), "value", val, "error", err.Error())
 			return
 		}
 		return
 	}
 
-	//log.Warnf("SetFieldValue failed, field:%s not found", name)
+	//slog.Warn("SetFieldValue failed, field:%s not found", name)
 	return
 }
 
@@ -249,7 +249,7 @@ func (s *Object) Copy(viewSpec models.ViewDeclare) (ret models.Model) {
 	for _, val := range s.Fields {
 		valPtr, valErr := val.copy(viewSpec)
 		if valErr != nil {
-			log.Errorf("copy field failed, name:%s, err:%s", val.GetName(), valErr.Error())
+			slog.Error("copy field failed, name:%s, err:%s", val.GetName(), valErr.Error())
 			panic(valErr)
 		}
 
@@ -275,7 +275,7 @@ func (s *Object) Verify() (err *cd.Error) {
 	for _, val := range s.Fields {
 		err = val.verify()
 		if err != nil {
-			log.Errorf("Verify field failed, name:%s, err:%s", val.Name, err.Error())
+			slog.Error("Verify field failed, name:%s, err:%s", val.Name, err.Error())
 			return
 		}
 	}
@@ -353,7 +353,7 @@ func (s *ObjectValue) SetFieldValue(name string, value any) {
 func (s *ObjectValue) isFieldAssigned(val *FieldValue) (ret bool) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
-			log.Errorf("check isFieldAssigned unexpected, name:%s, err:%v", val.GetName(), errInfo)
+			slog.Error("check isFieldAssigned unexpected, name:%s, err:%v", val.GetName(), errInfo)
 		}
 	}()
 
@@ -609,7 +609,7 @@ func convertAnySlice(slieceVal []any) any {
 		}
 		return result
 	default:
-		log.Errorf("convertInterfaceArrayToSlice unexpected type:%v", tVal)
+		slog.Error("convertInterfaceArrayToSlice unexpected type:%v", tVal)
 		return nil
 	}
 }
@@ -730,7 +730,7 @@ func compareItemValue(l, r *FieldValue) bool {
 	/*
 		equal, diff := utils.CompareWithNumericConversion(l.Value, r.Value)
 		if !equal {
-			log.Errorf("compareItemValue failed, l:%v, r:%v, diff:%s", l, r, diff)
+			slog.Error("compareItemValue failed, l:%v, r:%v, diff:%s", l, r, diff)
 		}
 
 		return equal

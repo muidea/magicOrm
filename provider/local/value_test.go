@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/models"
+	"log/slog"
 )
 
 func TestArray(t *testing.T) {
@@ -34,66 +34,44 @@ func TestArray(t *testing.T) {
 	rStrArray := rDemoVal.FieldByName("StrArray")
 	rStrPtr := rDemoVal.FieldByName("StrPtr")
 	rNotStrPtr := rDemoVal.FieldByName("NotStrPtr")
-	log.Infof("rIntArray isValid:%v", rIntArray.IsValid())
-	log.Infof("rIntArray isNil:%v", rIntArray.IsNil())
-	log.Infof("rIntArray isZero:%v", rIntArray.IsZero())
-	log.Infof("rIntArray raw---------------")
+	slog.Info("rIntArray isValid", "valid", rIntArray.IsValid())
+
+	slog.Info("rIntArray raw", "info", "information")
 	rIntArrayPtr := NewValue(rIntArray)
 	rIntArrayPtr.reset(true)
-	log.Infof("rIntArray isValid:%v", rIntArray.IsValid())
-	log.Infof("rIntArray isNil:%v", rIntArray.IsNil())
-	log.Infof("rIntArray isZero:%v", rIntArray.IsZero())
-	log.Infof("rIntArray reset(true)---------------")
-	rIntArrayPtr.reset(false)
-	log.Infof("rIntArray isValid:%v", rIntArray.IsValid())
-	log.Infof("rIntArray isNil:%v", rIntArray.IsNil())
-	log.Infof("rIntArray isZero:%v", rIntArray.IsZero())
-	log.Infof("rIntArray reset(false)---------------")
-	log.Infof("################################################")
 
-	log.Infof("rStrArray isValid:%v", rStrArray.IsValid())
-	log.Infof("rStrArray isNil:%v", rStrArray.IsNil())
-	log.Infof("rStrArray isZero:%v", rStrArray.IsZero())
-	log.Infof("rStrArray raw---------------")
+	slog.Info("message")
+	rIntArrayPtr.reset(false)
+
+	slog.Info("message")
+	slog.Info("message")
+
+	slog.Info("message")
 	rStrArrayPtr := NewValue(rStrArray)
 	rStrArrayPtr.reset(true)
-	log.Infof("rStrArray isValid:%v", rStrArray.IsValid())
-	log.Infof("rStrArray isNil:%v", rStrArray.IsNil())
-	log.Infof("rStrArray isZero:%v", rStrArray.IsZero())
-	log.Infof("rStrArray reset(true)---------------")
 
-	log.Infof("################################################")
+	slog.Info("message")
 
-	log.Infof("rStrPtr isValid:%v", rStrPtr.IsValid())
-	log.Infof("rStrPtr isNil:%v", rStrPtr.IsNil())
-	log.Infof("rStrPtr isZero:%v", rStrPtr.IsZero())
-	log.Infof("rStrPtr raw---------------")
+	slog.Info("message")
+
+	slog.Info("message")
 	rStrPtrPtr := NewValue(rStrPtr)
 	rStrPtrPtr.reset(true)
-	log.Infof("rStrPtr isValid:%v", rStrPtr.IsValid())
-	log.Infof("rStrPtr isNil:%v", rStrPtr.IsNil())
-	log.Infof("rStrPtr isZero:%v", rStrPtr.IsZero())
-	log.Infof("rStrPtr reset(true)---------------")
 
-	log.Infof("################################################")
+	slog.Info("message")
 
-	log.Infof("rNotStrPtr isValid:%v", rNotStrPtr.IsValid())
-	log.Infof("rNotStrPtr isNil:%v", rNotStrPtr.IsNil())
-	log.Infof("rNotStrPtr isZero:%v", rNotStrPtr.IsZero())
-	log.Infof("rNotStrPtr raw---------------")
+	slog.Info("message")
+
+	slog.Info("message")
 	rNotStrPtrPtr := NewValue(rNotStrPtr)
 	rNotStrPtrPtr.reset(true)
-	log.Infof("rNotStrPtr isValid:%v", rNotStrPtr.IsValid())
-	log.Infof("rNotStrPtr isNil:%v", rNotStrPtr.IsNil())
-	log.Infof("rNotStrPtr isZero:%v", rNotStrPtr.IsZero())
-	log.Infof("rNotStrPtr reset(true)---------------")
-	rNotStrPtrPtr.reset(false)
-	log.Infof("rNotStrPtr isValid:%v", rNotStrPtr.IsValid())
-	log.Infof("rNotStrPtr isNil:%v", rNotStrPtr.IsNil())
-	log.Infof("rNotStrPtr isZero:%v", rNotStrPtr.IsZero())
-	log.Infof("rNotStrPtr reset(false)---------------")
 
-	log.Infof("################################################")
+	slog.Info("message")
+	rNotStrPtrPtr.reset(false)
+
+	slog.Info("message")
+
+	slog.Info("message")
 }
 
 func TestValue(t *testing.T) {

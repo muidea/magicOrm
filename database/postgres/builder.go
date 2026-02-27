@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
+	"log/slog"
 )
 
 // Builder Builder
@@ -41,7 +41,7 @@ func (s *Builder) buildFilter(vModel models.Model, filter models.Filter, resultS
 			basicSQL, basicErr := s.buildBasicFilterItem(field, filterItem, resultStackPtr)
 			if basicErr != nil {
 				err = basicErr
-				log.Errorf("buildFilter failed, s.buildBasicItem %s error:%s", field.GetName(), err.Error())
+				slog.Error("buildFilter failed", "operation", "s.buildBasicItem", "field", field.GetName(), "error", err.Error())
 				return
 			}
 
@@ -57,7 +57,7 @@ func (s *Builder) buildFilter(vModel models.Model, filter models.Filter, resultS
 		relationSQL, relationErr := s.buildRelationFilterItem(vModel, field, filterItem, resultStackPtr)
 		if relationErr != nil {
 			err = relationErr
-			log.Errorf("buildFilter failed, s.buildRelationItem %s error:%s", field.GetName(), err.Error())
+			slog.Error("buildFilter failed", "operation", "s.buildRelationItem", "field", field.GetName(), "error", err.Error())
 			return
 		}
 
@@ -79,7 +79,7 @@ func (s *Builder) buildBasicFilterItem(vField models.Field, filterItem models.Fi
 	fieldVal, fieldErr := s.modelProvider.EncodeValue(oprValue.Get(), vField.GetType())
 	if fieldErr != nil {
 		err = fieldErr
-		log.Errorf("buildBasicItem %s failed, s.modelProvider.EncodeValue error:%s", vField.GetName(), err.Error())
+		slog.Error("buildBasicItem failed", "field", vField.GetName(), "operation", "s.modelProvider.EncodeValue", "error", err.Error())
 		return
 	}
 
@@ -100,7 +100,7 @@ func (s *Builder) buildRelationFilterItem(vModel models.Model, vField models.Fie
 			subItemVal, subItemErr := s.modelProvider.EncodeValue(val.Get(), vField.GetType())
 			if subItemErr != nil {
 				err = subItemErr
-				log.Errorf("buildRelationItem %s failed, s.modelProvider.EncodeValue error:%s", vField.GetName(), err.Error())
+				slog.Error("buildRelationItem failed", "field", vField.GetName(), "operation", "s.modelProvider.EncodeValue", "error", err.Error())
 				return
 			}
 			entitySlice = append(entitySlice, subItemVal)
@@ -109,7 +109,7 @@ func (s *Builder) buildRelationFilterItem(vModel models.Model, vField models.Fie
 	default:
 		fieldVal, err = s.modelProvider.EncodeValue(oprValue.Get(), vField.GetType())
 		if err != nil {
-			log.Errorf("buildRelationItem %s failed, s.modelProvider.EncodeValue error:%s", vField.GetName(), err.Error())
+			slog.Error("buildRelationItem failed", "field", vField.GetName(), "operation", "s.modelProvider.EncodeValue", "error", err.Error())
 			return
 		}
 	}
@@ -119,7 +119,7 @@ func (s *Builder) buildRelationFilterItem(vModel models.Model, vField models.Fie
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("buildRelationItem %s failed, s.buildCodec.ConstructRelationTableName error:%s", vField.GetName(), err.Error())
+		slog.Error("buildRelationItem failed", "field", vField.GetName(), "operation", "s.buildCodec.ConstructRelationTableName", "error", err.Error())
 		return
 	}
 
@@ -143,7 +143,7 @@ func (s *Builder) buildSorter(vModel models.Model, filter models.Sorter) (ret st
 	}
 
 	err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal sort field name:%s", filter.Name()))
-	log.Errorf("buildSorter failed, err:%s", err.Error())
+	slog.Error("buildSorter failed", "error", err.Error())
 	return
 }
 

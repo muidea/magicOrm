@@ -5,12 +5,12 @@ import (
 	"time"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
+	"log/slog"
 )
 
 type CreateRunner struct {
@@ -27,13 +27,13 @@ func (s *CreateRunner) createHost() (err *cd.Error) {
 	createResult, createErr := s.sqlBuilder.BuildCreateTable(s.vModel)
 	if createErr != nil {
 		err = createErr
-		log.Errorf("createHost failed, s.sqlBuilder.BuildCreateTable error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 
 	_, err = s.executor.Execute(createResult.SQL(), createResult.Args()...)
 	if err != nil {
-		log.Errorf("createHost failed, s.executor.Execute error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 	}
 	return
 }
@@ -42,13 +42,13 @@ func (s *CreateRunner) createRelation(vField models.Field) (err *cd.Error) {
 	relationResult, relationErr := s.sqlBuilder.BuildCreateRelationTable(s.vModel, vField)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("createRelation failed, sqlBuilder.BuildCreateRelationTable error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 
 	_, err = s.executor.Execute(relationResult.SQL(), relationResult.Args()...)
 	if err != nil {
-		log.Errorf("createRelation failed, s.executor.Execute error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 	}
 	return
 }
@@ -60,7 +60,7 @@ func (s *CreateRunner) Create() (err *cd.Error) {
 
 	err = s.createHost()
 	if err != nil {
-		log.Errorf("Create failed, s.createHost error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 
@@ -74,21 +74,21 @@ func (s *CreateRunner) Create() (err *cd.Error) {
 			rModel, rErr := s.modelProvider.GetTypeModel(elemType)
 			if rErr != nil {
 				err = rErr
-				log.Errorf("Create relation field:%s model failed, s.modelProvider.GetTypeModel error:%s", field.GetName(), err.Error())
+				slog.Error("operation failed", "error", err.Error())
 				return
 			}
 
 			rRunner := NewCreateRunner(s.context, rModel, s.executor, s.modelProvider, s.modelCodec)
 			err = rRunner.Create()
 			if err != nil {
-				log.Errorf("Create relation field:%s model failed, rRunner.Create() error:%s", field.GetName(), err.Error())
+				slog.Error("operation failed", "error", err.Error())
 				return
 			}
 		}
 
 		err = s.createRelation(field)
 		if err != nil {
-			log.Errorf("Create field:%s relation failed, s.createRelation error:%s", field.GetName(), err.Error())
+			slog.Error("operation failed", "error", err.Error())
 			return
 		}
 	}
@@ -118,7 +118,7 @@ func (s *impl) Create(vModel models.Model) (err *cd.Error) {
 	createRunner := NewCreateRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec)
 	err = createRunner.Create()
 	if err != nil {
-		log.Errorf("Create failed, createRunner.Create() error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 	}
 	return
 }

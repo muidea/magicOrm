@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicCommon/monitoring"
 	"github.com/muidea/magicCommon/monitoring/types"
 
@@ -17,6 +16,7 @@ import (
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/validation"
 	verrors "github.com/muidea/magicOrm/validation/errors"
+	"log/slog"
 )
 
 const maxDeepLevel = 3
@@ -76,14 +76,13 @@ func registerORMMetrics() {
 			100,  // 优先级
 		); err != nil {
 			ormMetricProvider = nil
-			// 记录错误但不影响ORM初始化
-			log.Warnf("Failed to register ORM metrics provider: %v", err)
+			// 记录错误但不影响ORM初始化			log.Warnf("Failed to register ORM metrics provider: %v", err)
 		} else {
-			log.Infof("ORM metrics provider registered successfully")
+			slog.Info("ORM metrics provider registered successfully")
 		}
 	} else {
 		// GlobalManager不存在，只创建collector不注册provider
-		log.Debugf("GlobalManager not available, ORM metrics collector created but provider not registered")
+		slog.Debug("GlobalManager not available, ORM metrics collector created but provider not registered")
 	}
 }
 
@@ -115,7 +114,7 @@ func AddDatabase(dbServer, dbName, username, password string, maxConnNum int, ow
 	pool := NewPool()
 	err = pool.Initialize(maxConnNum, config)
 	if err != nil {
-		log.Errorf("AddDatabase failed, pool.Initialize error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 
@@ -141,7 +140,7 @@ func DelDatabase(owner string) {
 func NewOrm(provider provider.Provider, cfg database.Config, prefix string) (Orm, *cd.Error) {
 	executorVal, executorErr := NewExecutor(cfg)
 	if executorErr != nil {
-		log.Errorf("NewOrm failed, NewExecutor error:%s", executorErr.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return nil, cd.NewError(cd.Unexpected, executorErr.Error())
 	}
 
@@ -167,7 +166,7 @@ func GetOrm(ctx context.Context, provider provider.Provider, prefix string) (ret
 	val, ok := name2Pool.Load(provider.Owner())
 	if !ok {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't find orm,name:%s", provider.Owner()))
-		log.Errorf("GetOrm failed, error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 
@@ -175,7 +174,7 @@ func GetOrm(ctx context.Context, provider provider.Provider, prefix string) (ret
 	executorVal, executorErr := pool.GetExecutor(ctx)
 	if executorErr != nil {
 		err = executorErr
-		log.Errorf("GetOrm failed, pool.GetExecutor error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 
@@ -211,7 +210,7 @@ func (s *impl) BeginTransaction() (err *cd.Error) {
 	if s.executor != nil {
 		err = s.executor.BeginTransaction()
 		if err != nil {
-			log.Errorf("BeginTransaction failed, s.executor.BeginTransaction error:%s", err.Error())
+			slog.Error("operation failed", "error", "operation failed")
 		}
 	}
 
@@ -229,7 +228,7 @@ func (s *impl) CommitTransaction() (err *cd.Error) {
 	if s.executor != nil {
 		err = s.executor.CommitTransaction()
 		if err != nil {
-			log.Errorf("CommitTransaction failed, s.executor.CommitTransaction error:%s", err.Error())
+			slog.Error("operation failed", "error", "operation failed")
 		}
 	}
 
@@ -247,7 +246,7 @@ func (s *impl) RollbackTransaction() (err *cd.Error) {
 	if s.executor != nil {
 		err = s.executor.RollbackTransaction()
 		if err != nil {
-			log.Errorf("RollbackTransaction failed, s.executor.RollbackTransaction error:%s", err.Error())
+			slog.Error("operation failed", "error", "operation failed")
 		}
 	}
 
@@ -264,14 +263,14 @@ func (s *impl) finalTransaction(err *cd.Error) {
 	if err == nil {
 		err = s.executor.CommitTransaction()
 		if err != nil {
-			log.Errorf("finalTransaction failed, s.executor.CommitTransaction error:%s", err.Error())
+			slog.Error("operation failed", "error", "operation failed")
 		}
 		return
 	}
 
 	err = s.executor.RollbackTransaction()
 	if err != nil {
-		log.Errorf("finalTransaction failed, s.executor.RollbackTransaction error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 	}
 }
 

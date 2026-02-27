@@ -1,10 +1,10 @@
 package local
 
 import (
+	"log/slog"
 	"reflect"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/models"
 )
 
@@ -146,7 +146,7 @@ func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Val
 	case models.OriginView:
 		//  do nothing
 	default:
-		log.Warnf("fieldName:%s,unknown view spec:%v", fieldPtr.name, viewSpec)
+		slog.Error("error occurred", "error", err.Error())
 	}
 
 	fieldPtr.typePtr = typePtr

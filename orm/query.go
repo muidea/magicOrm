@@ -3,14 +3,13 @@ package orm
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/internal/errors"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
@@ -40,12 +39,13 @@ func (s *QueryRunner) innerQuery(vModel models.Model, filter models.Filter) (ret
 	queryResult, queryErr := s.sqlBuilder.BuildQuery(vModel, filter)
 	if queryErr != nil {
 		err = queryErr
-		errors.LogError("innerQuery", "s.sqlBuilder.BuildQuery", err)
+		slog.Error("innerQuery failed", "operation", "s.sqlBuilder.BuildQuery", "error", err)
 		return
 	}
 
 	_, err = s.executor.Query(queryResult.SQL(), false, queryResult.Args()...)
-	if errors.MustReturn("innerQuery", "s.executor.Query", err) {
+	if err != nil {
+		slog.Error("innerQuery failed", "operation", "s.executor.Query", "error", err)
 		return
 	}
 	defer s.executor.Finish()
@@ -55,7 +55,7 @@ func (s *QueryRunner) innerQuery(vModel models.Model, filter models.Filter) (ret
 		itemValues, itemErr := s.sqlBuilder.BuildModuleValueHolder(vModel)
 		if itemErr != nil {
 			err = itemErr
-			errors.LogError("innerQuery", "getModelFieldsPlaceHolder", err)
+			slog.Error("innerQuery failed", "operation", "getModelFieldsPlaceHolder", "error", err)
 			return
 		}
 		referenceVal := make([]any, len(itemValues))
@@ -65,7 +65,7 @@ func (s *QueryRunner) innerQuery(vModel models.Model, filter models.Filter) (ret
 
 		err = s.executor.GetField(referenceVal...)
 		if err != nil {
-			log.Errorf("innerQuery failed, s.executor.GetField error:%s", err.Error())
+			slog.Error("operation failed", "error", "operation failed")
 			return
 		}
 
@@ -93,7 +93,7 @@ func (s *QueryRunner) innerAssign(vModel models.Model, queryVal resultItems, dee
 
 		err = s.assignBasicField(field, queryVal[offset])
 		if err != nil {
-			log.Errorf("innerAssign field:%s failed, s.assignBasicField error:%v", field.GetName(), err.Error())
+			slog.Error("operation failed", "error", err.Error())
 			return
 		}
 		offset++
@@ -105,7 +105,7 @@ func (s *QueryRunner) innerAssign(vModel models.Model, queryVal resultItems, dee
 		}
 		err = s.assignModelField(qModel, field, deepLevel)
 		if err != nil {
-			log.Errorf("innerAssign field:%s failed, s.assignModelField error:%v", field.GetName(), err.Error())
+			slog.Error("operation failed", "error", err.Error())
 			return
 		}
 	}
@@ -118,7 +118,7 @@ func (s *QueryRunner) assignModelField(vModel models.Model, vField models.Field,
 	vErr := s.queryRelation(vModel, vField, deepLevel)
 	if vErr != nil {
 		err = vErr
-		log.Errorf("assignModelField field:%s failed, s.queryRelation error:%v", vField.GetName(), err.Error())
+		slog.Error("operation failed", "error", err.Error())
 		return
 	}
 
@@ -133,7 +133,7 @@ func (s *QueryRunner) assignBasicField(vField models.Field, val any) (err *cd.Er
 	fVal, fErr := s.modelCodec.ExtractBasicFieldValue(vField, val)
 	if fErr != nil {
 		err = fErr
-		log.Errorf("assignBasicField field:%s failed, s.modelProvider.DecodeValue error:%v", vField.GetName(), err.Error())
+		slog.Error("operation failed", "error", err.Error())
 		return
 	}
 
@@ -149,14 +149,14 @@ func (s *QueryRunner) queryRelation(vModel models.Model, vField models.Field, de
 	if models.IsSliceField(vField) {
 		err = s.querySliceRelation(vModel, vField, deepLevel)
 		if err != nil {
-			log.Errorf("queryRelation field:%s failed, s.querySliceRelation error:%v", vField.GetName(), err.Error())
+			slog.Error("operation failed", "error", err.Error())
 		}
 		return
 	}
 
 	err = s.querySingleRelation(vModel, vField, deepLevel)
 	if err != nil {
-		log.Errorf("queryRelation field:%s failed, s.querySingleRelation error:%v", vField.GetName(), err.Error())
+		slog.Error("operation failed", "error", err.Error())
 	}
 	return
 }
@@ -165,7 +165,7 @@ func (s *QueryRunner) querySingleRelation(vModel models.Model, vField models.Fie
 	valueList, valueErr := s.innerQueryRelationKeys(vModel, vField)
 	if valueErr != nil {
 		err = valueErr
-		log.Errorf("querySingleRelation failed, s.innerQueryRelationKeys error:%v", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 
@@ -175,13 +175,13 @@ func (s *QueryRunner) querySingleRelation(vModel models.Model, vField models.Fie
 		if vType.IsPtrType() {
 			return
 		}
-		log.Warnf("query relation failed, field name:%s", vField.GetName())
+		slog.Warn("query relation failed", "field", vField.GetName())
 		return
 	}
 
 	rvErr := s.innerQueryRelationSingleModel(valueList[0], vField, deepLevel)
 	if rvErr != nil {
-		log.Errorf("querySingleRelation failed, s.innerQueryRelationSingleModel error:%v", rvErr.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		err = rvErr
 		return
 	}
@@ -192,7 +192,7 @@ func (s *QueryRunner) querySliceRelation(vModel models.Model, vField models.Fiel
 	valueList, valueErr := s.innerQueryRelationKeys(vModel, vField)
 	if valueErr != nil {
 		err = valueErr
-		log.Errorf("querySliceRelation field:%s failed, s.innerQueryRelationKeys error:%sv", vField.GetName(), err.Error())
+		slog.Error("operation failed", "error", err.Error())
 		return
 	}
 	valueSize := len(valueList)
@@ -203,7 +203,7 @@ func (s *QueryRunner) querySliceRelation(vModel models.Model, vField models.Fiel
 	rModelErr := s.innerQueryRelationSliceModel(valueList, vField, deepLevel)
 	if rModelErr != nil {
 		err = rModelErr
-		log.Errorf("querySliceRelation field:%s failed, s.innerQueryRelationSliceModel error:%sv", vField.GetName(), err.Error())
+		slog.Error("operation failed", "error", err.Error())
 		return
 	}
 	return
@@ -213,7 +213,7 @@ func (s *QueryRunner) innerQueryRelationKeys(vModel models.Model, vField models.
 	relationResult, relationErr := s.sqlBuilder.BuildQueryRelation(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
-		log.Errorf("innerQueryRelationKeys field:%s failed, sqlBuilder.BuildQueryRelation error:%v", vField.GetName(), err.Error())
+		slog.Error("operation failed", "error", err.Error())
 		return
 	}
 
@@ -221,7 +221,7 @@ func (s *QueryRunner) innerQueryRelationKeys(vModel models.Model, vField models.
 	func() {
 		_, err = s.executor.Query(relationResult.SQL(), false, relationResult.Args()...)
 		if err != nil {
-			log.Errorf("innerQueryRelationKeys field:%s failed, s.executor.Query error:%v", vField.GetName(), err.Error())
+			slog.Error("operation failed", "error", err.Error())
 			return
 		}
 		defer s.executor.Finish()
@@ -230,7 +230,7 @@ func (s *QueryRunner) innerQueryRelationKeys(vModel models.Model, vField models.
 			var idVal any
 			err = s.executor.GetField(&idVal)
 			if err != nil {
-				log.Errorf("innerQueryRelationKeys field:%s failed, s.executor.GetField error:%v", vField.GetName(), err.Error())
+				slog.Error("operation failed", "error", err.Error())
 				return
 			}
 			values = append(values, idVal)
@@ -250,21 +250,21 @@ func (s *QueryRunner) innerQueryRelationSingleModel(id any, vField models.Field,
 	rModel, rErr := s.modelProvider.GetTypeModel(vField.GetType())
 	if rErr != nil {
 		err = rErr
-		log.Errorf("innerQueryRelationSingleModel failed, s.modelProvider.GetTypeModel field:%s, id:%v, error:%v", vField.GetType().GetPkgKey(), id, err.Error())
+		slog.Error("operation failed", "error", err.Error())
 		return
 	}
 
 	rVal, rErr := s.modelCodec.ExtractBasicFieldValue(rModel.GetPrimaryField(), id)
 	if rErr != nil {
 		err = rErr
-		log.Errorf("innerQueryRelationSingleModel failed, s.modelCodec.ExtractBasicFieldValue field:%s, id:%v, error:%v", rModel.GetPrimaryField().GetType().GetPkgKey(), id, err.Error())
+		slog.Error("operation failed", "error", err.Error())
 		return
 	}
 	rModel.SetPrimaryFieldValue(rVal)
 	vFilter, vErr := getModelFilter(rModel, s.modelProvider, s.modelCodec)
 	if vErr != nil {
 		err = vErr
-		log.Errorf("innerQueryRelationSingleModel failed, getModelFilter model:%s, id:%v, error:%v", rModel.GetPkgKey(), id, err.Error())
+		slog.Error("operation failed", "value", id, "error", err.Error())
 		return
 	}
 
@@ -272,12 +272,12 @@ func (s *QueryRunner) innerQueryRelationSingleModel(id any, vField models.Field,
 	queryVal, queryErr := rQueryRunner.Query(vFilter)
 	if queryErr != nil {
 		err = queryErr
-		log.Errorf("innerQueryRelationSingleModel failed, s.querySingle model:%s, id:%v, error:%v", rModel.GetPkgKey(), id, err.Error())
+		slog.Error("operation failed", "value", id, "error", err.Error())
 		return
 	}
 	if len(queryVal) > 1 {
 		errMsg := fmt.Sprintf("match more than one model, model:%s, id:%v", rModel.GetPkgKey(), id)
-		log.Warnf("innerQueryRelationSingleModel failed, errMsg:%s", errMsg)
+		slog.Warn("innerQueryRelationSingleModel failed", "error", errMsg)
 		err = cd.NewError(cd.Unexpected, errMsg)
 		return
 	}
@@ -290,7 +290,7 @@ func (s *QueryRunner) innerQueryRelationSingleModel(id any, vField models.Field,
 	if deepLevel < maxDeepLevel {
 		// 到这里说明未查询到数据，说明存在数据表之间数据不一致
 		// 这种情况下直接返回nil，后续要考虑进行脏数据检测
-		log.Warnf("query relation failed, miss relation data, model:%s, id:%v", rModel.GetPkgKey(), id)
+		slog.Warn("query relation failed, miss relation data", "model", rModel.GetPkgKey(), "id", id)
 	}
 	return
 }
@@ -302,20 +302,20 @@ func (s *QueryRunner) innerQueryRelationSliceModel(ids []any, vField models.Fiel
 		svModel, svErr := s.modelProvider.GetTypeModel(vField.GetType().Elem())
 		if svErr != nil {
 			err = svErr
-			log.Errorf("innerQueryRelationSliceModel failed, s.modelProvider.GetTypeModel error:%v", err.Error())
+			slog.Error("operation failed", "error", "operation failed")
 			return
 		}
 		rVal, rErr := s.modelCodec.ExtractBasicFieldValue(svModel.GetPrimaryField(), id)
 		if rErr != nil {
 			err = rErr
-			log.Errorf("innerQueryRelationSliceModel failed, s.modelCodec.ExtractBasicFieldValue error:%v", err.Error())
+			slog.Error("operation failed", "error", "operation failed")
 			return
 		}
 		svModel.SetPrimaryFieldValue(rVal)
 		vFilter, vErr := getModelFilter(svModel, s.modelProvider, s.modelCodec)
 		if vErr != nil {
 			err = vErr
-			log.Errorf("innerQueryRelationSliceModel failed, getModelFilter error:%v", err.Error())
+			slog.Error("operation failed", "error", "operation failed")
 			return
 		}
 
@@ -323,7 +323,7 @@ func (s *QueryRunner) innerQueryRelationSliceModel(ids []any, vField models.Fiel
 		queryVal, queryErr := rQueryRunner.Query(vFilter)
 		if queryErr != nil {
 			err = queryErr
-			log.Errorf("innerQueryRelationSingleModel failed, s.querySingle error:%v", err.Error())
+			slog.Error("operation failed", "error", "operation failed")
 			return
 		}
 
@@ -343,7 +343,7 @@ func (s *QueryRunner) Query(filter models.Filter) (ret []models.Model, err *cd.E
 	queryValueList, queryValueErr := s.innerQuery(s.vModel, filter)
 	if queryValueErr != nil {
 		err = queryValueErr
-		log.Errorf("Query failed, s.innerQuery error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 
@@ -353,7 +353,7 @@ func (s *QueryRunner) Query(filter models.Filter) (ret []models.Model, err *cd.E
 	}
 	if !s.batchFilter && queryCount > 1 {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("matched model:%s %d items value", s.vModel.GetPkgKey(), queryCount))
-		log.Warnf("Query failed, s.innerQuery warning:%s", err.Error())
+		slog.Warn("Query failed", "warning", err.Error())
 		return
 	}
 
@@ -362,7 +362,7 @@ func (s *QueryRunner) Query(filter models.Filter) (ret []models.Model, err *cd.E
 		modelVal, modelErr := s.innerAssign(s.vModel, queryValueList[idx], 0)
 		if modelErr != nil {
 			err = modelErr
-			log.Errorf("Query failed, s.innerAssign error:%s", err.Error())
+			slog.Error("operation failed", "error", "operation failed")
 			return
 		}
 
@@ -397,7 +397,7 @@ func (s *impl) Query(vModel models.Model) (ret models.Model, err *cd.Error) {
 	vFilter, vErr := getModelFilter(vModel, s.modelProvider, s.modelCodec)
 	if vErr != nil {
 		err = vErr
-		log.Errorf("Query failed, s.getModelFilter error:%v", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 
@@ -405,7 +405,7 @@ func (s *impl) Query(vModel models.Model) (ret models.Model, err *cd.Error) {
 	queryVal, queryErr := vQueryRunner.Query(vFilter)
 	if queryErr != nil {
 		err = queryErr
-		log.Errorf("Query failed, vQueryRunner.Query error:%v", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 	if len(queryVal) != 0 {

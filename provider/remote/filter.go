@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/utils"
+	"log/slog"
 )
 
 type filterItem struct {
@@ -239,7 +239,7 @@ func (s *ObjectFilter) ValueMask(val any) (err *cd.Error) {
 	}
 
 	if err != nil {
-		log.Errorf("ValueMask failed, err:%v", err.Error())
+		slog.Error("ValueMask failed", "error", err.Error())
 		return
 	}
 

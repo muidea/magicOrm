@@ -6,10 +6,10 @@ import (
 	"time"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/utils"
+	"log/slog"
 )
 
 type ValueConvertMap map[models.TypeDeclare]func(reflect.Value, models.Type) (any, *cd.Error)
@@ -864,7 +864,7 @@ func encodeSliceTemplate[T any](vVal reflect.Value, vType models.Type, _ T) (ret
 	rSliceValList, rSliceValErr := utils.ElemDependValue(vVal)
 	if rSliceValErr != nil {
 		err = rSliceValErr
-		log.Errorf("encodeSliceTemplate failed, valErr:%v", rSliceValErr.Error())
+		slog.Error("error occurred", "error", err.Error())
 		return
 	}
 
@@ -873,14 +873,14 @@ func encodeSliceTemplate[T any](vVal reflect.Value, vType models.Type, _ T) (ret
 		encodeVal, encodeErr := encodeValue(val, vType)
 		if encodeErr != nil {
 			err = encodeErr
-			log.Errorf("encodeSliceTemplate failed, encodeErr:%v", encodeErr.Error())
+			slog.Error("error occurred", "error", err.Error())
 			return
 		}
 
 		tVal, tOk := encodeVal.(T)
 		if !tOk {
 			err = cd.NewError(cd.Unexpected, "illegal type")
-			log.Errorf("encodeSliceTemplate failed, illegal type")
+			slog.Error("error occurred", "error", err.Error())
 			return
 		}
 
@@ -940,14 +940,14 @@ func decodeSliceTemplate[T any](rSliceVal reflect.Value, vType models.Type, _ T)
 		decodeVal, decodeErr := DecodeValue(iVal.Interface(), vType.Elem())
 		if decodeErr != nil {
 			err = decodeErr
-			log.Errorf("decodeSliceTemplate failed, decodeErr:%v", decodeErr.Error())
+			slog.Error("error occurred", "error", err.Error())
 			return
 		}
 
 		tVal, tOk := decodeVal.(T)
 		if !tOk {
 			err = cd.NewError(cd.Unexpected, "illegal type")
-			log.Errorf("decodeSliceTemplate failed, illegal type, vType:%v, decodeVal:%+v", vType.GetPkgKey(), decodeVal)
+			slog.Error("error occurred", "error", err.Error())
 			return
 		}
 

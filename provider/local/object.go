@@ -6,10 +6,10 @@ import (
 	"reflect"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/utils"
+	"log/slog"
 )
 
 type objectImpl struct {
@@ -53,11 +53,11 @@ func (s *objectImpl) GetFields() (ret models.Fields) {
 func (s *objectImpl) SetFieldValue(name string, val any) (err *cd.Error) {
 	err = s.innerSetFieldValue(name, val, false)
 	if err != nil {
-		log.Errorf("SetFieldValue failed, field:%s, value:%v, err:%s", name, val, err.Error())
+		slog.Error("error occurred", "error", "operation failed")
 		return
 	}
 
-	//log.Warnf("SetFieldValue failed, field:%s not found", name)
+	//slog.Warn("warning", "message", "warning")
 	return
 }
 
@@ -70,7 +70,7 @@ func (s *objectImpl) innerSetFieldValue(name string, val any, disableValidator b
 		}
 	}
 
-	log.Warnf("innerSetFieldValue failed, field:%s not found", name)
+	slog.Warn("warning", "message", "warning")
 	return
 }
 
@@ -141,12 +141,12 @@ func getValueModel(entityValue reflect.Value, viewSpec models.ViewDeclare) (ret 
 	typePtr, typeErr := NewType(entityType)
 	if typeErr != nil {
 		err = typeErr
-		log.Errorf("getValueModel failed, err:%s", err.Error())
+		slog.Error("error occurred", "error", "operation failed")
 		return
 	}
 	if typePtr.GetValue() != models.TypeStructValue {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal type, must be a struct entity, type:%s", entityType.String()))
-		log.Errorf("getValueModel failed, err:%s", err.Error())
+		slog.Error("error occurred", "error", "operation failed")
 		return
 	}
 
@@ -159,14 +159,14 @@ func getValueModel(entityValue reflect.Value, viewSpec models.ViewDeclare) (ret 
 		tField, tErr := getFieldInfo(idx, fieldInfo, fieldVal, viewSpec)
 		if tErr != nil {
 			err = tErr
-			log.Errorf("getValueModel failed, field idx:%d, field name:%s, struct name:%s, err:%s", idx, fieldInfo.Name, impl.GetName(), err.Error())
+			slog.Error("error occurred", "error", err.Error())
 			return
 		}
 
 		if models.IsPrimaryField(tField) {
 			if hasPrimaryKey {
 				err = cd.NewError(cd.Unexpected, fmt.Sprintf("duplicate primary key field, field idx:%d,field name:%s, struct name:%s", idx, fieldInfo.Name, impl.GetName()))
-				log.Errorf("getValueModel failed, check primary key err:%s", err.Error())
+				slog.Error("message")
 				return
 			}
 
@@ -178,18 +178,18 @@ func getValueModel(entityValue reflect.Value, viewSpec models.ViewDeclare) (ret 
 
 	if len(impl.fields) == 0 {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("no define orm field, struct name:%s", impl.GetName()))
-		log.Errorf("getValueModel failed, check fields err:%s", err.Error())
+		slog.Error("error occurred", "error", "operation failed")
 		return
 	}
 	if !hasPrimaryKey {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("no define primary key field, struct name:%s", impl.GetName()))
-		log.Errorf("getValueModel failed, check primary key err:%s", err.Error())
+		slog.Error("error occurred", "error", "operation failed")
 		return
 	}
 
 	err = models.VerifyModel(impl)
 	if err != nil {
-		log.Errorf("verify model failed, err:%s", err.Error())
+		slog.Error("error occurred", "error", "operation failed")
 		return
 	}
 	ret = impl

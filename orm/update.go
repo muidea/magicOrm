@@ -5,13 +5,13 @@ import (
 	"time"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/foundation/log"
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/validation/errors"
+	"log/slog"
 )
 
 type UpdateRunner struct {
@@ -52,13 +52,13 @@ func (s *UpdateRunner) updateHost(vModel models.Model) (err *cd.Error) {
 	updateResult, updateErr := s.sqlBuilder.BuildUpdate(vModel)
 	if updateErr != nil {
 		err = updateErr
-		log.Errorf("updateHost failed, s.sqlBuilder.BuildUpdate error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 
 	_, err = s.executor.Execute(updateResult.SQL(), updateResult.Args()...)
 	if err != nil {
-		log.Errorf("updateHost failed, s.executor.Execute error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 	}
 	return
 }
@@ -67,7 +67,7 @@ func (s *UpdateRunner) updateRelation(vModel models.Model, vField models.Field) 
 	newVal := vField.GetValue().Get()
 	err = s.deleteRelation(vModel, vField, 0)
 	if err != nil {
-		log.Errorf("updateRelation failed, s.deleteRelation error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 	// TODO 这里最合理的逻辑应该是先查询出当前值，与新值进行差异比较
@@ -76,7 +76,7 @@ func (s *UpdateRunner) updateRelation(vModel models.Model, vField models.Field) 
 	vField.SetValue(newVal)
 	err = s.insertRelation(vModel, vField)
 	if err != nil {
-		log.Errorf("updateRelation failed, field:%s, s.insertRelation error:%s", vField.GetName(), err.Error())
+		slog.Error("operation failed", "error", err.Error())
 	}
 	return
 }
@@ -88,7 +88,7 @@ func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
 
 	err = s.updateHost(s.vModel)
 	if err != nil {
-		log.Errorf("Update failed, s.updateSingle error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 
@@ -101,7 +101,7 @@ func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
 
 		err = s.updateRelation(s.vModel, field)
 		if err != nil {
-			log.Errorf("Update relation field:%s failed, s.updateRelation error:%s", field.GetName(), err.Error())
+			slog.Error("operation failed", "error", err.Error())
 			return
 		}
 	}
@@ -145,7 +145,7 @@ func (s *impl) Update(vModel models.Model) (ret models.Model, err *cd.Error) {
 	updateRunner := NewUpdateRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec)
 	ret, err = updateRunner.Update()
 	if err != nil {
-		log.Errorf("Update failed, updateRunner.Update() error:%s", err.Error())
+		slog.Error("operation failed", "error", "operation failed")
 		return
 	}
 
