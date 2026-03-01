@@ -52,6 +52,13 @@ func GetTypeValue(typeName string) (ret TypeDeclare) {
 	return
 }
 
+func GetTypeValueWithPath(typeName, pkgPath string) (ret TypeDeclare) {
+	if pkgPath == "time" && typeName == "Time" {
+		return TypeDateTimeValue
+	}
+	return GetTypeValue(typeName)
+}
+
 func IsCustomerDeclare(val ValueDeclare) bool {
 	return val == Customer
 }

@@ -50,7 +50,7 @@ func (s *TypeImpl) GetValue() (ret models.TypeDeclare) {
 }
 
 func (s *TypeImpl) validateValue() (ret models.TypeDeclare) {
-	tVal := models.GetTypeValue(s.Name)
+	tVal := models.GetTypeValueWithPath(s.Name, s.PkgPath)
 	if s.ElemType == nil {
 		ret = tVal
 		return

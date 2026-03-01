@@ -22,15 +22,15 @@ var decodeConvertSliceMap ValueConvertMap
 func init() {
 	encodeValueConvertMap = ValueConvertMap{
 		models.TypeBooleanValue: func(vVal reflect.Value, vType models.Type) (ret any, err *cd.Error) {
-			int8Val, int8Err := utils.ConvertToInt8(vVal)
-			if int8Err != nil {
-				err = int8Err
+			boolVal, boolErr := utils.ConvertToBool(vVal)
+			if boolErr != nil {
+				err = boolErr
 				return
 			}
 			if vType.IsPtrType() {
-				ret = &int8Val
+				ret = &boolVal
 			} else {
-				ret = int8Val
+				ret = boolVal
 			}
 			return
 		},
@@ -221,7 +221,7 @@ func init() {
 
 	encodeValueConvertSliceMap = ValueConvertMap{
 		models.TypeBooleanValue: func(vVal reflect.Value, vType models.Type) (ret any, err *cd.Error) {
-			boolSlice, boolErr := encodeSliceTemplate(vVal, vType.Elem(), int8(0))
+			boolSlice, boolErr := encodeSliceTemplate(vVal, vType.Elem(), false)
 			if boolErr != nil {
 				err = boolErr
 				return
