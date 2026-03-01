@@ -237,6 +237,26 @@ func TestSetModelValueNonObjectValue(t *testing.T) {
 	}
 }
 
+// TestSliceOfPointerWithNilElement 设计 5.4：[]*T 中 item 为 nil 时 GetObjectValue 应返回 *cd.Error，不 panic。
+func TestSliceOfPointerWithNilElement(t *testing.T) {
+	entity := &NestedSlicePtrParent{
+		ID:       1,
+		Name:     "with nil",
+		Children: []*NestedChild{{ID: 1, Name: "a"}, nil, {ID: 2, Name: "b"}},
+	}
+	_, err := helper.GetObjectValue(entity)
+	if err == nil {
+		t.Fatal("GetObjectValue with []*T containing nil element should return error")
+	}
+	var asErr error = err
+	if _, ok := asErr.(*cd.Error); !ok {
+		t.Errorf("expected *cd.Error, got %T", err)
+	}
+	if err.Code != cd.IllegalParam {
+		t.Logf("expected IllegalParam for nil slice element, got code: %d", err.Code)
+	}
+}
+
 // ---- 5.3 Remote→Local→Remote 显式往返 ----
 
 func TestDesignRoundTripRemoteLocalRemote(t *testing.T) {
