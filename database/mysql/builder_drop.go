@@ -27,7 +27,7 @@ func (s *Builder) BuildDropRelationTable(vModel models.Model, vField models.Fiel
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
-		slog.Error("BuildDeleteRelation %s failed", "error", "s.buildCodec.ConstructRelationTableName", vField.GetName(), err.Error())
+		slog.Error("BuildDeleteRelation failed", "field", vField.GetName(), "operation", "ConstructRelationTableName", "error", err.Error())
 		return
 	}
 

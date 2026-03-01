@@ -58,14 +58,14 @@ func (s *Builder) BuildCreateRelationTable(vModel models.Model, vField models.Fi
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
-		slog.Error("BuildCreateRelationTable %s failed", "error", "s.buildCodec.ConstructRelationTableName", vField.GetName(), err.Error())
+		slog.Error("BuildCreateRelationTable failed", "field", vField.GetName(), "operation", "ConstructRelationTableName", "error", err.Error())
 		return
 	}
 
 	rModel, rErr := s.modelProvider.GetTypeModel(vField.GetType().Elem())
 	if rErr != nil {
 		err = rErr
-		slog.Error("BuildCreateRelationTable %s failed", "error", "s.modelProvider.GetTypeModel", vField.GetName(), err.Error())
+		slog.Error("BuildCreateRelationTable failed", "field", vField.GetName(), "operation", "GetTypeModel", "error", err.Error())
 		return
 	}
 

@@ -114,7 +114,7 @@ func AddDatabase(dbServer, dbName, username, password string, maxConnNum int, ow
 	pool := NewPool()
 	err = pool.Initialize(maxConnNum, config)
 	if err != nil {
-		slog.Error("operation failed", "error", "operation failed")
+		slog.Error("AddDatabase pool.Initialize failed", "owner", owner, "error", err.Error())
 		return
 	}
 
@@ -140,7 +140,7 @@ func DelDatabase(owner string) {
 func NewOrm(provider provider.Provider, cfg database.Config, prefix string) (Orm, *cd.Error) {
 	executorVal, executorErr := NewExecutor(cfg)
 	if executorErr != nil {
-		slog.Error("operation failed", "error", "operation failed")
+		slog.Error("NewOrm NewExecutor failed", "error", executorErr.Error())
 		return nil, cd.NewError(cd.Unexpected, executorErr.Error())
 	}
 
@@ -166,7 +166,7 @@ func GetOrm(ctx context.Context, provider provider.Provider, prefix string) (ret
 	val, ok := name2Pool.Load(provider.Owner())
 	if !ok {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't find orm,name:%s", provider.Owner()))
-		slog.Error("operation failed", "error", "operation failed")
+		slog.Error("GetOrm: pool not found", "owner", provider.Owner())
 		return
 	}
 
@@ -174,7 +174,7 @@ func GetOrm(ctx context.Context, provider provider.Provider, prefix string) (ret
 	executorVal, executorErr := pool.GetExecutor(ctx)
 	if executorErr != nil {
 		err = executorErr
-		slog.Error("operation failed", "error", "operation failed")
+		slog.Error("GetOrm pool.GetExecutor failed", "owner", provider.Owner(), "error", err.Error())
 		return
 	}
 
@@ -210,7 +210,7 @@ func (s *impl) BeginTransaction() (err *cd.Error) {
 	if s.executor != nil {
 		err = s.executor.BeginTransaction()
 		if err != nil {
-			slog.Error("operation failed", "error", "operation failed")
+			slog.Error("BeginTransaction failed", "error", err.Error())
 		}
 	}
 
@@ -228,7 +228,7 @@ func (s *impl) CommitTransaction() (err *cd.Error) {
 	if s.executor != nil {
 		err = s.executor.CommitTransaction()
 		if err != nil {
-			slog.Error("operation failed", "error", "operation failed")
+			slog.Error("CommitTransaction failed", "error", err.Error())
 		}
 	}
 
@@ -246,7 +246,7 @@ func (s *impl) RollbackTransaction() (err *cd.Error) {
 	if s.executor != nil {
 		err = s.executor.RollbackTransaction()
 		if err != nil {
-			slog.Error("operation failed", "error", "operation failed")
+			slog.Error("RollbackTransaction failed", "error", err.Error())
 		}
 	}
 
@@ -263,14 +263,14 @@ func (s *impl) finalTransaction(err *cd.Error) {
 	if err == nil {
 		err = s.executor.CommitTransaction()
 		if err != nil {
-			slog.Error("operation failed", "error", "operation failed")
+			slog.Error("finalTransaction Commit failed", "error", err.Error())
 		}
 		return
 	}
 
 	err = s.executor.RollbackTransaction()
 	if err != nil {
-		slog.Error("operation failed", "error", "operation failed")
+		slog.Error("finalTransaction Rollback failed", "error", err.Error())
 	}
 }
 

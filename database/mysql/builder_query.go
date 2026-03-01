@@ -65,7 +65,7 @@ func (s *Builder) BuildQueryRelation(vModel models.Model, vField models.Field) (
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
-		slog.Error("BuildQueryRelation %s failed", "error", "s.buildCodec.ConstructRelationTableName", vField.GetName(), err.Error())
+		slog.Error("BuildQueryRelation failed", "field", vField.GetName(), "operation", "ConstructRelationTableName", "error", err.Error())
 		return
 	}
 

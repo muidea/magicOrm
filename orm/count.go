@@ -37,7 +37,7 @@ func (s *CountRunner) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
 	countResult, countErr := s.sqlBuilder.BuildCount(s.vModel, vFilter)
 	if countErr != nil {
 		err = countErr
-		slog.Error("operation failed", "error", "operation failed")
+		slog.Error("CountRunner Count BuildCount failed", "error", err.Error())
 		return
 	}
 
@@ -51,7 +51,7 @@ func (s *CountRunner) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
 		var countVal sql.NullInt64
 		err = s.executor.GetField(&countVal)
 		if err != nil {
-			slog.Error("operation failed", "error", "operation failed")
+			slog.Error("CountRunner Count GetField failed", "error", err.Error())
 			return
 		}
 
@@ -90,7 +90,7 @@ func (s *impl) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
 	queryVal, queryErr := countRunner.Count(vFilter)
 	if queryErr != nil {
 		err = queryErr
-		slog.Error("operation failed", "error", "operation failed")
+		slog.Error("Count CountRunner.Count failed", "error", err.Error())
 		return
 	}
 

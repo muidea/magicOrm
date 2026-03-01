@@ -27,13 +27,13 @@ func (s *CreateRunner) createHost() (err *cd.Error) {
 	createResult, createErr := s.sqlBuilder.BuildCreateTable(s.vModel)
 	if createErr != nil {
 		err = createErr
-		slog.Error("operation failed", "error", "operation failed")
+		slog.Error("CreateRunner failed", "error", err.Error())
 		return
 	}
 
 	_, err = s.executor.Execute(createResult.SQL(), createResult.Args()...)
 	if err != nil {
-		slog.Error("operation failed", "error", "operation failed")
+		slog.Error("CreateRunner failed", "error", err.Error())
 	}
 	return
 }
@@ -42,13 +42,13 @@ func (s *CreateRunner) createRelation(vField models.Field) (err *cd.Error) {
 	relationResult, relationErr := s.sqlBuilder.BuildCreateRelationTable(s.vModel, vField)
 	if relationErr != nil {
 		err = relationErr
-		slog.Error("operation failed", "error", "operation failed")
+		slog.Error("CreateRunner failed", "error", err.Error())
 		return
 	}
 
 	_, err = s.executor.Execute(relationResult.SQL(), relationResult.Args()...)
 	if err != nil {
-		slog.Error("operation failed", "error", "operation failed")
+		slog.Error("CreateRunner failed", "error", err.Error())
 	}
 	return
 }
@@ -60,7 +60,7 @@ func (s *CreateRunner) Create() (err *cd.Error) {
 
 	err = s.createHost()
 	if err != nil {
-		slog.Error("operation failed", "error", "operation failed")
+		slog.Error("CreateRunner failed", "error", err.Error())
 		return
 	}
 
@@ -74,21 +74,21 @@ func (s *CreateRunner) Create() (err *cd.Error) {
 			rModel, rErr := s.modelProvider.GetTypeModel(elemType)
 			if rErr != nil {
 				err = rErr
-				slog.Error("operation failed", "error", err.Error())
+				slog.Error("CreateRunner Create GetTypeModel failed", "field", field.GetName(), "error", err.Error())
 				return
 			}
 
 			rRunner := NewCreateRunner(s.context, rModel, s.executor, s.modelProvider, s.modelCodec)
 			err = rRunner.Create()
 			if err != nil {
-				slog.Error("operation failed", "error", err.Error())
+				slog.Error("CreateRunner Create relation failed", "field", field.GetName(), "error", err.Error())
 				return
 			}
 		}
 
 		err = s.createRelation(field)
 		if err != nil {
-			slog.Error("operation failed", "error", err.Error())
+			slog.Error("CreateRunner createRelation failed", "field", field.GetName(), "error", err.Error())
 			return
 		}
 	}
@@ -118,7 +118,7 @@ func (s *impl) Create(vModel models.Model) (err *cd.Error) {
 	createRunner := NewCreateRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec)
 	err = createRunner.Create()
 	if err != nil {
-		slog.Error("operation failed", "error", "operation failed")
+		slog.Error("Create CreateRunner.Create failed", "pkgKey", vModel.GetPkgKey(), "error", err.Error())
 	}
 	return
 }

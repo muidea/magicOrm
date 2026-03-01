@@ -25,8 +25,8 @@ func (s *impl) BatchQuery(filter models.Filter) (ret []models.Model, err *cd.Err
 	}()
 
 	if filter == nil {
-		err = cd.NewError(cd.IllegalParam, "illegal model value")
-		slog.Error("message")
+		err = cd.NewError(cd.IllegalParam, "filter is nil")
+		slog.Error("BatchQuery: filter is nil")
 		return
 	}
 
@@ -34,7 +34,7 @@ func (s *impl) BatchQuery(filter models.Filter) (ret []models.Model, err *cd.Err
 	queryVal, queryErr := vQueryRunner.Query(filter)
 	if queryErr != nil {
 		err = queryErr
-		slog.Error("operation failed", "error", "operation failed")
+		slog.Error("BatchQuery QueryRunner.Query failed", "error", err.Error())
 		return
 	}
 

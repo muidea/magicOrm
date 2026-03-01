@@ -29,7 +29,7 @@ func (s *Builder) BuildInsert(vModel models.Model) (ret database.Result, err *cd
 		encodeVal, encodeErr := s.buildCodec.PackedBasicFieldValue(field, fValue)
 		if encodeErr != nil {
 			err = encodeErr
-			slog.Error("BuildInsert %s failed", "error", "encodeFieldValue", field.GetName(), err.Error())
+			slog.Error("BuildInsert failed", "field", field.GetName(), "operation", "encodeFieldValue", "error", err.Error())
 			return
 		}
 
@@ -62,7 +62,7 @@ func (s *Builder) BuildInsertRelation(vModel models.Model, vField models.Field, 
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
-		slog.Error("BuildInsertRelation %s failed", "error", "s.buildCodec.ConstructRelationTableName", vField.GetName(), err.Error())
+		slog.Error("BuildInsertRelation failed", "field", vField.GetName(), "operation", "ConstructRelationTableName", "error", err.Error())
 		return
 	}
 

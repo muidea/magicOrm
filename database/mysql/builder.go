@@ -80,7 +80,7 @@ func (s *Builder) buildBasicFilterItem(vField models.Field, filterItem models.Fi
 	fieldVal, fieldErr := s.modelProvider.EncodeValue(oprValue.Get(), vField.GetType())
 	if fieldErr != nil {
 		err = fieldErr
-		slog.Error("buildBasicItem %s failed", "error", "s.modelProvider.EncodeValue", vField.GetName(), err.Error())
+		slog.Error("buildBasicItem failed", "field", vField.GetName(), "operation", "EncodeValue", "error", err.Error())
 		return
 	}
 
@@ -101,7 +101,7 @@ func (s *Builder) buildRelationFilterItem(vModel models.Model, vField models.Fie
 			subItemVal, subItemErr := s.modelProvider.EncodeValue(val.Get(), vField.GetType())
 			if subItemErr != nil {
 				err = subItemErr
-				slog.Error("buildRelationItem %s failed", "error", "s.modelProvider.EncodeValue", vField.GetName(), err.Error())
+				slog.Error("buildRelationItem failed", "field", vField.GetName(), "operation", "EncodeValue", "error", err.Error())
 				return
 			}
 			entitySlice = append(entitySlice, subItemVal)
@@ -110,7 +110,7 @@ func (s *Builder) buildRelationFilterItem(vModel models.Model, vField models.Fie
 	default:
 		fieldVal, err = s.modelProvider.EncodeValue(oprValue.Get(), vField.GetType())
 		if err != nil {
-			slog.Error("buildRelationItem %s failed", "error", "s.modelProvider.EncodeValue", vField.GetName(), err.Error())
+			slog.Error("buildRelationItem failed", "field", vField.GetName(), "operation", "EncodeValue", "error", err.Error())
 			return
 		}
 	}
@@ -120,7 +120,7 @@ func (s *Builder) buildRelationFilterItem(vModel models.Model, vField models.Fie
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
-		slog.Error("buildRelationItem %s failed", "error", "s.buildCodec.ConstructRelationTableName", vField.GetName(), err.Error())
+		slog.Error("buildRelationItem failed", "field", vField.GetName(), "operation", "ConstructRelationTableName", "error", err.Error())
 		return
 	}
 
@@ -144,7 +144,7 @@ func (s *Builder) buildSorter(vModel models.Model, filter models.Sorter) (ret st
 	}
 
 	err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal sort field name:%s", filter.Name()))
-	slog.Error("buildSorter failed, err", "error", err.Error())
+	slog.Error("buildSorter failed", "error", err.Error())
 	return
 }
 

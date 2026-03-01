@@ -47,7 +47,7 @@ func getTypeDeclare(fType models.Type, fSpec models.Spec) (ret string, err *cd.E
 	}
 
 	if err != nil {
-		slog.Error("getTypeDeclare failed, error:%s", "error", err.Error())
+		slog.Error("getTypeDeclare failed", "error", err.Error())
 	}
 
 	return
@@ -103,7 +103,7 @@ func getFieldPlaceHolder(fType models.Type) (ret any, err *cd.Error) {
 	}
 
 	if err != nil {
-		slog.Error("getFieldPlaceHolder failed, error:%s", "error", err.Error())
+		slog.Error("getFieldPlaceHolder failed", "error", err.Error())
 	}
 
 	return

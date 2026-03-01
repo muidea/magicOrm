@@ -52,13 +52,13 @@ func (s *UpdateRunner) updateHost(vModel models.Model) (err *cd.Error) {
 	updateResult, updateErr := s.sqlBuilder.BuildUpdate(vModel)
 	if updateErr != nil {
 		err = updateErr
-		slog.Error("operation failed", "error", "operation failed")
+		slog.Error("UpdateRunner updateHost BuildUpdate failed", "error", err.Error())
 		return
 	}
 
 	_, err = s.executor.Execute(updateResult.SQL(), updateResult.Args()...)
 	if err != nil {
-		slog.Error("operation failed", "error", "operation failed")
+		slog.Error("UpdateRunner updateHost Execute failed", "error", err.Error())
 	}
 	return
 }
@@ -67,7 +67,7 @@ func (s *UpdateRunner) updateRelation(vModel models.Model, vField models.Field) 
 	newVal := vField.GetValue().Get()
 	err = s.deleteRelation(vModel, vField, 0)
 	if err != nil {
-		slog.Error("operation failed", "error", "operation failed")
+		slog.Error("UpdateRunner updateRelation deleteRelation failed", "field", vField.GetName(), "error", err.Error())
 		return
 	}
 	// TODO 这里最合理的逻辑应该是先查询出当前值，与新值进行差异比较
@@ -76,7 +76,7 @@ func (s *UpdateRunner) updateRelation(vModel models.Model, vField models.Field) 
 	vField.SetValue(newVal)
 	err = s.insertRelation(vModel, vField)
 	if err != nil {
-		slog.Error("operation failed", "error", err.Error())
+		slog.Error("UpdateRunner updateRelation insertRelation failed", "field", vField.GetName(), "error", err.Error())
 	}
 	return
 }
@@ -88,7 +88,7 @@ func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
 
 	err = s.updateHost(s.vModel)
 	if err != nil {
-		slog.Error("operation failed", "error", "operation failed")
+		slog.Error("UpdateRunner Update updateHost failed", "error", err.Error())
 		return
 	}
 
@@ -101,7 +101,7 @@ func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
 
 		err = s.updateRelation(s.vModel, field)
 		if err != nil {
-			slog.Error("operation failed", "error", err.Error())
+			slog.Error("UpdateRunner Update updateRelation failed", "field", field.GetName(), "error", err.Error())
 			return
 		}
 	}
@@ -145,7 +145,7 @@ func (s *impl) Update(vModel models.Model) (ret models.Model, err *cd.Error) {
 	updateRunner := NewUpdateRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec)
 	ret, err = updateRunner.Update()
 	if err != nil {
-		slog.Error("operation failed", "error", "operation failed")
+		slog.Error("Update UpdateRunner.Update failed", "pkgKey", vModel.GetPkgKey(), "error", err.Error())
 		return
 	}
 

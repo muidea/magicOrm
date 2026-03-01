@@ -60,7 +60,7 @@ func isContextValid(ctx context.Context) bool {
 // checkContext 检查 context 是否失效，如果失效则返回错误
 func (s *baseRunner) checkContext() *cd.Error {
 	if !isContextValid(s.context) {
-		slog.Error("message")
+		slog.Error("orm context invalid or cancelled")
 		return cd.NewError(cd.Unexpected, "context is invalid or cancelled")
 	}
 	return nil
@@ -69,7 +69,7 @@ func (s *baseRunner) checkContext() *cd.Error {
 // CheckContext 检查 context 是否失效，如果失效则返回错误
 func (s *impl) CheckContext() *cd.Error {
 	if !isContextValid(s.context) {
-		slog.Error("message")
+		slog.Error("CheckContext: context invalid or cancelled")
 		return cd.NewError(cd.Unexpected, "context is invalid or cancelled")
 	}
 	return nil

@@ -59,7 +59,7 @@ func (s *Builder) buildFieldUpdateValues(vModel models.Model, resultStackPtr *Re
 		encodeVal, encodeErr := s.buildCodec.PackedBasicFieldValue(field, fVal)
 		if encodeErr != nil {
 			err = encodeErr
-			slog.Error("buildFieldUpdateValues %s failed", "error", "encodeFieldValue", field.GetName(), err.Error())
+			slog.Error("buildFieldUpdateValues failed", "field", field.GetName(), "operation", "encodeFieldValue", "error", err.Error())
 			return
 		}
 

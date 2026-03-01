@@ -36,14 +36,14 @@ func (s *Builder) BuildDeleteRelation(vModel models.Model, vField models.Field) 
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
-		slog.Error("BuildDeleteRelation %s failed", "error", "s.buildCodec.ConstructRelationTableName", vField.GetName(), err.Error())
+		slog.Error("BuildDeleteRelation failed", "field", vField.GetName(), "operation", "ConstructRelationTableName", "error", err.Error())
 		return
 	}
 
 	rModel, rErr := s.modelProvider.GetTypeModel(vField.GetType())
 	if rErr != nil {
 		err = rErr
-		slog.Error("BuildDeleteRelation %s failed", "error", "s.modelProvider.GetTypeModel", vField.GetName(), err.Error())
+		slog.Error("BuildDeleteRelation failed", "field", vField.GetName(), "operation", "GetTypeModel", "error", err.Error())
 		return
 	}
 

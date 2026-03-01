@@ -13,7 +13,7 @@ func getModelFilter(vModel models.Model, provider provider.Provider, modelCodec 
 	filterVal, filterErr := provider.GetModelFilter(vModel)
 	if filterErr != nil {
 		err = filterErr
-		slog.Error("operation failed", "error", "operation failed")
+		slog.Error("getModelFilter GetModelFilter failed", "pkgKey", vModel.GetPkgKey(), "error", err.Error())
 		return
 	}
 
@@ -23,13 +23,13 @@ func getModelFilter(vModel models.Model, provider provider.Provider, modelCodec 
 		pkVal, pkErr := modelCodec.PackedBasicFieldValue(pkField, pkField.GetValue())
 		if pkErr != nil {
 			err = pkErr
-			slog.Error("operation failed", "error", "operation failed")
+			slog.Error("getModelFilter PackedBasicFieldValue failed", "field", pkField.GetName(), "error", err.Error())
 			return
 		}
 
 		err = filterVal.Equal(pkField.GetName(), pkVal)
 		if err != nil {
-			slog.Error("operation failed", "error", "operation failed")
+			slog.Error("getModelFilter Equal failed", "field", pkField.GetName(), "error", err.Error())
 			return
 		}
 		hasPKValue = true
@@ -56,7 +56,7 @@ func getModelFilter(vModel models.Model, provider provider.Provider, modelCodec 
 			//}
 			err = filterVal.Equal(field.GetName(), field.GetValue().Get())
 			if err != nil {
-				slog.Error("operation failed", "error", "operation failed")
+				slog.Error("getModelFilter Equal failed", "field", field.GetName(), "error", err.Error())
 				return
 			}
 
@@ -74,7 +74,7 @@ func getModelFilter(vModel models.Model, provider provider.Provider, modelCodec 
 
 			err = filterVal.Equal(field.GetName(), field.GetValue().Get())
 			if err != nil {
-				slog.Error("operation failed", "error", "operation failed")
+				slog.Error("getModelFilter Equal struct failed", "field", field.GetName(), "error", err.Error())
 				return
 			}
 
@@ -92,7 +92,7 @@ func getModelFilter(vModel models.Model, provider provider.Provider, modelCodec 
 
 			err = filterVal.In(field.GetName(), field.GetValue().Get())
 			if err != nil {
-				slog.Error("operation failed", "error", "operation failed")
+				slog.Error("getModelFilter In failed", "field", field.GetName(), "error", err.Error())
 				return
 			}
 

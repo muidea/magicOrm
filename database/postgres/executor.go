@@ -88,7 +88,7 @@ func NewExecutor(configPtr database.Config) (ret *HostExecutor, err *cd.Error) {
 	dbHandle, dbErr := sql.Open("postgres", dsn)
 	if dbErr != nil {
 		err = cd.NewError(cd.Unexpected, dbErr.Error())
-		slog.Error("open database exception", "value", "dsn", "error", dsn, "error", err.Error())
+		slog.Error("open database exception", "dsn", dsn, "error", err.Error())
 		return
 	}
 
@@ -111,17 +111,17 @@ type ConnExecutor struct {
 func (s *ConnExecutor) Release() {
 	if s.rowsHandle != nil {
 		if err := s.rowsHandle.Close(); err != nil {
-			slog.Warn("Failed to close rows handle", "error", err)
+			slog.Warn("Failed to close rows handle", "error", err.Error())
 		}
 	}
 	if s.dbTx != nil {
 		if err := s.dbTx.Rollback(); err != nil && err != sql.ErrTxDone {
-			slog.Warn("Failed to rollback transaction", "error", err)
+			slog.Warn("Failed to rollback transaction", "error", err.Error())
 		}
 	}
 	if s.dbConnPtr != nil {
 		if err := s.dbConnPtr.Close(); err != nil {
-			slog.Warn("Failed to close database connection", "error", err)
+			slog.Warn("Failed to close database connection", "error", err.Error())
 		}
 	}
 }
@@ -423,17 +423,17 @@ type HostExecutor struct {
 func (s *HostExecutor) Release() {
 	if s.rowsHandle != nil {
 		if err := s.rowsHandle.Close(); err != nil {
-			slog.Warn("Failed to close rows handle", "error", err)
+			slog.Warn("Failed to close rows handle", "error", err.Error())
 		}
 	}
 	if s.dbTx != nil {
 		if err := s.dbTx.Rollback(); err != nil && err != sql.ErrTxDone {
-			slog.Warn("Failed to rollback transaction", "error", err)
+			slog.Warn("Failed to rollback transaction", "error", err.Error())
 		}
 	}
 	if s.dbHandle != nil {
 		if err := s.dbHandle.Close(); err != nil {
-			slog.Warn("Failed to close database handle", "error", err)
+			slog.Warn("Failed to close database handle", "error", err.Error())
 		}
 	}
 }
@@ -749,7 +749,7 @@ func (s *Pool) connect(dsn string, maxConnNum int) (err *cd.Error) {
 	dbHandle, dbErr := sql.Open("postgres", dsn)
 	if dbErr != nil {
 		err = cd.NewError(cd.Unexpected, dbErr.Error())
-		slog.Error("open database exception, connectStr:%s, err", "value", dsn, "error", err.Error())
+		slog.Error("Pool connect open database exception", "dsn", dsn, "error", err.Error())
 		return
 	}
 
@@ -761,7 +761,7 @@ func (s *Pool) connect(dsn string, maxConnNum int) (err *cd.Error) {
 	dbErr = dbHandle.Ping()
 	if dbErr != nil {
 		err = cd.NewError(cd.Unexpected, dbErr.Error())
-		slog.Error("ping database failed, connectStr:%s, err", "value", dsn, "error", err.Error())
+		slog.Error("Pool connect ping database failed", "dsn", dsn, "error", err.Error())
 		return
 	}
 
