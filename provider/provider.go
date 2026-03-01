@@ -71,7 +71,7 @@ func (s *providerImpl) RegisterModel(entity any) (ret models.Model, err *cd.Erro
 	entityModel, entityErr := s.getEntityModelFunc(entity, s.valueValidator)
 	if entityErr != nil {
 		err = entityErr
-		logError("RegisterModel", "s.getModelFunc", err)
+		slog.Error("provider error", "method", "RegisterModel", "operation", "s.getModelFunc", "error", err.Error())
 		return
 	}
 
@@ -92,7 +92,7 @@ func (s *providerImpl) UnregisterModel(entity any) (err *cd.Error) {
 	modelType, modelErr := s.getEntityTypeFunc(entity)
 	if modelErr != nil {
 		err = modelErr
-		logError("UnregisterModel", "s.getTypeFunc", err)
+		slog.Error("provider error", "method", "UnregisterModel", "operation", "s.getTypeFunc", "error", err.Error())
 		return
 	}
 
@@ -106,19 +106,25 @@ func (s *providerImpl) UnregisterModel(entity any) (err *cd.Error) {
 
 func (s *providerImpl) GetEntityType(entity any) (ret models.Type, err *cd.Error) {
 	ret, err = s.getEntityTypeFunc(entity)
-	logError("GetEntityType", "s.getTypeFunc", err)
+	if err != nil {
+		slog.Error("provider error", "method", "GetEntityType", "operation", "s.getTypeFunc", "error", err.Error())
+	}
 	return
 }
 
 func (s *providerImpl) GetEntityValue(entity any) (ret models.Value, err *cd.Error) {
 	ret, err = s.getEntityValueFunc(entity)
-	logError("GetEntityValue", "s.getValueFunc", err)
+	if err != nil {
+		slog.Error("provider error", "method", "GetEntityValue", "operation", "s.getValueFunc", "error", err.Error())
+	}
 	return
 }
 
 func (s *providerImpl) GetEntityModel(entity any, disableValidator bool) (ret models.Model, err *cd.Error) {
 	ret, err = s.checkEntityModel(entity, models.MetaView, disableValidator)
-	logError("GetEntityModel", "s.checkEntityModel", err)
+	if err != nil {
+		slog.Error("provider error", "method", "GetEntityModel", "operation", "s.checkEntityModel", "error", err.Error())
+	}
 	return
 }
 
@@ -129,7 +135,7 @@ func (s *providerImpl) checkEntityModel(entity any, viewSpec models.ViewDeclare,
 	entityType, entityTypeErr := s.getEntityTypeFunc(entity)
 	if entityTypeErr != nil {
 		err = entityTypeErr
-		logError("checkEntityModel", "s.getEntityTypeFunc", err)
+		slog.Error("provider error", "method", "checkEntityModel", "operation", "s.getEntityTypeFunc", "error", err.Error())
 		return
 	}
 
@@ -137,7 +143,7 @@ func (s *providerImpl) checkEntityModel(entity any, viewSpec models.ViewDeclare,
 	curModelVal := s.modelCache.Fetch(pkgKey)
 	if curModelVal == nil {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
-		logError("checkEntityModel", "", err)
+		slog.Error("provider error", "method", "checkEntityModel", "operation", "modelCache.Fetch", "error", err.Error())
 		return
 	}
 	entityValue, entityValueErr := s.getEntityValueFunc(entity)
@@ -150,7 +156,7 @@ func (s *providerImpl) checkEntityModel(entity any, viewSpec models.ViewDeclare,
 	entityModelVal, entityModelErr := s.setModelValueFunc(curModelVal.Copy(viewSpec), entityValue, disableValidator)
 	if entityModelErr != nil {
 		err = entityModelErr
-		logError("checkEntityModel", "s.setModelValueFunc", err)
+		slog.Error("provider error", "method", "checkEntityModel", "operation", "s.setModelValueFunc", "error", err.Error())
 	}
 
 	ret = entityModelVal
@@ -161,19 +167,26 @@ func (s *providerImpl) GetEntityFilter(entity any, viewSpec models.ViewDeclare) 
 	entityModelVal, entityModelErr := s.checkEntityModel(entity, viewSpec, true)
 	if entityModelErr != nil {
 		err = entityModelErr
-		logError("GetEntityFilter", "s.checkEntityModel", err)
+		slog.Error("provider error", "method", "GetEntityFilter", "operation", "s.checkEntityModel", "error", err.Error())
 		return
 	}
 
 	ret, err = s.getModelFilterFunc(entityModelVal)
-	logError("GetEntityFilter", "s.getModelFilterFunc", err)
+	if err != nil {
+		slog.Error("provider error", "method", "GetEntityFilter", "operation", "s.getModelFilterFunc", "error", err.Error())
+	}
 	return
 }
 
 func (s *providerImpl) GetTypeModel(vType models.Type) (ret models.Model, err *cd.Error) {
+	if vType == nil {
+		err = cd.NewError(cd.IllegalParam, "vType is nil")
+		slog.Error("GetTypeModel: vType is nil")
+		return
+	}
 	if models.IsBasic(vType) {
 		err = cd.NewError(cd.Unexpected, "illegal type value, type pkgKey:"+vType.GetPkgKey())
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("GetTypeModel: basic type not supported", "pkgKey", vType.GetPkgKey(), "error", err.Error())
 		return
 	}
 
@@ -181,7 +194,7 @@ func (s *providerImpl) GetTypeModel(vType models.Type) (ret models.Model, err *c
 	typeModelVal := s.modelCache.Fetch(pkgKey)
 	if typeModelVal == nil {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't fetch type model, must register type entity first, PkgKey:%s", pkgKey))
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("GetTypeModel: model not found", "pkgKey", pkgKey, "error", err.Error())
 		return
 	}
 
@@ -191,8 +204,8 @@ func (s *providerImpl) GetTypeModel(vType models.Type) (ret models.Model, err *c
 
 func (s *providerImpl) GetModelFilter(vModel models.Model) (ret models.Filter, err *cd.Error) {
 	if vModel == nil {
-		err = cd.NewError(cd.Unexpected, "illegal model value")
-		slog.Error("error occurred", "error", err.Error())
+		err = cd.NewError(cd.IllegalParam, "vModel is nil")
+		slog.Error("GetModelFilter: vModel is nil")
 		return
 	}
 
@@ -200,14 +213,14 @@ func (s *providerImpl) GetModelFilter(vModel models.Model) (ret models.Filter, e
 	curModelVal := s.modelCache.Fetch(pkgKey)
 	if curModelVal == nil {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("GetModelFilter: model not found", "pkgKey", pkgKey, "error", err.Error())
 		return
 	}
 
 	filterVal, filterErr := s.getModelFilterFunc(vModel)
 	if filterErr != nil {
 		err = filterErr
-		slog.Error("error occurred", "error", filterErr.Error())
+		slog.Error("GetModelFilter getModelFilterFunc failed", "pkgKey", pkgKey, "error", filterErr.Error())
 		return
 	}
 
@@ -217,8 +230,8 @@ func (s *providerImpl) GetModelFilter(vModel models.Model) (ret models.Filter, e
 
 func (s *providerImpl) GetTypeFilter(vType models.Type, viewSpec models.ViewDeclare) (ret models.Filter, err *cd.Error) {
 	if vType == nil {
-		err = cd.NewError(cd.Unexpected, "illegal type value")
-		slog.Error("error occurred", "error", err.Error())
+		err = cd.NewError(cd.IllegalParam, "vType is nil")
+		slog.Error("GetTypeFilter: vType is nil")
 		return
 	}
 
@@ -226,14 +239,14 @@ func (s *providerImpl) GetTypeFilter(vType models.Type, viewSpec models.ViewDecl
 	curModelVal := s.modelCache.Fetch(pkgKey)
 	if curModelVal == nil {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("GetTypeFilter: model not found", "pkgKey", pkgKey, "error", err.Error())
 		return
 	}
 
 	filterVal, filterErr := s.getModelFilterFunc(curModelVal.Copy(viewSpec))
 	if filterErr != nil {
 		err = filterErr
-		slog.Error("error occurred", "error", filterErr.Error())
+		slog.Error("GetTypeFilter getModelFilterFunc failed", "pkgKey", pkgKey, "error", filterErr.Error())
 		return
 	}
 
@@ -242,26 +255,36 @@ func (s *providerImpl) GetTypeFilter(vType models.Type, viewSpec models.ViewDecl
 }
 
 func (s *providerImpl) SetModelValue(vModel models.Model, vVal models.Value) (ret models.Model, err *cd.Error) {
+	if vModel == nil {
+		err = cd.NewError(cd.IllegalParam, "vModel is nil")
+		slog.Error("SetModelValue: vModel is nil")
+		return
+	}
 	pkgKey := vModel.GetPkgKey()
 	curModel := s.modelCache.Fetch(pkgKey)
 	if curModel == nil {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("SetModelValue: model not found", "pkgKey", pkgKey, "error", err.Error())
 		return
 	}
 
 	ret, err = s.setModelValueFunc(vModel, vVal, true)
 	if err != nil {
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("SetModelValue setModelValueFunc failed", "pkgKey", pkgKey, "error", err.Error())
 	}
 	return
 }
 
 func (s *providerImpl) EncodeValue(vVal any, vType models.Type) (ret any, err *cd.Error) {
+	if vType == nil {
+		err = cd.NewError(cd.IllegalParam, "vType is nil")
+		slog.Error("EncodeValue: vType is nil")
+		return
+	}
 	if models.IsBasic(vType) {
 		ret, err = s.encodeValueFunc(vVal, vType)
 		if err != nil {
-			slog.Error("error occurred", "error", err.Error())
+			slog.Error("EncodeValue encodeValueFunc failed", "pkgKey", vType.GetPkgKey(), "error", err.Error())
 		}
 		return
 	}
@@ -270,20 +293,20 @@ func (s *providerImpl) EncodeValue(vVal any, vType models.Type) (ret any, err *c
 	curModelVal := s.modelCache.Fetch(pkgKey)
 	if curModelVal == nil {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't fetch model, PkgKey:%s", pkgKey))
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("EncodeValue: model not found", "pkgKey", pkgKey, "error", err.Error())
 		return
 	}
 
 	eVal, eErr := s.getEntityValueFunc(vVal)
 	if eErr != nil {
 		err = eErr
-		slog.Error("error occurred", "error", eErr.Error())
+		slog.Error("EncodeValue getEntityValueFunc failed", "pkgKey", pkgKey, "error", eErr.Error())
 		return
 	}
 	vModelVal, vModelErr := s.setModelValueFunc(curModelVal.Copy(models.LiteView), eVal, true)
 	if vModelErr != nil {
 		err = vModelErr
-		slog.Error("error occurred", "error", vModelErr.Error())
+		slog.Error("EncodeValue setModelValueFunc failed", "pkgKey", pkgKey, "error", vModelErr.Error())
 		return
 	}
 
@@ -293,9 +316,14 @@ func (s *providerImpl) EncodeValue(vVal any, vType models.Type) (ret any, err *c
 }
 
 func (s *providerImpl) DecodeValue(vVal any, vType models.Type) (ret any, err *cd.Error) {
+	if vType == nil {
+		err = cd.NewError(cd.IllegalParam, "vType is nil")
+		slog.Error("DecodeValue: vType is nil")
+		return
+	}
 	ret, err = s.decodeValueFunc(vVal, vType)
 	if err != nil {
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("DecodeValue decodeValueFunc failed", "pkgKey", vType.GetPkgKey(), "error", err.Error())
 	}
 	return
 }

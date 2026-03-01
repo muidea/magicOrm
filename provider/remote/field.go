@@ -156,7 +156,7 @@ func (s *Field) copy(viewSpec models.ViewDeclare) (ret *Field, err error) {
 			}
 		}
 	default:
-		slog.Warn("message")
+		slog.Warn("Field.Copy: unsupported viewSpec", "field", s.GetName(), "viewSpec", viewSpec)
 	}
 
 	return

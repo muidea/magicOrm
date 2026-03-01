@@ -864,7 +864,7 @@ func encodeSliceTemplate[T any](vVal reflect.Value, vType models.Type, _ T) (ret
 	rSliceValList, rSliceValErr := utils.ElemDependValue(vVal)
 	if rSliceValErr != nil {
 		err = rSliceValErr
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("encodeSliceTemplate ElemDependValue failed", "error", err.Error())
 		return
 	}
 
@@ -873,14 +873,14 @@ func encodeSliceTemplate[T any](vVal reflect.Value, vType models.Type, _ T) (ret
 		encodeVal, encodeErr := encodeValue(val, vType)
 		if encodeErr != nil {
 			err = encodeErr
-			slog.Error("error occurred", "error", err.Error())
+			slog.Error("encodeSliceTemplate encodeValue failed", "error", err.Error())
 			return
 		}
 
 		tVal, tOk := encodeVal.(T)
 		if !tOk {
 			err = cd.NewError(cd.Unexpected, "illegal type")
-			slog.Error("error occurred", "error", err.Error())
+			slog.Error("encodeSliceTemplate type assertion failed", "error", err.Error())
 			return
 		}
 
@@ -940,14 +940,14 @@ func decodeSliceTemplate[T any](rSliceVal reflect.Value, vType models.Type, _ T)
 		decodeVal, decodeErr := DecodeValue(iVal.Interface(), vType.Elem())
 		if decodeErr != nil {
 			err = decodeErr
-			slog.Error("error occurred", "error", err.Error())
+			slog.Error("decodeSliceTemplate DecodeValue failed", "error", err.Error())
 			return
 		}
 
 		tVal, tOk := decodeVal.(T)
 		if !tOk {
 			err = cd.NewError(cd.Unexpected, "illegal type")
-			slog.Error("error occurred", "error", err.Error())
+			slog.Error("decodeSliceTemplate type assertion failed", "error", err.Error())
 			return
 		}
 

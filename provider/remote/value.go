@@ -158,7 +158,7 @@ func (s *ValueImpl) UnpackValue() (ret []models.Value) {
 func (s *ValueImpl) Append(val any) (err *cd.Error) {
 	if s.value == nil {
 		err = cd.NewError(cd.Unexpected, "value is nil")
-		slog.Warn("message")
+		slog.Warn("ValueImpl.Append: value is nil")
 		return
 	}
 
@@ -168,7 +168,7 @@ func (s *ValueImpl) Append(val any) (err *cd.Error) {
 		case *ObjectValue:
 			if s.value.(*SliceObjectValue).GetPkgPath() != val.(*ObjectValue).GetPkgPath() {
 				err = cd.NewError(cd.Unexpected, "pkgPath is not match")
-				slog.Warn("message")
+				slog.Warn("ValueImpl.Append: pkgPath mismatch", "slice", s.value.(*SliceObjectValue).GetPkgPath(), "val", val.(*ObjectValue).GetPkgPath())
 				return
 			}
 			s.value.(*SliceObjectValue).Values = append(s.value.(*SliceObjectValue).Values, val.(*ObjectValue))
@@ -200,7 +200,7 @@ func (s *ValueImpl) copy() (ret *ValueImpl, err error) {
 		copiedVal, copiedErr := utils.DeepCopy(s.value)
 		if copiedErr != nil {
 			err = copiedErr
-			slog.Error("error occurred", "error", "operation failed")
+			slog.Error("ValueImpl.copy DeepCopy failed", "error", copiedErr.Error())
 			return
 		}
 		ret.value = copiedVal

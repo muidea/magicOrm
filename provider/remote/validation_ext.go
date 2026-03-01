@@ -76,13 +76,13 @@ func (e *validationExtensionImpl) SetModelValueWithScenario(vModel models.Model,
 
 			if targetField == nil {
 				err = cd.NewError(cd.Unexpected, fmt.Sprintf("field not found: %s", fieldVal.Name))
-				slog.Error("error occurred", "error", "operation failed")
+				slog.Error("validation field not found", "field", fieldVal.Name)
 				return
 			}
 
 			err = e.ValidateFieldWithScenario(targetField, fieldVal.Value, scenario, false)
 			if err != nil {
-				slog.Error("error occurred", "error", "operation failed")
+				slog.Error("ValidateFieldWithScenario failed", "field", fieldVal.Name, "error", err.Error())
 				return
 			}
 
@@ -90,7 +90,7 @@ func (e *validationExtensionImpl) SetModelValueWithScenario(vModel models.Model,
 			setErr := vObjectPtr.innerSetFieldValue(fieldVal.Name, fieldVal.Value, true)
 			if setErr != nil {
 				err = setErr
-				slog.Error("error occurred", "error", "operation failed")
+				slog.Error("innerSetFieldValue failed", "field", fieldVal.Name, "error", setErr.Error())
 				return
 			}
 		}
@@ -102,7 +102,7 @@ func (e *validationExtensionImpl) SetModelValueWithScenario(vModel models.Model,
 			if primaryField != nil {
 				err = e.ValidateFieldWithScenario(primaryField, val, scenario, false)
 				if err != nil {
-					slog.Error("error occurred", "error", err.Error())
+					slog.Error("ValidateFieldWithScenario primary failed", "error", err.Error())
 					return
 				}
 			}
@@ -110,12 +110,12 @@ func (e *validationExtensionImpl) SetModelValueWithScenario(vModel models.Model,
 			// Set the value after validation
 			err = vObjectPtr.innerSetPrimaryFieldValue(val, true)
 			if err != nil {
-				slog.Error("error occurred", "error", "operation failed")
+				slog.Error("innerSetPrimaryFieldValue failed", "error", err.Error())
 				return
 			}
 		} else {
 			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal model value, val:%v", val))
-			slog.Error("error occurred", "error", "operation failed")
+			slog.Error("illegal model value", "val", val)
 			return
 		}
 	}

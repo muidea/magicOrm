@@ -36,8 +36,8 @@ func EncodeSliceTemplate[T any](
 
 		tVal, tOk := encodeVal.(T)
 		if !tOk {
-			err = cd.NewError(cd.Unexpected, "illegal type")
-			slog.Error("message")
+			err = cd.NewError(cd.Unexpected, "encode value type mismatch")
+			slog.Error("EncodeSliceTemplate type assertion failed", "error", err.Error())
 			return
 		}
 

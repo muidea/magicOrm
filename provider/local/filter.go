@@ -46,7 +46,7 @@ func (s *filter) GetPkgPath() string {
 func (s *filter) Equal(key string, val any) (err *cd.Error) {
 	if val == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal equal value")
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("filter op failed", "error", err.Error())
 		return
 	}
 
@@ -54,12 +54,12 @@ func (s *filter) Equal(key string, val any) (err *cd.Error) {
 	qvType, qvErr := utils.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("filter op failed", "error", err.Error())
 		return
 	}
 	if models.IsSliceType(qvType) {
 		err = cd.NewError(cd.Unexpected, "equal failed, illegal value type")
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("filter op failed", "error", err.Error())
 		return
 	}
 
@@ -71,7 +71,7 @@ func (s *filter) Equal(key string, val any) (err *cd.Error) {
 func (s *filter) NotEqual(key string, val any) (err *cd.Error) {
 	if val == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal not equal value")
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("filter op failed", "error", err.Error())
 		return
 	}
 
@@ -79,12 +79,12 @@ func (s *filter) NotEqual(key string, val any) (err *cd.Error) {
 	qvType, qvErr := utils.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("filter op failed", "error", err.Error())
 		return
 	}
 	if models.IsSliceType(qvType) {
 		err = cd.NewError(cd.Unexpected, "NotEqual failed, illegal value type")
-		slog.Error("Equal failed", "key", key, "val", val, "error", err.Error())
+		slog.Error("NotEqual failed", "key", key, "error", err.Error())
 		return
 	}
 
@@ -96,7 +96,7 @@ func (s *filter) NotEqual(key string, val any) (err *cd.Error) {
 func (s *filter) Below(key string, val any) (err *cd.Error) {
 	if val == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal below value")
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("filter op failed", "error", err.Error())
 		return
 	}
 
@@ -104,12 +104,12 @@ func (s *filter) Below(key string, val any) (err *cd.Error) {
 	qvType, qvErr := utils.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("filter op failed", "error", err.Error())
 		return
 	}
 	if !models.IsBasicType(qvType) {
 		err = cd.NewError(cd.Unexpected, "below failed, illegal value type")
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("filter op failed", "error", err.Error())
 		return
 	}
 
@@ -121,7 +121,7 @@ func (s *filter) Below(key string, val any) (err *cd.Error) {
 func (s *filter) Above(key string, val any) (err *cd.Error) {
 	if val == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal above value")
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("filter op failed", "error", err.Error())
 		return
 	}
 
@@ -129,12 +129,12 @@ func (s *filter) Above(key string, val any) (err *cd.Error) {
 	qvType, qvErr := utils.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("filter op failed", "error", err.Error())
 		return
 	}
 	if !models.IsBasicType(qvType) {
 		err = cd.NewError(cd.Unexpected, "above failed, illegal value type")
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("filter op failed", "error", err.Error())
 		return
 	}
 
@@ -146,7 +146,7 @@ func (s *filter) Above(key string, val any) (err *cd.Error) {
 func (s *filter) In(key string, val any) (err *cd.Error) {
 	if val == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal in value")
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("filter op failed", "error", err.Error())
 		return
 	}
 
@@ -154,12 +154,12 @@ func (s *filter) In(key string, val any) (err *cd.Error) {
 	qvType, qvErr := utils.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("filter op failed", "error", err.Error())
 		return
 	}
 	if !models.IsSliceType(qvType) {
 		err = cd.NewError(cd.Unexpected, "in failed, illegal value type")
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("filter op failed", "error", err.Error())
 		return
 	}
 
@@ -171,7 +171,7 @@ func (s *filter) In(key string, val any) (err *cd.Error) {
 func (s *filter) NotIn(key string, val any) (err *cd.Error) {
 	if val == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal not in value")
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("filter op failed", "error", err.Error())
 		return
 	}
 
@@ -179,12 +179,12 @@ func (s *filter) NotIn(key string, val any) (err *cd.Error) {
 	qvType, qvErr := utils.GetTypeEnum(qv.Type())
 	if qvErr != nil {
 		err = qvErr
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("filter op failed", "error", err.Error())
 		return
 	}
 	if !models.IsSliceType(qvType) {
 		err = cd.NewError(cd.Unexpected, "notIn failed, illegal value type")
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("filter op failed", "error", err.Error())
 		return
 	}
 
@@ -196,14 +196,14 @@ func (s *filter) NotIn(key string, val any) (err *cd.Error) {
 func (s *filter) Like(key string, val any) (err *cd.Error) {
 	if val == nil {
 		err = cd.NewError(cd.IllegalParam, "illegal like value")
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("filter op failed", "error", err.Error())
 		return
 	}
 
 	qv := reflect.Indirect(reflect.ValueOf(val))
 	if qv.Kind() != reflect.String {
 		err = cd.NewError(cd.Unexpected, "like failed, illegal value type")
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("filter op failed", "error", err.Error())
 		return
 	}
 
@@ -237,7 +237,7 @@ func (s *filter) ValueMask(val any) (err *cd.Error) {
 	maskType := reflect.Indirect(qv).Type().String()
 	if bindType != maskType {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("mismatch mask value, bindType:%v, maskType:%v", bindType, maskType))
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("filter op failed", "error", err.Error())
 		return
 	}
 
@@ -278,7 +278,7 @@ func (s *filter) MaskModel() models.Model {
 
 	objPtr, objErr := getValueModel(maskVal.value, models.OriginView)
 	if objErr != nil {
-		slog.Error("error occurred", "error", objErr.Error())
+		slog.Error("filter Mask failed", "error", objErr.Error())
 		return nil
 	}
 

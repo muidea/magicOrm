@@ -154,7 +154,7 @@ func appendBasicValue(sliceVal, val any) (ret any, err *cd.Error) {
 	rVal := reflect.ValueOf(sliceVal)
 	if rVal.Kind() != reflect.Slice {
 		err = cd.NewError(cd.Unexpected, "value is not slice")
-		slog.Error("error occurred", "error", "operation failed")
+		slog.Error("appendBasicValue: value is not slice")
 		return
 	}
 
@@ -164,7 +164,7 @@ func appendBasicValue(sliceVal, val any) (ret any, err *cd.Error) {
 
 	if !valType.AssignableTo(elemType) {
 		err = cd.NewError(cd.Unexpected, "type mismatch, expected: "+elemType.String()+", got: "+valType.String())
-		slog.Warn("message")
+		slog.Warn("appendBasicValue: type mismatch", "expected", elemType.String(), "got", valType.String())
 		return
 	}
 
@@ -197,7 +197,7 @@ func convertSliceValue(vType models.Type, val any) (ret any, err *cd.Error) {
 	rVal = reflect.Indirect(rVal)
 	if rVal.Kind() != reflect.Slice {
 		err = cd.NewError(cd.Unexpected, "value is not slice")
-		slog.Error("error occurred", "error", "operation failed")
+		slog.Error("convertSliceValue: value is not slice")
 		return
 	}
 	sliceVal := []any{}

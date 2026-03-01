@@ -59,11 +59,11 @@ func (s *ValueImpl) IsZero() bool {
 func (s *ValueImpl) Set(val any) (err *cd.Error) {
 	if !s.value.CanSet() {
 		err = cd.NewError(cd.Unexpected, "Set failed, value is not settable")
-		slog.Warn("Set failed, value is not settable", "message", "warning")
+		slog.Warn("ValueImpl.Set: value is not settable")
 		return
 	}
 	if !s.value.IsValid() {
-		slog.Error("error occurred", "error", "operation failed")
+		slog.Error("ValueImpl.Set: value is invalid")
 		return
 	}
 
@@ -72,7 +72,7 @@ func (s *ValueImpl) Set(val any) (err *cd.Error) {
 	if !isPtr {
 		if rVal.Type() != s.value.Type() {
 			err = cd.NewError(cd.Unexpected, "Set failed, value type is not match")
-			slog.Warn("warning", "type", s.value.Type())
+			slog.Warn("ValueImpl.Set: value type mismatch", "expected", s.value.Type(), "got", rVal.Type())
 			return
 		}
 

@@ -174,16 +174,22 @@ func getFieldName(fieldType reflect.StructField) (ret string, err *cd.Error) {
 	return
 }
 
+// reflectStructType 将 *T、[]T、[]*T 等类型解包为底层 struct 的 reflect.Type，供 type2Object 使用。
+func reflectStructType(rt reflect.Type) reflect.Type {
+	for rt.Kind() == reflect.Ptr {
+		rt = rt.Elem()
+	}
+	if rt.Kind() == reflect.Slice {
+		rt = rt.Elem()
+	}
+	for rt.Kind() == reflect.Ptr {
+		rt = rt.Elem()
+	}
+	return rt
+}
+
 func type2Object(entityType reflect.Type) (ret *remote.Object, err *cd.Error) {
-	if entityType.Kind() == reflect.Ptr {
-		entityType = entityType.Elem()
-	}
-	if entityType.Kind() == reflect.Slice {
-		entityType = entityType.Elem()
-	}
-	if entityType.Kind() == reflect.Ptr {
-		entityType = entityType.Elem()
-	}
+	entityType = reflectStructType(entityType)
 
 	typeImpl, typeErr := newType(entityType)
 	if typeErr != nil {

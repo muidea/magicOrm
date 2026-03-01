@@ -9,15 +9,16 @@ import (
 )
 
 func checkEntityType(entity any) (ret *TypeImpl, err *cd.Error) {
-	typeImplPtr, typeImplErr := NewType(reflect.TypeOf(entity))
+	entityType := reflect.TypeOf(entity)
+	typeImplPtr, typeImplErr := NewType(entityType)
 	if typeImplErr != nil {
 		err = typeImplErr
-		slog.Error("error occurred", "error", "operation failed")
+		slog.Error("checkEntityType NewType failed", "entityType", entityType.String(), "error", err.Error())
 		return
 	}
 	if !models.IsStruct(typeImplPtr.Elem()) {
 		err = cd.NewError(cd.IllegalParam, "entity is invalid")
-		slog.Error("error occurred", "error", "operation failed")
+		slog.Error("checkEntityType: not a struct type", "entityType", entityType.String())
 		return
 	}
 
@@ -34,7 +35,7 @@ func GetEntityType(entity any) (ret models.Type, err *cd.Error) {
 	typeImplPtr, typeImplErr := checkEntityType(entity)
 	if typeImplErr != nil {
 		err = typeImplErr
-		slog.Error("error occurred", "error", "operation failed")
+		slog.Error("GetEntityType checkEntityType failed", "error", err.Error())
 		return
 	}
 
@@ -50,7 +51,7 @@ func GetEntityValue(entity any) (ret models.Value, err *cd.Error) {
 
 	_, err = checkEntityType(entity)
 	if err != nil {
-		slog.Error("error occurred", "error", "operation failed")
+		slog.Error("GetEntityValue checkEntityType failed", "error", err.Error())
 		return
 	}
 
@@ -74,6 +75,7 @@ func GetEntityModel(entity any, valueValidator models.ValueValidator) (ret model
 	implPtr, implErr := getValueModel(reallyVal, models.OriginView)
 	if implErr != nil {
 		err = implErr
+		slog.Error("GetEntityModel getValueModel failed", "entityType", reallyVal.Type().String(), "error", err.Error())
 		return
 	}
 
@@ -96,6 +98,7 @@ func GetValueModel(vVal models.Value) (ret models.Model, err *cd.Error) {
 	implPtr, implErr := getValueModel(valueImplPtr.value, models.MetaView)
 	if implErr != nil {
 		err = implErr
+		slog.Error("GetValueModel getValueModel failed", "error", err.Error())
 		return
 	}
 
@@ -113,13 +116,13 @@ func SetModelValue(vModel models.Model, vVal models.Value, disableValidator bool
 	valImplPtr, valImplOK := vVal.(*ValueImpl)
 	if !valImplOK {
 		err = cd.NewError(cd.IllegalParam, "value is invalid")
-		slog.Error("error occurred", "error", "operation failed")
+		slog.Error("SetModelValue: value is not *ValueImpl")
 		return
 	}
 	valueModel, valueModelErr := getValueModel(valImplPtr.value, models.OriginView)
 	if valueModelErr != nil {
 		err = valueModelErr
-		slog.Error("error occurred", "error", "operation failed")
+		slog.Error("SetModelValue getValueModel failed", "error", err.Error())
 		return
 	}
 
@@ -132,7 +135,7 @@ func SetModelValue(vModel models.Model, vVal models.Value, disableValidator bool
 
 		err = vModelImplPtr.innerSetFieldValue(field.GetName(), field.GetValue().Get(), disableValidator)
 		if err != nil {
-			slog.Error("error occurred", "error", err.Error())
+			slog.Error("SetModelValue innerSetFieldValue failed", "model", vModel.GetPkgKey(), "field", field.GetName(), "error", err.Error())
 			return
 		}
 	}

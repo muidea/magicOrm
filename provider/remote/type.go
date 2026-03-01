@@ -72,7 +72,7 @@ func (s *TypeImpl) Interface(initVal any) (ret models.Value, err *cd.Error) {
 			rawVal, rawErr := utils.ConvertRawToBool(initVal)
 			if rawErr != nil {
 				err = rawErr
-				slog.Error("error occurred", "error", "operation failed")
+				slog.Error("TypeImpl.Interface ConvertRawToBool failed", "type", s.GetPkgKey(), "error", err.Error())
 				return
 			}
 			initVal = rawVal
@@ -80,7 +80,7 @@ func (s *TypeImpl) Interface(initVal any) (ret models.Value, err *cd.Error) {
 			rawVal, rawErr := utils.ConvertRawToInt8(initVal)
 			if rawErr != nil {
 				err = rawErr
-				slog.Error("error occurred", "error", "operation failed")
+				slog.Error("TypeImpl.Interface convert failed", "type", s.GetPkgKey(), "error", err.Error())
 				return
 			}
 			initVal = rawVal
@@ -88,7 +88,7 @@ func (s *TypeImpl) Interface(initVal any) (ret models.Value, err *cd.Error) {
 			rawVal, rawErr := utils.ConvertRawToInt16(initVal)
 			if rawErr != nil {
 				err = rawErr
-				slog.Error("error occurred", "error", "operation failed")
+				slog.Error("TypeImpl.Interface convert failed", "type", s.GetPkgKey(), "error", err.Error())
 				return
 			}
 			initVal = rawVal
@@ -96,7 +96,7 @@ func (s *TypeImpl) Interface(initVal any) (ret models.Value, err *cd.Error) {
 			rawVal, rawErr := utils.ConvertRawToInt32(initVal)
 			if rawErr != nil {
 				err = rawErr
-				slog.Error("error occurred", "error", "operation failed")
+				slog.Error("TypeImpl.Interface convert failed", "type", s.GetPkgKey(), "error", err.Error())
 				return
 			}
 			initVal = rawVal
@@ -104,7 +104,7 @@ func (s *TypeImpl) Interface(initVal any) (ret models.Value, err *cd.Error) {
 			rawVal, rawErr := utils.ConvertRawToInt(initVal)
 			if rawErr != nil {
 				err = rawErr
-				slog.Error("error occurred", "error", "operation failed")
+				slog.Error("TypeImpl.Interface convert failed", "type", s.GetPkgKey(), "error", err.Error())
 				return
 			}
 			initVal = rawVal
@@ -112,7 +112,7 @@ func (s *TypeImpl) Interface(initVal any) (ret models.Value, err *cd.Error) {
 			rawVal, rawErr := utils.ConvertRawToInt64(initVal)
 			if rawErr != nil {
 				err = rawErr
-				slog.Error("error occurred", "error", "operation failed")
+				slog.Error("TypeImpl.Interface convert failed", "type", s.GetPkgKey(), "error", err.Error())
 				return
 			}
 			initVal = rawVal
@@ -120,7 +120,7 @@ func (s *TypeImpl) Interface(initVal any) (ret models.Value, err *cd.Error) {
 			rawVal, rawErr := utils.ConvertRawToUint8(initVal)
 			if rawErr != nil {
 				err = rawErr
-				slog.Error("error occurred", "error", "operation failed")
+				slog.Error("TypeImpl.Interface convert failed", "type", s.GetPkgKey(), "error", err.Error())
 				return
 			}
 			initVal = rawVal
@@ -128,7 +128,7 @@ func (s *TypeImpl) Interface(initVal any) (ret models.Value, err *cd.Error) {
 			rawVal, rawErr := utils.ConvertRawToUint16(initVal)
 			if rawErr != nil {
 				err = rawErr
-				slog.Error("error occurred", "error", "operation failed")
+				slog.Error("TypeImpl.Interface convert failed", "type", s.GetPkgKey(), "error", err.Error())
 				return
 			}
 			initVal = rawVal
@@ -136,7 +136,7 @@ func (s *TypeImpl) Interface(initVal any) (ret models.Value, err *cd.Error) {
 			rawVal, rawErr := utils.ConvertRawToUint32(initVal)
 			if rawErr != nil {
 				err = rawErr
-				slog.Error("error occurred", "error", "operation failed")
+				slog.Error("TypeImpl.Interface convert failed", "type", s.GetPkgKey(), "error", err.Error())
 				return
 			}
 			initVal = rawVal
@@ -144,7 +144,7 @@ func (s *TypeImpl) Interface(initVal any) (ret models.Value, err *cd.Error) {
 			rawVal, rawErr := utils.ConvertRawToUint(initVal)
 			if rawErr != nil {
 				err = rawErr
-				slog.Error("error occurred", "error", "operation failed")
+				slog.Error("TypeImpl.Interface convert failed", "type", s.GetPkgKey(), "error", err.Error())
 				return
 			}
 			initVal = rawVal
@@ -152,7 +152,7 @@ func (s *TypeImpl) Interface(initVal any) (ret models.Value, err *cd.Error) {
 			rawVal, rawErr := utils.ConvertRawToUint64(initVal)
 			if rawErr != nil {
 				err = rawErr
-				slog.Error("error occurred", "error", "operation failed")
+				slog.Error("TypeImpl.Interface convert failed", "type", s.GetPkgKey(), "error", err.Error())
 				return
 			}
 			initVal = rawVal
@@ -160,7 +160,7 @@ func (s *TypeImpl) Interface(initVal any) (ret models.Value, err *cd.Error) {
 			rawVal, rawErr := utils.ConvertRawToFloat32(initVal)
 			if rawErr != nil {
 				err = rawErr
-				slog.Error("error occurred", "error", "operation failed")
+				slog.Error("TypeImpl.Interface convert failed", "type", s.GetPkgKey(), "error", err.Error())
 				return
 			}
 			initVal = rawVal
@@ -168,7 +168,7 @@ func (s *TypeImpl) Interface(initVal any) (ret models.Value, err *cd.Error) {
 			rawVal, rawErr := utils.ConvertRawToFloat64(initVal)
 			if rawErr != nil {
 				err = rawErr
-				slog.Error("error occurred", "error", "operation failed")
+				slog.Error("TypeImpl.Interface convert failed", "type", s.GetPkgKey(), "error", err.Error())
 				return
 			}
 			initVal = rawVal
@@ -176,7 +176,7 @@ func (s *TypeImpl) Interface(initVal any) (ret models.Value, err *cd.Error) {
 			rawVal, rawErr := utils.ConvertRawToString(initVal)
 			if rawErr != nil {
 				err = rawErr
-				slog.Error("error occurred", "error", "operation failed")
+				slog.Error("TypeImpl.Interface convert failed", "type", s.GetPkgKey(), "error", err.Error())
 				return
 			}
 			initVal = rawVal
@@ -185,7 +185,7 @@ func (s *TypeImpl) Interface(initVal any) (ret models.Value, err *cd.Error) {
 				rawVal, rawErr := s.convertRawBasicToSlice(initVal)
 				if rawErr != nil {
 					err = rawErr
-					slog.Error("error occurred", "error", "operation failed")
+					slog.Error("TypeImpl.Interface convert failed", "type", s.GetPkgKey(), "error", err.Error())
 					return
 				}
 				initVal = rawVal
@@ -193,7 +193,7 @@ func (s *TypeImpl) Interface(initVal any) (ret models.Value, err *cd.Error) {
 				rawVal, rawErr := s.convertRawStructToSlice(initVal)
 				if rawErr != nil {
 					err = rawErr
-					slog.Error("error occurred", "error", "operation failed")
+					slog.Error("TypeImpl.Interface convert failed", "type", s.GetPkgKey(), "error", err.Error())
 					return
 				}
 				initVal = rawVal
@@ -202,7 +202,7 @@ func (s *TypeImpl) Interface(initVal any) (ret models.Value, err *cd.Error) {
 			rawVal, rawErr := s.convertRawStruct(initVal)
 			if rawErr != nil {
 				err = rawErr
-				slog.Error("error occurred", "error", "operation failed")
+				slog.Error("TypeImpl.Interface convert failed", "type", s.GetPkgKey(), "error", err.Error())
 				return
 			}
 			initVal = rawVal
@@ -224,7 +224,7 @@ func (s *TypeImpl) convertRawBasicToSlice(initVal any) (ret any, err *cd.Error) 
 	rVal = reflect.Indirect(rVal)
 	if rVal.Kind() != reflect.Slice {
 		err = cd.NewError(cd.Unexpected, "value is not slice")
-		slog.Warn("message")
+		slog.Warn("TypeImpl.convertRawBasicToSlice: value is not slice", "type", s.GetPkgKey())
 		return
 	}
 
@@ -285,7 +285,7 @@ func (s *TypeImpl) convertRawStruct(initVal any) (ret *ObjectValue, err *cd.Erro
 	rVal := reflect.ValueOf(initVal)
 	rVal = reflect.Indirect(rVal)
 	if rVal.Kind() != reflect.Struct && rVal.Kind() != reflect.Map {
-		slog.Warn("message")
+		slog.Warn("TypeImpl.convertRawStruct: value is not struct or map", "type", s.GetPkgKey(), "kind", rVal.Kind().String())
 		return
 	}
 	objectStructVal := getStructInitValue(s)
@@ -318,7 +318,7 @@ func (s *TypeImpl) convertRawStruct(initVal any) (ret *ObjectValue, err *cd.Erro
 		}
 	default:
 		err = cd.NewError(cd.Unexpected, "value is not struct or map")
-		slog.Warn("message")
+		slog.Warn("TypeImpl.convertRawStruct: unexpected kind", "type", s.GetPkgKey(), "kind", rVal.Kind().String())
 		return
 	}
 

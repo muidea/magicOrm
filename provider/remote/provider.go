@@ -10,7 +10,7 @@ import (
 
 func GetEntityType(entity any) (ret models.Type, err *cd.Error) {
 	if entity == nil {
-		err = cd.NewError(cd.Unexpected, "entity is nil")
+		err = cd.NewError(cd.IllegalParam, "entity is nil")
 		return
 	}
 
@@ -70,7 +70,7 @@ func GetEntityType(entity any) (ret models.Type, err *cd.Error) {
 			},
 		}
 	default:
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal entity, entity:%v", entity))
+		err = cd.NewError(cd.IllegalParam, fmt.Sprintf("illegal entity, entity:%v", entity))
 		return
 	}
 	return
@@ -78,7 +78,7 @@ func GetEntityType(entity any) (ret models.Type, err *cd.Error) {
 
 func GetEntityValue(entity any) (ret models.Value, err *cd.Error) {
 	if entity == nil {
-		err = cd.NewError(cd.Unexpected, "entity is nil")
+		err = cd.NewError(cd.IllegalParam, "entity is nil")
 		return
 	}
 
@@ -100,8 +100,7 @@ func GetEntityValue(entity any) (ret models.Value, err *cd.Error) {
 			value: &val,
 		}
 	default:
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal entity, entity:%v", entity))
-		//slog.Error("GetEntityValue failed, err:%s", err.Error())
+		err = cd.NewError(cd.IllegalParam, fmt.Sprintf("illegal entity, entity:%v", entity))
 		return
 	}
 
@@ -110,7 +109,8 @@ func GetEntityValue(entity any) (ret models.Value, err *cd.Error) {
 
 func GetEntityModel(entity any, valueValidator models.ValueValidator) (ret models.Model, err *cd.Error) {
 	if entity == nil {
-		err = cd.NewError(cd.Unexpected, "entity is nil")
+		err = cd.NewError(cd.IllegalParam, "entity is nil")
+		slog.Error("GetEntityModel: entity is nil")
 		return
 	}
 
@@ -121,8 +121,8 @@ func GetEntityModel(entity any, valueValidator models.ValueValidator) (ret model
 	case Object:
 		objectPtr = &val
 	default:
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal entity, entity:%v", entity))
-		slog.Error("GetEntityModel failed", "error", err.Error())
+		err = cd.NewError(cd.IllegalParam, fmt.Sprintf("illegal entity, entity:%v", entity))
+		slog.Error("GetEntityModel: illegal entity type", "error", err.Error())
 	}
 
 	if err != nil {
@@ -135,10 +135,15 @@ func GetEntityModel(entity any, valueValidator models.ValueValidator) (ret model
 }
 
 func GetModelFilter(vModel models.Model) (ret models.Filter, err *cd.Error) {
+	if vModel == nil {
+		err = cd.NewError(cd.IllegalParam, "vModel is nil")
+		slog.Error("GetModelFilter: vModel is nil")
+		return
+	}
 	objectPtr, objectOK := vModel.(*Object)
 	if !objectOK {
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal model, model:%v", vModel))
-		slog.Error("GetModelFilter failed", "error", err.Error())
+		err = cd.NewError(cd.IllegalParam, fmt.Sprintf("illegal model, model:%v", vModel))
+		slog.Error("GetModelFilter: model is not *Object", "error", err.Error())
 		return
 	}
 
@@ -147,10 +152,20 @@ func GetModelFilter(vModel models.Model) (ret models.Filter, err *cd.Error) {
 }
 
 func SetModelValue(vModel models.Model, vVal models.Value, disableValidator bool) (ret models.Model, err *cd.Error) {
+	if vModel == nil {
+		err = cd.NewError(cd.IllegalParam, "vModel is nil")
+		slog.Error("SetModelValue: vModel is nil")
+		return
+	}
+	if vVal == nil {
+		err = cd.NewError(cd.IllegalParam, "vVal is nil")
+		slog.Error("SetModelValue: vVal is nil")
+		return
+	}
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
 			err = cd.NewError(cd.Unexpected, fmt.Sprintf("SetModelValue failed, illegal value, err:%v", errInfo))
-			slog.Error("SetModelValue failed", "error", err.Error())
+			slog.Error("SetModelValue panic recovered", "error", err.Error())
 			return
 		}
 	}()
@@ -163,10 +178,10 @@ func SetModelValue(vModel models.Model, vVal models.Value, disableValidator bool
 		if vVal.IsValid() {
 			err = vObjectPtr.innerSetPrimaryFieldValue(val, disableValidator)
 		} else {
-			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal model value, val:%v", val))
+			err = cd.NewError(cd.IllegalParam, fmt.Sprintf("illegal model value, val:%v", val))
 		}
 		if err != nil {
-			slog.Error("SetModelValue failed", "error", err.Error())
+			slog.Error("SetModelValue innerSetPrimaryFieldValue failed", "error", err.Error())
 			return
 		}
 	}
@@ -180,7 +195,7 @@ func assignObjectValue(vObjectPtr *Object, objectValuePtr *ObjectValue, disableV
 		fieldVal := objectValuePtr.Fields[idx]
 		err = vObjectPtr.innerSetFieldValue(fieldVal.GetName(), fieldVal.Get(), disableValidator)
 		if err != nil {
-			slog.Error("assignObjectValue failed", "error", err.Error())
+			slog.Error("assignObjectValue innerSetFieldValue failed", "field", fieldVal.GetName(), "error", err.Error())
 			return
 		}
 	}

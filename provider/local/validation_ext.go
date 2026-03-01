@@ -59,14 +59,14 @@ func (e *validationExtensionImpl) SetModelValueWithScenario(vModel models.Model,
 	valImplPtr, valImplOK := vVal.(*ValueImpl)
 	if !valImplOK {
 		err = cd.NewError(cd.IllegalParam, "value is invalid")
-		slog.Error("error occurred", "error", "operation failed")
+		slog.Error("SetModelValueWithValidation: value is not *ValueImpl")
 		return
 	}
 
 	valueModel, valueModelErr := getValueModel(valImplPtr.value, models.OriginView)
 	if valueModelErr != nil {
 		err = valueModelErr
-		slog.Error("error occurred", "error", "operation failed")
+		slog.Error("SetModelValueWithValidation getValueModel failed", "error", err.Error())
 		return
 	}
 
@@ -82,7 +82,7 @@ func (e *validationExtensionImpl) SetModelValueWithScenario(vModel models.Model,
 		fieldValue := field.GetValue().Get()
 		err = e.ValidateFieldWithScenario(field, fieldValue, scenario, false)
 		if err != nil {
-			slog.Error("error occurred", "error", err.Error())
+			slog.Error("ValidateFieldWithScenario failed", "field", field.GetName(), "error", err.Error())
 			return
 		}
 
@@ -90,7 +90,7 @@ func (e *validationExtensionImpl) SetModelValueWithScenario(vModel models.Model,
 		setErr := vModelImplPtr.innerSetFieldValue(field.GetName(), fieldValue, true)
 		if setErr != nil {
 			err = setErr
-			slog.Error("error occurred", "error", err.Error())
+			slog.Error("innerSetFieldValue failed", "field", field.GetName(), "error", setErr.Error())
 			return
 		}
 	}
@@ -240,6 +240,6 @@ func (s *objectImpl) innerSetFieldValueWithScenario(name string, val any, scenar
 		}
 	}
 
-	slog.Warn("warning", "message", "warning")
+	slog.Warn("innerSetFieldValueWithScenario: field not found", "field", name)
 	return
 }

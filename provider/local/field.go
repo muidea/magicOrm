@@ -146,7 +146,7 @@ func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Val
 	case models.OriginView:
 		//  do nothing
 	default:
-		slog.Error("error occurred", "error", err.Error())
+		slog.Error("getFieldInfo: unsupported viewSpec", "viewSpec", viewSpec)
 	}
 
 	fieldPtr.typePtr = typePtr
