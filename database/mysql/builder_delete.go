@@ -68,3 +68,35 @@ func (s *Builder) BuildDeleteRelation(vModel models.Model, vField models.Field) 
 
 	return
 }
+
+// BuildDeleteRelationByRights 仅删除关系表中指定的 (left, right) 行，不删除关联实体
+func (s *Builder) BuildDeleteRelationByRights(vModel models.Model, vField models.Field, rightIDs []any) (ret database.Result, err *cd.Error) {
+	if len(rightIDs) == 0 {
+		return
+	}
+
+	hostVal := vModel.GetPrimaryField().GetValue().Get()
+	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
+	if relationErr != nil {
+		err = relationErr
+		slog.Error("BuildDeleteRelationByRights failed", "field", vField.GetName(), "operation", "ConstructRelationTableName", "error", err.Error())
+		return
+	}
+
+	resultStackPtr := &ResultStack{}
+	resultStackPtr.PushArgs(hostVal)
+	inPlaceholders := "?"
+	for i := 1; i < len(rightIDs); i++ {
+		inPlaceholders += ",?"
+	}
+	for _, rightID := range rightIDs {
+		resultStackPtr.PushArgs(rightID)
+	}
+	deleteSQL := fmt.Sprintf("DELETE FROM `%s` WHERE `left`=? AND `right` IN (%s)", relationTableName, inPlaceholders)
+	if traceSQL() {
+		slog.Info("[SQL] delete relation by rights", "sql", deleteSQL)
+	}
+	resultStackPtr.SetSQL(deleteSQL)
+	ret = resultStackPtr
+	return
+}

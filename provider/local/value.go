@@ -47,10 +47,8 @@ func (s *ValueImpl) IsZero() bool {
 		return s.value.Elem().IsZero()
 	}
 	if s.value.Kind() == reflect.Slice || s.value.Kind() == reflect.Map {
-		if s.value.IsNil() {
-			return true
-		}
-		return s.value.Len() == 0
+		// nil=未赋值，[]=已赋值但 size 0（便于 Update 时“清空关系”等场景）
+		return s.value.IsNil()
 	}
 
 	return s.value.IsZero()

@@ -24,6 +24,7 @@ type Builder interface {
 	BuildDropRelationTable(vModel models.Model, vField models.Field) (Result, *cd.Error)
 	BuildInsertRelation(vModel models.Model, vField models.Field, rModel models.Model) (Result, *cd.Error)
 	BuildDeleteRelation(vModel models.Model, vField models.Field) (Result, Result, *cd.Error)
+	BuildDeleteRelationByRights(vModel models.Model, vField models.Field, rightIDs []any) (Result, *cd.Error)
 	BuildQueryRelation(vModel models.Model, vField models.Field) (Result, *cd.Error)
 
 	BuildModuleValueHolder(vModel models.Model) ([]any, *cd.Error)

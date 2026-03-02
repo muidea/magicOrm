@@ -131,7 +131,12 @@ func getFieldInfo(idx int, fieldType reflect.StructField, fieldValue reflect.Val
 	switch viewSpec {
 	case models.MetaView:
 		if !typePtr.IsPtrType() {
-			valuePtr.reset(true)
+			// slice 重置为 nil（未赋值）；非 slice 重置为零值/空容器
+			if typePtr.GetValue() == models.TypeSliceValue {
+				valuePtr.reset(false)
+			} else {
+				valuePtr.reset(true)
+			}
 		} else {
 			valuePtr.reset(false)
 		}

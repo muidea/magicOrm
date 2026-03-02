@@ -64,19 +64,21 @@ func (s *UpdateRunner) updateHost(vModel models.Model) (err *cd.Error) {
 }
 
 func (s *UpdateRunner) updateRelation(vModel models.Model, vField models.Field) (err *cd.Error) {
-	newVal := vField.GetValue().Get()
-	err = s.deleteRelation(vModel, vField, 0)
-	if err != nil {
-		slog.Error("UpdateRunner updateRelation deleteRelation failed", "field", vField.GetName(), "error", err.Error())
+	// 引用关系：单值指针（*T）或切片元素为指针（[]*T）；其余为包含关系
+	isReference := (models.IsSliceField(vField) && vField.GetType().Elem().IsPtrType()) ||
+		(!models.IsSliceField(vField) && models.IsPtrField(vField))
+	if isReference {
+		// 引用关系：只刷新关系（增删链接），不处理实体
+		err = s.updateReferenceRelation(vModel, vField)
+		if err != nil {
+			slog.Error("UpdateRunner updateRelation updateReferenceRelation failed", "field", vField.GetName(), "error", err.Error())
+		}
 		return
 	}
-	// TODO 这里最合理的逻辑应该是先查询出当前值，与新值进行差异比较
-	// 再根据比较后的结果进行处理
-	// 目前先粗暴点，直接删除再插入
-	vField.SetValue(newVal)
-	err = s.insertRelation(vModel, vField)
+	// 包含关系：同步处理关系和实体（先 deleteRelation 再 insertRelation）
+	err = s.updateContainRelation(vModel, vField)
 	if err != nil {
-		slog.Error("UpdateRunner updateRelation insertRelation failed", "field", vField.GetName(), "error", err.Error())
+		slog.Error("UpdateRunner updateRelation updateContainRelation failed", "field", vField.GetName(), "error", err.Error())
 	}
 	return
 }

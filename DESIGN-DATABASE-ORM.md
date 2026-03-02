@@ -125,7 +125,7 @@ type Executor interface {
 | **Create** | `impl.Create(vModel)` | 校验 context → CreateRunner.Create() → BuildCreateTable(vModel) → 主表 Execute；对非基础字段 BuildCreateRelationTable → 建关系表 |
 | **Drop** | `impl.Drop(vModel)` | 校验 context → DropRunner.Drop() → 先删关系表再删主表（BuildDropRelationTable / BuildDropTable） |
 | **Insert** | `impl.Insert(vModel)` | 校验 context、vModel 非 nil → 场景校验（ScenarioInsert）→ BeginTransaction → InsertRunner.Insert()：主表 insertHost（BuildInsert + ExecuteInsert，自增/UUID/DateTime 等由 Spec 在 Runner 内填值）→ 非基础字段 insertRelation（关系表插入）→ Commit/Rollback |
-| **Update** | `impl.Update(vModel)` | 校验 context → 场景校验（ScenarioUpdate）→ UpdateRunner.Update()：updateHost(BuildUpdate + Execute) → 各非基础字段 updateRelation（先 deleteRelation 再 insertRelation）→ 返回 vModel |
+| **Update** | `impl.Update(vModel)` | 校验 context → 场景校验（ScenarioUpdate）→ UpdateRunner.Update()：updateHost(BuildUpdate + Execute) → 各已赋值非基础字段 updateRelation（引用关系：查当前 right IDs → 与新 right IDs 差集 → 仅删/插差异链接；包含关系：先 deleteRelation 再 insertRelation）→ 返回 vModel |
 | **Delete** | `impl.Delete(vModel)` | 校验 context → 场景校验（ScenarioDelete）→ DeleteRunner.Delete()：先 deleteRelation 再 deleteHost（BuildDelete + Execute） |
 | **Query** | `impl.Query(vModel)` | 校验 context、vModel 非 nil → vModel.Copy(OriginView) → getModelFilter(vModel) 得到 Filter（主键或已赋值字段转 Equal/In）→ QueryRunner.Query(vFilter)：BuildQuery + executor.Query + Next + GetField → assignBasicField 等写回 Model → 返回单条 Model，若无结果返回 cd.NotFound |
 | **Count** | `impl.Count(vFilter)` | 校验 context → BuildCount(vFilter.MaskModel(), vFilter) → Execute → 解析 count 结果 |
@@ -156,8 +156,14 @@ type Executor interface {
 
 **Update 关系更新策略**
 
-- **当前策略**：对非基础字段的关系数据采用「先删后插」：先对该字段执行 DeleteRelation（删除关系表中关联行），再按当前 Model 中该字段的值执行 InsertRelation。
-- 不做差异比较；未赋值的非基础字段视为不更新该关系。若后续引入「按差异增量更新」，需在本文档中补充策略与对 Model/Filter、GetSliceValue、已赋值状态的假设。
+- **关系类型区分**：Update 时按字段的 `Elem().IsPtrType()` 区分两种关系，采用不同策略：
+  - **引用关系**（`Elem().IsPtrType() == true`，如 `*Child`、`[]*Role`）：**按差异增量更新**——先查询当前关系表中该 host 字段的 right ID 集合，与本次要写入的新 right ID 集合做差集，仅删除需移除的链接（`BuildDeleteRelationByRights`）、仅插入需新增的链接（`BuildInsertRelation`），不变的不动。不删除关联实体本身（关联实体独立存在）。
+  - **包含关系**（`Elem().IsPtrType() == false`，如 `Child`、`[]Tag`）：**以新换旧**——先对该字段执行 DeleteRelation（删除关系表行并级联删除关联实体），再按当前 Model 中该字段的值执行 InsertRelation（创建新关联实体并插入关系表行）。行为与原有一致。
+- **引用关系约束**：引用关系下，关联实体必须已存在于库中且有有效主键；若主键为空视为非法入参，返回 `cd.IllegalParam`。
+- 未赋值的非基础字段视为不更新该关系（在 `Update()` 循环中通过 `IsAssignedField` 过滤跳过）。
+- **slice 赋值语义**：属性类型为 slice 时，**nil=未赋值**、**[]=已赋值（size 0）**，用于引用关系「清空」等场景；实现见 Value 层 `IsZero()` 与 MetaView 下 slice 重置，详见 **DESIGN-UPDATE-RELATION-DIFF.md** 第 1.4 节。
+- **Query 选列与 slice 一致**：Query 时基础列中仅「已赋值」或「值类型 slice」（如 `[]int`）参与 SELECT 与赋值，指针型未赋值不拉取，与 slice 语义一致；详见 **docs/QUERY-SLICE-SEMANTICS-FIX.md**。
+- 详细实现方案与实现清单见 **DESIGN-UPDATE-RELATION-DIFF.md**（已实现并归档）。
 
 **无结果语义**
 
@@ -218,8 +224,7 @@ type Executor interface {
    - **建议**：在 Orm 接口的语义说明中明确：所有接受 Model 的方法在 `entity == nil` 时返回 `cd.IllegalParam`；Count/BatchQuery 在 `filter == nil` 时返回 `cd.IllegalParam`；实现上已满足的保持，未满足的补齐并与 helper 层错误码风格统一。
 
 2. **Update 关系更新策略**
-   - **现状**：updateRelation 采用“先删关系再插”（见 orm/update.go 注释），未做差异比较。
-   - **建议**：在本文档中明确为“当前策略：先 DeleteRelation 再 InsertRelation”；若后续引入“按差异增量更新”，在文档中增加小节描述策略与对 Model/Filter 的假设（例如依赖 GetSliceValue 与已赋值状态）。
+   - **现状**：已按 **DESIGN-UPDATE-RELATION-DIFF.md** 实现——引用关系按差异增量更新（仅刷新链接）、包含关系以新换旧；slice 语义（nil=未赋值、[]=已赋值）与 Query 选列已与实现一致，见 2.6 与 docs/QUERY-SLICE-SEMANTICS-FIX.md。
 
 3. **Query 无结果时的契约**
    - **现状**：Query 无记录时返回 `cd.NotFound` 与描述信息，符合常见契约。
@@ -256,7 +261,7 @@ type Executor interface {
 | 序号 | 内容 | 状态 |
 |------|------|------|
 | D1 | 入参校验与错误码：Orm 各方法对 nil 的约定（entity/filter → IllegalParam）在文档中写清 | **已成文** 见 2.6；实现已校验 entity/filter |
-| D2 | Update 关系策略：文档明确“先删后插”，可选后续“差异更新” | **已成文** 见 2.6 |
+| D2 | Update 关系策略：引用关系按差异增量、包含关系按以新换旧 | **已成文** 见 2.6；**已实施**，详细方案与清单见 DESIGN-UPDATE-RELATION-DIFF.md |
 | D3 | Query/Count/BatchQuery 无结果语义：Query 返回 NotFound、Count=0、BatchQuery=空切片 | **已成文** 见 2.6、2.7 |
 | D4 | Filter 与 Model 对应关系、MaskModel 用途 | **已成文** 见 2.6 |
 | D5 | 事务边界说明（单次操作事务 vs 调用方显式事务） | **已成文** 见 2.6 |
@@ -303,9 +308,9 @@ type Executor interface {
 | **文档** | D1～D7 成文 | **已实施** | 已在第 2.6 节「Orm 契约与实现约定」中写清入参 nil、Update 策略、无结果语义、Filter 与 Model、事务边界、Codec/Builder 职责、日志规范。 |
 | **文档** | 操作语义与错误码速查 | **已实施** | 已在第 2.7 节「操作语义与错误码速查」中给出各操作成功/无结果/常见失败与错误码。 |
 | **代码** | database 层 Warn 统一 | 已实施 | executor 中 Close/Rollback/Release 的 slog.Warn 已改为 `"error", err.Error()`，与 Error 路径风格一致。 |
-| **功能** | Update 关系差异更新 | 未来 | 若需「按差异增量更新关系」而非「先删后插」，需在 2.6 与实现中增加策略说明与对 Model/Filter 的假设。 |
+| **功能** | Update 关系差异更新 | **已实施** | 已按 **DESIGN-UPDATE-RELATION-DIFF.md** 第 7 节清单落地（Builder、orm/update_diff.go、slice 语义、Query 选列）；测试见 test/update_relation_diff_local_test.go，符合性见 docs/UPDATE-TEST-DESIGN-COMPLIANCE.md。 |
 
-当前**必须项**与 P2 文档成文、database Warn 统一均已完成；仅「Update 差异更新」为未来可选功能。
+当前**必须项**与 P2 文档成文、database Warn 统一、Update 关系差异更新均已完成。
 
 ---
 
@@ -313,8 +318,8 @@ type Executor interface {
 
 - **数据库 ORM 操作**完全基于 **models.Model** 及 **models.Field / Type / Value / Filter**，通过 **provider.Provider** 做编解码与类型模型获取，与 **DESIGN-CONSISTENCY.md** 的模型抽象与数据一致性约定一致。
 - **当前实现**的分层（Orm → Runner → Builder → Codec + Executor + Provider）清晰，表名与关系表名、字段值的读写均不绕过 Model/Field/Value 与 Provider。
-- **评估结论**：设计符合“基于 Model 及相关定义实现数据库 ORM”的目标。**实现层面** I1～I7 与 database 层 Warn 统一已落地；**契约与操作语义**已在第 2.6、2.7 节成文；**改进项状态与实施记录**见第 4 节「需改进项汇总」；**后续可选**见第 5 节。
+- **评估结论**：设计符合“基于 Model 及相关定义实现数据库 ORM”的目标。**实现层面** I1～I7、database 层 Warn 统一、**Update 关系差异更新**（含 slice 语义与 Query 选列）已落地；**契约与操作语义**已在第 2.6、2.7 节成文；**改进项状态与实施记录**见第 4 节「需改进项汇总」；**后续可完善项**见第 5 节。
 
 ---
 
-**相关文档**：模型抽象与数据一致性见 **DESIGN-CONSISTENCY.md**；本文档仅描述基于该抽象之上的数据库 ORM 操作设计。
+**相关文档**：模型抽象与数据一致性见 **DESIGN-CONSISTENCY.md**；本文档仅描述基于该抽象之上的数据库 ORM 操作设计。Update 关系差异更新与 slice 语义见 **DESIGN-UPDATE-RELATION-DIFF.md**（已实现并归档）；Query 选列与 slice 语义修复见 **docs/QUERY-SLICE-SEMANTICS-FIX.md**；Update 测试符合性见 **docs/UPDATE-TEST-DESIGN-COMPLIANCE.md**。

@@ -80,10 +80,13 @@ func (s *QueryRunner) innerAssign(vModel models.Model, queryVal resultItems, dee
 	offset := 0
 	qModel := vModel.Copy(models.OriginView)
 	for _, field := range qModel.GetFields() {
-		if !models.IsBasicField(field) || !models.IsValidField(field) {
+		// 只处理基础字段；与 builder 一致：已赋值或值类型 slice 才参与 SELECT，故只对这些字段赋值
+		if !models.IsBasicField(field) {
 			continue
 		}
-
+		if !models.IsValidField(field) && !(models.IsSliceField(field) && !models.IsPtrField(field)) {
+			continue
+		}
 		// 检查 wo 约束，这些字段在查询时应该被排除
 		fSpec := field.GetSpec()
 		constraints := fSpec.GetConstraints()
@@ -100,7 +103,8 @@ func (s *QueryRunner) innerAssign(vModel models.Model, queryVal resultItems, dee
 	}
 
 	for _, field := range qModel.GetFields() {
-		if models.IsBasicField(field) || !models.IsValidField(field) {
+		// 只对关系字段（非基础）加载关系；关系字段即使当前为 nil 也从 DB 加载，与「nil=未赋值、[]=已赋值」一致
+		if models.IsBasicField(field) {
 			continue
 		}
 		err = s.assignModelField(qModel, field, deepLevel)
@@ -181,7 +185,7 @@ func (s *QueryRunner) querySingleRelation(vModel models.Model, vField models.Fie
 
 	rvErr := s.innerQueryRelationSingleModel(valueList[0], vField, deepLevel)
 	if rvErr != nil {
-		slog.Error("QueryRunner failed", "error", err.Error())
+		slog.Error("QueryRunner failed", "error", rvErr.Error())
 		err = rvErr
 		return
 	}
@@ -203,7 +207,7 @@ func (s *QueryRunner) querySliceRelation(vModel models.Model, vField models.Fiel
 	rModelErr := s.innerQueryRelationSliceModel(valueList, vField, deepLevel)
 	if rModelErr != nil {
 		err = rModelErr
-		slog.Error("QueryRunner failed", "error", err.Error())
+		slog.Error("QueryRunner failed", "error", rModelErr.Error())
 		return
 	}
 	return

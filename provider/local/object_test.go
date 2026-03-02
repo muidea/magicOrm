@@ -261,11 +261,12 @@ func TestObjectCopy(t *testing.T) {
 	if !models.IsValidField(metaRefModelVal.GetField("id")) {
 		t.Errorf("check metaRefModelVal model id field failed, really false, expect true")
 	}
-	if !models.IsValidField(metaRefModelVal.GetField("bArray")) {
-		t.Errorf("check metaRefModelVal model bArray field failed, really false, expect true")
+	// MetaView 将 slice 重置为 nil，nil=未赋值故 invalid
+	if models.IsValidField(metaRefModelVal.GetField("bArray")) {
+		t.Errorf("check metaRefModelVal model bArray field failed (MetaView slice=nil), expect false")
 	}
-	if !models.IsValidField(metaRefModelVal.GetField("strArray")) {
-		t.Errorf("check metaRefModelVal model strArray field failed, really false, expect true")
+	if models.IsValidField(metaRefModelVal.GetField("strArray")) {
+		t.Errorf("check metaRefModelVal model strArray field failed (MetaView slice=nil), expect false")
 	}
 	if models.IsValidField(metaRefModelVal.GetField("ptrArray")) {
 		t.Errorf("check metaRefModelVal model ptrArray field failed, really true, expect false")
