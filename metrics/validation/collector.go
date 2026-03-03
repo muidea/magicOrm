@@ -202,7 +202,7 @@ func (c *ValidationMetricsCollector) Clear() {
 // classifyError classifies an error into error types for metrics.
 func (c *ValidationMetricsCollector) classifyError(err error) string {
 	if err == nil {
-		return "none"
+		return string(metrics.ErrorTypeUnknown)
 	}
 
 	// 使用recover安全地获取错误字符串
@@ -218,25 +218,27 @@ func (c *ValidationMetricsCollector) classifyError(err error) string {
 	}()
 
 	if errStr == "" {
-		return "unknown"
+		return string(metrics.ErrorTypeUnknown)
 	}
 
+	errLower := strings.ToLower(errStr)
+
 	switch {
-	case strings.Contains(errStr, "type"):
-		return "type"
-	case strings.Contains(errStr, "constraint"):
-		return "constraint"
-	case strings.Contains(errStr, "required"):
-		return "required"
-	case strings.Contains(errStr, "range"):
-		return "range"
-	case strings.Contains(errStr, "format"):
-		return "format"
-	case strings.Contains(errStr, "unique"):
-		return "unique"
-	case strings.Contains(errStr, "database"):
-		return "database"
+	case strings.Contains(errLower, "type"):
+		return string(metrics.ErrorTypeValidation)
+	case strings.Contains(errLower, "constraint"):
+		return string(metrics.ErrorTypeConstraint)
+	case strings.Contains(errLower, "required"):
+		return string(metrics.ErrorTypeValidation)
+	case strings.Contains(errLower, "range"):
+		return string(metrics.ErrorTypeValidation)
+	case strings.Contains(errLower, "format"):
+		return string(metrics.ErrorTypeValidation)
+	case strings.Contains(errLower, "unique"):
+		return string(metrics.ErrorTypeConstraint)
+	case strings.Contains(errLower, "database"):
+		return string(metrics.ErrorTypeDatabase)
 	default:
-		return "unknown"
+		return string(metrics.ErrorTypeUnknown)
 	}
 }

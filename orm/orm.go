@@ -11,7 +11,8 @@ import (
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/metrics/orm"
+	"github.com/muidea/magicOrm/metrics"
+	metricsorm "github.com/muidea/magicOrm/metrics/orm"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/validation"
@@ -42,8 +43,8 @@ var (
 	name2PoolInitializeOnce    sync.Once
 	name2PoolUninitializedOnce sync.Once
 
-	ormMetricProvider  *orm.ORMMetricProvider
-	ormMetricCollector *orm.ORMMetricsCollector
+	ormMetricProvider  *metricsorm.ORMMetricProvider
+	ormMetricCollector *metricsorm.ORMMetricsCollector
 )
 
 // Initialize InitOrm
@@ -59,12 +60,12 @@ func Initialize() {
 // registerORMMetrics 注册ORM监控provider
 func registerORMMetrics() {
 	// 创建全局metrics收集器（无论GlobalManager是否存在都创建）
-	ormMetricCollector = orm.NewORMMetricsCollector()
+	ormMetricCollector = metricsorm.NewORMMetricsCollector()
 
 	// 只有在GlobalManager存在时才注册provider
 	if mgr := monitoring.GetGlobalManager(); mgr != nil {
 		// 创建provider并传递collector
-		ormMetricProvider = orm.NewORMMetricProvider(ormMetricCollector)
+		ormMetricProvider = metricsorm.NewORMMetricProvider(ormMetricCollector)
 
 		// 尝试注册ORMMetricProvider
 		if err := monitoring.RegisterGlobalProvider(
@@ -76,13 +77,48 @@ func registerORMMetrics() {
 			100,  // 优先级
 		); err != nil {
 			ormMetricProvider = nil
-			// 记录错误但不影响ORM初始化			log.Warnf("Failed to register ORM metrics provider: %v", err)
+			// 记录错误但不影响ORM初始化
+			slog.Warn("Failed to register ORM metrics provider", "error", err.Error())
 		} else {
 			slog.Info("ORM metrics provider registered successfully")
 		}
 	} else {
 		// GlobalManager不存在，只创建collector不注册provider
 		slog.Debug("GlobalManager not available, ORM metrics collector created but provider not registered")
+	}
+}
+
+// EnsureORMMetricProviderRegistered 尝试在GlobalManager可用时注册ORM metrics provider。
+// 该方法是幂等的，可在monitoring.InitializeGlobalManager()之后显式调用。
+func EnsureORMMetricProviderRegistered() {
+	// 如果已经有provider，则不需要重复注册
+	if ormMetricProvider != nil {
+		return
+	}
+	if ormMetricCollector == nil {
+		// 尚未初始化ORM，保持静默
+		return
+	}
+
+	if monitoring.GetGlobalManager() == nil {
+		// 监控系统尚未初始化，无法注册
+		return
+	}
+
+	// 创建并注册provider
+	ormMetricProvider = metricsorm.NewORMMetricProvider(ormMetricCollector)
+	if err := monitoring.RegisterGlobalProvider(
+		"magicorm_orm",
+		func() types.MetricProvider {
+			return ormMetricProvider
+		},
+		true,
+		100,
+	); err != nil {
+		ormMetricProvider = nil
+		slog.Warn("Failed to ensure ORM metrics provider registration", "error", err.Error())
+	} else {
+		slog.Info("ORM metrics provider ensured and registered successfully")
 	}
 }
 
@@ -217,7 +253,7 @@ func (s *impl) BeginTransaction() (err *cd.Error) {
 	// Record transaction metric
 	if ormMetricCollector != nil {
 		success := err == nil
-		ormMetricCollector.RecordTransaction("begin", success)
+		ormMetricCollector.RecordTransaction(string(metrics.OperationCreate), success)
 	}
 
 	return

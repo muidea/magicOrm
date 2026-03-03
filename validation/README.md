@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is the new validation system for MagicORM, implementing a four-layer validation architecture to address current architectural limitations.
+This is the new validation system for MagicORM, implementing a four-layer validation architecture to address current architectural limitations. For design details see [VALIDATION_ARCHITECTURE.md](../VALIDATION_ARCHITECTURE.md) and [docs/design-validation.md](../docs/design-validation.md).
 
 ## Architecture
 

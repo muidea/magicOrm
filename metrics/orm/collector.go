@@ -241,7 +241,7 @@ func (c *ORMMetricsCollector) Clear() {
 // classifyError classifies an error into error types for metrics.
 func (c *ORMMetricsCollector) classifyError(err error) string {
 	if err == nil {
-		return "none"
+		return string(metrics.ErrorTypeUnknown)
 	}
 
 	// 使用recover安全地获取错误字符串
@@ -257,23 +257,25 @@ func (c *ORMMetricsCollector) classifyError(err error) string {
 	}()
 
 	if errStr == "" {
-		return "unknown"
+		return string(metrics.ErrorTypeUnknown)
 	}
 
+	errLower := strings.ToLower(errStr)
+
 	switch {
-	case strings.Contains(errStr, "validation"):
-		return "validation"
-	case strings.Contains(errStr, "database"):
-		return "database"
-	case strings.Contains(errStr, "connection"):
-		return "connection"
-	case strings.Contains(errStr, "timeout"):
-		return "timeout"
-	case strings.Contains(errStr, "constraint"):
-		return "constraint"
-	case strings.Contains(errStr, "transaction"):
-		return "transaction"
+	case strings.Contains(errLower, "validation"):
+		return string(metrics.ErrorTypeValidation)
+	case strings.Contains(errLower, "database"):
+		return string(metrics.ErrorTypeDatabase)
+	case strings.Contains(errLower, "connection"):
+		return string(metrics.ErrorTypeConnection)
+	case strings.Contains(errLower, "timeout"):
+		return string(metrics.ErrorTypeTimeout)
+	case strings.Contains(errLower, "constraint"):
+		return string(metrics.ErrorTypeConstraint)
+	case strings.Contains(errLower, "transaction"):
+		return string(metrics.ErrorTypeTransaction)
 	default:
-		return "unknown"
+		return string(metrics.ErrorTypeUnknown)
 	}
 }

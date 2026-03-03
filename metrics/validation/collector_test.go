@@ -99,7 +99,7 @@ func TestClassifyError(t *testing.T) {
 		err      error
 		expected string
 	}{
-		{nil, "none"},
+		{nil, string(metrics.ErrorTypeUnknown)},
 		{assert.AnError, "unknown"},
 	}
 

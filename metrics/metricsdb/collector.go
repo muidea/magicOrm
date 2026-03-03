@@ -208,7 +208,7 @@ func (c *DatabaseMetricsCollector) Clear() {
 // classifyError classifies an error into error types for metrics.
 func (c *DatabaseMetricsCollector) classifyError(err error) string {
 	if err == nil {
-		return "none"
+		return string(metrics.ErrorTypeUnknown)
 	}
 
 	// 使用recover安全地获取错误字符串
@@ -224,27 +224,29 @@ func (c *DatabaseMetricsCollector) classifyError(err error) string {
 	}()
 
 	if errStr == "" {
-		return "unknown"
+		return string(metrics.ErrorTypeUnknown)
 	}
 
+	errLower := strings.ToLower(errStr)
+
 	switch {
-	case strings.Contains(errStr, "connection"):
-		return "connection"
-	case strings.Contains(errStr, "timeout"):
-		return "timeout"
-	case strings.Contains(errStr, "deadlock"):
-		return "deadlock"
-	case strings.Contains(errStr, "constraint"):
-		return "constraint"
-	case strings.Contains(errStr, "syntax"):
-		return "syntax"
-	case strings.Contains(errStr, "permission"):
-		return "permission"
-	case strings.Contains(errStr, "duplicate"):
-		return "duplicate"
-	case strings.Contains(errStr, "not found"):
-		return "not_found"
+	case strings.Contains(errLower, "connection"):
+		return string(metrics.ErrorTypeConnection)
+	case strings.Contains(errLower, "timeout"):
+		return string(metrics.ErrorTypeTimeout)
+	case strings.Contains(errLower, "deadlock"):
+		return string(metrics.ErrorTypeDatabase)
+	case strings.Contains(errLower, "constraint"):
+		return string(metrics.ErrorTypeConstraint)
+	case strings.Contains(errLower, "syntax"):
+		return string(metrics.ErrorTypeDatabase)
+	case strings.Contains(errLower, "permission"):
+		return string(metrics.ErrorTypeDatabase)
+	case strings.Contains(errLower, "duplicate"):
+		return string(metrics.ErrorTypeConstraint)
+	case strings.Contains(errLower, "not found"):
+		return string(metrics.ErrorTypeDatabase)
 	default:
-		return "unknown"
+		return string(metrics.ErrorTypeUnknown)
 	}
 }

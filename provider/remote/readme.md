@@ -1,5 +1,6 @@
-# Remote 数据结构说明
+# Remote 数据结构说明（Remote Provider）
 
+总体设计见 [docs/design-provider.md](../../docs/design-provider.md)。本文档说明 Remote 端数据结构与序列化。
 
 ## Object 数据模型
 

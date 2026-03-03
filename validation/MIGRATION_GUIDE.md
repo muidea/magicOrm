@@ -585,8 +585,8 @@ go test ./validation/... -race -count=100
 
 ### 文档
 - [生产环境指南](./PRODUCTION_GUIDE.md)
-- [监控模块文档](./monitoring/README.md)
-- [验证系统架构](./VALIDATION_ARCHITECTURE.md)
+- [监控与指标设计](../docs/design-metrics.md)
+- [验证系统架构](../VALIDATION_ARCHITECTURE.md)
 
 ### 示例代码
 - [基本使用示例](./example/usage_example.go)

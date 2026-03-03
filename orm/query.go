@@ -10,6 +10,7 @@ import (
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/metrics"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
@@ -383,7 +384,7 @@ func (s *impl) Query(vModel models.Model) (ret models.Model, err *cd.Error) {
 	defer func() {
 		duration := time.Since(startTime)
 		if ormMetricCollector != nil {
-			ormMetricCollector.RecordOperation("query", vModel, duration, err)
+			ormMetricCollector.RecordOperation(string(metrics.OperationQuery), vModel, duration, err)
 		}
 	}()
 

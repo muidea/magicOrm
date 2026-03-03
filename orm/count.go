@@ -9,6 +9,7 @@ import (
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/metrics"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"log/slog"
@@ -72,7 +73,7 @@ func (s *impl) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
 			if vFilter != nil {
 				model = vFilter.MaskModel()
 			}
-			ormMetricCollector.RecordOperation("count", model, duration, err)
+			ormMetricCollector.RecordOperation(string(metrics.OperationCount), model, duration, err)
 		}
 	}()
 
