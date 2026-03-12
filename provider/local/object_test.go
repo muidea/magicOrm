@@ -837,7 +837,7 @@ func TestAssign(t *testing.T) {
 	if !reflect.DeepEqual(newVal.PtrSlicePtr, intPtrSlicePtr) {
 		t.Errorf("Assign failed, expected: %v, got: %v", intPtrSlicePtr, newVal.PtrSlicePtr)
 	}
-	slog.Info("rawVal", "value", rawVal)
+	slog.Info("test: log rawVal", "value", rawVal)
 	slog.Info("info")
 
 	err = zeroModelVal.SetFieldValue("id", id)

@@ -36,3 +36,12 @@
 | **Remote** | `provider/remote` | 用于通过远程服务访问模型的场景。 |
 
 测试中通过 `localProvider` / `remoteProvider` 区分（如 `test/simple_test.go`、`test/constraint_local_test.go` 等）。Orm 创建时需传入 Provider，用于获取 Model、Filter 等，见 [design-orm.md](design-orm.md) 与 [design-models.md](design-models.md)。
+
+### 2.1 Provider 选择指南
+
+- **Local**：单进程、应用直连数据库；所有 Model/Filter 基于本地反射与类型注册，无网络开销，适合常规 CRUD 与事务。
+- **Remote**：通过远程服务访问模型数据；调用方需自行实现或接入满足 Provider 接口的远程实现（如 RPC/HTTP）。**需澄清**：Remote 的通讯协议、序列化方式、与 Local 的 API 对齐程度见 [需澄清信息.md](需澄清信息.md)（评审 PRV-001、CONS-002）。
+
+### 2.2 错误处理
+
+- Provider 层方法返回 `*cd.Error`，常见为 `IllegalParam`（如 entity/model 为 nil、类型不合法）。完整错误码见 [error-codes.md](error-codes.md)。

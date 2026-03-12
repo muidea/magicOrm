@@ -81,7 +81,7 @@ func (s *ValueImpl) Set(val any) (err *cd.Error) {
 	rVal = reflect.Indirect(rVal)
 	if rVal.Type() != s.value.Type().Elem() {
 		err = cd.NewError(cd.Unexpected, "Set failed, value type is not match")
-		slog.Warn("Set failed, value type is not match", "message", "warning")
+		slog.Warn("Set failed, value type is not match", "expected", s.value.Type().Elem(), "got", rVal.Type())
 		return
 	}
 

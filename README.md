@@ -50,29 +50,31 @@ type Group struct {
 
 ```go
 import (
+    "context"
     "github.com/muidea/magicOrm/orm"
     "github.com/muidea/magicOrm/provider"
 )
 
-// 数据库配置
-config := &orm.Options{
-    Driver: "postgres", // 或 "mysql"
-    DSN:    "数据库连接字符串",
-}
-
-// 初始化
+// 初始化全局 ORM（连接池管理）
 orm.Initialize()
 defer orm.Uninitialized()
 
-// 创建Provider
+// 注册数据库（示例：PostgreSQL）
+// dbServer 形如 "localhost:5432"，dbName 为数据库名，"default" 为自定义 owner 标识
+if err := orm.AddDatabase("localhost:5432", "mydb", "user", "password", 25, "default"); err != nil {
+    log.Fatal(err)
+}
+
+// 创建 Provider（与数据库 owner 对应）
 localProvider := provider.NewLocalProvider("default", nil)
 
-// 创建ORM实例
-o1, err := orm.NewOrm(localProvider, config, "schema_prefix")
-defer o1.Release()
+// 从连接池获取 ORM 实例
+ctx := context.Background()
+o1, err := orm.GetOrm(ctx, localProvider, "schema_prefix")
 if err != nil {
     log.Fatal(err)
 }
+defer o1.Release()
 ```
 
 ### 3. 注册模型
@@ -698,8 +700,17 @@ type Group struct {
 ### 数据库配置
 
 ```go
-// PostgreSQL配置
-config := &orm.Options{
+// 应用自定义的数据库配置结构体（示例），并非 magicOrm 内置类型
+type DBOptions struct {
+    Driver         string
+    DSN            string
+    MaxOpenConns   int
+    MaxIdleConns   int
+    ConnMaxLifetime time.Duration
+}
+
+// PostgreSQL配置（示例）
+config := &DBOptions{
     Driver: "postgres",
     DSN:    "postgres://user:password@localhost:5432/dbname?sslmode=disable",
     MaxOpenConns: 25,
@@ -707,8 +718,8 @@ config := &orm.Options{
     ConnMaxLifetime: time.Hour,
 }
 
-// MySQL配置
-config := &orm.Options{
+// MySQL配置（示例）
+config = &DBOptions{
     Driver: "mysql",
     DSN:    "user:password@tcp(localhost:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local",
     MaxOpenConns: 25,

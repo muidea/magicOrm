@@ -43,6 +43,22 @@
 
 - **表是否存在**：底层 `database.Executor` 提供 `CheckTableExist(tableName string) (bool, *cd.Error)`，但 Orm 接口**无** `Exist(model)`。README 中曾描述该能力，现状与建议见 [design-checklist.md](design-checklist.md)。
 
+### 2.4 Create / Drop 与关联表
+
+- **Create**：会递归创建该实体表及其**所有**关系字段对应的关系表；先创建依赖的包含关系实体表，再创建 host 表，再创建各关系表。关联表创建顺序与依赖解析见 [design-relation.md](design-relation.md)。
+- **Drop**：仅处理**当前 Model 对应的数据表**（即该实体表 + 以该实体为 host 的关系表）；不级联删除其它实体表或对端实体表中的数据，由调用方按需自行删除。
+
+### 2.5 事务与资源
+
+- **事务**：在同一 Orm 实例上顺序调用 `BeginTransaction()` → 若干 Insert/Update/Delete/Query → `CommitTransaction()` 或 `RollbackTransaction()`；无返回 `Tx` 的 API。事务隔离级别、超时、死锁等按**数据库与 context 默认值**处理，当前不提供单独配置项。
+- **单次 CRUD 与事务**：每次 Insert/Update/Delete 等操作在实现上均在同一事务内完成，并在当次操作结束时自动提交或回滚（成功则提交，失败则回滚），无需调用方在单次 CRUD 后显式 Commit/Rollback。
+- **并发**：同一 Orm 实例的**并发安全由外部调用方保证**（如单 goroutine 使用或由调用方加锁）；框架不在此层做并发保护。
+- **Release**：释放 Orm 占用的资源（如连接池引用）；应在使用完毕后调用。因每次 CRUD 都会在当次操作内完成提交或回滚，正常情况下不存在「未提交事务」；若在已调用 `BeginTransaction()` 且未 `CommitTransaction()`/`RollbackTransaction()` 的情况下调用 Release，行为以实现为准，建议调用方保证事务在 Release 前已结束。
+
+### 2.6 错误处理
+
+- 各方法返回 `*cd.Error`，错误码与含义见 [error-codes.md](error-codes.md)。常见为 `IllegalParam`（参数非法）、`NotFound`（Query 无匹配）。
+
 ---
 
 ## 3. 完整接口定义（附录）

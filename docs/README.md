@@ -35,7 +35,10 @@
 | 功能块 | [design-metrics.md](design-metrics.md) | 监控与指标 |
 | 功能块 | [design-data-flow.md](design-data-flow.md) | 数据流与关键场景 |
 | 功能块 | [design-checklist.md](design-checklist.md) | 与现有文档差异及实现核对清单 |
-| 维护 | [补充与完善清单.md](补充与完善清单.md) | 基于当前内容可直接补充与修正的条目汇总（所列项均已完成） |
+| 功能块 | [design-relation.md](design-relation.md) | 关联关系（引用/包含、关系表、CRUD 与 Query） |
+| 技术参考 | [error-codes.md](error-codes.md) | 错误码定义 |
+| 技术参考 | [type-mapping.md](type-mapping.md) | 类型映射表 |
+| 技术参考 | [tags-reference.md](tags-reference.md) | 标签参考 |
 | 归档 | [archive/README.md](archive/README.md) | 历史/已合并设计文档（DESIGN-CONSISTENCY、DESIGN-DATABASE-ORM、UPDATE 关系差异等），仅供查阅 |
 
 ---
@@ -90,6 +93,33 @@ flowchart TB
 | 监控与指标 | [design-metrics.md](design-metrics.md) | metrics 包、ORMMetricsCollector、magicCommon 注册 |
 | 数据流 | [design-data-flow.md](design-data-flow.md) | Insert/Query 时序、事务使用方式 |
 | 核对清单 | [design-checklist.md](design-checklist.md) | 与 README 差异、实现核对项与建议 |
+| 关联关系 | [design-relation.md](design-relation.md) | 引用/包含关系、关系表、Create/Drop/Insert/Update/Delete 与 Query |
+| 技术参考 | [error-codes.md](error-codes.md) | 错误码定义（magicCommon/def + 使用约定） |
+| 技术参考 | [type-mapping.md](type-mapping.md) | Go 类型与 PostgreSQL/MySQL 类型映射 |
+| 技术参考 | [tags-reference.md](tags-reference.md) | orm / constraint / view 标签说明 |
+
+---
+
+### 3.1 推荐阅读顺序
+
+为便于首次接触 MagicORM 的开发者快速建立整体认知，推荐按以下顺序阅读设计文档：
+
+1. `README.md`（本文）：整体目标、架构总览与文档索引；
+2. `design-orm.md` + `design-provider.md`：核心 Orm 接口与 Provider 边界；
+3. `design-models.md` + `tags-reference.md` + `type-mapping.md`：模型/Filter、标签与类型映射；
+4. `design-relation.md` + `design-data-flow.md`：关联关系语义与 CRUD/事务数据流；
+5. `design-validation.md` + `error-codes.md`：验证架构、约束系统与错误码约定；
+6. `design-database.md` + `design-metrics.md` + 项目根目录的 `METRICS_TODO.md`：数据库层抽象、监控与后续演进计划。
+
+如需了解历史设计与差异背景，可在上述阅读完成后再查阅 `archive/` 目录。
+
+### 2.3 系统限制与约束（待完善）
+
+以下为设计层面需明确的限制，部分尚未在实现或文档中固化，详见 [待确认项清单.md](待确认项清单.md)：
+
+- **连接与模型**：连接池大小、单 Orm 实例最大模型数等是否有限制，见 [design-database.md](design-database.md)。
+- **事务**：事务隔离级别、超时、同一 Orm 实例并发使用是否安全，见 [design-orm.md](design-orm.md)。
+- **关系与命名**：关系表命名规则、循环引用是否支持等，见 [design-relation.md](design-relation.md)。
 
 ---
 

@@ -358,7 +358,7 @@ func (s *QueryRunner) Query(filter models.Filter) (ret []models.Model, err *cd.E
 	}
 	if !s.batchFilter && queryCount > 1 {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("matched model:%s %d items value", s.vModel.GetPkgKey(), queryCount))
-		slog.Warn("Query failed", "warning", err.Error())
+		slog.Warn("Query failed", "error", err.Error())
 		return
 	}
 

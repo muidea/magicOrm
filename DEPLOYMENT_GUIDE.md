@@ -41,14 +41,20 @@ go mod download
 
 ### 2. 基本配置
 
-#### 数据库配置
+#### 数据库配置（示例）
 ```go
-// config/database.go
+// config/database.go（应用自定义配置结构体与封装示例）
 package config
 
-import "github.com/muidea/magicOrm/orm"
+type DBOptions struct {
+    Driver         string
+    DSN            string
+    MaxOpenConns   int
+    MaxIdleConns   int
+    ConnMaxLifetime time.Duration
+}
 
-var DatabaseConfig = &orm.Options{
+var DatabaseConfig = &DBOptions{
     Driver: "postgresql", // 或 "mysql"
     DSN:    "host=localhost port=5432 user=postgres password=secret dbname=mydb sslmode=disable",
     MaxOpenConns: 25,
@@ -96,7 +102,7 @@ var DefaultMonitoringConfig = MonitoringConfig{
 
 ## 集成示例
 
-### 示例 1：基本集成
+### 示例 1：基本集成（基于历史 monitoring 包的概念示例）
 
 ```go
 // main.go - 基本监控集成
@@ -106,48 +112,39 @@ import (
     "context"
     "log"
     "time"
-    
-    "github.com/muidea/magicOrm/monitoring"
+
     "github.com/muidea/magicOrm/orm"
     "github.com/muidea/magicOrm/provider"
-    
+
     "your-project/config"
 )
 
 func main() {
-    // 初始化监控
-    collector := monitoring.NewCollector()
-    
-    // 设置默认标签
-    collector.WithDefaultLabels(config.DefaultMonitoringConfig.DefaultLabels)
-    
-    // 设置导出处理器
-    if config.DefaultMonitoringConfig.ExportHandler != nil {
-        collector.SetExportHandler(config.DefaultMonitoringConfig.ExportHandler)
-    }
-    
-    // 初始化ORM
+    // 初始化 ORM
     orm.Initialize()
     defer orm.Uninitialized()
     
-    // 创建Provider
+    // （建议）在应用启动时完成数据库注册
+    if err := orm.AddDatabase("localhost:5432", "mydb", "user", "password", 25, "default"); err != nil {
+        log.Fatal(err)
+    }
+
+    // 创建 Provider
     localProvider := provider.NewLocalProvider("default", nil)
     
-    // 创建ORM实例
-    o, err := orm.NewOrm(localProvider, config.DatabaseConfig, "")
+    // 从连接池获取 ORM 实例
+    ctx := context.Background()
+    o, err := orm.GetOrm(ctx, localProvider, "")
     if err != nil {
         log.Fatal(err)
     }
     defer o.Release()
-    
-    // 包装为带监控的ORM
-    monitoredOrm := monitoring.NewMonitoredOrm(o, collector)
-    
-    // 使用带监控的ORM
-    runApplication(monitoredOrm, collector)
+
+    // 使用 ORM 执行业务逻辑；监控由内部 metrics + magicCommon/monitoring 负责
+    runApplication(o)
 }
 
-func runApplication(o *orm.Orm, collector monitoring.Collector) {
+func runApplication(o orm.Orm) {
     // 应用逻辑
     // ...
 }

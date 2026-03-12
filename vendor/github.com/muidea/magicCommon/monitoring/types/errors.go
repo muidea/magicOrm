@@ -138,14 +138,6 @@ func stringifyFloat(v interface{}) string {
 	}
 }
 
-func stringifyFloat64(v float64) string {
-	return fmt.Sprintf("%g", v)
-}
-
-func stringifyInt64(v int64) string {
-	return fmt.Sprintf("%d", v)
-}
-
 // IsMonitoringError checks if an error is a monitoring-specific error
 func IsMonitoringError(err *cd.Error) bool {
 	if err == nil {
