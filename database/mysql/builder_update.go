@@ -19,6 +19,11 @@ func (s *Builder) BuildUpdate(vModel models.Model) (ret database.Result, err *cd
 		slog.Error("BuildUpdate failed", "value", "s.buildFieldUpdateValues", "error", err.Error())
 		return
 	}
+	if updateStr == "" {
+		err = cd.NewError(cd.IllegalParam, "no writable fields to update")
+		slog.Error("BuildUpdate failed", "value", "s.buildFieldUpdateValues", "error", err.Error())
+		return
+	}
 	filterStr, filterErr := s.buildFieldFilter(vModel.GetPrimaryField(), resultStackPtr)
 	if filterErr != nil {
 		err = filterErr

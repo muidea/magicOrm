@@ -8,7 +8,9 @@ import (
 	"strings"
 	"testing"
 
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/remote"
 )
@@ -387,5 +389,57 @@ func TestBuilderVMIMainTableSQL(t *testing.T) {
 	}
 	if !reflect.DeepEqual(deleteResult.Args(), []any{int64(1001)}) {
 		t.Fatalf("unexpected delete args: %#v", deleteResult.Args())
+	}
+}
+
+func TestBuilderVMIUpdateRequiresWritableFields(t *testing.T) {
+	remoteProvider := provider.NewRemoteProvider("tenant", nil)
+	for _, path := range []string{
+		"test/vmi/entity/status.json",
+		"test/vmi/entity/product/skuinfo.json",
+		"test/vmi/entity/product/product.json",
+	} {
+		if _, err := remoteProvider.RegisterModel(loadVMIRemoteObject(t, path)); err != nil {
+			t.Fatalf("RegisterModel(%s) failed: %v", path, err)
+		}
+	}
+
+	productModel, err := remoteProvider.GetEntityModel(loadVMIRemoteObject(t, "test/vmi/entity/product/product.json"), true)
+	if err != nil {
+		t.Fatalf("GetEntityModel(product) failed: %v", err)
+	}
+
+	productObject, ok := productModel.(*remote.Object)
+	if !ok {
+		t.Fatalf("expected *remote.Object, got %T", productModel)
+	}
+	for _, field := range productObject.GetFields() {
+		if models.IsPrimaryField(field) || !models.IsBasicField(field) {
+			continue
+		}
+		if err := field.SetValue(nil); err != nil {
+			t.Fatalf("clear field %s failed: %v", field.GetName(), err)
+		}
+	}
+	if err := productObject.SetPrimaryFieldValue(int64(1001)); err != nil {
+		t.Fatalf("SetPrimaryFieldValue failed: %v", err)
+	}
+	if err := productObject.SetFieldValue("status", &remote.ObjectValue{
+		Name:    "status",
+		PkgPath: "/vmi",
+		Fields: []*remote.FieldValue{
+			{Name: "id", Value: int64(9)},
+		},
+	}); err != nil {
+		t.Fatalf("SetFieldValue(status) failed: %v", err)
+	}
+
+	builder := NewBuilder(remoteProvider, codec.New(remoteProvider, "tenant"))
+	_, err = builder.BuildUpdate(productObject)
+	if err == nil {
+		t.Fatalf("BuildUpdate should fail when no writable basic fields are assigned")
+	}
+	if err.Code != cd.IllegalParam {
+		t.Fatalf("BuildUpdate should return IllegalParam, got: %v", err)
 	}
 }
