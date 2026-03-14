@@ -1,0 +1,277 @@
+{
+  "id": 0,
+  "name": "product",
+  "showName": "产品信息",
+  "icon": "/static/file/share/vmi/product.svg",
+  "version": "0.0.1",
+  "status": 2,
+  "pkgPath": "/vmi",
+  "description": "产品信息",
+  "fields": [
+    {
+      "name": "id",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": true,
+        "valueDeclare": "auto",
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "name",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "description",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "skuInfo",
+      "description": "",
+      "type": {
+        "name": "skuInfo",
+        "pkgPath": "/vmi/product",
+        "description": "",
+        "isPtr": false,
+        "elemType": {
+          "name": "skuInfo",
+          "pkgPath": "/vmi/product",
+          "description": "",
+            "isPtr": false,
+          "elemType": null
+        }
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "image",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": {
+          "name": "string",
+          "pkgPath": "",
+          "description": "",
+            "isPtr": false,
+          "elemType": null
+        }
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "expire",
+      "description": "",
+      "type": {
+        "name": "int",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ]
+      }
+    },
+    {
+      "name": "status",
+      "description": "",
+      "type": {
+        "name": "status",
+        "pkgPath": "/vmi",
+        "description": "",
+        "isPtr": true,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ]
+      }
+    },
+    {
+      "name": "tags",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": {
+          "name": "string",
+          "pkgPath": "",
+          "description": "",
+            "isPtr": false,
+          "elemType": null
+        }
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "creater",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ],
+        "defaultValue": "$referenceExtData.currentEntity()"
+      }
+    },
+    {
+      "name": "createTime",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ],
+        "defaultValue": "$referenceExtData.currentTimeStamp()"
+      }
+    },
+    {
+      "name": "namespace",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "defaultValue": "$referenceExtData.currentNamespace()"
+      }
+    }
+  ],
+  "blockInfo": [
+    {
+      "id": "43efe293712b4da38c4d85d1363b717e",
+      "stageInfo": {
+        "startup": {
+          "eventID": "/totalizator/register/",
+          "input": {
+            "name": "产品",
+            "unit": "件",
+            "owner": "/vmi/product/",
+            "trigger": "/vmi/product/:id",
+            "period": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "namespace": "*"
+          },
+          "checkType": "postCheck"
+        },
+        "functions": {
+          "insert": {
+            "eventID": "/totalizator/refresh/",
+            "input": {
+              "owner": "/vmi/product/",
+              "trigger": "/vmi/product/:id",
+              "action": "insert",
+              "namespace": "$referenceExtData.namespace"
+            },
+            "checkType": "postCheck"
+          },
+          "delete": {
+            "eventID": "/totalizator/refresh/",
+            "input": {
+              "owner": "/vmi/product/",
+              "trigger": "/vmi/product/:id",
+              "action": "delete",
+              "namespace": "$referenceExtData.namespace"
+            },
+            "checkType": "postCheck"
+          }
+        },
+        "teardown": {
+          "eventID": "/totalizator/unregister/",
+          "input": {
+            "name": "产品",
+            "unit": "件",
+            "owner": "/vmi/product/",
+            "trigger": "/vmi/product/:id",
+            "period": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "namespace": "*"
+          },
+          "checkType": "postCheck"
+        }
+      }
+    }
+  ]
+}

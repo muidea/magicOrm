@@ -4,14 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"path"
+	"reflect"
 
 	cd "github.com/muidea/magicCommon/def"
 	"log/slog"
 
 	"github.com/muidea/magicOrm/models"
+	"github.com/muidea/magicOrm/utils"
 )
 
 const (
+	IDTag      = "id"
 	NameTag    = "name"
 	PkgPathTag = "pkgPath"
 	FieldsTag  = "fields"
@@ -30,6 +33,7 @@ type Object struct {
 
 	// 临时变量不进行数据序列化传递
 	valueValidator models.ValueValidator `json:"-"`
+	viewSpec       models.ViewDeclare    `json:"-"`
 }
 
 // ObjectValue Object value
@@ -45,6 +49,24 @@ type SliceObjectValue struct {
 	Name    string         `json:"name"`
 	PkgPath string         `json:"pkgPath"`
 	Values  []*ObjectValue `json:"values"`
+}
+
+type normalizedFieldValue struct {
+	Name  string
+	Value any
+}
+
+type normalizedObjectValue struct {
+	ID      string
+	Name    string
+	PkgPath string
+	Fields  []normalizedFieldValue
+}
+
+type normalizedSliceObjectValue struct {
+	Name    string
+	PkgPath string
+	Values  []normalizedObjectValue
 }
 
 func (s *Object) GetName() (ret string) {
@@ -95,7 +117,8 @@ func (s *Object) setSliceStructValue(sf *Field, val any, disableValidator bool) 
 	case *SliceObjectValue:
 		err = sf.innerSetValue(val, disableValidator)
 	case SliceObjectValue:
-		err = sf.innerSetValue(&val, disableValidator)
+		sliceObjectVal := val.(SliceObjectValue)
+		err = sf.innerSetValue(&sliceObjectVal, disableValidator)
 	default:
 		err = cd.NewError(cd.Unexpected, "illegal value type")
 		slog.Error("set slice struct value failed", "field", sf.GetName(), "value", val, "error", err.Error())
@@ -108,7 +131,8 @@ func (s *Object) setStructValue(sf *Field, val any, disableValidator bool) (err 
 	case *ObjectValue:
 		err = sf.innerSetValue(val, disableValidator)
 	case ObjectValue:
-		err = sf.innerSetValue(&val, disableValidator)
+		objectVal := val.(ObjectValue)
+		err = sf.innerSetValue(&objectVal, disableValidator)
 	default:
 		err = cd.NewError(cd.Unexpected, "illegal value type")
 		slog.Error("set struct value failed", "field", sf.GetName(), "value", val, "error", err.Error())
@@ -127,16 +151,32 @@ func (s *Object) SetFieldValue(name string, val any) (err *cd.Error) {
 	return
 }
 
+func (s *Object) fieldInActiveView(field *Field) bool {
+	if field == nil {
+		return false
+	}
+
+	switch s.viewSpec {
+	case models.DetailView, models.LiteView:
+		return field.GetSpec().EnableView(s.viewSpec)
+	default:
+		return true
+	}
+}
+
 func (s *Object) innerSetFieldValue(name string, val any, disableValidator bool) (err *cd.Error) {
 	for _, sf := range s.Fields {
 		if sf.Name != name {
 			continue
 		}
+		if !s.fieldInActiveView(sf) {
+			return
+		}
 
 		sf.valueValidator = s.valueValidator
 
 		if val == nil {
-			sf.SetValue(nil)
+			err = sf.SetValue(nil)
 			return
 		}
 
@@ -178,8 +218,11 @@ func (s *Object) SetPrimaryFieldValue(val any) (err *cd.Error) {
 func (s *Object) innerSetPrimaryFieldValue(val any, disableValidator bool) (err *cd.Error) {
 	for _, sf := range s.Fields {
 		if models.IsPrimaryField(sf) {
+			if !s.fieldInActiveView(sf) {
+				return
+			}
 			if val == nil {
-				sf.SetValue(nil)
+				err = sf.SetValue(nil)
 				return
 			}
 
@@ -218,16 +261,19 @@ func (s *Object) Interface(_ bool) (ret any) {
 	objVal := &ObjectValue{Name: s.Name, PkgPath: s.PkgPath, Fields: []*FieldValue{}}
 
 	for _, sf := range s.Fields {
-		if sf.value == nil || !sf.value.IsValid() {
+		if sf.value == nil || (!sf.value.IsValid() && !sf.value.IsAssigned()) {
 			continue
 		}
 
-		objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: sf.value.Get()})
+		objVal.Fields = append(objVal.Fields, &FieldValue{Name: sf.Name, Value: sf.value.Get(), Assigned: sf.value.IsAssigned()})
 	}
 
-	pkValue := s.GetPrimaryField().GetValue()
-	if pkValue.IsValid() {
-		objVal.ID = fmt.Sprintf("%v", pkValue.Get())
+	pkField := s.GetPrimaryField()
+	if pkField != nil {
+		pkValue := pkField.GetValue()
+		if pkValue.IsValid() {
+			objVal.ID = fmt.Sprintf("%v", pkValue.Get())
+		}
 	}
 
 	ret = objVal
@@ -245,6 +291,7 @@ func (s *Object) Copy(viewSpec models.ViewDeclare) (ret models.Model) {
 		Fields:      []*Field{},
 
 		valueValidator: s.valueValidator,
+		viewSpec:       viewSpec,
 	}
 	for _, val := range s.Fields {
 		valPtr, valErr := val.copy(viewSpec)
@@ -346,7 +393,9 @@ func (s *ObjectValue) SetFieldValue(name string, value any) {
 	}
 
 	if !found {
-		s.Fields = append(s.Fields, &FieldValue{Name: name, Value: value})
+		fieldVal := &FieldValue{Name: name}
+		fieldVal.Set(value)
+		s.Fields = append(s.Fields, fieldVal)
 	}
 }
 
@@ -464,6 +513,16 @@ func EncodeSliceObjectValue(objVal *SliceObjectValue) (ret []byte, err *cd.Error
 	return
 }
 func decodeObjectValueFromMap(mapVal map[string]any) (ret *ObjectValue, err *cd.Error) {
+	idVal := ""
+	if rawID, ok := mapVal[IDTag]; ok && rawID != nil {
+		switch v := rawID.(type) {
+		case string:
+			idVal = v
+		default:
+			idVal = fmt.Sprintf("%v", v)
+		}
+	}
+
 	nameVal, nameOK := mapVal[NameTag]
 	pkgPathVal, pkgPathOK := mapVal[PkgPathTag]
 	itemsVal, itemsOK := mapVal[FieldsTag]
@@ -472,16 +531,30 @@ func decodeObjectValueFromMap(mapVal map[string]any) (ret *ObjectValue, err *cd.
 		return
 	}
 
-	if itemsVal == nil {
+	nameStr, nameOK := nameVal.(string)
+	pkgPathStr, pkgPathOK := pkgPathVal.(string)
+	if !nameOK || !pkgPathOK {
+		err = cd.NewError(cd.Unexpected, "illegal ObjectValue")
 		return
 	}
 
-	items := itemsVal.([]any)
 	objVal := &ObjectValue{
-		Name:    nameVal.(string),
-		PkgPath: pkgPathVal.(string),
-		Fields:  make([]*FieldValue, 0, len(items)),
+		ID:      idVal,
+		Name:    nameStr,
+		PkgPath: pkgPathStr,
 	}
+
+	if itemsVal == nil {
+		ret = objVal
+		return
+	}
+
+	items, itemsOK := itemsVal.([]any)
+	if !itemsOK {
+		err = cd.NewError(cd.Unexpected, "illegal ObjectValue field values")
+		return
+	}
+	objVal.Fields = make([]*FieldValue, 0, len(items))
 
 	for _, val := range items {
 		item, itemOK := val.(map[string]any)
@@ -516,16 +589,29 @@ func decodeSliceObjectValueFromMap(mapVal map[string]any) (ret *SliceObjectValue
 		return
 	}
 
-	if valuesVal == nil {
+	nameStr, nameOK := nameVal.(string)
+	pkgPathStr, pkgPathOK := pkgPathVal.(string)
+	if !nameOK || !pkgPathOK {
+		err = cd.NewError(cd.Unexpected, "illegal SliceObjectValue")
 		return
 	}
 
-	values := valuesVal.([]any)
 	objVal := &SliceObjectValue{
-		Name:    nameVal.(string),
-		PkgPath: pkgPathVal.(string),
-		Values:  make([]*ObjectValue, 0, len(values)),
+		Name:    nameStr,
+		PkgPath: pkgPathStr,
 	}
+
+	if valuesVal == nil {
+		ret = objVal
+		return
+	}
+
+	values, valuesOK := valuesVal.([]any)
+	if !valuesOK {
+		err = cd.NewError(cd.Unexpected, "illegal SliceObjectValue values")
+		return
+	}
+	objVal.Values = make([]*ObjectValue, 0, len(values))
 
 	for _, val := range values {
 		item, itemOK := val.(map[string]any)
@@ -566,7 +652,13 @@ func decodeItemValue(itemVal map[string]any) (ret *FieldValue, err *cd.Error) {
 	}
 
 	valVal := itemVal[ValueTag]
-	ret = &FieldValue{Name: nameStr, Value: valVal}
+	assignedVal := false
+	if rawAssigned, ok := itemVal["assigned"]; ok {
+		if typedAssigned, ok := rawAssigned.(bool); ok {
+			assignedVal = typedAssigned
+		}
+	}
+	ret = &FieldValue{Name: nameStr, Value: valVal, Assigned: assignedVal}
 	ret, err = ConvertItem(ret)
 	return
 }
@@ -620,7 +712,7 @@ func ConvertItem(val *FieldValue) (ret *FieldValue, err *cd.Error) {
 	if objOK {
 		_, itemsOK := objVal[FieldsTag]
 		if itemsOK {
-			ret = &FieldValue{Name: val.Name}
+			ret = &FieldValue{Name: val.Name, Assigned: val.Assigned}
 
 			oVal, oErr := decodeObjectValueFromMap(objVal)
 			if oErr != nil {
@@ -634,7 +726,7 @@ func ConvertItem(val *FieldValue) (ret *FieldValue, err *cd.Error) {
 
 		_, valuesOK := objVal[ValuesTag]
 		if valuesOK {
-			ret = &FieldValue{Name: val.Name}
+			ret = &FieldValue{Name: val.Name, Assigned: val.Assigned}
 
 			oVal, oErr := decodeSliceObjectValueFromMap(objVal)
 			if oErr != nil {
@@ -652,7 +744,7 @@ func ConvertItem(val *FieldValue) (ret *FieldValue, err *cd.Error) {
 	// for basic slice
 	sliceVal, sliceOK := val.Value.([]any)
 	if sliceOK {
-		ret = &FieldValue{Name: val.Name, Value: convertAnySlice(sliceVal)}
+		ret = &FieldValue{Name: val.Name, Value: convertAnySlice(sliceVal), Assigned: val.Assigned}
 		return
 	}
 
@@ -721,24 +813,81 @@ func ConvertSliceObjectValue(objVal *SliceObjectValue) (ret *SliceObjectValue, e
 	ret = objVal
 	return
 }
+
+func normalizeCompareValue(val any) any {
+	if val == nil {
+		return nil
+	}
+
+	rVal := reflect.ValueOf(val)
+	for rVal.Kind() == reflect.Ptr {
+		if rVal.IsNil() {
+			return nil
+		}
+		rVal = rVal.Elem()
+	}
+
+	switch typedVal := rVal.Interface().(type) {
+	case ObjectValue:
+		ret := normalizedObjectValue{
+			ID:      typedVal.ID,
+			Name:    typedVal.Name,
+			PkgPath: typedVal.PkgPath,
+			Fields:  make([]normalizedFieldValue, 0, len(typedVal.Fields)),
+		}
+		for _, fieldVal := range typedVal.Fields {
+			if fieldVal == nil {
+				continue
+			}
+			ret.Fields = append(ret.Fields, normalizedFieldValue{
+				Name:  fieldVal.Name,
+				Value: normalizeCompareValue(fieldVal.Value),
+			})
+		}
+		return ret
+	case SliceObjectValue:
+		ret := normalizedSliceObjectValue{
+			Name:    typedVal.Name,
+			PkgPath: typedVal.PkgPath,
+			Values:  make([]normalizedObjectValue, 0, len(typedVal.Values)),
+		}
+		for _, objectVal := range typedVal.Values {
+			if objectVal == nil {
+				continue
+			}
+			normalizedObject, _ := normalizeCompareValue(objectVal).(normalizedObjectValue)
+			ret.Values = append(ret.Values, normalizedObject)
+		}
+		return ret
+	}
+
+	switch rVal.Kind() {
+	case reflect.Slice, reflect.Array:
+		items := make([]any, rVal.Len())
+		for idx := 0; idx < rVal.Len(); idx++ {
+			items[idx] = normalizeCompareValue(rVal.Index(idx).Interface())
+		}
+		return items
+	default:
+		return rVal.Interface()
+	}
+}
+
 func compareItemValue(l, r *FieldValue) bool {
 	if l.Name != r.Name {
 		return false
 	}
 
-	return true
-	/*
-		equal, diff := utils.CompareWithNumericConversion(l.Value, r.Value)
-		if !equal {
-			slog.Error("compareItemValue failed, l:%v, r:%v, diff:%s", l, r, diff)
-		}
+	equal, diff := utils.CompareWithNumericConversion(normalizeCompareValue(l.Value), normalizeCompareValue(r.Value))
+	if !equal {
+		slog.Error("compareItemValue failed", "left", l, "right", r, "diff", diff)
+	}
 
-		return equal
-	*/
+	return equal
 }
 
 func CompareObjectValue(l, r *ObjectValue) bool {
-	if l.Name != r.Name || l.PkgPath != r.PkgPath || len(l.Fields) != len(r.Fields) {
+	if l.ID != r.ID || l.Name != r.Name || l.PkgPath != r.PkgPath || len(l.Fields) != len(r.Fields) {
 		return false
 	}
 

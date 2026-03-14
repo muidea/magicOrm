@@ -8,7 +8,7 @@ import (
 	"github.com/muidea/magicOrm/orm"
 )
 
-func TestKPI(t *testing.T) {
+func TestLocalKPI(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 

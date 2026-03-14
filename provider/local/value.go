@@ -10,11 +10,13 @@ import (
 )
 
 type ValueImpl struct {
-	value reflect.Value
+	value    reflect.Value
+	assigned bool
 }
 
 func NewValue(val reflect.Value) (ret *ValueImpl) {
 	ret = &ValueImpl{value: val}
+	ret.assigned = !ret.IsZero()
 	return
 }
 
@@ -54,6 +56,10 @@ func (s *ValueImpl) IsZero() bool {
 	return s.value.IsZero()
 }
 
+func (s *ValueImpl) IsAssigned() bool {
+	return s.assigned
+}
+
 func (s *ValueImpl) Set(val any) (err *cd.Error) {
 	if !s.value.CanSet() {
 		err = cd.NewError(cd.Unexpected, "Set failed, value is not settable")
@@ -64,8 +70,16 @@ func (s *ValueImpl) Set(val any) (err *cd.Error) {
 		slog.Error("ValueImpl.Set: value is invalid")
 		return
 	}
+	s.assigned = true
+
+	if val == nil {
+		return s.setNil()
+	}
 
 	rVal := reflect.ValueOf(val)
+	if isNilLikeValue(rVal) {
+		return s.setNil()
+	}
 	isPtr := s.value.Kind() == reflect.Ptr
 	if !isPtr {
 		if rVal.Type() != s.value.Type() {
@@ -92,6 +106,9 @@ func (s *ValueImpl) Set(val any) (err *cd.Error) {
 }
 
 func (s *ValueImpl) Get() any {
+	if !s.value.IsValid() {
+		return nil
+	}
 	return s.value.Interface()
 }
 
@@ -118,6 +135,7 @@ func (s *ValueImpl) Append(val reflect.Value) (err *cd.Error) {
 			err = cd.NewError(cd.Unexpected, fmt.Sprintf("%v", errInfo))
 		}
 	}()
+	s.assigned = true
 
 	isPtr := s.value.Kind() == reflect.Ptr
 	if !isPtr {
@@ -149,6 +167,7 @@ func (s *ValueImpl) reset(needInit bool) {
 	if !s.value.IsValid() {
 		return
 	}
+	s.assigned = false
 
 	if s.value.Kind() == reflect.Ptr {
 		if needInit {
@@ -173,4 +192,28 @@ func (s *ValueImpl) reset(needInit bool) {
 	}
 
 	s.value.SetZero()
+}
+
+func (s *ValueImpl) setNil() (err *cd.Error) {
+	switch s.value.Kind() {
+	case reflect.Ptr, reflect.Slice, reflect.Map, reflect.Interface:
+		s.value.Set(reflect.Zero(s.value.Type()))
+	default:
+		err = cd.NewError(cd.Unexpected, "Set failed, value type does not support nil")
+		slog.Warn("ValueImpl.Set: nil is not supported", "type", s.value.Type())
+	}
+	return
+}
+
+func isNilLikeValue(value reflect.Value) bool {
+	if !value.IsValid() {
+		return true
+	}
+
+	switch value.Kind() {
+	case reflect.Ptr, reflect.Slice, reflect.Map, reflect.Interface, reflect.Func:
+		return value.IsNil()
+	default:
+		return false
+	}
 }

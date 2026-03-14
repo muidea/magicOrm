@@ -3,6 +3,8 @@ package remote
 import (
 	"reflect"
 	"testing"
+
+	"github.com/muidea/magicOrm/models"
 )
 
 func TestValue(t *testing.T) {
@@ -264,22 +266,90 @@ func TestSliceObjectValueHandling(t *testing.T) {
 		return
 	}
 
-	// Test empty SliceObjectValue
+	// Test nil slice semantics
 	emptySliceObjVal := &SliceObjectValue{
 		Name:    "TestEmptySliceObject",
 		PkgPath: "test/pkg",
-		Values:  []*ObjectValue{},
 	}
 
 	emptySliceObjValuePtr := NewValue(emptySliceObjVal)
 
 	if !emptySliceObjValuePtr.IsValid() {
-		t.Errorf("Empty SliceObjectValue should be valid")
+		t.Errorf("Nil SliceObjectValue should be valid")
 		return
 	}
 
 	if !emptySliceObjValuePtr.IsZero() {
-		t.Errorf("Empty SliceObjectValue should be zero")
+		t.Errorf("Nil SliceObjectValue should be zero")
 		return
+	}
+
+	assignedEmptySliceObjVal := &SliceObjectValue{
+		Name:    "TestAssignedEmptySliceObject",
+		PkgPath: "test/pkg",
+		Values:  []*ObjectValue{},
+	}
+
+	assignedEmptySliceObjValuePtr := NewValue(assignedEmptySliceObjVal)
+
+	if !assignedEmptySliceObjValuePtr.IsValid() {
+		t.Errorf("Assigned empty SliceObjectValue should be valid")
+		return
+	}
+
+	if assignedEmptySliceObjValuePtr.IsZero() {
+		t.Errorf("Assigned empty SliceObjectValue should not be zero")
+		return
+	}
+}
+
+func TestRemoteSliceObjectValueMatchesAssignedFieldSemantics(t *testing.T) {
+	sliceField := &Field{
+		Name: "children",
+		Type: &TypeImpl{
+			Name:    "Children",
+			PkgPath: "github.com/test/pkg",
+			Value:   models.TypeSliceValue,
+			ElemType: &TypeImpl{
+				Name:    "Child",
+				PkgPath: "github.com/test/pkg",
+				Value:   models.TypeStructValue,
+				IsPtr:   true,
+			},
+		},
+	}
+
+	sliceField.value = NewValue(&SliceObjectValue{
+		Name:    "Child",
+		PkgPath: "github.com/test/pkg",
+	})
+	if models.IsAssignedField(sliceField) {
+		t.Fatalf("nil relation slice should be treated as unassigned")
+	}
+
+	sliceField.value = NewValue(&SliceObjectValue{
+		Name:    "Child",
+		PkgPath: "github.com/test/pkg",
+		Values:  []*ObjectValue{},
+	})
+	if !models.IsAssignedField(sliceField) {
+		t.Fatalf("empty relation slice should be treated as assigned")
+	}
+}
+
+func TestRemoteValueTracksExplicitNilAssignment(t *testing.T) {
+	valuePtr := NewValue(nil)
+	if valuePtr.IsAssigned() {
+		t.Fatalf("nil constructor should stay unassigned")
+	}
+
+	if err := valuePtr.Set(nil); err != nil {
+		t.Fatalf("Set(nil) failed: %v", err)
+	}
+	if !valuePtr.IsAssigned() {
+		t.Fatalf("explicit nil should be treated as assigned")
+	}
+	if valuePtr.IsValid() {
+		t.Fatalf("explicit nil should remain invalid value")
 	}
 }

@@ -3,9 +3,19 @@ package validation
 import (
 	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/muidea/magicOrm/models"
 )
+
+var interfaceType = reflect.TypeOf((*any)(nil)).Elem()
+
+func exactFallbackType(fallback any) (reflect.Type, bool) {
+	if fallback == nil {
+		return nil, false
+	}
+	return reflect.TypeOf(fallback), true
+}
 
 // FieldAdapter adapts models.Field to validation system
 type FieldAdapter interface {
@@ -83,6 +93,125 @@ func NewModelAdapter(fields []FieldAdapter) ModelAdapter {
 	return &modelAdapterImpl{
 		fields: fieldMap,
 	}
+}
+
+// ReflectTypeFromModelType converts models.Type to a best-effort reflect.Type.
+// Complex relation types fall back to interface{} when the concrete type cannot be inferred.
+func ReflectTypeFromModelType(fieldType models.Type, fallback any) reflect.Type {
+	if fieldType == nil {
+		if fallback != nil {
+			return reflect.TypeOf(fallback)
+		}
+		return interfaceType
+	}
+
+	var ret reflect.Type
+	usedExactFallback := false
+	switch fieldType.GetValue() {
+	case models.TypeBooleanValue:
+		ret = reflect.TypeOf(false)
+	case models.TypeByteValue:
+		ret = reflect.TypeOf(int8(0))
+	case models.TypeSmallIntegerValue:
+		ret = reflect.TypeOf(int16(0))
+	case models.TypeInteger32Value:
+		ret = reflect.TypeOf(int32(0))
+	case models.TypeIntegerValue:
+		ret = reflect.TypeOf(int(0))
+	case models.TypeBigIntegerValue:
+		ret = reflect.TypeOf(int64(0))
+	case models.TypePositiveByteValue:
+		ret = reflect.TypeOf(uint8(0))
+	case models.TypePositiveSmallIntegerValue:
+		ret = reflect.TypeOf(uint16(0))
+	case models.TypePositiveInteger32Value:
+		ret = reflect.TypeOf(uint32(0))
+	case models.TypePositiveIntegerValue:
+		ret = reflect.TypeOf(uint(0))
+	case models.TypePositiveBigIntegerValue:
+		ret = reflect.TypeOf(uint64(0))
+	case models.TypeFloatValue:
+		ret = reflect.TypeOf(float32(0))
+	case models.TypeDoubleValue:
+		ret = reflect.TypeOf(float64(0))
+	case models.TypeStringValue:
+		ret = reflect.TypeOf("")
+	case models.TypeDateTimeValue:
+		if fallbackType, ok := exactFallbackType(fallback); ok {
+			ret = fallbackType
+			usedExactFallback = true
+		} else {
+			ret = reflect.TypeOf(time.Time{})
+		}
+	case models.TypeSliceValue:
+		if fallbackType, ok := exactFallbackType(fallback); ok {
+			ret = fallbackType
+			usedExactFallback = true
+		} else {
+			elemType := ReflectTypeFromModelType(fieldType.Elem(), nil)
+			if elemType == nil {
+				elemType = interfaceType
+			}
+			ret = reflect.SliceOf(elemType)
+		}
+	case models.TypeStructValue:
+		if fallbackType, ok := exactFallbackType(fallback); ok {
+			ret = fallbackType
+			usedExactFallback = true
+		} else {
+			ret = interfaceType
+		}
+	default:
+		if fallback != nil {
+			ret = reflect.TypeOf(fallback)
+		} else {
+			ret = interfaceType
+		}
+	}
+
+	if !usedExactFallback && fieldType.IsPtrType() && ret != nil && ret.Kind() != reflect.Ptr {
+		ret = reflect.PointerTo(ret)
+	}
+
+	return ret
+}
+
+// AdaptField converts models.Field to FieldAdapter.
+func AdaptField(field models.Field, value any) FieldAdapter {
+	if field == nil {
+		return nil
+	}
+
+	var constraints models.Constraints
+	if spec := field.GetSpec(); spec != nil {
+		constraints = spec.GetConstraints()
+	}
+
+	return NewFieldAdapter(
+		field.GetName(),
+		ReflectTypeFromModelType(field.GetType(), value),
+		constraints,
+		value,
+	)
+}
+
+// AdaptModel converts models.Model to ModelAdapter.
+func AdaptModel(model models.Model) ModelAdapter {
+	if model == nil {
+		return NewModelAdapter(nil)
+	}
+
+	fields := model.GetFields()
+	adapters := make([]FieldAdapter, 0, len(fields))
+	for _, field := range fields {
+		var value any
+		if fieldValue := field.GetValue(); fieldValue != nil {
+			value = fieldValue.Get()
+		}
+		adapters = append(adapters, AdaptField(field, value))
+	}
+
+	return NewModelAdapter(adapters)
 }
 
 // GetFields returns all field adapters

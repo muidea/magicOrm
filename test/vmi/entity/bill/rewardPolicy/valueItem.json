@@ -1,0 +1,84 @@
+{
+  "id": 0,
+  "name": "valueItem",
+  "showName": "数值项",
+  "version": "0.0.1",
+  "status": 2,
+  "pkgPath": "/vmi/bill/rewardPolicy",
+  "description": "",
+  "fields": [
+    {
+      "name": "id",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": true,
+        "valueDeclare": "auto",
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "level",
+      "description": "",
+      "type": {
+        "name": "int",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "type",
+      "description": "",
+      "type": {
+        "name": "int",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "value",
+      "description": "",
+      "type": {
+        "name": "float64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    }
+  ]
+}

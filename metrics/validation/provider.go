@@ -157,16 +157,9 @@ func (p *ValidationMetricProvider) Collect() ([]types.Metric, *types.Error) {
 			if len(parts) >= 4 {
 				operation, model, scenario, status := parts[0], parts[1], parts[2], parts[3]
 
-				// Calculate average duration in seconds
-				var total time.Duration
-				for _, d := range durations {
-					total += d
-				}
-				avgDuration := total.Seconds() / float64(len(durations))
-
 				metricList = append(metricList, types.NewGauge(
 					"magicorm_validation_duration_seconds",
-					avgDuration,
+					metrics.AverageDurationSeconds(durations),
 					map[string]string{
 						"operation": operation,
 						"model":     model,
@@ -213,13 +206,14 @@ func (p *ValidationMetricProvider) Collect() ([]types.Metric, *types.Error) {
 		}
 	}
 
-	// Collect cache hit ratio
-	cacheHitRatio := p.collector.GetCacheHitRatio("default")
-	metricList = append(metricList, types.NewGauge(
-		"magicorm_validation_cache_hit_ratio",
-		cacheHitRatio,
-		map[string]string{"cache_type": "default"},
-	))
+	// Collect cache hit ratio for each observed cache type.
+	for _, cacheType := range p.collector.GetCacheTypes() {
+		metricList = append(metricList, types.NewGauge(
+			"magicorm_validation_cache_hit_ratio",
+			p.collector.GetCacheHitRatio(cacheType),
+			map[string]string{"cache_type": cacheType},
+		))
+	}
 
 	// Update collection statistics
 	duration := time.Since(startTime)

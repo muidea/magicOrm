@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -100,13 +101,24 @@ func TestClassifyError(t *testing.T) {
 		expected string
 	}{
 		{nil, string(metrics.ErrorTypeUnknown)},
-		{assert.AnError, "unknown"},
+		{errors.New("type mismatch"), string(metrics.ErrorTypeValidation)},
+		{errors.New("constraint violated"), string(metrics.ErrorTypeConstraint)},
+		{errors.New("field required"), string(metrics.ErrorTypeValidation)},
+		{errors.New("range exceeded"), string(metrics.ErrorTypeValidation)},
+		{errors.New("something else"), string(metrics.ErrorTypeUnknown)},
+		{panicError{}, string(metrics.ErrorTypeUnknown)},
 	}
 
 	for _, test := range tests {
 		result := collector.classifyError(test.err)
 		assert.Equal(t, test.expected, result)
 	}
+}
+
+type panicError struct{}
+
+func (panicError) Error() string {
+	panic("boom")
 }
 
 func TestClear(t *testing.T) {
@@ -193,4 +205,37 @@ func TestThreadSafety(t *testing.T) {
 		totalConstraintChecks += count
 	}
 	assert.Equal(t, int64(1000), totalConstraintChecks)
+}
+
+func TestValidationDurationKeyLRUEviction(t *testing.T) {
+	collector := NewValidationMetricsCollector()
+	collector.maxDurationKeys = 2
+	collector.maxDurationSamples = 2
+
+	collector.RecordValidation("validate", "User", "insert", 10*time.Millisecond, nil)
+	collector.RecordValidation("validate", "Order", "insert", 20*time.Millisecond, nil)
+	collector.RecordValidation("validate", "Product", "insert", 30*time.Millisecond, nil)
+
+	durations := collector.GetValidationDurations()
+	assert.Len(t, durations, 2)
+	assert.NotContains(t, durations, metrics.BuildKey("validate", "User", "insert", "success"))
+	assert.Contains(t, durations, metrics.BuildKey("validate", "Order", "insert", "success"))
+	assert.Contains(t, durations, metrics.BuildKey("validate", "Product", "insert", "success"))
+
+	collector.RecordValidation("validate", "Product", "insert", 40*time.Millisecond, nil)
+	collector.RecordValidation("validate", "Product", "insert", 50*time.Millisecond, nil)
+
+	durations = collector.GetValidationDurations()
+	assert.Len(t, durations[metrics.BuildKey("validate", "Product", "insert", "success")], 2)
+	assert.Equal(t, 40*time.Millisecond, durations[metrics.BuildKey("validate", "Product", "insert", "success")][0])
+	assert.Equal(t, 50*time.Millisecond, durations[metrics.BuildKey("validate", "Product", "insert", "success")][1])
+}
+
+func TestGetCacheTypes(t *testing.T) {
+	collector := NewValidationMetricsCollector()
+	collector.RecordCacheAccess("type", true)
+	collector.RecordCacheAccess("constraint", false)
+
+	cacheTypes := collector.GetCacheTypes()
+	assert.ElementsMatch(t, []string{"type", "constraint"}, cacheTypes)
 }

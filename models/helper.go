@@ -6,6 +6,10 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 )
 
+type assignedValue interface {
+	IsAssigned() bool
+}
+
 // IsBasic 判断是否是基本数值类型
 // 基本数值类型见const.go的定义
 func IsBasic(tType Type) bool {
@@ -108,6 +112,12 @@ func IsPtrField(field Field) bool {
 // IsAssignedField 判断Field是否已经被赋值
 // 如果Field的值非初始值，认为是已经被赋值
 func IsAssignedField(field Field) bool {
+	if field == nil || field.GetValue() == nil {
+		return false
+	}
+	if value, ok := field.GetValue().(assignedValue); ok {
+		return value.IsAssigned()
+	}
 	return !field.GetValue().IsZero()
 }
 

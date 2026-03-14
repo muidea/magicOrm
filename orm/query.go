@@ -22,6 +22,38 @@ type QueryRunner struct {
 	baseRunner
 }
 
+func buildFullQueryMaskModel(vModel models.Model) (ret models.Model, err *cd.Error) {
+	if vModel == nil {
+		err = cd.NewError(cd.IllegalParam, "query model is nil")
+		return
+	}
+
+	maskModel := vModel.Copy(models.OriginView)
+	for _, field := range maskModel.GetFields() {
+		if !models.IsBasicField(field) || models.IsValidField(field) || models.IsPtrField(field) {
+			continue
+		}
+
+		initValue, initErr := field.GetType().Interface(nil)
+		if initErr != nil {
+			err = initErr
+			return
+		}
+		if initValue == nil {
+			continue
+		}
+
+		setErr := field.SetValue(initValue.Get())
+		if setErr != nil {
+			err = setErr
+			return
+		}
+	}
+
+	ret = maskModel
+	return
+}
+
 func NewQueryRunner(
 	ctx context.Context,
 	vModel models.Model,
@@ -273,7 +305,14 @@ func (s *QueryRunner) innerQueryRelationSingleModel(id any, vField models.Field,
 		return
 	}
 
-	rQueryRunner := NewQueryRunner(s.context, vFilter.MaskModel(), s.executor, s.modelProvider, s.modelCodec, false, deepLevel+1)
+	queryMask, maskErr := buildFullQueryMaskModel(rModel)
+	if maskErr != nil {
+		err = maskErr
+		slog.Error("QueryRunner buildFullQueryMaskModel failed", "fieldId", id, "error", err.Error())
+		return
+	}
+
+	rQueryRunner := NewQueryRunner(s.context, queryMask, s.executor, s.modelProvider, s.modelCodec, false, deepLevel+1)
 	queryVal, queryErr := rQueryRunner.Query(vFilter)
 	if queryErr != nil {
 		err = queryErr
@@ -324,7 +363,14 @@ func (s *QueryRunner) innerQueryRelationSliceModel(ids []any, vField models.Fiel
 			return
 		}
 
-		rQueryRunner := NewQueryRunner(s.context, vFilter.MaskModel(), s.executor, s.modelProvider, s.modelCodec, false, deepLevel+1)
+		queryMask, maskErr := buildFullQueryMaskModel(svModel)
+		if maskErr != nil {
+			err = maskErr
+			slog.Error("QueryRunner buildFullQueryMaskModel failed", "error", err.Error())
+			return
+		}
+
+		rQueryRunner := NewQueryRunner(s.context, queryMask, s.executor, s.modelProvider, s.modelCodec, false, deepLevel+1)
 		queryVal, queryErr := rQueryRunner.Query(vFilter)
 		if queryErr != nil {
 			err = queryErr
@@ -406,7 +452,14 @@ func (s *impl) Query(vModel models.Model) (ret models.Model, err *cd.Error) {
 		return
 	}
 
-	vQueryRunner := NewQueryRunner(s.context, vFilter.MaskModel(), s.executor, s.modelProvider, s.modelCodec, false, 0)
+	queryMask, maskErr := buildFullQueryMaskModel(vModel)
+	if maskErr != nil {
+		err = maskErr
+		slog.Error("Query buildFullQueryMaskModel failed", "pkgKey", vModel.GetPkgKey(), "error", err.Error())
+		return
+	}
+
+	vQueryRunner := NewQueryRunner(s.context, queryMask, s.executor, s.modelProvider, s.modelCodec, false, 0)
 	queryVal, queryErr := vQueryRunner.Query(vFilter)
 	if queryErr != nil {
 		err = queryErr

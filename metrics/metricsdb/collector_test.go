@@ -1,6 +1,7 @@
 package metricsdb
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -102,13 +103,28 @@ func TestClassifyError(t *testing.T) {
 		expected string
 	}{
 		{nil, string(metrics.ErrorTypeUnknown)},
-		{assert.AnError, "unknown"},
+		{errors.New("connection refused"), string(metrics.ErrorTypeConnection)},
+		{errors.New("timeout reached"), string(metrics.ErrorTypeTimeout)},
+		{errors.New("deadlock detected"), string(metrics.ErrorTypeDatabase)},
+		{errors.New("constraint violation"), string(metrics.ErrorTypeConstraint)},
+		{errors.New("syntax error"), string(metrics.ErrorTypeDatabase)},
+		{errors.New("permission denied"), string(metrics.ErrorTypeDatabase)},
+		{errors.New("duplicate key"), string(metrics.ErrorTypeConstraint)},
+		{errors.New("record not found"), string(metrics.ErrorTypeDatabase)},
+		{errors.New("other failure"), string(metrics.ErrorTypeUnknown)},
+		{panicDBError{}, string(metrics.ErrorTypeUnknown)},
 	}
 
 	for _, test := range tests {
 		result := collector.classifyError(test.err)
 		assert.Equal(t, test.expected, result)
 	}
+}
+
+type panicDBError struct{}
+
+func (panicDBError) Error() string {
+	panic("boom")
 }
 
 func TestClear(t *testing.T) {
@@ -177,4 +193,28 @@ func TestThreadSafety(t *testing.T) {
 		totalTransactions += count
 	}
 	assert.Equal(t, int64(1000), totalTransactions)
+}
+
+func TestQueryDurationKeyLRUEviction(t *testing.T) {
+	collector := NewDatabaseMetricsCollector()
+	collector.maxDurationKeys = 2
+	collector.maxDurationSamples = 2
+
+	collector.RecordQuery("postgresql", "select", 10*time.Millisecond, nil)
+	collector.RecordQuery("mysql", "insert", 20*time.Millisecond, nil)
+	collector.RecordQuery("sqlite", "update", 30*time.Millisecond, nil)
+
+	durations := collector.GetQueryDurations()
+	assert.Len(t, durations, 2)
+	assert.NotContains(t, durations, metrics.BuildKey("postgresql", "select", "success"))
+	assert.Contains(t, durations, metrics.BuildKey("mysql", "insert", "success"))
+	assert.Contains(t, durations, metrics.BuildKey("sqlite", "update", "success"))
+
+	collector.RecordQuery("sqlite", "update", 40*time.Millisecond, nil)
+	collector.RecordQuery("sqlite", "update", 50*time.Millisecond, nil)
+
+	durations = collector.GetQueryDurations()
+	assert.Len(t, durations[metrics.BuildKey("sqlite", "update", "success")], 2)
+	assert.Equal(t, 40*time.Millisecond, durations[metrics.BuildKey("sqlite", "update", "success")][0])
+	assert.Equal(t, 50*time.Millisecond, durations[metrics.BuildKey("sqlite", "update", "success")][1])
 }

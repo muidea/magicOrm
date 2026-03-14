@@ -277,13 +277,13 @@ func GetObject(entity any) (ret *remote.Object, err *cd.Error) {
 
 func getFieldValue(fieldName string, itemType *remote.TypeImpl, itemValue reflect.Value) (ret *remote.FieldValue, err *cd.Error) {
 	if itemType.IsPtrType() && itemValue.IsNil() {
-		ret = &remote.FieldValue{Name: fieldName, Value: nil}
+		ret = &remote.FieldValue{Name: fieldName, Value: nil, Assigned: false}
 		return
 	}
 
 	if models.IsBasic(itemType) {
 		if itemType.IsPtrType() && !utils.IsReallyValidValueForReflect(itemValue) {
-			ret = &remote.FieldValue{Name: fieldName, Value: nil}
+			ret = &remote.FieldValue{Name: fieldName, Value: nil, Assigned: false}
 			return
 		}
 
@@ -294,7 +294,11 @@ func getFieldValue(fieldName string, itemType *remote.TypeImpl, itemValue reflec
 			return
 		}
 
-		ret = &remote.FieldValue{Name: fieldName, Value: itemVal}
+		assigned := false
+		if itemType.IsPtrType() || models.IsSlice(itemType) {
+			assigned = true
+		}
+		ret = &remote.FieldValue{Name: fieldName, Value: itemVal, Assigned: assigned}
 		return
 	}
 
@@ -391,6 +395,10 @@ func GetObjectValue(entity any) (ret *remote.ObjectValue, err *cd.Error) {
 	}
 	objPtr, ptrOK := entity.(*remote.Object)
 	if ptrOK {
+		if objPtr == nil {
+			err = cd.NewError(cd.IllegalParam, "entity is nil")
+			return
+		}
 		ret = objPtr.Interface(true).(*remote.ObjectValue)
 		return
 	}
@@ -402,11 +410,19 @@ func GetObjectValue(entity any) (ret *remote.ObjectValue, err *cd.Error) {
 	}
 	valPtr, ptrOK := entity.(*remote.ObjectValue)
 	if ptrOK {
+		if valPtr == nil {
+			err = cd.NewError(cd.IllegalParam, "entity is nil")
+			return
+		}
 		ret = valPtr
 		return
 	}
 
 	entityVal := reflect.ValueOf(entity)
+	if entityVal.Kind() == reflect.Ptr && entityVal.IsNil() {
+		err = cd.NewError(cd.IllegalParam, "entity is nil")
+		return
+	}
 	ret, err = getObjectValue(entityVal)
 	return
 }
@@ -433,7 +449,12 @@ func getSliceObjectValue(sliceVal reflect.Value) (ret *remote.SliceObjectValue, 
 	}
 
 	sliceVal = reflect.Indirect(sliceVal)
-	ret = &remote.SliceObjectValue{Name: elemType.GetName(), PkgPath: elemType.GetPkgPath(), Values: []*remote.ObjectValue{}}
+	ret = &remote.SliceObjectValue{Name: elemType.GetName(), PkgPath: elemType.GetPkgPath()}
+	if sliceVal.Kind() == reflect.Slice && sliceVal.IsNil() {
+		return
+	}
+
+	ret.Values = []*remote.ObjectValue{}
 	for idx := 0; idx < sliceVal.Len(); idx++ {
 		val := sliceVal.Index(idx)
 		// 设计 5.4：不考虑 []*T 中 item 为 nil；显式拒绝并返回错误，避免 getObjectValue 对零 Value 调用 Type() 导致 panic
@@ -469,11 +490,19 @@ func GetSliceObjectValue(sliceEntity any) (ret *remote.SliceObjectValue, err *cd
 	}
 	valPtr, ptrOK := sliceEntity.(*remote.SliceObjectValue)
 	if ptrOK {
+		if valPtr == nil {
+			err = cd.NewError(cd.IllegalParam, "slice entity is nil")
+			return
+		}
 		ret = valPtr
 		return
 	}
 
 	sliceValue := reflect.ValueOf(sliceEntity)
+	if sliceValue.Kind() == reflect.Ptr && sliceValue.IsNil() {
+		err = cd.NewError(cd.IllegalParam, "slice entity is nil")
+		return
+	}
 	ret, err = getSliceObjectValue(sliceValue)
 	return
 }
@@ -557,7 +586,16 @@ func updateSliceStructField(val any, localField models.Field) (err *cd.Error) {
 		return
 	}
 
-	localField.Reset()
+	if sliceObjectValuePtr.Values == nil {
+		return
+	}
+
+	err = assignLocalSliceField(localField, true)
+	if err != nil {
+		slog.Error("updateSliceStructField assignLocalSliceField failed", "field", localField.GetName(), "error", err.Error())
+		return
+	}
+
 	for _, objectValuePtr := range sliceObjectValuePtr.Values {
 		elemType := localField.GetType().Elem()
 		localSubVal, _ := elemType.Interface(nil)
@@ -580,6 +618,39 @@ func updateSliceStructField(val any, localField models.Field) (err *cd.Error) {
 	}
 
 	return
+}
+
+func assignLocalSliceField(localField models.Field, assigned bool) (err *cd.Error) {
+	valueType := reflect.TypeOf(localField.GetValue().Get())
+	if valueType == nil {
+		err = cd.NewError(cd.Unexpected, "local slice field type is nil")
+		return
+	}
+
+	switch valueType.Kind() {
+	case reflect.Ptr:
+		sliceType := valueType.Elem()
+		if sliceType.Kind() != reflect.Slice {
+			err = cd.NewError(cd.Unexpected, "local field is not pointer to slice")
+			return
+		}
+		if !assigned {
+			return localField.SetValue(reflect.Zero(valueType).Interface())
+		}
+
+		sliceVal := reflect.MakeSlice(sliceType, 0, 0)
+		slicePtr := reflect.New(sliceType)
+		slicePtr.Elem().Set(sliceVal)
+		return localField.SetValue(slicePtr.Interface())
+	case reflect.Slice:
+		if !assigned {
+			return localField.SetValue(reflect.Zero(valueType).Interface())
+		}
+		return localField.SetValue(reflect.MakeSlice(valueType, 0, 0).Interface())
+	default:
+		err = cd.NewError(cd.Unexpected, "local field is not slice")
+		return
+	}
 }
 
 func updateStructField(val any, vField models.Field) (err *cd.Error) {
@@ -637,6 +708,11 @@ func UpdateSliceEntity(remoteSliceValuePtr *remote.SliceObjectValue, localSliceV
 	}
 
 	localSliceReflect := reflect.Indirect(reflect.ValueOf(localSliceValue))
+	if remoteSliceValuePtr.Values == nil {
+		return
+	}
+
+	localSliceReflect.Set(reflect.MakeSlice(localSliceReflect.Type(), 0, 0))
 	localValuePtr := local.NewValue(localSliceReflect)
 	for idx, val := range remoteSliceValuePtr.Values {
 		elemType := localTypePtr.Elem()

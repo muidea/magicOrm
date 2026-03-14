@@ -8,12 +8,13 @@
 
 ## 1. orm 标签
 
-用于结构体字段，格式：`` `orm:"<名称> [key] [auto] [view:...]"` ``。
+用于结构体字段，当前本地模型的稳定格式为：`` `orm:"<名称> [key] [auto|uuid|snowflake|datetime]"` ``。
+`view` 与 `constraint` 是**独立标签**，不写在 `orm:"..."` 内。
 
 ### 1.1 字段名
 
 - 第一个标识符为**列名/字段名**（如 `orm:"uid"`、`orm:"name"`），对应数据库列名与 Model 字段访问名。
-- **待确认**：列名与 Go 字段名的映射规则（是否支持驼峰转下划线、是否允许与 Go 字段名不同）是否在实现中统一？
+- 当前实现不会自动做驼峰转下划线；数据库列名与模型字段名直接取 `orm` 标签中的第一个标识符。
 
 ### 1.2 key
 
@@ -24,18 +25,18 @@
 
 - 表示**自增主键**，仅对数值类型主键有效；数据库侧自动生成值。
 - 示例：`orm:"id key auto"`。
-- 其它值声明（如 uuid、snowflake、datetime）见 models 注释，实现支持程度以代码为准。**待确认**：是否在文档中正式列出并说明各值声明？
+- 同一位置还支持 `uuid`、`snowflake`、`datetime`，示例：`orm:"uid key uuid"`、`orm:"createdAt datetime"`。
 
 ### 1.4 关系字段
 
 - 关系字段仍使用 `orm:"<名称>"`，类型为 `*T`、`T`、`[]*T`、`[]T` 等；关系类型判定见 [design-relation.md](design-relation.md)，不依赖额外标签。
-- **待确认**：是否支持显式指定「引用/包含」或关系表名的标签（如 `orm:"groups ref"`）？
+- 当前不支持通过额外 orm 标签显式指定「引用/包含」或自定义关系表名；关系语义完全由字段类型决定。
 
 ### 1.5 视图声明（view）
 
 - 格式：`view:"detail,lite"` 等，表示该字段在哪些视图下可见/参与序列化。
-- 可选值：`origin`、`detail`、`lite`、`basic` 等，与 `ViewDeclare` 常量一致（见 [design-models.md](design-models.md)）。
-- 未带 view 的字段在默认/原始视图中仍可被访问；view 用于控制 Copy(viewSpec) 时的输出范围。**待确认**：view 与「查询时是否加载」的对应关系是否在文档中明确？
+- 当前本地 struct tag 解析稳定识别 `detail`、`lite`；`origin`、`meta`、`basic` 是框架常量/内部视图概念，不是稳定的 struct tag 输入。
+- 未带 view 的字段在默认/原始视图中仍可被访问；view 用于控制 Copy(viewSpec) 时的输出范围，不直接裁剪 Query 的 SELECT 列表。
 
 ---
 
@@ -62,10 +63,10 @@
 
 ```go
 type User struct {
-    ID     int     `orm:"uid key auto" view:"detail,lite"`
-    Name   string  `orm:"name" constraint:"req,min=3,max=50" view:"detail,lite"`
-    EMail  string  `orm:"email" view:"detail,lite"`
-    Status *Status `orm:"status" view:"detail,lite"`
+    ID     int      `orm:"uid key auto" view:"detail,lite"`
+    Name   string   `orm:"name" constraint:"req,min=3,max=50" view:"detail,lite"`
+    EMail  string   `orm:"email" view:"detail,lite"`
+    Status *Status  `orm:"status" view:"detail,lite"`
     Group  []*Group `orm:"group" view:"detail,lite"`
 }
 ```

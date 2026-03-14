@@ -19,7 +19,7 @@
 | BeginTransaction / CommitTransaction / RollbackTransaction | 事务 |
 | Release | 释放连接 |
 
-Orm 通过 Runner（如 InsertRunner、QueryRunner）调用 Executor，不直接暴露 `CheckTableExist`。若需在 Orm 层提供「表是否存在」能力，需在此层之上封装，见 [design-checklist.md](design-checklist.md)。
+Orm 通过 Runner（如 InsertRunner、QueryRunner）调用 Executor，不直接暴露 `CheckTableExist`。如需对外提供“表是否存在”能力，需要在 Orm 层另外封装。
 
 ---
 
@@ -63,4 +63,5 @@ Orm 通过 Runner（如 InsertRunner、QueryRunner）调用 Executor，不直接
 
 ## 6. 索引与其它（评审 FUNC-002）
 
-- **索引**：当前设计文档与实现中，表结构由 Model 元数据生成，**未体现显式索引定义/创建 API**（如唯一索引、复合索引）。若需支持，属设计扩展项。**需澄清**：是否有计划支持在模型或 DDL 中声明索引，见 [需澄清信息.md](需澄清信息.md)。
+- **索引**：当前设计文档与实现中，表结构由 Model 元数据生成，**未体现显式索引定义/创建 API**（如唯一索引、复合索引）。
+- 如需支持，属于未来的设计扩展项；当前版本不应假设模型标签可声明索引。

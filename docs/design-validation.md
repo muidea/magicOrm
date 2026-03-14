@@ -47,7 +47,8 @@
 ### 3.1 验证失败时的错误
 
 - 验证失败返回 `*cd.Error`，当前主要使用 **IllegalParam**；错误信息由各约束/类型校验生成，带字段名或上下文。
-- 错误码与格式的完整约定见 [error-codes.md](error-codes.md)。**待确认**：是否需在文档中单独列出「验证错误信息格式与字段路径」规范（见 [待确认项清单.md](待确认项清单.md) ERR-C3）。
+- 若错误来自数据库层验证，则会映射为 **DatabaseError**；多字段错误会聚合为 `Multiple validation errors: field (count), ...`。
+- 错误码与格式的完整约定见 [error-codes.md](error-codes.md)。
 
 ### 3.2 自定义验证扩展（评审 VAL-002）
 
@@ -56,8 +57,8 @@
 
 ### 3.3 国际化与性能（评审 VAL-003、VAL-004）
 
-- **国际化**：当前错误信息为硬编码字符串，**未提供国际化（i18n）接口**；若需多语言，需在应用层对 `*cd.Error` 的 Message 做映射或包装。**需澄清**：是否计划在验证层提供 i18n 支持，见 [需澄清信息.md](需澄清信息.md)。
-- **性能**：配置支持 EnableCaching、CacheTTL 等；验证在 Insert/Update/Delete 路径上同步执行，对延迟有直接影响。**需澄清**：是否在文档中约定性能目标或给出基准参考，见 [需澄清信息.md](需澄清信息.md)。
+- **国际化**：当前错误信息为硬编码字符串，**未提供国际化（i18n）接口**；若需多语言，需在应用层对 `*cd.Error` 的 Message 做映射或包装。
+- **性能**：配置支持 EnableCaching、CacheTTL 等；验证在 Insert/Update/Delete 路径上同步执行，对延迟有直接影响。
 
 ---
 
@@ -72,10 +73,10 @@
   - 错误收集器与统计信息（`ValidationStats`）。
 - **与 Model 集成的当前状态**：
   - Orm 在 Insert/Update/Delete 路径上会调用内部 `validateModel(model, scenario)`，并通过 `validation.NewContext` 传入场景与操作类型；
-  - 目前 `ValidateModel` 使用的是**简化版的 ModelAdapter/FieldAdapter**：尚未完全从 `models.Model` 中自动抽取所有字段的类型信息与 `constraint` 标签列表，字段级验证覆盖度以实际实现为准。
+  - `ValidateModel` 会通过 `AdaptModel/AdaptField` 基于真实 `models.Model` / `models.Field` 抽取字段类型、约束与当前值；
+  - 适配时会优先保留字段运行时承载类型，避免将 `datetime`、struct relation、slice relation 误降级成 `time.Time` / `interface{}` / `[]interface{}`。
 - **规划中的演进方向**：
-  - 基于 Model 元数据自动构建完整的 FieldAdapter 列表（含类型、约束、视图等信息），使「struct 标签 → 验证管线」成为默认路径；
   - 明确验证错误的结构化格式（错误码 + 字段路径 + 约束 key），与 [error-codes.md](error-codes.md) 中的约定保持一致；
   - 按需补充数据库层与场景层的更多策略（如更细粒度的 Query 验证、只读/只写字段的统一策略等）。
 
-在这些演进完成前，使用方应将当前验证系统理解为「已具备完整骨架与扩展点，但对模型标签的自动集成仍在逐步增强」。
+在这些演进完成前，使用方应将当前验证系统理解为「已具备真实模型适配能力与扩展点，但更细粒度的错误结构和策略编排仍可继续增强」。

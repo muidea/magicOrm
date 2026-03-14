@@ -48,7 +48,7 @@ type ComplexNestedItem struct {
 }
 
 // TestDeepNesting 测试深度嵌套对象
-func TestDeepNesting(t *testing.T) {
+func TestLocalDeepNesting(t *testing.T) {
 	// 跳过测试如果设置了环境变量
 	if testing.Short() {
 		t.Skip("skipping deep nesting test in short mode.")
@@ -102,7 +102,7 @@ func TestDeepNesting(t *testing.T) {
 }
 
 // TestSkipNestedTest 暂时跳过有问题的嵌套测试
-func TestSkipNestedTest(t *testing.T) {
+func TestLocalSkipNestedTest(t *testing.T) {
 	// 该环境变量会跳过集成测试
 	if os.Getenv("SKIP_INTEGRATION_TESTS") != "" {
 		t.Skip("Skipping integration test due to SKIP_INTEGRATION_TESTS environment variable")

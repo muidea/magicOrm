@@ -1,0 +1,132 @@
+{
+  "id": 0,
+  "name": "member",
+  "showName": "店铺成员",
+  "icon": "/static/file/share/vmi/member.svg",
+  "version": "0.0.1",
+  "status": 2,
+  "pkgPath": "/vmi/store",
+  "description": "店铺成员信息",
+  "fields": [
+    {
+      "name": "id",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": true,
+        "valueDeclare": "auto",
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "title",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "entity",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "store",
+      "description": "",
+      "type": {
+        "name": "store",
+        "pkgPath": "/vmi",
+        "description": "",
+        "isPtr": true,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail"
+        ]
+      }
+    },
+    {
+      "name": "creater",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ],
+        "defaultValue": "$referenceExtData.currentEntity()"
+      }
+    },
+    {
+      "name": "createTime",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ],
+        "defaultValue": "$referenceExtData.currentTimeStamp()"
+      }
+    },
+    {
+      "name": "namespace",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "defaultValue": "$referenceExtData.currentNamespace()"
+      }
+    }
+  ]
+}

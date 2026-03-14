@@ -225,6 +225,10 @@ func isValid(val any) bool {
 		return v != nil
 	case *SliceObjectValue:
 		return v != nil
+	case ObjectValue:
+		return true
+	case SliceObjectValue:
+		return true
 	default:
 		return utils.IsReallyValidValue(val)
 	}
@@ -239,11 +243,11 @@ func isZero(val any) (ret bool) {
 	case *ObjectValue:
 		return v == nil || len(v.Fields) == 0 || !v.IsAssigned()
 	case *SliceObjectValue:
-		return v == nil || len(v.Values) == 0
+		return v == nil || v.Values == nil
 	case ObjectValue:
 		return len(v.Fields) == 0 || !v.IsAssigned()
 	case SliceObjectValue:
-		return len(v.Values) == 0
+		return v.Values == nil
 	default:
 		return utils.IsReallyZeroValue(val)
 	}

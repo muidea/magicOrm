@@ -196,24 +196,18 @@ func (m *validationManagerImpl) Validate(value any, context ValidationContext) e
 
 // ValidateField validates a single field
 func (m *validationManagerImpl) ValidateField(field models.Field, value any, context ValidationContext) error {
-	// For now, create a simple field adapter
-	// In production, we would extract actual constraints from the field
-	fieldAdapter := NewFieldAdapter(
-		field.GetName(),
-		nil, // field type
-		nil, // constraints
-		value,
-	)
-	context.Field = fieldAdapter
+	context.Field = AdaptField(field, value)
 	return m.Validate(value, context)
 }
 
 // ValidateModel validates an entire model
 func (m *validationManagerImpl) ValidateModel(model models.Model, context ValidationContext) error {
-	// For now, create an empty model adapter
-	// In production, we would extract fields from the model
-	context.Model = NewModelAdapter([]FieldAdapter{})
-	context.Collector = errors.NewErrorCollector()
+	if context.Model == nil {
+		context.Model = AdaptModel(model)
+	}
+	if context.Collector == nil {
+		context.Collector = errors.NewErrorCollector()
+	}
 
 	// Get all fields from the model adapter
 	fields := context.Model.GetFields()
@@ -284,6 +278,9 @@ func (m *validationManagerImpl) validateType(value any, context ValidationContex
 	}
 
 	fieldType := context.Field.GetType()
+	if fieldType == nil {
+		return nil
+	}
 	err := m.typeValidator.ValidateType(value, fieldType)
 	if err != nil {
 		validationErr := errors.NewTypeError(

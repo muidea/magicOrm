@@ -25,7 +25,8 @@ import (
 )
 
 type ValueImpl struct {
-	value any
+	value    any
+	assigned bool
 }
 
 // NewValue 根据val创建Value
@@ -40,8 +41,12 @@ func NewValue(val any) (ret *ValueImpl) {
 	switch val.(type) {
 	case *ObjectValue, *SliceObjectValue:
 		valPtr.value = val
-	case ObjectValue, SliceObjectValue:
-		valPtr.value = &val
+	case ObjectValue:
+		objectVal := val.(ObjectValue)
+		valPtr.value = &objectVal
+	case SliceObjectValue:
+		sliceObjectVal := val.(SliceObjectValue)
+		valPtr.value = &sliceObjectVal
 	default:
 		if !utils.IsReallyValidValue(val) {
 			panic(fmt.Sprintf("illegal value:%+v", val))
@@ -49,19 +54,25 @@ func NewValue(val any) (ret *ValueImpl) {
 
 		valPtr.value = val
 	}
+	valPtr.assigned = !isZero(valPtr.value)
 
 	ret = valPtr
 	return
 }
 
-// IsValid checks if the value is valid
-// 如果对应的值是ObjectValue,SliceObjectValue或者对应的指针值，还需要继续判断是否包含Fields，Fields的包含的items为0也认为是invalid
+// IsValid checks if the value is valid.
+// 对于 ObjectValue / SliceObjectValue，非 nil 包装值本身即视为 valid；
+// “未赋值 / 清空”的语义由 IsZero 进一步区分。
 func (s *ValueImpl) IsValid() (ret bool) {
 	return isValid(s.value)
 }
 
+func (s *ValueImpl) IsAssigned() bool {
+	return s.assigned
+}
+
 // IsZero checks if the value is zero.
-// 如果对应的值是ObjectValue,SliceObjectValue或者对应的指针值，还需要继续判断是否包含Fields，Fields的包含的items为0也认为是0
+// 对于 SliceObjectValue，需要区分 nil（未赋值）和 []（显式赋值为空）。
 func (s *ValueImpl) IsZero() bool {
 	return isZero(s.value)
 }
@@ -74,6 +85,7 @@ func (s *ValueImpl) Get() any {
 // Set 设置值
 // 如果传入的val不合法，则直接panic
 func (s *ValueImpl) Set(val any) (err *cd.Error) {
+	s.assigned = true
 	if val == nil {
 		s.value = nil
 		return
@@ -190,7 +202,7 @@ func (s *ValueImpl) copy() (ret *ValueImpl, err error) {
 		return
 	}
 
-	ret = &ValueImpl{}
+	ret = &ValueImpl{assigned: s.assigned}
 	switch s.value.(type) {
 	case *ObjectValue:
 		ret.value = s.value.(*ObjectValue).Copy()

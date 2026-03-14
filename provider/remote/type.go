@@ -211,6 +211,12 @@ func (s *TypeImpl) Interface(initVal any) (ret models.Value, err *cd.Error) {
 		}
 	}
 	if initVal != nil {
+		if s.IsPtrType() && s.GetValue() != models.TypeStructValue && !(s.GetValue() == models.TypeSliceValue && !s.Elem().GetValue().IsBasicType()) {
+			rVal := reflect.ValueOf(initVal)
+			ptrVal := reflect.New(rVal.Type())
+			ptrVal.Elem().Set(rVal)
+			initVal = ptrVal.Interface()
+		}
 		ret = NewValue(initVal)
 		return
 	}

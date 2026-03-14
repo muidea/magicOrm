@@ -209,6 +209,65 @@ func TestEmptySliceHandling(t *testing.T) {
 			t.Errorf("expected 0 elements, got %d", len(target))
 		}
 	})
+
+	t.Run("empty SliceObjectValue clears existing slice", func(t *testing.T) {
+		sliceValue := &remote.SliceObjectValue{
+			Name:    "BasicTypes",
+			PkgPath: "github.com/muidea/magicOrm/test/consistency",
+			Values:  []*remote.ObjectValue{},
+		}
+
+		target := []*BasicTypes{NewBasicTypes()}
+		err := helper.UpdateSliceEntity(sliceValue, &target)
+		if err != nil {
+			t.Fatalf("UpdateSliceEntity failed: %v", err)
+		}
+
+		if target == nil || len(target) != 0 {
+			t.Fatalf("expected assigned empty slice, got %#v", target)
+		}
+	})
+
+	t.Run("nil SliceObjectValue leaves existing slice untouched", func(t *testing.T) {
+		sliceValue := &remote.SliceObjectValue{
+			Name:    "BasicTypes",
+			PkgPath: "github.com/muidea/magicOrm/test/consistency",
+		}
+
+		target := []*BasicTypes{NewBasicTypes()}
+		err := helper.UpdateSliceEntity(sliceValue, &target)
+		if err != nil {
+			t.Fatalf("UpdateSliceEntity failed: %v", err)
+		}
+
+		if len(target) != 1 || target[0] == nil || target[0].ID != 1 {
+			t.Fatalf("nil slice should not overwrite target, got %#v", target)
+		}
+	})
+
+	t.Run("non-empty SliceObjectValue replaces existing slice", func(t *testing.T) {
+		original := []*BasicTypes{
+			{ID: 9, Str: "replace-1"},
+			{ID: 10, Str: "replace-2"},
+		}
+		sliceValue, err := helper.GetSliceObjectValue(original)
+		if err != nil {
+			t.Fatalf("GetSliceObjectValue failed: %v", err)
+		}
+
+		target := []*BasicTypes{NewBasicTypes()}
+		err = helper.UpdateSliceEntity(sliceValue, &target)
+		if err != nil {
+			t.Fatalf("UpdateSliceEntity failed: %v", err)
+		}
+
+		if len(target) != len(original) {
+			t.Fatalf("expected %d elements, got %d", len(original), len(target))
+		}
+		if target[0].ID != 9 || target[1].ID != 10 {
+			t.Fatalf("expected replacement values, got %#v", target)
+		}
+	})
 }
 
 func TestSingleElementSlice(t *testing.T) {

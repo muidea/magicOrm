@@ -230,6 +230,36 @@ func TestObjectInterface(t *testing.T) {
 	}
 }
 
+func TestObjectInterfaceWithoutPrimaryFieldDoesNotPanic(t *testing.T) {
+	obj := &Object{
+		Name:    "TestObject",
+		PkgPath: "github.com/test/pkg",
+		Fields: []*Field{
+			{
+				Name:  "name",
+				Type:  &TypeImpl{Name: "string", Value: models.TypeStringValue},
+				Spec:  &SpecImpl{FieldName: "name"},
+				value: NewValue("test name"),
+			},
+		},
+	}
+
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			t.Fatalf("Interface should not panic without a primary field, got %v", recovered)
+		}
+	}()
+
+	result := obj.Interface(true)
+	objVal, ok := result.(*ObjectValue)
+	if !ok {
+		t.Fatalf("Interface failed, expected *ObjectValue, got %T", result)
+	}
+	if objVal.ID != "" {
+		t.Fatalf("Interface should keep empty ID without primary field, got %q", objVal.ID)
+	}
+}
+
 func TestObjectValueImplementation(t *testing.T) {
 	// Create test ObjectValue
 	objVal := &ObjectValue{
@@ -303,6 +333,40 @@ func TestObjectValueImplementation(t *testing.T) {
 	objVal.SetFieldValue("name", "modified after copy")
 	if copiedVal.GetFieldValue("name") == "modified after copy" {
 		t.Errorf("Copy failed, copy should not be affected by changes to original")
+	}
+}
+
+func TestObjectValueSetFieldValueNormalizesStructuredValues(t *testing.T) {
+	objVal := &ObjectValue{Name: "Host", PkgPath: "github.com/test/pkg"}
+
+	objVal.SetFieldValue("child", ObjectValue{
+		Name:    "Child",
+		PkgPath: "github.com/test/pkg",
+		Fields: []*FieldValue{
+			{Name: "id", Value: int64(1)},
+		},
+	})
+	childVal := objVal.GetFieldValue("child")
+	if _, ok := childVal.(*ObjectValue); !ok {
+		t.Fatalf("expected child field to be normalized to *ObjectValue, got %T", childVal)
+	}
+
+	objVal.SetFieldValue("children", SliceObjectValue{
+		Name:    "Child",
+		PkgPath: "github.com/test/pkg",
+		Values: []*ObjectValue{
+			{
+				Name:    "Child",
+				PkgPath: "github.com/test/pkg",
+				Fields: []*FieldValue{
+					{Name: "id", Value: int64(2)},
+				},
+			},
+		},
+	})
+	childrenVal := objVal.GetFieldValue("children")
+	if _, ok := childrenVal.(*SliceObjectValue); !ok {
+		t.Fatalf("expected children field to be normalized to *SliceObjectValue, got %T", childrenVal)
 	}
 }
 

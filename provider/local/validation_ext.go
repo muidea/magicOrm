@@ -75,7 +75,7 @@ func (e *validationExtensionImpl) SetModelValueWithScenario(vModel models.Model,
 
 	// Validate each field with scenario-aware validation
 	for _, field := range fields {
-		if !models.IsValidField(field) {
+		if !models.IsValidField(field) && !models.IsAssignedField(field) {
 			continue
 		}
 
@@ -175,40 +175,12 @@ func (e *validationExtensionImpl) ConfigureValidation(config validation.Validati
 
 // createFieldAdapter creates a field adapter for validation
 func (e *validationExtensionImpl) createFieldAdapter(field models.Field, value any) validation.FieldAdapter {
-	// Get field constraints
-	var constraints models.Constraints
-	if spec := field.GetSpec(); spec != nil {
-		constraints = spec.GetConstraints()
-	}
-
-	// Create field adapter
-	return validation.NewFieldAdapter(
-		field.GetName(),
-		nil, // field type - would need conversion from models.Type to reflect.Type
-		constraints,
-		value,
-	)
+	return validation.AdaptField(field, value)
 }
 
 // createModelAdapter creates a model adapter for validation
 func (e *validationExtensionImpl) createModelAdapter(model models.Model) validation.ModelAdapter {
-	modelImpl, ok := model.(*objectImpl)
-	if !ok {
-		return nil
-	}
-
-	// Collect all field adapters
-	fieldAdapters := make([]validation.FieldAdapter, 0, len(modelImpl.fields))
-	for _, field := range modelImpl.fields {
-		fieldValue := field.GetValue().Get()
-		fieldAdapter := e.createFieldAdapter(field, fieldValue)
-		if fieldAdapter != nil {
-			fieldAdapters = append(fieldAdapters, fieldAdapter)
-		}
-	}
-
-	// Create model adapter
-	return validation.NewModelAdapter(fieldAdapters)
+	return validation.AdaptModel(model)
 }
 
 // getOperationType maps scenario to operation type

@@ -32,10 +32,10 @@
 
 以上类型可带指针（如 `*int64`、`*Status`）；切片可为值类型或指针类型（如 `[]int`、`[]*Group`）。参见 [design-relation.md](design-relation.md)。
 
-### 1.2 不支持的 Go 类型（需避免）
+### 1.2 不支持或未作为稳定能力文档化的 Go 类型
 
 - `map`、`chan`、`func`、未注册的 `struct`、仅支持类型的 `interface{}` 等未在 models 中声明的类型，不应作为 orm 字段使用。
-- **待确认**：`interface{}`、`[]byte`、自定义类型别名（如 `type MyID int64`）是否支持及映射规则是否需在本文档明确？
+- `[]byte`、自定义类型别名（如 `type MyID int64`）即使个别路径可能通过反射工作，也未作为稳定字段类型对外承诺。
 
 ---
 
@@ -78,11 +78,15 @@
 
 - 主键通过 orm 标签 `key` 指定；自增通过 `auto` 指定（见 [tags-reference.md](tags-reference.md)）。
 - 自增仅适用于数值类型主键（如 int64）；PostgreSQL 使用 SERIAL/BIGSERIAL，MySQL 使用 AUTO_INCREMENT。
-- **待确认**：UUID、snowflake 等主键策略在代码中的支持程度及是否在文档中单独说明？
+- `uuid`、`snowflake`、`datetime` 也属于当前实现支持的 `ValueDeclare`：
+  - `uuid`：零值时在 Insert 前生成字符串 UUID
+  - `snowflake`：零值时在 Insert 前生成 int64 雪花 ID
+  - `datetime`：零值时在 Insert 前生成当前时间
 
 ---
 
 ## 5. 日期时间格式
 
 - 库中为 TIMESTAMP(3)/DATETIME(3)；Go 端为 `time.Time`。
-- **待确认**：序列化/反序列化时采用的字符串格式（如 RFC3339、ISO8601）是否在设计中统一约定并写入文档？
+- 在 remote/object value 载体中，`TypeDateTimeValue` 当前按**字符串**承载；本地 model/数据库侧仍对应 `time.Time` 与 TIMESTAMP/DATETIME。
+- 字符串格式以当前 codec 与 `utils` 转换实现为准，现阶段未单独定义新的协议层格式文档。

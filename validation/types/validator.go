@@ -62,6 +62,10 @@ func NewTypeValidator() TypeValidator {
 
 // ValidateType validates if a value is compatible with the given type
 func (v *typeValidatorImpl) ValidateType(value any, fieldType reflect.Type) error {
+	if fieldType == nil {
+		return nil
+	}
+
 	if value == nil {
 		// nil is valid for pointer types
 		if fieldType.Kind() == reflect.Ptr {
@@ -98,6 +102,10 @@ func (v *typeValidatorImpl) ValidateType(value any, fieldType reflect.Type) erro
 
 // Convert converts a value to the target type
 func (v *typeValidatorImpl) Convert(value any, targetType reflect.Type) (any, error) {
+	if targetType == nil {
+		return nil, cd.NewError(cd.IllegalParam, "target type is nil")
+	}
+
 	if value == nil {
 		// Return zero value for nil
 		return v.GetZeroValue(targetType), nil
@@ -162,6 +170,10 @@ func (v *typeValidatorImpl) RegisterTypeHandler(typeName string, handler TypeHan
 
 // GetZeroValue returns the zero value for a type
 func (v *typeValidatorImpl) GetZeroValue(fieldType reflect.Type) any {
+	if fieldType == nil {
+		return nil
+	}
+
 	if handler, ok := v.typeHandlers[fieldType]; ok {
 		return handler.GetZeroValue()
 	}

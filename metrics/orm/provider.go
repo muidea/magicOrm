@@ -140,16 +140,9 @@ func (p *ORMMetricProvider) Collect() ([]types.Metric, *types.Error) {
 			if len(parts) >= 3 {
 				operation, model, status := parts[0], parts[1], parts[2]
 
-				// Calculate average duration in seconds
-				var total time.Duration
-				for _, d := range durations {
-					total += d
-				}
-				avgDuration := total.Seconds() / float64(len(durations))
-
 				metricList = append(metricList, types.NewGauge(
 					"magicorm_orm_operation_duration_seconds",
-					avgDuration,
+					metrics.AverageDurationSeconds(durations),
 					map[string]string{
 						"operation": operation,
 						"model":     model,

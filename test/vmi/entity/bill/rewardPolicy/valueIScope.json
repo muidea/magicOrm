@@ -1,0 +1,66 @@
+{
+  "id": 0,
+  "name": "valueScope",
+  "showName": "值域限制",
+  "version": "0.0.1",
+  "status": 2,
+  "pkgPath": "/vmi/bill/rewardPolicy",
+  "description": "",
+  "fields": [
+    {
+      "name": "id",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": true,
+        "valueDeclare": "auto",
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "lowValue",
+      "description": "",
+      "type": {
+        "name": "float64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "highValue",
+      "description": "",
+      "type": {
+        "name": "float64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    }
+  ]
+}

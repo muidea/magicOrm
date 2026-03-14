@@ -1,0 +1,51 @@
+{
+  "name": "magicCas",
+  "version": "1.3.0",
+  "namespace": [
+    {
+      "name": "autotest",
+      "description": "autotest description",
+      "status": 2,
+      "leaseTerm": 100,
+      "scope": "autotest",
+      "account": [
+        {
+          "account": "autotest",
+          "password": "autotest",
+          "role": {
+            "name": "innerRole",
+            "description": "innerRole description",
+            "privilege": [
+              {
+                "module": "*",
+                "uriPath": "*",
+                "value": 5
+              }
+            ]
+          }
+        }
+      ],
+      "endpoint": [
+        {
+          "name": "autotest",
+          "leaseTerm": 100,
+          "bindAccount": {
+            "account": "autotest",
+            "password": "autotest"
+          },
+          "role": {
+            "name": "innerRole",
+            "description": "innerRole description",
+            "privilege": [
+              {
+                "module": "*",
+                "uriPath": "*",
+                "value": 5
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

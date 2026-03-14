@@ -1,0 +1,294 @@
+{
+  "id": 0,
+  "name": "partner",
+  "showName": "会员信息",
+  "icon": "/static/file/share/vmi/partner.svg",
+  "version": "0.0.1",
+  "status": 2,
+  "pkgPath": "/vmi",
+  "description": "会员信息",
+  "fields": [
+    {
+      "name": "id",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": true,
+        "valueDeclare": "auto",
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "code",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "name",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "telephone",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ]
+      }
+    },
+    {
+      "name": "wechat",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ]
+      }
+    },
+    {
+      "name": "description",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "referer",
+      "description": "",
+      "type": {
+        "name": "partner",
+        "pkgPath": "/vmi",
+        "description": "",
+        "isPtr": true,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ]
+      }
+    },
+    {
+      "name": "status",
+      "description": "",
+      "type": {
+        "name": "status",
+        "pkgPath": "/vmi",
+        "description": "",
+        "isPtr": true,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ],
+        "defaultValue": 3
+      }
+    },
+    {
+      "name": "creater",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ],
+        "defaultValue": "$referenceExtData.currentEntity()"
+      }
+    },
+    {
+      "name": "createTime",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ],
+        "defaultValue": "$referenceExtData.currentTimeStamp()"
+      }
+    },
+    {
+      "name": "namespace",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "defaultValue": "$referenceExtData.currentNamespace()"
+      }
+    }
+  ],
+  "blockInfo": [
+    {
+      "id": "43efe293712b4da38c4d85d1363b717e",
+      "stageInfo": {
+        "startup": {
+          "eventID": "/totalizator/register/",
+          "input": {
+            "name": "会员",
+            "unit": "人",
+            "owner": "/vmi/partner/",
+            "trigger": "/vmi/partner/:id",
+            "period": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "namespace": "*"
+          },
+          "checkType": "postCheck"
+        },
+        "functions": {
+          "insert": {
+            "eventID": "/totalizator/refresh/",
+            "input": {
+              "owner": "/vmi/partner/",
+              "trigger": "/vmi/partner/:id",
+              "action": "insert",
+              "namespace": "$referenceExtData.namespace"
+            },
+            "checkType": "postCheck"
+          },
+          "delete": {
+            "eventID": "/totalizator/refresh/",
+            "input": {
+              "owner": "/vmi/partner/",
+              "trigger": "/vmi/partner/:id",
+              "action": "delete",
+              "namespace": "$referenceExtData.namespace"
+            },
+            "checkType": "postCheck"
+          }
+        },
+        "teardown": {
+          "eventID": "/totalizator/unregister/",
+          "input": {
+            "name": "会员",
+            "unit": "人",
+            "owner": "/vmi/partner/",
+            "trigger": "/vmi/partner/:id",
+            "period": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "namespace": "*"
+          },
+          "checkType": "postCheck"
+        }
+      }
+    },
+    {
+      "id": "9262d7ba533f4678925ddbc9a063e33a",
+      "stageInfo": {
+        "startup": {
+          "eventID": "/generator/register/",
+          "input": {
+            "name": "会员码",
+            "owner": "/vmi/partner/",
+            "pattern": "{fixed(6):100000}",
+            "namespace": "*"
+          },
+          "checkType": "postCheck"
+        },
+        "functions": {
+          "insert": {
+            "eventID": "/generator/refresh/code/",
+            "input": {
+              "owner": "/vmi/partner/",
+              "namespace": "$referenceExtData.namespace"
+            },
+            "output": {},
+            "checkType": "preCheck",
+            "bindField": "code"
+          }
+        },
+        "teardown": {
+          "eventID": "/generator/unregister/",
+          "input": {
+            "owner": "/vmi/partner/",
+            "namespace": "*"            
+          },
+          "checkType": "postCheck"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,289 @@
+{
+  "id": 0,
+  "name": "order",
+  "showName": "订单信息",
+  "icon": "/static/file/share/vmi/order.svg",
+  "version": "0.0.1",
+  "status": 2,
+  "pkgPath": "/vmi",
+  "description": "订单信息",
+  "fields": [
+    {
+      "name": "id",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": true,
+        "valueDeclare": "auto",
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "sn",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "type",
+      "description": "",
+      "type": {
+        "name": "int",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "customer",
+      "description": "",
+      "type": {
+        "name": "partner",
+        "pkgPath": "/vmi",
+        "description": "",
+        "isPtr": true,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail"
+        ]
+      }
+    },
+    {
+      "name": "goods",
+      "description": "",
+      "type": {
+        "name": "goodsItem",
+        "pkgPath": "/vmi/order",
+        "description": "",
+        "isPtr": false,
+        "elemType": {
+          "name": "goodsItem",
+          "pkgPath": "/vmi/order",
+          "description": "",
+            "isPtr": false,
+          "elemType": null
+        }
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail"
+        ]
+      }
+    },
+    {
+      "name": "cost",
+      "description": "",
+      "type": {
+        "name": "float64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "memo",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail"
+        ]
+      }
+    },
+    {
+      "name": "store",
+      "description": "",
+      "type": {
+        "name": "store",
+        "pkgPath": "/vmi",
+        "description": "",
+        "isPtr": true,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "status",
+      "description": "",
+      "type": {
+        "name": "status",
+        "pkgPath": "/vmi",
+        "description": "",
+        "isPtr": true,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "creater",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ],
+        "defaultValue": "$referenceExtData.currentEntity()"
+      }
+    },
+    {
+      "name": "createTime",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ],
+        "defaultValue": "$referenceExtData.currentTimeStamp()"
+      }
+    },
+    {
+      "name": "namespace",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "defaultValue": "$referenceExtData.currentNamespace()"
+      }
+    }
+  ],
+  "blockInfo": [
+    {
+      "id": "43efe293712b4da38c4d85d1363b717e",
+      "stageInfo": {
+        "startup": {
+          "eventID": "/totalizator/register/",
+          "input": {
+            "name": "订单",
+            "unit": "个",
+            "owner": "/vmi/order/",
+            "trigger": "/vmi/order/:id",
+            "period": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "namespace": "*"
+          },
+          "checkType": "postCheck"
+        },
+        "functions": {
+          "insert": {
+            "eventID": "/totalizator/refresh/",
+            "input": {
+              "owner": "/vmi/order/",
+              "trigger": "/vmi/order/:id",
+              "action": "insert",
+              "namespace": "$referenceExtData.namespace"
+            },
+            "checkType": "postCheck"
+          },
+          "delete": {
+            "eventID": "/totalizator/refresh/",
+            "input": {
+              "owner": "/vmi/order/",
+              "trigger": "/vmi/order/:id",
+              "action": "delete",
+              "namespace": "$referenceExtData.namespace"
+            },
+            "checkType": "postCheck"
+          }
+        },
+        "teardown": {
+          "eventID": "/totalizator/unregister/",
+          "input": {
+            "name": "订单",
+            "unit": "个",
+            "owner": "/vmi/order/",
+            "trigger": "/vmi/order/:id",
+            "period": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "namespace": "*"
+          },
+          "checkType": "postCheck"
+        }
+      }
+    }
+  ]
+}

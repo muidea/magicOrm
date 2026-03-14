@@ -149,7 +149,7 @@ var partnerDef = `
 }
 `
 
-func TestPartner(t *testing.T) {
+func TestRemotePartner(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 

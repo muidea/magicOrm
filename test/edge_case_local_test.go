@@ -30,7 +30,7 @@ type MaxSizeObject struct {
 }
 
 // TestEdgeCases 测试边缘情况
-func TestEdgeCases(t *testing.T) {
+func TestLocalEdgeCases(t *testing.T) {
 	// 跳过集成测试如果设置了环境变量
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
@@ -57,7 +57,7 @@ func TestEdgeCases(t *testing.T) {
 }
 
 // 测试错误处理
-func TestErrorHandling(t *testing.T) {
+func TestLocalErrorHandling(t *testing.T) {
 	// 跳过集成测试如果设置了环境变量
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
@@ -113,7 +113,7 @@ func TestErrorHandling(t *testing.T) {
 }
 
 // TestCircularReference 独立测试循环引用
-func TestCircularReference(t *testing.T) {
+func TestLocalCircularReference(t *testing.T) {
 	// 跳过集成测试如果设置了环境变量
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
@@ -194,7 +194,7 @@ func TestCircularReference(t *testing.T) {
 }
 
 // TestMaxSizeObject 独立测试大对象
-func TestMaxSizeObject(t *testing.T) {
+func TestLocalMaxSizeObject(t *testing.T) {
 	// 跳过集成测试如果设置了环境变量
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")

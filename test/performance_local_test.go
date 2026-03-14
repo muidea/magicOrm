@@ -29,7 +29,7 @@ type ComplexPerf struct {
 }
 
 // TestPerformance 性能测试主函数
-func TestPerformance(t *testing.T) {
+func TestLocalPerformance(t *testing.T) {
 	// 跳过性能测试如果设置了环境变量
 	if testing.Short() {
 		t.Skip("skipping performance test in short mode.")

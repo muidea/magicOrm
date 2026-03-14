@@ -1,0 +1,298 @@
+{
+  "id": 0,
+  "name": "bill",
+  "showName": "账单信息",
+  "icon": "/static/file/share/vmi/bill.svg",
+  "version": "0.0.1",
+  "status": 2,
+  "pkgPath": "/vmi",
+  "description": "账单信息",
+  "fields": [
+    {
+      "name": "id",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": true,
+        "valueDeclare": "auto",
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "sn",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "owner",
+      "description": "",
+      "type": {
+        "name": "partner",
+        "pkgPath": "/vmi",
+        "description": "",
+        "isPtr": true,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "memo",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail"
+        ]
+      }
+    },
+    {
+      "name": "reward",
+      "description": "",
+      "type": {
+        "name": "float64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail"
+        ]
+      }
+    },
+    {
+      "name": "type",
+      "description": "",
+      "type": {
+        "name": "int",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail"
+        ]
+      }
+    },
+    {
+      "name": "level",
+      "description": "",
+      "type": {
+        "name": "int",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail"
+        ]
+      }
+    },
+    {
+      "name": "status",
+      "description": "",
+      "type": {
+        "name": "status",
+        "pkgPath": "/vmi",
+        "description": "",
+        "isPtr": true,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail"
+        ]
+      }
+    },
+    {
+      "name": "creater",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ],
+        "defaultValue": "$referenceExtData.currentEntity()"
+      }
+    },
+    {
+      "name": "createTime",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ],
+        "defaultValue": "$referenceExtData.currentTimeStamp()"
+      }
+    },
+    {
+      "name": "namespace",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "defaultValue": "$referenceExtData.currentNamespace()"
+      }
+    }
+  ],
+  "blockInfo": [
+    {
+      "id": "43efe293712b4da38c4d85d1363b717e",
+      "stageInfo": {
+        "startup": {
+          "eventID": "/totalizator/register/",
+          "input": {
+            "name": "账单",
+            "unit": "个",
+            "owner": "/vmi/bill/",
+            "trigger": "/vmi/bill/:id",
+            "period": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "namespace": "*"
+          },
+          "checkType": "postCheck"
+        },
+        "functions": {
+          "insert": {
+            "eventID": "/totalizator/refresh/",
+            "input": {
+              "owner": "/vmi/bill/",
+              "trigger": "/vmi/bill/:id",
+              "action": "insert",
+              "namespace": "$referenceExtData.namespace"
+            },
+            "checkType": "postCheck"
+          },
+          "delete": {
+            "eventID": "/totalizator/refresh/",
+            "input": {
+              "owner": "/vmi/bill/",
+              "trigger": "/vmi/bill/:id",
+              "action": "delete",
+              "namespace": "$referenceExtData.namespace"
+            },
+            "checkType": "postCheck"
+          }
+        },
+        "teardown": {
+          "eventID": "/totalizator/unregister/",
+          "input": {
+            "name": "账单",
+            "unit": "个",
+            "owner": "/vmi/bill/",
+            "trigger": "/vmi/bill/:id",
+            "period": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "namespace": "*"
+          },
+          "checkType": "postCheck"
+        }
+      }
+    },
+    {
+      "id": "9262d7ba533f4678925ddbc9a063e33a",
+      "stageInfo": {
+        "startup": {
+          "eventID": "/generator/register/",
+          "input": {
+            "name": "账单码",
+            "owner": "/vmi/bill/",
+            "pattern": "BI-{YYYYMMDDHHmmSS}-{fixed(8):num}",
+            "namespace": "*"
+          },
+          "checkType": "postCheck"
+        },
+        "functions": {
+          "insert": {
+            "eventID": "/generator/refresh/code/",
+            "input": {
+              "owner": "/vmi/bill/",
+              "namespace": "$referenceExtData.namespace"
+            },
+            "output": {},
+            "checkType": "preCheck",
+            "bindField": "sn"
+          }
+        },
+        "teardown": {
+          "eventID": "/generator/unregister/",
+          "input": {
+            "owner": "/vmi/bill/",
+            "namespace": "*"
+          },
+          "checkType": "postCheck"
+        }
+      }
+    }
+  ]
+}

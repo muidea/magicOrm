@@ -1,0 +1,270 @@
+{
+  "id": 0,
+  "name": "stockin",
+  "showName": "入库单",
+  "icon": "/static/file/share/vmi/stockin.svg",
+  "version": "0.0.1",
+  "status": 2,
+  "pkgPath": "/vmi/store",
+  "description": "入库单",
+  "fields": [
+    {
+      "name": "id",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": true,
+        "valueDeclare": "auto",
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "sn",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "goodsInfo",
+      "description": "",
+      "type": {
+        "name": "goodsInfo",
+        "pkgPath": "/vmi/store",
+        "description": "",
+        "isPtr": false,
+        "elemType": {
+          "name": "goodsInfo",
+          "pkgPath": "/vmi/store",
+          "description": "",
+            "isPtr": false,
+          "elemType": null
+        }
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "description",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail"
+        ]
+      }
+    },
+    {
+      "name": "status",
+      "description": "",
+      "type": {
+        "name": "status",
+        "pkgPath": "/vmi",
+        "description": "",
+        "isPtr": true,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail"
+        ]
+      }
+    },
+    {
+      "name": "store",
+      "description": "",
+      "type": {
+        "name": "store",
+        "pkgPath": "/vmi",
+        "description": "",
+        "isPtr": true,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail"
+        ]
+      }
+    },
+    {
+      "name": "creater",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ],
+        "defaultValue": "$referenceExtData.currentEntity()"
+      }
+    },
+    {
+      "name": "createTime",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ],
+        "defaultValue": "$referenceExtData.currentTimeStamp()"
+      }
+    },
+    {
+      "name": "namespace",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "defaultValue": "$referenceExtData.currentNamespace()"
+      }
+    }
+  ],
+  "blockInfo": [
+    {
+      "id": "43efe293712b4da38c4d85d1363b717e",
+      "stageInfo": {
+        "startup": {
+          "eventID": "/totalizator/register/",
+          "input": {
+            "name": "入库单",
+            "unit": "张",
+            "owner": "/vmi/store/stockin/",
+            "trigger": "/vmi/store/stockin/:id",
+            "period": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "namespace": "*"
+          },
+          "checkType": "postCheck"
+        },
+        "functions": {
+          "insert": {
+            "eventID": "/totalizator/refresh/",
+            "input": {
+              "owner": "/vmi/store/stockin/",
+              "trigger": "/vmi/store/stockin/:id",
+              "action": "insert",
+              "namespace": "$referenceExtData.namespace"
+            },
+            "checkType": "postCheck"
+          },
+          "delete": {
+            "eventID": "/totalizator/refresh/",
+            "input": {
+              "owner": "/vmi/store/stockin/",
+              "trigger": "/vmi/store/stockin/:id",
+              "action": "delete",
+              "namespace": "$referenceExtData.namespace"
+            },
+            "checkType": "postCheck"
+          }
+        },
+        "teardown": {
+          "eventID": "/totalizator/unregister/",
+          "input": {
+            "name": "入库单",
+            "unit": "张",
+            "owner": "/vmi/store/stockin/",
+            "trigger": "/vmi/store/stockin/:id",
+            "period": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "namespace": "*"
+          },
+          "checkType": "postCheck"
+        }
+      }
+    },
+    {
+      "id": "9262d7ba533f4678925ddbc9a063e33a",
+      "stageInfo": {
+        "startup": {
+          "eventID": "/generator/register/",
+          "input": {
+            "name": "入库单码",
+            "owner": "/vmi/store/stockin/",
+            "pattern": "SI-{YYYYMMDDHHmmSS}-{fixed(6):100000}",
+            "namespace": "*"
+          },
+          "checkType": "postCheck"
+        },
+        "functions": {
+          "insert": {
+            "eventID": "/generator/refresh/code/",
+            "input": {
+              "owner": "/vmi/store/stockin/",
+              "namespace": "$referenceExtData.namespace"
+            },
+            "output": {},
+            "checkType": "preCheck",
+            "bindField": "sn"
+          }
+        },
+        "teardown": {
+          "eventID": "/generator/unregister/",
+          "input": {
+            "owner": "/vmi/store/stockin/",
+            "namespace": "*"
+          },
+          "checkType": "postCheck"
+        }
+      }
+    }
+  ]
+}

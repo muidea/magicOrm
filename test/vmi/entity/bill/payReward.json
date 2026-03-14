@@ -1,0 +1,247 @@
+{
+  "id": 0,
+  "name": "payReward",
+  "showName": "佣金记录",
+  "icon": "/static/file/share/vmi/payReward.svg",
+  "version": "0.0.1",
+  "status": 2,
+  "pkgPath": "/vmi/bill",
+  "description": "佣金记录",
+  "fields": [
+    {
+      "name": "id",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": true,
+        "valueDeclare": "auto",
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "sn",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "owner",
+      "description": "",
+      "type": {
+        "name": "partner",
+        "pkgPath": "/vmi",
+        "description": "",
+        "isPtr": true,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ]
+      }
+    },
+    {
+      "name": "reward",
+      "description": "",
+      "type": {
+        "name": "float64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail"
+        ]
+      }
+    },
+    {
+      "name": "memo",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail"
+        ]
+      }
+    },
+    {
+      "name": "creater",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ],
+        "defaultValue": "$referenceExtData.currentEntity()"
+      }
+    },
+    {
+      "name": "createTime",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ],
+        "defaultValue": "$referenceExtData.currentTimeStamp()"
+      }
+    },
+    {
+      "name": "namespace",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "defaultValue": "$referenceExtData.currentNamespace()"
+      }
+    }
+  ],
+  "blockInfo": [
+    {
+      "id": "43efe293712b4da38c4d85d1363b717e",
+      "stageInfo": {
+        "startup": {
+          "eventID": "/totalizator/register/",
+          "input": {
+            "name": "订单佣金",
+            "unit": "个",
+            "owner": "/vmi/bill/payReward/",
+            "trigger": "/vmi/bill/payReward/:id",
+            "period": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "namespace": "*"
+          },
+          "checkType": "postCheck"
+        },
+        "functions": {
+          "insert": {
+            "eventID": "/totalizator/refresh/",
+            "input": {
+              "owner": "/vmi/bill/payReward/",
+              "trigger": "/vmi/bill/payReward/:id",
+              "action": "insert",
+              "namespace": "$referenceExtData.namespace"
+            },
+            "checkType": "postCheck"
+          },
+          "delete": {
+            "eventID": "/totalizator/refresh/",
+            "input": {
+              "owner": "/vmi/bill/payReward/",
+              "trigger": "/vmi/bill/payReward/:id",
+              "action": "delete",
+              "namespace": "$referenceExtData.namespace"
+            },
+            "checkType": "postCheck"
+          }
+        },
+        "teardown": {
+          "eventID": "/totalizator/unregister/",
+          "input": {
+            "name": "订单佣金",
+            "unit": "个",
+            "owner": "/vmi/bill/payReward/",
+            "trigger": "/vmi/bill/payReward/:id",
+            "period": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "namespace": "*"
+          },
+          "checkType": "postCheck"
+        }
+      }
+    },
+    {
+      "id": "9262d7ba533f4678925ddbc9a063e33a",
+      "stageInfo": {
+        "startup": {
+          "eventID": "/generator/register/",
+          "input": {
+            "name": "佣金记录码",
+            "owner": "/vmi/bill/payReward/",
+            "pattern": "PR-{YYYYMMDDHHmmSS}-{fixed(8):num}",
+            "namespace": "*"
+          },
+          "checkType": "postCheck"
+        },
+        "functions": {
+          "insert": {
+            "eventID": "/generator/refresh/code/",
+            "input": {
+              "owner": "/vmi/bill/payReward/",
+              "namespace": "$referenceExtData.namespace"
+            },
+            "output": {},
+            "checkType": "preCheck",
+            "bindField": "sn"
+          }
+        },
+        "teardown": {
+          "eventID": "/generator/unregister/",
+          "input": {
+            "owner": "/vmi/bill/payReward/",
+            "namespace": "*"
+          },
+          "checkType": "postCheck"
+        }
+      }
+    }
+  ]
+}

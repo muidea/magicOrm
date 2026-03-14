@@ -7,7 +7,7 @@ import (
 	"github.com/muidea/magicOrm/provider"
 )
 
-func TestDefine(t *testing.T) {
+func TestLocalDefine(t *testing.T) {
 	orm.Initialize()
 	defer orm.Uninitialized()
 

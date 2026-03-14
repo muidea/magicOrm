@@ -20,7 +20,10 @@ type DatabaseMetricsCollector struct {
 	errorCounters map[string]int64
 
 	// Query durations: database_queryType_status -> []duration
-	queryDurations map[string][]time.Duration
+	queryDurations     map[string][]time.Duration
+	durationKeyLRU     []string
+	maxDurationKeys    int
+	maxDurationSamples int
 
 	// Transaction counters: database_type_status -> count
 	transactionCounters map[string]int64
@@ -38,6 +41,9 @@ func NewDatabaseMetricsCollector() *DatabaseMetricsCollector {
 		queryCounters:       make(map[string]int64),
 		errorCounters:       make(map[string]int64),
 		queryDurations:      make(map[string][]time.Duration),
+		durationKeyLRU:      make([]string, 0, metrics.DefaultMaxDurationKeys),
+		maxDurationKeys:     metrics.DefaultMaxDurationKeys,
+		maxDurationSamples:  metrics.DefaultMaxDurationSamples,
 		transactionCounters: make(map[string]int64),
 		executionCounters:   make(map[string]int64),
 		connectionStats:     make(map[string]int64),
@@ -68,18 +74,14 @@ func (c *DatabaseMetricsCollector) RecordQuery(
 	queryKey := metrics.BuildKey(database, queryType, status)
 	c.queryCounters[queryKey]++
 
-	// Record duration (keep last 1000 samples per key to avoid memory leak)
-	if c.queryDurations[queryKey] == nil {
-		c.queryDurations[queryKey] = make([]time.Duration, 0, 1000)
-	}
-	durations := c.queryDurations[queryKey]
-	if len(durations) >= 1000 {
-		// Keep only the last 1000 samples - copy to avoid modifying the slice in place
-		newDurations := make([]time.Duration, 999, 1000)
-		copy(newDurations, durations[1:])
-		durations = newDurations
-	}
-	c.queryDurations[queryKey] = append(durations, duration)
+	metrics.RecordDurationSample(
+		c.queryDurations,
+		&c.durationKeyLRU,
+		c.maxDurationKeys,
+		c.maxDurationSamples,
+		queryKey,
+		duration,
+	)
 }
 
 // RecordTransaction records a database transaction operation.
@@ -200,6 +202,7 @@ func (c *DatabaseMetricsCollector) Clear() {
 	c.queryCounters = make(map[string]int64)
 	c.errorCounters = make(map[string]int64)
 	c.queryDurations = make(map[string][]time.Duration)
+	c.durationKeyLRU = make([]string, 0, c.maxDurationKeys)
 	c.transactionCounters = make(map[string]int64)
 	c.executionCounters = make(map[string]int64)
 	c.connectionStats = make(map[string]int64)

@@ -236,6 +236,9 @@ func (c *ValidationCache) startCleanup() {
 func generateModelCacheKey(model models.Model, scenario errors.Scenario) string {
 	// Create a key based on model name and scenario
 	// In a real implementation, this would include field information
+	if model == nil {
+		return "|" + string(scenario)
+	}
 	return model.GetName() + "|" + string(scenario)
 }
 

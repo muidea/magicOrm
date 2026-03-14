@@ -193,6 +193,9 @@ func SetModelValue(vModel models.Model, vVal models.Value, disableValidator bool
 func assignObjectValue(vObjectPtr *Object, objectValuePtr *ObjectValue, disableValidator bool) (err *cd.Error) {
 	for idx := range objectValuePtr.Fields {
 		fieldVal := objectValuePtr.Fields[idx]
+		if !fieldVal.Assigned && fieldVal.GetValue().IsZero() {
+			continue
+		}
 		err = vObjectPtr.innerSetFieldValue(fieldVal.GetName(), fieldVal.Get(), disableValidator)
 		if err != nil {
 			slog.Error("assignObjectValue innerSetFieldValue failed", "field", fieldVal.GetName(), "error", err.Error())

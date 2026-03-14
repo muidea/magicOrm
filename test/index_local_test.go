@@ -20,7 +20,7 @@ type IndexTestItem struct {
 }
 
 // TestIndexFeatures 测试索引功能
-func TestIndexFeatures(t *testing.T) {
+func TestLocalIndexFeatures(t *testing.T) {
 	// 跳过测试如果设置了环境变量
 	if testing.Short() {
 		t.Skip("skipping index test in short mode.")

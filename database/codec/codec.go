@@ -42,16 +42,25 @@ func New(provider provider.Provider, prefix string) Codec {
 
 func (s *codecImpl) constructTableName(vIdentifier Identifier) string {
 	strName := vIdentifier.GetName()
+	if strName == "" {
+		return ""
+	}
 	return strings.ToUpper(strName[:1]) + strName[1:]
 }
 
 func (s *codecImpl) constructInfix(vField models.Field) string {
 	strName := vField.GetName()
+	if strName == "" {
+		return ""
+	}
 	return strings.ToUpper(strName[:1]) + strName[1:]
 }
 
 func (s *codecImpl) ConstructModelTableName(vIdentifier Identifier) string {
 	tableName := s.constructTableName(vIdentifier)
+	if tableName == "" {
+		return ""
+	}
 	if s.specialPrefix != "" {
 		tableName = fmt.Sprintf("%s_%s", s.specialPrefix, tableName)
 	}
@@ -63,6 +72,10 @@ func (s *codecImpl) ConstructRelationTableName(vModel models.Model, vField model
 	leftName := s.constructTableName(vModel)
 	rightName := s.constructTableName(vField.GetType())
 	infixVal := s.constructInfix(vField)
+	if leftName == "" || rightName == "" || infixVal == "" {
+		err = cd.NewError(cd.IllegalParam, "illegal relation name")
+		return
+	}
 
 	tableName := fmt.Sprintf("%s%s%s%s", leftName, infixVal, s.getFieldRelation(vField), rightName)
 	if s.specialPrefix != "" {
@@ -156,7 +169,7 @@ func (s *codecImpl) PackedStructFieldValue(vField models.Field, fVal models.Valu
 }
 
 func (s *codecImpl) PackedSliceStructFieldValue(vField models.Field, fVal models.Value) (ret any, err *cd.Error) {
-	if !models.IsSliceField(vField) || models.IsStruct(vField.GetType().Elem()) {
+	if !models.IsSliceField(vField) || !models.IsStruct(vField.GetType().Elem()) {
 		err = cd.NewError(cd.Unexpected, "illegal field type")
 		slog.Error("PackedSliceStructFieldValue failed", "error", err.Error())
 		return

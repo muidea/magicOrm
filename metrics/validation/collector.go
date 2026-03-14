@@ -27,6 +27,11 @@ type ValidationMetricsCollector struct {
 
 	// Constraint check counters: constraintType_field_status -> count
 	constraintCheckCounters map[string]int64
+
+	// LRU tracking for validation duration keys to prevent unlimited growth
+	durationKeyLRU     []string
+	maxDurationKeys    int
+	maxDurationSamples int
 }
 
 // NewValidationMetricsCollector creates a new validation metrics collector.
@@ -37,6 +42,9 @@ func NewValidationMetricsCollector() *ValidationMetricsCollector {
 		validationDurations:     make(map[string][]time.Duration),
 		cacheAccessCounters:     make(map[string]int64),
 		constraintCheckCounters: make(map[string]int64),
+		durationKeyLRU:          make([]string, 0, metrics.DefaultMaxDurationKeys),
+		maxDurationKeys:         metrics.DefaultMaxDurationKeys,
+		maxDurationSamples:      metrics.DefaultMaxDurationSamples,
 	}
 }
 
@@ -65,18 +73,14 @@ func (c *ValidationMetricsCollector) RecordValidation(
 	validationKey := metrics.BuildKey(operation, model, scenario, status)
 	c.validationCounters[validationKey]++
 
-	// Record duration (keep last 1000 samples per key to avoid memory leak)
-	if c.validationDurations[validationKey] == nil {
-		c.validationDurations[validationKey] = make([]time.Duration, 0, 1000)
-	}
-	durations := c.validationDurations[validationKey]
-	if len(durations) >= 1000 {
-		// Keep only the last 1000 samples - copy to avoid modifying the slice in place
-		newDurations := make([]time.Duration, 999, 1000)
-		copy(newDurations, durations[1:])
-		durations = newDurations
-	}
-	c.validationDurations[validationKey] = append(durations, duration)
+	metrics.RecordDurationSample(
+		c.validationDurations,
+		&c.durationKeyLRU,
+		c.maxDurationKeys,
+		c.maxDurationSamples,
+		validationKey,
+		duration,
+	)
 }
 
 // RecordCacheAccess records a cache access (hit or miss).
@@ -187,6 +191,27 @@ func (c *ValidationMetricsCollector) GetCacheHitRatio(cacheType string) float64 
 	return float64(hits) / float64(total)
 }
 
+// GetCacheTypes returns all cache types seen by the collector.
+func (c *ValidationMetricsCollector) GetCacheTypes() []string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	cacheTypeSet := map[string]struct{}{}
+	for key := range c.cacheAccessCounters {
+		parts := metrics.ParseKey(key)
+		if len(parts) < 2 {
+			continue
+		}
+		cacheTypeSet[parts[0]] = struct{}{}
+	}
+
+	cacheTypes := make([]string, 0, len(cacheTypeSet))
+	for cacheType := range cacheTypeSet {
+		cacheTypes = append(cacheTypes, cacheType)
+	}
+	return cacheTypes
+}
+
 // Clear clears all collected metrics (useful for testing).
 func (c *ValidationMetricsCollector) Clear() {
 	c.mu.Lock()
@@ -197,6 +222,7 @@ func (c *ValidationMetricsCollector) Clear() {
 	c.validationDurations = make(map[string][]time.Duration)
 	c.cacheAccessCounters = make(map[string]int64)
 	c.constraintCheckCounters = make(map[string]int64)
+	c.durationKeyLRU = make([]string, 0, metrics.DefaultMaxDurationKeys)
 }
 
 // classifyError classifies an error into error types for metrics.

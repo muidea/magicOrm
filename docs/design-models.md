@@ -53,8 +53,8 @@
 ### 3.1 主键与值声明
 
 - **主键**：通过 orm 标签 `key` 指定，一个模型有且仅有一个主键字段。
-- **主键生成**：标签 `auto` 表示自增（数值类型）；models 注释中还提到 uuid、snowflake、datetime 等，实现支持程度以代码为准。详见 [type-mapping.md](type-mapping.md)、[tags-reference.md](tags-reference.md)。
-- **待确认**：UUID/snowflake 等主键策略是否在文档中正式列出并说明使用方式。
+- **值声明**：当前实现支持 `auto`、`uuid`、`snowflake`、`datetime` 四类 `ValueDeclare`。
+- **插入时填充**：`Orm.Insert` 在 basic 字段为零值时，会分别填充自增主键回写值、UUID、雪花 ID 或当前时间；详见 [type-mapping.md](type-mapping.md)、[tags-reference.md](tags-reference.md)。
 
 ---
 
@@ -63,11 +63,14 @@
 | 视图 | 说明 |
 |------|------|
 | OriginView | 按 MaskValue 定义字段；MaskValue 为空时等价默认。 |
+| MetaView | 元数据视图，包含全部字段，字段值按类型初始化；主要供 Provider 内部使用。 |
 | DetailView | 详细视图，需在类型定义中声明（struct 标签 `view:"detail,lite"` 等）。 |
+| BasicView | 基础视图常量存在于 `models`，但当前本地 struct tag 解析不会从 `view:"..."` 中识别该值。 |
 | LiteView | 精简视图。 |
 
 - **使用场景**：Copy(viewSpec) 后得到的 Model 仅包含该 view 声明的字段，用于控制序列化/输出范围，或在 Provider 内部构造 Filter/Model 的字段子集。字段是否出现在某视图由该字段的 `view:` 标签决定。
 - **与查询加载的关系**：当前 `Query/BatchQuery` 的实现会在内部对传入 Model 执行一次 `Copy(OriginView)` 并基于完整字段集构造 SQL 与结果映射，**不会根据视图裁剪 SELECT 列表**。视图主要用于控制调用方使用 Model 进行序列化/输出时的字段集合；如未来在 Runner 层按视图裁剪查询列，将在本设计文档中补充说明。
+- **限制**：当前本地 struct tag 解析稳定支持的视图标签值为 `detail` 和 `lite`；`origin`、`meta`、`basic` 属于框架内部/常量层概念，不是稳定的 struct tag 输入。
 - **限制**：视图不改变表结构，仅影响内存中 Model 的字段子集与序列化结果。支持的基础类型与映射见 [type-mapping.md](type-mapping.md)。关联关系（一对一、一对多、多对多）见 [design-relation.md](design-relation.md)。
 
 ---

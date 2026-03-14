@@ -20,7 +20,7 @@ type BatchItem struct {
 }
 
 // TestBatchOperations 测试批量操作功能
-func TestBatchOperations(t *testing.T) {
+func TestLocalBatchOperations(t *testing.T) {
 	// 跳过测试如果设置了环境变量
 	if testing.Short() {
 		t.Skip("skipping batch operations test in short mode.")

@@ -129,7 +129,7 @@ func SetModelValue(vModel models.Model, vVal models.Value, disableValidator bool
 	vModelImplPtr := vModel.(*objectImpl)
 	fields := valueModel.GetFields()
 	for _, field := range fields {
-		if !models.IsValidField(field) {
+		if !models.IsValidField(field) && !models.IsAssignedField(field) {
 			continue
 		}
 

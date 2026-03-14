@@ -59,18 +59,16 @@ magicOrm 统一使用 **magicCommon/def** 的 `*cd.Error` 与 `cd.Code`，不单
 - 文本形式：`*cd.Error` 的 `Error()` 或 `Message` 字段，内容为人类可读描述。
 - 校验/业务错误：多数带字段名或上下文（如 `"illegal field value, field:xxx"`、`"reference relation field xxx has entity without primary key"`）。
 
-**待确认**：
-- 是否需要约定结构化错误格式（如错误码 + 字段路径 + 多语言 key）？
-- 验证失败时是否统一使用 IllegalParam，还是需要更细分的验证错误码？
+当前未约定额外的结构化错误协议；对外稳定接口仍是 `*cd.Error` 的 `Code + Message`。
 
 ---
 
 ## 4. 验证系统错误
 
-验证层（`validation/`）失败时，通过 `validation/errors` 包装为 `*cd.Error`，当前主要使用 **IllegalParam**；错误信息由各约束/类型校验生成。
-
-**待确认**：
-- 验证错误是否需要在文档中单独列出「错误信息格式与字段路径」规范？
+验证层（`validation/`）失败时，通过 `validation/errors` 包装为 `*cd.Error`：
+- 类型层、约束层、场景层错误默认映射为 **IllegalParam**
+- 数据库层错误映射为 **DatabaseError**
+- 多字段错误会聚合为单个 `IllegalParam`，消息形如 `Multiple validation errors: fieldA (1), fieldB (2)`
 
 ---
 

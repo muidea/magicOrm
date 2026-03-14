@@ -1,10 +1,23 @@
 package remote
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/muidea/magicOrm/models"
 )
+
+type fieldTestValidator struct {
+	called int
+	err    error
+}
+
+func (m *fieldTestValidator) Register(k models.Key, fn models.ValidatorFunc) {}
+
+func (m *fieldTestValidator) ValidateValue(val any, directives []models.Directive) error {
+	m.called++
+	return m.err
+}
 
 func TestFieldImplementation(t *testing.T) {
 	// Create a test Field
@@ -141,6 +154,220 @@ func TestFieldCopy(t *testing.T) {
 	if !resetField.GetValue().IsZero() {
 		t.Errorf("Field copy(true) failed, value should be zero, got %v", resetField.GetValue().Get())
 	}
+}
+
+func TestFieldSliceHelpers(t *testing.T) {
+	sliceField := &Field{
+		Name: "tags",
+		Type: &TypeImpl{
+			Name:  "string",
+			Value: models.TypeSliceValue,
+			ElemType: &TypeImpl{
+				Name:  "string",
+				Value: models.TypeStringValue,
+			},
+		},
+		value: NewValue([]string{"a", "b"}),
+	}
+
+	values := sliceField.GetSliceValue()
+	if len(values) != 2 || values[0].Get() != "a" || values[1].Get() != "b" {
+		t.Fatalf("GetSliceValue mismatch, got %#v", values)
+	}
+
+	if err := sliceField.AppendSliceValue("c"); err != nil {
+		t.Fatalf("AppendSliceValue failed: %v", err)
+	}
+	gotValues := sliceField.GetValue().Get().([]string)
+	if len(gotValues) != 3 || gotValues[2] != "c" {
+		t.Fatalf("AppendSliceValue mismatch, got %#v", gotValues)
+	}
+
+	if err := sliceField.AppendSliceValue(nil); err == nil {
+		t.Fatal("AppendSliceValue(nil) should fail")
+	}
+
+	basicField := &Field{
+		Name:  "name",
+		Type:  &TypeImpl{Name: "string", Value: models.TypeStringValue},
+		value: NewValue("alice"),
+	}
+	if got := basicField.GetSliceValue(); got != nil {
+		t.Fatalf("GetSliceValue(non-slice) should be nil, got %#v", got)
+	}
+	if err := basicField.AppendSliceValue("x"); err == nil {
+		t.Fatal("AppendSliceValue(non-slice) should fail")
+	}
+}
+
+func TestFieldInnerSetValueAndCopyBranches(t *testing.T) {
+	validator := &fieldTestValidator{err: errors.New("rejected")}
+	field := &Field{
+		Name:           "name",
+		Type:           &TypeImpl{Name: "string", Value: models.TypeStringValue},
+		Spec:           &SpecImpl{FieldName: "name", Constraint: "req"},
+		valueValidator: validator,
+	}
+	if err := field.innerSetValue("apple", false); err == nil {
+		t.Fatal("innerSetValue with failing validator should fail")
+	}
+	if validator.called != 1 {
+		t.Fatalf("validator should be called once, got %d", validator.called)
+	}
+
+	if err := field.innerSetValue("apple", true); err != nil {
+		t.Fatalf("innerSetValue disableValidator failed: %v", err)
+	}
+	if got := field.GetValue().Get(); got != "apple" {
+		t.Fatalf("innerSetValue disableValidator mismatch, got %#v", got)
+	}
+
+	plainField := &Field{
+		Name:           "plain",
+		Type:           &TypeImpl{Name: "string", Value: models.TypeStringValue},
+		valueValidator: validator,
+	}
+	if err := plainField.innerSetValue("banana", false); err != nil {
+		t.Fatalf("innerSetValue without constraints failed: %v", err)
+	}
+
+	ptrField := &Field{
+		Name: "status",
+		Type: &TypeImpl{Name: "status", PkgPath: "/vmi", Value: models.TypeStructValue, IsPtr: true},
+		Spec: &SpecImpl{FieldName: "status"},
+	}
+	metaCopy, err := ptrField.copy(models.MetaView)
+	if err != nil {
+		t.Fatalf("Field.copy(meta ptr) failed: %v", err)
+	}
+	if metaCopy.GetValue().IsValid() {
+		t.Fatalf("meta ptr copy should remain invalid, got %#v", metaCopy.GetValue().Get())
+	}
+
+	detailDisabled, err := (&Field{
+		Name: "expire",
+		Type: &TypeImpl{Name: "int", Value: models.TypeIntegerValue},
+		Spec: &SpecImpl{FieldName: "expire", ViewDeclare: []models.ViewDeclare{models.MetaView}},
+	}).copy(models.DetailView)
+	if err != nil {
+		t.Fatalf("Field.copy(detail disabled) failed: %v", err)
+	}
+	if detailDisabled.GetValue().IsValid() {
+		t.Fatalf("detail-disabled field should remain invalid, got %#v", detailDisabled.GetValue().Get())
+	}
+
+	detailEnabled, err := (&Field{
+		Name: "expire",
+		Type: &TypeImpl{Name: "int", Value: models.TypeIntegerValue},
+		Spec: &SpecImpl{FieldName: "expire", ViewDeclare: []models.ViewDeclare{models.DetailView}},
+	}).copy(models.DetailView)
+	if err != nil {
+		t.Fatalf("Field.copy(detail enabled) failed: %v", err)
+	}
+	if !detailEnabled.GetValue().IsValid() || detailEnabled.GetValue().Get() != 0 {
+		t.Fatalf("detail-enabled field should be initialized, got %#v", detailEnabled.GetValue().Get())
+	}
+
+	nilSpecCopy, err := (&Field{
+		Name: "id",
+		Type: &TypeImpl{Name: "int64", Value: models.TypeBigIntegerValue},
+	}).copy(models.MetaView)
+	if err != nil {
+		t.Fatalf("Field.copy(nil spec) failed: %v", err)
+	}
+	if nilSpecCopy.GetSpec() == nil || nilSpecCopy.GetSpec().IsPrimaryKey() || nilSpecCopy.GetSpec().GetValueDeclare() != models.Customer {
+		t.Fatalf("Field.copy(nil spec) should use emptySpec, got %#v", nilSpecCopy.GetSpec())
+	}
+
+	originNonPtr, err := (&Field{
+		Name: "count",
+		Type: &TypeImpl{Name: "int", Value: models.TypeIntegerValue},
+	}).copy(models.OriginView)
+	if err != nil {
+		t.Fatalf("Field.copy(origin non-ptr) failed: %v", err)
+	}
+	if !originNonPtr.GetValue().IsValid() || originNonPtr.GetValue().Get() != 0 {
+		t.Fatalf("origin non-ptr field should be initialized, got %#v", originNonPtr.GetValue().Get())
+	}
+
+	originPtr, err := (&Field{
+		Name: "count",
+		Type: &TypeImpl{Name: "int", Value: models.TypeIntegerValue, IsPtr: true},
+	}).copy(models.OriginView)
+	if err != nil {
+		t.Fatalf("Field.copy(origin ptr) failed: %v", err)
+	}
+	if originPtr.GetValue().IsValid() {
+		t.Fatalf("origin ptr field should remain invalid, got %#v", originPtr.GetValue().Get())
+	}
+
+	unsupportedView, err := (&Field{
+		Name:  "count",
+		Type:  &TypeImpl{Name: "int", Value: models.TypeIntegerValue},
+		Spec:  &SpecImpl{FieldName: "count"},
+		value: NewValue(3),
+	}).copy(models.ViewDeclare("unsupported"))
+	if err != nil {
+		t.Fatalf("Field.copy(unsupported view) failed: %v", err)
+	}
+	if unsupportedView.GetValue().IsValid() {
+		t.Fatalf("unsupported view should not initialize value, got %#v", unsupportedView.GetValue().Get())
+	}
+}
+
+func TestFieldCompareAndFieldValueCopy(t *testing.T) {
+	base := &Field{
+		Name:     "id",
+		ShowName: "ID",
+		Type:     &TypeImpl{Name: "int64", Value: models.TypeBigIntegerValue},
+		Spec:     &SpecImpl{FieldName: "id", PrimaryKey: true},
+	}
+	if !compareItem(base, base.copyMust(t, models.OriginView)) {
+		t.Fatal("compareItem identical field should be true")
+	}
+	if compareItem(base, &Field{Name: "other", ShowName: "ID", Type: base.Type.Copy(), Spec: base.Spec.Copy()}) {
+		t.Fatal("compareItem different name should be false")
+	}
+	if compareItem(base, &Field{Name: "id", ShowName: "Other", Type: base.Type.Copy(), Spec: base.Spec.Copy()}) {
+		t.Fatal("compareItem different showName should be false")
+	}
+	if compareItem(base, &Field{Name: "id", ShowName: "ID", Type: &TypeImpl{Name: "string", Value: models.TypeStringValue}, Spec: base.Spec.Copy()}) {
+		t.Fatal("compareItem different type should be false")
+	}
+	if compareItem(base, &Field{Name: "id", ShowName: "ID", Type: base.Type.Copy(), Spec: &SpecImpl{FieldName: "id"}}) {
+		t.Fatal("compareItem different spec should be false")
+	}
+
+	nilValue := (&FieldValue{Name: "name"}).copy()
+	if nilValue.Value != nil {
+		t.Fatalf("FieldValue.copy(nil) mismatch, got %#v", nilValue.Value)
+	}
+
+	objectValue := (&FieldValue{Name: "status", Value: &ObjectValue{Name: "status", PkgPath: "/vmi", Fields: []*FieldValue{{Name: "id", Value: int64(1)}}}}).copy()
+	if !CompareObjectValue(objectValue.Value.(*ObjectValue), &ObjectValue{Name: "status", PkgPath: "/vmi", Fields: []*FieldValue{{Name: "id", Value: int64(1)}}}) {
+		t.Fatalf("FieldValue.copy(object) mismatch, got %#v", objectValue.Value)
+	}
+
+	sliceObjectValue := (&FieldValue{Name: "items", Value: &SliceObjectValue{Name: "item", PkgPath: "/vmi", Values: []*ObjectValue{{Name: "item", PkgPath: "/vmi", Fields: []*FieldValue{{Name: "id", Value: int64(1)}}}}}}).copy()
+	if !CompareSliceObjectValue(sliceObjectValue.Value.(*SliceObjectValue), &SliceObjectValue{Name: "item", PkgPath: "/vmi", Values: []*ObjectValue{{Name: "item", PkgPath: "/vmi", Fields: []*FieldValue{{Name: "id", Value: int64(1)}}}}}) {
+		t.Fatalf("FieldValue.copy(slice object) mismatch, got %#v", sliceObjectValue.Value)
+	}
+
+	basicValue := (&FieldValue{Name: "tags", Value: []string{"a", "b"}}).copy()
+	tags, ok := basicValue.Value.([]string)
+	if !ok || len(tags) != 2 || tags[0] != "a" || tags[1] != "b" {
+		t.Fatalf("FieldValue.copy(basic) mismatch, got %#v", basicValue.Value)
+	}
+}
+
+func (s *Field) copyMust(t *testing.T, viewSpec models.ViewDeclare) *Field {
+	t.Helper()
+
+	ret, err := s.copy(viewSpec)
+	if err != nil {
+		t.Fatalf("Field.copy failed: %v", err)
+	}
+	return ret
 }
 
 func TestFieldValueVerification(t *testing.T) {

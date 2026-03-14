@@ -1,0 +1,137 @@
+{
+  "index": 0,
+  "name": "status",
+  "pkgPath": "/vmi",
+  "namespace": [
+    {
+      "name": "autotest",
+      "values": [
+        {
+          "id": 1,
+          "value": 0,
+          "name": "初始化"
+        },
+        {
+          "id": 2,
+          "value": 1,
+          "name": "等待审核"
+        },
+        {
+          "id": 3,
+          "value": 2,
+          "name": "审核通过"
+        },
+        {
+          "id": 4,
+          "value": 3,
+          "name": "审核不通过"
+        },
+        {
+          "id": 5,
+          "value": 4,
+          "name": "权限停用"
+        },
+        {
+          "id": 6,
+          "value": 5,
+          "name": "业绩未达标"
+        },
+        {
+          "id": 7,
+          "value": 6,
+          "name": "等待审核"
+        },
+        {
+          "id": 8,
+          "value": 7,
+          "name": "上线显示"
+        },
+        {
+          "id": 9,
+          "value": 8,
+          "name": "下线保存"
+        },
+        {
+          "id": 10,
+          "value": 9,
+          "name": "未结算"
+        },
+        {
+          "id": 11,
+          "value": 10,
+          "name": "已结算"
+        },
+        {
+          "id": 12,
+          "value": 11,
+          "name": "已付款"
+        },
+        {
+          "id": 13,
+          "value": 12,
+          "name": "已签收"
+        },
+        {
+          "id": 14,
+          "value": 13,
+          "name": "已取消"
+        },
+        {
+          "id": 15,
+          "value": 14,
+          "name": "退款"
+        },
+        {
+          "id": 16,
+          "value": 15,
+          "name": "待入库"
+        },
+        {
+          "id": 17,
+          "value": 16,
+          "name": "完成入库"
+        },
+        {
+          "id": 18,
+          "value": 17,
+          "name": "待出库"
+        },
+        {
+          "id": 19,
+          "value": 18,
+          "name": "完成出库"
+        },
+        {
+          "id": 20,
+          "value": 19,
+          "name": "启用"
+        },
+        {
+          "id": 21,
+          "value": 20,
+          "name": "停用"
+        },
+        {
+          "id": 22,
+          "value": -1,
+          "name": "非法状态"
+        },
+        {
+          "id": 23,
+          "value": 21,
+          "name": "已预约"
+        },
+        {
+          "id": 24,
+          "value": 22,
+          "name": "已退款"
+        },
+        {
+          "id": 25,
+          "value": 23,
+          "name": "已出库"
+        }
+      ]
+    }
+  ]
+}

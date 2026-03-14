@@ -101,7 +101,8 @@ func (s *ObjectFilter) Equal(key string, val any) (err *cd.Error) {
 		return
 	}
 
-	item := &FieldValue{Name: key, Value: vVal}
+	item := &FieldValue{Name: key}
+	item.Set(vVal)
 	s.EqualFilter = append(s.EqualFilter, item)
 	return
 }
@@ -117,7 +118,8 @@ func (s *ObjectFilter) NotEqual(key string, val any) (err *cd.Error) {
 		return
 	}
 
-	item := &FieldValue{Name: key, Value: vVal}
+	item := &FieldValue{Name: key}
+	item.Set(vVal)
 	s.NotEqualFilter = append(s.NotEqualFilter, item)
 
 	return
@@ -134,7 +136,8 @@ func (s *ObjectFilter) Below(key string, val any) (err *cd.Error) {
 		return
 	}
 
-	item := &FieldValue{Name: key, Value: vVal}
+	item := &FieldValue{Name: key}
+	item.Set(vVal)
 	s.BelowFilter = append(s.BelowFilter, item)
 	return
 }
@@ -150,7 +153,8 @@ func (s *ObjectFilter) Above(key string, val any) (err *cd.Error) {
 		return
 	}
 
-	item := &FieldValue{Name: key, Value: vVal}
+	item := &FieldValue{Name: key}
+	item.Set(vVal)
 	s.AboveFilter = append(s.AboveFilter, item)
 	return
 }
@@ -161,12 +165,19 @@ func (s *ObjectFilter) In(key string, val any) (err *cd.Error) {
 		return
 	}
 
-	vVal, vErr := convertSliceValue(vField.GetType(), val)
+	vValue, vErr := vField.GetType().Interface(val)
+	if vErr != nil {
+		err = vErr
+		return
+	}
+
+	vVal := vValue.Get()
 	if vErr != nil || vVal == nil {
 		return
 	}
 
-	item := &FieldValue{Name: key, Value: vVal}
+	item := &FieldValue{Name: key}
+	item.Set(vVal)
 	s.InFilter = append(s.InFilter, item)
 
 	return
@@ -178,12 +189,19 @@ func (s *ObjectFilter) NotIn(key string, val any) (err *cd.Error) {
 		return
 	}
 
-	vVal, vErr := convertSliceValue(vField.GetType(), val)
+	vValue, vErr := vField.GetType().Interface(val)
+	if vErr != nil {
+		err = vErr
+		return
+	}
+
+	vVal := vValue.Get()
 	if vErr != nil || vVal == nil {
 		return
 	}
 
-	item := &FieldValue{Name: key, Value: vVal}
+	item := &FieldValue{Name: key}
+	item.Set(vVal)
 	s.NotInFilter = append(s.NotInFilter, item)
 	return
 }
@@ -199,7 +217,8 @@ func (s *ObjectFilter) Like(key string, val any) (err *cd.Error) {
 		return
 	}
 
-	item := &FieldValue{Name: key, Value: vVal}
+	item := &FieldValue{Name: key}
+	item.Set(vVal)
 	s.LikeFilter = append(s.LikeFilter, item)
 	return
 }
@@ -244,6 +263,11 @@ func (s *ObjectFilter) ValueMask(val any) (err *cd.Error) {
 	}
 
 	if objectValuePtr == nil {
+		return
+	}
+	if objectValuePtr.GetName() != s.bindObject.GetName() || objectValuePtr.GetPkgPath() != s.bindObject.GetPkgPath() {
+		err = cd.NewError(cd.Unexpected, "mismatch mask value")
+		slog.Error("ValueMask failed", "error", err.Error(), "maskPkgKey", objectValuePtr.GetPkgKey(), "bindPkgKey", s.bindObject.GetPkgKey())
 		return
 	}
 
@@ -342,12 +366,16 @@ func (s *ObjectFilter) Sorter() models.Sorter {
 }
 
 func (s *ObjectFilter) MaskModel() models.Model {
-	maskObject := s.bindObject
+	maskObject, ok := s.bindObject.Copy(models.OriginView).(*Object)
+	if !ok {
+		return nil
+	}
+	maskObject.viewSpec = s.bindObject.viewSpec
 	if s.MaskValue != nil {
 		for _, val := range s.MaskValue.Fields {
 			maskObject.SetFieldValue(val.Name, val.GetValue().Get())
 		}
 	}
 
-	return maskObject.Copy(models.OriginView)
+	return maskObject
 }

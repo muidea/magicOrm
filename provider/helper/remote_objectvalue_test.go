@@ -169,3 +169,199 @@ func TestSliceObjectValueManipulation(t *testing.T) {
 		return
 	}
 }
+
+func TestGetObjectValuePreservesNilAndEmptyStructSlices(t *testing.T) {
+	objWithNilSlices := &Compose{ID: 1, Name: "nil-slices"}
+
+	nilVal, err := GetObjectValue(objWithNilSlices)
+	if err != nil {
+		t.Fatalf("GetObjectValue failed: %v", err)
+	}
+
+	baseArrayVal, ok := nilVal.GetFieldValue("baseArray").(*remote.SliceObjectValue)
+	if !ok {
+		t.Fatalf("baseArray should be *remote.SliceObjectValue, got %T", nilVal.GetFieldValue("baseArray"))
+	}
+	if baseArrayVal.Values != nil {
+		t.Fatalf("nil slice should remain unassigned, got %#v", baseArrayVal.Values)
+	}
+
+	basePtrArrayVal, ok := nilVal.GetFieldValue("basePtrArray").(*remote.SliceObjectValue)
+	if !ok {
+		t.Fatalf("basePtrArray should be *remote.SliceObjectValue, got %T", nilVal.GetFieldValue("basePtrArray"))
+	}
+	if basePtrArrayVal.Values != nil {
+		t.Fatalf("nil pointer slice should remain unassigned, got %#v", basePtrArrayVal.Values)
+	}
+
+	emptyPtrArray := []*Base{}
+	objWithEmptySlices := &Compose{
+		ID:              2,
+		Name:            "empty-slices",
+		BaseArray:       []Base{},
+		BasePtrArray:    []*Base{},
+		BasePtrArrayPtr: &emptyPtrArray,
+	}
+
+	emptyVal, err := GetObjectValue(objWithEmptySlices)
+	if err != nil {
+		t.Fatalf("GetObjectValue failed: %v", err)
+	}
+
+	baseArrayVal, ok = emptyVal.GetFieldValue("baseArray").(*remote.SliceObjectValue)
+	if !ok {
+		t.Fatalf("baseArray should be *remote.SliceObjectValue, got %T", emptyVal.GetFieldValue("baseArray"))
+	}
+	if baseArrayVal.Values == nil || len(baseArrayVal.Values) != 0 {
+		t.Fatalf("empty slice should remain assigned empty, got %#v", baseArrayVal.Values)
+	}
+
+	basePtrArrayVal, ok = emptyVal.GetFieldValue("basePtrArray").(*remote.SliceObjectValue)
+	if !ok {
+		t.Fatalf("basePtrArray should be *remote.SliceObjectValue, got %T", emptyVal.GetFieldValue("basePtrArray"))
+	}
+	if basePtrArrayVal.Values == nil || len(basePtrArrayVal.Values) != 0 {
+		t.Fatalf("empty pointer slice should remain assigned empty, got %#v", basePtrArrayVal.Values)
+	}
+
+	basePtrArrayPtrVal, ok := emptyVal.GetFieldValue("basePtrArrayPtr").(*remote.SliceObjectValue)
+	if !ok {
+		t.Fatalf("basePtrArrayPtr should be *remote.SliceObjectValue, got %T", emptyVal.GetFieldValue("basePtrArrayPtr"))
+	}
+	if basePtrArrayPtrVal.Values == nil || len(basePtrArrayPtrVal.Values) != 0 {
+		t.Fatalf("empty pointer-to-slice should remain assigned empty, got %#v", basePtrArrayPtrVal.Values)
+	}
+}
+
+func TestUpdateEntityPreservesAssignedEmptyStructSlices(t *testing.T) {
+	emptyPtrArray := []*Base{}
+	source := &Compose{
+		ID:              3,
+		Name:            "assigned-empty",
+		BaseArray:       []Base{},
+		BasePtrArray:    []*Base{},
+		BasePtrArrayPtr: &emptyPtrArray,
+	}
+
+	objVal, err := GetObjectValue(source)
+	if err != nil {
+		t.Fatalf("GetObjectValue failed: %v", err)
+	}
+
+	target := &Compose{}
+	err = UpdateEntity(objVal, target)
+	if err != nil {
+		t.Fatalf("UpdateEntity failed: %v", err)
+	}
+
+	if target.BaseArray == nil || len(target.BaseArray) != 0 {
+		t.Fatalf("BaseArray should remain assigned empty, got %#v", target.BaseArray)
+	}
+	if target.BasePtrArray == nil || len(target.BasePtrArray) != 0 {
+		t.Fatalf("BasePtrArray should remain assigned empty, got %#v", target.BasePtrArray)
+	}
+	if target.BasePtrArrayPtr == nil || *target.BasePtrArrayPtr == nil || len(*target.BasePtrArrayPtr) != 0 {
+		t.Fatalf("BasePtrArrayPtr should remain assigned empty, got %#v", target.BasePtrArrayPtr)
+	}
+}
+
+func TestGetObjectValueTypedNilReturnsError(t *testing.T) {
+	var simplePtr *Simple
+	if _, err := GetObjectValue(simplePtr); err == nil {
+		t.Fatal("GetObjectValue((*Simple)(nil)) should return error")
+	}
+
+	var remoteObjPtr *remote.Object
+	if _, err := GetObjectValue(remoteObjPtr); err == nil {
+		t.Fatal("GetObjectValue((*remote.Object)(nil)) should return error")
+	}
+
+	var remoteObjValuePtr *remote.ObjectValue
+	if _, err := GetObjectValue(remoteObjValuePtr); err == nil {
+		t.Fatal("GetObjectValue((*remote.ObjectValue)(nil)) should return error")
+	}
+}
+
+func TestGetObjectValueLeavesNilPointerFieldsUnassigned(t *testing.T) {
+	person := &Person{
+		ID:   7,
+		Name: "tester",
+	}
+
+	objVal, err := GetObjectValue(person)
+	if err != nil {
+		t.Fatalf("GetObjectValue failed: %v", err)
+	}
+
+	var addrField *remote.FieldValue
+	for _, field := range objVal.Fields {
+		if field.Name == "addr" {
+			addrField = field
+			break
+		}
+	}
+	if addrField == nil {
+		t.Fatal("addr field should be exported")
+	}
+	if addrField.Value != nil {
+		t.Fatalf("nil pointer field should keep nil value, got %#v", addrField.Value)
+	}
+	if addrField.Assigned {
+		t.Fatalf("helper-generated nil pointer field should stay unassigned, got %#v", addrField)
+	}
+}
+
+func TestGetObjectValueMarksExplicitZeroPointersAndSlicesAssigned(t *testing.T) {
+	age := 0
+	intArray := []int{}
+	base := &Base{
+		ID:        9,
+		IArray:    []int{},
+		IArrayPtr: &intArray,
+	}
+	person := &Person{
+		ID:   8,
+		Name: "zero",
+		Age:  &age,
+	}
+
+	baseVal, err := GetObjectValue(base)
+	if err != nil {
+		t.Fatalf("GetObjectValue(base) failed: %v", err)
+	}
+	if iArray := findFieldValue(baseVal, "iArray"); iArray == nil || !iArray.Assigned {
+		t.Fatalf("empty basic slice should be treated as assigned, got %#v", iArray)
+	}
+	if iArrayPtr := findFieldValue(baseVal, "iArrayPtr"); iArrayPtr == nil || !iArrayPtr.Assigned {
+		t.Fatalf("empty pointer slice should be treated as assigned, got %#v", iArrayPtr)
+	}
+
+	personVal, err := GetObjectValue(person)
+	if err != nil {
+		t.Fatalf("GetObjectValue(person) failed: %v", err)
+	}
+	if ageField := findFieldValue(personVal, "age"); ageField == nil || !ageField.Assigned {
+		t.Fatalf("non-nil zero pointer should be treated as assigned, got %#v", ageField)
+	}
+}
+
+func findFieldValue(objVal *remote.ObjectValue, name string) *remote.FieldValue {
+	for _, field := range objVal.Fields {
+		if field.Name == name {
+			return field
+		}
+	}
+	return nil
+}
+
+func TestGetSliceObjectValueTypedNilReturnsError(t *testing.T) {
+	var slicePtr *[]*Simple
+	if _, err := GetSliceObjectValue(slicePtr); err == nil {
+		t.Fatal("GetSliceObjectValue((*[]*Simple)(nil)) should return error")
+	}
+
+	var remoteSlicePtr *remote.SliceObjectValue
+	if _, err := GetSliceObjectValue(remoteSlicePtr); err == nil {
+		t.Fatal("GetSliceObjectValue((*remote.SliceObjectValue)(nil)) should return error")
+	}
+}

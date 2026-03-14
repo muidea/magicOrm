@@ -21,8 +21,9 @@ type Field struct {
 }
 
 type FieldValue struct {
-	Name  string `json:"name"`
-	Value any    `json:"value"`
+	Name     string `json:"name"`
+	Value    any    `json:"value"`
+	Assigned bool   `json:"assigned,omitempty"`
 }
 
 func (s *FieldValue) String() string {
@@ -89,7 +90,7 @@ func (s *Field) innerSetValue(val any, disableValidator bool) *cd.Error {
 }
 
 func (s *Field) GetSliceValue() (ret []models.Value) {
-	if !models.IsSlice(s.Type) || !s.value.IsValid() {
+	if !models.IsSlice(s.Type) || s.value == nil || !s.value.IsValid() {
 		return
 	}
 
@@ -285,6 +286,7 @@ func (s *FieldValue) IsZero() bool {
 }
 
 func (s *FieldValue) Set(val any) {
+	s.Assigned = true
 	if val == nil {
 		s.Value = nil
 		return
@@ -293,8 +295,12 @@ func (s *FieldValue) Set(val any) {
 	switch val.(type) {
 	case *ObjectValue, *SliceObjectValue:
 		s.Value = val
-	case ObjectValue, SliceObjectValue:
-		s.Value = &val
+	case ObjectValue:
+		objectVal := val.(ObjectValue)
+		s.Value = &objectVal
+	case SliceObjectValue:
+		sliceObjectVal := val.(SliceObjectValue)
+		s.Value = &sliceObjectVal
 	default:
 		if !utils.IsReallyValidValue(val) {
 			panic(fmt.Sprintf("illegal value:%+v", val))
@@ -313,14 +319,15 @@ func (s *FieldValue) GetName() string {
 }
 
 func (s *FieldValue) GetValue() models.Value {
-	return &ValueImpl{value: s.Value}
+	return &ValueImpl{value: s.Value, assigned: s.Assigned || !isZero(s.Value)}
 }
 
 func (s *FieldValue) copy() (ret *FieldValue) {
 	if s.Value == nil {
 		ret = &FieldValue{
-			Name:  s.Name,
-			Value: nil,
+			Name:     s.Name,
+			Value:    nil,
+			Assigned: s.Assigned,
 		}
 		return
 	}
@@ -328,14 +335,16 @@ func (s *FieldValue) copy() (ret *FieldValue) {
 	switch v := s.Value.(type) {
 	case *ObjectValue:
 		ret = &FieldValue{
-			Name:  s.Name,
-			Value: v.Copy(),
+			Name:     s.Name,
+			Value:    v.Copy(),
+			Assigned: s.Assigned,
 		}
 		return
 	case *SliceObjectValue:
 		ret = &FieldValue{
-			Name:  s.Name,
-			Value: v.Copy(),
+			Name:     s.Name,
+			Value:    v.Copy(),
+			Assigned: s.Assigned,
 		}
 		return ret
 	default:
@@ -344,8 +353,9 @@ func (s *FieldValue) copy() (ret *FieldValue) {
 			panic(copiedErr)
 		}
 		ret = &FieldValue{
-			Name:  s.Name,
-			Value: copiedVal,
+			Name:     s.Name,
+			Value:    copiedVal,
+			Assigned: s.Assigned,
 		}
 		return
 	}

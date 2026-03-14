@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/muidea/magicOrm/metrics"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -54,6 +55,7 @@ func TestCollectMetrics(t *testing.T) {
 	collector := NewValidationMetricsCollector()
 	collector.RecordValidation("validate", "User", "insert", 50*time.Millisecond, nil)
 	collector.RecordCacheAccess("type", true)
+	collector.RecordCacheAccess("constraint", false)
 	collector.RecordConstraintCheck("required", "Name", true)
 
 	providerWithCollector := NewValidationMetricProviderWithCollector(collector)
@@ -61,6 +63,16 @@ func TestCollectMetrics(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, metrics)
 	assert.True(t, len(metrics) > 0, "Should collect metrics with collector attached")
+
+	cacheTypes := make([]string, 0)
+	for _, metric := range metrics {
+		if metric.Name == "magicorm_validation_cache_hit_ratio" {
+			if cacheType, ok := metric.Labels["cache_type"]; ok {
+				cacheTypes = append(cacheTypes, cacheType)
+			}
+		}
+	}
+	assert.ElementsMatch(t, []string{"type", "constraint"}, cacheTypes)
 }
 
 func TestProviderLifecycle(t *testing.T) {
@@ -73,4 +85,52 @@ func TestProviderLifecycle(t *testing.T) {
 	// Test shutdown
 	err = provider.Shutdown()
 	assert.Nil(t, err)
+}
+
+func TestCollectMetricsSkipsMalformedKeys(t *testing.T) {
+	collector := NewValidationMetricsCollector()
+	collector.validationCounters["invalid"] = 1
+	collector.errorCounters["too_short"] = 2
+	collector.validationDurations["bad"] = []time.Duration{time.Second}
+	collector.cacheAccessCounters["broken"] = 3
+	collector.constraintCheckCounters["oops"] = 4
+
+	validDurationKey := metrics.BuildKey("validate", "User", "insert", "success")
+	collector.validationCounters[validDurationKey] = 1
+	collector.validationDurations[validDurationKey] = []time.Duration{100 * time.Millisecond, 300 * time.Millisecond}
+	collector.cacheAccessCounters[metrics.BuildKey("type", "hit")] = 1
+
+	metricsList, err := NewValidationMetricProviderWithCollector(collector).Collect()
+	assert.Nil(t, err)
+
+	foundDuration := false
+	for _, metric := range metricsList {
+		if metric.Name == "magicorm_validation_duration_seconds" {
+			foundDuration = true
+			assert.InDelta(t, 0.2, metric.Value, 0.001)
+			assert.Equal(t, "User", metric.Labels["model"])
+		}
+	}
+	assert.True(t, foundDuration)
+}
+
+func TestParseKey(t *testing.T) {
+	assert.Equal(t, []string{"a", "b", "c"}, parseKey(metrics.BuildKey("a", "b", "c")))
+}
+
+func TestRegisterValidationMetricsWithoutGlobalManager(t *testing.T) {
+	oldCollector := validationMetricCollector
+	oldProvider := validationMetricProvider
+	defer func() {
+		validationMetricCollector = oldCollector
+		validationMetricProvider = oldProvider
+	}()
+
+	validationMetricCollector = nil
+	validationMetricProvider = nil
+
+	RegisterValidationMetrics()
+
+	assert.NotNil(t, GetValidationMetricsCollector())
+	assert.Nil(t, validationMetricProvider)
 }

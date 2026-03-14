@@ -174,6 +174,10 @@ func DelDatabase(owner string) {
 
 // NewOrm create new Orm
 func NewOrm(provider provider.Provider, cfg database.Config, prefix string) (Orm, *cd.Error) {
+	if provider == nil {
+		return nil, cd.NewError(cd.IllegalParam, "provider is nil")
+	}
+
 	executorVal, executorErr := NewExecutor(cfg)
 	if executorErr != nil {
 		slog.Error("NewOrm NewExecutor failed", "error", executorErr.Error())
@@ -199,6 +203,12 @@ func NewOrm(provider provider.Provider, cfg database.Config, prefix string) (Orm
 
 // GetOrm get orm from pool
 func GetOrm(ctx context.Context, provider provider.Provider, prefix string) (ret Orm, err *cd.Error) {
+	if provider == nil {
+		err = cd.NewError(cd.IllegalParam, "provider is nil")
+		slog.Error("GetOrm: provider is nil")
+		return
+	}
+
 	val, ok := name2Pool.Load(provider.Owner())
 	if !ok {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("can't find orm,name:%s", provider.Owner()))

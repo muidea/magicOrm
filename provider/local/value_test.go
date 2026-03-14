@@ -8,6 +8,18 @@ import (
 	"log/slog"
 )
 
+type assignedChild struct {
+	ID   int    `orm:"id key auto"`
+	Name string `orm:"name"`
+}
+
+type assignedPatch struct {
+	ID       int              `orm:"id key auto"`
+	Count    int              `orm:"count"`
+	Child    *assignedChild   `orm:"child"`
+	Children []*assignedChild `orm:"children"`
+}
+
 func TestArray(t *testing.T) {
 	type Demo struct {
 		IntArray  []int
@@ -291,5 +303,58 @@ func TestValueImpl_Append(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestValueImplExplicitAssignmentState(t *testing.T) {
+	patch := assignedPatch{}
+	patchValue := reflect.Indirect(reflect.ValueOf(&patch))
+
+	countValue := NewValue(patchValue.FieldByName("Count"))
+	if countValue.IsAssigned() {
+		t.Fatal("zero int from origin struct should not be assigned")
+	}
+	if err := countValue.Set(0); err != nil {
+		t.Fatalf("Set zero int failed: %v", err)
+	}
+	if !countValue.IsAssigned() {
+		t.Fatal("explicit zero should be marked as assigned")
+	}
+
+	childValue := NewValue(patchValue.FieldByName("Child"))
+	if childValue.IsAssigned() {
+		t.Fatal("nil pointer from origin struct should not be assigned")
+	}
+	var nilChild *assignedChild
+	if err := childValue.Set(nilChild); err != nil {
+		t.Fatalf("Set typed nil pointer failed: %v", err)
+	}
+	if childValue.IsValid() {
+		t.Fatal("typed nil pointer should remain invalid")
+	}
+	if !childValue.IsAssigned() {
+		t.Fatal("typed nil pointer should be marked as assigned")
+	}
+
+	childrenValue := NewValue(patchValue.FieldByName("Children"))
+	if childrenValue.IsAssigned() {
+		t.Fatal("nil slice from origin struct should not be assigned")
+	}
+	var nilChildren []*assignedChild
+	if err := childrenValue.Set(nilChildren); err != nil {
+		t.Fatalf("Set typed nil slice failed: %v", err)
+	}
+	if childrenValue.IsValid() {
+		t.Fatal("typed nil slice should remain invalid")
+	}
+	if !childrenValue.IsAssigned() {
+		t.Fatal("typed nil slice should be marked as assigned")
+	}
+}
+
+func TestValueImplSetNilRejectsNonNilableValue(t *testing.T) {
+	value := NewValue(reflect.ValueOf(new(int)).Elem())
+	if err := value.Set(nil); err == nil {
+		t.Fatal("expected nil assignment on non-nilable type to fail")
 	}
 }
