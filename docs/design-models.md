@@ -62,14 +62,21 @@
 
 | 视图 | 说明 |
 |------|------|
-| OriginView | 按 MaskValue 定义字段；MaskValue 为空时等价默认。 |
+| OriginView | 原始视图；不做 detail/lite 裁剪，通常等价于完整字段集。 |
 | MetaView | 元数据视图，包含全部字段，字段值按类型初始化；主要供 Provider 内部使用。 |
 | DetailView | 详细视图，需在类型定义中声明（struct 标签 `view:"detail,lite"` 等）。 |
 | BasicView | 基础视图常量存在于 `models`，但当前本地 struct tag 解析不会从 `view:"..."` 中识别该值。 |
 | LiteView | 精简视图。 |
 
 - **使用场景**：Copy(viewSpec) 后得到的 Model 仅包含该 view 声明的字段，用于控制序列化/输出范围，或在 Provider 内部构造 Filter/Model 的字段子集。字段是否出现在某视图由该字段的 `view:` 标签决定。
-- **与查询加载的关系**：当前 `Query/BatchQuery` 的实现会在内部对传入 Model 执行一次 `Copy(OriginView)` 并基于完整字段集构造 SQL 与结果映射，**不会根据视图裁剪 SELECT 列表**。视图主要用于控制调用方使用 Model 进行序列化/输出时的字段集合；如未来在 Runner 层按视图裁剪查询列，将在本设计文档中补充说明。
+- **与查询加载的关系**：当前 `Query/BatchQuery` 的实现将“查询所需字段”和“最终返回字段”分开处理：
+  - SQL 构造仍会基于 query mask 拉取足够的字段完成 host/basic/relation 回填；
+  - 最终返回给调用方的模型按以下规则裁剪：
+    - 若 `Filter.ValueMask(...)` 已指定，则以 `ValueMask` 中显式包含的字段为准；
+    - 若未指定 `ValueMask`，则以 Model 当前 view（如 `DetailView` / `LiteView`）为准；
+    - 主键字段始终保留。
+- **性能说明**：当前实现先修正“最终返回字段语义”，尚未把 SQL `SELECT` 列完全裁剪到与 `ValueMask/View` 一致；因此该机制首先解决返回契约问题，而不是直接优化数据库读列数。
+- **隐式查询条件**：`Query(model)` 仍会把模型中的已赋值字段转成查询条件；但切片字段（如 `[]string`、`[]struct`、`[]*struct`）默认不再自动参与隐式条件构造，避免业务代码用空切片表达“我要返回这个字段”时被误翻译成 `WHERE`。需要按切片字段过滤时，应显式使用 `Filter.In(...)` / `Filter.NotIn(...)` 等操作符。
 - **限制**：当前本地 struct tag 解析稳定支持的视图标签值为 `detail` 和 `lite`；`origin`、`meta`、`basic` 属于框架内部/常量层概念，不是稳定的 struct tag 输入。
 - **限制**：视图不改变表结构，仅影响内存中 Model 的字段子集与序列化结果。支持的基础类型与映射见 [type-mapping.md](type-mapping.md)。关联关系（一对一、一对多、多对多）见 [design-relation.md](design-relation.md)。
 

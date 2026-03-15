@@ -1,12 +1,12 @@
 {
   "id": 0,
-  "name": "bill",
-  "showName": "账单信息",
-  "icon": "/static/file/share/vmi/bill.svg",
+  "name": "credit",
+  "showName": "积分信息",
+  "icon": "/static/file/share/vmi/credit.svg",
   "version": "0.0.1",
   "status": 2,
   "pkgPath": "/vmi",
-  "description": "账单信息",
+  "description": "积分信息。单个namespace里，每个会员可以拥有多个积分信息。",
   "fields": [
     {
       "name": "id",
@@ -24,7 +24,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "ro"
       }
     },
     {
@@ -42,7 +43,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "ro"
       }
     },
     {
@@ -60,7 +62,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "req"
       }
     },
     {
@@ -81,10 +84,10 @@
       }
     },
     {
-      "name": "reward",
+      "name": "credit",
       "description": "",
       "type": {
-        "name": "float64",
+        "name": "int64",
         "pkgPath": "",
         "description": "",
         "isPtr": false,
@@ -94,7 +97,8 @@
         "primaryKey": false,
         "viewDeclare": [
           "detail"
-        ]
+        ],
+        "constraint": "req"
       }
     },
     {
@@ -111,7 +115,8 @@
         "primaryKey": false,
         "viewDeclare": [
           "detail"
-        ]
+        ],
+        "constraint": "req"
       }
     },
     {
@@ -128,24 +133,8 @@
         "primaryKey": false,
         "viewDeclare": [
           "detail"
-        ]
-      }
-    },
-    {
-      "name": "status",
-      "description": "",
-      "type": {
-        "name": "status",
-        "pkgPath": "/vmi",
-        "description": "",
-        "isPtr": true,
-        "elemType": null
-      },
-      "spec": {
-        "primaryKey": false,
-        "viewDeclare": [
-          "detail"
-        ]
+        ],
+        "constraint": "req"
       }
     },
     {
@@ -162,7 +151,8 @@
         "viewDeclare": [
           "detail"
         ],
-        "defaultValue": "$referenceExtData.currentEntity()"
+        "defaultValue": "$referenceExtData.currentEntity()",
+        "constraint": "ro"
       }
     },
     {
@@ -179,7 +169,8 @@
         "viewDeclare": [
           "detail"
         ],
-        "defaultValue": "$referenceExtData.currentTimeStamp()"
+        "defaultValue": "$referenceExtData.currentTimeStamp()",
+        "constraint": "ro"
       }
     },
     {
@@ -193,7 +184,8 @@
         "elemType": null
       },
       "spec": {
-        "defaultValue": "$referenceExtData.currentNamespace()"
+        "defaultValue": "$referenceExtData.currentNamespace()",
+        "constraint": "ro"
       }
     }
   ],
@@ -204,10 +196,10 @@
         "startup": {
           "eventID": "/totalizator/register/",
           "input": {
-            "name": "账单",
+            "name": "积分",
             "unit": "个",
-            "owner": "/vmi/bill/",
-            "trigger": "/vmi/bill/:id",
+            "owner": "/vmi/credit/",
+            "trigger": "/vmi/credit/:id",
             "period": [
               1,
               2,
@@ -222,8 +214,8 @@
           "insert": {
             "eventID": "/totalizator/refresh/",
             "input": {
-              "owner": "/vmi/bill/",
-              "trigger": "/vmi/bill/:id",
+              "owner": "/vmi/credit/",
+              "trigger": "/vmi/credit/:id",
               "action": "insert",
               "namespace": "$referenceExtData.namespace"
             },
@@ -232,8 +224,8 @@
           "delete": {
             "eventID": "/totalizator/refresh/",
             "input": {
-              "owner": "/vmi/bill/",
-              "trigger": "/vmi/bill/:id",
+              "owner": "/vmi/credit/",
+              "trigger": "/vmi/credit/:id",
               "action": "delete",
               "namespace": "$referenceExtData.namespace"
             },
@@ -243,10 +235,10 @@
         "teardown": {
           "eventID": "/totalizator/unregister/",
           "input": {
-            "name": "账单",
+            "name": "积分",
             "unit": "个",
-            "owner": "/vmi/bill/",
-            "trigger": "/vmi/bill/:id",
+            "owner": "/vmi/credit/",
+            "trigger": "/vmi/credit/:id",
             "period": [
               1,
               2,
@@ -265,9 +257,9 @@
         "startup": {
           "eventID": "/generator/register/",
           "input": {
-            "name": "账单码",
-            "owner": "/vmi/bill/",
-            "pattern": "BI-{YYYYMMDDHHmmSS}-{fixed(8):num}",
+            "name": "积分码",
+            "owner": "/vmi/credit/",
+            "pattern": "PT-{YYYYMMDDHHmmSS}-{fixed(8):num}",
             "namespace": "*"
           },
           "checkType": "postCheck"
@@ -276,7 +268,7 @@
           "insert": {
             "eventID": "/generator/refresh/code/",
             "input": {
-              "owner": "/vmi/bill/",
+              "owner": "/vmi/credit/",
               "namespace": "$referenceExtData.namespace"
             },
             "output": {},
@@ -287,7 +279,7 @@
         "teardown": {
           "eventID": "/generator/unregister/",
           "input": {
-            "owner": "/vmi/bill/",
+            "owner": "/vmi/credit/",
             "namespace": "*"
           },
           "checkType": "postCheck"

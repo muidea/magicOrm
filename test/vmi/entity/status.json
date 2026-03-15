@@ -5,7 +5,7 @@
   "version": "0.0.1",
   "status": 2,
   "pkgPath": "/vmi",
-  "description": "",
+  "description": "状态信息由平台内置创建，不允许进行修改。所有状态值通过统一的status实体进行管理。",
   "fields": [
     {
       "name": "id",
@@ -23,7 +23,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "ro"
       }
     },
     {
@@ -40,7 +41,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "req,ro"
       }
     },
     {
@@ -57,7 +59,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "req,ro"
       }
     }
   ]

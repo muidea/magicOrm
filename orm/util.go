@@ -9,6 +9,22 @@ import (
 	"log/slog"
 )
 
+func shouldUseImplicitQueryCondition(field models.Field) bool {
+	if field == nil || models.IsPrimaryField(field) || !models.IsAssignedField(field) {
+		return false
+	}
+
+	// Slice fields are ambiguous in Query(model):
+	// business code often assigns []/relation-slice to express the response shape
+	// rather than an actual WHERE condition. Complex slice filtering should use
+	// explicit Filter operators instead of implicit model-to-filter conversion.
+	if models.IsSliceField(field) {
+		return false
+	}
+
+	return true
+}
+
 func getModelFilter(vModel models.Model, provider provider.Provider, modelCodec codec.Codec) (ret models.Filter, err *cd.Error) {
 	filterVal, filterErr := provider.GetModelFilter(vModel)
 	if filterErr != nil {
@@ -41,7 +57,7 @@ func getModelFilter(vModel models.Model, provider provider.Provider, modelCodec 
 	}
 
 	for _, field := range vModel.GetFields() {
-		if models.IsPrimaryField(field) || !models.IsAssignedField(field) {
+		if !shouldUseImplicitQueryCondition(field) {
 			continue
 		}
 

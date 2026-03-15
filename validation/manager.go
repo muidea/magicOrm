@@ -202,33 +202,64 @@ func (m *validationManagerImpl) ValidateField(field models.Field, value any, con
 
 // ValidateModel validates an entire model
 func (m *validationManagerImpl) ValidateModel(model models.Model, context ValidationContext) error {
-	if context.Model == nil {
-		context.Model = AdaptModel(model)
-	}
 	if context.Collector == nil {
 		context.Collector = errors.NewErrorCollector()
 	}
 
-	// Get all fields from the model adapter
-	fields := context.Model.GetFields()
+	if context.Model != nil {
+		for _, field := range context.Model.GetFields() {
+			fieldValue := field.GetValue()
+			var value any
+			if fieldValue != nil {
+				value = fieldValue
+				if rawValue, ok := fieldValue.(interface{ Get() any }); ok {
+					value = rawValue.Get()
+				}
+			}
 
-	// Validate each field
-	for _, field := range fields {
-		fieldValue := field.GetValue()
+			fieldContext := context
+			fieldContext.Field = field
 
-		fieldContext := context
-		fieldContext.Field = field
-
-		err := m.Validate(fieldValue, fieldContext)
-		if err != nil && context.Options.StopOnFirstError {
-			return err
+			err := m.Validate(value, fieldContext)
+			if err != nil && context.Options.StopOnFirstError {
+				return err
+			}
 		}
+
+		if context.Collector.HasErrors() {
+			return context.Collector.ToRichError()
+		}
+
+		return nil
 	}
 
-	if context.Collector.HasErrors() {
-		return context.Collector.ToRichError()
-	}
+	if model != nil {
+		for _, field := range model.GetFields() {
+			if context.Scenario == errors.ScenarioUpdate &&
+				!models.IsPrimaryField(field) &&
+				!models.IsAssignedField(field) {
+				continue
+			}
 
+			fieldValue := field.GetValue()
+			var value any
+			if fieldValue != nil {
+				value = fieldValue.Get()
+			}
+
+			fieldContext := context
+			err := m.ValidateField(field, value, fieldContext)
+			if err != nil && context.Options.StopOnFirstError {
+				return err
+			}
+		}
+
+		if context.Collector.HasErrors() {
+			return context.Collector.ToRichError()
+		}
+
+		return nil
+	}
 	return nil
 }
 

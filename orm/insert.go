@@ -17,6 +17,15 @@ import (
 	"log/slog"
 )
 
+func isRequiredRelationField(field models.Field) bool {
+	if field == nil || field.GetSpec() == nil {
+		return false
+	}
+
+	constraints := field.GetSpec().GetConstraints()
+	return constraints != nil && constraints.Has(models.KeyRequired)
+}
+
 type InsertRunner struct {
 	baseRunner
 	QueryRunner
@@ -245,12 +254,11 @@ func (s *InsertRunner) Insert() (ret models.Model, err *cd.Error) {
 		}
 
 		if !models.IsAssignedField(field) {
-			// 未赋值, 如果是可选字段，或者是空slice字段，则忽略
-			if field.GetType().IsPtrType() || models.IsSliceField(field) {
+			// 未赋值的关系字段默认可跳过，但 required relation 仍然必须提供。
+			if (field.GetType().IsPtrType() || models.IsSliceField(field)) && !isRequiredRelationField(field) {
 				continue
 			}
 
-			// 未赋值，但是是必选字段，则需要报错提示
 			err = cd.NewError(cd.IllegalParam, fmt.Sprintf("illegal field value, field:%s", field.GetName()))
 			slog.Error("InsertRunner Insert illegal field value", "field", field.GetName(), "error", err.Error())
 			return

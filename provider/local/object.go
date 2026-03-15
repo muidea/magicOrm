@@ -16,6 +16,7 @@ type objectImpl struct {
 	objectPtr   bool
 	objectValue reflect.Value
 	fields      []*field
+	viewSpec    models.ViewDeclare
 
 	// 临时变量不进行数据序列化传递
 	valueValidator models.ValueValidator
@@ -117,6 +118,20 @@ func (s *objectImpl) Interface(ptrValue bool) (ret any) {
 	return
 }
 
+func (s *objectImpl) ResponseIncludesField(name string) bool {
+	field := s.GetField(name)
+	if field == nil {
+		return false
+	}
+
+	switch s.viewSpec {
+	case models.DetailView, models.LiteView:
+		return field.GetSpec().EnableView(s.viewSpec)
+	default:
+		return true
+	}
+}
+
 func (s *objectImpl) Copy(viewSpec models.ViewDeclare) models.Model {
 	if !s.objectValue.IsValid() {
 		return &objectImpl{}
@@ -151,7 +166,7 @@ func getValueModel(entityValue reflect.Value, viewSpec models.ViewDeclare) (ret 
 	}
 
 	hasPrimaryKey := false
-	impl := &objectImpl{objectValue: entityValue, objectPtr: isPtr, fields: []*field{}}
+	impl := &objectImpl{objectValue: entityValue, objectPtr: isPtr, fields: []*field{}, viewSpec: viewSpec}
 	fieldNum := entityType.NumField()
 	for idx := range fieldNum {
 		fieldVal := entityValue.Field(idx)

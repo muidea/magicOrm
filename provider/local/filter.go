@@ -25,14 +25,19 @@ func (s *filterItem) OprValue() models.Value {
 
 type filter struct {
 	bindValue  *ValueImpl
+	bindModel  models.Model
 	params     map[string]*filterItem
 	maskValue  *ValueImpl
 	pageFilter *utils.Pagination
 	sortFilter *utils.SortFilter
 }
 
-func newFilter(valuePtr *ValueImpl) *filter {
-	return &filter{bindValue: valuePtr, params: map[string]*filterItem{}}
+func newFilter(valuePtr *ValueImpl, bindModels ...models.Model) *filter {
+	ret := &filter{bindValue: valuePtr, params: map[string]*filterItem{}}
+	if len(bindModels) > 0 {
+		ret.bindModel = bindModels[0]
+	}
+	return ret
 }
 
 func (s *filter) GetName() string {
@@ -283,4 +288,20 @@ func (s *filter) MaskModel() models.Model {
 	}
 
 	return objPtr
+}
+
+func (s *filter) HasValueMask() bool {
+	return s.maskValue != nil
+}
+
+func (s *filter) ResponseModel() models.Model {
+	if s.bindModel == nil {
+		return nil
+	}
+
+	return s.bindModel.Copy(models.OriginView)
+}
+
+func (s *filter) ExplicitResponseModel() models.Model {
+	return s.MaskModel()
 }

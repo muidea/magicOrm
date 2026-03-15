@@ -6,7 +6,7 @@
   "version": "0.0.1",
   "status": 2,
   "pkgPath": "/vmi/order",
-  "description": "商品条目信息",
+  "description": "商品条目。订单中的商品项，包含SKU、名称、单价和数量。",
   "fields": [
     {
       "name": "id",
@@ -24,7 +24,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "ro"
       }
     },
     {
@@ -42,7 +43,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "req"
       }
     },
     {
@@ -60,7 +62,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "req"
       }
     },
     {
@@ -78,7 +81,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "req"
       }
     },
     {
@@ -96,7 +100,23 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "req"
+      }
+    },
+    {
+      "name": "namespace",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "defaultValue": "$referenceExtData.currentNamespace()",
+        "constraint": "ro"
       }
     }
   ]

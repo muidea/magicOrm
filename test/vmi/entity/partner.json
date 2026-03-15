@@ -6,7 +6,7 @@
   "version": "0.0.1",
   "status": 2,
   "pkgPath": "/vmi",
-  "description": "会员信息",
+  "description": "会员信息。单个namespace里，可以拥有多个会员。推荐人关系为自引用，指向同一partner实体的其他记录。",
   "fields": [
     {
       "name": "id",
@@ -24,7 +24,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "ro"
       }
     },
     {
@@ -41,7 +42,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "ro"
       }
     },
     {
@@ -58,7 +60,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "req"
       }
     },
     {
@@ -141,7 +144,7 @@
           "detail",
           "lite"
         ],
-        "defaultValue": 3
+        "constraint": "req"
       }
     },
     {
@@ -158,11 +161,30 @@
         "viewDeclare": [
           "detail"
         ],
-        "defaultValue": "$referenceExtData.currentEntity()"
+        "defaultValue": "$referenceExtData.currentEntity()",
+        "constraint": "ro"
       }
     },
     {
       "name": "createTime",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ],
+        "defaultValue": "$referenceExtData.currentTimeStamp()",
+        "constraint": "ro"
+      }
+    },
+    {
+      "name": "modifyTime",
       "description": "",
       "type": {
         "name": "int64",
@@ -189,7 +211,8 @@
         "elemType": null
       },
       "spec": {
-        "defaultValue": "$referenceExtData.currentNamespace()"
+        "defaultValue": "$referenceExtData.currentNamespace()",
+        "constraint": "ro"
       }
     }
   ],
@@ -284,7 +307,7 @@
           "eventID": "/generator/unregister/",
           "input": {
             "owner": "/vmi/partner/",
-            "namespace": "*"            
+            "namespace": "*"
           },
           "checkType": "postCheck"
         }

@@ -164,6 +164,15 @@ func (s *Object) fieldInActiveView(field *Field) bool {
 	}
 }
 
+func (s *Object) ResponseIncludesField(name string) bool {
+	field, ok := s.GetField(name).(*Field)
+	if !ok {
+		return false
+	}
+
+	return s.fieldInActiveView(field)
+}
+
 func (s *Object) innerSetFieldValue(name string, val any, disableValidator bool) (err *cd.Error) {
 	for _, sf := range s.Fields {
 		if sf.Name != name {

@@ -6,7 +6,7 @@
   "version": "0.0.1",
   "status": 2,
   "pkgPath": "/vmi/store",
-  "description": "",
+  "description": "商品SKU信息。商品SKU包含SKU编码、对应产品SKU、类型（入库/出库）、所在货架、数量、价格、状态等信息。",
   "fields": [
     {
       "name": "id",
@@ -24,7 +24,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "ro"
       }
     },
     {
@@ -42,15 +43,16 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "req"
       }
     },
     {
       "name": "product",
       "description": "",
       "type": {
-        "name": "product",
-        "pkgPath": "/vmi",
+        "name": "productInfo",
+        "pkgPath": "/vmi/product",
         "description": "",
         "isPtr": true,
         "elemType": null
@@ -60,7 +62,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "req"
       }
     },
     {
@@ -78,7 +81,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "req,ro"
       }
     },
     {
@@ -96,7 +100,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "req"
       }
     },
     {
@@ -114,24 +119,83 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "req"
       }
     },
     {
-      "name": "status",
+      "name": "shelf",
       "description": "",
       "type": {
-        "name": "status",
-        "pkgPath": "/vmi",
+        "name": "shelf",
+        "pkgPath": "/vmi/warehouse",
         "description": "",
-        "isPtr": true,
-        "elemType": null
+        "isPtr": false,
+        "elemType": {
+          "name": "shelf",
+          "pkgPath": "/vmi/warehouse",
+          "description": "",
+          "isPtr": true,
+          "elemType": null
+        }
       },
       "spec": {
         "primaryKey": false,
         "viewDeclare": [
           "detail"
-        ]
+        ],
+        "constraint": "req"
+      }
+    },
+    {
+      "name": "creater",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ],
+        "defaultValue": "$referenceExtData.currentEntity()",
+        "constraint": "ro"
+      }
+    },
+    {
+      "name": "createTime",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ],
+        "defaultValue": "$referenceExtData.currentTimeStamp()",
+        "constraint": "ro"
+      }
+    },
+    {
+      "name": "namespace",
+      "description": "",
+      "type": {
+        "name": "string",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "defaultValue": "$referenceExtData.currentNamespace()",
+        "constraint": "ro"
       }
     }
   ]

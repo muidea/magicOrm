@@ -379,3 +379,44 @@ func (s *ObjectFilter) MaskModel() models.Model {
 
 	return maskObject
 }
+
+func (s *ObjectFilter) HasValueMask() bool {
+	return s.MaskValue != nil
+}
+
+func (s *ObjectFilter) ResponseModel() models.Model {
+	if s.bindObject == nil {
+		return nil
+	}
+
+	switch s.bindObject.viewSpec {
+	case models.MetaView, models.DetailView, models.LiteView, models.OriginView:
+		return s.bindObject.Copy(s.bindObject.viewSpec)
+	default:
+		return s.bindObject.Copy(models.OriginView)
+	}
+}
+
+func (s *ObjectFilter) ExplicitResponseModel() models.Model {
+	if s.bindObject == nil {
+		return nil
+	}
+
+	maskObject, ok := s.bindObject.Copy(models.OriginView).(*Object)
+	if !ok {
+		return nil
+	}
+	for _, field := range maskObject.Fields {
+		if models.IsPrimaryField(field) {
+			continue
+		}
+		field.value = &ValueImpl{}
+	}
+	if s.MaskValue != nil {
+		for _, val := range s.MaskValue.Fields {
+			maskObject.SetFieldValue(val.Name, val.GetValue().Get())
+		}
+	}
+
+	return maskObject
+}

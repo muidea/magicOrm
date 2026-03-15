@@ -1,0 +1,180 @@
+{
+    "id": 0,
+    "name": "productInfo",
+    "showName": "产品SKU",
+    "icon": "/static/file/share/vmi/skuInfo.svg",
+    "version": "0.0.1",
+    "status": 2,
+    "pkgPath": "/vmi/product",
+    "description": "产品SKU。产品的具体SKU信息，包含SKU编码、描述和图片。",
+    "fields": [
+        {
+            "name": "id",
+            "description": "",
+            "type": {
+                "name": "int64",
+                "pkgPath": "",
+                "description": "",
+                "isPtr": false,
+                "elemType": null
+            },
+            "spec": {
+                "primaryKey": true,
+                "valueDeclare": "auto",
+                "viewDeclare": [
+                    "detail",
+                    "lite"
+                ],
+                "constraint": "ro"
+            }
+        },
+        {
+            "name": "sku",
+            "description": "",
+            "type": {
+                "name": "string",
+                "pkgPath": "",
+                "description": "",
+                "isPtr": false,
+                "elemType": null
+            },
+            "spec": {
+                "fieldName": "sku",
+                "viewDeclare": [
+                    "detail",
+                    "lite"
+                ],
+                "constraint": "req"
+            }
+        },
+        {
+            "name": "description",
+            "description": "",
+            "type": {
+                "name": "string",
+                "pkgPath": "",
+                "description": "",
+                "isPtr": false,
+                "elemType": null
+            },
+            "spec": {
+                "fieldName": "description",
+                "primaryKey": false,
+                "viewDeclare": [
+                    "detail",
+                    "lite"
+                ]
+            }
+        },
+        {
+            "name": "image",
+            "description": "",
+            "type": {
+                "name": "string",
+                "pkgPath": "",
+                "description": "",
+                "isPtr": false,
+                "elemType": {
+                    "name": "string",
+                    "pkgPath": "",
+                    "description": "",
+                    "isPtr": false,
+                    "elemType": null
+                }
+            },
+            "spec": {
+                "fieldName": "image",
+                "viewDeclare": [
+                    "detail",
+                    "lite"
+                ]
+            }
+        },
+        {
+            "name": "product",
+            "description": "",
+            "type": {
+                "name": "product",
+                "pkgPath": "/vmi",
+                "description": "",
+                "isPtr": true,
+                "elemType": null
+            },
+            "spec": {
+                "viewDeclare": [
+                    "detail",
+                    "lite"
+                ],
+                "constraint": "req"
+            }
+        },
+        {
+            "name": "creater",
+            "description": "",
+            "type": {
+                "name": "int64",
+                "pkgPath": "",
+                "description": "",
+                "isPtr": false,
+                "elemType": null
+            },
+            "spec": {
+                "viewDeclare": [
+                    "detail"
+                ],
+                "defaultValue": "$referenceExtData.currentEntity()",
+                "constraint": "ro"
+            }
+        },
+        {
+            "name": "createTime",
+            "description": "",
+            "type": {
+                "name": "int64",
+                "pkgPath": "",
+                "description": "",
+                "isPtr": false,
+                "elemType": null
+            },
+            "spec": {
+                "viewDeclare": [
+                    "detail"
+                ],
+                "defaultValue": "$referenceExtData.currentTimeStamp()",
+                "constraint": "ro"
+            }
+        },
+        {
+            "name": "modifyTime",
+            "description": "",
+            "type": {
+                "name": "int64",
+                "pkgPath": "",
+                "description": "",
+                "isPtr": false,
+                "elemType": null
+            },
+            "spec": {
+                "viewDeclare": [
+                    "detail"
+                ],
+                "defaultValue": "$referenceExtData.currentTimeStamp()"
+            }
+        },
+        {
+            "name": "namespace",
+            "description": "",
+            "type": {
+                "name": "string",
+                "pkgPath": "",
+                "description": "",
+                "isPtr": false,
+                "elemType": null
+            },
+            "spec": {
+                "defaultValue": "$referenceExtData.currentNamespace()",
+                "constraint": "ro"
+            }
+        }
+    ]
+}

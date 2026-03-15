@@ -1,12 +1,12 @@
 {
   "id": 0,
-  "name": "payReward",
-  "showName": "佣金记录",
+  "name": "creditReward",
+  "showName": "积分消费记录",
   "icon": "/static/file/share/vmi/payReward.svg",
   "version": "0.0.1",
   "status": 2,
-  "pkgPath": "/vmi/bill",
-  "description": "佣金记录",
+  "pkgPath": "/vmi/credit",
+  "description": "积分消费记录。记录会员的积分消费详情。",
   "fields": [
     {
       "name": "id",
@@ -24,7 +24,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "ro"
       }
     },
     {
@@ -42,7 +43,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "ro"
       }
     },
     {
@@ -60,14 +62,15 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "req"
       }
     },
     {
-      "name": "reward",
+      "name": "credit",
       "description": "",
       "type": {
-        "name": "float64",
+        "name": "int64",
         "pkgPath": "",
         "description": "",
         "isPtr": false,
@@ -77,7 +80,8 @@
         "primaryKey": false,
         "viewDeclare": [
           "detail"
-        ]
+        ],
+        "constraint": "req"
       }
     },
     {
@@ -111,7 +115,8 @@
         "viewDeclare": [
           "detail"
         ],
-        "defaultValue": "$referenceExtData.currentEntity()"
+        "defaultValue": "$referenceExtData.currentEntity()",
+        "constraint": "ro"
       }
     },
     {
@@ -128,7 +133,8 @@
         "viewDeclare": [
           "detail"
         ],
-        "defaultValue": "$referenceExtData.currentTimeStamp()"
+        "defaultValue": "$referenceExtData.currentTimeStamp()",
+        "constraint": "ro"
       }
     },
     {
@@ -142,7 +148,8 @@
         "elemType": null
       },
       "spec": {
-        "defaultValue": "$referenceExtData.currentNamespace()"
+        "defaultValue": "$referenceExtData.currentNamespace()",
+        "constraint": "ro"
       }
     }
   ],
@@ -153,10 +160,10 @@
         "startup": {
           "eventID": "/totalizator/register/",
           "input": {
-            "name": "订单佣金",
+            "name": "积分消费记录",
             "unit": "个",
-            "owner": "/vmi/bill/payReward/",
-            "trigger": "/vmi/bill/payReward/:id",
+            "owner": "/vmi/pointReward/",
+            "trigger": "/vmi/pointReward/:id",
             "period": [
               1,
               2,
@@ -171,8 +178,8 @@
           "insert": {
             "eventID": "/totalizator/refresh/",
             "input": {
-              "owner": "/vmi/bill/payReward/",
-              "trigger": "/vmi/bill/payReward/:id",
+              "owner": "/vmi/pointReward/",
+              "trigger": "/vmi/pointReward/:id",
               "action": "insert",
               "namespace": "$referenceExtData.namespace"
             },
@@ -181,8 +188,8 @@
           "delete": {
             "eventID": "/totalizator/refresh/",
             "input": {
-              "owner": "/vmi/bill/payReward/",
-              "trigger": "/vmi/bill/payReward/:id",
+              "owner": "/vmi/pointReward/",
+              "trigger": "/vmi/pointReward/:id",
               "action": "delete",
               "namespace": "$referenceExtData.namespace"
             },
@@ -192,10 +199,10 @@
         "teardown": {
           "eventID": "/totalizator/unregister/",
           "input": {
-            "name": "订单佣金",
+            "name": "积分消费记录",
             "unit": "个",
-            "owner": "/vmi/bill/payReward/",
-            "trigger": "/vmi/bill/payReward/:id",
+            "owner": "/vmi/pointReward/",
+            "trigger": "/vmi/pointReward/:id",
             "period": [
               1,
               2,
@@ -214,8 +221,8 @@
         "startup": {
           "eventID": "/generator/register/",
           "input": {
-            "name": "佣金记录码",
-            "owner": "/vmi/bill/payReward/",
+            "name": "积分消费记录码",
+            "owner": "/vmi/pointReward/",
             "pattern": "PR-{YYYYMMDDHHmmSS}-{fixed(8):num}",
             "namespace": "*"
           },
@@ -225,7 +232,7 @@
           "insert": {
             "eventID": "/generator/refresh/code/",
             "input": {
-              "owner": "/vmi/bill/payReward/",
+              "owner": "/vmi/pointReward/",
               "namespace": "$referenceExtData.namespace"
             },
             "output": {},
@@ -236,7 +243,7 @@
         "teardown": {
           "eventID": "/generator/unregister/",
           "input": {
-            "owner": "/vmi/bill/payReward/",
+            "owner": "/vmi/pointReward/",
             "namespace": "*"
           },
           "checkType": "postCheck"

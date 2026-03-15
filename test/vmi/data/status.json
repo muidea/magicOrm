@@ -7,11 +7,6 @@
       "name": "autotest",
       "values": [
         {
-          "id": 1,
-          "value": 0,
-          "name": "初始化"
-        },
-        {
           "id": 2,
           "value": 1,
           "name": "等待审核"

@@ -15,6 +15,20 @@ import (
 	"log/slog"
 )
 
+func isReadOnlyField(field models.Field) bool {
+	if field == nil {
+		return false
+	}
+
+	spec := field.GetSpec()
+	if spec == nil {
+		return false
+	}
+
+	constraints := spec.GetConstraints()
+	return constraints != nil && constraints.Has(models.KeyReadOnly)
+}
+
 type UpdateRunner struct {
 	baseRunner
 	QueryRunner
@@ -98,7 +112,7 @@ func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
 	for _, field := range s.vModel.GetFields() {
 		// 忽略基础字段和未赋值的字段
 		// 未赋值则认为不需要对该字段进行更新
-		if models.IsBasicField(field) || !models.IsAssignedField(field) {
+		if models.IsBasicField(field) || !models.IsAssignedField(field) || isReadOnlyField(field) {
 			continue
 		}
 

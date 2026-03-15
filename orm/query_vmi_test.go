@@ -263,7 +263,11 @@ func TestQueryRunnerVMIRemoteRelations(t *testing.T) {
 		},
 	}
 
-	queryRunner := NewQueryRunner(context.Background(), filter.MaskModel(), executor, remoteProvider, modelCodec, false, 0)
+	responseModel, responseByMask, err := buildQueryResponseModel(nil, filter)
+	if err != nil {
+		t.Fatalf("buildQueryResponseModel failed: %v", err)
+	}
+	queryRunner := NewQueryRunner(context.Background(), filter.MaskModel(), responseModel, responseByMask, executor, remoteProvider, modelCodec, false, 0)
 	modelsList, err := queryRunner.Query(filter)
 	if err != nil {
 		t.Fatalf("QueryRunner.Query(product) failed: %v", err)
@@ -350,7 +354,11 @@ func TestQueryRunnerVMIRemoteMissingPointerRelation(t *testing.T) {
 		},
 	}
 
-	queryRunner := NewQueryRunner(context.Background(), filter.MaskModel(), executor, remoteProvider, modelCodec, false, 0)
+	responseModel, responseByMask, err := buildQueryResponseModel(nil, filter)
+	if err != nil {
+		t.Fatalf("buildQueryResponseModel failed: %v", err)
+	}
+	queryRunner := NewQueryRunner(context.Background(), filter.MaskModel(), responseModel, responseByMask, executor, remoteProvider, modelCodec, false, 0)
 	modelsList, err := queryRunner.Query(filter)
 	if err != nil {
 		t.Fatalf("QueryRunner.Query(product) failed: %v", err)

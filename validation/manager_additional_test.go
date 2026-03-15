@@ -66,14 +66,21 @@ func (t *testType) Elem() models.Type {
 }
 
 type testValue struct {
-	value any
-	valid bool
+	value    any
+	valid    bool
+	assigned bool
 }
 
-func (v *testValue) IsValid() bool         { return v.valid }
-func (v *testValue) IsZero() bool          { return v.value == nil || reflect.ValueOf(v.value).IsZero() }
-func (v *testValue) Get() any              { return v.value }
-func (v *testValue) Set(val any) *cd.Error { v.value = val; v.valid = true; return nil }
+func (v *testValue) IsValid() bool    { return v.valid }
+func (v *testValue) IsZero() bool     { return v.value == nil || reflect.ValueOf(v.value).IsZero() }
+func (v *testValue) Get() any         { return v.value }
+func (v *testValue) IsAssigned() bool { return v.assigned }
+func (v *testValue) Set(val any) *cd.Error {
+	v.value = val
+	v.valid = true
+	v.assigned = true
+	return nil
+}
 func (v *testValue) UnpackValue() []models.Value {
 	return nil
 }
@@ -103,7 +110,7 @@ func (f *testField) GetType() models.Type   { return f.typ }
 func (f *testField) GetSpec() models.Spec   { return f.spec }
 func (f *testField) GetValue() models.Value { return f.value }
 func (f *testField) SetValue(val any) *cd.Error {
-	f.value = &testValue{value: val, valid: true}
+	f.value = &testValue{value: val, valid: true, assigned: true}
 	return nil
 }
 func (f *testField) GetSliceValue() []models.Value { return nil }
@@ -265,6 +272,45 @@ func TestValidateModelUsesActualModelFields(t *testing.T) {
 	}
 }
 
+func TestValidateModelUpdateSkipsUnassignedFields(t *testing.T) {
+	manager := NewValidationManager(DefaultConfig())
+
+	requiredConstraints := testConstraints{directives: []models.Directive{
+		testDirective{key: models.KeyRequired},
+		testDirective{key: models.KeyMin, args: []string{"3"}},
+	}}
+
+	model := &testModel{
+		name: "User",
+		fields: models.Fields{
+			&testField{
+				name:  "id",
+				typ:   &testType{name: "ID", value: models.TypeIntegerValue},
+				spec:  &testSpec{primary: true},
+				value: &testValue{value: 1, valid: true, assigned: true},
+			},
+			&testField{
+				name:  "name",
+				typ:   &testType{name: "Name", value: models.TypeStringValue},
+				spec:  &testSpec{constraints: requiredConstraints},
+				value: &testValue{value: nil, valid: false, assigned: false},
+			},
+		},
+	}
+
+	updateCtx := NewContext(verrors.ScenarioUpdate, OperationUpdate, nil, "")
+	if err := manager.ValidateModel(model, updateCtx); err != nil {
+		t.Fatalf("expected update validation to skip unassigned required field, got %v", err)
+	}
+
+	if setErr := model.SetFieldValue("name", nil); setErr != nil {
+		t.Fatalf("failed to update field value: %v", setErr)
+	}
+	if err := manager.ValidateModel(model, updateCtx); err == nil {
+		t.Fatal("expected update validation to reject assigned nil required value")
+	}
+}
+
 func TestValidateModelHonorsProvidedAdapter(t *testing.T) {
 	manager := NewValidationManager(DefaultConfig())
 
@@ -282,6 +328,25 @@ func TestValidateModelHonorsProvidedAdapter(t *testing.T) {
 
 	if err := manager.ValidateModel(&testModel{name: "Ignored"}, ctx); err == nil {
 		t.Fatal("expected validation error from provided adapter")
+	}
+}
+
+func TestValidateModelAdapterUnwrapsWrappedFieldValue(t *testing.T) {
+	manager := NewValidationManager(DefaultConfig())
+
+	ctx := NewContext(verrors.ScenarioInsert, OperationCreate, NewModelAdapter([]FieldAdapter{
+		NewFieldAdapter(
+			"warehouse",
+			reflect.TypeOf((*struct{ ID int64 })(nil)),
+			testConstraints{directives: []models.Directive{
+				testDirective{key: models.KeyRequired},
+			}},
+			&testValue{value: nil, valid: false},
+		),
+	}), "")
+
+	if err := manager.ValidateModel(&testModel{name: "Ignored"}, ctx); err == nil {
+		t.Fatal("expected validation error from wrapped nil field value")
 	}
 }
 

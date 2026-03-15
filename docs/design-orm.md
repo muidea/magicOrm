@@ -63,9 +63,12 @@
 - **Delete**：`validateModel` -> `DeleteRunner` -> 先删 relation，再删 host。
 - **Query**：`QueryRunner` 先按查询模型生成过滤条件，再使用 query mask 拉取 host 行，随后按字段加载 relation，最后回填 `models.Model`。
   - `Query(model)` 的输入模型用于“过滤”；
-  - 返回列默认会补齐所有**非指针 basic 字段**，确保常规对象能完整回填；
-  - **指针 basic 字段 / 指针 slice 字段** 仍然按查询模型本身的有效性决定是否参与返回；
-  - 若需要精确裁剪返回列，走 `BatchQuery(filter)` 并通过 `filter.ValueMask(...)` / `MaskModel()` 控制。
+  - 查询执行时仍会补齐足够的 basic 字段与 relation key，以保证回填完整性；
+  - 最终返回给调用方的模型按以下规则裁剪：
+    - `BatchQuery(filter)` 若指定了 `filter.ValueMask(...)`，则 `ValueMask` 优先，返回字段以 mask 中显式包含的字段为准；
+    - 未指定 `ValueMask` 时，以查询模型/过滤器绑定模型的当前 view 为准；
+    - 主键字段始终保留；
+  - 当前实现优先修正“返回字段语义”，尚未把 SQL `SELECT` 列彻底缩减到与 `ValueMask/View` 完全一致。
 - **BatchQuery / Count**：基于 `models.Filter` 走 builder 生成 SQL。
 
 ### 2.6 事务与资源

@@ -201,6 +201,73 @@ func buildProductClearStatusModel(t *testing.T, remoteProvider provider.Provider
 	return object
 }
 
+func buildShelfReadOnlyWarehouseUpdateModel(t *testing.T, remoteProvider provider.Provider) *remote.Object {
+	t.Helper()
+
+	shelfValue := &remote.ObjectValue{
+		Name:    "shelf",
+		PkgPath: "/vmi/warehouse",
+		Fields: []*remote.FieldValue{
+			{Name: "id", Value: int64(1001)},
+			{Name: "capacity", Value: 20},
+			{
+				Name: "warehouse",
+				Value: &remote.ObjectValue{
+					Name:    "warehouse",
+					PkgPath: "/vmi/warehouse",
+					Fields: []*remote.FieldValue{
+						{Name: "id", Value: int64(2002)},
+					},
+				},
+			},
+		},
+	}
+
+	model, err := remoteProvider.GetEntityModel(shelfValue, true)
+	if err != nil {
+		t.Fatalf("GetEntityModel(shelf readonly warehouse update value) failed: %v", err)
+	}
+
+	object, ok := model.(*remote.Object)
+	if !ok {
+		t.Fatalf("expected *remote.Object, got %T", model)
+	}
+	return object
+}
+
+func buildShelfInsertWithoutWarehouseModel(t *testing.T, remoteProvider provider.Provider) *remote.Object {
+	t.Helper()
+
+	shelfValue := &remote.ObjectValue{
+		Name:    "shelf",
+		PkgPath: "/vmi/warehouse",
+		Fields: []*remote.FieldValue{
+			{Name: "capacity", Value: 20},
+			{
+				Name: "status",
+				Value: &remote.ObjectValue{
+					Name:    "status",
+					PkgPath: "/vmi",
+					Fields: []*remote.FieldValue{
+						{Name: "id", Value: int64(19)},
+					},
+				},
+			},
+		},
+	}
+
+	model, err := remoteProvider.GetEntityModel(shelfValue, true)
+	if err != nil {
+		t.Fatalf("GetEntityModel(shelf insert without warehouse) failed: %v", err)
+	}
+
+	object, ok := model.(*remote.Object)
+	if !ok {
+		t.Fatalf("expected *remote.Object, got %T", model)
+	}
+	return object
+}
+
 func buildProductSameSkuInfoModel(t *testing.T, remoteProvider provider.Provider) *remote.Object {
 	t.Helper()
 
@@ -656,6 +723,69 @@ func TestUpdateRunnerVMIRemoteNilReferenceClearsRelation(t *testing.T) {
 	}
 	if containsSQLCall(executor.execCalls, "exec", "tenant_Status", nil) || containsSQLCall(executor.execCalls, "insert", "tenant_Status", nil) {
 		t.Fatalf("reference clear should not mutate status host table: %#v", executor.execCalls)
+	}
+}
+
+func TestUpdateRunnerVMIRemoteReadOnlyReferenceIgnored(t *testing.T) {
+	remoteProvider := provider.NewRemoteProvider("tenant", nil)
+	for _, path := range []string{
+		"test/vmi/entity/status.json",
+		"test/vmi/entity/warehouse/warehouse.json",
+		"test/vmi/entity/warehouse/shelf.json",
+	} {
+		if _, err := remoteProvider.RegisterModel(loadVMIObjectForORMTest(t, path)); err != nil {
+			t.Fatalf("RegisterModel(%s) failed: %v", path, err)
+		}
+	}
+
+	shelfModel := buildShelfReadOnlyWarehouseUpdateModel(t, remoteProvider)
+	executor := &fakeExecutor{}
+	updateRunner := NewUpdateRunner(context.Background(), shelfModel, executor, remoteProvider, codec.New(remoteProvider, "tenant"))
+
+	updatedModel, err := updateRunner.Update()
+	if err != nil {
+		t.Fatalf("UpdateRunner.Update(shelf readonly warehouse) failed: %v", err)
+	}
+
+	shelfValue := updatedModel.Interface(true).(*remote.ObjectValue)
+	warehouseValue, ok := shelfValue.GetFieldValue("warehouse").(*remote.ObjectValue)
+	if !ok || warehouseValue.GetFieldValue("id") != int64(2002) {
+		t.Fatalf("readonly warehouse relation should remain present on returned model, got %#v", shelfValue.GetFieldValue("warehouse"))
+	}
+
+	if !containsSQLCall(executor.execCalls, "exec", "UPDATE \"tenant_Shelf\"", []any{"", 20, int64(0), int64(1001)}) {
+		t.Fatalf("missing shelf host update call: %#v", executor.execCalls)
+	}
+	if containsSQLCall(executor.execCalls, "query", "tenant_ShelfWarehouse3Warehouse", nil) {
+		t.Fatalf("readonly warehouse relation should not query relation rows: %#v", executor.execCalls)
+	}
+	if containsSQLCall(executor.execCalls, "exec", "tenant_ShelfWarehouse3Warehouse", nil) || containsSQLCall(executor.execCalls, "insert", "tenant_ShelfWarehouse3Warehouse", nil) {
+		t.Fatalf("readonly warehouse relation should not mutate relation rows: %#v", executor.execCalls)
+	}
+	if containsSQLCall(executor.execCalls, "exec", "tenant_Warehouse", nil) || containsSQLCall(executor.execCalls, "insert", "tenant_Warehouse", nil) {
+		t.Fatalf("readonly warehouse relation should not mutate warehouse host table: %#v", executor.execCalls)
+	}
+}
+
+func TestInsertRunnerVMIRemoteMissingRequiredReferenceRejected(t *testing.T) {
+	remoteProvider := provider.NewRemoteProvider("tenant", nil)
+	for _, path := range []string{
+		"test/vmi/entity/status.json",
+		"test/vmi/entity/warehouse/warehouse.json",
+		"test/vmi/entity/warehouse/shelf.json",
+	} {
+		if _, err := remoteProvider.RegisterModel(loadVMIObjectForORMTest(t, path)); err != nil {
+			t.Fatalf("RegisterModel(%s) failed: %v", path, err)
+		}
+	}
+
+	shelfModel := buildShelfInsertWithoutWarehouseModel(t, remoteProvider)
+	insertRunner := NewInsertRunner(context.Background(), shelfModel, &fakeExecutor{}, remoteProvider, codec.New(remoteProvider, "tenant"))
+
+	if _, err := insertRunner.Insert(); err == nil {
+		t.Fatal("InsertRunner.Insert should reject missing required warehouse relation")
+	} else if !strings.Contains(err.Error(), "warehouse") {
+		t.Fatalf("expected warehouse-related error, got %v", err)
 	}
 }
 

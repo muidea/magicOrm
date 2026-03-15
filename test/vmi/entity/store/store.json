@@ -6,7 +6,7 @@
   "version": "0.0.1",
   "status": 2,
   "pkgPath": "/vmi",
-  "description": "店铺信息",
+  "description": "店铺信息。单个namespace里，可以拥有多个店铺。同一个货架不允许被两个店铺所拥有。",
   "fields": [
     {
       "name": "id",
@@ -24,7 +24,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "ro"
       }
     },
     {
@@ -42,7 +43,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "ro"
       }
     },
     {
@@ -60,7 +62,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "req"
       }
     },
     {
@@ -81,29 +84,6 @@
       }
     },
     {
-      "name": "goods",
-      "description": "",
-      "type": {
-        "name": "goods",
-        "pkgPath": "/vmi/store",
-        "description": "",
-        "isPtr": false,
-        "elemType": {
-          "name": "goods",
-          "pkgPath": "/vmi/store",
-          "description": "",
-            "isPtr": true,
-          "elemType": null
-        }
-      },
-      "spec": {
-        "primaryKey": false,
-        "viewDeclare": [
-          "detail"
-        ]
-      }
-    },
-    {
       "name": "shelf",
       "description": "",
       "type": {
@@ -115,7 +95,7 @@
           "name": "shelf",
           "pkgPath": "/vmi/warehouse",
           "description": "",
-            "isPtr": true,
+          "isPtr": true,
           "elemType": null
         }
       },
@@ -140,11 +120,30 @@
         "viewDeclare": [
           "detail"
         ],
-        "defaultValue": "$referenceExtData.currentEntity()"
+        "defaultValue": "$referenceExtData.currentEntity()",
+        "constraint": "ro"
       }
     },
     {
       "name": "createTime",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ],
+        "defaultValue": "$referenceExtData.currentTimeStamp()",
+        "constraint": "ro"
+      }
+    },
+    {
+      "name": "modifyTime",
       "description": "",
       "type": {
         "name": "int64",
@@ -171,7 +170,8 @@
         "elemType": null
       },
       "spec": {
-        "defaultValue": "$referenceExtData.currentNamespace()"
+        "defaultValue": "$referenceExtData.currentNamespace()",
+        "constraint": "ro"
       }
     }
   ],

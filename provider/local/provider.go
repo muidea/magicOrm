@@ -108,7 +108,7 @@ func GetValueModel(vVal models.Value) (ret models.Model, err *cd.Error) {
 
 func GetModelFilter(vModel models.Model) (ret models.Filter, err *cd.Error) {
 	valuePtr := NewValue(reflect.ValueOf(vModel.Interface(true)))
-	ret = newFilter(valuePtr)
+	ret = newFilter(valuePtr, vModel)
 	return
 }
 

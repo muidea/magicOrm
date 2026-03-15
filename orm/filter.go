@@ -31,7 +31,21 @@ func (s *impl) BatchQuery(filter models.Filter) (ret []models.Model, err *cd.Err
 		return
 	}
 
-	vQueryRunner := NewQueryRunner(s.context, filter.MaskModel(), s.executor, s.modelProvider, s.modelCodec, true, 0)
+	responseModel, responseByMask, responseErr := buildQueryResponseModel(nil, filter)
+	if responseErr != nil {
+		err = responseErr
+		slog.Error("BatchQuery buildQueryResponseModel failed", "error", err.Error())
+		return
+	}
+
+	queryMask, maskErr := buildFullQueryMaskModel(responseModel)
+	if maskErr != nil {
+		err = maskErr
+		slog.Error("BatchQuery buildFullQueryMaskModel failed", "error", err.Error())
+		return
+	}
+
+	vQueryRunner := NewQueryRunner(s.context, queryMask, responseModel, responseByMask, s.executor, s.modelProvider, s.modelCodec, true, 0)
 	queryVal, queryErr := vQueryRunner.Query(filter)
 	if queryErr != nil {
 		err = queryErr

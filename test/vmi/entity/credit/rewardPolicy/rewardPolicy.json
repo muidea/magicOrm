@@ -1,15 +1,35 @@
 {
   "id": 0,
-  "name": "skuInfo",
-  "showName": "产品SKU",
-  "icon": "/static/file/share/vmi/skuInfo.svg",
+  "name": "rewardPolicy",
+  "showName": "积分策略",
+  "icon": "/static/file/share/vmi/rewardPolicy.svg",
   "version": "0.0.1",
   "status": 2,
-  "pkgPath": "/vmi/product",
-  "description": "",
+  "pkgPath": "/vmi/credit",
+  "description": "积分策略配置。包含注册会员积分值、订单积分规则和积分限制配置。",
   "fields": [
     {
-      "name": "sku",
+      "name": "id",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": true,
+        "valueDeclare": "auto",
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ],
+        "constraint": "ro"
+      }
+    },
+    {
+      "name": "name",
       "description": "",
       "type": {
         "name": "string",
@@ -19,12 +39,12 @@
         "elemType": null
       },
       "spec": {
-        "fieldName": "sku",
-        "primaryKey": true,
+        "primaryKey": false,
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "req"
       }
     },
     {
@@ -38,36 +58,48 @@
         "elemType": null
       },
       "spec": {
-        "fieldName": "description",
         "primaryKey": false,
         "viewDeclare": [
-          "detail",
-          "lite"
+          "detail"
         ]
       }
     },
     {
-      "name": "image",
+      "name": "policy",
       "description": "",
       "type": {
         "name": "string",
         "pkgPath": "",
         "description": "",
         "isPtr": false,
-        "elemType": {
-          "name": "string",
-          "pkgPath": "",
-          "description": "",
-            "isPtr": false,
-          "elemType": null
-        }
+        "elemType": null
       },
       "spec": {
-        "fieldName": "image",
+        "primaryKey": false,
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "req"
+      }
+    },
+    {
+      "name": "status",
+      "description": "",
+      "type": {
+        "name": "status",
+        "pkgPath": "/vmi",
+        "description": "",
+        "isPtr": true,
+        "elemType": null
+      },
+      "spec": {
+        "primaryKey": false,
+        "viewDeclare": [
+          "detail",
+          "lite"
+        ],
+        "constraint": "req"
       }
     },
     {
@@ -84,7 +116,8 @@
         "viewDeclare": [
           "detail"
         ],
-        "defaultValue": "$referenceExtData.currentEntity()"
+        "defaultValue": "$referenceExtData.currentEntity()",
+        "constraint": "ro"
       }
     },
     {
@@ -101,7 +134,8 @@
         "viewDeclare": [
           "detail"
         ],
-        "defaultValue": "$referenceExtData.currentTimeStamp()"
+        "defaultValue": "$referenceExtData.currentTimeStamp()",
+        "constraint": "ro"
       }
     },
     {
@@ -115,7 +149,8 @@
         "elemType": null
       },
       "spec": {
-        "defaultValue": "$referenceExtData.currentNamespace()"
+        "defaultValue": "$referenceExtData.currentNamespace()",
+        "constraint": "ro"
       }
     }
   ]

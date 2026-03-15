@@ -20,6 +20,8 @@ type resultItemsList []resultItems
 
 type QueryRunner struct {
 	baseRunner
+	responseModel  models.Model
+	responseByMask bool
 }
 
 func buildFullQueryMaskModel(vModel models.Model) (ret models.Model, err *cd.Error) {
@@ -54,9 +56,107 @@ func buildFullQueryMaskModel(vModel models.Model) (ret models.Model, err *cd.Err
 	return
 }
 
+type queryResponseMaskProvider interface {
+	HasValueMask() bool
+	ResponseModel() models.Model
+}
+
+type explicitResponseModelProvider interface {
+	ExplicitResponseModel() models.Model
+}
+
+type responseFieldChecker interface {
+	ResponseIncludesField(name string) bool
+}
+
+func buildQueryResponseModel(vModel models.Model, filter models.Filter) (ret models.Model, responseByMask bool, err *cd.Error) {
+	if filter != nil {
+		if responseProvider, ok := filter.(queryResponseMaskProvider); ok {
+			if responseProvider.HasValueMask() {
+				responseByMask = true
+				if explicitProvider, explicitOK := filter.(explicitResponseModelProvider); explicitOK {
+					ret = explicitProvider.ExplicitResponseModel()
+				} else {
+					ret = filter.MaskModel()
+				}
+				return
+			}
+
+			responseModel := responseProvider.ResponseModel()
+			if responseModel != nil {
+				ret = responseModel
+				return
+			}
+		}
+
+		ret = filter.MaskModel()
+		return
+	}
+
+	if vModel == nil {
+		err = cd.NewError(cd.IllegalParam, "query response model is nil")
+		return
+	}
+
+	ret = vModel.Copy(models.OriginView)
+	return
+}
+
+func fieldIncludedInResponse(responseModel models.Model, field models.Field, responseByMask bool) bool {
+	if field == nil {
+		return false
+	}
+	if models.IsPrimaryField(field) {
+		return true
+	}
+	if !responseByMask {
+		if fieldChecker, ok := responseModel.(responseFieldChecker); ok {
+			return fieldChecker.ResponseIncludesField(field.GetName())
+		}
+	}
+	return models.IsValidField(field) || models.IsAssignedField(field)
+}
+
+func applyQueryResponseModel(vModel, responseModel models.Model, responseByMask bool) models.Model {
+	if vModel == nil || responseModel == nil {
+		return vModel
+	}
+
+	projectedModel := responseModel.Copy(models.OriginView)
+	primaryField := vModel.GetPrimaryField()
+	if primaryField != nil && (models.IsValidField(primaryField) || models.IsAssignedField(primaryField)) {
+		_ = projectedModel.SetPrimaryFieldValue(primaryField.GetValue().Get())
+	}
+
+	for _, field := range projectedModel.GetFields() {
+		if !fieldIncludedInResponse(responseModel, field, responseByMask) {
+			continue
+		}
+
+		if models.IsPrimaryField(field) {
+			continue
+		}
+
+		sourceField := vModel.GetField(field.GetName())
+		if sourceField == nil {
+			continue
+		}
+		if !models.IsValidField(sourceField) && !models.IsAssignedField(sourceField) {
+			_ = projectedModel.SetFieldValue(field.GetName(), nil)
+			continue
+		}
+
+		_ = projectedModel.SetFieldValue(field.GetName(), sourceField.GetValue().Get())
+	}
+
+	return projectedModel
+}
+
 func NewQueryRunner(
 	ctx context.Context,
 	vModel models.Model,
+	responseModel models.Model,
+	responseByMask bool,
 	executor database.Executor,
 	provider provider.Provider,
 	modelCodec codec.Codec,
@@ -64,7 +164,9 @@ func NewQueryRunner(
 	deepLevel int) *QueryRunner {
 
 	return &QueryRunner{
-		baseRunner: newBaseRunner(ctx, vModel, executor, provider, modelCodec, batchFilter, deepLevel),
+		baseRunner:     newBaseRunner(ctx, vModel, executor, provider, modelCodec, batchFilter, deepLevel),
+		responseModel:  responseModel,
+		responseByMask: responseByMask,
 	}
 }
 
@@ -312,7 +414,7 @@ func (s *QueryRunner) innerQueryRelationSingleModel(id any, vField models.Field,
 		return
 	}
 
-	rQueryRunner := NewQueryRunner(s.context, queryMask, s.executor, s.modelProvider, s.modelCodec, false, deepLevel+1)
+	rQueryRunner := NewQueryRunner(s.context, queryMask, queryMask, false, s.executor, s.modelProvider, s.modelCodec, false, deepLevel+1)
 	queryVal, queryErr := rQueryRunner.Query(vFilter)
 	if queryErr != nil {
 		err = queryErr
@@ -370,7 +472,7 @@ func (s *QueryRunner) innerQueryRelationSliceModel(ids []any, vField models.Fiel
 			return
 		}
 
-		rQueryRunner := NewQueryRunner(s.context, queryMask, s.executor, s.modelProvider, s.modelCodec, false, deepLevel+1)
+		rQueryRunner := NewQueryRunner(s.context, queryMask, queryMask, false, s.executor, s.modelProvider, s.modelCodec, false, deepLevel+1)
 		queryVal, queryErr := rQueryRunner.Query(vFilter)
 		if queryErr != nil {
 			err = queryErr
@@ -416,6 +518,7 @@ func (s *QueryRunner) Query(filter models.Filter) (ret []models.Model, err *cd.E
 			slog.Error("QueryRunner failed", "error", err.Error())
 			return
 		}
+		modelVal = applyQueryResponseModel(modelVal, s.responseModel, s.responseByMask)
 
 		sliceValue = append(sliceValue, modelVal)
 	}
@@ -452,14 +555,21 @@ func (s *impl) Query(vModel models.Model) (ret models.Model, err *cd.Error) {
 		return
 	}
 
-	queryMask, maskErr := buildFullQueryMaskModel(vModel)
+	responseModel, responseByMask, responseErr := buildQueryResponseModel(vModel, nil)
+	if responseErr != nil {
+		err = responseErr
+		slog.Error("Query buildQueryResponseModel failed", "pkgKey", vModel.GetPkgKey(), "error", err.Error())
+		return
+	}
+
+	queryMask, maskErr := buildFullQueryMaskModel(responseModel)
 	if maskErr != nil {
 		err = maskErr
 		slog.Error("Query buildFullQueryMaskModel failed", "pkgKey", vModel.GetPkgKey(), "error", err.Error())
 		return
 	}
 
-	vQueryRunner := NewQueryRunner(s.context, queryMask, s.executor, s.modelProvider, s.modelCodec, false, 0)
+	vQueryRunner := NewQueryRunner(s.context, queryMask, responseModel, responseByMask, s.executor, s.modelProvider, s.modelCodec, false, 0)
 	queryVal, queryErr := vQueryRunner.Query(vFilter)
 	if queryErr != nil {
 		err = queryErr

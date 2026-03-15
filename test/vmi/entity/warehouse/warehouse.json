@@ -6,7 +6,7 @@
   "version": "0.0.1",
   "status": 2,
   "pkgPath": "/vmi",
-  "description": "仓库信息",
+  "description": "仓库信息。单个namespace里，可以拥有多个仓库，每个仓库里存放多个货架，每个货架只属于一个仓库。",
   "fields": [
     {
       "name": "id",
@@ -24,7 +24,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "ro"
       }
     },
     {
@@ -42,7 +43,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "ro"
       }
     },
     {
@@ -60,7 +62,8 @@
         "viewDeclare": [
           "detail",
           "lite"
-        ]
+        ],
+        "constraint": "req"
       }
     },
     {
@@ -94,11 +97,30 @@
         "viewDeclare": [
           "detail"
         ],
-        "defaultValue": "$referenceExtData.currentEntity()"
+        "defaultValue": "$referenceExtData.currentEntity()",
+        "constraint": "ro"
       }
     },
     {
       "name": "createTime",
+      "description": "",
+      "type": {
+        "name": "int64",
+        "pkgPath": "",
+        "description": "",
+        "isPtr": false,
+        "elemType": null
+      },
+      "spec": {
+        "viewDeclare": [
+          "detail"
+        ],
+        "defaultValue": "$referenceExtData.currentTimeStamp()",
+        "constraint": "ro"
+      }
+    },
+    {
+      "name": "modifyTime",
       "description": "",
       "type": {
         "name": "int64",
@@ -125,7 +147,8 @@
         "elemType": null
       },
       "spec": {
-        "defaultValue": "$referenceExtData.currentNamespace()"
+        "defaultValue": "$referenceExtData.currentNamespace()",
+        "constraint": "ro"
       }
     }
   ],
