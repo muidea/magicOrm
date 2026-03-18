@@ -38,6 +38,7 @@ type validationExtensionImpl struct {
 func NewValidationExtension(valueValidator models.ValueValidator) ValidationExtension {
 	// Create default validation configuration
 	config := validation.DefaultConfig()
+	config.EnableCaching = false
 
 	// Create validation factory
 	factory := validation.NewValidationFactory()

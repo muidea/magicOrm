@@ -172,7 +172,6 @@ func registerVMIQueryModels(t *testing.T, remoteProvider provider.Provider) {
 
 	for _, path := range []string{
 		"test/vmi/entity/status.json",
-		"test/vmi/entity/product/skuinfo.json",
 		"test/vmi/entity/product/product.json",
 	} {
 		if _, err := remoteProvider.RegisterModel(loadVMIObjectForORMTest(t, path)); err != nil {
@@ -220,28 +219,11 @@ func TestQueryRunnerVMIRemoteRelations(t *testing.T) {
 			{
 				match: func(sql string, args []any) bool {
 					return strings.Contains(sql, "tenant_Product") &&
-						!strings.Contains(sql, "tenant_ProductSkuInfo2SkuInfo") &&
 						!strings.Contains(sql, "tenant_ProductStatus3Status") &&
 						len(args) == 1 && reflect.DeepEqual(args, []any{int64(1001)})
 				},
 				rows: [][]any{
-					{int64(1001), "apple", "fresh apple", `["main.png","detail.png"]`, 30, `["fruit","fresh"]`, int64(0), int64(0), ""},
-				},
-			},
-			{
-				match: func(sql string, args []any) bool {
-					return strings.Contains(sql, "tenant_ProductSkuInfo2SkuInfo") &&
-						len(args) == 1 && reflect.DeepEqual(args, []any{int64(1001)})
-				},
-				rows: [][]any{{"sku-001"}},
-			},
-			{
-				match: func(sql string, args []any) bool {
-					return strings.Contains(sql, "tenant_SkuInfo") &&
-						len(args) == 1 && reflect.DeepEqual(args, []any{"sku-001"})
-				},
-				rows: [][]any{
-					{"sku-001", "default sku", `["sku-a.png"]`, int64(0), int64(0), ""},
+					{int64(1001), "apple", "fresh apple", `["main.png","detail.png"]`, 30, `["fruit","fresh"]`, int64(0), int64(0), int64(0), ""},
 				},
 			},
 			{
@@ -304,15 +286,8 @@ func TestQueryRunnerVMIRemoteRelations(t *testing.T) {
 		t.Fatalf("status relation mismatch: %#v", statusValue)
 	}
 
-	skuInfoValue, ok := productValue.GetFieldValue("skuInfo").(*remote.SliceObjectValue)
-	if !ok {
-		t.Fatalf("product skuInfo should be *remote.SliceObjectValue, got %T", productValue.GetFieldValue("skuInfo"))
-	}
-	if len(skuInfoValue.Values) != 1 {
-		t.Fatalf("product skuInfo length mismatch: %#v", skuInfoValue)
-	}
-	if skuInfoValue.Values[0].GetFieldValue("sku") != "sku-001" || skuInfoValue.Values[0].GetFieldValue("description") != "default sku" {
-		t.Fatalf("skuInfo relation mismatch: %#v", skuInfoValue.Values[0])
+	if productValue.GetFieldValue("skuInfo") != nil {
+		t.Fatalf("product should not expose removed skuInfo relation, got %#v", productValue.GetFieldValue("skuInfo"))
 	}
 }
 
@@ -332,18 +307,11 @@ func TestQueryRunnerVMIRemoteMissingPointerRelation(t *testing.T) {
 			{
 				match: func(sql string, args []any) bool {
 					return strings.Contains(sql, "tenant_Product") &&
-						!strings.Contains(sql, "tenant_ProductSkuInfo2SkuInfo") &&
 						!strings.Contains(sql, "tenant_ProductStatus3Status")
 				},
 				rows: [][]any{
-					{int64(1001), "apple", "fresh apple", `["main.png"]`, 30, `["fruit"]`, int64(0), int64(0), ""},
+					{int64(1001), "apple", "fresh apple", `["main.png"]`, 30, `["fruit"]`, int64(0), int64(0), int64(0), ""},
 				},
-			},
-			{
-				match: func(sql string, args []any) bool {
-					return strings.Contains(sql, "tenant_ProductSkuInfo2SkuInfo")
-				},
-				rows: [][]any{},
 			},
 			{
 				match: func(sql string, args []any) bool {
@@ -368,11 +336,7 @@ func TestQueryRunnerVMIRemoteMissingPointerRelation(t *testing.T) {
 	if productValue.GetFieldValue("status") != nil {
 		t.Fatalf("missing pointer relation should stay nil, got %#v", productValue.GetFieldValue("status"))
 	}
-	skuInfoValue, ok := productValue.GetFieldValue("skuInfo").(*remote.SliceObjectValue)
-	if !ok {
-		t.Fatalf("skuInfo should remain *remote.SliceObjectValue, got %T", productValue.GetFieldValue("skuInfo"))
-	}
-	if skuInfoValue.Values != nil {
-		t.Fatalf("missing slice relation should stay unassigned nil slice, got %#v", skuInfoValue.Values)
+	if productValue.GetFieldValue("skuInfo") != nil {
+		t.Fatalf("product should not expose removed skuInfo relation, got %#v", productValue.GetFieldValue("skuInfo"))
 	}
 }

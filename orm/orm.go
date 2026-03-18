@@ -47,6 +47,12 @@ var (
 	ormMetricCollector *metricsorm.ORMMetricsCollector
 )
 
+func defaultValidationConfig(enableCaching bool) validation.ValidationConfig {
+	cfg := validation.DefaultConfig()
+	cfg.EnableCaching = enableCaching
+	return cfg
+}
+
 // Initialize InitOrm
 func Initialize() {
 	name2PoolInitializeOnce.Do(func() {
@@ -186,8 +192,10 @@ func NewOrm(provider provider.Provider, cfg database.Config, prefix string) (Orm
 
 	// Create validation manager
 	validationFactory := validation.NewValidationFactory()
-	validationConfig := validation.DefaultConfig()
-	validationConfig.EnableCaching = true // Enable caching by default
+	// ORM handlers are request-scoped and released after each DAO call. Keeping
+	// validation caching enabled here starts a cleanup goroutine per handler and
+	// leaks it because Release only tears down the executor.
+	validationConfig := defaultValidationConfig(false)
 	validationMgr := validationFactory.CreateValidationManager(validationConfig)
 
 	orm := &impl{
@@ -196,7 +204,7 @@ func NewOrm(provider provider.Provider, cfg database.Config, prefix string) (Orm
 		modelProvider:   provider,
 		modelCodec:      codec.New(provider, prefix),
 		validationMgr:   validationMgr,
-		validationCache: true,
+		validationCache: validationConfig.EnableCaching,
 	}
 	return orm, nil
 }
@@ -226,8 +234,9 @@ func GetOrm(ctx context.Context, provider provider.Provider, prefix string) (ret
 
 	// Create validation manager
 	validationFactory := validation.NewValidationFactory()
-	validationConfig := validation.DefaultConfig()
-	validationConfig.EnableCaching = true // Enable caching by default
+	// ORM handlers fetched from the pool are short-lived; per-handler validation
+	// caches retain cleanup goroutines and heap state beyond Release.
+	validationConfig := defaultValidationConfig(false)
 	validationMgr := validationFactory.CreateValidationManager(validationConfig)
 
 	ret = &impl{
@@ -236,7 +245,7 @@ func GetOrm(ctx context.Context, provider provider.Provider, prefix string) (ret
 		modelProvider:   provider,
 		modelCodec:      codec.New(provider, prefix),
 		validationMgr:   validationMgr,
-		validationCache: true,
+		validationCache: validationConfig.EnableCaching,
 	}
 	return
 }

@@ -7,60 +7,73 @@ import (
 	"github.com/muidea/magicOrm/models"
 )
 
-func buildRewardPolicyObjectValue() *ObjectValue {
-	orderValue := &ObjectValue{
+func buildOrderObjectValue() *ObjectValue {
+	goodsValue := &ObjectValue{
 		ID:      "11",
-		Name:    "valueItem",
-		PkgPath: "/vmi/bill/rewardPolicy",
+		Name:    "goodsItem",
+		PkgPath: "/vmi/order",
 		Fields: []*FieldValue{
 			{Name: "id", Value: int64(11)},
-			{Name: "level", Value: 1},
-			{Name: "type", Value: 1},
-			{Name: "value", Value: 12.5},
+			{Name: "sku", Value: "sku-001"},
+			{Name: "name", Value: "apple"},
+			{Name: "price", Value: 12.5},
+			{Name: "count", Value: 2},
 		},
 	}
 
 	return &ObjectValue{
 		ID:      "2001",
-		Name:    "rewardPolicy",
-		PkgPath: "/vmi/bill",
+		Name:    "order",
+		PkgPath: "/vmi",
 		Fields: []*FieldValue{
 			{Name: "id", Value: int64(2001)},
-			{Name: "name", Value: "promotion"},
-			{Name: "description", Value: "order reward"},
-			{Name: "partner", Value: 5.5},
-			{Name: "order", Value: orderValue},
+			{Name: "sn", Value: "SO-2001"},
+			{Name: "type", Value: 1},
 			{
-				Name: "item",
+				Name: "customer",
+				Value: &ObjectValue{
+					ID:      "31",
+					Name:    "partner",
+					PkgPath: "/vmi",
+					Fields: []*FieldValue{
+						{Name: "id", Value: int64(31)},
+						{Name: "name", Value: "alice"},
+					},
+				},
+			},
+			{
+				Name: "goods",
 				Value: &SliceObjectValue{
-					Name:    "valueItem",
-					PkgPath: "/vmi/bill/rewardPolicy",
+					Name:    "goodsItem",
+					PkgPath: "/vmi/order",
 					Values: []*ObjectValue{
-						orderValue,
+						goodsValue,
 						{
 							ID:      "12",
-							Name:    "valueItem",
-							PkgPath: "/vmi/bill/rewardPolicy",
+							Name:    "goodsItem",
+							PkgPath: "/vmi/order",
 							Fields: []*FieldValue{
 								{Name: "id", Value: int64(12)},
-								{Name: "level", Value: 2},
-								{Name: "type", Value: 1},
-								{Name: "value", Value: 18.75},
+								{Name: "sku", Value: "sku-002"},
+								{Name: "name", Value: "banana"},
+								{Name: "price", Value: 18.75},
+								{Name: "count", Value: 1},
 							},
 						},
 					},
 				},
 			},
+			{Name: "cost", Value: 43.75},
+			{Name: "memo", Value: "serialize nested order"},
 			{
-				Name: "scope",
+				Name: "store",
 				Value: &ObjectValue{
-					ID:      "21",
-					Name:    "valueScope",
-					PkgPath: "/vmi/bill/rewardPolicy",
+					ID:      "41",
+					Name:    "store",
+					PkgPath: "/vmi",
 					Fields: []*FieldValue{
-						{Name: "id", Value: int64(21)},
-						{Name: "lowValue", Value: 100.0},
-						{Name: "highValue", Value: 999.0},
+						{Name: "id", Value: int64(41)},
+						{Name: "name", Value: "main store"},
 					},
 				},
 			},
@@ -82,18 +95,18 @@ func buildRewardPolicyObjectValue() *ObjectValue {
 }
 
 func TestDecodeObjectValuePreservesNilBackedSliceRelationShell(t *testing.T) {
-	product := loadVMIObject(t, "test/vmi/entity/product/product.json")
+	order := loadVMIObject(t, "test/vmi/entity/order/order.json")
 
 	objectValue := &ObjectValue{
 		ID:      "1001",
-		Name:    product.GetName(),
-		PkgPath: product.GetPkgPath(),
+		Name:    order.GetName(),
+		PkgPath: order.GetPkgPath(),
 		Fields: []*FieldValue{
 			{
-				Name: "skuInfo",
+				Name: "goods",
 				Value: &SliceObjectValue{
-					Name:    "skuInfo",
-					PkgPath: "/vmi/product",
+					Name:    "goodsItem",
+					PkgPath: "/vmi/order",
 					Values:  nil,
 				},
 			},
@@ -110,30 +123,30 @@ func TestDecodeObjectValuePreservesNilBackedSliceRelationShell(t *testing.T) {
 		t.Fatalf("DecodeObjectValue failed: %v", err)
 	}
 
-	skuInfoValue, ok := decoded.GetFieldValue("skuInfo").(*SliceObjectValue)
+	goodsValue, ok := decoded.GetFieldValue("goods").(*SliceObjectValue)
 	if !ok {
-		t.Fatalf("decoded skuInfo should remain *SliceObjectValue, got %#v", decoded.GetFieldValue("skuInfo"))
+		t.Fatalf("decoded goods should remain *SliceObjectValue, got %#v", decoded.GetFieldValue("goods"))
 	}
-	if skuInfoValue.Name != "skuInfo" || skuInfoValue.PkgPath != "/vmi/product" {
-		t.Fatalf("decoded skuInfo shell mismatch, got %#v", skuInfoValue)
+	if goodsValue.Name != "goodsItem" || goodsValue.PkgPath != "/vmi/order" {
+		t.Fatalf("decoded goods shell mismatch, got %#v", goodsValue)
 	}
-	if skuInfoValue.Values != nil {
-		t.Fatalf("decoded skuInfo should preserve nil-backed relation shell, got %#v", skuInfoValue.Values)
+	if goodsValue.Values != nil {
+		t.Fatalf("decoded goods should preserve nil-backed relation shell, got %#v", goodsValue.Values)
 	}
 }
 
 func TestConvertObjectValuePreservesMapBackedNilSliceRelationShell(t *testing.T) {
-	product := loadVMIObject(t, "test/vmi/entity/product/product.json")
+	order := loadVMIObject(t, "test/vmi/entity/order/order.json")
 
 	objectValue := &ObjectValue{
-		Name:    product.GetName(),
-		PkgPath: product.GetPkgPath(),
+		Name:    order.GetName(),
+		PkgPath: order.GetPkgPath(),
 		Fields: []*FieldValue{
 			{
-				Name: "skuInfo",
+				Name: "goods",
 				Value: map[string]any{
-					NameTag:    "skuInfo",
-					PkgPathTag: "/vmi/product",
+					NameTag:    "goodsItem",
+					PkgPathTag: "/vmi/order",
 					ValuesTag:  nil,
 				},
 			},
@@ -145,15 +158,15 @@ func TestConvertObjectValuePreservesMapBackedNilSliceRelationShell(t *testing.T)
 		t.Fatalf("ConvertObjectValue failed: %v", err)
 	}
 
-	skuInfoValue, ok := converted.GetFieldValue("skuInfo").(*SliceObjectValue)
+	goodsValue, ok := converted.GetFieldValue("goods").(*SliceObjectValue)
 	if !ok {
-		t.Fatalf("converted skuInfo should remain *SliceObjectValue, got %#v", converted.GetFieldValue("skuInfo"))
+		t.Fatalf("converted goods should remain *SliceObjectValue, got %#v", converted.GetFieldValue("goods"))
 	}
-	if skuInfoValue.Name != "skuInfo" || skuInfoValue.PkgPath != "/vmi/product" {
-		t.Fatalf("converted skuInfo shell mismatch, got %#v", skuInfoValue)
+	if goodsValue.Name != "goodsItem" || goodsValue.PkgPath != "/vmi/order" {
+		t.Fatalf("converted goods shell mismatch, got %#v", goodsValue)
 	}
-	if skuInfoValue.Values != nil {
-		t.Fatalf("converted skuInfo should preserve nil-backed relation shell, got %#v", skuInfoValue.Values)
+	if goodsValue.Values != nil {
+		t.Fatalf("converted goods should preserve nil-backed relation shell, got %#v", goodsValue.Values)
 	}
 }
 
@@ -180,68 +193,68 @@ func TestCompareObjectValueIncludesID(t *testing.T) {
 	}
 }
 
-func TestDecodeObjectValueRewardPolicyNestedRoundTrip(t *testing.T) {
-	rewardPolicyValue := buildRewardPolicyObjectValue()
+func TestDecodeObjectValueOrderNestedRoundTrip(t *testing.T) {
+	orderValue := buildOrderObjectValue()
 
-	encoded, err := EncodeObjectValue(rewardPolicyValue)
+	encoded, err := EncodeObjectValue(orderValue)
 	if err != nil {
-		t.Fatalf("EncodeObjectValue(rewardPolicy) failed: %v", err)
+		t.Fatalf("EncodeObjectValue(order) failed: %v", err)
 	}
 
 	decoded, err := DecodeObjectValue(encoded)
 	if err != nil {
-		t.Fatalf("DecodeObjectValue(rewardPolicy) failed: %v", err)
+		t.Fatalf("DecodeObjectValue(order) failed: %v", err)
 	}
 
-	if !CompareObjectValue(rewardPolicyValue, decoded) {
-		t.Fatalf("DecodeObjectValue(rewardPolicy) mismatch, got %#v", decoded)
+	if !CompareObjectValue(orderValue, decoded) {
+		t.Fatalf("DecodeObjectValue(order) mismatch, got %#v", decoded)
 	}
 }
 
-func TestConvertObjectValueRewardPolicyNestedRoundTrip(t *testing.T) {
-	rewardPolicyValue := buildRewardPolicyObjectValue()
+func TestConvertObjectValueOrderNestedRoundTrip(t *testing.T) {
+	orderValue := buildOrderObjectValue()
 
-	encoded, err := EncodeObjectValue(rewardPolicyValue)
+	encoded, err := EncodeObjectValue(orderValue)
 	if err != nil {
-		t.Fatalf("EncodeObjectValue(rewardPolicy) failed: %v", err)
+		t.Fatalf("EncodeObjectValue(order) failed: %v", err)
 	}
 
 	rawValue := &ObjectValue{}
 	if err := json.Unmarshal(encoded, rawValue); err != nil {
-		t.Fatalf("json.Unmarshal(raw rewardPolicy) failed: %v", err)
+		t.Fatalf("json.Unmarshal(raw order) failed: %v", err)
 	}
 
 	converted, err := ConvertObjectValue(rawValue)
 	if err != nil {
-		t.Fatalf("ConvertObjectValue(rewardPolicy) failed: %v", err)
+		t.Fatalf("ConvertObjectValue(order) failed: %v", err)
 	}
 
-	if !CompareObjectValue(rewardPolicyValue, converted) {
-		t.Fatalf("ConvertObjectValue(rewardPolicy) mismatch, got %#v", converted)
+	if !CompareObjectValue(orderValue, converted) {
+		t.Fatalf("ConvertObjectValue(order) mismatch, got %#v", converted)
 	}
 }
 
-func TestDecodeSliceObjectValueRewardPolicyRoundTrip(t *testing.T) {
+func TestDecodeSliceObjectValueOrderRoundTrip(t *testing.T) {
 	sliceValue := &SliceObjectValue{
-		Name:    "rewardPolicy",
-		PkgPath: "/vmi/bill",
+		Name:    "order",
+		PkgPath: "/vmi",
 		Values: []*ObjectValue{
-			buildRewardPolicyObjectValue(),
+			buildOrderObjectValue(),
 		},
 	}
 
 	encoded, err := EncodeSliceObjectValue(sliceValue)
 	if err != nil {
-		t.Fatalf("EncodeSliceObjectValue(rewardPolicy) failed: %v", err)
+		t.Fatalf("EncodeSliceObjectValue(order) failed: %v", err)
 	}
 
 	decoded, err := DecodeSliceObjectValue(encoded)
 	if err != nil {
-		t.Fatalf("DecodeSliceObjectValue(rewardPolicy) failed: %v", err)
+		t.Fatalf("DecodeSliceObjectValue(order) failed: %v", err)
 	}
 
 	if !CompareSliceObjectValue(sliceValue, decoded) {
-		t.Fatalf("DecodeSliceObjectValue(rewardPolicy) mismatch, got %#v", decoded)
+		t.Fatalf("DecodeSliceObjectValue(order) mismatch, got %#v", decoded)
 	}
 }
 
@@ -315,7 +328,7 @@ func TestConvertObjectValueConvertsBasicSlicesFromRawJSON(t *testing.T) {
 }
 
 func TestObjectSetFieldValueStructAndSliceStruct(t *testing.T) {
-	product := loadVMIObject(t, "test/vmi/entity/product/product.json")
+	order := loadVMIObject(t, "test/vmi/entity/order/order.json")
 
 	statusValue := ObjectValue{
 		ID:      "9",
@@ -326,42 +339,44 @@ func TestObjectSetFieldValueStructAndSliceStruct(t *testing.T) {
 			{Name: "name", Value: "published"},
 		},
 	}
-	if err := product.SetFieldValue("status", statusValue); err != nil {
+	if err := order.SetFieldValue("status", statusValue); err != nil {
 		t.Fatalf("SetFieldValue(status) failed: %v", err)
 	}
 
-	skuInfoValue := SliceObjectValue{
-		Name:    "skuInfo",
-		PkgPath: "/vmi/product",
+	goodsValue := SliceObjectValue{
+		Name:    "goodsItem",
+		PkgPath: "/vmi/order",
 		Values: []*ObjectValue{
 			{
-				ID:      "sku-001",
-				Name:    "skuInfo",
-				PkgPath: "/vmi/product",
+				ID:      "11",
+				Name:    "goodsItem",
+				PkgPath: "/vmi/order",
 				Fields: []*FieldValue{
+					{Name: "id", Value: int64(11)},
 					{Name: "sku", Value: "sku-001"},
+					{Name: "name", Value: "apple"},
 				},
 			},
 		},
 	}
-	if err := product.SetFieldValue("skuInfo", skuInfoValue); err != nil {
-		t.Fatalf("SetFieldValue(skuInfo) failed: %v", err)
+	if err := order.SetFieldValue("goods", goodsValue); err != nil {
+		t.Fatalf("SetFieldValue(goods) failed: %v", err)
 	}
 
-	gotStatus, ok := product.GetField("status").GetValue().Get().(*ObjectValue)
+	gotStatus, ok := order.GetField("status").GetValue().Get().(*ObjectValue)
 	if !ok || !CompareObjectValue(&statusValue, gotStatus) {
-		t.Fatalf("status field mismatch, got %#v", product.GetField("status").GetValue().Get())
+		t.Fatalf("status field mismatch, got %#v", order.GetField("status").GetValue().Get())
 	}
-	gotSKUInfo, ok := product.GetField("skuInfo").GetValue().Get().(*SliceObjectValue)
-	if !ok || !CompareSliceObjectValue(&skuInfoValue, gotSKUInfo) {
-		t.Fatalf("skuInfo field mismatch, got %#v", product.GetField("skuInfo").GetValue().Get())
+	gotGoods, ok := order.GetField("goods").GetValue().Get().(*SliceObjectValue)
+	if !ok || !CompareSliceObjectValue(&goodsValue, gotGoods) {
+		t.Fatalf("goods field mismatch, got %#v", order.GetField("goods").GetValue().Get())
 	}
 
-	if err := product.SetFieldValue("status", "illegal"); err == nil {
+	if err := order.SetFieldValue("status", "illegal"); err == nil {
 		t.Fatalf("SetFieldValue(status, string) should fail")
 	}
-	if err := product.SetFieldValue("skuInfo", "illegal"); err == nil {
-		t.Fatalf("SetFieldValue(skuInfo, string) should fail")
+	if err := order.SetFieldValue("goods", "illegal"); err == nil {
+		t.Fatalf("SetFieldValue(goods, string) should fail")
 	}
 }
 
@@ -453,8 +468,8 @@ func TestObjectResetAndVerify(t *testing.T) {
 		t.Fatal("Verify should reject invalid field declaration")
 	}
 
-	sliceObject := &SliceObjectValue{Name: "skuInfo", PkgPath: "/vmi/product"}
-	if sliceObject.GetPkgKey() != "/vmi/product/skuInfo" {
+	sliceObject := &SliceObjectValue{Name: "goodsItem", PkgPath: "/vmi/order"}
+	if sliceObject.GetPkgKey() != "/vmi/order/goodsItem" {
 		t.Fatalf("SliceObjectValue.GetPkgKey mismatch, got %q", sliceObject.GetPkgKey())
 	}
 }

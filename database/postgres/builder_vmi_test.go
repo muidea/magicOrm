@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"strings"
 	"testing"
 
@@ -32,51 +33,75 @@ func loadVMIRemoteObject(t *testing.T, relativePath string) *remote.Object {
 	return object
 }
 
-func buildVMIProductFilter(t *testing.T) (provider.Provider, *Builder, *remote.Object, *remote.ObjectFilter, *remote.SliceObjectValue, *remote.ObjectValue) {
+func registerAllVMIRemoteModels(t *testing.T, remoteProvider provider.Provider) {
 	t.Helper()
 
-	remoteProvider := provider.NewRemoteProvider("tenant", nil)
-	for _, path := range []string{
-		"test/vmi/entity/status.json",
-		"test/vmi/entity/product/skuinfo.json",
-		"test/vmi/entity/product/product.json",
-	} {
+	root := filepath.Join("..", "..", "test", "vmi", "entity")
+	paths := make([]string, 0, 16)
+	err := filepath.WalkDir(root, func(path string, d os.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if d.IsDir() || filepath.Ext(path) != ".json" {
+			return nil
+		}
+
+		relativePath, err := filepath.Rel(filepath.Join("..", ".."), path)
+		if err != nil {
+			return err
+		}
+		paths = append(paths, relativePath)
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("WalkDir(%s) failed: %v", root, err)
+	}
+
+	sort.Strings(paths)
+	for _, path := range paths {
 		if _, err := remoteProvider.RegisterModel(loadVMIRemoteObject(t, path)); err != nil {
 			t.Fatalf("RegisterModel(%s) failed: %v", path, err)
 		}
 	}
+}
 
-	productObject := loadVMIRemoteObject(t, "test/vmi/entity/product/product.json")
-	productModel, err := remoteProvider.GetEntityModel(productObject, true)
+func buildVMIOrderFilter(t *testing.T) (provider.Provider, *Builder, *remote.Object, *remote.ObjectFilter, *remote.SliceObjectValue, *remote.ObjectValue) {
+	t.Helper()
+
+	remoteProvider := provider.NewRemoteProvider("tenant", nil)
+	registerAllVMIRemoteModels(t, remoteProvider)
+
+	orderObject := loadVMIRemoteObject(t, "test/vmi/entity/order/order.json")
+	orderModel, err := remoteProvider.GetEntityModel(orderObject, true)
 	if err != nil {
-		t.Fatalf("GetEntityModel(product) failed: %v", err)
+		t.Fatalf("GetEntityModel(order) failed: %v", err)
 	}
 
-	filter, err := remoteProvider.GetModelFilter(productModel)
+	filter, err := remoteProvider.GetModelFilter(orderModel)
 	if err != nil {
-		t.Fatalf("GetModelFilter(product) failed: %v", err)
+		t.Fatalf("GetModelFilter(order) failed: %v", err)
 	}
 	objectFilter, ok := filter.(*remote.ObjectFilter)
 	if !ok {
 		t.Fatalf("expected *remote.ObjectFilter, got %T", filter)
 	}
 
-	skuInfoSlice := &remote.SliceObjectValue{
-		Name:    "skuInfo",
-		PkgPath: "/vmi/product",
+	goodsSlice := &remote.SliceObjectValue{
+		Name:    "goodsItem",
+		PkgPath: "/vmi/order",
 		Values: []*remote.ObjectValue{
 			{
-				Name:    "skuInfo",
-				PkgPath: "/vmi/product",
+				Name:    "goodsItem",
+				PkgPath: "/vmi/order",
 				Fields: []*remote.FieldValue{
-					{Name: "sku", Value: "sku-001"},
+					{Name: "id", Value: int64(501)},
 				},
 			},
 			{
-				Name:    "skuInfo",
-				PkgPath: "/vmi/product",
+				Name:    "goodsItem",
+				PkgPath: "/vmi/order",
 				Fields: []*remote.FieldValue{
-					{Name: "sku", Value: "sku-002"},
+					{Name: "id", Value: int64(502)},
 				},
 			},
 		},
@@ -90,22 +115,14 @@ func buildVMIProductFilter(t *testing.T) (provider.Provider, *Builder, *remote.O
 	}
 
 	builder := NewBuilder(remoteProvider, codec.New(remoteProvider, "tenant"))
-	return remoteProvider, builder, productModel.(*remote.Object), objectFilter, skuInfoSlice, statusValue
+	return remoteProvider, builder, orderModel.(*remote.Object), objectFilter, goodsSlice, statusValue
 }
 
 func buildVMIProductValueModel(t *testing.T) (provider.Provider, *Builder, *remote.Object) {
 	t.Helper()
 
 	remoteProvider := provider.NewRemoteProvider("tenant", nil)
-	for _, path := range []string{
-		"test/vmi/entity/status.json",
-		"test/vmi/entity/product/skuinfo.json",
-		"test/vmi/entity/product/product.json",
-	} {
-		if _, err := remoteProvider.RegisterModel(loadVMIRemoteObject(t, path)); err != nil {
-			t.Fatalf("RegisterModel(%s) failed: %v", path, err)
-		}
-	}
+	registerAllVMIRemoteModels(t, remoteProvider)
 
 	productValue := &remote.ObjectValue{
 		Name:    "product",
@@ -116,22 +133,6 @@ func buildVMIProductValueModel(t *testing.T) (provider.Provider, *Builder, *remo
 			{Name: "description", Value: "fresh apple"},
 			{Name: "image", Value: []string{"main.png", "detail.png"}},
 			{Name: "expire", Value: 30},
-			{
-				Name: "skuInfo",
-				Value: &remote.SliceObjectValue{
-					Name:    "skuInfo",
-					PkgPath: "/vmi/product",
-					Values: []*remote.ObjectValue{
-						{
-							Name:    "skuInfo",
-							PkgPath: "/vmi/product",
-							Fields: []*remote.FieldValue{
-								{Name: "sku", Value: "sku-001"},
-							},
-						},
-					},
-				},
-			},
 			{
 				Name: "status",
 				Value: &remote.ObjectValue{
@@ -159,125 +160,142 @@ func buildVMIProductValueModel(t *testing.T) (provider.Provider, *Builder, *remo
 }
 
 func TestBuilderVMIBuildQueryRelationFilters(t *testing.T) {
-	_, builder, productModel, filter, skuInfoSlice, statusValue := buildVMIProductFilter(t)
+	_, builder, orderModel, filter, goodsSlice, statusValue := buildVMIOrderFilter(t)
 
-	if err := filter.In("skuInfo", skuInfoSlice); err != nil {
-		t.Fatalf("filter.In(skuInfo) failed: %v", err)
+	if err := filter.In("goods", goodsSlice); err != nil {
+		t.Fatalf("filter.In(goods) failed: %v", err)
 	}
 	if err := filter.Equal("status", statusValue); err != nil {
 		t.Fatalf("filter.Equal(status) failed: %v", err)
 	}
 
-	result, err := builder.BuildQuery(productModel, filter)
+	result, err := builder.BuildQuery(orderModel, filter)
 	if err != nil {
 		t.Fatalf("BuildQuery failed: %v", err)
 	}
 
 	sql := result.SQL()
-	if !strings.Contains(sql, `FROM "tenant_Product"`) {
+	if !strings.Contains(sql, `FROM "tenant_Order"`) {
 		t.Fatalf("unexpected query sql: %s", sql)
 	}
-	if !strings.Contains(sql, `"id" IN (SELECT DISTINCT("left") "id"  FROM "tenant_ProductSkuInfo2SkuInfo" WHERE "right" IN ($1,$2))`) {
-		t.Fatalf("missing skuInfo relation filter in sql: %s", sql)
+	if !strings.Contains(sql, `"id" IN (SELECT DISTINCT("left") "id"  FROM "tenant_OrderGoods2GoodsItem" WHERE "right" IN ($1,$2))`) {
+		t.Fatalf("missing goods relation filter in sql: %s", sql)
 	}
-	if !strings.Contains(sql, `"id" IN (SELECT DISTINCT("left") "id"  FROM "tenant_ProductStatus3Status" WHERE "right" = $3)`) {
+	if !strings.Contains(sql, `"id" IN (SELECT DISTINCT("left") "id"  FROM "tenant_OrderStatus3Status" WHERE "right" = $3)`) {
 		t.Fatalf("missing status relation filter in sql: %s", sql)
 	}
 
-	wantArgs := []any{"sku-001", "sku-002", int64(9)}
+	wantArgs := []any{int64(501), int64(502), int64(9)}
 	if !reflect.DeepEqual(result.Args(), wantArgs) {
 		t.Fatalf("unexpected query args: got=%#v want=%#v", result.Args(), wantArgs)
 	}
 }
 
 func TestBuilderVMINotInRelationFilter(t *testing.T) {
-	_, builder, productModel, filter, skuInfoSlice, _ := buildVMIProductFilter(t)
+	_, builder, orderModel, filter, goodsSlice, _ := buildVMIOrderFilter(t)
 
-	if err := filter.NotIn("skuInfo", skuInfoSlice); err != nil {
-		t.Fatalf("filter.NotIn(skuInfo) failed: %v", err)
+	if err := filter.NotIn("goods", goodsSlice); err != nil {
+		t.Fatalf("filter.NotIn(goods) failed: %v", err)
 	}
 
-	result, err := builder.BuildQuery(productModel, filter)
+	result, err := builder.BuildQuery(orderModel, filter)
 	if err != nil {
 		t.Fatalf("BuildQuery failed: %v", err)
 	}
 
 	sql := result.SQL()
-	if !strings.Contains(sql, `"id" IN (SELECT DISTINCT("left") "id"  FROM "tenant_ProductSkuInfo2SkuInfo" WHERE "right" NOT IN ($1,$2))`) {
-		t.Fatalf("missing skuInfo not-in relation filter in sql: %s", sql)
+	if !strings.Contains(sql, `"id" IN (SELECT DISTINCT("left") "id"  FROM "tenant_OrderGoods2GoodsItem" WHERE "right" NOT IN ($1,$2))`) {
+		t.Fatalf("missing goods not-in relation filter in sql: %s", sql)
 	}
 
-	wantArgs := []any{"sku-001", "sku-002"}
+	wantArgs := []any{int64(501), int64(502)}
 	if !reflect.DeepEqual(result.Args(), wantArgs) {
 		t.Fatalf("unexpected query args: got=%#v want=%#v", result.Args(), wantArgs)
 	}
 }
 
 func TestBuilderVMIBuildCountRelationFilters(t *testing.T) {
-	_, builder, productModel, filter, skuInfoSlice, statusValue := buildVMIProductFilter(t)
+	_, builder, orderModel, filter, goodsSlice, statusValue := buildVMIOrderFilter(t)
 
-	if err := filter.In("skuInfo", skuInfoSlice); err != nil {
-		t.Fatalf("filter.In(skuInfo) failed: %v", err)
+	if err := filter.In("goods", goodsSlice); err != nil {
+		t.Fatalf("filter.In(goods) failed: %v", err)
 	}
 	if err := filter.Equal("status", statusValue); err != nil {
 		t.Fatalf("filter.Equal(status) failed: %v", err)
 	}
 
-	result, err := builder.BuildCount(productModel, filter)
+	result, err := builder.BuildCount(orderModel, filter)
 	if err != nil {
 		t.Fatalf("BuildCount failed: %v", err)
 	}
 
 	sql := result.SQL()
-	if !strings.Contains(sql, `SELECT COUNT(*) FROM "tenant_Product"`) {
+	if !strings.Contains(sql, `SELECT COUNT(*) FROM "tenant_Order"`) {
 		t.Fatalf("unexpected count sql: %s", sql)
 	}
-	if !strings.Contains(sql, `"tenant_ProductSkuInfo2SkuInfo"`) || !strings.Contains(sql, `"tenant_ProductStatus3Status"`) {
+	if !strings.Contains(sql, `"tenant_OrderGoods2GoodsItem"`) || !strings.Contains(sql, `"tenant_OrderStatus3Status"`) {
 		t.Fatalf("missing relation count filters in sql: %s", sql)
 	}
 
-	wantArgs := []any{"sku-001", "sku-002", int64(9)}
+	wantArgs := []any{int64(501), int64(502), int64(9)}
 	if !reflect.DeepEqual(result.Args(), wantArgs) {
 		t.Fatalf("unexpected count args: got=%#v want=%#v", result.Args(), wantArgs)
 	}
 }
 
 func TestBuilderVMIQueryAndDeleteRelations(t *testing.T) {
-	_, builder, productModel := buildVMIProductValueModel(t)
-	if productModel.GetField("skuInfo") == nil || productModel.GetField("status") == nil {
-		t.Fatal("skuInfo/status field should exist")
+	remoteProvider := provider.NewRemoteProvider("tenant", nil)
+	registerAllVMIRemoteModels(t, remoteProvider)
+	orderModel, err := remoteProvider.GetEntityModel(&remote.ObjectValue{
+		Name:    "order",
+		PkgPath: "/vmi",
+		Fields: []*remote.FieldValue{
+			{Name: "id", Value: int64(1001)},
+		},
+	}, true)
+	if err != nil {
+		t.Fatalf("GetEntityModel(orderValue) failed: %v", err)
+	}
+	orderObject, ok := orderModel.(*remote.Object)
+	if !ok {
+		t.Fatalf("expected *remote.Object, got %T", orderModel)
 	}
 
-	queryRelation, err := builder.BuildQueryRelation(productModel, productModel.GetField("skuInfo"))
-	if err != nil {
-		t.Fatalf("BuildQueryRelation(skuInfo) failed: %v", err)
+	builder := NewBuilder(remoteProvider, codec.New(remoteProvider, "tenant"))
+	if orderObject.GetField("goods") == nil || orderObject.GetField("status") == nil {
+		t.Fatal("goods/status field should exist")
 	}
-	if queryRelation.SQL() != `SELECT "right" FROM "tenant_ProductSkuInfo2SkuInfo" WHERE "left"= $1` {
+
+	queryRelation, err := builder.BuildQueryRelation(orderObject, orderObject.GetField("goods"))
+	if err != nil {
+		t.Fatalf("BuildQueryRelation(goods) failed: %v", err)
+	}
+	if queryRelation.SQL() != `SELECT "right" FROM "tenant_OrderGoods2GoodsItem" WHERE "left"= $1` {
 		t.Fatalf("unexpected query relation sql: %s", queryRelation.SQL())
 	}
 	if !reflect.DeepEqual(queryRelation.Args(), []any{int64(1001)}) {
 		t.Fatalf("unexpected query relation args: %#v", queryRelation.Args())
 	}
 
-	deleteRelationByRights, err := builder.BuildDeleteRelationByRights(productModel, productModel.GetField("skuInfo"), []any{"sku-001", "sku-002"})
+	deleteRelationByRights, err := builder.BuildDeleteRelationByRights(orderObject, orderObject.GetField("goods"), []any{int64(501), int64(502)})
 	if err != nil {
-		t.Fatalf("BuildDeleteRelationByRights(skuInfo) failed: %v", err)
+		t.Fatalf("BuildDeleteRelationByRights(goods) failed: %v", err)
 	}
-	if deleteRelationByRights.SQL() != `DELETE FROM "tenant_ProductSkuInfo2SkuInfo" WHERE "left"=$1 AND "right" IN ($2,$3)` {
+	if deleteRelationByRights.SQL() != `DELETE FROM "tenant_OrderGoods2GoodsItem" WHERE "left"=$1 AND "right" IN ($2,$3)` {
 		t.Fatalf("unexpected delete relation by rights sql: %s", deleteRelationByRights.SQL())
 	}
-	if !reflect.DeepEqual(deleteRelationByRights.Args(), []any{int64(1001), "sku-001", "sku-002"}) {
+	if !reflect.DeepEqual(deleteRelationByRights.Args(), []any{int64(1001), int64(501), int64(502)}) {
 		t.Fatalf("unexpected delete relation by rights args: %#v", deleteRelationByRights.Args())
 	}
 
-	delHost, delRelation, err := builder.BuildDeleteRelation(productModel, productModel.GetField("status"))
+	delHost, delRelation, err := builder.BuildDeleteRelation(orderObject, orderObject.GetField("status"))
 	if err != nil {
 		t.Fatalf("BuildDeleteRelation(status) failed: %v", err)
 	}
-	if delHost.SQL() != `DELETE FROM "tenant_Status" WHERE "id" IN (SELECT "right" FROM "tenant_ProductStatus3Status" WHERE "left"=$1)` {
+	if delHost.SQL() != `DELETE FROM "tenant_Status" WHERE "id" IN (SELECT "right" FROM "tenant_OrderStatus3Status" WHERE "left"=$1)` {
 		t.Fatalf("unexpected delete host sql: %s", delHost.SQL())
 	}
-	if delRelation.SQL() != `DELETE FROM "tenant_ProductStatus3Status" WHERE "left"=$1` {
+	if delRelation.SQL() != `DELETE FROM "tenant_OrderStatus3Status" WHERE "left"=$1` {
 		t.Fatalf("unexpected delete relation sql: %s", delRelation.SQL())
 	}
 	if !reflect.DeepEqual(delHost.Args(), []any{int64(1001)}) || !reflect.DeepEqual(delRelation.Args(), []any{int64(1001)}) {
@@ -286,46 +304,59 @@ func TestBuilderVMIQueryAndDeleteRelations(t *testing.T) {
 }
 
 func TestBuilderVMICreateInsertAndDropRelations(t *testing.T) {
-	remoteProvider, builder, productModel := buildVMIProductValueModel(t)
-
-	createRelation, err := builder.BuildCreateRelationTable(productModel, productModel.GetField("skuInfo"))
-	if err != nil {
-		t.Fatalf("BuildCreateRelationTable(skuInfo) failed: %v", err)
-	}
-	if !strings.Contains(createRelation.SQL(), `CREATE TABLE IF NOT EXISTS "tenant_ProductSkuInfo2SkuInfo"`) {
-		t.Fatalf("unexpected create relation sql: %s", createRelation.SQL())
-	}
-	if !strings.Contains(createRelation.SQL(), `"left" BIGINT NOT NULL`) || !strings.Contains(createRelation.SQL(), `"right" VARCHAR(32) NOT NULL`) {
-		t.Fatalf("unexpected create relation column types: %s", createRelation.SQL())
-	}
-
-	skuInfoModel, err := remoteProvider.GetEntityModel(&remote.ObjectValue{
-		Name:    "skuInfo",
-		PkgPath: "/vmi/product",
+	remoteProvider := provider.NewRemoteProvider("tenant", nil)
+	registerAllVMIRemoteModels(t, remoteProvider)
+	orderModel, err := remoteProvider.GetEntityModel(&remote.ObjectValue{
+		Name:    "order",
+		PkgPath: "/vmi",
 		Fields: []*remote.FieldValue{
-			{Name: "sku", Value: "sku-009"},
+			{Name: "id", Value: int64(1001)},
 		},
 	}, true)
 	if err != nil {
-		t.Fatalf("GetEntityModel(skuInfoValue) failed: %v", err)
+		t.Fatalf("GetEntityModel(orderValue) failed: %v", err)
+	}
+	orderObject := orderModel.(*remote.Object)
+	builder := NewBuilder(remoteProvider, codec.New(remoteProvider, "tenant"))
+
+	createRelation, err := builder.BuildCreateRelationTable(orderObject, orderObject.GetField("goods"))
+	if err != nil {
+		t.Fatalf("BuildCreateRelationTable(goods) failed: %v", err)
+	}
+	if !strings.Contains(createRelation.SQL(), `CREATE TABLE IF NOT EXISTS "tenant_OrderGoods2GoodsItem"`) {
+		t.Fatalf("unexpected create relation sql: %s", createRelation.SQL())
+	}
+	if !strings.Contains(createRelation.SQL(), `"left" BIGINT NOT NULL`) || !strings.Contains(createRelation.SQL(), `"right" BIGINT NOT NULL`) {
+		t.Fatalf("unexpected create relation column types: %s", createRelation.SQL())
 	}
 
-	insertRelation, err := builder.BuildInsertRelation(productModel, productModel.GetField("skuInfo"), skuInfoModel)
+	goodsItemModel, err := remoteProvider.GetEntityModel(&remote.ObjectValue{
+		Name:    "goodsItem",
+		PkgPath: "/vmi/order",
+		Fields: []*remote.FieldValue{
+			{Name: "id", Value: int64(909)},
+		},
+	}, true)
 	if err != nil {
-		t.Fatalf("BuildInsertRelation(skuInfo) failed: %v", err)
+		t.Fatalf("GetEntityModel(goodsItemValue) failed: %v", err)
 	}
-	if insertRelation.SQL() != `INSERT INTO "tenant_ProductSkuInfo2SkuInfo" ("left", "right") VALUES ($1,$2) RETURNING id` {
+
+	insertRelation, err := builder.BuildInsertRelation(orderObject, orderObject.GetField("goods"), goodsItemModel)
+	if err != nil {
+		t.Fatalf("BuildInsertRelation(goods) failed: %v", err)
+	}
+	if insertRelation.SQL() != `INSERT INTO "tenant_OrderGoods2GoodsItem" ("left", "right") VALUES ($1,$2) RETURNING id` {
 		t.Fatalf("unexpected insert relation sql: %s", insertRelation.SQL())
 	}
-	if !reflect.DeepEqual(insertRelation.Args(), []any{int64(1001), "sku-009"}) {
+	if !reflect.DeepEqual(insertRelation.Args(), []any{int64(1001), int64(909)}) {
 		t.Fatalf("unexpected insert relation args: %#v", insertRelation.Args())
 	}
 
-	dropRelation, err := builder.BuildDropRelationTable(productModel, productModel.GetField("skuInfo"))
+	dropRelation, err := builder.BuildDropRelationTable(orderObject, orderObject.GetField("goods"))
 	if err != nil {
-		t.Fatalf("BuildDropRelationTable(skuInfo) failed: %v", err)
+		t.Fatalf("BuildDropRelationTable(goods) failed: %v", err)
 	}
-	if dropRelation.SQL() != "DROP INDEX IF EXISTS \"tenant_ProductSkuInfo2SkuInfo_index\";\nDROP TABLE IF EXISTS \"tenant_ProductSkuInfo2SkuInfo\"" {
+	if dropRelation.SQL() != "DROP INDEX IF EXISTS \"tenant_OrderGoods2GoodsItem_index\";\nDROP TABLE IF EXISTS \"tenant_OrderGoods2GoodsItem\"" {
 		t.Fatalf("unexpected drop relation sql: %s", dropRelation.SQL())
 	}
 }
@@ -350,7 +381,7 @@ func TestBuilderVMIMainTableSQL(t *testing.T) {
 	if !strings.Contains(createSQL, `"creater" BIGINT NOT NULL DEFAULT '0'`) || !strings.Contains(createSQL, `"createTime" BIGINT NOT NULL DEFAULT '0'`) {
 		t.Fatalf("create table should materialize numeric reference defaults: %s", createSQL)
 	}
-	if strings.Contains(createSQL, `"status"`) || strings.Contains(createSQL, `"skuInfo"`) {
+	if strings.Contains(createSQL, `"status"`) {
 		t.Fatalf("create table should not include relation fields: %s", createSQL)
 	}
 
@@ -359,10 +390,10 @@ func TestBuilderVMIMainTableSQL(t *testing.T) {
 		t.Fatalf("BuildInsert(product) failed: %v", err)
 	}
 	insertSQL := insertResult.SQL()
-	if !strings.Contains(insertSQL, `INSERT INTO "tenant_Product" ("name","description","image","expire","tags","creater","createTime","namespace") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`) {
+	if !strings.Contains(insertSQL, `INSERT INTO "tenant_Product" ("name","description","image","expire","tags","creater","createTime","modifyTime","namespace") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`) {
 		t.Fatalf("unexpected insert sql: %s", insertSQL)
 	}
-	wantInsertArgs := []any{"apple", "fresh apple", `["main.png","detail.png"]`, 30, `["fruit","fresh"]`, int64(0), int64(0), ""}
+	wantInsertArgs := []any{"apple", "fresh apple", `["main.png","detail.png"]`, 30, `["fruit","fresh"]`, int64(0), int64(0), int64(0), ""}
 	if !reflect.DeepEqual(insertResult.Args(), wantInsertArgs) {
 		t.Fatalf("unexpected insert args: got=%#v want=%#v", insertResult.Args(), wantInsertArgs)
 	}
@@ -372,10 +403,10 @@ func TestBuilderVMIMainTableSQL(t *testing.T) {
 		t.Fatalf("BuildUpdate(product) failed: %v", err)
 	}
 	updateSQL := updateResult.SQL()
-	if !strings.Contains(updateSQL, `UPDATE "tenant_Product" SET "name" = $1,"description" = $2,"image" = $3,"expire" = $4,"tags" = $5,"creater" = $6,"createTime" = $7,"namespace" = $8 WHERE "id" = $9`) {
+	if !strings.Contains(updateSQL, `UPDATE "tenant_Product" SET "name" = $1,"description" = $2,"image" = $3,"expire" = $4,"tags" = $5,"modifyTime" = $6 WHERE "id" = $7`) {
 		t.Fatalf("unexpected update sql: %s", updateSQL)
 	}
-	wantUpdateArgs := []any{"apple", "fresh apple", `["main.png","detail.png"]`, 30, `["fruit","fresh"]`, int64(0), int64(0), "", int64(1001)}
+	wantUpdateArgs := []any{"apple", "fresh apple", `["main.png","detail.png"]`, 30, `["fruit","fresh"]`, int64(0), int64(1001)}
 	if !reflect.DeepEqual(updateResult.Args(), wantUpdateArgs) {
 		t.Fatalf("unexpected update args: got=%#v want=%#v", updateResult.Args(), wantUpdateArgs)
 	}
@@ -394,15 +425,7 @@ func TestBuilderVMIMainTableSQL(t *testing.T) {
 
 func TestBuilderVMIUpdateRequiresWritableFields(t *testing.T) {
 	remoteProvider := provider.NewRemoteProvider("tenant", nil)
-	for _, path := range []string{
-		"test/vmi/entity/status.json",
-		"test/vmi/entity/product/skuinfo.json",
-		"test/vmi/entity/product/product.json",
-	} {
-		if _, err := remoteProvider.RegisterModel(loadVMIRemoteObject(t, path)); err != nil {
-			t.Fatalf("RegisterModel(%s) failed: %v", path, err)
-		}
-	}
+	registerAllVMIRemoteModels(t, remoteProvider)
 
 	productModel, err := remoteProvider.GetEntityModel(loadVMIRemoteObject(t, "test/vmi/entity/product/product.json"), true)
 	if err != nil {

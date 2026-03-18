@@ -1,6 +1,8 @@
 package remote
 
 import (
+	"sync"
+
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/utils"
 )
@@ -19,6 +21,7 @@ type SpecImpl struct {
 }
 
 var emptySpec = SpecImpl{PrimaryKey: false, ValueDeclare: models.Customer}
+var constraintCache sync.Map
 
 func (m SpecImpl) GetFieldName() string {
 	return m.FieldName
@@ -33,13 +36,20 @@ func (m SpecImpl) GetValueDeclare() models.ValueDeclare {
 }
 
 func (m SpecImpl) GetConstraints() models.Constraints {
-	if m.constraintsVal == nil {
-		if m.Constraint != "" {
-			m.constraintsVal = utils.ParseConstraints(m.Constraint)
-		}
+	if m.constraintsVal != nil {
+		return m.constraintsVal
+	}
+	if m.Constraint == "" {
+		return nil
 	}
 
-	return m.constraintsVal
+	if cached, ok := constraintCache.Load(m.Constraint); ok {
+		return cached.(models.Constraints)
+	}
+
+	parsed := utils.ParseConstraints(m.Constraint)
+	actual, _ := constraintCache.LoadOrStore(m.Constraint, parsed)
+	return actual.(models.Constraints)
 }
 
 func (m SpecImpl) EnableView(viewSpec models.ViewDeclare) bool {
@@ -70,6 +80,9 @@ func (m SpecImpl) Copy() *SpecImpl {
 		ViewDeclare:  m.ViewDeclare,
 		Constraint:   m.Constraint,
 		DefaultValue: m.DefaultValue,
+	}
+	if m.constraintsVal != nil {
+		ret.constraintsVal = m.constraintsVal
 	}
 
 	return &ret

@@ -71,14 +71,14 @@ func TestVMIEntityDefinitionsDecodeAndVerify(t *testing.T) {
 func TestVMIProductFieldKinds(t *testing.T) {
 	object := loadVMIObject(t, "test/vmi/entity/product/product.json")
 
-	skuInfo := requireField(t, object, "skuInfo")
-	if !models.IsSliceField(skuInfo) || !models.IsStructType(skuInfo.GetType().Elem().GetValue()) {
-		t.Fatalf("product.skuInfo should be slice of struct, got type=%v elem=%v", skuInfo.GetType().GetValue(), skuInfo.GetType().Elem().GetValue())
-	}
-
 	image := requireField(t, object, "image")
 	if !models.IsSliceField(image) || !models.IsBasicType(image.GetType().Elem().GetValue()) {
 		t.Fatalf("product.image should be slice of basic value, got type=%v elem=%v", image.GetType().GetValue(), image.GetType().Elem().GetValue())
+	}
+
+	tags := requireField(t, object, "tags")
+	if !models.IsSliceField(tags) || !models.IsBasicType(tags.GetType().Elem().GetValue()) {
+		t.Fatalf("product.tags should be slice of basic value, got type=%v elem=%v", tags.GetType().GetValue(), tags.GetType().Elem().GetValue())
 	}
 
 	status := requireField(t, object, "status")
@@ -106,35 +106,49 @@ func TestVMIStockInFieldKinds(t *testing.T) {
 	}
 }
 
-func TestVMIRewardPolicyFieldKinds(t *testing.T) {
-	object := loadVMIObject(t, "test/vmi/entity/bill/rewardPolicy/rewardPolicy.json")
+func TestVMIOrderFieldKinds(t *testing.T) {
+	object := loadVMIObject(t, "test/vmi/entity/order/order.json")
 
-	item := requireField(t, object, "item")
-	if !models.IsSliceField(item) || !models.IsStructType(item.GetType().Elem().GetValue()) {
-		t.Fatalf("rewardPolicy.item should be slice of struct, got type=%v elem=%v", item.GetType().GetValue(), item.GetType().Elem().GetValue())
+	goods := requireField(t, object, "goods")
+	if !models.IsSliceField(goods) || !models.IsStructType(goods.GetType().Elem().GetValue()) {
+		t.Fatalf("order.goods should be slice of struct, got type=%v elem=%v", goods.GetType().GetValue(), goods.GetType().Elem().GetValue())
 	}
 
-	scope := requireField(t, object, "scope")
-	if !models.IsStructField(scope) || models.IsPtrField(scope) {
-		t.Fatalf("rewardPolicy.scope should be value struct, got type=%v isPtr=%v", scope.GetType().GetValue(), scope.GetType().IsPtrType())
+	customer := requireField(t, object, "customer")
+	if !models.IsStructField(customer) || !models.IsPtrField(customer) {
+		t.Fatalf("order.customer should be pointer struct, got type=%v isPtr=%v", customer.GetType().GetValue(), customer.GetType().IsPtrType())
+	}
+
+	store := requireField(t, object, "store")
+	if !models.IsStructField(store) || !models.IsPtrField(store) {
+		t.Fatalf("order.store should be pointer struct, got type=%v isPtr=%v", store.GetType().GetValue(), store.GetType().IsPtrType())
 	}
 
 	status := requireField(t, object, "status")
 	if !models.IsStructField(status) || !models.IsPtrField(status) {
-		t.Fatalf("rewardPolicy.status should be pointer struct, got type=%v isPtr=%v", status.GetType().GetValue(), status.GetType().IsPtrType())
+		t.Fatalf("order.status should be pointer struct, got type=%v isPtr=%v", status.GetType().GetValue(), status.GetType().IsPtrType())
 	}
 }
 
 func TestVMIStoreFieldKinds(t *testing.T) {
 	object := loadVMIObject(t, "test/vmi/entity/store/store.json")
 
-	goods := requireField(t, object, "goods")
-	if !models.IsSliceField(goods) || !models.IsStructType(goods.GetType().Elem().GetValue()) || !goods.GetType().Elem().IsPtrType() {
-		t.Fatalf("store.goods should be slice of pointer struct, got type=%v elem=%v elemPtr=%v", goods.GetType().GetValue(), goods.GetType().Elem().GetValue(), goods.GetType().Elem().IsPtrType())
-	}
-
 	shelf := requireField(t, object, "shelf")
 	if !models.IsSliceField(shelf) || !models.IsStructType(shelf.GetType().Elem().GetValue()) || !shelf.GetType().Elem().IsPtrType() {
 		t.Fatalf("store.shelf should be slice of pointer struct, got type=%v elem=%v elemPtr=%v", shelf.GetType().GetValue(), shelf.GetType().Elem().GetValue(), shelf.GetType().Elem().IsPtrType())
+	}
+}
+
+func TestVMIRewardPolicyFieldKinds(t *testing.T) {
+	object := loadVMIObject(t, "test/vmi/entity/credit/rewardPolicy/rewardPolicy.json")
+
+	policy := requireField(t, object, "policy")
+	if !models.IsBasicField(policy) {
+		t.Fatalf("rewardPolicy.policy should be basic field, got type=%v", policy.GetType().GetValue())
+	}
+
+	status := requireField(t, object, "status")
+	if !models.IsStructField(status) || !models.IsPtrField(status) {
+		t.Fatalf("rewardPolicy.status should be pointer struct, got type=%v isPtr=%v", status.GetType().GetValue(), status.GetType().IsPtrType())
 	}
 }

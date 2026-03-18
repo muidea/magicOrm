@@ -172,10 +172,10 @@ func TestRemoteProviderVMIResolvesReferencedTypeModels(t *testing.T) {
 		wantKey   string
 	}{
 		{objectKey: "/vmi/product", fieldName: "status", wantKey: "/vmi/status"},
-		{objectKey: "/vmi/product", fieldName: "skuInfo", wantKey: "/vmi/product/skuInfo"},
-		{objectKey: "/vmi/bill/rewardPolicy", fieldName: "scope", wantKey: "/vmi/bill/rewardPolicy/valueScope"},
-		{objectKey: "/vmi/bill/rewardPolicy", fieldName: "item", wantKey: "/vmi/bill/rewardPolicy/valueItem"},
-		{objectKey: "/vmi/store", fieldName: "goods", wantKey: "/vmi/store/goods"},
+		{objectKey: "/vmi/product/productInfo", fieldName: "product", wantKey: "/vmi/product"},
+		{objectKey: "/vmi/store/goodsInfo", fieldName: "product", wantKey: "/vmi/product/productInfo"},
+		{objectKey: "/vmi/store/goodsInfo", fieldName: "shelf", wantKey: "/vmi/warehouse/shelf"},
+		{objectKey: "/vmi/order", fieldName: "goods", wantKey: "/vmi/order/goodsItem"},
 		{objectKey: "/vmi/store", fieldName: "shelf", wantKey: "/vmi/warehouse/shelf"},
 	}
 
@@ -199,51 +199,56 @@ func TestRemoteProviderVMIResolvesReferencedTypeModels(t *testing.T) {
 	}
 }
 
-func TestRemoteProviderVMIProductRoundTripAndFilter(t *testing.T) {
+func TestRemoteProviderVMIGoodsInfoRoundTripAndFilter(t *testing.T) {
 	remoteProvider := NewRemoteProvider("default", nil)
 	registerAllVMIRemoteObjects(t, remoteProvider)
 
-	statusValue := &remote.ObjectValue{
-		Name:    "status",
-		PkgPath: "/vmi",
-		Fields: []*remote.FieldValue{
-			{Name: "id", Value: int64(2)},
-			{Name: "value", Value: 1},
-			{Name: "name", Value: "enabled"},
-		},
-	}
-	skuInfoValue := &remote.ObjectValue{
-		Name:    "skuInfo",
-		PkgPath: "/vmi/product",
-		Fields: []*remote.FieldValue{
-			{Name: "sku", Value: "sku-001"},
-			{Name: "description", Value: "default sku"},
-			{Name: "image", Value: []string{"sku-a.png", "sku-b.png"}},
-		},
-	}
-	skuInfoSlice := &remote.SliceObjectValue{
-		Name:    "skuInfo",
-		PkgPath: "/vmi/product",
-		Values:  []*remote.ObjectValue{skuInfoValue},
-	}
 	productValue := &remote.ObjectValue{
-		Name:    "product",
-		PkgPath: "/vmi",
+		Name:    "productInfo",
+		PkgPath: "/vmi/product",
+		Fields: []*remote.FieldValue{
+			{Name: "id", Value: int64(81)},
+			{Name: "sku", Value: "sku-info-001"},
+			{Name: "description", Value: "default product info"},
+		},
+	}
+	shelfSlice := &remote.SliceObjectValue{
+		Name:    "shelf",
+		PkgPath: "/vmi/warehouse",
+		Values: []*remote.ObjectValue{
+			{
+				Name:    "shelf",
+				PkgPath: "/vmi/warehouse",
+				Fields: []*remote.FieldValue{
+					{Name: "id", Value: int64(301)},
+				},
+			},
+			{
+				Name:    "shelf",
+				PkgPath: "/vmi/warehouse",
+				Fields: []*remote.FieldValue{
+					{Name: "id", Value: int64(302)},
+				},
+			},
+		},
+	}
+	goodsInfoValue := &remote.ObjectValue{
+		Name:    "goodsInfo",
+		PkgPath: "/vmi/store",
 		Fields: []*remote.FieldValue{
 			{Name: "id", Value: int64(1001)},
-			{Name: "name", Value: "apple"},
-			{Name: "description", Value: "fresh apple"},
-			{Name: "skuInfo", Value: skuInfoSlice},
-			{Name: "image", Value: []string{"main.png"}},
-			{Name: "expire", Value: 30},
-			{Name: "status", Value: statusValue},
-			{Name: "tags", Value: []string{"fruit", "fresh"}},
+			{Name: "sku", Value: "sku-001"},
+			{Name: "product", Value: productValue},
+			{Name: "type", Value: 1},
+			{Name: "count", Value: 8},
+			{Name: "price", Value: 19.5},
+			{Name: "shelf", Value: shelfSlice},
 		},
 	}
 
-	model, err := remoteProvider.GetEntityModel(productValue, true)
+	model, err := remoteProvider.GetEntityModel(goodsInfoValue, true)
 	if err != nil {
-		t.Fatalf("GetEntityModel(productValue) failed: %v", err)
+		t.Fatalf("GetEntityModel(goodsInfoValue) failed: %v", err)
 	}
 
 	gotValue, ok := model.Interface(true).(*remote.ObjectValue)
@@ -251,93 +256,88 @@ func TestRemoteProviderVMIProductRoundTripAndFilter(t *testing.T) {
 		t.Fatalf("Interface(true) should return *remote.ObjectValue, got %T", model.Interface(true))
 	}
 	if gotValue.ID != "1001" {
-		t.Fatalf("product ID mismatch, got %s", gotValue.ID)
+		t.Fatalf("goodsInfo ID mismatch, got %s", gotValue.ID)
 	}
 	if requireRemoteObjectValueField[int64](t, gotValue, "id") != int64(1001) {
-		t.Fatalf("product.id mismatch, got %#v", gotValue.GetFieldValue("id"))
+		t.Fatalf("goodsInfo.id mismatch, got %#v", gotValue.GetFieldValue("id"))
 	}
-	if requireRemoteObjectValueField[string](t, gotValue, "name") != "apple" {
-		t.Fatalf("product.name mismatch, got %#v", gotValue.GetFieldValue("name"))
+	if requireRemoteObjectValueField[string](t, gotValue, "sku") != "sku-001" {
+		t.Fatalf("goodsInfo.sku mismatch, got %#v", gotValue.GetFieldValue("sku"))
 	}
-	if requireRemoteObjectValueField[string](t, gotValue, "description") != "fresh apple" {
-		t.Fatalf("product.description mismatch, got %#v", gotValue.GetFieldValue("description"))
+	if requireRemoteObjectValueField[int](t, gotValue, "type") != 1 {
+		t.Fatalf("goodsInfo.type mismatch, got %#v", gotValue.GetFieldValue("type"))
 	}
-	if requireRemoteObjectValueField[int](t, gotValue, "expire") != 30 {
-		t.Fatalf("product.expire mismatch, got %#v", gotValue.GetFieldValue("expire"))
+	if requireRemoteObjectValueField[int](t, gotValue, "count") != 8 {
+		t.Fatalf("goodsInfo.count mismatch, got %#v", gotValue.GetFieldValue("count"))
 	}
-	gotImage := requireRemoteObjectValueField[[]string](t, gotValue, "image")
-	if len(gotImage) != 1 || gotImage[0] != "main.png" {
-		t.Fatalf("product.image mismatch, got %#v", gotImage)
+	if requireRemoteObjectValueField[float64](t, gotValue, "price") != 19.5 {
+		t.Fatalf("goodsInfo.price mismatch, got %#v", gotValue.GetFieldValue("price"))
 	}
-	gotTags := requireRemoteObjectValueField[[]string](t, gotValue, "tags")
-	if len(gotTags) != 2 || gotTags[0] != "fruit" || gotTags[1] != "fresh" {
-		t.Fatalf("product.tags mismatch, got %#v", gotTags)
+	gotProductValue := requireRemoteObjectValueField[*remote.ObjectValue](t, gotValue, "product")
+	if !remote.CompareObjectValue(productValue, gotProductValue) {
+		t.Fatalf("goodsInfo.product mismatch, got %#v", gotProductValue)
 	}
-	gotStatusValue := requireRemoteObjectValueField[*remote.ObjectValue](t, gotValue, "status")
-	if !remote.CompareObjectValue(statusValue, gotStatusValue) {
-		t.Fatalf("product.status mismatch, got %#v", gotStatusValue)
-	}
-	gotSKUInfoValue := requireRemoteObjectValueField[*remote.SliceObjectValue](t, gotValue, "skuInfo")
-	if !remote.CompareSliceObjectValue(skuInfoSlice, gotSKUInfoValue) {
-		t.Fatalf("product.skuInfo mismatch, got %#v", gotSKUInfoValue)
+	gotShelfValue := requireRemoteObjectValueField[*remote.SliceObjectValue](t, gotValue, "shelf")
+	if !remote.CompareSliceObjectValue(shelfSlice, gotShelfValue) {
+		t.Fatalf("goodsInfo.shelf mismatch, got %#v", gotShelfValue)
 	}
 
 	filter, err := remoteProvider.GetModelFilter(model)
 	if err != nil {
-		t.Fatalf("GetModelFilter(productModel) failed: %v", err)
+		t.Fatalf("GetModelFilter(goodsInfoModel) failed: %v", err)
 	}
 
-	if err := filter.Equal("status", statusValue); err != nil {
-		t.Fatalf("filter.Equal(status) failed: %v", err)
+	if err := filter.Equal("product", productValue); err != nil {
+		t.Fatalf("filter.Equal(product) failed: %v", err)
 	}
-	if err := filter.In("skuInfo", skuInfoSlice); err != nil {
-		t.Fatalf("filter.In(skuInfo) failed: %v", err)
-	}
-
-	statusItem := filter.GetFilterItem("status")
-	if statusItem == nil || statusItem.OprCode() != models.EqualOpr {
-		t.Fatalf("status filter item mismatch: %#v", statusItem)
-	}
-	gotStatus, ok := statusItem.OprValue().Get().(*remote.ObjectValue)
-	if !ok || !remote.CompareObjectValue(statusValue, gotStatus) {
-		t.Fatalf("status filter value mismatch, got %#v", statusItem.OprValue().Get())
+	if err := filter.In("shelf", shelfSlice); err != nil {
+		t.Fatalf("filter.In(shelf) failed: %v", err)
 	}
 
-	skuInfoItem := filter.GetFilterItem("skuInfo")
-	if skuInfoItem == nil || skuInfoItem.OprCode() != models.InOpr {
-		t.Fatalf("skuInfo filter item mismatch: %#v", skuInfoItem)
+	productItem := filter.GetFilterItem("product")
+	if productItem == nil || productItem.OprCode() != models.EqualOpr {
+		t.Fatalf("product filter item mismatch: %#v", productItem)
 	}
-	gotSKUInfo, ok := skuInfoItem.OprValue().Get().(*remote.SliceObjectValue)
-	if !ok || !remote.CompareSliceObjectValue(skuInfoSlice, gotSKUInfo) {
-		t.Fatalf("skuInfo filter value mismatch, got %#v", skuInfoItem.OprValue().Get())
+	gotProduct, ok := productItem.OprValue().Get().(*remote.ObjectValue)
+	if !ok || !remote.CompareObjectValue(productValue, gotProduct) {
+		t.Fatalf("product filter value mismatch, got %#v", productItem.OprValue().Get())
+	}
+
+	shelfItem := filter.GetFilterItem("shelf")
+	if shelfItem == nil || shelfItem.OprCode() != models.InOpr {
+		t.Fatalf("shelf filter item mismatch: %#v", shelfItem)
+	}
+	gotShelf, ok := shelfItem.OprValue().Get().(*remote.SliceObjectValue)
+	if !ok || !remote.CompareSliceObjectValue(shelfSlice, gotShelf) {
+		t.Fatalf("shelf filter value mismatch, got %#v", shelfItem.OprValue().Get())
 	}
 
 	maskValue := &remote.ObjectValue{
-		Name:    "product",
-		PkgPath: "/vmi",
+		Name:    "goodsInfo",
+		PkgPath: "/vmi/store",
 		Fields: []*remote.FieldValue{
 			{
-				Name: "status",
+				Name: "product",
 				Value: &remote.ObjectValue{
-					Name:    "status",
-					PkgPath: "/vmi",
+					Name:    "productInfo",
+					PkgPath: "/vmi/product",
 					Fields: []*remote.FieldValue{
-						{Name: "id", Value: int64(2)},
+						{Name: "id", Value: int64(81)},
 					},
 				},
 			},
 			{
-				Name: "skuInfo",
+				Name: "shelf",
 				Value: &remote.SliceObjectValue{
-					Name:    "skuInfo",
-					PkgPath: "/vmi/product",
+					Name:    "shelf",
+					PkgPath: "/vmi/warehouse",
 					Values:  []*remote.ObjectValue{},
 				},
 			},
 		},
 	}
 	if err := filter.ValueMask(maskValue); err != nil {
-		t.Fatalf("filter.ValueMask(product mask) failed: %v", err)
+		t.Fatalf("filter.ValueMask(goodsInfo mask) failed: %v", err)
 	}
 
 	maskedModel := filter.MaskModel()
@@ -345,19 +345,19 @@ func TestRemoteProviderVMIProductRoundTripAndFilter(t *testing.T) {
 		t.Fatal("MaskModel() should not return nil")
 	}
 
-	maskedStatus := requireRemoteFieldValue[*remote.ObjectValue](t, maskedModel, "status")
-	if maskedStatus.GetFieldValue("id") != int64(2) {
-		t.Fatalf("masked status should keep explicit id, got %#v", maskedStatus)
+	maskedProduct := requireRemoteFieldValue[*remote.ObjectValue](t, maskedModel, "product")
+	if maskedProduct.GetFieldValue("id") != int64(81) {
+		t.Fatalf("masked product should keep explicit id, got %#v", maskedProduct)
 	}
 
-	maskedSKUInfo := requireRemoteFieldValue[*remote.SliceObjectValue](t, maskedModel, "skuInfo")
-	if maskedSKUInfo.Values == nil || len(maskedSKUInfo.Values) != 0 {
-		t.Fatalf("masked skuInfo should be assigned empty slice, got %#v", maskedSKUInfo)
+	maskedShelf := requireRemoteFieldValue[*remote.SliceObjectValue](t, maskedModel, "shelf")
+	if maskedShelf.Values == nil || len(maskedShelf.Values) != 0 {
+		t.Fatalf("masked shelf should be assigned empty slice, got %#v", maskedShelf)
 	}
 
-	originalSKUInfo := requireRemoteFieldValue[*remote.SliceObjectValue](t, model, "skuInfo")
-	if len(originalSKUInfo.Values) != 1 {
-		t.Fatalf("MaskModel should not mutate original skuInfo, got %#v", originalSKUInfo)
+	originalShelf := requireRemoteFieldValue[*remote.SliceObjectValue](t, model, "shelf")
+	if len(originalShelf.Values) != 2 {
+		t.Fatalf("MaskModel should not mutate original shelf, got %#v", originalShelf)
 	}
 }
 
@@ -374,54 +374,14 @@ func TestRemoteProviderVMIRewardPolicyRoundTrip(t *testing.T) {
 			{Name: "name", Value: "published"},
 		},
 	}
-	orderValue := &remote.ObjectValue{
-		Name:    "valueItem",
-		PkgPath: "/vmi/bill/rewardPolicy",
-		Fields: []*remote.FieldValue{
-			{Name: "id", Value: int64(11)},
-			{Name: "level", Value: 1},
-			{Name: "type", Value: 1},
-			{Name: "value", Value: 12.5},
-		},
-	}
-	itemSlice := &remote.SliceObjectValue{
-		Name:    "valueItem",
-		PkgPath: "/vmi/bill/rewardPolicy",
-		Values: []*remote.ObjectValue{
-			orderValue,
-			{
-				Name:    "valueItem",
-				PkgPath: "/vmi/bill/rewardPolicy",
-				Fields: []*remote.FieldValue{
-					{Name: "id", Value: int64(12)},
-					{Name: "level", Value: 2},
-					{Name: "type", Value: 1},
-					{Name: "value", Value: 18.75},
-				},
-			},
-		},
-	}
-	scopeValue := &remote.ObjectValue{
-		Name:    "valueScope",
-		PkgPath: "/vmi/bill/rewardPolicy",
-		Fields: []*remote.FieldValue{
-			{Name: "id", Value: int64(21)},
-			{Name: "lowValue", Value: 100.0},
-			{Name: "highValue", Value: 999.0},
-		},
-	}
 	rewardPolicyValue := &remote.ObjectValue{
 		Name:    "rewardPolicy",
-		PkgPath: "/vmi/bill",
+		PkgPath: "/vmi/credit",
 		Fields: []*remote.FieldValue{
 			{Name: "id", Value: int64(2001)},
 			{Name: "name", Value: "promotion"},
-			{Name: "description", Value: "order reward"},
-			{Name: "partner", Value: 5.5},
-			{Name: "order", Value: orderValue},
-			{Name: "item", Value: itemSlice},
-			{Name: "scope", Value: scopeValue},
-			{Name: "ratio", Value: 1.25},
+			{Name: "description", Value: "credit reward"},
+			{Name: "policy", Value: "order.total * 2"},
 			{Name: "status", Value: statusValue},
 		},
 	}
@@ -444,45 +404,15 @@ func TestRemoteProviderVMIRewardPolicyRoundTrip(t *testing.T) {
 	if requireRemoteObjectValueField[string](t, gotValue, "name") != "promotion" {
 		t.Fatalf("rewardPolicy.name mismatch, got %#v", gotValue.GetFieldValue("name"))
 	}
-	if requireRemoteObjectValueField[string](t, gotValue, "description") != "order reward" {
+	if requireRemoteObjectValueField[string](t, gotValue, "description") != "credit reward" {
 		t.Fatalf("rewardPolicy.description mismatch, got %#v", gotValue.GetFieldValue("description"))
 	}
-	if requireRemoteObjectValueField[float64](t, gotValue, "partner") != 5.5 {
-		t.Fatalf("rewardPolicy.partner mismatch, got %#v", gotValue.GetFieldValue("partner"))
-	}
-	if requireRemoteObjectValueField[float64](t, gotValue, "ratio") != 1.25 {
-		t.Fatalf("rewardPolicy.ratio mismatch, got %#v", gotValue.GetFieldValue("ratio"))
+	if requireRemoteObjectValueField[string](t, gotValue, "policy") != "order.total * 2" {
+		t.Fatalf("rewardPolicy.policy mismatch, got %#v", gotValue.GetFieldValue("policy"))
 	}
 	gotStatusValue := requireRemoteObjectValueField[*remote.ObjectValue](t, gotValue, "status")
 	if !remote.CompareObjectValue(statusValue, gotStatusValue) {
 		t.Fatalf("rewardPolicy.status mismatch, got %#v", gotStatusValue)
-	}
-	gotOrderValue := requireRemoteObjectValueField[*remote.ObjectValue](t, gotValue, "order")
-	if !remote.CompareObjectValue(orderValue, gotOrderValue) {
-		t.Fatalf("rewardPolicy.order mismatch, got %#v", gotOrderValue)
-	}
-	gotScopeValue := requireRemoteObjectValueField[*remote.ObjectValue](t, gotValue, "scope")
-	if !remote.CompareObjectValue(scopeValue, gotScopeValue) {
-		t.Fatalf("rewardPolicy.scope mismatch, got %#v", gotScopeValue)
-	}
-	gotItemValues := requireRemoteObjectValueField[*remote.SliceObjectValue](t, gotValue, "item")
-	if !remote.CompareSliceObjectValue(itemSlice, gotItemValues) {
-		t.Fatalf("rewardPolicy.item mismatch, got %#v", gotItemValues)
-	}
-
-	gotOrder := requireRemoteFieldValue[*remote.ObjectValue](t, model, "order")
-	if !remote.CompareObjectValue(orderValue, gotOrder) {
-		t.Fatalf("rewardPolicy.order mismatch, got %#v", gotOrder)
-	}
-
-	gotScope := requireRemoteFieldValue[*remote.ObjectValue](t, model, "scope")
-	if !remote.CompareObjectValue(scopeValue, gotScope) {
-		t.Fatalf("rewardPolicy.scope mismatch, got %#v", gotScope)
-	}
-
-	gotItems := requireRemoteFieldValue[*remote.SliceObjectValue](t, model, "item")
-	if !remote.CompareSliceObjectValue(itemSlice, gotItems) {
-		t.Fatalf("rewardPolicy.item mismatch, got %#v", gotItems)
 	}
 }
 
@@ -677,10 +607,10 @@ func TestRemoteProviderVMIGetTypeFilterRespectsLiteView(t *testing.T) {
 				},
 			},
 			{
-				Name: "status",
+				Name: "shelf",
 				Value: &remote.ObjectValue{
-					Name:    "status",
-					PkgPath: "/vmi",
+					Name:    "shelf",
+					PkgPath: "/vmi/warehouse",
 					Fields: []*remote.FieldValue{
 						{Name: "id", Value: int64(71)},
 					},
@@ -712,65 +642,64 @@ func TestRemoteProviderVMIGetTypeFilterRespectsLiteView(t *testing.T) {
 	if productValue.GetFieldValue("id") != int64(6001) {
 		t.Fatalf("goodsInfo.product mismatch, got %#v", productValue)
 	}
-	requireRemoteFieldInvalid(t, maskModel, "status")
+	requireRemoteFieldInvalid(t, maskModel, "shelf")
 }
 
 func TestRemoteProviderVMIEncodeValueCompressesRelationPrimaryKeys(t *testing.T) {
 	remoteProvider := NewRemoteProvider("default", nil)
 	objects := registerAllVMIRemoteObjects(t, remoteProvider)
 
-	productObject := objects["/vmi/product"]
-	if productObject == nil {
-		t.Fatal("missing registered /vmi/product model")
+	goodsInfoObject := objects["/vmi/store/goodsInfo"]
+	if goodsInfoObject == nil {
+		t.Fatal("missing registered /vmi/store/goodsInfo model")
 	}
-	statusField := productObject.GetField("status")
-	skuInfoField := productObject.GetField("skuInfo")
-	if statusField == nil || skuInfoField == nil {
-		t.Fatal("/vmi/product status or skuInfo field should exist")
-	}
-
-	statusValue := &remote.ObjectValue{
-		Name:    "status",
-		PkgPath: "/vmi",
-		Fields: []*remote.FieldValue{
-			{Name: "id", Value: int64(9)},
-			{Name: "value", Value: 2},
-			{Name: "name", Value: "published"},
-		},
-	}
-	encodedStatus, err := remoteProvider.EncodeValue(statusValue, statusField.GetType())
-	if err != nil {
-		t.Fatalf("EncodeValue(status relation) failed: %v", err)
-	}
-	if encodedStatus != int64(9) {
-		t.Fatalf("encoded status should be primary key 9, got %#v", encodedStatus)
+	productField := goodsInfoObject.GetField("product")
+	shelfField := goodsInfoObject.GetField("shelf")
+	if productField == nil || shelfField == nil {
+		t.Fatal("/vmi/store/goodsInfo product or shelf field should exist")
 	}
 
-	skuInfoValue := &remote.ObjectValue{
-		Name:    "skuInfo",
+	productValue := &remote.ObjectValue{
+		Name:    "productInfo",
 		PkgPath: "/vmi/product",
 		Fields: []*remote.FieldValue{
+			{Name: "id", Value: int64(81)},
 			{Name: "sku", Value: "sku-encoded"},
-			{Name: "description", Value: "encoded"},
 		},
 	}
-	encodedSKU, err := remoteProvider.EncodeValue(skuInfoValue, skuInfoField.GetType())
+	encodedProduct, err := remoteProvider.EncodeValue(productValue, productField.GetType())
 	if err != nil {
-		t.Fatalf("EncodeValue(skuInfo relation item) failed: %v", err)
+		t.Fatalf("EncodeValue(product relation) failed: %v", err)
 	}
-	if encodedSKU != "sku-encoded" {
-		t.Fatalf("encoded skuInfo should be primary key sku-encoded, got %#v", encodedSKU)
+	if encodedProduct != int64(81) {
+		t.Fatalf("encoded product should be primary key 81, got %#v", encodedProduct)
 	}
 
-	statusPrimary := objects["/vmi/status"].GetPrimaryField()
-	if statusPrimary == nil {
-		t.Fatal("missing /vmi/status primary field")
+	shelfValue := &remote.ObjectValue{
+		Name:    "shelf",
+		PkgPath: "/vmi/warehouse",
+		Fields: []*remote.FieldValue{
+			{Name: "id", Value: int64(301)},
+			{Name: "capacity", Value: 20},
+		},
 	}
-	decodedStatus, err := remoteProvider.DecodeValue(encodedStatus, statusPrimary.GetType())
+	encodedShelf, err := remoteProvider.EncodeValue(shelfValue, shelfField.GetType())
 	if err != nil {
-		t.Fatalf("DecodeValue(status primary) failed: %v", err)
+		t.Fatalf("EncodeValue(shelf relation item) failed: %v", err)
 	}
-	if decodedStatus != int64(9) {
-		t.Fatalf("decoded status primary mismatch, got %#v", decodedStatus)
+	if encodedShelf != int64(301) {
+		t.Fatalf("encoded shelf should be primary key 301, got %#v", encodedShelf)
+	}
+
+	productPrimary := objects["/vmi/product/productInfo"].GetPrimaryField()
+	if productPrimary == nil {
+		t.Fatal("missing /vmi/product/productInfo primary field")
+	}
+	decodedProduct, err := remoteProvider.DecodeValue(encodedProduct, productPrimary.GetType())
+	if err != nil {
+		t.Fatalf("DecodeValue(product primary) failed: %v", err)
+	}
+	if decodedProduct != int64(81) {
+		t.Fatalf("decoded product primary mismatch, got %#v", decodedProduct)
 	}
 }
