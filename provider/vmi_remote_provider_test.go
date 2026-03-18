@@ -7,6 +7,7 @@ import (
 	"sort"
 	"testing"
 
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider/remote"
 )
@@ -701,5 +702,34 @@ func TestRemoteProviderVMIEncodeValueCompressesRelationPrimaryKeys(t *testing.T)
 	}
 	if decodedProduct != int64(81) {
 		t.Fatalf("decoded product primary mismatch, got %#v", decodedProduct)
+	}
+}
+
+func TestRemoteProviderVMIEncodeValueRejectsRelationWithoutPrimaryKey(t *testing.T) {
+	remoteProvider := NewRemoteProvider("default", nil)
+	objects := registerAllVMIRemoteObjects(t, remoteProvider)
+
+	goodsInfoObject := objects["/vmi/store/goodsInfo"]
+	if goodsInfoObject == nil {
+		t.Fatal("missing registered /vmi/store/goodsInfo model")
+	}
+	productField := goodsInfoObject.GetField("product")
+	if productField == nil {
+		t.Fatal("/vmi/store/goodsInfo product field should exist")
+	}
+
+	productValue := &remote.ObjectValue{
+		Name:    "productInfo",
+		PkgPath: "/vmi/product",
+		Fields: []*remote.FieldValue{
+			{Name: "sku", Value: "sku-without-id"},
+		},
+	}
+	_, err := remoteProvider.EncodeValue(productValue, productField.GetType())
+	if err == nil {
+		t.Fatal("EncodeValue(product relation without primary key) should fail")
+	}
+	if err.Code != cd.IllegalParam {
+		t.Fatalf("EncodeValue(product relation without primary key) code mismatch, got %v", err.Code)
 	}
 }

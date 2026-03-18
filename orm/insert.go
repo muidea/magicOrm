@@ -305,7 +305,9 @@ func (s *impl) Insert(vModel models.Model) (ret models.Model, err *cd.Error) {
 	if err != nil {
 		return
 	}
-	defer s.finalTransaction(err)
+	defer func() {
+		s.finalTransaction(err)
+	}()
 
 	insertRunner := NewInsertRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec)
 	ret, err = insertRunner.Insert()

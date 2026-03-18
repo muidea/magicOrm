@@ -11,6 +11,7 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/database/mysql"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/remote"
 )
@@ -34,15 +35,28 @@ type fakeExecutor struct {
 	execCalls   []fakeExecCall
 	insertIDs   []any
 	insertIndex int
+
+	beginCalls    int
+	commitCalls   int
+	rollbackCalls int
 }
 
 func (s *fakeExecutor) Release() {}
 
-func (s *fakeExecutor) BeginTransaction() *cd.Error { return nil }
+func (s *fakeExecutor) BeginTransaction() *cd.Error {
+	s.beginCalls++
+	return nil
+}
 
-func (s *fakeExecutor) CommitTransaction() *cd.Error { return nil }
+func (s *fakeExecutor) CommitTransaction() *cd.Error {
+	s.commitCalls++
+	return nil
+}
 
-func (s *fakeExecutor) RollbackTransaction() *cd.Error { return nil }
+func (s *fakeExecutor) RollbackTransaction() *cd.Error {
+	s.rollbackCalls++
+	return nil
+}
 
 func (s *fakeExecutor) Query(sql string, _ bool, args ...any) ([]string, *cd.Error) {
 	s.execCalls = append(s.execCalls, fakeExecCall{kind: "query", sql: sql, args: append([]any(nil), args...)})
@@ -338,5 +352,85 @@ func TestQueryRunnerVMIRemoteMissingPointerRelation(t *testing.T) {
 	}
 	if productValue.GetFieldValue("skuInfo") != nil {
 		t.Fatalf("product should not expose removed skuInfo relation, got %#v", productValue.GetFieldValue("skuInfo"))
+	}
+}
+
+func TestBuildQueryRejectsRelationWithoutPrimaryKey(t *testing.T) {
+	remoteProvider := provider.NewRemoteProvider("tenant", nil)
+	registerVMIQueryModels(t, remoteProvider)
+
+	productFilterValue := &remote.ObjectValue{
+		Name:    "product",
+		PkgPath: "/vmi",
+		Fields: []*remote.FieldValue{
+			{
+				Name: "status",
+				Value: &remote.ObjectValue{
+					Name:    "status",
+					PkgPath: "/vmi",
+					Fields: []*remote.FieldValue{
+						{Name: "name", Value: "published"},
+					},
+				},
+			},
+		},
+	}
+	productModel, err := remoteProvider.GetEntityModel(productFilterValue, true)
+	if err != nil {
+		t.Fatalf("GetEntityModel(productFilterValue) failed: %v", err)
+	}
+
+	modelCodec := codec.New(remoteProvider, "tenant")
+	filter, err := getModelFilter(productModel, remoteProvider, modelCodec)
+	if err != nil {
+		t.Fatalf("getModelFilter(product) failed: %v", err)
+	}
+
+	builder := mysql.NewBuilder(remoteProvider, modelCodec)
+	_, err = builder.BuildQuery(productModel, filter)
+	if err == nil {
+		t.Fatal("BuildQuery(product relation without primary key) should fail")
+	}
+	if err.Code != cd.IllegalParam {
+		t.Fatalf("BuildQuery(product relation without primary key) code mismatch, got %v", err.Code)
+	}
+}
+
+func TestQueryRejectsMultipleMatches(t *testing.T) {
+	remoteProvider := provider.NewRemoteProvider("tenant", nil)
+	registerVMIQueryModels(t, remoteProvider)
+
+	productModel := buildProductQueryModel(t, remoteProvider)
+	modelCodec := codec.New(remoteProvider, "tenant")
+
+	executor := &fakeExecutor{
+		responses: []fakeQueryResponse{
+			{
+				match: func(sql string, args []any) bool {
+					return strings.Contains(sql, "tenant_Product") &&
+						!strings.Contains(sql, "tenant_ProductStatus3Status") &&
+						len(args) == 1 && reflect.DeepEqual(args, []any{int64(1001)})
+				},
+				rows: [][]any{
+					{int64(1001), "apple", "fresh apple", `["main.png"]`, 30, `["fruit"]`, int64(0), int64(0), int64(0), ""},
+					{int64(1001), "apple-dup", "duplicate apple", `["dup.png"]`, 31, `["fruit"]`, int64(0), int64(0), int64(0), ""},
+				},
+			},
+		},
+	}
+
+	queryImpl := &impl{
+		context:       context.Background(),
+		executor:      executor,
+		modelProvider: remoteProvider,
+		modelCodec:    modelCodec,
+	}
+
+	_, err := queryImpl.Query(productModel)
+	if err == nil {
+		t.Fatal("Query(product) with multiple matches should fail")
+	}
+	if err.Code != cd.Unexpected {
+		t.Fatalf("Query(product) multiple matches code mismatch, got %v", err.Code)
 	}
 }

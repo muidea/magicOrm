@@ -74,3 +74,61 @@ func TestORMMetricsCollector(t *testing.T) {
 		t.Fatal("expected collector state to be cleared")
 	}
 }
+
+func TestORMMetricsCollectorTreatsNotFoundAsNonError(t *testing.T) {
+	collector := NewORMMetricsCollector()
+	model := &metricModel{name: "User"}
+
+	collector.RecordOperation("query", model, time.Millisecond*10, cd.NewError(cd.NotFound, "no rows"))
+
+	operationCounters := collector.GetOperationCounters()
+	notFoundKey := "query|metrics.orm/User|not_found"
+	if got := operationCounters[notFoundKey]; got != 1 {
+		t.Fatalf("expected not_found operation counter to be recorded once, got %d in %+v", got, operationCounters)
+	}
+
+	if len(collector.GetErrorCounters()) != 0 {
+		t.Fatalf("expected not_found to avoid error counters, got %+v", collector.GetErrorCounters())
+	}
+}
+
+func TestORMMetricsCollectorClassifiesCDErrorCodes(t *testing.T) {
+	collector := NewORMMetricsCollector()
+
+	testCases := []struct {
+		name string
+		err  error
+		want string
+	}{
+		{name: "validation", err: cd.NewError(cd.IllegalParam, "illegal param"), want: "validation"},
+		{name: "database", err: cd.NewError(cd.DatabaseError, "db failed"), want: "database"},
+		{name: "timeout", err: cd.NewError(cd.Timeout, "timeout"), want: "timeout"},
+		{name: "not_found", err: cd.NewError(cd.NotFound, "missing"), want: "not_found"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := collector.classifyError(tc.err); got != tc.want {
+				t.Fatalf("classifyError(%v) = %s, want %s", tc.err, got, tc.want)
+			}
+		})
+	}
+}
+
+func TestORMMetricsCollectorTreatsTypedNilCDErrorAsSuccess(t *testing.T) {
+	collector := NewORMMetricsCollector()
+	model := &metricModel{name: "User"}
+
+	var opErr *cd.Error
+	collector.RecordOperation("insert", model, time.Millisecond*10, opErr)
+
+	operationCounters := collector.GetOperationCounters()
+	successKey := "insert|metrics.orm/User|success"
+	if got := operationCounters[successKey]; got != 1 {
+		t.Fatalf("expected typed nil error to record success once, got %d in %+v", got, operationCounters)
+	}
+
+	if len(collector.GetErrorCounters()) != 0 {
+		t.Fatalf("expected typed nil error to avoid error counters, got %+v", collector.GetErrorCounters())
+	}
+}

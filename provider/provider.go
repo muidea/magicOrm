@@ -311,6 +311,16 @@ func (s *providerImpl) EncodeValue(vVal any, vType models.Type) (ret any, err *c
 	}
 
 	pkField := vModelVal.GetPrimaryField()
+	if pkField == nil {
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("relation model missing primary key, PkgKey:%s", pkgKey))
+		slog.Error("EncodeValue relation model missing primary key", "pkgKey", pkgKey, "error", err.Error())
+		return
+	}
+	if !models.IsAssignedField(pkField) {
+		err = cd.NewError(cd.IllegalParam, fmt.Sprintf("relation entity primary key is unassigned, PkgKey:%s", pkgKey))
+		slog.Error("EncodeValue relation primary key is unassigned", "pkgKey", pkgKey, "error", err.Error())
+		return
+	}
 	ret, err = s.encodeValueFunc(pkField.GetValue().Get(), pkField.GetType())
 	return
 }

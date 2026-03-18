@@ -16,7 +16,7 @@
 | Insert | `Insert(entity models.Model) (models.Model, *cd.Error)` | 插入单条，返回带主键的 Model |
 | Update | `Update(entity models.Model) (models.Model, *cd.Error)` | 更新单条 |
 | Delete | `Delete(entity models.Model) (models.Model, *cd.Error)` | 删除单条 |
-| Query | `Query(entity models.Model) (models.Model, *cd.Error)` | 按主键查询单条 |
+| Query | `Query(entity models.Model) (models.Model, *cd.Error)` | 按模型已赋值字段查询单条 |
 | Count | `Count(filter models.Filter) (int64, *cd.Error)` | 按条件计数 |
 | BatchQuery | `BatchQuery(filter models.Filter) ([]models.Model, *cd.Error)` | 按条件批量查询 |
 | BeginTransaction | `BeginTransaction() *cd.Error` | 开启事务（当前 Orm 实例） |
@@ -63,6 +63,10 @@
 - **Delete**：`validateModel` -> `DeleteRunner` -> 先删 relation，再删 host。
 - **Query**：`QueryRunner` 先按查询模型生成过滤条件，再使用 query mask 拉取 host 行，随后按字段加载 relation，最后回填 `models.Model`。
   - `Query(model)` 的输入模型用于“过滤”；
+  - 若主键字段已赋值，则仅按主键过滤；
+  - 若主键未赋值，则会把其它“已赋值字段”隐式转成 `AND` 条件；
+  - relation 字段参与过滤时，会先压缩成关联对象主键；若 relation 已赋值但其主键未赋值，会直接返回 `IllegalParam`，不会再静默编码成零值；
+  - 单条 `Query(model)` 命中多条记录时返回 `Unexpected`，不会默认取第一条；
   - 查询执行时仍会补齐足够的 basic 字段与 relation key，以保证回填完整性；
   - 最终返回给调用方的模型按以下规则裁剪：
     - `BatchQuery(filter)` 若指定了 `filter.ValueMask(...)`，则 `ValueMask` 优先，返回字段以 mask 中显式包含的字段为准；

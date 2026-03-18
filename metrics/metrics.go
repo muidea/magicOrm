@@ -37,6 +37,7 @@ const (
 	ErrorTypeTimeout     ErrorType = "timeout"
 	ErrorTypeConstraint  ErrorType = "constraint"
 	ErrorTypeTransaction ErrorType = "transaction"
+	ErrorTypeNotFound    ErrorType = "not_found"
 	ErrorTypeUnknown     ErrorType = "unknown"
 )
 

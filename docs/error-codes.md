@@ -50,9 +50,11 @@ magicOrm 统一使用 **magicCommon/def** 的 `*cd.Error` 与 `cd.Code`，不单
 |------|-------------|------|
 | 参数为 nil / 非法 | IllegalParam | 如 entity nil、filter nil、model value 非法 |
 | Query 无匹配记录 | NotFound | 单条 Query 未找到时返回 |
+| Query 命中多条记录 | Unexpected | 单条 Query 语义被破坏，需改用 BatchQuery 或收紧条件 |
 | 字段值非法、类型不支持 | IllegalParam | 验证失败、字段值不合法 |
 | 数据库/执行异常 | 由底层返回（如 DatabaseError、Unexpected） | 具体以 message 为准 |
 | 关系字段关联实体无主键 | IllegalParam | 引用关系下关联实体必须有主键 |
+| 关系字段参与 Query 但关联主键未赋值 | IllegalParam | 避免把未赋值 relation 静默压成主键零值 |
 
 ### 3.2 错误信息格式
 

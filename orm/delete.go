@@ -206,7 +206,9 @@ func (s *impl) Delete(vModel models.Model) (ret models.Model, err *cd.Error) {
 	if err != nil {
 		return
 	}
-	defer s.finalTransaction(err)
+	defer func() {
+		s.finalTransaction(err)
+	}()
 
 	deleteRunner := NewDeleteRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec, 0)
 	err = deleteRunner.Delete()

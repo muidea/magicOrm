@@ -2,10 +2,12 @@
 package orm
 
 import (
+	"reflect"
 	"strings"
 	"sync"
 	"time"
 
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/metrics"
 	"github.com/muidea/magicOrm/models"
 )
@@ -68,10 +70,10 @@ func (c *ORMMetricsCollector) RecordOperation(
 		modelName = model.GetPkgKey()
 	}
 
-	// Determine status and record operation
-	status := "success"
-	if err != nil {
-		status = "error"
+	// Determine status and record operation.
+	// NotFound is an expected query outcome in many call paths and should not inflate error metrics.
+	status := c.operationStatus(err)
+	if status == "error" {
 		// Record error with classification
 		errorType := c.classifyError(err)
 		errorKey := metrics.BuildKey(operation, modelName, errorType)
@@ -212,10 +214,35 @@ func (c *ORMMetricsCollector) Clear() {
 	c.durationKeyLRU = make([]string, 0, 1000)
 }
 
+func (c *ORMMetricsCollector) operationStatus(err error) string {
+	if isNilError(err) {
+		return "success"
+	}
+
+	if cdErr, ok := err.(*cd.Error); ok && cdErr.Code == cd.NotFound {
+		return "not_found"
+	}
+
+	return "error"
+}
+
 // classifyError classifies an error into error types for metrics.
 func (c *ORMMetricsCollector) classifyError(err error) string {
-	if err == nil {
+	if isNilError(err) {
 		return string(metrics.ErrorTypeUnknown)
+	}
+
+	if cdErr, ok := err.(*cd.Error); ok {
+		switch cdErr.Code {
+		case cd.IllegalParam, cd.InvalidParameter:
+			return string(metrics.ErrorTypeValidation)
+		case cd.DatabaseError:
+			return string(metrics.ErrorTypeDatabase)
+		case cd.Timeout:
+			return string(metrics.ErrorTypeTimeout)
+		case cd.NotFound:
+			return string(metrics.ErrorTypeNotFound)
+		}
 	}
 
 	// 使用recover安全地获取错误字符串
@@ -251,5 +278,19 @@ func (c *ORMMetricsCollector) classifyError(err error) string {
 		return string(metrics.ErrorTypeTransaction)
 	default:
 		return string(metrics.ErrorTypeUnknown)
+	}
+}
+
+func isNilError(err error) bool {
+	if err == nil {
+		return true
+	}
+
+	errVal := reflect.ValueOf(err)
+	switch errVal.Kind() {
+	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface, reflect.Func:
+		return errVal.IsNil()
+	default:
+		return false
 	}
 }
