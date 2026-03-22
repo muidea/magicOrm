@@ -248,3 +248,31 @@ func TestGetCacheTypesSkipsMalformedKeys(t *testing.T) {
 	cacheTypes := collector.GetCacheTypes()
 	assert.ElementsMatch(t, []string{"type"}, cacheTypes)
 }
+
+func TestValidationMetricsCollectorGettersReturnCopies(t *testing.T) {
+	collector := NewValidationMetricsCollector()
+	collector.RecordValidation("validate", "User", "insert", 10*time.Millisecond, nil)
+	collector.RecordCacheAccess("type", true)
+	collector.RecordConstraintCheck("required", "Name", true)
+
+	validationCounters := collector.GetValidationCounters()
+	validationCounters[metrics.BuildKey("validate", "User", "insert", "success")] = 99
+
+	errorCounters := collector.GetErrorCounters()
+	errorCounters[metrics.BuildKey("validate", "User", "insert", "unknown")] = 99
+
+	cacheCounters := collector.GetCacheAccessCounters()
+	cacheCounters[metrics.BuildKey("type", "hit")] = 99
+
+	constraintCounters := collector.GetConstraintCheckCounters()
+	constraintCounters[metrics.BuildKey("required", "Name", "passed")] = 99
+
+	durations := collector.GetValidationDurations()
+	durations[metrics.BuildKey("validate", "User", "insert", "success")][0] = time.Second
+
+	assert.Equal(t, int64(1), collector.GetValidationCounters()[metrics.BuildKey("validate", "User", "insert", "success")])
+	assert.Empty(t, collector.GetErrorCounters())
+	assert.Equal(t, int64(1), collector.GetCacheAccessCounters()[metrics.BuildKey("type", "hit")])
+	assert.Equal(t, int64(1), collector.GetConstraintCheckCounters()[metrics.BuildKey("required", "Name", "passed")])
+	assert.Equal(t, 10*time.Millisecond, collector.GetValidationDurations()[metrics.BuildKey("validate", "User", "insert", "success")][0])
+}
