@@ -602,7 +602,7 @@ func (h *myTypeHandler) GetType() reflect.Type {
 
 MagicORM 的监控通过 **`metrics` 包**与 **magicCommon/monitoring** 集成：ORM 操作在内部自动上报到全局 collector，并在存在 `monitoring.GlobalManager` 时注册为 Provider（名称 `magicorm_orm`）。无独立 `monitoring` 包或 `MonitoredOrm` 包装。
 
-**当前实现**：`orm.Initialize()` 会创建 ORM / DB / Validation 三类 collector；当 `monitoring.GlobalManager` 已存在时会自动注册 `magicorm_orm`、`magicorm_database` 与 `magicorm_validation`。推荐顺序是先执行 `monitoring.InitializeGlobalManager()`，再执行 `orm.Initialize()`；如果监控系统晚于 ORM 初始化，可后续调用 `orm.EnsureORMMetricProviderRegistered()`、`metricsdb.EnsureDatabaseMetricProviderRegistered()` 与 `metricsvalidation.EnsureValidationMetricProviderRegistered()` 做幂等注册。详细说明与剩余待办见 [docs/README.md](./docs/README.md)、[docs/design-metrics.md](./docs/design-metrics.md) 与 [METRICS_TODO.md](./METRICS_TODO.md)。
+**当前实现**：`orm.Initialize()` 会创建 ORM / DB / Validation 三类 collector；当 `monitoring.GlobalManager` 已存在时会自动注册 `magicorm_orm`、`magicorm_database` 与 `magicorm_validation`。推荐顺序是先执行 `monitoring.InitializeGlobalManager()`，再执行 `orm.Initialize()`；如果监控系统晚于 ORM 初始化，可后续调用 `orm.EnsureORMMetricProviderRegistered()`、`metricsdb.EnsureDatabaseMetricProviderRegistered()` 与 `metricsvalidation.EnsureValidationMetricProviderRegistered()` 做幂等注册。详细说明见 [docs/README.md](./docs/README.md)、[docs/design-metrics.md](./docs/design-metrics.md) 与 [METRICS_TODO.md](./METRICS_TODO.md)。
 
 ### 架构设计
 

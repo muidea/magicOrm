@@ -2,7 +2,7 @@
 
 本文档提供 MagicORM 监控系统的部署指南和集成示例。
 
-> **说明**：当前监控实现以 **`metrics` 包**与 **magicCommon/monitoring** 为准，ORM 操作在内部自动上报，无独立 `monitoring` 包。监控架构与当前 API 请以 [docs/design-metrics.md](docs/design-metrics.md) 与 [METRICS_TODO.md](METRICS_TODO.md) 为准；本文档中与上述不一致的代码示例仅供理解部署流程时参考，实际集成请以 design-metrics 与 magicCommon/monitoring 文档为准。
+> **说明**：当前监控实现以 **`metrics` 包**与 **magicCommon/monitoring** 为准，ORM 操作在内部自动上报，无独立 `monitoring` 包。监控架构与当前 API 请以 [docs/design-metrics.md](docs/design-metrics.md) 与 [METRICS_TODO.md](METRICS_TODO.md) 为准；`METRICS_TODO.md` 当前用于记录本轮改造结果。本文档中与上述不一致的代码示例仅供理解部署流程时参考，实际集成请以 design-metrics 与 magicCommon/monitoring 文档为准。
 
 ## 目录
 
