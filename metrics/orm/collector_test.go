@@ -132,3 +132,35 @@ func TestORMMetricsCollectorTreatsTypedNilCDErrorAsSuccess(t *testing.T) {
 		t.Fatalf("expected typed nil error to avoid error counters, got %+v", collector.GetErrorCounters())
 	}
 }
+
+func TestORMMetricsCollectorGettersReturnCopies(t *testing.T) {
+	collector := NewORMMetricsCollector()
+	model := &metricModel{name: "User"}
+
+	collector.RecordOperation("insert", model, time.Millisecond*10, nil)
+	collector.RecordTransaction("begin", true)
+
+	counters := collector.GetOperationCounters()
+	counters["insert|metrics.orm/User|success"] = 99
+
+	txCounters := collector.GetTransactionCounters()
+	txCounters["begin|success"] = 99
+
+	durations := collector.GetOperationDurations()
+	durations["insert|metrics.orm/User|success"][0] = time.Second
+
+	freshCounters := collector.GetOperationCounters()
+	if got := freshCounters["insert|metrics.orm/User|success"]; got != 1 {
+		t.Fatalf("expected operation counter copy isolation, got %d in %+v", got, freshCounters)
+	}
+
+	freshTxCounters := collector.GetTransactionCounters()
+	if got := freshTxCounters["begin|success"]; got != 1 {
+		t.Fatalf("expected transaction counter copy isolation, got %d in %+v", got, freshTxCounters)
+	}
+
+	freshDurations := collector.GetOperationDurations()
+	if got := freshDurations["insert|metrics.orm/User|success"][0]; got != time.Millisecond*10 {
+		t.Fatalf("expected duration copy isolation, got %s in %+v", got, freshDurations)
+	}
+}
