@@ -434,8 +434,8 @@ func (s *QueryRunner) innerQueryRelationSingleModel(id any, vField models.Field,
 	}
 
 	if deepLevel < maxDeepLevel {
-		// 到这里说明未查询到数据，说明存在数据表之间数据不一致
-		// 这种情况下直接返回nil，后续要考虑进行脏数据检测
+		// 到这里说明未查询到关联目标，当前行为是记录告警并保留字段为空，
+		// 由调用方或外部治理流程处理关系表与目标表之间的数据不一致。
 		slog.Warn("query relation failed, miss relation data", "model", rModel.GetPkgKey(), "id", id)
 	}
 	return
