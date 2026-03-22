@@ -239,3 +239,12 @@ func TestGetCacheTypes(t *testing.T) {
 	cacheTypes := collector.GetCacheTypes()
 	assert.ElementsMatch(t, []string{"type", "constraint"}, cacheTypes)
 }
+
+func TestGetCacheTypesSkipsMalformedKeys(t *testing.T) {
+	collector := NewValidationMetricsCollector()
+	collector.cacheAccessCounters["broken"] = 1
+	collector.cacheAccessCounters[metrics.BuildKey("type", "hit")] = 1
+
+	cacheTypes := collector.GetCacheTypes()
+	assert.ElementsMatch(t, []string{"type"}, cacheTypes)
+}
