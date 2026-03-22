@@ -70,14 +70,22 @@ func TestCollectMetrics(t *testing.T) {
 	assert.True(t, len(metrics) > 0, "Should collect metrics with collector attached")
 
 	cacheTypes := make([]string, 0)
+	foundConstraintCounter := false
 	for _, metric := range metrics {
 		if metric.Name == "magicorm_validation_cache_hit_ratio" {
 			if cacheType, ok := metric.Labels["cache_type"]; ok {
 				cacheTypes = append(cacheTypes, cacheType)
 			}
 		}
+		if metric.Name == "magicorm_validation_constraint_checks_total" &&
+			metric.Labels["constraint_type"] == "required" &&
+			metric.Labels["field"] == "Name" &&
+			metric.Labels["status"] == "passed" {
+			foundConstraintCounter = true
+		}
 	}
 	assert.ElementsMatch(t, []string{"type", "constraint"}, cacheTypes)
+	assert.True(t, foundConstraintCounter, "Should export constraint check metrics")
 }
 
 func TestProviderLifecycle(t *testing.T) {
