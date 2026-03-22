@@ -313,37 +313,29 @@ func TestFilterValueMask(t *testing.T) {
 
 // TestFilterErrorCases tests error handling in filter methods
 func TestFilterErrorCases(t *testing.T) {
-	// TODO 需要完善功能代码
-	/*
-		testVal := TestStruct{ID: 1, Name: "test"}
-		valueImpl := NewValue(reflect.ValueOf(testVal))
-		filter := newFilter(valueImpl)
+	testVal := TestStruct{ID: 1, Name: "test"}
+	valueImpl := NewValue(reflect.ValueOf(testVal))
+	filter := newFilter(valueImpl)
 
-		// Test Equal with non-basic type
-		complexVal := struct{ name string }{"test"}
-		err := filter.Equal("id", complexVal)
-		if err == nil {
-			t.Errorf("Equal should fail with non-basic type")
-		}
+	if err := filter.Equal("id", []int{1, 2}); err == nil {
+		t.Errorf("Equal should fail with slice value")
+	}
 
-		// Test NotEqual with non-basic type
-		err = filter.NotEqual("id", complexVal)
-		if err == nil {
-			t.Errorf("NotEqual should fail with non-basic type")
-		}
+	if err := filter.NotEqual("id", []int{1, 2}); err == nil {
+		t.Errorf("NotEqual should fail with slice value")
+	}
 
-		// Test In with non-slice type
-		err = filter.In("id", 123)
-		if err == nil {
-			t.Errorf("In should fail with non-slice type")
-		}
+	if err := filter.In("id", 123); err == nil {
+		t.Errorf("In should fail with non-slice type")
+	}
 
-		// Test NotIn with non-slice type
-		err = filter.NotIn("id", 123)
-		if err == nil {
-			t.Errorf("NotIn should fail with non-slice type")
-		}
-	*/
+	if err := filter.NotIn("id", 123); err == nil {
+		t.Errorf("NotIn should fail with non-slice type")
+	}
+
+	if err := filter.Like("name", 123); err == nil {
+		t.Errorf("Like should fail with non-string type")
+	}
 }
 
 // TestPaginationEdgeCases tests edge cases for pagination
