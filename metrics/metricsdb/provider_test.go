@@ -67,6 +67,23 @@ func TestCollectMetrics(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, metrics)
 	assert.True(t, len(metrics) > 0, "Should collect metrics with collector attached")
+
+	foundTransaction := false
+	foundConnection := false
+	for _, metric := range metrics {
+		switch metric.Name {
+		case "magicorm_database_transactions_total":
+			if metric.Labels["database"] == "postgresql" && metric.Labels["type"] == "begin" {
+				foundTransaction = true
+			}
+		case "magicorm_database_connections":
+			if metric.Labels["database"] == "postgresql" && metric.Labels["state"] == "active" && metric.Value == 5 {
+				foundConnection = true
+			}
+		}
+	}
+	assert.True(t, foundTransaction, "Should export transaction metrics")
+	assert.True(t, foundConnection, "Should export connection stats")
 }
 
 func TestProviderLifecycle(t *testing.T) {
