@@ -44,13 +44,32 @@ func TestORMMetricProviderCollect(t *testing.T) {
 	}
 
 	var foundConnections bool
+	var foundTransaction bool
+	var foundCacheRatio bool
 	for _, metric := range metrics {
-		if metric.Name == "magicorm_orm_active_connections" && metric.Value == 5 {
-			foundConnections = true
+		switch metric.Name {
+		case "magicorm_orm_active_connections":
+			if metric.Value == 5 && metric.Labels["database"] == "default" {
+				foundConnections = true
+			}
+		case "magicorm_orm_transactions_total":
+			if metric.Labels["type"] == "begin" && metric.Labels["status"] == "success" && metric.Value == 1 {
+				foundTransaction = true
+			}
+		case "magicorm_orm_cache_hit_ratio":
+			if metric.Labels["cache_type"] == "default" && metric.Value == 0.5 {
+				foundCacheRatio = true
+			}
 		}
 	}
 	if !foundConnections {
 		t.Fatalf("expected active connections metric, got %+v", metrics)
+	}
+	if !foundTransaction {
+		t.Fatalf("expected transaction metric, got %+v", metrics)
+	}
+	if !foundCacheRatio {
+		t.Fatalf("expected cache ratio metric, got %+v", metrics)
 	}
 
 	if provider.Name() != "magicorm_orm" {
