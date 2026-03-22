@@ -1,4 +1,4 @@
-## MagicORM Metrics 改造跟踪
+## MagicORM Metrics 改造记录
 
 ### 已完成（本轮）
 
@@ -31,7 +31,3 @@
       - 当 `ormMetricCollector` 已存在、`ormMetricProvider` 为空且 `monitoring.GetGlobalManager() != nil` 时，创建并注册 provider。
       - 失败输出 Warn 日志，成功输出 Info 日志。
   - 已通过 `go test ./metrics/... ./orm/...` 验证。
-
-### 待办（后续再处理）
-
-当前无剩余待办项。
