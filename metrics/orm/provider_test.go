@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/muidea/magicCommon/monitoring/types"
+	"github.com/muidea/magicOrm/metrics"
 )
 
 func TestORMMetricProviderCollect(t *testing.T) {
@@ -81,5 +82,39 @@ func TestORMMetricProviderWithoutCollector(t *testing.T) {
 	health := provider.BaseProvider.GetMetadata().HealthStatus
 	if health != types.ProviderUnknown && health != types.ProviderHealthy {
 		t.Fatalf("unexpected provider health status: %s", health)
+	}
+}
+
+func TestORMMetricProviderCollectSkipsMalformedKeys(t *testing.T) {
+	collector := NewORMMetricsCollector()
+	collector.operationCounters["invalid"] = 1
+	collector.errorCounters["broken"] = 2
+	collector.operationDurations["bad"] = []time.Duration{time.Second}
+	collector.transactionCounters["oops"] = 3
+
+	validKey := metrics.BuildKey("insert", "metrics.orm/User", "success")
+	collector.operationCounters[validKey] = 1
+	collector.operationDurations[validKey] = []time.Duration{100 * time.Millisecond, 300 * time.Millisecond}
+	collector.UpdateActiveConnections(2)
+
+	metricsList, err := NewORMMetricProvider(collector).Collect()
+	if err != nil {
+		t.Fatalf("collect failed: %v", err)
+	}
+
+	foundDuration := false
+	for _, metric := range metricsList {
+		if metric.Name == "magicorm_orm_operation_duration_seconds" {
+			foundDuration = true
+			if metric.Labels["operation"] != "insert" {
+				t.Fatalf("unexpected operation label: %+v", metric.Labels)
+			}
+			if metric.Value < 0.19 || metric.Value > 0.21 {
+				t.Fatalf("unexpected duration value: %v", metric.Value)
+			}
+		}
+	}
+	if !foundDuration {
+		t.Fatalf("expected valid duration metric in %+v", metricsList)
 	}
 }
