@@ -40,6 +40,11 @@ func TestMetricsDefinitions(t *testing.T) {
 	assert.True(t, foundQueryCounter, "Should have query counter metric")
 	assert.True(t, foundDurationHistogram, "Should have duration histogram metric")
 	assert.True(t, foundErrorCounter, "Should have error counter metric")
+
+	for _, metric := range metrics {
+		assert.Equal(t, "1.0.0", metric.ConstLabels["version"])
+		assert.Equal(t, "database", metric.ConstLabels["component"])
+	}
 }
 
 func TestCollectMetrics(t *testing.T) {

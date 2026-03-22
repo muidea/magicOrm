@@ -4,6 +4,7 @@ package metricsdb
 import (
 	"github.com/muidea/magicCommon/monitoring"
 	"github.com/muidea/magicCommon/monitoring/types"
+	"log/slog"
 )
 
 var (
@@ -38,7 +39,35 @@ func RegisterDatabaseMetrics() {
 			100,  // 优先级
 		); err != nil {
 			databaseMetricProvider = nil
-			// 记录错误但不影响初始化
+			slog.Warn("Failed to register database metrics provider", "error", err.Error())
 		}
+	}
+}
+
+// EnsureDatabaseMetricProviderRegistered attempts to register the provider after GlobalManager becomes available.
+func EnsureDatabaseMetricProviderRegistered() {
+	if databaseMetricProvider != nil {
+		return
+	}
+	if databaseMetricCollector == nil {
+		return
+	}
+	if monitoring.GetGlobalManager() == nil {
+		return
+	}
+
+	databaseMetricProvider = NewDatabaseMetricProviderWithCollector(databaseMetricCollector)
+	if err := monitoring.RegisterGlobalProvider(
+		"magicorm_database",
+		func() types.MetricProvider {
+			return databaseMetricProvider
+		},
+		true,
+		100,
+	); err != nil {
+		databaseMetricProvider = nil
+		slog.Warn("Failed to ensure database metrics provider registration", "error", err.Error())
+	} else {
+		slog.Info("Database metrics provider ensured and registered successfully")
 	}
 }

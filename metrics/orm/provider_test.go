@@ -26,6 +26,12 @@ func TestORMMetricProviderCollect(t *testing.T) {
 		if err := definition.Validate(); err != nil {
 			t.Fatalf("metric definition should be valid: %v", err)
 		}
+		if definition.ConstLabels["version"] != "1.0.0" {
+			t.Fatalf("expected version label, got %+v", definition.ConstLabels)
+		}
+		if definition.ConstLabels["component"] != "orm" {
+			t.Fatalf("expected orm component label, got %+v", definition.ConstLabels)
+		}
 	}
 
 	metrics, err := provider.Collect()

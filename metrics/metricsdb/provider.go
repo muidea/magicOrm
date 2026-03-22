@@ -48,13 +48,15 @@ func NewDatabaseMetricProviderWithCollector(collector *DatabaseMetricsCollector)
 
 // Metrics returns database metric definitions.
 func (p *DatabaseMetricProvider) Metrics() []types.MetricDefinition {
+	databaseLabels := metrics.MergeLabels(metrics.DefaultLabels(), map[string]string{"component": "database"})
+
 	return []types.MetricDefinition{
 		// Database query counter
 		types.NewCounterDefinition(
 			"magicorm_database_queries_total",
 			"Total number of database queries",
 			[]string{"database", "query_type", "status"},
-			map[string]string{"component": "database"},
+			databaseLabels,
 		),
 
 		// Query duration gauge (average)
@@ -62,7 +64,7 @@ func (p *DatabaseMetricProvider) Metrics() []types.MetricDefinition {
 			"magicorm_database_query_duration_seconds",
 			"Average duration of database queries in seconds",
 			[]string{"database", "query_type", "status"},
-			map[string]string{"component": "database"},
+			databaseLabels,
 		),
 
 		// Database error counter
@@ -70,7 +72,7 @@ func (p *DatabaseMetricProvider) Metrics() []types.MetricDefinition {
 			"magicorm_database_errors_total",
 			"Total number of database errors",
 			[]string{"database", "operation", "error_type"},
-			map[string]string{"component": "database"},
+			databaseLabels,
 		),
 
 		// Transaction counter
@@ -78,7 +80,7 @@ func (p *DatabaseMetricProvider) Metrics() []types.MetricDefinition {
 			"magicorm_database_transactions_total",
 			"Total number of database transactions",
 			[]string{"database", "type", "status"},
-			map[string]string{"component": "database"},
+			databaseLabels,
 		),
 
 		// Connection pool gauge
@@ -86,7 +88,7 @@ func (p *DatabaseMetricProvider) Metrics() []types.MetricDefinition {
 			"magicorm_database_connections",
 			"Database connection pool statistics",
 			[]string{"database", "state"},
-			map[string]string{"component": "database"},
+			databaseLabels,
 		),
 
 		// Execution counter
@@ -94,7 +96,7 @@ func (p *DatabaseMetricProvider) Metrics() []types.MetricDefinition {
 			"magicorm_database_executions_total",
 			"Total number of database executions",
 			[]string{"database", "operation", "status"},
-			map[string]string{"component": "database"},
+			databaseLabels,
 		),
 	}
 }

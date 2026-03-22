@@ -16,6 +16,9 @@ type ConstraintValidator interface {
 	// ValidateConstraints validates constraints for a value
 	ValidateConstraints(value any, constraints models.Constraints, scenario errors.Scenario) error
 
+	// GetApplicableDirectives returns the directives that are evaluated for a scenario.
+	GetApplicableDirectives(constraints models.Constraints, scenario errors.Scenario) []models.Directive
+
 	// GetApplicableConstraints returns constraints applicable for a scenario
 	GetApplicableConstraints(scenario errors.Scenario) []models.Key
 
@@ -96,6 +99,11 @@ func (v *constraintValidatorImpl) ValidateConstraints(value any, constraints mod
 	return err
 }
 
+// GetApplicableDirectives returns directives applicable for the given scenario.
+func (v *constraintValidatorImpl) GetApplicableDirectives(constraints models.Constraints, scenario errors.Scenario) []models.Directive {
+	return v.getApplicableDirectives(constraints, scenario)
+}
+
 // GetApplicableConstraints returns constraints applicable for a scenario
 func (v *constraintValidatorImpl) GetApplicableConstraints(scenario errors.Scenario) []models.Key {
 	rule, exists := v.scenarioRules[scenario]
@@ -127,6 +135,10 @@ func (v *constraintValidatorImpl) ClearCache() {
 
 // getApplicableDirectives returns directives applicable for the given scenario
 func (v *constraintValidatorImpl) getApplicableDirectives(constraints models.Constraints, scenario errors.Scenario) []models.Directive {
+	if constraints == nil {
+		return nil
+	}
+
 	rule, exists := v.scenarioRules[scenario]
 	if !exists {
 		// Use default rule

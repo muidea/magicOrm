@@ -4,6 +4,7 @@ package validation
 import (
 	"github.com/muidea/magicCommon/monitoring"
 	"github.com/muidea/magicCommon/monitoring/types"
+	"log/slog"
 )
 
 var (
@@ -38,7 +39,35 @@ func RegisterValidationMetrics() {
 			100,  // 优先级
 		); err != nil {
 			validationMetricProvider = nil
-			// 记录错误但不影响初始化
+			slog.Warn("Failed to register validation metrics provider", "error", err.Error())
 		}
+	}
+}
+
+// EnsureValidationMetricProviderRegistered attempts to register the provider after GlobalManager becomes available.
+func EnsureValidationMetricProviderRegistered() {
+	if validationMetricProvider != nil {
+		return
+	}
+	if validationMetricCollector == nil {
+		return
+	}
+	if monitoring.GetGlobalManager() == nil {
+		return
+	}
+
+	validationMetricProvider = NewValidationMetricProviderWithCollector(validationMetricCollector)
+	if err := monitoring.RegisterGlobalProvider(
+		"magicorm_validation",
+		func() types.MetricProvider {
+			return validationMetricProvider
+		},
+		true,
+		100,
+	); err != nil {
+		validationMetricProvider = nil
+		slog.Warn("Failed to ensure validation metrics provider registration", "error", err.Error())
+	} else {
+		slog.Info("Validation metrics provider ensured and registered successfully")
 	}
 }

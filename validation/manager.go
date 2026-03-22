@@ -146,6 +146,15 @@ func NewValidationManager(config ValidationConfig) ValidationManager {
 func (m *validationManagerImpl) Validate(value any, context ValidationContext) error {
 	startTime := time.Now()
 	m.stats.TotalValidations++
+	modelName := getValidationModelName(context)
+
+	defer func() {
+		var recordErr error
+		if context.Collector != nil && context.Collector.HasErrors() {
+			recordErr = context.Collector.ToRichError()
+		}
+		recordValidationMetric(context.Operation, modelName, context.Scenario, time.Since(startTime), recordErr)
+	}()
 
 	var err error
 
@@ -164,7 +173,7 @@ func (m *validationManagerImpl) Validate(value any, context ValidationContext) e
 	if m.enabledLayers[LayerType] && context.Field != nil {
 		err = m.validateType(value, context)
 		if err != nil && context.Options.StopOnFirstError {
-			m.recordValidationResult(startTime, err == nil)
+			m.recordValidationResult(startTime, false)
 			return context.Collector.ToRichError()
 		}
 	}
@@ -172,7 +181,7 @@ func (m *validationManagerImpl) Validate(value any, context ValidationContext) e
 	if m.enabledLayers[LayerConstraint] && context.Field != nil {
 		err = m.validateConstraints(value, context)
 		if err != nil && context.Options.StopOnFirstError {
-			m.recordValidationResult(startTime, err == nil)
+			m.recordValidationResult(startTime, false)
 			return context.Collector.ToRichError()
 		}
 	}
@@ -180,7 +189,7 @@ func (m *validationManagerImpl) Validate(value any, context ValidationContext) e
 	if m.enabledLayers[LayerDatabase] && context.Field != nil && context.DatabaseType != "" {
 		err = m.validateDatabase(value, context)
 		if err != nil && context.Options.StopOnFirstError {
-			m.recordValidationResult(startTime, err == nil)
+			m.recordValidationResult(startTime, false)
 			return context.Collector.ToRichError()
 		}
 	}
@@ -234,6 +243,7 @@ func (m *validationManagerImpl) ValidateModel(model models.Model, context Valida
 	}
 
 	if model != nil {
+		modelAdapter := AdaptModel(model)
 		for _, field := range model.GetFields() {
 			if context.Scenario == errors.ScenarioUpdate &&
 				!models.IsPrimaryField(field) &&
@@ -248,6 +258,7 @@ func (m *validationManagerImpl) ValidateModel(model models.Model, context Valida
 			}
 
 			fieldContext := context
+			fieldContext.Model = modelAdapter
 			err := m.ValidateField(field, value, fieldContext)
 			if err != nil && context.Options.StopOnFirstError {
 				return err
@@ -350,7 +361,9 @@ func (m *validationManagerImpl) validateConstraints(value any, context Validatio
 	}
 
 	constraints := context.Field.GetConstraints()
+	applicableDirectives := m.constraintValidator.GetApplicableDirectives(constraints, context.Scenario)
 	err := m.constraintValidator.ValidateConstraints(value, constraints, context.Scenario)
+	recordConstraintChecks(context.Field.GetName(), directiveKeys(applicableDirectives), err == nil)
 	if err != nil {
 		// Extract constraint information from error if possible
 		validationErr := errors.NewConstraintError(
@@ -365,6 +378,25 @@ func (m *validationManagerImpl) validateConstraints(value any, context Validatio
 	}
 
 	return nil
+}
+
+func getValidationModelName(context ValidationContext) string {
+	if context.Model != nil {
+		return context.Model.GetName()
+	}
+	return "unknown"
+}
+
+func directiveKeys(directives []models.Directive) []string {
+	if len(directives) == 0 {
+		return nil
+	}
+
+	keys := make([]string, 0, len(directives))
+	for _, directive := range directives {
+		keys = append(keys, string(directive.Key()))
+	}
+	return keys
 }
 
 // validateDatabase performs database validation

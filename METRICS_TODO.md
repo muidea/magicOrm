@@ -34,24 +34,4 @@
 
 ### 待办（后续再处理）
 
-- **DB Metrics（`metrics/metricsdb`）生产接入**
-  - 在数据库执行层（`database` 包）统一封装：
-    - 查询类调用 `RecordQuery(database, queryType, duration, err)`。
-    - DML/DDL 调用 `RecordExecution(database, operation, success)`。
-    - 事务 Begin/Commit/Rollback 调用 `RecordTransaction(database, txType, success)`。
-    - 定期从连接池统计中调用 `UpdateConnectionStats(database, state, count)`。
-  - 在对外初始化路径中增加一次性调用 `metricsdb.RegisterDatabaseMetrics()`，并在文档中约束初始化顺序（需在 monitoring 初始化完成后调用，或配合单独的 Ensure 方法）。
-
-- **Validation Metrics（`metrics/validation`）生产接入**
-  - 在 `validation.Manager` 内部统一接入：
-    - 在 `ValidateModel` / `Validate` 周围记录 `RecordValidation(operation, model, scenario, duration, err)`。
-    - 在缓存模块中记录 `RecordCacheAccess(cacheType, hit)`，并确保 `GetCacheHitRatio` 反映真实数据。
-    - 在各类约束检查实现处记录 `RecordConstraintCheck(constraintType, field, passed)`。
-  - 在验证系统初始化入口增加 `RegisterValidationMetrics()` 调用（或类似 Ensure 机制），与 monitoring 初始化时序对齐。
-
-- **统一默认标签与文档**
-  - 根据需要，将各 Provider 的指标标签补充使用 `metrics.DefaultLabels()`（如 `component="magicorm"`, `version` 等），统一监控视图。
-  - 在 README/AGENTS 文档中补充：
-    - metrics 初始化与 `monitoring.InitializeGlobalManager()` 的推荐顺序。
-    - ORM / DB / Validation 三类 metrics 的启用方式与当前成熟度（ORM 已接入，DB/Validation 待完善）。
-
+当前无剩余待办项。

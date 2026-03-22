@@ -153,6 +153,13 @@ err := manager.ValidateModel(model, ctx)
 - `ScenarioQuery`: Skip write-only fields
 - `ScenarioDelete`: Minimal validation
 
+## Metrics Integration
+
+- Preferred initialization order: call `monitoring.InitializeGlobalManager()` first, then `orm.Initialize()`.
+- If monitoring is initialized later, call `orm.EnsureORMMetricProviderRegistered()`, `metricsdb.EnsureDatabaseMetricProviderRegistered()`, and `metricsvalidation.EnsureValidationMetricProviderRegistered()` after the global manager becomes available.
+- Current maturity: ORM metrics are wired to the ORM main path, DB metrics are wired to MySQL/PostgreSQL executors and pools, Validation metrics are wired to `validation.Manager`, validation cache, and constraint checks.
+- Metric definitions should use `metrics.DefaultLabels()` merged with component-specific labels so dashboards can group all MagicORM providers consistently.
+
 ## Troubleshooting
 
 ### Common Issues

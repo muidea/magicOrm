@@ -48,13 +48,15 @@ func NewValidationMetricProviderWithCollector(collector *ValidationMetricsCollec
 
 // Metrics returns validation metric definitions.
 func (p *ValidationMetricProvider) Metrics() []types.MetricDefinition {
+	validationLabels := metrics.MergeLabels(metrics.DefaultLabels(), map[string]string{"component": "validation"})
+
 	return []types.MetricDefinition{
 		// Validation operation counter
 		types.NewCounterDefinition(
 			"magicorm_validation_operations_total",
 			"Total number of validation operations",
 			[]string{"operation", "model", "scenario", "status"},
-			map[string]string{"component": "validation"},
+			validationLabels,
 		),
 
 		// Validation duration gauge (average)
@@ -62,7 +64,7 @@ func (p *ValidationMetricProvider) Metrics() []types.MetricDefinition {
 			"magicorm_validation_duration_seconds",
 			"Average duration of validation operations in seconds",
 			[]string{"operation", "model", "scenario", "status"},
-			map[string]string{"component": "validation"},
+			validationLabels,
 		),
 
 		// Validation error counter
@@ -70,7 +72,7 @@ func (p *ValidationMetricProvider) Metrics() []types.MetricDefinition {
 			"magicorm_validation_errors_total",
 			"Total number of validation errors",
 			[]string{"operation", "model", "scenario", "error_type"},
-			map[string]string{"component": "validation"},
+			validationLabels,
 		),
 
 		// Cache access counter
@@ -78,7 +80,7 @@ func (p *ValidationMetricProvider) Metrics() []types.MetricDefinition {
 			"magicorm_validation_cache_access_total",
 			"Total number of cache accesses",
 			[]string{"cache_type", "hit_miss"},
-			map[string]string{"component": "validation"},
+			validationLabels,
 		),
 
 		// Constraint check counter
@@ -86,7 +88,7 @@ func (p *ValidationMetricProvider) Metrics() []types.MetricDefinition {
 			"magicorm_validation_constraint_checks_total",
 			"Total number of constraint checks",
 			[]string{"constraint_type", "field", "status"},
-			map[string]string{"component": "validation"},
+			validationLabels,
 		),
 
 		// Cache hit ratio gauge
@@ -94,7 +96,7 @@ func (p *ValidationMetricProvider) Metrics() []types.MetricDefinition {
 			"magicorm_validation_cache_hit_ratio",
 			"Validation cache hit ratio",
 			[]string{"cache_type"},
-			map[string]string{"component": "validation"},
+			validationLabels,
 		),
 	}
 }

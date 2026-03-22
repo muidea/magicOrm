@@ -4,6 +4,7 @@ import (
 	"sync"
 	"time"
 
+	metricsvalidation "github.com/muidea/magicOrm/metrics/validation"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/validation/errors"
 )
@@ -77,11 +78,14 @@ func NewValidationCache(config CacheConfig) *ValidationCache {
 // GetConstraintResult retrieves a cached constraint validation result
 func (c *ValidationCache) GetConstraintResult(value any, constraints models.Constraints, scenario errors.Scenario) (error, bool) {
 	if !c.enabled {
+		recordCacheAccess("constraint", false)
 		return nil, false
 	}
 
 	key := c.constraintCache.GenerateCacheKey(value, constraints, scenario)
-	return c.constraintCache.Get(key)
+	result, found := c.constraintCache.Get(key)
+	recordCacheAccess("constraint", found)
+	return result, found
 }
 
 // SetConstraintResult stores a constraint validation result in the cache
@@ -97,6 +101,7 @@ func (c *ValidationCache) SetConstraintResult(value any, constraints models.Cons
 // GetModelResult retrieves a cached model validation result
 func (c *ValidationCache) GetModelResult(model models.Model, scenario errors.Scenario) (error, bool) {
 	if !c.enabled {
+		recordCacheAccess("model", false)
 		return nil, false
 	}
 
@@ -106,14 +111,17 @@ func (c *ValidationCache) GetModelResult(model models.Model, scenario errors.Sce
 	key := generateModelCacheKey(model, scenario)
 	entry, exists := c.modelCache.cache[key]
 	if !exists {
+		recordCacheAccess("model", false)
 		return nil, false
 	}
 
 	// Check if entry has expired
 	if time.Since(entry.Timestamp) > c.modelCache.defaultTTL {
+		recordCacheAccess("model", false)
 		return nil, false
 	}
 
+	recordCacheAccess("model", true)
 	return entry.Result, true
 }
 
@@ -269,4 +277,13 @@ func (mc *ModelCache) evictOldest() {
 
 	// Remove the oldest entry
 	delete(mc.cache, oldestKey)
+}
+
+func recordCacheAccess(cacheType string, hit bool) {
+	collector := metricsvalidation.GetValidationMetricsCollector()
+	if collector == nil {
+		return
+	}
+
+	collector.RecordCacheAccess(cacheType, hit)
 }

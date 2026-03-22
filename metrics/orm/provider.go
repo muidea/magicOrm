@@ -33,13 +33,15 @@ func NewORMMetricProvider(collector *ORMMetricsCollector) *ORMMetricProvider {
 
 // Metrics returns ORM metric definitions.
 func (p *ORMMetricProvider) Metrics() []types.MetricDefinition {
+	ormLabels := metrics.MergeLabels(metrics.DefaultLabels(), map[string]string{"component": "orm"})
+
 	return []types.MetricDefinition{
 		// ORM operation counter
 		types.NewCounterDefinition(
 			"magicorm_orm_operations_total",
 			"Total number of ORM operations",
 			[]string{"operation", "model", "status"},
-			map[string]string{"component": "orm"},
+			ormLabels,
 		),
 
 		// ORM operation duration gauge (average)
@@ -47,7 +49,7 @@ func (p *ORMMetricProvider) Metrics() []types.MetricDefinition {
 			"magicorm_orm_operation_duration_seconds",
 			"Average duration of ORM operations in seconds",
 			[]string{"operation", "model", "status"},
-			map[string]string{"component": "orm"},
+			ormLabels,
 		),
 
 		// ORM error counter
@@ -55,7 +57,7 @@ func (p *ORMMetricProvider) Metrics() []types.MetricDefinition {
 			"magicorm_orm_errors_total",
 			"Total number of ORM errors",
 			[]string{"operation", "model", "error_type"},
-			map[string]string{"component": "orm"},
+			ormLabels,
 		),
 
 		// ORM transaction counter
@@ -63,7 +65,7 @@ func (p *ORMMetricProvider) Metrics() []types.MetricDefinition {
 			"magicorm_orm_transactions_total",
 			"Total number of ORM transactions",
 			[]string{"type", "status"},
-			map[string]string{"component": "orm"},
+			ormLabels,
 		),
 
 		// ORM cache hit ratio gauge
@@ -71,7 +73,7 @@ func (p *ORMMetricProvider) Metrics() []types.MetricDefinition {
 			"magicorm_orm_cache_hit_ratio",
 			"ORM cache hit ratio",
 			[]string{"cache_type"},
-			map[string]string{"component": "orm"},
+			ormLabels,
 		),
 
 		// Active connections gauge
@@ -79,7 +81,7 @@ func (p *ORMMetricProvider) Metrics() []types.MetricDefinition {
 			"magicorm_orm_active_connections",
 			"Number of active ORM connections",
 			[]string{"database"},
-			map[string]string{"component": "orm"},
+			ormLabels,
 		),
 	}
 }

@@ -28,6 +28,7 @@ type FieldAdapter interface {
 
 // ModelAdapter adapts models.Model to validation system
 type ModelAdapter interface {
+	GetName() string
 	GetFields() []FieldAdapter
 	GetField(name string) (FieldAdapter, error)
 }
@@ -80,17 +81,24 @@ func (a *fieldAdapterImpl) GetValue() any {
 
 // modelAdapterImpl implements ModelAdapter
 type modelAdapterImpl struct {
+	name   string
 	fields map[string]FieldAdapter
 }
 
 // NewModelAdapter creates a new model adapter
 func NewModelAdapter(fields []FieldAdapter) ModelAdapter {
+	return NewNamedModelAdapter("unknown", fields)
+}
+
+// NewNamedModelAdapter creates a new model adapter with an explicit model name.
+func NewNamedModelAdapter(name string, fields []FieldAdapter) ModelAdapter {
 	fieldMap := make(map[string]FieldAdapter)
 	for _, field := range fields {
 		fieldMap[field.GetName()] = field
 	}
 
 	return &modelAdapterImpl{
+		name:   name,
 		fields: fieldMap,
 	}
 }
@@ -211,7 +219,7 @@ func AdaptModel(model models.Model) ModelAdapter {
 		adapters = append(adapters, AdaptField(field, value))
 	}
 
-	return NewModelAdapter(adapters)
+	return NewNamedModelAdapter(model.GetName(), adapters)
 }
 
 // GetFields returns all field adapters
@@ -221,6 +229,10 @@ func (a *modelAdapterImpl) GetFields() []FieldAdapter {
 		fields = append(fields, field)
 	}
 	return fields
+}
+
+func (a *modelAdapterImpl) GetName() string {
+	return a.name
 }
 
 // GetField returns a specific field adapter

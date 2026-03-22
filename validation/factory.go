@@ -52,6 +52,7 @@ type TypeValidator interface {
 // ConstraintValidator validates business constraints
 type ConstraintValidator interface {
 	ValidateConstraints(value any, constraints models.Constraints, scenario errors.Scenario) error
+	GetApplicableDirectives(constraints models.Constraints, scenario errors.Scenario) []models.Directive
 	GetApplicableConstraints(scenario errors.Scenario) []models.Key
 	RegisterCustomConstraint(key models.Key, validator models.ValidatorFunc) error
 	ClearCache()

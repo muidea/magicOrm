@@ -602,7 +602,7 @@ func (h *myTypeHandler) GetType() reflect.Type {
 
 MagicORM 的监控通过 **`metrics` 包**与 **magicCommon/monitoring** 集成：ORM 操作在内部自动上报到全局 collector，并在存在 `monitoring.GlobalManager` 时注册为 Provider（名称 `magicorm_orm`）。无独立 `monitoring` 包或 `MonitoredOrm` 包装。
 
-**当前实现**：`orm.Initialize()` 时会创建 `ORMMetricsCollector` 并在 GlobalManager 可用时自动注册；可后续调用 `orm.EnsureORMMetricProviderRegistered()` 做幂等注册。详细说明、与旧版 API 的差异及 DB/Validation 指标待办见 [docs/README.md](./docs/README.md)、[docs/design-metrics.md](./docs/design-metrics.md) 与 [METRICS_TODO.md](./METRICS_TODO.md)。
+**当前实现**：`orm.Initialize()` 会创建 ORM / DB / Validation 三类 collector；当 `monitoring.GlobalManager` 已存在时会自动注册 `magicorm_orm`、`magicorm_database` 与 `magicorm_validation`。推荐顺序是先执行 `monitoring.InitializeGlobalManager()`，再执行 `orm.Initialize()`；如果监控系统晚于 ORM 初始化，可后续调用 `orm.EnsureORMMetricProviderRegistered()`、`metricsdb.EnsureDatabaseMetricProviderRegistered()` 与 `metricsvalidation.EnsureValidationMetricProviderRegistered()` 做幂等注册。详细说明与剩余待办见 [docs/README.md](./docs/README.md)、[docs/design-metrics.md](./docs/design-metrics.md) 与 [METRICS_TODO.md](./METRICS_TODO.md)。
 
 ### 架构设计
 
@@ -615,8 +615,8 @@ metrics/
 ├── orm/                 # ORM 监控 collector 与 provider
 │   ├── collector.go
 │   └── provider.go
-├── metricsdb/           # 数据库监控（待生产接入）
-└── validation/          # 验证监控（待生产接入）
+├── metricsdb/           # 数据库监控（已接入执行层）
+└── validation/          # 验证监控（已接入验证链路）
 ```
 
 ### 监控数据类型
@@ -625,12 +625,19 @@ metrics/
 - **操作类型**: Insert, Update, Delete, Query, BatchQuery, Create, Drop, Count
 - **指标**: 成功率、延迟、错误类型
 - **标签**: 模型名称、操作类型等（见 `metrics` 包）
+- **成熟度**: 已接入 ORM 主路径
 
-#### 验证系统监控
-- **场景**: Insert, Update, Query, Delete；指标与接入方式见 [METRICS_TODO.md](./METRICS_TODO.md)。
+#### 验证系统监控（已接入）
+- **场景**: Insert, Update, Query, Delete
+- **指标**: 校验次数、耗时、错误类型、缓存命中率、约束检查结果
+- **接入点**: `validation.Manager`、`validation/cache`、约束校验链路
+- **成熟度**: 已接入验证主路径
 
-#### 数据库执行监控
-- **查询类型**: Select, Insert, Update, Delete, Transaction；接入方式见 [METRICS_TODO.md](./METRICS_TODO.md)。
+#### 数据库执行监控（已接入）
+- **查询类型**: Select, Insert, Update, Delete, Create, Drop, Alter, Truncate 等 SQL 首关键字
+- **事务类型**: Begin, Commit, Rollback
+- **连接池状态**: Active, Idle, Open, Max
+- **成熟度**: 已接入 MySQL/PostgreSQL 执行层
 
 指标导出与外部系统集成由 magicCommon/monitoring 提供；测试可运行 `go test ./metrics/... -v`。更多说明见 [docs/design-metrics.md](./docs/design-metrics.md)。
 

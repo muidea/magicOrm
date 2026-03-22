@@ -40,6 +40,11 @@ func TestMetricsDefinitions(t *testing.T) {
 	assert.True(t, foundValidationCounter, "Should have validation counter metric")
 	assert.True(t, foundDurationHistogram, "Should have duration histogram metric")
 	assert.True(t, foundErrorCounter, "Should have error counter metric")
+
+	for _, metric := range metrics {
+		assert.Equal(t, "1.0.0", metric.ConstLabels["version"])
+		assert.Equal(t, "validation", metric.ConstLabels["component"])
+	}
 }
 
 func TestCollectMetrics(t *testing.T) {
@@ -132,5 +137,21 @@ func TestRegisterValidationMetricsWithoutGlobalManager(t *testing.T) {
 	RegisterValidationMetrics()
 
 	assert.NotNil(t, GetValidationMetricsCollector())
+	assert.Nil(t, validationMetricProvider)
+}
+
+func TestEnsureValidationMetricProviderRegisteredWithoutCollector(t *testing.T) {
+	oldCollector := validationMetricCollector
+	oldProvider := validationMetricProvider
+	defer func() {
+		validationMetricCollector = oldCollector
+		validationMetricProvider = oldProvider
+	}()
+
+	validationMetricCollector = nil
+	validationMetricProvider = nil
+
+	EnsureValidationMetricProviderRegistered()
+
 	assert.Nil(t, validationMetricProvider)
 }

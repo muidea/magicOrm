@@ -145,15 +145,17 @@ MagicORM 当前已经有三套可直接接入 `magicCommon/monitoring` 的指标
 
 ## 6. 注册与使用
 
-当前 metrics 本身只负责 collector 与 provider 定义。
+当前 metrics 会按能力分层初始化：
 
-- ORM 层会在初始化路径里尝试注册 `magicorm_orm` provider。
-- Database 和 Validation provider 也已具备独立接入能力，可由调用方按需要注册到全局 monitoring manager。
+- ORM 层会在 `orm.Initialize()` 中创建 ORM collector，并在 `monitoring.GlobalManager` 可用时注册 `magicorm_orm` provider。
+- Database 层也会在 `orm.Initialize()` 中创建 DB collector；MySQL/PostgreSQL executor 与 pool 当前会把 query / execute / transaction / connection stats 写入该 collector，并在 `monitoring.GlobalManager` 可用时注册 `magicorm_database` provider。
+- Validation 层也会在 `orm.Initialize()` 中创建 validation collector；`validation.Manager`、`validation/cache` 与约束校验链路当前会把 validation / cache / constraint metrics 写入该 collector，并在 `monitoring.GlobalManager` 可用时注册 `magicorm_validation` provider。
 
 如果调用方没有注册 monitoring manager：
 
 - collector 仍可在进程内累计指标
 - provider 不会自动对外暴露
+- 后续可显式调用 `orm.EnsureORMMetricProviderRegistered()`、`metricsdb.EnsureDatabaseMetricProviderRegistered()` 或 `metricsvalidation.EnsureValidationMetricProviderRegistered()` 做幂等注册
 
 ---
 

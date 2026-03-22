@@ -127,6 +127,10 @@ func (s *ConnExecutor) Release() {
 }
 
 func (s *ConnExecutor) BeginTransaction() (err *cd.Error) {
+	defer func() {
+		database.RecordDatabaseTransaction(database.DatabasePostgreSQL, "begin", err == nil)
+	}()
+
 	atomic.AddInt32(&s.dbTxCount, 1)
 	if s.dbTx == nil && s.dbTxCount == 1 {
 		if s.rowsHandle != nil {
@@ -149,6 +153,10 @@ func (s *ConnExecutor) BeginTransaction() (err *cd.Error) {
 }
 
 func (s *ConnExecutor) CommitTransaction() (err *cd.Error) {
+	defer func() {
+		database.RecordDatabaseTransaction(database.DatabasePostgreSQL, "commit", err == nil)
+	}()
+
 	atomic.AddInt32(&s.dbTxCount, -1)
 	if s.dbTx != nil && s.dbTxCount == 0 {
 		dbErr := s.dbTx.Commit()
@@ -167,6 +175,10 @@ func (s *ConnExecutor) CommitTransaction() (err *cd.Error) {
 }
 
 func (s *ConnExecutor) RollbackTransaction() (err *cd.Error) {
+	defer func() {
+		database.RecordDatabaseTransaction(database.DatabasePostgreSQL, "rollback", err == nil)
+	}()
+
 	atomic.AddInt32(&s.dbTxCount, -1)
 	if s.dbTx != nil && s.dbTxCount == 0 {
 		dbErr := s.dbTx.Rollback()
@@ -190,6 +202,7 @@ func (s *ConnExecutor) Query(sql string, needCols bool, args ...any) (ret []stri
 	defer func() {
 		endTime := time.Now()
 		elapse := endTime.Sub(startTime)
+		database.RecordDatabaseQuery(database.DatabasePostgreSQL, sql, elapse, err)
 		if err != nil {
 			slog.Error("Query failed", "execute_time", startTime.Local().String(), "elapse", elapse, "sql", sql, "error", err.Error())
 			return
@@ -295,6 +308,7 @@ func (s *ConnExecutor) Execute(sql string, args ...any) (rowsAffected int64, err
 	defer func() {
 		endTime := time.Now()
 		elapse := endTime.Sub(startTime)
+		database.RecordDatabaseExecution(database.DatabasePostgreSQL, sql, err == nil)
 		if err != nil {
 			slog.Error("Execute failed", "execute_time", startTime.Local().String(), "elapse", elapse, "sql", sql, "error", err.Error())
 			return
@@ -342,6 +356,7 @@ func (s *ConnExecutor) ExecuteInsert(sql string, pkValOut any, args ...any) (err
 	defer func() {
 		endTime := time.Now()
 		elapse := endTime.Sub(startTime)
+		database.RecordDatabaseExecution(database.DatabasePostgreSQL, sql, err == nil)
 		if err != nil {
 			slog.Error("ExecuteInsert failed", "execute_time", startTime.Local().String(), "elapse", elapse, "sql", sql, "error", err.Error())
 			return
@@ -439,6 +454,10 @@ func (s *HostExecutor) Release() {
 }
 
 func (s *HostExecutor) BeginTransaction() (err *cd.Error) {
+	defer func() {
+		database.RecordDatabaseTransaction(database.DatabasePostgreSQL, "begin", err == nil)
+	}()
+
 	atomic.AddInt32(&s.dbTxCount, 1)
 	if s.dbTx == nil && s.dbTxCount == 1 {
 		if s.rowsHandle != nil {
@@ -461,6 +480,10 @@ func (s *HostExecutor) BeginTransaction() (err *cd.Error) {
 }
 
 func (s *HostExecutor) CommitTransaction() (err *cd.Error) {
+	defer func() {
+		database.RecordDatabaseTransaction(database.DatabasePostgreSQL, "commit", err == nil)
+	}()
+
 	atomic.AddInt32(&s.dbTxCount, -1)
 	if s.dbTx != nil && s.dbTxCount == 0 {
 		dbErr := s.dbTx.Commit()
@@ -479,6 +502,10 @@ func (s *HostExecutor) CommitTransaction() (err *cd.Error) {
 }
 
 func (s *HostExecutor) RollbackTransaction() (err *cd.Error) {
+	defer func() {
+		database.RecordDatabaseTransaction(database.DatabasePostgreSQL, "rollback", err == nil)
+	}()
+
 	atomic.AddInt32(&s.dbTxCount, -1)
 	if s.dbTx != nil && s.dbTxCount == 0 {
 		dbErr := s.dbTx.Rollback()
@@ -502,6 +529,7 @@ func (s *HostExecutor) Query(sql string, needCols bool, args ...any) (ret []stri
 	defer func() {
 		endTime := time.Now()
 		elapse := endTime.Sub(startTime)
+		database.RecordDatabaseQuery(database.DatabasePostgreSQL, sql, elapse, err)
 		if err != nil {
 			slog.Error("Query failed", "execute_time", startTime.Local().String(), "elapse", elapse, "sql", sql, "error", err.Error())
 			return
@@ -607,6 +635,7 @@ func (s *HostExecutor) Execute(sql string, args ...any) (rowsAffected int64, err
 	defer func() {
 		endTime := time.Now()
 		elapse := endTime.Sub(startTime)
+		database.RecordDatabaseExecution(database.DatabasePostgreSQL, sql, err == nil)
 		if err != nil {
 			slog.Error("Execute failed", "execute_time", startTime.Local().String(), "elapse", elapse, "sql", sql, "error", err.Error())
 			return
@@ -654,6 +683,7 @@ func (s *HostExecutor) ExecuteInsert(sql string, pkValOut any, args ...any) (err
 	defer func() {
 		endTime := time.Now()
 		elapse := endTime.Sub(startTime)
+		database.RecordDatabaseExecution(database.DatabasePostgreSQL, sql, err == nil)
 		if err != nil {
 			slog.Error("ExecuteInsert failed", "execute_time", startTime.Local().String(), "elapse", elapse, "sql", sql, "error", err.Error())
 			return
@@ -767,12 +797,14 @@ func (s *Pool) connect(dsn string, maxConnNum int) (err *cd.Error) {
 
 	s.dbDSN = dsn
 	s.dbHandle = dbHandle
+	database.UpdateDatabaseConnectionStats(database.DatabasePostgreSQL, s.dbHandle)
 	return
 }
 
 // Uninitialized uninitialized executor pool
 func (s *Pool) Uninitialized() {
 	if s.dbHandle != nil {
+		database.UpdateDatabaseConnectionStats(database.DatabasePostgreSQL, s.dbHandle)
 		_ = s.dbHandle.Close()
 		s.dbHandle = nil
 	}
@@ -784,6 +816,8 @@ func (s *Pool) GetExecutor(ctx context.Context) (ret database.Executor, err *cd.
 		err = cd.NewError(cd.DatabaseError, connErr.Error())
 		return
 	}
+
+	database.UpdateDatabaseConnectionStats(database.DatabasePostgreSQL, s.dbHandle)
 
 	ret = &ConnExecutor{
 		executeContetxt: ctx,

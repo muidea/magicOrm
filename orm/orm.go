@@ -12,7 +12,9 @@ import (
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/metrics"
+	"github.com/muidea/magicOrm/metrics/metricsdb"
 	metricsorm "github.com/muidea/magicOrm/metrics/orm"
+	metricsvalidation "github.com/muidea/magicOrm/metrics/validation"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/validation"
@@ -60,6 +62,8 @@ func Initialize() {
 
 		// 总是创建metrics收集器，但只在GlobalManager存在时注册provider
 		registerORMMetrics()
+		metricsdb.RegisterDatabaseMetrics()
+		metricsvalidation.RegisterValidationMetrics()
 	})
 }
 
