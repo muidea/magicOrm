@@ -218,3 +218,32 @@ func TestQueryDurationKeyLRUEviction(t *testing.T) {
 	assert.Equal(t, 40*time.Millisecond, durations[metrics.BuildKey("sqlite", "update", "success")][0])
 	assert.Equal(t, 50*time.Millisecond, durations[metrics.BuildKey("sqlite", "update", "success")][1])
 }
+
+func TestDatabaseMetricsCollectorGettersReturnCopies(t *testing.T) {
+	collector := NewDatabaseMetricsCollector()
+	collector.RecordQuery("postgresql", "select", 10*time.Millisecond, nil)
+	collector.RecordTransaction("postgresql", "begin", true)
+	collector.RecordExecution("postgresql", "insert", true)
+	collector.UpdateConnectionStats("postgresql", "active", 5)
+
+	queryCounters := collector.GetQueryCounters()
+	queryCounters[metrics.BuildKey("postgresql", "select", "success")] = 99
+
+	txCounters := collector.GetTransactionCounters()
+	txCounters[metrics.BuildKey("postgresql", "begin", "success")] = 99
+
+	executionCounters := collector.GetExecutionCounters()
+	executionCounters[metrics.BuildKey("postgresql", "insert", "success")] = 99
+
+	connectionStats := collector.GetConnectionStats()
+	connectionStats[metrics.BuildKey("postgresql", "active")] = 99
+
+	durations := collector.GetQueryDurations()
+	durations[metrics.BuildKey("postgresql", "select", "success")][0] = time.Second
+
+	assert.Equal(t, int64(1), collector.GetQueryCounters()[metrics.BuildKey("postgresql", "select", "success")])
+	assert.Equal(t, int64(1), collector.GetTransactionCounters()[metrics.BuildKey("postgresql", "begin", "success")])
+	assert.Equal(t, int64(1), collector.GetExecutionCounters()[metrics.BuildKey("postgresql", "insert", "success")])
+	assert.Equal(t, int64(5), collector.GetConnectionStats()[metrics.BuildKey("postgresql", "active")])
+	assert.Equal(t, 10*time.Millisecond, collector.GetQueryDurations()[metrics.BuildKey("postgresql", "select", "success")][0])
+}
