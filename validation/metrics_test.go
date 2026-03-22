@@ -110,3 +110,29 @@ func TestValidationMetricsRecordModelCacheAccess(t *testing.T) {
 	assert.Equal(t, int64(1), collector.GetCacheAccessCounters()[metrics.BuildKey("model", "hit")])
 	assert.Equal(t, 0.5, collector.GetCacheHitRatio("model"))
 }
+
+func TestValidationMetricHelpers(t *testing.T) {
+	oldCollector := metricsvalidation.GetValidationMetricsCollector()
+	collector := metricsvalidation.NewValidationMetricsCollector()
+	metricsvalidation.SetValidationMetricsCollectorForTest(collector)
+	defer metricsvalidation.SetValidationMetricsCollectorForTest(oldCollector)
+
+	recordValidationMetric(OperationUpdate, "User", verrors.ScenarioUpdate, 0, nil)
+	recordValidationCacheAccess("custom", true)
+	recordConstraintChecks("Name", []string{string(models.KeyRequired), string(models.KeyMin)}, false)
+
+	assert.Equal(t, int64(1), collector.GetValidationCounters()[metrics.BuildKey("update", "User", "update", "success")])
+	assert.Equal(t, int64(1), collector.GetCacheAccessCounters()[metrics.BuildKey("custom", "hit")])
+	assert.Equal(t, int64(1), collector.GetConstraintCheckCounters()[metrics.BuildKey(string(models.KeyRequired), "Name", "failed")])
+	assert.Equal(t, int64(1), collector.GetConstraintCheckCounters()[metrics.BuildKey(string(models.KeyMin), "Name", "failed")])
+}
+
+func TestValidationMetricHelpersWithoutCollector(t *testing.T) {
+	oldCollector := metricsvalidation.GetValidationMetricsCollector()
+	metricsvalidation.SetValidationMetricsCollectorForTest(nil)
+	defer metricsvalidation.SetValidationMetricsCollectorForTest(oldCollector)
+
+	recordValidationMetric(OperationDelete, "User", verrors.ScenarioDelete, 0, nil)
+	recordValidationCacheAccess("custom", false)
+	recordConstraintChecks("Name", []string{string(models.KeyRequired)}, true)
+}
