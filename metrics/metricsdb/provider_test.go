@@ -128,3 +128,19 @@ func TestRegisterDatabaseMetricsWithoutGlobalManager(t *testing.T) {
 	assert.NotNil(t, GetDatabaseMetricsCollector())
 	assert.Nil(t, databaseMetricProvider)
 }
+
+func TestEnsureDatabaseMetricProviderRegisteredWithoutCollector(t *testing.T) {
+	oldCollector := databaseMetricCollector
+	oldProvider := databaseMetricProvider
+	defer func() {
+		databaseMetricCollector = oldCollector
+		databaseMetricProvider = oldProvider
+	}()
+
+	databaseMetricCollector = nil
+	databaseMetricProvider = nil
+
+	EnsureDatabaseMetricProviderRegistered()
+
+	assert.Nil(t, databaseMetricProvider)
+}
