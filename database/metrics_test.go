@@ -87,3 +87,14 @@ func TestNormalizeDatabaseOperation(t *testing.T) {
 		})
 	}
 }
+
+func TestDatabaseMetricHelpersWithoutCollector(t *testing.T) {
+	oldCollector := metricsdb.GetDatabaseMetricsCollector()
+	metricsdb.SetDatabaseMetricsCollectorForTest(nil)
+	defer metricsdb.SetDatabaseMetricsCollectorForTest(oldCollector)
+
+	RecordDatabaseQuery(DatabasePostgreSQL, "SELECT 1", 0, nil)
+	RecordDatabaseExecution(DatabaseMySQL, "INSERT INTO users(id) VALUES(1)", true)
+	RecordDatabaseTransaction(DatabasePostgreSQL, "begin", true)
+	UpdateDatabaseConnectionStats(DatabasePostgreSQL, nil)
+}
