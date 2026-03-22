@@ -6,6 +6,7 @@ import (
 	"github.com/muidea/magicOrm/metrics"
 	metricsvalidation "github.com/muidea/magicOrm/metrics/validation"
 	"github.com/muidea/magicOrm/models"
+	validationcache "github.com/muidea/magicOrm/validation/cache"
 	verrors "github.com/muidea/magicOrm/validation/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -87,4 +88,25 @@ func TestValidationMetricsRecordErrors(t *testing.T) {
 	}
 	assert.Equal(t, int64(1), errorCount)
 	assert.Equal(t, int64(1), collector.GetConstraintCheckCounters()[metrics.BuildKey(string(models.KeyRequired), "Name", "failed")])
+}
+
+func TestValidationMetricsRecordModelCacheAccess(t *testing.T) {
+	oldCollector := metricsvalidation.GetValidationMetricsCollector()
+	collector := metricsvalidation.NewValidationMetricsCollector()
+	metricsvalidation.SetValidationMetricsCollectorForTest(collector)
+	defer metricsvalidation.SetValidationMetricsCollectorForTest(oldCollector)
+
+	cache := validationcache.NewValidationCache(validationcache.DefaultCacheConfig())
+	model := &testModel{name: "User"}
+
+	_, ok := cache.GetModelResult(model, verrors.ScenarioInsert)
+	assert.False(t, ok)
+
+	cache.SetModelResult(model, verrors.ScenarioInsert, nil)
+	_, ok = cache.GetModelResult(model, verrors.ScenarioInsert)
+	assert.True(t, ok)
+
+	assert.Equal(t, int64(1), collector.GetCacheAccessCounters()[metrics.BuildKey("model", "miss")])
+	assert.Equal(t, int64(1), collector.GetCacheAccessCounters()[metrics.BuildKey("model", "hit")])
+	assert.Equal(t, 0.5, collector.GetCacheHitRatio("model"))
 }
