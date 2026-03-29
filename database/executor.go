@@ -2,9 +2,19 @@ package database
 
 import (
 	"context"
+	"time"
 
 	cd "github.com/muidea/magicCommon/def"
 )
+
+type PoolStats struct {
+	MaxOpenConnections int
+	OpenConnections    int
+	InUse              int
+	Idle               int
+	WaitCount          int64
+	WaitDuration       time.Duration
+}
 
 type Config interface {
 	Server() string
@@ -33,6 +43,7 @@ type Pool interface {
 	Initialize(maxConnNum int, config Config) *cd.Error
 	Uninitialized()
 	GetExecutor(ctx context.Context) (Executor, *cd.Error)
+	GetStats() PoolStats
 	CheckConfig(config Config) *cd.Error
 	IncReference() int
 	DecReference() int

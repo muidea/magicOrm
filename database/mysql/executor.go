@@ -836,6 +836,22 @@ func (s *Pool) GetExecutor(ctx context.Context) (ret database.Executor, err *cd.
 	return
 }
 
+func (s *Pool) GetStats() database.PoolStats {
+	if s == nil || s.dbHandle == nil {
+		return database.PoolStats{}
+	}
+
+	stats := s.dbHandle.Stats()
+	return database.PoolStats{
+		MaxOpenConnections: stats.MaxOpenConnections,
+		OpenConnections:    stats.OpenConnections,
+		InUse:              stats.InUse,
+		Idle:               stats.Idle,
+		WaitCount:          stats.WaitCount,
+		WaitDuration:       stats.WaitDuration,
+	}
+}
+
 func (s *Pool) CheckConfig(cfgPtr database.Config) *cd.Error {
 	newDsn := cfgPtr.GetDsn()
 	preDsn := s.config.GetDsn()

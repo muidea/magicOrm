@@ -533,7 +533,7 @@ func (s *impl) Query(vModel models.Model) (ret models.Model, err *cd.Error) {
 	defer func() {
 		duration := time.Since(startTime)
 		if ormMetricCollector != nil {
-			ormMetricCollector.RecordOperation(string(metrics.OperationQuery), vModel, duration, err)
+			ormMetricCollector.RecordOperation(string(metrics.OperationQuery), vModel, duration, cd.ToStdError(err))
 		}
 	}()
 

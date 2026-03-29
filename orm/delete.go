@@ -182,7 +182,7 @@ func (s *impl) Delete(vModel models.Model) (ret models.Model, err *cd.Error) {
 	defer func() {
 		duration := time.Since(startTime)
 		if ormMetricCollector != nil {
-			ormMetricCollector.RecordOperation(string(metrics.OperationDelete), vModel, duration, err)
+			ormMetricCollector.RecordOperation(string(metrics.OperationDelete), vModel, duration, cd.ToStdError(err))
 		}
 	}()
 

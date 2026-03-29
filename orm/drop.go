@@ -99,7 +99,7 @@ func (s *impl) Drop(vModel models.Model) (err *cd.Error) {
 	defer func() {
 		duration := time.Since(startTime)
 		if ormMetricCollector != nil {
-			ormMetricCollector.RecordOperation(string(metrics.OperationDrop), vModel, duration, err)
+			ormMetricCollector.RecordOperation(string(metrics.OperationDrop), vModel, duration, cd.ToStdError(err))
 		}
 	}()
 

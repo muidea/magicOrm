@@ -73,7 +73,7 @@ func (s *impl) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
 			if vFilter != nil {
 				model = vFilter.MaskModel()
 			}
-			ormMetricCollector.RecordOperation(string(metrics.OperationCount), model, duration, err)
+			ormMetricCollector.RecordOperation(string(metrics.OperationCount), model, duration, cd.ToStdError(err))
 		}
 	}()
 

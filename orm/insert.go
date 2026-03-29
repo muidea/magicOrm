@@ -281,7 +281,7 @@ func (s *impl) Insert(vModel models.Model) (ret models.Model, err *cd.Error) {
 	defer func() {
 		duration := time.Since(startTime)
 		if ormMetricCollector != nil {
-			ormMetricCollector.RecordOperation(string(metrics.OperationInsert), vModel, duration, err)
+			ormMetricCollector.RecordOperation(string(metrics.OperationInsert), vModel, duration, cd.ToStdError(err))
 		}
 	}()
 

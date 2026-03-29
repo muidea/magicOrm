@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/metrics/metricsdb"
 )
 
@@ -13,13 +14,13 @@ const (
 	DatabaseMySQL      = "mysql"
 )
 
-func RecordDatabaseQuery(databaseName string, sqlText string, duration time.Duration, err error) {
+func RecordDatabaseQuery(databaseName string, sqlText string, duration time.Duration, err *cd.Error) {
 	collector := metricsdb.GetDatabaseMetricsCollector()
 	if collector == nil {
 		return
 	}
 
-	collector.RecordQuery(databaseName, normalizeDatabaseOperation(sqlText, "query"), duration, err)
+	collector.RecordQuery(databaseName, normalizeDatabaseOperation(sqlText, "query"), duration, cd.ToStdError(err))
 }
 
 func RecordDatabaseExecution(databaseName string, sqlText string, success bool) {

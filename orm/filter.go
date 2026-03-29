@@ -21,7 +21,7 @@ func (s *impl) BatchQuery(filter models.Filter) (ret []models.Model, err *cd.Err
 			if filter != nil {
 				model = filter.MaskModel()
 			}
-			ormMetricCollector.RecordOperation(string(metrics.OperationBatch), model, duration, err)
+			ormMetricCollector.RecordOperation(string(metrics.OperationBatch), model, duration, cd.ToStdError(err))
 		}
 	}()
 

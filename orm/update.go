@@ -133,7 +133,7 @@ func (s *impl) Update(vModel models.Model) (ret models.Model, err *cd.Error) {
 	defer func() {
 		duration := time.Since(startTime)
 		if ormMetricCollector != nil {
-			ormMetricCollector.RecordOperation(string(metrics.OperationUpdate), vModel, duration, err)
+			ormMetricCollector.RecordOperation(string(metrics.OperationUpdate), vModel, duration, cd.ToStdError(err))
 		}
 	}()
 

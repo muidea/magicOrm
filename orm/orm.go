@@ -44,10 +44,48 @@ var (
 	name2Pool                  sync.Map
 	name2PoolInitializeOnce    sync.Once
 	name2PoolUninitializedOnce sync.Once
+	name2LastPoolStats         sync.Map
 
 	ormMetricProvider  *metricsorm.ORMMetricProvider
 	ormMetricCollector *metricsorm.ORMMetricsCollector
 )
+
+func poolStatsChanged(prev, curr database.PoolStats) bool {
+	return prev.MaxOpenConnections != curr.MaxOpenConnections ||
+		prev.OpenConnections != curr.OpenConnections ||
+		prev.InUse != curr.InUse ||
+		prev.Idle != curr.Idle ||
+		prev.WaitCount != curr.WaitCount ||
+		prev.WaitDuration != curr.WaitDuration
+}
+
+func logPoolStats(owner, event string, pool database.Pool, force bool) {
+	if owner == "" || pool == nil {
+		return
+	}
+
+	stats := pool.GetStats()
+	prevVal, ok := name2LastPoolStats.Load(owner)
+	prevStats, _ := prevVal.(database.PoolStats)
+	shouldLog := force || !ok || poolStatsChanged(prevStats, stats) ||
+		stats.InUse > 1 || stats.OpenConnections > 1 || stats.WaitCount > 0
+
+	name2LastPoolStats.Store(owner, stats)
+	if !shouldLog {
+		return
+	}
+
+	slog.Info("ORM pool stats",
+		"owner", owner,
+		"event", event,
+		"max_open", stats.MaxOpenConnections,
+		"open", stats.OpenConnections,
+		"in_use", stats.InUse,
+		"idle", stats.Idle,
+		"wait_count", stats.WaitCount,
+		"wait_ms", stats.WaitDuration.Milliseconds(),
+	)
+}
 
 func defaultValidationConfig(enableCaching bool) validation.ValidationConfig {
 	cfg := validation.DefaultConfig()
@@ -135,9 +173,12 @@ func EnsureORMMetricProviderRegistered() {
 // Uninitialized orm
 func Uninitialized() {
 	name2PoolUninitializedOnce.Do(func() {
-		name2Pool.Range(func(_, val any) bool {
+		name2Pool.Range(func(key, val any) bool {
+			owner, _ := key.(string)
 			pool := val.(database.Pool)
+			logPoolStats(owner, "uninitialize_pool", pool, true)
 			pool.Uninitialized()
+			name2LastPoolStats.Delete(owner)
 
 			return true
 		})
@@ -154,6 +195,7 @@ func AddDatabase(dbServer, dbName, username, password string, maxConnNum int, ow
 		pool := val.(database.Pool)
 		pool.IncReference()
 		err = pool.CheckConfig(config)
+		logPoolStats(owner, "reuse_pool", pool, true)
 		return
 	}
 
@@ -166,6 +208,7 @@ func AddDatabase(dbServer, dbName, username, password string, maxConnNum int, ow
 
 	pool.IncReference()
 	name2Pool.Store(owner, pool)
+	logPoolStats(owner, "initialize_pool", pool, true)
 	return
 }
 
@@ -177,8 +220,10 @@ func DelDatabase(owner string) {
 
 	pool := val.(database.Pool)
 	if pool.DecReference() == 0 {
+		logPoolStats(owner, "delete_pool", pool, true)
 		pool.Uninitialized()
 		name2Pool.Delete(owner)
+		name2LastPoolStats.Delete(owner)
 	}
 }
 
@@ -235,6 +280,7 @@ func GetOrm(ctx context.Context, provider provider.Provider, prefix string) (ret
 		slog.Error("GetOrm pool.GetExecutor failed", "owner", provider.Owner(), "error", err.Error())
 		return
 	}
+	logPoolStats(provider.Owner(), "acquire_executor", pool, false)
 
 	// Create validation manager
 	validationFactory := validation.NewValidationFactory()

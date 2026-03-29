@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/metrics"
 	"github.com/muidea/magicOrm/metrics/metricsdb"
 	"github.com/stretchr/testify/assert"
@@ -18,11 +19,24 @@ func TestRecordDatabaseQuery(t *testing.T) {
 	defer metricsdb.SetDatabaseMetricsCollectorForTest(oldCollector)
 
 	RecordDatabaseQuery(DatabasePostgreSQL, "SELECT * FROM users", 25*time.Millisecond, nil)
-	RecordDatabaseQuery(DatabasePostgreSQL, "WITH cte AS (SELECT 1) SELECT * FROM users", 30*time.Millisecond, errors.New("connection reset"))
+	RecordDatabaseQuery(DatabasePostgreSQL, "WITH cte AS (SELECT 1) SELECT * FROM users", 30*time.Millisecond, cd.NewError(cd.Unexpected, errors.New("connection reset").Error()))
 
 	assert.Equal(t, int64(1), collector.GetQueryCounters()[metrics.BuildKey(DatabasePostgreSQL, "select", "success")])
 	assert.Equal(t, int64(1), collector.GetQueryCounters()[metrics.BuildKey(DatabasePostgreSQL, "select", "error")])
 	assert.Equal(t, int64(1), collector.GetErrorCounters()[metrics.BuildKey(DatabasePostgreSQL, "select", string(metrics.ErrorTypeConnection))])
+}
+
+func TestRecordDatabaseQueryTreatsTypedNilErrorAsSuccess(t *testing.T) {
+	oldCollector := metricsdb.GetDatabaseMetricsCollector()
+	collector := metricsdb.NewDatabaseMetricsCollector()
+	metricsdb.SetDatabaseMetricsCollectorForTest(collector)
+	defer metricsdb.SetDatabaseMetricsCollectorForTest(oldCollector)
+
+	var typedNilErr *cd.Error
+	RecordDatabaseQuery(DatabasePostgreSQL, "SELECT * FROM users", 25*time.Millisecond, typedNilErr)
+
+	assert.Equal(t, int64(1), collector.GetQueryCounters()[metrics.BuildKey(DatabasePostgreSQL, "select", "success")])
+	assert.Empty(t, collector.GetErrorCounters())
 }
 
 func TestRecordDatabaseExecution(t *testing.T) {
