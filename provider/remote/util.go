@@ -215,6 +215,48 @@ func convertSliceValue(vType models.Type, val any) (ret any, err *cd.Error) {
 	return
 }
 
+func isBasicCollectionValue(val any) bool {
+	if val == nil {
+		return false
+	}
+
+	rVal := reflect.ValueOf(val)
+	if !rVal.IsValid() || rVal.Kind() != reflect.Slice {
+		return false
+	}
+	if rVal.IsNil() {
+		return false
+	}
+	if rVal.Type().Elem().Kind() != reflect.Interface {
+		return false
+	}
+	if rVal.Len() == 0 {
+		return true
+	}
+
+	for idx := 0; idx < rVal.Len(); idx++ {
+		itemVal := rVal.Index(idx)
+		if !itemVal.IsValid() {
+			return false
+		}
+		if itemVal.Kind() == reflect.Interface {
+			if itemVal.IsNil() {
+				return false
+			}
+			itemVal = itemVal.Elem()
+		}
+		if !utils.IsReallyValidValueForReflect(itemVal) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func isSupportedBasicValue(val any) bool {
+	return utils.IsReallyValidValue(val) || isBasicCollectionValue(val)
+}
+
 func isValid(val any) bool {
 	if val == nil {
 		return false
@@ -230,7 +272,7 @@ func isValid(val any) bool {
 	case SliceObjectValue:
 		return true
 	default:
-		return utils.IsReallyValidValue(val)
+		return isSupportedBasicValue(val)
 	}
 }
 
@@ -249,6 +291,10 @@ func isZero(val any) (ret bool) {
 	case SliceObjectValue:
 		return v.Values == nil
 	default:
+		if isBasicCollectionValue(val) {
+			rVal := reflect.ValueOf(val)
+			return !rVal.IsValid() || rVal.IsNil()
+		}
 		return utils.IsReallyZeroValue(val)
 	}
 }

@@ -48,7 +48,7 @@ func NewValue(val any) (ret *ValueImpl) {
 		sliceObjectVal := val.(SliceObjectValue)
 		valPtr.value = &sliceObjectVal
 	default:
-		if !utils.IsReallyValidValue(val) {
+		if !isSupportedBasicValue(val) {
 			panic(fmt.Sprintf("illegal value:%+v", val))
 		}
 
@@ -119,7 +119,7 @@ func (s *ValueImpl) Set(val any) (err *cd.Error) {
 		sliceObjectVal := val.(SliceObjectValue)
 		err = rewriteSliceObjectValue(s.value.(*SliceObjectValue), &sliceObjectVal)
 	default:
-		if !utils.IsReallyValidValue(val) {
+		if !isSupportedBasicValue(val) {
 			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal value:%+v", val))
 			return
 		}

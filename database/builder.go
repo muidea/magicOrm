@@ -26,6 +26,7 @@ type Builder interface {
 	BuildDeleteRelation(vModel models.Model, vField models.Field) (Result, Result, *cd.Error)
 	BuildDeleteRelationByRights(vModel models.Model, vField models.Field, rightIDs []any) (Result, *cd.Error)
 	BuildQueryRelation(vModel models.Model, vField models.Field) (Result, *cd.Error)
+	BuildBatchQueryRelation(vModel models.Model, vField models.Field, leftIDs []any) (Result, *cd.Error)
 
 	BuildModuleValueHolder(vModel models.Model) ([]any, *cd.Error)
 }

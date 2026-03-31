@@ -133,6 +133,25 @@ func TestValueWithVariousTypes(t *testing.T) {
 		t.Errorf("Empty slice value handling failed")
 		return
 	}
+
+	// Test filter collection operand values
+	collectionVal := []any{int64(1), int64(2), int64(3)}
+	collectionValuePtr := NewValue(collectionVal)
+	if !collectionValuePtr.IsValid() || collectionValuePtr.IsZero() {
+		t.Errorf("Collection operand handling failed")
+		return
+	}
+	if !reflect.DeepEqual(collectionValuePtr.Get(), collectionVal) {
+		t.Errorf("Collection operand mismatch, got %#v", collectionValuePtr.Get())
+		return
+	}
+
+	emptyCollectionVal := []any{}
+	emptyCollectionValuePtr := NewValue(emptyCollectionVal)
+	if !emptyCollectionValuePtr.IsValid() || emptyCollectionValuePtr.IsZero() {
+		t.Errorf("Empty collection operand handling failed")
+		return
+	}
 }
 
 func TestValueCopy(t *testing.T) {

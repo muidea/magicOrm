@@ -77,11 +77,27 @@ func (s *Builder) buildFilter(vModel models.Model, filter models.Filter, resultS
 func (s *Builder) buildBasicFilterItem(vField models.Field, filterItem models.FilterItem, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
 	oprValue := filterItem.OprValue()
 	oprFunc := getOprFunc(filterItem)
-	fieldVal, fieldErr := s.modelProvider.EncodeValue(oprValue.Get(), vField.GetType())
-	if fieldErr != nil {
-		err = fieldErr
-		slog.Error("buildBasicItem failed", "field", vField.GetName(), "operation", "EncodeValue", "error", err.Error())
-		return
+	var fieldVal any
+	switch filterItem.OprCode() {
+	case models.InOpr, models.NotInOpr:
+		valueSlice := []any{}
+		fieldVals := oprValue.UnpackValue()
+		for _, val := range fieldVals {
+			subItemVal, subItemErr := s.modelProvider.EncodeValue(val.Get(), vField.GetType())
+			if subItemErr != nil {
+				err = subItemErr
+				slog.Error("buildBasicItem failed", "field", vField.GetName(), "operation", "EncodeValue", "error", err.Error())
+				return
+			}
+			valueSlice = append(valueSlice, subItemVal)
+		}
+		fieldVal = valueSlice
+	default:
+		fieldVal, err = s.modelProvider.EncodeValue(oprValue.Get(), vField.GetType())
+		if err != nil {
+			slog.Error("buildBasicItem failed", "field", vField.GetName(), "operation", "EncodeValue", "error", err.Error())
+			return
+		}
 	}
 
 	ret = oprFunc(vField.GetName(), fieldVal, resultStackPtr)

@@ -81,6 +81,53 @@ func (s *Builder) BuildQueryRelation(vModel models.Model, vField models.Field) (
 	return
 }
 
+func (s *Builder) BuildBatchQueryRelation(vModel models.Model, vField models.Field, leftIDs []any) (ret database.Result, err *cd.Error) {
+	if len(leftIDs) == 0 {
+		err = cd.NewError(cd.IllegalParam, "leftIDs is empty")
+		return
+	}
+
+	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
+	if relationErr != nil {
+		err = relationErr
+		slog.Error("BuildBatchQueryRelation failed", "field", vField.GetName(), "operation", "s.buildCodec.ConstructRelationTableName", "error", err.Error())
+		return
+	}
+
+	pkField := vModel.GetPrimaryField()
+	if pkField == nil {
+		err = cd.NewError(cd.IllegalParam, "model primary field is nil")
+		return
+	}
+
+	resultStackPtr := &ResultStack{}
+	placeholders := ""
+	for _, leftID := range leftIDs {
+		encodedVal, encodeErr := s.modelProvider.EncodeValue(leftID, pkField.GetType())
+		if encodeErr != nil {
+			err = encodeErr
+			slog.Error("BuildBatchQueryRelation failed", "field", vField.GetName(), "operation", "s.modelProvider.EncodeValue", "error", err.Error())
+			return
+		}
+
+		resultStackPtr.PushArgs(encodedVal)
+		if placeholders == "" {
+			placeholders = fmt.Sprintf("$%d", len(resultStackPtr.argsVal))
+		} else {
+			placeholders = fmt.Sprintf("%s,$%d", placeholders, len(resultStackPtr.argsVal))
+		}
+	}
+
+	queryRelationSQL := fmt.Sprintf("SELECT \"left\",\"right\" FROM \"%s\" WHERE \"left\" IN (%s)", relationTableName, placeholders)
+	if traceSQL() {
+		slog.Info("[SQL] batch query relation", "sql", queryRelationSQL)
+	}
+
+	resultStackPtr.SetSQL(queryRelationSQL)
+	ret = resultStackPtr
+	return
+}
+
 func (s *Builder) getFieldQueryNames(vModel models.Model) (ret string, err *cd.Error) {
 	str := ""
 	for _, field := range vModel.GetFields() {

@@ -191,6 +191,25 @@ func TestBuilderVMIBuildQueryRelationFilters(t *testing.T) {
 	}
 }
 
+func TestBuilderVMIBuildBatchQueryRelation(t *testing.T) {
+	_, builder, orderModel, _, _, _ := buildVMIOrderFilter(t)
+
+	result, err := builder.BuildBatchQueryRelation(orderModel, orderModel.GetField("goods"), []any{int64(101), int64(102)})
+	if err != nil {
+		t.Fatalf("BuildBatchQueryRelation failed: %v", err)
+	}
+
+	sql := result.SQL()
+	if !strings.Contains(sql, `SELECT "left","right" FROM "tenant_OrderGoods2GoodsItem" WHERE "left" IN ($1,$2)`) {
+		t.Fatalf("unexpected batch relation sql: %s", sql)
+	}
+
+	wantArgs := []any{int64(101), int64(102)}
+	if !reflect.DeepEqual(result.Args(), wantArgs) {
+		t.Fatalf("unexpected batch relation args: got=%#v want=%#v", result.Args(), wantArgs)
+	}
+}
+
 func TestBuilderVMINotInRelationFilter(t *testing.T) {
 	_, builder, orderModel, filter, goodsSlice, _ := buildVMIOrderFilter(t)
 

@@ -61,6 +61,9 @@ func InOpr(name string, val any, resultStackPtr *ResultStack) string {
 		resultStackPtr.PushArgs(val)
 		return fmt.Sprintf("\"%s\" IN ($%d)", name, len(resultStackPtr.argsVal))
 	}
+	if len(sliceVal) == 0 {
+		return "1=0"
+	}
 
 	placeHolder := []string{}
 	for _, sv := range sliceVal {
@@ -77,6 +80,9 @@ func NotInOpr(name string, val any, resultStackPtr *ResultStack) string {
 	if !sliceOK {
 		resultStackPtr.PushArgs(val)
 		return fmt.Sprintf("\"%s\" NOT IN ($%d)", name, len(resultStackPtr.argsVal))
+	}
+	if len(sliceVal) == 0 {
+		return "1=1"
 	}
 
 	placeHolder := []string{}

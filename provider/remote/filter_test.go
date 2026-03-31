@@ -75,6 +75,27 @@ func TestObjectFilterInAcceptsSliceObjectValue(t *testing.T) {
 	}
 }
 
+func TestObjectFilterInAcceptsBasicSliceValue(t *testing.T) {
+	filter := NewFilter(testRemoteFilterObject())
+
+	if err := filter.In("id", []int64{1, 2, 3}); err != nil {
+		t.Fatalf("In(id) should accept []int64, got %v", err)
+	}
+
+	item := filter.GetFilterItem("id")
+	if item == nil {
+		t.Fatal("GetFilterItem(id) should not be nil")
+	}
+
+	got, ok := item.OprValue().Get().([]int64)
+	if !ok {
+		t.Fatalf("expected []int64 filter item value, got %T", item.OprValue().Get())
+	}
+	if len(got) != 3 || got[0] != int64(1) || got[1] != int64(2) || got[2] != int64(3) {
+		t.Fatalf("unexpected IN values: %#v", got)
+	}
+}
+
 func TestObjectFilterMaskModelDoesNotMutateBoundObject(t *testing.T) {
 	object := testRemoteFilterObject()
 	filter := NewFilter(object)

@@ -302,7 +302,7 @@ func (s *FieldValue) Set(val any) {
 		sliceObjectVal := val.(SliceObjectValue)
 		s.Value = &sliceObjectVal
 	default:
-		if !utils.IsReallyValidValue(val) {
+		if !isSupportedBasicValue(val) {
 			panic(fmt.Sprintf("illegal value:%+v", val))
 		}
 

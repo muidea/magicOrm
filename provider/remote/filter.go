@@ -165,14 +165,12 @@ func (s *ObjectFilter) In(key string, val any) (err *cd.Error) {
 		return
 	}
 
-	vValue, vErr := vField.GetType().Interface(val)
+	vVal, vErr := convertFilterCollectionValue(vField.GetType(), val)
 	if vErr != nil {
 		err = vErr
 		return
 	}
-
-	vVal := vValue.Get()
-	if vErr != nil || vVal == nil {
+	if vVal == nil {
 		return
 	}
 
@@ -189,20 +187,34 @@ func (s *ObjectFilter) NotIn(key string, val any) (err *cd.Error) {
 		return
 	}
 
-	vValue, vErr := vField.GetType().Interface(val)
+	vVal, vErr := convertFilterCollectionValue(vField.GetType(), val)
 	if vErr != nil {
 		err = vErr
 		return
 	}
-
-	vVal := vValue.Get()
-	if vErr != nil || vVal == nil {
+	if vVal == nil {
 		return
 	}
 
 	item := &FieldValue{Name: key}
 	item.Set(vVal)
 	s.NotInFilter = append(s.NotInFilter, item)
+	return
+}
+
+func convertFilterCollectionValue(vType models.Type, val any) (ret any, err *cd.Error) {
+	if val == nil {
+		return
+	}
+
+	if !vType.GetValue().IsSliceType() {
+		ret, err = convertSliceValue(vType, val)
+		if err == nil && ret != nil {
+			return
+		}
+	}
+
+	ret, err = convertValue(vType, val)
 	return
 }
 

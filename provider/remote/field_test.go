@@ -583,3 +583,31 @@ func TestFieldValueImplementation(t *testing.T) {
 		t.Errorf("copy failed, copy should not be affected by changes to original")
 	}
 }
+
+func TestFieldValueSetSupportsBasicCollectionOperand(t *testing.T) {
+	fieldVal := &FieldValue{Name: "ids"}
+	fieldVal.Set([]any{int64(1), int64(2), int64(3)})
+
+	got, ok := fieldVal.Get().([]any)
+	if !ok {
+		t.Fatalf("FieldValue.Set(collection) should preserve []any, got %T", fieldVal.Get())
+	}
+	if len(got) != 3 || got[0] != int64(1) || got[1] != int64(2) || got[2] != int64(3) {
+		t.Fatalf("FieldValue.Set(collection) mismatch, got %#v", got)
+	}
+	if !fieldVal.IsValid() || fieldVal.IsZero() {
+		t.Fatalf("FieldValue.Set(collection) validity mismatch, valid=%v zero=%v", fieldVal.IsValid(), fieldVal.IsZero())
+	}
+
+	fieldVal.Set([]any{})
+	emptyCollection, ok := fieldVal.Get().([]any)
+	if !ok {
+		t.Fatalf("FieldValue.Set(empty collection) should preserve []any, got %T", fieldVal.Get())
+	}
+	if len(emptyCollection) != 0 {
+		t.Fatalf("FieldValue.Set(empty collection) mismatch, got %#v", emptyCollection)
+	}
+	if !fieldVal.IsValid() || fieldVal.IsZero() {
+		t.Fatalf("FieldValue.Set(empty collection) validity mismatch, valid=%v zero=%v", fieldVal.IsValid(), fieldVal.IsZero())
+	}
+}

@@ -677,42 +677,22 @@ func convertAnySlice(slieceVal []any) any {
 		return slieceVal
 	}
 
-	switch tVal := slieceVal[0].(type) {
-	case float64:
-		result := make([]float64, len(slieceVal))
-		for i, v := range slieceVal {
-			val, ok := v.(float64)
-			if !ok {
-				return []float64{}
-			}
-
-			result[i] = val
-		}
-		return result
-	case string:
-		result := make([]string, len(slieceVal))
-		for i, v := range slieceVal {
-			val, ok := v.(string)
-			if !ok {
-				return []string{}
-			}
-			result[i] = val
-		}
-		return result
-	case bool:
-		result := make([]bool, len(slieceVal))
-		for i, v := range slieceVal {
-			val, ok := v.(bool)
-			if !ok {
-				return []bool{}
-			}
-			result[i] = val
-		}
-		return result
-	default:
-		slog.Error("convertInterfaceArrayToSlice unexpected type:%v", tVal)
+	elemType := reflect.TypeOf(slieceVal[0])
+	if elemType == nil || !utils.IsReallyValidTypeForReflect(elemType) {
+		slog.Error("convertInterfaceArrayToSlice unexpected type:%v", slieceVal[0])
 		return nil
 	}
+
+	result := reflect.MakeSlice(reflect.SliceOf(elemType), 0, len(slieceVal))
+	for _, rawVal := range slieceVal {
+		if reflect.TypeOf(rawVal) != elemType {
+			return reflect.MakeSlice(reflect.SliceOf(elemType), 0, 0).Interface()
+		}
+
+		result = reflect.Append(result, reflect.ValueOf(rawVal))
+	}
+
+	return result.Interface()
 }
 
 func ConvertItem(val *FieldValue) (ret *FieldValue, err *cd.Error) {

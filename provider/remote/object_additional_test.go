@@ -150,8 +150,8 @@ func TestObjectDecodeAndMarshalErrorPaths(t *testing.T) {
 	if got := convertAnySlice([]any{true, "bad"}); len(got.([]bool)) != 0 {
 		t.Fatalf("convertAnySlice(mixed bool) should return empty []bool, got %#v", got)
 	}
-	if got := convertAnySlice([]any{1}); got != nil {
-		t.Fatalf("convertAnySlice(unsupported type) should return nil, got %#v", got)
+	if got := convertAnySlice([]any{1}); len(got.([]int)) != 1 || got.([]int)[0] != 1 {
+		t.Fatalf("convertAnySlice(int) should return []int{1}, got %#v", got)
 	}
 
 	item, err := ConvertItem(&FieldValue{Name: "noop", Value: map[string]any{"foo": "bar"}})

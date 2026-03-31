@@ -12,6 +12,7 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/database/mysql"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/remote"
 )
@@ -215,6 +216,113 @@ func buildProductQueryModel(t *testing.T, remoteProvider provider.Provider) *rem
 	}
 
 	return object
+}
+
+func countQueryCallsContaining(execCalls []fakeExecCall, token string) int {
+	count := 0
+	for _, call := range execCalls {
+		if call.kind == "query" && strings.Contains(call.sql, token) {
+			count++
+		}
+	}
+
+	return count
+}
+
+func testQueryParentObject() *remote.Object {
+	return &remote.Object{
+		Name:    "parent",
+		PkgPath: "/bench",
+		Fields: []*remote.Field{
+			{
+				Name: "id",
+				Type: &remote.TypeImpl{Name: "int64", Value: models.TypeBigIntegerValue},
+				Spec: &remote.SpecImpl{FieldName: "id", PrimaryKey: true, ViewDeclare: []models.ViewDeclare{models.DetailView, models.LiteView}},
+			},
+			{
+				Name: "name",
+				Type: &remote.TypeImpl{Name: "string", Value: models.TypeStringValue},
+				Spec: &remote.SpecImpl{FieldName: "name", ViewDeclare: []models.ViewDeclare{models.DetailView, models.LiteView}},
+			},
+			{
+				Name: "status",
+				Type: &remote.TypeImpl{Name: "status", PkgPath: "/bench", Value: models.TypeStructValue, IsPtr: true},
+				Spec: &remote.SpecImpl{FieldName: "status", ViewDeclare: []models.ViewDeclare{models.DetailView}},
+			},
+			{
+				Name: "children",
+				Type: &remote.TypeImpl{
+					Name:    "children",
+					PkgPath: "/bench",
+					Value:   models.TypeSliceValue,
+					ElemType: &remote.TypeImpl{
+						Name:    "child",
+						PkgPath: "/bench",
+						Value:   models.TypeStructValue,
+						IsPtr:   true,
+					},
+				},
+				Spec: &remote.SpecImpl{FieldName: "children", ViewDeclare: []models.ViewDeclare{models.DetailView}},
+			},
+		},
+	}
+}
+
+func testQueryStatusObject() *remote.Object {
+	return &remote.Object{
+		Name:    "status",
+		PkgPath: "/bench",
+		Fields: []*remote.Field{
+			{
+				Name: "id",
+				Type: &remote.TypeImpl{Name: "int64", Value: models.TypeBigIntegerValue},
+				Spec: &remote.SpecImpl{FieldName: "id", PrimaryKey: true, ViewDeclare: []models.ViewDeclare{models.DetailView, models.LiteView}},
+			},
+			{
+				Name: "name",
+				Type: &remote.TypeImpl{Name: "string", Value: models.TypeStringValue},
+				Spec: &remote.SpecImpl{FieldName: "name", ViewDeclare: []models.ViewDeclare{models.DetailView, models.LiteView}},
+			},
+			{
+				Name: "owner",
+				Type: &remote.TypeImpl{Name: "child", PkgPath: "/bench", Value: models.TypeStructValue, IsPtr: true},
+				Spec: &remote.SpecImpl{FieldName: "owner", ViewDeclare: []models.ViewDeclare{models.DetailView}},
+			},
+		},
+	}
+}
+
+func testQueryChildObject() *remote.Object {
+	return &remote.Object{
+		Name:    "child",
+		PkgPath: "/bench",
+		Fields: []*remote.Field{
+			{
+				Name: "id",
+				Type: &remote.TypeImpl{Name: "int64", Value: models.TypeBigIntegerValue},
+				Spec: &remote.SpecImpl{FieldName: "id", PrimaryKey: true, ViewDeclare: []models.ViewDeclare{models.DetailView, models.LiteView}},
+			},
+			{
+				Name: "name",
+				Type: &remote.TypeImpl{Name: "string", Value: models.TypeStringValue},
+				Spec: &remote.SpecImpl{FieldName: "name", ViewDeclare: []models.ViewDeclare{models.DetailView, models.LiteView}},
+			},
+		},
+	}
+}
+
+func registerMinimalRelationModels(t *testing.T, remoteProvider provider.Provider) {
+	t.Helper()
+
+	for _, object := range []*remote.Object{
+		testQueryParentObject(),
+		testQueryStatusObject(),
+		testQueryChildObject(),
+	} {
+		if _, err := remoteProvider.RegisterModel(object); err != nil {
+			t.Fatalf("RegisterModel(%s) failed: %v", object.GetPkgKey(), err)
+		}
+	}
 }
 
 func TestQueryRunnerVMIRemoteRelations(t *testing.T) {
@@ -432,5 +540,296 @@ func TestQueryRejectsMultipleMatches(t *testing.T) {
 	}
 	if err.Code != cd.Unexpected {
 		t.Fatalf("Query(product) multiple matches code mismatch, got %v", err.Code)
+	}
+}
+
+func TestQueryRunnerCachesRepeatedPointerRelations(t *testing.T) {
+	remoteProvider := provider.NewRemoteProvider("tenant", nil)
+	registerMinimalRelationModels(t, remoteProvider)
+
+	filter, err := remoteProvider.GetEntityFilter(testQueryParentObject(), models.DetailView)
+	if err != nil {
+		t.Fatalf("GetEntityFilter(parent) failed: %v", err)
+	}
+
+	modelCodec := codec.New(remoteProvider, "tenant")
+	executor := &fakeExecutor{
+		responses: []fakeQueryResponse{
+			{
+				match: func(sql string, args []any) bool {
+					return strings.Contains(sql, "tenant_Parent") &&
+						!strings.Contains(sql, "tenant_ParentStatus") &&
+						!strings.Contains(sql, "tenant_ParentChildren") &&
+						len(args) == 0
+				},
+				rows: [][]any{
+					{int64(1), "parent-1"},
+					{int64(2), "parent-2"},
+				},
+			},
+			{
+				match: func(sql string, args []any) bool {
+					return strings.Contains(sql, "tenant_ParentStatus") &&
+						len(args) == 2 && reflect.DeepEqual(args, []any{int64(1), int64(2)})
+				},
+				rows: [][]any{
+					{int64(1), int64(9)},
+					{int64(2), int64(9)},
+				},
+			},
+			{
+				match: func(sql string, args []any) bool {
+					return strings.Contains(sql, "tenant_Status") &&
+						len(args) == 1 && reflect.DeepEqual(args, []any{int64(9)})
+				},
+				rows: [][]any{
+					{int64(9), "shared-status"},
+				},
+			},
+			{
+				match: func(sql string, args []any) bool {
+					return strings.Contains(sql, "tenant_ParentChildren") &&
+						len(args) == 2 && reflect.DeepEqual(args, []any{int64(1), int64(2)})
+				},
+				rows: [][]any{},
+			},
+		},
+	}
+
+	responseModel, responseByMask, err := buildQueryResponseModel(nil, filter)
+	if err != nil {
+		t.Fatalf("buildQueryResponseModel failed: %v", err)
+	}
+	queryRunner := NewQueryRunner(context.Background(), filter.MaskModel(), responseModel, responseByMask, executor, remoteProvider, modelCodec, true, 0)
+	modelsList, err := queryRunner.Query(filter)
+	if err != nil {
+		t.Fatalf("QueryRunner.Query(parent list) failed: %v", err)
+	}
+	if len(modelsList) != 2 {
+		t.Fatalf("expected 2 parent results, got %d", len(modelsList))
+	}
+	if countQueryCallsContaining(executor.execCalls, "tenant_ParentStatus") != 1 {
+		t.Fatalf("expected parent status relation keys to be prefetched once, got %#v", executor.execCalls)
+	}
+	if countQueryCallsContaining(executor.execCalls, "tenant_StatusOwner") != 0 {
+		t.Fatalf("expected prefetched relation target to avoid nested relation loading, got %#v", executor.execCalls)
+	}
+	if countQueryCallsContaining(executor.execCalls, "tenant_Status") != 1 {
+		t.Fatalf("expected shared status to be queried once, got %#v", executor.execCalls)
+	}
+}
+
+func TestQueryRunnerBatchesSliceRelations(t *testing.T) {
+	remoteProvider := provider.NewRemoteProvider("tenant", nil)
+	registerMinimalRelationModels(t, remoteProvider)
+
+	filter, err := remoteProvider.GetEntityFilter(testQueryParentObject(), models.DetailView)
+	if err != nil {
+		t.Fatalf("GetEntityFilter(parent) failed: %v", err)
+	}
+	if err := filter.Equal("id", int64(1)); err != nil {
+		t.Fatalf("filter.Equal(id) failed: %v", err)
+	}
+
+	modelCodec := codec.New(remoteProvider, "tenant")
+	executor := &fakeExecutor{
+		responses: []fakeQueryResponse{
+			{
+				match: func(sql string, args []any) bool {
+					return strings.Contains(sql, "tenant_Parent") &&
+						!strings.Contains(sql, "tenant_ParentStatus") &&
+						!strings.Contains(sql, "tenant_ParentChildren") &&
+						len(args) == 1 && reflect.DeepEqual(args, []any{int64(1)})
+				},
+				rows: [][]any{
+					{int64(1), "parent-1"},
+				},
+			},
+			{
+				match: func(sql string, args []any) bool {
+					return strings.Contains(sql, "tenant_ParentStatus") &&
+						len(args) == 1 && reflect.DeepEqual(args, []any{int64(1)})
+				},
+				rows: [][]any{},
+			},
+			{
+				match: func(sql string, args []any) bool {
+					return strings.Contains(sql, "tenant_ParentChildren") &&
+						len(args) == 1 && reflect.DeepEqual(args, []any{int64(1)})
+				},
+				rows: [][]any{{int64(101)}, {int64(102)}},
+			},
+			{
+				match: func(sql string, args []any) bool {
+					return strings.Contains(sql, "tenant_Child") &&
+						len(args) == 2 &&
+						reflect.DeepEqual(args, []any{int64(101), int64(102)})
+				},
+				rows: [][]any{
+					{int64(101), "child-1"},
+					{int64(102), "child-2"},
+				},
+			},
+		},
+	}
+
+	responseModel, responseByMask, err := buildQueryResponseModel(nil, filter)
+	if err != nil {
+		t.Fatalf("buildQueryResponseModel failed: %v", err)
+	}
+	queryRunner := NewQueryRunner(context.Background(), filter.MaskModel(), responseModel, responseByMask, executor, remoteProvider, modelCodec, false, 0)
+	modelsList, err := queryRunner.Query(filter)
+	if err != nil {
+		t.Fatalf("QueryRunner.Query(parent) failed: %v", err)
+	}
+	if len(modelsList) != 1 {
+		t.Fatalf("expected 1 parent result, got %d", len(modelsList))
+	}
+
+	parentValue := modelsList[0].Interface(true).(*remote.ObjectValue)
+	children, ok := parentValue.GetFieldValue("children").(*remote.SliceObjectValue)
+	if !ok || children == nil || len(children.Values) != 2 {
+		t.Fatalf("expected 2 child relations, got %#v", parentValue.GetFieldValue("children"))
+	}
+	if countQueryCallsContaining(executor.execCalls, "tenant_Child") != 1 {
+		t.Fatalf("expected child relation host query to be batched once, got %#v", executor.execCalls)
+	}
+}
+
+func TestQueryRunnerCachesMissingPointerRelations(t *testing.T) {
+	remoteProvider := provider.NewRemoteProvider("tenant", nil)
+	registerMinimalRelationModels(t, remoteProvider)
+
+	filter, err := remoteProvider.GetEntityFilter(testQueryParentObject(), models.DetailView)
+	if err != nil {
+		t.Fatalf("GetEntityFilter(parent) failed: %v", err)
+	}
+
+	modelCodec := codec.New(remoteProvider, "tenant")
+	executor := &fakeExecutor{
+		responses: []fakeQueryResponse{
+			{
+				match: func(sql string, args []any) bool {
+					return strings.Contains(sql, "tenant_Parent") &&
+						!strings.Contains(sql, "tenant_ParentStatus") &&
+						!strings.Contains(sql, "tenant_ParentChildren") &&
+						len(args) == 0
+				},
+				rows: [][]any{
+					{int64(1), "parent-1"},
+					{int64(2), "parent-2"},
+				},
+			},
+			{
+				match: func(sql string, args []any) bool {
+					return strings.Contains(sql, "tenant_ParentStatus") &&
+						len(args) == 2 && reflect.DeepEqual(args, []any{int64(1), int64(2)})
+				},
+				rows: [][]any{
+					{int64(1), int64(9)},
+					{int64(2), int64(9)},
+				},
+			},
+			{
+				match: func(sql string, args []any) bool {
+					return strings.Contains(sql, "tenant_ParentChildren") &&
+						len(args) == 2 && reflect.DeepEqual(args, []any{int64(1), int64(2)})
+				},
+				rows: [][]any{},
+			},
+			{
+				match: func(sql string, args []any) bool {
+					return strings.Contains(sql, "tenant_Status") &&
+						len(args) == 1 && reflect.DeepEqual(args, []any{int64(9)})
+				},
+				rows: [][]any{},
+			},
+		},
+	}
+
+	responseModel, responseByMask, err := buildQueryResponseModel(nil, filter)
+	if err != nil {
+		t.Fatalf("buildQueryResponseModel failed: %v", err)
+	}
+	queryRunner := NewQueryRunner(context.Background(), filter.MaskModel(), responseModel, responseByMask, executor, remoteProvider, modelCodec, true, 0)
+	modelsList, err := queryRunner.Query(filter)
+	if err != nil {
+		t.Fatalf("QueryRunner.Query(parent list) failed: %v", err)
+	}
+	if len(modelsList) != 2 {
+		t.Fatalf("expected 2 parent results, got %d", len(modelsList))
+	}
+	if countQueryCallsContaining(executor.execCalls, "tenant_ParentStatus") != 1 {
+		t.Fatalf("expected missing status relation keys to be prefetched once, got %#v", executor.execCalls)
+	}
+	if countQueryCallsContaining(executor.execCalls, "tenant_ParentChildren") != 1 {
+		t.Fatalf("expected missing children relation keys to be prefetched once, got %#v", executor.execCalls)
+	}
+
+	for idx, modelVal := range modelsList {
+		parentValue := modelVal.Interface(true).(*remote.ObjectValue)
+		statusVal := parentValue.GetFieldValue("status")
+		if statusVal == nil {
+			continue
+		}
+
+		statusObject, ok := statusVal.(*remote.ObjectValue)
+		if !ok {
+			t.Fatalf("missing status relation on parent[%d] should not materialize non-object data, got %#v", idx, statusVal)
+		}
+		if statusObject.GetFieldValue("id") != nil || statusObject.GetFieldValue("name") != nil {
+			t.Fatalf("missing status relation on parent[%d] should not produce assigned relation data, got %#v", idx, statusVal)
+		}
+	}
+
+	if countQueryCallsContaining(executor.execCalls, "tenant_Status") != 1 {
+		t.Fatalf("expected missing relation target query to execute once, got %#v", executor.execCalls)
+	}
+}
+
+func TestQueryRunnerSkipsExcludedRelationsInLiteView(t *testing.T) {
+	remoteProvider := provider.NewRemoteProvider("tenant", nil)
+	registerMinimalRelationModels(t, remoteProvider)
+
+	filter, err := remoteProvider.GetEntityFilter(testQueryParentObject(), models.LiteView)
+	if err != nil {
+		t.Fatalf("GetEntityFilter(parent lite) failed: %v", err)
+	}
+
+	modelCodec := codec.New(remoteProvider, "tenant")
+	executor := &fakeExecutor{
+		responses: []fakeQueryResponse{
+			{
+				match: func(sql string, args []any) bool {
+					return strings.Contains(sql, "tenant_Parent") &&
+						!strings.Contains(sql, "tenant_ParentStatus") &&
+						!strings.Contains(sql, "tenant_ParentChildren") &&
+						len(args) == 0
+				},
+				rows: [][]any{
+					{int64(1), "parent-1"},
+					{int64(2), "parent-2"},
+				},
+			},
+		},
+	}
+
+	responseModel, responseByMask, err := buildQueryResponseModel(nil, filter)
+	if err != nil {
+		t.Fatalf("buildQueryResponseModel failed: %v", err)
+	}
+	queryRunner := NewQueryRunner(context.Background(), filter.MaskModel(), responseModel, responseByMask, executor, remoteProvider, modelCodec, true, 0)
+	modelsList, err := queryRunner.Query(filter)
+	if err != nil {
+		t.Fatalf("QueryRunner.Query(parent lite list) failed: %v", err)
+	}
+	if len(modelsList) != 2 {
+		t.Fatalf("expected 2 parent results, got %d", len(modelsList))
+	}
+	if countQueryCallsContaining(executor.execCalls, "tenant_ParentStatus") != 0 {
+		t.Fatalf("expected lite view to skip status relation loading, got %#v", executor.execCalls)
+	}
+	if countQueryCallsContaining(executor.execCalls, "tenant_ParentChildren") != 0 {
+		t.Fatalf("expected lite view to skip children relation loading, got %#v", executor.execCalls)
 	}
 }
