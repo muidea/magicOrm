@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 	"reflect"
+	"strings"
+	"sync"
 	"time"
 
 	cd "github.com/muidea/magicCommon/def"
@@ -19,13 +21,28 @@ import (
 type resultItems []any
 type resultItemsList []resultItems
 
+const relationMissWarnWindow = time.Minute
+const topLevelQueryProfileThreshold = 10 * time.Millisecond
+
+var relationMissWarnTracker = struct {
+	sync.Mutex
+	lastWarnAt map[string]time.Time
+}{
+	lastWarnAt: map[string]time.Time{},
+}
+
 type QueryRunner struct {
 	baseRunner
-	responseModel  models.Model
-	responseByMask bool
-	relationCache  map[string]models.Model
-	relationMisses map[string]struct{}
-	relationEdges  map[string][]any
+	responseModel            models.Model
+	responseByMask           bool
+	skipProjectResponse      bool
+	relationCache            map[string]models.Model
+	relationMisses           map[string]struct{}
+	relationEdges            map[string][]any
+	relationWarns            map[string]struct{}
+	lastQuerySQL             string
+	lastQueryArgs            int
+	selectedBasicFieldIndexs []int
 }
 
 type relationPrefetchGroup struct {
@@ -34,13 +51,63 @@ type relationPrefetchGroup struct {
 	leftIDs []any
 }
 
-func buildFullQueryMaskModel(vModel models.Model) (ret models.Model, err *cd.Error) {
+func durationMs(val time.Duration) float64 {
+	return float64(val) / float64(time.Millisecond)
+}
+
+func selectedQueryBasicFieldCount(vModel models.Model) int {
+	return len(selectedQueryBasicFieldIndexes(vModel))
+}
+
+func selectedQueryBasicFieldIndexes(vModel models.Model) []int {
+	if vModel == nil {
+		return nil
+	}
+
+	indexes := make([]int, 0, len(vModel.GetFields()))
+	for idx, field := range vModel.GetFields() {
+		if !models.IsBasicField(field) {
+			continue
+		}
+		if !models.IsValidField(field) && !(models.IsSliceField(field) && !models.IsPtrField(field)) {
+			continue
+		}
+
+		fSpec := field.GetSpec()
+		constraints := fSpec.GetConstraints()
+		if constraints != nil && constraints.Has(models.KeyWriteOnly) {
+			continue
+		}
+
+		indexes = append(indexes, idx)
+	}
+
+	return indexes
+}
+
+func summarizeSQL(sql string) string {
+	const maxSQLSummaryLen = 240
+
+	summary := strings.Join(strings.Fields(sql), " ")
+	if len(summary) <= maxSQLSummaryLen {
+		return summary
+	}
+
+	return summary[:maxSQLSummaryLen] + "..."
+}
+
+func buildQueryExecutionModel(vModel models.Model, expandBasicFields bool) (ret models.Model, err *cd.Error) {
 	if vModel == nil {
 		err = cd.NewError(cd.IllegalParam, "query model is nil")
 		return
 	}
 
 	maskModel := vModel.Copy(models.OriginView)
+	if !expandBasicFields {
+		ret = maskModel
+		return
+	}
+
 	for _, field := range maskModel.GetFields() {
 		if !models.IsBasicField(field) || models.IsValidField(field) || models.IsPtrField(field) {
 			continue
@@ -64,6 +131,10 @@ func buildFullQueryMaskModel(vModel models.Model) (ret models.Model, err *cd.Err
 
 	ret = maskModel
 	return
+}
+
+func buildFullQueryMaskModel(vModel models.Model) (ret models.Model, err *cd.Error) {
+	return buildQueryExecutionModel(vModel, true)
 }
 
 type queryResponseMaskProvider interface {
@@ -127,6 +198,15 @@ func fieldIncludedInResponse(responseModel models.Model, field models.Field, res
 	return models.IsValidField(field) || models.IsAssignedField(field)
 }
 
+func assignProjectedFieldValue(field models.Field, val any) {
+	if field == nil {
+		return
+	}
+
+	field.Reset()
+	_ = field.GetValue().Set(val)
+}
+
 func applyQueryResponseModel(vModel, responseModel models.Model, responseByMask bool) models.Model {
 	if vModel == nil || responseModel == nil {
 		return vModel
@@ -135,7 +215,7 @@ func applyQueryResponseModel(vModel, responseModel models.Model, responseByMask 
 	projectedModel := responseModel.Copy(models.OriginView)
 	primaryField := vModel.GetPrimaryField()
 	if primaryField != nil && (models.IsValidField(primaryField) || models.IsAssignedField(primaryField)) {
-		_ = projectedModel.SetPrimaryFieldValue(primaryField.GetValue().Get())
+		assignProjectedFieldValue(projectedModel.GetPrimaryField(), primaryField.GetValue().Get())
 	}
 
 	for _, field := range projectedModel.GetFields() {
@@ -152,14 +232,42 @@ func applyQueryResponseModel(vModel, responseModel models.Model, responseByMask 
 			continue
 		}
 		if !models.IsValidField(sourceField) && !models.IsAssignedField(sourceField) {
-			_ = projectedModel.SetFieldValue(field.GetName(), nil)
+			assignProjectedFieldValue(field, nil)
 			continue
 		}
 
-		_ = projectedModel.SetFieldValue(field.GetName(), sourceField.GetValue().Get())
+		assignProjectedFieldValue(field, sourceField.GetValue().Get())
 	}
 
 	return projectedModel
+}
+
+func canSkipProjectResponse(vModel, responseModel models.Model, responseByMask bool) bool {
+	if !responseByMask || vModel == nil || responseModel == nil {
+		return false
+	}
+	if vModel.GetName() != responseModel.GetName() || vModel.GetPkgPath() != responseModel.GetPkgPath() {
+		return false
+	}
+
+	vFields := vModel.GetFields()
+	rFields := responseModel.GetFields()
+	if len(vFields) != len(rFields) {
+		return false
+	}
+
+	for idx := range vFields {
+		vField := vFields[idx]
+		rField := rFields[idx]
+		if vField.GetName() != rField.GetName() || !models.CompareType(vField.GetType(), rField.GetType()) || !models.CompareSpec(vField.GetSpec(), rField.GetSpec()) {
+			return false
+		}
+		if fieldIncludedInResponse(vModel, vField, true) != fieldIncludedInResponse(responseModel, rField, true) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func NewQueryRunner(
@@ -173,13 +281,18 @@ func NewQueryRunner(
 	batchFilter bool,
 	deepLevel int) *QueryRunner {
 
+	skipProjectResponse := canSkipProjectResponse(vModel, responseModel, responseByMask)
+
 	return &QueryRunner{
-		baseRunner:     newBaseRunner(ctx, vModel, executor, provider, modelCodec, batchFilter, deepLevel),
-		responseModel:  responseModel,
-		responseByMask: responseByMask,
-		relationCache:  map[string]models.Model{},
-		relationMisses: map[string]struct{}{},
-		relationEdges:  map[string][]any{},
+		baseRunner:               newBaseRunner(ctx, vModel, executor, provider, modelCodec, batchFilter, deepLevel),
+		responseModel:            responseModel,
+		responseByMask:           responseByMask,
+		skipProjectResponse:      skipProjectResponse,
+		relationCache:            map[string]models.Model{},
+		relationMisses:           map[string]struct{}{},
+		relationEdges:            map[string][]any{},
+		relationWarns:            map[string]struct{}{},
+		selectedBasicFieldIndexs: selectedQueryBasicFieldIndexes(vModel),
 	}
 }
 
@@ -237,6 +350,39 @@ func (s *QueryRunner) cacheRelationMiss(pkgKey string, id any) {
 	s.relationMisses[relationCacheKey(pkgKey, id)] = struct{}{}
 }
 
+func (s *QueryRunner) shouldWarnRelationMiss(pkgKey string, id any) bool {
+	if s == nil {
+		return shouldWarnRelationMissGlobal(pkgKey, id)
+	}
+	if s.relationWarns == nil {
+		s.relationWarns = map[string]struct{}{}
+	}
+
+	cacheKey := relationCacheKey(pkgKey, id)
+	if _, ok := s.relationWarns[cacheKey]; ok {
+		return false
+	}
+
+	s.relationWarns[cacheKey] = struct{}{}
+	return shouldWarnRelationMissGlobal(pkgKey, id)
+}
+
+func shouldWarnRelationMissGlobal(pkgKey string, id any) bool {
+	cacheKey := relationCacheKey(pkgKey, id)
+	now := time.Now()
+
+	relationMissWarnTracker.Lock()
+	defer relationMissWarnTracker.Unlock()
+
+	lastWarnAt, ok := relationMissWarnTracker.lastWarnAt[cacheKey]
+	if ok && now.Sub(lastWarnAt) < relationMissWarnWindow {
+		return false
+	}
+
+	relationMissWarnTracker.lastWarnAt[cacheKey] = now
+	return true
+}
+
 func (s *QueryRunner) clearRelationMiss(pkgKey string, id any) {
 	if s == nil || s.relationMisses == nil {
 		return
@@ -287,8 +433,47 @@ func (s *QueryRunner) shouldLoadRelationField(field models.Field) bool {
 	return fieldIncludedInResponse(s.responseModel, field, s.responseByMask)
 }
 
+func (s *QueryRunner) relationResponseModel(field models.Field) (ret models.Model, responseByMask bool, err *cd.Error) {
+	if s == nil || field == nil || s.responseModel == nil || !s.responseByMask {
+		return
+	}
+
+	responseField := s.responseModel.GetField(field.GetName())
+	if responseField == nil || !fieldIncludedInResponse(s.responseModel, responseField, s.responseByMask) {
+		return
+	}
+
+	// Child relations follow the ORM built-in rule instead of caller-provided nested masks:
+	// once the relation field is included in the top-level response, the child itself is
+	// always queried and projected by its own lite view.
+	ret, err = s.relationLiteResponseModel(field)
+	if err != nil {
+		return
+	}
+	return
+}
+
+func (s *QueryRunner) relationLiteResponseModel(field models.Field) (ret models.Model, err *cd.Error) {
+	relationType := field.GetType()
+	if models.IsSliceField(field) {
+		relationType = relationType.Elem()
+	}
+
+	baseModel, modelErr := s.modelProvider.GetTypeModel(relationType)
+	if modelErr != nil {
+		err = modelErr
+		return
+	}
+
+	ret = baseModel.Copy(models.LiteView)
+	return
+}
+
 func (s *QueryRunner) prefetchRelations(modelList []models.Model, deepLevel int) (err *cd.Error) {
-	if len(modelList) <= 1 || deepLevel > maxDeepLevel {
+	if len(modelList) == 0 || deepLevel > maxDeepLevel {
+		return
+	}
+	if len(modelList) == 1 && deepLevel > 0 {
 		return
 	}
 
@@ -343,11 +528,6 @@ func (s *QueryRunner) prefetchRelations(modelList []models.Model, deepLevel int)
 			continue
 		}
 
-		relationType := group.field.GetType()
-		if models.IsSliceField(group.field) {
-			relationType = relationType.Elem()
-		}
-
 		uniqueIDs := []any{}
 		seenIDs := map[string]struct{}{}
 		for _, leftID := range group.leftIDs {
@@ -369,7 +549,7 @@ func (s *QueryRunner) prefetchRelations(modelList []models.Model, deepLevel int)
 		if len(uniqueIDs) == 0 {
 			continue
 		}
-		if err = s.batchQueryRelationModels(relationType, uniqueIDs, deepLevel); err != nil {
+		if err = s.batchQueryRelationModels(group.field, uniqueIDs, deepLevel); err != nil {
 			return
 		}
 	}
@@ -487,9 +667,18 @@ func (s *QueryRunner) getRelationIDs(vModel models.Model, vField models.Field) (
 	return
 }
 
-func (s *QueryRunner) batchQueryRelationModels(relationType models.Type, ids []any, deepLevel int) (err *cd.Error) {
+func (s *QueryRunner) batchQueryRelationModels(vField models.Field, ids []any, deepLevel int) (err *cd.Error) {
 	if len(ids) == 0 {
 		return
+	}
+	if vField == nil {
+		err = cd.NewError(cd.IllegalParam, "relation field is nil")
+		return
+	}
+
+	relationType := vField.GetType()
+	if models.IsSliceField(vField) {
+		relationType = relationType.Elem()
 	}
 
 	rModel, rErr := s.modelProvider.GetTypeModel(relationType)
@@ -513,13 +702,27 @@ func (s *QueryRunner) batchQueryRelationModels(relationType models.Type, ids []a
 		return
 	}
 
-	queryMask, maskErr := buildFullQueryMaskModel(rModel)
-	if maskErr != nil {
-		err = maskErr
+	queryMask := rModel
+	responseModel := rModel
+	responseByMask := true
+	if relationResponseModel, relationByMask, relationErr := s.relationResponseModel(vField); relationErr != nil {
+		err = relationErr
 		return
+	} else if relationResponseModel != nil {
+		responseModel = relationResponseModel
+		responseByMask = relationByMask
+		queryMask, err = buildQueryExecutionModel(responseModel, !responseByMask)
+		if err != nil {
+			return
+		}
+	} else {
+		queryMask, err = buildFullQueryMaskModel(rModel)
+		if err != nil {
+			return
+		}
 	}
 
-	rQueryRunner := NewQueryRunner(s.context, queryMask, queryMask, true, s.executor, s.modelProvider, s.modelCodec, true, deepLevel+1)
+	rQueryRunner := NewQueryRunner(s.context, queryMask, responseModel, responseByMask, s.executor, s.modelProvider, s.modelCodec, true, deepLevel+1)
 	rQueryRunner.relationCache = s.relationCache
 	rQueryRunner.relationMisses = s.relationMisses
 	rQueryRunner.relationEdges = s.relationEdges
@@ -593,7 +796,17 @@ func (s *QueryRunner) prepareRelationIDs(relationModel models.Model, ids []any) 
 	return
 }
 
-func (s *QueryRunner) queryRelationModel(relationType models.Type, id any, deepLevel int) (ret models.Model, err *cd.Error) {
+func (s *QueryRunner) queryRelationModel(vField models.Field, id any, deepLevel int) (ret models.Model, err *cd.Error) {
+	if vField == nil {
+		err = cd.NewError(cd.IllegalParam, "relation field is nil")
+		return
+	}
+
+	relationType := vField.GetType()
+	if models.IsSliceField(vField) {
+		relationType = relationType.Elem()
+	}
+
 	rModel, rErr := s.modelProvider.GetTypeModel(relationType)
 	if rErr != nil {
 		err = rErr
@@ -620,13 +833,27 @@ func (s *QueryRunner) queryRelationModel(relationType models.Type, id any, deepL
 		return
 	}
 
-	queryMask, maskErr := buildFullQueryMaskModel(rModel)
-	if maskErr != nil {
-		err = maskErr
+	queryMask := rModel
+	responseModel := rModel
+	responseByMask := false
+	if relationResponseModel, relationByMask, relationErr := s.relationResponseModel(vField); relationErr != nil {
+		err = relationErr
 		return
+	} else if relationResponseModel != nil {
+		responseModel = relationResponseModel
+		responseByMask = relationByMask
+		queryMask, err = buildQueryExecutionModel(responseModel, !responseByMask)
+		if err != nil {
+			return
+		}
+	} else {
+		queryMask, err = buildFullQueryMaskModel(rModel)
+		if err != nil {
+			return
+		}
 	}
 
-	rQueryRunner := NewQueryRunner(s.context, queryMask, queryMask, false, s.executor, s.modelProvider, s.modelCodec, false, deepLevel+1)
+	rQueryRunner := NewQueryRunner(s.context, queryMask, responseModel, responseByMask, s.executor, s.modelProvider, s.modelCodec, false, deepLevel+1)
 	rQueryRunner.relationCache = s.relationCache
 	rQueryRunner.relationMisses = s.relationMisses
 	rQueryRunner.relationEdges = s.relationEdges
@@ -649,30 +876,31 @@ func (s *QueryRunner) queryRelationModel(relationType models.Type, id any, deepL
 	return
 }
 
-func (s *QueryRunner) innerQuery(vModel models.Model, filter models.Filter) (ret resultItemsList, err *cd.Error) {
+func (s *QueryRunner) innerQuery(vModel models.Model, filter models.Filter) (ret resultItemsList, queryExecDuration time.Duration, rowScanDuration time.Duration, err *cd.Error) {
 	queryResult, queryErr := s.sqlBuilder.BuildQuery(vModel, filter)
 	if queryErr != nil {
 		err = queryErr
 		slog.Error("QueryRunner innerQuery BuildQuery failed", "error", err.Error())
 		return
 	}
+	s.lastQuerySQL = summarizeSQL(queryResult.SQL())
+	s.lastQueryArgs = len(queryResult.Args())
 
+	stageStartTime := time.Now()
 	_, err = s.executor.Query(queryResult.SQL(), false, queryResult.Args()...)
+	queryExecDuration = time.Since(stageStartTime)
 	if err != nil {
 		slog.Error("QueryRunner innerQuery executor.Query failed", "error", err.Error())
 		return
 	}
 	defer s.executor.Finish()
 
+	fieldCount := len(s.selectedBasicFieldIndexs)
+	referenceVal := make([]any, fieldCount)
 	queryList := resultItemsList{}
+	stageStartTime = time.Now()
 	for s.executor.Next() {
-		itemValues, itemErr := s.sqlBuilder.BuildModuleValueHolder(vModel)
-		if itemErr != nil {
-			err = itemErr
-			slog.Error("QueryRunner innerQuery BuildModuleValueHolder failed", "error", err.Error())
-			return
-		}
-		referenceVal := make([]any, len(itemValues))
+		itemValues := make(resultItems, fieldCount)
 		for idx := range itemValues {
 			referenceVal[idx] = &itemValues[idx]
 		}
@@ -685,35 +913,26 @@ func (s *QueryRunner) innerQuery(vModel models.Model, filter models.Filter) (ret
 
 		queryList = append(queryList, itemValues)
 	}
+	rowScanDuration = time.Since(stageStartTime)
 
 	ret = queryList
 	return
 }
 
 func (s *QueryRunner) innerAssignBasic(vModel models.Model, queryVal resultItems) (ret models.Model, err *cd.Error) {
-	offset := 0
 	qModel := vModel.Copy(models.OriginView)
-	for _, field := range qModel.GetFields() {
-		// 只处理基础字段；与 builder 一致：已赋值或值类型 slice 才参与 SELECT，故只对这些字段赋值
-		if !models.IsBasicField(field) {
-			continue
-		}
-		if !models.IsValidField(field) && !(models.IsSliceField(field) && !models.IsPtrField(field)) {
-			continue
-		}
-		// 检查 wo 约束，这些字段在查询时应该被排除
-		fSpec := field.GetSpec()
-		constraints := fSpec.GetConstraints()
-		if constraints != nil && constraints.Has(models.KeyWriteOnly) {
-			continue
+	qFields := qModel.GetFields()
+	for idx, fieldIdx := range s.selectedBasicFieldIndexs {
+		if fieldIdx < 0 || fieldIdx >= len(qFields) {
+			err = cd.NewError(cd.Unexpected, "query basic field index out of range")
+			return
 		}
 
-		err = s.assignBasicField(field, queryVal[offset])
+		err = s.assignBasicField(qFields[fieldIdx], queryVal[idx])
 		if err != nil {
 			slog.Error("QueryRunner failed", "error", err.Error())
 			return
 		}
-		offset++
 	}
 
 	ret = qModel
@@ -882,7 +1101,7 @@ func (s *QueryRunner) innerQueryRelationKeys(vModel models.Model, vField models.
 
 func (s *QueryRunner) innerQueryRelationSingleModel(id any, vField models.Field, deepLevel int) (err *cd.Error) {
 	vField.Reset()
-	rModel, rErr := s.queryRelationModel(vField.GetType(), id, deepLevel)
+	rModel, rErr := s.queryRelationModel(vField, id, deepLevel)
 	if rErr != nil {
 		err = rErr
 		slog.Error("QueryRunner assignBasicField failed", "fieldId", id, "error", err.Error())
@@ -894,7 +1113,7 @@ func (s *QueryRunner) innerQueryRelationSingleModel(id any, vField models.Field,
 		return
 	}
 
-	if deepLevel < maxDeepLevel {
+	if deepLevel < maxDeepLevel && s.shouldWarnRelationMiss(vField.GetType().GetPkgKey(), id) {
 		// 到这里说明未查询到关联目标，当前行为是记录告警并保留字段为空，
 		// 由调用方或外部治理流程处理关系表与目标表之间的数据不一致。
 		slog.Warn("query relation failed, miss relation data", "model", vField.GetType().GetPkgKey(), "id", id)
@@ -927,7 +1146,7 @@ func (s *QueryRunner) innerQueryRelationSliceModel(ids []any, vField models.Fiel
 	}
 
 	if len(missingIDs) > 0 {
-		if err = s.batchQueryRelationModels(vField.GetType().Elem(), missingIDs, deepLevel); err != nil {
+		if err = s.batchQueryRelationModels(vField, missingIDs, deepLevel); err != nil {
 			slog.Error("QueryRunner failed", "error", err.Error())
 			return
 		}
@@ -937,7 +1156,7 @@ func (s *QueryRunner) innerQueryRelationSliceModel(ids []any, vField models.Fiel
 		cachedModel := s.getCachedRelationModel(svModel.GetPkgKey(), id)
 		if cachedModel == nil && !s.isRelationMiss(svModel.GetPkgKey(), id) {
 			var queryErr *cd.Error
-			cachedModel, queryErr = s.queryRelationModel(vField.GetType().Elem(), id, deepLevel)
+			cachedModel, queryErr = s.queryRelationModel(vField, id, deepLevel)
 			if queryErr != nil {
 				err = queryErr
 				slog.Error("QueryRunner failed", "error", err.Error())
@@ -945,7 +1164,7 @@ func (s *QueryRunner) innerQueryRelationSliceModel(ids []any, vField models.Fiel
 			}
 		}
 		if cachedModel == nil {
-			if deepLevel < maxDeepLevel {
+			if deepLevel < maxDeepLevel && s.shouldWarnRelationMiss(svModel.GetPkgKey(), id) {
 				slog.Warn("query relation failed, miss relation data", "model", svModel.GetPkgKey(), "id", id)
 			}
 			continue
@@ -958,11 +1177,24 @@ func (s *QueryRunner) innerQueryRelationSliceModel(ids []any, vField models.Fiel
 }
 
 func (s *QueryRunner) Query(filter models.Filter) (ret []models.Model, err *cd.Error) {
+	queryStartTime := time.Now()
+	var (
+		dbQueryDuration          time.Duration
+		queryExecDuration        time.Duration
+		rowScanDuration          time.Duration
+		assignBasicDuration      time.Duration
+		prefetchRelationDuration time.Duration
+		assignRelationDuration   time.Duration
+		projectResponseDuration  time.Duration
+	)
+
 	if err = s.checkContext(); err != nil {
 		return
 	}
 
-	queryValueList, queryValueErr := s.innerQuery(s.vModel, filter)
+	stageStartTime := time.Now()
+	queryValueList, queryExecDuration, rowScanDuration, queryValueErr := s.innerQuery(s.vModel, filter)
+	dbQueryDuration = time.Since(stageStartTime)
 	if queryValueErr != nil {
 		err = queryValueErr
 		slog.Error("QueryRunner failed", "error", err.Error())
@@ -980,6 +1212,7 @@ func (s *QueryRunner) Query(filter models.Filter) (ret []models.Model, err *cd.E
 	}
 
 	sliceValue := []models.Model{}
+	stageStartTime = time.Now()
 	for idx := range queryValueList {
 		modelVal, modelErr := s.innerAssignBasic(s.vModel, queryValueList[idx])
 		if modelErr != nil {
@@ -989,18 +1222,49 @@ func (s *QueryRunner) Query(filter models.Filter) (ret []models.Model, err *cd.E
 		}
 		sliceValue = append(sliceValue, modelVal)
 	}
+	assignBasicDuration = time.Since(stageStartTime)
 
+	stageStartTime = time.Now()
 	if err = s.prefetchRelations(sliceValue, s.deepLevel); err != nil {
 		slog.Error("QueryRunner prefetchRelations failed", "error", err.Error())
 		return
 	}
+	prefetchRelationDuration = time.Since(stageStartTime)
 
 	for idx := range sliceValue {
+		stageStartTime = time.Now()
 		if err = s.innerAssignRelations(sliceValue[idx], s.deepLevel); err != nil {
 			slog.Error("QueryRunner failed", "error", err.Error())
 			return
 		}
-		sliceValue[idx] = applyQueryResponseModel(sliceValue[idx], s.responseModel, s.responseByMask)
+		assignRelationDuration += time.Since(stageStartTime)
+
+		stageStartTime = time.Now()
+		if !s.skipProjectResponse {
+			sliceValue[idx] = applyQueryResponseModel(sliceValue[idx], s.responseModel, s.responseByMask)
+		}
+		projectResponseDuration += time.Since(stageStartTime)
+	}
+
+	totalDuration := time.Since(queryStartTime)
+	if s.deepLevel == 0 && totalDuration >= topLevelQueryProfileThreshold {
+		slog.Info(
+			"QueryRunner profile",
+			"pkgKey", s.vModel.GetPkgKey(),
+			"batch", s.batchFilter,
+			"response_by_mask", s.responseByMask,
+			"row_count", len(queryValueList),
+			"total_ms", durationMs(totalDuration),
+			"db_query_ms", durationMs(dbQueryDuration),
+			"query_exec_ms", durationMs(queryExecDuration),
+			"row_scan_ms", durationMs(rowScanDuration),
+			"assign_basic_ms", durationMs(assignBasicDuration),
+			"prefetch_relation_ms", durationMs(prefetchRelationDuration),
+			"assign_relation_ms", durationMs(assignRelationDuration),
+			"project_response_ms", durationMs(projectResponseDuration),
+			"query_args", s.lastQueryArgs,
+			"query_sql", s.lastQuerySQL,
+		)
 	}
 
 	ret = sliceValue
@@ -1035,12 +1299,8 @@ func (s *impl) Query(vModel models.Model) (ret models.Model, err *cd.Error) {
 		return
 	}
 
-	responseModel, responseByMask, responseErr := buildQueryResponseModel(vModel, nil)
-	if responseErr != nil {
-		err = responseErr
-		slog.Error("Query buildQueryResponseModel failed", "pkgKey", vModel.GetPkgKey(), "error", err.Error())
-		return
-	}
+	responseModel := vModel.Copy(models.DetailView)
+	responseByMask := false
 
 	queryMask, maskErr := buildFullQueryMaskModel(responseModel)
 	if maskErr != nil {

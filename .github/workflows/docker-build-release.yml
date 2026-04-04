@@ -34,8 +34,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: '1.24.3'
+      - name: Run Query Mask Regression Tests
+        run: GOCACHE=/tmp/go-build GOMODCACHE=/tmp/go-mod-cache go test ./orm -run 'TestRelationResponseModelUsesLiteViewForLocalMaskSlice|TestBuildQueryExecutionModelKeepsExplicitMaskNarrow|TestORMQueryUsesDetailViewResponse|TestOrmPublicQueryContract' --count=1
       - name: Test with the Go CLI use postgres
-        run: go test -count 1 ./...
+        run: GOCACHE=/tmp/go-build GOMODCACHE=/tmp/go-mod-cache go test -count 1 ./...
 
 #      - name: Test with the Go CLI use mysql
 #        run: go test -tags=mysql -count 1 ./...

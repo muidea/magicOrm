@@ -3,19 +3,27 @@ package mysql
 import (
 	"fmt"
 	"os"
+	"sync/atomic"
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/models"
 	"log/slog"
 )
 
+var traceSQLEnabled int32 = -1
+
 func traceSQL() bool {
-	enableTrace, enableOK := os.LookupEnv("TRACE_SQL")
-	if enableOK && enableTrace == "true" {
-		return true
+	if enabled := atomic.LoadInt32(&traceSQLEnabled); enabled >= 0 {
+		return enabled == 1
 	}
 
-	return false
+	enableTrace, enableOK := os.LookupEnv("TRACE_SQL")
+	enabled := int32(0)
+	if enableOK && enableTrace == "true" {
+		enabled = 1
+	}
+	atomic.StoreInt32(&traceSQLEnabled, enabled)
+	return enabled == 1
 }
 
 func getTypeDeclare(fType models.Type, fSpec models.Spec) (ret string, err *cd.Error) {

@@ -102,14 +102,14 @@ func TestCollectMetricsSkipsMalformedKeys(t *testing.T) {
 	collector := NewDatabaseMetricsCollector()
 	collector.queryCounters["invalid"] = 1
 	collector.errorCounters["too_short"] = 2
-	collector.queryDurations["bad"] = []time.Duration{time.Second}
+	collector.queryDurationAggregates["bad"] = DurationAggregate{Total: time.Second, Count: 1}
 	collector.transactionCounters["broken"] = 3
 	collector.executionCounters["oops"] = 4
 	collector.connectionStats["bad_state_extra"] = 5
 
 	validKey := metrics.BuildKey("postgresql", "select", "success")
 	collector.queryCounters[validKey] = 1
-	collector.queryDurations[validKey] = []time.Duration{100 * time.Millisecond, 300 * time.Millisecond}
+	collector.queryDurationAggregates[validKey] = DurationAggregate{Total: 400 * time.Millisecond, Count: 2}
 
 	metricsList, err := NewDatabaseMetricProviderWithCollector(collector).Collect()
 	assert.Nil(t, err)

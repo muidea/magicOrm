@@ -184,15 +184,16 @@
 
 - remote 的“是否参与写入”由 `Assigned + ZeroValue` 共同决定
 - helper 生成对象时，`nil` 和“非 nil 但为空”必须严格区分
-- `Query(model)` 是“按模型过滤、按 query mask 返回”，不是“按输入对象字段裁剪所有返回列”
-- 如果需要精确裁剪返回列，走 `Filter.ValueMask(...)`
+- `Query(model)` 是“按模型过滤、顶层固定按 DetailView 返回”，不是“按输入对象字段或输入 view 裁剪返回列”
+- 如果需要精确裁剪顶层返回列，走 `BatchQuery(filter)` + `Filter.ValueMask(...)`
+- 包含/引用的子对象始终统一收敛到 `lite`
 
 ---
 
 ## 6. 不建议再走的方向
 
 - 不要再把 `FieldValue.Assigned` 退回成纯内存态，否则 JSON 往返会再次丢语义
-- 不要再让 `Query(model)` 直接使用查询模型本身做完整列裁剪，否则 `Reference` / `OnlineEntity` 一类问题会重现
+- 不要再让 `Query(model)` 受输入模型自身 view 或字段赋值形状控制顶层返回列，否则 `Reference` / `OnlineEntity` 一类问题会重现
 - 不要把包含关系更新重新收回到“统一 delete + insert”，除非明确放弃精细 diff
 
 ---

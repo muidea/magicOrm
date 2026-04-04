@@ -114,24 +114,7 @@ func TestRemoteReference(t *testing.T) {
 		return
 	}
 
-	fValue2 := float32(0.0)
-	var ts2 time.Time
-	var bVal bool
-	strArray2 := []string{}
-	ptrArray2 := []string{}
-	s2 := &Reference{
-		ID:          s1.ID,
-		FValue:      fValue2,
-		TimeStamp:   ts2,
-		Flag:        bVal,
-		IArray:      []int{},
-		FArray:      []float32{},
-		StrArray:    []string{},
-		BArray:      []bool{},
-		PtrArray:    &strArray2,
-		StrPtrArray: []string{},
-		PtrStrArray: &ptrArray2,
-	}
+	s2 := &Reference{ID: s1.ID}
 	s2Value, s2Err := getObjectValue(s2)
 	if s2Err != nil {
 		t.Errorf("getObjectValue failed, err:%s", s2Err.Error())
@@ -158,10 +141,7 @@ func TestRemoteReference(t *testing.T) {
 		return
 	}
 
-	s4 := &Reference{
-		ID:     s1.ID,
-		IArray: []int{},
-	}
+	s4 := &Reference{ID: s1.ID}
 	s4Value, s4Err := getObjectValue(s4)
 	if s4Err != nil {
 		t.Errorf("getObjectValue failed, err:%s", s4Err.Error())
@@ -183,11 +163,7 @@ func TestRemoteReference(t *testing.T) {
 		t.Errorf("updateEntity failed, err:%s", err.Error())
 		return
 	}
-	if s4.Name != s2.Name {
-		t.Errorf("query reference failed, err:%s", err.Error())
-		return
-	}
-	if s4.IArray == nil || s4.PtrStrArray != nil || s4.PtrArray != nil {
+	if !s1.IsSame(s4) {
 		t.Errorf("query reference failed")
 		return
 	}

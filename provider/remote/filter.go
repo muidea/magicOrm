@@ -377,6 +377,14 @@ func (s *ObjectFilter) Sorter() models.Sorter {
 	return s.SortFilter
 }
 
+func assignMaskFieldValue(object *Object, name string, val any) {
+	if object == nil {
+		return
+	}
+
+	_ = object.innerSetFieldValue(name, val, true)
+}
+
 func (s *ObjectFilter) MaskModel() models.Model {
 	maskObject, ok := s.bindObject.Copy(models.OriginView).(*Object)
 	if !ok {
@@ -385,7 +393,7 @@ func (s *ObjectFilter) MaskModel() models.Model {
 	maskObject.viewSpec = s.bindObject.viewSpec
 	if s.MaskValue != nil {
 		for _, val := range s.MaskValue.Fields {
-			maskObject.SetFieldValue(val.Name, val.GetValue().Get())
+			assignMaskFieldValue(maskObject, val.Name, val.GetValue().Get())
 		}
 	}
 
@@ -426,7 +434,7 @@ func (s *ObjectFilter) ExplicitResponseModel() models.Model {
 	}
 	if s.MaskValue != nil {
 		for _, val := range s.MaskValue.Fields {
-			maskObject.SetFieldValue(val.Name, val.GetValue().Get())
+			assignMaskFieldValue(maskObject, val.Name, val.GetValue().Get())
 		}
 	}
 

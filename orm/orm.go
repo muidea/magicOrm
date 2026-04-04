@@ -24,7 +24,12 @@ import (
 
 const maxDeepLevel = 3
 
-// Orm orm interface
+// Orm is the stable public query/write contract exposed by magicOrm.
+//
+// Query is the single-object query entrypoint driven by a model instance.
+// BatchQuery is the multi-object query entrypoint driven by a filter.
+// magicOrm intentionally keeps only these two public query shapes to avoid
+// overlapping single-row semantics in the ORM layer.
 type Orm interface {
 	Create(entity models.Model) *cd.Error
 	Drop(entity models.Model) *cd.Error
@@ -45,6 +50,7 @@ var (
 	name2PoolInitializeOnce    sync.Once
 	name2PoolUninitializedOnce sync.Once
 	name2LastPoolStats         sync.Map
+	validationManagerPool      sync.Pool
 
 	ormMetricProvider  *metricsorm.ORMMetricProvider
 	ormMetricCollector *metricsorm.ORMMetricsCollector
@@ -52,9 +58,6 @@ var (
 
 func poolStatsChanged(prev, curr database.PoolStats) bool {
 	return prev.MaxOpenConnections != curr.MaxOpenConnections ||
-		prev.OpenConnections != curr.OpenConnections ||
-		prev.InUse != curr.InUse ||
-		prev.Idle != curr.Idle ||
 		prev.WaitCount != curr.WaitCount ||
 		prev.WaitDuration != curr.WaitDuration
 }
@@ -67,8 +70,7 @@ func logPoolStats(owner, event string, pool database.Pool, force bool) {
 	stats := pool.GetStats()
 	prevVal, ok := name2LastPoolStats.Load(owner)
 	prevStats, _ := prevVal.(database.PoolStats)
-	shouldLog := force || !ok || poolStatsChanged(prevStats, stats) ||
-		stats.InUse > 1 || stats.OpenConnections > 1 || stats.WaitCount > 0
+	shouldLog := force || !ok || poolStatsChanged(prevStats, stats) || stats.WaitCount > 0
 
 	name2LastPoolStats.Store(owner, stats)
 	if !shouldLog {
@@ -91,6 +93,30 @@ func defaultValidationConfig(enableCaching bool) validation.ValidationConfig {
 	cfg := validation.DefaultConfig()
 	cfg.EnableCaching = enableCaching
 	return cfg
+}
+
+func newDefaultValidationManager() validation.ValidationManager {
+	validationFactory := validation.NewValidationFactory()
+	return validationFactory.CreateValidationManager(defaultValidationConfig(false))
+}
+
+func acquireValidationManager() validation.ValidationManager {
+	if val := validationManagerPool.Get(); val != nil {
+		manager := val.(validation.ValidationManager)
+		manager.ResetStats()
+		return manager
+	}
+
+	return newDefaultValidationManager()
+}
+
+func releaseValidationManager(manager validation.ValidationManager) {
+	if manager == nil {
+		return
+	}
+
+	manager.ResetStats()
+	validationManagerPool.Put(manager)
 }
 
 // Initialize InitOrm
@@ -239,21 +265,14 @@ func NewOrm(provider provider.Provider, cfg database.Config, prefix string) (Orm
 		return nil, cd.NewError(cd.Unexpected, executorErr.Error())
 	}
 
-	// Create validation manager
-	validationFactory := validation.NewValidationFactory()
-	// ORM handlers are request-scoped and released after each DAO call. Keeping
-	// validation caching enabled here starts a cleanup goroutine per handler and
-	// leaks it because Release only tears down the executor.
-	validationConfig := defaultValidationConfig(false)
-	validationMgr := validationFactory.CreateValidationManager(validationConfig)
-
 	orm := &impl{
-		context:         context.Background(),
-		executor:        executorVal,
-		modelProvider:   provider,
-		modelCodec:      codec.New(provider, prefix),
-		validationMgr:   validationMgr,
-		validationCache: validationConfig.EnableCaching,
+		context:             context.Background(),
+		executor:            executorVal,
+		modelProvider:       provider,
+		modelCodec:          codec.New(provider, prefix),
+		validationMgr:       acquireValidationManager(),
+		validationCache:     false,
+		pooledValidationMgr: true,
 	}
 	return orm, nil
 }
@@ -282,32 +301,27 @@ func GetOrm(ctx context.Context, provider provider.Provider, prefix string) (ret
 	}
 	logPoolStats(provider.Owner(), "acquire_executor", pool, false)
 
-	// Create validation manager
-	validationFactory := validation.NewValidationFactory()
-	// ORM handlers fetched from the pool are short-lived; per-handler validation
-	// caches retain cleanup goroutines and heap state beyond Release.
-	validationConfig := defaultValidationConfig(false)
-	validationMgr := validationFactory.CreateValidationManager(validationConfig)
-
 	ret = &impl{
-		context:         ctx,
-		executor:        executorVal,
-		modelProvider:   provider,
-		modelCodec:      codec.New(provider, prefix),
-		validationMgr:   validationMgr,
-		validationCache: validationConfig.EnableCaching,
+		context:             ctx,
+		executor:            executorVal,
+		modelProvider:       provider,
+		modelCodec:          codec.New(provider, prefix),
+		validationMgr:       acquireValidationManager(),
+		validationCache:     false,
+		pooledValidationMgr: true,
 	}
 	return
 }
 
 // impl orm
 type impl struct {
-	context         context.Context
-	executor        database.Executor
-	modelProvider   provider.Provider
-	modelCodec      codec.Codec
-	validationMgr   validation.ValidationManager
-	validationCache bool
+	context             context.Context
+	executor            database.Executor
+	modelProvider       provider.Provider
+	modelCodec          codec.Codec
+	validationMgr       validation.ValidationManager
+	validationCache     bool
+	pooledValidationMgr bool
 }
 
 // BeginTransaction begin transaction
@@ -380,6 +394,12 @@ func (s *impl) finalTransaction(err *cd.Error) {
 }
 
 func (s *impl) Release() {
+	if s.pooledValidationMgr && s.validationMgr != nil {
+		releaseValidationManager(s.validationMgr)
+		s.validationMgr = nil
+		s.pooledValidationMgr = false
+	}
+
 	if s.executor != nil {
 		s.executor.Release()
 		s.executor = nil
@@ -435,6 +455,12 @@ func (s *impl) GetValidationManager() validation.ValidationManager {
 
 // ConfigureValidation configures validation settings
 func (s *impl) ConfigureValidation(config validation.ValidationConfig) error {
+	if s.pooledValidationMgr && s.validationMgr != nil {
+		releaseValidationManager(s.validationMgr)
+		s.validationMgr = nil
+		s.pooledValidationMgr = false
+	}
+
 	// Recreate validation manager with new configuration
 	factory := validation.NewValidationFactory()
 	s.validationMgr = factory.CreateValidationManager(config)

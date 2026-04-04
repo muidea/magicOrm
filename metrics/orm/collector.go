@@ -35,8 +35,8 @@ type ORMMetricsCollector struct {
 	// Connection statistics
 	activeConnections int64
 
-	// LRU tracking for duration keys to prevent unlimited growth
-	durationKeyLRU     []string
+	// Duration key tracking keeps hot-path updates O(1) while preserving bounded eviction.
+	durationKeyTracker *metrics.DurationKeyTracker
 	maxDurationKeys    int
 	maxDurationSamples int
 }
@@ -48,7 +48,7 @@ func NewORMMetricsCollector() *ORMMetricsCollector {
 		errorCounters:       make(map[string]int64),
 		operationDurations:  make(map[string][]time.Duration),
 		transactionCounters: make(map[string]int64),
-		durationKeyLRU:      make([]string, 0, 1000),
+		durationKeyTracker:  metrics.NewDurationKeyTracker(),
 		maxDurationKeys:     metrics.DefaultMaxDurationKeys,
 		maxDurationSamples:  metrics.DefaultMaxDurationSamples,
 	}
@@ -189,9 +189,9 @@ func (c *ORMMetricsCollector) GetActiveConnections() int64 {
 
 // recordDurationWithLRU records a duration with LRU key management.
 func (c *ORMMetricsCollector) recordDurationWithLRU(key string, duration time.Duration) {
-	metrics.RecordDurationSample(
+		metrics.RecordDurationSample(
 		c.operationDurations,
-		&c.durationKeyLRU,
+		c.durationKeyTracker,
 		c.maxDurationKeys,
 		c.maxDurationSamples,
 		key,
@@ -211,7 +211,7 @@ func (c *ORMMetricsCollector) Clear() {
 	c.cacheHits = 0
 	c.cacheMisses = 0
 	c.activeConnections = 0
-	c.durationKeyLRU = make([]string, 0, 1000)
+	c.durationKeyTracker = metrics.NewDurationKeyTracker()
 }
 
 func (c *ORMMetricsCollector) operationStatus(err error) string {

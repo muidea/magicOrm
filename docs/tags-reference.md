@@ -35,8 +35,24 @@
 ### 1.5 视图声明（view）
 
 - 格式：`view:"detail,lite"` 等，表示该字段在哪些视图下可见/参与序列化。
-- 当前本地 struct tag 解析稳定识别 `detail`、`lite`；`origin`、`meta`、`basic` 是框架常量/内部视图概念，不是稳定的 struct tag 输入。
-- 未带 view 的字段在默认/原始视图中仍可被访问；view 用于控制 Copy(viewSpec) 时的输出范围，不直接裁剪 Query 的 SELECT 列表。
+- 当前本地 struct tag 解析稳定识别 `detail`、`lite`；其它值不是稳定的 struct tag 输入，写入 `view:"..."` 时会被忽略。运行时内部仍保留 `origin`、`meta` 两类内部视图。
+- 未带 view 的字段在默认/原始视图中仍可被访问；view 用于控制 Copy(viewSpec) 时的输出范围，并作为默认查询响应字段收敛规则的一部分。
+- 当前稳定查询约定：
+  - `Query(model)` 不处理 `ValueMask`，顶层对象固定按 `DetailView` 返回；
+  - `BatchQuery(filter)` 的顶层对象遵循固定优先级：`ValueMask > view`；
+  - `BatchQuery(filter)` 若设置了 `ValueMask`，则顶层字段以 `ValueMask` 为准；未设置时才按 `view` 返回；
+  - 包含/引用的子对象默认统一收敛到 `lite`，不因为父对象是 `detail` 或 `ValueMask` 中声明了嵌套子字段而自动扩成子对象 `detail`；
+  - 业务若需要子对象详细信息，应基于子对象主键单独查询，而不是在一次列表/详情查询中继续放大多层结构。
+
+### 1.6 子对象查询约束
+
+- `magicOrm` 不再提供公开的 `relationView` tag，也不承诺通过字段级配置放大子对象默认查询层级。
+- 默认查询规则属于框架内置特性：
+  - `Query(model)` 顶层对象固定按 `DetailView` 裁剪；
+  - `BatchQuery(filter)` 顶层对象按 `ValueMask > view` 的稳定优先级裁剪；
+  - 包含/引用的子对象统一收敛到 `lite`；
+  - 这一规则同时适用于默认视图 mask 生成和远端 schema/spec 表达。
+- 业务若需要子对象详情，必须基于子对象主键单独查询，而不是在父对象查询里声明额外关系层级。
 
 ---
 

@@ -38,7 +38,7 @@ func (s *impl) BatchQuery(filter models.Filter) (ret []models.Model, err *cd.Err
 		return
 	}
 
-	queryMask, maskErr := buildFullQueryMaskModel(responseModel)
+	queryMask, maskErr := buildQueryExecutionModel(responseModel, !responseByMask)
 	if maskErr != nil {
 		err = maskErr
 		slog.Error("BatchQuery buildFullQueryMaskModel failed", "error", err.Error())

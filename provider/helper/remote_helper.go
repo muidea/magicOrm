@@ -1,11 +1,7 @@
 package helper
 
 import (
-	"bytes"
 	"encoding/json"
-	"os"
-	"path"
-	"strings"
 
 	cd "github.com/muidea/magicCommon/def"
 
@@ -44,42 +40,4 @@ func DecodeObject(data []byte) (ret *remote.Object, err *cd.Error) {
 
 	ret = objPtr
 	return
-}
-
-func SerializeEntity(entity any, destinationPath string) {
-	objectPtr, objectErr := GetObject(entity)
-	if objectErr != nil {
-		slog.Error("SerializeEntity GetObject failed", "error", objectErr.Error())
-		return
-	}
-
-	byteVal, byteErr := json.Marshal(objectPtr)
-	if byteErr != nil {
-		slog.Error("SerializeEntity Marshal failed", "object", objectPtr.GetPkgKey(), "error", byteErr.Error())
-		return
-	}
-	var byteStream bytes.Buffer
-	byteErr = json.Indent(&byteStream, byteVal, "", "\t")
-	if byteErr != nil {
-		slog.Error("SerializeEntity Indent failed", "object", objectPtr.GetPkgKey(), "error", byteErr.Error())
-		return
-	}
-
-	fileName := strings.ToLower(objectPtr.GetName()) + ".json"
-	fileName = path.Join(destinationPath, fileName)
-	fileHandle, fileErr := os.OpenFile(fileName, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
-	if fileErr != nil {
-		slog.Error("SerializeEntity OpenFile failed", "path", fileName, "error", fileErr.Error())
-		return
-	}
-	defer fileHandle.Close()
-
-	_, writeErr := byteStream.WriteTo(fileHandle)
-	if writeErr != nil {
-		slog.Error("SerializeEntity WriteTo failed", "path", fileName, "error", writeErr.Error())
-		_ = os.Remove(fileName)
-		return
-	}
-
-	slog.Info("SerializeEntity done", "object", objectPtr.GetPkgKey(), "path", fileName)
 }

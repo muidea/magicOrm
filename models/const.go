@@ -221,16 +221,15 @@ func (s ValueDeclare) IsDateTime() bool {
 type ViewDeclare string
 
 const (
-	// OriginView 当前数据, 根据MaskValue定义的字段
-	// 如果MaskValue为空，则默认返回OriginView
+	// OriginView 原始视图，保留完整字段集合。
+	// 该视图主要用于框架内部复制/执行路径，不作为稳定的外部 struct tag 输入。
 	OriginView = "origin"
-	// MetaView 原始数据，包括所有字段元数据，字段值为初始化值
+	// MetaView 元数据视图，包含全部字段元数据，字段值按类型初始化。
+	// 该视图主要供 Provider/Runner 内部使用，不作为稳定的外部 struct tag 输入。
 	MetaView = "meta"
-	// DetailView 详细数据，在类型定义时需要主动定义
+	// DetailView 详细视图，是当前稳定的外部 struct tag 输入。
 	DetailView = "detail"
-	// ListView 列表数据，在类型定义时需要主动定义
-	BasicView = "basic"
-	// LiteView 简单数据，在类型定义时需要主动定义
+	// LiteView 精简视图，是当前稳定的外部 struct tag 输入。
 	LiteView = "lite"
 )
 

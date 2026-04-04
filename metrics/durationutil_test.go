@@ -9,15 +9,15 @@ import (
 
 func TestRecordDurationSample(t *testing.T) {
 	store := map[string][]time.Duration{}
-	lru := make([]string, 0, 2)
+	tracker := NewDurationKeyTracker()
 
-	RecordDurationSample(store, &lru, 2, 2, "a", 10*time.Millisecond)
-	RecordDurationSample(store, &lru, 2, 2, "b", 20*time.Millisecond)
-	RecordDurationSample(store, &lru, 2, 2, "a", 30*time.Millisecond)
-	RecordDurationSample(store, &lru, 2, 2, "c", 40*time.Millisecond)
+	RecordDurationSample(store, tracker, 2, 2, "a", 10*time.Millisecond)
+	RecordDurationSample(store, tracker, 2, 2, "b", 20*time.Millisecond)
+	RecordDurationSample(store, tracker, 2, 2, "a", 30*time.Millisecond)
+	RecordDurationSample(store, tracker, 2, 2, "c", 40*time.Millisecond)
 
 	assert.NotContains(t, store, "b")
-	assert.Equal(t, []string{"a", "c"}, lru)
+	assert.Equal(t, []string{"a", "c"}, tracker.Keys())
 	assert.Equal(t, []time.Duration{10 * time.Millisecond, 30 * time.Millisecond}, store["a"])
 	assert.Equal(t, []time.Duration{40 * time.Millisecond}, store["c"])
 }

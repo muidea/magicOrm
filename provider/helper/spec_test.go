@@ -321,8 +321,22 @@ func TestViewSpecParsing(t *testing.T) {
 			expectError:    false, // Should not error, just ignore invalid options
 		},
 		{
+			name:           "Legacy internal views are ignored",
+			viewStr:        "origin,meta,basic",
+			expectedDetail: false,
+			expectedLite:   false,
+			expectError:    false,
+		},
+		{
 			name:           "Mixed valid and invalid",
 			viewStr:        "detail,invalid,lite",
+			expectedDetail: true,
+			expectedLite:   true,
+			expectError:    false,
+		},
+		{
+			name:           "Mixed stable and legacy views",
+			viewStr:        "detail,basic,lite,origin,meta",
 			expectedDetail: true,
 			expectedLite:   true,
 			expectError:    false,

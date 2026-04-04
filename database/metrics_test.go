@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
@@ -111,4 +112,15 @@ func TestDatabaseMetricHelpersWithoutCollector(t *testing.T) {
 	RecordDatabaseExecution(DatabaseMySQL, "INSERT INTO users(id) VALUES(1)", true)
 	RecordDatabaseTransaction(DatabasePostgreSQL, "begin", true)
 	UpdateDatabaseConnectionStats(DatabasePostgreSQL, nil)
+}
+
+func TestCachedDatabaseOperation(t *testing.T) {
+	normalizedOperationCache = sync.Map{}
+
+	op := cachedDatabaseOperation("SELECT * FROM users", "query")
+	assert.Equal(t, "select", op)
+
+	cached, ok := normalizedOperationCache.Load("query\x00SELECT * FROM users")
+	assert.True(t, ok)
+	assert.Equal(t, "select", cached)
 }

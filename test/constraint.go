@@ -2,30 +2,30 @@ package test
 
 // ConstraintTestModel 用于测试访问约束的模型
 type ConstraintTestModel struct {
-	ID         int    `orm:"id key auto" constraint:"ro"` // 自增主键，只读（不应该有req约束，因为它是自增的）
-	Name       string `orm:"name" constraint:"req"`       // 必填
-	Password   string `orm:"password" constraint:"wo"`    // 只写（敏感字段）
-	CreateTime int64  `orm:"create_time" constraint:"ro"` // 不可变
-	UpdateTime int64  `orm:"update_time"`                 // 普通字段
-	Email      string `orm:"email"`
-	Status     int    `orm:"status" constraint:"req,ro"`  // 必填且只读
-	ReadOnlyID int    `orm:"readonly_id" constraint:"ro"` // 只读
-	WriteOnly  string `orm:"write_only" constraint:"wo"`  // 只写
+	ID         int    `orm:"id key auto" constraint:"ro" view:"detail,lite"` // 自增主键，只读（不应该有req约束，因为它是自增的）
+	Name       string `orm:"name" constraint:"req" view:"detail,lite"`       // 必填
+	Password   string `orm:"password" constraint:"wo" view:"detail,lite"`    // 只写（敏感字段）
+	CreateTime int64  `orm:"create_time" constraint:"ro" view:"detail,lite"` // 不可变
+	UpdateTime int64  `orm:"update_time" view:"detail,lite"`                 // 普通字段
+	Email      string `orm:"email" view:"detail,lite"`
+	Status     int    `orm:"status" constraint:"req,ro" view:"detail,lite"`  // 必填且只读
+	ReadOnlyID int    `orm:"readonly_id" constraint:"ro" view:"detail,lite"` // 只读
+	WriteOnly  string `orm:"write_only" constraint:"wo" view:"detail,lite"`  // 只写
 }
 
 // ContentConstraintTestModel 用于测试内容值约束的模型
 type ContentConstraintTestModel struct {
-	ID          int     `orm:"id key auto" constraint:"ro"`                                               // 自增主键，只读
-	Name        string  `orm:"name" constraint:"req,min=3,max=50"`                                        // 必填，长度3-50
-	Age         int     `orm:"age" constraint:"min=0,max=150"`                                            // 年龄0-150
-	Score       float64 `orm:"score" constraint:"range=0.0:100.0"`                                        // 分数0.0-100.0
-	Status      string  `orm:"status" constraint:"in=active:inactive:pending"`                            // 枚举值
-	Email       string  `orm:"email" constraint:"re=^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,64}$"` // 正则匹配邮箱，使用{2,64}避免逗号问题
-	Description string  `orm:"description" constraint:"max=500"`                                          // 最大长度500
-	ItemCount   int     `orm:"item_count" constraint:"min=1"`                                             // 最小值为1
-	Price       float64 `orm:"price" constraint:"range=0.01:9999.99"`                                     // 价格范围
-	Category    string  `orm:"category" constraint:"in=A:B:C:D"`                                          // 分类枚举
-	Code        string  `orm:"code" constraint:"re=^[A-Z]{3}-\\d{3}$"`                                    // 正则匹配格式：ABC-123
+	ID          int     `orm:"id key auto" constraint:"ro" view:"detail,lite"`                                               // 自增主键，只读
+	Name        string  `orm:"name" constraint:"req,min=3,max=50" view:"detail,lite"`                                        // 必填，长度3-50
+	Age         int     `orm:"age" constraint:"min=0,max=150" view:"detail,lite"`                                            // 年龄0-150
+	Score       float64 `orm:"score" constraint:"range=0.0:100.0" view:"detail,lite"`                                        // 分数0.0-100.0
+	Status      string  `orm:"status" constraint:"in=active:inactive:pending" view:"detail,lite"`                            // 枚举值
+	Email       string  `orm:"email" constraint:"re=^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,64}$" view:"detail,lite"` // 正则匹配邮箱，使用{2,64}避免逗号问题
+	Description string  `orm:"description" constraint:"max=500" view:"detail,lite"`                                          // 最大长度500
+	ItemCount   int     `orm:"item_count" constraint:"min=1" view:"detail,lite"`                                             // 最小值为1
+	Price       float64 `orm:"price" constraint:"range=0.01:9999.99" view:"detail,lite"`                                     // 价格范围
+	Category    string  `orm:"category" constraint:"in=A:B:C:D" view:"detail,lite"`                                          // 分类枚举
+	Code        string  `orm:"code" constraint:"re=^[A-Z]{3}-\\d{3}$" view:"detail,lite"`                                    // 正则匹配格式：ABC-123
 }
 
 // Equal 比较两个ConstraintTestModel是否相等

@@ -100,7 +100,7 @@ func TestLocalGroup(t *testing.T) {
 		return
 	}
 
-	group42 := &Group{ID: group2.ID, Name: group2.Name, Parent: &Group{}}
+	group42 := &Group{ID: group2.ID}
 	group42Model, group42Err := provider.GetEntityModel(group42, true)
 	if group42Err != nil {
 		t.Errorf("GetEntityModel failed,err:%s", group42Err)
@@ -113,7 +113,15 @@ func TestLocalGroup(t *testing.T) {
 		return
 	}
 	group42 = group42Model.Interface(true).(*Group)
-	if !group42.Equal(group2) {
+	if group42.ID != group2.ID || group42.Name != group2.Name {
+		t.Errorf("query Group42 basic fields failed")
+		return
+	}
+	if group42.Parent == nil || group2.Parent == nil {
+		t.Errorf("query Group42 parent failed")
+		return
+	}
+	if group42.Parent.ID != group2.Parent.ID || group42.Parent.Name != group2.Parent.Name {
 		t.Errorf("query Group42 failed")
 		return
 	}
@@ -131,7 +139,15 @@ func TestLocalGroup(t *testing.T) {
 		return
 	}
 	group5 = group5Model.Interface(true).(*Group)
-	if !group5.Equal(group2) {
+	if group5.ID != group2.ID || group5.Name != group2.Name {
+		t.Errorf("query Group5 basic fields failed")
+		return
+	}
+	if group5.Parent == nil || group2.Parent == nil {
+		t.Errorf("query Group5 parent failed")
+		return
+	}
+	if group5.Parent.ID != group2.Parent.ID || group5.Parent.Name != group2.Parent.Name {
 		t.Errorf("query Group5 failed")
 	}
 }

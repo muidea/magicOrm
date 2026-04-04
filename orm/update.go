@@ -34,6 +34,10 @@ type UpdateRunner struct {
 	QueryRunner
 	InsertRunner
 	DeleteRunner
+
+	hostUpdateDuration     time.Duration
+	relationUpdateDuration time.Duration
+	relationUpdateCount    int
 }
 
 func NewUpdateRunner(
@@ -64,6 +68,11 @@ func NewUpdateRunner(
 }
 
 func (s *UpdateRunner) updateHost(vModel models.Model) (err *cd.Error) {
+	startTime := time.Now()
+	defer func() {
+		s.hostUpdateDuration += time.Since(startTime)
+	}()
+
 	updateResult, updateErr := s.sqlBuilder.BuildUpdate(vModel)
 	if updateErr != nil {
 		err = updateErr
@@ -79,6 +88,14 @@ func (s *UpdateRunner) updateHost(vModel models.Model) (err *cd.Error) {
 }
 
 func (s *UpdateRunner) updateRelation(vModel models.Model, vField models.Field) (err *cd.Error) {
+	startTime := time.Now()
+	defer func() {
+		s.relationUpdateDuration += time.Since(startTime)
+		if err == nil {
+			s.relationUpdateCount++
+		}
+	}()
+
 	// 引用关系：单值指针（*T）或切片元素为指针（[]*T）；其余为包含关系
 	isReference := (models.IsSliceField(vField) && vField.GetType().Elem().IsPtrType()) ||
 		(!models.IsSliceField(vField) && models.IsPtrField(vField))
@@ -103,10 +120,12 @@ func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
 		return
 	}
 
-	err = s.updateHost(s.vModel)
-	if err != nil {
-		slog.Error("UpdateRunner Update updateHost failed", "error", err.Error())
-		return
+	if hasAssignedWritableBasicFields(s.vModel) {
+		err = s.updateHost(s.vModel)
+		if err != nil {
+			slog.Error("UpdateRunner Update updateHost failed", "error", err.Error())
+			return
+		}
 	}
 
 	for _, field := range s.vModel.GetFields() {
@@ -127,8 +146,42 @@ func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
 	return
 }
 
+func hasAssignedWritableBasicFields(vModel models.Model) bool {
+	if vModel == nil {
+		return false
+	}
+
+	for _, field := range vModel.GetFields() {
+		if !models.IsBasicField(field) || models.IsPrimaryField(field) || !models.IsAssignedField(field) || isReadOnlyField(field) {
+			continue
+		}
+		return true
+	}
+
+	return false
+}
+
+func updateRequiresTransaction(vModel models.Model) bool {
+	if vModel == nil {
+		return false
+	}
+
+	for _, field := range vModel.GetFields() {
+		if models.IsBasicField(field) || !models.IsAssignedField(field) || isReadOnlyField(field) {
+			continue
+		}
+		return true
+	}
+
+	return false
+}
+
 func (s *impl) Update(vModel models.Model) (ret models.Model, err *cd.Error) {
 	startTime := time.Now()
+	var validationDuration time.Duration
+	var txBeginDuration time.Duration
+	var txFinalizeDuration time.Duration
+	usedTransaction := false
 
 	defer func() {
 		duration := time.Since(startTime)
@@ -147,25 +200,53 @@ func (s *impl) Update(vModel models.Model) (ret models.Model, err *cd.Error) {
 	}
 
 	// Validate model before update
+	validationStart := time.Now()
 	validationErr := s.validateModel(vModel, errors.ScenarioUpdate)
+	validationDuration = time.Since(validationStart)
 	if validationErr != nil {
 		err = validationErr
 		return
 	}
 
-	err = s.executor.BeginTransaction()
-	if err != nil {
-		return
+	// Pure host-field updates compile down to a single UPDATE statement. Keeping
+	// them out of an explicit transaction avoids an extra begin/commit round-trip
+	// on the write hot path; relation updates still need transactional wrapping.
+	if updateRequiresTransaction(vModel) {
+		usedTransaction = true
+		txBeginStart := time.Now()
+		err = s.executor.BeginTransaction()
+		txBeginDuration = time.Since(txBeginStart)
+		if err != nil {
+			return
+		}
+		defer func() {
+			txFinalizeStart := time.Now()
+			s.finalTransaction(err)
+			txFinalizeDuration = time.Since(txFinalizeStart)
+		}()
 	}
-	defer func() {
-		s.finalTransaction(err)
-	}()
 
 	updateRunner := NewUpdateRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec)
 	ret, err = updateRunner.Update()
 	if err != nil {
 		slog.Error("Update UpdateRunner.Update failed", "pkgKey", vModel.GetPkgKey(), "error", err.Error())
 		return
+	}
+
+	totalDuration := time.Since(startTime)
+	if totalDuration >= 10*time.Millisecond {
+		slog.Info("UpdateRunner profile",
+			"pkgKey", vModel.GetPkgKey(),
+			"total_ms", totalDuration.Seconds()*1000,
+			"validation_ms", validationDuration.Seconds()*1000,
+			"tx_begin_ms", txBeginDuration.Seconds()*1000,
+			"tx_finalize_ms", txFinalizeDuration.Seconds()*1000,
+			"host_update_ms", updateRunner.hostUpdateDuration.Seconds()*1000,
+			"relation_update_ms", updateRunner.relationUpdateDuration.Seconds()*1000,
+			"relation_update_count", updateRunner.relationUpdateCount,
+			"used_tx", usedTransaction,
+			"has_basic_update", hasAssignedWritableBasicFields(vModel),
+		)
 	}
 
 	return

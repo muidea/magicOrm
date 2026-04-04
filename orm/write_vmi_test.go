@@ -83,6 +83,30 @@ func buildProductUpdateModel(t *testing.T, remoteProvider provider.Provider) *re
 	return object
 }
 
+func buildProductBasicUpdateModel(t *testing.T, remoteProvider provider.Provider) *remote.Object {
+	t.Helper()
+
+	productValue := &remote.ObjectValue{
+		Name:    "product",
+		PkgPath: "/vmi",
+		Fields: []*remote.FieldValue{
+			{Name: "id", Value: int64(1001)},
+			{Name: "description", Value: "fresh apple updated"},
+		},
+	}
+
+	model, err := remoteProvider.GetEntityModel(productValue, true)
+	if err != nil {
+		t.Fatalf("GetEntityModel(product basic update value) failed: %v", err)
+	}
+
+	object, ok := model.(*remote.Object)
+	if !ok {
+		t.Fatalf("expected *remote.Object, got %T", model)
+	}
+	return object
+}
+
 func buildProductDeleteModel(t *testing.T, remoteProvider provider.Provider) *remote.Object {
 	t.Helper()
 
@@ -506,7 +530,7 @@ func TestUpdateRunnerVMIRemoteReferenceDiff(t *testing.T) {
 		t.Fatalf("updated status relation mismatch: %#v", statusValue)
 	}
 
-	if !containsSQLCall(executor.execCalls, "exec", "UPDATE", []any{"apple-updated", "", "[]", 0, "[]", 0, int64(1001)}) {
+	if !containsSQLCall(executor.execCalls, "exec", "UPDATE", []any{"apple-updated", int64(1001)}) {
 		t.Fatalf("missing product update call: %#v", executor.execCalls)
 	}
 	if !containsSQLCall(executor.execCalls, "query", "tenant_ProductStatus3Status", []any{int64(1001)}) {
@@ -520,6 +544,71 @@ func TestUpdateRunnerVMIRemoteReferenceDiff(t *testing.T) {
 	}
 	if containsSQLCall(executor.execCalls, "exec", "tenant_Status", nil) || containsSQLCall(executor.execCalls, "insert", "tenant_Status", nil) {
 		t.Fatalf("status reference diff should not mutate status host table: %#v", executor.execCalls)
+	}
+}
+
+func TestUpdateSkipsTransactionForBasicFieldOnlyUpdate(t *testing.T) {
+	remoteProvider := provider.NewRemoteProvider("tenant", nil)
+	registerVMIQueryModels(t, remoteProvider)
+
+	productModel := buildProductBasicUpdateModel(t, remoteProvider)
+	executor := &fakeExecutor{}
+	ormImpl := &impl{
+		context:       context.Background(),
+		executor:      executor,
+		modelProvider: remoteProvider,
+		modelCodec:    codec.New(remoteProvider, "tenant"),
+	}
+
+	updatedModel, err := ormImpl.Update(productModel)
+	if err != nil {
+		t.Fatalf("impl.Update(product basic update) failed: %v", err)
+	}
+	if updatedModel == nil {
+		t.Fatal("impl.Update(product basic update) should return model")
+	}
+
+	if executor.beginCalls != 0 || executor.commitCalls != 0 || executor.rollbackCalls != 0 {
+		t.Fatalf("basic field only update should not open transaction, got begin=%d commit=%d rollback=%d", executor.beginCalls, executor.commitCalls, executor.rollbackCalls)
+	}
+	if !containsSQLCall(executor.execCalls, "exec", "UPDATE", []any{"fresh apple updated", int64(1001)}) {
+		t.Fatalf("missing basic update SQL call: %#v", executor.execCalls)
+	}
+}
+
+func TestUpdateKeepsTransactionForRelationUpdate(t *testing.T) {
+	remoteProvider := provider.NewRemoteProvider("tenant", nil)
+	registerVMIQueryModels(t, remoteProvider)
+
+	productModel := buildProductUpdateModel(t, remoteProvider)
+	executor := &fakeExecutor{
+		responses: []fakeQueryResponse{
+			{
+				match: func(sql string, args []any) bool {
+					return strings.Contains(sql, "tenant_ProductStatus3Status") && reflect.DeepEqual(args, []any{int64(1001)})
+				},
+				rows: [][]any{{int64(9)}},
+			},
+		},
+		insertIDs: []any{int64(5001)},
+	}
+	ormImpl := &impl{
+		context:       context.Background(),
+		executor:      executor,
+		modelProvider: remoteProvider,
+		modelCodec:    codec.New(remoteProvider, "tenant"),
+	}
+
+	updatedModel, err := ormImpl.Update(productModel)
+	if err != nil {
+		t.Fatalf("impl.Update(product relation update) failed: %v", err)
+	}
+	if updatedModel == nil {
+		t.Fatal("impl.Update(product relation update) should return model")
+	}
+
+	if executor.beginCalls != 1 || executor.commitCalls != 1 || executor.rollbackCalls != 0 {
+		t.Fatalf("relation update should keep transaction, got begin=%d commit=%d rollback=%d", executor.beginCalls, executor.commitCalls, executor.rollbackCalls)
 	}
 }
 
@@ -624,7 +713,7 @@ func TestUpdateRunnerVMIRemoteReadOnlyReferenceIgnored(t *testing.T) {
 		t.Fatalf("readonly warehouse relation should remain present on returned model, got %#v", shelfValue.GetFieldValue("warehouse"))
 	}
 
-	if !containsSQLCall(executor.execCalls, "exec", "UPDATE \"tenant_Shelf\"", []any{"", 20, int64(0), int64(1001)}) {
+	if !containsSQLCall(executor.execCalls, "exec", "UPDATE \"tenant_Shelf\"", []any{20, int64(1001)}) {
 		t.Fatalf("missing shelf host update call: %#v", executor.execCalls)
 	}
 	if containsSQLCall(executor.execCalls, "query", "tenant_ShelfWarehouse3Warehouse", nil) {

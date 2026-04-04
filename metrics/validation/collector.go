@@ -28,8 +28,8 @@ type ValidationMetricsCollector struct {
 	// Constraint check counters: constraintType_field_status -> count
 	constraintCheckCounters map[string]int64
 
-	// LRU tracking for validation duration keys to prevent unlimited growth
-	durationKeyLRU     []string
+	// Duration key tracking keeps hot-path updates O(1) while preserving bounded eviction.
+	durationKeyTracker *metrics.DurationKeyTracker
 	maxDurationKeys    int
 	maxDurationSamples int
 }
@@ -42,7 +42,7 @@ func NewValidationMetricsCollector() *ValidationMetricsCollector {
 		validationDurations:     make(map[string][]time.Duration),
 		cacheAccessCounters:     make(map[string]int64),
 		constraintCheckCounters: make(map[string]int64),
-		durationKeyLRU:          make([]string, 0, metrics.DefaultMaxDurationKeys),
+		durationKeyTracker:      metrics.NewDurationKeyTracker(),
 		maxDurationKeys:         metrics.DefaultMaxDurationKeys,
 		maxDurationSamples:      metrics.DefaultMaxDurationSamples,
 	}
@@ -75,7 +75,7 @@ func (c *ValidationMetricsCollector) RecordValidation(
 
 	metrics.RecordDurationSample(
 		c.validationDurations,
-		&c.durationKeyLRU,
+		c.durationKeyTracker,
 		c.maxDurationKeys,
 		c.maxDurationSamples,
 		validationKey,
@@ -222,7 +222,7 @@ func (c *ValidationMetricsCollector) Clear() {
 	c.validationDurations = make(map[string][]time.Duration)
 	c.cacheAccessCounters = make(map[string]int64)
 	c.constraintCheckCounters = make(map[string]int64)
-	c.durationKeyLRU = make([]string, 0, metrics.DefaultMaxDurationKeys)
+	c.durationKeyTracker = metrics.NewDurationKeyTracker()
 }
 
 // classifyError classifies an error into error types for metrics.

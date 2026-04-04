@@ -1,6 +1,7 @@
 package remote
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -144,6 +145,40 @@ func TestObjectCopy(t *testing.T) {
 	if nameField2.GetValue().Get() != originalField.GetValue().Get() {
 		t.Errorf("Copy(false) failed, field value not preserved: expected %v, got %v",
 			originalField.GetValue().Get(), nameField2.GetValue().Get())
+	}
+}
+
+func TestObjectInnerSetFieldValueNilHonorsDisableValidator(t *testing.T) {
+	validator := &fieldTestValidator{err: errors.New("required")}
+	object := &Object{
+		Name:    "goods",
+		PkgPath: "/vmi/store",
+		Fields: []*Field{
+			{
+				Name: "product",
+				Type: &TypeImpl{Name: "productInfo", Value: models.TypeStructValue},
+				Spec: &SpecImpl{Constraint: "req"},
+			},
+		},
+		valueValidator: validator,
+	}
+
+	if err := object.innerSetFieldValue("product", nil, false); err == nil {
+		t.Fatal("innerSetFieldValue(nil) should fail when validator is enabled")
+	}
+	if validator.called != 1 {
+		t.Fatalf("validator should be called once, got %d", validator.called)
+	}
+
+	validator.called = 0
+	if err := object.innerSetFieldValue("product", nil, true); err != nil {
+		t.Fatalf("innerSetFieldValue(nil, disableValidator=true) should bypass validation, got %v", err)
+	}
+	if validator.called != 0 {
+		t.Fatalf("validator should not be called when disableValidator=true, got %d", validator.called)
+	}
+	if got := object.GetField("product").GetValue().Get(); got != nil {
+		t.Fatalf("nil relation should stay nil, got %#v", got)
 	}
 }
 

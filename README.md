@@ -169,8 +169,19 @@ if err != nil {
 - **Insert** - 插入单个对象
 - **Update** - 更新指定对象  
 - **Delete** - 删除指定对象
-- **Query** - 查询指定对象（根据主键）
-- **BatchQuery** - 按条件批量查询对象
+- **Query** - 针对模型对象的单条查询
+- **BatchQuery** - 按条件批量查询多个对象
+
+当前稳定的对外查询约定：
+- `Query(model)` 是单条查询正式入口，适合业务侧基于模型对象做单查
+- `BatchQuery(filter)` 是多条查询正式入口，适合按过滤条件获取对象集合
+- ORM 层不再提供额外的“按 filter 单查”入口，避免与 `Query(model)` 形成重叠语义
+- 查询返回裁剪遵循固定优先级：
+  - `Query(model)`：不处理 `ValueMask`，顶层结果固定按 `DetailView` 返回
+  - `BatchQuery(filter)`：顶层对象按 `ValueMask > view` 裁剪
+  - 子对象：统一按 `lite` 返回，不接受父对象 `detail` 或嵌套 `ValueMask` 放大
+  - 主键字段始终保留
+- 因此业务若需要子对象详情，应拿到子对象主键后单独查询
 
 ### 查询过滤器
 
@@ -654,14 +665,21 @@ type User struct {
     Group  []*Group `orm:"group" view:"detail"`           // 仅在detail视图
 }
 
-// 使用lite视图查询（只包含基础字段）
-liteModel := userModel.Copy(models.LiteView)
-result, err := o1.Query(liteModel)
+// Query 固定返回顶层 DetailView
+queryModel := userModel.Copy(models.LiteView) // 输入 view 只影响本地模型形状，不影响 Query 返回层级
+result, err := o1.Query(queryModel)
 
-// 使用detail视图查询（包含所有字段）
-detailModel := userModel.Copy(models.DetailView)
-result, err = o1.Query(detailModel)
+// BatchQuery 才使用 view / ValueMask 控制顶层返回
+filter, _ := localProvider.GetEntityFilter(&User{}, models.LiteView)
+resultList, err := o1.BatchQuery(filter)
 ```
+
+当前稳定约定：
+
+- `Query(model)` 不处理 `ValueMask`，顶层固定按 `DetailView` 返回；
+- `BatchQuery(filter)` 的顶层返回遵循 `ValueMask > view`；
+- 包含/引用的子对象默认只返回 `lite` 字段，不会随着父对象 `detail` 自动扩成子对象 `detail`；
+- 如果业务确实需要子对象详情，应拿到子对象主键后单独查询，不要把一次查询扩成多层 detail 读取。
 
 ### 关联关系
 

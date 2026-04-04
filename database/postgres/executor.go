@@ -93,7 +93,9 @@ func NewExecutor(configPtr database.Config) (ret *HostExecutor, err *cd.Error) {
 	}
 
 	ret = &HostExecutor{
-		dbHandle: dbHandle,
+		executeContetxt: context.Background(),
+		dbHandle:        dbHandle,
+		ownDBHandle:     true,
 	}
 
 	return
@@ -429,10 +431,12 @@ func (s *ConnExecutor) CheckTableExist(tableName string) (ret bool, err *cd.Erro
 
 // ConnExecutor ConnExecutor
 type HostExecutor struct {
-	dbHandle   *sql.DB
-	dbTxCount  int32
-	dbTx       *sql.Tx
-	rowsHandle *sql.Rows
+	executeContetxt context.Context
+	dbHandle        *sql.DB
+	dbTxCount       int32
+	dbTx            *sql.Tx
+	rowsHandle      *sql.Rows
+	ownDBHandle     bool
 }
 
 func (s *HostExecutor) Release() {
@@ -446,7 +450,7 @@ func (s *HostExecutor) Release() {
 			slog.Warn("Failed to rollback transaction", "error", err.Error())
 		}
 	}
-	if s.dbHandle != nil {
+	if s.dbHandle != nil && s.ownDBHandle {
 		if err := s.dbHandle.Close(); err != nil {
 			slog.Warn("Failed to close database handle", "error", err.Error())
 		}
@@ -465,7 +469,13 @@ func (s *HostExecutor) BeginTransaction() (err *cd.Error) {
 		}
 		s.rowsHandle = nil
 
-		tx, txErr := s.dbHandle.Begin()
+		var tx *sql.Tx
+		var txErr error
+		if s.executeContetxt != nil {
+			tx, txErr = s.dbHandle.BeginTx(s.executeContetxt, nil)
+		} else {
+			tx, txErr = s.dbHandle.Begin()
+		}
 		if txErr != nil {
 			err = cd.NewError(cd.Unexpected, txErr.Error())
 			slog.Error("BeginTransaction failed", "value", "s.dbHandle.Begin", "error", err.Error())
@@ -549,6 +559,26 @@ func (s *HostExecutor) Query(sql string, needCols bool, args ...any) (ret []stri
 			s.rowsHandle = nil
 		}
 
+		if s.executeContetxt != nil {
+			rows, rowErr := s.dbHandle.QueryContext(s.executeContetxt, sql, args...)
+			if rowErr != nil {
+				err = cd.NewError(cd.Unexpected, rowErr.Error())
+				slog.Error("Query failed", "sql", sql, "args", args, "error", rowErr.Error())
+				return
+			}
+			if needCols {
+				cols, colsErr := rows.Columns()
+				if colsErr != nil {
+					err = cd.NewError(cd.Unexpected, colsErr.Error())
+					slog.Error("Query failed", "sql", sql, "operation", "rows.Columns", "error", colsErr.Error())
+					return
+				}
+
+				ret = cols
+			}
+			s.rowsHandle = rows
+			return
+		}
 		rows, rowErr := s.dbHandle.Query(sql, args...)
 		if rowErr != nil {
 			err = cd.NewError(cd.Unexpected, rowErr.Error())
@@ -656,13 +686,23 @@ func (s *HostExecutor) Execute(sql string, args ...any) (rowsAffected int64, err
 			panic("dbHandle is nil")
 		}
 
+		if s.executeContetxt != nil {
+			result, resultErr := s.dbHandle.ExecContext(s.executeContetxt, sql, args...)
+			if resultErr != nil {
+				err = cd.NewError(cd.Unexpected, resultErr.Error())
+				slog.Error("Execute failed", "value", "s.dbHandle.Exec", "error", resultErr.Error())
+				return
+			}
+
+			rowsAffected, _ = result.RowsAffected()
+			return
+		}
 		result, resultErr := s.dbHandle.Exec(sql, args...)
 		if resultErr != nil {
 			err = cd.NewError(cd.Unexpected, resultErr.Error())
 			slog.Error("Execute failed", "value", "s.dbHandle.Exec", "error", resultErr.Error())
 			return
 		}
-
 		rowsAffected, _ = result.RowsAffected()
 		return
 	}
@@ -704,19 +744,33 @@ func (s *HostExecutor) ExecuteInsert(sql string, pkValOut any, args ...any) (err
 			panic("dbHandle is nil")
 		}
 
+		if s.executeContetxt != nil {
+			rowPtr := s.dbHandle.QueryRowContext(s.executeContetxt, sql, args...)
+			if qErr := rowPtr.Err(); qErr != nil {
+				err = cd.NewError(cd.Unexpected, qErr.Error())
+				slog.Error("ExecuteInsert failed", "value", "rowPtr.Err", "error", qErr.Error())
+				return
+			}
+
+			if rErr := rowPtr.Scan(pkValOut); rErr != nil {
+				err = cd.NewError(cd.Unexpected, rErr.Error())
+				slog.Error("ExecuteInsert failed", "value", "rowPtr.Scan", "error", rErr.Error())
+				return
+			}
+
+			return
+		}
 		rowPtr := s.dbHandle.QueryRow(sql, args...)
 		if qErr := rowPtr.Err(); qErr != nil {
 			err = cd.NewError(cd.Unexpected, qErr.Error())
 			slog.Error("ExecuteInsert failed", "value", "rowPtr.Err", "error", qErr.Error())
 			return
 		}
-
 		if rErr := rowPtr.Scan(pkValOut); rErr != nil {
 			err = cd.NewError(cd.Unexpected, rErr.Error())
 			slog.Error("ExecuteInsert failed", "value", "rowPtr.Scan", "error", rErr.Error())
 			return
 		}
-
 		return
 	}
 

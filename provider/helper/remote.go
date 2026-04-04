@@ -123,7 +123,7 @@ func getViewItems(spec string) (ret []models.ViewDeclare) {
 	ret = []models.ViewDeclare{}
 	items := strings.Split(spec, ",")
 	for _, sv := range items {
-		switch strings.TrimSpace(sv) {
+		switch normalizeViewItem(sv) {
 		case models.DetailView:
 			ret = append(ret, models.DetailView)
 		case models.LiteView:
@@ -131,6 +131,10 @@ func getViewItems(spec string) (ret []models.ViewDeclare) {
 		}
 	}
 	return
+}
+
+func normalizeViewItem(spec string) string {
+	return strings.TrimSpace(spec)
 }
 
 func getItemInfo(fieldType reflect.StructField) (ret *remote.Field, err *cd.Error) {

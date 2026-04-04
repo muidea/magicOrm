@@ -423,10 +423,10 @@ func TestBuilderVMIMainTableSQL(t *testing.T) {
 		t.Fatalf("BuildUpdate(product) failed: %v", err)
 	}
 	updateSQL := updateResult.SQL()
-	if !strings.Contains(updateSQL, "UPDATE `tenant_Product` SET `name` = ?,`description` = ?,`image` = ?,`expire` = ?,`tags` = ?,`modifyTime` = ? WHERE `id` = ?") {
+	if !strings.Contains(updateSQL, "UPDATE `tenant_Product` SET `name` = ?,`description` = ?,`image` = ?,`expire` = ?,`tags` = ? WHERE `id` = ?") {
 		t.Fatalf("unexpected update sql: %s", updateSQL)
 	}
-	wantUpdateArgs := []any{"apple", "fresh apple", `["main.png","detail.png"]`, 30, `["fruit","fresh"]`, int64(0), int64(1001)}
+	wantUpdateArgs := []any{"apple", "fresh apple", `["main.png","detail.png"]`, 30, `["fruit","fresh"]`, int64(1001)}
 	if !reflect.DeepEqual(updateResult.Args(), wantUpdateArgs) {
 		t.Fatalf("unexpected update args: got=%#v want=%#v", updateResult.Args(), wantUpdateArgs)
 	}
@@ -460,9 +460,7 @@ func TestBuilderVMIUpdateRequiresWritableFields(t *testing.T) {
 		if models.IsPrimaryField(field) || !models.IsBasicField(field) {
 			continue
 		}
-		if err := field.SetValue(nil); err != nil {
-			t.Fatalf("clear field %s failed: %v", field.GetName(), err)
-		}
+		field.Reset()
 	}
 	if err := productObject.SetPrimaryFieldValue(int64(1001)); err != nil {
 		t.Fatalf("SetPrimaryFieldValue failed: %v", err)
@@ -484,5 +482,49 @@ func TestBuilderVMIUpdateRequiresWritableFields(t *testing.T) {
 	}
 	if err.Code != cd.IllegalParam {
 		t.Fatalf("BuildUpdate should return IllegalParam, got: %v", err)
+	}
+}
+
+func TestBuilderVMIUpdateUsesAssignedBasicFieldsOnly(t *testing.T) {
+	remoteProvider := provider.NewRemoteProvider("tenant", nil)
+	registerAllVMIRemoteModels(t, remoteProvider)
+
+	productValue := &remote.ObjectValue{
+		Name:    "product",
+		PkgPath: "/vmi",
+		Fields: []*remote.FieldValue{
+			{Name: "id", Value: int64(1001)},
+			{Name: "name", Value: "apple-updated"},
+			{
+				Name: "status",
+				Value: &remote.ObjectValue{
+					Name:    "status",
+					PkgPath: "/vmi",
+					Fields: []*remote.FieldValue{
+						{Name: "id", Value: int64(10)},
+					},
+				},
+			},
+		},
+	}
+
+	productModel, err := remoteProvider.GetEntityModel(productValue, true)
+	if err != nil {
+		t.Fatalf("GetEntityModel(product update value) failed: %v", err)
+	}
+
+	builder := NewBuilder(remoteProvider, codec.New(remoteProvider, "tenant"))
+	updateResult, err := builder.BuildUpdate(productModel)
+	if err != nil {
+		t.Fatalf("BuildUpdate(partial product) failed: %v", err)
+	}
+
+	updateSQL := updateResult.SQL()
+	if !strings.Contains(updateSQL, "UPDATE `tenant_Product` SET `name` = ? WHERE `id` = ?") {
+		t.Fatalf("unexpected partial update sql: %s", updateSQL)
+	}
+	wantUpdateArgs := []any{"apple-updated", int64(1001)}
+	if !reflect.DeepEqual(updateResult.Args(), wantUpdateArgs) {
+		t.Fatalf("unexpected partial update args: got=%#v want=%#v", updateResult.Args(), wantUpdateArgs)
 	}
 }

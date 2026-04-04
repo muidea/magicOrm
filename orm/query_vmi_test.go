@@ -353,7 +353,7 @@ func TestQueryRunnerVMIRemoteRelations(t *testing.T) {
 					return strings.Contains(sql, "tenant_ProductStatus3Status") &&
 						len(args) == 1 && reflect.DeepEqual(args, []any{int64(1001)})
 				},
-				rows: [][]any{{int64(9)}},
+				rows: [][]any{{int64(1001), int64(9)}},
 			},
 			{
 				match: func(sql string, args []any) bool {
@@ -657,7 +657,7 @@ func TestQueryRunnerBatchesSliceRelations(t *testing.T) {
 					return strings.Contains(sql, "tenant_ParentChildren") &&
 						len(args) == 1 && reflect.DeepEqual(args, []any{int64(1)})
 				},
-				rows: [][]any{{int64(101)}, {int64(102)}},
+				rows: [][]any{{int64(1), int64(101)}, {int64(1), int64(102)}},
 			},
 			{
 				match: func(sql string, args []any) bool {
@@ -693,6 +693,91 @@ func TestQueryRunnerBatchesSliceRelations(t *testing.T) {
 	}
 	if countQueryCallsContaining(executor.execCalls, "tenant_Child") != 1 {
 		t.Fatalf("expected child relation host query to be batched once, got %#v", executor.execCalls)
+	}
+}
+
+func TestQueryRunnerPrefetchesSinglePointerRelations(t *testing.T) {
+	remoteProvider := provider.NewRemoteProvider("tenant", nil)
+	registerMinimalRelationModels(t, remoteProvider)
+
+	filter, err := remoteProvider.GetEntityFilter(testQueryParentObject(), models.DetailView)
+	if err != nil {
+		t.Fatalf("GetEntityFilter(parent) failed: %v", err)
+	}
+	if err := filter.Equal("id", int64(1)); err != nil {
+		t.Fatalf("filter.Equal(id) failed: %v", err)
+	}
+
+	modelCodec := codec.New(remoteProvider, "tenant")
+	executor := &fakeExecutor{
+		responses: []fakeQueryResponse{
+			{
+				match: func(sql string, args []any) bool {
+					return strings.Contains(sql, "tenant_Parent") &&
+						!strings.Contains(sql, "tenant_ParentStatus") &&
+						!strings.Contains(sql, "tenant_ParentChildren") &&
+						len(args) == 1 && reflect.DeepEqual(args, []any{int64(1)})
+				},
+				rows: [][]any{
+					{int64(1), "parent-1"},
+				},
+			},
+			{
+				match: func(sql string, args []any) bool {
+					return strings.Contains(sql, "tenant_ParentStatus") &&
+						len(args) == 1 && reflect.DeepEqual(args, []any{int64(1)})
+				},
+				rows: [][]any{{int64(1), int64(9)}},
+			},
+			{
+				match: func(sql string, args []any) bool {
+					return strings.Contains(sql, "tenant_Status") &&
+						len(args) == 1 && reflect.DeepEqual(args, []any{int64(9)})
+				},
+				rows: [][]any{
+					{int64(9), "shared-status"},
+				},
+			},
+			{
+				match: func(sql string, args []any) bool {
+					return strings.Contains(sql, "tenant_ParentChildren") &&
+						len(args) == 1 && reflect.DeepEqual(args, []any{int64(1)})
+				},
+				rows: [][]any{},
+			},
+		},
+	}
+
+	responseModel, responseByMask, err := buildQueryResponseModel(nil, filter)
+	if err != nil {
+		t.Fatalf("buildQueryResponseModel failed: %v", err)
+	}
+	queryRunner := NewQueryRunner(context.Background(), filter.MaskModel(), responseModel, responseByMask, executor, remoteProvider, modelCodec, false, 0)
+	modelsList, err := queryRunner.Query(filter)
+	if err != nil {
+		t.Fatalf("QueryRunner.Query(parent) failed: %v", err)
+	}
+	if len(modelsList) != 1 {
+		t.Fatalf("expected 1 parent result, got %d", len(modelsList))
+	}
+
+	parentValue := modelsList[0].Interface(true).(*remote.ObjectValue)
+	statusValue, ok := parentValue.GetFieldValue("status").(*remote.ObjectValue)
+	if !ok || statusValue == nil {
+		t.Fatalf("expected prefetched status relation, got %#v", parentValue.GetFieldValue("status"))
+	}
+	if statusValue.GetFieldValue("name") != "shared-status" {
+		t.Fatalf("unexpected prefetched status value: %#v", statusValue)
+	}
+
+	if countQueryCallsContaining(executor.execCalls, "tenant_ParentStatus") != 1 {
+		t.Fatalf("expected single-row pointer relation keys to be prefetched once, got %#v", executor.execCalls)
+	}
+	if countQueryCallsContaining(executor.execCalls, "tenant_StatusOwner") != 0 {
+		t.Fatalf("expected prefetched status relation to avoid nested owner loading, got %#v", executor.execCalls)
+	}
+	if countQueryCallsContaining(executor.execCalls, "tenant_Status") != 1 {
+		t.Fatalf("expected single-row relation target query to run once, got %#v", executor.execCalls)
 	}
 }
 

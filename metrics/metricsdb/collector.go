@@ -9,9 +9,17 @@ import (
 	"github.com/muidea/magicOrm/metrics"
 )
 
+type DurationAggregate struct {
+	Total time.Duration
+	Count int64
+}
+
 // DatabaseMetricsCollector collects and stores database operation metrics in a thread-safe manner.
 type DatabaseMetricsCollector struct {
-	mu sync.RWMutex
+	queryMu sync.RWMutex
+	txMu    sync.RWMutex
+	execMu  sync.RWMutex
+	connMu  sync.RWMutex
 
 	// Query counters: database_queryType_status -> count
 	queryCounters map[string]int64
@@ -19,11 +27,8 @@ type DatabaseMetricsCollector struct {
 	// Error counters: database_operation_errorType -> count
 	errorCounters map[string]int64
 
-	// Query durations: database_queryType_status -> []duration
-	queryDurations     map[string][]time.Duration
-	durationKeyLRU     []string
-	maxDurationKeys    int
-	maxDurationSamples int
+	// Query duration aggregates: database_queryType_status -> {total,count}
+	queryDurationAggregates map[string]DurationAggregate
 
 	// Transaction counters: database_type_status -> count
 	transactionCounters map[string]int64
@@ -38,15 +43,12 @@ type DatabaseMetricsCollector struct {
 // NewDatabaseMetricsCollector creates a new database metrics collector.
 func NewDatabaseMetricsCollector() *DatabaseMetricsCollector {
 	return &DatabaseMetricsCollector{
-		queryCounters:       make(map[string]int64),
-		errorCounters:       make(map[string]int64),
-		queryDurations:      make(map[string][]time.Duration),
-		durationKeyLRU:      make([]string, 0, metrics.DefaultMaxDurationKeys),
-		maxDurationKeys:     metrics.DefaultMaxDurationKeys,
-		maxDurationSamples:  metrics.DefaultMaxDurationSamples,
-		transactionCounters: make(map[string]int64),
-		executionCounters:   make(map[string]int64),
-		connectionStats:     make(map[string]int64),
+		queryCounters:           make(map[string]int64),
+		errorCounters:           make(map[string]int64),
+		queryDurationAggregates: make(map[string]DurationAggregate),
+		transactionCounters:     make(map[string]int64),
+		executionCounters:       make(map[string]int64),
+		connectionStats:         make(map[string]int64),
 	}
 }
 
@@ -57,8 +59,8 @@ func (c *DatabaseMetricsCollector) RecordQuery(
 	duration time.Duration,
 	err error,
 ) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.queryMu.Lock()
+	defer c.queryMu.Unlock()
 
 	// Determine status and record query
 	status := "success"
@@ -74,20 +76,16 @@ func (c *DatabaseMetricsCollector) RecordQuery(
 	queryKey := metrics.BuildKey(database, queryType, status)
 	c.queryCounters[queryKey]++
 
-	metrics.RecordDurationSample(
-		c.queryDurations,
-		&c.durationKeyLRU,
-		c.maxDurationKeys,
-		c.maxDurationSamples,
-		queryKey,
-		duration,
-	)
+	aggregate := c.queryDurationAggregates[queryKey]
+	aggregate.Total += duration
+	aggregate.Count++
+	c.queryDurationAggregates[queryKey] = aggregate
 }
 
 // RecordTransaction records a database transaction operation.
 func (c *DatabaseMetricsCollector) RecordTransaction(database string, txType string, success bool) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.txMu.Lock()
+	defer c.txMu.Unlock()
 
 	status := "success"
 	if !success {
@@ -99,8 +97,8 @@ func (c *DatabaseMetricsCollector) RecordTransaction(database string, txType str
 
 // RecordExecution records a database execution (INSERT, UPDATE, DELETE, etc.).
 func (c *DatabaseMetricsCollector) RecordExecution(database string, operation string, success bool) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.execMu.Lock()
+	defer c.execMu.Unlock()
 
 	status := "success"
 	if !success {
@@ -112,17 +110,20 @@ func (c *DatabaseMetricsCollector) RecordExecution(database string, operation st
 
 // UpdateConnectionStats updates connection pool statistics.
 func (c *DatabaseMetricsCollector) UpdateConnectionStats(database string, state string, count int64) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.connMu.Lock()
+	defer c.connMu.Unlock()
 
 	key := metrics.BuildKey(database, state)
+	if pre, ok := c.connectionStats[key]; ok && pre == count {
+		return
+	}
 	c.connectionStats[key] = count
 }
 
 // GetQueryCounters returns a copy of query counters.
 func (c *DatabaseMetricsCollector) GetQueryCounters() map[string]int64 {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.queryMu.RLock()
+	defer c.queryMu.RUnlock()
 
 	result := make(map[string]int64, len(c.queryCounters))
 	for k, v := range c.queryCounters {
@@ -133,8 +134,8 @@ func (c *DatabaseMetricsCollector) GetQueryCounters() map[string]int64 {
 
 // GetErrorCounters returns a copy of error counters.
 func (c *DatabaseMetricsCollector) GetErrorCounters() map[string]int64 {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.queryMu.RLock()
+	defer c.queryMu.RUnlock()
 
 	result := make(map[string]int64, len(c.errorCounters))
 	for k, v := range c.errorCounters {
@@ -143,25 +144,22 @@ func (c *DatabaseMetricsCollector) GetErrorCounters() map[string]int64 {
 	return result
 }
 
-// GetQueryDurations returns a copy of query durations.
-func (c *DatabaseMetricsCollector) GetQueryDurations() map[string][]time.Duration {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+// GetQueryDurationAggregates returns a copy of duration aggregates.
+func (c *DatabaseMetricsCollector) GetQueryDurationAggregates() map[string]DurationAggregate {
+	c.queryMu.RLock()
+	defer c.queryMu.RUnlock()
 
-	result := make(map[string][]time.Duration, len(c.queryDurations))
-	for k, v := range c.queryDurations {
-		// Create a copy of the slice
-		durations := make([]time.Duration, len(v))
-		copy(durations, v)
-		result[k] = durations
+	result := make(map[string]DurationAggregate, len(c.queryDurationAggregates))
+	for k, v := range c.queryDurationAggregates {
+		result[k] = v
 	}
 	return result
 }
 
 // GetTransactionCounters returns a copy of transaction counters.
 func (c *DatabaseMetricsCollector) GetTransactionCounters() map[string]int64 {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.txMu.RLock()
+	defer c.txMu.RUnlock()
 
 	result := make(map[string]int64, len(c.transactionCounters))
 	for k, v := range c.transactionCounters {
@@ -172,8 +170,8 @@ func (c *DatabaseMetricsCollector) GetTransactionCounters() map[string]int64 {
 
 // GetExecutionCounters returns a copy of execution counters.
 func (c *DatabaseMetricsCollector) GetExecutionCounters() map[string]int64 {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.execMu.RLock()
+	defer c.execMu.RUnlock()
 
 	result := make(map[string]int64, len(c.executionCounters))
 	for k, v := range c.executionCounters {
@@ -184,8 +182,8 @@ func (c *DatabaseMetricsCollector) GetExecutionCounters() map[string]int64 {
 
 // GetConnectionStats returns a copy of connection statistics.
 func (c *DatabaseMetricsCollector) GetConnectionStats() map[string]int64 {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.connMu.RLock()
+	defer c.connMu.RUnlock()
 
 	result := make(map[string]int64, len(c.connectionStats))
 	for k, v := range c.connectionStats {
@@ -196,13 +194,18 @@ func (c *DatabaseMetricsCollector) GetConnectionStats() map[string]int64 {
 
 // Clear clears all collected metrics (useful for testing).
 func (c *DatabaseMetricsCollector) Clear() {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.queryMu.Lock()
+	c.txMu.Lock()
+	c.execMu.Lock()
+	c.connMu.Lock()
+	defer c.connMu.Unlock()
+	defer c.execMu.Unlock()
+	defer c.txMu.Unlock()
+	defer c.queryMu.Unlock()
 
 	c.queryCounters = make(map[string]int64)
 	c.errorCounters = make(map[string]int64)
-	c.queryDurations = make(map[string][]time.Duration)
-	c.durationKeyLRU = make([]string, 0, c.maxDurationKeys)
+	c.queryDurationAggregates = make(map[string]DurationAggregate)
 	c.transactionCounters = make(map[string]int64)
 	c.executionCounters = make(map[string]int64)
 	c.connectionStats = make(map[string]int64)

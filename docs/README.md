@@ -52,6 +52,7 @@
 | Orm 有哪些公开接口，事务怎么用 | [design-orm.md](design-orm.md) |
 | Local/Remote Provider 各自负责什么 | [design-provider.md](design-provider.md) |
 | `models.Model` / `Filter` / `ViewDeclare` 是怎么定义的 | [design-models.md](design-models.md) |
+| Query / BatchQuery 返回字段为什么只给子对象 lite | [design-orm.md](design-orm.md) |
 | 关系字段怎么判定引用/包含，关系表怎么命名 | [design-relation.md](design-relation.md) |
 | 为什么 Insert/Update/Delete 会报验证错误 | [design-validation.md](design-validation.md) |
 | 数据库连接、Executor、Pool、DSN 是怎么组织的 | [design-database.md](design-database.md) |
@@ -59,6 +60,7 @@
 | `test/vmi` 下的 remote schema 和运行时实现怎么对齐 | [design-remote-provider.md](design-remote-provider.md) |
 | ORM 指标在哪里注册，哪些指标是稳定能力 | [design-metrics.md](design-metrics.md) |
 | struct tag 怎么写，`view` / `constraint` 怎么配 | [tags-reference.md](tags-reference.md) |
+| 为什么业务侧不应该靠一次查询拿到多层 detail 子对象 | [tags-reference.md](tags-reference.md) |
 | Go 类型会映射成什么 models 类型、数据库列类型 | [type-mapping.md](type-mapping.md) |
 | `cd.Error` 的 code 和本项目里的错误约定 | [error-codes.md](error-codes.md) |
 | `go test ./...` 为什么会因为数据库环境失败，应该怎么分层执行测试 | [testing-guide.md](testing-guide.md) |

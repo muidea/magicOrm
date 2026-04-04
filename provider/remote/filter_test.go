@@ -7,6 +7,17 @@ import (
 	"github.com/muidea/magicOrm/models"
 )
 
+type filterCountingValidator struct {
+	calls int
+}
+
+func (s *filterCountingValidator) Register(models.Key, models.ValidatorFunc) {}
+
+func (s *filterCountingValidator) ValidateValue(val any, directives []models.Directive) error {
+	s.calls++
+	return nil
+}
+
 func testRemoteFilterObject() *Object {
 	return &Object{
 		Name:    "User",
@@ -125,6 +136,53 @@ func TestObjectFilterMaskModelDoesNotMutateBoundObject(t *testing.T) {
 	}
 	if boundName.GetValue().IsValid() {
 		t.Fatalf("MaskModel should not mutate bound object, got %#v", boundName.GetValue().Get())
+	}
+}
+
+func TestObjectFilterMaskModelSkipsValidationForResponseMask(t *testing.T) {
+	validator := &filterCountingValidator{}
+	object := &Object{
+		Name:    "User",
+		PkgPath: "github.com/test/pkg",
+		Fields: []*Field{
+			{
+				Name: "id",
+				Type: &TypeImpl{Name: "int64", Value: models.TypeBigIntegerValue},
+				Spec: &SpecImpl{FieldName: "id", PrimaryKey: true},
+			},
+			{
+				Name: "name",
+				Type: &TypeImpl{Name: "string", Value: models.TypeStringValue},
+				Spec: &SpecImpl{FieldName: "name", Constraint: "req"},
+			},
+		},
+		valueValidator: validator,
+	}
+	filter := NewFilter(object)
+
+	if err := filter.ValueMask(&ObjectValue{
+		Name:    "User",
+		PkgPath: "github.com/test/pkg",
+		Fields: []*FieldValue{
+			{Name: "name", Value: ""},
+		},
+	}); err != nil {
+		t.Fatalf("ValueMask failed: %v", err)
+	}
+
+	maskedModel := filter.MaskModel()
+	if maskedModel == nil {
+		t.Fatal("MaskModel should not return nil")
+	}
+	if validator.calls != 0 {
+		t.Fatalf("MaskModel should not invoke validator, got %d calls", validator.calls)
+	}
+	nameField := maskedModel.GetField("name")
+	if nameField == nil {
+		t.Fatal("name field missing from masked model")
+	}
+	if nameField.GetValue().Get() != "" {
+		t.Fatalf("masked name mismatch, got %#v", nameField.GetValue().Get())
 	}
 }
 

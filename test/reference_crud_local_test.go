@@ -91,24 +91,7 @@ func TestLocalReference(t *testing.T) {
 	}
 	s1 = s1Model.Interface(true).(*Reference)
 
-	fValue2 := float32(0.0)
-	var ts2 time.Time
-	var bVal bool
-	strArray2 := []string{}
-	ptrArray2 := []string{}
-	s2 := Reference{
-		ID:          s1.ID,
-		FValue:      fValue2,
-		TimeStamp:   ts2,
-		Flag:        bVal,
-		IArray:      []int{},
-		FArray:      []float32{},
-		StrArray:    []string{},
-		BArray:      []bool{},
-		PtrArray:    &strArray2,
-		StrPtrArray: []string{},
-		PtrStrArray: &ptrArray2,
-	}
+	s2 := Reference{ID: s1.ID}
 
 	s2Model, s2Err := localProvider.GetEntityModel(&s2, true)
 	if s2Err != nil {
@@ -139,11 +122,7 @@ func TestLocalReference(t *testing.T) {
 		return
 	}
 
-	newPtrArray := []string{}
-	s4 := Reference{
-		ID:       s1.ID,
-		PtrArray: &newPtrArray,
-	}
+	s4 := Reference{ID: s1.ID}
 	s4Model, s4Err := localProvider.GetEntityModel(&s4, true)
 	if s4Err != nil {
 		t.Errorf("GetEntityModel failed, err:%s", s4Err.Error())
@@ -156,11 +135,7 @@ func TestLocalReference(t *testing.T) {
 		return
 	}
 	s4 = s4Model.Interface(false).(Reference)
-	if s4.Name != s2.Name {
-		t.Errorf("query reference failed, err:%s", err.Error())
-		return
-	}
-	if s4.IArray == nil || s4.FArray == nil || s4.PtrStrArray != nil || s4.PtrArray == nil {
+	if !s1.IsSame(&s4) {
 		t.Errorf("query reference failed")
 		return
 	}

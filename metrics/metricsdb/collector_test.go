@@ -32,10 +32,12 @@ func TestRecordQuery(t *testing.T) {
 	errorCounters := collector.GetErrorCounters()
 	assert.Equal(t, int64(1), errorCounters[metrics.BuildKey("mysql", "insert", "unknown")])
 
-	// Check durations
-	durations := collector.GetQueryDurations()
-	assert.Len(t, durations[metrics.BuildKey("postgresql", "select", "success")], 1)
-	assert.Len(t, durations[metrics.BuildKey("mysql", "insert", "error")], 1)
+	// Check duration aggregates
+	aggregates := collector.GetQueryDurationAggregates()
+	assert.Equal(t, int64(1), aggregates[metrics.BuildKey("postgresql", "select", "success")].Count)
+	assert.Equal(t, 100*time.Millisecond, aggregates[metrics.BuildKey("postgresql", "select", "success")].Total)
+	assert.Equal(t, int64(1), aggregates[metrics.BuildKey("mysql", "insert", "error")].Count)
+	assert.Equal(t, 200*time.Millisecond, aggregates[metrics.BuildKey("mysql", "insert", "error")].Total)
 }
 
 func TestRecordTransaction(t *testing.T) {
@@ -195,30 +197,6 @@ func TestThreadSafety(t *testing.T) {
 	assert.Equal(t, int64(1000), totalTransactions)
 }
 
-func TestQueryDurationKeyLRUEviction(t *testing.T) {
-	collector := NewDatabaseMetricsCollector()
-	collector.maxDurationKeys = 2
-	collector.maxDurationSamples = 2
-
-	collector.RecordQuery("postgresql", "select", 10*time.Millisecond, nil)
-	collector.RecordQuery("mysql", "insert", 20*time.Millisecond, nil)
-	collector.RecordQuery("sqlite", "update", 30*time.Millisecond, nil)
-
-	durations := collector.GetQueryDurations()
-	assert.Len(t, durations, 2)
-	assert.NotContains(t, durations, metrics.BuildKey("postgresql", "select", "success"))
-	assert.Contains(t, durations, metrics.BuildKey("mysql", "insert", "success"))
-	assert.Contains(t, durations, metrics.BuildKey("sqlite", "update", "success"))
-
-	collector.RecordQuery("sqlite", "update", 40*time.Millisecond, nil)
-	collector.RecordQuery("sqlite", "update", 50*time.Millisecond, nil)
-
-	durations = collector.GetQueryDurations()
-	assert.Len(t, durations[metrics.BuildKey("sqlite", "update", "success")], 2)
-	assert.Equal(t, 40*time.Millisecond, durations[metrics.BuildKey("sqlite", "update", "success")][0])
-	assert.Equal(t, 50*time.Millisecond, durations[metrics.BuildKey("sqlite", "update", "success")][1])
-}
-
 func TestDatabaseMetricsCollectorGettersReturnCopies(t *testing.T) {
 	collector := NewDatabaseMetricsCollector()
 	collector.RecordQuery("postgresql", "select", 10*time.Millisecond, nil)
@@ -238,12 +216,14 @@ func TestDatabaseMetricsCollectorGettersReturnCopies(t *testing.T) {
 	connectionStats := collector.GetConnectionStats()
 	connectionStats[metrics.BuildKey("postgresql", "active")] = 99
 
-	durations := collector.GetQueryDurations()
-	durations[metrics.BuildKey("postgresql", "select", "success")][0] = time.Second
+	aggregates := collector.GetQueryDurationAggregates()
+	aggregate := aggregates[metrics.BuildKey("postgresql", "select", "success")]
+	aggregate.Total = time.Second
+	aggregates[metrics.BuildKey("postgresql", "select", "success")] = aggregate
 
 	assert.Equal(t, int64(1), collector.GetQueryCounters()[metrics.BuildKey("postgresql", "select", "success")])
 	assert.Equal(t, int64(1), collector.GetTransactionCounters()[metrics.BuildKey("postgresql", "begin", "success")])
 	assert.Equal(t, int64(1), collector.GetExecutionCounters()[metrics.BuildKey("postgresql", "insert", "success")])
 	assert.Equal(t, int64(5), collector.GetConnectionStats()[metrics.BuildKey("postgresql", "active")])
-	assert.Equal(t, 10*time.Millisecond, collector.GetQueryDurations()[metrics.BuildKey("postgresql", "select", "success")][0])
+	assert.Equal(t, 10*time.Millisecond, collector.GetQueryDurationAggregates()[metrics.BuildKey("postgresql", "select", "success")].Total)
 }

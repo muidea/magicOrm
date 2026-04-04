@@ -149,25 +149,28 @@ func (p *DatabaseMetricProvider) Collect() ([]types.Metric, *types.Error) {
 		}
 	}
 
-	// Collect query durations (calculate average)
-	queryDurations := p.collector.GetQueryDurations()
-	for key, durations := range queryDurations {
-		if len(durations) > 0 {
-			parts := metrics.ParseKey(key)
-			if len(parts) >= 3 {
-				database, queryType, status := parts[0], parts[1], parts[2]
-
-				metricList = append(metricList, types.NewGauge(
-					"magicorm_database_query_duration_seconds",
-					metrics.AverageDurationSeconds(durations),
-					map[string]string{
-						"database":   database,
-						"query_type": queryType,
-						"status":     status,
-					},
-				))
-			}
+	// Collect query duration averages
+	queryDurationAggregates := p.collector.GetQueryDurationAggregates()
+	for key, aggregate := range queryDurationAggregates {
+		if aggregate.Count <= 0 {
+			continue
 		}
+
+		parts := metrics.ParseKey(key)
+		if len(parts) < 3 {
+			continue
+		}
+
+		database, queryType, status := parts[0], parts[1], parts[2]
+		metricList = append(metricList, types.NewGauge(
+			"magicorm_database_query_duration_seconds",
+			aggregate.Total.Seconds()/float64(aggregate.Count),
+			map[string]string{
+				"database":   database,
+				"query_type": queryType,
+				"status":     status,
+			},
+		))
 	}
 
 	// Collect transaction counters

@@ -185,7 +185,7 @@ func (s *Object) innerSetFieldValue(name string, val any, disableValidator bool)
 		sf.valueValidator = s.valueValidator
 
 		if val == nil {
-			err = sf.SetValue(nil)
+			err = sf.innerSetValue(nil, disableValidator)
 			return
 		}
 

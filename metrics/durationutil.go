@@ -1,16 +1,76 @@
 package metrics
 
-import "time"
+import (
+	"container/list"
+	"time"
+)
 
 const (
 	DefaultMaxDurationKeys    = 1000
 	DefaultMaxDurationSamples = 1000
 )
 
-// RecordDurationSample stores a duration sample with optional LRU key eviction and per-key sample caps.
+type DurationKeyTracker struct {
+	order *list.List
+	nodes map[string]*list.Element
+}
+
+func NewDurationKeyTracker() *DurationKeyTracker {
+	return &DurationKeyTracker{
+		order: list.New(),
+		nodes: map[string]*list.Element{},
+	}
+}
+
+func (t *DurationKeyTracker) Len() int {
+	if t == nil || t.order == nil {
+		return 0
+	}
+
+	return t.order.Len()
+}
+
+func (t *DurationKeyTracker) Keys() []string {
+	if t == nil || t.order == nil {
+		return nil
+	}
+
+	keys := make([]string, 0, t.order.Len())
+	for elem := t.order.Front(); elem != nil; elem = elem.Next() {
+		keys = append(keys, elem.Value.(string))
+	}
+
+	return keys
+}
+
+func (t *DurationKeyTracker) Track(key string, maxKeys int) (evictedKey string, evicted bool) {
+	if t == nil || t.order == nil || maxKeys <= 0 {
+		return
+	}
+
+	if elem := t.nodes[key]; elem != nil {
+		t.order.MoveToBack(elem)
+		return
+	}
+
+	if t.order.Len() >= maxKeys {
+		oldest := t.order.Front()
+		if oldest != nil {
+			evictedKey = oldest.Value.(string)
+			delete(t.nodes, evictedKey)
+			t.order.Remove(oldest)
+			evicted = true
+		}
+	}
+
+	t.nodes[key] = t.order.PushBack(key)
+	return
+}
+
+// RecordDurationSample stores a duration sample with optional bounded key eviction and per-key sample caps.
 func RecordDurationSample(
 	store map[string][]time.Duration,
-	lru *[]string,
+	tracker *DurationKeyTracker,
 	maxKeys int,
 	maxSamples int,
 	key string,
@@ -26,23 +86,13 @@ func RecordDurationSample(
 	if _, found := store[key]; !found {
 		store[key] = make([]time.Duration, 0, maxSamples)
 
-		if lru != nil && maxKeys > 0 {
-			if len(*lru) >= maxKeys {
-				oldestKey := (*lru)[0]
-				delete(store, oldestKey)
-				*lru = (*lru)[1:]
+		if tracker != nil {
+			if evictedKey, evicted := tracker.Track(key, maxKeys); evicted {
+				delete(store, evictedKey)
 			}
-			*lru = append(*lru, key)
 		}
-	} else if lru != nil {
-		for idx, existingKey := range *lru {
-			if existingKey != key {
-				continue
-			}
-			*lru = append((*lru)[:idx], (*lru)[idx+1:]...)
-			*lru = append(*lru, key)
-			break
-		}
+	} else if tracker != nil {
+		tracker.Track(key, maxKeys)
 	}
 
 	durations := store[key]

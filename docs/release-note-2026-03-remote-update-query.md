@@ -70,15 +70,10 @@
 
 ### 3.3 Query 语义
 
-`Query(model)` 现在采用两层语义：
+`Query(model)` 现在采用两层稳定语义：
 
 - 输入模型用于生成过滤条件
-- 返回列使用 query mask 控制
-
-当前 query mask 规则：
-
-- 所有非指针 basic 字段默认参与返回
-- 指针 basic / 指针 slice 仍按查询模型自身有效性决定
+- 顶层返回固定按 `DetailView` 控制，不再跟随输入模型自身 view 或字段赋值形状漂移
 
 这修复了以下典型问题：
 
@@ -96,6 +91,11 @@
 - `orm.Update` 对关系更新的无谓删除/新增减少
 - `Query(model)` 返回对象更完整
 - remote helper 对空 slice / 零值指针的处理更稳定
+
+同时保留以下查询约定：
+
+- `BatchQuery(filter)` 顶层返回继续遵循 `ValueMask > view`
+- 包含/引用的子对象统一收敛到 `lite`
 
 ### 4.2 需要知道的协议约定
 

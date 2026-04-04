@@ -48,7 +48,7 @@ func (s *Builder) buildFieldUpdateValues(vModel models.Model, resultStackPtr *Re
 		if models.IsPrimaryField(field) {
 			continue
 		}
-		if !models.IsBasicField(field) || !models.IsValidField(field) {
+		if !models.IsBasicField(field) || !models.IsAssignedField(field) {
 			continue
 		}
 		// Skip read-only fields in update
