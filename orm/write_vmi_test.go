@@ -224,6 +224,10 @@ func buildShelfReadOnlyWarehouseUpdateModel(t *testing.T, remoteProvider provide
 					PkgPath: "/vmi/warehouse",
 					Fields: []*remote.FieldValue{
 						{Name: "id", Value: int64(2002)},
+						{Name: "code", Value: "CK-2002"},
+						{Name: "name", Value: "warehouse-b"},
+						{Name: "description", Value: "detail-only warehouse"},
+						{Name: "namespace", Value: "tenant-a"},
 					},
 				},
 			},
@@ -711,6 +715,18 @@ func TestUpdateRunnerVMIRemoteReadOnlyReferenceIgnored(t *testing.T) {
 	warehouseValue, ok := shelfValue.GetFieldValue("warehouse").(*remote.ObjectValue)
 	if !ok || warehouseValue.GetFieldValue("id") != int64(2002) {
 		t.Fatalf("readonly warehouse relation should remain present on returned model, got %#v", shelfValue.GetFieldValue("warehouse"))
+	}
+	if got := warehouseValue.GetFieldValue("code"); got != "CK-2002" {
+		t.Fatalf("warehouse lite response should keep code, got %#v", got)
+	}
+	if got := warehouseValue.GetFieldValue("name"); got != "warehouse-b" {
+		t.Fatalf("warehouse lite response should keep name, got %#v", got)
+	}
+	if got := warehouseValue.GetFieldValue("description"); got != nil {
+		t.Fatalf("warehouse relation should be projected to lite view, got detail field %#v", got)
+	}
+	if got := warehouseValue.GetFieldValue("namespace"); got != nil {
+		t.Fatalf("warehouse relation should not expose undeclared namespace, got %#v", got)
 	}
 
 	if !containsSQLCall(executor.execCalls, "exec", "UPDATE \"tenant_Shelf\"", []any{20, int64(1001)}) {

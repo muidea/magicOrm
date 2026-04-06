@@ -344,7 +344,7 @@ func TestRemoteOnlineEntity(t *testing.T) {
 	}
 
 	newRemoteEntityPtr := entityModelVal.Interface(true).(*remote.ObjectValue)
-	if len(newRemoteEntityPtr.Fields) != 5 {
+	if len(newRemoteEntityPtr.Fields) != 4 {
 		t.Errorf("insert entity model failed")
 		return
 	}

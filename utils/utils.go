@@ -161,7 +161,12 @@ func IsReallyNil(val any) bool {
 	}
 
 	vVal := reflect.ValueOf(val)
-	return vVal.IsNil()
+	switch vVal.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
+		return vVal.IsNil()
+	default:
+		return false
+	}
 }
 
 // DeepCopy 深度复制val的值

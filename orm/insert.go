@@ -271,7 +271,7 @@ func (s *InsertRunner) Insert() (ret models.Model, err *cd.Error) {
 		}
 	}
 
-	ret = s.vModel
+	ret, err = projectWriteResponseModel(s.vModel, s.modelProvider)
 	return
 }
 

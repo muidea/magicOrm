@@ -115,9 +115,102 @@ func (s *UpdateRunner) updateRelation(vModel models.Model, vField models.Field) 
 	return
 }
 
+func assignedReadOnlyBasicFields(vModel models.Model) (ret []string) {
+	if vModel == nil {
+		return nil
+	}
+
+	for _, field := range vModel.GetFields() {
+		if field == nil || models.IsPrimaryField(field) || !models.IsBasicField(field) || !models.IsAssignedField(field) || !isReadOnlyField(field) {
+			continue
+		}
+		ret = append(ret, field.GetName())
+	}
+
+	return ret
+}
+
+func buildPrimaryQueryModel(vModel models.Model) (ret models.Model, err *cd.Error) {
+	if vModel == nil {
+		err = cd.NewError(cd.IllegalParam, "query model is nil")
+		return
+	}
+
+	ret = vModel.Copy(models.MetaView)
+	ret.Reset()
+
+	pkField := vModel.GetPrimaryField()
+	if pkField == nil || !pkField.GetValue().IsValid() {
+		err = cd.NewError(cd.IllegalParam, "primary key is invalid")
+		return
+	}
+
+	err = ret.SetPrimaryFieldValue(pkField.GetValue().Get())
+	return
+}
+
+func (s *UpdateRunner) queryStoredModelForReadOnlyFields(vModel models.Model) (ret models.Model, err *cd.Error) {
+	queryModel, queryErr := buildPrimaryQueryModel(vModel)
+	if queryErr != nil {
+		err = queryErr
+		return
+	}
+
+	filter, filterErr := getModelFilter(queryModel, s.modelProvider, s.modelCodec)
+	if filterErr != nil {
+		err = filterErr
+		return
+	}
+
+	responseModel := queryModel.Copy(models.DetailView)
+	queryMask, maskErr := buildFullQueryMaskModel(responseModel)
+	if maskErr != nil {
+		err = maskErr
+		return
+	}
+
+	queryRunner := NewQueryRunner(s.context, queryMask, responseModel, false, s.executor, s.modelProvider, s.modelCodec, false, 0)
+	modelList, queryExecErr := queryRunner.Query(filter)
+	if queryExecErr != nil {
+		err = queryExecErr
+		return
+	}
+	if len(modelList) == 0 {
+		err = cd.NewError(cd.NotFound, "stored model not found")
+		return
+	}
+
+	ret = modelList[0]
+	return
+}
+
+func restoreReadOnlyBasicFields(dst models.Model, src models.Model, fieldNames []string) {
+	if dst == nil || src == nil {
+		return
+	}
+
+	for _, fieldName := range fieldNames {
+		srcField := src.GetField(fieldName)
+		if srcField == nil || !srcField.GetValue().IsValid() {
+			continue
+		}
+		_ = dst.SetFieldValue(fieldName, srcField.GetValue().Get())
+	}
+}
+
 func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
 	if err = s.checkContext(); err != nil {
 		return
+	}
+
+	readOnlyFieldNames := assignedReadOnlyBasicFields(s.vModel)
+	var storedModel models.Model
+	if len(readOnlyFieldNames) > 0 {
+		storedModel, err = s.queryStoredModelForReadOnlyFields(s.vModel)
+		if err != nil {
+			slog.Warn("UpdateRunner prequery readonly fields failed", "pkgKey", s.vModel.GetPkgKey(), "error", err.Error())
+			err = nil
+		}
 	}
 
 	if hasAssignedWritableBasicFields(s.vModel) {
@@ -142,7 +235,11 @@ func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
 		}
 	}
 
-	ret = s.vModel
+	if storedModel != nil {
+		restoreReadOnlyBasicFields(s.vModel, storedModel, readOnlyFieldNames)
+	}
+
+	ret, err = projectWriteResponseModel(s.vModel, s.modelProvider)
 	return
 }
 

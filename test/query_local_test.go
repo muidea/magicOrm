@@ -244,7 +244,7 @@ func TestLocalOnlineEntity(t *testing.T) {
 	}
 
 	newEntityPtr := entityModelVal.Interface(true).(*Entity)
-	if newEntityPtr.Namespace != "test" || newEntityPtr.EType != "test" || newEntityPtr.EName != "test" {
+	if newEntityPtr.Namespace != "" || newEntityPtr.EType != "test" || newEntityPtr.EName != "test" {
 		t.Errorf("insert entity model failed")
 		return
 	}

@@ -7,6 +7,7 @@ import (
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/models"
+	"github.com/muidea/magicOrm/utils"
 	"log/slog"
 )
 
@@ -61,11 +62,15 @@ func (s *Builder) buildFieldUpdateValues(vModel models.Model, resultStackPtr *Re
 		}
 
 		fVal := field.GetValue()
-		encodeVal, encodeErr := s.buildCodec.PackedBasicFieldValue(field, fVal)
-		if encodeErr != nil {
-			err = encodeErr
-			slog.Error("buildFieldUpdateValues failed", "field", field.GetName(), "operation", "encodeFieldValue", "error", err.Error())
-			return
+		encodeVal := any(nil)
+		if !utils.IsReallyNil(fVal.Get()) || !field.GetType().IsPtrType() {
+			var encodeErr *cd.Error
+			encodeVal, encodeErr = s.buildCodec.PackedBasicFieldValue(field, fVal)
+			if encodeErr != nil {
+				err = encodeErr
+				slog.Error("buildFieldUpdateValues failed", "field", field.GetName(), "operation", "encodeFieldValue", "error", err.Error())
+				return
+			}
 		}
 
 		resultStackPtr.PushArgs(encodeVal)
