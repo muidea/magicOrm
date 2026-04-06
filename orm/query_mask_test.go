@@ -226,6 +226,54 @@ func TestRelationResponseModelUsesLiteViewForLocalMaskSlice(t *testing.T) {
 	}
 }
 
+func TestRelationResponseModelUsesLiteViewWithoutExplicitMask(t *testing.T) {
+	localProvider := provider.NewLocalProvider("tenant", nil)
+
+	for _, entity := range []any{&queryMaskRelationChild{}, &queryMaskRelationParent{}} {
+		if _, err := localProvider.RegisterModel(entity); err != nil {
+			t.Fatalf("RegisterModel(%T) failed: %v", entity, err)
+		}
+	}
+
+	responseModel, err := localProvider.GetEntityModel(&queryMaskRelationParent{}, true)
+	if err != nil {
+		t.Fatalf("GetEntityModel(response) failed: %v", err)
+	}
+	baseModel, err := localProvider.GetEntityModel(&queryMaskRelationParent{}, true)
+	if err != nil {
+		t.Fatalf("GetEntityModel(base) failed: %v", err)
+	}
+
+	queryRunner := &QueryRunner{
+		baseRunner: baseRunner{
+			modelProvider: localProvider,
+		},
+		responseModel:  responseModel.Copy(models.DetailView),
+		responseByMask: false,
+		relationCache:  map[string]models.Model{},
+		relationMisses: map[string]struct{}{},
+		relationEdges:  map[string][]any{},
+		relationWarns:  map[string]struct{}{},
+	}
+
+	relationModel, relationByMask, err := queryRunner.relationResponseModel(baseModel.GetField("child"))
+	if err != nil {
+		t.Fatalf("relationResponseModel(child) failed: %v", err)
+	}
+	if relationByMask {
+		t.Fatal("child relation should always use lite view instead of nested masks")
+	}
+	if relationModel == nil {
+		t.Fatal("relationResponseModel(child) returned nil")
+	}
+	if !fieldIncludedInResponse(relationModel, relationModel.GetField("name"), false) {
+		t.Fatal("child lite response should include lite field name")
+	}
+	if fieldIncludedInResponse(relationModel, relationModel.GetField("secret"), false) {
+		t.Fatal("child relation should be constrained to lite view")
+	}
+}
+
 func registerQueryMaskViewRemoteModel(t *testing.T, remoteProvider provider.Provider) {
 	t.Helper()
 

@@ -198,6 +198,10 @@ func restoreReadOnlyBasicFields(dst models.Model, src models.Model, fieldNames [
 	}
 }
 
+func (s *UpdateRunner) queryStoredResponseModel(vModel models.Model) (ret models.Model, err *cd.Error) {
+	return s.queryStoredModelForReadOnlyFields(vModel)
+}
+
 func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
 	if err = s.checkContext(); err != nil {
 		return
@@ -239,6 +243,12 @@ func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
 		restoreReadOnlyBasicFields(s.vModel, storedModel, readOnlyFieldNames)
 	}
 
+	ret, err = s.queryStoredResponseModel(s.vModel)
+	if err == nil {
+		return
+	}
+
+	slog.Warn("UpdateRunner query stored response failed, fallback to projected working model", "pkgKey", s.vModel.GetPkgKey(), "error", err.Error())
 	ret, err = projectWriteResponseModel(s.vModel, s.modelProvider)
 	return
 }

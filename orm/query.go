@@ -434,7 +434,7 @@ func (s *QueryRunner) shouldLoadRelationField(field models.Field) bool {
 }
 
 func (s *QueryRunner) relationResponseModel(field models.Field) (ret models.Model, responseByMask bool, err *cd.Error) {
-	if s == nil || field == nil || s.responseModel == nil || !s.responseByMask {
+	if s == nil || field == nil || s.responseModel == nil {
 		return
 	}
 
@@ -450,6 +450,8 @@ func (s *QueryRunner) relationResponseModel(field models.Field) (ret models.Mode
 	if err != nil {
 		return
 	}
+
+	responseByMask = false
 	return
 }
 
