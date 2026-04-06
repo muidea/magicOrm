@@ -182,10 +182,7 @@ func TestRemoteUser(t *testing.T) {
 		return
 	}
 
-	if !user2.Equal(user1) {
-		t.Errorf("query user2 failed")
-		return
-	}
+	assertUserDetailWithLiteRelations(t, user2, user1)
 
 	user1.Group = append(user1.Group, group3)
 	user1Val, objErr = getObjectValue(user1)
@@ -230,14 +227,7 @@ func TestRemoteUser(t *testing.T) {
 		return
 	}
 
-	if len(user2.Group) != 3 {
-		t.Errorf("query user2 failed")
-		return
-	}
-	if !user2.Equal(user1) {
-		t.Errorf("query user2 failed")
-		return
-	}
+	assertUserDetailWithLiteRelations(t, user2, user1)
 
 	userObject, userErr := helper.GetObject(&User{Status: &Status{}, Group: []*Group{}})
 	if userErr != nil {

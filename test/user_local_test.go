@@ -142,10 +142,7 @@ func TestLocalUser(t *testing.T) {
 	}
 	user2 = user2Model.Interface(false).(User)
 
-	if !user2.Equal(&user1) {
-		t.Errorf("query user2 failed")
-		return
-	}
+	assertUserDetailWithLiteRelations(t, &user2, &user1)
 
 	user1.Group = append(user1.Group, group3)
 	user1Model, user1Err := localProvider.GetEntityModel(user1, true)
@@ -171,14 +168,7 @@ func TestLocalUser(t *testing.T) {
 		return
 	}
 	newUser2 := user2Model.Interface(true).(*User)
-	if len(newUser2.Group) != 3 {
-		t.Errorf("query user2 failed")
-		return
-	}
-	if !newUser2.Equal(newUser1) {
-		t.Errorf("query user2 failed")
-		return
-	}
+	assertUserDetailWithLiteRelations(t, newUser2, newUser1)
 
 	group1Model, group1Err := localProvider.GetEntityModel(group1, true)
 	if group1Err != nil {

@@ -216,7 +216,5 @@ func TestRemoteGroup(t *testing.T) {
 		t.Errorf("UpdateEntity failed, err:%s", err.Error())
 		return
 	}
-	if !group5.Equal(group2) {
-		t.Errorf("query Group5 failed")
-	}
+	assertGroupDetailWithLiteParent(t, group5, group2)
 }
