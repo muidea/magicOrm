@@ -140,7 +140,7 @@ func TestRemoteCodecEncodeDecodeAdditionalBasicTypes(t *testing.T) {
 		decodeInput   any
 		expectedValue any
 	}{
-		{name: "bool", typ: &TypeImpl{Name: "bool", Value: models.TypeBooleanValue}, encodeInput: true, decodeInput: true, expectedValue: true},
+		{name: "boolean", typ: &TypeImpl{Name: "boolean", Value: models.TypeBooleanValue}, encodeInput: true, decodeInput: true, expectedValue: true},
 		{name: "int8", typ: &TypeImpl{Name: "int8", Value: models.TypeByteValue}, encodeInput: int8(8), decodeInput: int8(8), expectedValue: int8(8)},
 		{name: "int16", typ: &TypeImpl{Name: "int16", Value: models.TypeSmallIntegerValue}, encodeInput: int16(16), decodeInput: int16(16), expectedValue: int16(16)},
 		{name: "int32", typ: &TypeImpl{Name: "int32", Value: models.TypeInteger32Value}, encodeInput: int32(32), decodeInput: int32(32), expectedValue: int32(32)},
@@ -153,8 +153,8 @@ func TestRemoteCodecEncodeDecodeAdditionalBasicTypes(t *testing.T) {
 		{name: "float64", typ: &TypeImpl{Name: "float64", Value: models.TypeDoubleValue}, encodeInput: float64(7.5), decodeInput: float64(7.5), expectedValue: float64(7.5)},
 		{name: "datetime", typ: &TypeImpl{Name: "datetime", Value: models.TypeDateTimeValue}, encodeInput: "2025-01-01T00:00:00Z", decodeInput: "2025-01-01T00:00:00Z", expectedValue: "2025-01-01T00:00:00Z"},
 		{
-			name:          "[]bool",
-			typ:           &TypeImpl{Name: "bool", Value: models.TypeSliceValue, ElemType: &TypeImpl{Name: "bool", Value: models.TypeBooleanValue}},
+			name:          "[]boolean",
+			typ:           &TypeImpl{Name: "boolean", Value: models.TypeSliceValue, ElemType: &TypeImpl{Name: "boolean", Value: models.TypeBooleanValue}},
 			encodeInput:   []bool{true, false},
 			decodeInput:   []any{true, false},
 			expectedValue: []bool{true, false},
@@ -203,7 +203,7 @@ func TestRemoteCodecExhaustivePointerVariants(t *testing.T) {
 		raw    any
 		expect any
 	}{
-		{name: "bool", value: models.TypeBooleanValue, raw: true, expect: true},
+		{name: "boolean", value: models.TypeBooleanValue, raw: true, expect: true},
 		{name: "int8", value: models.TypeByteValue, raw: int8(8), expect: int8(8)},
 		{name: "int16", value: models.TypeSmallIntegerValue, raw: int16(16), expect: int16(16)},
 		{name: "int32", value: models.TypeInteger32Value, raw: int32(32), expect: int32(32)},
@@ -257,7 +257,7 @@ func TestRemoteCodecExhaustivePointerVariants(t *testing.T) {
 		decode  any
 		expect  any
 	}{
-		{name: "bool", elem: models.TypeBooleanValue, encode: []bool{true, false}, decode: []any{true, false}, expect: []bool{true, false}},
+		{name: "boolean", elem: models.TypeBooleanValue, encode: []bool{true, false}, decode: []any{true, false}, expect: []bool{true, false}},
 		{name: "int8", elem: models.TypeByteValue, encode: []int8{1, 2}, decode: []any{int8(1), int8(2)}, expect: []int8{1, 2}},
 		{name: "int16", elem: models.TypeSmallIntegerValue, encode: []int16{1, 2}, decode: []any{int16(1), int16(2)}, expect: []int16{1, 2}},
 		{name: "int32", elem: models.TypeInteger32Value, encode: []int32{1, 2}, decode: []any{int32(1), int32(2)}, expect: []int32{1, 2}},
@@ -353,7 +353,7 @@ func TestRemoteCodecInternalErrorBranches(t *testing.T) {
 
 func TestRemoteCodecExhaustiveErrorVariants(t *testing.T) {
 	scalarTypes := []*TypeImpl{
-		{Name: "bool", Value: models.TypeBooleanValue},
+		{Name: "boolean", Value: models.TypeBooleanValue},
 		{Name: "int8", Value: models.TypeByteValue},
 		{Name: "int16", Value: models.TypeSmallIntegerValue},
 		{Name: "int32", Value: models.TypeInteger32Value},
@@ -385,7 +385,7 @@ func TestRemoteCodecExhaustiveErrorVariants(t *testing.T) {
 		typ   *TypeImpl
 		input any
 	}{
-		{name: "bool", typ: &TypeImpl{Name: "bool", Value: models.TypeSliceValue, ElemType: &TypeImpl{Name: "bool", Value: models.TypeBooleanValue}}, input: []any{true, map[string]any{"bad": true}}},
+		{name: "boolean", typ: &TypeImpl{Name: "boolean", Value: models.TypeSliceValue, ElemType: &TypeImpl{Name: "boolean", Value: models.TypeBooleanValue}}, input: []any{true, map[string]any{"bad": true}}},
 		{name: "int8", typ: &TypeImpl{Name: "int8", Value: models.TypeSliceValue, ElemType: &TypeImpl{Name: "int8", Value: models.TypeByteValue}}, input: []any{int8(1), "bad"}},
 		{name: "int16", typ: &TypeImpl{Name: "int16", Value: models.TypeSliceValue, ElemType: &TypeImpl{Name: "int16", Value: models.TypeSmallIntegerValue}}, input: []any{int16(1), "bad"}},
 		{name: "int32", typ: &TypeImpl{Name: "int32", Value: models.TypeSliceValue, ElemType: &TypeImpl{Name: "int32", Value: models.TypeInteger32Value}}, input: []any{int32(1), "bad"}},

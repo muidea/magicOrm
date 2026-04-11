@@ -109,8 +109,9 @@ func getStructInitValue(tType models.Type) (ret *ObjectValue) {
 func getSliceStructInitValue(tType models.Type) (ret *SliceObjectValue) {
 	if models.IsSliceType(tType.GetValue()) {
 		sliceVal := _declareObjectSliceValue.Copy()
-		sliceVal.Name = tType.GetName()
-		sliceVal.PkgPath = tType.GetPkgPath()
+		elemType := tType.Elem()
+		sliceVal.Name = elemType.GetName()
+		sliceVal.PkgPath = elemType.GetPkgPath()
 		ret = sliceVal
 		return
 	}

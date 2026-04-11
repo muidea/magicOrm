@@ -12,7 +12,7 @@
 
 | Go 类型 | models 类型名 | TypeDeclare 常量 | 说明 |
 |---------|----------------|------------------|------|
-| bool | bool | TypeBooleanValue | 布尔 |
+| bool | boolean | TypeBooleanValue | 布尔 |
 | int8 | int8 | TypeByteValue | 字节 |
 | int16 | int16 | TypeSmallIntegerValue | 短整型 |
 | int32 | int32 | TypeInteger32Value | 32 位整型 |
@@ -46,7 +46,7 @@
 | string（主键） | VARCHAR(32) | 主键时固定 32 |
 | string（非主键） | TEXT | |
 | datetime | TIMESTAMP(3) | 毫秒精度 |
-| bool | BOOLEAN | |
+| boolean | BOOLEAN | Go 原生类型对应 `bool` |
 | int8 | SMALLINT | |
 | int16 / uint8 | SMALLINT | 自增主键时为 SMALLSERIAL |
 | int32 / int / uint16 | INTEGER | 自增主键时为 SERIAL |
@@ -64,7 +64,7 @@
 | string（主键） | VARCHAR(32) | 主键时固定 32 |
 | string（非主键） | TEXT | |
 | datetime | DATETIME(3) | 毫秒精度 |
-| bool / int8 | TINYINT | |
+| boolean / int8 | TINYINT | Go 原生布尔类型对应 `bool` |
 | int16 / uint8 | SMALLINT | |
 | int32 / int / uint16 | INT | |
 | int64 / uint32 / uint / uint64 | BIGINT | |

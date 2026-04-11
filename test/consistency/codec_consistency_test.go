@@ -18,7 +18,7 @@ func TestBasicTypeCodecConsistency(t *testing.T) {
 		value    any
 		typeDecl models.TypeDeclare
 	}{
-		{"bool", true, models.TypeBooleanValue},
+		{"boolean", true, models.TypeBooleanValue},
 		{"int8", int8(8), models.TypeByteValue},
 		{"int16", int16(16), models.TypeSmallIntegerValue},
 		{"int32", int32(32), models.TypeInteger32Value},
@@ -72,7 +72,7 @@ func TestPointerTypeCodecConsistency(t *testing.T) {
 		value    any
 		typeDecl models.TypeDeclare
 	}{
-		{"*bool", ptr(true), models.TypeBooleanValue},
+		{"*boolean", ptr(true), models.TypeBooleanValue},
 		{"*int", ptr(42), models.TypeIntegerValue},
 		{"*string", ptr("test"), models.TypeStringValue},
 		{"*float64", ptr(3.14), models.TypeDoubleValue},
@@ -117,7 +117,7 @@ func TestSliceTypeCodecConsistency(t *testing.T) {
 		elemDecl  models.TypeDeclare
 		isElemPtr bool
 	}{
-		{"[]bool", []bool{true, false, true}, models.TypeBooleanValue, false},
+		{"[]boolean", []bool{true, false, true}, models.TypeBooleanValue, false},
 		{"[]int", []int{1, 2, 3}, models.TypeIntegerValue, false},
 		{"[]int8", []int8{-1, 0, 1}, models.TypeByteValue, false},
 		{"[]int16", []int16{-10, 0, 10}, models.TypeSmallIntegerValue, false},
@@ -212,7 +212,7 @@ func TestLocalRemoteRoundTrip(t *testing.T) {
 		typeDecl models.TypeDeclare
 		isPtr    bool
 	}{
-		{"bool", true, models.TypeBooleanValue, false},
+		{"boolean", true, models.TypeBooleanValue, false},
 		{"int", 42, models.TypeIntegerValue, false},
 		{"string", "test", models.TypeStringValue, false},
 		{"*int", ptr(100), models.TypeIntegerValue, true},

@@ -4,10 +4,10 @@ package remote
 Value 实现models.Value接口
 
 value值对应的数值类型：
-1. 基本数值类型：bool, int8, int16, int32, int, int64, uint8, uint16, uint32, uint, uint64, float32, float64, string
-2. 基本数值类型对应的指针类型：*bool, *int8, *int16, *int32, *int, *int64, *uint8, *uint16, *uint32, *uint, *uint64, *float32, *float64, *string
-3. 基本数值类型的slice: []bool, []int8, []int16, []int32, []int, []int64, []uint8, []uint16, []uint32, []uint, []uint64, []float32, []float64, []string
-4. 基本数值类型指针的slice: []*bool, []*int8, []*int16, []*int32, []*int, []*int64, []*uint8, []*uint16, []*uint32, []*uint, []*uint64, []*float32, []*float64, []*string
+1. 基本数值类型：boolean, int8, int16, int32, int, int64, uint8, uint16, uint32, uint, uint64, float32, float64, string
+2. 基本数值类型对应的指针类型：*boolean, *int8, *int16, *int32, *int, *int64, *uint8, *uint16, *uint32, *uint, *uint64, *float32, *float64, *string
+3. 基本数值类型的slice: []boolean, []int8, []int16, []int32, []int, []int64, []uint8, []uint16, []uint32, []uint, []uint64, []float32, []float64, []string
+4. 基本数值类型指针的slice: []*boolean, []*int8, []*int16, []*int32, []*int, []*int64, []*uint8, []*uint16, []*uint32, []*uint, []*uint64, []*float32, []*float64, []*string
 4. ObjectValue: 对象类型，对应一个Object
 5. *ObjectValue: 对象类型，对应一个Object
 5. SliceObjectValue: 对象类型的slice，对应一个SliceObject

@@ -12,9 +12,9 @@ import (
 
 // 基本数值类型定义如下：
 // 1. 基本数值类型：bool, int8, int16, int32, int, int64, uint8, uint16, uint32, uint, uint64, float32, float64, string
-// 2. 基本数值类型对应的指针类型：*bool, *int8, *int16, *int32, *int, *int64, *uint8, *uint16, *uint32, *uint, *uint64, *float32, *float64, *string
-// 3. 基本数值类型的slice或array: []bool, []int8, []int16, []int32, []int, []int64, []uint8, []uint16, []uint32, []uint, []uint64, []float32, []float64, []string
-// 4. 基本数值类型指针的slice或array: []*bool, []*int8, []*int16, []*int32, []*int, []*int64, []*uint8, []*uint16, []*uint32, []*uint, []*uint64, []*float32, []*float64, []*string
+// 2. 基本数值类型对应的指针类型：*boolean, *int8, *int16, *int32, *int, *int64, *uint8, *uint16, *uint32, *uint, *uint64, *float32, *float64, *string
+// 3. 基本数值类型的slice或array: []boolean, []int8, []int16, []int32, []int, []int64, []uint8, []uint16, []uint32, []uint, []uint64, []float32, []float64, []string
+// 4. 基本数值类型指针的slice或array: []*boolean, []*int8, []*int16, []*int32, []*int, []*int64, []*uint8, []*uint16, []*uint32, []*uint, []*uint64, []*float32, []*float64, []*string
 // 5. time.Time 类型
 
 // IsReallyValidValue 判断判断一个基本数值是否合法

@@ -149,7 +149,7 @@ func TestGetTypeHash(t *testing.T) {
 		"int":    1,
 		"uint":   uint(1),
 		"float":  1.2,
-		"bool":   true,
+		"boolean": true,
 		"bytes":  []byte("abc"),
 		"other":  struct{}{},
 	}
@@ -159,7 +159,7 @@ func TestGetTypeHash(t *testing.T) {
 		"int":    "int",
 		"uint":   "uint",
 		"float":  "float",
-		"bool":   "bool",
+		"boolean": "boolean",
 		"bytes":  "bytes",
 		"other":  "complex",
 	}

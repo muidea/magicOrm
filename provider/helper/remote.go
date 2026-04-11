@@ -52,7 +52,7 @@ func newType(itemType reflect.Type) (ret *remote.TypeImpl, err *cd.Error) {
 			sliceType = sliceType.Elem()
 			slicePtr = true
 		}
-		ret = &remote.TypeImpl{Name: sliceType.Name(), Value: typeVal, PkgPath: sliceType.PkgPath(), IsPtr: isPtr}
+		ret = &remote.TypeImpl{Name: getRemoteTypeName(itemType, typeVal), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
 
 		sliceVal, sliceErr := utils.GetTypeEnum(sliceType)
 		if sliceErr != nil {
@@ -64,12 +64,19 @@ func newType(itemType reflect.Type) (ret *remote.TypeImpl, err *cd.Error) {
 			return
 		}
 
-		ret.ElemType = &remote.TypeImpl{Name: sliceType.Name(), Value: sliceVal, PkgPath: sliceType.PkgPath(), IsPtr: slicePtr}
+		ret.ElemType = &remote.TypeImpl{Name: getRemoteTypeName(sliceType, sliceVal), Value: sliceVal, PkgPath: sliceType.PkgPath(), IsPtr: slicePtr}
 		return
 	}
 
-	ret = &remote.TypeImpl{Name: itemType.Name(), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
+	ret = &remote.TypeImpl{Name: getRemoteTypeName(itemType, typeVal), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
 	return
+}
+
+func getRemoteTypeName(itemType reflect.Type, typeVal models.TypeDeclare) string {
+	if typeVal == models.TypeBooleanValue {
+		return models.TypeBooleanName
+	}
+	return itemType.Name()
 }
 
 func newSpec(tag reflect.StructTag) (ret *remote.SpecImpl, err *cd.Error) {

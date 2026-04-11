@@ -70,7 +70,11 @@ func (s *codecImpl) ConstructModelTableName(vIdentifier Identifier) string {
 
 func (s *codecImpl) ConstructRelationTableName(vModel models.Model, vField models.Field) (ret string, err *cd.Error) {
 	leftName := s.constructTableName(vModel)
-	rightName := s.constructTableName(vField.GetType())
+	// Relation tables are always named after the related model type, not the
+	// container type itself. For slice fields, GetType() is the slice type and
+	// its name may be empty on remote models, while Elem() consistently resolves
+	// the related model type.
+	rightName := s.constructTableName(vField.GetType().Elem())
 	infixVal := s.constructInfix(vField)
 	if leftName == "" || rightName == "" || infixVal == "" {
 		err = cd.NewError(cd.IllegalParam, "illegal relation name")

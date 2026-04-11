@@ -31,6 +31,9 @@ func NewType(val reflect.Type) (ret *TypeImpl, err *cd.Error) {
 
 func (s *TypeImpl) GetName() string {
 	rType := s.getElemType()
+	if tVal, tErr := utils.GetTypeEnum(rType); tErr == nil && tVal == models.TypeBooleanValue {
+		return models.TypeBooleanName
+	}
 	return rType.Name()
 }
 

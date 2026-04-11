@@ -243,7 +243,7 @@ func TestInitializeValueHelpers(t *testing.T) {
 		typ  *TypeImpl
 		want any
 	}{
-		{name: "bool", typ: &TypeImpl{Name: "bool", Value: models.TypeBooleanValue}, want: false},
+		{name: "boolean", typ: &TypeImpl{Name: "boolean", Value: models.TypeBooleanValue}, want: false},
 		{name: "string", typ: &TypeImpl{Name: "string", Value: models.TypeStringValue}, want: ""},
 		{name: "datetime", typ: &TypeImpl{Name: "datetime", Value: models.TypeDateTimeValue}, want: ""},
 		{name: "int8", typ: &TypeImpl{Name: "int8", Value: models.TypeByteValue}, want: int8(0)},
@@ -270,7 +270,7 @@ func TestInitializeValueHelpers(t *testing.T) {
 		typ  *TypeImpl
 		want any
 	}{
-		{name: "[]bool", typ: &TypeImpl{Name: "bool", Value: models.TypeSliceValue, ElemType: &TypeImpl{Name: "bool", Value: models.TypeBooleanValue}}, want: []bool{}},
+		{name: "[]boolean", typ: &TypeImpl{Name: "boolean", Value: models.TypeSliceValue, ElemType: &TypeImpl{Name: "boolean", Value: models.TypeBooleanValue}}, want: []bool{}},
 		{name: "[]int8", typ: &TypeImpl{Name: "int8", Value: models.TypeSliceValue, ElemType: &TypeImpl{Name: "int8", Value: models.TypeByteValue}}, want: []int8{}},
 		{name: "[]int16", typ: &TypeImpl{Name: "int16", Value: models.TypeSliceValue, ElemType: &TypeImpl{Name: "int16", Value: models.TypeSmallIntegerValue}}, want: []int16{}},
 		{name: "[]int32", typ: &TypeImpl{Name: "int32", Value: models.TypeSliceValue, ElemType: &TypeImpl{Name: "int32", Value: models.TypeInteger32Value}}, want: []int32{}},
@@ -361,7 +361,7 @@ func TestUtilityRewriteAndValidityHelpers(t *testing.T) {
 	if got, err := convertValue(&TypeImpl{Name: "string", Value: models.TypeStringValue}, nil); err != nil || got != nil {
 		t.Fatalf("convertValue(nil) mismatch, got %#v err=%v", got, err)
 	}
-	if _, err := convertValue(&TypeImpl{Name: "bool", Value: models.TypeBooleanValue}, map[string]any{"bad": true}); err == nil {
+	if _, err := convertValue(&TypeImpl{Name: "boolean", Value: models.TypeBooleanValue}, map[string]any{"bad": true}); err == nil {
 		t.Fatal("convertValue(bool invalid) should fail")
 	}
 	if got, err := convertSliceValue(&TypeImpl{Name: "string", Value: models.TypeStringValue}, nil); err != nil || got != nil {

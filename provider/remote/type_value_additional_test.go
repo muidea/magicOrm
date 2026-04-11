@@ -289,7 +289,7 @@ func TestTypeImplInterfaceAdditionalBranches(t *testing.T) {
 		t.Fatalf("Interface(nil slice struct) mismatch, got %#v", nilSliceStructVal.Get())
 	}
 
-	boolType := &TypeImpl{Name: "bool", Value: models.TypeBooleanValue}
+	boolType := &TypeImpl{Name: "boolean", Value: models.TypeBooleanValue}
 	if _, err := boolType.Interface(map[string]any{"v": true}); err == nil {
 		t.Fatalf("Interface(bool invalid) should fail")
 	}
@@ -476,7 +476,7 @@ func TestTypeImplInterfaceExhaustivePointerScalars(t *testing.T) {
 		input any
 		want  any
 	}{
-		{name: "bool", typ: &TypeImpl{Name: "bool", Value: models.TypeBooleanValue, IsPtr: true}, input: 1, want: func() any { v := true; return &v }()},
+		{name: "boolean", typ: &TypeImpl{Name: "boolean", Value: models.TypeBooleanValue, IsPtr: true}, input: 1, want: func() any { v := true; return &v }()},
 		{name: "int8", typ: &TypeImpl{Name: "int8", Value: models.TypeByteValue, IsPtr: true}, input: 8, want: func() any { v := int8(8); return &v }()},
 		{name: "int16", typ: &TypeImpl{Name: "int16", Value: models.TypeSmallIntegerValue, IsPtr: true}, input: 16, want: func() any { v := int16(16); return &v }()},
 		{name: "int32", typ: &TypeImpl{Name: "int32", Value: models.TypeInteger32Value, IsPtr: true}, input: 32, want: func() any { v := int32(32); return &v }()},
@@ -511,7 +511,7 @@ func TestTypeImplInterfaceErrorBranches(t *testing.T) {
 		name string
 		typ  *TypeImpl
 	}{
-		{name: "bool", typ: &TypeImpl{Name: "bool", Value: models.TypeBooleanValue}},
+		{name: "boolean", typ: &TypeImpl{Name: "boolean", Value: models.TypeBooleanValue}},
 		{name: "int8", typ: &TypeImpl{Name: "int8", Value: models.TypeByteValue}},
 		{name: "int16", typ: &TypeImpl{Name: "int16", Value: models.TypeSmallIntegerValue}},
 		{name: "int32", typ: &TypeImpl{Name: "int32", Value: models.TypeInteger32Value}},

@@ -40,7 +40,8 @@ func (s *Builder) BuildDeleteRelation(vModel models.Model, vField models.Field) 
 		return
 	}
 
-	rModel, rErr := s.modelProvider.GetTypeModel(vField.GetType())
+	targetType := vField.GetType().Elem()
+	rModel, rErr := s.modelProvider.GetTypeModel(targetType)
 	if rErr != nil {
 		err = rErr
 		slog.Error("BuildDeleteRelation failed", "field", vField.GetName(), "operation", "GetTypeModel", "error", err.Error())
@@ -49,7 +50,7 @@ func (s *Builder) BuildDeleteRelation(vModel models.Model, vField models.Field) 
 
 	delHostStackPtr := &ResultStack{}
 	delHostSQL := fmt.Sprintf("DELETE FROM `%s` WHERE `%s` IN (SELECT `right` FROM `%s` WHERE `left`=?)",
-		s.buildCodec.ConstructModelTableName(vField.GetType()),
+		s.buildCodec.ConstructModelTableName(targetType),
 		rModel.GetPrimaryField().GetName(),
 		relationTableName)
 	delHostStackPtr.SetSQL(delHostSQL)

@@ -79,12 +79,12 @@ func TestTypeImpl_convertRawToSlice(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "bool slice",
+			name: "boolean slice",
 			fields: fields{
-				Name:    "bool",
+				Name:    "boolean",
 				PkgPath: "",
 				ElemType: &TypeImpl{
-					Name:    "bool",
+					Name:    "boolean",
 					PkgPath: "",
 				},
 			},

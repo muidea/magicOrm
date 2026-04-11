@@ -25,7 +25,7 @@ func TestTypeInterface(t *testing.T) {
 	}{
 		{
 			name:         "Boolean Interface",
-			typeImpl:     &remote.TypeImpl{Name: "bool", Value: models.TypeBooleanValue},
+			typeImpl:     &remote.TypeImpl{Name: "boolean", Value: models.TypeBooleanValue},
 			initVal:      true,
 			expectedType: true,
 			expectError:  false,

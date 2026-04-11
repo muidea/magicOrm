@@ -13,7 +13,7 @@ Object描述数据模型信息，模型信息使用json格式进行序列化保�
 
     // Define the Type enum
     const (
-        // TypeBooleanValue bool
+        // TypeBooleanValue boolean
         TypeBooleanValue = iota + 100
         // TypeBitValue int8
         TypeBitValue

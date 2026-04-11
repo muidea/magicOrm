@@ -6,13 +6,13 @@ import "fmt"
 
 // 基本数值类型
 // 基本数值类型包括:
-// bool、int8、int16、int32、int、int64、uint8、uint16、uint32、uint、uint64、float32、float64、string、dateTime
-// []bool、[]int8、[]int16、[]int32、[]int、[]int64、[]uint8、[]uint16、[]uint32、[]uint、[]uint64、[]float32、[]float64、[]string、[]datetime
+// boolean、int8、int16、int32、int、int64、uint8、uint16、uint32、uint、uint64、float32、float64、string、dateTime
+// []boolean、[]int8、[]int16、[]int32、[]int、[]int64、[]uint8、[]uint16、[]uint32、[]uint、[]uint64、[]float32、[]float64、[]string、[]datetime
 // 以及以上类型对应的指针
-// *bool, *int8, *int16, *int32, *int, *int64, *uint8, *uint16, *uint32, *uint, *uint64, *float32, *float64, *string, *datetime
-// []*bool、[]*int8、[]*int16、[]*int32、[]*int、[]*int64、[]*uint8、[]*uint16、[]*uint32、[]*uint、[]*uint64、[]*float32、[]*float64、[]*string、[]*datetime
-// *[]bool, *[]int8, *[]int16, *[]int32, *[]int, *[]int64, *[]uint8, *[]uint16, *[]uint32, *[]uint, *[]uint64, *[]float32, *[]float64, *[]string, *[]datetime
-// *[]*bool、*[]*int8、*[]*int16、*[]*int32、*[]*int、*[]*int64、*[]*uint8、*[]*uint16、*[]*uint32、*[]*uint、*[]*uint64、*[]*float32、*[]*float64、*[]*string、*[]*datetime
+// *boolean, *int8, *int16, *int32, *int, *int64, *uint8, *uint16, *uint32, *uint, *uint64, *float32, *float64, *string, *datetime
+// []*boolean、[]*int8、[]*int16、[]*int32、[]*int、[]*int64、[]*uint8、[]*uint16、[]*uint32、[]*uint、[]*uint64、[]*float32、[]*float64、[]*string、[]*datetime
+// *[]boolean, *[]int8, *[]int16, *[]int32, *[]int, *[]int64, *[]uint8, *[]uint16, *[]uint32, *[]uint, *[]uint64, *[]float32, *[]float64, *[]string, *[]datetime
+// *[]*boolean、*[]*int8、*[]*int16、*[]*int32、*[]*int、*[]*int64、*[]*uint8、*[]*uint16、*[]*uint32、*[]*uint、*[]*uint64、*[]*float32、*[]*float64、*[]*string、*[]*datetime
 
 // 复合数值类型
 // 复合数值类型包括:
@@ -45,7 +45,7 @@ import "fmt"
 type TypeDeclare int
 
 const (
-	TypeBooleanName              = "bool"
+	TypeBooleanName              = "boolean"
 	TypeByteName                 = "int8"
 	TypeSmallIntegerName         = "int16"
 	TypeInteger32Name            = "int32"

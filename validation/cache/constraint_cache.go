@@ -223,7 +223,7 @@ func getTypeHash(value any) string {
 	case float32, float64:
 		return "float"
 	case bool:
-		return "bool"
+		return "boolean"
 	case []byte:
 		return "bytes"
 	default:

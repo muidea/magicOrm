@@ -197,7 +197,7 @@ func (v *typeValidatorImpl) registerBuiltinHandlers() {
 	v.registerBasicType("uint64", reflect.TypeOf(uint64(0)))
 	v.registerBasicType("float32", reflect.TypeOf(float32(0)))
 	v.registerBasicType("float64", reflect.TypeOf(float64(0)))
-	v.registerBasicType("bool", reflect.TypeOf(false))
+	v.registerBasicType("boolean", reflect.TypeOf(false))
 	v.registerBasicType("string", reflect.TypeOf(""))
 
 	// Time type
@@ -211,7 +211,7 @@ func (v *typeValidatorImpl) registerBuiltinHandlers() {
 	// Pointer types
 	v.registerPointerType("*int", reflect.TypeOf((*int)(nil)))
 	v.registerPointerType("*string", reflect.TypeOf((*string)(nil)))
-	v.registerPointerType("*bool", reflect.TypeOf((*bool)(nil)))
+	v.registerPointerType("*boolean", reflect.TypeOf((*bool)(nil)))
 }
 
 // registerBasicType registers a basic type handler

@@ -343,7 +343,7 @@ func IsSameValue(firstVal, secondVal any) (ret bool) {
 }
 
 // ConvertRawToBool convert raw bool
-// 如果val为指针值，尝试将其转换成*bool，否则转换成bool
+// 如果val为指针值，尝试将其转换成*boolean，否则转换成boolean
 // 将转换后的结果以models.RawVal形式返回
 // 转换出错返回*cd.Error
 func ConvertRawToBool(val any) (ret bool, err *cd.Error) {
