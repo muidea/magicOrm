@@ -52,6 +52,30 @@ func testRemoteFilterObject() *Object {
 	}
 }
 
+func testRemoteRelationFilterObject() *Object {
+	return &Object{
+		Name:    "Holder",
+		PkgPath: "github.com/test/relation",
+		Fields: []*Field{
+			{
+				Name: "id",
+				Type: &TypeImpl{Name: "int64", Value: models.TypeBigIntegerValue},
+				Spec: &SpecImpl{FieldName: "id", PrimaryKey: true},
+			},
+			{
+				Name: "target",
+				Type: &TypeImpl{
+					Name:    "Target",
+					PkgPath: "github.com/test/relation",
+					Value:   models.TypeStructValue,
+					IsPtr:   true,
+				},
+				Spec: &SpecImpl{FieldName: "target"},
+			},
+		},
+	}
+}
+
 func TestObjectFilterInAcceptsSliceObjectValue(t *testing.T) {
 	filter := NewFilter(testRemoteFilterObject())
 	groupValue := &SliceObjectValue{
@@ -104,6 +128,49 @@ func TestObjectFilterInAcceptsBasicSliceValue(t *testing.T) {
 	}
 	if len(got) != 3 || got[0] != int64(1) || got[1] != int64(2) || got[2] != int64(3) {
 		t.Fatalf("unexpected IN values: %#v", got)
+	}
+}
+
+func TestObjectFilterEqualAcceptsRelationPrimaryShorthand(t *testing.T) {
+	filter := NewFilter(testRemoteRelationFilterObject())
+
+	if err := filter.Equal("target", "svc_user"); err != nil {
+		t.Fatalf("Equal(target shorthand) failed: %v", err)
+	}
+
+	item := filter.GetFilterItem("target")
+	if item == nil {
+		t.Fatal("GetFilterItem(target) should not be nil")
+	}
+	if item.OprCode() != models.EqualOpr {
+		t.Fatalf("expected EqualOpr, got %v", item.OprCode())
+	}
+	got, ok := item.OprValue().Get().(string)
+	if !ok || got != "svc_user" {
+		t.Fatalf("relation shorthand mismatch, got %#v", item.OprValue().Get())
+	}
+}
+
+func TestObjectFilterInAcceptsRelationPrimaryShorthandSlice(t *testing.T) {
+	filter := NewFilter(testRemoteRelationFilterObject())
+
+	if err := filter.In("target", []string{"svc_user", "svc_admin"}); err != nil {
+		t.Fatalf("In(target shorthand slice) failed: %v", err)
+	}
+
+	item := filter.GetFilterItem("target")
+	if item == nil {
+		t.Fatal("GetFilterItem(target) should not be nil")
+	}
+	if item.OprCode() != models.InOpr {
+		t.Fatalf("expected InOpr, got %v", item.OprCode())
+	}
+	got, ok := item.OprValue().Get().([]string)
+	if !ok {
+		t.Fatalf("relation shorthand slice type mismatch, got %T", item.OprValue().Get())
+	}
+	if len(got) != 2 || got[0] != "svc_user" || got[1] != "svc_admin" {
+		t.Fatalf("relation shorthand slice mismatch, got %#v", got)
 	}
 }
 

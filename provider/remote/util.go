@@ -179,6 +179,10 @@ func convertValue(vType models.Type, val any) (ret any, err *cd.Error) {
 	if val == nil {
 		return
 	}
+	if !models.IsBasic(vType) && utils.IsReallyValidValue(val) {
+		ret = val
+		return
+	}
 
 	vVal, vErr := vType.Interface(val)
 	if vErr != nil {
@@ -200,6 +204,17 @@ func convertSliceValue(vType models.Type, val any) (ret any, err *cd.Error) {
 		err = cd.NewError(cd.Unexpected, "value is not slice")
 		slog.Error("convertSliceValue: value is not slice")
 		return
+	}
+	if !models.IsBasic(vType) {
+		for idx := 0; idx < rVal.Len(); idx++ {
+			if !utils.IsReallyValidValue(rVal.Index(idx).Interface()) {
+				break
+			}
+			if idx == rVal.Len()-1 {
+				ret = val
+				return
+			}
+		}
 	}
 	sliceVal := []any{}
 	for idx := 0; idx < rVal.Len(); idx++ {

@@ -299,8 +299,10 @@ func (s *providerImpl) EncodeValue(vVal any, vType models.Type) (ret any, err *c
 
 	eVal, eErr := s.getEntityValueFunc(vVal)
 	if eErr != nil {
-		err = eErr
-		slog.Error("EncodeValue getEntityValueFunc failed", "pkgKey", pkgKey, "error", eErr.Error())
+		ret, err = s.encodeRelationPrimaryShorthand(vVal, curModelVal.Copy(models.MetaView))
+		if err != nil {
+			slog.Error("EncodeValue getEntityValueFunc failed", "pkgKey", pkgKey, "error", eErr.Error())
+		}
 		return
 	}
 	vModelVal, vModelErr := s.setModelValueFunc(curModelVal.Copy(models.LiteView), eVal, true)
@@ -322,6 +324,36 @@ func (s *providerImpl) EncodeValue(vVal any, vType models.Type) (ret any, err *c
 		return
 	}
 	ret, err = s.encodeValueFunc(pkField.GetValue().Get(), pkField.GetType())
+	return
+}
+
+func (s *providerImpl) encodeRelationPrimaryShorthand(vVal any, relationModel models.Model) (ret any, err *cd.Error) {
+	if relationModel == nil {
+		err = cd.NewError(cd.IllegalParam, "relation model is nil")
+		return
+	}
+
+	pkField := relationModel.GetPrimaryField()
+	if pkField == nil {
+		err = cd.NewError(cd.Unexpected, fmt.Sprintf("relation model missing primary key, PkgKey:%s", relationModel.GetPkgKey()))
+		return
+	}
+	if !models.IsBasic(pkField.GetType()) {
+		err = cd.NewError(cd.IllegalParam, fmt.Sprintf("relation primary field must be basic, PkgKey:%s, field:%s", relationModel.GetPkgKey(), pkField.GetName()))
+		return
+	}
+
+	pkValue, pkErr := pkField.GetType().Interface(vVal)
+	if pkErr != nil {
+		err = pkErr
+		return
+	}
+	if pkValue == nil || !pkValue.IsValid() {
+		err = cd.NewError(cd.IllegalParam, fmt.Sprintf("relation primary key shorthand is invalid, PkgKey:%s, field:%s", relationModel.GetPkgKey(), pkField.GetName()))
+		return
+	}
+
+	ret, err = s.encodeValueFunc(pkValue.Get(), pkField.GetType())
 	return
 }
 

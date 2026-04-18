@@ -19,6 +19,16 @@ type ComplexObj struct {
 	Namespace string    `orm:"namespace"`
 }
 
+type relationKeyTarget struct {
+	Key  string `orm:"key key" view:"detail,lite"`
+	Name string `orm:"name" view:"detail,lite"`
+}
+
+type relationKeyHolder struct {
+	ID     int64              `orm:"id key auto" view:"detail,lite"`
+	Target *relationKeyTarget `orm:"target" view:"detail,lite"`
+}
+
 // TestProviderReset 测试Provider的Reset方法
 func TestProviderReset(t *testing.T) {
 	// 测试LocalProvider的Reset
@@ -238,6 +248,69 @@ func TestGetValueModel(t *testing.T) {
 	if typeErr != nil {
 		t.Errorf("GetEntityType failed: %s", typeErr.Error())
 		return
+	}
+}
+
+func TestLocalProviderEncodeValueAcceptsRelationPrimaryShorthand(t *testing.T) {
+	localProvider := NewLocalProvider("test", nil)
+	if _, err := localProvider.RegisterModel(&relationKeyTarget{}); err != nil {
+		t.Fatalf("RegisterModel(relationKeyTarget) failed: %v", err)
+	}
+	if _, err := localProvider.RegisterModel(&relationKeyHolder{}); err != nil {
+		t.Fatalf("RegisterModel(relationKeyHolder) failed: %v", err)
+	}
+
+	holderModel, err := localProvider.GetEntityModel(&relationKeyHolder{}, true)
+	if err != nil {
+		t.Fatalf("GetEntityModel(relationKeyHolder) failed: %v", err)
+	}
+	targetField := holderModel.GetField("target")
+	if targetField == nil {
+		t.Fatal("relationKeyHolder.Target field should exist")
+	}
+
+	encoded, err := localProvider.EncodeValue("svc_user", targetField.GetType())
+	if err != nil {
+		t.Fatalf("EncodeValue(relation shorthand) failed: %v", err)
+	}
+	if encoded != "svc_user" {
+		t.Fatalf("EncodeValue(relation shorthand) mismatch, got %#v", encoded)
+	}
+}
+
+func TestRemoteProviderEncodeValueAcceptsRelationPrimaryShorthand(t *testing.T) {
+	remoteProvider := NewRemoteProvider("test", nil)
+
+	targetObject, err := helper.GetObject(&relationKeyTarget{})
+	if err != nil {
+		t.Fatalf("GetObject(relationKeyTarget) failed: %v", err)
+	}
+	holderObject, err := helper.GetObject(&relationKeyHolder{})
+	if err != nil {
+		t.Fatalf("GetObject(relationKeyHolder) failed: %v", err)
+	}
+	if _, err := remoteProvider.RegisterModel(targetObject); err != nil {
+		t.Fatalf("RegisterModel(targetObject) failed: %v", err)
+	}
+	if _, err := remoteProvider.RegisterModel(holderObject); err != nil {
+		t.Fatalf("RegisterModel(holderObject) failed: %v", err)
+	}
+
+	holderModel, err := remoteProvider.GetEntityModel(holderObject, true)
+	if err != nil {
+		t.Fatalf("GetEntityModel(holderObject) failed: %v", err)
+	}
+	targetField := holderModel.GetField("target")
+	if targetField == nil {
+		t.Fatal("relationKeyHolder.target field should exist")
+	}
+
+	encoded, err := remoteProvider.EncodeValue("svc_user", targetField.GetType())
+	if err != nil {
+		t.Fatalf("EncodeValue(relation shorthand) failed: %v", err)
+	}
+	if encoded != "svc_user" {
+		t.Fatalf("EncodeValue(relation shorthand) mismatch, got %#v", encoded)
 	}
 }
 
