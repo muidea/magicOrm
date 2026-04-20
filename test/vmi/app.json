@@ -8,7 +8,7 @@
     "showName": "magicVMI",
     "pkgPrefix": "vmi",
     "icon": "magicVMI.png",
-    "catalog": "inner",
+    "catalog": "vmi",
     "version": "v1.3.0",
     "domain": "mulife.vip",
     "author": "rangh",
