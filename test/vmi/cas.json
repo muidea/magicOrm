@@ -14,12 +14,18 @@
           "password": "autotest",
           "role": {
             "name": "innerRole",
+            "module": "/internal/modules/blocks/role",
+            "key": "inner-role",
             "description": "innerRole description",
+            "group": "system",
+            "status": 2,
+            "systemManaged": true,
+            "syncVersion": "1.0.0",
             "privilege": [
               {
                 "module": "*",
                 "uriPath": "*",
-                "value": 5
+                "value": 15
               }
             ]
           }
@@ -35,12 +41,18 @@
           },
           "role": {
             "name": "innerRole",
+            "module": "/internal/modules/blocks/role",
+            "key": "inner-role",
             "description": "innerRole description",
+            "group": "system",
+            "status": 2,
+            "systemManaged": true,
+            "syncVersion": "1.0.0",
             "privilege": [
               {
                 "module": "*",
                 "uriPath": "*",
-                "value": 5
+                "value": 15
               }
             ]
           }
