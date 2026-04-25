@@ -251,11 +251,11 @@ func TestRemoteCodecExhaustivePointerVariants(t *testing.T) {
 	}
 
 	sliceCases := []struct {
-		name    string
-		elem    models.TypeDeclare
-		encode  any
-		decode  any
-		expect  any
+		name   string
+		elem   models.TypeDeclare
+		encode any
+		decode any
+		expect any
 	}{
 		{name: "boolean", elem: models.TypeBooleanValue, encode: []bool{true, false}, decode: []any{true, false}, expect: []bool{true, false}},
 		{name: "int8", elem: models.TypeByteValue, encode: []int8{1, 2}, decode: []any{int8(1), int8(2)}, expect: []int8{1, 2}},

@@ -3,9 +3,10 @@ package remote
 import (
 	"fmt"
 
+	"log/slog"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/models"
-	"log/slog"
 )
 
 func GetEntityType(entity any) (ret models.Type, err *cd.Error) {

@@ -145,23 +145,23 @@ func TestValidationCacheLifecycle(t *testing.T) {
 
 func TestGetTypeHash(t *testing.T) {
 	testCases := map[string]any{
-		"string": "abc",
-		"int":    1,
-		"uint":   uint(1),
-		"float":  1.2,
+		"string":  "abc",
+		"int":     1,
+		"uint":    uint(1),
+		"float":   1.2,
 		"boolean": true,
-		"bytes":  []byte("abc"),
-		"other":  struct{}{},
+		"bytes":   []byte("abc"),
+		"other":   struct{}{},
 	}
 
 	expected := map[string]string{
-		"string": "string:abc",
-		"int":    "int",
-		"uint":   "uint",
-		"float":  "float",
+		"string":  "string:abc",
+		"int":     "int",
+		"uint":    "uint",
+		"float":   "float",
 		"boolean": "boolean",
-		"bytes":  "bytes",
-		"other":  "complex",
+		"bytes":   "bytes",
+		"other":   "complex",
 	}
 
 	for name, value := range testCases {

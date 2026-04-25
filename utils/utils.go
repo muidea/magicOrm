@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/muidea/magicOrm/models"
 	"log/slog"
+
+	"github.com/muidea/magicOrm/models"
 )
 
 // 基本数值类型辅助函数

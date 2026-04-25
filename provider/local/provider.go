@@ -3,9 +3,10 @@ package local
 import (
 	"reflect"
 
+	"log/slog"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/models"
-	"log/slog"
 )
 
 func checkEntityType(entity any) (ret *TypeImpl, err *cd.Error) {

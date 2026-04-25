@@ -9,6 +9,8 @@ import (
 	"github.com/muidea/magicCommon/monitoring"
 	"github.com/muidea/magicCommon/monitoring/types"
 
+	"log/slog"
+
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/metrics"
@@ -19,7 +21,6 @@ import (
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/validation"
 	verrors "github.com/muidea/magicOrm/validation/errors"
-	"log/slog"
 )
 
 const maxDeepLevel = 3

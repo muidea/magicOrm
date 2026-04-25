@@ -5,8 +5,9 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 
-	"github.com/muidea/magicOrm/models"
 	"log/slog"
+
+	"github.com/muidea/magicOrm/models"
 )
 
 type Provider interface {

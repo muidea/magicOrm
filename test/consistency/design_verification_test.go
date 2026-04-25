@@ -124,7 +124,9 @@ func TestDesignRoundTripLocalRemoteJSONWithNested(t *testing.T) {
 			name:     "NestedSlicePtrParent",
 			original: NewNestedSlicePtrParent(),
 			target:   func() any { return &NestedSlicePtrParent{} },
-			compare:  func(a, b any) bool { return compareNestedSlicePtrParent(a.(*NestedSlicePtrParent), b.(*NestedSlicePtrParent)) },
+			compare: func(a, b any) bool {
+				return compareNestedSlicePtrParent(a.(*NestedSlicePtrParent), b.(*NestedSlicePtrParent))
+			},
 		},
 		{
 			name:     "DeepLevel3",

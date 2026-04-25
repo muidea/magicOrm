@@ -189,7 +189,7 @@ func (c *ORMMetricsCollector) GetActiveConnections() int64 {
 
 // recordDurationWithLRU records a duration with LRU key management.
 func (c *ORMMetricsCollector) recordDurationWithLRU(key string, duration time.Duration) {
-		metrics.RecordDurationSample(
+	metrics.RecordDurationSample(
 		c.operationDurations,
 		c.durationKeyTracker,
 		c.maxDurationKeys,

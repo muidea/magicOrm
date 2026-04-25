@@ -4,8 +4,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/muidea/magicOrm/models"
 	"log/slog"
+
+	"github.com/muidea/magicOrm/models"
 )
 
 type assignedChild struct {

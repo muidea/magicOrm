@@ -5,9 +5,10 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 
+	"log/slog"
+
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/models"
-	"log/slog"
 )
 
 // BuildDropTable  BuildDropSchema

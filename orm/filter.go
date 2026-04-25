@@ -3,10 +3,11 @@ package orm
 import (
 	"time"
 
+	"log/slog"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/metrics"
 	"github.com/muidea/magicOrm/models"
-	"log/slog"
 )
 
 // BatchQuery batch query

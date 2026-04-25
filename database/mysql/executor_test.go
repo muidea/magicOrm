@@ -10,9 +10,10 @@ import (
 	"testing"
 	"time"
 
+	"log/slog"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/database"
-	"log/slog"
 )
 
 const (

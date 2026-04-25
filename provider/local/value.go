@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"reflect"
 
+	"log/slog"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/models"
-	"log/slog"
 )
 
 type ValueImpl struct {

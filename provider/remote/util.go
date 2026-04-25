@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"reflect"
 
+	"log/slog"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/utils"
-	"log/slog"
 )
 
 var _declareObjectSliceValue SliceObjectValue

@@ -9,9 +9,10 @@ import (
 
 	_ "github.com/go-sql-driver/mysql" //引入Mysql驱动
 
+	"log/slog"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/database"
-	"log/slog"
 )
 
 const defaultCharSet = "utf8mb4"

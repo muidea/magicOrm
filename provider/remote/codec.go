@@ -6,9 +6,10 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 
+	"log/slog"
+
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/utils"
-	"log/slog"
 )
 
 type ValueConvertMap map[models.TypeDeclare]func(reflect.Value, models.Type) (any, *cd.Error)

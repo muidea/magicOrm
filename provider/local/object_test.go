@@ -5,9 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"log/slog"
+
 	"github.com/muidea/magicCommon/foundation/util"
 	"github.com/muidea/magicOrm/models"
-	"log/slog"
 )
 
 // Unit 单元信息

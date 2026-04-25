@@ -3,10 +3,11 @@ package remote
 import (
 	"fmt"
 
+	"log/slog"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/utils"
-	"log/slog"
 )
 
 type Field struct {

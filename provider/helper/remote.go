@@ -8,12 +8,13 @@ import (
 	"reflect"
 	"strings"
 
+	"log/slog"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider/local"
 	"github.com/muidea/magicOrm/provider/remote"
 	"github.com/muidea/magicOrm/utils"
-	"log/slog"
 )
 
 const (

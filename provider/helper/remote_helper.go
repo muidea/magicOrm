@@ -5,8 +5,9 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 
-	"github.com/muidea/magicOrm/provider/remote"
 	"log/slog"
+
+	"github.com/muidea/magicOrm/provider/remote"
 )
 
 func EncodeObject(objPtr *remote.Object) (ret []byte, err *cd.Error) {

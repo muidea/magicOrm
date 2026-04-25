@@ -5,9 +5,10 @@ import (
 	"os"
 	"sync/atomic"
 
+	"log/slog"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/models"
-	"log/slog"
 )
 
 var traceSQLEnabled int32 = -1

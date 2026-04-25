@@ -2,9 +2,10 @@
 package validation
 
 import (
+	"log/slog"
+
 	"github.com/muidea/magicCommon/monitoring"
 	"github.com/muidea/magicCommon/monitoring/types"
-	"log/slog"
 )
 
 var (

@@ -368,8 +368,8 @@ func TestTypeImplInterfacePointerSlicesAndStructSources(t *testing.T) {
 		expected any
 	}{
 		{
-			name: "[]int8 ptr",
-			typ: &TypeImpl{Name: "int8", Value: models.TypeSliceValue, IsPtr: true, ElemType: &TypeImpl{Name: "int8", Value: models.TypeByteValue}},
+			name:  "[]int8 ptr",
+			typ:   &TypeImpl{Name: "int8", Value: models.TypeSliceValue, IsPtr: true, ElemType: &TypeImpl{Name: "int8", Value: models.TypeByteValue}},
 			input: []any{1, 2},
 			expected: func() any {
 				v := []int8{1, 2}
@@ -377,8 +377,8 @@ func TestTypeImplInterfacePointerSlicesAndStructSources(t *testing.T) {
 			}(),
 		},
 		{
-			name: "[]uint ptr",
-			typ: &TypeImpl{Name: "uint", Value: models.TypeSliceValue, IsPtr: true, ElemType: &TypeImpl{Name: "uint", Value: models.TypePositiveIntegerValue}},
+			name:  "[]uint ptr",
+			typ:   &TypeImpl{Name: "uint", Value: models.TypeSliceValue, IsPtr: true, ElemType: &TypeImpl{Name: "uint", Value: models.TypePositiveIntegerValue}},
 			input: []any{1, 2},
 			expected: func() any {
 				v := []uint{1, 2}
@@ -386,8 +386,8 @@ func TestTypeImplInterfacePointerSlicesAndStructSources(t *testing.T) {
 			}(),
 		},
 		{
-			name: "[]float32 ptr",
-			typ: &TypeImpl{Name: "float32", Value: models.TypeSliceValue, IsPtr: true, ElemType: &TypeImpl{Name: "float32", Value: models.TypeFloatValue}},
+			name:  "[]float32 ptr",
+			typ:   &TypeImpl{Name: "float32", Value: models.TypeSliceValue, IsPtr: true, ElemType: &TypeImpl{Name: "float32", Value: models.TypeFloatValue}},
 			input: []any{1.5, 2.5},
 			expected: func() any {
 				v := []float32{1.5, 2.5}

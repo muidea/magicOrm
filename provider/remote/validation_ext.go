@@ -3,11 +3,12 @@ package remote
 import (
 	"fmt"
 
+	"log/slog"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/validation"
 	"github.com/muidea/magicOrm/validation/errors"
-	"log/slog"
 )
 
 // ValidationExtension provides scenario-aware validation for remote provider

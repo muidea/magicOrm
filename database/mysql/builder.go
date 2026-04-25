@@ -5,11 +5,12 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 
+	"log/slog"
+
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
-	"log/slog"
 )
 
 // Builder Builder

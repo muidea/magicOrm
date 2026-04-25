@@ -9,9 +9,10 @@ import (
 
 	_ "github.com/lib/pq" //引入PostgreSQL驱动
 
+	"log/slog"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/database"
-	"log/slog"
 )
 
 const defaultSSLMode = "disable"

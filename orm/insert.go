@@ -7,6 +7,8 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 
+	"log/slog"
+
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/metrics"
@@ -14,7 +16,6 @@ import (
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/utils"
 	"github.com/muidea/magicOrm/validation/errors"
-	"log/slog"
 )
 
 func isRequiredRelationField(field models.Field) bool {
