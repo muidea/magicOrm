@@ -34,8 +34,15 @@ const maxDeepLevel = 3
 type Orm interface {
 	Create(entity models.Model) *cd.Error
 	Drop(entity models.Model) *cd.Error
+	// Reconcile applies only safe, additive differences between two registered
+	// model declarations. Destructive changes are rejected before any SQL runs.
+	Reconcile(previous models.Model, current models.Model) *cd.Error
 	Insert(entity models.Model) (models.Model, *cd.Error)
 	Update(entity models.Model) (models.Model, *cd.Error)
+	// UpdateWithFilter performs a single-table conditional update and returns
+	// the database affected-row count. It is suitable for compare-and-set
+	// transitions and participates in an explicitly started transaction.
+	UpdateWithFilter(entity models.Model, filter models.Filter) (int64, *cd.Error)
 	Delete(entity models.Model) (models.Model, *cd.Error)
 	Query(entity models.Model) (models.Model, *cd.Error)
 	Count(filter models.Filter) (int64, *cd.Error)

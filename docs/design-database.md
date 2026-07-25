@@ -61,7 +61,15 @@ Orm 通过 Runner（如 InsertRunner、QueryRunner）调用 Executor，不直接
 
 ---
 
-## 6. 索引与其它（评审 FUNC-002）
+## 6. Schema 元数据与演进
 
-- **索引**：当前设计文档与实现中，表结构由 Model 元数据生成，**未体现显式索引定义/创建 API**（如唯一索引、复合索引）。
-- 如需支持，属于未来的设计扩展项；当前版本不应假设模型标签可声明索引。
+表结构仍由 Model 声明生成，但 dynamic remote Model 现在可以同时声明：
+
+- `models.UniqueConstraint{Name, Fields}`：数据库强制的唯一键；
+- `models.Index{Name, Fields}`：普通索引。
+
+声明仅能引用当前模型的基础字段，名称和字段名必须是安全标识符；它们不是运行时 SQL 片段，也不是查询过滤条件。`Create` 会创建声明中的唯一约束和索引；`Reconcile` 只补建新声明，不会修改或删除已存在的声明。
+
+PostgreSQL 的普通索引和唯一约束创建均支持安全重试：前者使用 `IF NOT EXISTS`，后者会检查系统目录后再添加约束。这覆盖“数据库 DDL 已成功、上层 schema 元数据尚未提交”时的重试窗口。具体可演进与必须显式迁移的边界见 [design-orm.md](design-orm.md)。
+
+`UpdateWithFilter` 是与 schema 无关的单表条件 DML builder：它只接受基础字段，供上层完成 compare-and-set 状态转换；详细语义见 [design-orm.md](design-orm.md)。

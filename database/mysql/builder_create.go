@@ -36,6 +36,26 @@ func (s *Builder) BuildCreateTable(vModel models.Model) (ret database.Result, er
 
 	pkFieldName := vModel.GetPrimaryField().GetName()
 	createSQL = fmt.Sprintf("%s,\n\tPRIMARY KEY (`%s`)", createSQL, pkFieldName)
+	for _, constraint := range models.GetUniqueConstraints(vModel) {
+		if constraintErr := constraint.Verify(vModel.GetFields()); constraintErr != nil {
+			return nil, constraintErr
+		}
+		fields := make([]string, 0, len(constraint.Fields))
+		for _, field := range constraint.Fields {
+			fields = append(fields, fmt.Sprintf("`%s`", field))
+		}
+		createSQL = fmt.Sprintf("%s,\n\tCONSTRAINT `%s` UNIQUE (%s)", createSQL, constraint.Name, strings.Join(fields, ", "))
+	}
+	for _, index := range models.GetIndexes(vModel) {
+		if indexErr := index.Verify(vModel.GetFields()); indexErr != nil {
+			return nil, indexErr
+		}
+		fields := make([]string, 0, len(index.Fields))
+		for _, field := range index.Fields {
+			fields = append(fields, fmt.Sprintf("`%s`", field))
+		}
+		createSQL = fmt.Sprintf("%s,\n\tINDEX `%s` (%s)", createSQL, index.Name, strings.Join(fields, ", "))
+	}
 
 	createSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", s.buildCodec.ConstructModelTableName(vModel), createSQL)
 	if traceSQL() {
@@ -43,6 +63,45 @@ func (s *Builder) BuildCreateTable(vModel models.Model) (ret database.Result, er
 	}
 
 	ret = NewError(createSQL, nil)
+	return
+}
+
+// BuildAddColumn creates the additive part of a MySQL model evolution. MySQL
+// has no portable IF NOT EXISTS form for ADD COLUMN, therefore the ORM model
+// declaration is used as the migration ledger and failures remain fail-closed.
+func (s *Builder) BuildAddColumn(vModel models.Model, vField models.Field) (ret database.Result, err *cd.Error) {
+	if !models.IsBasicField(vField) {
+		return nil, cd.NewError(cd.IllegalParam, "schema add column requires a basic field")
+	}
+	info, infoErr := s.declareFieldInfo(vField)
+	if infoErr != nil {
+		return nil, infoErr
+	}
+	ret = NewError(fmt.Sprintf("ALTER TABLE `%s` ADD COLUMN %s", s.buildCodec.ConstructModelTableName(vModel), info), nil)
+	return
+}
+
+func (s *Builder) BuildCreateUniqueConstraint(vModel models.Model, constraint models.UniqueConstraint) (ret database.Result, err *cd.Error) {
+	if err = constraint.Verify(vModel.GetFields()); err != nil {
+		return nil, err
+	}
+	fields := make([]string, 0, len(constraint.Fields))
+	for _, field := range constraint.Fields {
+		fields = append(fields, fmt.Sprintf("`%s`", field))
+	}
+	ret = NewError(fmt.Sprintf("ALTER TABLE `%s` ADD CONSTRAINT `%s` UNIQUE (%s)", s.buildCodec.ConstructModelTableName(vModel), constraint.Name, strings.Join(fields, ", ")), nil)
+	return
+}
+
+func (s *Builder) BuildCreateIndex(vModel models.Model, index models.Index) (ret database.Result, err *cd.Error) {
+	if err = index.Verify(vModel.GetFields()); err != nil {
+		return nil, err
+	}
+	fields := make([]string, 0, len(index.Fields))
+	for _, field := range index.Fields {
+		fields = append(fields, fmt.Sprintf("`%s`", field))
+	}
+	ret = NewError(fmt.Sprintf("CREATE INDEX `%s` ON `%s` (%s)", index.Name, s.buildCodec.ConstructModelTableName(vModel), strings.Join(fields, ", ")), nil)
 	return
 }
 

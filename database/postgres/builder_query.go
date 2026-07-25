@@ -11,6 +11,19 @@ import (
 	"github.com/muidea/magicOrm/models"
 )
 
+type privateReadFieldSelector interface {
+	AllowsPrivateReadField(name string) bool
+}
+
+func isWriteOnlyFieldSelectedForQuery(vModel models.Model, field models.Field) bool {
+	constraints := field.GetSpec().GetConstraints()
+	if constraints == nil || !constraints.Has(models.KeyWriteOnly) {
+		return true
+	}
+	selector, ok := vModel.(privateReadFieldSelector)
+	return ok && selector.AllowsPrivateReadField(field.GetName())
+}
+
 // BuildQuery build query sql
 func (s *Builder) BuildQuery(vModel models.Model, filter models.Filter) (ret database.Result, err *cd.Error) {
 	namesVal, nameErr := s.getFieldQueryNames(vModel)
@@ -133,9 +146,7 @@ func (s *Builder) getFieldQueryNames(vModel models.Model) (ret string, err *cd.E
 	str := ""
 	for _, field := range vModel.GetFields() {
 		// 检查 wo 约束，这些字段在查询时应该被排除
-		fSpec := field.GetSpec()
-		constraints := fSpec.GetConstraints()
-		if constraints != nil && constraints.Has(models.KeyWriteOnly) {
+		if !isWriteOnlyFieldSelectedForQuery(vModel, field) {
 			continue
 		}
 		// Query 时：基础列中，已赋值或“值类型 slice”（如 []int）均拉取，以便完整加载行；指针型未赋值不拉取
@@ -167,9 +178,7 @@ func (s *Builder) BuildModuleValueHolder(vModel models.Model) (ret []any, err *c
 			continue
 		}
 		// 检查 wo 约束，这些字段在查询时应该被排除
-		fSpec := field.GetSpec()
-		constraints := fSpec.GetConstraints()
-		if constraints != nil && constraints.Has(models.KeyWriteOnly) {
+		if !isWriteOnlyFieldSelectedForQuery(vModel, field) {
 			continue
 		}
 

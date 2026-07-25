@@ -13,8 +13,10 @@
 |------|------|------|
 | Create | `Create(entity models.Model) *cd.Error` | 创建表（含关联表） |
 | Drop | `Drop(entity models.Model) *cd.Error` | 删除表 |
+| Reconcile | `Reconcile(previous, current models.Model) *cd.Error` | 仅执行安全的增量 schema 演进 |
 | Insert | `Insert(entity models.Model) (models.Model, *cd.Error)` | 插入单条，返回带主键的 Model |
 | Update | `Update(entity models.Model) (models.Model, *cd.Error)` | 更新单条 |
+| UpdateWithFilter | `UpdateWithFilter(entity, filter) (int64, *cd.Error)` | 单表条件更新，返回受影响行数 |
 | Delete | `Delete(entity models.Model) (models.Model, *cd.Error)` | 删除单条 |
 | Query | `Query(entity models.Model) (models.Model, *cd.Error)` | 按模型已赋值字段查询单条 |
 | Count | `Count(filter models.Filter) (int64, *cd.Error)` | 按条件计数 |
@@ -55,7 +57,22 @@
 - **Create**：会递归创建该实体表及其**所有**关系字段对应的关系表；先创建依赖的包含关系实体表，再创建 host 表，再创建各关系表。关联表创建顺序与依赖解析见 [design-relation.md](design-relation.md)。
 - **Drop**：仅处理**当前 Model 对应的数据表**（即该实体表 + 以该实体为 host 的关系表）；不级联删除其它实体表或对端实体表中的数据，由调用方按需自行删除。
 
-### 2.6 运行路径
+### 2.6 Schema 演进
+
+`Reconcile(previous, current)` 只允许不会丢失既有数据的增量变更：新增可空基础字段、新增关系表、新增唯一约束和新增普通索引。它不会猜测字段重命名，也不会执行回填或删除数据。
+
+以下变更会在执行 SQL 前返回 `InvalidOperation`（消息以 `schema migration required:` 开头）：删除或重命名字段、修改字段类型/主键/默认值、增加非空字段、修改或删除既有唯一约束/索引。调用方必须显式处理这类迁移；若上层采用“按声明重建 schema”的策略，应由上层完成重建和元数据更新。
+
+### 2.7 条件更新
+
+`UpdateWithFilter` 用于 compare-and-set 状态迁移，例如一次性消费授权码或轮换 refresh token。它把已赋值的可写基础字段与 `Filter` 一起编译为一条 `UPDATE ... WHERE ...`，并返回数据库实际影响的行数。
+
+- 受影响行数为 `0` 表示条件未满足，调用方应按业务语义拒绝或重试；
+- 更新字段和过滤字段都只能是基础字段，关系字段会被拒绝；
+- `Filter` 必须绑定同一模型且至少包含一个条件，避免无条件批量更新；
+- 显式事务开启时，该更新参与当前 Orm 实例的事务。
+
+### 2.8 运行路径
 
 - **Insert**：`validateModel` -> `InsertRunner` -> 先写 host，再写 relation，必要时回填主键和默认值声明。
 - **Update**：`validateModel` -> `UpdateRunner` -> 先更新 host，再按关系类型刷新 relation。
@@ -89,14 +106,14 @@
   - 当前实现优先修正“返回字段语义”，尚未把 SQL `SELECT` 列彻底缩减到与 `ValueMask/View` 完全一致。
 - **BatchQuery / Count**：基于 `models.Filter` 走 builder 生成 SQL。
 
-### 2.7 事务与资源
+### 2.9 事务与资源
 
 - **事务**：在同一 Orm 实例上顺序调用 `BeginTransaction()` → 若干 Insert/Update/Delete/Query → `CommitTransaction()` 或 `RollbackTransaction()`；无返回 `Tx` 的 API。事务隔离级别、超时、死锁等按**数据库与 context 默认值**处理，当前不提供单独配置项。
 - **单次 CRUD 与事务**：每次 Insert/Update/Delete 等操作在实现上均在同一事务内完成，并在当次操作结束时自动提交或回滚（成功则提交，失败则回滚），无需调用方在单次 CRUD 后显式 Commit/Rollback。
 - **并发**：同一 Orm 实例的**并发安全由外部调用方保证**（如单 goroutine 使用或由调用方加锁）；框架不在此层做并发保护。
 - **Release**：释放 Orm 占用的资源（如连接池引用）；应在使用完毕后调用。因每次 CRUD 都会在当次操作内完成提交或回滚，正常情况下不存在「未提交事务」；若在已调用 `BeginTransaction()` 且未 `CommitTransaction()`/`RollbackTransaction()` 的情况下调用 Release，行为以实现为准，建议调用方保证事务在 Release 前已结束。
 
-### 2.8 错误处理
+### 2.10 错误处理
 
 - 各方法返回 `*cd.Error`，错误码与含义见 [error-codes.md](error-codes.md)。常见为 `IllegalParam`（参数非法）、`NotFound`（Query 无匹配）。
 
@@ -108,8 +125,10 @@
 type Orm interface {
     Create(entity models.Model) *cd.Error
     Drop(entity models.Model) *cd.Error
+    Reconcile(previous models.Model, current models.Model) *cd.Error
     Insert(entity models.Model) (models.Model, *cd.Error)
     Update(entity models.Model) (models.Model, *cd.Error)
+    UpdateWithFilter(entity models.Model, filter models.Filter) (int64, *cd.Error)
     Delete(entity models.Model) (models.Model, *cd.Error)
     Query(entity models.Model) (models.Model, *cd.Error)
     Count(filter models.Filter) (int64, *cd.Error)

@@ -51,6 +51,19 @@ type relationPrefetchGroup struct {
 	leftIDs []any
 }
 
+type privateReadFieldSelector interface {
+	AllowsPrivateReadField(name string) bool
+}
+
+func isWriteOnlyFieldSelectedForQuery(vModel models.Model, field models.Field) bool {
+	constraints := field.GetSpec().GetConstraints()
+	if constraints == nil || !constraints.Has(models.KeyWriteOnly) {
+		return true
+	}
+	selector, ok := vModel.(privateReadFieldSelector)
+	return ok && selector.AllowsPrivateReadField(field.GetName())
+}
+
 func durationMs(val time.Duration) float64 {
 	return float64(val) / float64(time.Millisecond)
 }
@@ -73,9 +86,7 @@ func selectedQueryBasicFieldIndexes(vModel models.Model) []int {
 			continue
 		}
 
-		fSpec := field.GetSpec()
-		constraints := fSpec.GetConstraints()
-		if constraints != nil && constraints.Has(models.KeyWriteOnly) {
+		if !isWriteOnlyFieldSelectedForQuery(vModel, field) {
 			continue
 		}
 

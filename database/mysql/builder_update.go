@@ -43,6 +43,60 @@ func (s *Builder) BuildUpdate(vModel models.Model) (ret database.Result, err *cd
 	return
 }
 
+// BuildUpdateWithFilter builds a conditional single-table update. It is used
+// by callers that need compare-and-set semantics and therefore must observe
+// the affected row count from the executor.
+func (s *Builder) BuildUpdateWithFilter(vModel models.Model, filter models.Filter) (ret database.Result, err *cd.Error) {
+	if vModel == nil {
+		return nil, cd.NewError(cd.IllegalParam, "model is nil")
+	}
+	if filter == nil {
+		return nil, cd.NewError(cd.IllegalParam, "filter is nil")
+	}
+	if (filter.GetName() != "" && filter.GetName() != vModel.GetName()) ||
+		(filter.GetPkgPath() != "" && filter.GetPkgPath() != vModel.GetPkgPath()) {
+		return nil, cd.NewError(cd.IllegalParam, "filter does not match model")
+	}
+
+	resultStackPtr := &ResultStack{}
+	updateStr, updateErr := s.buildFieldUpdateValues(vModel, resultStackPtr)
+	if updateErr != nil {
+		return nil, updateErr
+	}
+	if updateStr == "" {
+		return nil, cd.NewError(cd.IllegalParam, "no writable fields to update")
+	}
+
+	filterFieldCount := 0
+	for _, field := range vModel.GetFields() {
+		if filter.GetFilterItem(field.GetName()) == nil {
+			continue
+		}
+		if !models.IsBasicField(field) {
+			return nil, cd.NewError(cd.IllegalParam, "conditional update filter must use basic fields only")
+		}
+		filterFieldCount++
+	}
+	if filterFieldCount == 0 {
+		return nil, cd.NewError(cd.IllegalParam, "conditional update filter is empty")
+	}
+
+	filterStr, filterErr := s.buildFilter(vModel, filter, resultStackPtr)
+	if filterErr != nil {
+		return nil, filterErr
+	}
+	if filterStr == "" {
+		return nil, cd.NewError(cd.IllegalParam, "conditional update filter is empty")
+	}
+
+	updateSQL := fmt.Sprintf("UPDATE `%s` SET %s WHERE %s", s.buildCodec.ConstructModelTableName(vModel), updateStr, filterStr)
+	if traceSQL() {
+		slog.Info("[SQL] conditional update", "sql", updateSQL)
+	}
+	resultStackPtr.SetSQL(updateSQL)
+	return resultStackPtr, nil
+}
+
 func (s *Builder) buildFieldUpdateValues(vModel models.Model, resultStackPtr *ResultStack) (ret string, err *cd.Error) {
 	str := ""
 	for _, field := range vModel.GetFields() {

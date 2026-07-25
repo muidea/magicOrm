@@ -527,3 +527,80 @@ func TestBuilderVMIUpdateUsesAssignedBasicFieldsOnly(t *testing.T) {
 		t.Fatalf("unexpected partial update args: got=%#v want=%#v", updateResult.Args(), wantUpdateArgs)
 	}
 }
+
+func TestBuilderVMIUpdateWithFilterBuildsCompareAndSetStatement(t *testing.T) {
+	remoteProvider := provider.NewRemoteProvider("tenant", nil)
+	registerAllVMIRemoteModels(t, remoteProvider)
+
+	productModel, err := remoteProvider.GetEntityModel(&remote.ObjectValue{
+		Name:    "product",
+		PkgPath: "/vmi",
+		Fields: []*remote.FieldValue{
+			{Name: "name", Value: "apple-updated"},
+		},
+	}, true)
+	if err != nil {
+		t.Fatalf("GetEntityModel(product update value) failed: %v", err)
+	}
+	filter, err := remoteProvider.GetModelFilter(productModel)
+	if err != nil {
+		t.Fatalf("GetModelFilter(product) failed: %v", err)
+	}
+	if err := filter.Equal("name", "apple"); err != nil {
+		t.Fatalf("filter.Equal(name) failed: %v", err)
+	}
+	if err := filter.Equal("expire", 30); err != nil {
+		t.Fatalf("filter.Equal(expire) failed: %v", err)
+	}
+
+	builder := NewBuilder(remoteProvider, codec.New(remoteProvider, "tenant"))
+	result, err := builder.BuildUpdateWithFilter(productModel, filter)
+	if err != nil {
+		t.Fatalf("BuildUpdateWithFilter failed: %v", err)
+	}
+	if got, want := result.SQL(), `UPDATE "tenant_Product" SET "name" = $1 WHERE "name" = $2 AND "expire" = $3`; got != want {
+		t.Fatalf("unexpected conditional update sql: got=%s want=%s", got, want)
+	}
+	if got, want := result.Args(), []any{"apple-updated", "apple", 30}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("unexpected conditional update args: got=%#v want=%#v", got, want)
+	}
+}
+
+func TestBuilderVMIUpdateWithFilterRejectsUnsafeFilters(t *testing.T) {
+	remoteProvider := provider.NewRemoteProvider("tenant", nil)
+	registerAllVMIRemoteModels(t, remoteProvider)
+	productModel, err := remoteProvider.GetEntityModel(&remote.ObjectValue{
+		Name:    "product",
+		PkgPath: "/vmi",
+		Fields: []*remote.FieldValue{
+			{Name: "name", Value: "apple-updated"},
+		},
+	}, true)
+	if err != nil {
+		t.Fatalf("GetEntityModel(product update value) failed: %v", err)
+	}
+	builder := NewBuilder(remoteProvider, codec.New(remoteProvider, "tenant"))
+
+	emptyFilter, err := remoteProvider.GetModelFilter(productModel)
+	if err != nil {
+		t.Fatalf("GetModelFilter(product) failed: %v", err)
+	}
+	if _, err := builder.BuildUpdateWithFilter(productModel, emptyFilter); err == nil || err.Code != cd.IllegalParam {
+		t.Fatalf("empty conditional filter should be rejected, got: %v", err)
+	}
+
+	relationFilter, err := remoteProvider.GetModelFilter(productModel)
+	if err != nil {
+		t.Fatalf("GetModelFilter(product) failed: %v", err)
+	}
+	if err := relationFilter.Equal("status", &remote.ObjectValue{
+		Name:    "status",
+		PkgPath: "/vmi",
+		Fields:  []*remote.FieldValue{{Name: "id", Value: int64(1)}},
+	}); err != nil {
+		t.Fatalf("relationFilter.Equal(status) failed: %v", err)
+	}
+	if _, err := builder.BuildUpdateWithFilter(productModel, relationFilter); err == nil || err.Code != cd.IllegalParam {
+		t.Fatalf("relation conditional filter should be rejected, got: %v", err)
+	}
+}

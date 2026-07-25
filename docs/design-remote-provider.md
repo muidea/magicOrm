@@ -36,6 +36,8 @@
 |------|------|
 | `Name` / `PkgPath` | 模型身份 |
 | `Fields []*Field` | 字段定义与当前值 |
+| `UniqueConstraints` | 数据库唯一键声明，JSON 字段为 `uniqueConstraints` |
+| `Indexes` | 普通索引声明，JSON 字段为 `indexes` |
 | `valueValidator` | 赋值时使用的 value validator |
 | `viewSpec` | 当前复制视图，用于控制赋值与导出边界 |
 
@@ -45,7 +47,20 @@
 - `DetailView` / `LiteView`：只有声明了对应 view 的字段被初始化；
 - `OriginView`：保留原始字段赋值状态。
 
-### 2.2 `ObjectValue`
+### 2.2 Schema 元数据
+
+`UniqueConstraints` 和 `Indexes` 随 `Object` JSON 传递，并在 `Copy(...)` 时保留。每项都由名称和基础字段名列表组成，例如：
+
+```json
+{
+  "uniqueConstraints": [{"name": "uq_namespace_token", "fields": ["namespace", "tokenHash"]}],
+  "indexes": [{"name": "idx_namespace_expire", "fields": ["namespace", "expireAt"]}]
+}
+```
+
+它们是受模型校验的 schema 声明，不是调用方可注入的 SQL，也不参与普通查询过滤。`Create` 会应用这些声明；`Reconcile` 仅补建新增声明。详情见 [design-database.md](design-database.md)。
+
+### 2.3 `ObjectValue`
 
 `ObjectValue` 是 remote 侧的**值载体**，用于：
 
@@ -69,7 +84,7 @@
 - 显式赋值为 `nil` 的字段会导出，便于 update 场景表达“清空关系”；
 - `FieldValue.Assigned` 是 remote 协议状态，会跟随 JSON 一起编码/解码，并影响 `SetModelValue(...)` 如何解释零值和 `Value:nil`。
 
-### 2.3 `SliceObjectValue`
+### 2.4 `SliceObjectValue`
 
 `SliceObjectValue` 表示 remote 侧的 struct slice 值，常用于关系字段或顶层对象集合。
 

@@ -99,8 +99,10 @@
 
 说明：
 
-- `global_postgres.go` 是默认配置，`//go:build !mysql`
+- `global_postgres.go` 是默认配置，`//go:build !mysql`；可用 `MAGICORM_POSTGRES_SERVER`、`MAGICORM_POSTGRES_DATABASE`、`MAGICORM_POSTGRES_USER`、`MAGICORM_POSTGRES_PASSWORD` 覆盖连接信息
 - `global_mysql.go` 在 `-tags mysql` 时生效
+
+集成测试会建表、写入和删表；`testdb` 必须是隔离测试库，不能复用正在运行服务的数据库。
 
 `compose_helpers_test.go` 只保存 Local/Remote 共享的准备逻辑；真正的测试入口已经拆到 `compose_local_test.go` 和 `compose_remote_test.go`。
 

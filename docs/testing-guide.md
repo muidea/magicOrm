@@ -25,7 +25,7 @@
 
 ### 2.1 默认：PostgreSQL
 
-`test/global_postgres.go` 使用：
+`test/global_postgres.go` 默认使用：
 
 - 地址：`localhost:5432`
 - 数据库：`testdb`
@@ -39,6 +39,18 @@
 ```
 
 因此默认执行 `go test ./test` 时，会走 PostgreSQL 配置。
+
+在容器或 CI 环境中，可通过以下变量覆盖默认连接信息，避免把部署凭据写入代码：
+
+```bash
+export MAGICORM_POSTGRES_SERVER=localhost:5432
+export MAGICORM_POSTGRES_DATABASE=testdb
+export MAGICORM_POSTGRES_USER=postgres
+export MAGICORM_POSTGRES_PASSWORD='…'
+go test ./test --count 1
+```
+
+`testdb` 必须是隔离测试库，不能指向正在由服务使用的数据库。集成测试会创建、写入并删除多张表；推荐使用一次性的本地/容器 PostgreSQL 实例，并将 `MAGICORM_POSTGRES_DATABASE` 显式设置为该实例中的 `testdb`。
 
 ### 2.2 MySQL 变体
 
@@ -62,6 +74,8 @@ go test -tags mysql ./test --count 1
 ```
 
 时，`test` 包会切换为 MySQL 配置。
+
+当前发布验证以 PostgreSQL 为目标。MySQL 的 builder 和既有测试入口仍保留，但本轮不新增 MySQL 集成验证或兼容性调整。
 
 ---
 

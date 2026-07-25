@@ -50,13 +50,15 @@
 | 你想确认的问题 | 文档 |
 |------|------|
 | Orm 有哪些公开接口，事务怎么用 | [design-orm.md](design-orm.md) |
+| 如何做条件状态更新或判断影响行数 | [design-orm.md](design-orm.md) |
+| 哪些 schema 变更可自动补建，哪些必须显式迁移 | [design-orm.md](design-orm.md) |
 | Local/Remote Provider 各自负责什么 | [design-provider.md](design-provider.md) |
 | `models.Model` / `Filter` / `ViewDeclare` 是怎么定义的 | [design-models.md](design-models.md) |
 | Query / BatchQuery 返回字段为什么只给子对象 lite | [design-orm.md](design-orm.md) |
 | 关系字段怎么判定引用/包含，关系表怎么命名 | [design-relation.md](design-relation.md) |
 | 为什么 Insert/Update/Delete 会报验证错误 | [design-validation.md](design-validation.md) |
-| 数据库连接、Executor、Pool、DSN 是怎么组织的 | [design-database.md](design-database.md) |
-| Remote 的 `Object` / `ObjectValue` / `SliceObjectValue` 怎么工作 | [design-remote-provider.md](design-remote-provider.md) |
+| 数据库连接、Executor、Pool、DSN、唯一约束与索引是怎么组织的 | [design-database.md](design-database.md) |
+| Remote 的 `Object` / `ObjectValue` / `SliceObjectValue` 及 schema 元数据怎么工作 | [design-remote-provider.md](design-remote-provider.md) |
 | `test/vmi` 下的 remote schema 和运行时实现怎么对齐 | [design-remote-provider.md](design-remote-provider.md) |
 | ORM 指标在哪里注册，哪些指标是稳定能力 | [design-metrics.md](design-metrics.md) |
 | struct tag 怎么写，`view` / `constraint` 怎么配 | [tags-reference.md](tags-reference.md) |
@@ -73,13 +75,13 @@
 
 | 文档 | 作用 |
 |------|------|
-| [design-orm.md](design-orm.md) | Orm 对外接口、事务模型、CRUD 路径、限制 |
+| [design-orm.md](design-orm.md) | Orm 对外接口、事务、CRUD、条件更新、schema 演进边界 |
 | [design-provider.md](design-provider.md) | Provider 接口、Local/Remote 分工与入口语义 |
 | [design-models.md](design-models.md) | Model、Field、Filter、ViewDeclare、ValueDeclare |
 | [design-relation.md](design-relation.md) | 引用/包含关系、关系表、Insert/Update/Delete/Query 语义 |
 | [design-validation.md](design-validation.md) | 验证系统四层结构、场景、错误与扩展点 |
-| [design-database.md](design-database.md) | Executor、Pool、Config、Builder 相关边界 |
-| [design-remote-provider.md](design-remote-provider.md) | Remote Object/ObjectValue/SliceObjectValue、VMI 对齐、helper/filter/codec/runner/builder 行为 |
+| [design-database.md](design-database.md) | Executor、Pool、Config、Builder、唯一约束/索引相关边界 |
+| [design-remote-provider.md](design-remote-provider.md) | Remote Object/ObjectValue/SliceObjectValue、schema 元数据、VMI 对齐、helper/filter/codec/runner/builder 行为 |
 | [design-metrics.md](design-metrics.md) | ORM 指标、注册方式、当前可用范围 |
 | [tags-reference.md](tags-reference.md) | `orm` / `constraint` / `view` 标签语法 |
 | [type-mapping.md](type-mapping.md) | Go 类型、models 类型、数据库类型映射 |

@@ -36,13 +36,85 @@ func (s *Builder) BuildCreateTable(vModel models.Model) (ret database.Result, er
 
 	pkFieldName := vModel.GetPrimaryField().GetName()
 	createSQL = fmt.Sprintf("%s,\n\tPRIMARY KEY (\"%s\")", createSQL, pkFieldName)
+	for _, constraint := range models.GetUniqueConstraints(vModel) {
+		if constraintErr := constraint.Verify(vModel.GetFields()); constraintErr != nil {
+			return nil, constraintErr
+		}
+		fields := make([]string, 0, len(constraint.Fields))
+		for _, field := range constraint.Fields {
+			fields = append(fields, fmt.Sprintf("\"%s\"", field))
+		}
+		createSQL = fmt.Sprintf("%s,\n\tCONSTRAINT \"%s\" UNIQUE (%s)", createSQL, constraint.Name, strings.Join(fields, ", "))
+	}
 
 	createSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS \"%s\" (\n%s\n)\n", s.buildCodec.ConstructModelTableName(vModel), createSQL)
+	for _, index := range models.GetIndexes(vModel) {
+		if indexErr := index.Verify(vModel.GetFields()); indexErr != nil {
+			return nil, indexErr
+		}
+		fields := make([]string, 0, len(index.Fields))
+		for _, field := range index.Fields {
+			fields = append(fields, fmt.Sprintf("\"%s\"", field))
+		}
+		createSQL = fmt.Sprintf("%s;\nCREATE INDEX IF NOT EXISTS \"%s\" ON \"%s\" (%s)", createSQL, index.Name, s.buildCodec.ConstructModelTableName(vModel), strings.Join(fields, ", "))
+	}
 	if traceSQL() {
 		slog.Info("[SQL] create", "sql", createSQL)
 	}
 
 	ret = NewError(createSQL, nil)
+	return
+}
+
+// BuildAddColumn creates an idempotent, additive PostgreSQL migration.  It is
+// intentionally limited to one declared basic field; relation storage is
+// created through BuildCreateRelationTable.
+func (s *Builder) BuildAddColumn(vModel models.Model, vField models.Field) (ret database.Result, err *cd.Error) {
+	if !models.IsBasicField(vField) {
+		return nil, cd.NewError(cd.IllegalParam, "schema add column requires a basic field")
+	}
+	info, infoErr := s.declareFieldInfo(vField)
+	if infoErr != nil {
+		return nil, infoErr
+	}
+	ret = NewError(fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN IF NOT EXISTS %s", s.buildCodec.ConstructModelTableName(vModel), info), nil)
+	return
+}
+
+// BuildCreateUniqueConstraint creates a declared unique key. PostgreSQL does
+// not support ALTER TABLE ADD CONSTRAINT IF NOT EXISTS, so use its catalog to
+// make the operation safe to retry after the database DDL succeeds but the
+// caller fails before persisting its schema metadata.
+func (s *Builder) BuildCreateUniqueConstraint(vModel models.Model, constraint models.UniqueConstraint) (ret database.Result, err *cd.Error) {
+	if err = constraint.Verify(vModel.GetFields()); err != nil {
+		return nil, err
+	}
+	tableName := s.buildCodec.ConstructModelTableName(vModel)
+	fields := make([]string, 0, len(constraint.Fields))
+	for _, field := range constraint.Fields {
+		fields = append(fields, fmt.Sprintf("\"%s\"", field))
+	}
+	ret = NewError(fmt.Sprintf(`DO $$
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint
+		WHERE conrelid = '"%s"'::regclass AND conname = '%s'
+	) THEN
+		ALTER TABLE "%s" ADD CONSTRAINT "%s" UNIQUE (%s);
+	END IF;
+END $$`, tableName, constraint.Name, tableName, constraint.Name, strings.Join(fields, ", ")), nil)
+	return
+}
+
+func (s *Builder) BuildCreateIndex(vModel models.Model, index models.Index) (ret database.Result, err *cd.Error) {
+	if err = index.Verify(vModel.GetFields()); err != nil {
+		return nil, err
+	}
+	fields := make([]string, 0, len(index.Fields))
+	for _, field := range index.Fields {
+		fields = append(fields, fmt.Sprintf("\"%s\"", field))
+	}
+	ret = NewError(fmt.Sprintf("CREATE INDEX IF NOT EXISTS \"%s\" ON \"%s\" (%s)", index.Name, s.buildCodec.ConstructModelTableName(vModel), strings.Join(fields, ", ")), nil)
 	return
 }
 

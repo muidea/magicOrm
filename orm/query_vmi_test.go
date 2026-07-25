@@ -33,9 +33,10 @@ type fakeExecutor struct {
 	currentRows [][]any
 	index       int
 
-	execCalls   []fakeExecCall
-	insertIDs   []any
-	insertIndex int
+	execCalls        []fakeExecCall
+	execRowsAffected int64
+	insertIDs        []any
+	insertIndex      int
 
 	beginCalls    int
 	commitCalls   int
@@ -128,7 +129,7 @@ func (s *fakeExecutor) GetField(value ...any) *cd.Error {
 
 func (s *fakeExecutor) Execute(sql string, args ...any) (int64, *cd.Error) {
 	s.execCalls = append(s.execCalls, fakeExecCall{kind: "exec", sql: sql, args: append([]any(nil), args...)})
-	return 0, nil
+	return s.execRowsAffected, nil
 }
 
 func (s *fakeExecutor) ExecuteInsert(sql string, pkValOut any, args ...any) *cd.Error {

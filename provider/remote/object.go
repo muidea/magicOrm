@@ -3,6 +3,7 @@ package remote
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"path"
 	"reflect"
 
@@ -31,10 +32,49 @@ type Object struct {
 	PkgPath     string   `json:"pkgPath"`
 	Description string   `json:"description"`
 	Fields      []*Field `json:"fields"`
+	// UniqueConstraints are schema declarations applied by magicOrm when the
+	// model is created. They are not query filters or caller-provided SQL.
+	UniqueConstraints []models.UniqueConstraint `json:"uniqueConstraints,omitempty"`
+	// Indexes are non-unique lifecycle indexes for state/expiry queries.
+	Indexes []models.Index `json:"indexes,omitempty"`
 
 	// 临时变量不进行数据序列化传递
 	valueValidator models.ValueValidator `json:"-"`
 	viewSpec       models.ViewDeclare    `json:"-"`
+	// privateReadFields is intentionally process-local. It is never serialized
+	// in VMI/entity metadata and can only be enabled by a trusted storage path.
+	privateReadFields map[string]struct{} `json:"-"`
+}
+
+// EnablePrivateReadFields permits the named write-only basic fields to be
+// selected by a trusted storage path. Normal ORM queries keep omitting every
+// write-only field. This flag is deliberately not part of Object JSON.
+func (s *Object) EnablePrivateReadFields(names []string) *cd.Error {
+	if len(names) == 0 {
+		return cd.NewError(cd.IllegalParam, "private read fields are empty")
+	}
+	if s.privateReadFields == nil {
+		s.privateReadFields = make(map[string]struct{}, len(names))
+	}
+	for _, name := range names {
+		field := s.GetField(name)
+		if field == nil || !models.IsBasicField(field) {
+			return cd.NewError(cd.IllegalParam, "private read field is unavailable")
+		}
+		constraints := field.GetSpec().GetConstraints()
+		if constraints == nil || !constraints.Has(models.KeyWriteOnly) {
+			return cd.NewError(cd.IllegalParam, "private read field is not write-only")
+		}
+		s.privateReadFields[name] = struct{}{}
+	}
+	return nil
+}
+
+// AllowsPrivateReadField reports whether a trusted storage path explicitly
+// selected this write-only field for the current in-process query.
+func (s *Object) AllowsPrivateReadField(name string) bool {
+	_, ok := s.privateReadFields[name]
+	return ok
 }
 
 // ObjectValue Object value
@@ -100,6 +140,32 @@ func (s *Object) GetFields() (ret models.Fields) {
 	}
 
 	return
+}
+
+// GetUniqueConstraints returns a copy so callers cannot mutate registered
+// schema metadata after the object has been validated.
+func (s *Object) GetUniqueConstraints() []models.UniqueConstraint {
+	if len(s.UniqueConstraints) == 0 {
+		return nil
+	}
+	ret := make([]models.UniqueConstraint, len(s.UniqueConstraints))
+	for idx, constraint := range s.UniqueConstraints {
+		ret[idx] = models.UniqueConstraint{Name: constraint.Name, Fields: append([]string(nil), constraint.Fields...)}
+	}
+	return ret
+}
+
+// GetIndexes returns a copy so callers cannot mutate registered schema
+// metadata after the object has been validated.
+func (s *Object) GetIndexes() []models.Index {
+	if len(s.Indexes) == 0 {
+		return nil
+	}
+	ret := make([]models.Index, len(s.Indexes))
+	for idx, index := range s.Indexes {
+		ret[idx] = models.Index{Name: index.Name, Fields: append([]string(nil), index.Fields...)}
+	}
+	return ret
 }
 
 func (s *Object) setBasicFileValue(sf *Field, val any, disableValidator bool) (err *cd.Error) {
@@ -292,16 +358,19 @@ func (s *Object) Interface(_ bool) (ret any) {
 
 func (s *Object) Copy(viewSpec models.ViewDeclare) (ret models.Model) {
 	obj := &Object{
-		ID:          s.ID,
-		Name:        s.Name,
-		ShowName:    s.ShowName,
-		Icon:        s.Icon,
-		PkgPath:     s.PkgPath,
-		Description: s.Description,
-		Fields:      []*Field{},
+		ID:                s.ID,
+		Name:              s.Name,
+		ShowName:          s.ShowName,
+		Icon:              s.Icon,
+		PkgPath:           s.PkgPath,
+		Description:       s.Description,
+		Fields:            []*Field{},
+		UniqueConstraints: s.GetUniqueConstraints(),
+		Indexes:           s.GetIndexes(),
 
-		valueValidator: s.valueValidator,
-		viewSpec:       viewSpec,
+		valueValidator:    s.valueValidator,
+		viewSpec:          viewSpec,
+		privateReadFields: maps.Clone(s.privateReadFields),
 	}
 	for _, val := range s.Fields {
 		valPtr, valErr := val.copy(viewSpec)
@@ -333,6 +402,18 @@ func (s *Object) Verify() (err *cd.Error) {
 		err = val.verify()
 		if err != nil {
 			slog.Error("Verify field failed, name:%s, err:%s", val.Name, err.Error())
+			return
+		}
+	}
+	for _, constraint := range s.UniqueConstraints {
+		err = constraint.Verify(s.GetFields())
+		if err != nil {
+			return
+		}
+	}
+	for _, index := range s.Indexes {
+		err = index.Verify(s.GetFields())
+		if err != nil {
 			return
 		}
 	}
@@ -432,7 +513,6 @@ func (s *ObjectValue) IsAssigned() (ret bool) {
 			return
 		}
 	}
-
 	return
 }
 

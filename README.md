@@ -12,6 +12,8 @@ Golang对象的ORM框架，支持PostgreSQL和MySQL数据库。一个所见即�
 - **场景感知验证**: 支持Insert/Update/Query/Delete不同策略
 - **视图模式**: 支持detail/lite视图控制字段输出
 - **事务支持**: 完整的ACID事务处理
+- **条件更新**: 单 SQL compare-and-set 更新并返回影响行数
+- **Schema 演进**: 可安全补建字段、关系、唯一约束和索引
 - **高性能**: 连接池、批量操作和验证缓存优化
 
 ## 安装
@@ -160,14 +162,15 @@ if err != nil {
 
 ## 核心功能
 
-> 基于当前实现整理的设计文档（总览 + 按功能块拆分）见 [docs/README.md](./docs/README.md)，单文件入口 [docs/DESIGN.md](./docs/DESIGN.md)。
+> 基于当前实现整理的设计文档见 [docs/README.md](./docs/README.md)。
 
-当前仅 **Insert、Update、Delete** 会执行模型验证；**Query、BatchQuery** 不执行验证。详见 [docs/design-validation.md](./docs/design-validation.md) 与 [docs/design-checklist.md](./docs/design-checklist.md)。
+当前仅 **Insert、Update、UpdateWithFilter、Delete** 会执行模型验证；**Query、BatchQuery** 不执行验证。详见 [docs/design-validation.md](./docs/design-validation.md) 与 [docs/design-orm.md](./docs/design-orm.md)。
 
 ### CRUD操作
 
 - **Insert** - 插入单个对象
 - **Update** - 更新指定对象  
+- **UpdateWithFilter** - 单表条件更新，返回受影响行数
 - **Delete** - 删除指定对象
 - **Query** - 针对模型对象的单条查询
 - **BatchQuery** - 按条件批量查询多个对象
@@ -202,6 +205,27 @@ filter.Equal("status", "active")
 filter.Above("created_at", startTime)
 ```
 
+### 条件状态更新
+
+当状态变更必须同时验证当前状态、版本或租户时，使用 `UpdateWithFilter`，不要拆成“先查询再更新”：
+
+```go
+change, _ := localProvider.GetEntityModel(&Session{State: "consumed"}, true)
+filter, _ := localProvider.GetModelFilter(change)
+filter.Equal("namespace", "tenant-a")
+filter.Equal("state", "issued")
+
+rows, err := o1.UpdateWithFilter(change, filter)
+if err != nil {
+    return err
+}
+if rows == 0 {
+    return ErrStateChanged
+}
+```
+
+该操作仅更新基础字段，过滤条件也只能使用基础字段。完整约定见 [docs/design-orm.md](./docs/design-orm.md)。
+
 ### 模型管理
 
 ```go
@@ -210,9 +234,12 @@ err := o1.Create(model)
 
 // 删除表
 err := o1.Drop(model)
+
+// 仅补建安全的 schema 差异；不兼容变更会返回迁移错误
+err = o1.Reconcile(previousModel, currentModel)
 ```
 
-> **说明**：表存在检查当前未在 Orm 接口暴露；若需此能力可基于底层 Executor 封装，详见 [docs/design-checklist.md](./docs/design-checklist.md)。
+> **说明**：表存在检查当前未在 Orm 接口暴露；若需此能力可基于底层 Executor 封装。`Reconcile` 的安全边界见 [docs/design-orm.md](./docs/design-orm.md)。
 
 ### 事务支持
 
@@ -805,8 +832,8 @@ config = &DBOptions{
 ### 基础示例
 完整的使用示例请参考 `test/` 目录下的测试文件：
 
-- `test/simple_test.go` - 基础CRUD操作
-- `test/model_local_test.go` - 模型关系示例
+- `test/simple_local_test.go` - 基础 CRUD 操作
+- `test/reference_local_test.go` - 模型关系示例
 - `test/batch_operation_local_test.go` - 批量操作示例
 - `orm/builder_postgres_test.go` - PostgreSQL构建器测试
 
@@ -833,7 +860,7 @@ config = &DBOptions{
 - [VALIDATION_IMPLEMENTATION_PLAN.md](./VALIDATION_IMPLEMENTATION_PLAN.md) — 验证系统实施计划
 - [AGENTS.md](./AGENTS.md) — 开发指南和命令参考
 - [docs/design-metrics.md](./docs/design-metrics.md) — 监控与指标设计
-- [docs/archive/README.md](./docs/archive/README.md) — 历史/归档设计文档（仅供查阅）
+- [docs/testing-guide.md](./docs/testing-guide.md) — 测试分层与隔离测试库配置
 
 ## 许可证
 

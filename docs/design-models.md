@@ -56,6 +56,12 @@
 - **值声明**：当前实现支持 `auto`、`uuid`、`snowflake`、`datetime` 四类 `ValueDeclare`。
 - **插入时填充**：`Orm.Insert` 在 basic 字段为零值时，会分别填充自增主键回写值、UUID、雪花 ID 或当前时间；详见 [type-mapping.md](type-mapping.md)、[tags-reference.md](tags-reference.md)。
 
+### 3.2 Schema 声明
+
+`models.UniqueConstraint` 与 `models.Index` 是模型级 schema 元数据：均包含稳定名称与按顺序排列的基础字段名。当前由 dynamic remote `Object` 通过 `uniqueConstraints`、`indexes` JSON 字段承载；普通 Go struct 的 `constraint:` 标签仍只负责值验证，不声明数据库唯一键或索引。
+
+声明会在模型注册时校验：名称、字段名必须是标识符，字段必须存在且不能重复。`GetUniqueConstraints` / `GetIndexes` 返回防御性副本，调用方不能在注册后借由返回值篡改 schema。
+
 ---
 
 ## 4. 视图（ViewDeclare）（评审 MOD-004）
