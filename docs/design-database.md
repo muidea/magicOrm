@@ -72,4 +72,6 @@ Orm 通过 Runner（如 InsertRunner、QueryRunner）调用 Executor，不直接
 
 PostgreSQL 的普通索引和唯一约束创建均支持安全重试：前者使用 `IF NOT EXISTS`，后者会检查系统目录后再添加约束。这覆盖“数据库 DDL 已成功、上层 schema 元数据尚未提交”时的重试窗口。具体可演进与必须显式迁移的边界见 [design-orm.md](design-orm.md)。
 
+当 `Database()` 使用 `databaseName/schemaName` 时，建池前会以同一数据库账号在 `public` schema 上执行受限的 `CREATE SCHEMA IF NOT EXISTS`，随后才使用目标 `search_path` 建立连接。这是 magicOrm 的受控数据库生命周期，支持 magicBase 从空 PostgreSQL 卷启动；schema 名必须是字母、数字或下划线，不能由部署脚本拼接任意 SQL。
+
 `UpdateWithFilter` 是与 schema 无关的单表条件 DML builder：它只接受基础字段，供上层完成 compare-and-set 状态转换；详细语义见 [design-orm.md](design-orm.md)。

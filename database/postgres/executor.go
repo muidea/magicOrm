@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -57,26 +58,58 @@ func (s *Config) Same(cfg *Config) bool {
 }
 
 func (s *Config) GetDsn() string {
-	// dbName在实际转递时会存在databaseName/schemaName这种情况，其中schemaName是可选
-	// 所以在这里转换成dsn字符串时，进行区分处理databaseName/schemaName,databaseName这两种情况
-	dbName := s.Database()
-	schemaName := "public" // 默认schema
+	dbName, schemaName := splitDatabaseAndSchema(s.Database())
+	return postgresDSN(s, dbName, schemaName)
+}
 
-	// 检查dbName是否包含schema名称（格式：databaseName/schemaName）
-	if idx := len(dbName) - 1; idx >= 0 {
-		// 从后往前查找最后一个"/"的位置
-		for i := idx; i >= 0; i-- {
-			if dbName[i] == '/' {
-				// 找到分隔符，分割数据库名和schema名
-				schemaName = dbName[i+1:]
-				dbName = dbName[:i]
-				break
-			}
+func splitDatabaseAndSchema(value string) (databaseName, schemaName string) {
+	databaseName = strings.TrimSpace(value)
+	schemaName = "public"
+	if index := strings.LastIndex(databaseName, "/"); index >= 0 {
+		schemaName = strings.TrimSpace(databaseName[index+1:])
+		databaseName = strings.TrimSpace(databaseName[:index])
+	}
+	return databaseName, schemaName
+}
+
+func postgresDSN(config database.Config, databaseName, schemaName string) string {
+	return fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=%s&options=-c%%20search_path=%s",
+		config.Username(), config.Password(), config.Server(), databaseName, defaultSSLMode, schemaName)
+}
+
+func validSchemaName(value string) bool {
+	if value == "" {
+		return false
+	}
+	for _, item := range value {
+		if (item < 'a' || item > 'z') && (item < 'A' || item > 'Z') && (item < '0' || item > '9') && item != '_' {
+			return false
 		}
 	}
+	return true
+}
 
-	return fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=%s&options=-c%%20search_path=%s",
-		s.Username(), s.Password(), s.Server(), dbName, s.SSLMode(), schemaName)
+// ensureSchema creates the declared PostgreSQL schema before a connection is
+// opened with that schema as its search_path. This is part of magicOrm's
+// database lifecycle and lets magicBase bootstrap a fresh database without a
+// deployment SQL script.
+func ensureSchema(config database.Config) *cd.Error {
+	databaseName, schemaName := splitDatabaseAndSchema(config.Database())
+	if databaseName == "" || !validSchemaName(schemaName) {
+		return cd.NewError(cd.IllegalParam, "postgres database/schema configuration is invalid")
+	}
+	dbHandle, dbErr := sql.Open("postgres", postgresDSN(config, databaseName, "public"))
+	if dbErr != nil {
+		return cd.NewError(cd.Unexpected, dbErr.Error())
+	}
+	defer dbHandle.Close()
+	if dbErr = dbHandle.Ping(); dbErr != nil {
+		return cd.NewError(cd.Unexpected, dbErr.Error())
+	}
+	if _, dbErr = dbHandle.Exec("CREATE SCHEMA IF NOT EXISTS \"" + schemaName + "\""); dbErr != nil {
+		return cd.NewError(cd.Unexpected, dbErr.Error())
+	}
+	return nil
 }
 
 func NewConfig(dbServer, dbName, username, password string) *Config {
@@ -823,6 +856,9 @@ func NewPool() *Pool {
 
 // Initialize initialize executor pool
 func (s *Pool) Initialize(maxConnNum int, config database.Config) (err *cd.Error) {
+	if err = ensureSchema(config); err != nil {
+		return
+	}
 	if err = s.connect(config.GetDsn(), maxConnNum); err != nil {
 		return
 	}
