@@ -35,9 +35,33 @@ jobs:
         with:
           go-version: '1.24.3'
       - name: Run Query Mask Regression Tests
-        run: GOCACHE=/tmp/go-build GOMODCACHE=/tmp/go-mod-cache go test ./orm -run 'TestRelationResponseModelUsesLiteViewForLocalMaskSlice|TestBuildQueryExecutionModelKeepsExplicitMaskNarrow|TestORMQueryUsesDetailViewResponse|TestOrmPublicQueryContract' --count=1
+        run: |
+          run_test() {
+            local output
+            output="$(mktemp)"
+            if "$@" >"$output" 2>&1; then
+              rm -f "$output"
+              return 0
+            fi
+            cat "$output"
+            rm -f "$output"
+            return 1
+          }
+          run_test env GOCACHE=/tmp/go-build GOMODCACHE=/tmp/go-mod-cache go test ./orm -run 'TestRelationResponseModelUsesLiteViewForLocalMaskSlice|TestBuildQueryExecutionModelKeepsExplicitMaskNarrow|TestORMQueryUsesDetailViewResponse|TestOrmPublicQueryContract' --count=1
       - name: Test with the Go CLI use postgres
-        run: GOCACHE=/tmp/go-build GOMODCACHE=/tmp/go-mod-cache go test -count 1 ./...
+        run: |
+          run_test() {
+            local output
+            output="$(mktemp)"
+            if "$@" >"$output" 2>&1; then
+              rm -f "$output"
+              return 0
+            fi
+            cat "$output"
+            rm -f "$output"
+            return 1
+          }
+          run_test env GOCACHE=/tmp/go-build GOMODCACHE=/tmp/go-mod-cache go test -count 1 ./...
 
 #      - name: Test with the Go CLI use mysql
 #        run: go test -tags=mysql -count 1 ./...
