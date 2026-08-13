@@ -10,7 +10,7 @@ require (
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/google/go-cmp v0.7.0
 	github.com/lib/pq v1.10.9
-	github.com/muidea/magicCommon v1.5.10
+	github.com/muidea/magicCommon v1.5.11
 	github.com/stretchr/testify v1.11.1
 )
 
