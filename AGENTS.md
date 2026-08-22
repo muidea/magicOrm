@@ -4,7 +4,7 @@ This document provides essential guidelines for AI agents working on magicOrm, a
 
 ## Project Overview
 
-- **Language**: Go 1.24+
+- **Language**: Go 1.26+
 - **Database Support**: PostgreSQL and MySQL
 - **Architecture**: Provider-based (local and remote providers)
 - **Dependencies**: Uses `github.com/muidea/magicCommon` as local replace

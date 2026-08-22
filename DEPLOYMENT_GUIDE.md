@@ -16,7 +16,7 @@
 ## 系统要求
 
 ### 软件要求
-- Go 1.24+
+- Go 1.26+
 - PostgreSQL 12+ 或 MySQL 8.0+
 - 外部监控系统（可选）：Prometheus, Grafana, Datadog 等
 
@@ -395,7 +395,7 @@ func setupExternalMonitoring() monitoring.Collector {
 
 ```dockerfile
 # Dockerfile
-FROM golang:1.24-alpine AS builder
+FROM golang:1.26.7-alpine AS builder
 
 WORKDIR /app
 COPY go.mod go.sum ./
