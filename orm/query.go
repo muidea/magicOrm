@@ -994,6 +994,13 @@ func (s *QueryRunner) assignModelField(vModel models.Model, vField models.Field,
 
 func (s *QueryRunner) assignBasicField(vField models.Field, val any) (err *cd.Error) {
 	if val == nil {
+		// Query models are copied from the response mask. A nullable field in that
+		// mask can therefore carry a non-nil zero-value seed solely to select the
+		// column. SQL NULL must overwrite that seed; otherwise callers observe an
+		// invented value (for example *SubjectRef("")) instead of nil.
+		if models.IsPtrField(vField) {
+			err = vField.SetValue(nil)
+		}
 		return
 	}
 

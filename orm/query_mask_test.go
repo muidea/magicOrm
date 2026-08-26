@@ -22,6 +22,13 @@ type queryMaskViewModel struct {
 	Description string `orm:"description" view:"detail"`
 }
 
+type queryMaskSubjectRef string
+
+type queryMaskNullableModel struct {
+	ID         int64                `orm:"id key auto" view:"detail,lite"`
+	ApprovedBy *queryMaskSubjectRef `orm:"approvedBy" view:"detail,lite"`
+}
+
 type queryMaskReference struct {
 	ID          int       `orm:"id key auto"`
 	Name        string    `orm:"name"`
@@ -283,6 +290,74 @@ func registerQueryMaskViewRemoteModel(t *testing.T, remoteProvider provider.Prov
 	}
 	if _, err := remoteProvider.RegisterModel(definition); err != nil {
 		t.Fatalf("RegisterModel failed: %v", err)
+	}
+}
+
+func registerQueryMaskNullableRemoteModel(t *testing.T, remoteProvider provider.Provider) {
+	t.Helper()
+
+	definition, err := helper.GetObject(&queryMaskNullableModel{})
+	if err != nil {
+		t.Fatalf("GetObject failed: %v", err)
+	}
+	if _, err := remoteProvider.RegisterModel(definition); err != nil {
+		t.Fatalf("RegisterModel failed: %v", err)
+	}
+}
+
+func TestORMBatchQueryClearsNullablePointerMaskSeedOnSQLNull(t *testing.T) {
+	remoteProvider := provider.NewRemoteProvider("tenant", nil)
+	registerQueryMaskNullableRemoteModel(t, remoteProvider)
+
+	filter, err := remoteProvider.GetEntityFilter(&remote.ObjectValue{
+		Name:    "queryMaskNullableModel",
+		PkgPath: "github.com/muidea/magicOrm/orm",
+	}, models.LiteView)
+	if err != nil {
+		t.Fatalf("GetEntityFilter failed: %v", err)
+	}
+	if err := filter.Equal("id", int64(1)); err != nil {
+		t.Fatalf("filter.Equal(id) failed: %v", err)
+	}
+	if err := filter.ValueMask(&remote.ObjectValue{
+		Name:    "queryMaskNullableModel",
+		PkgPath: "github.com/muidea/magicOrm/orm",
+		Fields: []*remote.FieldValue{
+			{Name: "approvedBy", Value: "", Assigned: true},
+		},
+	}); err != nil {
+		t.Fatalf("ValueMask failed: %v", err)
+	}
+
+	executor := &fakeExecutor{
+		responses: []fakeQueryResponse{
+			{
+				match: func(sql string, args []any) bool {
+					return strings.Contains(sql, "tenant_QueryMaskNullableModel") &&
+						len(args) == 1 && reflect.DeepEqual(args, []any{int64(1)})
+				},
+				rows: [][]any{{int64(1), nil}},
+			},
+		},
+	}
+
+	queryImpl := &impl{
+		context:       context.Background(),
+		executor:      executor,
+		modelProvider: remoteProvider,
+		modelCodec:    codec.New(remoteProvider, "tenant"),
+	}
+	queryResultList, err := queryImpl.BatchQuery(filter)
+	if err != nil {
+		t.Fatalf("BatchQuery failed: %v", err)
+	}
+	if len(queryResultList) != 1 {
+		t.Fatalf("expected one result, got %d", len(queryResultList))
+	}
+
+	value := queryResultList[0].Interface(true).(*remote.ObjectValue)
+	if approvedBy := value.GetFieldValue("approvedBy"); approvedBy != nil {
+		t.Fatalf("SQL NULL must clear the pointer mask seed, got %#v", approvedBy)
 	}
 }
 
