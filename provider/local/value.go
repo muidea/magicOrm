@@ -83,9 +83,13 @@ func (s *ValueImpl) Set(val any) (err *cd.Error) {
 	}
 	isPtr := s.value.Kind() == reflect.Ptr
 	if !isPtr {
-		if rVal.Type() != s.value.Type() {
+		targetType := s.value.Type()
+		if rVal.Type() != targetType && rVal.Type().ConvertibleTo(targetType) {
+			rVal = rVal.Convert(targetType)
+		}
+		if rVal.Type() != targetType {
 			err = cd.NewError(cd.Unexpected, "Set failed, value type is not match")
-			slog.Warn("ValueImpl.Set: value type mismatch", "expected", s.value.Type(), "got", rVal.Type())
+			slog.Warn("ValueImpl.Set: value type mismatch", "expected", targetType, "got", rVal.Type())
 			return
 		}
 
@@ -94,9 +98,13 @@ func (s *ValueImpl) Set(val any) (err *cd.Error) {
 	}
 
 	rVal = reflect.Indirect(rVal)
-	if rVal.Type() != s.value.Type().Elem() {
+	targetType := s.value.Type().Elem()
+	if rVal.Type() != targetType && rVal.Type().ConvertibleTo(targetType) {
+		rVal = rVal.Convert(targetType)
+	}
+	if rVal.Type() != targetType {
 		err = cd.NewError(cd.Unexpected, "Set failed, value type is not match")
-		slog.Warn("Set failed, value type is not match", "expected", s.value.Type().Elem(), "got", rVal.Type())
+		slog.Warn("Set failed, value type is not match", "expected", targetType, "got", rVal.Type())
 		return
 	}
 

@@ -359,3 +359,25 @@ func TestValueImplSetNilRejectsNonNilableValue(t *testing.T) {
 		t.Fatal("expected nil assignment on non-nilable type to fail")
 	}
 }
+
+func TestValueImplSetConvertsNamedScalar(t *testing.T) {
+	type subjectRef string
+
+	var scalar subjectRef
+	value := NewValue(reflect.ValueOf(&scalar).Elem())
+	if err := value.Set("namespace/account:7"); err != nil {
+		t.Fatalf("Set named scalar failed: %v", err)
+	}
+	if scalar != subjectRef("namespace/account:7") {
+		t.Fatalf("unexpected named scalar value: %q", scalar)
+	}
+
+	var scalarPtr *subjectRef
+	pointerValue := NewValue(reflect.ValueOf(&scalarPtr).Elem())
+	if err := pointerValue.Set("namespace/account:8"); err != nil {
+		t.Fatalf("Set named scalar pointer failed: %v", err)
+	}
+	if scalarPtr == nil || *scalarPtr != subjectRef("namespace/account:8") {
+		t.Fatalf("unexpected named scalar pointer value: %v", scalarPtr)
+	}
+}
