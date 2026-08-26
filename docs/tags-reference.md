@@ -47,6 +47,7 @@
   - `Query(model)` 不处理 `ValueMask`，顶层对象固定按 `DetailView` 返回；
   - `BatchQuery(filter)` 的顶层对象遵循固定优先级：`ValueMask > view`；
   - `BatchQuery(filter)` 若设置了 `ValueMask`，则顶层字段以 `ValueMask` 为准；未设置时才按 `view` 返回；
+  - 视图掩码中的基础类型统一使用远端持久化基础值；命名基础类型即使实现了自定义 JSON，也不会以其公开 DTO 形式参与掩码编码，指针字段同样会被明确选中；
   - 包含/引用的子对象默认统一收敛到 `lite`，不因为父对象是 `detail` 或 `ValueMask` 中声明了嵌套子字段而自动扩成子对象 `detail`；
   - 业务若需要子对象详细信息，应基于子对象主键单独查询，而不是在一次列表/详情查询中继续放大多层结构。
 

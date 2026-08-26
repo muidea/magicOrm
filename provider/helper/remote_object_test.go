@@ -39,12 +39,25 @@ type Complex struct {
 type qualifiedSubject string
 type revisionID int64
 
+type publicJSONSubject string
+
+func (s publicJSONSubject) MarshalJSON() ([]byte, error) {
+	return []byte("null"), nil
+}
+
 type NamedBasicAlias struct {
 	ID        int64              `orm:"id key" view:"detail,lite"`
 	Subject   qualifiedSubject   `orm:"subject" view:"detail"`
 	Reviewer  *qualifiedSubject  `orm:"reviewer" view:"detail"`
 	Revision  revisionID         `orm:"revision" view:"detail"`
 	Audiences []qualifiedSubject `orm:"audiences" view:"detail"`
+}
+
+type NamedJSONBasicAlias struct {
+	ID        int64               `orm:"id key" view:"detail,lite"`
+	Subject   publicJSONSubject   `orm:"subject" view:"detail"`
+	Reviewer  *publicJSONSubject  `orm:"reviewer" view:"detail"`
+	Audiences []publicJSONSubject `orm:"audiences" view:"detail"`
 }
 
 type IgnoredProjection struct {
@@ -190,6 +203,38 @@ func TestNamedBasicAliasUsesCanonicalRemoteType(t *testing.T) {
 	}
 	if got := value.GetFieldValue("subject"); got != "panel/account:1026173723334912" {
 		t.Fatalf("subject value = %#v", got)
+	}
+}
+
+func TestViewMaskUsesCanonicalValuesForNamedBasicTypes(t *testing.T) {
+	mask, err := BuildViewMask(NamedJSONBasicAlias{}, models.DetailView)
+	if err != nil {
+		t.Fatalf("BuildViewMask failed: %s", err.Error())
+	}
+
+	if got := mask.GetFieldValue("subject"); got != "" {
+		t.Fatalf("subject mask value = %#v, want canonical empty string", got)
+	}
+	if got := mask.GetFieldValue("reviewer"); got != "" {
+		t.Fatalf("reviewer mask value = %#v, want canonical empty string", got)
+	}
+	if got, ok := mask.GetFieldValue("audiences").([]string); !ok || len(got) != 0 {
+		t.Fatalf("audiences mask value = %#v, want canonical empty string slice", mask.GetFieldValue("audiences"))
+	}
+
+	raw, marshalErr := json.Marshal(mask)
+	if marshalErr != nil {
+		t.Fatalf("marshal view mask failed: %v", marshalErr)
+	}
+	roundTrip, decodeErr := remote.DecodeObjectValue(raw)
+	if decodeErr != nil {
+		t.Fatalf("decode view mask failed: %s", decodeErr.Error())
+	}
+	if got := roundTrip.GetFieldValue("subject"); got != "" {
+		t.Fatalf("round-trip subject mask value = %#v, want empty string", got)
+	}
+	if got := roundTrip.GetFieldValue("reviewer"); got != "" {
+		t.Fatalf("round-trip reviewer mask value = %#v, want empty string", got)
 	}
 }
 

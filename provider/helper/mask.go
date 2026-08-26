@@ -193,7 +193,7 @@ func buildFieldMaskValue(fieldName string, fieldType reflect.Type, pathPrefix st
 	case models.IsStruct(typePtr):
 		ret.Value, err = buildObjectMaskByView(fieldType, pathPrefix, view, options, visiting)
 	default:
-		ret.Value = zeroMaskValue(fieldType)
+		ret.Value, err = zeroMaskValue(typePtr)
 	}
 	return
 }
@@ -231,15 +231,93 @@ func indirectMaskType(entityType reflect.Type) reflect.Type {
 	return entityType
 }
 
-func zeroMaskValue(fieldType reflect.Type) any {
-	if fieldType.Kind() == reflect.Ptr {
-		return nil
+func zeroMaskValue(fieldType models.Type) (ret any, err *cd.Error) {
+	if fieldType == nil {
+		return nil, cd.NewError(cd.IllegalParam, "mask field type is nil")
 	}
-	if fieldType.Kind() == reflect.Slice {
-		return reflect.MakeSlice(fieldType, 0, 0).Interface()
+	if fieldType.GetValue() == models.TypeSliceValue {
+		return zeroBasicSliceMaskValue(fieldType.Elem())
 	}
 
-	return reflect.Zero(fieldType).Interface()
+	// A view mask is a remote persistence contract, not a public JSON DTO.
+	// Named primitive types may implement json.Marshaler (for example a
+	// namespace-qualified identity that exposes an object over HTTP). Keeping
+	// the named zero value here would invoke that marshaler and can turn a
+	// selected scalar field into JSON null. Use canonical wire primitives so
+	// both named values and pointer-to-named values remain selected.
+	switch fieldType.GetValue() {
+	case models.TypeBooleanValue:
+		ret = false
+	case models.TypeStringValue, models.TypeDateTimeValue:
+		ret = ""
+	case models.TypeByteValue:
+		ret = int8(0)
+	case models.TypeSmallIntegerValue:
+		ret = int16(0)
+	case models.TypeInteger32Value:
+		ret = int32(0)
+	case models.TypeIntegerValue:
+		ret = int(0)
+	case models.TypeBigIntegerValue:
+		ret = int64(0)
+	case models.TypePositiveByteValue:
+		ret = uint8(0)
+	case models.TypePositiveSmallIntegerValue:
+		ret = uint16(0)
+	case models.TypePositiveInteger32Value:
+		ret = uint32(0)
+	case models.TypePositiveIntegerValue:
+		ret = uint(0)
+	case models.TypePositiveBigIntegerValue:
+		ret = uint64(0)
+	case models.TypeFloatValue:
+		ret = float32(0)
+	case models.TypeDoubleValue:
+		ret = float64(0)
+	default:
+		err = cd.NewError(cd.Unexpected, "mask field is not a basic type")
+	}
+	return
+}
+
+func zeroBasicSliceMaskValue(elemType models.Type) (ret any, err *cd.Error) {
+	if elemType == nil {
+		return nil, cd.NewError(cd.IllegalParam, "mask slice element type is nil")
+	}
+
+	switch elemType.GetValue() {
+	case models.TypeBooleanValue:
+		ret = []bool{}
+	case models.TypeStringValue, models.TypeDateTimeValue:
+		ret = []string{}
+	case models.TypeByteValue:
+		ret = []int8{}
+	case models.TypeSmallIntegerValue:
+		ret = []int16{}
+	case models.TypeInteger32Value:
+		ret = []int32{}
+	case models.TypeIntegerValue:
+		ret = []int{}
+	case models.TypeBigIntegerValue:
+		ret = []int64{}
+	case models.TypePositiveByteValue:
+		ret = []uint8{}
+	case models.TypePositiveSmallIntegerValue:
+		ret = []uint16{}
+	case models.TypePositiveInteger32Value:
+		ret = []uint32{}
+	case models.TypePositiveIntegerValue:
+		ret = []uint{}
+	case models.TypePositiveBigIntegerValue:
+		ret = []uint64{}
+	case models.TypeFloatValue:
+		ret = []float32{}
+	case models.TypeDoubleValue:
+		ret = []float64{}
+	default:
+		err = cd.NewError(cd.Unexpected, "mask slice element is not a basic type")
+	}
+	return
 }
 
 func childViewOf(view models.ViewDeclare) models.ViewDeclare {
