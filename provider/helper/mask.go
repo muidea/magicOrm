@@ -144,6 +144,9 @@ func buildObjectMaskByView(entityType reflect.Type, pathPrefix string, view mode
 
 	for idx := 0; idx < entityType.NumField(); idx++ {
 		fieldType := entityType.Field(idx)
+		if isIgnoredField(fieldType) {
+			continue
+		}
 		fieldName, fieldErr := getFieldName(fieldType)
 		if fieldErr != nil {
 			err = fieldErr

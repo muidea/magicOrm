@@ -36,6 +36,23 @@ type Complex struct {
 	ArrayPtr []*ExtInfo `orm:"arrayPtr" view:"detail"`
 }
 
+type qualifiedSubject string
+type revisionID int64
+
+type NamedBasicAlias struct {
+	ID        int64              `orm:"id key" view:"detail,lite"`
+	Subject   qualifiedSubject   `orm:"subject" view:"detail"`
+	Reviewer  *qualifiedSubject  `orm:"reviewer" view:"detail"`
+	Revision  revisionID         `orm:"revision" view:"detail"`
+	Audiences []qualifiedSubject `orm:"audiences" view:"detail"`
+}
+
+type IgnoredProjection struct {
+	ID          int64    `orm:"id key" view:"detail,lite"`
+	Name        string   `orm:"name" view:"detail,lite"`
+	Credentials []string `json:"credentials" orm:"-" view:"detail"`
+}
+
 func TestSpec(t *testing.T) {
 	spec := ""
 	_, err := getOrmSpec(spec)
@@ -112,6 +129,101 @@ func TestSimpleObjInfo(t *testing.T) {
 	if !remote.CompareObject(info, info2) {
 		t.Errorf("unmarshal failed")
 		return
+	}
+}
+
+func TestNamedBasicAliasUsesCanonicalRemoteType(t *testing.T) {
+	subject := qualifiedSubject("panel/account:1026173723334912")
+	info, err := GetObject(NamedBasicAlias{Subject: subject, Reviewer: &subject, Revision: 7})
+	if err != nil {
+		t.Fatalf("GetObject failed: %s", err.Error())
+	}
+
+	tests := []struct {
+		field   string
+		name    string
+		pointer bool
+	}{
+		{field: "subject", name: models.TypeStringName},
+		{field: "reviewer", name: models.TypeStringName, pointer: true},
+		{field: "revision", name: models.TypeBigIntegerName},
+	}
+	for _, test := range tests {
+		field := info.GetField(test.field)
+		if field == nil {
+			t.Fatalf("field %s is unavailable", test.field)
+		}
+		if got := field.GetType().GetName(); got != test.name {
+			t.Errorf("field %s type name = %q, want %q", test.field, got, test.name)
+		}
+		if got := field.GetType().GetPkgPath(); got != "" {
+			t.Errorf("field %s package path = %q, want empty", test.field, got)
+		}
+		if got := field.GetType().IsPtrType(); got != test.pointer {
+			t.Errorf("field %s pointer = %v, want %v", test.field, got, test.pointer)
+		}
+	}
+
+	audiences := info.GetField("audiences")
+	if audiences == nil || audiences.GetType().Elem().GetName() != models.TypeStringName || audiences.GetType().Elem().GetPkgPath() != "" {
+		t.Fatalf("named string slice element was not canonicalized: %#v", audiences)
+	}
+
+	raw, marshalErr := json.Marshal(info)
+	if marshalErr != nil {
+		t.Fatalf("marshal object failed: %v", marshalErr)
+	}
+	roundTrip := &remote.Object{}
+	if unmarshalErr := json.Unmarshal(raw, roundTrip); unmarshalErr != nil {
+		t.Fatalf("unmarshal object failed: %v", unmarshalErr)
+	}
+	if !remote.CompareObject(info, roundTrip) {
+		t.Fatal("named primitive type contract changed after JSON round trip")
+	}
+	if got := roundTrip.GetField("subject").GetType().GetValue(); got != models.TypeStringValue {
+		t.Fatalf("round-trip subject type = %v, want string", got)
+	}
+
+	value, valueErr := GetObjectValue(NamedBasicAlias{Subject: subject, Reviewer: &subject, Revision: 7})
+	if valueErr != nil {
+		t.Fatalf("GetObjectValue failed: %s", valueErr.Error())
+	}
+	if got := value.GetFieldValue("subject"); got != "panel/account:1026173723334912" {
+		t.Fatalf("subject value = %#v", got)
+	}
+}
+
+func TestIgnoredORMFieldIsAbsentFromRemoteContracts(t *testing.T) {
+	entity := IgnoredProjection{ID: 7, Name: "subscription", Credentials: []string{"secret"}}
+
+	object, err := GetObject(entity)
+	if err != nil {
+		t.Fatalf("GetObject failed: %s", err.Error())
+	}
+	if object.GetField("credentials") != nil {
+		t.Fatal("ignored field was included in remote object definition")
+	}
+	if object.GetField("name") == nil {
+		t.Fatal("persisted field was omitted from remote object definition")
+	}
+
+	value, valueErr := GetObjectValue(entity)
+	if valueErr != nil {
+		t.Fatalf("GetObjectValue failed: %s", valueErr.Error())
+	}
+	if got := value.GetFieldValue("credentials"); got != nil {
+		t.Fatalf("ignored field value = %#v, want nil", got)
+	}
+	if got := value.GetFieldValue("name"); got != "subscription" {
+		t.Fatalf("persisted name = %#v", got)
+	}
+
+	mask, maskErr := BuildViewMask(entity, models.DetailView)
+	if maskErr != nil {
+		t.Fatalf("BuildViewMask failed: %s", maskErr.Error())
+	}
+	if got := mask.GetFieldValue("credentials"); got != nil {
+		t.Fatalf("ignored field mask = %#v, want nil", got)
 	}
 }
 

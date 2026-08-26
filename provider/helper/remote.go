@@ -19,9 +19,14 @@ import (
 
 const (
 	ormTag         = "orm"
+	ormIgnore      = "-"
 	viewTag        = "view"
 	constraintsTag = "constraint"
 )
+
+func isIgnoredField(fieldType reflect.StructField) bool {
+	return strings.TrimSpace(fieldType.Tag.Get(ormTag)) == ormIgnore
+}
 
 func getEntityType(entity any) (ret *remote.TypeImpl, err *cd.Error) {
 	if entity == nil {
@@ -53,7 +58,7 @@ func newType(itemType reflect.Type) (ret *remote.TypeImpl, err *cd.Error) {
 			sliceType = sliceType.Elem()
 			slicePtr = true
 		}
-		ret = &remote.TypeImpl{Name: getRemoteTypeName(itemType, typeVal), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
+		ret = &remote.TypeImpl{Name: getRemoteTypeName(itemType, typeVal), Value: typeVal, PkgPath: getRemoteTypePkgPath(itemType, typeVal), IsPtr: isPtr}
 
 		sliceVal, sliceErr := utils.GetTypeEnum(sliceType)
 		if sliceErr != nil {
@@ -65,19 +70,31 @@ func newType(itemType reflect.Type) (ret *remote.TypeImpl, err *cd.Error) {
 			return
 		}
 
-		ret.ElemType = &remote.TypeImpl{Name: getRemoteTypeName(sliceType, sliceVal), Value: sliceVal, PkgPath: sliceType.PkgPath(), IsPtr: slicePtr}
+		ret.ElemType = &remote.TypeImpl{Name: getRemoteTypeName(sliceType, sliceVal), Value: sliceVal, PkgPath: getRemoteTypePkgPath(sliceType, sliceVal), IsPtr: slicePtr}
 		return
 	}
 
-	ret = &remote.TypeImpl{Name: getRemoteTypeName(itemType, typeVal), Value: typeVal, PkgPath: itemType.PkgPath(), IsPtr: isPtr}
+	ret = &remote.TypeImpl{Name: getRemoteTypeName(itemType, typeVal), Value: typeVal, PkgPath: getRemoteTypePkgPath(itemType, typeVal), IsPtr: isPtr}
 	return
 }
 
 func getRemoteTypeName(itemType reflect.Type, typeVal models.TypeDeclare) string {
-	if typeVal == models.TypeBooleanValue {
-		return models.TypeBooleanName
+	// Remote type JSON does not serialize TypeImpl.Value. Named aliases of
+	// primitive types therefore have to use the canonical primitive name so
+	// that unmarshalling can recover their actual wire and persistence type.
+	// A domain alias such as cas.SubjectRef is still a string contract; its Go
+	// package/name must not turn it into a struct after a JSON round trip.
+	if typeVal.IsBasicType() {
+		return typeVal.String()
 	}
 	return itemType.Name()
+}
+
+func getRemoteTypePkgPath(itemType reflect.Type, typeVal models.TypeDeclare) string {
+	if typeVal.IsBasicType() {
+		return ""
+	}
+	return itemType.PkgPath()
 }
 
 func newSpec(tag reflect.StructTag) (ret *remote.SpecImpl, err *cd.Error) {
@@ -226,6 +243,9 @@ func type2Object(entityType reflect.Type) (ret *remote.Object, err *cd.Error) {
 	fieldNum := entityType.NumField()
 	for idx := 0; idx < fieldNum; idx++ {
 		fieldType := entityType.Field(idx)
+		if isIgnoredField(fieldType) {
+			continue
+		}
 		fItem, fErr := getItemInfo(fieldType)
 		if fErr != nil {
 			err = fErr
@@ -356,6 +376,9 @@ func getObjectValue(entityVal reflect.Value) (ret *remote.ObjectValue, err *cd.E
 	ret = &remote.ObjectValue{Name: objType.GetName(), PkgPath: objType.GetPkgPath(), Fields: []*remote.FieldValue{}}
 	for idx := 0; idx < entityVal.NumField(); idx++ {
 		fieldType := entityType.Field(idx)
+		if isIgnoredField(fieldType) {
+			continue
+		}
 		fieldName, fieldErr := getFieldName(fieldType)
 		if fieldErr != nil {
 			err = fieldErr
