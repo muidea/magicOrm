@@ -21,6 +21,7 @@ type Config interface {
 	Username() string
 	Password() string
 	Database() string
+	Schema() string
 	GetDsn() string
 }
 

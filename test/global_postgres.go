@@ -24,6 +24,7 @@ const (
 var config = orm.NewConfig(
 	postgresTestEnv("MAGICORM_POSTGRES_SERVER", defaultPostgresTestServer),
 	postgresTestEnv("MAGICORM_POSTGRES_DATABASE", defaultPostgresTestDatabase),
+	postgresTestEnv("MAGICORM_POSTGRES_SCHEMA", "public"),
 	postgresTestEnv("MAGICORM_POSTGRES_USER", defaultPostgresTestUser),
 	postgresTestEnv("MAGICORM_POSTGRES_PASSWORD", defaultPostgresTestPassword),
 )

@@ -2,18 +2,13 @@ package postgres
 
 import "testing"
 
-func TestSplitDatabaseAndSchema(t *testing.T) {
-	for _, test := range []struct {
-		value, database, schema string
-	}{
-		{"magicplatform_db/core", "magicplatform_db", "core"},
-		{"magicplatform_db", "magicplatform_db", "public"},
-		{" database / file ", "database", "file"},
-	} {
-		database, schema := splitDatabaseAndSchema(test.value)
-		if database != test.database || schema != test.schema {
-			t.Fatalf("splitDatabaseAndSchema(%q) = %q, %q", test.value, database, schema)
-		}
+func TestConfigKeepsDatabaseAndSchemaSeparate(t *testing.T) {
+	config := NewConfig("postgres:5432", "magicplatform_db", "core", "app", "secret")
+	if config.Database() != "magicplatform_db" || config.Schema() != "core" {
+		t.Fatalf("unexpected database/schema: %q/%q", config.Database(), config.Schema())
+	}
+	if got := config.GetDsn(); got != "postgres://app:secret@postgres:5432/magicplatform_db?sslmode=disable&options=-c%20search_path=core" {
+		t.Fatalf("unexpected postgres DSN: %q", got)
 	}
 }
 

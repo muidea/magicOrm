@@ -8,7 +8,7 @@ import (
 )
 
 func TestProviderGuardClauses(t *testing.T) {
-	cfg := postgres.NewConfig("127.0.0.1:5432", "demo", "user", "password")
+	cfg := postgres.NewConfig("127.0.0.1:5432", "demo", "public", "user", "password")
 
 	if _, err := NewOrm(nil, cfg, "tenant"); err == nil {
 		t.Fatal("expected NewOrm to reject nil provider")

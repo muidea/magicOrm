@@ -221,8 +221,8 @@ func Uninitialized() {
 	})
 }
 
-func AddDatabase(dbServer, dbName, username, password string, maxConnNum int, owner string) (err *cd.Error) {
-	config := NewConfig(dbServer, dbName, username, password)
+func AddDatabase(dbServer, dbName, schemaName, username, password string, maxConnNum int, owner string) (err *cd.Error) {
+	config := NewConfig(dbServer, dbName, schemaName, username, password)
 
 	val, ok := name2Pool.Load(owner)
 	if ok {

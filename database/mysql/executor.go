@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -20,6 +21,7 @@ const defaultCharSet = "utf8mb4"
 type Config struct {
 	dbServer string
 	dbName   string
+	schema   string
 	username string
 	password string
 	charSet  string
@@ -31,6 +33,10 @@ func (s *Config) Server() string {
 
 func (s *Config) Database() string {
 	return s.dbName
+}
+
+func (s *Config) Schema() string {
+	return s.schema
 }
 
 func (s *Config) Username() string {
@@ -52,6 +58,7 @@ func (s *Config) CharSet() string {
 func (s *Config) Same(cfg *Config) bool {
 	return s.dbServer == cfg.dbServer &&
 		s.dbName == cfg.dbName &&
+		s.schema == cfg.schema &&
 		s.username == cfg.username &&
 		s.password == cfg.password
 }
@@ -59,8 +66,8 @@ func (s *Config) GetDsn() string {
 	return fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=%s", s.Username(), s.Password(), s.Server(), s.Database(), s.CharSet())
 }
 
-func NewConfig(dbServer, dbName, username, password, charSet string) *Config {
-	return &Config{dbServer: dbServer, dbName: dbName, username: username, password: password, charSet: charSet}
+func NewConfig(dbServer, dbName, schemaName, username, password, charSet string) *Config {
+	return &Config{dbServer: dbServer, dbName: dbName, schema: schemaName, username: username, password: password, charSet: charSet}
 }
 
 // NewExecutor 新建一个数据访问对象
@@ -843,9 +850,19 @@ func NewPool() *Pool {
 
 // Initialize initialize executor pool
 func (s *Pool) Initialize(maxConnNum int, config database.Config) (err *cd.Error) {
+	databaseName := strings.TrimSpace(config.Database())
+	schemaName := strings.TrimSpace(config.Schema())
+	if databaseName == "" || schemaName == "" || databaseName != schemaName {
+		return cd.NewError(cd.IllegalParam, "mysql database/schema configuration must refer to the same physical database")
+	}
 	if err = s.connect(config.GetDsn(), maxConnNum); err != nil {
 		return
 	}
+	configPtr, ok := config.(*Config)
+	if !ok {
+		return cd.NewError(cd.IllegalParam, "mysql database configuration type is invalid")
+	}
+	s.config = configPtr
 
 	return
 }

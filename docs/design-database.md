@@ -41,7 +41,7 @@ Orm 通过 Runner（如 InsertRunner、QueryRunner）调用 Executor，不直接
 
 ### 3.1 DSN 格式（GetDsn）
 
-- **PostgreSQL**：`postgres://{user}:{password}@{server}/{dbName}?sslmode={sslmode}&options=-c%20search_path={schema}`。其中 `Database()` 可为 `databaseName` 或 `databaseName/schemaName`，后者指定非默认 schema（默认 `public`）。
+- **PostgreSQL**：`postgres://{user}:{password}@{server}/{dbName}?sslmode={sslmode}&options=-c%20search_path={schema}`。Database 与 Schema 必须通过独立字段提供；执行器不解析组合名称，也不会缺省创建 Schema。
 - **MySQL**：`{user}:{password}@tcp({server})/{dbName}?charset={charset}`，charset 由 Config 实现（如 utf8mb4）。
 - **可选参数**（如 sslmode、charset 等）：**直接使用驱动的默认值**，框架不单独提供配置项。
 

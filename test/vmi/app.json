@@ -16,7 +16,8 @@
     "artifact": "magicRunner@v1.3.0",
     "database": {
       "dbServer": "postgres:5432",
-      "dbName": "magicvmi_db/autotest",
+      "dbName": "magicvmi_db",
+      "schemaName": "autotest",
       "username": "autotest",
       "password": "autotest"
     }

@@ -36,7 +36,7 @@ type funcPtr func(executor database.Executor) *cd.Error
 
 func TestMasterSlaver(t *testing.T) {
 	pool := NewPool()
-	config := NewConfig(databaseServer, databaseName, databaseUsername, databasePassword, "")
+	config := NewConfig(databaseServer, databaseName, databaseName, databaseUsername, databasePassword, "")
 	pool.Initialize(50, config)
 	defer pool.Uninitialized()
 
@@ -68,7 +68,7 @@ func TestMasterSlaver(t *testing.T) {
 
 func TestNewPool(t *testing.T) {
 	pool := NewPool()
-	config := NewConfig(databaseServer, databaseName, databaseUsername, databasePassword, "")
+	config := NewConfig(databaseServer, databaseName, databaseName, databaseUsername, databasePassword, "")
 	pool.Initialize(50, config)
 	defer pool.Uninitialized()
 

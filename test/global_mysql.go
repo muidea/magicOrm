@@ -12,7 +12,7 @@ import (
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
-var config = orm.NewConfig("localhost:3306", "testdb", "root", "rootkit")
+var config = orm.NewConfig("localhost:3306", "testdb", "testdb", "root", "rootkit")
 
 func registerLocalModel(provider provider.Provider, objList []any) (ret []models.Model, err *cd.Error) {
 	for _, val := range objList {

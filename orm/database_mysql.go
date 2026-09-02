@@ -21,8 +21,8 @@ func NewExecutor(config database.Config) (database.Executor, *cd.Error) {
 	return mysql.NewExecutor(config)
 }
 
-func NewConfig(dbServer, dbName, username, password string) database.Config {
-	return mysql.NewConfig(dbServer, dbName, username, password, "")
+func NewConfig(dbServer, dbName, schemaName, username, password string) database.Config {
+	return mysql.NewConfig(dbServer, dbName, schemaName, username, password, "")
 }
 
 func NewBuilder(provider provider.Provider, modelCodec codec.Codec) database.Builder {

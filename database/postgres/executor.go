@@ -21,6 +21,7 @@ const defaultSSLMode = "disable"
 type Config struct {
 	dbServer string
 	dbName   string
+	schema   string
 	username string
 	password string
 	sslMode  string
@@ -32,6 +33,10 @@ func (s *Config) Server() string {
 
 func (s *Config) Database() string {
 	return s.dbName
+}
+
+func (s *Config) Schema() string {
+	return s.schema
 }
 
 func (s *Config) Username() string {
@@ -53,23 +58,13 @@ func (s *Config) SSLMode() string {
 func (s *Config) Same(cfg *Config) bool {
 	return s.dbServer == cfg.dbServer &&
 		s.dbName == cfg.dbName &&
+		s.schema == cfg.schema &&
 		s.username == cfg.username &&
 		s.password == cfg.password
 }
 
 func (s *Config) GetDsn() string {
-	dbName, schemaName := splitDatabaseAndSchema(s.Database())
-	return postgresDSN(s, dbName, schemaName)
-}
-
-func splitDatabaseAndSchema(value string) (databaseName, schemaName string) {
-	databaseName = strings.TrimSpace(value)
-	schemaName = "public"
-	if index := strings.LastIndex(databaseName, "/"); index >= 0 {
-		schemaName = strings.TrimSpace(databaseName[index+1:])
-		databaseName = strings.TrimSpace(databaseName[:index])
-	}
-	return databaseName, schemaName
+	return postgresDSN(s, s.Database(), s.Schema())
 }
 
 func postgresDSN(config database.Config, databaseName, schemaName string) string {
@@ -89,12 +84,12 @@ func validSchemaName(value string) bool {
 	return true
 }
 
-// ensureSchema creates the declared PostgreSQL schema before a connection is
-// opened with that schema as its search_path. This is part of magicOrm's
-// database lifecycle and lets magicBase bootstrap a fresh database without a
-// deployment SQL script.
-func ensureSchema(config database.Config) *cd.Error {
-	databaseName, schemaName := splitDatabaseAndSchema(config.Database())
+// validateSchema verifies the explicitly provisioned PostgreSQL schema. Schema
+// lifecycle belongs to the platform storage owner; the ORM must never create
+// or repair storage as a side effect of opening an application connection.
+func validateSchema(config database.Config) *cd.Error {
+	databaseName := strings.TrimSpace(config.Database())
+	schemaName := strings.TrimSpace(config.Schema())
 	if databaseName == "" || !validSchemaName(schemaName) {
 		return cd.NewError(cd.IllegalParam, "postgres database/schema configuration is invalid")
 	}
@@ -106,14 +101,18 @@ func ensureSchema(config database.Config) *cd.Error {
 	if dbErr = dbHandle.Ping(); dbErr != nil {
 		return cd.NewError(cd.Unexpected, dbErr.Error())
 	}
-	if _, dbErr = dbHandle.Exec("CREATE SCHEMA IF NOT EXISTS \"" + schemaName + "\""); dbErr != nil {
+	var exists bool
+	if dbErr = dbHandle.QueryRow("SELECT EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = $1)", schemaName).Scan(&exists); dbErr != nil {
 		return cd.NewError(cd.Unexpected, dbErr.Error())
+	}
+	if !exists {
+		return cd.NewError(cd.NotFound, "postgres schema was not found")
 	}
 	return nil
 }
 
-func NewConfig(dbServer, dbName, username, password string) *Config {
-	return &Config{dbServer: dbServer, dbName: dbName, username: username, password: password, sslMode: "disable"}
+func NewConfig(dbServer, dbName, schemaName, username, password string) *Config {
+	return &Config{dbServer: dbServer, dbName: dbName, schema: schemaName, username: username, password: password, sslMode: "disable"}
 }
 
 // NewExecutor 新建一个数据访问对象
@@ -122,13 +121,14 @@ func NewExecutor(configPtr database.Config) (ret *HostExecutor, err *cd.Error) {
 	dbHandle, dbErr := sql.Open("postgres", dsn)
 	if dbErr != nil {
 		err = cd.NewError(cd.Unexpected, dbErr.Error())
-		slog.Error("open database exception", "dsn", dsn, "error", err.Error())
+		slog.Error("open database exception", "server", configPtr.Server(), "database", configPtr.Database(), "schema", configPtr.Schema(), "error", err.Error())
 		return
 	}
 
 	ret = &HostExecutor{
 		executeContetxt: context.Background(),
 		dbHandle:        dbHandle,
+		schemaName:      configPtr.Schema(),
 		ownDBHandle:     true,
 	}
 
@@ -139,6 +139,7 @@ func NewExecutor(configPtr database.Config) (ret *HostExecutor, err *cd.Error) {
 type ConnExecutor struct {
 	executeContetxt context.Context
 	dbConnPtr       *sql.Conn
+	schemaName      string
 	dbTxCount       int32
 	dbTx            *sql.Tx
 	rowsHandle      *sql.Rows
@@ -447,8 +448,8 @@ func (s *ConnExecutor) ExecuteInsert(sql string, pkValOut any, args ...any) (err
 
 // CheckTableExist Check Table Exist
 func (s *ConnExecutor) CheckTableExist(tableName string) (ret bool, err *cd.Error) {
-	strSQL := "SELECT tablename FROM pg_tables WHERE tablename = $1 AND schemaname = 'public'"
-	_, err = s.Query(strSQL, false, tableName)
+	strSQL := "SELECT tablename FROM pg_tables WHERE tablename = $1 AND schemaname = $2"
+	_, err = s.Query(strSQL, false, tableName, s.schemaName)
 	if err != nil {
 		slog.Error("CheckTableExist failed", "value", "s.Query", "error", err.Error())
 		return
@@ -467,6 +468,7 @@ func (s *ConnExecutor) CheckTableExist(tableName string) (ret bool, err *cd.Erro
 type HostExecutor struct {
 	executeContetxt context.Context
 	dbHandle        *sql.DB
+	schemaName      string
 	dbTxCount       int32
 	dbTx            *sql.Tx
 	rowsHandle      *sql.Rows
@@ -826,8 +828,8 @@ func (s *HostExecutor) ExecuteInsert(sql string, pkValOut any, args ...any) (err
 
 // CheckTableExist Check Table Exist
 func (s *HostExecutor) CheckTableExist(tableName string) (ret bool, err *cd.Error) {
-	strSQL := "SELECT tablename FROM pg_tables WHERE tablename = $1 AND schemaname = 'public'"
-	_, err = s.Query(strSQL, false, tableName)
+	strSQL := "SELECT tablename FROM pg_tables WHERE tablename = $1 AND schemaname = $2"
+	_, err = s.Query(strSQL, false, tableName, s.schemaName)
 	if err != nil {
 		slog.Error("CheckTableExist failed", "value", "s.Query", "error", err.Error())
 		return
@@ -845,6 +847,7 @@ func (s *HostExecutor) CheckTableExist(tableName string) (ret bool, err *cd.Erro
 // Pool executorPool
 type Pool struct {
 	dbDSN          string
+	schemaName     string
 	dbHandle       *sql.DB
 	referenceCount int
 }
@@ -856,12 +859,13 @@ func NewPool() *Pool {
 
 // Initialize initialize executor pool
 func (s *Pool) Initialize(maxConnNum int, config database.Config) (err *cd.Error) {
-	if err = ensureSchema(config); err != nil {
+	if err = validateSchema(config); err != nil {
 		return
 	}
 	if err = s.connect(config.GetDsn(), maxConnNum); err != nil {
 		return
 	}
+	s.schemaName = config.Schema()
 
 	return
 }
@@ -870,7 +874,7 @@ func (s *Pool) connect(dsn string, maxConnNum int) (err *cd.Error) {
 	dbHandle, dbErr := sql.Open("postgres", dsn)
 	if dbErr != nil {
 		err = cd.NewError(cd.Unexpected, dbErr.Error())
-		slog.Error("Pool connect open database exception", "dsn", dsn, "error", err.Error())
+		slog.Error("Pool connect open database exception", "error", err.Error())
 		return
 	}
 
@@ -882,7 +886,7 @@ func (s *Pool) connect(dsn string, maxConnNum int) (err *cd.Error) {
 	dbErr = dbHandle.Ping()
 	if dbErr != nil {
 		err = cd.NewError(cd.Unexpected, dbErr.Error())
-		slog.Error("Pool connect ping database failed", "dsn", dsn, "error", err.Error())
+		slog.Error("Pool connect ping database failed", "error", err.Error())
 		return
 	}
 
@@ -913,6 +917,7 @@ func (s *Pool) GetExecutor(ctx context.Context) (ret database.Executor, err *cd.
 	ret = &ConnExecutor{
 		executeContetxt: ctx,
 		dbConnPtr:       connPtr,
+		schemaName:      s.schemaName,
 	}
 	return
 }

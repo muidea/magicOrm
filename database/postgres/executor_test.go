@@ -36,7 +36,7 @@ type funcPtr func(executor database.Executor) *cd.Error
 
 func TestNewPool(t *testing.T) {
 	pool := NewPool()
-	config := NewConfig(databaseServer, databaseName, databaseUsername, databasePassword)
+	config := NewConfig(databaseServer, databaseName, "public", databaseUsername, databasePassword)
 	pool.Initialize(50, config)
 	defer pool.Uninitialized()
 
