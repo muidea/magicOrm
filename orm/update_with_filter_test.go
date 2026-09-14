@@ -49,7 +49,7 @@ func TestUpdateWithFilterReturnsAffectedRows(t *testing.T) {
 	if len(executor.execCalls) != 1 || executor.execCalls[0].kind != "exec" {
 		t.Fatalf("expected one execute call, got=%#v", executor.execCalls)
 	}
-	if got := executor.execCalls[0].sql; !strings.Contains(got, `WHERE "state" = $2 AND "version" = $3`) {
+	if got := executor.execCalls[0].sql; !strings.Contains(got, dialectSQLForTest(`WHERE "state" = $2 AND "version" = $3`)) {
 		t.Fatalf("conditional predicates missing from sql: %s", got)
 	}
 }

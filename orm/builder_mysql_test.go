@@ -36,7 +36,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 	now, _ := time.ParseInLocation(util.CSTLayout, "2018-01-02 15:04:05", time.Local)
 	unit := &Unit{ID: "10", Name: "Hello world", Value: 12.3456, TimeStamp: now}
 
-	localProvider := provider.NewLocalProvider("default")
+	localProvider := provider.NewLocalProvider("default", nil)
 	_, err := localProvider.RegisterModel(unit)
 	if err != nil {
 		t.Errorf("localProvider.RegisterModel failed, err:%s", err.Error())
@@ -122,7 +122,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 	if err != nil {
 		t.Errorf("build count failed, err:%s", err.Error())
 	}
-	if str.SQL() != "SELECT COUNT(`uid`) FROM `abc_Unit` WHERE `value` > ?" || len(str.Args()) != 1 {
+	if str.SQL() != "SELECT COUNT(*) FROM `abc_Unit` WHERE `value` > ?" || len(str.Args()) != 1 {
 		t.Errorf("build count failed, str:%s", str)
 	}
 }
@@ -139,7 +139,7 @@ func TestBuilderLocalReference(t *testing.T) {
 		},
 	}
 
-	localProvider := provider.NewLocalProvider("default")
+	localProvider := provider.NewLocalProvider("default", nil)
 	referenceModel, referenceErr := localProvider.RegisterModel(referenceVal)
 	if referenceErr != nil {
 		t.Errorf("localProvider.RegisterModel failed, err:%s", referenceErr.Error())
@@ -329,13 +329,13 @@ func TestBuilderRemoteUnit(t *testing.T) {
 	}
 
 	rVal := remote.NewValue(unitObjectValue)
-	uModel, uErr := remote.SetModelValue(unitObject, rVal)
+	uModel, uErr := remote.SetModelValue(unitObject, rVal, true)
 	if uErr != nil {
 		t.Errorf("remote.SetModelValue failed")
 		return
 	}
 
-	remoteProvider := provider.NewRemoteProvider("default")
+	remoteProvider := provider.NewRemoteProvider("default", nil)
 	info, err := remoteProvider.RegisterModel(uModel)
 	if err != nil {
 		t.Errorf("localProvider.RegisterModel failed, err:%s", err.Error())
@@ -424,7 +424,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 		t.Errorf("build count failed, err:%s", err.Error())
 		return
 	}
-	if str.SQL() != "SELECT COUNT(`uid`) FROM `abc_Unit` WHERE `value` > ?" || len(str.Args()) != 1 {
+	if str.SQL() != "SELECT COUNT(*) FROM `abc_Unit` WHERE `value` > ?" || len(str.Args()) != 1 {
 		t.Errorf("build count failed, str:%s", str)
 		return
 	}
@@ -567,14 +567,14 @@ func TestBuilderRemoteReference(t *testing.T) {
 		},
 	}
 
-	unitModel, uErr := remote.SetModelValue(unitObject, remote.NewValue(unitObjectValue))
+	unitModel, uErr := remote.SetModelValue(unitObject, remote.NewValue(unitObjectValue), true)
 	if uErr != nil {
 		t.Errorf("remote.SetModelValue failed")
 		return
 	}
 
 	eVal := remote.NewValue(referenceObjectValue)
-	referenceModel, eErr := remote.SetModelValue(referenceObject, eVal)
+	referenceModel, eErr := remote.SetModelValue(referenceObject, eVal, true)
 	if eErr != nil {
 		t.Errorf("remote.SetModelValue failed")
 		return
@@ -582,7 +582,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 
 	referenceModel.SetFieldValue("unit", unitObjectValue)
 
-	remoteProvider := provider.NewRemoteProvider("default")
+	remoteProvider := provider.NewRemoteProvider("default", nil)
 	_, extErr := remoteProvider.RegisterModel(referenceModel)
 	if extErr != nil {
 		t.Errorf("remoteProvider.RegisterModel failed, err:%s", extErr.Error())

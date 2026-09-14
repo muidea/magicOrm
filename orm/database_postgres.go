@@ -25,6 +25,14 @@ func NewConfig(dbServer, dbName, schemaName, username, password string) database
 	return postgres.NewConfig(dbServer, dbName, schemaName, username, password)
 }
 
+func ensureSchema(config database.Config) *cd.Error {
+	value, ok := config.(*postgres.Config)
+	if !ok {
+		return cd.NewError(cd.IllegalParam, "postgres database configuration type is invalid")
+	}
+	return postgres.EnsureSchema(value)
+}
+
 func NewBuilder(provider provider.Provider, modelCodec codec.Codec) database.Builder {
 	return postgres.NewBuilder(provider, modelCodec)
 }

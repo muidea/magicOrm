@@ -37,6 +37,12 @@ type Orm interface {
 	// Reconcile applies only safe, additive differences between two registered
 	// model declarations. Destructive changes are rejected before any SQL runs.
 	Reconcile(previous models.Model, current models.Model) *cd.Error
+	// InspectSchema reads physical catalogs; false expects all owned tables to
+	// be absent after Drop. It never applies or repairs DDL.
+	InspectSchema(entity models.Model, expectedExist bool) (*SchemaReport, *cd.Error)
+	// RepairSchema verifies catalogs, applies only missing original steps, then
+	// independently confirms the target. Callers own authorization/serialization.
+	RepairSchema(previous models.Model, desired models.Model) (*SchemaReport, *cd.Error)
 	Insert(entity models.Model) (models.Model, *cd.Error)
 	Update(entity models.Model) (models.Model, *cd.Error)
 	// UpdateWithFilter performs a single-table conditional update and returns

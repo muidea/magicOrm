@@ -25,6 +25,14 @@ func NewConfig(dbServer, dbName, schemaName, username, password string) database
 	return mysql.NewConfig(dbServer, dbName, schemaName, username, password, "")
 }
 
+func ensureSchema(config database.Config) *cd.Error {
+	value, ok := config.(*mysql.Config)
+	if !ok {
+		return cd.NewError(cd.IllegalParam, "mysql database configuration type is invalid")
+	}
+	return mysql.EnsureSchema(value)
+}
+
 func NewBuilder(provider provider.Provider, modelCodec codec.Codec) database.Builder {
 	return mysql.NewBuilder(provider, modelCodec)
 }

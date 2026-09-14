@@ -57,7 +57,7 @@ func TestUpdateRunnerRestoresReadOnlyBasicFieldsFromStoredModel(t *testing.T) {
 		responses: []fakeQueryResponse{
 			{
 				match: func(sql string, args []any) bool {
-					return strings.Contains(sql, `FROM "tenant_Demo"`) && len(args) == 1 && args[0] == int64(101)
+					return strings.Contains(sql, dialectSQLForTest(`FROM "tenant_Demo"`)) && len(args) == 1 && args[0] == int64(101)
 				},
 				rows: [][]any{
 					{int64(101), "updated", int64(123456)},
@@ -79,7 +79,7 @@ func TestUpdateRunnerRestoresReadOnlyBasicFieldsFromStoredModel(t *testing.T) {
 	if got := updatedValue.GetFieldValue("name"); got != "updated" {
 		t.Fatalf("updated name mismatch, got %#v", got)
 	}
-	if !containsSQLCall(executor.execCalls, "exec", `UPDATE "tenant_Demo" SET "name" = $1 WHERE "id" = $2`, []any{"updated", int64(101)}) {
+	if !containsSQLCall(executor.execCalls, "exec", dialectSQLForTest(`UPDATE "tenant_Demo" SET "name" = $1 WHERE "id" = $2`), []any{"updated", int64(101)}) {
 		t.Fatalf("missing host update call: %#v", executor.execCalls)
 	}
 }
@@ -129,7 +129,7 @@ func TestUpdateRunnerReturnsStoredReadOnlyFieldsEvenWhenNotAssigned(t *testing.T
 		responses: []fakeQueryResponse{
 			{
 				match: func(sql string, args []any) bool {
-					return strings.Contains(sql, `FROM "tenant_StockDoc"`) && len(args) == 1 && args[0] == int64(301)
+					return strings.Contains(sql, dialectSQLForTest(`FROM "tenant_StockDoc"`)) && len(args) == 1 && args[0] == int64(301)
 				},
 				rows: [][]any{
 					{int64(301), "updated", "SN-001"},

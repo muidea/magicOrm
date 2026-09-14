@@ -111,6 +111,42 @@ func validateSchema(config database.Config) *cd.Error {
 	return nil
 }
 
+// EnsureSchema is an explicit deployment/storage-owner operation. It is not
+// called by Pool.Initialize: normal ORM connections still require the schema
+// to have been provisioned before they are opened.
+func EnsureSchema(config *Config) *cd.Error {
+	if config == nil {
+		return cd.NewError(cd.IllegalParam, "postgres schema configuration is unavailable")
+	}
+	databaseName := strings.TrimSpace(config.Database())
+	schemaName := strings.TrimSpace(config.Schema())
+	if databaseName == "" || !validSchemaName(schemaName) {
+		return cd.NewError(cd.IllegalParam, "postgres database/schema configuration is invalid")
+	}
+	dbHandle, dbErr := sql.Open("postgres", postgresDSN(config, databaseName, "public"))
+	if dbErr != nil {
+		return cd.NewError(cd.Unexpected, dbErr.Error())
+	}
+	defer dbHandle.Close()
+	if dbErr = dbHandle.Ping(); dbErr != nil {
+		return cd.NewError(cd.Unexpected, dbErr.Error())
+	}
+	// validSchemaName excludes quotes and backslashes, so this identifier is
+	// safe to quote here. The value cannot be passed as a bind parameter in DDL.
+	quoted := `"` + strings.ReplaceAll(schemaName, `"`, `""`) + `"`
+	if _, dbErr = dbHandle.Exec("CREATE SCHEMA IF NOT EXISTS " + quoted); dbErr != nil {
+		return cd.NewError(cd.Unexpected, dbErr.Error())
+	}
+	var exists bool
+	if dbErr = dbHandle.QueryRow("SELECT EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = $1)", schemaName).Scan(&exists); dbErr != nil {
+		return cd.NewError(cd.Unexpected, dbErr.Error())
+	}
+	if !exists {
+		return cd.NewError(cd.DataCorrupted, "postgres schema was not observed after provisioning")
+	}
+	return nil
+}
+
 func NewConfig(dbServer, dbName, schemaName, username, password string) *Config {
 	return &Config{dbServer: dbServer, dbName: dbName, schema: schemaName, username: username, password: password, sslMode: "disable"}
 }

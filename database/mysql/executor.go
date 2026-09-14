@@ -70,6 +70,26 @@ func NewConfig(dbServer, dbName, schemaName, username, password, charSet string)
 	return &Config{dbServer: dbServer, dbName: dbName, schema: schemaName, username: username, password: password, charSet: charSet}
 }
 
+// EnsureSchema is a no-op DDL operation for MySQL because schema and database
+// are the same physical namespace in the ORM contract. Opening the configured
+// database verifies that the namespace already exists; creation belongs to the
+// platform database owner rather than an application connection.
+func EnsureSchema(config *Config) *cd.Error {
+	if config == nil || strings.TrimSpace(config.Database()) == "" ||
+		strings.TrimSpace(config.Schema()) == "" || config.Database() != config.Schema() {
+		return cd.NewError(cd.IllegalParam, "mysql database/schema configuration must refer to the same physical database")
+	}
+	dbHandle, dbErr := sql.Open("mysql", config.GetDsn())
+	if dbErr != nil {
+		return cd.NewError(cd.Unexpected, dbErr.Error())
+	}
+	defer dbHandle.Close()
+	if dbErr = dbHandle.Ping(); dbErr != nil {
+		return cd.NewError(cd.Unexpected, dbErr.Error())
+	}
+	return nil
+}
+
 // NewExecutor 新建一个数据访问对象
 func NewExecutor(configPtr database.Config) (ret *HostExecutor, err *cd.Error) {
 	dsn := configPtr.GetDsn()

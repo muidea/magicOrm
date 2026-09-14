@@ -60,7 +60,7 @@ func TestReconcileRunnerAddsNullableColumn(t *testing.T) {
 	if err := runner.Reconcile(); err != nil {
 		t.Fatal(err)
 	}
-	if len(executor.execCalls) != 1 || !strings.Contains(executor.execCalls[0].sql, `ADD COLUMN IF NOT EXISTS "audience"`) {
+	if len(executor.execCalls) != 1 || !strings.Contains(executor.execCalls[0].sql, "ADD COLUMN") || !strings.Contains(executor.execCalls[0].sql, "audience") {
 		t.Fatalf("expected one additive column statement, got %#v", executor.execCalls)
 	}
 }

@@ -77,7 +77,7 @@ func TestNewPool(t *testing.T) {
 		endTime := time.Now()
 		elapse := endTime.Sub(startTime)
 		if err := recover(); err != nil {
-			slog.Errorf("execute failed, elapse:%v, err:%v", elapse, err)
+			slog.Error("execute failed", "elapse", elapse, "error", err)
 			return
 		}
 	}()
@@ -109,12 +109,12 @@ func testDML(wg *sync.WaitGroup, pool *Pool) {
 	pickExecutor(pool, wg, func(executor database.Executor) (err *cd.Error) {
 		bVal, bErr := checkSchema(executor)
 		if bErr != nil {
-			slog.Errorf("checkSchema failed, error:%s", bErr.Error())
+			slog.Error("checkSchema failed", "error", bErr.Error())
 			err = bErr
 			return
 		}
 		if !bVal {
-			sslog.Error("checkSchema failed", "error", "operation failed")
+			slog.Error("checkSchema failed", "error", "operation failed")
 		}
 
 		return

@@ -25,73 +25,16 @@ func NewDropRunner(ctx context.Context, vModel models.Model, executor database.E
 	}
 }
 
-func (s *DropRunner) dropHost(vModel models.Model) (err *cd.Error) {
-	dropResult, dropErr := s.sqlBuilder.BuildDropTable(vModel)
-	if dropErr != nil {
-		err = dropErr
-		slog.Error("DropRunner dropHost BuildDropTable failed", "error", err.Error())
-		return
-	}
-
-	_, err = s.executor.Execute(dropResult.SQL(), dropResult.Args()...)
+func (s *DropRunner) Drop() *cd.Error {
+	graph, err := collectSchemaGraph(s.context, s.vModel, s.modelProvider, s.modelCodec)
 	if err != nil {
-		slog.Error("DropRunner dropHost Execute failed", "error", err.Error())
+		return err
 	}
-	return
-}
-
-func (s *DropRunner) dropRelation(vModel models.Model, vField models.Field) (err *cd.Error) {
-	relationResult, relationErr := s.sqlBuilder.BuildDropRelationTable(vModel, vField)
-	if relationErr != nil {
-		err = relationErr
-		slog.Error("DropRunner dropRelation BuildDropRelationTable failed", "field", vField.GetName(), "error", err.Error())
-		return
-	}
-
-	_, err = s.executor.Execute(relationResult.SQL(), relationResult.Args()...)
+	statements, err := s.buildSchemaDDL(graph, false)
 	if err != nil {
-		slog.Error("DropRunner dropRelation Execute failed", "field", vField.GetName(), "error", err.Error())
+		return err
 	}
-	return
-}
-
-func (s *DropRunner) Drop() (err *cd.Error) {
-	err = s.dropHost(s.vModel)
-	if err != nil {
-		slog.Error("DropRunner Drop dropHost failed", "error", err.Error())
-		return
-	}
-
-	for _, field := range s.vModel.GetFields() {
-		if models.IsBasicField(field) {
-			continue
-		}
-
-		elemType := field.GetType().Elem()
-		if !elemType.IsPtrType() {
-			rModel, rErr := s.modelProvider.GetTypeModel(elemType)
-			if rErr != nil {
-				err = rErr
-				slog.Error("DropRunner Drop GetTypeModel failed", "field", field.GetName(), "error", err.Error())
-				return
-			}
-
-			rRunner := NewDropRunner(s.context, rModel, s.executor, s.modelProvider, s.modelCodec)
-			err = rRunner.Drop()
-			if err != nil {
-				slog.Error("DropRunner Drop relation failed", "field", field.GetName(), "error", err.Error())
-				return
-			}
-		}
-
-		err = s.dropRelation(s.vModel, field)
-		if err != nil {
-			slog.Error("DropRunner dropRelation failed", "field", field.GetName(), "error", err.Error())
-			return
-		}
-	}
-
-	return
+	return s.executeSchemaDDL(statements)
 }
 
 func (s *impl) Drop(vModel models.Model) (err *cd.Error) {

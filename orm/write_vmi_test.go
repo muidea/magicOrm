@@ -729,7 +729,7 @@ func TestUpdateRunnerVMIRemoteReadOnlyReferenceIgnored(t *testing.T) {
 		t.Fatalf("warehouse relation should not expose undeclared namespace, got %#v", got)
 	}
 
-	if !containsSQLCall(executor.execCalls, "exec", "UPDATE \"tenant_Shelf\"", []any{20, int64(1001)}) {
+	if !containsSQLCall(executor.execCalls, "exec", dialectSQLForTest(`UPDATE "tenant_Shelf"`), []any{20, int64(1001)}) {
 		t.Fatalf("missing shelf host update call: %#v", executor.execCalls)
 	}
 	if containsSQLCall(executor.execCalls, "query", "tenant_ShelfWarehouse3Warehouse", nil) {

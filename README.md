@@ -14,6 +14,7 @@ Golang对象的ORM框架，支持PostgreSQL和MySQL数据库。一个所见即�
 - **事务支持**: 完整的ACID事务处理
 - **条件更新**: 单 SQL compare-and-set 更新并返回影响行数
 - **Schema 演进**: 可安全补建字段、关系、唯一约束和索引
+- **Schema 核验**: 只读检查实际主表、关系表及 owned 模型，报告结构缺失或漂移
 - **高性能**: 连接池、批量操作和验证缓存优化
 
 ## 安装
@@ -239,7 +240,26 @@ err := o1.Drop(model)
 err = o1.Reconcile(previousModel, currentModel)
 ```
 
-> **说明**：表存在检查当前未在 Orm 接口暴露；若需此能力可基于底层 Executor 封装。`Reconcile` 的安全边界见 [docs/design-orm.md](./docs/design-orm.md)。
+`InspectSchema(model, true)` 只读核验 ORM 生成的物理结构；`InspectSchema(model, false)` 核验 `Drop` 管理的全部表已不存在。报告包括 `matches`、已检查的表名和不含默认值内容/数据库凭据的差异项；查询失败、读取中断、取消或不支持检查的执行器返回错误且不返回部分成功报告。
+
+`Create`、`Drop`、`Reconcile` 及其公开 Runner 在执行任何 SQL 之前检查完整声明图：主键、owned 环、图内物理表名冲突和最多 1024 张表，并预先构造全部 DDL。后续字段/关系/索引构造失败或新增必填字段被拒绝时，不执行前面已生成的 SQL。共享 owned 模型只生成一次建/删表步骤；增量迁移新增 owned 字段时同时建立其组件表和关系表，不建立引用模型的主表。
+
+不打开数据库的预检可使用 `PreflightSchemaChange(ctx, previous, desired, provider, prefix)`：previous 为 nil 表示建表，desired 为 nil 表示删表，二者非空表示增量迁移；provider 必须包含本次操作的关联声明。`ValidateSchema` 仅检查声明图。预检不查询实际结构、不保证 SQL 执行成功，也不替代 DDL 后的物理核验或提供事务回滚。
+
+检查覆盖主表、关系表、递归 owned 模型（不包含引用模型的主表）、列类型/精度、可空性、默认值、自增、主键、命名唯一约束与有序索引。多余列/索引、视图及无效/部分/表达式等非声明索引均报告漂移。检查使用数据库真实目录并绑定 schema/table，不用 `IF NOT EXISTS` 的执行成功替代核验。PostgreSQL 使用显式配置的 Schema；MySQL 要求已选择数据库及 MySQL 8.0.13+ 的目录字段。未知结构不猜测兼容，也不执行 catalog 中的表达式。
+
+`InspectSchema` 不是自动迁移/恢复接口：调用者负责串行 Schema 写入，检查期间不得并发执行外部 DDL；结果不是分布式锁或持久化完成回执。检查限于 ORM 所生成的结构，不审计额外的触发器、权限、RLS 策略、CHECK/外键策略或存储参数。`Reconcile` 的安全边界见 [docs/design-orm.md](./docs/design-orm.md)。
+
+显式受控补执行可使用 `RepairSchema(previous, desired)`，nil 的含义与预检一致。调用者必须提供已验证操作身份的冻结声明，并保证所有 Schema 写入串行。ORM 先校验完整计划并读取目标图的物理结构，再构造全部缺失步骤：补建新表/owned/关系表、原增量计划中新加的可空列及命名唯一约束/索引，或删除原 drop 计划中仍完整匹配的表；已完成步骤不重放，执行后再次完整检查物理结果。增量迁移中原有表/列/索引丢失、主键缺失、既有关系表结构不完整、类型/约束漂移或额外对象均拒绝修复，不猜测数据恢复、不补填必填列、不接受任意 SQL。中途失败可由同一冻结计划重新检查后续跑，但不承诺 DDL 事务回滚、跨进程互斥或应用元数据/运行态恢复。
+
+物理目录集成测试默认跳过，必须显式提供隔离测试库：
+
+```bash
+MAGICORM_SCHEMA_TEST_POSTGRES_DSN='<disposable PostgreSQL DSN>' go test ./database/postgres -run TestPostgresPhysicalSchemaCatalog -count=1
+MAGICORM_SCHEMA_TEST_MYSQL_DSN='<disposable MySQL DSN>' go test ./database/mysql -run TestMySQLPhysicalSchemaCatalog -count=1
+```
+
+测试创建随机 Schema/数据库，仅清理本次测试创建的对象；不要指向生产实例。
 
 ### 事务支持
 

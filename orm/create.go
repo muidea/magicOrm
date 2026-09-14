@@ -25,77 +25,16 @@ func NewCreateRunner(ctx context.Context, vModel models.Model, executor database
 	}
 }
 
-func (s *CreateRunner) createHost() (err *cd.Error) {
-	createResult, createErr := s.sqlBuilder.BuildCreateTable(s.vModel)
-	if createErr != nil {
-		err = createErr
-		slog.Error("CreateRunner failed", "error", err.Error())
-		return
-	}
-
-	_, err = s.executor.Execute(createResult.SQL(), createResult.Args()...)
+func (s *CreateRunner) Create() *cd.Error {
+	graph, err := collectSchemaGraph(s.context, s.vModel, s.modelProvider, s.modelCodec)
 	if err != nil {
-		slog.Error("CreateRunner failed", "error", err.Error())
+		return err
 	}
-	return
-}
-
-func (s *CreateRunner) createRelation(vField models.Field) (err *cd.Error) {
-	relationResult, relationErr := s.sqlBuilder.BuildCreateRelationTable(s.vModel, vField)
-	if relationErr != nil {
-		err = relationErr
-		slog.Error("CreateRunner failed", "error", err.Error())
-		return
-	}
-
-	_, err = s.executor.Execute(relationResult.SQL(), relationResult.Args()...)
+	statements, err := s.buildSchemaDDL(graph, true)
 	if err != nil {
-		slog.Error("CreateRunner failed", "error", err.Error())
+		return err
 	}
-	return
-}
-
-func (s *CreateRunner) Create() (err *cd.Error) {
-	if err = s.checkContext(); err != nil {
-		return
-	}
-
-	err = s.createHost()
-	if err != nil {
-		slog.Error("CreateRunner failed", "error", err.Error())
-		return
-	}
-
-	for _, field := range s.vModel.GetFields() {
-		if models.IsBasicField(field) {
-			continue
-		}
-
-		elemType := field.GetType().Elem()
-		if !elemType.IsPtrType() {
-			rModel, rErr := s.modelProvider.GetTypeModel(elemType)
-			if rErr != nil {
-				err = rErr
-				slog.Error("CreateRunner Create GetTypeModel failed", "field", field.GetName(), "error", err.Error())
-				return
-			}
-
-			rRunner := NewCreateRunner(s.context, rModel, s.executor, s.modelProvider, s.modelCodec)
-			err = rRunner.Create()
-			if err != nil {
-				slog.Error("CreateRunner Create relation failed", "field", field.GetName(), "error", err.Error())
-				return
-			}
-		}
-
-		err = s.createRelation(field)
-		if err != nil {
-			slog.Error("CreateRunner createRelation failed", "field", field.GetName(), "error", err.Error())
-			return
-		}
-	}
-
-	return
+	return s.executeSchemaDDL(statements)
 }
 
 func (s *impl) Create(vModel models.Model) (err *cd.Error) {

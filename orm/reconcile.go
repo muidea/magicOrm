@@ -74,11 +74,6 @@ func findIndex(items []models.Index, name string) (models.Index, bool) {
 	return models.Index{}, false
 }
 
-func (s *ReconcileRunner) execute(result database.Result) *cd.Error {
-	_, err := s.executor.Execute(result.SQL(), result.Args()...)
-	return err
-}
-
 func (s *ReconcileRunner) checkCompatibility() (map[string]models.Field, *cd.Error) {
 	if s.previous == nil || s.vModel == nil {
 		return nil, cd.NewError(cd.IllegalParam, "schema reconcile model is nil")
@@ -121,13 +116,29 @@ func (s *ReconcileRunner) checkCompatibility() (map[string]models.Field, *cd.Err
 }
 
 func (s *ReconcileRunner) Reconcile() *cd.Error {
-	if err := s.checkContext(); err != nil {
-		return err
-	}
-	previousFields, err := s.checkCompatibility()
+	statements, err := s.planReconcile()
 	if err != nil {
 		return err
 	}
+	return s.executeSchemaDDL(statements)
+}
+
+func (s *ReconcileRunner) planReconcile() ([]database.Result, *cd.Error) {
+	if err := s.checkContext(); err != nil {
+		return nil, err
+	}
+	previousFields, err := s.checkCompatibility()
+	if err != nil {
+		return nil, err
+	}
+	if _, err = collectSchemaGraph(s.context, s.previous, s.modelProvider, s.modelCodec); err != nil {
+		return nil, err
+	}
+	if _, err = collectSchemaGraph(s.context, s.vModel, s.modelProvider, s.modelCodec); err != nil {
+		return nil, err
+	}
+	statements := []database.Result{}
+	created := map[string]bool{}
 
 	for _, field := range s.vModel.GetFields() {
 		if _, exists := previousFields[field.GetName()]; exists {
@@ -137,25 +148,49 @@ func (s *ReconcileRunner) Reconcile() *cd.Error {
 			// Existing rows cannot satisfy a new required column without a data
 			// backfill. Nullable additions are the only universally lossless form.
 			if !field.GetType().IsPtrType() {
-				return migrationRequired("new required field %q needs an explicit backfill", field.GetName())
+				return nil, migrationRequired("new required field %q needs an explicit backfill", field.GetName())
 			}
 			result, buildErr := s.sqlBuilder.BuildAddColumn(s.vModel, field)
 			if buildErr != nil {
-				return buildErr
+				return nil, buildErr
 			}
-			if executeErr := s.execute(result); executeErr != nil {
-				return executeErr
-			}
+			statements = append(statements, result)
 			continue
+		}
+		if !field.GetType().Elem().IsPtrType() {
+			owned, err := s.modelProvider.GetTypeModel(field.GetType().Elem())
+			if err != nil {
+				return nil, err
+			}
+			graph, err := collectSchemaGraph(s.context, owned, s.modelProvider, s.modelCodec)
+			if err != nil {
+				return nil, err
+			}
+			// Multiple new fields may share the same owned model. Create each
+			// host/relation once, while retaining both parent relation tables.
+			filtered := &schemaGraph{}
+			for _, step := range graph.order {
+				key := step.model.GetPkgKey()
+				if step.field != nil {
+					key += "#" + step.field.GetName()
+				}
+				if !created[key] {
+					filtered.order = append(filtered.order, step)
+					created[key] = true
+				}
+			}
+			ownedDDL, err := s.buildSchemaDDL(filtered, true)
+			if err != nil {
+				return nil, err
+			}
+			statements = append(statements, ownedDDL...)
 		}
 
 		result, buildErr := s.sqlBuilder.BuildCreateRelationTable(s.vModel, field)
 		if buildErr != nil {
-			return buildErr
+			return nil, buildErr
 		}
-		if executeErr := s.execute(result); executeErr != nil {
-			return executeErr
-		}
+		statements = append(statements, result)
 	}
 
 	previousConstraints := models.GetUniqueConstraints(s.previous)
@@ -165,11 +200,9 @@ func (s *ReconcileRunner) Reconcile() *cd.Error {
 		}
 		result, buildErr := s.sqlBuilder.BuildCreateUniqueConstraint(s.vModel, constraint)
 		if buildErr != nil {
-			return buildErr
+			return nil, buildErr
 		}
-		if executeErr := s.execute(result); executeErr != nil {
-			return executeErr
-		}
+		statements = append(statements, result)
 	}
 
 	previousIndexes := models.GetIndexes(s.previous)
@@ -179,13 +212,11 @@ func (s *ReconcileRunner) Reconcile() *cd.Error {
 		}
 		result, buildErr := s.sqlBuilder.BuildCreateIndex(s.vModel, index)
 		if buildErr != nil {
-			return buildErr
+			return nil, buildErr
 		}
-		if executeErr := s.execute(result); executeErr != nil {
-			return executeErr
-		}
+		statements = append(statements, result)
 	}
-	return nil
+	return statements, nil
 }
 
 func (s *impl) Reconcile(previous, current models.Model) (err *cd.Error) {
