@@ -707,6 +707,30 @@ func (s *QueryRunner) batchQueryRelationModels(vField models.Field, ids []any, d
 		return
 	}
 
+	// Every relation group shares this query's cache. Fetch only targets not
+	// already read (or confirmed missing) by another field/branch of this query.
+	// Relation edges still come from storage; this never invents an ownership edge.
+	missing := make([]any, 0, len(ids))
+	seen := make(map[string]struct{}, len(ids))
+	for _, id := range ids {
+		normalized, normalizeErr := s.modelCodec.ExtractBasicFieldValue(pkField, id)
+		if normalizeErr != nil {
+			return normalizeErr
+		}
+		key := relationCacheKey(rModel.GetPkgKey(), normalized)
+		if _, exists := seen[key]; exists {
+			continue
+		}
+		seen[key] = struct{}{}
+		if s.getCachedRelationModel(rModel.GetPkgKey(), normalized) == nil && !s.isRelationMiss(rModel.GetPkgKey(), normalized) {
+			missing = append(missing, normalized)
+		}
+	}
+	if len(missing) == 0 {
+		return nil
+	}
+	ids = missing
+
 	vFilter, vErr := s.modelProvider.GetModelFilter(rModel)
 	if vErr != nil {
 		err = vErr
