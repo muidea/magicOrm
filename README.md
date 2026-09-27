@@ -885,3 +885,7 @@ config = &DBOptions{
 ## 许可证
 
 MIT License
+
+## SQL 成本窗口
+
+启动时设置 `MAGIC_PROFILE_WINDOW=60s` 可独立于监控 collector 统计 MySQL/PostgreSQL Query、Execute 和逻辑事务调用。标签只使用引擎及 SQL 操作类别，不记录 SQL 或参数；查询耗时不包含完整行扫描与对象映射，事务次数不等于实际数据库提交数。完整采集边界及 SQL 指纹差分见工作区 [QPS 分析指南](../magicRunner/docs/guide-qps-analysis.md)。

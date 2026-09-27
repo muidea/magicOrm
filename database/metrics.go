@@ -7,6 +7,7 @@ import (
 	"time"
 
 	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/profiling"
 	"github.com/muidea/magicOrm/metrics/metricsdb"
 )
 
@@ -26,6 +27,9 @@ var lastConnectionStats sync.Map
 var normalizedOperationCache sync.Map
 
 func RecordDatabaseQuery(databaseName string, sqlText string, duration time.Duration, err *cd.Error) {
+	if profiling.Enabled() {
+		profiling.Record("sql-query", databaseName+":"+normalizeDatabaseOperation(sqlText, "query"), duration, err != nil)
+	}
 	collector := metricsdb.GetDatabaseMetricsCollector()
 	if collector == nil {
 		return
@@ -34,7 +38,14 @@ func RecordDatabaseQuery(databaseName string, sqlText string, duration time.Dura
 	collector.RecordQuery(databaseName, cachedDatabaseOperation(sqlText, "query"), duration, cd.ToStdError(err))
 }
 
-func RecordDatabaseExecution(databaseName string, sqlText string, success bool) {
+func RecordDatabaseExecution(databaseName string, sqlText string, success bool, durations ...time.Duration) {
+	var duration time.Duration
+	if len(durations) > 0 {
+		duration = durations[0]
+	}
+	if profiling.Enabled() {
+		profiling.Record("sql-execute", databaseName+":"+normalizeDatabaseOperation(sqlText, "execute"), duration, !success)
+	}
 	collector := metricsdb.GetDatabaseMetricsCollector()
 	if collector == nil {
 		return
@@ -44,6 +55,7 @@ func RecordDatabaseExecution(databaseName string, sqlText string, success bool) 
 }
 
 func RecordDatabaseTransaction(databaseName string, txType string, success bool) {
+	profiling.Record("transaction", databaseName+":"+txType, 0, !success)
 	collector := metricsdb.GetDatabaseMetricsCollector()
 	if collector == nil {
 		return

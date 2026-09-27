@@ -51,6 +51,7 @@ github.com/lib/pq/scram
 ## explicit; go 1.26.0
 github.com/muidea/magicCommon/def
 github.com/muidea/magicCommon/foundation/cache
+github.com/muidea/magicCommon/foundation/profiling
 github.com/muidea/magicCommon/foundation/util
 github.com/muidea/magicCommon/monitoring
 github.com/muidea/magicCommon/monitoring/core

@@ -318,7 +318,7 @@ func (s *ConnExecutor) Execute(sql string, args ...any) (rowsAffected int64, err
 	defer func() {
 		endTime := time.Now()
 		elapse := endTime.Sub(startTime)
-		database.RecordDatabaseExecution(database.DatabaseMySQL, sql, err == nil)
+		database.RecordDatabaseExecution(database.DatabaseMySQL, sql, err == nil, elapse)
 		if err != nil {
 			slog.Error("Execute failed", "execute_time", startTime.Local().String(), "elapse", elapse, "sql", sql, "error", err.Error())
 			return
@@ -366,7 +366,7 @@ func (s *ConnExecutor) ExecuteInsert(sql string, pkValOut any, args ...any) (err
 	defer func() {
 		endTime := time.Now()
 		elapse := endTime.Sub(startTime)
-		database.RecordDatabaseExecution(database.DatabaseMySQL, sql, err == nil)
+		database.RecordDatabaseExecution(database.DatabaseMySQL, sql, err == nil, elapse)
 		if err != nil {
 			slog.Error("ExecuteInsert failed", "execute_time", startTime.Local().String(), "elapse", elapse, "sql", sql, "error", err.Error())
 			return
@@ -689,7 +689,7 @@ func (s *HostExecutor) Execute(sql string, args ...any) (rowsAffected int64, err
 	defer func() {
 		endTime := time.Now()
 		elapse := endTime.Sub(startTime)
-		database.RecordDatabaseExecution(database.DatabaseMySQL, sql, err == nil)
+		database.RecordDatabaseExecution(database.DatabaseMySQL, sql, err == nil, elapse)
 		if err != nil {
 			slog.Error("Execute failed", "execute_time", startTime.Local().String(), "elapse", elapse, "sql", sql, "error", err.Error())
 			return
@@ -747,7 +747,7 @@ func (s *HostExecutor) ExecuteInsert(sql string, pkValOut any, args ...any) (err
 	defer func() {
 		endTime := time.Now()
 		elapse := endTime.Sub(startTime)
-		database.RecordDatabaseExecution(database.DatabaseMySQL, sql, err == nil)
+		database.RecordDatabaseExecution(database.DatabaseMySQL, sql, err == nil, elapse)
 		if err != nil {
 			slog.Error("ExecuteInsert failed", "execute_time", startTime.Local().String(), "elapse", elapse, "sql", sql, "error", err.Error())
 			return
