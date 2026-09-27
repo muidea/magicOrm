@@ -86,3 +86,30 @@ func TestUnboundedPoolRetainsBoundedIdleConnections(t *testing.T) {
 		}
 	}
 }
+
+func TestAcquireConnectionPreservesBudgetAndCancellation(t *testing.T) {
+	db := sql.OpenDB(&poolTestConnector{})
+	defer db.Close()
+	ConfigurePool(db, 1)
+	held, err := AcquireConnection(context.Background(), db, DatabasePostgreSQL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+	defer cancel()
+	blocked, err := AcquireConnection(ctx, db, DatabasePostgreSQL)
+	if blocked != nil || !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("acquisition ignored pool budget/cancellation: conn=%v err=%v", blocked, err)
+	}
+	if err := held.Close(); err != nil {
+		t.Fatal(err)
+	}
+	reused, err := AcquireConnection(context.Background(), db, DatabaseMySQL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer reused.Close()
+	if db.Stats().OpenConnections != 1 {
+		t.Fatal("acquisition opened excess connections")
+	}
+}

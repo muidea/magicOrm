@@ -173,3 +173,12 @@ MagicORM 当前已经有三套可直接接入 `magicCommon/monitoring` 的指标
 - 新增 metrics 维度时，先评估 key cardinality，避免高基数字段直接进入 `BuildKey(...)`。
 - 新增 duration 指标时，优先复用 `RecordDurationSample(...)` 和 `AverageDurationSeconds(...)`。
 - 新增 provider 指标时，优先补 collector 与 provider 的成对测试，确保标签和平均值语义一致。
+
+
+## 可选查询成本窗口
+
+设置 `MAGIC_PROFILE_WINDOW=30s` 可启用 magicCommon 的有界聚合窗口。PostgreSQL/MySQL 池获取连接时记录 `connection-acquire`（引擎标签），覆盖 `sql.DB.Conn` 的池等待和新连接建立，失败计数包含取消；不改变连接预算。该耗时不能直接当作纯连接池排队。
+
+顶层 QueryRunner 记录 `query-phase` 的 total、execute、scan、assign-basic、prefetch-relation、assign-relation、project-response。失败只记录 total，避免把未完成阶段当成成功测量；关系阶段包含嵌套查询。`sql-query` 记录每条驱动查询，不能与包含它的查询阶段相加。顶层总耗时还包含 SQL 构建等工作。所有标签均为固定操作或引擎，不包含 SQL、参数、DSN、租户或业务身份。
+
+逐条 QueryRunner 慢日志阈值为 1 秒，仅记录模型、行数与阶段耗时。短查询分析使用可选窗口，避免 10 毫秒阈值产生大量逐条日志。性能窗口关闭时连接获取不额外计时；ORM 不引入任何平台业务缓存或权限规则。

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicCommon/foundation/profiling"
 
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
@@ -22,7 +23,7 @@ type resultItems []any
 type resultItemsList []resultItems
 
 const relationMissWarnWindow = time.Minute
-const topLevelQueryProfileThreshold = 10 * time.Millisecond
+const topLevelQueryProfileThreshold = time.Second
 
 var relationMissWarnTracker = struct {
 	sync.Mutex
@@ -1233,6 +1234,23 @@ func (s *QueryRunner) Query(filter models.Filter) (ret []models.Model, err *cd.E
 		projectResponseDuration  time.Duration
 	)
 
+	if s.deepLevel == 0 && profiling.Enabled() {
+		// Root phases exclude nested runner totals. Relation phase durations
+		// include their nested SQL; SQL windows must not be added to these totals.
+		defer func() {
+			profiling.Record("query-phase", "total", time.Since(queryStartTime), err != nil)
+			if err != nil {
+				return // Do not publish incomplete phases as successful timings.
+			}
+			profiling.Record("query-phase", "execute", queryExecDuration, false)
+			profiling.Record("query-phase", "scan", rowScanDuration, false)
+			profiling.Record("query-phase", "assign-basic", assignBasicDuration, false)
+			profiling.Record("query-phase", "prefetch-relation", prefetchRelationDuration, false)
+			profiling.Record("query-phase", "assign-relation", assignRelationDuration, false)
+			profiling.Record("query-phase", "project-response", projectResponseDuration, false)
+		}()
+	}
+
 	if err = s.checkContext(); err != nil {
 		return
 	}
@@ -1307,8 +1325,6 @@ func (s *QueryRunner) Query(filter models.Filter) (ret []models.Model, err *cd.E
 			"prefetch_relation_ms", durationMs(prefetchRelationDuration),
 			"assign_relation_ms", durationMs(assignRelationDuration),
 			"project_response_ms", durationMs(projectResponseDuration),
-			"query_args", s.lastQueryArgs,
-			"query_sql", s.lastQuerySQL,
 		)
 	}
 

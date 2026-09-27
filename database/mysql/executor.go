@@ -924,7 +924,7 @@ func (s *Pool) Uninitialized() {
 }
 
 func (s *Pool) GetExecutor(ctx context.Context) (ret database.Executor, err *cd.Error) {
-	connPtr, connErr := s.dbHandle.Conn(ctx)
+	connPtr, connErr := database.AcquireConnection(ctx, s.dbHandle, database.DatabaseMySQL)
 	if connErr != nil {
 		err = cd.NewError(cd.DatabaseError, connErr.Error())
 		return

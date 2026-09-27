@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"strings"
 	"sync"
@@ -130,4 +131,17 @@ func cachedDatabaseOperation(sqlText string, fallback string) string {
 	op := normalizeDatabaseOperation(sqlText, fallback)
 	normalizedOperationCache.Store(cacheKey, op)
 	return op
+}
+
+// AcquireConnection measures sql.DB.Conn, including pool waiting and any new
+// connection establishment. It is not a pure pool-wait timer. Labels contain
+// only the database engine; tenant names, DSNs and credentials are excluded.
+func AcquireConnection(ctx context.Context, db *sql.DB, engine string) (*sql.Conn, error) {
+	if !profiling.Enabled() {
+		return db.Conn(ctx)
+	}
+	started := time.Now()
+	conn, err := db.Conn(ctx)
+	profiling.Record("connection-acquire", engine, time.Since(started), err != nil)
+	return conn, err
 }
