@@ -895,13 +895,15 @@ func (s *Pool) connect(dsn string, maxConnNum int) (err *cd.Error) {
 		return
 	}
 
-	dbHandle.SetMaxOpenConns(maxConnNum)
+	database.ConfigurePool(dbHandle, maxConnNum)
 
 	//log.Print("open database connection...")
 	s.dbHandle = dbHandle
 
 	dbErr = dbHandle.Ping()
 	if dbErr != nil {
+		_ = dbHandle.Close()
+		s.dbHandle = nil
 		err = cd.NewError(cd.Unexpected, dbErr.Error())
 		slog.Error("Pool connect ping database failed", "dsn", dsn, "error", err.Error())
 		return

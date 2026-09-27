@@ -13,16 +13,16 @@ import (
 // BatchQuery batch query
 func (s *impl) BatchQuery(filter models.Filter) (ret []models.Model, err *cd.Error) {
 	startTime := time.Now()
+	var metricModel models.Model
 
 	defer func() {
 		duration := time.Since(startTime)
 		if ormMetricCollector != nil {
-			// BatchQuery使用filter的mask model
-			var model models.Model
-			if filter != nil {
-				model = filter.MaskModel()
+			// Preserve error-path labels without rebuilding successful queries.
+			if metricModel == nil && filter != nil {
+				metricModel = filter.MaskModel()
 			}
-			ormMetricCollector.RecordOperation(string(metrics.OperationBatch), model, duration, cd.ToStdError(err))
+			ormMetricCollector.RecordOperation(string(metrics.OperationBatch), metricModel, duration, cd.ToStdError(err))
 		}
 	}()
 
@@ -33,6 +33,7 @@ func (s *impl) BatchQuery(filter models.Filter) (ret []models.Model, err *cd.Err
 	}
 
 	responseModel, responseByMask, responseErr := buildQueryResponseModel(nil, filter)
+	metricModel = responseModel
 	if responseErr != nil {
 		err = responseErr
 		slog.Error("BatchQuery buildQueryResponseModel failed", "error", err.Error())

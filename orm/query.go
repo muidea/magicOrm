@@ -77,8 +77,9 @@ func selectedQueryBasicFieldIndexes(vModel models.Model) []int {
 		return nil
 	}
 
-	indexes := make([]int, 0, len(vModel.GetFields()))
-	for idx, field := range vModel.GetFields() {
+	fields := vModel.GetFields()
+	indexes := make([]int, 0, len(fields))
+	for idx, field := range fields {
 		if !models.IsBasicField(field) {
 			continue
 		}
@@ -1231,7 +1232,7 @@ func (s *QueryRunner) Query(filter models.Filter) (ret []models.Model, err *cd.E
 		return
 	}
 
-	sliceValue := []models.Model{}
+	sliceValue := make([]models.Model, 0, queryCount)
 	stageStartTime = time.Now()
 	for idx := range queryValueList {
 		modelVal, modelErr := s.innerAssignBasic(s.vModel, queryValueList[idx])

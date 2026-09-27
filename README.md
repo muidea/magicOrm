@@ -889,3 +889,17 @@ MIT License
 ## SQL 成本窗口
 
 启动时设置 `MAGIC_PROFILE_WINDOW=60s` 可独立于监控 collector 统计 MySQL/PostgreSQL Query、Execute 和逻辑事务调用。标签只使用引擎及 SQL 操作类别，不记录 SQL 或参数；查询耗时不包含完整行扫描与对象映射，事务次数不等于实际数据库提交数。完整采集边界及 SQL 指纹差分见工作区 [QPS 分析指南](../magicRunner/docs/guide-qps-analysis.md)。
+
+
+## 连接池复用策略
+
+PostgreSQL 与 MySQL 的 `Pool.Initialize(maxConnNum, config)` 使用相同策略：正数 `maxConnNum` 同时限制打开连接和空闲连接数量，按需建连，不预热全部连接。并发查询归还连接后可供下一批请求复用，避免默认仅保留两条空闲连接造成反复建连与认证。连接连续闲置一分钟后由 `database/sql` 清理；清理不是精确计时器，实际释放可能稍晚。
+
+`maxConnNum <= 0` 保留既有不限打开连接的语义，空闲连接最多保留两条。各 owner 的连接预算仍独立；部署时需将多个进程、多个 owner 的上限合计纳入数据库容量规划。此次不改变事务、查询视图、租户/owner 隔离或业务授权，不缓存查询结果。连接池初始化探活失败时关闭已创建的数据库句柄。
+
+
+## 查询模型的请求内复用
+
+Count 与 BatchQuery 的指标记录复用该次查询已经解析的模型身份，避免为计数标签重新构造完整模型；发生模型解析前错误时仍保留原有标签回退。remote Object 的字段列表、复制结果和批量查询结果按已知长度分配切片，继续返回独立切片/模型，不缓存查询值或共享可变的结果模型。字段视图、显式响应 mask、私有字段读取与 NULL 处理保持既有合同。
+
+`go test ./orm -run '^$' -bench '^BenchmarkFilterReadModels$' -benchmem` 测量带指标的一次 Count 与 BatchQuery（16 字段、单行、内存假执行器），用于跟踪模型解析/分配开销；它不测量数据库或 HTTP 吞吐。

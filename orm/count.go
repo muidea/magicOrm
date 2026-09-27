@@ -65,16 +65,16 @@ func (s *CountRunner) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
 
 func (s *impl) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
 	startTime := time.Now()
+	var vModel models.Model
 
 	defer func() {
 		duration := time.Since(startTime)
 		if ormMetricCollector != nil {
-			// Count操作没有具体的model，使用filter的mask model
-			var model models.Model
-			if vFilter != nil {
-				model = vFilter.MaskModel()
+			// Reuse the query model; metrics only consume its identity.
+			if vModel == nil && vFilter != nil {
+				vModel = vFilter.MaskModel()
 			}
-			ormMetricCollector.RecordOperation(string(metrics.OperationCount), model, duration, cd.ToStdError(err))
+			ormMetricCollector.RecordOperation(string(metrics.OperationCount), vModel, duration, cd.ToStdError(err))
 		}
 	}()
 
@@ -87,7 +87,7 @@ func (s *impl) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
 		return
 	}
 
-	vModel := vFilter.MaskModel()
+	vModel = vFilter.MaskModel()
 	countRunner := NewCountRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec)
 	queryVal, queryErr := countRunner.Count(vFilter)
 	if queryErr != nil {

@@ -135,8 +135,12 @@ func (s *Object) GetDescription() (ret string) {
 }
 
 func (s *Object) GetFields() (ret models.Fields) {
-	for _, val := range s.Fields {
-		ret = append(ret, val)
+	if len(s.Fields) == 0 {
+		return nil
+	}
+	ret = make(models.Fields, len(s.Fields))
+	for idx, val := range s.Fields {
+		ret[idx] = val
 	}
 
 	return
@@ -334,7 +338,7 @@ func (s *Object) GetField(name string) (ret models.Field) {
 
 // Interface object value
 func (s *Object) Interface(_ bool) (ret any) {
-	objVal := &ObjectValue{Name: s.Name, PkgPath: s.PkgPath, Fields: []*FieldValue{}}
+	objVal := &ObjectValue{Name: s.Name, PkgPath: s.PkgPath, Fields: make([]*FieldValue, 0, len(s.Fields))}
 
 	for _, sf := range s.Fields {
 		if sf.value == nil || (!sf.value.IsValid() && !sf.value.IsAssigned()) {
@@ -364,7 +368,7 @@ func (s *Object) Copy(viewSpec models.ViewDeclare) (ret models.Model) {
 		Icon:              s.Icon,
 		PkgPath:           s.PkgPath,
 		Description:       s.Description,
-		Fields:            []*Field{},
+		Fields:            make([]*Field, 0, len(s.Fields)),
 		UniqueConstraints: s.GetUniqueConstraints(),
 		Indexes:           s.GetIndexes(),
 
