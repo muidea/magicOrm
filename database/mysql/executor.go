@@ -81,11 +81,11 @@ func EnsureSchema(config *Config) *cd.Error {
 	}
 	dbHandle, dbErr := sql.Open("mysql", config.GetDsn())
 	if dbErr != nil {
-		return cd.NewError(cd.Unexpected, dbErr.Error())
+		return databaseError(dbErr)
 	}
 	defer dbHandle.Close()
 	if dbErr = dbHandle.Ping(); dbErr != nil {
-		return cd.NewError(cd.Unexpected, dbErr.Error())
+		return databaseError(dbErr)
 	}
 	return nil
 }
@@ -95,7 +95,7 @@ func NewExecutor(configPtr database.Config) (ret *HostExecutor, err *cd.Error) {
 	dsn := configPtr.GetDsn()
 	dbHandle, dbErr := sql.Open("mysql", dsn)
 	if dbErr != nil {
-		err = cd.NewError(cd.Unexpected, dbErr.Error())
+		err = databaseError(dbErr)
 		slog.Error("open database exception", "dsn", dsn, "error", err.Error())
 		return
 	}
@@ -150,7 +150,7 @@ func (s *ConnExecutor) BeginTransaction() (err *cd.Error) {
 
 		tx, txErr := s.dbConnPtr.BeginTx(s.executeContetxt, nil)
 		if txErr != nil {
-			err = cd.NewError(cd.Unexpected, txErr.Error())
+			err = databaseError(txErr)
 			slog.Error("BeginTransaction failed", "value", "s.dbHandle.Begin", "error", err.Error())
 			return
 		}
@@ -172,7 +172,7 @@ func (s *ConnExecutor) CommitTransaction() (err *cd.Error) {
 		dbErr := s.dbTx.Commit()
 		if dbErr != nil {
 			s.dbTx = nil
-			err = cd.NewError(cd.Unexpected, dbErr.Error())
+			err = databaseError(dbErr)
 			slog.Error("CommitTransaction failed", "value", "s.dbTx.Commit", "error", err.Error())
 			return
 		}
@@ -194,7 +194,7 @@ func (s *ConnExecutor) RollbackTransaction() (err *cd.Error) {
 		dbErr := s.dbTx.Rollback()
 		if dbErr != nil {
 			s.dbTx = nil
-			err = cd.NewError(cd.Unexpected, dbErr.Error())
+			err = databaseError(dbErr)
 			slog.Error("RollbackTransaction failed", "value", "s.dbTx.Rollback", "error", err.Error())
 			return
 		}
@@ -234,14 +234,14 @@ func (s *ConnExecutor) Query(sql string, needCols bool, args ...any) (ret []stri
 
 		rows, rowErr := s.dbConnPtr.QueryContext(s.executeContetxt, sql, args...)
 		if rowErr != nil {
-			err = cd.NewError(cd.Unexpected, rowErr.Error())
+			err = databaseError(rowErr)
 			slog.Error("Query failed", "sql", sql, "args", args, "error", rowErr.Error())
 			return
 		}
 		if needCols {
 			cols, colsErr := rows.Columns()
 			if colsErr != nil {
-				err = cd.NewError(cd.Unexpected, colsErr.Error())
+				err = databaseError(colsErr)
 				slog.Error("Query failed", "operation", "rows.Columns", "sql", sql, "error", colsErr.Error())
 				return
 			}
@@ -257,14 +257,14 @@ func (s *ConnExecutor) Query(sql string, needCols bool, args ...any) (ret []stri
 
 		rows, rowErr := s.dbTx.Query(sql, args...)
 		if rowErr != nil {
-			err = cd.NewError(cd.Unexpected, rowErr.Error())
+			err = databaseError(rowErr)
 			slog.Error("Query failed", "operation", "s.dbTx.Query", "sql", sql, "error", rowErr.Error())
 			return
 		}
 		if needCols {
 			cols, colsErr := rows.Columns()
 			if colsErr != nil {
-				err = cd.NewError(cd.Unexpected, colsErr.Error())
+				err = databaseError(colsErr)
 				slog.Error("Query failed", "operation", "rows.Columns", "sql", sql, "error", colsErr.Error())
 				return
 			}
@@ -306,7 +306,7 @@ func (s *ConnExecutor) GetField(value ...any) (err *cd.Error) {
 
 	dbErr := s.rowsHandle.Scan(value...)
 	if dbErr != nil {
-		err = cd.NewError(cd.Unexpected, dbErr.Error())
+		err = databaseError(dbErr)
 		slog.Error("GetField failed", "value", "s.rowsHandle.Scan", "error", err.Error())
 	}
 
@@ -341,7 +341,7 @@ func (s *ConnExecutor) Execute(sql string, args ...any) (rowsAffected int64, err
 
 		result, resultErr := s.dbConnPtr.ExecContext(s.executeContetxt, sql, args...)
 		if resultErr != nil {
-			err = cd.NewError(cd.Unexpected, resultErr.Error())
+			err = databaseError(resultErr)
 			slog.Error("Execute failed", "value", "s.dbHandle.Exec", "error", resultErr.Error())
 			return
 		}
@@ -352,7 +352,7 @@ func (s *ConnExecutor) Execute(sql string, args ...any) (rowsAffected int64, err
 
 	result, resultErr := s.dbTx.Exec(sql, args...)
 	if resultErr != nil {
-		err = cd.NewError(cd.Unexpected, resultErr.Error())
+		err = databaseError(resultErr)
 		slog.Error("Execute failed", "value", "s.dbTx.Exec", "error", resultErr.Error())
 		return
 	}
@@ -389,13 +389,13 @@ func (s *ConnExecutor) ExecuteInsert(sql string, pkValOut any, args ...any) (err
 
 		execResult, execErr := s.dbConnPtr.ExecContext(s.executeContetxt, sql, args...)
 		if execErr != nil {
-			err = cd.NewError(cd.Unexpected, execErr.Error())
+			err = databaseError(execErr)
 			slog.Error("ExecuteInsert failed", "value", "s.dbHandle.Exec", "error", execErr.Error())
 			return
 		}
 		idVal, idErr := execResult.LastInsertId()
 		if idErr != nil {
-			err = cd.NewError(cd.Unexpected, idErr.Error())
+			err = databaseError(idErr)
 			slog.Error("ExecuteInsert failed", "value", "s.dbHandle.Exec", "error", idErr.Error())
 			return
 		}
@@ -413,13 +413,13 @@ func (s *ConnExecutor) ExecuteInsert(sql string, pkValOut any, args ...any) (err
 
 	execResult, execErr := s.dbTx.ExecContext(s.executeContetxt, sql, args...)
 	if execErr != nil {
-		err = cd.NewError(cd.Unexpected, execErr.Error())
+		err = databaseError(execErr)
 		slog.Error("ExecuteInsert failed", "value", "s.dbHandle.Exec", "error", execErr.Error())
 		return
 	}
 	idVal, idErr := execResult.LastInsertId()
 	if idErr != nil {
-		err = cd.NewError(cd.Unexpected, idErr.Error())
+		err = databaseError(idErr)
 		slog.Error("ExecuteInsert failed", "value", "s.dbHandle.Exec", "error", idErr.Error())
 		return
 	}
@@ -501,7 +501,7 @@ func (s *HostExecutor) BeginTransaction() (err *cd.Error) {
 			tx, txErr = s.dbHandle.Begin()
 		}
 		if txErr != nil {
-			err = cd.NewError(cd.Unexpected, txErr.Error())
+			err = databaseError(txErr)
 			slog.Error("BeginTransaction failed", "value", "s.dbHandle.Begin", "error", err.Error())
 			return
 		}
@@ -523,7 +523,7 @@ func (s *HostExecutor) CommitTransaction() (err *cd.Error) {
 		dbErr := s.dbTx.Commit()
 		if dbErr != nil {
 			s.dbTx = nil
-			err = cd.NewError(cd.Unexpected, dbErr.Error())
+			err = databaseError(dbErr)
 			slog.Error("CommitTransaction failed", "value", "s.dbTx.Commit", "error", err.Error())
 			return
 		}
@@ -545,7 +545,7 @@ func (s *HostExecutor) RollbackTransaction() (err *cd.Error) {
 		dbErr := s.dbTx.Rollback()
 		if dbErr != nil {
 			s.dbTx = nil
-			err = cd.NewError(cd.Unexpected, dbErr.Error())
+			err = databaseError(dbErr)
 			slog.Error("RollbackTransaction failed", "value", "s.dbTx.Rollback", "error", err.Error())
 			return
 		}
@@ -586,14 +586,14 @@ func (s *HostExecutor) Query(sql string, needCols bool, args ...any) (ret []stri
 		if s.executeContetxt != nil {
 			rows, rowErr := s.dbHandle.QueryContext(s.executeContetxt, sql, args...)
 			if rowErr != nil {
-				err = cd.NewError(cd.Unexpected, rowErr.Error())
+				err = databaseError(rowErr)
 				slog.Error("Query failed", "sql", sql, "args", args, "error", rowErr.Error())
 				return
 			}
 			if needCols {
 				cols, colsErr := rows.Columns()
 				if colsErr != nil {
-					err = cd.NewError(cd.Unexpected, colsErr.Error())
+					err = databaseError(colsErr)
 					slog.Error("Query failed", "operation", "rows.Columns", "sql", sql, "error", colsErr.Error())
 					return
 				}
@@ -605,14 +605,14 @@ func (s *HostExecutor) Query(sql string, needCols bool, args ...any) (ret []stri
 		}
 		rows, rowErr := s.dbHandle.Query(sql, args...)
 		if rowErr != nil {
-			err = cd.NewError(cd.Unexpected, rowErr.Error())
+			err = databaseError(rowErr)
 			slog.Error("Query failed", "sql", sql, "args", args, "error", rowErr.Error())
 			return
 		}
 		if needCols {
 			cols, colsErr := rows.Columns()
 			if colsErr != nil {
-				err = cd.NewError(cd.Unexpected, colsErr.Error())
+				err = databaseError(colsErr)
 				slog.Error("Query failed", "operation", "rows.Columns", "sql", sql, "error", colsErr.Error())
 				return
 			}
@@ -628,14 +628,14 @@ func (s *HostExecutor) Query(sql string, needCols bool, args ...any) (ret []stri
 
 		rows, rowErr := s.dbTx.Query(sql, args...)
 		if rowErr != nil {
-			err = cd.NewError(cd.Unexpected, rowErr.Error())
+			err = databaseError(rowErr)
 			slog.Error("Query failed", "operation", "s.dbTx.Query", "sql", sql, "error", rowErr.Error())
 			return
 		}
 		if needCols {
 			cols, colsErr := rows.Columns()
 			if colsErr != nil {
-				err = cd.NewError(cd.Unexpected, colsErr.Error())
+				err = databaseError(colsErr)
 				slog.Error("Query failed", "operation", "rows.Columns", "sql", sql, "error", colsErr.Error())
 				return
 			}
@@ -677,7 +677,7 @@ func (s *HostExecutor) GetField(value ...any) (err *cd.Error) {
 
 	dbErr := s.rowsHandle.Scan(value...)
 	if dbErr != nil {
-		err = cd.NewError(cd.Unexpected, dbErr.Error())
+		err = databaseError(dbErr)
 		slog.Error("GetField failed", "value", "s.rowsHandle.Scan", "error", err.Error())
 	}
 
@@ -713,7 +713,7 @@ func (s *HostExecutor) Execute(sql string, args ...any) (rowsAffected int64, err
 		if s.executeContetxt != nil {
 			result, resultErr := s.dbHandle.ExecContext(s.executeContetxt, sql, args...)
 			if resultErr != nil {
-				err = cd.NewError(cd.Unexpected, resultErr.Error())
+				err = databaseError(resultErr)
 				slog.Error("Execute failed", "value", "s.dbHandle.Exec", "error", resultErr.Error())
 				return
 			}
@@ -723,7 +723,7 @@ func (s *HostExecutor) Execute(sql string, args ...any) (rowsAffected int64, err
 		}
 		result, resultErr := s.dbHandle.Exec(sql, args...)
 		if resultErr != nil {
-			err = cd.NewError(cd.Unexpected, resultErr.Error())
+			err = databaseError(resultErr)
 			slog.Error("Execute failed", "value", "s.dbHandle.Exec", "error", resultErr.Error())
 			return
 		}
@@ -733,7 +733,7 @@ func (s *HostExecutor) Execute(sql string, args ...any) (rowsAffected int64, err
 
 	result, resultErr := s.dbTx.Exec(sql, args...)
 	if resultErr != nil {
-		err = cd.NewError(cd.Unexpected, resultErr.Error())
+		err = databaseError(resultErr)
 		slog.Error("Execute failed", "value", "s.dbTx.Exec", "error", resultErr.Error())
 		return
 	}
@@ -771,13 +771,13 @@ func (s *HostExecutor) ExecuteInsert(sql string, pkValOut any, args ...any) (err
 		if s.executeContetxt != nil {
 			execResult, execErr := s.dbHandle.ExecContext(s.executeContetxt, sql, args...)
 			if execErr != nil {
-				err = cd.NewError(cd.Unexpected, execErr.Error())
+				err = databaseError(execErr)
 				slog.Error("ExecuteInsert failed", "value", "s.dbHandle.Exec", "error", execErr.Error())
 				return
 			}
 			idVal, idErr := execResult.LastInsertId()
 			if idErr != nil {
-				err = cd.NewError(cd.Unexpected, idErr.Error())
+				err = databaseError(idErr)
 				slog.Error("ExecuteInsert failed", "value", "s.dbHandle.Exec", "error", idErr.Error())
 				return
 			}
@@ -793,13 +793,13 @@ func (s *HostExecutor) ExecuteInsert(sql string, pkValOut any, args ...any) (err
 		}
 		execResult, execErr := s.dbHandle.Exec(sql, args...)
 		if execErr != nil {
-			err = cd.NewError(cd.Unexpected, execErr.Error())
+			err = databaseError(execErr)
 			slog.Error("ExecuteInsert failed", "value", "s.dbHandle.Exec", "error", execErr.Error())
 			return
 		}
 		idVal, idErr := execResult.LastInsertId()
 		if idErr != nil {
-			err = cd.NewError(cd.Unexpected, idErr.Error())
+			err = databaseError(idErr)
 			slog.Error("ExecuteInsert failed", "value", "s.dbHandle.Exec", "error", idErr.Error())
 			return
 		}
@@ -817,13 +817,13 @@ func (s *HostExecutor) ExecuteInsert(sql string, pkValOut any, args ...any) (err
 
 	execResult, execErr := s.dbTx.Exec(sql, args...)
 	if execErr != nil {
-		err = cd.NewError(cd.Unexpected, execErr.Error())
+		err = databaseError(execErr)
 		slog.Error("ExecuteInsert failed", "value", "s.dbHandle.Exec", "error", execErr.Error())
 		return
 	}
 	idVal, idErr := execResult.LastInsertId()
 	if idErr != nil {
-		err = cd.NewError(cd.Unexpected, idErr.Error())
+		err = databaseError(idErr)
 		slog.Error("ExecuteInsert failed", "value", "s.dbHandle.Exec", "error", idErr.Error())
 		return
 	}
@@ -890,7 +890,7 @@ func (s *Pool) Initialize(maxConnNum int, config database.Config) (err *cd.Error
 func (s *Pool) connect(dsn string, maxConnNum int) (err *cd.Error) {
 	dbHandle, dbErr := sql.Open("mysql", dsn)
 	if dbErr != nil {
-		err = cd.NewError(cd.Unexpected, dbErr.Error())
+		err = databaseError(dbErr)
 		slog.Error("Pool connect open database exception", "dsn", dsn, "error", err.Error())
 		return
 	}
@@ -904,7 +904,7 @@ func (s *Pool) connect(dsn string, maxConnNum int) (err *cd.Error) {
 	if dbErr != nil {
 		_ = dbHandle.Close()
 		s.dbHandle = nil
-		err = cd.NewError(cd.Unexpected, dbErr.Error())
+		err = databaseError(dbErr)
 		slog.Error("Pool connect ping database failed", "dsn", dsn, "error", err.Error())
 		return
 	}

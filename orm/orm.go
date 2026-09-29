@@ -392,19 +392,19 @@ func (s *impl) RollbackTransaction() (err *cd.Error) {
 	return
 }
 
-func (s *impl) finalTransaction(err *cd.Error) {
-	if err == nil {
-		err = s.executor.CommitTransaction()
-		if err != nil {
+func (s *impl) finalTransaction(operationErr *cd.Error) *cd.Error {
+	if operationErr == nil {
+		if err := s.executor.CommitTransaction(); err != nil {
 			slog.Error("finalTransaction Commit failed", "error", err.Error())
+			return err
 		}
-		return
+		return nil
 	}
-
-	err = s.executor.RollbackTransaction()
-	if err != nil {
+	if err := s.executor.RollbackTransaction(); err != nil {
 		slog.Error("finalTransaction Rollback failed", "error", err.Error())
+		return err
 	}
+	return nil
 }
 
 func (s *impl) Release() {

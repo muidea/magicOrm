@@ -6,6 +6,17 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 )
 
+func TestFinalTransactionReturnsCommitError(t *testing.T) {
+	executor := &fakeExecutor{commitErr: cd.NewError(cd.Unexpected, "commit unavailable")}
+	ormImpl := &impl{executor: executor}
+	if err := ormImpl.finalTransaction(nil); err == nil || err.Message != "commit unavailable" {
+		t.Fatalf("commit failure was ignored: %v", err)
+	}
+	if executor.commitCalls != 1 {
+		t.Fatalf("expected one commit, got %d", executor.commitCalls)
+	}
+}
+
 func TestFinalTransactionUsesFinalErrorState(t *testing.T) {
 	executor := &fakeExecutor{}
 	ormImpl := &impl{executor: executor}

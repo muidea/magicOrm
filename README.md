@@ -905,3 +905,7 @@ PostgreSQL 与 MySQL 的 `Pool.Initialize(maxConnNum, config)` 使用相同策�
 Count 与 BatchQuery 的指标记录复用该次查询已经解析的模型身份，避免为计数标签重新构造完整模型；发生模型解析前错误时仍保留原有标签回退。remote Object 的字段列表、复制结果和批量查询结果按已知长度分配切片，继续返回独立切片/模型，不缓存查询值或共享可变的结果模型。字段视图、显式响应 mask、私有字段读取与 NULL 处理保持既有合同。
 
 `go test ./orm -run '^$' -bench '^BenchmarkFilterReadModels$' -benchmem` 测量带指标的一次 Count 与 BatchQuery（16 字段、单行、内存假执行器），用于跟踪模型解析/分配开销；它不测量数据库或 HTTP 吞吐。
+
+### 数据库唯一约束错误
+
+PostgreSQL 的 `23505` 和 MySQL 的 `1062` 在数据库执行层映射为通用 `def.Duplicated`，包括包装后的驱动错误。调用方可以针对明确冲突重新读取或重试；其他数据库错误及结果不明的提交保持失败。该分类不包含计费、配额或应用治理逻辑。

@@ -329,7 +329,10 @@ func (s *impl) Update(vModel models.Model) (ret models.Model, err *cd.Error) {
 		}
 		defer func() {
 			txFinalizeStart := time.Now()
-			s.finalTransaction(err)
+			if transactionErr := s.finalTransaction(err); err == nil && transactionErr != nil {
+				ret = nil
+				err = transactionErr
+			}
 			txFinalizeDuration = time.Since(txFinalizeStart)
 		}()
 	}

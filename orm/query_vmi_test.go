@@ -40,6 +40,7 @@ type fakeExecutor struct {
 
 	beginCalls    int
 	commitCalls   int
+	commitErr     *cd.Error
 	rollbackCalls int
 }
 
@@ -52,7 +53,7 @@ func (s *fakeExecutor) BeginTransaction() *cd.Error {
 
 func (s *fakeExecutor) CommitTransaction() *cd.Error {
 	s.commitCalls++
-	return nil
+	return s.commitErr
 }
 
 func (s *fakeExecutor) RollbackTransaction() *cd.Error {
