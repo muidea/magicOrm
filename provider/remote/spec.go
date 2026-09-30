@@ -47,7 +47,10 @@ func (m SpecImpl) GetConstraints() models.Constraints {
 		return cached.(models.Constraints)
 	}
 
-	parsed := utils.ParseConstraints(m.Constraint)
+	parsed, err := utils.ParseConstraintsChecked(m.Constraint)
+	if err != nil {
+		parsed = utils.ParseConstraints(m.Constraint)
+	}
 	actual, _ := constraintCache.LoadOrStore(m.Constraint, parsed)
 	return actual.(models.Constraints)
 }

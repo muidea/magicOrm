@@ -63,3 +63,11 @@ type UserAccount struct {
     Status   string `constraint:"in=active:disabled"`
 }
 ```
+
+## 严格内置约束检查
+
+`ParseConstraintsChecked` 校验内置指令、重复项、读写冲突、数值范围和正则语法。
+正则表达式支持带引号的字符串（例如 `re="^a,max=3$"`），也支持原有未加引号的语法；分组内逗号不会被拆成约束。
+原有 `ParseConstraints` 和自定义指令注册保留，调用方自行选择是否限制为内置语法。
+数值校验覆盖不同宽度的有符号数、无符号数及浮点数，并对缺失参数返回错误。
+该接口不定义应用、租户或业务功能规则。
