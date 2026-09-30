@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"reflect"
 	"time"
 
 	"github.com/muidea/magicOrm/models"
@@ -205,6 +206,14 @@ func (m *validationManagerImpl) Validate(value any, context ValidationContext) e
 
 // ValidateField validates a single field
 func (m *validationManagerImpl) ValidateField(field models.Field, value any, context ValidationContext) error {
+	// A zero auto-increment value requests database generation. It is not a
+	// supplied value and cannot satisfy required/range constraints before INSERT.
+	// Keep validation for explicit values and for every non-insert scenario.
+	if context.Scenario == errors.ScenarioInsert && field != nil && field.GetSpec() != nil &&
+		field.GetSpec().GetValueDeclare() == models.AutoIncrement &&
+		(value == nil || reflect.ValueOf(value).IsZero()) {
+		return nil
+	}
 	context.Field = AdaptField(field, value)
 	return m.Validate(value, context)
 }

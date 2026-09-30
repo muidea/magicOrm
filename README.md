@@ -909,3 +909,7 @@ Count 与 BatchQuery 的指标记录复用该次查询已经解析的模型身�
 ### 数据库唯一约束错误
 
 PostgreSQL 的 `23505` 和 MySQL 的 `1062` 在数据库执行层映射为通用 `def.Duplicated`，包括包装后的驱动错误。调用方可以针对明确冲突重新读取或重试；其他数据库错误及结果不明的提交保持失败。该分类不包含计费、配额或应用治理逻辑。
+
+### Auto-increment validation
+
+On insert, an omitted or zero-valued `auto` field requests database generation and is not checked as a caller-provided value before INSERT. Explicit nonzero values retain validation. Ordinary required fields and manually assigned primary keys retain their constraints; update/query/delete behavior is unchanged. This rule applies to local and remote models without application-specific logic.
