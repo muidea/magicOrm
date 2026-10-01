@@ -47,9 +47,39 @@ func sameSchemaField(previous, current models.Field) bool {
 	if previous.GetSpec().IsPrimaryKey() != current.GetSpec().IsPrimaryKey() {
 		return false
 	}
-	// A default is a stored-row contract. magicOrm deliberately has no generic
-	// ALTER DEFAULT operation, so changing it must use an explicit migration.
-	return reflect.DeepEqual(previous.GetSpec().GetDefaultValue(), current.GetSpec().GetDefaultValue())
+	return true
+}
+
+// samePhysicalDefault compares backend declarations, not runtime default
+// expressions. A declaration-only change needs no ALTER DEFAULT; a changed
+// stored column contract still requires an explicit migration.
+func (s *ReconcileRunner) samePhysicalDefault(previous, current models.Field) (bool, *cd.Error) {
+	if !models.IsBasicField(previous) || !models.IsBasicField(current) {
+		return false, nil
+	}
+	builder, ok := NewBuilder(s.modelProvider, s.modelCodec).(database.SchemaBuilder)
+	if !ok {
+		return false, cd.NewError(cd.Unexpected, "builder does not support schema declarations")
+	}
+	before, err := builder.DescribeTable(s.previous)
+	if err != nil {
+		return false, err
+	}
+	after, err := builder.DescribeTable(s.vModel)
+	if err != nil {
+		return false, err
+	}
+	for _, oldColumn := range before.Columns {
+		if oldColumn.Name != previous.GetName() {
+			continue
+		}
+		for _, newColumn := range after.Columns {
+			if newColumn.Name == current.GetName() {
+				return reflect.DeepEqual(oldColumn, newColumn), nil
+			}
+		}
+	}
+	return false, nil
 }
 
 func migrationRequired(format string, args ...any) *cd.Error {
@@ -91,6 +121,15 @@ func (s *ReconcileRunner) checkCompatibility() (map[string]models.Field, *cd.Err
 		}
 		if !sameSchemaField(previous, current) {
 			return nil, migrationRequired("field %q changed type, nullability, primary key, or default", name)
+		}
+		if !reflect.DeepEqual(previous.GetSpec().GetDefaultValue(), current.GetSpec().GetDefaultValue()) {
+			same, err := s.samePhysicalDefault(previous, current)
+			if err != nil {
+				return nil, err
+			}
+			if !same {
+				return nil, migrationRequired("field %q changed stored default", name)
+			}
 		}
 	}
 

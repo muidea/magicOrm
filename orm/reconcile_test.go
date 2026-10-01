@@ -9,6 +9,7 @@ import (
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
+	"github.com/muidea/magicOrm/provider/remote"
 )
 
 type reconcileOldModel struct {
@@ -74,5 +75,49 @@ func TestReconcileRunnerRejectsDestructiveChangesBeforeDDL(t *testing.T) {
 	}
 	if len(executor.execCalls) != 0 {
 		t.Fatalf("destructive update must not issue DDL: %#v", executor.execCalls)
+	}
+}
+
+func TestReconcileDefaultChangesComparePhysicalColumns(t *testing.T) {
+	for _, tt := range []struct {
+		name, typeName string
+		before, after  any
+		migration      bool
+	}{
+		{name: "string runtime reference removed", typeName: "string", before: "$referenceExtData.entity.id"},
+		{name: "integer runtime reference removed", typeName: "int64", before: "$referenceExtData.timeStamp"},
+		{name: "stored numeric default changed", typeName: "int64", before: int64(1), after: int64(2), migration: true},
+		{name: "stored numeric default removed", typeName: "int64", before: int64(1), migration: true},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			old := &remote.Object{Name: "record", PkgPath: "test", Fields: []*remote.Field{
+				{Name: "id", Type: &remote.TypeImpl{Name: "int64"}, Spec: &remote.SpecImpl{PrimaryKey: true, ValueDeclare: "snowflake"}},
+				{Name: "value", Type: &remote.TypeImpl{Name: tt.typeName}, Spec: &remote.SpecImpl{DefaultValue: tt.before}},
+			}}
+			next := old.Copy("test").(*remote.Object)
+			next.Fields[1].Spec.DefaultValue = tt.after
+			p := provider.NewRemoteProvider("default-test", nil)
+			before, err := p.RegisterModel(old)
+			if err != nil {
+				t.Fatal(err)
+			}
+			after, err := p.RegisterModel(next)
+			if err != nil {
+				t.Fatal(err)
+			}
+			executor := &fakeExecutor{}
+			runner := NewReconcileRunner(context.Background(), before, after, executor, p, codec.New(p, "test"))
+			err = runner.Reconcile()
+			if tt.migration {
+				if err == nil || !strings.Contains(err.Error(), "schema migration required") {
+					t.Fatalf("expected migration rejection, got %v", err)
+				}
+			} else if err != nil {
+				t.Fatal(err)
+			}
+			if len(executor.execCalls) != 0 {
+				t.Fatalf("default comparison executed DDL: %#v", executor.execCalls)
+			}
+		})
 	}
 }
