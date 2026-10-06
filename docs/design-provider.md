@@ -48,3 +48,9 @@
 ### 2.2 错误处理
 
 - Provider 层方法返回 `*cd.Error`，常见为 `IllegalParam`（如 entity/model 为 nil、类型不合法）。完整错误码见 [error-codes.md](error-codes.md)。
+
+### 2.3 本地字段排除
+
+`orm:"-"` 在反射类型检查和字段映射之前生效，规则对任何应用均相同。排除字段不进入 Model、视图、DDL 图或 CRUD；其关联类型不需要注册。`json:"-"` 独立控制 JSON，不能代替 ORM 排除。完整语义见 [标签参考](tags-reference.md#15-忽略字段)。
+
+回归必须检查实际 Model 中不存在名为 `-` 的字段，并通过未注册被排除关联类型的真实 Create 图验证。仅检查字段的原 Go 名称或改变模型注册顺序，不能证明已排除持久化关系。

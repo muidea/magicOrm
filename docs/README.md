@@ -53,6 +53,7 @@
 | 如何做条件状态更新或判断影响行数 | [design-orm.md](design-orm.md) |
 | 哪些 schema 变更可自动补建，哪些必须显式迁移 | [design-orm.md](design-orm.md) |
 | Local/Remote Provider 各自负责什么 | [design-provider.md](design-provider.md) |
+| 如何排除只读组合、缓存及不应注册的关联类型 | [tags-reference.md：忽略字段](tags-reference.md#15-忽略字段) |
 | `models.Model` / `Filter` / `ViewDeclare` 是怎么定义的 | [design-models.md](design-models.md) |
 | Query / BatchQuery 返回字段为什么只给子对象 lite | [design-orm.md](design-orm.md) |
 | 关系字段怎么判定引用/包含，关系表怎么命名 | [design-relation.md](design-relation.md) |

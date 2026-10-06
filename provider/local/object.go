@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path"
 	"reflect"
+	"strings"
 
 	cd "github.com/muidea/magicCommon/def"
 
@@ -170,8 +171,13 @@ func getValueModel(entityValue reflect.Value, viewSpec models.ViewDeclare) (ret 
 	impl := &objectImpl{objectValue: entityValue, objectPtr: isPtr, fields: []*field{}, viewSpec: viewSpec}
 	fieldNum := entityType.NumField()
 	for idx := range fieldNum {
-		fieldVal := entityValue.Field(idx)
 		fieldInfo := entityType.Field(idx)
+		// Excluded fields are in-memory data, not columns or relations. Skip
+		// before parsing their type, constraints or view/default values.
+		if strings.TrimSpace(fieldInfo.Tag.Get(ormTag)) == "-" {
+			continue
+		}
+		fieldVal := entityValue.Field(idx)
 		tField, tErr := getFieldInfo(idx, fieldInfo, fieldVal, viewSpec)
 		if tErr != nil {
 			err = tErr

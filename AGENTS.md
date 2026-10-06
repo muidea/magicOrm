@@ -2,6 +2,14 @@
 
 This document provides essential guidelines for AI agents working on magicOrm, a Go ORM framework supporting PostgreSQL and MySQL.
 
+## Model and Workflow Boundaries
+
+For model, DTO, lifecycle, recovery or cleanup changes, read [Workspace Boundary Rules](../docs/model-state-boundary-rules.md) and use its change-review template.
+
+- Preserve generic identity, field, relation, validation and transaction semantics for all providers. Do not special-case platform names, tenant names, lifecycle stages, Schema journals or compensation policy.
+- Business owners define independent workflow models and safety fences. Do not weaken required/default/unique/nullability rules, change ID allocation, or turn an update into an insert to bypass a platform failure; generic changes need independent provider regressions.
+- Change source owners first; never edit vendor manually. Sync direct dependents through the workspace `upgrade_vendor.sh`, update affected contracts and product materials, and record source regression separately from Live acceptance.
+
 ## Project Overview
 
 - **Language**: Go 1.26+

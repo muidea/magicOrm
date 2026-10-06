@@ -215,6 +215,9 @@ func GetTypeEnum(val reflect.Type) (ret models.TypeDeclare, err *cd.Error) {
 			ret = models.TypeStructValue
 			for i := 0; i < val.NumField(); i++ {
 				field := val.Field(i)
+				if strings.TrimSpace(field.Tag.Get("orm")) == "-" {
+					continue
+				}
 				if !isValidFieldType(field.Type) {
 					err = cd.NewError(cd.Unexpected, fmt.Sprintf("unsupported field type in struct: %v", field.Type))
 					return

@@ -10,8 +10,33 @@ import (
 	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/models"
+	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
 )
+
+type unregisteredTransient struct{ Trace string }
+
+type ignoredDDLModel struct {
+	ID    int64                 `orm:"id key"`
+	Trace unregisteredTransient `orm:"-"`
+	Name  string                `orm:"name"`
+}
+
+func TestSchemaDDLDoesNotResolveIgnoredRelation(t *testing.T) {
+	p := provider.NewLocalProvider("ignored-ddl-test", nil)
+	model, err := p.RegisterModel(&ignoredDDLModel{ID: 1, Name: "stored"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	executor := &fakeExecutor{}
+	c := codec.New(p, "ignored")
+	if err := NewCreateRunner(context.Background(), model, executor, p, c).Create(); err != nil {
+		t.Fatal("ignored relation was resolved by the Create graph", err)
+	}
+	if len(executor.execCalls) != 1 || !strings.Contains(executor.execCalls[0].sql, "IgnoredDDLModel") {
+		t.Fatal("ignored relation generated extra DDL", executor.execCalls)
+	}
+}
 
 func TestSchemaDDLRejectsInvalidGraphBeforeExecution(t *testing.T) {
 	for _, operation := range []string{"create", "drop", "reconcile", "create-runner", "drop-runner", "reconcile-runner"} {
