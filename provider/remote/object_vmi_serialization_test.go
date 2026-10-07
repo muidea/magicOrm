@@ -495,7 +495,7 @@ func TestEncodeDecodeObjectValuePreservesAssignedState(t *testing.T) {
 		t.Fatalf("DecodeObjectValue failed: %v", err)
 	}
 
-	if !decoded.Fields[0].Assigned || decoded.Fields[0].Value != float64(0) {
+	if !decoded.Fields[0].Assigned || !decoded.Fields[0].IsZero() {
 		t.Fatalf("explicit zero assigned state should be preserved, got %#v", decoded.Fields[0])
 	}
 	if !decoded.Fields[1].Assigned || decoded.Fields[1].Value != nil {

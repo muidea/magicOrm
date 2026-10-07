@@ -1,6 +1,8 @@
 package remote
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 
 	"log/slog"
@@ -25,6 +27,20 @@ type FieldValue struct {
 	Name     string `json:"name"`
 	Value    any    `json:"value"`
 	Assigned bool   `json:"assigned,omitempty"`
+}
+
+// UnmarshalJSON keeps numeric tokens exact until the declared field type is
+// known. This also applies when FieldValue is nested in an HTTP request DTO.
+func (s *FieldValue) UnmarshalJSON(data []byte) error {
+	type wireFieldValue FieldValue
+	var value wireFieldValue
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.UseNumber()
+	if err := decoder.Decode(&value); err != nil {
+		return err
+	}
+	*s = FieldValue(value)
+	return nil
 }
 
 func (s *FieldValue) String() string {

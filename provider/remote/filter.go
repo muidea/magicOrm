@@ -77,12 +77,11 @@ func (s *ObjectFilter) GetString(key string) (ret string, ok bool) {
 func (s *ObjectFilter) GetInt(key string) (ret int, ok bool) {
 	for _, item := range s.EqualFilter {
 		if item.Name == key {
-			val, vOK := (item.Value).(float64)
-			if !vOK {
+			val, err := utils.ConvertRawToInt(item.Value)
+			if err != nil {
 				return
 			}
-
-			ret = int(val)
+			ret = val
 			ok = true
 			return
 		}

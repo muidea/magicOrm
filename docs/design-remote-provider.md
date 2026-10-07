@@ -84,6 +84,19 @@
 - 显式赋值为 `nil` 的字段会导出，便于 update 场景表达“清空关系”；
 - `FieldValue.Assigned` 是 remote 协议状态，会跟随 JSON 一起编码/解码，并影响 `SetModelValue(...)` 如何解释零值和 `Value:nil`。
 
+#### 数字的远程传输
+
+`FieldValue` 的 JSON 解码保留数字原文为 `json.Number`，直到已知字段类型时再转换。
+整数不会先转成 `float64`；`int64`、`uint64` 的合法边界和 `2^53` 附近的相邻值
+在请求、响应、指针、集合及嵌套对象中保持精确。编码仍使用 JSON 数字，不要求改用字符串。
+
+按声明的符号和位宽拒绝越界，浮点输入拒绝 NaN/Inf；普通数值转换保留已有的小数截断行为。
+零值、显式赋值、复制和整数判等同样支持 `json.Number`，相邻大整数不能因浮点舍入被判为相同。
+直接读取尚未转换的 `FieldValue.Value` 时，应使用类型转换工具，不能断言它必为 `float64`。
+
+该规则只属于 remote 字段值协议；不修改任意业务 DTO 的 JSON 解码，也不包含租户、令牌、
+流程恢复或数据库补偿规则。回归见 `provider/remote/integer_wire_test.go` 和 `utils/number_test.go`。
+
 ### 2.4 `SliceObjectValue`
 
 `SliceObjectValue` 表示 remote 侧的 struct slice 值，常用于关系字段或顶层对象集合。

@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
+	"math/big"
 	"reflect"
 	"time"
 
@@ -55,7 +57,16 @@ func toFloat64(v any) (float64, bool) {
 
 	// 自动解引用指针
 	for rv.Kind() == reflect.Ptr {
+		if rv.IsNil() {
+			return 0, false
+		}
 		rv = rv.Elem()
+	}
+	if rv.IsValid() && rv.CanInterface() {
+		if number, ok := rv.Interface().(json.Number); ok {
+			value, err := number.Float64()
+			return value, err == nil
+		}
 	}
 
 	// 扩展支持的类型
@@ -73,6 +84,13 @@ func toFloat64(v any) (float64, bool) {
 
 // compareNumbers 实现数字类型自动转换比较
 func compareNumbers(x, y any) bool {
+	// Integral values must compare exactly, including JSON numbers and uint64.
+	// Converting them to float64 makes adjacent large identities compare equal.
+	if xi, ok := exactIntegerNumber(x); ok {
+		if yi, ok := exactIntegerNumber(y); ok {
+			return xi.Cmp(yi) == 0
+		}
+	}
 	xVal, xOk := toFloat64(x)
 	yVal, yOk := toFloat64(y)
 	if !xOk || !yOk {
@@ -82,6 +100,41 @@ func compareNumbers(x, y any) bool {
 	const epsilon = 0.0001
 	diff := xVal - yVal
 	return math.Abs(diff) < epsilon
+}
+
+func exactIntegerNumber(value any) (*big.Int, bool) {
+	v := reflect.ValueOf(value)
+	for v.IsValid() && v.Kind() == reflect.Ptr && !v.IsNil() {
+		v = v.Elem()
+	}
+	if !v.IsValid() {
+		return nil, false
+	}
+	if number, ok := v.Interface().(json.Number); ok {
+		approx, err := number.Float64()
+		if err != nil || approx == 0 {
+			return nil, false
+		}
+		rational, ok := new(big.Rat).SetString(number.String())
+		if !ok || !rational.IsInt() {
+			return nil, false
+		}
+		return rational.Num(), true
+	}
+	switch v.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return big.NewInt(v.Int()), true
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return new(big.Int).SetUint64(v.Uint()), true
+	case reflect.Float32, reflect.Float64:
+		f := v.Float()
+		if math.IsNaN(f) || math.IsInf(f, 0) || math.Trunc(f) != f {
+			return nil, false
+		}
+		integer, _ := new(big.Float).SetFloat64(f).Int(nil)
+		return integer, true
+	}
+	return nil, false
 }
 
 /*

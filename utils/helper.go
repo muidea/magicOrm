@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"reflect"
@@ -584,6 +585,15 @@ func ConvertRawToDateTime(val any) (ret time.Time, err *cd.Error) {
 // rVal其他类型返回错误
 func ConvertToBool(rVal reflect.Value) (ret bool, err *cd.Error) {
 	rVal = reflect.Indirect(rVal)
+	if rVal.IsValid() && rVal.CanInterface() {
+		if number, ok := rVal.Interface().(json.Number); ok {
+			value, parseErr := number.Float64()
+			if parseErr != nil {
+				return false, cd.NewError(cd.IllegalParam, "invalid JSON numeric boolean")
+			}
+			return value != 0, nil
+		}
+	}
 	trueSynonyms := map[string]bool{
 		"true":  true,
 		"yes":   true,
@@ -899,6 +909,11 @@ func convertNumberVal(kind reflect.Kind, rVal reflect.Value) (result any, err *c
 	if !numberKindMap[kind] {
 		return nil, cd.NewError(cd.Unexpected, fmt.Sprintf("unsupported target kind: %v", kind))
 	}
+	if rVal.IsValid() && rVal.CanInterface() {
+		if number, ok := rVal.Interface().(json.Number); ok {
+			return convertJSONNumber(kind, number)
+		}
+	}
 
 	switch rVal.Kind() {
 	case reflect.Bool:
@@ -955,6 +970,9 @@ func convertBoolToNumber(kind reflect.Kind, val bool) (any, *cd.Error) {
 }
 
 func convertIntToNumber(kind reflect.Kind, val int64) (any, *cd.Error) {
+	if err := checkSignedNumberRange(kind, val); err != nil {
+		return nil, err
+	}
 	switch kind {
 	case reflect.Int:
 		return int(val), nil
@@ -986,6 +1004,9 @@ func convertIntToNumber(kind reflect.Kind, val int64) (any, *cd.Error) {
 }
 
 func convertUintToNumber(kind reflect.Kind, val uint64) (any, *cd.Error) {
+	if err := checkUnsignedNumberRange(kind, val); err != nil {
+		return nil, err
+	}
 	switch kind {
 	case reflect.Int:
 		return int(val), nil
@@ -1017,6 +1038,9 @@ func convertUintToNumber(kind reflect.Kind, val uint64) (any, *cd.Error) {
 }
 
 func convertFloatToNumber(kind reflect.Kind, val float64) (any, *cd.Error) {
+	if err := checkFloatNumberRange(kind, val); err != nil {
+		return nil, err
+	}
 	switch kind {
 	case reflect.Int:
 		return int(val), nil

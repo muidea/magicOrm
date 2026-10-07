@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"log/slog"
 
@@ -90,6 +92,14 @@ func IsReallyZeroForReflect(vVal reflect.Value) bool {
 			return true
 		}
 		return IsReallyZeroForReflect(vVal.Elem())
+	}
+	if vVal.CanInterface() {
+		if number, ok := vVal.Interface().(json.Number); ok {
+			// Numeric JSON zero is not the string zero value. Parse the mantissa
+			// only so a nonzero underflowing exponent is not treated as absent.
+			mantissa := strings.SplitN(strings.ToLower(number.String()), "e", 2)[0]
+			return strings.Trim(mantissa, "+-.0") == ""
+		}
 	}
 
 	// 3. 特殊容器类型处理
@@ -208,7 +218,7 @@ func DeepCopy(value any) (any, error) {
 	switch v := value.(type) {
 	case bool, int8, int16, int32, int, int64,
 		uint8, uint16, uint32, uint, uint64,
-		float32, float64, string:
+		float32, float64, string, json.Number:
 		return v, nil
 	default:
 		return nil, fmt.Errorf("unsupported type: %T", value)
