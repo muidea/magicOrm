@@ -890,6 +890,12 @@ config = &DBOptions{
 
 MIT License
 
+## 关系读取诊断
+
+非指针单值关系没有关联 ID 时，记录 `query relation has no association`，包含所属 `model`、`field`、目标 `relation_model` 和原因 `non_pointer_relation_ids_empty`。整数主键记录为 `owner_id`；字符串主键仅记录 `owner_id_sha256`，避免主键本身含敏感信息。日志不输出完整对象或业务字段。
+
+该提醒只描述当前关系读取结果，不证明引用目标损坏或业务必需关系缺失。指针关系为空仍不提醒；原有查询返回值、字段约束、关系与事务语义保持不变。业务 owner 应通过自身受控查询核对具体对象，不通过直接数据库访问绕过 ORM。
+
 ## SQL 成本窗口
 
 启动时设置 `MAGIC_PROFILE_WINDOW=60s` 可独立于监控 collector 统计 MySQL/PostgreSQL Query、Execute 和逻辑事务调用。标签只使用引擎及 SQL 操作类别，不记录 SQL 或参数；查询耗时不包含完整行扫描与对象映射，事务次数不等于实际数据库提交数。完整采集边界及 SQL 指纹差分见工作区 [QPS 分析指南](../magicRunner/docs/guide-qps-analysis.md)。

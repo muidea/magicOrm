@@ -2,6 +2,7 @@ package orm
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"log/slog"
 	"reflect"
@@ -1075,7 +1076,7 @@ func (s *QueryRunner) querySingleRelation(vModel models.Model, vField models.Fie
 		if vType.IsPtrType() {
 			return
 		}
-		slog.Warn("query relation failed", "field", vField.GetName())
+		slog.Warn("query relation has no association", relationDiagnosticAttrs(vModel, vField)...)
 		return
 	}
 
@@ -1086,6 +1087,32 @@ func (s *QueryRunner) querySingleRelation(vModel models.Model, vField models.Fie
 		return
 	}
 	return
+}
+
+// Log the relation identity, never the object or its business field values.
+// String keys may themselves be credentials, so identify them by digest.
+func relationDiagnosticAttrs(owner models.Model, field models.Field) []any {
+	attrs := []any{"model", owner.GetPkgKey(), "field", field.GetName(),
+		"relation_model", field.GetType().GetPkgKey(), "reason", "non_pointer_relation_ids_empty"}
+	primary := owner.GetPrimaryField()
+	if primary == nil || primary.GetValue() == nil || !primary.GetValue().IsValid() {
+		return append(attrs, "owner_id_state", "unavailable")
+	}
+	value := reflect.ValueOf(primary.GetValue().Get())
+	if !value.IsValid() {
+		return append(attrs, "owner_id_state", "unavailable")
+	}
+	switch value.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return append(attrs, "owner_id", value.Int())
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return append(attrs, "owner_id", value.Uint())
+	case reflect.String:
+		digest := sha256.Sum256([]byte(value.String()))
+		return append(attrs, "owner_id_sha256", fmt.Sprintf("%x", digest))
+	default:
+		return append(attrs, "owner_id_state", "unsupported_log_type")
+	}
 }
 
 func (s *QueryRunner) querySliceRelation(vModel models.Model, vField models.Field, deepLevel int) (err *cd.Error) {
