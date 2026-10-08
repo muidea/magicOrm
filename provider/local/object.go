@@ -152,6 +152,9 @@ func (s *objectImpl) Reset() {
 }
 
 func getValueModel(entityValue reflect.Value, viewSpec models.ViewDeclare) (ret *objectImpl, err *cd.Error) {
+	if !entityValue.IsValid() || (entityValue.Kind() == reflect.Ptr && entityValue.IsNil()) {
+		return nil, cd.NewError(cd.IllegalParam, "model value is nil or invalid")
+	}
 	isPtr := entityValue.Kind() == reflect.Ptr
 	entityValue = reflect.Indirect(entityValue)
 	entityType := entityValue.Type()

@@ -1074,7 +1074,9 @@ func (s *QueryRunner) querySingleRelation(vModel models.Model, vField models.Fie
 	valueSize := len(valueList)
 	if valueSize == 0 {
 		if vType.IsPtrType() {
-			return
+			// A query mask may carry a non-nil seed to select this relation.
+			// No persisted edge means null, never that seed object.
+			return vField.SetValue(nil)
 		}
 		slog.Warn("query relation has no association", relationDiagnosticAttrs(vModel, vField)...)
 		return

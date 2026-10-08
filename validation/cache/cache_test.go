@@ -2,6 +2,7 @@ package cache
 
 import (
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
@@ -143,31 +144,66 @@ func TestValidationCacheLifecycle(t *testing.T) {
 	}
 }
 
-func TestGetTypeHash(t *testing.T) {
-	testCases := map[string]any{
-		"string":  "abc",
-		"int":     1,
-		"uint":    uint(1),
-		"float":   1.2,
-		"boolean": true,
-		"bytes":   []byte("abc"),
-		"other":   struct{}{},
-	}
-
-	expected := map[string]string{
-		"string":  "string:abc",
-		"int":     "int",
-		"uint":    "uint",
-		"float":   "float",
-		"boolean": "boolean",
-		"bytes":   "bytes",
-		"other":   "complex",
-	}
-
-	for name, value := range testCases {
-		if got := getTypeHash(value); got != expected[name] {
-			t.Fatalf("%s: unexpected hash %q", name, got)
+func TestConstraintCacheSeparatesValuesTypesAndArgumentBoundaries(t *testing.T) {
+	c := NewConstraintCache(100, time.Minute)
+	rule := cacheConstraints{directives: []models.Directive{cacheDirective{key: models.KeyMin, args: []string{"1"}}}}
+	pairs := [][2]any{{int32(5), int32(0)}, {int(1), int64(1)}, {true, false}, {float64(1), float64(2)}, {[]byte("a"), []byte("b")}, {[]byte(nil), []byte{}}, {nil, int(0)}}
+	for _, p := range pairs {
+		a, b := c.GenerateCacheKey(p[0], rule, verrors.ScenarioInsert), c.GenerateCacheKey(p[1], rule, verrors.ScenarioInsert)
+		if a == "" || b == "" || a == b {
+			t.Fatalf("different inputs shared or lost cache key: %T/%T", p[0], p[1])
 		}
+		c.Set(a, p[0], rule, verrors.ScenarioInsert, nil)
+		if _, ok := c.Get(b); ok {
+			t.Fatal("validation success leaked to a different value")
+		}
+	}
+	one := cacheConstraints{directives: []models.Directive{cacheDirective{key: models.KeyIn, args: []string{"a:b"}}}}
+	two := cacheConstraints{directives: []models.Directive{cacheDirective{key: models.KeyIn, args: []string{"a", "b"}}}}
+	if c.GenerateCacheKey("x", one, verrors.ScenarioInsert) == c.GenerateCacheKey("x", two, verrors.ScenarioInsert) {
+		t.Fatal("directive argument boundaries collided")
+	}
+	if c.GenerateCacheKey(1, rule, verrors.ScenarioInsert) == c.GenerateCacheKey(1, rule, verrors.ScenarioUpdate) {
+		t.Fatal("scenario keys collided")
+	}
+}
+
+func TestConstraintCacheBypassesComplexValues(t *testing.T) {
+	c := NewConstraintCache(10, time.Minute)
+	value := 1
+	for _, v := range []any{&value, (*int)(nil), []int{1}, map[string]int{"x": 1}, struct{ X int }{1}} {
+		k := c.GenerateCacheKey(v, nil, verrors.ScenarioInsert)
+		if k != "" {
+			t.Fatalf("unsafe complex value cached: %T", v)
+		}
+		c.Set(k, v, nil, verrors.ScenarioInsert, nil)
+		if _, ok := c.Get(k); ok {
+			t.Fatal("bypassed value produced a cache hit")
+		}
+	}
+	if c.GetStats().Size != 0 {
+		t.Fatal("bypassed values retained")
+	}
+}
+
+func TestConstraintCacheConcurrentHits(t *testing.T) {
+	c := NewConstraintCache(10, time.Minute)
+	key := c.GenerateCacheKey(1, nil, verrors.ScenarioInsert)
+	c.Set(key, 1, nil, verrors.ScenarioInsert, nil)
+	var wg sync.WaitGroup
+	for range 8 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for range 100 {
+				c.Get(key)
+				c.GetStats()
+			}
+		}()
+	}
+	wg.Wait()
+	if c.GetStats().Hits != 800 {
+		t.Fatal("lost concurrent cache hits")
 	}
 }
 

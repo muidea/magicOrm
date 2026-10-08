@@ -4,6 +4,8 @@
 package test
 
 import (
+	"os"
+
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/orm"
@@ -12,7 +14,20 @@ import (
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
-var config = orm.NewConfig("localhost:3306", "testdb", "testdb", "root", "rootkit")
+var config = orm.NewConfig(
+	mysqlTestEnv("MAGICORM_MYSQL_SERVER", "localhost:3306"),
+	mysqlTestEnv("MAGICORM_MYSQL_DATABASE", "testdb"),
+	mysqlTestEnv("MAGICORM_MYSQL_SCHEMA", "testdb"),
+	mysqlTestEnv("MAGICORM_MYSQL_USER", "root"),
+	mysqlTestEnv("MAGICORM_MYSQL_PASSWORD", "rootkit"),
+)
+
+func mysqlTestEnv(key, fallback string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return fallback
+}
 
 func registerLocalModel(provider provider.Provider, objList []any) (ret []models.Model, err *cd.Error) {
 	for _, val := range objList {

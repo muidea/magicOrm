@@ -242,12 +242,10 @@ func (s *InsertRunner) Insert() (ret models.Model, err *cd.Error) {
 		return
 	}
 
-	err = s.insertHost(s.vModel)
-	if err != nil {
-		slog.Error("InsertRunner insertHost failed", "error", err.Error())
-		return
-	}
-
+	// Validate relation presence before writing the host. Assignment records
+	// explicit clears for updates; an assigned nil optional reference still has
+	// no relation to insert. Do not change that shared assignment state.
+	relations := models.Fields{}
 	for _, field := range s.vModel.GetFields() {
 		// 忽略基础字段
 		if models.IsBasicField(field) {
@@ -264,7 +262,22 @@ func (s *InsertRunner) Insert() (ret models.Model, err *cd.Error) {
 			slog.Error("InsertRunner Insert illegal field value", "field", field.GetName(), "error", err.Error())
 			return
 		}
+		if models.IsStructField(field) && !models.IsValidField(field) {
+			if models.IsPtrField(field) && !isRequiredRelationField(field) {
+				continue
+			}
+			return nil, cd.NewError(cd.IllegalParam, fmt.Sprintf("illegal field value, field:%s", field.GetName()))
+		}
+		relations = append(relations, field)
+	}
 
+	err = s.insertHost(s.vModel)
+	if err != nil {
+		slog.Error("InsertRunner insertHost failed", "error", err.Error())
+		return
+	}
+
+	for _, field := range relations {
 		err = s.insertRelation(s.vModel, field)
 		if err != nil {
 			slog.Error("InsertRunner failed", "error", err.Error())
@@ -307,6 +320,12 @@ func (s *impl) Insert(vModel models.Model) (ret models.Model, err *cd.Error) {
 		return
 	}
 	defer func() {
+		if recovered := recover(); recovered != nil {
+			// A panic must never look like a successful operation to the deferred
+			// transaction finalizer. Roll back and preserve the original panic.
+			_ = s.finalTransaction(cd.NewError(cd.Unexpected, "insert aborted by panic"))
+			panic(recovered)
+		}
 		if transactionErr := s.finalTransaction(err); err == nil && transactionErr != nil {
 			ret = nil
 			err = transactionErr

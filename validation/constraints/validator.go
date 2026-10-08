@@ -123,6 +123,7 @@ func (v *constraintValidatorImpl) GetApplicableConstraints(scenario errors.Scena
 func (v *constraintValidatorImpl) RegisterCustomConstraint(key models.Key, validator models.ValidatorFunc) error {
 	v.customHandlers[key] = validator
 	v.baseValidator.Register(key, validator)
+	v.ClearCache()
 	return nil
 }
 

@@ -54,6 +54,9 @@ func (s *Builder) BuildInsert(vModel models.Model) (ret database.Result, err *cd
 	}
 
 	insertSQL := fmt.Sprintf("INSERT INTO \"%s\" (%s) VALUES (%s) RETURNING %s", s.buildCodec.ConstructModelTableName(vModel), fieldNames, fieldValues, pkName)
+	if fieldNames == "" {
+		insertSQL = fmt.Sprintf("INSERT INTO \"%s\" DEFAULT VALUES RETURNING %s", s.buildCodec.ConstructModelTableName(vModel), pkName)
+	}
 	if traceSQL() {
 		slog.Info("[SQL] insert", "sql", insertSQL)
 	}

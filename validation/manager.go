@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/muidea/magicOrm/models"
+	"github.com/muidea/magicOrm/utils"
 	"github.com/muidea/magicOrm/validation/constraints"
 	"github.com/muidea/magicOrm/validation/database"
 	"github.com/muidea/magicOrm/validation/errors"
@@ -374,13 +375,10 @@ func (m *validationManagerImpl) validateConstraints(value any, context Validatio
 	err := m.constraintValidator.ValidateConstraints(value, constraints, context.Scenario)
 	recordConstraintChecks(context.Field.GetName(), directiveKeys(applicableDirectives), err == nil)
 	if err != nil {
-		// Extract constraint information from error if possible
-		validationErr := errors.NewConstraintError(
-			context.Field.GetName(),
-			"", // Will be filled by constraint validator
-			value,
-			nil,
-		).WithScenario(context.Scenario)
+		key, message := utils.ConstraintErrorDetails(err)
+		validationErr := errors.NewValidationError(message).
+			WithField(context.Field.GetName()).WithConstraint(string(key)).
+			WithScenario(context.Scenario)
 
 		context.Collector.AddError(validationErr)
 		return err

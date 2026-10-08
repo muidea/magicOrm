@@ -6,6 +6,7 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/models"
+	"github.com/muidea/magicOrm/utils"
 )
 
 // field single field impl
@@ -67,7 +68,7 @@ func (s *field) innerSetValue(val any, disableValidator bool) *cd.Error {
 		if constraintVal != nil {
 			err := s.valueValidator.ValidateValue(val, constraintVal.Directives())
 			if err != nil {
-				return cd.NewError(cd.Unexpected, err.Error())
+				return utils.FieldValidationError(s.GetName(), err)
 			}
 		}
 	}

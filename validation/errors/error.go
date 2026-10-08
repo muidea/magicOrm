@@ -288,22 +288,14 @@ func (c *errorCollectorImpl) ToRichError() *cd.Error {
 		return c.errors[0].ToRichError()
 	}
 
-	// Group by field for summary
-	fieldSummary := make(map[string]int)
+	// Retain each field's diagnostic in collection order. A count-only
+	// summary loses the constraint and reason needed to correct input.
+	fieldStrings := make([]string, 0, len(c.errors))
 	for _, err := range c.errors {
-		field := err.GetField()
-		if field == "" {
-			field = "<unknown>"
-		}
-		fieldSummary[field]++
+		fieldStrings = append(fieldStrings, err.ToRichError().Message)
 	}
 
-	fieldStrings := make([]string, 0, len(fieldSummary))
-	for field, count := range fieldSummary {
-		fieldStrings = append(fieldStrings, fmt.Sprintf("%s (%d)", field, count))
-	}
-
-	message := fmt.Sprintf("Multiple validation errors: %s", strings.Join(fieldStrings, ", "))
+	message := fmt.Sprintf("Multiple validation errors: %s", strings.Join(fieldStrings, "; "))
 	return cd.NewError(cd.IllegalParam, message)
 }
 

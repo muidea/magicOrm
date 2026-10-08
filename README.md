@@ -420,6 +420,34 @@ MagicORM 实现了先进的四层验证架构，提供场景感知的验证策�
 
 ### 验证使用示例
 
+字段内容约束失败统一返回 `IllegalParam`，local/remote provider 与 ORM 场景校验
+保留字段名、失败指令和原因，例如 `field 'price': constraint 'min': too small/short`。
+多个字段失败也保留各自诊断。内置包装不追加输入值；自定义 validator 应返回适合公开的原因，
+不要把密码、令牌或完整对象写入错误。可通过 `errors.As` 获取 `models.ConstraintViolation`，
+其 `Unwrap` 保留原 validator 的错误。
+
+可选指针关系在创建时省略或显式置空均不插入关联；`req` 关系仍要求有效目标。
+显式 null 的赋值标记保留，用于更新时清空已有引用。没有持久关系的查询返回 null，
+不会返回查询掩码中的空对象。普通 Insert 出错或 panic 会回滚当前事务；panic 仍传回调用者，
+调用者不能把异常当作成功或盲目重放业务写入。
+PostgreSQL 无普通列输入时使用 `DEFAULT VALUES`，支持仅由数据库生成主键的主对象插入。
+
+ORM 默认关闭校验缓存。显式开启后，缓存键包含标量值、类型、规则参数和场景；
+不能安全编码的复杂值不缓存。注册自定义规则会清空该 validator 的缓存。
+
+隔离数据库回归（所有建表、写入和回读均经过 ORM；服务器须指向一次性测试库）：
+
+```bash
+MAGICORM_RELATION_TEST_SERVER=127.0.0.1:<port> MAGICORM_RELATION_TEST_USER=postgres \
+  go test ./test -run '^TestNullReferenceDatabaseContract$' -count=1
+MAGICORM_RELATION_TEST_SERVER=127.0.0.1:<port> MAGICORM_RELATION_TEST_USER=root \
+  go test -tags=mysql ./test -run '^TestNullReferenceDatabaseContract$' -count=1
+```
+
+该回归使用 `testdb` 和仓库测试密码，覆盖两种 provider 的省略/null/绑定、必需引用、
+清空及关系转换失败或 panic 后的独立回读。其他集成测试可通过
+`MAGICORM_POSTGRES_*` / `MAGICORM_MYSQL_*` 配置服务器、数据库、Schema、用户名和密码。
+
 #### 基本验证配置
 
 ```go

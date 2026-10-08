@@ -67,6 +67,9 @@ func GetEntityModel(entity any, valueValidator models.ValueValidator) (ret model
 	}
 
 	reallyVal := reflect.Indirect(reflect.ValueOf(entity))
+	if !reallyVal.IsValid() {
+		return nil, cd.NewError(cd.IllegalParam, "model value is nil or invalid")
+	}
 	if !reallyVal.CanSet() {
 		newVal := reflect.New(reallyVal.Type()).Elem()
 		newVal.Set(reallyVal)

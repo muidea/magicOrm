@@ -1,6 +1,12 @@
 package cache
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"math"
+	"reflect"
+	"strconv"
 	"sync"
 	"time"
 
@@ -49,41 +55,45 @@ func NewConstraintCache(maxSize int, defaultTTL time.Duration) *ConstraintCache 
 	}
 }
 
-// GenerateCacheKey generates a unique cache key for constraint validation
+// GenerateCacheKey hashes the complete scalar value, its type, the ordered
+// directive sequence and the scenario. Unsupported complex values bypass the
+// cache; serializing an object could hide state from its custom validator.
 func (c *ConstraintCache) GenerateCacheKey(value any, constraints models.Constraints, scenario errors.Scenario) string {
-	// Create a simple hash-based key
-	// In a real implementation, this would be more sophisticated
-	key := ""
-
-	// Add value type and hash
-	if value != nil {
-		// Simple type-based key
-		key += getTypeHash(value)
+	valueKey := getTypeHash(value)
+	if valueKey == "" {
+		return ""
 	}
-
-	// Add constraints
+	type directiveKey struct {
+		Key  models.Key
+		Args []string
+	}
+	directives := []directiveKey{}
 	if constraints != nil {
-		directives := constraints.Directives()
-		for _, d := range directives {
-			key += "|" + string(d.Key())
-			if d.HasArgs() {
-				for _, arg := range d.Args() {
-					key += ":" + arg
-				}
-			}
+		for _, d := range constraints.Directives() {
+			directives = append(directives, directiveKey{Key: d.Key(), Args: d.Args()})
 		}
 	}
-
-	// Add scenario
-	key += "|" + string(scenario)
-
-	return key
+	// Directive order affects custom validators and StopOnFirstError. Preserve
+	// it, while JSON boundaries prevent delimiter collisions in arbitrary args.
+	encoded, err := json.Marshal(struct {
+		Value      string
+		Directives []directiveKey
+		Scenario   errors.Scenario
+	}{valueKey, directives, scenario})
+	if err != nil {
+		return ""
+	}
+	sum := sha256.Sum256(encoded)
+	return hex.EncodeToString(sum[:])
 }
 
 // Get retrieves a cached validation result
 func (c *ConstraintCache) Get(key string) (error, bool) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	if key == "" {
+		return nil, false
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
 	entry, exists := c.cache[key]
 	if !exists {
@@ -107,6 +117,9 @@ func (c *ConstraintCache) Get(key string) (error, bool) {
 
 // Set stores a validation result in the cache
 func (c *ConstraintCache) Set(key string, value any, constraints models.Constraints, scenario errors.Scenario, result error) {
+	if key == "" {
+		return
+	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -209,24 +222,43 @@ func (c *ConstraintCache) updateMemoryUsage() {
 	c.stats.MemoryUsage = int64(len(c.cache) * 1024)
 }
 
-// getTypeHash generates a simple hash for a value's type
+// getTypeHash returns a value-sensitive, type-sensitive fingerprint. The
+// empty string means that the value is not safe to cache.
 func getTypeHash(value any) string {
-	// This is a simplified implementation
-	// In a real system, you'd want a proper hash
-	switch v := value.(type) {
-	case string:
-		return "string:" + v
-	case int, int8, int16, int32, int64:
-		return "int"
-	case uint, uint8, uint16, uint32, uint64:
-		return "uint"
-	case float32, float64:
-		return "float"
-	case bool:
-		return "boolean"
-	case []byte:
-		return "bytes"
-	default:
-		return "complex"
+	if value == nil {
+		return "nil"
 	}
+	rv := reflect.ValueOf(value)
+	var encoded string
+	switch rv.Kind() {
+	case reflect.String:
+		encoded = rv.String()
+	case reflect.Bool:
+		encoded = strconv.FormatBool(rv.Bool())
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		encoded = strconv.FormatInt(rv.Int(), 10)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		encoded = strconv.FormatUint(rv.Uint(), 10)
+	case reflect.Float32, reflect.Float64:
+		f := rv.Float()
+		if math.IsNaN(f) || math.IsInf(f, 0) {
+			return ""
+		}
+		encoded = strconv.FormatFloat(f, 'g', -1, rv.Type().Bits())
+	case reflect.Slice:
+		if rv.Type().Elem().Kind() != reflect.Uint8 {
+			return ""
+		}
+		if rv.IsNil() {
+			encoded = "nil"
+		} else {
+			encoded = "bytes:" + hex.EncodeToString(rv.Bytes())
+		}
+	default:
+		return ""
+	}
+	// Named types include their package, so equal strings used by different
+	// custom validators cannot share a successful validation result.
+	sum := sha256.Sum256([]byte(rv.Type().PkgPath() + "|" + rv.Type().String() + "|" + encoded))
+	return hex.EncodeToString(sum[:])
 }

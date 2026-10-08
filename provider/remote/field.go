@@ -98,7 +98,7 @@ func (s *Field) innerSetValue(val any, disableValidator bool) *cd.Error {
 		if constraintVal != nil {
 			err := s.valueValidator.ValidateValue(val, constraintVal.Directives())
 			if err != nil {
-				return cd.NewError(cd.Unexpected, err.Error())
+				return utils.FieldValidationError(s.GetName(), err)
 			}
 		}
 	}

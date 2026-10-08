@@ -27,7 +27,7 @@ func (sv *valueValidator) ValidateValue(val any, directives []models.Directive) 
 		k := models.Key(d.Key())
 		if fn, ok := sv.registry[k]; ok {
 			if err := fn(val, d.Args()); err != nil {
-				return err
+				return &models.ConstraintViolation{Key: k, Cause: err}
 			}
 		}
 	}

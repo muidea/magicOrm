@@ -76,7 +76,7 @@ func projectResponseFieldValue(dstField, srcField models.Field, modelProvider pr
 		return
 	}
 
-	if srcField.GetValue().Get() == nil {
+	if !models.IsValidField(srcField) {
 		assignProjectedFieldValue(dstField, nil)
 		return
 	}
