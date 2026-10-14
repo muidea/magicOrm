@@ -4,7 +4,7 @@ This document provides essential guidelines for AI agents working on magicOrm, a
 
 ## Model and Workflow Boundaries
 
-For model, DTO, lifecycle, recovery or cleanup changes, read [Workspace Boundary Rules](../docs/model-state-boundary-rules.md) and use its change-review template.
+For model, DTO, lifecycle, recovery or cleanup changes, read [Workspace Boundary Rules](~/dataspace/magicPlatform/docs/technical/model-state-boundary-rules.md) and use its change-review template.
 
 - Preserve generic identity, field, relation, validation and transaction semantics for all providers. Do not special-case platform names, tenant names, lifecycle stages, Schema journals or compensation policy.
 - Business owners define independent workflow models and safety fences. Do not weaken required/default/unique/nullability rules, change ID allocation, or turn an update into an insert to bypass a platform failure; generic changes need independent provider regressions.
@@ -183,6 +183,6 @@ err := manager.ValidateModel(model, ctx)
 - Review existing test cases for patterns
 
 ## References
-- [README.md](./README.md) - Comprehensive documentation
-- [test/](./test/) - Integration tests and examples
-- [database/](./database/) - Database implementations
+- [README.md](~/codespace/magicOrm/README.md) - Comprehensive documentation
+- [test/](~/codespace/magicOrm/test) - Integration tests and examples
+- [database/](~/codespace/magicOrm/database) - Database implementations

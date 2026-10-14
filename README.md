@@ -49,7 +49,7 @@ type Group struct {
 }
 ```
 
-仅用于内存组合的字段声明 `orm:"-"`，不会生成列或关系，也不要求注册其类型。`json:"-"` 只隐藏 JSON；内部组合通常同时声明两者。详见 [字段排除规则](docs/tags-reference.md#15-忽略字段)。
+仅用于内存组合的字段声明 `orm:"-"`，不会生成列或关系，也不要求注册其类型。`json:"-"` 只隐藏 JSON；内部组合通常同时声明两者。详见 [字段排除规则](~/codespace/magicOrm/docs/tags-reference.md#15-忽略字段)。
 
 ### 2. 初始化ORM
 
@@ -165,9 +165,9 @@ if err != nil {
 
 ## 核心功能
 
-> 基于当前实现整理的设计文档见 [docs/README.md](./docs/README.md)。
+> 基于当前实现整理的设计文档见 [docs/README.md](~/codespace/magicOrm/docs/README.md)。
 
-当前仅 **Insert、Update、UpdateWithFilter、Delete** 会执行模型验证；**Query、BatchQuery** 不执行验证。详见 [docs/design-validation.md](./docs/design-validation.md) 与 [docs/design-orm.md](./docs/design-orm.md)。
+当前仅 **Insert、Update、UpdateWithFilter、Delete** 会执行模型验证；**Query、BatchQuery** 不执行验证。详见 [docs/design-validation.md](~/codespace/magicOrm/docs/design-validation.md) 与 [docs/design-orm.md](~/codespace/magicOrm/docs/design-orm.md)。
 
 ### CRUD操作
 
@@ -229,7 +229,7 @@ if rows == 0 {
 }
 ```
 
-该操作仅更新基础字段，过滤条件也只能使用基础字段。完整约定见 [docs/design-orm.md](./docs/design-orm.md)。
+该操作仅更新基础字段，过滤条件也只能使用基础字段。完整约定见 [docs/design-orm.md](~/codespace/magicOrm/docs/design-orm.md)。
 
 ### 模型管理
 
@@ -252,7 +252,7 @@ err = o1.Reconcile(previousModel, currentModel)
 
 检查覆盖主表、关系表、递归 owned 模型（不包含引用模型的主表）、列类型/精度、可空性、默认值、自增、主键、命名唯一约束与有序索引。多余列/索引、视图及无效/部分/表达式等非声明索引均报告漂移。检查使用数据库真实目录并绑定 schema/table，不用 `IF NOT EXISTS` 的执行成功替代核验。PostgreSQL 使用显式配置的 Schema；MySQL 要求已选择数据库及 MySQL 8.0.13+ 的目录字段。未知结构不猜测兼容，也不执行 catalog 中的表达式。
 
-`InspectSchema` 不是自动迁移/恢复接口：调用者负责串行 Schema 写入，检查期间不得并发执行外部 DDL；结果不是分布式锁或持久化完成回执。检查限于 ORM 所生成的结构，不审计额外的触发器、权限、RLS 策略、CHECK/外键策略或存储参数。`Reconcile` 的安全边界见 [docs/design-orm.md](./docs/design-orm.md)。
+`InspectSchema` 不是自动迁移/恢复接口：调用者负责串行 Schema 写入，检查期间不得并发执行外部 DDL；结果不是分布式锁或持久化完成回执。检查限于 ORM 所生成的结构，不审计额外的触发器、权限、RLS 策略、CHECK/外键策略或存储参数。`Reconcile` 的安全边界见 [docs/design-orm.md](~/codespace/magicOrm/docs/design-orm.md)。
 
 显式受控补执行可使用 `RepairSchema(previous, desired)`，nil 的含义与预检一致。调用者必须提供已验证操作身份的冻结声明，并保证所有 Schema 写入串行。ORM 先校验完整计划并读取目标图的物理结构，再构造全部缺失步骤：补建新表/owned/关系表、原增量计划中新加的可空列及命名唯一约束/索引，或删除原 drop 计划中仍完整匹配的表；已完成步骤不重放，执行后再次完整检查物理结果。增量迁移中原有表/列/索引丢失、主键缺失、既有关系表结构不完整、类型/约束漂移或额外对象均拒绝修复，不猜测数据恢复、不补填必填列、不接受任意 SQL。中途失败可由同一冻结计划重新检查后续跑，但不承诺 DDL 事务回滚、跨进程互斥或应用元数据/运行态恢复。
 
@@ -394,19 +394,19 @@ MagicORM 实现了先进的四层验证架构，提供场景感知的验证策�
 
 ### 四层验证架构
 
-#### 1. 类型验证层 (`validation/types/`)
+#### 1. 类型验证层 (`~/codespace/magicOrm/validation/types`)
 - **职责**: 基础类型验证和转换
 - 验证Go类型与数据库类型的兼容性
 - 处理类型转换（字符串↔整数、时间格式等）
 - 确保基本的数据完整性
 
-#### 2. 约束验证层 (`validation/constraints/`)
+#### 2. 约束验证层 (`~/codespace/magicOrm/validation/constraints`)
 - **职责**: 业务约束验证
 - 验证结构体标签中定义的业务规则（`req`, `min`, `max`, `range`, `in`, `re`）
 - 处理访问行为约束（`ro`, `wo`）
 - 支持场景感知验证（Insert vs Update）
 
-#### 3. 数据库验证层 (`validation/database/`)
+#### 3. 数据库验证层 (`~/codespace/magicOrm/validation/database`)
 - **职责**: 数据库特定约束验证
 - 验证数据库级约束（NOT NULL, UNIQUE, FOREIGN KEY等）
 - 处理数据库类型兼容性
@@ -692,7 +692,7 @@ func (h *myTypeHandler) GetType() reflect.Type {
 
 MagicORM 的监控通过 **`metrics` 包**与 **magicCommon/monitoring** 集成：ORM 操作在内部自动上报到全局 collector，并在存在 `monitoring.GlobalManager` 时注册为 Provider（名称 `magicorm_orm`）。无独立 `monitoring` 包或 `MonitoredOrm` 包装。
 
-**当前实现**：`orm.Initialize()` 会创建 ORM / DB / Validation 三类 collector；当 `monitoring.GlobalManager` 已存在时会自动注册 `magicorm_orm`、`magicorm_database` 与 `magicorm_validation`。推荐顺序是先执行 `monitoring.InitializeGlobalManager()`，再执行 `orm.Initialize()`；如果监控系统晚于 ORM 初始化，可后续调用 `orm.EnsureORMMetricProviderRegistered()`、`metricsdb.EnsureDatabaseMetricProviderRegistered()` 与 `metricsvalidation.EnsureValidationMetricProviderRegistered()` 做幂等注册。详细说明见 [docs/README.md](./docs/README.md)、[docs/design-metrics.md](./docs/design-metrics.md) 与 [METRICS_TODO.md](./METRICS_TODO.md)（当前用于记录本轮改造结果）。
+**当前实现**：`orm.Initialize()` 会创建 ORM / DB / Validation 三类 collector；当 `monitoring.GlobalManager` 已存在时会自动注册 `magicorm_orm`、`magicorm_database` 与 `magicorm_validation`。推荐顺序是先执行 `monitoring.InitializeGlobalManager()`，再执行 `orm.Initialize()`；如果监控系统晚于 ORM 初始化，可后续调用 `orm.EnsureORMMetricProviderRegistered()`、`metricsdb.EnsureDatabaseMetricProviderRegistered()` 与 `metricsvalidation.EnsureValidationMetricProviderRegistered()` 做幂等注册。详细说明见 [docs/README.md](~/codespace/magicOrm/docs/README.md)、[docs/design-metrics.md](~/codespace/magicOrm/docs/design-metrics.md) 与 [METRICS_TODO.md](~/codespace/magicOrm/METRICS_TODO.md)（当前用于记录本轮改造结果）。
 
 ### 架构设计
 
@@ -720,7 +720,7 @@ metrics/
 #### 验证系统监控（已接入）
 - **场景**: Insert, Update, Query, Delete
 - **指标**: 校验次数、耗时、错误类型、缓存命中率、约束检查结果
-- **接入点**: `validation.Manager`、`validation/cache`、约束校验链路
+- **接入点**: `validation.Manager`、`~/codespace/magicOrm/validation/cache`、约束校验链路
 - **成熟度**: 已接入验证主路径
 
 #### 数据库执行监控（已接入）
@@ -729,7 +729,7 @@ metrics/
 - **连接池状态**: Active, Idle, Open, Max
 - **成熟度**: 已接入 MySQL/PostgreSQL 执行层
 
-指标导出与外部系统集成由 magicCommon/monitoring 提供；测试可运行 `go test ./metrics/... -v`。更多说明见 [docs/design-metrics.md](./docs/design-metrics.md)。
+指标导出与外部系统集成由 magicCommon/monitoring 提供；测试可运行 `go test ./metrics/... -v`。更多说明见 [docs/design-metrics.md](~/codespace/magicOrm/docs/design-metrics.md)。
 
 ## 高级特性
 
@@ -882,37 +882,37 @@ config = &DBOptions{
 ## 示例和参考
 
 ### 基础示例
-完整的使用示例请参考 `test/` 目录下的测试文件：
+完整的使用示例请参考 `~/codespace/magicOrm/test` 目录下的测试文件：
 
-- `test/simple_local_test.go` - 基础 CRUD 操作
-- `test/reference_local_test.go` - 模型关系示例
-- `test/batch_operation_local_test.go` - 批量操作示例
-- `orm/builder_postgres_test.go` - PostgreSQL构建器测试
+- `~/codespace/magicOrm/test/simple_local_test.go` - 基础 CRUD 操作
+- `~/codespace/magicOrm/test/reference_local_test.go` - 模型关系示例
+- `~/codespace/magicOrm/test/batch_operation_local_test.go` - 批量操作示例
+- `~/codespace/magicOrm/orm/builder_postgres_test.go` - PostgreSQL构建器测试
 
 ### 验证系统示例
-验证系统的完整示例请参考 `validation/` 目录：
+验证系统的完整示例请参考 `~/codespace/magicOrm/validation` 目录：
 
-- `validation/example/usage_example.go` - 验证系统使用示例
-- `validation/example/configuration_example.go` - 验证配置示例
-- `validation/test/simple_test.go` - 基础验证测试
-- `validation/test/integration_test.go` - 集成测试
+- `~/codespace/magicOrm/validation/example/usage_example.go` - 验证系统使用示例
+- `~/codespace/magicOrm/validation/example/configuration_example.go` - 验证配置示例
+- `~/codespace/magicOrm/validation/test/simple_test.go` - 基础验证测试
+- `~/codespace/magicOrm/validation/test/integration_test.go` - 集成测试
 
 ### 约束测试示例
-约束系统的测试示例请参考 `test/` 目录：
+约束系统的测试示例请参考 `~/codespace/magicOrm/test` 目录：
 
-- `test/constraint_local_test.go` - Local Provider约束测试
-- `test/constraint_remote_test.go` - Remote Provider约束测试
-- `test/constraint.go` - 约束测试模型定义
+- `~/codespace/magicOrm/test/constraint_local_test.go` - Local Provider约束测试
+- `~/codespace/magicOrm/test/constraint_remote_test.go` - Remote Provider约束测试
+- `~/codespace/magicOrm/test/constraint.go` - 约束测试模型定义
 
 ### 架构文档
 详细的架构设计文档（以本列表为准，保持单一入口）：
 
-- [docs/README.md](./docs/README.md) — 设计文档总览（整理设计 + 按功能块拆分的独立文档索引）
-- [VALIDATION_ARCHITECTURE.md](./VALIDATION_ARCHITECTURE.md) — 四层验证架构设计
-- [VALIDATION_IMPLEMENTATION_PLAN.md](./VALIDATION_IMPLEMENTATION_PLAN.md) — 验证系统实施计划
-- [AGENTS.md](./AGENTS.md) — 开发指南和命令参考
-- [docs/design-metrics.md](./docs/design-metrics.md) — 监控与指标设计
-- [docs/testing-guide.md](./docs/testing-guide.md) — 测试分层与隔离测试库配置
+- [docs/README.md](~/codespace/magicOrm/docs/README.md) — 设计文档总览（整理设计 + 按功能块拆分的独立文档索引）
+- [VALIDATION_ARCHITECTURE.md](~/codespace/magicOrm/VALIDATION_ARCHITECTURE.md) — 四层验证架构设计
+- [VALIDATION_IMPLEMENTATION_PLAN.md](~/codespace/magicOrm/VALIDATION_IMPLEMENTATION_PLAN.md) — 验证系统实施计划
+- [AGENTS.md](~/codespace/magicOrm/AGENTS.md) — 开发指南和命令参考
+- [docs/design-metrics.md](~/codespace/magicOrm/docs/design-metrics.md) — 监控与指标设计
+- [docs/testing-guide.md](~/codespace/magicOrm/docs/testing-guide.md) — 测试分层与隔离测试库配置
 
 ## 许可证
 
@@ -926,7 +926,7 @@ MIT License
 
 ## SQL 成本窗口
 
-启动时设置 `MAGIC_PROFILE_WINDOW=60s` 可独立于监控 collector 统计 MySQL/PostgreSQL Query、Execute 和逻辑事务调用。标签只使用引擎及 SQL 操作类别，不记录 SQL 或参数；查询耗时不包含完整行扫描与对象映射，事务次数不等于实际数据库提交数。完整采集边界及 SQL 指纹差分见工作区 [QPS 分析指南](../magicRunner/docs/guide-qps-analysis.md)。
+启动时设置 `MAGIC_PROFILE_WINDOW=60s` 可独立于监控 collector 统计 MySQL/PostgreSQL Query、Execute 和逻辑事务调用。标签只使用引擎及 SQL 操作类别，不记录 SQL 或参数；查询耗时不包含完整行扫描与对象映射，事务次数不等于实际数据库提交数。完整采集边界及 SQL 指纹差分见工作区 [QPS 分析指南](~/codespace/magicRunner/docs/guide-qps-analysis.md)。
 
 
 ## 连接池复用策略
