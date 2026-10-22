@@ -3,8 +3,123 @@ package helper
 import (
 	"testing"
 
+	cd "github.com/muidea/magicCommon/def"
+
 	"github.com/muidea/magicOrm/provider/remote"
 )
+
+type recursiveValueNode struct {
+	ID       int                   `orm:"id key"`
+	Next     *recursiveValueNode   `orm:"next"`
+	Children []*recursiveValueNode `orm:"children"`
+}
+
+func TestObjectValueRejectsActivePointerCycles(t *testing.T) {
+	for _, mode := range []string{"direct", "two-nodes", "slice-cycle", "shared", "chain", "nil"} {
+		t.Run(mode, func(t *testing.T) {
+			root := &recursiveValueNode{ID: 1}
+			child := &recursiveValueNode{ID: 2}
+			cyclic := true
+			switch mode {
+			case "direct":
+				root.Next = root
+			case "two-nodes":
+				root.Next, child.Next = child, root
+			case "slice-cycle":
+				root.Children = []*recursiveValueNode{root}
+			case "shared":
+				root.Next, root.Children = child, []*recursiveValueNode{child, child}
+				cyclic = false
+			case "chain":
+				root.Next, child.Next = child, &recursiveValueNode{ID: 3}
+				cyclic = false
+			case "nil":
+				cyclic = false
+			}
+			value, err := GetObjectValue(root)
+			if cyclic {
+				if err == nil || err.Code != cd.IllegalParam || value != nil {
+					t.Fatal("对象指针环未明确拒绝", err)
+				}
+			} else if err != nil || value == nil {
+				t.Fatal("有限链或共享无环对象被误拒绝", err)
+			}
+			slice, err := GetSliceObjectValue([]*recursiveValueNode{root, root})
+			if cyclic {
+				if err == nil || err.Code != cd.IllegalParam || slice != nil {
+					t.Fatal("集合对象指针环未明确拒绝", err)
+				}
+			} else if err != nil || slice == nil || len(slice.Values) != 2 {
+				t.Fatal("集合中共享无环对象被误拒绝", err)
+			}
+		})
+	}
+}
+
+type recursiveSliceNode struct {
+	ID       int                  `orm:"id key"`
+	Children []recursiveSliceNode `orm:"children"`
+}
+
+func TestObjectValueRejectsSliceBackedCycle(t *testing.T) {
+	values := make([]recursiveSliceNode, 1)
+	values[0].ID, values[0].Children = 1, values
+	value, err := GetSliceObjectValue(values)
+	if err == nil || err.Code != cd.IllegalParam || value != nil {
+		t.Fatal("底层数组自引用未明确拒绝", err)
+	}
+}
+
+func TestObjectValueRejectsExcessivePointerNesting(t *testing.T) {
+	root := &recursiveValueNode{ID: 1}
+	current := root
+	for idx := 0; idx < 300; idx++ {
+		current.Next = &recursiveValueNode{ID: idx + 2}
+		current = current.Next
+	}
+	value, err := GetObjectValue(root)
+	if err == nil || err.Code != cd.IllegalParam || value != nil {
+		t.Fatal("过深指针链未明确拒绝", err)
+	}
+}
+
+func TestRelationValueAssignmentPreservesPresentEmptyObjects(t *testing.T) {
+	for _, mode := range []string{"omitted", "empty-pointer", "empty-slice", "empty-element"} {
+		t.Run(mode, func(t *testing.T) {
+			root := &recursiveValueNode{ID: 1}
+			switch mode {
+			case "empty-pointer":
+				root.Next = &recursiveValueNode{}
+			case "empty-slice":
+				root.Children = []*recursiveValueNode{}
+			case "empty-element":
+				root.Children = []*recursiveValueNode{{}}
+			}
+			value, err := GetObjectValue(root)
+			if err != nil {
+				t.Fatal(err)
+			}
+			encoded, err := remote.EncodeObjectValue(value)
+			if err != nil {
+				t.Fatal(err)
+			}
+			decoded, err := remote.DecodeObjectValue(encoded)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, candidate := range []*remote.ObjectValue{value, decoded} {
+				for _, field := range candidate.Fields {
+					if field.Name == "next" && field.Assigned != (mode == "empty-pointer") {
+						t.Fatal("非 nil 空引用被误认为省略，或 nil 被误赋值")
+					}
+					if field.Name == "children" && field.Assigned != (mode == "empty-slice" || mode == "empty-element") {
+						t.Fatal("集合显式赋值意图丢失")
+					}
+				}
+			}
+		})
+	}
+}
 
 func TestSimpleValue(t *testing.T) {
 	desc := "obj_desc"

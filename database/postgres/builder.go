@@ -131,6 +131,9 @@ func (s *Builder) buildRelationFilterItem(vModel models.Model, vField models.Fie
 		}
 	}
 
+	if models.IsInlineReference(vModel, vField) {
+		return oprFunc(vField.GetName(), fieldVal, resultStackPtr), nil
+	}
 	relationFilterSQL := ""
 	strVal := oprFunc("right", fieldVal, resultStackPtr)
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)

@@ -208,6 +208,14 @@ func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
 		return
 	}
 
+	for _, field := range s.vModel.GetFields() {
+		if models.IsInlineReference(s.vModel, field) && models.IsAssignedField(field) && !isReadOnlyField(field) {
+			if _, err = codec.PackMainTableValue(s.modelProvider, s.modelCodec, s.vModel, field); err != nil {
+				return nil, err
+			}
+		}
+	}
+
 	readOnlyFieldNames := assignedReadOnlyBasicFields(s.vModel)
 	var storedModel models.Model
 	if len(readOnlyFieldNames) > 0 {
@@ -229,7 +237,7 @@ func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
 	for _, field := range s.vModel.GetFields() {
 		// 忽略基础字段和未赋值的字段
 		// 未赋值则认为不需要对该字段进行更新
-		if models.IsBasicField(field) || !models.IsAssignedField(field) || isReadOnlyField(field) {
+		if models.IsMainTableField(s.vModel, field) || !models.IsAssignedField(field) || isReadOnlyField(field) {
 			continue
 		}
 
@@ -260,7 +268,7 @@ func hasAssignedWritableBasicFields(vModel models.Model) bool {
 	}
 
 	for _, field := range vModel.GetFields() {
-		if !models.IsBasicField(field) || models.IsPrimaryField(field) || !models.IsAssignedField(field) || isReadOnlyField(field) {
+		if !models.IsMainTableField(vModel, field) || models.IsPrimaryField(field) || !models.IsAssignedField(field) || isReadOnlyField(field) {
 			continue
 		}
 		return true

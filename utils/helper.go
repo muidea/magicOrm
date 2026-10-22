@@ -842,7 +842,7 @@ func ConvertToString(rVal reflect.Value) (ret string, err *cd.Error) {
 	case reflect.Struct:
 		switch rVal.Type().String() {
 		case models.TypeStructTimeName:
-			ret = rVal.Interface().(time.Time).Format(fu.CSTLayoutWithMillisecond)
+			ret = rVal.Interface().(time.Time).UTC().Format(fu.CSTLayoutWithMillisecond)
 		default:
 			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal string value, val type:%v", rVal.Type().String()))
 		}
@@ -856,8 +856,8 @@ func ConvertToString(rVal reflect.Value) (ret string, err *cd.Error) {
 }
 
 // ConvertToDateTime convert datetime
-// rVal 对应的类型如果是String，则要求值的格式必须是符合CSTLayout的时间格式("2006-01-02 15:04:05")
-// rVal 对应的类型如果是Struct，则要求值是time.Time类型
+// 字符串支持带偏移的 RFC3339、UTC 毫秒文本及 UTC 日期；不使用宿主机本地时区。
+// time.Time 和带偏移的输入均规范为 UTC，持久化精度仍为毫秒。
 func ConvertToDateTime(rVal reflect.Value) (ret time.Time, err *cd.Error) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
@@ -873,7 +873,7 @@ func ConvertToDateTime(rVal reflect.Value) (ret time.Time, err *cd.Error) {
 			return
 		}
 
-		tVal, tErr := time.Parse(fu.CSTLayoutWithMillisecond, rVal.String())
+		tVal, tErr := parseUTCDateTime(rVal.String())
 		if tErr != nil {
 			err = cd.NewError(cd.Unexpected, tErr.Error())
 			return
@@ -882,12 +882,12 @@ func ConvertToDateTime(rVal reflect.Value) (ret time.Time, err *cd.Error) {
 	case reflect.Struct:
 		switch rVal.Type().String() {
 		case models.TypeStructTimeName:
-			ret = rVal.Interface().(time.Time)
+			ret = rVal.Interface().(time.Time).UTC()
 		default:
 			err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal datetime value, val type:%v", rVal.Type().String()))
 		}
 	case reflect.Array, reflect.Slice:
-		tVal, tErr := time.Parse(fu.CSTLayoutWithMillisecond, fmt.Sprintf("%s", rVal.Interface()))
+		tVal, tErr := parseUTCDateTime(fmt.Sprintf("%s", rVal.Interface()))
 		if tErr != nil {
 			err = cd.NewError(cd.Unexpected, tErr.Error())
 			return

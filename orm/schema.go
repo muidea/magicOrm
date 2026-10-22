@@ -129,7 +129,7 @@ func collectSchemaGraph(ctx context.Context, model models.Model, p provider.Prov
 			return err
 		}
 		for _, field := range value.GetFields() {
-			if models.IsBasicField(field) {
+			if models.IsMainTableField(value, field) {
 				continue
 			}
 			right, err := p.GetTypeModel(field.GetType().Elem())

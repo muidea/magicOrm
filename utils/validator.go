@@ -113,7 +113,11 @@ func (sv *valueValidator) loadBuiltins() {
 
 	// in=A:B
 	sv.Register(models.KeyIn, func(v any, a []string) error {
-		s := fmt.Sprintf("%v", v)
+		value := indirectConstraintValue(v)
+		if !value.IsValid() {
+			return nil
+		}
+		s := fmt.Sprintf("%v", value.Interface())
 		if slices.Contains(a, s) {
 			return nil
 		}
@@ -125,7 +129,11 @@ func (sv *valueValidator) loadBuiltins() {
 		if len(a) != 1 {
 			return fmt.Errorf("re requires one argument")
 		}
-		m, regexErr := regexp.MatchString(a[0], fmt.Sprintf("%v", v))
+		value := indirectConstraintValue(v)
+		if !value.IsValid() {
+			return nil
+		}
+		m, regexErr := regexp.MatchString(a[0], fmt.Sprintf("%v", value.Interface()))
 		if regexErr != nil {
 			return regexErr
 		}

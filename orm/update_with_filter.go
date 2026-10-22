@@ -34,7 +34,7 @@ func (s *impl) UpdateWithFilter(vModel models.Model, filter models.Filter) (rows
 		return 0, cd.NewError(cd.IllegalParam, "no writable fields to update")
 	}
 	for _, field := range vModel.GetFields() {
-		if !models.IsBasicField(field) && models.IsAssignedField(field) {
+		if !models.IsMainTableField(vModel, field) && models.IsAssignedField(field) {
 			return 0, cd.NewError(cd.IllegalParam, "conditional update does not support relation fields")
 		}
 	}

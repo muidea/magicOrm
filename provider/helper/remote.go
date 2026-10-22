@@ -238,6 +238,11 @@ func type2Object(entityType reflect.Type) (ret *remote.Object, err *cd.Error) {
 	impl.Name = entityType.Name()
 	impl.PkgPath = entityType.PkgPath()
 	impl.Fields = []*remote.Field{}
+	if declaration, ok := reflect.New(entityType).Interface().(models.UniqueConstraintDeclarer); ok {
+		for _, constraint := range declaration.GetUniqueConstraints() {
+			impl.UniqueConstraints = append(impl.UniqueConstraints, models.UniqueConstraint{Name: constraint.Name, Fields: append([]string(nil), constraint.Fields...)})
+		}
+	}
 
 	hasPrimaryField := false
 	fieldNum := entityType.NumField()
@@ -307,7 +312,13 @@ func GetObject(entity any) (ret *remote.Object, err *cd.Error) {
 	return
 }
 
-func getFieldValue(fieldName string, itemType *remote.TypeImpl, itemValue reflect.Value) (ret *remote.FieldValue, err *cd.Error) {
+type objectValuePointer struct {
+	typeOf reflect.Type
+	value  uintptr
+	length int
+}
+
+func getFieldValue(fieldName string, itemType *remote.TypeImpl, itemValue reflect.Value, active map[objectValuePointer]bool) (ret *remote.FieldValue, err *cd.Error) {
 	if itemType.IsPtrType() && itemValue.IsNil() {
 		ret = &remote.FieldValue{Name: fieldName, Value: nil, Assigned: false}
 		return
@@ -335,29 +346,46 @@ func getFieldValue(fieldName string, itemType *remote.TypeImpl, itemValue reflec
 	}
 
 	if models.IsSlice(itemType) {
-		objVal, objErr := getSliceObjectValue(itemValue)
+		objVal, objErr := getSliceObjectValue(itemValue, active)
 		if objErr != nil {
 			err = objErr
 			slog.Error("getFieldValue getSliceObjectValue failed", "field", fieldName, "error", err.Error())
 			return
 		}
 
-		ret = &remote.FieldValue{Name: fieldName, Value: objVal}
+		ret = &remote.FieldValue{Name: fieldName, Value: objVal, Assigned: !itemValue.IsNil()}
 		return
 	}
 
-	objVal, objErr := getObjectValue(itemValue)
+	objVal, objErr := getObjectValue(itemValue, active)
 	if objErr != nil {
 		err = objErr
 		slog.Error("getFieldValue getObjectValue failed", "field", fieldName, "error", err.Error())
 		return
 	}
 
-	ret = &remote.FieldValue{Name: fieldName, Value: objVal}
+	ret = &remote.FieldValue{Name: fieldName, Value: objVal, Assigned: itemType.IsPtrType()}
 	return
 }
 
-func getObjectValue(entityVal reflect.Value) (ret *remote.ObjectValue, err *cd.Error) {
+func getObjectValue(entityVal reflect.Value, active map[objectValuePointer]bool) (ret *remote.ObjectValue, err *cd.Error) {
+	if entityVal.Kind() == reflect.Ptr && !entityVal.IsNil() {
+		key := objectValuePointer{typeOf: entityVal.Type(), value: entityVal.Pointer()}
+		if active[key] {
+			return nil, cd.NewError(cd.IllegalParam, "cyclic entity value is not supported")
+		}
+		if len(active) >= 256 {
+			return nil, cd.NewError(cd.IllegalParam, "entity value exceeds nesting limit")
+		}
+		active[key] = true
+		defer delete(active, key)
+	}
+	// 出错不返回已构造的部分对象，调用方不能把拒绝误当成有效投影。
+	defer func() {
+		if err != nil {
+			ret = nil
+		}
+	}()
 	entityVal = reflect.Indirect(entityVal)
 	entityType := entityVal.Type()
 	objType, objErr := newType(entityType)
@@ -393,7 +421,7 @@ func getObjectValue(entityVal reflect.Value) (ret *remote.ObjectValue, err *cd.E
 			return
 		}
 
-		val, valErr := getFieldValue(fieldName, typePtr, entityVal.Field(idx))
+		val, valErr := getFieldValue(fieldName, typePtr, entityVal.Field(idx), active)
 		if valErr != nil {
 			err = valErr
 			slog.Error("getObjectValue getFieldValue failed", "struct", objType.GetPkgKey(), "field", fieldName, "error", err.Error())
@@ -458,11 +486,16 @@ func GetObjectValue(entity any) (ret *remote.ObjectValue, err *cd.Error) {
 		err = cd.NewError(cd.IllegalParam, "entity is nil")
 		return
 	}
-	ret, err = getObjectValue(entityVal)
+	ret, err = getObjectValue(entityVal, map[objectValuePointer]bool{})
 	return
 }
 
-func getSliceObjectValue(sliceVal reflect.Value) (ret *remote.SliceObjectValue, err *cd.Error) {
+func getSliceObjectValue(sliceVal reflect.Value, active map[objectValuePointer]bool) (ret *remote.SliceObjectValue, err *cd.Error) {
+	defer func() {
+		if err != nil {
+			ret = nil
+		}
+	}()
 	sliceType, sliceErr := newType(sliceVal.Type())
 	if sliceErr != nil {
 		err = sliceErr
@@ -490,6 +523,15 @@ func getSliceObjectValue(sliceVal reflect.Value) (ret *remote.SliceObjectValue, 
 	}
 
 	ret.Values = []*remote.ObjectValue{}
+	key := objectValuePointer{typeOf: sliceVal.Type(), value: sliceVal.Pointer(), length: sliceVal.Len()}
+	if active[key] {
+		return nil, cd.NewError(cd.IllegalParam, "cyclic entity value is not supported")
+	}
+	if len(active) >= 256 {
+		return nil, cd.NewError(cd.IllegalParam, "entity value exceeds nesting limit")
+	}
+	active[key] = true
+	defer delete(active, key)
 	for idx := 0; idx < sliceVal.Len(); idx++ {
 		val := sliceVal.Index(idx)
 		// 设计 5.4：不考虑 []*T 中 item 为 nil；显式拒绝并返回错误，避免 getObjectValue 对零 Value 调用 Type() 导致 panic
@@ -498,7 +540,7 @@ func getSliceObjectValue(sliceVal reflect.Value) (ret *remote.SliceObjectValue, 
 			slog.Error("getSliceObjectValue: nil slice element", "sliceType", sliceType.GetPkgKey(), "index", idx, "error", err.Error())
 			return
 		}
-		objVal, objErr := getObjectValue(val)
+		objVal, objErr := getObjectValue(val, active)
 		if objErr != nil {
 			err = objErr
 			slog.Error("getSliceObjectValue failed", "sliceType", sliceType.GetPkgKey(), "index", idx, "error", err.Error())
@@ -538,7 +580,7 @@ func GetSliceObjectValue(sliceEntity any) (ret *remote.SliceObjectValue, err *cd
 		err = cd.NewError(cd.IllegalParam, "slice entity is nil")
 		return
 	}
-	ret, err = getSliceObjectValue(sliceValue)
+	ret, err = getSliceObjectValue(sliceValue, map[objectValuePointer]bool{})
 	return
 }
 

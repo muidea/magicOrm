@@ -179,6 +179,7 @@ type ConnExecutor struct {
 	dbTxCount       int32
 	dbTx            *sql.Tx
 	rowsHandle      *sql.Rows
+	rowsError       *cd.Error
 }
 
 func (s *ConnExecutor) Release() {
@@ -270,6 +271,7 @@ func (s *ConnExecutor) RollbackTransaction() (err *cd.Error) {
 }
 
 func (s *ConnExecutor) Query(sql string, needCols bool, args ...any) (ret []string, err *cd.Error) {
+	s.rowsError = nil
 	//slog.Info("message")
 	startTime := time.Now()
 	defer func() {
@@ -347,17 +349,25 @@ func (s *ConnExecutor) Next() bool {
 
 	ret := s.rowsHandle.Next()
 	if !ret {
-		//log.Print("Next, close rows")
-		_ = s.rowsHandle.Close()
-		s.rowsHandle = nil
+		if readErr := s.rowsHandle.Err(); readErr != nil {
+			s.rowsError = databaseError(readErr)
+		}
+		s.Finish()
 	}
 
 	return ret
 }
 
+func (s *ConnExecutor) RowsError() *cd.Error { return s.rowsError }
+
 func (s *ConnExecutor) Finish() {
 	if s.rowsHandle != nil {
-		_ = s.rowsHandle.Close()
+		if closeErr := s.rowsHandle.Close(); closeErr != nil && s.rowsError == nil {
+			s.rowsError = databaseError(closeErr)
+		}
+		if readErr := s.rowsHandle.Err(); readErr != nil && s.rowsError == nil {
+			s.rowsError = databaseError(readErr)
+		}
 		s.rowsHandle = nil
 	}
 }
@@ -508,6 +518,7 @@ type HostExecutor struct {
 	dbTxCount       int32
 	dbTx            *sql.Tx
 	rowsHandle      *sql.Rows
+	rowsError       *cd.Error
 	ownDBHandle     bool
 }
 
@@ -606,6 +617,7 @@ func (s *HostExecutor) RollbackTransaction() (err *cd.Error) {
 }
 
 func (s *HostExecutor) Query(sql string, needCols bool, args ...any) (ret []string, err *cd.Error) {
+	s.rowsError = nil
 	//slog.Info("message")
 	startTime := time.Now()
 	defer func() {
@@ -703,17 +715,25 @@ func (s *HostExecutor) Next() bool {
 
 	ret := s.rowsHandle.Next()
 	if !ret {
-		//log.Print("Next, close rows")
-		_ = s.rowsHandle.Close()
-		s.rowsHandle = nil
+		if readErr := s.rowsHandle.Err(); readErr != nil {
+			s.rowsError = databaseError(readErr)
+		}
+		s.Finish()
 	}
 
 	return ret
 }
 
+func (s *HostExecutor) RowsError() *cd.Error { return s.rowsError }
+
 func (s *HostExecutor) Finish() {
 	if s.rowsHandle != nil {
-		_ = s.rowsHandle.Close()
+		if closeErr := s.rowsHandle.Close(); closeErr != nil && s.rowsError == nil {
+			s.rowsError = databaseError(closeErr)
+		}
+		if readErr := s.rowsHandle.Err(); readErr != nil && s.rowsError == nil {
+			s.rowsError = databaseError(readErr)
+		}
 		s.rowsHandle = nil
 	}
 }

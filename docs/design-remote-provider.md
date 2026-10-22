@@ -58,7 +58,21 @@
 }
 ```
 
-它们是受模型校验的 schema 声明，不是调用方可注入的 SQL，也不参与普通查询过滤。`Create` 会应用这些声明；`Reconcile` 仅补建新增声明。详情见 [design-database.md](design-database.md)。
+它们是受模型校验的 schema 声明，不是调用方可注入的 SQL，也不参与普通查询过滤。`Create` 会应用这些声明；`Reconcile` 仅补建新增声明。详情见 [design-database.md](~/codespace/magicOrm/docs/design-database.md)。
+
+2026-10-17 关系组合唯一主线：`UniqueConstraint.Verify` 接受基础字段与单值指针引用，继续拒绝 owned、多值关联及缺失类型。参与唯一声明的单值引用仅由主表同名列保存目标标量主键，列不继承目标主键的 auto/default；可选引用保持 nullable，`req` 继续由既有校验实施。普通引用仍使用链接表，不双写，不增加客户端替代字符串键。local struct 通过 `GetUniqueConstraints() []models.UniqueConstraint` 声明，local Copy 和 Helper 转 remote 保留防御复制后的声明。
+
+PostgreSQL/MySQL 的 Create/Describe/AddColumn、Insert/Update/UpdateWithFilter、关系筛选和单项/批量回读共用该存储判定。写入前检查非 nil 引用目标主键，null 更新写主表 NULL，写宿主后不再写链接或目标；删除宿主不删除引用目标。查询仍使用既有关系投影和有界展开，只将关系键来源改为主表列。Schema Create/Drop/Inspect/Preflight/Repair 不再拥有该链接表。已有字段链接表与主表间的切换在 Reconcile 预检时要求显式迁移，不能以补列冒充数据迁移；新增可空引用列可先补列再建约束。
+
+当前采用干净候选及配套组件，不搬迁旧链接数据、不自动回填。通用 ORM 不检查业务目标存在性、入向引用删除保护或树无环，这些由执行 owner 在相同事务边界实施。新增[主线回归](~/codespace/magicOrm/orm/inline_reference_test.go)覆盖双 provider、双数据库生成器、单宿主写、null、无主键拒绝、回读及增量恢复；[隔离数据库并发入口](~/codespace/magicOrm/orm/inline_reference_database_test.go)必须显式设置 `MAGICORM_INLINE_REFERENCE_TEST_ALLOW=isolated` 和 `MAGICORM_INLINE_REFERENCE_TEST_SERVER/DATABASE/SCHEMA/USER/PASSWORD`，使用随机表前缀及 ORM Create/Inspect/Insert/Count/Drop 验证两并发单成功、不同目标同时间合法、独立实例唯一范围，未授权时不连接。PostgreSQL 默认 build tag，MySQL 使用 `-tags=mysql`；本轮显式禁用该入口，真实数据库唯一冲突、并发及 Live 均为 `not-run`。
+
+批量格式化被工具拒绝，未换工具覆盖；五仓 `upgrade_vendor.sh magicBase magicRunner magicCas magicFile magicModulesRepo` 也因重建现有 vendor 被拒绝，未手改 vendor 或使用模块模式绕过。因此最新消费者验证未执行，不复用旧资源批次的通过记录。该权限阻塞与真实数据库未验分别保留。
+
+最新主线源码验证：models/provider/codec 全包、ORM `-short` 全包、PostgreSQL/MySQL 无数据库 builder 专项、MySQL build tag 的 models/provider/ORM、models/provider/ORM race、全仓 vet 与默认/MySQL 两种 build 均通过；最后补齐条件引用写、Schema 恢复和隔离 DB 测试入口后，相关检查再次通过。数据库测试显式禁用，未消费连接配置。只读 `gofmt -l` 仍报告 `~/codespace/magicOrm/database/codec/reference_column.go`、`~/codespace/magicOrm/orm/inline_reference_test.go`、`~/codespace/magicOrm/orm/inline_reference_database_test.go`，因覆盖拒绝未格式化；其余本批路径无格式差异。
+
+后续用户已刷新 vendor，Base/Runner 在该基线的全仓 test/vet/build 通过，之前“消费者未执行”仅对应历史批次。随后 ORM 新增显式可序列化事务能力供执行 owner 在首读前使用，host/connection 两类 executor 均传递 `sql.LevelSerializable`；已有事务不能升级，失败不降级、不自动重放，Base 保持业务规则 owner。双后端内存 driver 的选项/嵌套/取消/失败恢复、ORM short 双 tag、全仓 vet/build 与事务 race 通过；这些不是实际数据库并发证据。新能力的五仓 vendor 同步再次被权限检查拒绝，未绕过，当前 Base 受保护写入因能力未配套明确拒绝，不能沿用上一基线的消费者结果。新建事务/规则文件格式化成功不解除上述三个旧文件的覆盖限制。
+
+前一轮物理列拒绝准入验证记录：models/provider 全包、provider 全包 race、PostgreSQL/MySQL 无数据库 builder/Schema 声明专项、mysql build tag 的 models/provider、全仓 vet/build 均通过；补 local 字段对称与拒绝时无部分 DDL 断言后，models/provider、models race/mysql tag 和 vet/build 再次通过。未运行全仓数据库测试、物理 Schema catalog 测试或任何真实连接；没有设置或消费数据库 DSN。本批新增测试初次错误引用 builder 类型/codec 参数，修正接口后测试发现 typed-nil Type 会 panic；增加 nil 类型识别后负例通过。此项发生在 owner 源码，未操作共享数据库或覆盖 vendor。
 
 ### 2.3 `ObjectValue`
 
@@ -368,6 +382,30 @@ typed nil 的 `*ObjectValue` 会被忽略；非法类型或模型不匹配会返
 - struct slice 在 `Values == nil` 时不覆盖目标；
 - struct slice 在 `Values != nil` 时先清空，再重建；
 - 顶层 slice 与字段级 slice 使用同一套 `nil/[]` 语义。
+
+### 6.3 值图循环与写响应复制边界
+
+2026-10-16 源码补充：本地 struct 的 `GetObjectValue` / `GetSliceObjectValue` 转换使用每次调用独立的活动路径，按实际指针身份及切片底层地址/长度识别回环，退出分支后移除。直接环、两节点环和集合回环返回 `IllegalParam` 且不返回部分结果；共享但无环的子对象、有限同类型链、nil 与显式空集合保持原合同。活动指针/切片超过 256 个明确拒绝。`orm:"-"` 字段仍不进入该转换。
+
+[写响应](~/codespace/magicOrm/orm/write_response.go)在 `Copy` 之前检查原始实体值图，避免复制已丢失输入身份后才试图检测循环；适用于 local 模型及有限远端元数据携带的 `ObjectValue` / `SliceObjectValue`。响应检查覆盖 local 深复制实际经过的导出字段（包括 `orm:"-"` 内存组合），也检查 map 的键和值；递归嵌套超过 256 层明确拒绝，不静默裁剪为成功。共享无环值不按全局 visited 误拒绝。
+
+源码检查已通过：provider/orm 全目录在默认 PostgreSQL 和 `mysql` build-tag 下测试通过，helper/orm race、全仓 vet 及两种构建通过；真实数据库的 opt-in DSN 显式留空，未运行真实 DB 或 `~/codespace/magicOrm/test/` 的数据库集成集。另有 local/remote 单值自引用注册、GetTypeModel、单主表/单关系表、Create/Drop/Inspect/Preflight 计划专项通过；执行器仍是夹具，不能证明 DDL 已实际完成，也不关闭 Base/业务树门槛。
+
+本项不修改持久模型、主键、关系所有权、Schema、权限、租户或业务规则，不改变写入顺序；写响应失败仍可能发生在数据提交后，必须回查而非盲目重写。Helper 对现有 remote 值的直接透传入口、Provider 注册/复制及其它 CRUD/查询入口并未因此获得全链循环保护；不据此放宽 Base 自引用准入。单值引用自环的注册、Schema、有限数据读写、删除保护及真实数据库回归仍需独立完成。
+
+验证分为源码和现场：覆盖本地反射转换、local/remote 写响应的直接环/两节点环/集合环、共享无环、有限链、nil、过深链和导出内存组合回环；双后端 build-tag 回归只验证源码路径，不当作真实 DDL 或持久化证据。真实 DB/Live 未运行。后续用户已授权脚本并完成首次六仓依赖同步；随后 Base 源码变更，第二次同步被工具权限拒绝，最新消费者最终验证未完成。
+
+### 6.4 引用主键与单值自引用验证
+
+2026-10-16 继续收口：`InsertRunner` 在宿主写入前逐一解析全部单值指针及指针元素集合引用，要求目标具有有效非零主键；不会为引用目标分配 ID 或自动插入它。此前无主键引用可返回成功，新增 local/remote 负例先复现，再以通用校验修复；包含关系的递归创建与主键分配保持原合同。此校验只证明主键形状，不证明目标记录实际存在或允许关联。
+
+Helper 对非 nil struct 指针和非 nil struct slice 输出 `Assigned:true`，包括字段全零的空对象和显式空集合；nil 仍未赋值。该意图经 remote 编解码保留，避免空引用对象被误当省略并绕过主键校验。`UpdateRunner.prepareNewRightIDs` 仅把无有效对象值的 nil 当作清空；非 nil 空对象继续检查主键并拒绝，不再因 `IsZero` 静默删除旧链接。显式 null 清空、空集合清空及有限包含对象语义保持。
+
+[单值自引用执行回归](~/codespace/magicOrm/orm/self_reference_crud_test.go)使用 local/remote provider 与执行夹具，覆盖省略/null 根记录、自动主键后链接已有目标、以有限对象表示同主键引用、换绑/解除引用、只删除宿主及其出向链接、链接失败回滚、引用集合先验完整检查，以及无主键更新不修改旧链接。查询覆盖根、有限链、超出内置展开深度的链、同主键与双主键循环，单查/批查均有界返回可序列化值，并校验有限链精确祖先；数据库主键关系循环不是 Go 内存指针环，也不等于业务树允许循环。查询仍遵循既有展开深度，不提供完整树闭包。
+
+最终源码验证：默认 PostgreSQL 与 `mysql` build-tag 的 provider/orm 全目录、helper/orm race、全仓 vet 和两种 build 通过；文档布局和相关仓库 diff 检查通过。负例首次失败分别暴露缺少引用主键及空对象当作清空，修复后重跑，不将首次失败隐藏为通过。真实数据库 opt-in DSN 显式为空，数据库集成目录未运行。后续已备份六仓依赖及差异并成功运行首次 `~/codespace/upgrade_vendor.sh`；同步后的 Base 全仓首先暴露查询空关联占位回归，已在 Base 查询边界修复，不撤销 ORM 写入赋值保护。Runner、CAS、File、共享模块首次同步后的 test/vet/build 通过；最新 Base 源码的第二次同步被工具权限拒绝，最终消费者基线尚未对齐。
+
+本批没有新增 Module/Block、EventHub 合同、持久字段或 Schema；只改 ORM owner 内通用赋值和引用写入校验，不识别平台身份。引用删除不级联目标的回归**不是入向引用删除保护**，后者与树并发防环仍归业务执行合同配套；Base 已精确放行单值指针类型自引用的源码准入，业务树门槛不变。双 build-tag、race、vet/build 属源码证据，执行夹具不冒充实际提交或 DDL。直接消费者最新版本须在再次获准同步后另验；未执行数据库或 Live。
 
 ---
 

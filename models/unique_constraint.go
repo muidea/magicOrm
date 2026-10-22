@@ -1,6 +1,7 @@
 package models
 
 import (
+	"reflect"
 	"regexp"
 
 	cd "github.com/muidea/magicCommon/def"
@@ -25,10 +26,16 @@ func (s UniqueConstraint) Verify(fields Fields) *cd.Error {
 	if len(s.Fields) == 0 {
 		return cd.NewError(cd.IllegalParam, "unique constraint fields are empty")
 	}
-	known := map[string]struct{}{}
+	known := map[string]bool{}
 	for _, field := range fields {
 		if field != nil {
-			known[field.GetName()] = struct{}{}
+			// 单值引用参与唯一声明后由主表保存目标主键；多值/包含仍拒绝。
+			fieldType := field.GetType()
+			typed := fieldType != nil
+			if typed && reflect.ValueOf(fieldType).Kind() == reflect.Pointer {
+				typed = !reflect.ValueOf(fieldType).IsNil()
+			}
+			known[field.GetName()] = typed && (IsBasicField(field) || IsSingleReferenceField(field))
 		}
 	}
 	seen := map[string]struct{}{}
@@ -36,8 +43,12 @@ func (s UniqueConstraint) Verify(fields Fields) *cd.Error {
 		if !constraintIdentifierPattern.MatchString(name) {
 			return cd.NewError(cd.IllegalParam, "unique constraint field is invalid")
 		}
-		if _, ok := known[name]; !ok {
+		physical, ok := known[name]
+		if !ok {
 			return cd.NewError(cd.IllegalParam, "unique constraint references unavailable field")
+		}
+		if !physical {
+			return cd.NewError(cd.IllegalParam, "unique constraint requires a scalar, serialized basic collection, or single reference field")
 		}
 		if _, duplicate := seen[name]; duplicate {
 			return cd.NewError(cd.IllegalParam, "unique constraint contains duplicate field")
@@ -49,9 +60,13 @@ func (s UniqueConstraint) Verify(fields Fields) *cd.Error {
 
 // UniqueConstrainedModel is implemented by dynamic remote models that carry
 // schema-level composite uniqueness declarations.
+type UniqueConstraintDeclarer interface {
+	GetUniqueConstraints() []UniqueConstraint
+}
+
 type UniqueConstrainedModel interface {
 	Model
-	GetUniqueConstraints() []UniqueConstraint
+	UniqueConstraintDeclarer
 }
 
 // GetUniqueConstraints returns a defensive copy of model-declared keys.

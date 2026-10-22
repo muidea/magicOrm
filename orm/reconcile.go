@@ -47,6 +47,13 @@ func sameSchemaField(previous, current models.Field) bool {
 	if previous.GetSpec().IsPrimaryKey() != current.GetSpec().IsPrimaryKey() {
 		return false
 	}
+	if previous.GetSpec().IsPrimaryKey() && previous.GetType().GetValue() == models.TypeStringValue {
+		before, beforeErr := database.StringKeyLength(previous.GetSpec())
+		after, afterErr := database.StringKeyLength(current.GetSpec())
+		if beforeErr != nil || afterErr != nil || before != after {
+			return false
+		}
+	}
 	return true
 }
 
@@ -54,7 +61,7 @@ func sameSchemaField(previous, current models.Field) bool {
 // expressions. A declaration-only change needs no ALTER DEFAULT; a changed
 // stored column contract still requires an explicit migration.
 func (s *ReconcileRunner) samePhysicalDefault(previous, current models.Field) (bool, *cd.Error) {
-	if !models.IsBasicField(previous) || !models.IsBasicField(current) {
+	if !models.IsMainTableField(s.previous, previous) || !models.IsMainTableField(s.vModel, current) {
 		return false, nil
 	}
 	builder, ok := NewBuilder(s.modelProvider, s.modelCodec).(database.SchemaBuilder)
@@ -118,6 +125,9 @@ func (s *ReconcileRunner) checkCompatibility() (map[string]models.Field, *cd.Err
 		current, ok := currentFields[name]
 		if !ok {
 			return nil, migrationRequired("field %q was removed or renamed", name)
+		}
+		if models.IsInlineReference(s.previous, previous) != models.IsInlineReference(s.vModel, current) {
+			return nil, migrationRequired("field %q changed reference storage", name)
 		}
 		if !sameSchemaField(previous, current) {
 			return nil, migrationRequired("field %q changed type, nullability, primary key, or default", name)
@@ -183,7 +193,7 @@ func (s *ReconcileRunner) planReconcile() ([]database.Result, *cd.Error) {
 		if _, exists := previousFields[field.GetName()]; exists {
 			continue
 		}
-		if models.IsBasicField(field) {
+		if models.IsMainTableField(s.vModel, field) {
 			// Existing rows cannot satisfy a new required column without a data
 			// backfill. Nullable additions are the only universally lossless form.
 			if !field.GetType().IsPtrType() {

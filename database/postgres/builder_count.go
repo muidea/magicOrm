@@ -23,6 +23,18 @@ func (s *Builder) BuildCount(vModel models.Model, filter models.Filter) (ret dat
 			return
 		}
 
+		planWhere, _, planArgs, planErr := database.BuildReadQueryClause(vModel, filter, s.modelProvider, "postgres", len(resultStackPtr.Args()))
+		if planErr != nil {
+			return nil, planErr
+		}
+		resultStackPtr.PushArgs(planArgs...)
+		if planWhere != "" {
+			if filterSQL == "" {
+				filterSQL = planWhere
+			} else {
+				filterSQL = "(" + filterSQL + ") AND (" + planWhere + ")"
+			}
+		}
 		if filterSQL != "" {
 			countSQL = fmt.Sprintf("%s WHERE %s", countSQL, filterSQL)
 		}

@@ -237,6 +237,33 @@ func (s *InsertRunner) insertSliceRelation(vModel models.Model, vField models.Fi
 	return
 }
 
+// 引用只保存已有目标的主键；不能把空对象当作待分配 ID 的包含对象。
+func (s *InsertRunner) validateReferenceKeys(field models.Field) *cd.Error {
+	elemType := field.GetType().Elem()
+	if !elemType.IsPtrType() {
+		return nil
+	}
+	values := []models.Value{field.GetValue()}
+	if models.IsSliceField(field) {
+		values = field.GetSliceValue()
+	}
+	for _, value := range values {
+		target, err := s.modelProvider.GetTypeModel(elemType)
+		if err != nil {
+			return err
+		}
+		target, err = s.modelProvider.SetModelValue(target, value)
+		if err != nil {
+			return err
+		}
+		primary := target.GetPrimaryField()
+		if primary == nil || primary.GetValue() == nil || !primary.GetValue().IsValid() || primary.GetValue().IsZero() {
+			return cd.NewError(cd.IllegalParam, fmt.Sprintf("reference relation field %s has entity without primary key", field.GetName()))
+		}
+	}
+	return nil
+}
+
 func (s *InsertRunner) Insert() (ret models.Model, err *cd.Error) {
 	if err = s.checkContext(); err != nil {
 		return
@@ -268,7 +295,12 @@ func (s *InsertRunner) Insert() (ret models.Model, err *cd.Error) {
 			}
 			return nil, cd.NewError(cd.IllegalParam, fmt.Sprintf("illegal field value, field:%s", field.GetName()))
 		}
-		relations = append(relations, field)
+		if err = s.validateReferenceKeys(field); err != nil {
+			return nil, err
+		}
+		if !models.IsInlineReference(s.vModel, field) {
+			relations = append(relations, field)
+		}
 	}
 
 	err = s.insertHost(s.vModel)

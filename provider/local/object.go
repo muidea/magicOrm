@@ -45,6 +45,19 @@ func (s *objectImpl) GetDescription() string {
 	return ""
 }
 
+func (s *objectImpl) GetUniqueConstraints() []models.UniqueConstraint {
+	declaration, ok := s.Interface(true).(models.UniqueConstraintDeclarer)
+	if !ok {
+		return nil
+	}
+	constraints := declaration.GetUniqueConstraints()
+	ret := make([]models.UniqueConstraint, len(constraints))
+	for idx, constraint := range constraints {
+		ret[idx] = models.UniqueConstraint{Name: constraint.Name, Fields: append([]string(nil), constraint.Fields...)}
+	}
+	return ret
+}
+
 func (s *objectImpl) GetFields() (ret models.Fields) {
 	for _, sf := range s.fields {
 		ret = append(ret, sf)

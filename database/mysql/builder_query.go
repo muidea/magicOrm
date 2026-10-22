@@ -26,6 +26,9 @@ func isWriteOnlyFieldSelectedForQuery(vModel models.Model, field models.Field) b
 
 // BuildQuery build query sql
 func (s *Builder) BuildQuery(vModel models.Model, filter models.Filter) (ret database.Result, err *cd.Error) {
+	if err := database.ValidateReadQueryPage(filter); err != nil {
+		return nil, err
+	}
 	namesVal, nameErr := s.getFieldQueryNames(vModel)
 	if nameErr != nil {
 		err = nameErr
@@ -43,6 +46,18 @@ func (s *Builder) BuildQuery(vModel models.Model, filter models.Filter) (ret dat
 			return
 		}
 
+		planWhere, planOrder, planArgs, planErr := database.BuildReadQueryClause(vModel, filter, s.modelProvider, "mysql", len(resultStackPtr.Args()))
+		if planErr != nil {
+			return nil, planErr
+		}
+		resultStackPtr.PushArgs(planArgs...)
+		if planWhere != "" {
+			if filterSQL == "" {
+				filterSQL = planWhere
+			} else {
+				filterSQL = "(" + filterSQL + ") AND (" + planWhere + ")"
+			}
+		}
 		if filterSQL != "" {
 			querySQL = fmt.Sprintf("%s WHERE %s", querySQL, filterSQL)
 		}
@@ -54,6 +69,9 @@ func (s *Builder) BuildQuery(vModel models.Model, filter models.Filter) (ret dat
 			return
 		}
 
+		if planOrder != "" {
+			sortVal = planOrder
+		}
 		if sortVal != "" {
 			querySQL = fmt.Sprintf("%s ORDER BY %s", querySQL, sortVal)
 		}
@@ -76,6 +94,10 @@ func (s *Builder) BuildQuery(vModel models.Model, filter models.Filter) (ret dat
 // BuildQueryRelation build query relation sql
 func (s *Builder) BuildQueryRelation(vModel models.Model, vField models.Field) (ret database.Result, err *cd.Error) {
 	leftVal := vModel.GetPrimaryField().GetValue().Get()
+	if models.IsInlineReference(vModel, vField) {
+		querySQL := fmt.Sprintf("SELECT `%s` FROM `%s` WHERE `%s` = ? AND `%s` IS NOT NULL", vField.GetName(), s.buildCodec.ConstructModelTableName(vModel), vModel.GetPrimaryField().GetName(), vField.GetName())
+		return NewError(querySQL, []any{leftVal}), nil
+	}
 	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
 	if relationErr != nil {
 		err = relationErr
@@ -133,6 +155,9 @@ func (s *Builder) BuildBatchQueryRelation(vModel models.Model, vField models.Fie
 	}
 
 	queryRelationSQL := fmt.Sprintf("SELECT `left`,`right` FROM `%s` WHERE `left` IN (%s)", relationTableName, placeholders)
+	if models.IsInlineReference(vModel, vField) {
+		queryRelationSQL = fmt.Sprintf("SELECT `%s`,`%s` FROM `%s` WHERE `%s` IN (%s) AND `%s` IS NOT NULL", pkField.GetName(), vField.GetName(), s.buildCodec.ConstructModelTableName(vModel), pkField.GetName(), placeholders, vField.GetName())
+	}
 	if traceSQL() {
 		slog.Info("[SQL] batch query relation", "sql", queryRelationSQL)
 	}

@@ -8,6 +8,7 @@ import (
 	"log/slog"
 
 	"github.com/muidea/magicOrm/database"
+	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/utils"
 )
@@ -47,6 +48,9 @@ func (s *Builder) BuildUpdate(vModel models.Model) (ret database.Result, err *cd
 // by callers that need compare-and-set semantics and therefore must observe
 // the affected row count from the executor.
 func (s *Builder) BuildUpdateWithFilter(vModel models.Model, filter models.Filter) (ret database.Result, err *cd.Error) {
+	if _, readOnly := filter.(models.ReadQueryPlanProvider); readOnly {
+		return nil, cd.NewError(cd.IllegalParam, "read query plan cannot authorize conditional writes")
+	}
 	if vModel == nil {
 		return nil, cd.NewError(cd.IllegalParam, "model is nil")
 	}
@@ -72,8 +76,8 @@ func (s *Builder) BuildUpdateWithFilter(vModel models.Model, filter models.Filte
 		if filter.GetFilterItem(field.GetName()) == nil {
 			continue
 		}
-		if !models.IsBasicField(field) {
-			return nil, cd.NewError(cd.IllegalParam, "conditional update filter must use basic fields only")
+		if !models.IsMainTableField(vModel, field) {
+			return nil, cd.NewError(cd.IllegalParam, "conditional update filter must use main-table fields only")
 		}
 		filterFieldCount++
 	}
@@ -104,7 +108,7 @@ func (s *Builder) buildFieldUpdateValues(vModel models.Model, resultStackPtr *Re
 		if models.IsPrimaryField(field) {
 			continue
 		}
-		if !models.IsBasicField(field) || !models.IsAssignedField(field) {
+		if !models.IsMainTableField(vModel, field) || !models.IsAssignedField(field) {
 			continue
 		}
 		// Skip read-only fields in update
@@ -120,7 +124,7 @@ func (s *Builder) buildFieldUpdateValues(vModel models.Model, resultStackPtr *Re
 		encodeVal := any(nil)
 		if !utils.IsReallyNil(fVal.Get()) || !field.GetType().IsPtrType() {
 			var encodeErr *cd.Error
-			encodeVal, encodeErr = s.buildCodec.PackedBasicFieldValue(field, fVal)
+			encodeVal, encodeErr = codec.PackMainTableValue(s.modelProvider, s.buildCodec, vModel, field)
 			if encodeErr != nil {
 				err = encodeErr
 				slog.Error("buildFieldUpdateValues failed", "field", field.GetName(), "operation", "encodeFieldValue", "error", err.Error())

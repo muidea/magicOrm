@@ -153,7 +153,7 @@ func (s *baseRunner) repairMissingObjects(step schemaTable, before database.Tabl
 		if !columns[field.GetName()] {
 			continue
 		}
-		if !models.IsBasicField(field) || !field.GetType().IsPtrType() || field.GetSpec().IsPrimaryKey() {
+		if !models.IsMainTableField(step.model, field) || !field.GetType().IsPtrType() || field.GetSpec().IsPrimaryKey() {
 			return nil, cd.NewError(cd.InvalidOperation, "schema repair only adds new nullable fields")
 		}
 		statement, err := s.sqlBuilder.BuildAddColumn(step.model, field)

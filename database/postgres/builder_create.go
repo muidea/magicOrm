@@ -10,14 +10,21 @@ import (
 	"log/slog"
 
 	"github.com/muidea/magicOrm/database"
+	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/models"
 )
 
 func (s *Builder) BuildCreateTable(vModel models.Model) (ret database.Result, err *cd.Error) {
 	createSQL := ""
 	for _, field := range vModel.GetFields() {
-		if !models.IsBasicField(field) {
+		if !models.IsMainTableField(vModel, field) {
 			continue
+		}
+		if models.IsInlineReference(vModel, field) {
+			field, err = codec.ReferenceColumn(s.modelProvider, field)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		infoVal, infoErr := s.declareFieldInfo(field)
@@ -70,8 +77,14 @@ func (s *Builder) BuildCreateTable(vModel models.Model) (ret database.Result, er
 // intentionally limited to one declared basic field; relation storage is
 // created through BuildCreateRelationTable.
 func (s *Builder) BuildAddColumn(vModel models.Model, vField models.Field) (ret database.Result, err *cd.Error) {
-	if !models.IsBasicField(vField) {
-		return nil, cd.NewError(cd.IllegalParam, "schema add column requires a basic field")
+	if !models.IsMainTableField(vModel, vField) {
+		return nil, cd.NewError(cd.IllegalParam, "schema add column requires a main-table field")
+	}
+	if models.IsInlineReference(vModel, vField) {
+		vField, err = codec.ReferenceColumn(s.modelProvider, vField)
+		if err != nil {
+			return nil, err
+		}
 	}
 	info, infoErr := s.declareFieldInfo(vField)
 	if infoErr != nil {
@@ -86,7 +99,7 @@ func (s *Builder) BuildAddColumn(vModel models.Model, vField models.Field) (ret 
 // make the operation safe to retry after the database DDL succeeds but the
 // caller fails before persisting its schema metadata.
 func (s *Builder) BuildCreateUniqueConstraint(vModel models.Model, constraint models.UniqueConstraint) (ret database.Result, err *cd.Error) {
-	if err = constraint.Verify(vModel.GetFields()); err != nil {
+	if err = codec.ValidateUniqueColumns(s.modelProvider, vModel, constraint); err != nil {
 		return nil, err
 	}
 	tableName := s.buildCodec.ConstructModelTableName(vModel)

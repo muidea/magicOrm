@@ -206,7 +206,7 @@ func init() {
 			return
 		},
 		models.TypeDateTimeValue: func(vVal reflect.Value, vType models.Type) (ret any, err *cd.Error) {
-			strVal, strErr := utils.ConvertToString(vVal)
+			strVal, strErr := utils.EncodeUTCDateTime(vVal)
 			if strErr != nil {
 				err = strErr
 				return

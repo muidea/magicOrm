@@ -4,6 +4,10 @@ Golang对象的ORM框架，支持PostgreSQL和MySQL数据库。一个所见即�
 
 ## 特性
 
+- **UTC 时间持久化**：local/remote Provider 的 datetime 写入统一规范为 UTC 毫秒文本；带偏移的 RFC3339 与 `time.Time` 保持同一时间点，无时区的既有数据库文本约定为 UTC。普通字符串不转换。本地时区输入、展示及当地日期边界归业务层，查询边界转换回 UTC；详见[时间合同](~/dataspace/magicPlatform/docs/technical/orm-query-processing-spec.md#11-utc-持久化与业务时区边界2026-10-21)。当前阶段仅验证 PostgreSQL，不提供已有本地时间数据的自动迁移。
+
+- **UTC 小时桶（源码子集）**：`AggregatePlan.Bucket` 使用参数化时间边界及既有 Provider 毫秒编码，独立限制 `[from,to)`，按 UTC 小时补齐缺桶；count=0、其他指标=null，average 可附同条件有效样本数。最多 744 桶、5000 指标点，拒绝超限和损坏/重复桶结果。双数据库离线编译与执行替身已验证；IANA/DST、实际列/会话时间语义和真实数据库对账未验证。见[小时桶合同](~/dataspace/magicPlatform/docs/technical/orm-query-processing-spec.md#107-utc-小时桶主体)。
+
 - **多数据库支持**: PostgreSQL和MySQL
 - **类型安全**: 完整的Go类型映射支持
 - **灵活的关系映射**: 支持一对一、一对多、多对多关系
@@ -13,6 +17,9 @@ Golang对象的ORM框架，支持PostgreSQL和MySQL数据库。一个所见即�
 - **视图模式**: 支持detail/lite视图控制字段输出
 - **事务支持**: 完整的ACID事务处理
 - **条件更新**: 单 SQL compare-and-set 更新并返回影响行数
+- **追加式读计划**: `models.WithReadQueryPlan` 保留旧 Filter 条件并以 AND 追加封闭标量表达式，支持同字段双边界、复合稳定排序及混合升降序 keyset；local/remote、PostgreSQL/MySQL 共用校验。新计划行查询必须显式分页（最多 1001 行、offset 最多 10000），表达式最多 8 层/64 节点，条件更新拒绝读计划。仅属读取原语，不等于关系查询、聚合、授权游标或真实数据库已验收；合同与验证边界见[读计划规范](~/dataspace/magicPlatform/docs/technical/orm-query-processing-spec.md#9-追加式标量读计划2026-10-19源码)。
+- **服务端聚合（源码）**: 独立可选 `orm.Aggregate` 支持 count/sum/average/min/max 和最多 4 维 group，保留模型 scope 与参数化 Where；指标可携独立 Where，使用 SELECT 内参数化条件聚合，average 可请求同条件、同字段非 null 有效样本数；最多 16 指标、1000 组，超组/迭代/扫描/关闭失败/取消不返回部分结果。整数与 decimal token 不经浮点中转；默认及 mysql-tag 离线专项通过，真实数据库未验。见[聚合及正式消费者边界](~/dataspace/magicPlatform/docs/technical/orm-query-processing-spec.md#10-服务端聚合与冻结源正式消费者2026-10-19源码子集)。
+- **显式强隔离**: `orm.BeginSerializableTransaction(handler)` 在首读前建立可序列化事务；已有事务不能升级，未配套 executor 拒绝，不降级、不自动重试。PostgreSQL/MySQL 的连接与宿主 executor 均传递 `sql.LevelSerializable`，冲突及未知提交由调用 owner 回查。内存 driver 验证选项、嵌套、取消及失败恢复，不当作真实数据库并发证据。
 - **Schema 演进**: 可安全补建字段、关系、唯一约束和索引
 - **Schema 核验**: 只读检查实际主表、关系表及 owned 模型，报告结构缺失或漂移
 - **高性能**: 连接池、批量操作和验证缓存优化
@@ -50,6 +57,12 @@ type Group struct {
 ```
 
 仅用于内存组合的字段声明 `orm:"-"`，不会生成列或关系，也不要求注册其类型。`json:"-"` 只隐藏 JSON；内部组合通常同时声明两者。详见 [字段排除规则](~/codespace/magicOrm/docs/tags-reference.md#15-忽略字段)。
+
+本地 struct 转换为 remote 值时，实际对象指针环或底层切片回环会返回 `IllegalParam`，不返回部分对象；同类型有限链及不同分支共享无环子对象仍允许。转换路径最多保留 256 个活动指针/切片。写响应在复制前检查原始值图，拒绝实际循环及超过 256 层的嵌套，包括 local 复制会经过的导出内存组合字段。类型自引用不等于值图循环；此项不开放 Base 的自引用定义准入，也不证明完整 CRUD、JSON 直传、真实数据库或任意 Provider 入口都已有循环保护。写响应拒绝可能发生在数据已提交之后，应回查原操作，不能直接重发业务写入。详见[Helper 与响应边界](~/codespace/magicOrm/docs/design-remote-provider.md#63-值图循环与写响应复制边界)。
+
+引用写入必须提供非零目标主键，不会自动创建目标。插入前会检查全部单值/多值引用，缺失主键时不写宿主或部分链接；更新中的显式 nil 仍清空引用，但非 nil 空对象明确拒绝，不能误删旧链接。本地转 remote 保留非 nil 关联对象与集合的显式赋值意图。local/remote 单值类型自引用的有限读写、自动主键、链接失败回滚和可序列化查询已有执行夹具回归；这不证明目标存在性、被引用删除保护、树无环或真实数据库通过，也不放宽 Base 准入。详见[引用主键与自引用验证](~/codespace/magicOrm/docs/design-remote-provider.md#64-引用主键与单值自引用验证)。
+
+组合唯一支持基础字段与单值指针引用：参与 `UniqueConstraints` 的引用由 ORM 将目标标量主键存入主表同名列，与其它字段在同一 INSERT/UPDATE 中接受数据库唯一约束；业务对象仍是引用，不增加客户端字符串键，也不双写链接表。普通关联保持原存储，多值关联及 owned 对象不能参与该唯一键。local struct 可实现 `GetUniqueConstraints() []models.UniqueConstraint`，转换为 remote 后保留声明。已有字段切换链接表/主表存储时 `Reconcile` 明确要求迁移；仅新增可空引用列可增量补建，当前交付采用干净候选 Schema。源码回归覆盖双 provider、双数据库生成器、执行计划及恢复；目标存在性、入向删除保护、树并发防环和真实数据库并发仍不在本项证明内。见[引用列合同](~/codespace/magicOrm/docs/design-remote-provider.md#22-schema-元数据)。
 
 ### 2. 初始化ORM
 
@@ -949,3 +962,11 @@ PostgreSQL 的 `23505` 和 MySQL 的 `1062` 在数据库执行层映射为通用
 ### Auto-increment validation
 
 On insert, an omitted or zero-valued `auto` field requests database generation and is not checked as a caller-provided value before INSERT. Explicit nonzero values retain validation. Ordinary required fields and manually assigned primary keys retain their constraints; update/query/delete behavior is unchanged. This rule applies to local and remote models without application-specific logic.
+
+### 显式字符串主键容量与条件锁
+
+字符串主键默认保持 `VARCHAR(32)`；显式 `constraint:"max=64"`（远端 `spec.constraint="max=64"`）使建表、关联表键列及 Schema 检查采用声明容量。范围为 1—255，非法声明拒绝；不会裁剪或替换已有身份。已有主键容量变化必须走显式 Schema 迁移，`Reconcile` 不会把它当作无变化或自动在线改表。
+
+`orm.LockWithFilter` 是可选能力：要求已有事务、精确主键等值及无分页的本表过滤器，检查完整行流错误，按条件锁行而不改写业务字段。调用方可在同一事务继续普通 `Delete`，保留原有关系清理；能力或事务缺失明确失败。本轮数据库验收仅使用 PostgreSQL，通过 magicBase 服务执行；方言构建器单测不代表 MySQL 数据库验收。
+
+可空文本约束：内置 in/re 检查指针所指的实际内容，null 跳过格式/成员约束；req 与数据库非空检查继续独立生效。详见[校验设计](~/codespace/magicOrm/docs/design-validation.md)。

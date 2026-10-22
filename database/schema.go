@@ -153,7 +153,7 @@ func DescribeModelTable(model models.Model, modelCodec codec.Codec, column func(
 	}
 	table := TableSchema{Name: modelCodec.ConstructModelTableName(model), Exists: true, Ordinary: true}
 	for _, field := range model.GetFields() {
-		if !models.IsBasicField(field) {
+		if !models.IsMainTableField(model, field) {
 			continue
 		}
 		value, err := column(field)

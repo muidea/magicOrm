@@ -163,7 +163,7 @@ func (s *DeleteRunner) Delete() (err *cd.Error) {
 	}
 
 	for _, field := range s.vModel.GetFields() {
-		if models.IsBasicField(field) {
+		if models.IsMainTableField(s.vModel, field) {
 			continue
 		}
 

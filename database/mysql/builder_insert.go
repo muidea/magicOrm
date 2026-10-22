@@ -8,6 +8,7 @@ import (
 	"log/slog"
 
 	"github.com/muidea/magicOrm/database"
+	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/models"
 )
 
@@ -17,7 +18,7 @@ func (s *Builder) BuildInsert(vModel models.Model) (ret database.Result, err *cd
 	fieldNames := ""
 	fieldValues := ""
 	for _, field := range vModel.GetFields() {
-		if !models.IsBasicField(field) || !models.IsValidField(field) {
+		if !models.IsMainTableField(vModel, field) || !models.IsValidField(field) {
 			continue
 		}
 
@@ -26,8 +27,7 @@ func (s *Builder) BuildInsert(vModel models.Model) (ret database.Result, err *cd
 			continue
 		}
 
-		fValue := field.GetValue()
-		encodeVal, encodeErr := s.buildCodec.PackedBasicFieldValue(field, fValue)
+		encodeVal, encodeErr := codec.PackMainTableValue(s.modelProvider, s.buildCodec, vModel, field)
 		if encodeErr != nil {
 			err = encodeErr
 			slog.Error("BuildInsert failed", "field", field.GetName(), "operation", "encodeFieldValue", "error", err.Error())

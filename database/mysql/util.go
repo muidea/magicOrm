@@ -8,6 +8,7 @@ import (
 	"log/slog"
 
 	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicOrm/database"
 	"github.com/muidea/magicOrm/models"
 )
 
@@ -31,7 +32,11 @@ func getTypeDeclare(fType models.Type, fSpec models.Spec) (ret string, err *cd.E
 	switch fType.GetValue() {
 	case models.TypeStringValue:
 		if fSpec.IsPrimaryKey() {
-			ret = "VARCHAR(32)"
+			size, lengthErr := database.StringKeyLength(fSpec)
+			if lengthErr != nil {
+				return "", lengthErr
+			}
+			ret = fmt.Sprintf("VARCHAR(%d)", size)
 		} else {
 			ret = "TEXT"
 		}

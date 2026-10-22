@@ -151,7 +151,7 @@ func TestRemoteCodecEncodeDecodeAdditionalBasicTypes(t *testing.T) {
 		{name: "uint64", typ: &TypeImpl{Name: "uint64", Value: models.TypePositiveBigIntegerValue}, encodeInput: uint64(64), decodeInput: uint64(64), expectedValue: uint64(64)},
 		{name: "float32", typ: &TypeImpl{Name: "float32", Value: models.TypeFloatValue}, encodeInput: float32(3.5), decodeInput: float32(3.5), expectedValue: float32(3.5)},
 		{name: "float64", typ: &TypeImpl{Name: "float64", Value: models.TypeDoubleValue}, encodeInput: float64(7.5), decodeInput: float64(7.5), expectedValue: float64(7.5)},
-		{name: "datetime", typ: &TypeImpl{Name: "datetime", Value: models.TypeDateTimeValue}, encodeInput: "2025-01-01T00:00:00Z", decodeInput: "2025-01-01T00:00:00Z", expectedValue: "2025-01-01T00:00:00Z"},
+		{name: "datetime", typ: &TypeImpl{Name: "datetime", Value: models.TypeDateTimeValue}, encodeInput: "2025-01-01 00:00:00.000", decodeInput: "2025-01-01 00:00:00.000", expectedValue: "2025-01-01 00:00:00.000"},
 		{
 			name:          "[]boolean",
 			typ:           &TypeImpl{Name: "boolean", Value: models.TypeSliceValue, ElemType: &TypeImpl{Name: "boolean", Value: models.TypeBooleanValue}},
@@ -217,7 +217,7 @@ func TestRemoteCodecExhaustivePointerVariants(t *testing.T) {
 		{name: "float32", value: models.TypeFloatValue, raw: float32(3.5), expect: float32(3.5)},
 		{name: "float64", value: models.TypeDoubleValue, raw: float64(7.5), expect: float64(7.5)},
 		{name: "string", value: models.TypeStringValue, raw: "apple", expect: "apple"},
-		{name: "datetime", value: models.TypeDateTimeValue, raw: "2025-01-01T00:00:00Z", expect: "2025-01-01T00:00:00Z"},
+		{name: "datetime", value: models.TypeDateTimeValue, raw: "2025-01-01 00:00:00.000", expect: "2025-01-01 00:00:00.000"},
 	}
 	for _, tt := range scalarCases {
 		t.Run("scalar/"+tt.name, func(t *testing.T) {
@@ -271,7 +271,7 @@ func TestRemoteCodecExhaustivePointerVariants(t *testing.T) {
 		{name: "float32", elem: models.TypeFloatValue, encode: []float32{1.5, 2.5}, decode: []any{float32(1.5), float32(2.5)}, expect: []float32{1.5, 2.5}},
 		{name: "float64", elem: models.TypeDoubleValue, encode: []float64{1.5, 2.5}, decode: []any{1.5, 2.5}, expect: []float64{1.5, 2.5}},
 		{name: "string", elem: models.TypeStringValue, encode: []string{"a", "b"}, decode: []any{"a", "b"}, expect: []string{"a", "b"}},
-		{name: "datetime", elem: models.TypeDateTimeValue, encode: []string{"2025-01-01", "2025-01-02"}, decode: []any{"2025-01-01", "2025-01-02"}, expect: []string{"2025-01-01", "2025-01-02"}},
+		{name: "datetime", elem: models.TypeDateTimeValue, encode: []string{"2025-01-01 00:00:00.000", "2025-01-02 00:00:00.000"}, decode: []any{"2025-01-01 00:00:00.000", "2025-01-02 00:00:00.000"}, expect: []string{"2025-01-01 00:00:00.000", "2025-01-02 00:00:00.000"}},
 	}
 	for _, tt := range sliceCases {
 		t.Run("slice/"+tt.name, func(t *testing.T) {

@@ -349,7 +349,9 @@ func TestRemoteOnlineEntity(t *testing.T) {
 		return
 	}
 
-	entityPtr.ID = 1
+	if err := helper.UpdateEntity(newRemoteEntityPtr, entityPtr); err != nil || entityPtr.ID <= 0 {
+		t.Fatalf("read allocated entity identity: %v", err)
+	}
 	onlineEntityPtr := &OnlineEntity{
 		SessionID:   "abc",
 		Entity:      entityPtr,
@@ -381,7 +383,7 @@ func TestRemoteOnlineEntity(t *testing.T) {
 
 	queryOnlineEntityPtr := &OnlineEntity{
 		SessionID: onlineEntityPtr.SessionID,
-		Entity:    &Entity{},
+		Entity:    &Entity{ID: entityPtr.ID},
 	}
 
 	remoteQueryVal, remoteQueryErr := getObjectValue(queryOnlineEntityPtr)
@@ -405,5 +407,9 @@ func TestRemoteOnlineEntity(t *testing.T) {
 	qVal := resultVal.Interface(true).(*remote.ObjectValue)
 	if len(qVal.Fields) != 6 {
 		t.Errorf("query online entity failed")
+	}
+	resolved := &OnlineEntity{}
+	if err := helper.UpdateEntity(qVal, resolved); err != nil || resolved.Entity == nil || resolved.Entity.ID != entityPtr.ID || resolved.Entity.EName != entityPtr.EName {
+		t.Fatalf("query lost exact linked entity: %+v, %v", resolved, err)
 	}
 }

@@ -1,11 +1,78 @@
 package orm
 
 import (
+	"reflect"
+
 	cd "github.com/muidea/magicCommon/def"
 
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
+
+type responseValuePointer struct {
+	typeOf reflect.Type
+	value  uintptr
+	length int
+}
+
+// 在 Copy 之前检查原值图；复制后的对象身份不能用来识别输入指针环。
+func validateWriteResponseValue(value reflect.Value, active map[responseValuePointer]bool, depth int) *cd.Error {
+	if !value.IsValid() {
+		return nil
+	}
+	if depth > 256 {
+		return cd.NewError(cd.IllegalParam, "write response value exceeds nesting limit")
+	}
+	switch value.Kind() {
+	case reflect.Interface:
+		if !value.IsNil() {
+			return validateWriteResponseValue(value.Elem(), active, depth+1)
+		}
+	case reflect.Ptr, reflect.Slice:
+		if value.IsNil() {
+			return nil
+		}
+		key := responseValuePointer{typeOf: value.Type(), value: value.Pointer()}
+		if value.Kind() == reflect.Slice {
+			key.length = value.Len()
+		}
+		if active[key] {
+			return cd.NewError(cd.IllegalParam, "cyclic write response value is not supported")
+		}
+		active[key] = true
+		defer delete(active, key)
+		if value.Kind() == reflect.Ptr {
+			return validateWriteResponseValue(value.Elem(), active, depth+1)
+		}
+		for idx := 0; idx < value.Len(); idx++ {
+			if err := validateWriteResponseValue(value.Index(idx), active, depth+1); err != nil {
+				return err
+			}
+		}
+	case reflect.Struct:
+		for idx := 0; idx < value.NumField(); idx++ {
+			field := value.Type().Field(idx)
+			// local Copy 也复制导出的 orm:"-" 内存字段，必须在这里检查其值图。
+			if !field.IsExported() {
+				continue
+			}
+			if err := validateWriteResponseValue(value.Field(idx), active, depth+1); err != nil {
+				return err
+			}
+		}
+	case reflect.Map:
+		iter := value.MapRange()
+		for iter.Next() {
+			if err := validateWriteResponseValue(iter.Key(), active, depth+1); err != nil {
+				return err
+			}
+			if err := validateWriteResponseValue(iter.Value(), active, depth+1); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
 
 func buildWriteResponseModel(vModel models.Model) (ret models.Model, err *cd.Error) {
 	if vModel == nil {
@@ -13,6 +80,9 @@ func buildWriteResponseModel(vModel models.Model) (ret models.Model, err *cd.Err
 		return
 	}
 
+	if err = validateWriteResponseValue(reflect.ValueOf(vModel.Interface(true)), map[responseValuePointer]bool{}, 0); err != nil {
+		return
+	}
 	ret = vModel.Copy(models.DetailView)
 	return
 }

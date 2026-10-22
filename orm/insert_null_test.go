@@ -68,7 +68,7 @@ func nullInsertModel(t *testing.T, isRemote, required bool) (provider.Provider, 
 func TestInsertOptionalAndRequiredReferencePresence(t *testing.T) {
 	for _, isRemote := range []bool{false, true} {
 		for _, required := range []bool{false, true} {
-			for _, mode := range []string{"omitted", "null", "value"} {
+			for _, mode := range []string{"omitted", "null", "value", "missing-key"} {
 				name := "local/optional/" + mode
 				if isRemote {
 					name = "remote/optional/" + mode
@@ -83,8 +83,11 @@ func TestInsertOptionalAndRequiredReferencePresence(t *testing.T) {
 							t.Fatal(err)
 						}
 					}
-					if mode == "value" {
+					if mode == "value" || mode == "missing-key" {
 						var value any = &NullInsertTarget{ID: 2}
+						if mode == "missing-key" {
+							value = &NullInsertTarget{}
+						}
 						if isRemote {
 							var err *cd.Error
 							value, err = helper.GetObjectValue(value)
@@ -99,6 +102,12 @@ func TestInsertOptionalAndRequiredReferencePresence(t *testing.T) {
 					executor := &fakeExecutor{}
 					impl := &impl{context: context.Background(), executor: executor, modelProvider: p, modelCodec: codec.New(p, "test"), validationMgr: newDefaultValidationManager()}
 					_, err := impl.Insert(m)
+					if mode == "missing-key" {
+						if err == nil || err.Code != cd.IllegalParam || len(executor.execCalls) != 0 || executor.commitCalls != 0 {
+							t.Fatal("非自引用空对象绕过主键校验", err)
+						}
+						return
+					}
 					if required && mode != "value" {
 						if err == nil || !strings.Contains(err.Message, "ref") {
 							t.Fatalf("required reference admitted: %v", err)

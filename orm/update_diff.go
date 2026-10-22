@@ -81,8 +81,8 @@ func (s *UpdateRunner) prepareNewRightIDs(vModel models.Model, vField models.Fie
 		return
 	}
 
-	// 单值关系：nil/零值表示清空引用，返回空列表
-	if vField.GetValue().IsZero() {
+	// 仅 nil 清空引用；非 nil 空对象必须继续校验目标主键，不能删除旧链接。
+	if !vField.GetValue().IsValid() {
 		ret = []any{}
 		return
 	}

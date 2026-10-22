@@ -933,7 +933,15 @@ func (s *QueryRunner) innerQuery(vModel models.Model, filter models.Filter) (ret
 		slog.Error("QueryRunner innerQuery executor.Query failed", "error", err.Error())
 		return
 	}
-	defer s.executor.Finish()
+	defer func() {
+		s.executor.Finish()
+		if checked, ok := s.executor.(database.CheckedRowsExecutor); ok && err == nil {
+			err = checked.RowsError()
+		}
+		if err != nil {
+			ret = nil
+		}
+	}()
 
 	fieldCount := len(s.selectedBasicFieldIndexs)
 	referenceVal := make([]any, fieldCount)

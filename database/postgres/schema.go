@@ -6,11 +6,21 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/database"
+	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/models"
 )
 
 func (s *Builder) DescribeTable(model models.Model) (database.TableSchema, *cd.Error) {
-	return database.DescribeModelTable(model, s.buildCodec, s.describeColumn)
+	return database.DescribeModelTable(model, s.buildCodec, func(field models.Field) (database.ColumnSchema, *cd.Error) {
+		if models.IsInlineReference(model, field) {
+			var err *cd.Error
+			field, err = codec.ReferenceColumn(s.modelProvider, field)
+			if err != nil {
+				return database.ColumnSchema{}, err
+			}
+		}
+		return s.describeColumn(field)
+	})
 }
 
 func (s *Builder) describeColumn(field models.Field) (database.ColumnSchema, *cd.Error) {
@@ -36,6 +46,9 @@ func (s *Builder) describeColumn(field models.Field) (database.ColumnSchema, *cd
 
 func normalizeSchemaType(value string) string {
 	value = strings.ToLower(value)
+	if strings.HasPrefix(value, "varchar(") && strings.HasSuffix(value, ")") {
+		return "character varying" + strings.TrimPrefix(value, "varchar")
+	}
 	switch value {
 	case "serial":
 		return "integer"
