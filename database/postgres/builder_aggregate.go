@@ -9,7 +9,7 @@ import (
 )
 
 func (s *Builder) BuildAggregate(model models.Model, filter models.Filter, plan models.AggregatePlan) (database.Result, *cd.Error) {
-	projection, groups, projectionArgs, err := database.BuildAggregateProjection(model, plan, "postgres", s.modelProvider, 0)
+	projection, groups, projectionArgs, err := database.BuildAggregateProjectionWithCodec(model, plan, "postgres", s.modelProvider, 0, s.buildCodec)
 	if err != nil {
 		return nil, err
 	}
@@ -22,7 +22,7 @@ func (s *Builder) BuildAggregate(model models.Model, filter models.Filter, plan 
 	if err != nil {
 		return nil, err
 	}
-	planWhere, _, args, err := database.BuildReadQueryClause(model, filter, s.modelProvider, "postgres", len(result.Args()))
+	planWhere, _, args, err := database.BuildReadQueryClauseWithCodec(model, filter, s.modelProvider, "postgres", len(result.Args()), s.buildCodec)
 	if err != nil {
 		return nil, err
 	}

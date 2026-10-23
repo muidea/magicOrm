@@ -9,6 +9,7 @@ import (
 	"time"
 
 	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
@@ -20,6 +21,14 @@ var readQueryDecimal = regexp.MustCompile(`^-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-
 // BuildReadQueryClause 为两种生成器共享同一有界读合同；所有值只进入参数栈。
 // 该函数不执行 SQL，不取得连接，也不识别应用、租户或授权策略。
 func BuildReadQueryClause(model models.Model, filter models.Filter, p provider.Provider, dialect string, offset int) (where, order string, args []any, err *cd.Error) {
+	return buildReadQueryClause(model, filter, p, dialect, offset, nil, 0)
+}
+
+// BuildReadQueryClauseWithCodec adds model-resolved reference semi-joins.
+func BuildReadQueryClauseWithCodec(model models.Model, filter models.Filter, p provider.Provider, dialect string, offset int, c codec.Codec) (where, order string, args []any, err *cd.Error) {
+	return buildReadQueryClause(model, filter, p, dialect, offset, c, 0)
+}
+func buildReadQueryClause(model models.Model, filter models.Filter, p provider.Provider, dialect string, offset int, c codec.Codec, depth int) (where, order string, args []any, err *cd.Error) {
 	source, ok := filter.(models.ReadQueryPlanProvider)
 	if !ok {
 		return
@@ -106,6 +115,21 @@ func BuildReadQueryClause(model models.Model, filter models.Filter, p provider.P
 		where, err = compile(*plan.Where)
 		if err != nil {
 			return "", "", nil, err
+		}
+	}
+	if len(plan.References) > 0 {
+		if c == nil || depth >= 3 {
+			return "", "", nil, invalid()
+		}
+		clauses, values, referenceErr := buildReadReferences(model, plan.References, p, dialect, offset+len(args), c, depth)
+		if referenceErr != nil {
+			return "", "", nil, referenceErr
+		}
+		args = append(args, values...)
+		if where != "" {
+			where = "(" + where + ") AND (" + clauses + ")"
+		} else {
+			where = clauses
 		}
 	}
 	if len(plan.OrderBy) != 0 {

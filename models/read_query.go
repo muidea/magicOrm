@@ -21,17 +21,28 @@ type QueryExpression struct {
 	Children []QueryExpression `json:"children,omitempty"`
 }
 
+// QueryReference restricts a single reference by its current target values.
+// Nil Values means no key restriction; an explicit empty Values means no matches.
+// Target identity and storage are always resolved from the registered model.
+type QueryReference struct {
+	Field      string           `json:"field"`
+	Values     []QueryScalar    `json:"values"`
+	Where      *QueryExpression `json:"where,omitempty"`
+	References []QueryReference `json:"references,omitempty"`
+}
+
 type QueryOrder struct {
 	Field     string `json:"field"`
 	Direction string `json:"direction"`
 }
 
 // ReadQueryPlan 只追加读取条件；旧 Filter 的条件仍以 AND 组合，不能被此计划覆盖。
-// 当前只提供标量条件、组合排序和 keyset 表达式，不宣称聚合、关系或游标授权已配套。
+// 提供标量条件、有界单值引用半连接、组合排序和 keyset；授权由业务 owner 维护。
 type ReadQueryPlan struct {
 	APIVersion string           `json:"apiVersion"`
 	Where      *QueryExpression `json:"where,omitempty"`
 	OrderBy    []QueryOrder     `json:"orderBy,omitempty"`
+	References []QueryReference `json:"references,omitempty"`
 }
 
 type ReadQueryPlanProvider interface {
@@ -102,6 +113,26 @@ func cloneReadQueryPlan(plan ReadQueryPlan) ReadQueryPlan {
 		e := clone(*plan.Where)
 		plan.Where = &e
 	}
+	var refs func([]QueryReference) []QueryReference
+	refs = func(in []QueryReference) []QueryReference {
+		if in == nil {
+			return nil
+		}
+		out := make([]QueryReference, len(in))
+		for i, r := range in {
+			out[i] = r
+			if r.Values != nil {
+				out[i].Values = append([]QueryScalar{}, r.Values...)
+			}
+			if r.Where != nil {
+				v := clone(*r.Where)
+				out[i].Where = &v
+			}
+			out[i].References = refs(r.References)
+		}
+		return out
+	}
+	plan.References = refs(plan.References)
 	return plan
 }
 
@@ -167,6 +198,40 @@ func ValidateReadQueryPlan(plan ReadQueryPlan) *cd.Error {
 		return false
 	}
 	if plan.Where != nil && !check(*plan.Where, 1) {
+		return invalid()
+	}
+	referenceCount, valueCount, valueBytes := 0, 0, 0
+	var checkReferences func([]QueryReference, int) bool
+	checkReferences = func(refs []QueryReference, depth int) bool {
+		if depth > 3 || len(refs) > 8 {
+			return false
+		}
+		seen := map[string]bool{}
+		for _, r := range refs {
+			referenceCount++
+			if referenceCount > 12 || r.Field == "" || len(r.Field) > 128 || seen[r.Field] {
+				return false
+			}
+			seen[r.Field] = true
+			if r.Where != nil && !check(*r.Where, 1) {
+				return false
+			}
+			keys := map[QueryScalar]bool{}
+			for _, v := range r.Values {
+				valueCount++
+				valueBytes += len(v.Text) + len(v.Number)
+				if valueCount > 1000 || valueBytes > 32768 || keys[v] || (v.Kind != "string" && v.Kind != "integer") || (v.Kind == "string" && (v.Text == "" || v.Number != "")) || (v.Kind == "integer" && (v.Number == "" || v.Text != "")) || v.Boolean {
+					return false
+				}
+				keys[v] = true
+			}
+			if len(r.References) > 0 && !checkReferences(r.References, depth+1) {
+				return false
+			}
+		}
+		return true
+	}
+	if !checkReferences(plan.References, 1) {
 		return invalid()
 	}
 	return nil

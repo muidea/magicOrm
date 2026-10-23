@@ -92,7 +92,11 @@ func (s *impl) Aggregate(filter models.Filter, plan models.AggregatePlan) (ret *
 		}
 		row := models.AggregateRow{Groups: []models.AggregateValue{}, Metrics: []models.AggregateValue{}}
 		for i, name := range plan.GroupBy {
-			value, valueErr := aggregateScalar(values[i], model.GetField(name).GetType().GetValue(), false)
+			groupField, groupErr := database.AggregateGroupField(model, name, s.modelProvider)
+			if groupErr != nil {
+				return nil, groupErr
+			}
+			value, valueErr := aggregateScalar(values[i], groupField.GetType().GetValue(), false)
 			if valueErr != nil {
 				return nil, valueErr
 			}

@@ -970,3 +970,5 @@ On insert, an omitted or zero-valued `auto` field requests database generation a
 `orm.LockWithFilter` 是可选能力：要求已有事务、精确主键等值及无分页的本表过滤器，检查完整行流错误，按条件锁行而不改写业务字段。调用方可在同一事务继续普通 `Delete`，保留原有关系清理；能力或事务缺失明确失败。本轮数据库验收仅使用 PostgreSQL，通过 magicBase 服务执行；方言构建器单测不代表 MySQL 数据库验收。
 
 可空文本约束：内置 in/re 检查指针所指的实际内容，null 跳过格式/成员约束；req 与数据库非空检查继续独立生效。详见[校验设计](~/codespace/magicOrm/docs/design-validation.md)。
+
+2026-10-23 共享集合与视图源码增量：增加有界单值引用目标集合的参数化半连接和原主键分组；保持 nil/空集合、空引用及 local/remote provider 语义。平台权限不进入 ORM，无 Schema 迁移。 [合同](~/codespace/magicRunner/docs/design-application-entity-ui-generation.md#共享归属筛选冻结视图及引用标签2026-10-23)及[验证边界](~/codespace/docs/acceptance/runs/2026-10-23-page-scope-views-source5/checkpoint.md)。本批无部署/Live；旧草稿须正常条件保存，随后用配套候选发布安装。

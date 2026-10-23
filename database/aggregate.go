@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicOrm/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
@@ -35,6 +36,13 @@ func AggregateProjection(model models.Model, plan models.AggregatePlan, dialect 
 
 // BuildAggregateProjection 在 SELECT 中参数化指标条件；外层 scope 仍由原 Filter 限制。
 func BuildAggregateProjection(model models.Model, plan models.AggregatePlan, dialect string, p provider.Provider, offset int) (projection, groups string, args []any, err *cd.Error) {
+	return buildAggregateProjection(model, plan, dialect, p, offset, nil)
+}
+
+func BuildAggregateProjectionWithCodec(model models.Model, plan models.AggregatePlan, dialect string, p provider.Provider, offset int, c codec.Codec) (projection, groups string, args []any, err *cd.Error) {
+	return buildAggregateProjection(model, plan, dialect, p, offset, c)
+}
+func buildAggregateProjection(model models.Model, plan models.AggregatePlan, dialect string, p provider.Provider, offset int, c codec.Codec) (projection, groups string, args []any, err *cd.Error) {
 	if err = models.ValidateAggregatePlan(plan); err != nil {
 		return
 	}
@@ -57,16 +65,36 @@ func BuildAggregateProjection(model models.Model, plan models.AggregatePlan, dia
 		groupColumns = append(groupColumns, "1")
 	}
 	for _, name := range plan.GroupBy {
-		field, fieldErr := AggregateField(model, name)
+		field, fieldErr := AggregateGroupField(model, name, p)
 		if fieldErr != nil {
 			return "", "", nil, fieldErr
 		}
 		if field.GetType().GetValue() == models.TypeDateTimeValue {
 			return "", "", nil, cd.NewError(cd.IllegalParam, "datetime grouping requires an explicit bucket contract")
 		}
-		groupColumns = append(groupColumns, quote(name))
-		columns = append(columns, quote(name))
+		column := quote(name)
+		if models.IsSingleReferenceField(model.GetField(name)) {
+			if c == nil {
+				return "", "", nil, cd.NewError(cd.IllegalParam, "reference grouping requires registered storage codec")
+			}
+			if !models.IsInlineReference(model, model.GetField(name)) {
+				table, e := c.ConstructRelationTableName(model, model.GetField(name))
+				if e != nil {
+					return "", "", nil, e
+				}
+				if model.GetPrimaryField() == nil {
+					return "", "", nil, cd.NewError(cd.IllegalParam, "reference grouping requires root primary key")
+				}
+				column = "(SELECT " + quote("right") + " FROM " + quote(table) + " WHERE " + quote("left") + " = " + quote(c.ConstructModelTableName(model)) + "." + quote(model.GetPrimaryField().GetName()) + ")"
+			}
+			// Group by the selected value, never by a join that multiplies root rows.
+			groupColumns = append(groupColumns, fmt.Sprint(len(columns)+1))
+		} else {
+			groupColumns = append(groupColumns, column)
+		}
+		columns = append(columns, column)
 	}
+
 	for _, metric := range plan.Metrics {
 		name := "*"
 		if metric.Field != "" {
@@ -162,4 +190,38 @@ func AggregateField(model models.Model, name string) (models.Field, *cd.Error) {
 		return nil, cd.NewError(cd.IllegalParam, "aggregate cannot read a write-only field")
 	}
 	return field, nil
+}
+
+// AggregateGroupField returns the scalar actually exposed by a group. Single
+// references expose only their registered primary key, not recursive objects.
+func AggregateGroupField(model models.Model, name string, p provider.Provider) (models.Field, *cd.Error) {
+	if model == nil || !readQueryIdentifier.MatchString(name) {
+		return nil, cd.NewError(cd.IllegalParam, "aggregate group field is invalid")
+	}
+	f := model.GetField(name)
+	if !models.IsSingleReferenceField(f) {
+		return AggregateField(model, name)
+	}
+	if p == nil || f.GetSpec() == nil {
+		return nil, cd.NewError(cd.IllegalParam, "reference group provider is unavailable")
+	}
+	if c := f.GetSpec().GetConstraints(); c != nil && c.Has(models.KeyWriteOnly) {
+		return nil, cd.NewError(cd.IllegalParam, "reference group is write-only")
+	}
+	target, e := p.GetTypeModel(f.GetType())
+	if e != nil {
+		return nil, e
+	}
+	if target == nil || target.GetPrimaryField() == nil {
+		return nil, cd.NewError(cd.IllegalParam, "reference group target is unavailable")
+	}
+	primary, e := AggregateField(target, target.GetPrimaryField().GetName())
+	if e != nil {
+		return nil, e
+	}
+	kind := primary.GetType().GetValue()
+	if primary.GetType().IsPtrType() || kind != models.TypeStringValue && (kind < models.TypeByteValue || kind > models.TypePositiveBigIntegerValue) {
+		return nil, cd.NewError(cd.IllegalParam, "reference group requires scalar primary key")
+	}
+	return primary, nil
 }

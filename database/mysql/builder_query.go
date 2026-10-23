@@ -46,7 +46,7 @@ func (s *Builder) BuildQuery(vModel models.Model, filter models.Filter) (ret dat
 			return
 		}
 
-		planWhere, planOrder, planArgs, planErr := database.BuildReadQueryClause(vModel, filter, s.modelProvider, "mysql", len(resultStackPtr.Args()))
+		planWhere, planOrder, planArgs, planErr := database.BuildReadQueryClauseWithCodec(vModel, filter, s.modelProvider, "mysql", len(resultStackPtr.Args()), s.buildCodec)
 		if planErr != nil {
 			return nil, planErr
 		}
