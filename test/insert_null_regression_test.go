@@ -1,7 +1,6 @@
 package test
 
 import (
-	"os"
 	"strings"
 	"testing"
 
@@ -32,10 +31,7 @@ type NullRegressionRequired struct {
 // The explicit server prevents this regression from using a developer's database.
 // Every schema and data operation below goes through ORM contracts.
 func TestNullReferenceDatabaseContract(t *testing.T) {
-	server := os.Getenv("MAGICORM_RELATION_TEST_SERVER")
-	if server == "" {
-		t.Skip("set MAGICORM_RELATION_TEST_SERVER to an isolated test database")
-	}
+	requireIntegration(t)
 	orm.Initialize()
 	defer orm.Uninitialized()
 	for _, isRemote := range []bool{false, true} {
@@ -59,7 +55,7 @@ func TestNullReferenceDatabaseContract(t *testing.T) {
 			if isRemote {
 				p = provider.NewRemoteProviderWithOptions("null-regression-"+name, option)
 			}
-			db, err := orm.NewOrm(p, orm.NewConfig(server, "testdb", "public", os.Getenv("MAGICORM_RELATION_TEST_USER"), "rootkit"), "nullreg_"+name)
+			db, err := orm.NewOrm(p, config, "nullreg_"+name)
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -31,6 +31,7 @@ type MaxSizeObject struct {
 
 // TestEdgeCases 测试边缘情况
 func TestLocalEdgeCases(t *testing.T) {
+	requireIntegration(t)
 	// 跳过集成测试如果设置了环境变量
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
@@ -42,11 +43,11 @@ func TestLocalEdgeCases(t *testing.T) {
 	localProvider := provider.NewLocalProvider("edge_case_local", nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "edge_case_test")
-	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
+	defer o1.Release()
 
 	t.Logf("TestEdgeCases: 综合边缘情况测试 - %s", time.Now().Format("2006-01-02"))
 
@@ -58,6 +59,7 @@ func TestLocalEdgeCases(t *testing.T) {
 
 // 测试错误处理
 func TestLocalErrorHandling(t *testing.T) {
+	requireIntegration(t)
 	// 跳过集成测试如果设置了环境变量
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
@@ -69,11 +71,11 @@ func TestLocalErrorHandling(t *testing.T) {
 	localProvider := provider.NewLocalProvider("error_handling_local", nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "error_handling_test")
-	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
+	defer o1.Release()
 
 	t.Logf("Testing error handling for MagicOrm in %s", time.Now().Format("2006-01-02"))
 
@@ -114,6 +116,7 @@ func TestLocalErrorHandling(t *testing.T) {
 
 // TestCircularReference 独立测试循环引用
 func TestLocalCircularReference(t *testing.T) {
+	requireIntegration(t)
 	// 跳过集成测试如果设置了环境变量
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
@@ -125,11 +128,11 @@ func TestLocalCircularReference(t *testing.T) {
 	localProvider := provider.NewLocalProvider("circular_ref_local", nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "circular_ref_test")
-	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
+	defer o1.Release()
 
 	t.Logf("Testing circular references for MagicOrm in %s", time.Now().Format("2006-01-02"))
 
@@ -195,6 +198,7 @@ func TestLocalCircularReference(t *testing.T) {
 
 // TestMaxSizeObject 独立测试大对象
 func TestLocalMaxSizeObject(t *testing.T) {
+	requireIntegration(t)
 	// 跳过集成测试如果设置了环境变量
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
@@ -206,11 +210,11 @@ func TestLocalMaxSizeObject(t *testing.T) {
 	localProvider := provider.NewLocalProvider("max_size_local", nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "max_size_test")
-	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
+	defer o1.Release()
 
 	t.Logf("Testing max size objects for MagicOrm in %s", time.Now().Format("2006-01-02"))
 

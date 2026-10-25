@@ -30,6 +30,7 @@ type ComplexPerf struct {
 
 // TestPerformance 性能测试主函数
 func TestLocalPerformance(t *testing.T) {
+	requireIntegration(t)
 	// 跳过性能测试如果设置了环境变量
 	if testing.Short() {
 		t.Skip("skipping performance test in short mode.")
@@ -41,11 +42,11 @@ func TestLocalPerformance(t *testing.T) {
 	localProvider := provider.NewLocalProvider("performance_local", nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "performance_test")
-	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
+	defer o1.Release()
 
 	// 注册模型
 	objList := []any{&SimplePerf{}, &ComplexPerf{}}

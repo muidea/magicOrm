@@ -77,7 +77,7 @@
 
 ### 3.3 helper 导出规则
 
-`provider/helper/remote.go` 当前约定：
+`~/codespace/magicOrm/provider/helper/remote.go` 当前约定：
 
 - `nil` pointer / `nil` slice：未赋值
 - 非 `nil` pointer：`Assigned:true`
@@ -103,7 +103,7 @@
 
 当前 update 关系语义：
 
-- 引用关系：只维护关系表差异
+- 引用关系：普通链接维护关系表差异；组合唯一中的单值引用内联宿主列
 - 包含关系：
   - 先查当前数据库关系
   - 未变化：跳过

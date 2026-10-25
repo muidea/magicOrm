@@ -164,27 +164,36 @@ func (s *baseRunner) repairMissingObjects(step schemaTable, before database.Tabl
 		delete(columns, field.GetName())
 	}
 	for _, constraint := range models.GetUniqueConstraints(step.model) {
-		if indexes[constraint.Name] {
+		if indexes[s.schemaObjectName(step.model, constraint.Name)] {
 			statement, err := s.sqlBuilder.BuildCreateUniqueConstraint(step.model, constraint)
 			if err != nil {
 				return nil, err
 			}
 			statements = append(statements, statement)
-			delete(indexes, constraint.Name)
+			delete(indexes, s.schemaObjectName(step.model, constraint.Name))
 		}
 	}
 	for _, index := range models.GetIndexes(step.model) {
-		if indexes[index.Name] {
+		if indexes[s.schemaObjectName(step.model, index.Name)] {
 			statement, err := s.sqlBuilder.BuildCreateIndex(step.model, index)
 			if err != nil {
 				return nil, err
 			}
 			statements = append(statements, statement)
-			delete(indexes, index.Name)
+			delete(indexes, s.schemaObjectName(step.model, index.Name))
 		}
 	}
 	if len(columns)+len(indexes) != 0 {
 		return nil, cd.NewError(cd.InvalidOperation, "schema repair cannot map missing objects to frozen declarations")
 	}
 	return statements, nil
+}
+
+func (s *baseRunner) schemaObjectName(model models.Model, name string) string {
+	if namer, ok := s.sqlBuilder.(interface {
+		SchemaObjectName(models.Model, string) string
+	}); ok {
+		return namer.SchemaObjectName(model, name)
+	}
+	return name
 }

@@ -25,6 +25,7 @@ type reconcileUniqueConstraintEntity struct {
 // declaration. PostgreSQL guards repeated constraint DDL; basic MySQL
 // Reconcile fails closed and requires controlled physical schema recovery.
 func TestRemoteReconcileUniqueConstraintRetry(t *testing.T) {
+	requireIntegration(t)
 	orm.Initialize()
 	defer orm.Uninitialized()
 

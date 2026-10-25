@@ -14,27 +14,13 @@ import (
 	"github.com/muidea/magicOrm/provider/remote"
 )
 
-const (
-	defaultPostgresTestServer   = "localhost:5432"
-	defaultPostgresTestDatabase = "testdb"
-	defaultPostgresTestUser     = "postgres"
-	defaultPostgresTestPassword = "rootkit"
-)
-
 var config = orm.NewConfig(
-	postgresTestEnv("MAGICORM_POSTGRES_SERVER", defaultPostgresTestServer),
-	postgresTestEnv("MAGICORM_POSTGRES_DATABASE", defaultPostgresTestDatabase),
-	postgresTestEnv("MAGICORM_POSTGRES_SCHEMA", "public"),
-	postgresTestEnv("MAGICORM_POSTGRES_USER", defaultPostgresTestUser),
-	postgresTestEnv("MAGICORM_POSTGRES_PASSWORD", defaultPostgresTestPassword),
+	os.Getenv("MAGICORM_POSTGRES_SERVER"),
+	os.Getenv("MAGICORM_POSTGRES_DATABASE"),
+	os.Getenv("MAGICORM_POSTGRES_SCHEMA"),
+	os.Getenv("MAGICORM_POSTGRES_USER"),
+	os.Getenv("MAGICORM_POSTGRES_PASSWORD"),
 )
-
-func postgresTestEnv(key, fallback string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return fallback
-}
 
 func registerLocalModel(provider provider.Provider, objList []any) (ret []models.Model, err *cd.Error) {
 	for _, val := range objList {

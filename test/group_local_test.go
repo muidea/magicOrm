@@ -8,17 +8,18 @@ import (
 )
 
 func TestLocalGroup(t *testing.T) {
+	requireIntegration(t)
 	orm.Initialize()
 	defer orm.Uninitialized()
 
 	provider := provider.NewLocalProvider("default", nil)
 
 	o1, err := orm.NewOrm(provider, config, "abc")
-	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
+	defer o1.Release()
 
 	objList := []any{&Group{}, &User{}, &Status{}}
 	registerLocalModel(provider, objList)

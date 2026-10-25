@@ -11,17 +11,18 @@ import (
 
 // TestLocalTransaction 测试本地事务功能
 func TestLocalTransaction(t *testing.T) {
+	requireIntegration(t)
 	orm.Initialize()
 	defer orm.Uninitialized()
 
 	localProvider := provider.NewLocalProvider("transaction_local", nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "transaction_test")
-	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
+	defer o1.Release()
 
 	// 注册模型
 	objList := []any{&Unit{}}
@@ -200,17 +201,18 @@ func TestLocalTransaction(t *testing.T) {
 
 // TestLocalBatchOperation 测试批量操作功能
 func TestLocalBatchOperation(t *testing.T) {
+	requireIntegration(t)
 	orm.Initialize()
 	defer orm.Uninitialized()
 
 	localProvider := provider.NewLocalProvider("batch_local", nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "batch_test")
-	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
+	defer o1.Release()
 
 	// 注册模型
 	objList := []any{&Unit{}}

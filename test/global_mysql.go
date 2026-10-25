@@ -15,19 +15,12 @@ import (
 )
 
 var config = orm.NewConfig(
-	mysqlTestEnv("MAGICORM_MYSQL_SERVER", "localhost:3306"),
-	mysqlTestEnv("MAGICORM_MYSQL_DATABASE", "testdb"),
-	mysqlTestEnv("MAGICORM_MYSQL_SCHEMA", "testdb"),
-	mysqlTestEnv("MAGICORM_MYSQL_USER", "root"),
-	mysqlTestEnv("MAGICORM_MYSQL_PASSWORD", "rootkit"),
+	os.Getenv("MAGICORM_MYSQL_SERVER"),
+	os.Getenv("MAGICORM_MYSQL_DATABASE"),
+	os.Getenv("MAGICORM_MYSQL_SCHEMA"),
+	os.Getenv("MAGICORM_MYSQL_USER"),
+	os.Getenv("MAGICORM_MYSQL_PASSWORD"),
 )
-
-func mysqlTestEnv(key, fallback string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return fallback
-}
 
 func registerLocalModel(provider provider.Provider, objList []any) (ret []models.Model, err *cd.Error) {
 	for _, val := range objList {

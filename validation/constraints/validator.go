@@ -48,6 +48,14 @@ type scenarioRule struct {
 
 // NewConstraintValidator creates a new constraint validator
 func NewConstraintValidator(enableCaching bool) ConstraintValidator {
+	config := cache.DefaultCacheConfig()
+	config.Enabled = enableCaching
+	return NewConstraintValidatorWithConfig(config)
+}
+
+// NewConstraintValidatorWithConfig applies the effective manager cache budget.
+func NewConstraintValidatorWithConfig(config cache.CacheConfig) ConstraintValidator {
+	enableCaching := config.Enabled
 	v := &constraintValidatorImpl{
 		baseValidator:  utils.NewValueValidator(),
 		scenarioRules:  make(map[errors.Scenario]scenarioRule),
@@ -57,9 +65,7 @@ func NewConstraintValidator(enableCaching bool) ConstraintValidator {
 
 	if enableCaching {
 		// Create validation cache with default configuration
-		cacheConfig := cache.DefaultCacheConfig()
-		cacheConfig.Enabled = enableCaching
-		v.validationCache = cache.NewValidationCache(cacheConfig)
+		v.validationCache = cache.NewValidationCache(config)
 	}
 
 	// Initialize scenario rules

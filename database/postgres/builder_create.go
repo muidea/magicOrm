@@ -51,7 +51,7 @@ func (s *Builder) BuildCreateTable(vModel models.Model) (ret database.Result, er
 		for _, field := range constraint.Fields {
 			fields = append(fields, fmt.Sprintf("\"%s\"", field))
 		}
-		createSQL = fmt.Sprintf("%s,\n\tCONSTRAINT \"%s\" UNIQUE (%s)", createSQL, constraint.Name, strings.Join(fields, ", "))
+		createSQL = fmt.Sprintf("%s,\n\tCONSTRAINT \"%s\" UNIQUE (%s)", createSQL, schemaObjectName(s.buildCodec.ConstructModelTableName(vModel), constraint.Name), strings.Join(fields, ", "))
 	}
 
 	createSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS \"%s\" (\n%s\n)\n", s.buildCodec.ConstructModelTableName(vModel), createSQL)
@@ -63,7 +63,7 @@ func (s *Builder) BuildCreateTable(vModel models.Model) (ret database.Result, er
 		for _, field := range index.Fields {
 			fields = append(fields, fmt.Sprintf("\"%s\"", field))
 		}
-		createSQL = fmt.Sprintf("%s;\nCREATE INDEX IF NOT EXISTS \"%s\" ON \"%s\" (%s)", createSQL, index.Name, s.buildCodec.ConstructModelTableName(vModel), strings.Join(fields, ", "))
+		createSQL = fmt.Sprintf("%s;\nCREATE INDEX IF NOT EXISTS \"%s\" ON \"%s\" (%s)", createSQL, schemaObjectName(s.buildCodec.ConstructModelTableName(vModel), index.Name), s.buildCodec.ConstructModelTableName(vModel), strings.Join(fields, ", "))
 	}
 	if traceSQL() {
 		slog.Info("[SQL] create", "sql", createSQL)
@@ -115,7 +115,7 @@ BEGIN
 	) THEN
 		ALTER TABLE "%s" ADD CONSTRAINT "%s" UNIQUE (%s);
 	END IF;
-END $$`, tableName, constraint.Name, tableName, constraint.Name, strings.Join(fields, ", ")), nil)
+END $$`, tableName, schemaObjectName(s.buildCodec.ConstructModelTableName(vModel), constraint.Name), tableName, schemaObjectName(s.buildCodec.ConstructModelTableName(vModel), constraint.Name), strings.Join(fields, ", ")), nil)
 	return
 }
 
@@ -127,7 +127,7 @@ func (s *Builder) BuildCreateIndex(vModel models.Model, index models.Index) (ret
 	for _, field := range index.Fields {
 		fields = append(fields, fmt.Sprintf("\"%s\"", field))
 	}
-	ret = NewError(fmt.Sprintf("CREATE INDEX IF NOT EXISTS \"%s\" ON \"%s\" (%s)", index.Name, s.buildCodec.ConstructModelTableName(vModel), strings.Join(fields, ", ")), nil)
+	ret = NewError(fmt.Sprintf("CREATE INDEX IF NOT EXISTS \"%s\" ON \"%s\" (%s)", schemaObjectName(s.buildCodec.ConstructModelTableName(vModel), index.Name), s.buildCodec.ConstructModelTableName(vModel), strings.Join(fields, ", ")), nil)
 	return
 }
 
@@ -165,7 +165,7 @@ func (s *Builder) BuildCreateRelationTable(vModel models.Model, vField models.Fi
 
 	createRelationSQL := fmt.Sprintf("\t\"id\" BIGSERIAL NOT NULL,\n\t\"left\" %s NOT NULL,\n\t\"right\" %s NOT NULL,\n\tPRIMARY KEY (\"id\")", lPKType, rPKType)
 	createRelationSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS \"%s\" (\n%s\n)", relationTableName, createRelationSQL)
-	createRelationSQL = fmt.Sprintf("%s;\nCREATE INDEX IF NOT EXISTS \"%s_index\" ON \"%s\" (\"left\")", createRelationSQL, relationTableName, relationTableName)
+	createRelationSQL = fmt.Sprintf("%s;\nCREATE INDEX IF NOT EXISTS \"%s\" ON \"%s\" (\"left\")", createRelationSQL, schemaObjectName(relationTableName, "index"), relationTableName)
 	if traceSQL() {
 		slog.Info("[SQL] create relation", "sql", createRelationSQL)
 	}

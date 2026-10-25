@@ -1,9 +1,9 @@
 # ORM 核心接口设计
 
-**功能块**：`orm/`  
-**依据**：`orm/orm.go` 中 `Orm` 接口及 `impl` 实现。
+**功能块**：`~/codespace/magicOrm/orm`
+**依据**：`~/codespace/magicOrm/orm/orm.go` 中 `Orm` 接口及 `impl` 实现。
 
-[← 返回设计文档索引](README.md)
+[← 返回设计文档索引](~/codespace/magicOrm/docs/README.md)
 
 ---
 
@@ -13,6 +13,8 @@
 |------|------|------|
 | Create | `Create(entity models.Model) *cd.Error` | 创建表（含关联表） |
 | Drop | `Drop(entity models.Model) *cd.Error` | 删除表 |
+| InspectSchema | `InspectSchema(model, expectedExist) (*SchemaReport, *cd.Error)` | 核验完整管理图 |
+| RepairSchema | `RepairSchema(previous, desired) (*SchemaReport, *cd.Error)` | 按冻结声明恢复并核验 |
 | Reconcile | `Reconcile(previous, current models.Model) *cd.Error` | 仅执行安全的增量 schema 演进 |
 | Insert | `Insert(entity models.Model) (models.Model, *cd.Error)` | 插入单条，返回带主键的 Model |
 | Update | `Update(entity models.Model) (models.Model, *cd.Error)` | 更新单条 |
@@ -34,16 +36,22 @@
 
 - 无 `Begin() (Tx, error)` 形式返回值。
 - 在**同一 Orm 实例**上先 `BeginTransaction()`，再执行若干 Insert/Update/Delete/Query 等，最后 `CommitTransaction()` 或 `RollbackTransaction()`。
-- 单次 CRUD 在内部会开启并结束自己的事务；显式事务用于把多次操作包进同一 executor transaction。
+- Insert/Delete 与关系 Update 配对开启、结束逻辑事务；纯主表 Update 可直接执行单条 SQL。显式事务将多次操作包进同一物理事务。
+- 嵌套 Begin 共享物理事务，不创建 savepoint。内层 Rollback 标记 rollback-only；拒绝继续 Begin/Query/Execute，外层 Commit 明确失败并在最外层回滚。空闲 Commit 返回 InvalidOperation，空闲 Rollback 幂等。
+- 每个成功 Begin 必须恰好结束一次。只有最外层可无条件 defer Rollback，延迟函数执行前不能在同一 handler 开启下一笔事务；内层 defer 使用结束标记，物理提交错误同样已结束作用域。Release 幂等，释放后不能再使用 handler。
+- Commit 连接错误保留未知结果，ORM 不重发业务写入。 owner 在新事务/连接按原身份回查；失败事务中不得继续业务查询。`BeginSerializableTransaction` 只接受空闲 handler。
+- 注册已有 owner 时先校验配置再增加引用；同 owner 注册/注销串行，不同 owner 使用分段锁。`OwnerPoolStats` 为只读快照，不授予连接或写权限。
 
 ### 2.2 验证
 
-- **Insert、Update、Delete**：会调用内部 `validateModel(model, scenario)`，对应场景见 [design-validation.md](design-validation.md)。
+- **Insert、Update、Delete**：会调用内部 `validateModel(model, scenario)`，对应场景见 [design-validation.md](~/codespace/magicOrm/docs/design-validation.md)。
 - **Query 与 BatchQuery**：不调用验证。
 
 ### 2.3 未在 Orm 接口暴露的能力
 
 - **表是否存在**：底层 `database.Executor` 提供 `CheckTableExist(tableName string) (bool, *cd.Error)`，但 Orm 接口**无** `Exist(model)`。
+
+以下可选能力通过包级函数调用，基础 Orm 接口不要求第三方实现同名方法：`orm.BeginSerializableTransaction(handler)`、`orm.LockWithFilter(handler, model, filter)`、`orm.Aggregate(handler, filter, plan)`。不具备能力时明确返回错误，不静默降级。`ValidateSchema(ctx, model, provider, prefix)` 和 `SchemaTables(...)` 是离线声明工具，不证明物理存在或授予写入权限。
 
 ### 2.4 对外查询接口稳定约定
 
@@ -54,8 +62,8 @@
 
 ### 2.5 Create / Drop 与关联表
 
-- **Create**：会递归创建该实体表及其**所有**关系字段对应的关系表；先创建依赖的包含关系实体表，再创建 host 表，再创建各关系表。关联表创建顺序与依赖解析见 [design-relation.md](design-relation.md)。
-- **Drop**：仅处理**当前 Model 对应的数据表**（即该实体表 + 以该实体为 host 的关系表）；不级联删除其它实体表或对端实体表中的数据，由调用方按需自行删除。
+- **Create/Drop/Inspect/Repair**：统一处理宿主、需要链接表的关系与递归 owned 表；单值内联引用不建链接表。普通引用目标主表不进入管理图。先完整校验图再构建 DDL；同图共享 owned 去重，owned 环和物理表重名拒绝。
+- **Drop**：删除整个 owned 管理图。直接调用者须证明物理命名空间独占、检查全部图外使用者并串行 Schema 写入；Base 单根删除在跨根 owned 共享、独立实体入口或入向引用存在时拒绝。ORM 不承担平台目录与协调日志。`SchemaTables` 离线返回实际管理图表名，不授予删除权限。
 
 ### 2.6 Schema 演进
 
@@ -69,10 +77,10 @@
 
 ### 2.7 条件更新
 
-`UpdateWithFilter` 用于 compare-and-set 状态迁移，例如一次性消费授权码或轮换 refresh token。它把已赋值的可写基础字段与 `Filter` 一起编译为一条 `UPDATE ... WHERE ...`，并返回数据库实际影响的行数。
+`UpdateWithFilter` 用于 compare-and-set 状态迁移，例如一次性消费授权码或轮换 refresh token。它把已赋值的可写主表字段（基础字段及内联单值引用）与 `Filter` 一起编译为一条 `UPDATE ... WHERE ...`，并返回数据库实际影响的行数。
 
 - 受影响行数为 `0` 表示条件未满足，调用方应按业务语义拒绝或重试；
-- 更新字段和过滤字段都只能是基础字段，关系字段会被拒绝；
+- 更新字段和过滤字段只接受主表字段，包括参与组合唯一而内联的单值引用；其余关系字段拒绝；
 - `Filter` 必须绑定同一模型且至少包含一个条件，避免无条件批量更新；
 - 显式事务开启时，该更新参与当前 Orm 实例的事务。
 
@@ -80,7 +88,7 @@
 
 - **Insert**：`validateModel` -> `InsertRunner` -> 先写 host，再写 relation，必要时回填主键和默认值声明。
 - **Update**：`validateModel` -> `UpdateRunner` -> 先更新 host，再按关系类型刷新 relation。
-  - 引用关系：只刷新关系表差集，不更新对端实体。
+  - 引用关系：普通链接刷新差集；内联单值引用直接更新宿主列，均不更新目标实体。
   - 包含关系：先比较数据库当前值与本次输入；未变化直接跳过。
   - 单值包含关系：若新旧子对象主键相同，则对子对象走原地 `Update`；否则删除旧子对象并重建关系。
   - 集合包含关系：优先按子对象主键做增删改；无法稳定识别主键时，回退到整组替换。
@@ -113,13 +121,13 @@
 ### 2.9 事务与资源
 
 - **事务**：在同一 Orm 实例上顺序调用 `BeginTransaction()` → 若干 Insert/Update/Delete/Query → `CommitTransaction()` 或 `RollbackTransaction()`；无返回 `Tx` 的 API。事务隔离级别、超时、死锁等按**数据库与 context 默认值**处理，当前不提供单独配置项。
-- **单次 CRUD 与事务**：每次 Insert/Update/Delete 等操作在实现上均在同一事务内完成，并在当次操作结束时自动提交或回滚（成功则提交，失败则回滚），无需调用方在单次 CRUD 后显式 Commit/Rollback。
+- **单次 CRUD 与事务**：Insert/Delete 与关系 Update 自行配对事务作用域；纯主表 Update 可直接执行单条 SQL。已有显式事务时只结束自己的嵌套作用域，不提前提交调用者的事务；独立调用无需额外 Commit/Rollback。
 - **并发**：同一 Orm 实例的**并发安全由外部调用方保证**（如单 goroutine 使用或由调用方加锁）；框架不在此层做并发保护。
-- **Release**：释放 Orm 占用的资源（如连接池引用）；应在使用完毕后调用。因每次 CRUD 都会在当次操作内完成提交或回滚，正常情况下不存在「未提交事务」；若在已调用 `BeginTransaction()` 且未 `CommitTransaction()`/`RollbackTransaction()` 的情况下调用 Release，行为以实现为准，建议调用方保证事务在 Release 前已结束。
+- **Release**：释放 handler 的执行器连接及校验管理器，幂等；未结束的物理事务回滚。Release 不是成功提交证明，调用者须先确认事务结果；释放后不可继续使用 handler。连接池绑定通过对应 DelDatabase 释放。
 
 ### 2.10 错误处理
 
-- 各方法返回 `*cd.Error`，错误码与含义见 [error-codes.md](error-codes.md)。常见为 `IllegalParam`（参数非法）、`NotFound`（Query 无匹配）。
+- 各方法返回 `*cd.Error`，错误码与含义见 [error-codes.md](~/codespace/magicOrm/docs/error-codes.md)。常见为 `IllegalParam`（参数非法）、`NotFound`（Query 无匹配）。
 
 ---
 
@@ -130,6 +138,8 @@ type Orm interface {
     Create(entity models.Model) *cd.Error
     Drop(entity models.Model) *cd.Error
     Reconcile(previous models.Model, current models.Model) *cd.Error
+    InspectSchema(entity models.Model, expectedExist bool) (*SchemaReport, *cd.Error)
+    RepairSchema(previous models.Model, desired models.Model) (*SchemaReport, *cd.Error)
     Insert(entity models.Model) (models.Model, *cd.Error)
     Update(entity models.Model) (models.Model, *cd.Error)
     UpdateWithFilter(entity models.Model, filter models.Filter) (int64, *cd.Error)

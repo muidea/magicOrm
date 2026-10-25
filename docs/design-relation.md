@@ -1,9 +1,9 @@
 # 关联关系设计
 
-**功能块**：模型关系（一对多、多对多、单值引用/包含）  
-**依据**：`orm/insert.go`、`orm/update.go`、`orm/update_diff.go`、`orm/delete.go`、`orm/create.go`、`orm/drop.go`、`database/codec/codec.go`。
+**功能块**：模型关系（一对多、多对多、单值引用/包含）
+**依据**：`~/codespace/magicOrm/orm/insert.go`、`~/codespace/magicOrm/orm/update.go`、`~/codespace/magicOrm/orm/update_diff.go`、`~/codespace/magicOrm/orm/delete.go`、`~/codespace/magicOrm/orm/create.go`、`~/codespace/magicOrm/orm/drop.go`、`~/codespace/magicOrm/database/codec/codec.go`。
 
-[← 返回设计文档索引](README.md)
+[← 返回设计文档索引](~/codespace/magicOrm/docs/README.md)
 
 ---
 
@@ -18,7 +18,7 @@
 | **引用关系** | 单值：`GetType().IsPtrType() == true`<br>切片：`GetType().Elem().IsPtrType() == true` | `*Status`、`[]*Group` | 关联实体独立存在，仅维护「谁引用谁」的链接 |
 | **包含关系** | 单值：`GetType().IsPtrType() == false`<br>切片：`GetType().Elem().IsPtrType() == false` | `Status`、`[]Tag` | 关联实体从属于 host，随 host 一起增删改 |
 
-- **引用关系**：关联实体必须先存在（有主键）；Insert/Update 只写关系表，不插入关联实体本身。
+- **引用关系**：写入要求非零目标主键，不查询证明目标存在；普通引用只写链接表，参与组合唯一的单值引用内联主表列，不插入目标。
 - **包含关系**：Insert 时会先对关联实体执行 Insert，再写关系表；Update 时用新关联实例替换旧实例（先删旧关系与旧实体，再插新实体与新关系）。
 
 ### 1.2 单值 vs 切片
@@ -52,19 +52,21 @@
 
 ### 3.1 Create
 
-- `Orm.Create(entity)` 会递归创建该实体对应表及其**所有**关系字段的关系表。
-- 创建顺序：先创建依赖的「包含关系」关联实体表（递归），再创建 host 表，再创建各关系表。
+- `Orm.Create(entity)` 会递归创建该实体对应表及其需要链接表的关系字段、递归 owned 表。
+- 执行前完成全图校验，实际计划从宿主遍历 owned 与关系表；不依赖物理外键顺序。
 - **循环引用约束**：当前实现**不推荐**在实体之间构造直接的循环引用（如 `A` 持有 `*B`，`B` 同时持有 `*A` 或 `[]*A`）。此类场景的建表顺序与依赖解析策略在实现中未作为稳定能力对外保证，可能出现建表/删表顺序不符合预期或更新行为不完整。建议将强依赖关系拆分为单向关联或通过单独的「中间实体」建模。
 
 ### 3.2 Drop
 
-- `Orm.Drop(entity)` **仅处理当前 Model 对应的数据表**：删除该实体表 + 以该实体为 host 的关系表；不级联删除其它实体表或对端实体表中的数据。若需清理对端数据，由业务层显式删除。
+- `Orm.Drop(entity)` 删除完整 owned 图：宿主、关系表和递归 owned 表；独立引用目标主表保留。Inspect(false) 与 Repair 使用同一图。同图共享 owned 去重，owned 环、物理表名冲突在执行前拒绝。
+- 调用 owner 持有管理写入围栏，核对物理命名空间与完整持久使用者目录。跨根 shared owned、图外独立入口或入向引用存在时 Base 拒绝单根删除；本批不新增多根删除协议。停用定义仍有保留结构/数据，不能忽略。
+- 单值引用参与组合唯一时，目标标量主键存入宿主列；不建或双写该字段链接表。已有链接表切换为内联列必须显式迁移。
 
 ---
 
 ## 4. Insert 与关系
 
-- **引用关系**：不对关联实体执行 Insert，仅向关系表插入 `(left, right)`；要求关联实体已存在且主键有效。
+- **引用关系**：不对关联实体执行 Insert，普通引用向关系表插入 `(left, right)`，内联单值引用写宿主列；要求关联主键非零，不查询证明目标存在。
 - **包含关系**：先对每个关联实体执行 Insert（递归），再向关系表插入 `(left, right)`。
 - 单值关系插入一行；切片关系按切片长度插入多行。
 
@@ -72,7 +74,7 @@
 
 ## 5. Update 与关系（差异增量）
 
-- **引用关系**：仅做「链接级」差异更新：
+- **引用关系**：内联单值引用更新宿主列；其余做「链接级」差异更新：
   1. 查询当前关系表中该 host 的 `right` ID 列表；
   2. 与本次要写入的新 `right` ID 集合做差集；
   3. 仅删除需移除的链接、仅插入需新增的链接；不删除关联实体本身。
@@ -102,6 +104,6 @@
 
 ## 8. 与其它文档的交叉引用
 
-- 模型字段定义与标签：[design-models.md](design-models.md)、[tags-reference.md](tags-reference.md)。
-- 类型与主键：[type-mapping.md](type-mapping.md)。
-- Orm 入口与事务：[design-orm.md](design-orm.md)。
+- 模型字段定义与标签：[design-models.md](~/codespace/magicOrm/docs/design-models.md)、[tags-reference.md](~/codespace/magicOrm/docs/tags-reference.md)。
+- 类型与主键：[type-mapping.md](~/codespace/magicOrm/docs/type-mapping.md)。
+- Orm 入口与事务：[design-orm.md](~/codespace/magicOrm/docs/design-orm.md)。

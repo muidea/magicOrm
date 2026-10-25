@@ -67,11 +67,6 @@ func NewValidationCache(config CacheConfig) *ValidationCache {
 		config:  config,
 	}
 
-	// Start cleanup goroutine if enabled
-	if config.Enabled && config.CleanupInterval > 0 {
-		go cache.startCleanup()
-	}
-
 	return cache
 }
 
@@ -228,16 +223,6 @@ func (c *ValidationCache) IsEnabled() bool {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.enabled
-}
-
-// startCleanup starts the cleanup goroutine
-func (c *ValidationCache) startCleanup() {
-	ticker := time.NewTicker(c.config.CleanupInterval)
-	defer ticker.Stop()
-
-	for range ticker.C {
-		c.ClearExpired()
-	}
 }
 
 // generateModelCacheKey generates a cache key for a model

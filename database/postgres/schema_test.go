@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"database/sql"
+	"github.com/muidea/magicOrm/internal/testdatabase"
 	"os"
 	"reflect"
 	"strings"
@@ -61,6 +62,7 @@ func TestPostgresPhysicalSchemaCatalog(t *testing.T) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
+	testdatabase.RequirePostgres(t, dsn)
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		t.Fatal(err)
@@ -146,12 +148,12 @@ func TestPostgresPhysicalSchemaCatalog(t *testing.T) {
 		{"nullable", `ALTER TABLE "tenant_PhysicalTypes" ALTER COLUMN "name" DROP NOT NULL`},
 		{"default", `ALTER TABLE "tenant_PhysicalTypes" ALTER COLUMN "number" SET DEFAULT 9`},
 		{"missing-serial", `ALTER TABLE "tenant_PhysicalTypes" ALTER COLUMN "id" DROP DEFAULT`},
-		{"wrong-order", `DROP INDEX "ordered_lookup"; CREATE INDEX "ordered_lookup" ON "tenant_PhysicalTypes" ("id","optional")`},
-		{"partial-index", `DROP INDEX "ordered_lookup"; CREATE INDEX "ordered_lookup" ON "tenant_PhysicalTypes" ("optional","id") WHERE "id" > 0`},
-		{"include-index", `DROP INDEX "ordered_lookup"; CREATE INDEX "ordered_lookup" ON "tenant_PhysicalTypes" ("optional","id") INCLUDE ("name")`},
-		{"expression-index", `DROP INDEX "ordered_lookup"; CREATE INDEX "ordered_lookup" ON "tenant_PhysicalTypes" (lower("optional"),"id")`},
-		{"descending-index", `DROP INDEX "ordered_lookup"; CREATE INDEX "ordered_lookup" ON "tenant_PhysicalTypes" ("optional" DESC,"id")`},
-		{"unique-drift", `ALTER TABLE "tenant_PhysicalTypes" DROP CONSTRAINT "unique_name"; ALTER TABLE "tenant_PhysicalTypes" ADD CONSTRAINT "unique_name" UNIQUE ("optional")`},
+		{"wrong-order", `DROP INDEX "tenant_PhysicalTypes_ordered_lookup_0ae6984fd1fd94a0"; CREATE INDEX "tenant_PhysicalTypes_ordered_lookup_0ae6984fd1fd94a0" ON "tenant_PhysicalTypes" ("id","optional")`},
+		{"partial-index", `DROP INDEX "tenant_PhysicalTypes_ordered_lookup_0ae6984fd1fd94a0"; CREATE INDEX "tenant_PhysicalTypes_ordered_lookup_0ae6984fd1fd94a0" ON "tenant_PhysicalTypes" ("optional","id") WHERE "id" > 0`},
+		{"include-index", `DROP INDEX "tenant_PhysicalTypes_ordered_lookup_0ae6984fd1fd94a0"; CREATE INDEX "tenant_PhysicalTypes_ordered_lookup_0ae6984fd1fd94a0" ON "tenant_PhysicalTypes" ("optional","id") INCLUDE ("name")`},
+		{"expression-index", `DROP INDEX "tenant_PhysicalTypes_ordered_lookup_0ae6984fd1fd94a0"; CREATE INDEX "tenant_PhysicalTypes_ordered_lookup_0ae6984fd1fd94a0" ON "tenant_PhysicalTypes" (lower("optional"),"id")`},
+		{"descending-index", `DROP INDEX "tenant_PhysicalTypes_ordered_lookup_0ae6984fd1fd94a0"; CREATE INDEX "tenant_PhysicalTypes_ordered_lookup_0ae6984fd1fd94a0" ON "tenant_PhysicalTypes" ("optional" DESC,"id")`},
+		{"unique-drift", `ALTER TABLE "tenant_PhysicalTypes" DROP CONSTRAINT "tenant_PhysicalTypes_unique_name_814c2c853d915018"; ALTER TABLE "tenant_PhysicalTypes" ADD CONSTRAINT "tenant_PhysicalTypes_unique_name_814c2c853d915018" UNIQUE ("optional")`},
 		{"view", `DROP TABLE "tenant_PhysicalTypes"; CREATE VIEW "tenant_PhysicalTypes" AS SELECT 1 AS id`},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -206,5 +208,31 @@ func TestPostgresPhysicalSchemaCatalog(t *testing.T) {
 	actual, readErr = executor.ReadTableSchema(ctx, relation.Name)
 	if readErr != nil || len(database.CompareTableSchema(relation, actual, false)) != 0 {
 		t.Fatal(actual, readErr)
+	}
+}
+
+func TestPostgresSchemaRejectsTruncatedPhysicalTableIdentities(t *testing.T) {
+	p := provider.NewLocalProvider("physical-name-limit", nil)
+	model, err := p.RegisterModel(&postgresUniqueModel{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	builder := NewBuilder(p, codec.New(p, strings.Repeat("x", 64)))
+	if _, err := builder.DescribeTable(model); err == nil {
+		t.Fatal("silently truncated host identity admitted")
+	}
+	if _, err := p.RegisterModel(&physicalKey{}); err != nil {
+		t.Fatal(err)
+	}
+	model, err = p.RegisterModel(&physicalTypes{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	builder = NewBuilder(p, codec.New(p, strings.Repeat("x", 40)))
+	if _, err := builder.DescribeTable(model); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := builder.DescribeRelationTable(model, model.GetField("related")); err == nil {
+		t.Fatal("silently truncated relation identity admitted")
 	}
 }

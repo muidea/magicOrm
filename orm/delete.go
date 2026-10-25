@@ -208,6 +208,10 @@ func (s *impl) Delete(vModel models.Model) (ret models.Model, err *cd.Error) {
 		return
 	}
 	defer func() {
+		if recovered := recover(); recovered != nil {
+			_ = s.finalTransaction(cd.NewError(cd.Unexpected, "write aborted by panic"))
+			panic(recovered)
+		}
 		if transactionErr := s.finalTransaction(err); err == nil && transactionErr != nil {
 			ret = nil
 			err = transactionErr

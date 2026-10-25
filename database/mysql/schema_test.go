@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"database/sql"
+	"github.com/muidea/magicOrm/internal/testdatabase"
 	"os"
 	"strings"
 	"testing"
@@ -73,6 +74,7 @@ func TestMySQLPhysicalSchemaCatalog(t *testing.T) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
+	testdatabase.RequireMySQL(t, dsn)
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		t.Fatal(err)

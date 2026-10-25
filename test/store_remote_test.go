@@ -10,17 +10,18 @@ import (
 )
 
 func TestRemoteStore(t *testing.T) {
+	requireIntegration(t)
 	orm.Initialize()
 	defer orm.Uninitialized()
 
 	remoteProvider := provider.NewRemoteProvider("remote", nil)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "remote")
-	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
+	defer o1.Release()
 
 	objList := []any{&SKUInfo{}, &Product{}, &Store{}, &GoodsInfo{}, &StockIn{}}
 	mList, mErr := registerRemoteModel(remoteProvider, objList)

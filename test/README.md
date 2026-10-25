@@ -8,7 +8,7 @@
 ./unit_test.sh
 ```
 
-如果你要跑本目录下依赖真实数据库的集成测试，优先看 [../docs/testing-guide.md](../docs/testing-guide.md)。
+如果你要跑本目录下依赖真实数据库的集成测试，优先看 [../docs/testing-guide.md](~/codespace/magicOrm/docs/testing-guide.md)。
 
 ---
 

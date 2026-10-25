@@ -22,7 +22,7 @@ func TestInlineReferenceIsolatedDatabaseConcurrency(t *testing.T) {
 	}
 	server, name, schema := os.Getenv("MAGICORM_INLINE_REFERENCE_TEST_SERVER"), os.Getenv("MAGICORM_INLINE_REFERENCE_TEST_DATABASE"), os.Getenv("MAGICORM_INLINE_REFERENCE_TEST_SCHEMA")
 	username, password := os.Getenv("MAGICORM_INLINE_REFERENCE_TEST_USER"), os.Getenv("MAGICORM_INLINE_REFERENCE_TEST_PASSWORD")
-	if server == "" || name == "" || schema == "" || username == "" {
+	if server == "" || !strings.HasPrefix(name, "magicorm_test_") || schema == "" || schema == "public" || username == "" || password == "" {
 		t.Fatal("隔离数据库配置不完整")
 	}
 	cfg := NewConfig(server, name, schema, username, password)

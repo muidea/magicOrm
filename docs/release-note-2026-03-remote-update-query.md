@@ -4,7 +4,7 @@
 
 本次变更集中在以下几个方向：
 
-- `provider/remote` 的值语义与 JSON 协议一致性
+- `~/codespace/magicOrm/provider/remote` 的值语义与 JSON 协议一致性
 - `orm.Update` 对引用/包含关系的精细化处理
 - `orm.Query` 的过滤条件与返回列语义对齐
 - `docs` 知识库与当前实现同步
@@ -57,7 +57,7 @@
 
 引用关系：
 
-- 只刷新关系表
+- 普通引用只刷新关系表；后续组合唯一中的单值引用使用主表内联列
 - 不删除、不重建对端实体
 
 包含关系：
@@ -113,8 +113,8 @@
 
 以下文档已按本次行为刷新：
 
-- [design-orm.md](design-orm.md)
-- [design-remote-provider.md](design-remote-provider.md)
+- [design-orm.md](~/codespace/magicOrm/docs/design-orm.md)
+- [design-remote-provider.md](~/codespace/magicOrm/docs/design-remote-provider.md)
 
 如果后续再调整 remote/update/query 语义，应优先更新以上两页和本说明。
 

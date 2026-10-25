@@ -10,6 +10,7 @@ import (
 )
 
 func TestRemoteUser(t *testing.T) {
+	requireIntegration(t)
 	status := &Status{Value: 10}
 	group1 := &Group{Name: "testGroup1"}
 	group2 := &Group{Name: "testGroup2"}
@@ -22,11 +23,11 @@ func TestRemoteUser(t *testing.T) {
 	remoteProvider := provider.NewRemoteProvider("default", nil)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
-	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
+	defer o1.Release()
 
 	objList := []any{group1, user0, status}
 	mList, mErr := registerRemoteModel(remoteProvider, objList)

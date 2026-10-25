@@ -32,7 +32,7 @@ func (s *Builder) BuildDropRelationTable(vModel models.Model, vField models.Fiel
 		return
 	}
 
-	dropRelationSQL := fmt.Sprintf("DROP INDEX IF EXISTS \"%s_index\";\nDROP TABLE IF EXISTS \"%s\"", relationTableName, relationTableName)
+	dropRelationSQL := fmt.Sprintf("DROP TABLE IF EXISTS \"%s\"", relationTableName)
 	//log.Print(dropRelationSQL)
 	if traceSQL() {
 		slog.Info("[SQL] drop relation", "sql", dropRelationSQL)

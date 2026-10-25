@@ -11,7 +11,7 @@ import (
 )
 
 func (s *Builder) DescribeTable(model models.Model) (database.TableSchema, *cd.Error) {
-	return database.DescribeModelTable(model, s.buildCodec, func(field models.Field) (database.ColumnSchema, *cd.Error) {
+	table, err := database.DescribeModelTable(model, s.buildCodec, func(field models.Field) (database.ColumnSchema, *cd.Error) {
 		if models.IsInlineReference(model, field) {
 			var err *cd.Error
 			field, err = codec.ReferenceColumn(s.modelProvider, field)
@@ -21,6 +21,18 @@ func (s *Builder) DescribeTable(model models.Model) (database.TableSchema, *cd.E
 		}
 		return s.describeColumn(field)
 	})
+	if err != nil {
+		return table, err
+	}
+	if len(table.Name) > 63 {
+		return table, cd.NewError(cd.IllegalParam, "postgres schema table name exceeds 63 bytes")
+	}
+	for i := range table.Indexes {
+		if !table.Indexes[i].Primary {
+			table.Indexes[i].Name = schemaObjectName(table.Name, table.Indexes[i].Name)
+		}
+	}
+	return table, nil
 }
 
 func (s *Builder) describeColumn(field models.Field) (database.ColumnSchema, *cd.Error) {
@@ -89,6 +101,10 @@ func (s *Builder) DescribeRelationTable(model models.Model, field models.Field) 
 	if err != nil {
 		return database.TableSchema{}, err
 	}
+	if len(name) > 63 {
+		return database.TableSchema{}, cd.NewError(cd.IllegalParam, "postgres relation table name exceeds 63 bytes")
+	}
+
 	right, err := s.modelProvider.GetTypeModel(field.GetType().Elem())
 	if err != nil {
 		return database.TableSchema{}, err
@@ -103,7 +119,7 @@ func (s *Builder) DescribeRelationTable(model models.Model, field models.Field) 
 	}
 	return database.TableSchema{Name: name, Exists: true, Ordinary: true,
 		Columns: []database.ColumnSchema{{Name: "id", Type: "bigint", AutoIncrement: true}, {Name: "left", Type: normalizeSchemaType(leftType)}, {Name: "right", Type: normalizeSchemaType(rightType)}},
-		Indexes: []database.IndexSchema{{Name: "PRIMARY", Columns: []string{"id"}, Primary: true, Unique: true, Constraint: true, Valid: true}, {Name: name + "_index", Columns: []string{"left"}, Valid: true}},
+		Indexes: []database.IndexSchema{{Name: "PRIMARY", Columns: []string{"id"}, Primary: true, Unique: true, Constraint: true, Valid: true}, {Name: schemaObjectName(name, "index"), Columns: []string{"left"}, Valid: true}},
 	}, nil
 }
 

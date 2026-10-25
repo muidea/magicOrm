@@ -163,3 +163,18 @@ func collectSchemaGraph(ctx context.Context, model models.Model, p provider.Prov
 	}
 	return graph, nil
 }
+
+// SchemaTables returns the validated physical table identities managed by
+// Create/Drop, without accessing a database. It conveys no ownership authority.
+func SchemaTables(ctx context.Context, model models.Model, p provider.Provider, prefix string) ([]string, *cd.Error) {
+	graph, err := collectSchemaGraph(ctx, model, p, codec.New(p, prefix))
+	if err != nil {
+		return nil, err
+	}
+	names := make([]string, 0, len(graph.tables))
+	for name := range graph.tables {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return names, nil
+}

@@ -115,6 +115,7 @@ func exampleScenarioValidation() {
 	)
 	updateCtx.Field = createdAtField
 	updateCtx.Options.ValidateReadOnlyFields = false
+	updateCtx = updateCtx.WithOptions(updateCtx.Options)
 
 	err = manager.Validate("", updateCtx)
 	fmt.Printf("  Update scenario (read-only field): %v\n",

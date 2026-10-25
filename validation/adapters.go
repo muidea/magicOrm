@@ -39,6 +39,7 @@ type fieldAdapterImpl struct {
 	fieldType   reflect.Type
 	constraints models.Constraints
 	value       any
+	source      models.Field
 }
 
 // NewFieldAdapter creates a new field adapter
@@ -195,12 +196,14 @@ func AdaptField(field models.Field, value any) FieldAdapter {
 		constraints = spec.GetConstraints()
 	}
 
-	return NewFieldAdapter(
+	ret := NewFieldAdapter(
 		field.GetName(),
 		ReflectTypeFromModelType(field.GetType(), value),
 		constraints,
 		value,
 	)
+	ret.(*fieldAdapterImpl).source = field
+	return ret
 }
 
 // AdaptModel converts models.Model to ModelAdapter.

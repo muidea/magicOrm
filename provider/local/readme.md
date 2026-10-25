@@ -1,6 +1,6 @@
 # MagicORM Struct 转换模块说明（Local Provider）
 
-总体设计见 [docs/design-provider.md](../../docs/design-provider.md)。本模块为 Local 实现。
+总体设计见 [docs/design-provider.md](~/codespace/magicOrm/docs/design-provider.md)。本模块为 Local 实现。
 
 ## 功能概述
 

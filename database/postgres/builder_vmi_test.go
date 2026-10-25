@@ -375,7 +375,7 @@ func TestBuilderVMICreateInsertAndDropRelations(t *testing.T) {
 	if err != nil {
 		t.Fatalf("BuildDropRelationTable(goods) failed: %v", err)
 	}
-	if dropRelation.SQL() != "DROP INDEX IF EXISTS \"tenant_OrderGoods2GoodsItem_index\";\nDROP TABLE IF EXISTS \"tenant_OrderGoods2GoodsItem\"" {
+	if dropRelation.SQL() != "DROP TABLE IF EXISTS \"tenant_OrderGoods2GoodsItem\"" {
 		t.Fatalf("unexpected drop relation sql: %s", dropRelation.SQL())
 	}
 }

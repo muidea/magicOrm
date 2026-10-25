@@ -1,9 +1,9 @@
 # 数据库层设计
 
-**功能块**：`database/`  
-**依据**：`database/executor.go`、`database/postgres/`、`database/mysql/`。
+**功能块**：`~/codespace/magicOrm/database`
+**依据**：`~/codespace/magicOrm/database/executor.go`、`~/codespace/magicOrm/database/postgres`、`~/codespace/magicOrm/database/mysql`。
 
-[← 返回设计文档索引](README.md)
+[← 返回设计文档索引](~/codespace/magicOrm/docs/README.md)
 
 ---
 
@@ -37,7 +37,7 @@ Orm 通过 Runner（如 InsertRunner、QueryRunner）调用 Executor，不直接
 
 ## 3. Config 接口
 
-提供：`Server()`、`Username()`、`Password()`、`Database()`、`GetDsn()`。
+提供：`Server()`、`Username()`、`Password()`、`Database()`、`Schema()`、`GetDsn()`。
 
 ### 3.1 DSN 格式（GetDsn）
 
@@ -56,8 +56,8 @@ Orm 通过 Runner（如 InsertRunner、QueryRunner）调用 Executor，不直接
 
 ## 5. 实现
 
-- **PostgreSQL**：`database/postgres/`
-- **MySQL**：`database/mysql/`
+- **PostgreSQL**：`~/codespace/magicOrm/database/postgres`
+- **MySQL**：`~/codespace/magicOrm/database/mysql`
 
 ---
 
@@ -68,10 +68,12 @@ Orm 通过 Runner（如 InsertRunner、QueryRunner）调用 Executor，不直接
 - `models.UniqueConstraint{Name, Fields}`：数据库强制的唯一键；
 - `models.Index{Name, Fields}`：普通索引。
 
-声明仅能引用当前模型的基础字段，名称和字段名必须是安全标识符；它们不是运行时 SQL 片段，也不是查询过滤条件。`Create` 会创建声明中的唯一约束和索引；`Reconcile` 只补建新声明，不会修改或删除已存在的声明。
+普通索引声明仅能引用当前模型的基础字段；组合唯一另支持内联单值引用。声明名称和字段名必须是安全标识符；它们不是运行时 SQL 片段，也不是查询过滤条件。`Create` 会创建声明中的唯一约束和索引；`Reconcile` 只补建新声明，不会修改或删除已存在的声明。
 
-PostgreSQL 的普通索引和唯一约束创建均支持安全重试：前者使用 `IF NOT EXISTS`，后者会检查系统目录后再添加约束。这覆盖“数据库 DDL 已成功、上层 schema 元数据尚未提交”时的重试窗口。具体可演进与必须显式迁移的边界见 [design-orm.md](design-orm.md)。
+PostgreSQL 的普通索引和唯一约束创建均支持安全重试：前者使用 `IF NOT EXISTS`，后者会检查系统目录后再添加约束。这覆盖“数据库 DDL 已成功、上层 schema 元数据尚未提交”时的重试窗口。具体可演进与必须显式迁移的边界见 [design-orm.md](~/codespace/magicOrm/docs/design-orm.md)。
 
-当 `Database()` 使用 `databaseName/schemaName` 时，建池前会以同一数据库账号在 `public` schema 上执行受限的 `CREATE SCHEMA IF NOT EXISTS`，随后才使用目标 `search_path` 建立连接。这是 magicOrm 的受控数据库生命周期，支持 magicBase 从空 PostgreSQL 卷启动；schema 名必须是字母、数字或下划线，不能由部署脚本拼接任意 SQL。
+Schema 由调用 owner 显式执行 `orm.EnsureSchema(server, database, schema, username, password)`。AddDatabase/NewOrm 不创建 Schema，也不解析 database/schema 合并字段。普通进程仅连接部署 owner 已准备的结构。
 
-`UpdateWithFilter` 是与 schema 无关的单表条件 DML builder：它只接受基础字段，供上层完成 compare-and-set 状态转换；详细语义见 [design-orm.md](design-orm.md)。
+PostgreSQL UNIQUE 的底层索引及普通索引名在 Schema 内共享。物理名采用 table_declaration 的前至多 46 字节、下划线和 SHA-256(table + NUL + declaration) 前 8 字节的十六进制值，长度至多 63 字节；两段身份边界明确，不依赖下划线分割。物理表名超过 63 字节在预检时拒绝。Create、Reconcile、Describe/Inspect、Repair 共用命名映射，MySQL 保留表内声明名。旧未限定物理名不会自动迁移；本批只部署干净候选 Schema。
+
+`UpdateWithFilter` 是与 schema 无关的单表条件 DML builder：它只接受主表字段，包括内联单值引用，供上层完成 compare-and-set 状态转换；详细语义见 [design-orm.md](~/codespace/magicOrm/docs/design-orm.md)。

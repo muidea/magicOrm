@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
-	"sync/atomic"
 	"time"
 
 	_ "github.com/lib/pq" //引入PostgreSQL驱动
@@ -177,12 +176,20 @@ type ConnExecutor struct {
 	dbConnPtr       *sql.Conn
 	schemaName      string
 	dbTxCount       int32
+	dbRollbackOnly  bool
+	released        bool
 	dbTx            *sql.Tx
 	rowsHandle      *sql.Rows
 	rowsError       *cd.Error
 }
 
 func (s *ConnExecutor) Release() {
+	if s.released {
+		return
+	}
+	s.released = true
+	defer func() { s.dbTx = nil; s.dbTxCount = 0; s.dbRollbackOnly = false }()
+
 	if s.rowsHandle != nil {
 		if err := s.rowsHandle.Close(); err != nil {
 			slog.Warn("Failed to close rows handle", "error", err.Error())
@@ -201,76 +208,93 @@ func (s *ConnExecutor) Release() {
 }
 
 func (s *ConnExecutor) BeginTransaction() (err *cd.Error) {
-	defer func() {
-		database.RecordDatabaseTransaction(database.DatabasePostgreSQL, "begin", err == nil)
-	}()
-
-	atomic.AddInt32(&s.dbTxCount, 1)
-	if s.dbTx == nil && s.dbTxCount == 1 {
-		if s.rowsHandle != nil {
-			_ = s.rowsHandle.Close()
-		}
-		s.rowsHandle = nil
-
-		tx, txErr := s.dbConnPtr.BeginTx(s.executeContetxt, nil)
-		if txErr != nil {
-			err = databaseError(txErr)
-			slog.Error("BeginTransaction failed", "value", "s.dbHandle.Begin", "error", err.Error())
-			return
-		}
-
-		s.dbTx = tx
-		//log.Print("BeginTransaction")
+	defer func() { database.RecordDatabaseTransaction(database.DatabasePostgreSQL, "begin", err == nil) }()
+	if s.released || s.dbConnPtr == nil {
+		return cd.NewError(cd.InvalidOperation, "transaction requires an available executor")
 	}
-
-	return
+	if s.executeContetxt != nil && s.executeContetxt.Err() != nil {
+		return cd.NewError(cd.InvalidOperation, "transaction begin was canceled")
+	}
+	if s.dbRollbackOnly {
+		return cd.NewError(cd.InvalidOperation, "transaction is rollback-only")
+	}
+	if s.dbTx != nil {
+		s.dbTxCount++
+		return nil
+	}
+	if s.dbTxCount != 0 {
+		return cd.NewError(cd.InvalidOperation, "transaction state is inconsistent")
+	}
+	s.Finish()
+	ctx := s.executeContetxt
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	tx, beginErr := s.dbConnPtr.BeginTx(ctx, nil)
+	if beginErr != nil {
+		return databaseError(beginErr)
+	}
+	s.dbTx, s.dbTxCount = tx, 1
+	return nil
 }
 
 func (s *ConnExecutor) CommitTransaction() (err *cd.Error) {
-	defer func() {
-		database.RecordDatabaseTransaction(database.DatabasePostgreSQL, "commit", err == nil)
-	}()
-
-	atomic.AddInt32(&s.dbTxCount, -1)
-	if s.dbTx != nil && s.dbTxCount == 0 {
-		dbErr := s.dbTx.Commit()
-		if dbErr != nil {
-			s.dbTx = nil
-			err = databaseError(dbErr)
-			slog.Error("CommitTransaction failed", "value", "s.dbTx.Commit", "error", err.Error())
-			return
-		}
-
-		s.dbTx = nil
-		//log.Print("Commit")
+	defer func() { database.RecordDatabaseTransaction(database.DatabasePostgreSQL, "commit", err == nil) }()
+	if s.released || s.dbTx == nil || s.dbTxCount <= 0 {
+		return cd.NewError(cd.InvalidOperation, "commit requires an active transaction")
 	}
-
-	return
+	s.dbTxCount--
+	if s.dbTxCount > 0 {
+		if s.dbRollbackOnly {
+			return cd.NewError(cd.InvalidOperation, "transaction is rollback-only")
+		}
+		return nil
+	}
+	tx, rollback := s.dbTx, s.dbRollbackOnly
+	s.dbTx, s.dbRollbackOnly = nil, false
+	s.Finish()
+	if rollback {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil && rollbackErr != sql.ErrTxDone {
+			return databaseError(rollbackErr)
+		}
+		return cd.NewError(cd.InvalidOperation, "rollback-only transaction was rolled back")
+	}
+	if commitErr := tx.Commit(); commitErr != nil {
+		return databaseError(commitErr)
+	}
+	return nil
 }
 
 func (s *ConnExecutor) RollbackTransaction() (err *cd.Error) {
-	defer func() {
-		database.RecordDatabaseTransaction(database.DatabasePostgreSQL, "rollback", err == nil)
-	}()
-
-	atomic.AddInt32(&s.dbTxCount, -1)
-	if s.dbTx != nil && s.dbTxCount == 0 {
-		dbErr := s.dbTx.Rollback()
-		if dbErr != nil {
-			s.dbTx = nil
-			err = databaseError(dbErr)
-			slog.Error("RollbackTransaction failed", "value", "s.dbTx.Rollback", "error", err.Error())
-			return
-		}
-
-		s.dbTx = nil
-		//log.Print("Rollback")
+	defer func() { database.RecordDatabaseTransaction(database.DatabasePostgreSQL, "rollback", err == nil) }()
+	if s.released {
+		return cd.NewError(cd.InvalidOperation, "executor was released")
 	}
-
-	return
+	if s.dbTx == nil && s.dbTxCount == 0 {
+		return nil
+	}
+	if s.dbTx == nil || s.dbTxCount <= 0 {
+		return cd.NewError(cd.InvalidOperation, "transaction state is inconsistent")
+	}
+	s.dbTxCount--
+	if s.dbTxCount > 0 {
+		s.dbRollbackOnly = true
+		return nil
+	}
+	tx := s.dbTx
+	s.dbTx, s.dbRollbackOnly = nil, false
+	s.Finish()
+	if rollbackErr := tx.Rollback(); rollbackErr != nil && rollbackErr != sql.ErrTxDone {
+		return databaseError(rollbackErr)
+	}
+	return nil
 }
 
 func (s *ConnExecutor) Query(sql string, needCols bool, args ...any) (ret []string, err *cd.Error) {
+	if s.released || s.dbRollbackOnly {
+		err = cd.NewError(cd.InvalidOperation, "executor is unavailable or transaction is rollback-only")
+		return
+	}
 	s.rowsError = nil
 	//slog.Info("message")
 	startTime := time.Now()
@@ -387,6 +411,10 @@ func (s *ConnExecutor) GetField(value ...any) (err *cd.Error) {
 }
 
 func (s *ConnExecutor) Execute(sql string, args ...any) (rowsAffected int64, err *cd.Error) {
+	if s.released || s.dbRollbackOnly {
+		err = cd.NewError(cd.InvalidOperation, "executor is unavailable or transaction is rollback-only")
+		return
+	}
 	startTime := time.Now()
 	defer func() {
 		endTime := time.Now()
@@ -435,6 +463,10 @@ func (s *ConnExecutor) Execute(sql string, args ...any) (rowsAffected int64, err
 }
 
 func (s *ConnExecutor) ExecuteInsert(sql string, pkValOut any, args ...any) (err *cd.Error) {
+	if s.released || s.dbRollbackOnly {
+		err = cd.NewError(cd.InvalidOperation, "executor is unavailable or transaction is rollback-only")
+		return
+	}
 	startTime := time.Now()
 	defer func() {
 		endTime := time.Now()
@@ -516,6 +548,8 @@ type HostExecutor struct {
 	dbHandle        *sql.DB
 	schemaName      string
 	dbTxCount       int32
+	dbRollbackOnly  bool
+	released        bool
 	dbTx            *sql.Tx
 	rowsHandle      *sql.Rows
 	rowsError       *cd.Error
@@ -523,6 +557,12 @@ type HostExecutor struct {
 }
 
 func (s *HostExecutor) Release() {
+	if s.released {
+		return
+	}
+	s.released = true
+	defer func() { s.dbTx = nil; s.dbTxCount = 0; s.dbRollbackOnly = false }()
+
 	if s.rowsHandle != nil {
 		if err := s.rowsHandle.Close(); err != nil {
 			slog.Warn("Failed to close rows handle", "error", err.Error())
@@ -541,82 +581,93 @@ func (s *HostExecutor) Release() {
 }
 
 func (s *HostExecutor) BeginTransaction() (err *cd.Error) {
-	defer func() {
-		database.RecordDatabaseTransaction(database.DatabasePostgreSQL, "begin", err == nil)
-	}()
-
-	atomic.AddInt32(&s.dbTxCount, 1)
-	if s.dbTx == nil && s.dbTxCount == 1 {
-		if s.rowsHandle != nil {
-			_ = s.rowsHandle.Close()
-		}
-		s.rowsHandle = nil
-
-		var tx *sql.Tx
-		var txErr error
-		if s.executeContetxt != nil {
-			tx, txErr = s.dbHandle.BeginTx(s.executeContetxt, nil)
-		} else {
-			tx, txErr = s.dbHandle.Begin()
-		}
-		if txErr != nil {
-			err = databaseError(txErr)
-			slog.Error("BeginTransaction failed", "value", "s.dbHandle.Begin", "error", err.Error())
-			return
-		}
-
-		s.dbTx = tx
-		//log.Print("BeginTransaction")
+	defer func() { database.RecordDatabaseTransaction(database.DatabasePostgreSQL, "begin", err == nil) }()
+	if s.released || s.dbHandle == nil {
+		return cd.NewError(cd.InvalidOperation, "transaction requires an available executor")
 	}
-
-	return
+	if s.executeContetxt != nil && s.executeContetxt.Err() != nil {
+		return cd.NewError(cd.InvalidOperation, "transaction begin was canceled")
+	}
+	if s.dbRollbackOnly {
+		return cd.NewError(cd.InvalidOperation, "transaction is rollback-only")
+	}
+	if s.dbTx != nil {
+		s.dbTxCount++
+		return nil
+	}
+	if s.dbTxCount != 0 {
+		return cd.NewError(cd.InvalidOperation, "transaction state is inconsistent")
+	}
+	s.Finish()
+	ctx := s.executeContetxt
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	tx, beginErr := s.dbHandle.BeginTx(ctx, nil)
+	if beginErr != nil {
+		return databaseError(beginErr)
+	}
+	s.dbTx, s.dbTxCount = tx, 1
+	return nil
 }
 
 func (s *HostExecutor) CommitTransaction() (err *cd.Error) {
-	defer func() {
-		database.RecordDatabaseTransaction(database.DatabasePostgreSQL, "commit", err == nil)
-	}()
-
-	atomic.AddInt32(&s.dbTxCount, -1)
-	if s.dbTx != nil && s.dbTxCount == 0 {
-		dbErr := s.dbTx.Commit()
-		if dbErr != nil {
-			s.dbTx = nil
-			err = databaseError(dbErr)
-			slog.Error("CommitTransaction failed", "value", "s.dbTx.Commit", "error", err.Error())
-			return
-		}
-
-		s.dbTx = nil
-		//log.Print("Commit")
+	defer func() { database.RecordDatabaseTransaction(database.DatabasePostgreSQL, "commit", err == nil) }()
+	if s.released || s.dbTx == nil || s.dbTxCount <= 0 {
+		return cd.NewError(cd.InvalidOperation, "commit requires an active transaction")
 	}
-
-	return
+	s.dbTxCount--
+	if s.dbTxCount > 0 {
+		if s.dbRollbackOnly {
+			return cd.NewError(cd.InvalidOperation, "transaction is rollback-only")
+		}
+		return nil
+	}
+	tx, rollback := s.dbTx, s.dbRollbackOnly
+	s.dbTx, s.dbRollbackOnly = nil, false
+	s.Finish()
+	if rollback {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil && rollbackErr != sql.ErrTxDone {
+			return databaseError(rollbackErr)
+		}
+		return cd.NewError(cd.InvalidOperation, "rollback-only transaction was rolled back")
+	}
+	if commitErr := tx.Commit(); commitErr != nil {
+		return databaseError(commitErr)
+	}
+	return nil
 }
 
 func (s *HostExecutor) RollbackTransaction() (err *cd.Error) {
-	defer func() {
-		database.RecordDatabaseTransaction(database.DatabasePostgreSQL, "rollback", err == nil)
-	}()
-
-	atomic.AddInt32(&s.dbTxCount, -1)
-	if s.dbTx != nil && s.dbTxCount == 0 {
-		dbErr := s.dbTx.Rollback()
-		if dbErr != nil {
-			s.dbTx = nil
-			err = databaseError(dbErr)
-			slog.Error("RollbackTransaction failed", "value", "s.dbTx.Rollback", "error", err.Error())
-			return
-		}
-
-		s.dbTx = nil
-		//log.Print("Rollback")
+	defer func() { database.RecordDatabaseTransaction(database.DatabasePostgreSQL, "rollback", err == nil) }()
+	if s.released {
+		return cd.NewError(cd.InvalidOperation, "executor was released")
 	}
-
-	return
+	if s.dbTx == nil && s.dbTxCount == 0 {
+		return nil
+	}
+	if s.dbTx == nil || s.dbTxCount <= 0 {
+		return cd.NewError(cd.InvalidOperation, "transaction state is inconsistent")
+	}
+	s.dbTxCount--
+	if s.dbTxCount > 0 {
+		s.dbRollbackOnly = true
+		return nil
+	}
+	tx := s.dbTx
+	s.dbTx, s.dbRollbackOnly = nil, false
+	s.Finish()
+	if rollbackErr := tx.Rollback(); rollbackErr != nil && rollbackErr != sql.ErrTxDone {
+		return databaseError(rollbackErr)
+	}
+	return nil
 }
 
 func (s *HostExecutor) Query(sql string, needCols bool, args ...any) (ret []string, err *cd.Error) {
+	if s.released || s.dbRollbackOnly {
+		err = cd.NewError(cd.InvalidOperation, "executor is unavailable or transaction is rollback-only")
+		return
+	}
 	s.rowsError = nil
 	//slog.Info("message")
 	startTime := time.Now()
@@ -753,6 +804,10 @@ func (s *HostExecutor) GetField(value ...any) (err *cd.Error) {
 }
 
 func (s *HostExecutor) Execute(sql string, args ...any) (rowsAffected int64, err *cd.Error) {
+	if s.released || s.dbRollbackOnly {
+		err = cd.NewError(cd.InvalidOperation, "executor is unavailable or transaction is rollback-only")
+		return
+	}
 	startTime := time.Now()
 	defer func() {
 		endTime := time.Now()
@@ -811,6 +866,10 @@ func (s *HostExecutor) Execute(sql string, args ...any) (rowsAffected int64, err
 }
 
 func (s *HostExecutor) ExecuteInsert(sql string, pkValOut any, args ...any) (err *cd.Error) {
+	if s.released || s.dbRollbackOnly {
+		err = cd.NewError(cd.InvalidOperation, "executor is unavailable or transaction is rollback-only")
+		return
+	}
 	startTime := time.Now()
 	defer func() {
 		endTime := time.Now()

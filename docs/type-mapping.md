@@ -1,8 +1,8 @@
 # 类型映射表
 
-**依据**：`models/const.go`、`database/postgres/util.go`、`database/mysql/util.go`。
+**依据**：`~/codespace/magicOrm/models/const.go`、`~/codespace/magicOrm/database/postgres/util.go`、`~/codespace/magicOrm/database/mysql/util.go`。
 
-[← 返回设计文档索引](README.md)
+[← 返回设计文档索引](~/codespace/magicOrm/docs/README.md)
 
 ---
 
@@ -30,7 +30,7 @@
 | struct（含 orm 标签） | struct | TypeStructValue | 嵌套/关联实体 |
 | slice（上述类型的切片或 *struct 切片） | array | TypeSliceValue | 数组/关系 |
 
-以上类型可带指针（如 `*int64`、`*Status`）；切片可为值类型或指针类型（如 `[]int`、`[]*Group`）。参见 [design-relation.md](design-relation.md)。
+以上类型可带指针（如 `*int64`、`*Status`）；切片可为值类型或指针类型（如 `[]int`、`[]*Group`）。参见 [design-relation.md](~/codespace/magicOrm/docs/design-relation.md)。
 
 ### 1.2 不支持或未作为稳定能力文档化的 Go 类型
 
@@ -43,7 +43,7 @@
 
 | models 类型 | PostgreSQL 类型 | 备注 |
 |-------------|------------------|------|
-| string（主键） | VARCHAR(32) | 主键时固定 32 |
+| string（主键） | VARCHAR(32) | 默认 32；max 可声明 1..255 |
 | string（非主键） | TEXT | |
 | datetime | TIMESTAMP(3) | 毫秒精度 |
 | boolean | BOOLEAN | Go 原生类型对应 `bool` |
@@ -61,7 +61,7 @@
 
 | models 类型 | MySQL 类型 | 备注 |
 |-------------|------------|------|
-| string（主键） | VARCHAR(32) | 主键时固定 32 |
+| string（主键） | VARCHAR(32) | 默认 32；max 可声明 1..255 |
 | string（非主键） | TEXT | |
 | datetime | DATETIME(3) | 毫秒精度 |
 | boolean / int8 | TINYINT | Go 原生布尔类型对应 `bool` |
@@ -76,7 +76,7 @@
 
 ## 4. 主键与自增
 
-- 主键通过 orm 标签 `key` 指定；自增通过 `auto` 指定（见 [tags-reference.md](tags-reference.md)）。
+- 主键通过 orm 标签 `key` 指定；自增通过 `auto` 指定（见 [tags-reference.md](~/codespace/magicOrm/docs/tags-reference.md)）。
 - 自增仅适用于数值类型主键（如 int64）；PostgreSQL 使用 SERIAL/BIGSERIAL，MySQL 使用 AUTO_INCREMENT。
 - `uuid`、`snowflake`、`datetime` 也属于当前实现支持的 `ValueDeclare`：
   - `uuid`：零值时在 Insert 前生成字符串 UUID
@@ -89,4 +89,4 @@
 
 - 库中为 TIMESTAMP(3)/DATETIME(3)；Go 端为 `time.Time`。
 - 在 remote/object value 载体中，`TypeDateTimeValue` 当前按**字符串**承载；本地 model/数据库侧仍对应 `time.Time` 与 TIMESTAMP/DATETIME。
-- 字符串格式以当前 codec 与 `utils` 转换实现为准，现阶段未单独定义新的协议层格式文档。
+- 写入规范化为 UTC 毫秒；带偏移的 RFC3339 与 time.Time 保持同一时点；无时区既有文本按 UTC，普通 string 不自动当 datetime。业务展示和当地日期查询边界归 owner，历史本地时间不自动迁移。

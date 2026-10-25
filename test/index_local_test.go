@@ -21,6 +21,7 @@ type IndexTestItem struct {
 
 // TestIndexFeatures 测试索引功能
 func TestLocalIndexFeatures(t *testing.T) {
+	requireIntegration(t)
 	// 跳过测试如果设置了环境变量
 	if testing.Short() {
 		t.Skip("skipping index test in short mode.")
@@ -32,11 +33,11 @@ func TestLocalIndexFeatures(t *testing.T) {
 	localProvider := provider.NewLocalProvider("index_local", nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "index_test")
-	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
+	defer o1.Release()
 
 	// 注册模型
 	objList := []any{&IndexTestItem{}}

@@ -123,6 +123,7 @@ func TestIntegration(t *testing.T) {
 		)
 		updateCtx.Field = field
 		updateCtx.Options.ValidateReadOnlyFields = false
+		updateCtx = updateCtx.WithOptions(updateCtx.Options)
 
 		err = manager.Validate("", updateCtx)
 		if err != nil {

@@ -12,17 +12,18 @@ import (
 )
 
 func TestRemoteReference(t *testing.T) {
+	requireIntegration(t)
 	orm.Initialize()
 	defer orm.Uninitialized()
 
 	remoteProvider := provider.NewRemoteProvider(remoteOwner, nil)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
-	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
+	defer o1.Release()
 
 	objList := []any{&Reference{}}
 	mList, mErr := registerRemoteModel(remoteProvider, objList)

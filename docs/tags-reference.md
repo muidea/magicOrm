@@ -1,8 +1,8 @@
 # 标签参考
 
-**依据**：`models/const.go`、`models/constraint.go`、README 与各设计文档中的 struct 标签约定。
+**依据**：`~/codespace/magicOrm/models/const.go`、`~/codespace/magicOrm/models/constraint.go`、README 与各设计文档中的 struct 标签约定。
 
-[← 返回设计文档索引](README.md)
+[← 返回设计文档索引](~/codespace/magicOrm/docs/README.md)
 
 ---
 
@@ -29,7 +29,7 @@
 
 ### 1.4 关系字段
 
-- 关系字段仍使用 `orm:"<名称>"`，类型为 `*T`、`T`、`[]*T`、`[]T` 等；关系类型判定见 [design-relation.md](design-relation.md)，不依赖额外标签。
+- 关系字段仍使用 `orm:"<名称>"`，类型为 `*T`、`T`、`[]*T`、`[]T` 等；关系类型判定见 [design-relation.md](~/codespace/magicOrm/docs/design-relation.md)，不依赖额外标签。
 - 当前不支持通过额外 orm 标签显式指定「引用/包含」或自定义关系表名；关系语义完全由字段类型决定。
 
 ### 1.5 忽略字段
@@ -67,7 +67,7 @@
 
 ## 2. constraint 标签
 
-用于约束校验，键与 [design-models.md](design-models.md) 附录一致。
+用于约束校验，键与 [design-models.md](~/codespace/magicOrm/docs/design-models.md) 附录一致。
 
 | 键 | 含义 |
 |----|------|
@@ -80,7 +80,7 @@
 | in | 枚举约束 |
 | re | 正则约束 |
 
-示例：`` `constraint:"req,min=3,max=50"` ``、`` `constraint:"ro"` ``。约束在验证层使用，见 [design-validation.md](design-validation.md)。
+示例：`` `constraint:"req,min=3,max=50"` ``、`` `constraint:"ro"` ``。约束在验证层使用，见 [design-validation.md](~/codespace/magicOrm/docs/design-validation.md)。
 
 ---
 
@@ -100,7 +100,7 @@ type User struct {
 
 ## 4. 参考
 
-- 模型与视图：[design-models.md](design-models.md)
-- 约束与验证：[design-validation.md](design-validation.md)
-- 关联关系：[design-relation.md](design-relation.md)
-- 类型与主键：[type-mapping.md](type-mapping.md)
+- 模型与视图：[design-models.md](~/codespace/magicOrm/docs/design-models.md)
+- 约束与验证：[design-validation.md](~/codespace/magicOrm/docs/design-validation.md)
+- 关联关系：[design-relation.md](~/codespace/magicOrm/docs/design-relation.md)
+- 类型与主键：[type-mapping.md](~/codespace/magicOrm/docs/type-mapping.md)

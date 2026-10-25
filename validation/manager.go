@@ -1,11 +1,14 @@
 package validation
 
 import (
+	"fmt"
+	"log/slog"
 	"reflect"
 	"time"
 
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/utils"
+	"github.com/muidea/magicOrm/validation/cache"
 	"github.com/muidea/magicOrm/validation/constraints"
 	"github.com/muidea/magicOrm/validation/database"
 	"github.com/muidea/magicOrm/validation/errors"
@@ -34,13 +37,14 @@ const (
 
 // ValidationContext contains context for validation
 type ValidationContext struct {
-	Scenario     errors.Scenario
-	Operation    OperationType
-	Model        ModelAdapter
-	Field        FieldAdapter
-	DatabaseType string
-	Options      ValidationOptions
-	Collector    errors.ErrorCollector
+	Scenario        errors.Scenario
+	Operation       OperationType
+	Model           ModelAdapter
+	Field           FieldAdapter
+	DatabaseType    string
+	Options         ValidationOptions
+	Collector       errors.ErrorCollector
+	optionsExplicit bool
 }
 
 // ValidationOptions contains validation configuration options
@@ -96,9 +100,10 @@ type validationManagerImpl struct {
 	databaseValidator   database.DatabaseValidator
 	scenarioAdapter     ScenarioAdapter
 
-	enabledLayers map[ValidationLayer]bool
-	config        ValidationConfig
-	stats         validationStatsImpl
+	enabledLayers   map[ValidationLayer]bool
+	config          ValidationConfig
+	stats           validationStatsImpl
+	defaultScenario errors.Scenario
 }
 
 // ValidationConfig contains configuration for the validation manager
@@ -123,7 +128,7 @@ func NewValidationManager(config ValidationConfig) ValidationManager {
 
 	// Initialize validators
 	manager.typeValidator = types.NewTypeValidator()
-	manager.constraintValidator = constraints.NewConstraintValidator(config.EnableCaching)
+	manager.constraintValidator = constraints.NewConstraintValidatorWithConfig(validationCacheConfig(config))
 	manager.databaseValidator = database.NewDatabaseValidator()
 	manager.scenarioAdapter = NewScenarioAdapter()
 
@@ -144,8 +149,67 @@ func NewValidationManager(config ValidationConfig) ValidationManager {
 	return manager
 }
 
-// Validate validates a value with the given context
+// WithOptions marks a complete call-level option snapshot, including explicit false.
+func (context ValidationContext) WithOptions(options ValidationOptions) ValidationContext {
+	context.Options = options
+	context.optionsExplicit = true
+	return context
+}
+
+func validationCacheConfig(config ValidationConfig) cache.CacheConfig {
+	result := cache.DefaultCacheConfig()
+	result.Enabled = config.EnableCaching
+	if config.CacheTTL < 0 || config.MaxCacheSize < 0 {
+		result.Enabled = false
+		slog.Warn("negative validation cache configuration; caching disabled")
+	}
+	if config.CacheTTL > 0 {
+		result.DefaultTTL = config.CacheTTL
+	}
+	if config.MaxCacheSize > 0 {
+		result.MaxConstraintEntries = config.MaxCacheSize
+	}
+	return result
+}
+
+// resolveContext runs once at each public boundary, before any early return.
+// Internal validation receives only this call's resolved snapshot.
+func (m *validationManagerImpl) resolveContext(context ValidationContext) (ValidationContext, error) {
+	if context.Scenario == "" {
+		context.Scenario = m.defaultScenario
+	}
+	if context.Scenario == "" {
+		context.Scenario = errors.ScenarioInsert
+	}
+	switch context.Scenario {
+	case errors.ScenarioInsert, errors.ScenarioUpdate, errors.ScenarioQuery, errors.ScenarioDelete:
+	default:
+		return context, fmt.Errorf("unknown validation scenario: %s", context.Scenario)
+	}
+	options := m.config.DefaultOptions
+	if m.enabledLayers[LayerScenario] {
+		options = m.applyScenarioOptions(options, m.scenarioAdapter.GetValidationStrategy(context.Scenario))
+	}
+	if context.optionsExplicit {
+		options = context.Options
+	}
+	context.Options = options
+	if context.Collector == nil {
+		context.Collector = errors.NewErrorCollector()
+	}
+	return context, nil
+}
+
 func (m *validationManagerImpl) Validate(value any, context ValidationContext) error {
+	context, err := m.resolveContext(context)
+	if err != nil {
+		return err
+	}
+	return m.validateResolved(value, context)
+}
+
+// Validate validates a value with the given context
+func (m *validationManagerImpl) validateResolved(value any, context ValidationContext) error {
 	startTime := time.Now()
 	m.stats.TotalValidations++
 	modelName := getValidationModelName(context)
@@ -159,17 +223,6 @@ func (m *validationManagerImpl) Validate(value any, context ValidationContext) e
 	}()
 
 	var err error
-
-	// Apply scenario adaptation if enabled
-	if m.enabledLayers[LayerScenario] {
-		strategy := m.scenarioAdapter.GetValidationStrategy(context.Scenario)
-		context.Options = m.applyScenarioOptions(context.Options, strategy)
-	}
-
-	// Create error collector if not provided
-	if context.Collector == nil {
-		context.Collector = errors.NewErrorCollector()
-	}
 
 	// Perform validation based on enabled layers
 	if m.enabledLayers[LayerType] && context.Field != nil {
@@ -207,6 +260,14 @@ func (m *validationManagerImpl) Validate(value any, context ValidationContext) e
 
 // ValidateField validates a single field
 func (m *validationManagerImpl) ValidateField(field models.Field, value any, context ValidationContext) error {
+	context, err := m.resolveContext(context)
+	if err != nil {
+		return err
+	}
+	return m.validateFieldResolved(field, value, context)
+}
+
+func (m *validationManagerImpl) validateFieldResolved(field models.Field, value any, context ValidationContext) error {
 	// A zero auto-increment value requests database generation. It is not a
 	// supplied value and cannot satisfy required/range constraints before INSERT.
 	// Keep validation for explicit values and for every non-insert scenario.
@@ -216,17 +277,33 @@ func (m *validationManagerImpl) ValidateField(field models.Field, value any, con
 		return nil
 	}
 	context.Field = AdaptField(field, value)
-	return m.Validate(value, context)
+	return m.validateResolved(value, context)
 }
 
 // ValidateModel validates an entire model
 func (m *validationManagerImpl) ValidateModel(model models.Model, context ValidationContext) error {
+	context, resolveErr := m.resolveContext(context)
+	if resolveErr != nil {
+		return resolveErr
+	}
 	if context.Collector == nil {
 		context.Collector = errors.NewErrorCollector()
 	}
 
 	if context.Model != nil {
 		for _, field := range context.Model.GetFields() {
+			if adapted, ok := field.(*fieldAdapterImpl); ok && adapted.source != nil {
+				if context.Scenario == errors.ScenarioUpdate && !models.IsPrimaryField(adapted.source) && !models.IsAssignedField(adapted.source) {
+					continue
+				}
+				value := adapted.value
+				fieldContext := context
+				err := m.validateFieldResolved(adapted.source, value, fieldContext)
+				if err != nil && context.Options.StopOnFirstError {
+					return err
+				}
+				continue
+			}
 			fieldValue := field.GetValue()
 			var value any
 			if fieldValue != nil {
@@ -239,7 +316,7 @@ func (m *validationManagerImpl) ValidateModel(model models.Model, context Valida
 			fieldContext := context
 			fieldContext.Field = field
 
-			err := m.Validate(value, fieldContext)
+			err := m.validateResolved(value, fieldContext)
 			if err != nil && context.Options.StopOnFirstError {
 				return err
 			}
@@ -269,7 +346,7 @@ func (m *validationManagerImpl) ValidateModel(model models.Model, context Valida
 
 			fieldContext := context
 			fieldContext.Model = modelAdapter
-			err := m.ValidateField(field, value, fieldContext)
+			err := m.validateFieldResolved(field, value, fieldContext)
 			if err != nil && context.Options.StopOnFirstError {
 				return err
 			}
@@ -298,7 +375,14 @@ func (m *validationManagerImpl) DisableLayer(layer ValidationLayer) error {
 
 // SetScenario sets the current scenario
 func (m *validationManagerImpl) SetScenario(scenario errors.Scenario) {
-	// Scenario is handled through context, but we can update default behavior
+	m.defaultScenario = scenario
+}
+
+// Reset releases per-use rules and caches before a manager is returned to a pool.
+func (m *validationManagerImpl) Reset() {
+	m.constraintValidator.ClearCache()
+	fresh := NewValidationManager(m.config).(*validationManagerImpl)
+	*m = *fresh
 }
 
 // GetValidationStats returns validation statistics

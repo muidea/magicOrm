@@ -8,17 +8,18 @@ import (
 )
 
 func TestLocalSystem(t *testing.T) {
+	requireIntegration(t)
 	orm.Initialize()
 	defer orm.Uninitialized()
 
 	localProvider := provider.NewLocalProvider("default", nil)
 
 	o1, err := orm.NewOrm(localProvider, config, "abc")
-	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
+	defer o1.Release()
 
 	user1 := &User{Name: "demo1", EMail: "123@demo.com"}
 	user2 := &User{Name: "demo2", EMail: "123@demo.com"}

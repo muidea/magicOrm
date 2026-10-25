@@ -58,10 +58,14 @@ func TestDateTimeUTCIsolatedPostgres(t *testing.T) {
 		t.Skip("set isolated datetime PostgreSQL configuration")
 	}
 	server, name, user, password := os.Getenv("MAGICORM_DATETIME_TEST_SERVER"), os.Getenv("MAGICORM_DATETIME_TEST_DATABASE"), os.Getenv("MAGICORM_DATETIME_TEST_USER"), os.Getenv("MAGICORM_DATETIME_TEST_PASSWORD")
-	if server == "" || name == "" || user == "" {
+	if server == "" || !strings.HasPrefix(name, "magicorm_test_") || user == "" || password == "" {
 		t.Fatal("isolated datetime configuration incomplete")
 	}
-	cfg := NewConfig(server, name, "public", user, password)
+	schema := os.Getenv("MAGICORM_DATETIME_TEST_SCHEMA")
+	if schema == "" || schema == "public" {
+		t.Fatal("dedicated non-public schema required")
+	}
+	cfg := NewConfig(server, name, schema, user, password)
 	for _, writerKind := range []string{"local", "remote"} {
 		t.Run(writerKind, func(t *testing.T) {
 			prefix := "utc_" + strings.ToLower(rand.Text())

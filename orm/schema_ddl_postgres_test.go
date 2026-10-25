@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/rand"
 	"database/sql"
+	"github.com/muidea/magicOrm/internal/testdatabase"
 	"net/url"
 	"os"
 	"strings"
@@ -25,6 +26,7 @@ func TestPostgresSchemaDDLPreflightAndOwnedReconcile(t *testing.T) {
 	if dsn == "" {
 		t.Skip("set MAGICORM_SCHEMA_TEST_POSTGRES_DSN to a disposable PostgreSQL URL")
 	}
+	testdatabase.RequirePostgres(t, dsn)
 	u, err := url.Parse(dsn)
 	if err != nil || (u.Scheme != "postgres" && u.Scheme != "postgresql") || u.User == nil || u.Host == "" || u.Path == "" {
 		t.Fatal("test database must use a PostgreSQL URL with explicit credentials")

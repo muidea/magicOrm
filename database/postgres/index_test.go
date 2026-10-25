@@ -26,7 +26,7 @@ func TestBuildCreateTableIncludesDeclaredIndex(t *testing.T) {
 	if buildErr != nil {
 		t.Fatal(buildErr)
 	}
-	if !strings.Contains(result.SQL(), `CREATE INDEX IF NOT EXISTS "idx_namespace_account" ON "cas_PostgresUniqueModel" ("namespace", "accountId")`) {
+	if !strings.Contains(result.SQL(), `CREATE INDEX IF NOT EXISTS "cas_PostgresUniqueModel_idx_namespace_account_d6d25cd7ee5d6942" ON "cas_PostgresUniqueModel" ("namespace", "accountId")`) {
 		t.Fatalf("index missing from SQL: %s", result.SQL())
 	}
 }

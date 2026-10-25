@@ -11,17 +11,18 @@ import (
 )
 
 func TestRemoteExecutor(t *testing.T) {
+	requireIntegration(t)
 	orm.Initialize()
 	defer orm.Uninitialized()
 
 	remoteProvider := provider.NewRemoteProvider("default", nil)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
-	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
+	defer o1.Release()
 
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
 	val := &Unit{
@@ -139,17 +140,18 @@ func TestRemoteExecutor(t *testing.T) {
 }
 
 func TestRemoteDepends(t *testing.T) {
+	requireIntegration(t)
 	orm.Initialize()
 	defer orm.Uninitialized()
 
 	remoteProvider := provider.NewRemoteProvider("default", nil)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
-	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
+	defer o1.Release()
 
 	now, _ := time.ParseInLocation("2006-01-02 15:04:05:0000", "2018-01-02 15:04:05:0000", time.Local)
 	val := &Unit{ID: 10, I64: uint64(78962222222), Name: "Hello world", Value: 12.3456, TimeStamp: now, Flag: true}

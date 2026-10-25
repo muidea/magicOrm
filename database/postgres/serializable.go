@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"sync/atomic"
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/database"
@@ -13,7 +12,7 @@ func (s *ConnExecutor) BeginSerializableTransaction() (err *cd.Error) {
 	defer func() {
 		database.RecordDatabaseTransaction(database.DatabasePostgreSQL, "begin_serializable", err == nil)
 	}()
-	if s.dbTx != nil || atomic.LoadInt32(&s.dbTxCount) != 0 || s.dbConnPtr == nil {
+	if s.released || s.dbRollbackOnly || s.dbTx != nil || s.dbTxCount != 0 || s.dbConnPtr == nil {
 		return cd.NewError(cd.InvalidOperation, "serializable transaction requires an idle connection")
 	}
 	if s.rowsHandle != nil {
@@ -32,7 +31,7 @@ func (s *ConnExecutor) BeginSerializableTransaction() (err *cd.Error) {
 		return databaseError(txErr)
 	}
 	s.dbTx = tx
-	atomic.StoreInt32(&s.dbTxCount, 1)
+	s.dbTxCount = 1
 	return nil
 }
 
@@ -40,7 +39,7 @@ func (s *HostExecutor) BeginSerializableTransaction() (err *cd.Error) {
 	defer func() {
 		database.RecordDatabaseTransaction(database.DatabasePostgreSQL, "begin_serializable", err == nil)
 	}()
-	if s.dbTx != nil || atomic.LoadInt32(&s.dbTxCount) != 0 || s.dbHandle == nil {
+	if s.released || s.dbRollbackOnly || s.dbTx != nil || s.dbTxCount != 0 || s.dbHandle == nil {
 		return cd.NewError(cd.InvalidOperation, "serializable transaction requires an idle connection")
 	}
 	if s.rowsHandle != nil {
@@ -59,6 +58,6 @@ func (s *HostExecutor) BeginSerializableTransaction() (err *cd.Error) {
 		return databaseError(txErr)
 	}
 	s.dbTx = tx
-	atomic.StoreInt32(&s.dbTxCount, 1)
+	s.dbTxCount = 1
 	return nil
 }

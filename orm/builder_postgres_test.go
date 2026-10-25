@@ -215,7 +215,7 @@ func TestBuilderLocalReference(t *testing.T) {
 		t.Errorf("BuildCreateRelationTable failed, err:%s", err.Error())
 		return
 	}
-	if str.SQL() != "CREATE TABLE IF NOT EXISTS \"abc_ReferenceUnit1Unit\" (\n\t\"id\" BIGSERIAL NOT NULL,\n\t\"left\" BIGINT NOT NULL,\n\t\"right\" VARCHAR(32) NOT NULL,\n\tPRIMARY KEY (\"id\")\n);\nCREATE INDEX IF NOT EXISTS \"abc_ReferenceUnit1Unit_index\" ON \"abc_ReferenceUnit1Unit\" (\"left\")" {
+	if str.SQL() != "CREATE TABLE IF NOT EXISTS \"abc_ReferenceUnit1Unit\" (\n\t\"id\" BIGSERIAL NOT NULL,\n\t\"left\" BIGINT NOT NULL,\n\t\"right\" VARCHAR(32) NOT NULL,\n\tPRIMARY KEY (\"id\")\n);\nCREATE INDEX IF NOT EXISTS \"abc_ReferenceUnit1Unit_index_9d1b663ed5bea056\" ON \"abc_ReferenceUnit1Unit\" (\"left\")" {
 		t.Errorf("BuildCreateRelationTable failed, str:%s", str)
 		return
 	}
@@ -225,7 +225,7 @@ func TestBuilderLocalReference(t *testing.T) {
 		t.Errorf("BuildDropRelationTable failed, err:%s", err.Error())
 		return
 	}
-	if str.SQL() != "DROP INDEX IF EXISTS \"abc_ReferenceUnit1Unit_index\";\nDROP TABLE IF EXISTS \"abc_ReferenceUnit1Unit\"" {
+	if str.SQL() != "DROP TABLE IF EXISTS \"abc_ReferenceUnit1Unit\"" {
 		t.Errorf("BuildDropRelationTable failed, str:%s", str)
 		return
 	}
@@ -695,7 +695,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		t.Errorf("BuildCreateRelationTable failed, err:%s", err.Error())
 		return
 	}
-	if str.SQL() != "CREATE TABLE IF NOT EXISTS \"abc_ReferenceUnit1Unit\" (\n\t\"id\" BIGSERIAL NOT NULL,\n\t\"left\" BIGINT NOT NULL,\n\t\"right\" VARCHAR(32) NOT NULL,\n\tPRIMARY KEY (\"id\")\n);\nCREATE INDEX IF NOT EXISTS \"abc_ReferenceUnit1Unit_index\" ON \"abc_ReferenceUnit1Unit\" (\"left\")" {
+	if str.SQL() != "CREATE TABLE IF NOT EXISTS \"abc_ReferenceUnit1Unit\" (\n\t\"id\" BIGSERIAL NOT NULL,\n\t\"left\" BIGINT NOT NULL,\n\t\"right\" VARCHAR(32) NOT NULL,\n\tPRIMARY KEY (\"id\")\n);\nCREATE INDEX IF NOT EXISTS \"abc_ReferenceUnit1Unit_index_9d1b663ed5bea056\" ON \"abc_ReferenceUnit1Unit\" (\"left\")" {
 		t.Errorf("BuildCreateRelationTable failed, str:%s", str)
 		return
 	}
@@ -705,7 +705,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		t.Errorf("BuildDropRelationTable failed, err:%s", err.Error())
 		return
 	}
-	if str.SQL() != "DROP INDEX IF EXISTS \"abc_ReferenceUnit1Unit_index\";\nDROP TABLE IF EXISTS \"abc_ReferenceUnit1Unit\"" {
+	if str.SQL() != "DROP TABLE IF EXISTS \"abc_ReferenceUnit1Unit\"" {
 		t.Errorf("BuildDropRelationTable failed, str:%s", str)
 		return
 	}

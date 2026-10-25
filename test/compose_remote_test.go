@@ -11,16 +11,17 @@ import (
 )
 
 func TestComposeRemote(t *testing.T) {
+	requireIntegration(t)
 	orm.Initialize()
 	defer orm.Uninitialized()
 	remoteProvider := provider.NewRemoteProvider(composeRemoteOwner, nil)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "abc")
-	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
+	defer o1.Release()
 
 	entityList := []any{&Simple{}, &Reference{}, &Compose{}}
 	modelList, modelErr := registerRemoteModel(remoteProvider, entityList)

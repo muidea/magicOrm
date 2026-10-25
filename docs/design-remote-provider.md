@@ -1,9 +1,9 @@
 # Remote Provider 设计
 
-**功能块**：`provider/remote`、`provider/helper/remote.go`、`test/vmi/`  
-**依据**：`provider/remote/*.go`、`provider/helper/remote.go`、`provider/vmi_remote_provider_test.go`、`provider/remote/*_test.go`。
+**功能块**：`~/codespace/magicOrm/provider/remote`、`~/codespace/magicOrm/provider/helper/remote.go`、`~/codespace/magicOrm/test/vmi`
+**依据**：`provider/remote/*.go`、`~/codespace/magicOrm/provider/helper/remote.go`、`~/codespace/magicOrm/provider/vmi_remote_provider_test.go`、`provider/remote/*_test.go`。
 
-[← 返回设计文档索引](README.md)
+[← 返回设计文档索引](~/codespace/magicOrm/docs/README.md)
 
 ---
 
@@ -12,8 +12,8 @@
 本文档描述 `magicOrm` 当前实现下 `remoteProvider` 的真实设计语义，重点覆盖：
 
 - `Object` / `ObjectValue` / `SliceObjectValue` 如何对齐 `models.Model` / `models.Value`；
-- `test/vmi` 中 remote Object 定义如何映射到运行时模型；
-- `provider/helper/remote.go` 中本地 struct 与 remote 对象值之间的往返规则；
+- `~/codespace/magicOrm/test/vmi` 中 remote Object 定义如何映射到运行时模型；
+- `~/codespace/magicOrm/provider/helper/remote.go` 中本地 struct 与 remote 对象值之间的往返规则；
 - `filter` / `mask` / `codec` / `orm runner` / `database builder` 已验证的行为边界；
 - 当前已固化的约定与限制，便于后续知识库沉淀。
 
@@ -49,7 +49,7 @@
 
 ### 2.2 Schema 元数据
 
-`UniqueConstraints` 和 `Indexes` 随 `Object` JSON 传递，并在 `Copy(...)` 时保留。每项都由名称和基础字段名列表组成，例如：
+`UniqueConstraints` 和 `Indexes` 随 `Object` JSON 传递，并在 `Copy(...)` 时保留。每项由名称和有序字段列表组成；唯一另支持单值指针引用，普通索引仅基础字段，例如：
 
 ```json
 {
@@ -109,7 +109,7 @@ PostgreSQL/MySQL 的 Create/Describe/AddColumn、Insert/Update/UpdateWithFilter�
 直接读取尚未转换的 `FieldValue.Value` 时，应使用类型转换工具，不能断言它必为 `float64`。
 
 该规则只属于 remote 字段值协议；不修改任意业务 DTO 的 JSON 解码，也不包含租户、令牌、
-流程恢复或数据库补偿规则。回归见 `provider/remote/integer_wire_test.go` 和 `utils/number_test.go`。
+流程恢复或数据库补偿规则。回归见 `~/codespace/magicOrm/provider/remote/integer_wire_test.go` 和 `~/codespace/magicOrm/utils/number_test.go`。
 
 ### 2.4 `SliceObjectValue`
 
@@ -242,7 +242,7 @@ helper 从本地 struct 导出 remote `ObjectValue` 时，当前进一步采用�
 
 ## 4. Provider 入口语义
 
-`provider/remote/provider.go` 当前暴露的核心语义如下。
+`~/codespace/magicOrm/provider/remote/provider.go` 当前暴露的核心语义如下。
 
 ### 4.1 `GetEntityType`
 
@@ -349,7 +349,7 @@ typed nil 的 `*ObjectValue` 会被忽略；非法类型或模型不匹配会返
 
 ## 6. Helper 往返转换规则
 
-`provider/helper/remote.go` 提供本地 struct 与 remote 值之间的桥接。
+`~/codespace/magicOrm/provider/helper/remote.go` 提供本地 struct 与 remote 值之间的桥接。
 
 ### 6.1 Local -> Remote
 
@@ -436,7 +436,7 @@ VMI 定义在当前实现中的角色：
 
 ### 8.1 remote codec
 
-`provider/remote/codec.go` 只负责 **basic / basic slice** 的编码和解码。
+`~/codespace/magicOrm/provider/remote/codec.go` 只负责 **basic / basic slice** 的编码和解码。
 
 规则：
 
@@ -508,7 +508,7 @@ VMI 定义在当前实现中的角色：
 
 ## 11. 已完成验证范围
 
-围绕 `test/vmi` 与 `provider/remote`，本轮已经形成以下回归保护网：
+围绕 `~/codespace/magicOrm/test/vmi` 与 `~/codespace/magicOrm/provider/remote`，本轮已经形成以下回归保护网：
 
 - schema 定义校验
 - provider wrapper

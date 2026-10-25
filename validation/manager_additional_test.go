@@ -511,6 +511,7 @@ func TestInternalValidationSteps(t *testing.T) {
 	)
 	ctx.Scenario = verrors.ScenarioQuery
 	ctx.Options.ValidateWriteOnlyFields = false
+	ctx = ctx.WithOptions(ctx.Options)
 	if err := manager.validateConstraints("token", ctx); err != nil {
 		t.Fatalf("expected write-only field to be skipped during query validation, got %v", err)
 	}

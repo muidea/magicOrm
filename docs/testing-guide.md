@@ -1,284 +1,54 @@
-# 测试执行指南
+# 测试指南
 
-**功能块**：`test/`、`test/consistency/`、各包内 `*_test.go`  
-**依据**：当前仓库测试布局、`test/global_postgres.go`、`test/global_mysql.go`
+默认 `go test ./... -count=1` 与 `~/codespace/magicOrm/unit_test.sh` 不连接数据库，所有数据库测试保留可见 skip。MySQL 编译路径使用 `go test -tags=mysql ./... -count=1`。`go vet ./...` 和 `go build ./...` 亦纳入 CI。完整 README 样例与可编译源文件一致性由测试校验。
 
-[← 返回设计文档索引](README.md)
-
----
-
-## 1. 总览
-
-`magicOrm` 当前测试可以按执行依赖分成三层：
-
-| 层级 | 典型目录/包 | 是否依赖数据库 | 说明 |
-|------|-------------|----------------|------|
-| 包内单元测试 | `metrics/...`、`provider/...`、`orm`、`validation/...`、`database/...` | 否 | 主要覆盖本地逻辑、转换、SQL builder、provider 语义、validation 与 metrics。 |
-| 一致性测试 | `test/consistency` | 否 | 主要覆盖 Local/Remote、JSON、ObjectValue、helper 往返的一致性。 |
-| 集成测试 | `test` | 是 | 真实走 `Orm + Provider + Executor + 数据库` 链路，会创建/删除表并写入测试数据。 |
-
-`go test ./...` 会同时包含这三层，因此在没有数据库环境时，通常只有 `test` 包会失败。
-
----
-
-## 2. 数据库切换规则
-
-### 2.1 默认：PostgreSQL
-
-`test/global_postgres.go` 默认使用：
-
-- 地址：`localhost:5432`
-- 数据库：`testdb`
-- 用户：`postgres`
-- 密码：`rootkit`
-
-该文件带有：
-
-```go
-//go:build !mysql
-```
-
-因此默认执行 `go test ./test` 时，会走 PostgreSQL 配置。
-
-在容器或 CI 环境中，可通过以下变量覆盖默认连接信息，避免把部署凭据写入代码：
+## PostgreSQL 隔离全量
 
 ```bash
-export MAGICORM_POSTGRES_SERVER=localhost:5432
-export MAGICORM_POSTGRES_DATABASE=testdb
-export MAGICORM_POSTGRES_USER=postgres
-export MAGICORM_POSTGRES_PASSWORD='…'
-go test ./test --count 1
+cd ~/codespace/magicOrm
+./scripts/integration_postgres.sh
 ```
 
-`testdb` 必须是隔离测试库，不能指向正在由服务使用的数据库。集成测试会创建、写入并删除多张表；推荐使用一次性的本地/容器 PostgreSQL 实例，并将 `MAGICORM_POSTGRES_DATABASE` 显式设置为该实例中的 `testdb`。
+脚本仅新建本次专属容器、随机口令与环回随机端口，数据库固定为本次专属实例中的 magicorm_test_closeout，非 public 的 integration Schema。退出/失败/取消按精确 ID 删除容器及其匿名卷并回查，不扫描前缀、不访问平台数据库、不保留凭据。Docker/KILL 或宿主中断时由调用者根据已记录的精确 ID 核对，不能把清理未执行当作成功。可传入命令，在同一隔离环境验证消费者；超时由各用例控制。
 
-### 2.2 MySQL 变体
+手动环境须显式设置 MAGICORM_INTEGRATION_ALLOW=1 与 MAGICORM_POSTGRES_SERVER、DATABASE、SCHEMA、USER、PASSWORD（各项带 MAGICORM_POSTGRES_ 前缀）。Database 必须以 magicorm_test_ 开始，Schema 不可为 public，所有凭据显式提供。启用但配置/连接错误会失败，不能降级 skip。整个旧集成包操作可销毁数据库，勿将现有平台库配置给测试。
 
-`test/global_mysql.go` 使用：
+Schema 物理专项另读 MAGICORM_SCHEMA_TEST_POSTGRES_DSN，必须为显式账号/口令及 magicorm_test_ 数据库的 PostgreSQL URL，并同时设置 MAGICORM_INTEGRATION_ALLOW=1。专项用例创建随机 Schema 并清理本次身份。datetime 与 inline-reference 专项使用其各自 MAGICORM_*_TEST_ALLOW=isolated 及 SERVER/DATABASE/SCHEMA/USER/PASSWORD；也要求 magicorm_test_ 数据库和非 public Schema，脚本统一提供。
 
-- 地址：`localhost:3306`
-- 数据库：`testdb`
-- 用户：`root`
-- 密码：`rootkit`
+## 可选 MySQL
 
-该文件带有：
+手动提供专属 magicorm_test_ 数据库，以 MAGICORM_INTEGRATION_ALLOW=1 及 MAGICORM_MYSQL_SERVER/DATABASE/SCHEMA/USER/PASSWORD 配置后执行 `go test -tags=mysql ./... -count=1`。Schema 专项使用 MAGICORM_SCHEMA_TEST_MYSQL_DSN，物理目录核验要求 MySQL 8.0.13+。不授予复制、GRANT 等管理权限；不把 MySQL 离线通过记为真实数据库通过。
 
-```go
-//go:build mysql
-```
+## 回归分类
 
-因此执行：
+- 双库四种 executor 的普通事务生命周期、嵌套与错误恢复使用内存 driver，核对物理事务调用次数。
+- PostgreSQL 实际提交响应丢失由协议代理转发 COMMIT 并确认服务端完成后断开回包；ORM 必须报告 Unexpected，另一分支在 COMMIT 转发前断连，独立连接按原 ID 分别确认一条和零条记录，不自动重试。它证明 ORM 原语，不能代替业务 owner 的完整恢复验收。
+- owned 图、内联组合唯一、跨实例物理名隔离、目录检查、UTC 使用隔离 PostgreSQL；并发写唯一成功/冲突分别核对。
+- 旧 TestNewPool/TestMasterSlaver 固定数据库压力与复制授权代码已移除，其事务风险由有断言的内存生命周期测试替代；禁止用按名称排除失败测试充当默认安全入口。
+
+源码、隔离库、消费者默认 vendor 与 Live 分别记录。本轮方案和状态见[收口方案](~/dataspace/magicPlatform/docs/technical/orm-capability-closeout-plan.md)。
+
+## 可编译使用样例与专项入口
+
+初次接入先读[完整 quickstart](~/codespace/magicOrm/examples/quickstart/main.go)，它包含 imports、显式配置、Schema 准备、数据库绑定、模型注册、校验、写入和释放。其余主题直接引用同仓编译的完整用例，避免在文档重复手抄 API；内存 executor 用例只说明接口与失败路径，物理结果以隔离测试为准。
+
+| 主题 | 完整源码 | 执行层级 |
+| --- | --- | --- |
+| Local 注册与 CRUD | [Local 用例](~/codespace/magicOrm/test/simple_local_test.go)及[环境门禁](~/codespace/magicOrm/test/integration_test.go) | 隔离 PostgreSQL |
+| Remote 声明、值与 CRUD | [Remote 用例](~/codespace/magicOrm/test/simple_remote_test.go)及[结构定义](~/codespace/magicOrm/test/define_local_test.go) | 隔离 PostgreSQL |
+| 显式 patch、nil 清空与 owned 差异 | [关系更新用例](~/codespace/magicOrm/test/update_relation_diff_local_test.go) | 隔离 PostgreSQL |
+| 普通事务提交/回滚 | [事务用例](~/codespace/magicOrm/test/transaction_local_test.go) | 隔离 PostgreSQL |
+| Serializable 可选能力 | [能力与错误传播](~/codespace/magicOrm/orm/serializable_test.go) | 离线；不等于实库并发冲突验收 |
+| 单值引用组合唯一 | [双 Provider 定义](~/codespace/magicOrm/orm/inline_reference_test.go)与[并发持久验证](~/codespace/magicOrm/orm/inline_reference_database_test.go) | 离线＋隔离 PostgreSQL |
+| 条件写与精确行锁 | [条件写和引用筛选](~/codespace/magicOrm/orm/inline_reference_test.go)与[事务行锁](~/codespace/magicOrm/orm/conditional_lock_test.go) | 离线；Base 行锁专项另见实施证据 |
+| Schema 预检、检查与恢复 | [物理 DDL 用例](~/codespace/magicOrm/orm/schema_ddl_postgres_test.go)与[恢复失败路径](~/codespace/magicOrm/orm/schema_repair_test.go) | 隔离 PostgreSQL＋离线 |
+| 独立 ValidationManager | [完整调用和配置回归](~/codespace/magicOrm/validation/effective_config_test.go) | 离线 |
+
+在同一专属夹具中只执行某个数据库样例，可用：
 
 ```bash
-go test -tags mysql ./test --count 1
+cd ~/codespace/magicOrm
+./scripts/integration_postgres.sh go test ./test -run '^TestSimpleRemote$' -count=1 -v
 ```
 
-时，`test` 包会切换为 MySQL 配置。
-
-当前发布验证以 PostgreSQL 为目标。MySQL 的 builder 和既有测试入口仍保留，但本轮不新增 MySQL 集成验证或兼容性调整。
-
----
-
-## 3. 推荐执行方式
-
-### 3.1 纯单元/无数据库
-
-适合本地快速验证绝大部分代码语义：
-
-```bash
-go test ./database/... ./metrics/... ./models ./orm ./provider/... ./validation/... ./test/consistency --count 1
-```
-
-如果只想验证某条主线：
-
-```bash
-go test ./provider/remote ./provider/helper ./orm ./test/consistency --count 1
-go test ./metrics/... --count 1
-go test ./validation/... --count 1
-```
-
-仓库根目录也提供了一个便捷脚本：
-
-```bash
-./unit_test.sh
-```
-
-### 3.2 PostgreSQL 集成测试
-
-在本机 PostgreSQL 已准备好时执行：
-
-```bash
-go test ./test --count 1
-./integration_test.sh
-```
-
-如果只想跑 Local 集成测试，可以使用：
-
-```bash
-./local_test.sh
-```
-
-或直接全量：
-
-```bash
-go test ./... --count 1
-```
-
-### 3.3 MySQL 集成测试
-
-在本机 MySQL 已准备好时执行：
-
-```bash
-go test -tags mysql ./test --count 1
-```
-
-如果只想跑 Remote 集成测试，可以使用：
-
-```bash
-./remote_test.sh
-```
-
-如果要切换到 MySQL 变体，可以把参数继续传给脚本：
-
-```bash
-./local_test.sh -tags mysql
-./remote_test.sh -tags mysql
-```
-
----
-
-## 4. `test` 包内容分组
-
-命名约定：
-
-- Local 集成测试优先使用 `TestLocal...`
-- Remote 集成测试优先使用 `TestRemote...`
-- `local_test.sh` / `remote_test.sh` 会在这两个前缀基础上兼容少量历史入口名
-
-### 4.1 Local 集成测试
-
-主要文件：
-
-- `optional_local_test.go`
-- `reference_crud_local_test.go`
-- `query_local_test.go`
-- `reference_local_test.go`
-- `compose_local_test.go`
-- `group_local_test.go`
-- `user_local_test.go`
-- `system_local_test.go`
-- `batch_query_local_test.go`
-- `store_local_test.go`
-- `transaction_local_test.go`
-- `unit_local_test.go`
-- `update_relation_diff_local_test.go`
-- `constraint_local_test.go`
-- `edge_case_local_test.go`
-- `nested_local_test.go`
-- `performance_local_test.go`
-
-特点：
-
-- 使用 `provider.NewLocalProvider(...)`
-- 真实创建/删除表
-- 覆盖 Local + ORM + DB executor 路径
-
-### 4.2 Remote 集成测试
-
-主要文件：
-
-- `reference_crud_remote_test.go`
-- `query_remote_test.go`
-- `reference_remote_test.go`
-- `compose_remote_test.go`
-- `group_remote_model_test.go`
-- `user_remote_model_test.go`
-- `system_remote_model_test.go`
-- `batch_query_remote_model_test.go`
-- `policy_remote_test.go`
-- `store_remote_test.go`
-- `unit_remote_test.go`
-- `constraint_remote_test.go`
-- `partner_remote_test.go`
-
-特点：
-
-- 使用 `provider.NewRemoteProvider(...)`
-- 仍然依赖真实数据库
-- 覆盖 Remote Object/ObjectValue -> ORM -> DB 的端到端链路
-
-注意：
-
-- 这里的 “Remote” 不是外部网络依赖，而是 remote provider 运行时模型。
-- 因此它们仍然属于数据库集成测试。
-
-### 4.3 `test/consistency`
-
-这部分不依赖数据库，主要覆盖：
-
-- Local/Remote 类型映射
-- helper 往返
-- JSON 编解码
-- ObjectValue/SliceObjectValue 一致性
-- 设计文档与实现的一致性验证
-
-适合作为没有数据库环境时的稳定回归入口。
-
----
-
-## 5. 常见失败含义
-
-### 5.1 `dial tcp 127.0.0.1:5432 ...`
-
-说明：
-
-- 默认 PostgreSQL 集成测试正在运行
-- 当前环境无法访问本机 PostgreSQL
-
-处理方式：
-
-- 启动本机 PostgreSQL，并准备 `testdb/postgres/rootkit`
-- 或只跑无数据库测试
-- 或切换到 MySQL：
-  `go test -tags mysql ./test --count 1`
-
-### 5.2 `pq: ...` / MySQL SQL 错误
-
-说明：
-
-- 集成测试已经连上数据库
-- 当前是 schema/SQL/数据语义问题，而不是测试环境缺库
-
-优先检查：
-
-- 最近是否调整了 builder、codec、update/query/insert/delete runner
-- 当前数据库是否存在上轮残留表或脏数据
-
-### 5.3 `provider/local` 或 `provider/remote` 单测失败
-
-说明：
-
-- 通常是 Model/Value/Object/ObjectValue 语义发生变化
-- 这类失败优先看 provider 层，不要先怀疑数据库
-
----
-
-## 6. 协作建议
-
-- 日常开发优先跑“无数据库”集合，保证反馈快。
-- 改动 ORM runner、database builder、integration 路径时，再补跑 `./test`。
-- 日常也可以直接使用仓库根目录脚本：
-  - `./unit_test.sh`
-  - `./integration_test.sh`
-  - `./local_test.sh`
-  - `./remote_test.sh`
-- 提交前如果只改了 provider/helper/validation/metrics，通常不需要先跑完整数据库集成测试。
-- 如果要贴测试失败日志，先说明执行的是哪条命令，以及是否启用了 `-tags mysql`。
-
----
-
-## 7. 当前边界
-
-- `test` 包当前没有再细分成独立的 `db-integration` 包或 build tag。
-- `go test ./...` 仍然会把集成测试和单元测试一起跑。
-- 当前仓库默认数据库选择是 PostgreSQL；MySQL 只在显式 `-tags mysql` 时启用。
+测试包包含共享模型与辅助函数，应通过上述包级命令运行，不单独 go run 某个测试文件。测试负责可销毁夹具中的结构与数据，普通生产接入不可照搬 Drop 初始化步骤。

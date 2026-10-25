@@ -81,35 +81,10 @@ func NewValidationFactory() ValidationFactory {
 
 // CreateValidationManager creates a new validation manager with given configuration
 func (f *validationFactoryImpl) CreateValidationManager(config ValidationConfig) ValidationManager {
-	// Create validators
-	typeValidator := f.CreateTypeValidator()
-	constraintValidator := f.CreateConstraintValidator(config.EnableCaching)
-	databaseValidator := f.CreateDatabaseValidator()
-	scenarioAdapter := f.CreateScenarioAdapter()
-
-	// Create manager
-	manager := &validationManagerImpl{
-		typeValidator:       typeValidator,
-		constraintValidator: constraintValidator,
-		databaseValidator:   databaseValidator,
-		scenarioAdapter:     scenarioAdapter,
-		enabledLayers:       make(map[ValidationLayer]bool),
-		config:              config,
-		stats:               newValidationStats(),
-	}
-
-	// Enable layers based on config
-	if config.EnableTypeValidation {
-		manager.enabledLayers[LayerType] = true
-	}
-	if config.EnableConstraintValidation {
-		manager.enabledLayers[LayerConstraint] = true
-	}
-	if config.EnableDatabaseValidation {
-		manager.enabledLayers[LayerDatabase] = true
-	}
-	if config.EnableScenarioAdaptation {
-		manager.enabledLayers[LayerScenario] = true
+	manager := NewValidationManager(config).(*validationManagerImpl)
+	manager.typeValidator = f.CreateTypeValidator()
+	for key, handler := range f.customConstraints {
+		_ = manager.RegisterCustomConstraint(key, handler)
 	}
 
 	return manager

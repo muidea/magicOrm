@@ -1,9 +1,9 @@
 # 模型与查询设计
 
-**功能块**：`models/`  
-**依据**：`models/model.go`、`models/filter.go`、`models/constraint.go`、`models/field.go`、`models/const.go`。
+**功能块**：`~/codespace/magicOrm/models`
+**依据**：`~/codespace/magicOrm/models/model.go`、`~/codespace/magicOrm/models/filter.go`、`~/codespace/magicOrm/models/constraint.go`、`~/codespace/magicOrm/models/field.go`、`~/codespace/magicOrm/models/const.go`。
 
-[← 返回设计文档索引](README.md)
+[← 返回设计文档索引](~/codespace/magicOrm/docs/README.md)
 
 ---
 
@@ -17,10 +17,10 @@
 | Interface(ptrValue bool) | 转成原始实体指针/值；ptrValue 为 true 时返回指针，为 false 时返回值；用于从 Model 取回原始 struct。 |
 | Copy(viewSpec ViewDeclare) | 按视图复制 Model：返回一个新的 Model 实例，字段/元信息为浅拷贝；字段值保持原有引用/切片语义（不会深度复制嵌套/关系对象），仅根据视图裁剪「参与本次操作的字段集合」。 |
 | Reset() | 重置 |
- 
-当前实现中，`Copy` 的主要用途是：  
-- 在 Provider 内部构造只包含特定视图字段的 Model（如 MetaView/DetailView/LiteView）；  
-- 在 Query/BatchQuery 前避免直接修改调用方传入的 Model（实现中会对传入 Model 做一次 `Copy(OriginView)`）。  
+
+当前实现中，`Copy` 的主要用途是：
+- 在 Provider 内部构造只包含特定视图字段的 Model（如 MetaView/DetailView/LiteView）；
+- 在 Query/BatchQuery 前避免直接修改调用方传入的 Model（实现中会对传入 Model 做一次 `Copy(OriginView)`）。
 `Copy` 不改变底层表结构，也不会创建全新的「深度分离」对象图，如需完全独立的数据副本需在业务层自行实现。
 
 ---
@@ -48,17 +48,17 @@
 - **访问行为**：`req`（必填）、`ro`（只读）、`wo`（只写）。
 - **内容值**：`min`、`max`、`range`、`in`、`re`（正则）。
 
-约束在验证系统中使用，见 [design-validation.md](design-validation.md)。完整标签语法见 [tags-reference.md](tags-reference.md)。
+约束在验证系统中使用，见 [design-validation.md](~/codespace/magicOrm/docs/design-validation.md)。完整标签语法见 [tags-reference.md](~/codespace/magicOrm/docs/tags-reference.md)。
 
 ### 3.1 主键与值声明
 
 - **主键**：通过 orm 标签 `key` 指定，一个模型有且仅有一个主键字段。
 - **值声明**：当前实现支持 `auto`、`uuid`、`snowflake`、`datetime` 四类 `ValueDeclare`。
-- **插入时填充**：`Orm.Insert` 在 basic 字段为零值时，会分别填充自增主键回写值、UUID、雪花 ID 或当前时间；详见 [type-mapping.md](type-mapping.md)、[tags-reference.md](tags-reference.md)。
+- **插入时填充**：`Orm.Insert` 在 basic 字段为零值时，会分别填充自增主键回写值、UUID、雪花 ID 或当前时间；详见 [type-mapping.md](~/codespace/magicOrm/docs/type-mapping.md)、[tags-reference.md](~/codespace/magicOrm/docs/tags-reference.md)。
 
 ### 3.2 Schema 声明
 
-`models.UniqueConstraint` 与 `models.Index` 是模型级 schema 元数据：均包含稳定名称与按顺序排列的基础字段名。当前由 dynamic remote `Object` 通过 `uniqueConstraints`、`indexes` JSON 字段承载；普通 Go struct 的 `constraint:` 标签仍只负责值验证，不声明数据库唯一键或索引。
+`models.UniqueConstraint` 与 `models.Index` 是模型级 schema 元数据：均包含稳定名称与有序字段列表。唯一声明接受基础字段和单值指针引用，普通索引接受基础字段；dynamic remote Object 通过 uniqueConstraints/indexes 承载。Local struct 可实现 GetUniqueConstraints 声明唯一；标准 Local 模型未暴露 GetIndexes。constraint 标签只负责值验证，不声明数据库唯一键或索引。
 
 声明会在模型注册时校验：名称、字段名必须是标识符，字段必须存在且不能重复。`GetUniqueConstraints` / `GetIndexes` 返回防御性副本，调用方不能在注册后借由返回值篡改 schema。
 
@@ -86,7 +86,7 @@
 - **性能说明**：当前实现先修正“最终返回字段语义”，尚未把 SQL `SELECT` 列完全裁剪到与 `ValueMask/View` 一致；因此该机制首先解决返回契约问题，而不是直接优化数据库读列数。
 - **隐式查询条件**：`Query(model)` 仍会把模型中的已赋值字段转成查询条件；但切片字段（如 `[]string`、`[]struct`、`[]*struct`）默认不再自动参与隐式条件构造，避免业务代码用空切片表达“我要返回这个字段”时被误翻译成 `WHERE`。需要按切片字段过滤时，应显式使用 `Filter.In(...)` / `Filter.NotIn(...)` 等操作符。
 - **限制**：当前本地/远端视图 tag 解析稳定支持的视图标签值只有 `detail` 和 `lite`；其它值不会成为稳定的 struct tag 输入，写入 tag 时会被忽略。运行时内部仍保留 `origin`、`meta` 两类内部视图。
-- **限制**：视图不改变表结构，仅影响内存中 Model 的字段子集与序列化结果。支持的基础类型与映射见 [type-mapping.md](type-mapping.md)。关联关系（一对一、一对多、多对多）见 [design-relation.md](design-relation.md)。
+- **限制**：视图不改变表结构，仅影响内存中 Model 的字段子集与序列化结果。支持的基础类型与映射见 [type-mapping.md](~/codespace/magicOrm/docs/type-mapping.md)。关联关系（一对一、一对多、多对多）见 [design-relation.md](~/codespace/magicOrm/docs/design-relation.md)。
 
 ---
 

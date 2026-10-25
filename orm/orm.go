@@ -65,6 +65,7 @@ var (
 	name2PoolUninitializedOnce sync.Once
 	name2LastPoolStats         sync.Map
 	validationManagerPool      sync.Pool
+	ownerPoolLocks             [64]sync.Mutex
 
 	ormMetricProvider  *metricsorm.ORMMetricProvider
 	ormMetricCollector *metricsorm.ORMMetricsCollector
@@ -129,7 +130,11 @@ func releaseValidationManager(manager validation.ValidationManager) {
 		return
 	}
 
-	manager.ResetStats()
+	if resettable, ok := manager.(interface{ Reset() }); ok {
+		resettable.Reset()
+	} else {
+		return
+	}
 	validationManagerPool.Put(manager)
 }
 
@@ -227,14 +232,28 @@ func Uninitialized() {
 	})
 }
 
+func ownerPoolLock(owner string) *sync.Mutex {
+	var hash uint64
+	for _, value := range owner {
+		hash = hash*131 + uint64(value)
+	}
+	return &ownerPoolLocks[hash%uint64(len(ownerPoolLocks))]
+}
+
 func AddDatabase(dbServer, dbName, schemaName, username, password string, maxConnNum int, owner string) (err *cd.Error) {
+	lock := ownerPoolLock(owner)
+	lock.Lock()
+	defer lock.Unlock()
 	config := NewConfig(dbServer, dbName, schemaName, username, password)
 
 	val, ok := name2Pool.Load(owner)
 	if ok {
 		pool := val.(database.Pool)
-		pool.IncReference()
 		err = pool.CheckConfig(config)
+		if err != nil {
+			return err
+		}
+		pool.IncReference()
 		logPoolStats(owner, "reuse_pool", pool, true)
 		return
 	}
@@ -253,6 +272,9 @@ func AddDatabase(dbServer, dbName, schemaName, username, password string, maxCon
 }
 
 func DelDatabase(owner string) {
+	lock := ownerPoolLock(owner)
+	lock.Lock()
+	defer lock.Unlock()
 	val, ok := name2Pool.Load(owner)
 	if !ok {
 		return
@@ -340,6 +362,9 @@ type impl struct {
 
 // BeginTransaction begin transaction
 func (s *impl) BeginTransaction() (err *cd.Error) {
+	if s == nil || s.executor == nil {
+		return cd.NewError(cd.InvalidOperation, "transaction requires an available ORM executor")
+	}
 	if s.executor != nil {
 		err = s.executor.BeginTransaction()
 		if err != nil {
@@ -358,6 +383,9 @@ func (s *impl) BeginTransaction() (err *cd.Error) {
 
 // CommitTransaction commit transaction
 func (s *impl) CommitTransaction() (err *cd.Error) {
+	if s == nil || s.executor == nil {
+		return cd.NewError(cd.InvalidOperation, "transaction requires an available ORM executor")
+	}
 	if s.executor != nil {
 		err = s.executor.CommitTransaction()
 		if err != nil {
@@ -376,6 +404,9 @@ func (s *impl) CommitTransaction() (err *cd.Error) {
 
 // RollbackTransaction rollback transaction
 func (s *impl) RollbackTransaction() (err *cd.Error) {
+	if s == nil || s.executor == nil {
+		return cd.NewError(cd.InvalidOperation, "transaction requires an available ORM executor")
+	}
 	if s.executor != nil {
 		err = s.executor.RollbackTransaction()
 		if err != nil {
@@ -480,4 +511,13 @@ func (s *impl) ConfigureValidation(config validation.ValidationConfig) error {
 	s.validationMgr = factory.CreateValidationManager(config)
 	s.validationCache = config.EnableCaching
 	return nil
+}
+
+// OwnerPoolStats returns a read-only pool snapshot, never a database handle.
+func OwnerPoolStats(owner string) (database.PoolStats, bool) {
+	value, ok := name2Pool.Load(owner)
+	if !ok {
+		return database.PoolStats{}, false
+	}
+	return value.(database.Pool).GetStats(), true
 }

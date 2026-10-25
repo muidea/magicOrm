@@ -1,9 +1,9 @@
 # Provider 层设计
 
-**功能块**：`provider/`  
-**依据**：`provider/provider.go` 中 `Provider` 接口。
+**功能块**：`~/codespace/magicOrm/provider`
+**依据**：`~/codespace/magicOrm/provider/provider.go` 中 `Provider` 接口。
 
-[← 返回设计文档索引](README.md)
+[← 返回设计文档索引](~/codespace/magicOrm/docs/README.md)
 
 ---
 
@@ -32,10 +32,10 @@
 
 | 实现 | 包路径 | 说明 |
 |------|--------|------|
-| **Local** | `provider/local` | 基于反射与本地类型信息，用于单进程、直连数据库。 |
-| **Remote** | `provider/remote` | 用于通过远程服务访问模型的场景。详见 [design-remote-provider.md](design-remote-provider.md)。 |
+| **Local** | `~/codespace/magicOrm/provider/local` | 基于反射与本地类型信息，用于单进程、直连数据库。 |
+| **Remote** | `~/codespace/magicOrm/provider/remote` | 动态 Object/ObjectValue 模型载体；不内置 RPC/HTTP 客户端。详见 [design-remote-provider.md](~/codespace/magicOrm/docs/design-remote-provider.md)。 |
 
-测试中通过 `localProvider` / `remoteProvider` 区分。Orm 创建时需传入 Provider，用于获取 Model、Filter 等，见 [design-orm.md](design-orm.md) 与 [design-models.md](design-models.md)。
+测试中通过 `localProvider` / `remoteProvider` 区分。Orm 创建时需传入 Provider，用于获取 Model、Filter 等，见 [design-orm.md](~/codespace/magicOrm/docs/design-orm.md) 与 [design-models.md](~/codespace/magicOrm/docs/design-models.md)。
 
 ### 2.1 Provider 选择指南
 
@@ -43,14 +43,14 @@
   - 当前本地 `ValueImpl` 也支持显式赋值状态：可以区分“未赋值”“显式赋值为零值”“显式赋值为 typed nil”。
   - 这套能力在通过 `Model.Copy(models.MetaView)` + `SetFieldValue(...)` 构造 patch 时生效。
   - 直接从原始 Go struct 做 `GetEntityModel(...)` 时，框架仍然只能从反射结果推断赋值状态，因此原始 struct 本身仍不能可靠区分“字段未提供”和“字段就是 nil”。
-- **Remote**：通过远程服务访问模型数据；当前仓库内的运行时模型以 `Object` / `ObjectValue` / `SliceObjectValue` 为核心，VMI JSON 为事实样例，详细语义见 [design-remote-provider.md](design-remote-provider.md)。Remote 的外部通讯协议仍未单独文档化。
+- **Remote**：由动态声明管理模型与值，网络传输由上层完成；当前仓库内的运行时模型以 `Object` / `ObjectValue` / `SliceObjectValue` 为核心，VMI JSON 为事实样例，详细语义见 [design-remote-provider.md](~/codespace/magicOrm/docs/design-remote-provider.md)。Remote Provider 本身不定义外部通讯协议。
 
 ### 2.2 错误处理
 
-- Provider 层方法返回 `*cd.Error`，常见为 `IllegalParam`（如 entity/model 为 nil、类型不合法）。完整错误码见 [error-codes.md](error-codes.md)。
+- Provider 层方法返回 `*cd.Error`，常见为 `IllegalParam`（如 entity/model 为 nil、类型不合法）。完整错误码见 [error-codes.md](~/codespace/magicOrm/docs/error-codes.md)。
 
 ### 2.3 本地字段排除
 
-`orm:"-"` 在反射类型检查和字段映射之前生效，规则对任何应用均相同。排除字段不进入 Model、视图、DDL 图或 CRUD；其关联类型不需要注册。`json:"-"` 独立控制 JSON，不能代替 ORM 排除。完整语义见 [标签参考](tags-reference.md#15-忽略字段)。
+`orm:"-"` 在反射类型检查和字段映射之前生效，规则对任何应用均相同。排除字段不进入 Model、视图、DDL 图或 CRUD；其关联类型不需要注册。`json:"-"` 独立控制 JSON，不能代替 ORM 排除。完整语义见 [标签参考](~/codespace/magicOrm/docs/tags-reference.md#15-忽略字段)。
 
 回归必须检查实际 Model 中不存在名为 `-` 的字段，并通过未注册被排除关联类型的真实 Create 图验证。仅检查字段的原 Go 名称或改变模型注册顺序，不能证明已排除持久化关系。

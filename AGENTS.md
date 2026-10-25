@@ -25,7 +25,7 @@ For model, DTO, lifecycle, recovery or cleanup changes, read [Workspace Boundary
 go build ./...
 
 # Run all tests (PostgreSQL default)
-go test ./...
+go test ./... # offline by default; integration tests skip
 
 # Run MySQL tests
 go test -tags=mysql ./...
@@ -140,13 +140,16 @@ type User struct {
 
 ### Basic Usage
 ```go
-import "github.com/muidea/magicOrm/validation"
+import (
+ "github.com/muidea/magicOrm/validation"
+ verrors "github.com/muidea/magicOrm/validation/errors"
+)
 
 config := validation.DefaultConfig()
 manager := validation.NewValidationManager(config)
 
 ctx := validation.NewContext(
-    validation.ScenarioInsert,
+    verrors.ScenarioInsert,
     validation.OperationCreate,
     model,
     "postgresql",
@@ -186,3 +189,5 @@ err := manager.ValidateModel(model, ctx)
 - [README.md](~/codespace/magicOrm/README.md) - Comprehensive documentation
 - [test/](~/codespace/magicOrm/test) - Integration tests and examples
 - [database/](~/codespace/magicOrm/database) - Database implementations
+
+Real database tests require explicit disposable magicorm_test_ targets; run `~/codespace/magicOrm/scripts/integration_postgres.sh` for an owned PostgreSQL fixture. Never use shared/default databases or replication/GRANT tests.

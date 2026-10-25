@@ -11,6 +11,7 @@ import (
 )
 
 func TestConstraintRemote(t *testing.T) {
+	requireIntegration(t)
 	orm.Initialize()
 	defer orm.Uninitialized()
 
@@ -18,11 +19,11 @@ func TestConstraintRemote(t *testing.T) {
 	remoteProvider := provider.NewRemoteProvider("constraint_remote", validator)
 
 	o1, err := orm.NewOrm(remoteProvider, config, "constraint_test")
-	defer o1.Release()
 	if err != nil {
 		t.Errorf("new Orm failed, err:%s", err.Error())
 		return
 	}
+	defer o1.Release()
 
 	// 注册模型
 	objList := []any{&ConstraintTestModel{}, &ContentConstraintTestModel{}}

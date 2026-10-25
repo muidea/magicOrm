@@ -2,7 +2,7 @@
 
 **依据**：`github.com/muidea/magicCommon/def` 包中 `Code` 与 `Error` 类型；magicOrm 各层使用约定。
 
-[← 返回设计文档索引](README.md)
+[← 返回设计文档索引](~/codespace/magicOrm/docs/README.md)
 
 ---
 
@@ -67,7 +67,7 @@ magicOrm 统一使用 **magicCommon/def** 的 `*cd.Error` 与 `cd.Code`，不单
 
 ## 4. 验证系统错误
 
-验证层（`validation/`）失败时，通过 `validation/errors` 包装为 `*cd.Error`：
+验证层（`~/codespace/magicOrm/validation`）失败时，通过 `~/codespace/magicOrm/validation/errors` 包装为 `*cd.Error`：
 - 类型层、约束层、场景层错误默认映射为 **IllegalParam**
 - 数据库层错误映射为 **DatabaseError**
 - 多字段错误会聚合为单个 `IllegalParam`，消息形如 `Multiple validation errors: fieldA (1), fieldB (2)`
@@ -76,5 +76,5 @@ magicOrm 统一使用 **magicCommon/def** 的 `*cd.Error` 与 `cd.Code`，不单
 
 ## 5. 参考
 
-- 错误类型定义：项目依赖的 `vendor/github.com/muidea/magicCommon/def/result.go`。
+- 错误类型定义：项目依赖的 `~/codespace/magicOrm/vendor/github.com/muidea/magicCommon/def/result.go`。
 - 各模块用法：`orm/*.go`、`provider/**/*.go`、`validation/**/*.go` 中的 `cd.NewError` 调用。

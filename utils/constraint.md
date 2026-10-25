@@ -1,6 +1,6 @@
 # Constraint 标签解析规则手册 (Specification)
 
-与主文档 [README 约束系统](../README.md) 及 [docs/design-models.md](../docs/design-models.md) 附录中的约束 Key 一致。
+与主文档 [README 约束系统](~/codespace/magicOrm/README.md) 及 [docs/design-models.md](~/codespace/magicOrm/docs/design-models.md) 附录中的约束 Key 一致。
 
 ## 1. 语法规范 (Syntax)
 

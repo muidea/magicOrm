@@ -16,7 +16,7 @@ type Simple struct {
 	Flag      bool      `orm:"flag"`
 }
 
-``` 
+```
 
 ## 包含&引用
 
@@ -146,14 +146,14 @@ sModelList := []models.Model{}
 for idx:=0; idx<100; idx++ {
     sVal.I32 = int32(idx)
     sValList = append(sValList, &sVal)
-    
+
     sModel,sErr := provider.GetEntityModel(&sVal)
     if sErr != nil {
         err = sErr
         t.Errorf("GetEntityModel failed. err:%s", err.Error())
         return
     }
-    
+
     sModelList = append(sModelList, sModel)
 }
 
@@ -164,7 +164,7 @@ for idx:=0; idx<100; idx++ {
         t.Errorf("Insert failed. err:%s", err.Error())
         return
     }
-    
+
     sModelList[idx] = vModel
     sValList[idx] = vModel.Interface(true,0).(*Simple)
 }
@@ -179,7 +179,7 @@ for idx:=0; idx<100; idx++ {
         t.Errorf("GetEntityModel failed. err:%s", err.Error())
         return
     }
-    
+
     sModelList[idx] = sModel
 }
 for idx:=0; idx<100; idx++ {
@@ -189,7 +189,7 @@ for idx:=0; idx<100; idx++ {
         t.Errorf("Update failed. err:%s", err.Error())
         return
     }
-    
+
     sModelList[idx] = vModel
     sValList[idx] = vModel.Interface(true,0).(*Simple)
 }
@@ -200,14 +200,14 @@ qModelList := []models.Model{}
 for idx:=0; idx<100; idx++ {
     qVal := &Simple{ID: sValList[idx].ID}
     qValList = append(qValList, qVal)
-    
+
     qModel,qErr := provider.GetEntityModel(qVal)
     if qErr != nil {
         err = qErr
         t.Errorf("GetEntityModel failed. err:%s", err.Error())
         return
     }
-    
+
     qModelList = append(qModelList, qModel)
 }
 
@@ -218,7 +218,7 @@ for idx:=0; idx<100; idx++ {
         t.Errorf("Query failed. err:%s", err.Error())
         return
     }
-    
+
     qModelList[idx] = qModel
     qValList[idx] = qModel.Interface(true,0).(*Simple)
 }

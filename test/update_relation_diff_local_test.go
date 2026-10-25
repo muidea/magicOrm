@@ -12,15 +12,16 @@ import (
 
 // TestUpdateRelationDiffReference 验证引用关系 Update 按差异增量更新：只增删链接，不删除关联实体
 func TestUpdateRelationDiffReference(t *testing.T) {
+	requireIntegration(t)
 	orm.Initialize()
 	defer orm.Uninitialized()
 
 	localProvider := provider.NewLocalProvider("updateRelationDiff", nil)
 	o1, err := orm.NewOrm(localProvider, config, "abc")
-	defer o1.Release()
 	if err != nil {
 		t.Fatalf("new Orm failed: %v", err)
 	}
+	defer o1.Release()
 
 	entityList := []any{&Simple{}, &Reference{}, &Compose{}}
 	modelList, modelErr := registerLocalModel(localProvider, entityList)
@@ -128,15 +129,16 @@ func TestUpdateRelationDiffReference(t *testing.T) {
 
 // TestUpdateRelationDiffReferencePartial 引用切片：部分替换（[r1,r2] -> [r2,r3]），仅删 r1 链接、插 r3 链接
 func TestUpdateRelationDiffReferencePartial(t *testing.T) {
+	requireIntegration(t)
 	orm.Initialize()
 	defer orm.Uninitialized()
 
 	localProvider := provider.NewLocalProvider("updateRelationDiffPartial", nil)
 	o1, err := orm.NewOrm(localProvider, config, "abc")
-	defer o1.Release()
 	if err != nil {
 		t.Fatalf("new Orm failed: %v", err)
 	}
+	defer o1.Release()
 
 	entityList := []any{&Simple{}, &Reference{}, &Compose{}}
 	modelList, modelErr := registerLocalModel(localProvider, entityList)
@@ -284,6 +286,7 @@ func makeReference(ts time.Time, name string, fVal float32, f64 float64) Referen
 
 // TestUpdateRelationR1ReferenceSingleAdd 场景 R1：引用单值新增（nil → Author1），关系表新增 1 行，实体不变
 func TestUpdateRelationR1ReferenceSingleAdd(t *testing.T) {
+	requireIntegration(t)
 	o1, localProvider, _, s1, r1, _ := setupUpdateRelationDiffEnv(t, "updateR1")
 	defer o1.Release()
 	defer orm.Uninitialized()
@@ -338,6 +341,7 @@ func TestUpdateRelationR1ReferenceSingleAdd(t *testing.T) {
 // TestUpdateRelationR3ReferenceSingleClear 场景 R3：引用单值清空（Author1 → nil），关系表删行，Author1 仍在库中
 // 语义：slice 类型 nil=未赋值、[]=已赋值；故 ReferencePtr=nil 与 ReferencePtrArray=[] 均会触发 updateRelation 并清空对应链接。
 func TestUpdateRelationR3ReferenceSingleClear(t *testing.T) {
+	requireIntegration(t)
 	o1, localProvider, _, s1, r1, _ := setupUpdateRelationDiffEnv(t, "updateR3")
 	defer o1.Release()
 	defer orm.Uninitialized()
@@ -394,6 +398,7 @@ func TestUpdateRelationR3ReferenceSingleClear(t *testing.T) {
 
 // TestUpdateRelationR4ReferenceSingleUnchanged 场景 R4：引用单值不变，Update 前后相同，结果仍正确
 func TestUpdateRelationR4ReferenceSingleUnchanged(t *testing.T) {
+	requireIntegration(t)
 	o1, localProvider, _, s1, r1, _ := setupUpdateRelationDiffEnv(t, "updateR4")
 	defer o1.Release()
 	defer orm.Uninitialized()
@@ -438,6 +443,7 @@ func TestUpdateRelationR4ReferenceSingleUnchanged(t *testing.T) {
 // TestUpdateRelationR7ReferenceSliceClear 场景 R7：引用切片清空（[T1,T2] → []），关系表删 2 行，T1/T2 仍在库中
 // 语义：[] 视为已赋值（size 0），会触发 updateRelation 并删除关系表中对应链接。
 func TestUpdateRelationR7ReferenceSliceClear(t *testing.T) {
+	requireIntegration(t)
 	o1, localProvider, _, s1, r1, r2 := setupUpdateRelationDiffEnv(t, "updateR7")
 	defer o1.Release()
 	defer orm.Uninitialized()
@@ -492,6 +498,7 @@ func TestUpdateRelationR7ReferenceSliceClear(t *testing.T) {
 
 // TestUpdateRelationR8ReferenceSliceUnchanged 场景 R8：引用切片完全相同，Update 后结果仍为 [T1,T2]
 func TestUpdateRelationR8ReferenceSliceUnchanged(t *testing.T) {
+	requireIntegration(t)
 	o1, localProvider, _, s1, r1, r2 := setupUpdateRelationDiffEnv(t, "updateR8")
 	defer o1.Release()
 	defer orm.Uninitialized()
@@ -540,6 +547,7 @@ func TestUpdateRelationR8ReferenceSliceUnchanged(t *testing.T) {
 
 // TestUpdateRelationC1ContainReplace 场景 C1：包含关系以新换旧，旧关联实体被删除，新关联实体被创建
 func TestUpdateRelationC1ContainReplace(t *testing.T) {
+	requireIntegration(t)
 	o1, localProvider, ts, s1, r1, _ := setupUpdateRelationDiffEnv(t, "updateC1")
 	defer o1.Release()
 	defer orm.Uninitialized()

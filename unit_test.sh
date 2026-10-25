@@ -1,17 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
 export GOCACHE="${GOCACHE:-/tmp/magicorm-gocache}"
-export GOFLAGS="${GOFLAGS:--mod=mod}"
-
-go test \
-  -count 1 \
-  ./database/... \
-  ./metrics/... \
-  ./models \
-  ./orm \
-  ./provider/... \
-  ./utils \
-  ./validation/... \
-  ./test/consistency \
-  "$@"
+# Integration tests remain visible as skips in the default full package set.
+unset MAGICORM_INTEGRATION_ALLOW MAGICORM_DATETIME_TEST_ALLOW MAGICORM_INLINE_REFERENCE_TEST_ALLOW
+go test -count=1 ./... "$@"

@@ -1,6 +1,6 @@
 # Remote 数据结构说明（Remote Provider）
 
-总体设计见 [docs/design-provider.md](../../docs/design-provider.md)。本文档说明 Remote 端数据结构与序列化。
+总体设计见 [docs/design-provider.md](~/codespace/magicOrm/docs/design-provider.md)。本文档说明 Remote 端数据结构与序列化。
 
 ## Object 数据模型
 
@@ -257,7 +257,7 @@ ObjectFilter描述模型对象值过滤条件，模型对象值过滤使用json�
  2. NotInFilter 排除过滤，属性值不在条件集合
 
 * 模糊匹配过滤
- 
+
  1. LikeFilter 模糊匹配过滤，使用通配符进行模式匹配（*代表任意字符）
 
 * MaskValue 字段掩码，控制返回字段的白名单，MaskValue数据格式为ObjectValue
