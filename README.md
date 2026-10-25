@@ -17,6 +17,7 @@ Golang对象的ORM框架，支持PostgreSQL和MySQL数据库。一个所见即�
 - **视图模式**: 支持detail/lite视图控制字段输出
 - **事务支持**: 完整的ACID事务处理
 - **条件更新**: 单 SQL compare-and-set 更新并返回影响行数
+- **PostgreSQL 冲突分类**：唯一约束冲突返回 `Duplicated`，序列化失败／死锁返回 `VersionConflict`；连接丢失等未知结果仍返回 `Unexpected`。ORM 不自动重试，由业务 owner 结束失败事务、回查原事实并决定后续处理。
 - **追加式读计划**: `models.WithReadQueryPlan` 保留旧 Filter 条件并以 AND 追加封闭标量表达式，支持同字段双边界、复合稳定排序及混合升降序 keyset；local/remote、PostgreSQL/MySQL 共用校验。新计划行查询必须显式分页（最多 1001 行、offset 最多 10000），表达式最多 8 层/64 节点，条件更新拒绝读计划。仅属读取原语，不等于关系查询、聚合、授权游标或真实数据库已验收；合同与验证边界见[读计划规范](~/dataspace/magicPlatform/docs/technical/orm-query-processing-spec.md#9-追加式标量读计划2026-10-19源码)。
 - **服务端聚合（源码）**: 独立可选 `orm.Aggregate` 支持 count/sum/average/min/max 和最多 4 维 group，保留模型 scope 与参数化 Where；指标可携独立 Where，使用 SELECT 内参数化条件聚合，average 可请求同条件、同字段非 null 有效样本数；最多 16 指标、1000 组，超组/迭代/扫描/关闭失败/取消不返回部分结果。整数与 decimal token 不经浮点中转；默认及 mysql-tag 离线专项通过，真实数据库未验。见[聚合及正式消费者边界](~/dataspace/magicPlatform/docs/technical/orm-query-processing-spec.md#10-服务端聚合与冻结源正式消费者2026-10-19源码子集)。
 - **显式强隔离**: `orm.BeginSerializableTransaction(handler)` 在首读前建立可序列化事务；已有事务不能升级，未配套 executor 拒绝，不降级、不自动重试。PostgreSQL/MySQL 的连接与宿主 executor 均传递 `sql.LevelSerializable`，冲突及未知提交由调用 owner 回查。内存 driver 验证选项、嵌套、取消及失败恢复，不当作真实数据库并发证据。
