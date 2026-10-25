@@ -2,6 +2,8 @@
 
 默认 `go test ./... -count=1` 与 `~/codespace/magicOrm/unit_test.sh` 不连接数据库，所有数据库测试保留可见 skip。MySQL 编译路径使用 `go test -tags=mysql ./... -count=1`。`go vet ./...` 和 `go build ./...` 亦纳入 CI。完整 README 样例与可编译源文件一致性由测试校验。
 
+CI 保留轻量文档检查 `python3 scripts/check_docs.py`：文档仍使用 `~/` 开头的标准引用，本仓 `~/codespace/magicOrm` 映射到脚本所在的当前 checkout，不依赖 runner 的主目录或检出目录名。跨仓引用在目标仓库可用时检查文件存在性，仓库未检出时明确输出 `Not checked`，不能视作跨仓检查通过。完整工作区继续运行 `python3 ~/codespace/docs/scripts/check_documentation_layout.py` 核对平台正文与跨仓引用。检查脚本回归命令为 `python3 -m unittest discover -s scripts -p 'test_check_docs.py'`，同样纳入 CI。
+
 ## PostgreSQL 隔离全量
 
 ```bash

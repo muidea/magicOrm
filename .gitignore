@@ -18,5 +18,6 @@ provider/helper/serialize_test.go
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+__pycache__/
 #vendor
 !/database/mysql/demo/main.go
