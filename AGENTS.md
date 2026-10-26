@@ -114,6 +114,7 @@ type User struct {
 - Local and Remote are peer public adapters: retain both package paths, constructors, model/value/filter/codec capabilities, concrete type identities and JSON contracts. The reviewed support-package migration moves validators, caches and collectors to internal; their contracts must remain usable through public models/validation/metrics APIs. Do not expose internal types in public signatures.
 - Contracts and implementations may be organized into separate files in the same package. Add no compatibility forwarding layer unless an actual boundary requires one.
 - Run `go test ./internal/apicheck ./provider/...` after public API changes. Review the compatibility impact before updating the snapshot with `go test ./internal/apicheck -update-api`.
+- After source moves or documentation edits, run `python3 scripts/check_docs.py` as well as the workspace documentation layout checker. The repository check includes root-level implementation records and internal package documentation.
 - Do not export production setters for test state. Exercise normal registration through its public contract and unregistered startup in a separate test process.
 
 ### Testing Conventions

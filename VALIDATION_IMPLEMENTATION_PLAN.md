@@ -7,7 +7,7 @@
 | 分层职责 | 类型、值约束、数据库兼容、场景校验；不执行数据库 UNIQUE/FK 查询 | [架构](~/codespace/magicOrm/VALIDATION_ARCHITECTURE.md) |
 | 有效上下文 | 三个公开入口前置解析，Manager 默认→场景→WithOptions 完整显式快照 | [Manager](~/codespace/magicOrm/validation/manager.go) |
 | 字段赋值与适配 | ModelAdapter 保留原字段元数据，Update 遗漏字段与自增主键遵循相同合同 | [适配器](~/codespace/magicOrm/validation/adapters.go) |
-| 缓存 | Manager/Factory 配置传入约束结果缓存，滑动 TTL、容量上限、访问时过期，无自动后台任务 | [缓存](~/codespace/magicOrm/validation/cache/validation_cache.go) |
+| 缓存 | Manager/Factory 配置传入约束结果缓存，滑动 TTL、容量上限、访问时过期，无自动后台任务 | [缓存](~/codespace/magicOrm/internal/validation/cache/validation_cache.go) |
 | 生命周期 | 自定义规则注册清缓存；Reset/池化归还恢复构造配置，清空使用期状态 | [回归](~/codespace/magicOrm/validation/effective_config_test.go) |
 | 使用迁移 | 场景常量导入、WithOptions、默认场景、缓存参数与 Reset 影响 | [迁移指南](~/codespace/magicOrm/validation/MIGRATION_GUIDE.md) |
 
