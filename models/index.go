@@ -1,6 +1,9 @@
 package models
 
-import cd "github.com/muidea/magicCommon/def"
+import (
+	"fmt"
+	cd "github.com/muidea/magicCommon/def"
+)
 
 // Index declares a non-unique database index derived from a model definition.
 // It is schema metadata only; callers cannot supply arbitrary SQL fragments.
@@ -63,4 +66,34 @@ func GetIndexes(model Model) []Index {
 		ret[idx] = Index{Name: index.Name, Fields: append([]string(nil), index.Fields...)}
 	}
 	return ret
+}
+
+// VerifyModel checks the physical columns of a main-table index. Relation-table
+// fields cannot be indexed on their host; declaring an index never changes storage.
+// Registration/inspection retain Verify so old declarations remain diagnosable.
+func (s Index) VerifyModel(model Model) *cd.Error {
+	if model == nil {
+		return cd.NewError(cd.IllegalParam, "index model is unavailable")
+	}
+	if err := s.Verify(model.GetFields()); err != nil {
+		return err
+	}
+	for _, name := range s.Fields {
+		for _, field := range model.GetFields() {
+			if field != nil && field.GetName() == name && (field.GetType() == nil || !IsMainTableField(model, field)) {
+				return cd.NewError(cd.IllegalParam, fmt.Sprintf("model %s index %s field %s is not stored in the main table", model.GetPkgKey(), s.Name, name))
+			}
+		}
+	}
+	return nil
+}
+
+// ValidateIndexes is shared by authoring preflight and DDL execution.
+func ValidateIndexes(model Model) *cd.Error {
+	for _, index := range GetIndexes(model) {
+		if err := index.VerifyModel(model); err != nil {
+			return err
+		}
+	}
+	return nil
 }

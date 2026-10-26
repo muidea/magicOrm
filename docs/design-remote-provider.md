@@ -520,3 +520,9 @@ VMI 定义在当前实现中的角色：
 - MySQL / Postgres SQL builder
 
 这组回归已经覆盖 remote provider 的主运行链路，可作为后续 remote 相关知识库和回归基线。
+
+## 2026-10-26 索引与物理存储准入
+
+普通索引通过 `models.Index.VerifyModel`／`ValidateIndexes`校验实际主表列。基础列和参与合法唯一键的单值内联引用可以索引；普通引用链接表字段、包含对象和集合不能成为主表索引列。索引声明本身不改变引用的存储方式，不添加业务唯一性。PostgreSQL／MySQL建表、增量索引和ORM创建／增量／修复执行共同消费规则；多步骤DDL在完整预检后执行。
+
+`Index.Verify`、注册和 `SchemaTables`／`InspectSchema`的只读表图仍允许检查旧声明，不能把旧非法索引先变合法作为诊断前置。`ValidateSchema`及实际创建预检执行严格规则。ORM只提供结构事实，不识别平台安装、Schema日志或终结政策。隔离PostgreSQL覆盖合法内联索引实际建成、非法引用索引无部分建表及旧定义只读检查；不代表平台Live验收。

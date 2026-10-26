@@ -35,8 +35,22 @@ type schemaGraph struct {
 // ValidateSchema validates a declaration without opening a database connection.
 // It does not establish that the physical schema exists or matches the model.
 func ValidateSchema(ctx context.Context, model models.Model, p provider.Provider, prefix string) *cd.Error {
-	_, err := collectSchemaGraph(ctx, model, p, codec.New(p, prefix))
-	return err
+	graph, err := collectSchemaGraph(ctx, model, p, codec.New(p, prefix))
+	if err != nil {
+		return err
+	}
+	return validateSchemaIndexes(graph)
+}
+
+func validateSchemaIndexes(graph *schemaGraph) *cd.Error {
+	for _, step := range graph.order {
+		if step.field == nil {
+			if err := models.ValidateIndexes(step.model); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // InspectSchema checks exactly the tables Create/Drop own: the host, relation

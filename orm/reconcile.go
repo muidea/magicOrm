@@ -176,6 +176,9 @@ func (s *ReconcileRunner) planReconcile() ([]database.Result, *cd.Error) {
 	if err := s.checkContext(); err != nil {
 		return nil, err
 	}
+	if err := models.ValidateIndexes(s.vModel); err != nil {
+		return nil, err
+	}
 	previousFields, err := s.checkCompatibility()
 	if err != nil {
 		return nil, err
@@ -183,7 +186,11 @@ func (s *ReconcileRunner) planReconcile() ([]database.Result, *cd.Error) {
 	if _, err = collectSchemaGraph(s.context, s.previous, s.modelProvider, s.modelCodec); err != nil {
 		return nil, err
 	}
-	if _, err = collectSchemaGraph(s.context, s.vModel, s.modelProvider, s.modelCodec); err != nil {
+	graph, err := collectSchemaGraph(s.context, s.vModel, s.modelProvider, s.modelCodec)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateSchemaIndexes(graph); err != nil {
 		return nil, err
 	}
 	statements := []database.Result{}

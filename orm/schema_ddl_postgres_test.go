@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/muidea/magicOrm/database"
+	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
 )
@@ -59,6 +60,55 @@ func TestPostgresSchemaDDLPreflightAndOwnedReconcile(t *testing.T) {
 		}
 		return handler.(*impl)
 	}
+	t.Run("index-storage-admission-and-physical-index", func(t *testing.T) {
+		for _, inline := range []bool{false, true} {
+			p := provider.NewRemoteProvider("index-storage", nil)
+			target, err := helper.GetObject(&inspectReferenced{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, err = p.RegisterModel(target); err != nil {
+				t.Fatal(err)
+			}
+			object, err := helper.GetObject(&indexStorageRecord{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			object.Indexes = []models.Index{{Name: "idx_reference", Fields: []string{"related", "name"}}}
+			if inline {
+				object.UniqueConstraints = []models.UniqueConstraint{{Name: "uq_reference", Fields: []string{"related", "name"}}}
+			}
+			model, err := p.RegisterModel(object)
+			if err != nil {
+				t.Fatal(err)
+			}
+			prefix := "invalid_index"
+			if inline {
+				prefix = "valid_index"
+			}
+			handler := open(p, prefix)
+			defer handler.Release()
+			err = handler.Create(model)
+			if !inline {
+				if err == nil {
+					t.Fatal("relation-table index accepted")
+				}
+				if report, e := handler.InspectSchema(model, false); e != nil || !report.Matches || len(report.Tables) != 2 {
+					t.Fatal("invalid DDL left physical objects or blocked diagnosis", report, e)
+				}
+				if _, e := handler.RepairSchema(nil, model); e == nil {
+					t.Fatal("repair accepted invalid index")
+				}
+				continue
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if report, e := handler.InspectSchema(model, true); e != nil || !report.Matches {
+				t.Fatal("valid inline index not physically created", report, e)
+			}
+		}
+	})
 	t.Run("create-drop-owned-and-reference-boundary", func(t *testing.T) {
 		fixture, model, _ := inspectionFixture(t)
 		handler := open(fixture.modelProvider, "graph")
@@ -193,4 +243,10 @@ func TestPostgresSchemaDDLPreflightAndOwnedReconcile(t *testing.T) {
 			t.Fatal("rejected repair partially created host", host, err)
 		}
 	})
+}
+
+type indexStorageRecord struct {
+	ID      int64              `orm:"id key"`
+	Name    string             `orm:"name"`
+	Related *inspectReferenced `orm:"related"`
 }

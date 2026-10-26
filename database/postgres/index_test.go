@@ -30,3 +30,46 @@ func TestBuildCreateTableIncludesDeclaredIndex(t *testing.T) {
 		t.Fatalf("index missing from SQL: %s", result.SQL())
 	}
 }
+
+func TestIndexBuilderRejectsRelationColumnButAllowsInlineReference(t *testing.T) {
+	for _, inline := range []bool{false, true} {
+		p := provider.NewRemoteProvider("index-storage", nil)
+		target, err := helper.GetObject(&physicalKey{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err = p.RegisterModel(target); err != nil {
+			t.Fatal(err)
+		}
+		object, err := helper.GetObject(&indexReferenceRecord{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		object.Indexes = []models.Index{{Name: "idx_related", Fields: []string{"related", "name"}}}
+		if inline {
+			object.UniqueConstraints = []models.UniqueConstraint{{Name: "uq_related", Fields: []string{"related", "name"}}}
+		}
+		model, err := p.RegisterModel(object)
+		if err != nil {
+			t.Fatal("old declarations must remain inspectable", err)
+		}
+		builder := NewBuilder(p, codec.New(p, "index"))
+		_, err = builder.BuildCreateTable(model)
+		if (err == nil) != inline {
+			t.Fatal(inline, err)
+		}
+		_, err = builder.BuildCreateIndex(model, object.Indexes[0])
+		if (err == nil) != inline {
+			t.Fatal(inline, err)
+		}
+		if _, err = builder.DescribeTable(model); err != nil {
+			t.Fatal("read-only legacy description blocked", err)
+		}
+	}
+}
+
+type indexReferenceRecord struct {
+	ID      int64        `orm:"id key"`
+	Name    string       `orm:"name"`
+	Related *physicalKey `orm:"related"`
+}

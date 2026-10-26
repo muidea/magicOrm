@@ -56,7 +56,7 @@ func (s *Builder) BuildCreateTable(vModel models.Model) (ret database.Result, er
 
 	createSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS \"%s\" (\n%s\n)\n", s.buildCodec.ConstructModelTableName(vModel), createSQL)
 	for _, index := range models.GetIndexes(vModel) {
-		if indexErr := index.Verify(vModel.GetFields()); indexErr != nil {
+		if indexErr := index.VerifyModel(vModel); indexErr != nil {
 			return nil, indexErr
 		}
 		fields := make([]string, 0, len(index.Fields))
@@ -120,7 +120,7 @@ END $$`, tableName, schemaObjectName(s.buildCodec.ConstructModelTableName(vModel
 }
 
 func (s *Builder) BuildCreateIndex(vModel models.Model, index models.Index) (ret database.Result, err *cd.Error) {
-	if err = index.Verify(vModel.GetFields()); err != nil {
+	if err = index.VerifyModel(vModel); err != nil {
 		return nil, err
 	}
 	fields := make([]string, 0, len(index.Fields))
