@@ -6,17 +6,14 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/muidea/magicOrm/internal/utils"
+	"github.com/muidea/magicOrm/internal/validation/cache"
+	"github.com/muidea/magicOrm/internal/validation/constraints"
+	"github.com/muidea/magicOrm/internal/validation/database"
+	"github.com/muidea/magicOrm/internal/validation/types"
 	"github.com/muidea/magicOrm/models"
-	"github.com/muidea/magicOrm/utils"
-	"github.com/muidea/magicOrm/validation/cache"
-	"github.com/muidea/magicOrm/validation/constraints"
-	"github.com/muidea/magicOrm/validation/database"
 	"github.com/muidea/magicOrm/validation/errors"
-	"github.com/muidea/magicOrm/validation/types"
 )
-
-// ValidationLayer represents a validation layer
-type ValidationLayer string
 
 const (
 	LayerType       ValidationLayer = "type"
@@ -25,73 +22,12 @@ const (
 	LayerScenario   ValidationLayer = "scenario"
 )
 
-// OperationType represents the type of database operation
-type OperationType string
-
 const (
 	OperationCreate OperationType = "create"
 	OperationRead   OperationType = "read"
 	OperationUpdate OperationType = "update"
 	OperationDelete OperationType = "delete"
 )
-
-// ValidationContext contains context for validation
-type ValidationContext struct {
-	Scenario        errors.Scenario
-	Operation       OperationType
-	Model           ModelAdapter
-	Field           FieldAdapter
-	DatabaseType    string
-	Options         ValidationOptions
-	Collector       errors.ErrorCollector
-	optionsExplicit bool
-}
-
-// ValidationOptions contains validation configuration options
-type ValidationOptions struct {
-	StopOnFirstError        bool
-	IncludeFieldPathInError bool
-	ValidateReadOnlyFields  bool
-	ValidateWriteOnlyFields bool
-}
-
-// ValidationStats contains validation statistics
-type ValidationStats struct {
-	TotalValidations      int64
-	SuccessfulValidations int64
-	FailedValidations     int64
-	TypeValidations       int64
-	ConstraintValidations int64
-	DatabaseValidations   int64
-	AverageTime           time.Duration
-	CacheHits             int64
-	CacheMisses           int64
-}
-
-// ValidationManager orchestrates validation across all layers
-type ValidationManager interface {
-	// Validate validates a value with the given context
-	Validate(value any, context ValidationContext) error
-
-	// ValidateField validates a single field
-	ValidateField(field models.Field, value any, context ValidationContext) error
-
-	// ValidateModel validates an entire model
-	ValidateModel(model models.Model, context ValidationContext) error
-
-	// Configuration
-	EnableLayer(layer ValidationLayer) error
-	DisableLayer(layer ValidationLayer) error
-	SetScenario(scenario errors.Scenario)
-
-	// Statistics
-	GetValidationStats() ValidationStats
-	ResetStats()
-
-	// Utility methods
-	RegisterCustomConstraint(key models.Key, validator models.ValidatorFunc) error
-	RegisterTypeHandler(typeName string, handler types.TypeHandler) error
-}
 
 // validationManagerImpl implements ValidationManager
 type validationManagerImpl struct {
@@ -104,18 +40,6 @@ type validationManagerImpl struct {
 	config          ValidationConfig
 	stats           validationStatsImpl
 	defaultScenario errors.Scenario
-}
-
-// ValidationConfig contains configuration for the validation manager
-type ValidationConfig struct {
-	EnableTypeValidation       bool
-	EnableConstraintValidation bool
-	EnableDatabaseValidation   bool
-	EnableScenarioAdaptation   bool
-	EnableCaching              bool
-	CacheTTL                   time.Duration
-	MaxCacheSize               int
-	DefaultOptions             ValidationOptions
 }
 
 // NewValidationManager creates a new validation manager

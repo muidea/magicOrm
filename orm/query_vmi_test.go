@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/database/mysql"
+	"github.com/muidea/magicOrm/internal/database/codec"
+	"github.com/muidea/magicOrm/internal/database/mysql"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/remote"
@@ -373,13 +373,13 @@ func TestQueryRunnerVMIRemoteRelations(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildQueryResponseModel failed: %v", err)
 	}
-	queryRunner := NewQueryRunner(context.Background(), filter.MaskModel(), responseModel, responseByMask, executor, remoteProvider, modelCodec, false, 0)
+	queryRunner := newQueryRunner(context.Background(), filter.MaskModel(), responseModel, responseByMask, executor, remoteProvider, modelCodec, false, 0)
 	modelsList, err := queryRunner.Query(filter)
 	if err != nil {
-		t.Fatalf("QueryRunner.Query(product) failed: %v", err)
+		t.Fatalf("queryRunner.Query(product) failed: %v", err)
 	}
 	if len(modelsList) != 1 {
-		t.Fatalf("QueryRunner.Query(product) got %d results", len(modelsList))
+		t.Fatalf("queryRunner.Query(product) got %d results", len(modelsList))
 	}
 
 	productValue, ok := modelsList[0].Interface(true).(*remote.ObjectValue)
@@ -450,10 +450,10 @@ func TestQueryRunnerVMIRemoteMissingPointerRelation(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildQueryResponseModel failed: %v", err)
 	}
-	queryRunner := NewQueryRunner(context.Background(), filter.MaskModel(), responseModel, responseByMask, executor, remoteProvider, modelCodec, false, 0)
+	queryRunner := newQueryRunner(context.Background(), filter.MaskModel(), responseModel, responseByMask, executor, remoteProvider, modelCodec, false, 0)
 	modelsList, err := queryRunner.Query(filter)
 	if err != nil {
-		t.Fatalf("QueryRunner.Query(product) failed: %v", err)
+		t.Fatalf("queryRunner.Query(product) failed: %v", err)
 	}
 	productValue := modelsList[0].Interface(true).(*remote.ObjectValue)
 
@@ -602,10 +602,10 @@ func TestQueryRunnerCachesRepeatedPointerRelations(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildQueryResponseModel failed: %v", err)
 	}
-	queryRunner := NewQueryRunner(context.Background(), filter.MaskModel(), responseModel, responseByMask, executor, remoteProvider, modelCodec, true, 0)
+	queryRunner := newQueryRunner(context.Background(), filter.MaskModel(), responseModel, responseByMask, executor, remoteProvider, modelCodec, true, 0)
 	modelsList, err := queryRunner.Query(filter)
 	if err != nil {
-		t.Fatalf("QueryRunner.Query(parent list) failed: %v", err)
+		t.Fatalf("queryRunner.Query(parent list) failed: %v", err)
 	}
 	if len(modelsList) != 2 {
 		t.Fatalf("expected 2 parent results, got %d", len(modelsList))
@@ -679,10 +679,10 @@ func TestQueryRunnerBatchesSliceRelations(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildQueryResponseModel failed: %v", err)
 	}
-	queryRunner := NewQueryRunner(context.Background(), filter.MaskModel(), responseModel, responseByMask, executor, remoteProvider, modelCodec, false, 0)
+	queryRunner := newQueryRunner(context.Background(), filter.MaskModel(), responseModel, responseByMask, executor, remoteProvider, modelCodec, false, 0)
 	modelsList, err := queryRunner.Query(filter)
 	if err != nil {
-		t.Fatalf("QueryRunner.Query(parent) failed: %v", err)
+		t.Fatalf("queryRunner.Query(parent) failed: %v", err)
 	}
 	if len(modelsList) != 1 {
 		t.Fatalf("expected 1 parent result, got %d", len(modelsList))
@@ -754,10 +754,10 @@ func TestQueryRunnerPrefetchesSinglePointerRelations(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildQueryResponseModel failed: %v", err)
 	}
-	queryRunner := NewQueryRunner(context.Background(), filter.MaskModel(), responseModel, responseByMask, executor, remoteProvider, modelCodec, false, 0)
+	queryRunner := newQueryRunner(context.Background(), filter.MaskModel(), responseModel, responseByMask, executor, remoteProvider, modelCodec, false, 0)
 	modelsList, err := queryRunner.Query(filter)
 	if err != nil {
-		t.Fatalf("QueryRunner.Query(parent) failed: %v", err)
+		t.Fatalf("queryRunner.Query(parent) failed: %v", err)
 	}
 	if len(modelsList) != 1 {
 		t.Fatalf("expected 1 parent result, got %d", len(modelsList))
@@ -838,10 +838,10 @@ func TestQueryRunnerCachesMissingPointerRelations(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildQueryResponseModel failed: %v", err)
 	}
-	queryRunner := NewQueryRunner(context.Background(), filter.MaskModel(), responseModel, responseByMask, executor, remoteProvider, modelCodec, true, 0)
+	queryRunner := newQueryRunner(context.Background(), filter.MaskModel(), responseModel, responseByMask, executor, remoteProvider, modelCodec, true, 0)
 	modelsList, err := queryRunner.Query(filter)
 	if err != nil {
-		t.Fatalf("QueryRunner.Query(parent list) failed: %v", err)
+		t.Fatalf("queryRunner.Query(parent list) failed: %v", err)
 	}
 	if len(modelsList) != 2 {
 		t.Fatalf("expected 2 parent results, got %d", len(modelsList))
@@ -905,10 +905,10 @@ func TestQueryRunnerSkipsExcludedRelationsInLiteView(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildQueryResponseModel failed: %v", err)
 	}
-	queryRunner := NewQueryRunner(context.Background(), filter.MaskModel(), responseModel, responseByMask, executor, remoteProvider, modelCodec, true, 0)
+	queryRunner := newQueryRunner(context.Background(), filter.MaskModel(), responseModel, responseByMask, executor, remoteProvider, modelCodec, true, 0)
 	modelsList, err := queryRunner.Query(filter)
 	if err != nil {
-		t.Fatalf("QueryRunner.Query(parent lite list) failed: %v", err)
+		t.Fatalf("queryRunner.Query(parent lite list) failed: %v", err)
 	}
 	if len(modelsList) != 2 {
 		t.Fatalf("expected 2 parent results, got %d", len(modelsList))

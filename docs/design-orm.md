@@ -153,3 +153,18 @@ type Orm interface {
     Release()
 }
 ```
+
+
+## 公共边界整理（2026-10-26）
+
+本次整理以保持已有业务调用方式和特性为约束。`models.ORM` 是操作合同的唯一声明，`orm.Orm` 为类型别名；不新增必选方法。`orm.SchemaReport` 是 `models.SchemaReport` 的别名，保留结果字段与 JSON。`models.SchemaIssue`／`models.PoolStats` 保留原观察数据，`models.DatabaseConfig` 保留 Server／Username／Password／Database／Schema／GetDsn 方法。诊断字段继续直接读取，不要求调用方改成 getter。连接配置不包含 SQL 句柄。
+
+公开包函数17项：GetOrm、NewOrm、BeginSerializableTransaction、LockWithFilter、Aggregate、ValidateSchema、PreflightSchemaChange、SchemaTables、SchemaTableName、Initialize、Uninitialized、AddDatabase、DelDatabase、EnsureSchema、NewConfig、OwnerPoolStats、EnsureORMMetricProviderRegistered。
+
+`SchemaTableName(model, prefix)` 只提供宿主表身份，供管理 owner 判断图外引用，不能用完整 owned 图或排序后首项代替。`SchemaTables` 继续返回经校验的完整管理图。两者不提供 SQL，也不是所有权授权。
+
+数据库、Codec、Builder、Executor、Pool 全部位于 `~/codespace/magicOrm/internal/database/`；无旧包转发或公共执行器注入。八类 Runner 及三个底层工厂改为包内实现，不能绕过 Orm 的统一校验／事务入口。`impl` 不再导出内部 context 检查或可变 ValidationManager 配置方法，三项正式可选能力保留。独立的 Provider 校验扩展及现有 Provider 构造／声明 DTO 合同保持，不因内部整理更改远端协议。
+
+Base 的初始化和模型测试验证正式模型合同及 owned 图；Runner 的页面测试验证冻结计划。参数化 SQL、投影、指标样本数及桶编译继续在 ORM owner 内部测试。Base 的真实 PostgreSQL 初始化、日志及派生恢复回归保留。测试基础设施 helper 只创建并清理本次独占的新 Schema，要求 magicorm_test_ 数据库；不向业务测试返回通用 SQL 句柄，业务表读写仍走 ORM。
+
+这是源码 API 边界整理，无业务表 Schema、模型包摘要、安装身份、授权目录、写入错误分类或恢复策略变更。旧底层源码导入的迁移属于本次确认范围；已有业务门面保持使用方式，不能宣称所有旧底层导入仍兼容。外部消费者须同步构建新的依赖，不需要重建业务数据库。

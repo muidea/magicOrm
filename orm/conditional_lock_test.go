@@ -2,11 +2,12 @@ package orm
 
 import (
 	"context"
-	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/provider"
 	"strings"
 	"testing"
+
+	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicOrm/internal/database/codec"
+	"github.com/muidea/magicOrm/provider"
 )
 
 type conditionalLockExecutor struct {

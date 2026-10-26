@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"reflect"
 
+	filterdata "github.com/muidea/magicOrm/utils"
+
 	"log/slog"
 
 	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicOrm/internal/utils"
 	"github.com/muidea/magicOrm/models"
-	"github.com/muidea/magicOrm/utils"
 )
 
 type filterItem struct {
@@ -29,8 +31,8 @@ type filter struct {
 	bindModel  models.Model
 	params     map[string]*filterItem
 	maskValue  *ValueImpl
-	pageFilter *utils.Pagination
-	sortFilter *utils.SortFilter
+	pageFilter *filterdata.Pagination
+	sortFilter *filterdata.SortFilter
 }
 
 func newFilter(valuePtr *ValueImpl, bindModels ...models.Model) *filter {
@@ -219,14 +221,14 @@ func (s *filter) Like(key string, val any) (err *cd.Error) {
 }
 
 func (s *filter) Pagination(pageNum, pageSize int) {
-	s.pageFilter = &utils.Pagination{
+	s.pageFilter = &filterdata.Pagination{
 		PageNum:  pageNum,
 		PageSize: pageSize,
 	}
 }
 
 func (s *filter) Sort(fieldName string, ascFlag bool) {
-	s.sortFilter = &utils.SortFilter{
+	s.sortFilter = &filterdata.SortFilter{
 		FieldName: fieldName,
 		AscFlag:   ascFlag,
 	}

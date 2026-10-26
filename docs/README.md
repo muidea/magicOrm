@@ -102,17 +102,17 @@ flowchart TB
     Orm --> Provider[provider.Provider]
     Orm --> Validation[validation.ValidationManager]
     Orm --> Executor[database.Executor]
-    Orm --> Metrics[metrics/orm]
+    Orm --> Metrics[internal/metrics/orm]
     Provider --> Models[models]
-    Executor --> Postgres[database/postgres]
-    Executor --> MySQL[database/mysql]
+    Executor --> Postgres[internal/database/postgres]
+    Executor --> MySQL[internal/database/mysql]
 ```
 
 核心事实：
 - `Orm` 是统一入口，负责事务、验证调度、Runner 调用和指标记录。
 - `Provider` 负责把本地实体或 remote 对象投影为 `models.Model` / `models.Filter` / `models.Value`。
 - `models` 是全库统一抽象，Local 与 Remote 都必须遵守。
-- `database/*` 负责 SQL 构造与执行，不直接感知具体业务实体。
+- `internal/database/*` 负责 SQL 构造与执行，不直接感知具体业务实体。
 
 ---
 
@@ -120,7 +120,7 @@ flowchart TB
 
 - Query 与 BatchQuery 当前**不执行验证**；Insert、Update、Delete 会执行验证。
 - 同一 Orm 实例的并发安全由调用方保证。
-- 关系表命名固定由 `~/codespace/magicOrm/database/codec` 生成，不支持自定义关系表名。
+- 关系表命名固定由 `~/codespace/magicOrm/internal/database/codec` 生成，不支持自定义关系表名。
 - Remote 语义以 `~/codespace/magicOrm/provider/remote` 与 `~/codespace/magicOrm/test/vmi` 为准，不单独维护另一套协议文档。
 
 ---

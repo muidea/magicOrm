@@ -15,24 +15,6 @@ func TestDefaultValidationConfigDisablesCachingForTransientORM(t *testing.T) {
 	}
 }
 
-func TestEnsureORMMetricProviderRegisteredWithoutCollector(t *testing.T) {
-	originalProvider := ormMetricProvider
-	originalCollector := ormMetricCollector
-	t.Cleanup(func() {
-		ormMetricProvider = originalProvider
-		ormMetricCollector = originalCollector
-	})
-
-	ormMetricProvider = nil
-	ormMetricCollector = nil
-
-	EnsureORMMetricProviderRegistered()
-
-	if ormMetricProvider != nil {
-		t.Fatal("expected ensure registration to stay silent without collector")
-	}
-}
-
 func TestAcquireValidationManagerReturnsUsableManager(t *testing.T) {
 	manager := acquireValidationManager()
 	if manager == nil {
@@ -50,18 +32,18 @@ func TestConfigureValidationDropsPooledManager(t *testing.T) {
 	}
 
 	cfg := defaultValidationConfig(true)
-	if err := ormImpl.ConfigureValidation(cfg); err != nil {
-		t.Fatalf("ConfigureValidation failed: %v", err)
+	if err := ormImpl.configureValidation(cfg); err != nil {
+		t.Fatalf("configureValidation failed: %v", err)
 	}
 
 	if ormImpl.validationMgr == nil {
-		t.Fatal("expected ConfigureValidation to install a validation manager")
+		t.Fatal("expected configureValidation to install a validation manager")
 	}
 	if ormImpl.pooledValidationMgr {
-		t.Fatal("expected ConfigureValidation to detach from pooled validation manager")
+		t.Fatal("expected configureValidation to detach from pooled validation manager")
 	}
 	if !ormImpl.validationCache {
-		t.Fatal("expected ConfigureValidation to honor config.EnableCaching")
+		t.Fatal("expected configureValidation to honor config.EnableCaching")
 	}
 }
 

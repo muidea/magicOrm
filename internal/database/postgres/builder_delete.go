@@ -1,0 +1,111 @@
+package postgres
+
+import (
+	"fmt"
+
+	cd "github.com/muidea/magicCommon/def"
+
+	"log/slog"
+
+	"github.com/muidea/magicOrm/internal/database"
+	"github.com/muidea/magicOrm/models"
+)
+
+// BuildDelete  BuildDelete
+func (s *Builder) BuildDelete(vModel models.Model) (ret database.Result, err *cd.Error) {
+	resultStackPtr := &ResultStack{}
+	filterStr, filterErr := s.buildFieldFilter(vModel.GetPrimaryField(), resultStackPtr)
+	if filterErr != nil {
+		err = filterErr
+		slog.Error("BuildDelete failed", "operation", "s.BuildModelFilter", "error", err.Error())
+		return
+	}
+
+	deleteSQL := fmt.Sprintf("DELETE FROM \"%s\" WHERE %s", s.buildCodec.ConstructModelTableName(vModel), filterStr)
+	if traceSQL() {
+		slog.Info("[SQL] delete", "sql", deleteSQL)
+	}
+
+	resultStackPtr.SetSQL(deleteSQL)
+	ret = resultStackPtr
+	return
+}
+
+// BuildDeleteRelation BuildDeleteRelation
+func (s *Builder) BuildDeleteRelation(vModel models.Model, vField models.Field) (delHost, delRelation database.Result, err *cd.Error) {
+	hostVal := vModel.GetPrimaryField().GetValue().Get()
+	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
+	if relationErr != nil {
+		err = relationErr
+		slog.Error("BuildDeleteRelation failed", "field", vField.GetName(), "operation", "s.buildCodec.ConstructRelationTableName", "error", err.Error())
+		return
+	}
+
+	targetType := vField.GetType().Elem()
+	rModel, rErr := s.modelProvider.GetTypeModel(targetType)
+	if rErr != nil {
+		err = rErr
+		slog.Error("BuildDeleteRelation failed", "field", vField.GetName(), "operation", "s.modelProvider.GetTypeModel", "error", err.Error())
+		return
+	}
+
+	delHostStackPtr := &ResultStack{}
+	delHostSQL := fmt.Sprintf("DELETE FROM \"%s\" WHERE \"%s\" IN (SELECT \"right\" FROM \"%s\" WHERE \"left\"=$1)",
+		s.buildCodec.ConstructModelTableName(targetType),
+		rModel.GetPrimaryField().GetName(),
+		relationTableName)
+	delHostStackPtr.SetSQL(delHostSQL)
+	delHostStackPtr.PushArgs(hostVal)
+	delHost = delHostStackPtr
+
+	delRelationStackPtr := &ResultStack{}
+	delRelationSQL := fmt.Sprintf("DELETE FROM \"%s\" WHERE \"left\"=$1", relationTableName)
+	delRelationStackPtr.SetSQL(delRelationSQL)
+	delRelationStackPtr.PushArgs(hostVal)
+	delRelation = delRelationStackPtr
+
+	if traceSQL() {
+		slog.Info("[SQL] delete host and relation", "host_sql", delHostSQL, "relation_sql", delRelationSQL)
+	}
+
+	return
+}
+
+// BuildDeleteRelationByRights 仅删除关系表中指定的 (left, right) 行，不删除关联实体
+func (s *Builder) BuildDeleteRelationByRights(vModel models.Model, vField models.Field, rightIDs []any) (ret database.Result, err *cd.Error) {
+	if len(rightIDs) == 0 {
+		return
+	}
+
+	hostVal := vModel.GetPrimaryField().GetValue().Get()
+	relationTableName, relationErr := s.buildCodec.ConstructRelationTableName(vModel, vField)
+	if relationErr != nil {
+		err = relationErr
+		slog.Error("BuildDeleteRelationByRights failed", "field", vField.GetName(), "operation", "ConstructRelationTableName", "error", err.Error())
+		return
+	}
+
+	resultStackPtr := &ResultStack{}
+	resultStackPtr.PushArgs(hostVal)
+	for _, rightID := range rightIDs {
+		resultStackPtr.PushArgs(rightID)
+	}
+	placeholders := make([]string, len(rightIDs))
+	for i := range rightIDs {
+		placeholders[i] = fmt.Sprintf("$%d", i+2) // $1=left, $2,$3,...=right
+	}
+	inClause := ""
+	for i, p := range placeholders {
+		if i > 0 {
+			inClause += ","
+		}
+		inClause += p
+	}
+	deleteSQL := fmt.Sprintf("DELETE FROM \"%s\" WHERE \"left\"=$1 AND \"right\" IN (%s)", relationTableName, inClause)
+	if traceSQL() {
+		slog.Info("[SQL] delete relation by rights", "sql", deleteSQL)
+	}
+	resultStackPtr.SetSQL(deleteSQL)
+	ret = resultStackPtr
+	return
+}

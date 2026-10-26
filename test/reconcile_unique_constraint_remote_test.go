@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicOrm/database/mysql"
+	"github.com/muidea/magicOrm/internal/database/mysql"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"

@@ -6,8 +6,8 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 
+	"github.com/muidea/magicOrm/internal/utils"
 	"github.com/muidea/magicOrm/models"
-	"github.com/muidea/magicOrm/utils"
 )
 
 // normalizeID 将主键值统一为字符串以便差集比较
@@ -39,7 +39,7 @@ func diffRelationIDs(existing, new []any) (toDelete, toInsert []any) {
 }
 
 // prepareNewRightIDs 从当前 Model 的关系字段值中提取要写入的 right 主键列表（引用关系）
-func (s *UpdateRunner) prepareNewRightIDs(vModel models.Model, vField models.Field) (ret []any, err *cd.Error) {
+func (s *updateRunner) prepareNewRightIDs(vModel models.Model, vField models.Field) (ret []any, err *cd.Error) {
 	elemType := vField.GetType().Elem()
 
 	if models.IsSliceField(vField) {
@@ -116,7 +116,7 @@ func (s *UpdateRunner) prepareNewRightIDs(vModel models.Model, vField models.Fie
 }
 
 // queryExistingRightIDs 查询关系表中当前该 host 字段已有的 right ID 列表
-func (s *UpdateRunner) queryExistingRightIDs(vModel models.Model, vField models.Field) (ret []any, err *cd.Error) {
+func (s *updateRunner) queryExistingRightIDs(vModel models.Model, vField models.Field) (ret []any, err *cd.Error) {
 	existingIDs, queryErr := s.innerQueryRelationKeys(vModel, vField)
 	if queryErr != nil {
 		err = queryErr
@@ -128,7 +128,7 @@ func (s *UpdateRunner) queryExistingRightIDs(vModel models.Model, vField models.
 }
 
 // deleteRelationLinks 仅删除关系表中指定的 (left, right) 行，不删除关联实体
-func (s *UpdateRunner) deleteRelationLinks(vModel models.Model, vField models.Field, toDelete []any) (err *cd.Error) {
+func (s *updateRunner) deleteRelationLinks(vModel models.Model, vField models.Field, toDelete []any) (err *cd.Error) {
 	if len(toDelete) == 0 {
 		return
 	}
@@ -149,7 +149,7 @@ func (s *UpdateRunner) deleteRelationLinks(vModel models.Model, vField models.Fi
 }
 
 // insertRelationLinks 仅向关系表插入指定的 (left, right) 行
-func (s *UpdateRunner) insertRelationLinks(vModel models.Model, vField models.Field, toInsert []any) (err *cd.Error) {
+func (s *updateRunner) insertRelationLinks(vModel models.Model, vField models.Field, toInsert []any) (err *cd.Error) {
 	if len(toInsert) == 0 {
 		return
 	}
@@ -189,45 +189,45 @@ func (s *UpdateRunner) insertRelationLinks(vModel models.Model, vField models.Fi
 }
 
 // updateReferenceRelation 引用关系：只刷新关系（增删链接），不处理实体
-func (s *UpdateRunner) updateReferenceRelation(vModel models.Model, vField models.Field) (err *cd.Error) {
+func (s *updateRunner) updateReferenceRelation(vModel models.Model, vField models.Field) (err *cd.Error) {
 	newRightIDs, prepErr := s.prepareNewRightIDs(vModel, vField)
 	if prepErr != nil {
 		err = prepErr
-		slog.Error("UpdateRunner updateReferenceRelation prepareNewRightIDs failed", "field", vField.GetName(), "error", err.Error())
+		slog.Error("updateRunner updateReferenceRelation prepareNewRightIDs failed", "field", vField.GetName(), "error", err.Error())
 		return
 	}
 	existingRightIDs, queryErr := s.queryExistingRightIDs(vModel, vField)
 	if queryErr != nil {
 		err = queryErr
-		slog.Error("UpdateRunner updateReferenceRelation queryExistingRightIDs failed", "field", vField.GetName(), "error", err.Error())
+		slog.Error("updateRunner updateReferenceRelation queryExistingRightIDs failed", "field", vField.GetName(), "error", err.Error())
 		return
 	}
 	toDelete, toInsert := diffRelationIDs(existingRightIDs, newRightIDs)
 	err = s.deleteRelationLinks(vModel, vField, toDelete)
 	if err != nil {
-		slog.Error("UpdateRunner updateReferenceRelation deleteRelationLinks failed", "field", vField.GetName(), "error", err.Error())
+		slog.Error("updateRunner updateReferenceRelation deleteRelationLinks failed", "field", vField.GetName(), "error", err.Error())
 		return
 	}
 	err = s.insertRelationLinks(vModel, vField, toInsert)
 	if err != nil {
-		slog.Error("UpdateRunner updateReferenceRelation insertRelationLinks failed", "field", vField.GetName(), "error", err.Error())
+		slog.Error("updateRunner updateReferenceRelation insertRelationLinks failed", "field", vField.GetName(), "error", err.Error())
 	}
 	return
 }
 
 // updateContainRelation 包含关系：同步处理关系和实体（先 deleteRelation 再 insertRelation）
-func (s *UpdateRunner) updateContainRelation(vModel models.Model, vField models.Field) (err *cd.Error) {
+func (s *updateRunner) updateContainRelation(vModel models.Model, vField models.Field) (err *cd.Error) {
 	existingField, queryErr := s.queryExistingContainRelationField(vModel, vField)
 	if queryErr != nil {
 		err = queryErr
-		slog.Error("UpdateRunner updateContainRelation queryExistingContainRelationField failed", "field", vField.GetName(), "error", err.Error())
+		slog.Error("updateRunner updateContainRelation queryExistingContainRelationField failed", "field", vField.GetName(), "error", err.Error())
 		return
 	}
 
 	unchanged, compareErr := s.compareRelationFieldValue(existingField, vField, 0)
 	if compareErr != nil {
 		err = compareErr
-		slog.Error("UpdateRunner updateContainRelation isContainRelationUnchanged failed", "field", vField.GetName(), "error", err.Error())
+		slog.Error("updateRunner updateContainRelation isContainRelationUnchanged failed", "field", vField.GetName(), "error", err.Error())
 		return
 	}
 	if unchanged {
@@ -237,7 +237,7 @@ func (s *UpdateRunner) updateContainRelation(vModel models.Model, vField models.
 	handled, preciseErr := s.updateContainRelationPrecisely(vModel, existingField, vField)
 	if preciseErr != nil {
 		err = preciseErr
-		slog.Error("UpdateRunner updateContainRelation updateContainRelationPrecisely failed", "field", vField.GetName(), "error", err.Error())
+		slog.Error("updateRunner updateContainRelation updateContainRelationPrecisely failed", "field", vField.GetName(), "error", err.Error())
 		return
 	}
 	if handled {
@@ -247,7 +247,7 @@ func (s *UpdateRunner) updateContainRelation(vModel models.Model, vField models.
 	newVal := vField.GetValue().Get()
 	err = s.deleteRelation(vModel, vField, 0)
 	if err != nil {
-		slog.Error("UpdateRunner updateContainRelation deleteRelation failed", "field", vField.GetName(), "error", err.Error())
+		slog.Error("updateRunner updateContainRelation deleteRelation failed", "field", vField.GetName(), "error", err.Error())
 		return
 	}
 	if !models.IsValidField(vField) {
@@ -256,12 +256,12 @@ func (s *UpdateRunner) updateContainRelation(vModel models.Model, vField models.
 	vField.SetValue(newVal)
 	err = s.insertRelation(vModel, vField)
 	if err != nil {
-		slog.Error("UpdateRunner updateContainRelation insertRelation failed", "field", vField.GetName(), "error", err.Error())
+		slog.Error("updateRunner updateContainRelation insertRelation failed", "field", vField.GetName(), "error", err.Error())
 	}
 	return
 }
 
-func (s *UpdateRunner) isContainRelationUnchanged(vModel models.Model, vField models.Field) (ret bool, err *cd.Error) {
+func (s *updateRunner) isContainRelationUnchanged(vModel models.Model, vField models.Field) (ret bool, err *cd.Error) {
 	existingField, queryErr := s.queryExistingContainRelationField(vModel, vField)
 	if queryErr != nil {
 		err = queryErr
@@ -272,7 +272,7 @@ func (s *UpdateRunner) isContainRelationUnchanged(vModel models.Model, vField mo
 	return
 }
 
-func (s *UpdateRunner) updateContainRelationPrecisely(vModel models.Model, existingField, newField models.Field) (ret bool, err *cd.Error) {
+func (s *updateRunner) updateContainRelationPrecisely(vModel models.Model, existingField, newField models.Field) (ret bool, err *cd.Error) {
 	if models.IsSliceField(newField) {
 		ret, err = s.updateContainSliceRelationPrecisely(vModel, existingField, newField)
 		return
@@ -282,7 +282,7 @@ func (s *UpdateRunner) updateContainRelationPrecisely(vModel models.Model, exist
 	return
 }
 
-func (s *UpdateRunner) queryExistingContainRelationField(vModel models.Model, vField models.Field) (ret models.Field, err *cd.Error) {
+func (s *updateRunner) queryExistingContainRelationField(vModel models.Model, vField models.Field) (ret models.Field, err *cd.Error) {
 	queryModel := vModel.Copy(models.OriginView)
 	pkField := vModel.GetPrimaryField()
 	if pkField == nil || pkField.GetValue() == nil || !pkField.GetValue().IsValid() {
@@ -309,7 +309,7 @@ func (s *UpdateRunner) queryExistingContainRelationField(vModel models.Model, vF
 	return
 }
 
-func (s *UpdateRunner) compareRelationFieldValue(existingField, newField models.Field, depth int) (ret bool, err *cd.Error) {
+func (s *updateRunner) compareRelationFieldValue(existingField, newField models.Field, depth int) (ret bool, err *cd.Error) {
 	if depth > maxDeepLevel {
 		return
 	}
@@ -323,7 +323,7 @@ func (s *UpdateRunner) compareRelationFieldValue(existingField, newField models.
 	return
 }
 
-func (s *UpdateRunner) compareRelationSingleFieldValue(existingField, newField models.Field, depth int) (ret bool, err *cd.Error) {
+func (s *updateRunner) compareRelationSingleFieldValue(existingField, newField models.Field, depth int) (ret bool, err *cd.Error) {
 	if !models.IsValidField(existingField) || !models.IsValidField(newField) {
 		ret = !models.IsValidField(existingField) && !models.IsValidField(newField)
 		return
@@ -351,7 +351,7 @@ func (s *UpdateRunner) compareRelationSingleFieldValue(existingField, newField m
 	return
 }
 
-func (s *UpdateRunner) compareRelationSliceFieldValue(existingField, newField models.Field, depth int) (ret bool, err *cd.Error) {
+func (s *updateRunner) compareRelationSliceFieldValue(existingField, newField models.Field, depth int) (ret bool, err *cd.Error) {
 	existingValues := existingField.GetSliceValue()
 	newValues := newField.GetSliceValue()
 	if len(existingValues) != len(newValues) {
@@ -389,7 +389,7 @@ func (s *UpdateRunner) compareRelationSliceFieldValue(existingField, newField mo
 	return
 }
 
-func (s *UpdateRunner) compareRelationModelSliceByPrimary(existingModels, newModels []models.Model, depth int) (ret bool, err *cd.Error) {
+func (s *updateRunner) compareRelationModelSliceByPrimary(existingModels, newModels []models.Model, depth int) (ret bool, err *cd.Error) {
 	newModelMap := make(map[string]models.Model, len(newModels))
 	for _, modelVal := range newModels {
 		pkVal, ok := getModelPrimaryKey(modelVal)
@@ -430,7 +430,7 @@ func (s *UpdateRunner) compareRelationModelSliceByPrimary(existingModels, newMod
 	return
 }
 
-func (s *UpdateRunner) compareRelationModelValue(existingModel, newModel models.Model, depth int) (ret bool, err *cd.Error) {
+func (s *updateRunner) compareRelationModelValue(existingModel, newModel models.Model, depth int) (ret bool, err *cd.Error) {
 	if depth > maxDeepLevel {
 		return
 	}
@@ -477,7 +477,7 @@ type containModelEntry struct {
 	packedID   any
 }
 
-func (s *UpdateRunner) updateContainSingleRelationPrecisely(vModel models.Model, existingField, newField models.Field) (ret bool, err *cd.Error) {
+func (s *updateRunner) updateContainSingleRelationPrecisely(vModel models.Model, existingField, newField models.Field) (ret bool, err *cd.Error) {
 	if !models.IsValidField(existingField) || !models.IsValidField(newField) {
 		return
 	}
@@ -505,7 +505,7 @@ func (s *UpdateRunner) updateContainSingleRelationPrecisely(vModel models.Model,
 		return
 	}
 
-	updatedModel, updateErr := NewUpdateRunner(s.context, newModel, s.executor, s.modelProvider, s.modelCodec).Update()
+	updatedModel, updateErr := newUpdateRunner(s.context, newModel, s.executor, s.modelProvider, s.modelCodec).Update()
 	if updateErr != nil {
 		err = updateErr
 		return
@@ -519,7 +519,7 @@ func (s *UpdateRunner) updateContainSingleRelationPrecisely(vModel models.Model,
 	return
 }
 
-func (s *UpdateRunner) updateContainSliceRelationPrecisely(vModel models.Model, existingField, newField models.Field) (ret bool, err *cd.Error) {
+func (s *updateRunner) updateContainSliceRelationPrecisely(vModel models.Model, existingField, newField models.Field) (ret bool, err *cd.Error) {
 	existingEntries, buildErr := s.buildContainEntries(existingField.GetType().Elem(), existingField.GetSliceValue())
 	if buildErr != nil {
 		err = buildErr
@@ -561,7 +561,7 @@ func (s *UpdateRunner) updateContainSliceRelationPrecisely(vModel models.Model, 
 			continue
 		}
 
-		updatedModel, updateErr := NewUpdateRunner(s.context, newEntry.model, s.executor, s.modelProvider, s.modelCodec).Update()
+		updatedModel, updateErr := newUpdateRunner(s.context, newEntry.model, s.executor, s.modelProvider, s.modelCodec).Update()
 		if updateErr != nil {
 			err = updateErr
 			return
@@ -612,13 +612,13 @@ func (s *UpdateRunner) updateContainSliceRelationPrecisely(vModel models.Model, 
 	return
 }
 
-func (s *UpdateRunner) deleteContainedModel(vModel models.Model) (err *cd.Error) {
-	err = NewDeleteRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec, 1).Delete()
+func (s *updateRunner) deleteContainedModel(vModel models.Model) (err *cd.Error) {
+	err = newDeleteRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec, 1).Delete()
 	return
 }
 
-func (s *UpdateRunner) insertContainedModel(parentModel models.Model, parentField models.Field, childModel models.Model) (ret models.Model, err *cd.Error) {
-	insertedModel, insertErr := NewInsertRunner(s.context, childModel, s.executor, s.modelProvider, s.modelCodec).Insert()
+func (s *updateRunner) insertContainedModel(parentModel models.Model, parentField models.Field, childModel models.Model) (ret models.Model, err *cd.Error) {
+	insertedModel, insertErr := newInsertRunner(s.context, childModel, s.executor, s.modelProvider, s.modelCodec).Insert()
 	if insertErr != nil {
 		err = insertErr
 		return
@@ -640,7 +640,7 @@ func (s *UpdateRunner) insertContainedModel(parentModel models.Model, parentFiel
 	return
 }
 
-func (s *UpdateRunner) relationModelFromRaw(tType models.Type, raw any) (ret models.Model, err *cd.Error) {
+func (s *updateRunner) relationModelFromRaw(tType models.Type, raw any) (ret models.Model, err *cd.Error) {
 	modelVal, modelErr := s.modelProvider.GetTypeModel(tType)
 	if modelErr != nil {
 		err = modelErr
@@ -657,7 +657,7 @@ func (s *UpdateRunner) relationModelFromRaw(tType models.Type, raw any) (ret mod
 	return
 }
 
-func (s *UpdateRunner) relationModelsFromSliceValue(elemType models.Type, rawValues []models.Value) (ret []models.Model, err *cd.Error) {
+func (s *updateRunner) relationModelsFromSliceValue(elemType models.Type, rawValues []models.Value) (ret []models.Model, err *cd.Error) {
 	ret = make([]models.Model, 0, len(rawValues))
 	for _, rawValue := range rawValues {
 		if rawValue == nil || !rawValue.IsValid() {
@@ -674,7 +674,7 @@ func (s *UpdateRunner) relationModelsFromSliceValue(elemType models.Type, rawVal
 	return
 }
 
-func (s *UpdateRunner) buildContainEntries(elemType models.Type, rawValues []models.Value) (ret []containModelEntry, err *cd.Error) {
+func (s *updateRunner) buildContainEntries(elemType models.Type, rawValues []models.Value) (ret []containModelEntry, err *cd.Error) {
 	ret = make([]containModelEntry, 0, len(rawValues))
 	for _, rawValue := range rawValues {
 		if rawValue == nil || !rawValue.IsValid() {
@@ -703,7 +703,7 @@ func (s *UpdateRunner) buildContainEntries(elemType models.Type, rawValues []mod
 	return
 }
 
-func (s *UpdateRunner) canCompareRelationModelsByPrimary(modelList []models.Model) bool {
+func (s *updateRunner) canCompareRelationModelsByPrimary(modelList []models.Model) bool {
 	if len(modelList) == 0 {
 		return true
 	}
@@ -737,7 +737,7 @@ func getModelPrimaryKey(vModel models.Model) (ret string, ok bool) {
 	return
 }
 
-func (s *UpdateRunner) packModelPrimaryID(vModel models.Model) (ret any, err *cd.Error) {
+func (s *updateRunner) packModelPrimaryID(vModel models.Model) (ret any, err *cd.Error) {
 	pkField := vModel.GetPrimaryField()
 	if pkField == nil || pkField.GetValue() == nil || !pkField.GetValue().IsValid() || pkField.GetValue().IsZero() {
 		err = cd.NewError(cd.IllegalParam, fmt.Sprintf("model %s missing primary key", vModel.GetPkgKey()))

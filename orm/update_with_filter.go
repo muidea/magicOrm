@@ -5,7 +5,7 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 
-	"github.com/muidea/magicOrm/metrics"
+	"github.com/muidea/magicOrm/internal/metrics/shared"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/validation/errors"
 )
@@ -21,7 +21,7 @@ func (s *impl) UpdateWithFilter(vModel models.Model, filter models.Filter) (rows
 		}
 	}()
 
-	if err = s.CheckContext(); err != nil {
+	if err = s.checkContext(); err != nil {
 		return
 	}
 	if vModel == nil {
@@ -42,7 +42,7 @@ func (s *impl) UpdateWithFilter(vModel models.Model, filter models.Filter) (rows
 		return
 	}
 
-	updateResult, buildErr := NewBuilder(s.modelProvider, s.modelCodec).BuildUpdateWithFilter(vModel, filter)
+	updateResult, buildErr := newBuilder(s.modelProvider, s.modelCodec).BuildUpdateWithFilter(vModel, filter)
 	if buildErr != nil {
 		err = buildErr
 		return

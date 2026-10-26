@@ -49,8 +49,8 @@ go test -count=1 ./...
 
 ### Database Demos
 ```bash
-cd database/postgres/demo && go run main.go
-cd database/mysql/demo && go run main.go
+cd internal/database/postgres/demo && go run main.go
+cd internal/database/mysql/demo && go run main.go
 ```
 
 ## Code Style Guidelines
@@ -107,6 +107,14 @@ type User struct {
     Status *Status  `orm:"status" view:"detail,lite"`
 }
 ```
+
+### Public API Compatibility
+
+- Prefer `orm` / `models` / root `provider` for application code. Dynamic declarations belong to `provider/remote`; helper, validation and metrics packages are optional integrations.
+- Local and Remote are peer public adapters: retain both package paths, constructors, model/value/filter/codec capabilities, concrete type identities and JSON contracts. The reviewed support-package migration moves validators, caches and collectors to internal; their contracts must remain usable through public models/validation/metrics APIs. Do not expose internal types in public signatures.
+- Contracts and implementations may be organized into separate files in the same package. Add no compatibility forwarding layer unless an actual boundary requires one.
+- Run `go test ./internal/apicheck ./provider/...` after public API changes. Review the compatibility impact before updating the snapshot with `go test ./internal/apicheck -update-api`.
+- Do not export production setters for test state. Exercise normal registration through its public contract and unregistered startup in a separate test process.
 
 ### Testing Conventions
 - Test files: `_test.go` suffix
@@ -166,10 +174,10 @@ err := manager.ValidateModel(model, ctx)
 
 ## Metrics Integration
 
-- Preferred initialization order: call `monitoring.InitializeGlobalManager()` first, then `orm.Initialize()`.
-- If monitoring is initialized later, call `orm.EnsureORMMetricProviderRegistered()`, `metricsdb.EnsureDatabaseMetricProviderRegistered()`, and `metricsvalidation.EnsureValidationMetricProviderRegistered()` after the global manager becomes available.
+- Preferred initialization order: call `monitoring.InitializeGlobalManager()` first, then `orm.Initialize()`. Standalone validation/metrics users may call `metrics.Initialize()`; both initialization paths reuse existing collectors.
+- If monitoring is initialized later, call public `metrics.EnsureRegistered()` after the global manager becomes available. The legacy `orm.EnsureORMMetricProviderRegistered()` still registers the ORM provider only.
 - Current maturity: ORM metrics are wired to the ORM main path, DB metrics are wired to MySQL/PostgreSQL executors and pools, Validation metrics are wired to `validation.Manager`, validation cache, and constraint checks.
-- Metric definitions should use `metrics.DefaultLabels()` merged with component-specific labels so dashboards can group all MagicORM providers consistently.
+- Internal metric definitions should use `internal/metrics/shared.DefaultLabels()` merged with component-specific labels so dashboards can group all MagicORM providers consistently.
 
 ## Troubleshooting
 
@@ -188,6 +196,6 @@ err := manager.ValidateModel(model, ctx)
 ## References
 - [README.md](~/codespace/magicOrm/README.md) - Comprehensive documentation
 - [test/](~/codespace/magicOrm/test) - Integration tests and examples
-- [database/](~/codespace/magicOrm/database) - Database implementations
+- [internal/database/](~/codespace/magicOrm/internal/database) - Database implementations
 
 Real database tests require explicit disposable magicorm_test_ targets; run `~/codespace/magicOrm/scripts/integration_postgres.sh` for an owned PostgreSQL fixture. Never use shared/default databases or replication/GRANT tests.

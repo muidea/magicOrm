@@ -2,7 +2,7 @@ package orm
 
 import (
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicOrm/database"
+	"github.com/muidea/magicOrm/internal/database"
 )
 
 // BeginSerializableTransaction 必须先于事务内所有读取调用；不降级、不重试。

@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/muidea/magicOrm/utils"
+	"github.com/muidea/magicOrm/internal/utils"
 	"github.com/stretchr/testify/assert"
 )
 

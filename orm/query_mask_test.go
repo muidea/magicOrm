@@ -8,8 +8,8 @@ import (
 	"testing"
 	"unsafe"
 
-	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/database/postgres"
+	"github.com/muidea/magicOrm/internal/database/codec"
+	"github.com/muidea/magicOrm/internal/database/postgres"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
@@ -203,7 +203,7 @@ func TestRelationResponseModelUsesLiteViewForLocalMaskSlice(t *testing.T) {
 		t.Fatalf("GetEntityModel(mask) failed: %v", err)
 	}
 
-	queryRunner := &QueryRunner{
+	queryRunner := &queryRunner{
 		baseRunner: baseRunner{
 			modelProvider: localProvider,
 		},
@@ -251,7 +251,7 @@ func TestRelationResponseModelUsesLiteViewWithoutExplicitMask(t *testing.T) {
 		t.Fatalf("GetEntityModel(base) failed: %v", err)
 	}
 
-	queryRunner := &QueryRunner{
+	queryRunner := &queryRunner{
 		baseRunner: baseRunner{
 			modelProvider: localProvider,
 		},
@@ -407,7 +407,7 @@ func TestQueryRunnerUsesLiteViewResponseMask(t *testing.T) {
 		},
 	}
 
-	queryRunner := NewQueryRunner(context.Background(), queryMask, responseModel, responseByMask, executor, remoteProvider, modelCodec, false, 0)
+	queryRunner := newQueryRunner(context.Background(), queryMask, responseModel, responseByMask, executor, remoteProvider, modelCodec, false, 0)
 	modelList, err := queryRunner.Query(queryFilter)
 	if err != nil {
 		t.Fatalf("Query failed: %v", err)
@@ -637,7 +637,7 @@ func TestQueryRunnerValueMaskOverridesLiteViewResponseMask(t *testing.T) {
 		},
 	}
 
-	queryRunner := NewQueryRunner(context.Background(), queryMask, responseModel, responseByMask, executor, remoteProvider, modelCodec, false, 0)
+	queryRunner := newQueryRunner(context.Background(), queryMask, responseModel, responseByMask, executor, remoteProvider, modelCodec, false, 0)
 	modelList, err := queryRunner.Query(queryFilter)
 	if err != nil {
 		t.Fatalf("Query failed: %v", err)

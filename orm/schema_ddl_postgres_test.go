@@ -6,14 +6,15 @@ import (
 	"context"
 	"crypto/rand"
 	"database/sql"
-	"github.com/muidea/magicOrm/internal/testdatabase"
 	"net/url"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/muidea/magicOrm/database"
+	"github.com/muidea/magicOrm/internal/testdatabase"
+
+	"github.com/muidea/magicOrm/internal/database"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
@@ -51,7 +52,7 @@ func TestPostgresSchemaDDLPreflightAndOwnedReconcile(t *testing.T) {
 		}
 	}()
 	password, _ := u.User.Password()
-	cfg := NewConfig(u.Host, strings.TrimPrefix(u.Path, "/"), schema, u.User.Username(), password)
+	cfg := newConfig(u.Host, strings.TrimPrefix(u.Path, "/"), schema, u.User.Username(), password)
 	open := func(p provider.Provider, prefix string) *impl {
 		t.Helper()
 		handler, err := NewOrm(p, cfg, prefix)
@@ -169,7 +170,7 @@ func TestPostgresSchemaDDLPreflightAndOwnedReconcile(t *testing.T) {
 		fixture, model, _ := inspectionFixture(t)
 		handler := open(fixture.modelProvider, "repair_graph")
 		defer handler.Release()
-		builder := NewBuilder(handler.modelProvider, handler.modelCodec)
+		builder := newBuilder(handler.modelProvider, handler.modelCodec)
 		statement, err := builder.BuildCreateTable(model)
 		if err != nil {
 			t.Fatal(err)

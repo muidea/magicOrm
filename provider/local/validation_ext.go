@@ -33,24 +33,6 @@ type validationExtensionImpl struct {
 	valueValidator    models.ValueValidator
 }
 
-// NewValidationExtension creates a new validation extension
-func NewValidationExtension(valueValidator models.ValueValidator) ValidationExtension {
-	// Create default validation configuration
-	config := validation.DefaultConfig()
-	config.EnableCaching = false
-
-	// Create validation factory
-	factory := validation.NewValidationFactory()
-
-	// Create validation manager
-	validationManager := factory.CreateValidationManager(config)
-
-	return &validationExtensionImpl{
-		validationManager: validationManager,
-		valueValidator:    valueValidator,
-	}
-}
-
 // SetModelValueWithScenario sets model value with scenario-aware validation
 func (e *validationExtensionImpl) SetModelValueWithScenario(vModel models.Model, vVal models.Value, scenario errors.Scenario, disableValidator bool) (ret models.Model, err *cd.Error) {
 	if disableValidator {

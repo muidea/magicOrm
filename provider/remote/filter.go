@@ -3,11 +3,13 @@ package remote
 import (
 	"encoding/json"
 
+	filterdata "github.com/muidea/magicOrm/utils"
+
 	"log/slog"
 
 	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicOrm/internal/utils"
 	"github.com/muidea/magicOrm/models"
-	"github.com/muidea/magicOrm/utils"
 )
 
 type filterItem struct {
@@ -21,23 +23,6 @@ func (s *filterItem) OprCode() models.OprCode {
 
 func (s *filterItem) OprValue() models.Value {
 	return s.value
-}
-
-type ObjectFilter struct {
-	Name           string            `json:"name"`
-	PkgPath        string            `json:"pkgPath"`
-	EqualFilter    []*FieldValue     `json:"equal"`
-	NotEqualFilter []*FieldValue     `json:"noEqual"`
-	BelowFilter    []*FieldValue     `json:"below"`
-	AboveFilter    []*FieldValue     `json:"above"`
-	InFilter       []*FieldValue     `json:"in"`
-	NotInFilter    []*FieldValue     `json:"notIn"`
-	LikeFilter     []*FieldValue     `json:"like"`
-	MaskValue      *ObjectValue      `json:"maskValue"`
-	PageFilter     *utils.Pagination `json:"page"`
-	SortFilter     *utils.SortFilter `json:"sort"`
-
-	bindObject *Object `json:"-"`
 }
 
 func NewFilter(objectPtr *Object) *ObjectFilter {
@@ -236,14 +221,14 @@ func (s *ObjectFilter) Like(key string, val any) (err *cd.Error) {
 }
 
 func (s *ObjectFilter) Pagination(pageNum, pageSize int) {
-	s.PageFilter = &utils.Pagination{
+	s.PageFilter = &filterdata.Pagination{
 		PageNum:  pageNum,
 		PageSize: pageSize,
 	}
 }
 
 func (s *ObjectFilter) Sort(fieldName string, ascFlag bool) {
-	s.SortFilter = &utils.SortFilter{
+	s.SortFilter = &filterdata.SortFilter{
 		FieldName: fieldName,
 		AscFlag:   ascFlag,
 	}

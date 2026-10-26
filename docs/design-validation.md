@@ -1,7 +1,7 @@
 # 验证系统设计
 
 **功能块**：`~/codespace/magicOrm/validation`
-**依据**：`~/codespace/magicOrm/validation/manager.go`、`~/codespace/magicOrm/validation/scenario.go`、`~/codespace/magicOrm/validation/constraints`、`~/codespace/magicOrm/validation/types`、`~/codespace/magicOrm/validation/database`、`~/codespace/magicOrm/validation/errors`。
+**依据**：`~/codespace/magicOrm/validation/manager.go`、`~/codespace/magicOrm/validation/scenario.go`、`~/codespace/magicOrm/internal/validation/constraints`、`~/codespace/magicOrm/internal/validation/types`、`~/codespace/magicOrm/internal/validation/database`、`~/codespace/magicOrm/validation/errors`。
 
 [← 返回设计文档索引](~/codespace/magicOrm/docs/README.md)
 

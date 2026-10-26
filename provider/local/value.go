@@ -15,12 +15,6 @@ type ValueImpl struct {
 	assigned bool
 }
 
-func NewValue(val reflect.Value) (ret *ValueImpl) {
-	ret = &ValueImpl{value: val}
-	ret.assigned = !ret.IsZero()
-	return
-}
-
 func (s *ValueImpl) IsValid() bool {
 	if !s.value.IsValid() {
 		return false

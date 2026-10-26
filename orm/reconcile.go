@@ -7,22 +7,22 @@ import (
 	"time"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicOrm/database"
-	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/internal/database"
+	"github.com/muidea/magicOrm/internal/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
 
-// ReconcileRunner evolves an already-created schema from a persisted model
+// reconcileRunner evolves an already-created schema from a persisted model
 // declaration to its replacement. It deliberately supports only additive
 // operations; a destructive change requires an explicit deployment migration.
-type ReconcileRunner struct {
+type reconcileRunner struct {
 	baseRunner
 	previous models.Model
 }
 
-func NewReconcileRunner(ctx context.Context, previous, current models.Model, executor database.Executor, modelProvider provider.Provider, modelCodec codec.Codec) *ReconcileRunner {
-	return &ReconcileRunner{
+func newReconcileRunner(ctx context.Context, previous, current models.Model, executor database.Executor, modelProvider provider.Provider, modelCodec codec.Codec) *reconcileRunner {
+	return &reconcileRunner{
 		baseRunner: newBaseRunner(ctx, current, executor, modelProvider, modelCodec, false, 0),
 		previous:   previous,
 	}
@@ -60,11 +60,11 @@ func sameSchemaField(previous, current models.Field) bool {
 // samePhysicalDefault compares backend declarations, not runtime default
 // expressions. A declaration-only change needs no ALTER DEFAULT; a changed
 // stored column contract still requires an explicit migration.
-func (s *ReconcileRunner) samePhysicalDefault(previous, current models.Field) (bool, *cd.Error) {
+func (s *reconcileRunner) samePhysicalDefault(previous, current models.Field) (bool, *cd.Error) {
 	if !models.IsMainTableField(s.previous, previous) || !models.IsMainTableField(s.vModel, current) {
 		return false, nil
 	}
-	builder, ok := NewBuilder(s.modelProvider, s.modelCodec).(database.SchemaBuilder)
+	builder, ok := newBuilder(s.modelProvider, s.modelCodec).(database.SchemaBuilder)
 	if !ok {
 		return false, cd.NewError(cd.Unexpected, "builder does not support schema declarations")
 	}
@@ -111,7 +111,7 @@ func findIndex(items []models.Index, name string) (models.Index, bool) {
 	return models.Index{}, false
 }
 
-func (s *ReconcileRunner) checkCompatibility() (map[string]models.Field, *cd.Error) {
+func (s *reconcileRunner) checkCompatibility() (map[string]models.Field, *cd.Error) {
 	if s.previous == nil || s.vModel == nil {
 		return nil, cd.NewError(cd.IllegalParam, "schema reconcile model is nil")
 	}
@@ -164,7 +164,7 @@ func (s *ReconcileRunner) checkCompatibility() (map[string]models.Field, *cd.Err
 	return previousFields, nil
 }
 
-func (s *ReconcileRunner) Reconcile() *cd.Error {
+func (s *reconcileRunner) Reconcile() *cd.Error {
 	statements, err := s.planReconcile()
 	if err != nil {
 		return err
@@ -172,7 +172,7 @@ func (s *ReconcileRunner) Reconcile() *cd.Error {
 	return s.executeSchemaDDL(statements)
 }
 
-func (s *ReconcileRunner) planReconcile() ([]database.Result, *cd.Error) {
+func (s *reconcileRunner) planReconcile() ([]database.Result, *cd.Error) {
 	if err := s.checkContext(); err != nil {
 		return nil, err
 	}
@@ -282,11 +282,11 @@ func (s *impl) Reconcile(previous, current models.Model) (err *cd.Error) {
 			ormMetricCollector.RecordOperation("reconcile", current, time.Since(start), cd.ToStdError(err))
 		}
 	}()
-	if err = s.CheckContext(); err != nil {
+	if err = s.checkContext(); err != nil {
 		return
 	}
 	if previous == nil || current == nil {
 		return cd.NewError(cd.IllegalParam, "schema reconcile model is nil")
 	}
-	return NewReconcileRunner(s.context, previous, current, s.executor, s.modelProvider, s.modelCodec).Reconcile()
+	return newReconcileRunner(s.context, previous, current, s.executor, s.modelProvider, s.modelCodec).Reconcile()
 }

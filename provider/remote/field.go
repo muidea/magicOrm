@@ -8,26 +8,9 @@ import (
 	"log/slog"
 
 	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicOrm/internal/utils"
 	"github.com/muidea/magicOrm/models"
-	"github.com/muidea/magicOrm/utils"
 )
-
-type Field struct {
-	Name        string     `json:"name"`
-	ShowName    string     `json:"showName"`
-	Description string     `json:"description"`
-	Type        *TypeImpl  `json:"type"`
-	Spec        *SpecImpl  `json:"spec"`
-	value       *ValueImpl `json:"-"`
-
-	valueValidator models.ValueValidator `json:"-"`
-}
-
-type FieldValue struct {
-	Name     string `json:"name"`
-	Value    any    `json:"value"`
-	Assigned bool   `json:"assigned,omitempty"`
-}
 
 // UnmarshalJSON keeps numeric tokens exact until the declared field type is
 // known. This also applies when FieldValue is nested in an HTTP request DTO.

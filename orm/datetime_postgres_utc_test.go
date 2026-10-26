@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/muidea/magicOrm/internal/utils"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
-	"github.com/muidea/magicOrm/utils"
 )
 
 type utcStorageSample struct {
@@ -65,7 +65,7 @@ func TestDateTimeUTCIsolatedPostgres(t *testing.T) {
 	if schema == "" || schema == "public" {
 		t.Fatal("dedicated non-public schema required")
 	}
-	cfg := NewConfig(server, name, schema, user, password)
+	cfg := newConfig(server, name, schema, user, password)
 	for _, writerKind := range []string{"local", "remote"} {
 		t.Run(writerKind, func(t *testing.T) {
 			prefix := "utc_" + strings.ToLower(rand.Text())

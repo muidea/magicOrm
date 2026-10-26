@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/muidea/magicOrm/database"
-	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/database/mysql"
-	"github.com/muidea/magicOrm/database/postgres"
+	"github.com/muidea/magicOrm/internal/database"
+	"github.com/muidea/magicOrm/internal/database/codec"
+	"github.com/muidea/magicOrm/internal/database/mysql"
+	"github.com/muidea/magicOrm/internal/database/postgres"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
@@ -276,7 +276,7 @@ func TestInlineReferenceQueryHydratesFromMainTable(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				runner := NewQueryRunner(context.Background(), mask, response, false, executor, p, c, batch, 0)
+				runner := newQueryRunner(context.Background(), mask, response, false, executor, p, c, batch, 0)
 				results, err := runner.Query(nil)
 				if err != nil || len(results) != 1 {
 					t.Fatal("主表引用回读失败", kind, batch, hasTarget, err)
@@ -305,11 +305,11 @@ func TestInlineReferenceAdditiveReconcileAndRepair(t *testing.T) {
 	previous.UniqueConstraints = nil
 	previous.Fields = previous.Fields[:2]
 	c := codec.New(p, "inline")
-	plan, err := NewReconcileRunner(context.Background(), previous, current, nil, p, c).planReconcile()
+	plan, err := newReconcileRunner(context.Background(), previous, current, nil, p, c).planReconcile()
 	if err != nil || len(plan) != 2 || !strings.Contains(plan[0].SQL(), "ADD COLUMN") || !strings.Contains(plan[1].SQL(), "ADD CONSTRAINT") {
 		t.Fatal("新增引用未先补列再建唯一约束", err, plan)
 	}
-	builder := NewBuilder(p, c).(database.SchemaBuilder)
+	builder := newBuilder(p, c).(database.SchemaBuilder)
 	before, err := builder.DescribeTable(previous)
 	if err != nil {
 		t.Fatal(err)
@@ -336,7 +336,7 @@ func TestInlineReferenceStorageChangeRequiresMigration(t *testing.T) {
 	previous := current.Copy(models.MetaView).(*remote.Object)
 	previous.UniqueConstraints = nil
 	executor := &fakeExecutor{}
-	err := NewReconcileRunner(context.Background(), previous, current, executor, p, codec.New(p, "inline")).Reconcile()
+	err := newReconcileRunner(context.Background(), previous, current, executor, p, codec.New(p, "inline")).Reconcile()
 	if err == nil || !strings.Contains(err.Message, "reference storage") || len(executor.execCalls) != 0 {
 		t.Fatal("已有链接字段被静默改为主表列", err, executor.execCalls)
 	}

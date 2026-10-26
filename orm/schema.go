@@ -6,19 +6,23 @@ import (
 	"sort"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicOrm/database"
-	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/internal/database"
+	"github.com/muidea/magicOrm/internal/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
 
-type SchemaReport struct {
-	Matches bool                   `json:"matches"`
-	Tables  []string               `json:"tables"`
-	Issues  []database.SchemaIssue `json:"issues"`
-}
-
 const maxSchemaTables = 1024
+
+// SchemaTableName observes the host table identity only, without opening a
+// connection or granting write authority. Unlike SchemaTables it excludes
+// relation tables and recursively owned models.
+func SchemaTableName(model models.Model, prefix string) (string, *cd.Error) {
+	if model == nil || model.GetName() == "" {
+		return "", cd.NewError(cd.IllegalParam, "schema model identity is unavailable")
+	}
+	return codec.New(nil, prefix).ConstructModelTableName(model), nil
+}
 
 // schemaTable retains the declaration used to build each statement. The graph
 // is validated in full before any DDL is built or executed.
@@ -58,7 +62,7 @@ func validateSchemaIndexes(graph *schemaGraph) *cd.Error {
 // The caller must serialize schema writers; this is a read-only observation,
 // not a distributed DDL lock or a repair command. A read error returns no report.
 func (s *impl) InspectSchema(model models.Model, expectedExist bool) (*SchemaReport, *cd.Error) {
-	if err := s.CheckContext(); err != nil {
+	if err := s.checkContext(); err != nil {
 		return nil, err
 	}
 	reader, ok := s.executor.(database.SchemaReader)
@@ -75,7 +79,7 @@ func (s *impl) InspectSchema(model models.Model, expectedExist bool) (*SchemaRep
 	}
 	sort.Strings(report.Tables)
 	for _, name := range report.Tables {
-		if err := s.CheckContext(); err != nil {
+		if err := s.checkContext(); err != nil {
 			return nil, err
 		}
 		actual, err := reader.ReadTableSchema(s.context, name)
@@ -87,7 +91,7 @@ func (s *impl) InspectSchema(model models.Model, expectedExist bool) (*SchemaRep
 		}
 		report.Issues = append(report.Issues, database.CompareTableSchema(graph.tables[name], actual, expectedExist)...)
 	}
-	if err := s.CheckContext(); err != nil {
+	if err := s.checkContext(); err != nil {
 		return nil, err
 	}
 	report.Matches = len(report.Issues) == 0
@@ -101,7 +105,7 @@ func collectSchemaGraph(ctx context.Context, model models.Model, p provider.Prov
 	if model == nil || p == nil || c == nil {
 		return nil, cd.NewError(cd.IllegalParam, "schema model/provider unavailable")
 	}
-	builder, ok := NewBuilder(p, c).(database.SchemaBuilder)
+	builder, ok := newBuilder(p, c).(database.SchemaBuilder)
 	if !ok {
 		return nil, cd.NewError(cd.Unexpected, "builder does not support schema declarations")
 	}

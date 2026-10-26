@@ -153,7 +153,7 @@ func TestPostgresUnknownCommitMustBeReconciled(t *testing.T) {
 			if ce != nil {
 				t.Fatal(ce)
 			}
-			direct, ce := NewOrm(p, NewConfig(u.Host, strings.TrimPrefix(u.Path, "/"), schema, u.User.Username(), password), "receipt")
+			direct, ce := NewOrm(p, newConfig(u.Host, strings.TrimPrefix(u.Path, "/"), schema, u.User.Username(), password), "receipt")
 			if ce != nil {
 				t.Fatal(ce)
 			}
@@ -162,7 +162,7 @@ func TestPostgresUnknownCommitMustBeReconciled(t *testing.T) {
 				t.Fatal(ce)
 			}
 			endpoint, completed := commitResponseLossProxy(t, u.Host, committed)
-			uncertain, ce := NewOrm(p, NewConfig(endpoint, strings.TrimPrefix(u.Path, "/"), schema, u.User.Username(), password), "receipt")
+			uncertain, ce := NewOrm(p, newConfig(endpoint, strings.TrimPrefix(u.Path, "/"), schema, u.User.Username(), password), "receipt")
 			if ce != nil {
 				t.Fatal(ce)
 			}

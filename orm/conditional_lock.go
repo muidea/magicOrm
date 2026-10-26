@@ -24,7 +24,7 @@ func (s *impl) LockWithFilter(model models.Model, filter models.Filter) (int64, 
 	if s == nil || s.executor == nil {
 		return 0, cd.NewError(cd.InvalidOperation, "conditional row lock requires an executor")
 	}
-	if err := s.CheckContext(); err != nil {
+	if err := s.checkContext(); err != nil {
 		return 0, err
 	}
 	checked, ok := s.executor.(interface {
@@ -56,7 +56,7 @@ func (s *impl) LockWithFilter(model models.Model, filter models.Filter) (int64, 
 			return 0, cd.NewError(cd.IllegalParam, "conditional row lock filter must use main-table fields")
 		}
 	}
-	result, err := NewBuilder(s.modelProvider, s.modelCodec).BuildQuery(model, filter)
+	result, err := newBuilder(s.modelProvider, s.modelCodec).BuildQuery(model, filter)
 	if err != nil {
 		return 0, err
 	}

@@ -1,13 +1,11 @@
 package local
 
 import (
-	"reflect"
 	"strings"
 
 	cd "github.com/muidea/magicCommon/def"
 
 	"github.com/muidea/magicOrm/models"
-	"github.com/muidea/magicOrm/utils"
 )
 
 const (
@@ -26,23 +24,6 @@ type SpecImpl struct {
 }
 
 var emptySpec = SpecImpl{primaryKey: false, valueDeclare: models.Customer}
-
-// NewSpec name[key][auto]
-func NewSpec(tag reflect.StructTag) (ret *SpecImpl, err *cd.Error) {
-	ormSpec := tag.Get(ormTag)
-	ret, err = getOrmSpec(ormSpec)
-	if err != nil {
-		return
-	}
-	constraints := tag.Get(constraintsTag)
-	if constraints != "" {
-		ret.constraints = utils.ParseConstraints(constraints)
-	}
-
-	viewSpec := tag.Get(viewTag)
-	ret.viewDeclare = getViewItems(viewSpec)
-	return
-}
 
 func getOrmSpec(spec string) (ret *SpecImpl, err *cd.Error) {
 	items := strings.Split(strings.TrimSpace(spec), " ")

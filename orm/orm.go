@@ -6,17 +6,14 @@ import (
 	"sync"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicCommon/monitoring"
-	"github.com/muidea/magicCommon/monitoring/types"
 
 	"log/slog"
 
-	"github.com/muidea/magicOrm/database"
-	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/metrics"
-	"github.com/muidea/magicOrm/metrics/metricsdb"
-	metricsorm "github.com/muidea/magicOrm/metrics/orm"
-	metricsvalidation "github.com/muidea/magicOrm/metrics/validation"
+	"github.com/muidea/magicOrm/internal/database"
+	"github.com/muidea/magicOrm/internal/database/codec"
+	metricsorm "github.com/muidea/magicOrm/internal/metrics/orm"
+	metrics "github.com/muidea/magicOrm/internal/metrics/shared"
+	metricsapi "github.com/muidea/magicOrm/metrics"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/validation"
@@ -25,39 +22,9 @@ import (
 
 const maxDeepLevel = 3
 
-// Orm is the stable public query/write contract exposed by magicOrm.
-//
-// Query is the single-object query entrypoint driven by a model instance.
-// BatchQuery is the multi-object query entrypoint driven by a filter.
-// magicOrm intentionally keeps only these two public query shapes to avoid
-// overlapping single-row semantics in the ORM layer.
-type Orm interface {
-	Create(entity models.Model) *cd.Error
-	Drop(entity models.Model) *cd.Error
-	// Reconcile applies only safe, additive differences between two registered
-	// model declarations. Destructive changes are rejected before any SQL runs.
-	Reconcile(previous models.Model, current models.Model) *cd.Error
-	// InspectSchema reads physical catalogs; false expects all owned tables to
-	// be absent after Drop. It never applies or repairs DDL.
-	InspectSchema(entity models.Model, expectedExist bool) (*SchemaReport, *cd.Error)
-	// RepairSchema verifies catalogs, applies only missing original steps, then
-	// independently confirms the target. Callers own authorization/serialization.
-	RepairSchema(previous models.Model, desired models.Model) (*SchemaReport, *cd.Error)
-	Insert(entity models.Model) (models.Model, *cd.Error)
-	Update(entity models.Model) (models.Model, *cd.Error)
-	// UpdateWithFilter performs a single-table conditional update and returns
-	// the database affected-row count. It is suitable for compare-and-set
-	// transitions and participates in an explicitly started transaction.
-	UpdateWithFilter(entity models.Model, filter models.Filter) (int64, *cd.Error)
-	Delete(entity models.Model) (models.Model, *cd.Error)
-	Query(entity models.Model) (models.Model, *cd.Error)
-	Count(filter models.Filter) (int64, *cd.Error)
-	BatchQuery(filter models.Filter) ([]models.Model, *cd.Error)
-	BeginTransaction() *cd.Error
-	CommitTransaction() *cd.Error
-	RollbackTransaction() *cd.Error
-	Release()
-}
+// Orm retains the public entrypoint name; the stable model contract is defined
+// in models and does not depend on database drivers.
+type Orm = models.ORM
 
 var (
 	name2Pool                  sync.Map
@@ -67,7 +34,6 @@ var (
 	validationManagerPool      sync.Pool
 	ownerPoolLocks             [64]sync.Mutex
 
-	ormMetricProvider  *metricsorm.ORMMetricProvider
 	ormMetricCollector *metricsorm.ORMMetricsCollector
 )
 
@@ -145,74 +111,18 @@ func Initialize() {
 
 		// 总是创建metrics收集器，但只在GlobalManager存在时注册provider
 		registerORMMetrics()
-		metricsdb.RegisterDatabaseMetrics()
-		metricsvalidation.RegisterValidationMetrics()
 	})
 }
 
-// registerORMMetrics 注册ORM监控provider
 func registerORMMetrics() {
-	// 创建全局metrics收集器（无论GlobalManager是否存在都创建）
-	ormMetricCollector = metricsorm.NewORMMetricsCollector()
-
-	// 只有在GlobalManager存在时才注册provider
-	if mgr := monitoring.GetGlobalManager(); mgr != nil {
-		// 创建provider并传递collector
-		ormMetricProvider = metricsorm.NewORMMetricProvider(ormMetricCollector)
-
-		// 尝试注册ORMMetricProvider
-		if err := monitoring.RegisterGlobalProvider(
-			"magicorm_orm",
-			func() types.MetricProvider {
-				return ormMetricProvider
-			},
-			true, // 自动初始化
-			100,  // 优先级
-		); err != nil {
-			ormMetricProvider = nil
-			// 记录错误但不影响ORM初始化
-			slog.Warn("Failed to register ORM metrics provider", "error", err.Error())
-		} else {
-			slog.Info("ORM metrics provider registered successfully")
-		}
-	} else {
-		// GlobalManager不存在，只创建collector不注册provider
-		slog.Debug("GlobalManager not available, ORM metrics collector created but provider not registered")
-	}
+	metricsapi.Initialize()
+	ormMetricCollector = metricsorm.GetORMMetricsCollector()
 }
 
-// EnsureORMMetricProviderRegistered 尝试在GlobalManager可用时注册ORM metrics provider。
-// 该方法是幂等的，可在monitoring.InitializeGlobalManager()之后显式调用。
+// EnsureORMMetricProviderRegistered registers the ORM provider after monitoring startup.
+// Use metrics.EnsureRegistered to register all three metric providers together.
 func EnsureORMMetricProviderRegistered() {
-	// 如果已经有provider，则不需要重复注册
-	if ormMetricProvider != nil {
-		return
-	}
-	if ormMetricCollector == nil {
-		// 尚未初始化ORM，保持静默
-		return
-	}
-
-	if monitoring.GetGlobalManager() == nil {
-		// 监控系统尚未初始化，无法注册
-		return
-	}
-
-	// 创建并注册provider
-	ormMetricProvider = metricsorm.NewORMMetricProvider(ormMetricCollector)
-	if err := monitoring.RegisterGlobalProvider(
-		"magicorm_orm",
-		func() types.MetricProvider {
-			return ormMetricProvider
-		},
-		true,
-		100,
-	); err != nil {
-		ormMetricProvider = nil
-		slog.Warn("Failed to ensure ORM metrics provider registration", "error", err.Error())
-	} else {
-		slog.Info("ORM metrics provider ensured and registered successfully")
-	}
+	metricsorm.EnsureORMMetricProviderRegistered()
 }
 
 // Uninitialized orm
@@ -244,7 +154,7 @@ func AddDatabase(dbServer, dbName, schemaName, username, password string, maxCon
 	lock := ownerPoolLock(owner)
 	lock.Lock()
 	defer lock.Unlock()
-	config := NewConfig(dbServer, dbName, schemaName, username, password)
+	config := newConfig(dbServer, dbName, schemaName, username, password)
 
 	val, ok := name2Pool.Load(owner)
 	if ok {
@@ -258,7 +168,7 @@ func AddDatabase(dbServer, dbName, schemaName, username, password string, maxCon
 		return
 	}
 
-	pool := NewPool()
+	pool := newPool()
 	err = pool.Initialize(maxConnNum, config)
 	if err != nil {
 		slog.Error("AddDatabase pool.Initialize failed", "owner", owner, "error", err.Error())
@@ -290,14 +200,17 @@ func DelDatabase(owner string) {
 }
 
 // NewOrm create new Orm
-func NewOrm(provider provider.Provider, cfg database.Config, prefix string) (Orm, *cd.Error) {
+func NewOrm(provider provider.Provider, cfg models.DatabaseConfig, prefix string) (Orm, *cd.Error) {
 	if provider == nil {
 		return nil, cd.NewError(cd.IllegalParam, "provider is nil")
 	}
+	if cfg == nil {
+		return nil, cd.NewError(cd.IllegalParam, "database configuration is nil")
+	}
 
-	executorVal, executorErr := NewExecutor(cfg)
+	executorVal, executorErr := newExecutor(cfg)
 	if executorErr != nil {
-		slog.Error("NewOrm NewExecutor failed", "error", executorErr.Error())
+		slog.Error("NewOrm newExecutor failed", "error", executorErr.Error())
 		return nil, cd.NewError(cd.Unexpected, executorErr.Error())
 	}
 
@@ -493,13 +406,8 @@ func (s *impl) getOperationType(scenario verrors.Scenario) validation.OperationT
 	}
 }
 
-// GetValidationManager returns the validation manager
-func (s *impl) GetValidationManager() validation.ValidationManager {
-	return s.validationMgr
-}
-
-// ConfigureValidation configures validation settings
-func (s *impl) ConfigureValidation(config validation.ValidationConfig) error {
+// configureValidation configures validation settings
+func (s *impl) configureValidation(config validation.ValidationConfig) error {
 	if s.pooledValidationMgr && s.validationMgr != nil {
 		releaseValidationManager(s.validationMgr)
 		s.validationMgr = nil
@@ -514,10 +422,10 @@ func (s *impl) ConfigureValidation(config validation.ValidationConfig) error {
 }
 
 // OwnerPoolStats returns a read-only pool snapshot, never a database handle.
-func OwnerPoolStats(owner string) (database.PoolStats, bool) {
+func OwnerPoolStats(owner string) (models.PoolStats, bool) {
 	value, ok := name2Pool.Load(owner)
 	if !ok {
-		return database.PoolStats{}, false
+		return models.PoolStats{}, false
 	}
 	return value.(database.Pool).GetStats(), true
 }

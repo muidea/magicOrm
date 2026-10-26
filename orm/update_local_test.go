@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/internal/database/codec"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/local"
 )
@@ -22,7 +22,7 @@ type localNilRelationParent struct {
 
 func TestCompareRelationSingleFieldValueHandlesTypedNil(t *testing.T) {
 	localProvider := provider.NewLocalProvider("tenant", nil)
-	runner := NewUpdateRunner(context.Background(), nil, &fakeExecutor{}, localProvider, codec.New(localProvider, "tenant"))
+	runner := newUpdateRunner(context.Background(), nil, &fakeExecutor{}, localProvider, codec.New(localProvider, "tenant"))
 
 	existingModel, err := local.GetEntityModel(&localNilRelationParent{ID: 1, Name: "left"}, nil)
 	if err != nil {

@@ -1,21 +1,21 @@
 package validation
 
 import (
+	"os"
+	"os/exec"
 	"testing"
 
-	"github.com/muidea/magicOrm/metrics"
-	metricsvalidation "github.com/muidea/magicOrm/metrics/validation"
+	"github.com/muidea/magicOrm/internal/metrics/shared"
+	metricsvalidation "github.com/muidea/magicOrm/internal/metrics/validation"
+	validationcache "github.com/muidea/magicOrm/internal/validation/cache"
 	"github.com/muidea/magicOrm/models"
-	validationcache "github.com/muidea/magicOrm/validation/cache"
 	verrors "github.com/muidea/magicOrm/validation/errors"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestValidationMetricsRecordedForManagerAndCache(t *testing.T) {
-	oldCollector := metricsvalidation.GetValidationMetricsCollector()
-	collector := metricsvalidation.NewValidationMetricsCollector()
-	metricsvalidation.SetValidationMetricsCollectorForTest(collector)
-	defer metricsvalidation.SetValidationMetricsCollectorForTest(oldCollector)
+	metricsvalidation.RegisterValidationMetrics()
+	collector := metricsvalidation.GetValidationMetricsCollector()
 
 	manager := NewValidationFactory().CreateValidationManager(DefaultConfig())
 	model := &testModel{
@@ -50,10 +50,8 @@ func TestValidationMetricsRecordedForManagerAndCache(t *testing.T) {
 }
 
 func TestValidationMetricsRecordErrors(t *testing.T) {
-	oldCollector := metricsvalidation.GetValidationMetricsCollector()
-	collector := metricsvalidation.NewValidationMetricsCollector()
-	metricsvalidation.SetValidationMetricsCollectorForTest(collector)
-	defer metricsvalidation.SetValidationMetricsCollectorForTest(oldCollector)
+	metricsvalidation.RegisterValidationMetrics()
+	collector := metricsvalidation.GetValidationMetricsCollector()
 
 	manager := NewValidationFactory().CreateValidationManager(DefaultConfig())
 	model := &testModel{
@@ -91,10 +89,8 @@ func TestValidationMetricsRecordErrors(t *testing.T) {
 }
 
 func TestValidationMetricsRecordModelCacheAccess(t *testing.T) {
-	oldCollector := metricsvalidation.GetValidationMetricsCollector()
-	collector := metricsvalidation.NewValidationMetricsCollector()
-	metricsvalidation.SetValidationMetricsCollectorForTest(collector)
-	defer metricsvalidation.SetValidationMetricsCollectorForTest(oldCollector)
+	metricsvalidation.RegisterValidationMetrics()
+	collector := metricsvalidation.GetValidationMetricsCollector()
 
 	cache := validationcache.NewValidationCache(validationcache.DefaultCacheConfig())
 	model := &testModel{name: "User"}
@@ -112,10 +108,8 @@ func TestValidationMetricsRecordModelCacheAccess(t *testing.T) {
 }
 
 func TestValidationMetricHelpers(t *testing.T) {
-	oldCollector := metricsvalidation.GetValidationMetricsCollector()
-	collector := metricsvalidation.NewValidationMetricsCollector()
-	metricsvalidation.SetValidationMetricsCollectorForTest(collector)
-	defer metricsvalidation.SetValidationMetricsCollectorForTest(oldCollector)
+	metricsvalidation.RegisterValidationMetrics()
+	collector := metricsvalidation.GetValidationMetricsCollector()
 
 	recordValidationMetric(OperationUpdate, "User", verrors.ScenarioUpdate, 0, nil)
 	recordValidationCacheAccess("custom", true)
@@ -128,9 +122,19 @@ func TestValidationMetricHelpers(t *testing.T) {
 }
 
 func TestValidationMetricHelpersWithoutCollector(t *testing.T) {
-	oldCollector := metricsvalidation.GetValidationMetricsCollector()
-	metricsvalidation.SetValidationMetricsCollectorForTest(nil)
-	defer metricsvalidation.SetValidationMetricsCollectorForTest(oldCollector)
+	// A fresh process exercises startup before metric registration without a
+	// production setter for test state. Other tests may register collectors.
+	if os.Getenv("MAGICORM_METRICS_UNREGISTERED_TEST") != "Validation" {
+		cmd := exec.Command(os.Args[0], "-test.run=^TestValidationMetricHelpersWithoutCollector$")
+		cmd.Env = append(os.Environ(), "MAGICORM_METRICS_UNREGISTERED_TEST=Validation")
+		if output, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("unregistered metrics: %v\n%s", err, output)
+		}
+		return
+	}
+	if metricsvalidation.GetValidationMetricsCollector() != nil {
+		t.Fatal("collector registered before startup check")
+	}
 
 	recordValidationMetric(OperationDelete, "User", verrors.ScenarioDelete, 0, nil)
 	recordValidationCacheAccess("custom", false)

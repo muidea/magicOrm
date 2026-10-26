@@ -1,11 +1,13 @@
 # 监控与指标设计
 
-**功能块**：`~/codespace/magicOrm/metrics`、`~/codespace/magicOrm/metrics/orm`、`~/codespace/magicOrm/metrics/metricsdb`、`~/codespace/magicOrm/metrics/validation`
-**依据**：`~/codespace/magicOrm/metrics/metrics.go`、`~/codespace/magicOrm/metrics/durationutil.go`、各 collector/provider 实现
+**功能块**：`~/codespace/magicOrm/metrics`、`~/codespace/magicOrm/internal/metrics/orm`、`~/codespace/magicOrm/internal/metrics/metricsdb`、`~/codespace/magicOrm/internal/metrics/validation`
+**依据**：`~/codespace/magicOrm/internal/metrics/shared/metrics.go`、`~/codespace/magicOrm/internal/metrics/shared/durationutil.go`、各 collector/provider 实现
 
 [← 返回设计文档索引](~/codespace/magicOrm/docs/README.md)
 
 ---
+
+公开包 `metrics` 提供独立采集初始化 `Initialize()` 和监控晚启动的统一注册入口 `EnsureRegistered()`。ORM自动调用初始化；先独立采集再初始化ORM也复用原采集器，不清空数据。下文collector、key和采样函数是internal实现，不作为应用接口开放；应用经magicCommon/monitoring读取指标。
 
 ## 1. 当前实现概览
 
@@ -17,9 +19,9 @@ MagicORM 当前已经有三套可直接接入 `magicCommon/monitoring` 的指标
 
 其中：
 
-- `~/codespace/magicOrm/metrics/orm` 面向 ORM 操作、事务、缓存命中率、活跃连接数。
-- `~/codespace/magicOrm/metrics/metricsdb` 面向数据库查询、执行、事务、连接池、错误分类。
-- `~/codespace/magicOrm/metrics/validation` 面向校验操作、耗时、错误、缓存访问、约束检查。
+- `~/codespace/magicOrm/internal/metrics/orm` 面向 ORM 操作、事务、缓存命中率、活跃连接数。
+- `~/codespace/magicOrm/internal/metrics/metricsdb` 面向数据库查询、执行、事务、连接池、错误分类。
+- `~/codespace/magicOrm/internal/metrics/validation` 面向校验操作、耗时、错误、缓存访问、约束检查。
 
 各 provider 都通过内存 collector 聚合数据，再在 `Collect()` 时导出为监控指标。
 
@@ -52,7 +54,7 @@ MagicORM 当前已经有三套可直接接入 `magicCommon/monitoring` 的指标
 
 ### 3.1 Collector
 
-`~/codespace/magicOrm/metrics/orm/collector.go` 当前维护：
+`~/codespace/magicOrm/internal/metrics/orm/collector.go` 当前维护：
 
 - 操作计数：`operation + model + status`
 - 操作耗时：`operation + model + status`
@@ -63,7 +65,7 @@ MagicORM 当前已经有三套可直接接入 `magicCommon/monitoring` 的指标
 
 ### 3.2 Provider
 
-`~/codespace/magicOrm/metrics/orm/provider.go` 当前导出：
+`~/codespace/magicOrm/internal/metrics/orm/provider.go` 当前导出：
 
 - `magicorm_orm_operations_total`
 - `magicorm_orm_operation_duration_seconds`
@@ -83,7 +85,7 @@ MagicORM 当前已经有三套可直接接入 `magicCommon/monitoring` 的指标
 
 ### 4.1 Collector
 
-`~/codespace/magicOrm/metrics/metricsdb/collector.go` 当前维护：
+`~/codespace/magicOrm/internal/metrics/metricsdb/collector.go` 当前维护：
 
 - 查询计数：`database + query_type + status`
 - 查询耗时：`database + query_type + status`
@@ -102,7 +104,7 @@ MagicORM 当前已经有三套可直接接入 `magicCommon/monitoring` 的指标
 
 ### 4.2 Provider
 
-`~/codespace/magicOrm/metrics/metricsdb/provider.go` 当前导出：
+`~/codespace/magicOrm/internal/metrics/metricsdb/provider.go` 当前导出：
 
 - `magicorm_database_queries_total`
 - `magicorm_database_query_duration_seconds`
@@ -117,7 +119,7 @@ MagicORM 当前已经有三套可直接接入 `magicCommon/monitoring` 的指标
 
 ### 5.1 Collector
 
-`~/codespace/magicOrm/metrics/validation/collector.go` 当前维护：
+`~/codespace/magicOrm/internal/metrics/validation/collector.go` 当前维护：
 
 - 校验计数：`operation + model + scenario + status`
 - 校验耗时：`operation + model + scenario + status`
@@ -127,7 +129,7 @@ MagicORM 当前已经有三套可直接接入 `magicCommon/monitoring` 的指标
 
 ### 5.2 Provider
 
-`~/codespace/magicOrm/metrics/validation/provider.go` 当前导出：
+`~/codespace/magicOrm/internal/metrics/validation/provider.go` 当前导出：
 
 - `magicorm_validation_operations_total`
 - `magicorm_validation_duration_seconds`
@@ -149,13 +151,13 @@ MagicORM 当前已经有三套可直接接入 `magicCommon/monitoring` 的指标
 
 - ORM 层会在 `orm.Initialize()` 中创建 ORM collector，并在 `monitoring.GlobalManager` 可用时注册 `magicorm_orm` provider。
 - Database 层也会在 `orm.Initialize()` 中创建 DB collector；MySQL/PostgreSQL executor 与 pool 当前会把 query / execute / transaction / connection stats 写入该 collector，并在 `monitoring.GlobalManager` 可用时注册 `magicorm_database` provider。
-- Validation 层也会在 `orm.Initialize()` 中创建 validation collector；`validation.Manager`、`~/codespace/magicOrm/validation/cache` 与约束校验链路当前会把 validation / cache / constraint metrics 写入该 collector，并在 `monitoring.GlobalManager` 可用时注册 `magicorm_validation` provider。
+- Validation 层也会在 `orm.Initialize()` 中创建 validation collector；`validation.Manager`、`~/codespace/magicOrm/internal/validation/cache` 与约束校验链路当前会把 validation / cache / constraint metrics 写入该 collector，并在 `monitoring.GlobalManager` 可用时注册 `magicorm_validation` provider。
 
 如果调用方没有注册 monitoring manager：
 
 - collector 仍可在进程内累计指标
 - provider 不会自动对外暴露
-- 后续可显式调用 `orm.EnsureORMMetricProviderRegistered()`、`metricsdb.EnsureDatabaseMetricProviderRegistered()` 或 `metricsvalidation.EnsureValidationMetricProviderRegistered()` 做幂等注册
+- 后续调用公开的 `metrics.EnsureRegistered()` 对三类provider做幂等注册；该调用不重置collector。原 `orm.EnsureORMMetricProviderRegistered()` 保留，仅处理ORM指标
 
 ---
 

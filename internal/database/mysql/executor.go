@@ -1,0 +1,1059 @@
+package mysql
+
+import (
+	"context"
+	"database/sql"
+	"fmt"
+	"strings"
+	"time"
+
+	_ "github.com/go-sql-driver/mysql" //引入Mysql驱动
+
+	"log/slog"
+
+	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicOrm/internal/database"
+)
+
+const defaultCharSet = "utf8mb4"
+
+type Config struct {
+	dbServer string
+	dbName   string
+	schema   string
+	username string
+	password string
+	charSet  string
+}
+
+func (s *Config) Server() string {
+	return s.dbServer
+}
+
+func (s *Config) Database() string {
+	return s.dbName
+}
+
+func (s *Config) Schema() string {
+	return s.schema
+}
+
+func (s *Config) Username() string {
+	return s.username
+}
+
+func (s *Config) Password() string {
+	return s.password
+}
+
+func (s *Config) CharSet() string {
+	if s.charSet == "" {
+		return defaultCharSet
+	}
+
+	return s.charSet
+}
+
+func (s *Config) Same(cfg *Config) bool {
+	return s.dbServer == cfg.dbServer &&
+		s.dbName == cfg.dbName &&
+		s.schema == cfg.schema &&
+		s.username == cfg.username &&
+		s.password == cfg.password
+}
+func (s *Config) GetDsn() string {
+	return fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=%s", s.Username(), s.Password(), s.Server(), s.Database(), s.CharSet())
+}
+
+func NewConfig(dbServer, dbName, schemaName, username, password, charSet string) *Config {
+	return &Config{dbServer: dbServer, dbName: dbName, schema: schemaName, username: username, password: password, charSet: charSet}
+}
+
+// EnsureSchema is a no-op DDL operation for MySQL because schema and database
+// are the same physical namespace in the ORM contract. Opening the configured
+// database verifies that the namespace already exists; creation belongs to the
+// platform database owner rather than an application connection.
+func EnsureSchema(config *Config) *cd.Error {
+	if config == nil || strings.TrimSpace(config.Database()) == "" ||
+		strings.TrimSpace(config.Schema()) == "" || config.Database() != config.Schema() {
+		return cd.NewError(cd.IllegalParam, "mysql database/schema configuration must refer to the same physical database")
+	}
+	dbHandle, dbErr := sql.Open("mysql", config.GetDsn())
+	if dbErr != nil {
+		return databaseError(dbErr)
+	}
+	defer dbHandle.Close()
+	if dbErr = dbHandle.Ping(); dbErr != nil {
+		return databaseError(dbErr)
+	}
+	return nil
+}
+
+// NewExecutor 新建一个数据访问对象
+func NewExecutor(configPtr database.Config) (ret *HostExecutor, err *cd.Error) {
+	dsn := configPtr.GetDsn()
+	dbHandle, dbErr := sql.Open("mysql", dsn)
+	if dbErr != nil {
+		err = databaseError(dbErr)
+		slog.Error("open database exception", "dsn", dsn, "error", err.Error())
+		return
+	}
+
+	ret = &HostExecutor{
+		executeContetxt: context.Background(),
+		dbHandle:        dbHandle,
+		ownDBHandle:     true,
+	}
+
+	return
+}
+
+// ConnExecutor ConnExecutor
+type ConnExecutor struct {
+	executeContetxt context.Context
+	dbConnPtr       *sql.Conn
+	dbTxCount       int32
+	dbRollbackOnly  bool
+	released        bool
+	dbTx            *sql.Tx
+	rowsHandle      *sql.Rows
+	rowsError       *cd.Error
+}
+
+func (s *ConnExecutor) Release() {
+	if s.released {
+		return
+	}
+	s.released = true
+	defer func() { s.dbTx = nil; s.dbTxCount = 0; s.dbRollbackOnly = false }()
+
+	if s.rowsHandle != nil {
+		if err := s.rowsHandle.Close(); err != nil {
+			slog.Warn("Failed to close rows handle", "error", err.Error())
+		}
+	}
+	if s.dbTx != nil {
+		if err := s.dbTx.Rollback(); err != nil && err != sql.ErrTxDone {
+			slog.Warn("Failed to rollback transaction", "error", err.Error())
+		}
+	}
+	if s.dbConnPtr != nil {
+		if err := s.dbConnPtr.Close(); err != nil {
+			slog.Warn("Failed to close database connection", "error", err.Error())
+		}
+	}
+}
+
+func (s *ConnExecutor) BeginTransaction() (err *cd.Error) {
+	defer func() { database.RecordDatabaseTransaction(database.DatabaseMySQL, "begin", err == nil) }()
+	if s.released || s.dbConnPtr == nil {
+		return cd.NewError(cd.InvalidOperation, "transaction requires an available executor")
+	}
+	if s.executeContetxt != nil && s.executeContetxt.Err() != nil {
+		return cd.NewError(cd.InvalidOperation, "transaction begin was canceled")
+	}
+	if s.dbRollbackOnly {
+		return cd.NewError(cd.InvalidOperation, "transaction is rollback-only")
+	}
+	if s.dbTx != nil {
+		s.dbTxCount++
+		return nil
+	}
+	if s.dbTxCount != 0 {
+		return cd.NewError(cd.InvalidOperation, "transaction state is inconsistent")
+	}
+	s.Finish()
+	ctx := s.executeContetxt
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	tx, beginErr := s.dbConnPtr.BeginTx(ctx, nil)
+	if beginErr != nil {
+		return databaseError(beginErr)
+	}
+	s.dbTx, s.dbTxCount = tx, 1
+	return nil
+}
+
+func (s *ConnExecutor) CommitTransaction() (err *cd.Error) {
+	defer func() { database.RecordDatabaseTransaction(database.DatabaseMySQL, "commit", err == nil) }()
+	if s.released || s.dbTx == nil || s.dbTxCount <= 0 {
+		return cd.NewError(cd.InvalidOperation, "commit requires an active transaction")
+	}
+	s.dbTxCount--
+	if s.dbTxCount > 0 {
+		if s.dbRollbackOnly {
+			return cd.NewError(cd.InvalidOperation, "transaction is rollback-only")
+		}
+		return nil
+	}
+	tx, rollback := s.dbTx, s.dbRollbackOnly
+	s.dbTx, s.dbRollbackOnly = nil, false
+	s.Finish()
+	if rollback {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil && rollbackErr != sql.ErrTxDone {
+			return databaseError(rollbackErr)
+		}
+		return cd.NewError(cd.InvalidOperation, "rollback-only transaction was rolled back")
+	}
+	if commitErr := tx.Commit(); commitErr != nil {
+		return databaseError(commitErr)
+	}
+	return nil
+}
+
+func (s *ConnExecutor) RollbackTransaction() (err *cd.Error) {
+	defer func() { database.RecordDatabaseTransaction(database.DatabaseMySQL, "rollback", err == nil) }()
+	if s.released {
+		return cd.NewError(cd.InvalidOperation, "executor was released")
+	}
+	if s.dbTx == nil && s.dbTxCount == 0 {
+		return nil
+	}
+	if s.dbTx == nil || s.dbTxCount <= 0 {
+		return cd.NewError(cd.InvalidOperation, "transaction state is inconsistent")
+	}
+	s.dbTxCount--
+	if s.dbTxCount > 0 {
+		s.dbRollbackOnly = true
+		return nil
+	}
+	tx := s.dbTx
+	s.dbTx, s.dbRollbackOnly = nil, false
+	s.Finish()
+	if rollbackErr := tx.Rollback(); rollbackErr != nil && rollbackErr != sql.ErrTxDone {
+		return databaseError(rollbackErr)
+	}
+	return nil
+}
+
+func (s *ConnExecutor) Query(sql string, needCols bool, args ...any) (ret []string, err *cd.Error) {
+	if s.released || s.dbRollbackOnly {
+		err = cd.NewError(cd.InvalidOperation, "executor is unavailable or transaction is rollback-only")
+		return
+	}
+	s.rowsError = nil
+	//slog.Info("message")
+	startTime := time.Now()
+	defer func() {
+		endTime := time.Now()
+		elapse := endTime.Sub(startTime)
+		database.RecordDatabaseQuery(database.DatabaseMySQL, sql, elapse, err)
+		if err != nil {
+			slog.Error("Query failed", "execute_time", startTime.Local().String(), "elapse", elapse, "sql", sql, "error", err.Error())
+			return
+		}
+
+		if traceSQL() {
+			slog.Info("Query ok", "execute_time", startTime.Local().String(), "elapse", elapse, "sql", sql)
+		}
+	}()
+
+	if s.dbTx == nil {
+		if s.dbConnPtr == nil {
+			panic("dbHandle is nil")
+		}
+		if s.rowsHandle != nil {
+			_ = s.rowsHandle.Close()
+			s.rowsHandle = nil
+		}
+
+		rows, rowErr := s.dbConnPtr.QueryContext(s.executeContetxt, sql, args...)
+		if rowErr != nil {
+			err = databaseError(rowErr)
+			slog.Error("Query failed", "sql", sql, "args", args, "error", rowErr.Error())
+			return
+		}
+		if needCols {
+			cols, colsErr := rows.Columns()
+			if colsErr != nil {
+				err = databaseError(colsErr)
+				slog.Error("Query failed", "operation", "rows.Columns", "sql", sql, "error", colsErr.Error())
+				return
+			}
+
+			ret = cols
+		}
+		s.rowsHandle = rows
+	} else {
+		if s.rowsHandle != nil {
+			_ = s.rowsHandle.Close()
+			s.rowsHandle = nil
+		}
+
+		rows, rowErr := s.dbTx.Query(sql, args...)
+		if rowErr != nil {
+			err = databaseError(rowErr)
+			slog.Error("Query failed", "operation", "s.dbTx.Query", "sql", sql, "error", rowErr.Error())
+			return
+		}
+		if needCols {
+			cols, colsErr := rows.Columns()
+			if colsErr != nil {
+				err = databaseError(colsErr)
+				slog.Error("Query failed", "operation", "rows.Columns", "sql", sql, "error", colsErr.Error())
+				return
+			}
+
+			ret = cols
+		}
+		s.rowsHandle = rows
+	}
+
+	return
+}
+
+func (s *ConnExecutor) Next() bool {
+	if s.rowsHandle == nil {
+		panic("rowsHandle is nil")
+	}
+
+	ret := s.rowsHandle.Next()
+	if !ret {
+		if readErr := s.rowsHandle.Err(); readErr != nil {
+			s.rowsError = databaseError(readErr)
+		}
+		s.Finish()
+	}
+
+	return ret
+}
+
+func (s *ConnExecutor) RowsError() *cd.Error { return s.rowsError }
+
+func (s *ConnExecutor) Finish() {
+	if s.rowsHandle != nil {
+		if closeErr := s.rowsHandle.Close(); closeErr != nil && s.rowsError == nil {
+			s.rowsError = databaseError(closeErr)
+		}
+		if readErr := s.rowsHandle.Err(); readErr != nil && s.rowsError == nil {
+			s.rowsError = databaseError(readErr)
+		}
+		s.rowsHandle = nil
+	}
+}
+
+func (s *ConnExecutor) GetField(value ...any) (err *cd.Error) {
+	if s.rowsHandle == nil {
+		panic("rowsHandle is nil")
+	}
+
+	dbErr := s.rowsHandle.Scan(value...)
+	if dbErr != nil {
+		err = databaseError(dbErr)
+		slog.Error("GetField failed", "value", "s.rowsHandle.Scan", "error", err.Error())
+	}
+
+	return
+}
+
+func (s *ConnExecutor) Execute(sql string, args ...any) (rowsAffected int64, err *cd.Error) {
+	if s.released || s.dbRollbackOnly {
+		err = cd.NewError(cd.InvalidOperation, "executor is unavailable or transaction is rollback-only")
+		return
+	}
+	startTime := time.Now()
+	defer func() {
+		endTime := time.Now()
+		elapse := endTime.Sub(startTime)
+		database.RecordDatabaseExecution(database.DatabaseMySQL, sql, err == nil, elapse)
+		if err != nil {
+			slog.Error("Execute failed", "execute_time", startTime.Local().String(), "elapse", elapse, "sql", sql, "error", err.Error())
+			return
+		}
+
+		if traceSQL() {
+			slog.Info("Execute ok", "execute_time", startTime.Local().String(), "elapse", elapse, "sql", sql)
+		}
+	}()
+
+	if s.rowsHandle != nil {
+		_ = s.rowsHandle.Close()
+	}
+	s.rowsHandle = nil
+
+	if s.dbTx == nil {
+		if s.dbConnPtr == nil {
+			panic("dbHandle is nil")
+		}
+
+		result, resultErr := s.dbConnPtr.ExecContext(s.executeContetxt, sql, args...)
+		if resultErr != nil {
+			err = databaseError(resultErr)
+			slog.Error("Execute failed", "value", "s.dbHandle.Exec", "error", resultErr.Error())
+			return
+		}
+
+		rowsAffected, _ = result.RowsAffected()
+		return
+	}
+
+	result, resultErr := s.dbTx.Exec(sql, args...)
+	if resultErr != nil {
+		err = databaseError(resultErr)
+		slog.Error("Execute failed", "value", "s.dbTx.Exec", "error", resultErr.Error())
+		return
+	}
+
+	rowsAffected, _ = result.RowsAffected()
+	return
+}
+
+func (s *ConnExecutor) ExecuteInsert(sql string, pkValOut any, args ...any) (err *cd.Error) {
+	if s.released || s.dbRollbackOnly {
+		err = cd.NewError(cd.InvalidOperation, "executor is unavailable or transaction is rollback-only")
+		return
+	}
+	startTime := time.Now()
+	defer func() {
+		endTime := time.Now()
+		elapse := endTime.Sub(startTime)
+		database.RecordDatabaseExecution(database.DatabaseMySQL, sql, err == nil, elapse)
+		if err != nil {
+			slog.Error("ExecuteInsert failed", "execute_time", startTime.Local().String(), "elapse", elapse, "sql", sql, "error", err.Error())
+			return
+		}
+
+		if traceSQL() {
+			slog.Info("ExecuteInsert ok", "execute_time", startTime.Local().String(), "elapse", elapse, "sql", sql)
+		}
+	}()
+
+	if s.rowsHandle != nil {
+		_ = s.rowsHandle.Close()
+	}
+	s.rowsHandle = nil
+
+	if s.dbTx == nil {
+		if s.dbConnPtr == nil {
+			panic("dbHandle is nil")
+		}
+
+		execResult, execErr := s.dbConnPtr.ExecContext(s.executeContetxt, sql, args...)
+		if execErr != nil {
+			err = databaseError(execErr)
+			slog.Error("ExecuteInsert failed", "value", "s.dbHandle.Exec", "error", execErr.Error())
+			return
+		}
+		idVal, idErr := execResult.LastInsertId()
+		if idErr != nil {
+			err = databaseError(idErr)
+			slog.Error("ExecuteInsert failed", "value", "s.dbHandle.Exec", "error", idErr.Error())
+			return
+		}
+		if pkValOut != nil {
+			switch raw := pkValOut.(type) {
+			case *any:
+				*raw = idVal
+			default:
+				err = cd.NewError(cd.Unexpected, "pkValOut type error, must be *any")
+			}
+		}
+
+		return
+	}
+
+	execResult, execErr := s.dbTx.ExecContext(s.executeContetxt, sql, args...)
+	if execErr != nil {
+		err = databaseError(execErr)
+		slog.Error("ExecuteInsert failed", "value", "s.dbHandle.Exec", "error", execErr.Error())
+		return
+	}
+	idVal, idErr := execResult.LastInsertId()
+	if idErr != nil {
+		err = databaseError(idErr)
+		slog.Error("ExecuteInsert failed", "value", "s.dbHandle.Exec", "error", idErr.Error())
+		return
+	}
+	if pkValOut != nil {
+		switch raw := pkValOut.(type) {
+		case *any:
+			*raw = idVal
+		default:
+			err = cd.NewError(cd.Unexpected, "pkValOut type error, must be *any")
+		}
+	}
+
+	return
+}
+
+// CheckTableExist Check Table Exist
+func (s *ConnExecutor) CheckTableExist(tableName string) (ret bool, err *cd.Error) {
+	strSQL := "SELECT tablename FROM pg_tables WHERE tablename = $1 AND schemaname = 'public'"
+	_, err = s.Query(strSQL, false, tableName)
+	if err != nil {
+		slog.Error("CheckTableExist failed", "value", "s.Query", "error", err.Error())
+		return
+	}
+
+	if s.Next() {
+		ret = true
+	}
+
+	s.Finish()
+
+	return
+}
+
+// ConnExecutor ConnExecutor
+type HostExecutor struct {
+	executeContetxt context.Context
+	dbHandle        *sql.DB
+	dbTxCount       int32
+	dbRollbackOnly  bool
+	released        bool
+	dbTx            *sql.Tx
+	rowsHandle      *sql.Rows
+	rowsError       *cd.Error
+	ownDBHandle     bool
+}
+
+func (s *HostExecutor) Release() {
+	if s.released {
+		return
+	}
+	s.released = true
+	defer func() { s.dbTx = nil; s.dbTxCount = 0; s.dbRollbackOnly = false }()
+
+	if s.rowsHandle != nil {
+		if err := s.rowsHandle.Close(); err != nil {
+			slog.Warn("Failed to close rows handle", "error", err.Error())
+		}
+	}
+	if s.dbTx != nil {
+		if err := s.dbTx.Rollback(); err != nil && err != sql.ErrTxDone {
+			slog.Warn("Failed to rollback transaction", "error", err.Error())
+		}
+	}
+	if s.dbHandle != nil && s.ownDBHandle {
+		if err := s.dbHandle.Close(); err != nil {
+			slog.Warn("Failed to close database handle", "error", err.Error())
+		}
+	}
+}
+
+func (s *HostExecutor) BeginTransaction() (err *cd.Error) {
+	defer func() { database.RecordDatabaseTransaction(database.DatabaseMySQL, "begin", err == nil) }()
+	if s.released || s.dbHandle == nil {
+		return cd.NewError(cd.InvalidOperation, "transaction requires an available executor")
+	}
+	if s.executeContetxt != nil && s.executeContetxt.Err() != nil {
+		return cd.NewError(cd.InvalidOperation, "transaction begin was canceled")
+	}
+	if s.dbRollbackOnly {
+		return cd.NewError(cd.InvalidOperation, "transaction is rollback-only")
+	}
+	if s.dbTx != nil {
+		s.dbTxCount++
+		return nil
+	}
+	if s.dbTxCount != 0 {
+		return cd.NewError(cd.InvalidOperation, "transaction state is inconsistent")
+	}
+	s.Finish()
+	ctx := s.executeContetxt
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	tx, beginErr := s.dbHandle.BeginTx(ctx, nil)
+	if beginErr != nil {
+		return databaseError(beginErr)
+	}
+	s.dbTx, s.dbTxCount = tx, 1
+	return nil
+}
+
+func (s *HostExecutor) CommitTransaction() (err *cd.Error) {
+	defer func() { database.RecordDatabaseTransaction(database.DatabaseMySQL, "commit", err == nil) }()
+	if s.released || s.dbTx == nil || s.dbTxCount <= 0 {
+		return cd.NewError(cd.InvalidOperation, "commit requires an active transaction")
+	}
+	s.dbTxCount--
+	if s.dbTxCount > 0 {
+		if s.dbRollbackOnly {
+			return cd.NewError(cd.InvalidOperation, "transaction is rollback-only")
+		}
+		return nil
+	}
+	tx, rollback := s.dbTx, s.dbRollbackOnly
+	s.dbTx, s.dbRollbackOnly = nil, false
+	s.Finish()
+	if rollback {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil && rollbackErr != sql.ErrTxDone {
+			return databaseError(rollbackErr)
+		}
+		return cd.NewError(cd.InvalidOperation, "rollback-only transaction was rolled back")
+	}
+	if commitErr := tx.Commit(); commitErr != nil {
+		return databaseError(commitErr)
+	}
+	return nil
+}
+
+func (s *HostExecutor) RollbackTransaction() (err *cd.Error) {
+	defer func() { database.RecordDatabaseTransaction(database.DatabaseMySQL, "rollback", err == nil) }()
+	if s.released {
+		return cd.NewError(cd.InvalidOperation, "executor was released")
+	}
+	if s.dbTx == nil && s.dbTxCount == 0 {
+		return nil
+	}
+	if s.dbTx == nil || s.dbTxCount <= 0 {
+		return cd.NewError(cd.InvalidOperation, "transaction state is inconsistent")
+	}
+	s.dbTxCount--
+	if s.dbTxCount > 0 {
+		s.dbRollbackOnly = true
+		return nil
+	}
+	tx := s.dbTx
+	s.dbTx, s.dbRollbackOnly = nil, false
+	s.Finish()
+	if rollbackErr := tx.Rollback(); rollbackErr != nil && rollbackErr != sql.ErrTxDone {
+		return databaseError(rollbackErr)
+	}
+	return nil
+}
+
+func (s *HostExecutor) Query(sql string, needCols bool, args ...any) (ret []string, err *cd.Error) {
+	if s.released || s.dbRollbackOnly {
+		err = cd.NewError(cd.InvalidOperation, "executor is unavailable or transaction is rollback-only")
+		return
+	}
+	s.rowsError = nil
+	//slog.Info("message")
+	startTime := time.Now()
+	defer func() {
+		endTime := time.Now()
+		elapse := endTime.Sub(startTime)
+		database.RecordDatabaseQuery(database.DatabaseMySQL, sql, elapse, err)
+		if err != nil {
+			slog.Error("Query failed", "execute_time", startTime.Local().String(), "elapse", elapse, "sql", sql, "error", err.Error())
+			return
+		}
+
+		if traceSQL() {
+			slog.Info("Query ok", "execute_time", startTime.Local().String(), "elapse", elapse, "sql", sql)
+		}
+	}()
+
+	if s.dbTx == nil {
+		if s.dbHandle == nil {
+			panic("dbHandle is nil")
+		}
+		if s.rowsHandle != nil {
+			_ = s.rowsHandle.Close()
+			s.rowsHandle = nil
+		}
+
+		if s.executeContetxt != nil {
+			rows, rowErr := s.dbHandle.QueryContext(s.executeContetxt, sql, args...)
+			if rowErr != nil {
+				err = databaseError(rowErr)
+				slog.Error("Query failed", "sql", sql, "args", args, "error", rowErr.Error())
+				return
+			}
+			if needCols {
+				cols, colsErr := rows.Columns()
+				if colsErr != nil {
+					err = databaseError(colsErr)
+					slog.Error("Query failed", "operation", "rows.Columns", "sql", sql, "error", colsErr.Error())
+					return
+				}
+
+				ret = cols
+			}
+			s.rowsHandle = rows
+			return
+		}
+		rows, rowErr := s.dbHandle.Query(sql, args...)
+		if rowErr != nil {
+			err = databaseError(rowErr)
+			slog.Error("Query failed", "sql", sql, "args", args, "error", rowErr.Error())
+			return
+		}
+		if needCols {
+			cols, colsErr := rows.Columns()
+			if colsErr != nil {
+				err = databaseError(colsErr)
+				slog.Error("Query failed", "operation", "rows.Columns", "sql", sql, "error", colsErr.Error())
+				return
+			}
+
+			ret = cols
+		}
+		s.rowsHandle = rows
+	} else {
+		if s.rowsHandle != nil {
+			_ = s.rowsHandle.Close()
+			s.rowsHandle = nil
+		}
+
+		rows, rowErr := s.dbTx.Query(sql, args...)
+		if rowErr != nil {
+			err = databaseError(rowErr)
+			slog.Error("Query failed", "operation", "s.dbTx.Query", "sql", sql, "error", rowErr.Error())
+			return
+		}
+		if needCols {
+			cols, colsErr := rows.Columns()
+			if colsErr != nil {
+				err = databaseError(colsErr)
+				slog.Error("Query failed", "operation", "rows.Columns", "sql", sql, "error", colsErr.Error())
+				return
+			}
+
+			ret = cols
+		}
+		s.rowsHandle = rows
+	}
+
+	return
+}
+
+func (s *HostExecutor) Next() bool {
+	if s.rowsHandle == nil {
+		panic("rowsHandle is nil")
+	}
+
+	ret := s.rowsHandle.Next()
+	if !ret {
+		if readErr := s.rowsHandle.Err(); readErr != nil {
+			s.rowsError = databaseError(readErr)
+		}
+		s.Finish()
+	}
+
+	return ret
+}
+
+func (s *HostExecutor) RowsError() *cd.Error { return s.rowsError }
+
+func (s *HostExecutor) Finish() {
+	if s.rowsHandle != nil {
+		if closeErr := s.rowsHandle.Close(); closeErr != nil && s.rowsError == nil {
+			s.rowsError = databaseError(closeErr)
+		}
+		if readErr := s.rowsHandle.Err(); readErr != nil && s.rowsError == nil {
+			s.rowsError = databaseError(readErr)
+		}
+		s.rowsHandle = nil
+	}
+}
+
+func (s *HostExecutor) GetField(value ...any) (err *cd.Error) {
+	if s.rowsHandle == nil {
+		panic("rowsHandle is nil")
+	}
+
+	dbErr := s.rowsHandle.Scan(value...)
+	if dbErr != nil {
+		err = databaseError(dbErr)
+		slog.Error("GetField failed", "value", "s.rowsHandle.Scan", "error", err.Error())
+	}
+
+	return
+}
+
+func (s *HostExecutor) Execute(sql string, args ...any) (rowsAffected int64, err *cd.Error) {
+	if s.released || s.dbRollbackOnly {
+		err = cd.NewError(cd.InvalidOperation, "executor is unavailable or transaction is rollback-only")
+		return
+	}
+	startTime := time.Now()
+	defer func() {
+		endTime := time.Now()
+		elapse := endTime.Sub(startTime)
+		database.RecordDatabaseExecution(database.DatabaseMySQL, sql, err == nil, elapse)
+		if err != nil {
+			slog.Error("Execute failed", "execute_time", startTime.Local().String(), "elapse", elapse, "sql", sql, "error", err.Error())
+			return
+		}
+
+		if traceSQL() {
+			slog.Info("Execute ok", "execute_time", startTime.Local().String(), "elapse", elapse, "sql", sql)
+		}
+	}()
+
+	if s.rowsHandle != nil {
+		_ = s.rowsHandle.Close()
+	}
+	s.rowsHandle = nil
+
+	if s.dbTx == nil {
+		if s.dbHandle == nil {
+			panic("dbHandle is nil")
+		}
+
+		if s.executeContetxt != nil {
+			result, resultErr := s.dbHandle.ExecContext(s.executeContetxt, sql, args...)
+			if resultErr != nil {
+				err = databaseError(resultErr)
+				slog.Error("Execute failed", "value", "s.dbHandle.Exec", "error", resultErr.Error())
+				return
+			}
+
+			rowsAffected, _ = result.RowsAffected()
+			return
+		}
+		result, resultErr := s.dbHandle.Exec(sql, args...)
+		if resultErr != nil {
+			err = databaseError(resultErr)
+			slog.Error("Execute failed", "value", "s.dbHandle.Exec", "error", resultErr.Error())
+			return
+		}
+		rowsAffected, _ = result.RowsAffected()
+		return
+	}
+
+	result, resultErr := s.dbTx.Exec(sql, args...)
+	if resultErr != nil {
+		err = databaseError(resultErr)
+		slog.Error("Execute failed", "value", "s.dbTx.Exec", "error", resultErr.Error())
+		return
+	}
+
+	rowsAffected, _ = result.RowsAffected()
+	return
+}
+
+func (s *HostExecutor) ExecuteInsert(sql string, pkValOut any, args ...any) (err *cd.Error) {
+	if s.released || s.dbRollbackOnly {
+		err = cd.NewError(cd.InvalidOperation, "executor is unavailable or transaction is rollback-only")
+		return
+	}
+	startTime := time.Now()
+	defer func() {
+		endTime := time.Now()
+		elapse := endTime.Sub(startTime)
+		database.RecordDatabaseExecution(database.DatabaseMySQL, sql, err == nil, elapse)
+		if err != nil {
+			slog.Error("ExecuteInsert failed", "execute_time", startTime.Local().String(), "elapse", elapse, "sql", sql, "error", err.Error())
+			return
+		}
+
+		if traceSQL() {
+			slog.Info("ExecuteInsert ok", "execute_time", startTime.Local().String(), "elapse", elapse, "sql", sql)
+		}
+	}()
+
+	if s.rowsHandle != nil {
+		_ = s.rowsHandle.Close()
+	}
+	s.rowsHandle = nil
+
+	if s.dbTx == nil {
+		if s.dbHandle == nil {
+			panic("dbHandle is nil")
+		}
+
+		if s.executeContetxt != nil {
+			execResult, execErr := s.dbHandle.ExecContext(s.executeContetxt, sql, args...)
+			if execErr != nil {
+				err = databaseError(execErr)
+				slog.Error("ExecuteInsert failed", "value", "s.dbHandle.Exec", "error", execErr.Error())
+				return
+			}
+			idVal, idErr := execResult.LastInsertId()
+			if idErr != nil {
+				err = databaseError(idErr)
+				slog.Error("ExecuteInsert failed", "value", "s.dbHandle.Exec", "error", idErr.Error())
+				return
+			}
+			if pkValOut != nil {
+				switch raw := pkValOut.(type) {
+				case *any:
+					*raw = idVal
+				default:
+					err = cd.NewError(cd.Unexpected, "pkValOut type error, must be *any")
+				}
+			}
+			return
+		}
+		execResult, execErr := s.dbHandle.Exec(sql, args...)
+		if execErr != nil {
+			err = databaseError(execErr)
+			slog.Error("ExecuteInsert failed", "value", "s.dbHandle.Exec", "error", execErr.Error())
+			return
+		}
+		idVal, idErr := execResult.LastInsertId()
+		if idErr != nil {
+			err = databaseError(idErr)
+			slog.Error("ExecuteInsert failed", "value", "s.dbHandle.Exec", "error", idErr.Error())
+			return
+		}
+		if pkValOut != nil {
+			switch raw := pkValOut.(type) {
+			case *any:
+				*raw = idVal
+			default:
+				err = cd.NewError(cd.Unexpected, "pkValOut type error, must be *any")
+			}
+		}
+
+		return
+	}
+
+	execResult, execErr := s.dbTx.Exec(sql, args...)
+	if execErr != nil {
+		err = databaseError(execErr)
+		slog.Error("ExecuteInsert failed", "value", "s.dbHandle.Exec", "error", execErr.Error())
+		return
+	}
+	idVal, idErr := execResult.LastInsertId()
+	if idErr != nil {
+		err = databaseError(idErr)
+		slog.Error("ExecuteInsert failed", "value", "s.dbHandle.Exec", "error", idErr.Error())
+		return
+	}
+	if pkValOut != nil {
+		switch raw := pkValOut.(type) {
+		case *any:
+			*raw = idVal
+		default:
+			err = cd.NewError(cd.Unexpected, "pkValOut type error, must be *any")
+		}
+	}
+	return
+}
+
+// CheckTableExist Check Table Exist
+func (s *HostExecutor) CheckTableExist(tableName string) (ret bool, err *cd.Error) {
+	strSQL := "SELECT tablename FROM pg_tables WHERE tablename = $1 AND schemaname = 'public'"
+	_, err = s.Query(strSQL, false, tableName)
+	if err != nil {
+		slog.Error("CheckTableExist failed", "value", "s.Query", "error", err.Error())
+		return
+	}
+
+	if s.Next() {
+		ret = true
+	}
+
+	s.Finish()
+
+	return
+}
+
+// Pool executorPool
+type Pool struct {
+	config         *Config
+	dbHandle       *sql.DB
+	referenceCount int
+}
+
+// NewPool new pool
+func NewPool() *Pool {
+	return &Pool{}
+}
+
+// Initialize initialize executor pool
+func (s *Pool) Initialize(maxConnNum int, config database.Config) (err *cd.Error) {
+	databaseName := strings.TrimSpace(config.Database())
+	schemaName := strings.TrimSpace(config.Schema())
+	if databaseName == "" || schemaName == "" || databaseName != schemaName {
+		return cd.NewError(cd.IllegalParam, "mysql database/schema configuration must refer to the same physical database")
+	}
+	if err = s.connect(config.GetDsn(), maxConnNum); err != nil {
+		return
+	}
+	configPtr, ok := config.(*Config)
+	if !ok {
+		return cd.NewError(cd.IllegalParam, "mysql database configuration type is invalid")
+	}
+	s.config = configPtr
+
+	return
+}
+
+func (s *Pool) connect(dsn string, maxConnNum int) (err *cd.Error) {
+	dbHandle, dbErr := sql.Open("mysql", dsn)
+	if dbErr != nil {
+		err = databaseError(dbErr)
+		slog.Error("Pool connect open database exception", "dsn", dsn, "error", err.Error())
+		return
+	}
+
+	database.ConfigurePool(dbHandle, maxConnNum)
+
+	//log.Print("open database connection...")
+	s.dbHandle = dbHandle
+
+	dbErr = dbHandle.Ping()
+	if dbErr != nil {
+		_ = dbHandle.Close()
+		s.dbHandle = nil
+		err = databaseError(dbErr)
+		slog.Error("Pool connect ping database failed", "dsn", dsn, "error", err.Error())
+		return
+	}
+
+	s.dbHandle = dbHandle
+	database.UpdateDatabaseConnectionStats(database.DatabaseMySQL, s.dbHandle)
+	return
+}
+
+// Uninitialized uninitialized executor pool
+func (s *Pool) Uninitialized() {
+	if s.dbHandle != nil {
+		database.UpdateDatabaseConnectionStats(database.DatabaseMySQL, s.dbHandle)
+		_ = s.dbHandle.Close()
+		s.dbHandle = nil
+	}
+}
+
+func (s *Pool) GetExecutor(ctx context.Context) (ret database.Executor, err *cd.Error) {
+	connPtr, connErr := database.AcquireConnection(ctx, s.dbHandle, database.DatabaseMySQL)
+	if connErr != nil {
+		err = cd.NewError(cd.DatabaseError, connErr.Error())
+		return
+	}
+
+	database.UpdateDatabaseConnectionStats(database.DatabaseMySQL, s.dbHandle)
+
+	ret = &ConnExecutor{
+		executeContetxt: ctx,
+		dbConnPtr:       connPtr,
+	}
+	return
+}
+
+func (s *Pool) GetStats() database.PoolStats {
+	if s == nil || s.dbHandle == nil {
+		return database.PoolStats{}
+	}
+
+	stats := s.dbHandle.Stats()
+	return database.PoolStats{
+		MaxOpenConnections: stats.MaxOpenConnections,
+		OpenConnections:    stats.OpenConnections,
+		InUse:              stats.InUse,
+		Idle:               stats.Idle,
+		WaitCount:          stats.WaitCount,
+		WaitDuration:       stats.WaitDuration,
+	}
+}
+
+func (s *Pool) CheckConfig(cfgPtr database.Config) *cd.Error {
+	newDsn := cfgPtr.GetDsn()
+	preDsn := s.config.GetDsn()
+	if newDsn == preDsn {
+		return nil
+	}
+
+	return cd.NewError(cd.Unexpected, "mismatch database config")
+}
+
+func (s *Pool) IncReference() int {
+	s.referenceCount++
+	return s.referenceCount
+}
+
+func (s *Pool) DecReference() int {
+	s.referenceCount--
+	if s.referenceCount < 0 {
+		s.referenceCount = 0
+	}
+
+	return s.referenceCount
+}

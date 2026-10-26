@@ -6,27 +6,12 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 
+	"github.com/muidea/magicOrm/internal/utils"
 	"github.com/muidea/magicOrm/models"
-	"github.com/muidea/magicOrm/utils"
 )
 
 type TypeImpl struct {
 	typeVal reflect.Type
-}
-
-func NewType(val reflect.Type) (ret *TypeImpl, err *cd.Error) {
-	rType := val
-	if rType.Kind() == reflect.Ptr {
-		rType = rType.Elem()
-	}
-	_, tErr := utils.GetTypeEnum(rType)
-	if tErr != nil {
-		err = tErr
-		return
-	}
-
-	ret = &TypeImpl{typeVal: val}
-	return
 }
 
 func (s *TypeImpl) GetName() string {

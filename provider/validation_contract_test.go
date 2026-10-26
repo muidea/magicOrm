@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicOrm/internal/utils"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
-	"github.com/muidea/magicOrm/utils"
 	"github.com/muidea/magicOrm/validation"
 	ve "github.com/muidea/magicOrm/validation/errors"
 )

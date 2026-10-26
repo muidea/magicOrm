@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/internal/database/codec"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/remote"
 )
@@ -472,11 +472,11 @@ func TestInsertRunnerVMIRemoteRelations(t *testing.T) {
 	executor := &fakeExecutor{
 		insertIDs: []any{int64(1001), int64(2001), int64(3001), int64(3002)},
 	}
-	insertRunner := NewInsertRunner(context.Background(), productModel, executor, remoteProvider, codec.New(remoteProvider, "tenant"))
+	insertRunner := newInsertRunner(context.Background(), productModel, executor, remoteProvider, codec.New(remoteProvider, "tenant"))
 
 	insertedModel, err := insertRunner.Insert()
 	if err != nil {
-		t.Fatalf("InsertRunner.Insert(product) failed: %v", err)
+		t.Fatalf("insertRunner.Insert(product) failed: %v", err)
 	}
 
 	productValue := insertedModel.Interface(true).(*remote.ObjectValue)
@@ -521,11 +521,11 @@ func TestUpdateRunnerVMIRemoteReferenceDiff(t *testing.T) {
 		},
 		insertIDs: []any{int64(5001)},
 	}
-	updateRunner := NewUpdateRunner(context.Background(), productModel, executor, remoteProvider, codec.New(remoteProvider, "tenant"))
+	updateRunner := newUpdateRunner(context.Background(), productModel, executor, remoteProvider, codec.New(remoteProvider, "tenant"))
 
 	updatedModel, err := updateRunner.Update()
 	if err != nil {
-		t.Fatalf("UpdateRunner.Update(product) failed: %v", err)
+		t.Fatalf("updateRunner.Update(product) failed: %v", err)
 	}
 
 	productValue := updatedModel.Interface(true).(*remote.ObjectValue)
@@ -622,10 +622,10 @@ func TestDeleteRunnerVMIRemoteRelations(t *testing.T) {
 
 	productModel := buildProductDeleteModel(t, remoteProvider)
 	executor := &fakeExecutor{}
-	deleteRunner := NewDeleteRunner(context.Background(), productModel, executor, remoteProvider, codec.New(remoteProvider, "tenant"), 0)
+	deleteRunner := newDeleteRunner(context.Background(), productModel, executor, remoteProvider, codec.New(remoteProvider, "tenant"), 0)
 
 	if err := deleteRunner.Delete(); err != nil {
-		t.Fatalf("DeleteRunner.Delete(product) failed: %v", err)
+		t.Fatalf("deleteRunner.Delete(product) failed: %v", err)
 	}
 
 	if !containsSQLCall(executor.execCalls, "exec", "DELETE FROM", []any{int64(1001)}) {
@@ -654,11 +654,11 @@ func TestUpdateRunnerVMIRemoteNilReferenceClearsRelation(t *testing.T) {
 			},
 		},
 	}
-	updateRunner := NewUpdateRunner(context.Background(), productModel, executor, remoteProvider, codec.New(remoteProvider, "tenant"))
+	updateRunner := newUpdateRunner(context.Background(), productModel, executor, remoteProvider, codec.New(remoteProvider, "tenant"))
 
 	updatedModel, err := updateRunner.Update()
 	if err != nil {
-		t.Fatalf("UpdateRunner.Update(product clear status) failed: %v", err)
+		t.Fatalf("updateRunner.Update(product clear status) failed: %v", err)
 	}
 
 	productValue := updatedModel.Interface(true).(*remote.ObjectValue)
@@ -704,11 +704,11 @@ func TestUpdateRunnerVMIRemoteReadOnlyReferenceIgnored(t *testing.T) {
 
 	shelfModel := buildShelfReadOnlyWarehouseUpdateModel(t, remoteProvider)
 	executor := &fakeExecutor{}
-	updateRunner := NewUpdateRunner(context.Background(), shelfModel, executor, remoteProvider, codec.New(remoteProvider, "tenant"))
+	updateRunner := newUpdateRunner(context.Background(), shelfModel, executor, remoteProvider, codec.New(remoteProvider, "tenant"))
 
 	updatedModel, err := updateRunner.Update()
 	if err != nil {
-		t.Fatalf("UpdateRunner.Update(shelf readonly warehouse) failed: %v", err)
+		t.Fatalf("updateRunner.Update(shelf readonly warehouse) failed: %v", err)
 	}
 
 	shelfValue := updatedModel.Interface(true).(*remote.ObjectValue)
@@ -756,10 +756,10 @@ func TestInsertRunnerVMIRemoteMissingRequiredReferenceRejected(t *testing.T) {
 	}
 
 	shelfModel := buildShelfInsertWithoutWarehouseModel(t, remoteProvider)
-	insertRunner := NewInsertRunner(context.Background(), shelfModel, &fakeExecutor{}, remoteProvider, codec.New(remoteProvider, "tenant"))
+	insertRunner := newInsertRunner(context.Background(), shelfModel, &fakeExecutor{}, remoteProvider, codec.New(remoteProvider, "tenant"))
 
 	if _, err := insertRunner.Insert(); err == nil {
-		t.Fatal("InsertRunner.Insert should reject missing required warehouse relation")
+		t.Fatal("insertRunner.Insert should reject missing required warehouse relation")
 	} else if !strings.Contains(err.Error(), "warehouse") {
 		t.Fatalf("expected warehouse-related error, got %v", err)
 	}

@@ -8,8 +8,8 @@ import (
 
 	"log/slog"
 
+	"github.com/muidea/magicOrm/internal/utils"
 	"github.com/muidea/magicOrm/models"
-	"github.com/muidea/magicOrm/utils"
 )
 
 type ValueConvertMap map[models.TypeDeclare]func(reflect.Value, models.Type) (any, *cd.Error)

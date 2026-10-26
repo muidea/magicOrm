@@ -16,6 +16,31 @@ magicOrm 是面向 Go 的模型 ORM，默认 PostgreSQL，使用 `-tags=mysql` �
 
 PostgreSQL 约束和索引的物理名由表名与声明名两段身份派生，统一附加稳定摘要并限制长度，避免同 Schema 不同实例发生索引名碰撞。现有无表限定的旧物理名须显式迁移；本批使用干净候选 Schema，不自动重命名旧索引。
 
+## 公共接口与内部边界
+
+业务读写继续通过 `orm.Orm`，它是 `models.ORM` 的别名，16项方法及三项可选能力（Serializable、精确行锁、Aggregate）保持。`orm.SchemaReport` 保留 `Matches`／`Tables`／`Issues` 字段和 JSON；结果数据、连接描述接口及池快照定义在 `models`。`NewConfig` 的既有方法包含 `GetDsn`，不返回执行器或连接池。
+
+数据库实现位于 `~/codespace/magicOrm/internal/database/`，Go 限制外部导入；Runner及 `NewExecutor`／`NewBuilder`／`NewPool` 不再是公共门面。已有直接依赖已同步迁移。需要物理宿主表身份时使用 `orm.SchemaTableName`，完整 owned 图仍用 `SchemaTables`；两者都不授予写入权。Provider 的既有构造入口、模型声明与值 DTO 保持，业务调用方不依赖数据库驱动实现。详见[接口合同](~/codespace/magicOrm/docs/design-orm.md#公共边界整理2026-10-26)。
+
+按实际需求选择依赖，不必导入所有支撑包：
+
+| 使用场景 | 推荐包与入口 |
+| --- | --- |
+| Go struct 模型读写 | `orm`、`models`、`provider.NewLocalProviderWithOptions` |
+| 动态模型声明与值 | 增加 `provider/remote`，使用 `provider.NewRemoteProviderWithOptions` |
+| Local／Remote 表示转换 | 按需增加 `provider/helper` |
+| 自定义校验或监控集成 | 按需使用 `validation`／`validation/errors`、`metrics` |
+
+旧 Provider 构造器、函数注入选项、具体返回类型和 Remote JSON 继续兼容。Local 与 Remote 同为公开适配层，其具体类型保留原定义包；分页、排序 DTO 的类型身份和 JSON 同样保持。Local 入口集中于 `~/codespace/magicOrm/provider/local/api.go`，Remote 数据声明集中于 `~/codespace/magicOrm/provider/remote/declarations.go`，校验扩展合同保留在 `validation`／`models`，缓存及内置校验器迁入 `internal/validation`；指标采集迁入 `internal/metrics`。
+
+两个 `Set*MetricsCollectorForTest` 不再作为生产接口导出；测试通过正式注册入口及独立进程验证未注册状态。业务 API 签名、公开字段／标签、常量和公开类型方法由[接口快照检查](~/codespace/magicOrm/internal/apicheck/public_api_test.go)保护，修改前需审查兼容性；复核后才可执行 `go test ./internal/apicheck -update-api` 更新基线。该检查涵盖默认与 MySQL 源文件，不代替行为测试。
+
+当前公开面为10个功能包、168个包级函数。保留 `orm`、`models`、`provider`、`provider/local`、`provider/remote`、`provider/helper`、`validation`、`validation/errors`、`metrics`、`utils`。Local 与 Remote 地位一致，都支持类型、模型、值、过滤、编解码和场景校验扩展。
+
+本轮有意收回七个支撑包的旧导入路径，不提供同名转发包。原 `validation/types.TypeHandler` 改用 `validation.TypeHandler`（合同定义在 `models.TypeHandler`）；内置校验器由 `validation.NewValidationFactory()` 创建，缓存通过 `ValidationConfig` 配置。`utils` 保留29个模型值／约束／时间／ID等应用函数及分页、排序 DTO，反射和深拷贝等36个辅助函数仅供内部使用。
+
+`orm.Initialize()` 继续初始化三类指标，独立使用校验／指标时可调用 `metrics.Initialize()`；两者复用已有采集器，重复初始化不清空数据。如果监控系统稍后启动，调用 `metrics.EnsureRegistered()` 幂等注册全部指标，重复调用不会更换采集器或清空已有数据。旧 `orm.EnsureORMMetricProviderRegistered()` 保留。详见[迁移边界](~/codespace/magicOrm/docs/design-provider.md#支撑包迁移与替代入口)。业务Schema和Remote协议不变，使用被收回路径的调用方须重新编译迁移。
+
 ## 完整最小示例
 
 以下源码与[可编译入口](~/codespace/magicOrm/examples/quickstart/main.go)保持一致。运行时必须提供独立的 `ORM_SERVER`、`ORM_DATABASE`、`ORM_SCHEMA`、`ORM_USER`、`ORM_PASSWORD`；示例创建结构和一条记录，部署 owner 负责资源生命周期。密码通过私密环境提供。

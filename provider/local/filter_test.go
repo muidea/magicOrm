@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
+	filterdata "github.com/muidea/magicOrm/utils"
+
 	"github.com/muidea/magicOrm/models"
-	"github.com/muidea/magicOrm/utils"
 )
 
 /*
@@ -213,9 +214,9 @@ func TestFilterPagination(t *testing.T) {
 		return
 	}
 
-	_, ok := pagination.(*utils.Pagination)
+	_, ok := pagination.(*filterdata.Pagination)
 	if !ok {
-		t.Errorf("Paginationer did not return *utils.Pagination")
+		t.Errorf("Paginationer did not return *filterdata.Pagination")
 		return
 	}
 
@@ -353,9 +354,9 @@ func TestPaginationEdgeCases(t *testing.T) {
 		return
 	}
 
-	_, ok := pagination.(*utils.Pagination)
+	_, ok := pagination.(*filterdata.Pagination)
 	if !ok {
-		t.Errorf("Paginationer did not return *utils.Pagination")
+		t.Errorf("Paginationer did not return *filterdata.Pagination")
 		return
 	}
 
@@ -367,7 +368,7 @@ func TestPaginationEdgeCases(t *testing.T) {
 		t.Errorf("Paginationer returned nil")
 		return
 	}
-	_, _ = pagination.(*utils.Pagination)
+	_, _ = pagination.(*filterdata.Pagination)
 }
 
 // TestFilterCombinedOperations tests multiple filter operations combined

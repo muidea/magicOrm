@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/internal/database/codec"
 	"github.com/muidea/magicOrm/provider"
 )
 
@@ -37,7 +37,7 @@ func TestEmptySingleRelationDiagnosticsIdentifyOwnerWithoutChangingQueryResult(t
 	if err != nil {
 		t.Fatal(err)
 	}
-	runner := &QueryRunner{relationEdges: map[string][]any{}, baseRunner: baseRunner{modelCodec: codec.New(p, "tenant")}}
+	runner := &queryRunner{relationEdges: map[string][]any{}, baseRunner: baseRunner{modelCodec: codec.New(p, "tenant")}}
 	var logs bytes.Buffer
 	logger := slog.Default()
 	slog.SetDefault(slog.New(slog.NewJSONHandler(&logs, nil)))
@@ -86,7 +86,7 @@ func TestRelationDiagnosticsHashStringPrimaryKeys(t *testing.T) {
 }
 
 func TestQueryRunnerShouldWarnRelationMissOncePerRelation(t *testing.T) {
-	runner := &QueryRunner{
+	runner := &queryRunner{
 		relationWarns: map[string]struct{}{},
 	}
 

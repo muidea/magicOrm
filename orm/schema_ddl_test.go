@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicOrm/database"
-	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/internal/database"
+	"github.com/muidea/magicOrm/internal/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
@@ -30,7 +30,7 @@ func TestSchemaDDLDoesNotResolveIgnoredRelation(t *testing.T) {
 	}
 	executor := &fakeExecutor{}
 	c := codec.New(p, "ignored")
-	if err := NewCreateRunner(context.Background(), model, executor, p, c).Create(); err != nil {
+	if err := newCreateRunner(context.Background(), model, executor, p, c).Create(); err != nil {
 		t.Fatal("ignored relation was resolved by the Create graph", err)
 	}
 	if len(executor.execCalls) != 1 || !strings.Contains(executor.execCalls[0].sql, "IgnoredDDLModel") {
@@ -72,11 +72,11 @@ func TestSchemaDDLRejectsInvalidGraphBeforeExecution(t *testing.T) {
 				case "reconcile":
 					err = handler.Reconcile(model, model)
 				case "create-runner":
-					err = NewCreateRunner(handler.context, model, executor, handler.modelProvider, handler.modelCodec).Create()
+					err = newCreateRunner(handler.context, model, executor, handler.modelProvider, handler.modelCodec).Create()
 				case "drop-runner":
-					err = NewDropRunner(handler.context, model, executor, handler.modelProvider, handler.modelCodec).Drop()
+					err = newDropRunner(handler.context, model, executor, handler.modelProvider, handler.modelCodec).Drop()
 				case "reconcile-runner":
-					err = NewReconcileRunner(handler.context, model, model, executor, handler.modelProvider, handler.modelCodec).Reconcile()
+					err = newReconcileRunner(handler.context, model, model, executor, handler.modelProvider, handler.modelCodec).Reconcile()
 				}
 				if err == nil || len(executor.execCalls) != 0 || len(executor.calls) != 0 {
 					t.Fatalf("invalid declaration must fail without SQL: err=%v calls=%v", err, executor.execCalls)
@@ -152,11 +152,11 @@ func TestSchemaDDLBuildsAllStatementsBeforeExecution(t *testing.T) {
 			handler, model, executor := inspectionFixture(t)
 			var err *cd.Error
 			if operation == "create" {
-				runner := NewCreateRunner(handler.context, model, executor, handler.modelProvider, handler.modelCodec)
+				runner := newCreateRunner(handler.context, model, executor, handler.modelProvider, handler.modelCodec)
 				runner.sqlBuilder = failingSchemaBuilder{runner.sqlBuilder}
 				err = runner.Create()
 			} else {
-				runner := NewDropRunner(handler.context, model, executor, handler.modelProvider, handler.modelCodec)
+				runner := newDropRunner(handler.context, model, executor, handler.modelProvider, handler.modelCodec)
 				runner.sqlBuilder = failingSchemaBuilder{runner.sqlBuilder}
 				err = runner.Drop()
 			}
@@ -177,7 +177,7 @@ type reconcileLateRequired struct {
 func TestReconcileRejectsLateRequiredColumnBeforeAnyDDL(t *testing.T) {
 	p, previous, current := reconcileModels(t, &reconcileLateRequired{})
 	executor := &fakeExecutor{}
-	runner := NewReconcileRunner(context.Background(), previous, current, executor, p, codec.New(p, "tenant_a"))
+	runner := newReconcileRunner(context.Background(), previous, current, executor, p, codec.New(p, "tenant_a"))
 	if err := runner.Reconcile(); err == nil || len(executor.execCalls) != 0 {
 		t.Fatal("partial migration on invalid declaration", err, executor.execCalls)
 	}
@@ -199,7 +199,7 @@ func TestReconcileCreatesNewOwnedHostBeforeRelation(t *testing.T) {
 		t.Fatal(err)
 	}
 	executor := &fakeExecutor{}
-	runner := NewReconcileRunner(context.Background(), previous, current, executor, p, codec.New(p, "tenant_a"))
+	runner := newReconcileRunner(context.Background(), previous, current, executor, p, codec.New(p, "tenant_a"))
 	if err := runner.Reconcile(); err != nil {
 		t.Fatal(err)
 	}
@@ -240,7 +240,7 @@ func TestSchemaDDLStopsAtCancellationBetweenStatements(t *testing.T) {
 				err = handler.Drop(model)
 			case "reconcile":
 				p, previous, desired := reconcileModels(t, &reconcileCurrentModel{})
-				err = NewReconcileRunner(ctx, previous, desired, executor, p, codec.New(p, "tenant_a")).Reconcile()
+				err = newReconcileRunner(ctx, previous, desired, executor, p, codec.New(p, "tenant_a")).Reconcile()
 			}
 			if err == nil || len(executor.execCalls) != 1 {
 				t.Fatal("canceled DDL continued or reported completion", err, executor.execCalls)

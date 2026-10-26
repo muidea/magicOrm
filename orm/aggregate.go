@@ -9,7 +9,7 @@ import (
 	"time"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicOrm/database"
+	"github.com/muidea/magicOrm/internal/database"
 	"github.com/muidea/magicOrm/models"
 )
 
@@ -25,7 +25,7 @@ func Aggregate(handler Orm, filter models.Filter, plan models.AggregatePlan) (*m
 }
 
 func (s *impl) Aggregate(filter models.Filter, plan models.AggregatePlan) (ret *models.AggregateResult, err *cd.Error) {
-	if err = s.CheckContext(); err != nil {
+	if err = s.checkContext(); err != nil {
 		return nil, err
 	}
 	if err = database.ValidateAggregateFilter(filter); err != nil {
@@ -67,7 +67,7 @@ func (s *impl) Aggregate(filter models.Filter, plan models.AggregatePlan) (ret *
 		}
 	}
 	for s.executor.Next() {
-		if err = s.CheckContext(); err != nil {
+		if err = s.checkContext(); err != nil {
 			return nil, err
 		}
 		if len(result.Rows) >= plan.MaxGroups {
@@ -144,7 +144,7 @@ func (s *impl) Aggregate(filter models.Filter, plan models.AggregatePlan) (ret *
 	if err = checked.RowsError(); err != nil {
 		return nil, err
 	}
-	if err = s.CheckContext(); err != nil {
+	if err = s.checkContext(); err != nil {
 		return nil, err
 	}
 	if plan.Bucket != nil {

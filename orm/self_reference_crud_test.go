@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/internal/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
@@ -297,7 +297,7 @@ func TestSingleSelfReferenceQueryProducesFiniteValues(t *testing.T) {
 					if err != nil {
 						t.Fatal(err)
 					}
-					runner := NewQueryRunner(context.Background(), mask, response, false, executor, p, c, batch, 0)
+					runner := newQueryRunner(context.Background(), mask, response, false, executor, p, c, batch, 0)
 					results, err := runner.Query(nil)
 					if err != nil || len(results) != len(executor.roots) {
 						t.Fatal("自引用查询失败", err)

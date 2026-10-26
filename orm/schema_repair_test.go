@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicOrm/database"
-	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/internal/database"
+	"github.com/muidea/magicOrm/internal/database/codec"
 	"github.com/muidea/magicOrm/models"
 )
 
@@ -40,7 +40,7 @@ func TestSchemaRepairReplaysOnlyMissingIndexAndUniqueSteps(t *testing.T) {
 		p, previous, desired := reconcileModels(t, &reconcileCurrentModel{})
 		desired = indexedRepairModel(desired)
 		c := codec.New(p, "tenant")
-		target, err := NewBuilder(p, c).(database.SchemaBuilder).DescribeTable(desired)
+		target, err := newBuilder(p, c).(database.SchemaBuilder).DescribeTable(desired)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -124,7 +124,7 @@ func TestSchemaRepairReconcileResumesOnlyMissingNullableAddition(t *testing.T) {
 	for _, ambiguous := range []bool{false, true} {
 		p, before, after := reconcileModels(t, &reconcileCurrentModel{})
 		c := codec.New(p, "tenant")
-		builder := NewBuilder(p, c).(database.SchemaBuilder)
+		builder := newBuilder(p, c).(database.SchemaBuilder)
 		old, err := builder.DescribeTable(before)
 		if err != nil {
 			t.Fatal(err)
@@ -214,7 +214,7 @@ func TestSchemaRepairRefusesLossOfPreexistingDataAndRejectsDestructivePlan(t *te
 			}
 			p, before, after := reconcileModels(t, target)
 			c := codec.New(p, "tenant")
-			table, err := NewBuilder(p, c).(database.SchemaBuilder).DescribeTable(before)
+			table, err := newBuilder(p, c).(database.SchemaBuilder).DescribeTable(before)
 			if err != nil {
 				t.Fatal(err)
 			}

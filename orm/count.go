@@ -9,29 +9,29 @@ import (
 
 	"log/slog"
 
-	"github.com/muidea/magicOrm/database"
-	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/metrics"
+	"github.com/muidea/magicOrm/internal/database"
+	"github.com/muidea/magicOrm/internal/database/codec"
+	"github.com/muidea/magicOrm/internal/metrics/shared"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
 
-type CountRunner struct {
+type countRunner struct {
 	baseRunner
 }
 
-func NewCountRunner(
+func newCountRunner(
 	ctx context.Context,
 	vModel models.Model,
 	executor database.Executor,
 	provider provider.Provider,
-	modelCodec codec.Codec) *CountRunner {
-	return &CountRunner{
+	modelCodec codec.Codec) *countRunner {
+	return &countRunner{
 		baseRunner: newBaseRunner(ctx, vModel, executor, provider, modelCodec, false, 0),
 	}
 }
 
-func (s *CountRunner) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
+func (s *countRunner) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
 	if err = s.checkContext(); err != nil {
 		return
 	}
@@ -39,7 +39,7 @@ func (s *CountRunner) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
 	countResult, countErr := s.sqlBuilder.BuildCount(s.vModel, vFilter)
 	if countErr != nil {
 		err = countErr
-		slog.Error("CountRunner Count BuildCount failed", "error", err.Error())
+		slog.Error("countRunner Count BuildCount failed", "error", err.Error())
 		return
 	}
 
@@ -53,7 +53,7 @@ func (s *CountRunner) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
 		var countVal sql.NullInt64
 		err = s.executor.GetField(&countVal)
 		if err != nil {
-			slog.Error("CountRunner Count GetField failed", "error", err.Error())
+			slog.Error("countRunner Count GetField failed", "error", err.Error())
 			return
 		}
 
@@ -78,7 +78,7 @@ func (s *impl) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
 		}
 	}()
 
-	if err = s.CheckContext(); err != nil {
+	if err = s.checkContext(); err != nil {
 		return
 	}
 
@@ -88,11 +88,11 @@ func (s *impl) Count(vFilter models.Filter) (ret int64, err *cd.Error) {
 	}
 
 	vModel = vFilter.MaskModel()
-	countRunner := NewCountRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec)
+	countRunner := newCountRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec)
 	queryVal, queryErr := countRunner.Count(vFilter)
 	if queryErr != nil {
 		err = queryErr
-		slog.Error("Count CountRunner.Count failed", "error", err.Error())
+		slog.Error("Count countRunner.Count failed", "error", err.Error())
 		return
 	}
 

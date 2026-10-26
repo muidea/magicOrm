@@ -68,7 +68,7 @@ PostgreSQL/MySQL 的 Create/Describe/AddColumn、Insert/Update/UpdateWithFilter�
 
 批量格式化被工具拒绝，未换工具覆盖；五仓 `upgrade_vendor.sh magicBase magicRunner magicCas magicFile magicModulesRepo` 也因重建现有 vendor 被拒绝，未手改 vendor 或使用模块模式绕过。因此最新消费者验证未执行，不复用旧资源批次的通过记录。该权限阻塞与真实数据库未验分别保留。
 
-最新主线源码验证：models/provider/codec 全包、ORM `-short` 全包、PostgreSQL/MySQL 无数据库 builder 专项、MySQL build tag 的 models/provider/ORM、models/provider/ORM race、全仓 vet 与默认/MySQL 两种 build 均通过；最后补齐条件引用写、Schema 恢复和隔离 DB 测试入口后，相关检查再次通过。数据库测试显式禁用，未消费连接配置。只读 `gofmt -l` 仍报告 `~/codespace/magicOrm/database/codec/reference_column.go`、`~/codespace/magicOrm/orm/inline_reference_test.go`、`~/codespace/magicOrm/orm/inline_reference_database_test.go`，因覆盖拒绝未格式化；其余本批路径无格式差异。
+最新主线源码验证：models/provider/codec 全包、ORM `-short` 全包、PostgreSQL/MySQL 无数据库 builder 专项、MySQL build tag 的 models/provider/ORM、models/provider/ORM race、全仓 vet 与默认/MySQL 两种 build 均通过；最后补齐条件引用写、Schema 恢复和隔离 DB 测试入口后，相关检查再次通过。数据库测试显式禁用，未消费连接配置。只读 `gofmt -l` 仍报告 `~/codespace/magicOrm/internal/database/codec/reference_column.go`、`~/codespace/magicOrm/orm/inline_reference_test.go`、`~/codespace/magicOrm/orm/inline_reference_database_test.go`，因覆盖拒绝未格式化；其余本批路径无格式差异。
 
 后续用户已刷新 vendor，Base/Runner 在该基线的全仓 test/vet/build 通过，之前“消费者未执行”仅对应历史批次。随后 ORM 新增显式可序列化事务能力供执行 owner 在首读前使用，host/connection 两类 executor 均传递 `sql.LevelSerializable`；已有事务不能升级，失败不降级、不自动重放，Base 保持业务规则 owner。双后端内存 driver 的选项/嵌套/取消/失败恢复、ORM short 双 tag、全仓 vet/build 与事务 race 通过；这些不是实际数据库并发证据。新能力的五仓 vendor 同步再次被权限检查拒绝，未绕过，当前 Base 受保护写入因能力未配套明确拒绝，不能沿用上一基线的消费者结果。新建事务/规则文件格式化成功不解除上述三个旧文件的覆盖限制。
 
@@ -109,7 +109,7 @@ PostgreSQL/MySQL 的 Create/Describe/AddColumn、Insert/Update/UpdateWithFilter�
 直接读取尚未转换的 `FieldValue.Value` 时，应使用类型转换工具，不能断言它必为 `float64`。
 
 该规则只属于 remote 字段值协议；不修改任意业务 DTO 的 JSON 解码，也不包含租户、令牌、
-流程恢复或数据库补偿规则。回归见 `~/codespace/magicOrm/provider/remote/integer_wire_test.go` 和 `~/codespace/magicOrm/utils/number_test.go`。
+流程恢复或数据库补偿规则。回归见 `~/codespace/magicOrm/provider/remote/integer_wire_test.go` 和 `~/codespace/magicOrm/internal/utils/number_test.go`。
 
 ### 2.4 `SliceObjectValue`
 

@@ -2,8 +2,8 @@ package validation
 
 import (
 	"fmt"
+	"github.com/muidea/magicOrm/internal/utils"
 	"github.com/muidea/magicOrm/models"
-	"github.com/muidea/magicOrm/utils"
 	verrors "github.com/muidea/magicOrm/validation/errors"
 	"testing"
 	"time"

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/internal/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/remote"
@@ -66,10 +66,10 @@ func TestUpdateRunnerRestoresReadOnlyBasicFieldsFromStoredModel(t *testing.T) {
 		},
 	}
 
-	updateRunner := NewUpdateRunner(context.Background(), entityModel, executor, remoteProvider, codec.New(remoteProvider, "tenant"))
+	updateRunner := newUpdateRunner(context.Background(), entityModel, executor, remoteProvider, codec.New(remoteProvider, "tenant"))
 	updatedModel, err := updateRunner.Update()
 	if err != nil {
-		t.Fatalf("UpdateRunner.Update failed: %v", err)
+		t.Fatalf("updateRunner.Update failed: %v", err)
 	}
 
 	updatedValue := updatedModel.Interface(true).(*remote.ObjectValue)
@@ -138,10 +138,10 @@ func TestUpdateRunnerReturnsStoredReadOnlyFieldsEvenWhenNotAssigned(t *testing.T
 		},
 	}
 
-	updateRunner := NewUpdateRunner(context.Background(), entityModel, executor, remoteProvider, codec.New(remoteProvider, "tenant"))
+	updateRunner := newUpdateRunner(context.Background(), entityModel, executor, remoteProvider, codec.New(remoteProvider, "tenant"))
 	updatedModel, err := updateRunner.Update()
 	if err != nil {
-		t.Fatalf("UpdateRunner.Update failed: %v", err)
+		t.Fatalf("updateRunner.Update failed: %v", err)
 	}
 
 	updatedValue := updatedModel.Interface(true).(*remote.ObjectValue)
@@ -204,10 +204,10 @@ func TestInsertRunnerProjectsWriteResponseByDetailView(t *testing.T) {
 		insertIDs: []any{int64(201)},
 	}
 
-	insertRunner := NewInsertRunner(context.Background(), entityModel, executor, remoteProvider, codec.New(remoteProvider, "tenant"))
+	insertRunner := newInsertRunner(context.Background(), entityModel, executor, remoteProvider, codec.New(remoteProvider, "tenant"))
 	insertedModel, err := insertRunner.Insert()
 	if err != nil {
-		t.Fatalf("InsertRunner.Insert failed: %v", err)
+		t.Fatalf("insertRunner.Insert failed: %v", err)
 	}
 
 	insertedValue := insertedModel.Interface(true).(*remote.ObjectValue)

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicOrm/database"
+	"github.com/muidea/magicOrm/internal/database"
 )
 
 type reviewPool struct {

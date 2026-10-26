@@ -3,7 +3,7 @@ package validation
 import (
 	"time"
 
-	metricsvalidation "github.com/muidea/magicOrm/metrics/validation"
+	metricsvalidation "github.com/muidea/magicOrm/internal/metrics/validation"
 	verrors "github.com/muidea/magicOrm/validation/errors"
 )
 

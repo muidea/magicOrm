@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/internal/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
@@ -57,7 +57,7 @@ func reconcileModels(t *testing.T, current any) (provider.Provider, models.Model
 func TestReconcileRunnerAddsNullableColumn(t *testing.T) {
 	remoteProvider, previous, current := reconcileModels(t, &reconcileCurrentModel{})
 	executor := &fakeExecutor{}
-	runner := NewReconcileRunner(context.Background(), previous, current, executor, remoteProvider, codec.New(remoteProvider, "cas"))
+	runner := newReconcileRunner(context.Background(), previous, current, executor, remoteProvider, codec.New(remoteProvider, "cas"))
 	if err := runner.Reconcile(); err != nil {
 		t.Fatal(err)
 	}
@@ -69,7 +69,7 @@ func TestReconcileRunnerAddsNullableColumn(t *testing.T) {
 func TestReconcileRunnerRejectsDestructiveChangesBeforeDDL(t *testing.T) {
 	remoteProvider, previous, current := reconcileModels(t, &reconcileDestructiveModel{})
 	executor := &fakeExecutor{}
-	runner := NewReconcileRunner(context.Background(), previous, current, executor, remoteProvider, codec.New(remoteProvider, "cas"))
+	runner := newReconcileRunner(context.Background(), previous, current, executor, remoteProvider, codec.New(remoteProvider, "cas"))
 	if err := runner.Reconcile(); err == nil || !strings.Contains(err.Error(), "schema migration required") {
 		t.Fatalf("expected destructive migration error, got %v", err)
 	}
@@ -106,7 +106,7 @@ func TestReconcileDefaultChangesComparePhysicalColumns(t *testing.T) {
 				t.Fatal(err)
 			}
 			executor := &fakeExecutor{}
-			runner := NewReconcileRunner(context.Background(), before, after, executor, p, codec.New(p, "test"))
+			runner := newReconcileRunner(context.Background(), before, after, executor, p, codec.New(p, "test"))
 			err = runner.Reconcile()
 			if tt.migration {
 				if err == nil || !strings.Contains(err.Error(), "schema migration required") {

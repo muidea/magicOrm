@@ -4,8 +4,8 @@ import (
 	"context"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicOrm/database"
-	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/internal/database"
+	"github.com/muidea/magicOrm/internal/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
@@ -18,7 +18,7 @@ import (
 func PreflightSchemaChange(ctx context.Context, previous, desired models.Model, p provider.Provider, prefix string) *cd.Error {
 	c := codec.New(p, prefix)
 	if previous != nil && desired != nil {
-		_, err := NewReconcileRunner(ctx, previous, desired, nil, p, c).planReconcile()
+		_, err := newReconcileRunner(ctx, previous, desired, nil, p, c).planReconcile()
 		return err
 	}
 	model := desired

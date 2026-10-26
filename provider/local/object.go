@@ -10,8 +10,8 @@ import (
 
 	"log/slog"
 
+	"github.com/muidea/magicOrm/internal/utils"
 	"github.com/muidea/magicOrm/models"
-	"github.com/muidea/magicOrm/utils"
 )
 
 type objectImpl struct {

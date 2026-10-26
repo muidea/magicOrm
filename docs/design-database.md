@@ -1,7 +1,7 @@
 # 数据库层设计
 
-**功能块**：`~/codespace/magicOrm/database`
-**依据**：`~/codespace/magicOrm/database/executor.go`、`~/codespace/magicOrm/database/postgres`、`~/codespace/magicOrm/database/mysql`。
+**功能块**：`~/codespace/magicOrm/internal/database`
+**依据**：`~/codespace/magicOrm/internal/database/executor.go`、`~/codespace/magicOrm/internal/database/postgres`、`~/codespace/magicOrm/internal/database/mysql`。
 
 [← 返回设计文档索引](~/codespace/magicOrm/docs/README.md)
 
@@ -56,8 +56,8 @@ Orm 通过 Runner（如 InsertRunner、QueryRunner）调用 Executor，不直接
 
 ## 5. 实现
 
-- **PostgreSQL**：`~/codespace/magicOrm/database/postgres`
-- **MySQL**：`~/codespace/magicOrm/database/mysql`
+- **PostgreSQL**：`~/codespace/magicOrm/internal/database/postgres`
+- **MySQL**：`~/codespace/magicOrm/internal/database/mysql`
 
 ---
 

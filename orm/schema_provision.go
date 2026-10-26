@@ -6,5 +6,5 @@ import cd "github.com/muidea/magicCommon/def"
 // database adapter. It is intended for deployment/storage owners only. Normal
 // AddDatabase calls still reject a missing schema instead of creating one.
 func EnsureSchema(dbServer, dbName, schemaName, username, password string) *cd.Error {
-	return ensureSchema(NewConfig(dbServer, dbName, schemaName, username, password))
+	return ensureSchema(newConfig(dbServer, dbName, schemaName, username, password))
 }

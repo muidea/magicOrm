@@ -3,11 +3,11 @@ package test
 import (
 	"testing"
 
+	"github.com/muidea/magicOrm/internal/utils"
 	"github.com/muidea/magicOrm/orm"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/provider/remote"
-	"github.com/muidea/magicOrm/utils"
 )
 
 func TestConstraintRemote(t *testing.T) {

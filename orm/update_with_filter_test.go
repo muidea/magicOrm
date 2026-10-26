@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/internal/database/codec"
 	"github.com/muidea/magicOrm/provider"
 )
 

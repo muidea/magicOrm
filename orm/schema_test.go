@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicOrm/database"
-	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/internal/database"
+	"github.com/muidea/magicOrm/internal/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
@@ -58,7 +58,7 @@ func inspectionFixture(t *testing.T) (*impl, models.Model, *schemaExecutor) {
 		t.Fatal(err)
 	}
 	c := codec.New(p, "tenant_a")
-	builder := NewBuilder(p, c).(database.SchemaBuilder)
+	builder := newBuilder(p, c).(database.SchemaBuilder)
 	executor := &schemaExecutor{tables: map[string]database.TableSchema{}}
 	host, err := builder.DescribeTable(model)
 	if err != nil {

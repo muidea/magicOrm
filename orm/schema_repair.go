@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicOrm/database"
+	"github.com/muidea/magicOrm/internal/database"
 	"github.com/muidea/magicOrm/models"
 )
 
@@ -14,7 +14,7 @@ import (
 // Existing tables/columns/indexes that differ from the declaration are rejected
 // before any write; missing pre-existing data tables are never recreated.
 func (s *impl) RepairSchema(previous, desired models.Model) (*SchemaReport, *cd.Error) {
-	if err := s.CheckContext(); err != nil {
+	if err := s.checkContext(); err != nil {
 		return nil, err
 	}
 	reader, ok := s.executor.(database.SchemaReader)
@@ -32,7 +32,7 @@ func (s *impl) RepairSchema(previous, desired models.Model) (*SchemaReport, *cd.
 	}
 	var baseline *schemaGraph
 	if previous != nil && desired != nil {
-		if _, err := NewReconcileRunner(s.context, previous, desired, nil, s.modelProvider, s.modelCodec).planReconcile(); err != nil {
+		if _, err := newReconcileRunner(s.context, previous, desired, nil, s.modelProvider, s.modelCodec).planReconcile(); err != nil {
 			return nil, err
 		}
 		baseline, err = collectSchemaGraph(s.context, previous, s.modelProvider, s.modelCodec)

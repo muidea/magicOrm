@@ -1,7 +1,7 @@
 # 关联关系设计
 
 **功能块**：模型关系（一对多、多对多、单值引用/包含）
-**依据**：`~/codespace/magicOrm/orm/insert.go`、`~/codespace/magicOrm/orm/update.go`、`~/codespace/magicOrm/orm/update_diff.go`、`~/codespace/magicOrm/orm/delete.go`、`~/codespace/magicOrm/orm/create.go`、`~/codespace/magicOrm/orm/drop.go`、`~/codespace/magicOrm/database/codec/codec.go`。
+**依据**：`~/codespace/magicOrm/orm/insert.go`、`~/codespace/magicOrm/orm/update.go`、`~/codespace/magicOrm/orm/update_diff.go`、`~/codespace/magicOrm/orm/delete.go`、`~/codespace/magicOrm/orm/create.go`、`~/codespace/magicOrm/orm/drop.go`、`~/codespace/magicOrm/internal/database/codec/codec.go`。
 
 [← 返回设计文档索引](~/codespace/magicOrm/docs/README.md)
 
@@ -36,7 +36,7 @@
   - `id`：自增主键（BIGINT/BIGSERIAL）。
   - `left`：host 实体主键（类型与 host 主键一致）。
   - `right`：关联实体主键（类型与关联实体主键一致）。
-- 表名由 `database/codec.ConstructRelationTableName` 固定生成，规则为：
+- 表名由 `internal/database/codec.ConstructRelationTableName` 固定生成，规则为：
   `LeftModelName + FieldName + RelationCode + RightModelName`，必要时再加数据库前缀。
 - 其中 `RelationCode` 当前取值为：
   - `1`：包含单值

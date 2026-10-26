@@ -25,7 +25,7 @@ func TestInlineReferenceIsolatedDatabaseConcurrency(t *testing.T) {
 	if server == "" || !strings.HasPrefix(name, "magicorm_test_") || schema == "" || schema == "public" || username == "" || password == "" {
 		t.Fatal("隔离数据库配置不完整")
 	}
-	cfg := NewConfig(server, name, schema, username, password)
+	cfg := newConfig(server, name, schema, username, password)
 	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
 	defer cancel()
 	for _, kind := range []string{"local", "remote"} {

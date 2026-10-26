@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/internal/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
@@ -26,8 +26,8 @@ func TestBatchRelationsReuseOnlyThisQueryTargetsAndMisses(t *testing.T) {
 		match: func(sql string, args []any) bool { return strings.Contains(sql, "_QueryMaskRelationChild") },
 		rows:  [][]any{{int64(1), "first", "hidden"}, {int64(2), "second", "hidden"}},
 	}}}
-	makeRunner := func() *QueryRunner {
-		return NewQueryRunner(context.Background(), parent, parent.Copy(models.LiteView), false, executor, p, codec.New(p, "tenant"), true, 0)
+	makeRunner := func() *queryRunner {
+		return newQueryRunner(context.Background(), parent, parent.Copy(models.LiteView), false, executor, p, codec.New(p, "tenant"), true, 0)
 	}
 	runner := makeRunner()
 	field := parent.GetField("child")

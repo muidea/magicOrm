@@ -8,55 +8,55 @@ import (
 
 	"log/slog"
 
-	"github.com/muidea/magicOrm/database"
-	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/metrics"
+	"github.com/muidea/magicOrm/internal/database"
+	"github.com/muidea/magicOrm/internal/database/codec"
+	"github.com/muidea/magicOrm/internal/metrics/shared"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/validation/errors"
 )
 
-type DeleteRunner struct {
+type deleteRunner struct {
 	baseRunner
-	QueryRunner
+	queryRunner
 }
 
-func NewDeleteRunner(
+func newDeleteRunner(
 	ctx context.Context,
 	vModel models.Model,
 	executor database.Executor,
 	provider provider.Provider,
 	modelCodec codec.Codec,
-	deepLevel int) *DeleteRunner {
+	deepLevel int) *deleteRunner {
 	baseRunner := newBaseRunner(ctx, vModel, executor, provider, modelCodec, false, deepLevel)
-	return &DeleteRunner{
+	return &deleteRunner{
 		baseRunner: baseRunner,
-		QueryRunner: QueryRunner{
+		queryRunner: queryRunner{
 			baseRunner: baseRunner,
 		},
 	}
 }
 
-func (s *DeleteRunner) deleteHost(vModel models.Model) (err *cd.Error) {
+func (s *deleteRunner) deleteHost(vModel models.Model) (err *cd.Error) {
 	deleteResult, deleteErr := s.sqlBuilder.BuildDelete(vModel)
 	if deleteErr != nil {
 		err = deleteErr
-		slog.Error("DeleteRunner deleteHost BuildDelete failed", "error", err.Error())
+		slog.Error("deleteRunner deleteHost BuildDelete failed", "error", err.Error())
 		return
 	}
 
 	_, err = s.executor.Execute(deleteResult.SQL(), deleteResult.Args()...)
 	if err != nil {
-		slog.Error("DeleteRunner deleteHost Execute failed", "error", err.Error())
+		slog.Error("deleteRunner deleteHost Execute failed", "error", err.Error())
 	}
 	return
 }
 
-func (s *DeleteRunner) deleteRelation(vModel models.Model, vField models.Field, deepLevel int) (err *cd.Error) {
+func (s *deleteRunner) deleteRelation(vModel models.Model, vField models.Field, deepLevel int) (err *cd.Error) {
 	hostResult, relationResult, resultErr := s.sqlBuilder.BuildDeleteRelation(vModel, vField)
 	if resultErr != nil {
 		err = resultErr
-		slog.Error("DeleteRunner failed", "error", err.Error())
+		slog.Error("deleteRunner failed", "error", err.Error())
 		return
 	}
 
@@ -67,83 +67,83 @@ func (s *DeleteRunner) deleteRelation(vModel models.Model, vField models.Field, 
 		fieldErr := s.queryRelation(vModel, vField, maxDeepLevel-1)
 		if fieldErr != nil {
 			err = fieldErr
-			slog.Error("DeleteRunner failed", "error", err.Error())
+			slog.Error("deleteRunner failed", "error", err.Error())
 			return
 		}
 
 		if models.IsStructType(vType.GetValue()) {
 			err = s.deleteRelationSingleStructInner(vField, deepLevel)
 			if err != nil {
-				slog.Error("DeleteRunner failed", "error", err.Error())
+				slog.Error("deleteRunner failed", "error", err.Error())
 				return
 			}
 		} else if models.IsSliceType(vType.GetValue()) {
 			err = s.deleteRelationSliceStructInner(vField, deepLevel)
 			if err != nil {
-				slog.Error("DeleteRunner failed", "error", err.Error())
+				slog.Error("deleteRunner failed", "error", err.Error())
 				return
 			}
 		}
 
 		_, err = s.executor.Execute(hostResult.SQL(), hostResult.Args()...)
 		if err != nil {
-			slog.Error("DeleteRunner failed", "error", err.Error())
+			slog.Error("deleteRunner failed", "error", err.Error())
 			return
 		}
 	}
 
 	_, err = s.executor.Execute(relationResult.SQL(), relationResult.Args()...)
 	if err != nil {
-		slog.Error("DeleteRunner failed", "error", err.Error())
+		slog.Error("deleteRunner failed", "error", err.Error())
 	}
 	return
 }
 
-func (s *DeleteRunner) deleteRelationSingleStructInner(vField models.Field, deepLevel int) (err *cd.Error) {
+func (s *deleteRunner) deleteRelationSingleStructInner(vField models.Field, deepLevel int) (err *cd.Error) {
 	rModel, rErr := s.modelProvider.GetTypeModel(vField.GetType())
 	if rErr != nil {
 		err = rErr
-		slog.Error("DeleteRunner failed", "error", err.Error())
+		slog.Error("deleteRunner failed", "error", err.Error())
 		return
 	}
 
 	rModel, rErr = s.modelProvider.SetModelValue(rModel, vField.GetValue())
 	if rErr != nil {
 		err = rErr
-		slog.Error("DeleteRunner failed", "error", err.Error())
+		slog.Error("deleteRunner failed", "error", err.Error())
 		return
 	}
 
-	rRunner := NewDeleteRunner(s.context, rModel, s.executor, s.modelProvider, s.modelCodec, deepLevel+1)
+	rRunner := newDeleteRunner(s.context, rModel, s.executor, s.modelProvider, s.modelCodec, deepLevel+1)
 	err = rRunner.Delete()
 	if err != nil {
-		slog.Error("DeleteRunner failed", "error", err.Error())
+		slog.Error("deleteRunner failed", "error", err.Error())
 		return
 	}
 
 	return
 }
 
-func (s *DeleteRunner) deleteRelationSliceStructInner(vField models.Field, deepLevel int) (err *cd.Error) {
+func (s *deleteRunner) deleteRelationSliceStructInner(vField models.Field, deepLevel int) (err *cd.Error) {
 	sliceVal := vField.GetSliceValue()
 	for _, val := range sliceVal {
 		rModel, rErr := s.modelProvider.GetTypeModel(vField.GetType().Elem())
 		if rErr != nil {
 			err = rErr
-			slog.Error("DeleteRunner failed", "error", err.Error())
+			slog.Error("deleteRunner failed", "error", err.Error())
 			return
 		}
 
 		rModel, rErr = s.modelProvider.SetModelValue(rModel, val)
 		if rErr != nil {
 			err = rErr
-			slog.Error("DeleteRunner failed", "error", err.Error())
+			slog.Error("deleteRunner failed", "error", err.Error())
 			return
 		}
-		rRunner := NewDeleteRunner(s.context, rModel, s.executor, s.modelProvider, s.modelCodec, deepLevel+1)
+		rRunner := newDeleteRunner(s.context, rModel, s.executor, s.modelProvider, s.modelCodec, deepLevel+1)
 		err = rRunner.Delete()
 		if err != nil {
-			slog.Error("DeleteRunner failed", "error", err.Error())
+			slog.Error("deleteRunner failed", "error", err.Error())
 			return
 		}
 	}
@@ -151,14 +151,14 @@ func (s *DeleteRunner) deleteRelationSliceStructInner(vField models.Field, deepL
 	return
 }
 
-func (s *DeleteRunner) Delete() (err *cd.Error) {
+func (s *deleteRunner) Delete() (err *cd.Error) {
 	if err = s.checkContext(); err != nil {
 		return
 	}
 
 	err = s.deleteHost(s.vModel)
 	if err != nil {
-		slog.Error("DeleteRunner failed", "error", err.Error())
+		slog.Error("deleteRunner failed", "error", err.Error())
 		return
 	}
 
@@ -169,7 +169,7 @@ func (s *DeleteRunner) Delete() (err *cd.Error) {
 
 		err = s.deleteRelation(s.vModel, field, 0)
 		if err != nil {
-			slog.Error("DeleteRunner failed", "error", err.Error())
+			slog.Error("deleteRunner failed", "error", err.Error())
 			return
 		}
 	}
@@ -187,7 +187,7 @@ func (s *impl) Delete(vModel models.Model) (ret models.Model, err *cd.Error) {
 		}
 	}()
 
-	if err = s.CheckContext(); err != nil {
+	if err = s.checkContext(); err != nil {
 		return
 	}
 
@@ -218,10 +218,10 @@ func (s *impl) Delete(vModel models.Model) (ret models.Model, err *cd.Error) {
 		}
 	}()
 
-	deleteRunner := NewDeleteRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec, 0)
+	deleteRunner := newDeleteRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec, 0)
 	err = deleteRunner.Delete()
 	if err != nil {
-		slog.Error("Delete DeleteRunner.Delete failed", "pkgKey", vModel.GetPkgKey(), "error", err.Error())
+		slog.Error("Delete deleteRunner.Delete failed", "pkgKey", vModel.GetPkgKey(), "error", err.Error())
 		return
 	}
 

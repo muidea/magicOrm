@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/muidea/magicOrm/database/postgres"
+	"github.com/muidea/magicOrm/internal/database/postgres"
 )
 
 func TestProviderGuardClauses(t *testing.T) {

@@ -1,6 +1,6 @@
 # 类型映射表
 
-**依据**：`~/codespace/magicOrm/models/const.go`、`~/codespace/magicOrm/database/postgres/util.go`、`~/codespace/magicOrm/database/mysql/util.go`。
+**依据**：`~/codespace/magicOrm/models/const.go`、`~/codespace/magicOrm/internal/database/postgres/util.go`、`~/codespace/magicOrm/internal/database/mysql/util.go`。
 
 [← 返回设计文档索引](~/codespace/magicOrm/docs/README.md)
 

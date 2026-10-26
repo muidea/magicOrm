@@ -9,7 +9,7 @@ import (
 
 	"github.com/muidea/magicCommon/foundation/util"
 
-	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/internal/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/remote"
@@ -54,7 +54,7 @@ func TestBuilderLocalUnit(t *testing.T) {
 	}
 
 	buildContext := codec.New(localProvider, "abc")
-	builder := NewBuilder(localProvider, buildContext)
+	builder := newBuilder(localProvider, buildContext)
 	if builder == nil {
 		t.Error("new Builder failed")
 	}
@@ -152,7 +152,7 @@ func TestBuilderLocalReference(t *testing.T) {
 	}
 
 	buildContext := codec.New(localProvider, "abc")
-	builder := NewBuilder(localProvider, buildContext)
+	builder := newBuilder(localProvider, buildContext)
 	if builder == nil {
 		t.Error("new Builder failed")
 	}
@@ -349,7 +349,7 @@ func TestBuilderRemoteUnit(t *testing.T) {
 	}
 
 	buildContext := codec.New(remoteProvider, "abc")
-	builder := NewBuilder(remoteProvider, buildContext)
+	builder := newBuilder(remoteProvider, buildContext)
 	if builder == nil {
 		t.Error("new Builder failed")
 		return
@@ -601,7 +601,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 	}
 
 	buildContext := codec.New(remoteProvider, "abc")
-	builder := NewBuilder(remoteProvider, buildContext)
+	builder := newBuilder(remoteProvider, buildContext)
 	if builder == nil {
 		t.Error("new Builder failed")
 		return

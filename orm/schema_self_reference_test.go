@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/internal/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
@@ -61,9 +61,9 @@ func TestSingleSelfReferenceRegistersAndBuildsBoundedSchema(t *testing.T) {
 				}
 				executor := &fakeExecutor{}
 				if create {
-					err = NewCreateRunner(context.Background(), model, executor, p, c).Create()
+					err = newCreateRunner(context.Background(), model, executor, p, c).Create()
 				} else {
-					err = NewDropRunner(context.Background(), model, executor, p, c).Drop()
+					err = newDropRunner(context.Background(), model, executor, p, c).Drop()
 				}
 				if err != nil || len(executor.execCalls) != 2 {
 					t.Fatal("自引用建表/退役执行计划有重复或遗漏", err, executor.execCalls)

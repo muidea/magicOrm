@@ -6,7 +6,7 @@ import (
 	"log/slog"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicOrm/metrics"
+	"github.com/muidea/magicOrm/internal/metrics/shared"
 	"github.com/muidea/magicOrm/models"
 )
 
@@ -47,11 +47,11 @@ func (s *impl) BatchQuery(filter models.Filter) (ret []models.Model, err *cd.Err
 		return
 	}
 
-	vQueryRunner := NewQueryRunner(s.context, queryMask, responseModel, responseByMask, s.executor, s.modelProvider, s.modelCodec, true, 0)
+	vQueryRunner := newQueryRunner(s.context, queryMask, responseModel, responseByMask, s.executor, s.modelProvider, s.modelCodec, true, 0)
 	queryVal, queryErr := vQueryRunner.Query(filter)
 	if queryErr != nil {
 		err = queryErr
-		slog.Error("BatchQuery QueryRunner.Query failed", "error", err.Error())
+		slog.Error("BatchQuery queryRunner.Query failed", "error", err.Error())
 		return
 	}
 

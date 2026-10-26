@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicOrm/database/codec"
+	"github.com/muidea/magicOrm/internal/database/codec"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/helper"
@@ -201,7 +201,7 @@ func TestAbsentReferenceClearsQuerySelectionSeed(t *testing.T) {
 		if err := m.SetFieldValue("ref", seed); err != nil {
 			t.Fatal(err)
 		}
-		runner := &QueryRunner{relationEdges: map[string][]any{}, baseRunner: baseRunner{modelProvider: p, modelCodec: codec.New(p, "test")}}
+		runner := &queryRunner{relationEdges: map[string][]any{}, baseRunner: baseRunner{modelProvider: p, modelCodec: codec.New(p, "test")}}
 		runner.cacheRelationEdge(m.GetPkgKey(), "ref", int64(1), nil)
 		if err := runner.querySingleRelation(m, m.GetField("ref"), 0); err != nil {
 			t.Fatal(err)

@@ -9,8 +9,8 @@ import (
 
 	"log/slog"
 
+	"github.com/muidea/magicOrm/internal/utils"
 	"github.com/muidea/magicOrm/models"
-	"github.com/muidea/magicOrm/utils"
 )
 
 type ValueConvertMap map[models.TypeDeclare]func(reflect.Value, models.Type) (any, *cd.Error)
@@ -817,17 +817,6 @@ func init() {
 	}
 }
 
-func EncodeValue(vVal any, vType models.Type) (ret any, err *cd.Error) {
-	if !models.IsBasic(vType) {
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("EncodeValue failed, illegal type, type pkgKey:%s", vType.GetPkgKey()))
-		return
-	}
-
-	rVal := reflect.ValueOf(vVal)
-	ret, err = encodeValue(rVal, vType)
-	return
-}
-
 func encodeValue(rVal reflect.Value, vType models.Type) (ret any, err *cd.Error) {
 	if !rVal.IsValid() {
 		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal value, type pkgKey:%s", vType.GetPkgKey()))
@@ -888,17 +877,6 @@ func encodeSliceTemplate[T any](vVal reflect.Value, vType models.Type, _ T) (ret
 		ret = append(ret, tVal)
 	}
 
-	return
-}
-
-func DecodeValue(vVal any, vType models.Type) (ret any, err *cd.Error) {
-	if !models.IsBasic(vType) {
-		err = cd.NewError(cd.Unexpected, fmt.Sprintf("illegal type, type pkgKey:%s", vType.GetPkgKey()))
-		return
-	}
-
-	rVal := reflect.ValueOf(vVal)
-	ret, err = decodeValue(rVal, vType)
 	return
 }
 

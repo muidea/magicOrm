@@ -11,8 +11,8 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 
+	"github.com/muidea/magicOrm/internal/utils"
 	"github.com/muidea/magicOrm/models"
-	"github.com/muidea/magicOrm/utils"
 )
 
 const (
@@ -23,28 +23,6 @@ const (
 	ValuesTag  = "values"
 	ValueTag   = "value"
 )
-
-type Object struct {
-	ID          int64    `json:"id"`
-	Name        string   `json:"name"`
-	ShowName    string   `json:"showName"`
-	Icon        string   `json:"icon"`
-	PkgPath     string   `json:"pkgPath"`
-	Description string   `json:"description"`
-	Fields      []*Field `json:"fields"`
-	// UniqueConstraints are schema declarations applied by magicOrm when the
-	// model is created. They are not query filters or caller-provided SQL.
-	UniqueConstraints []models.UniqueConstraint `json:"uniqueConstraints,omitempty"`
-	// Indexes are non-unique lifecycle indexes for state/expiry queries.
-	Indexes []models.Index `json:"indexes,omitempty"`
-
-	// 临时变量不进行数据序列化传递
-	valueValidator models.ValueValidator `json:"-"`
-	viewSpec       models.ViewDeclare    `json:"-"`
-	// privateReadFields is intentionally process-local. It is never serialized
-	// in VMI/entity metadata and can only be enabled by a trusted storage path.
-	privateReadFields map[string]struct{} `json:"-"`
-}
 
 // EnablePrivateReadFields permits the named write-only basic fields to be
 // selected by a trusted storage path. Normal ORM queries keep omitting every
@@ -75,21 +53,6 @@ func (s *Object) EnablePrivateReadFields(names []string) *cd.Error {
 func (s *Object) AllowsPrivateReadField(name string) bool {
 	_, ok := s.privateReadFields[name]
 	return ok
-}
-
-// ObjectValue Object value
-type ObjectValue struct {
-	ID      string        `json:"id"`
-	Name    string        `json:"name"`
-	PkgPath string        `json:"pkgPath"`
-	Fields  []*FieldValue `json:"fields"`
-}
-
-// SliceObjectValue slice object value
-type SliceObjectValue struct {
-	Name    string         `json:"name"`
-	PkgPath string         `json:"pkgPath"`
-	Values  []*ObjectValue `json:"values"`
 }
 
 type normalizedFieldValue struct {

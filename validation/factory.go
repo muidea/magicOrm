@@ -1,81 +1,23 @@
 package validation
 
 import (
-	"reflect"
-
+	"github.com/muidea/magicOrm/internal/validation/constraints"
+	"github.com/muidea/magicOrm/internal/validation/database"
+	"github.com/muidea/magicOrm/internal/validation/types"
 	"github.com/muidea/magicOrm/models"
-	"github.com/muidea/magicOrm/validation/constraints"
-	"github.com/muidea/magicOrm/validation/database"
-	"github.com/muidea/magicOrm/validation/errors"
-	"github.com/muidea/magicOrm/validation/types"
 )
-
-// ValidationFactory creates and manages validation components
-type ValidationFactory interface {
-	// CreateValidationManager creates a new validation manager with given configuration
-	CreateValidationManager(config ValidationConfig) ValidationManager
-
-	// CreateTypeValidator creates a type validator
-	CreateTypeValidator() TypeValidator
-
-	// CreateConstraintValidator creates a constraint validator
-	CreateConstraintValidator(enableCaching bool) ConstraintValidator
-
-	// CreateDatabaseValidator creates a database validator
-	CreateDatabaseValidator() DatabaseValidator
-
-	// CreateScenarioAdapter creates a scenario adapter
-	CreateScenarioAdapter() ScenarioAdapter
-
-	// GetDefaultConfig returns the default validation configuration
-	GetDefaultConfig() ValidationConfig
-
-	// GetSimpleConfig returns a simple configuration for basic validation
-	GetSimpleConfig() ValidationConfig
-
-	// RegisterCustomConstraint registers a custom constraint globally
-	RegisterCustomConstraint(key models.Key, validator models.ValidatorFunc) error
-
-	// RegisterTypeHandler registers a custom type handler globally
-	RegisterTypeHandler(typeName string, handler types.TypeHandler) error
-}
-
-// TypeValidator validates basic type compatibility
-type TypeValidator interface {
-	ValidateType(value any, fieldType reflect.Type) error
-	Convert(value any, targetType reflect.Type) (any, error)
-	GetSupportedTypes() []reflect.Type
-	RegisterTypeHandler(typeName string, handler types.TypeHandler) error
-	GetZeroValue(fieldType reflect.Type) any
-}
-
-// ConstraintValidator validates business constraints
-type ConstraintValidator interface {
-	ValidateConstraints(value any, constraints models.Constraints, scenario errors.Scenario) error
-	GetApplicableDirectives(constraints models.Constraints, scenario errors.Scenario) []models.Directive
-	GetApplicableConstraints(scenario errors.Scenario) []models.Key
-	RegisterCustomConstraint(key models.Key, validator models.ValidatorFunc) error
-	ClearCache()
-}
-
-// DatabaseValidator validates database-specific constraints
-type DatabaseValidator interface {
-	ValidateDatabaseConstraints(value any, fieldName string, constraints models.Constraints, dbType string) error
-	GetDatabaseConstraints(constraints models.Constraints) []string
-	ConvertToDatabaseValue(value any) (any, error)
-}
 
 // validationFactoryImpl implements ValidationFactory
 type validationFactoryImpl struct {
 	customConstraints map[models.Key]models.ValidatorFunc
-	typeHandlers      map[string]types.TypeHandler
+	typeHandlers      map[string]TypeHandler
 }
 
 // NewValidationFactory creates a new validation factory
 func NewValidationFactory() ValidationFactory {
 	return &validationFactoryImpl{
 		customConstraints: make(map[models.Key]models.ValidatorFunc),
-		typeHandlers:      make(map[string]types.TypeHandler),
+		typeHandlers:      make(map[string]TypeHandler),
 	}
 }
 
@@ -144,7 +86,7 @@ func (f *validationFactoryImpl) RegisterCustomConstraint(key models.Key, validat
 }
 
 // RegisterTypeHandler registers a custom type handler globally
-func (f *validationFactoryImpl) RegisterTypeHandler(typeName string, handler types.TypeHandler) error {
+func (f *validationFactoryImpl) RegisterTypeHandler(typeName string, handler TypeHandler) error {
 	f.typeHandlers[typeName] = handler
 	return nil
 }

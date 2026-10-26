@@ -7,18 +7,9 @@ import (
 	"log/slog"
 
 	cd "github.com/muidea/magicCommon/def"
+	"github.com/muidea/magicOrm/internal/utils"
 	"github.com/muidea/magicOrm/models"
-	"github.com/muidea/magicOrm/utils"
 )
-
-type TypeImpl struct {
-	Name        string             `json:"name"`
-	PkgPath     string             `json:"pkgPath"`
-	Description string             `json:"description"`
-	Value       models.TypeDeclare `json:"-"`
-	IsPtr       bool               `json:"isPtr"`
-	ElemType    *TypeImpl          `json:"elemType"`
-}
 
 func (s *TypeImpl) GetName() (ret string) {
 	ret = s.Name

@@ -8,9 +8,9 @@ import (
 
 	"log/slog"
 
-	"github.com/muidea/magicOrm/database"
-	"github.com/muidea/magicOrm/database/codec"
-	"github.com/muidea/magicOrm/metrics"
+	"github.com/muidea/magicOrm/internal/database"
+	"github.com/muidea/magicOrm/internal/database/codec"
+	"github.com/muidea/magicOrm/internal/metrics/shared"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/validation/errors"
@@ -30,45 +30,45 @@ func isReadOnlyField(field models.Field) bool {
 	return constraints != nil && constraints.Has(models.KeyReadOnly)
 }
 
-type UpdateRunner struct {
+type updateRunner struct {
 	baseRunner
-	QueryRunner
-	InsertRunner
-	DeleteRunner
+	queryRunner
+	insertRunner
+	deleteRunner
 
 	hostUpdateDuration     time.Duration
 	relationUpdateDuration time.Duration
 	relationUpdateCount    int
 }
 
-func NewUpdateRunner(
+func newUpdateRunner(
 	ctx context.Context,
 	vModel models.Model,
 	executor database.Executor,
 	provider provider.Provider,
-	modelCodec codec.Codec) *UpdateRunner {
+	modelCodec codec.Codec) *updateRunner {
 	baseRunner := newBaseRunner(ctx, vModel, executor, provider, modelCodec, false, 0)
-	return &UpdateRunner{
+	return &updateRunner{
 		baseRunner: baseRunner,
-		QueryRunner: QueryRunner{
+		queryRunner: queryRunner{
 			baseRunner: baseRunner,
 		},
-		InsertRunner: InsertRunner{
+		insertRunner: insertRunner{
 			baseRunner: baseRunner,
-			QueryRunner: QueryRunner{
+			queryRunner: queryRunner{
 				baseRunner: baseRunner,
 			},
 		},
-		DeleteRunner: DeleteRunner{
+		deleteRunner: deleteRunner{
 			baseRunner: baseRunner,
-			QueryRunner: QueryRunner{
+			queryRunner: queryRunner{
 				baseRunner: baseRunner,
 			},
 		},
 	}
 }
 
-func (s *UpdateRunner) updateHost(vModel models.Model) (err *cd.Error) {
+func (s *updateRunner) updateHost(vModel models.Model) (err *cd.Error) {
 	startTime := time.Now()
 	defer func() {
 		s.hostUpdateDuration += time.Since(startTime)
@@ -77,18 +77,18 @@ func (s *UpdateRunner) updateHost(vModel models.Model) (err *cd.Error) {
 	updateResult, updateErr := s.sqlBuilder.BuildUpdate(vModel)
 	if updateErr != nil {
 		err = updateErr
-		slog.Error("UpdateRunner updateHost BuildUpdate failed", "error", err.Error())
+		slog.Error("updateRunner updateHost BuildUpdate failed", "error", err.Error())
 		return
 	}
 
 	_, err = s.executor.Execute(updateResult.SQL(), updateResult.Args()...)
 	if err != nil {
-		slog.Error("UpdateRunner updateHost Execute failed", "error", err.Error())
+		slog.Error("updateRunner updateHost Execute failed", "error", err.Error())
 	}
 	return
 }
 
-func (s *UpdateRunner) updateRelation(vModel models.Model, vField models.Field) (err *cd.Error) {
+func (s *updateRunner) updateRelation(vModel models.Model, vField models.Field) (err *cd.Error) {
 	startTime := time.Now()
 	defer func() {
 		s.relationUpdateDuration += time.Since(startTime)
@@ -104,14 +104,14 @@ func (s *UpdateRunner) updateRelation(vModel models.Model, vField models.Field) 
 		// 引用关系：只刷新关系（增删链接），不处理实体
 		err = s.updateReferenceRelation(vModel, vField)
 		if err != nil {
-			slog.Error("UpdateRunner updateRelation updateReferenceRelation failed", "field", vField.GetName(), "error", err.Error())
+			slog.Error("updateRunner updateRelation updateReferenceRelation failed", "field", vField.GetName(), "error", err.Error())
 		}
 		return
 	}
 	// 包含关系：同步处理关系和实体（先 deleteRelation 再 insertRelation）
 	err = s.updateContainRelation(vModel, vField)
 	if err != nil {
-		slog.Error("UpdateRunner updateRelation updateContainRelation failed", "field", vField.GetName(), "error", err.Error())
+		slog.Error("updateRunner updateRelation updateContainRelation failed", "field", vField.GetName(), "error", err.Error())
 	}
 	return
 }
@@ -150,7 +150,7 @@ func buildPrimaryQueryModel(vModel models.Model) (ret models.Model, err *cd.Erro
 	return
 }
 
-func (s *UpdateRunner) queryStoredModelForReadOnlyFields(vModel models.Model) (ret models.Model, err *cd.Error) {
+func (s *updateRunner) queryStoredModelForReadOnlyFields(vModel models.Model) (ret models.Model, err *cd.Error) {
 	queryModel, queryErr := buildPrimaryQueryModel(vModel)
 	if queryErr != nil {
 		err = queryErr
@@ -170,7 +170,7 @@ func (s *UpdateRunner) queryStoredModelForReadOnlyFields(vModel models.Model) (r
 		return
 	}
 
-	queryRunner := NewQueryRunner(s.context, queryMask, responseModel, false, s.executor, s.modelProvider, s.modelCodec, false, 0)
+	queryRunner := newQueryRunner(s.context, queryMask, responseModel, false, s.executor, s.modelProvider, s.modelCodec, false, 0)
 	modelList, queryExecErr := queryRunner.Query(filter)
 	if queryExecErr != nil {
 		err = queryExecErr
@@ -199,11 +199,11 @@ func restoreReadOnlyBasicFields(dst models.Model, src models.Model, fieldNames [
 	}
 }
 
-func (s *UpdateRunner) queryStoredResponseModel(vModel models.Model) (ret models.Model, err *cd.Error) {
+func (s *updateRunner) queryStoredResponseModel(vModel models.Model) (ret models.Model, err *cd.Error) {
 	return s.queryStoredModelForReadOnlyFields(vModel)
 }
 
-func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
+func (s *updateRunner) Update() (ret models.Model, err *cd.Error) {
 	if err = s.checkContext(); err != nil {
 		return
 	}
@@ -221,7 +221,7 @@ func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
 	if len(readOnlyFieldNames) > 0 {
 		storedModel, err = s.queryStoredModelForReadOnlyFields(s.vModel)
 		if err != nil {
-			slog.Warn("UpdateRunner prequery readonly fields failed", "pkgKey", s.vModel.GetPkgKey(), "error", err.Error())
+			slog.Warn("updateRunner prequery readonly fields failed", "pkgKey", s.vModel.GetPkgKey(), "error", err.Error())
 			err = nil
 		}
 	}
@@ -229,7 +229,7 @@ func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
 	if hasAssignedWritableBasicFields(s.vModel) {
 		err = s.updateHost(s.vModel)
 		if err != nil {
-			slog.Error("UpdateRunner Update updateHost failed", "error", err.Error())
+			slog.Error("updateRunner Update updateHost failed", "error", err.Error())
 			return
 		}
 	}
@@ -243,7 +243,7 @@ func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
 
 		err = s.updateRelation(s.vModel, field)
 		if err != nil {
-			slog.Error("UpdateRunner Update updateRelation failed", "field", field.GetName(), "error", err.Error())
+			slog.Error("updateRunner Update updateRelation failed", "field", field.GetName(), "error", err.Error())
 			return
 		}
 	}
@@ -257,7 +257,7 @@ func (s *UpdateRunner) Update() (ret models.Model, err *cd.Error) {
 		return
 	}
 
-	slog.Warn("UpdateRunner query stored response failed, fallback to projected working model", "pkgKey", s.vModel.GetPkgKey(), "error", err.Error())
+	slog.Warn("updateRunner query stored response failed, fallback to projected working model", "pkgKey", s.vModel.GetPkgKey(), "error", err.Error())
 	ret, err = projectWriteResponseModel(s.vModel, s.modelProvider)
 	return
 }
@@ -306,7 +306,7 @@ func (s *impl) Update(vModel models.Model) (ret models.Model, err *cd.Error) {
 		}
 	}()
 
-	if err = s.CheckContext(); err != nil {
+	if err = s.checkContext(); err != nil {
 		return
 	}
 
@@ -349,16 +349,16 @@ func (s *impl) Update(vModel models.Model) (ret models.Model, err *cd.Error) {
 		}()
 	}
 
-	updateRunner := NewUpdateRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec)
+	updateRunner := newUpdateRunner(s.context, vModel, s.executor, s.modelProvider, s.modelCodec)
 	ret, err = updateRunner.Update()
 	if err != nil {
-		slog.Error("Update UpdateRunner.Update failed", "pkgKey", vModel.GetPkgKey(), "error", err.Error())
+		slog.Error("Update updateRunner.Update failed", "pkgKey", vModel.GetPkgKey(), "error", err.Error())
 		return
 	}
 
 	totalDuration := time.Since(startTime)
 	if totalDuration >= 10*time.Millisecond {
-		slog.Info("UpdateRunner profile",
+		slog.Info("updateRunner profile",
 			"pkgKey", vModel.GetPkgKey(),
 			"total_ms", totalDuration.Seconds()*1000,
 			"validation_ms", validationDuration.Seconds()*1000,

@@ -3,22 +3,9 @@ package remote
 import (
 	"sync"
 
+	"github.com/muidea/magicOrm/internal/utils"
 	"github.com/muidea/magicOrm/models"
-	"github.com/muidea/magicOrm/utils"
 )
-
-type SpecImpl struct {
-	FieldName    string               `json:"fieldName"`
-	PrimaryKey   bool                 `json:"primaryKey"`
-	ValueDeclare models.ValueDeclare  `json:"valueDeclare"`
-	ViewDeclare  []models.ViewDeclare `json:"viewDeclare"`
-
-	Constraint   string `json:"constraint"`
-	DefaultValue any    `json:"defaultValue"`
-
-	// 这里是为了避免在使用时多次解析
-	constraintsVal models.Constraints
-}
 
 var emptySpec = SpecImpl{PrimaryKey: false, ValueDeclare: models.Customer}
 var constraintCache sync.Map
