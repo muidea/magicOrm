@@ -107,6 +107,13 @@ func validateSchema(config database.Config) *cd.Error {
 	if !exists {
 		return cd.NewError(cd.NotFound, "postgres schema was not found")
 	}
+	var usable bool
+	if dbErr = dbHandle.QueryRow("SELECT has_schema_privilege(current_user, $1, 'USAGE')", schemaName).Scan(&usable); dbErr != nil {
+		return databaseError(dbErr)
+	}
+	if !usable {
+		return cd.NewError(cd.InvalidAuthority, "postgres schema access is denied")
+	}
 	return nil
 }
 

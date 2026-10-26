@@ -72,7 +72,7 @@ Orm 通过 Runner（如 InsertRunner、QueryRunner）调用 Executor，不直接
 
 PostgreSQL 的普通索引和唯一约束创建均支持安全重试：前者使用 `IF NOT EXISTS`，后者会检查系统目录后再添加约束。这覆盖“数据库 DDL 已成功、上层 schema 元数据尚未提交”时的重试窗口。具体可演进与必须显式迁移的边界见 [design-orm.md](~/codespace/magicOrm/docs/design-orm.md)。
 
-Schema 由调用 owner 显式执行 `orm.EnsureSchema(server, database, schema, username, password)`。AddDatabase/NewOrm 不创建 Schema，也不解析 database/schema 合并字段。普通进程仅连接部署 owner 已准备的结构。
+Schema 由调用 owner 显式执行 `orm.EnsureSchema(server, database, schema, username, password)`。AddDatabase/NewOrm 不创建 Schema，也不解析 database/schema 合并字段。普通进程仅连接部署 owner 已准备的结构。PostgreSQL 连接注册检查 Schema 存在及当前账号的 `USAGE`；缺失或无权时失败，不创建 Schema 或补授权。具体模型表的读写／DDL 权限由实际操作验证，失败必须向调用 owner 返回，不转用其他命名空间。
 
 PostgreSQL UNIQUE 的底层索引及普通索引名在 Schema 内共享。物理名采用 table_declaration 的前至多 46 字节、下划线和 SHA-256(table + NUL + declaration) 前 8 字节的十六进制值，长度至多 63 字节；两段身份边界明确，不依赖下划线分割。物理表名超过 63 字节在预检时拒绝。Create、Reconcile、Describe/Inspect、Repair 共用命名映射，MySQL 保留表内声明名。旧未限定物理名不会自动迁移；本批只部署干净候选 Schema。
 

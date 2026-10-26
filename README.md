@@ -9,7 +9,7 @@ magicOrm 是面向 Go 的模型 ORM，默认 PostgreSQL，使用 `-tags=mysql` �
 - Local/Remote 唯一声明；Remote 普通索引。Local 标准入口没有 `GetIndexes`；多值关系和 owned 字段不能参与组合唯一。声明准入不保证任意字段均可在两类数据库物理索引。
 - 普通嵌套事务共享一个物理事务；内层回滚使整体只能回滚。Serializable 必须在空闲时开启，不降级、不自动重试。PostgreSQL 唯一冲突映射 Duplicated，序列化/死锁映射 VersionConflict，连接丢失及提交未知保持 Unexpected，由 owner 回查原身份。
 - Create/Drop/Inspect/Repair 管理宿主、关系表及完整递归 owned 图，保留独立引用目标主表。业务 owner 证明物理命名空间独占、图外使用者保护并串行 Schema 写入；ORM 不维护平台所有权。
-- Reconcile 只处理安全增量；必填新字段、删字段、存储类型切换等要求显式迁移。`EnsureSchema` 显式创建 Schema，`AddDatabase` 不创建 Schema，不接受 database/schema 合并名称。
+- Reconcile 只处理安全增量；必填新字段、删字段、存储类型切换等要求显式迁移。`EnsureSchema` 显式创建 Schema，`AddDatabase` 不创建 Schema，不接受 database/schema 合并名称；PostgreSQL Schema 不存在或当前账号无 `USAGE` 时拒绝连接注册，不修复授权。
 - UTC 毫秒持久化；无时区旧文本按 UTC，不自动转换历史本地时间。精确 JSON 数值不经浮点中转。
 - 受限 AND/OR/null、多字段排序、keyset、注册单值引用子查询；独立聚合支持至多 16 指标、4 分组维、1000 组，UTC 小时桶至多 744 桶、5000 点。不是任意 SQL、授权游标或跨查询快照。
 - 类型、约束、数据库兼容和场景校验；校验层不查询 UNIQUE/FK，物理唯一性由数据库执行。缓存参数与显式选项见[校验合同](~/codespace/magicOrm/docs/design-validation.md)。
