@@ -1,5 +1,9 @@
 # magicOrm
 
+## 项目定位与开发边界
+
+本仓 `AGENTS.md` 直接列出项目定位、公开能力、职责边界及开发验证要求，单独检出即可执行；跨项目配合使用项目名和 Git 地址识别。先修改事实 owner，再同步消费者和交付材料。平台架构长文作为补充设计依据，不是读取本仓规则的前置依赖。下文日期化记录保留各批范围，不代表当前部署全部验收通过。
+
 magicOrm 是面向 Go 的模型 ORM，默认 PostgreSQL，使用 `-tags=mysql` 构建 MySQL。Local Provider 处理 Go 模型，Remote Provider 处理动态模型声明与值；Remote 不内置网络传输。同一 ORM handler 由调用方串行使用。
 
 ## 能力与边界
