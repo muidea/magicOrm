@@ -19,7 +19,7 @@ import (
 // Both dialect files are inspected, independently of the current build tag.
 // New capabilities require a deliberate update of the public contract here.
 func TestPublicFacadeDoesNotExposeExecutionImplementations(t *testing.T) {
-	functions := strings.Fields("GetOrm NewOrm BeginSerializableTransaction LockWithFilter Aggregate ValidateSchema PreflightSchemaChange SchemaTables SchemaTableName Initialize Uninitialized AddDatabase DelDatabase EnsureSchema NewConfig OwnerPoolStats EnsureORMMetricProviderRegistered")
+	functions := strings.Fields("GetOrm NewOrm BeginSerializableTransaction LockWithFilter Aggregate ValidateSchema PreflightSchemaChange SchemaTables SchemaSetTables SchemaTableName Initialize Uninitialized AddDatabase DelDatabase EnsureSchema NewConfig OwnerPoolStats EnsureORMMetricProviderRegistered")
 	allowed := map[string]bool{}
 	for _, name := range functions {
 		allowed[name] = true
@@ -103,7 +103,7 @@ func TestPublicFacadeDoesNotExposeExecutionImplementations(t *testing.T) {
 			t.Errorf("public capability was removed: %s", name)
 		}
 	}
-	allowedMethods := strings.Fields("Create Drop Reconcile InspectSchema RepairSchema Insert Update UpdateWithFilter Delete Query Count BatchQuery BeginTransaction CommitTransaction RollbackTransaction Release BeginSerializableTransaction LockWithFilter Aggregate")
+	allowedMethods := strings.Fields("Create Drop Reconcile InspectSchema InspectSchemaSet DropSchemaSet RepairSchema Insert Update UpdateWithFilter Delete Query Count BatchQuery BeginTransaction CommitTransaction RollbackTransaction Release BeginSerializableTransaction LockWithFilter Aggregate")
 	methodSet := map[string]bool{}
 	for _, name := range allowedMethods {
 		methodSet[name] = true

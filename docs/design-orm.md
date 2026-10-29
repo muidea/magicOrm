@@ -159,7 +159,7 @@ type Orm interface {
 
 本次整理以保持已有业务调用方式和特性为约束。`models.ORM` 是操作合同的唯一声明，`orm.Orm` 为类型别名；不新增必选方法。`orm.SchemaReport` 是 `models.SchemaReport` 的别名，保留结果字段与 JSON。`models.SchemaIssue`／`models.PoolStats` 保留原观察数据，`models.DatabaseConfig` 保留 Server／Username／Password／Database／Schema／GetDsn 方法。诊断字段继续直接读取，不要求调用方改成 getter。连接配置不包含 SQL 句柄。
 
-公开包函数17项：GetOrm、NewOrm、BeginSerializableTransaction、LockWithFilter、Aggregate、ValidateSchema、PreflightSchemaChange、SchemaTables、SchemaTableName、Initialize、Uninitialized、AddDatabase、DelDatabase、EnsureSchema、NewConfig、OwnerPoolStats、EnsureORMMetricProviderRegistered。
+公开包函数18项：GetOrm、NewOrm、BeginSerializableTransaction、LockWithFilter、Aggregate、ValidateSchema、PreflightSchemaChange、SchemaTables、SchemaSetTables、SchemaTableName、Initialize、Uninitialized、AddDatabase、DelDatabase、EnsureSchema、NewConfig、OwnerPoolStats、EnsureORMMetricProviderRegistered。
 
 `SchemaTableName(model, prefix)` 只提供宿主表身份，供管理 owner 判断图外引用，不能用完整 owned 图或排序后首项代替。`SchemaTables` 继续返回经校验的完整管理图。两者不提供 SQL，也不是所有权授权。
 
@@ -168,3 +168,11 @@ type Orm interface {
 Base 的初始化和模型测试验证正式模型合同及 owned 图；Runner 的页面测试验证冻结计划。参数化 SQL、投影、指标样本数及桶编译继续在 ORM owner 内部测试。Base 的真实 PostgreSQL 初始化、日志及派生恢复回归保留。测试基础设施 helper 只创建并清理本次独占的新 Schema，要求 magicorm_test_ 数据库；不向业务测试返回通用 SQL 句柄，业务表读写仍走 ORM。
 
 这是源码 API 边界整理，无业务表 Schema、模型包摘要、安装身份、授权目录、写入错误分类或恢复策略变更。旧底层源码导入的迁移属于本次确认范围；已有业务门面保持使用方式，不能宣称所有旧底层导入仍兼容。外部消费者须同步构建新的依赖，不需要重建业务数据库。
+
+## 完整模型集合的 Schema 生命周期（2026-10-29 源码候选）
+
+第三方实现的必选 `models.ORM` 保持不变。可选接口 `models.SchemaSetLifecycle` 声明 `InspectSchemaSet(roots []Model, expectedExist bool)` 和 `DropSchemaSet(roots []Model)`，返回既有 `SchemaReport`；默认 ORM 实现支持此接口。调用方使用类型断言核对能力，不支持时明确拒绝，不循环调用单根 Drop 作为降级。
+
+`orm.SchemaSetTables(ctx, roots, provider, prefix)` 离线返回经核验的集合物理表并集；共享 owned 模型及其独立根去重，相同模型的冲突声明、owned 环、重复根和物理冲突拒绝。独立引用目标未作为根传入时，不属于删除集合。完整声明、DDL 构建及现存表结构预检在首个删除前完成；关系表先于宿主删除。重试允许目标表已缺失，但不能接受现存表漂移；最后独立核对全部目标表缺失。
+
+调用者仍须证明命名空间独占、完整根集合、图外使用者保护和 Schema 写入串行；ORM 不接受平台安装身份或推断租户权限。此能力不删除数据库、物理 Schema 容器或账号。源码默认／MySQL-tag 回归及隔离 PostgreSQL 物理测试与平台 Live 分开记账。

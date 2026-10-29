@@ -1,5 +1,7 @@
 # magicOrm
 
+2026-10-29 Live6 剩余项源码候选：整集合 Schema 生命周期通过可选 `models.SchemaSetLifecycle` 提供 `InspectSchemaSet`／`DropSchemaSet`，离线表集合使用 `orm.SchemaSetTables`；基础 ORM 接口和单根安全约定保持。图声明先整体核验，共享 owned 表去重，目标删除后独立观察确认；平台所有权、冻结计划和恢复身份由调用 owner 维护。 见[实施与验证边界](~/dataspace/magicPlatform/docs/technical/history/platform-live6-final-code-closeout-2026-10-29.md)。
+
 ## 项目定位与开发边界
 
 本仓 `AGENTS.md` 直接列出项目定位、公开能力、职责边界及开发验证要求，单独检出即可执行；跨项目配合使用项目名和 Git 地址识别。先修改事实 owner，再同步消费者和交付材料。平台架构长文作为补充设计依据，不是读取本仓规则的前置依赖。下文日期化记录保留各批范围，不代表当前部署全部验收通过。
@@ -22,7 +24,7 @@ PostgreSQL 约束和索引的物理名由表名与声明名两段身份派生，
 
 ## 公共接口与内部边界
 
-业务读写继续通过 `orm.Orm`，它是 `models.ORM` 的别名，16项方法及三项可选能力（Serializable、精确行锁、Aggregate）保持。`orm.SchemaReport` 保留 `Matches`／`Tables`／`Issues` 字段和 JSON；结果数据、连接描述接口及池快照定义在 `models`。`NewConfig` 的既有方法包含 `GetDsn`，不返回执行器或连接池。
+业务读写继续通过 `orm.Orm`，它是 `models.ORM` 的别名，16项方法保持；可选能力包括 Serializable、精确行锁、Aggregate 及整集合 Schema 生命周期。`orm.SchemaReport` 保留 `Matches`／`Tables`／`Issues` 字段和 JSON；结果数据、连接描述接口及池快照定义在 `models`。`NewConfig` 的既有方法包含 `GetDsn`，不返回执行器或连接池。
 
 数据库实现位于 `~/codespace/magicOrm/internal/database/`，Go 限制外部导入；Runner及 `NewExecutor`／`NewBuilder`／`NewPool` 不再是公共门面。已有直接依赖已同步迁移。需要物理宿主表身份时使用 `orm.SchemaTableName`，完整 owned 图仍用 `SchemaTables`；两者都不授予写入权。Provider 的既有构造入口、模型声明与值 DTO 保持，业务调用方不依赖数据库驱动实现。详见[接口合同](~/codespace/magicOrm/docs/design-orm.md#公共边界整理2026-10-26)。
 

@@ -129,6 +129,58 @@ func TestPostgresSchemaDDLPreflightAndOwnedReconcile(t *testing.T) {
 			t.Fatal(report, err)
 		}
 	})
+	t.Run("complete-shared-owned-set-preserves-reference-and-other-instance", func(t *testing.T) {
+		fixture, host, _ := inspectionFixture(t)
+		p := fixture.modelProvider
+		second, e := p.RegisterModel(&inspectSecondHost{})
+		if e != nil {
+			t.Fatal(e)
+		}
+		owned, e := p.GetEntityModel(&inspectOwned{}, true)
+		if e != nil {
+			t.Fatal(e)
+		}
+		reference, e := p.GetEntityModel(&inspectReferenced{}, true)
+		if e != nil {
+			t.Fatal(e)
+		}
+		handler := open(p, "complete")
+		defer handler.Release()
+		for _, model := range []models.Model{reference, host, second} {
+			if e := handler.Create(model); e != nil {
+				t.Fatal(e)
+			}
+		}
+		other := open(p, "other_instance")
+		defer other.Release()
+		if e := other.Create(host); e != nil {
+			t.Fatal(e)
+		}
+		roots := []models.Model{host, owned, second}
+		if report, e := handler.InspectSchemaSet(roots, true); e != nil || report == nil || !report.Matches || len(report.Tables) != 6 {
+			t.Fatal(report, e)
+		}
+		// Model one committed DDL followed by process/response loss. Reopen the
+		// ORM and resume from the same declarations; no fixture objects outside
+		// this disposable schema or other instance prefix may be removed.
+		if e := handler.Drop(owned); e != nil {
+			t.Fatal(e)
+		}
+		recovered := open(p, "complete")
+		defer recovered.Release()
+		for attempt := 0; attempt < 2; attempt++ {
+			report, e := recovered.DropSchemaSet(roots)
+			if e != nil || report == nil || !report.Matches || len(report.Tables) != 6 {
+				t.Fatal(report, e)
+			}
+		}
+		if report, e := recovered.InspectSchema(reference, true); e != nil || report == nil || !report.Matches {
+			t.Fatal("reference target removed", report, e)
+		}
+		if report, e := other.InspectSchema(host, true); e != nil || report == nil || !report.Matches {
+			t.Fatal("other instance changed", report, e)
+		}
+	})
 	t.Run("add-owned-component", func(t *testing.T) {
 		p, previous, current := reconcileModels(t, &reconcileNewOwned{})
 		object, err := helper.GetObject(&inspectOwned{})

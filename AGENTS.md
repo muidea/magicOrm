@@ -11,6 +11,8 @@
 - 保持 ID 分配、必填／默认／null／唯一、关联和事务语义。不得为平台错误放宽约束、把 update 改成 insert 或识别特定应用／租户名。
 - 普通嵌套事务共享物理事务，内层回滚不能伪装为可提交；Serializable 不自动降级或重试。提交未知由 owner 回查原操作，ORM 不猜测成功。业务 datetime 按 UTC 合同编码，0、null、空集合和精确大数不能混同。
 
+- 完整模型集合的 Schema 生命周期是可选合同；共享 owned 去重和物理漂移检查由 ORM 执行，完整根集合及图外保护由调用 owner 证明，不把平台退役计划下沉。
+
 ## 协作项目
 
 - magicCommon — https://github.com/muidea/magicCommon.git：通用基础工具。

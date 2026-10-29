@@ -3,6 +3,7 @@ package orm
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"sort"
 
 	cd "github.com/muidea/magicCommon/def"
@@ -62,6 +63,10 @@ func validateSchemaIndexes(graph *schemaGraph) *cd.Error {
 // The caller must serialize schema writers; this is a read-only observation,
 // not a distributed DDL lock or a repair command. A read error returns no report.
 func (s *impl) InspectSchema(model models.Model, expectedExist bool) (*SchemaReport, *cd.Error) {
+	return s.InspectSchemaSet([]models.Model{model}, expectedExist)
+}
+
+func (s *impl) InspectSchemaSet(roots []models.Model, expectedExist bool) (*SchemaReport, *cd.Error) {
 	if err := s.checkContext(); err != nil {
 		return nil, err
 	}
@@ -69,7 +74,7 @@ func (s *impl) InspectSchema(model models.Model, expectedExist bool) (*SchemaRep
 	if !ok {
 		return nil, cd.NewError(cd.Unexpected, "executor does not support physical schema inspection")
 	}
-	graph, err := collectSchemaGraph(s.context, model, s.modelProvider, s.modelCodec)
+	graph, err := collectSchemaSetGraph(s.context, roots, s.modelProvider, s.modelCodec)
 	if err != nil {
 		return nil, err
 	}
@@ -99,10 +104,14 @@ func (s *impl) InspectSchema(model models.Model, expectedExist bool) (*SchemaRep
 }
 
 func collectSchemaGraph(ctx context.Context, model models.Model, p provider.Provider, c codec.Codec) (*schemaGraph, *cd.Error) {
+	return collectSchemaSetGraph(ctx, []models.Model{model}, p, c)
+}
+
+func collectSchemaSetGraph(ctx context.Context, roots []models.Model, p provider.Provider, c codec.Codec) (*schemaGraph, *cd.Error) {
 	if !isContextValid(ctx) {
 		return nil, cd.NewError(cd.Unexpected, "context is invalid or cancelled")
 	}
-	if model == nil || p == nil || c == nil {
+	if len(roots) == 0 || len(roots) > maxSchemaTables || p == nil || c == nil {
 		return nil, cd.NewError(cd.IllegalParam, "schema model/provider unavailable")
 	}
 	builder, ok := newBuilder(p, c).(database.SchemaBuilder)
@@ -111,6 +120,7 @@ func collectSchemaGraph(ctx context.Context, model models.Model, p provider.Prov
 	}
 	graph := &schemaGraph{tables: map[string]database.TableSchema{}}
 	visited := map[string]bool{}
+	declarations := map[string]models.Model{}
 	active := map[string]bool{}
 	add := func(table database.TableSchema, step schemaTable) *cd.Error {
 		if table.Name == "" || len(graph.tables) >= maxSchemaTables {
@@ -136,6 +146,23 @@ func collectSchemaGraph(ctx context.Context, model models.Model, p provider.Prov
 			return cd.NewError(cd.IllegalParam, "schema owned model cycle")
 		}
 		if visited[key] {
+			previous := declarations[key]
+			if len(previous.GetFields()) != len(value.GetFields()) {
+				return cd.NewError(cd.IllegalParam, "schema shared model declarations differ")
+			}
+			for _, field := range value.GetFields() {
+				before := previous.GetField(field.GetName())
+				if before == nil || !models.CompareType(before.GetType(), field.GetType()) || !models.CompareSpec(before.GetSpec(), field.GetSpec()) {
+					return cd.NewError(cd.IllegalParam, "schema shared model declarations differ")
+				}
+			}
+			table, err := builder.DescribeTable(value)
+			if err != nil {
+				return err
+			}
+			if !reflect.DeepEqual(graph.tables[table.Name], table) {
+				return cd.NewError(cd.IllegalParam, "schema shared model declarations differ")
+			}
 			return nil
 		}
 		active[key] = true
@@ -170,11 +197,18 @@ func collectSchemaGraph(ctx context.Context, model models.Model, p provider.Prov
 				return err
 			}
 		}
-		active[key], visited[key] = false, true
+		active[key], visited[key], declarations[key] = false, true, value
 		return nil
 	}
-	if err := visit(model); err != nil {
-		return nil, err
+	rootKeys := map[string]bool{}
+	for _, model := range roots {
+		if model == nil || rootKeys[model.GetPkgKey()] {
+			return nil, cd.NewError(cd.IllegalParam, "schema root is unavailable or duplicated")
+		}
+		rootKeys[model.GetPkgKey()] = true
+		if err := visit(model); err != nil {
+			return nil, err
+		}
 	}
 	if !isContextValid(ctx) {
 		return nil, cd.NewError(cd.Unexpected, "context is invalid or cancelled")
@@ -185,7 +219,13 @@ func collectSchemaGraph(ctx context.Context, model models.Model, p provider.Prov
 // SchemaTables returns the validated physical table identities managed by
 // Create/Drop, without accessing a database. It conveys no ownership authority.
 func SchemaTables(ctx context.Context, model models.Model, p provider.Provider, prefix string) ([]string, *cd.Error) {
-	graph, err := collectSchemaGraph(ctx, model, p, codec.New(p, prefix))
+	return SchemaSetTables(ctx, []models.Model{model}, p, prefix)
+}
+
+// SchemaSetTables observes the complete union of owned tables without database
+// access. Shared owned models are deduplicated; namespace authority is external.
+func SchemaSetTables(ctx context.Context, roots []models.Model, p provider.Provider, prefix string) ([]string, *cd.Error) {
+	graph, err := collectSchemaSetGraph(ctx, roots, p, codec.New(p, prefix))
 	if err != nil {
 		return nil, err
 	}

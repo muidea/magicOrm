@@ -87,7 +87,7 @@
 
 全量 PostgreSQL 回归同时发现旧 TestRemoteOnlineEntity 夹具以空目标对象（包含显式主键0）过滤关联，并假定新建ID=1。使用修复前校验器可独立复现；用例现读取 owner 实际分配键、按真实关联键查询并核对返回目标内容，不改变生产查询语义。默认本机连接因认证失败的首轮及隔离库首轮失败日志均保留；最终隔离库全仓 test/vet/build 通过。
 
-本批源码终验与夹具边界见[可靠写入与设备规则证据](~/codespace/docs/acceptance/runs/2026-10-22-reliable-entity-value-writes-source1/source-checks.json)；完整页面/五角色/初始化和正式候选仍待验证，liveReady=false。
+本批源码终验与夹具边界见可靠写入与设备规则的历史源码验证（旧轮次临时归档已按保留策略清理）；完整页面/五角色/初始化和正式候选仍待验证，liveReady=false。
 
 ## 有效配置与生命周期（2026-10-25）
 
