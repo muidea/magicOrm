@@ -12,6 +12,19 @@ import (
 	"github.com/muidea/magicOrm/models"
 )
 
+// JSONValue returns the public model-value projection without changing Value.
+// A uint8 model collection is a numeric array, including when nested in a DTO.
+func (s FieldValue) JSONValue() any {
+	return utils.BasicValueForJSON(s.Value)
+}
+
+func (s FieldValue) MarshalJSON() ([]byte, error) {
+	type wireFieldValue FieldValue
+	value := wireFieldValue(s)
+	value.Value = s.JSONValue()
+	return json.Marshal(value)
+}
+
 // UnmarshalJSON keeps numeric tokens exact until the declared field type is
 // known. This also applies when FieldValue is nested in an HTTP request DTO.
 func (s *FieldValue) UnmarshalJSON(data []byte) error {

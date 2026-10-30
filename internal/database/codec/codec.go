@@ -9,6 +9,7 @@ import (
 
 	"log/slog"
 
+	"github.com/muidea/magicOrm/internal/utils"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 )
@@ -129,7 +130,7 @@ func (s *codecImpl) PackedBasicFieldValue(vField models.Field, fVal models.Value
 			err = sliceErr
 			return
 		}
-		jsonVal, jsonErr := json.Marshal(sliceVal)
+		jsonVal, jsonErr := json.Marshal(utils.BasicValueForJSON(sliceVal))
 		if jsonErr != nil {
 			err = cd.NewError(cd.Unexpected, jsonErr.Error())
 			return
@@ -225,10 +226,9 @@ func (s *codecImpl) ExtractBasicFieldValue(vField models.Field, eVal any) (ret a
 			return
 		}
 		if strVal != "" {
-			vArray := []any{}
-			byteErr := json.Unmarshal([]byte(strVal), &vArray)
-			if byteErr != nil {
-				err = cd.NewError(cd.Unexpected, byteErr.Error())
+			vArray, decodeErr := decodeStoredCollection(strVal, vType)
+			if decodeErr != nil {
+				err = decodeErr
 				return
 			}
 			ret, err = s.modelProvider.DecodeValue(vArray, vType)

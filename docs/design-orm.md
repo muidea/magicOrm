@@ -176,3 +176,13 @@ Base 的初始化和模型测试验证正式模型合同及 owned 图；Runner �
 `orm.SchemaSetTables(ctx, roots, provider, prefix)` 离线返回经核验的集合物理表并集；共享 owned 模型及其独立根去重，相同模型的冲突声明、owned 环、重复根和物理冲突拒绝。独立引用目标未作为根传入时，不属于删除集合。完整声明、DDL 构建及现存表结构预检在首个删除前完成；关系表先于宿主删除。重试允许目标表已缺失，但不能接受现存表漂移；最后独立核对全部目标表缺失。
 
 调用者仍须证明命名空间独占、完整根集合、图外使用者保护和 Schema 写入串行；ORM 不接受平台安装身份或推断租户权限。此能力不删除数据库、物理 Schema 容器或账号。源码默认／MySQL-tag 回归及隔离 PostgreSQL 物理测试与平台 Live 分开记账。
+
+## 数值集合的持久化与 JSON（2026-10-30）
+
+模型的 uint8 集合是数值集合：新持久值及 Remote FieldValue JSON 使用 `[0,255]`，不使用 byte stream 的 Base64。`FieldValue.JSONValue()` 返回 JSON 投影，`Get()`／`GetValue()` 保留进程内类型与 assigned 语义；嵌套 ObjectValue／SliceObjectValue 逐字段应用投影。普通 `json.Marshal([]byte{255})` 仍为 `"/w=="`。
+
+存储解码依据字段声明：仅非指针元素的 uint8 集合兼容旧 Base64 字符串，不扩大公开写入协议。整数数组使用 json.Number 并检查有符号／无符号 64 位边界，随后由 Provider 检查声明的窄类型范围。拒绝小数、越界、错误结构及尾随 JSON。不会在读取时自动重写旧行。
+
+直接 JSON 投影保留 nil→null、空集合→[]；通过现有 Provider 的集合转换仍按既有合同将 nil 归一为空集合，不另行改变 null／缺字段／assigned 行为。指向集合的指针遵循相同 JSON 投影；本批不新增指针元素集合的 Provider 支持。
+
+Local／Remote 定向测试、API 快照、PostgreSQL 一次性真实往返与 MySQL-tag builder 回归分别记录；MySQL-tag 通过不代表 MySQL 数据库实测。Base 公开投影须消费同一版本。

@@ -366,6 +366,8 @@
   "provider/remote method *ValueImpl.IsZero": "func() bool",
   "provider/remote method *ValueImpl.Set": "func(val any) (err *cd.Error)\nimport cd \"github.com/muidea/magicCommon/def\"",
   "provider/remote method *ValueImpl.UnpackValue": "func() (ret []models.Value)\nimport models \"github.com/muidea/magicOrm/models\"",
+  "provider/remote method FieldValue.JSONValue": "func() any",
+  "provider/remote method FieldValue.MarshalJSON": "func() ([]byte, error)",
   "provider/remote method SpecImpl.Copy": "func() *SpecImpl",
   "provider/remote method SpecImpl.EnableView": "func(viewSpec models.ViewDeclare) bool\nimport models \"github.com/muidea/magicOrm/models\"",
   "provider/remote method SpecImpl.GetConstraints": "func() models.Constraints\nimport models \"github.com/muidea/magicOrm/models\"",
