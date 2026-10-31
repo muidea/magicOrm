@@ -86,14 +86,14 @@ func TestStoredCollectionRoundTripUsesNumericArraysAndExactIntegers(t *testing.T
 	}
 }
 
-func TestStoredCollectionCompatibilityIsRestrictedToDeclaredUint8(t *testing.T) {
+func TestStoredCollectionRequiresDeclaredJSONArray(t *testing.T) {
 	for name, fixture := range collectionModels(t, &collectionRecord{ID: 1}) {
 		t.Run(name, func(t *testing.T) {
 			c := New(fixture.provider, "test")
 			for _, raw := range []any{`"/w=="`, []byte(`"/w=="`)} {
 				got, err := c.ExtractBasicFieldValue(fixture.model.GetField("bytes"), raw)
-				if err != nil || !reflect.DeepEqual(got, []uint8{255}) {
-					t.Fatalf("legacy uint8: %#v %v", got, err)
+				if err == nil {
+					t.Fatalf("stored Base64 collection accepted: %#v", got)
 				}
 			}
 			for _, raw := range []string{`null`, `[]`} {

@@ -181,7 +181,7 @@ Base 的初始化和模型测试验证正式模型合同及 owned 图；Runner �
 
 模型的 uint8 集合是数值集合：新持久值及 Remote FieldValue JSON 使用 `[0,255]`，不使用 byte stream 的 Base64。`FieldValue.JSONValue()` 返回 JSON 投影，`Get()`／`GetValue()` 保留进程内类型与 assigned 语义；嵌套 ObjectValue／SliceObjectValue 逐字段应用投影。普通 `json.Marshal([]byte{255})` 仍为 `"/w=="`。
 
-存储解码依据字段声明：仅非指针元素的 uint8 集合兼容旧 Base64 字符串，不扩大公开写入协议。整数数组使用 json.Number 并检查有符号／无符号 64 位边界，随后由 Provider 检查声明的窄类型范围。拒绝小数、越界、错误结构及尾随 JSON。不会在读取时自动重写旧行。
+存储解码依据字段声明：uint8 集合仅接受当前 JSON 数组或 null，拒绝旧 Base64 字符串。整数数组使用 json.Number 并检查有符号／无符号 64 位边界，随后由 Provider 检查声明的窄类型范围。拒绝小数、越界、错误结构及尾随 JSON。不会在读取时自动重写旧行。
 
 直接 JSON 投影保留 nil→null、空集合→[]；通过现有 Provider 的集合转换仍按既有合同将 nil 归一为空集合，不另行改变 null／缺字段／assigned 行为。指向集合的指针遵循相同 JSON 投影；本批不新增指针元素集合的 Provider 支持。
 

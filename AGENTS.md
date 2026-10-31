@@ -2,6 +2,12 @@
 
 本文件直接规定本仓的职责、边界和开发要求；单独检出本仓即可阅读执行。仓库内位置均相对于仓库根目录，协作项目通过项目名和 Git 地址识别，不依赖固定工作区或外部规范文件才能理解规则。
 
+## 初期开发的内部协议与数据格式规则
+
+- 当前阶段只维护一套内部协议和数据格式，版本标识固定为各合同的初始值，初始内容以最新代码实现为准，包含当前全部能力。没有用户明确要求，不递增协议／格式／Schema 版本，不引入版本协商、按版本分支、多版本读写、旧字段别名、兼容解码、自动迁移或回填。
+- 合同变化直接更新语义 owner、SDK、消费者、夹具、清单及文档，使用配套组件和干净候选数据验证；不为历史开发数据保留过渡路径。已有历史兼容逻辑随改动清理，不以旧测试或旧设计作为继续维护它的理由。
+- 本规则针对代码内部的协议识别和数据格式管理；不改变 Git、代码发布版本、构建身份和第三方依赖锁定。防止并发覆盖、撤权失效、重放及错误实例执行的条件修订、摘要、执行代际和持久回执按其实际安全职责保留，不能当作格式版本机械删除。
+
 ## 功能定位与边界
 
 - 提供通用模型、Provider、校验、视图、CRUD／查询、关联、条件写／事务、约束／索引、聚合及模型表结构操作；不持有平台业务策略或工作流。
@@ -23,7 +29,7 @@
 ## 结构、编码与验证
 
 - Go 工具链以 go.mod 为准；使用 gofmt／goimports，沿用 `*cd.Error`。orm 门面、models 接口及 Provider 的合同与实现可同包分文件，不增加无用途的兼容转发。
-- 改公开 API 后运行 `go test ./internal/apicheck ./provider/...`；先评估兼容影响，再用 `go test ./internal/apicheck -update-api` 更新快照，不能用改快照掩盖意外暴露。
+- 改公开 API 后运行 `go test ./internal/apicheck ./provider/...`；先核对当前消费者，再用 `go test ./internal/apicheck -update-api` 更新快照，不能用改快照掩盖意外暴露。
 - 先运行受影响包，再运行 `go test -count=1 ./...`、`go test -tags=mysql -count=1 ./...`、`go vet ./...`、`go build ./...`。离线跳过数据库不能记为数据库通过；Provider 变化覆盖 Local／Remote 和受影响 builder。
 - 真实数据库只使用显式的一次性 magicorm_test_ 目标；PostgreSQL 夹具入口为 `scripts/integration_postgres.sh`，禁止共享数据库和 replication／GRANT 测试。平台当前 PostgreSQL 验收与 ORM 的 MySQL 合同验证分开。
 - 文档／源码移动后运行 `python3 scripts/check_docs.py`；指标保持初始化复用，支持 monitoring 先初始化及 metrics.EnsureRegistered 的显式补注册，不导出测试开关。
