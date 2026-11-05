@@ -5,9 +5,9 @@
 当前处于初期开发：只维护一套内部协议与数据格式，固定初始标识，内容以最新源码实现为准。集合写入、完整写规则、独立观察角色、组件编排及完整销毁日志集合均属于初始合同。本文日期化段落仅记录当时实现；不构成历史格式兼容承诺。无明确需求不增加版本协商、旧字段回退、兼容解码、自动迁移或回填。更新时同步 owner、消费者、定义与夹具，以干净候选数据验证；不修改现有运行数据。代码发布版本、依赖版本以及并发、安全修订和不可变摘要按原职责保留。
 
 
-2026-10-30 Live8 数值集合源码候选：模型 `uint8` 集合持久化及 Remote JSON 输出为数字数组；数据库仅读取当前数组格式，拒绝旧 Base64 行，集合大整数按精确 token 解码。普通二进制 JSON 不变，旧行不自动改写。`FieldValue.JSONValue` 为公开投影入口，内部 `Get` 保留类型。见[集合合同](~/codespace/magicOrm/docs/design-orm.md#数值集合的持久化与json2026-10-30)及[本批验证范围](~/dataspace/magicPlatform/docs/technical/history/platform-live8-code-closeout-2026-10-30.md)。
+2026-10-30 Live8 数值集合源码候选：模型 `uint8` 集合持久化及 Remote JSON 输出为数字数组；数据库仅读取当前数组格式，拒绝旧 Base64 行，集合大整数按精确 token 解码。普通二进制 JSON 不变，旧行不自动改写。`FieldValue.JSONValue` 为公开投影入口，内部 `Get` 保留类型。见[集合合同](~/codespace/magicOrm/docs/design-orm.md#数值集合的持久化与json2026-10-30)及本批验证范围。
 
-2026-10-29 Live6 剩余项源码候选：整集合 Schema 生命周期通过可选 `models.SchemaSetLifecycle` 提供 `InspectSchemaSet`／`DropSchemaSet`，离线表集合使用 `orm.SchemaSetTables`；基础 ORM 接口和单根安全约定保持。图声明先整体核验，共享 owned 表去重，目标删除后独立观察确认；平台所有权、冻结计划和恢复身份由调用 owner 维护。 见[实施与验证边界](~/dataspace/magicPlatform/docs/technical/history/platform-live6-final-code-closeout-2026-10-29.md)。
+2026-10-29 Live6 剩余项源码候选：整集合 Schema 生命周期通过可选 `models.SchemaSetLifecycle` 提供 `InspectSchemaSet`／`DropSchemaSet`，离线表集合使用 `orm.SchemaSetTables`；基础 ORM 接口和单根安全约定保持。图声明先整体核验，共享 owned 表去重，目标删除后独立观察确认；平台所有权、冻结计划和恢复身份由调用 owner 维护。 见实施与验证边界。
 
 ## 项目定位与开发边界
 
