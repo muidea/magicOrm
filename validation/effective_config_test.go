@@ -2,11 +2,12 @@ package validation
 
 import (
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/muidea/magicOrm/internal/utils"
 	"github.com/muidea/magicOrm/models"
 	verrors "github.com/muidea/magicOrm/validation/errors"
-	"testing"
-	"time"
 )
 
 func reviewConfigField() *testField {

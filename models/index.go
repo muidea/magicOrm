@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+
 	cd "github.com/muidea/magicCommon/def"
 )
 

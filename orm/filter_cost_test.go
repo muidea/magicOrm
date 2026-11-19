@@ -9,7 +9,7 @@ import (
 
 	"github.com/muidea/magicOrm/internal/database/codec"
 	ormmetrics "github.com/muidea/magicOrm/internal/metrics/orm"
-	"github.com/muidea/magicOrm/internal/metrics/shared"
+	metrics "github.com/muidea/magicOrm/internal/metrics/shared"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/provider/remote"

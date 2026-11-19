@@ -6,7 +6,7 @@ import (
 	"log/slog"
 
 	cd "github.com/muidea/magicCommon/def"
-	"github.com/muidea/magicOrm/internal/metrics/shared"
+	metrics "github.com/muidea/magicOrm/internal/metrics/shared"
 	"github.com/muidea/magicOrm/models"
 )
 

@@ -150,7 +150,7 @@ func (s *Builder) BuildCreateRelationTable(vModel models.Model, vField models.Fi
 		return
 	}
 
-	createRelationSQL := fmt.Sprintf("\t`id` BIGINT NOT NULL AUTO_INCREMENT,\n\t`left` %s NOT NULL,\n\t`right` %s NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`)", lPKType, rPKType)
+	createRelationSQL := fmt.Sprintf("\t`id` BIGINT NOT NULL AUTO_INCREMENT,\n\t`left` %s NOT NULL,\n\t`right` %s NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`),\n\tINDEX(`right`)", lPKType, rPKType)
 	createRelationSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (\n%s\n)\n", relationTableName, createRelationSQL)
 	if traceSQL() {
 		slog.Info("[SQL] create relation", "sql", createRelationSQL)

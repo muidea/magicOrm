@@ -119,7 +119,11 @@ func (s *Builder) DescribeRelationTable(model models.Model, field models.Field) 
 	}
 	return database.TableSchema{Name: name, Exists: true, Ordinary: true,
 		Columns: []database.ColumnSchema{{Name: "id", Type: "bigint", AutoIncrement: true}, {Name: "left", Type: normalizeSchemaType(leftType)}, {Name: "right", Type: normalizeSchemaType(rightType)}},
-		Indexes: []database.IndexSchema{{Name: "PRIMARY", Columns: []string{"id"}, Primary: true, Unique: true, Constraint: true, Valid: true}, {Name: schemaObjectName(name, "index"), Columns: []string{"left"}, Valid: true}},
+		Indexes: []database.IndexSchema{
+			{Name: "PRIMARY", Columns: []string{"id"}, Primary: true, Unique: true, Constraint: true, Valid: true},
+			{Name: schemaObjectName(name, "index"), Columns: []string{"left"}, Valid: true},
+			{Name: schemaObjectName(name, "right_index"), Columns: []string{"right"}, Valid: true},
+		},
 	}, nil
 }
 

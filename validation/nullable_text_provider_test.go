@@ -1,12 +1,13 @@
 package validation_test
 
 import (
+	"testing"
+
 	"github.com/muidea/magicOrm/provider/helper"
 	"github.com/muidea/magicOrm/provider/local"
 	"github.com/muidea/magicOrm/provider/remote"
 	"github.com/muidea/magicOrm/validation"
 	ve "github.com/muidea/magicOrm/validation/errors"
-	"testing"
 )
 
 type nullableTextModel struct {

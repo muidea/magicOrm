@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/muidea/magicOrm/internal/metrics/shared"
+	metrics "github.com/muidea/magicOrm/internal/metrics/shared"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -5,7 +5,7 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/muidea/magicOrm/internal/metrics/shared"
+	metrics "github.com/muidea/magicOrm/internal/metrics/shared"
 	metricsvalidation "github.com/muidea/magicOrm/internal/metrics/validation"
 	validationcache "github.com/muidea/magicOrm/internal/validation/cache"
 	"github.com/muidea/magicOrm/models"

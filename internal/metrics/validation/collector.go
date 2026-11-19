@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/muidea/magicOrm/internal/metrics/shared"
+	metrics "github.com/muidea/magicOrm/internal/metrics/shared"
 )
 
 // ValidationMetricsCollector collects and stores validation operation metrics in a thread-safe manner.

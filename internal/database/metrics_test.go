@@ -11,7 +11,7 @@ import (
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/internal/metrics/metricsdb"
-	"github.com/muidea/magicOrm/internal/metrics/shared"
+	metrics "github.com/muidea/magicOrm/internal/metrics/shared"
 	"github.com/stretchr/testify/assert"
 )
 

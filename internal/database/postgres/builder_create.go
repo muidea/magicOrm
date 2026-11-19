@@ -165,7 +165,10 @@ func (s *Builder) BuildCreateRelationTable(vModel models.Model, vField models.Fi
 
 	createRelationSQL := fmt.Sprintf("\t\"id\" BIGSERIAL NOT NULL,\n\t\"left\" %s NOT NULL,\n\t\"right\" %s NOT NULL,\n\tPRIMARY KEY (\"id\")", lPKType, rPKType)
 	createRelationSQL = fmt.Sprintf("CREATE TABLE IF NOT EXISTS \"%s\" (\n%s\n)", relationTableName, createRelationSQL)
-	createRelationSQL = fmt.Sprintf("%s;\nCREATE INDEX IF NOT EXISTS \"%s\" ON \"%s\" (\"left\")", createRelationSQL, schemaObjectName(relationTableName, "index"), relationTableName)
+	createRelationSQL = fmt.Sprintf("%s;\nCREATE INDEX IF NOT EXISTS \"%s\" ON \"%s\" (\"left\");\nCREATE INDEX IF NOT EXISTS \"%s\" ON \"%s\" (\"right\")",
+		createRelationSQL,
+		schemaObjectName(relationTableName, "index"), relationTableName,
+		schemaObjectName(relationTableName, "right_index"), relationTableName)
 	if traceSQL() {
 		slog.Info("[SQL] create relation", "sql", createRelationSQL)
 	}

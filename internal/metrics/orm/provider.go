@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/muidea/magicCommon/monitoring/types"
-	"github.com/muidea/magicOrm/internal/metrics/shared"
+	metrics "github.com/muidea/magicOrm/internal/metrics/shared"
 )
 
 // ORMMetricProvider implements types.MetricProvider interface for ORM metrics.

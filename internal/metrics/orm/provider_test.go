@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/muidea/magicCommon/monitoring/types"
-	"github.com/muidea/magicOrm/internal/metrics/shared"
+	metrics "github.com/muidea/magicOrm/internal/metrics/shared"
 )
 
 func TestORMMetricProviderCollect(t *testing.T) {

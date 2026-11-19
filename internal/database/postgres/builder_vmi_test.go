@@ -348,6 +348,9 @@ func TestBuilderVMICreateInsertAndDropRelations(t *testing.T) {
 	if !strings.Contains(createRelation.SQL(), `"left" BIGINT NOT NULL`) || !strings.Contains(createRelation.SQL(), `"right" BIGINT NOT NULL`) {
 		t.Fatalf("unexpected create relation column types: %s", createRelation.SQL())
 	}
+	if !strings.Contains(createRelation.SQL(), `ON "tenant_OrderGoods2GoodsItem" ("left")`) || !strings.Contains(createRelation.SQL(), `ON "tenant_OrderGoods2GoodsItem" ("right")`) {
+		t.Fatalf("expected left and right relation indexes: %s", createRelation.SQL())
+	}
 
 	goodsItemModel, err := remoteProvider.GetEntityModel(&remote.ObjectValue{
 		Name:    "goodsItem",

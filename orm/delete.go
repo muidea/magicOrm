@@ -10,7 +10,7 @@ import (
 
 	"github.com/muidea/magicOrm/internal/database"
 	"github.com/muidea/magicOrm/internal/database/codec"
-	"github.com/muidea/magicOrm/internal/metrics/shared"
+	metrics "github.com/muidea/magicOrm/internal/metrics/shared"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider"
 	"github.com/muidea/magicOrm/validation/errors"

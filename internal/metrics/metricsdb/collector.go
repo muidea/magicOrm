@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/muidea/magicOrm/internal/metrics/shared"
+	metrics "github.com/muidea/magicOrm/internal/metrics/shared"
 )
 
 type DurationAggregate struct {
