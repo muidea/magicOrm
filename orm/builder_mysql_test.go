@@ -215,7 +215,7 @@ func TestBuilderLocalReference(t *testing.T) {
 		t.Errorf("BuildCreateRelationTable failed, err:%s", err.Error())
 		return
 	}
-	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_ReferenceUnit1Unit` (\n\t`id` BIGINT NOT NULL AUTO_INCREMENT,\n\t`left` BIGINT NOT NULL,\n\t`right` VARCHAR(32) NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`)\n)\n" {
+	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_ReferenceUnit1Unit` (\n\t`id` BIGINT NOT NULL AUTO_INCREMENT,\n\t`left` BIGINT NOT NULL,\n\t`right` VARCHAR(32) NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`),\n\tINDEX(`right`)\n)\n" {
 		t.Errorf("BuildCreateRelationTable failed, str:%s", str)
 		return
 	}
@@ -695,7 +695,7 @@ func TestBuilderRemoteReference(t *testing.T) {
 		t.Errorf("BuildCreateRelationTable failed, err:%s", err.Error())
 		return
 	}
-	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_ReferenceUnit1Unit` (\n\t`id` BIGINT NOT NULL AUTO_INCREMENT,\n\t`left` BIGINT NOT NULL,\n\t`right` VARCHAR(32) NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`)\n)\n" {
+	if str.SQL() != "CREATE TABLE IF NOT EXISTS `abc_ReferenceUnit1Unit` (\n\t`id` BIGINT NOT NULL AUTO_INCREMENT,\n\t`left` BIGINT NOT NULL,\n\t`right` VARCHAR(32) NOT NULL,\n\tPRIMARY KEY (`id`),\n\tINDEX(`left`),\n\tINDEX(`right`)\n)\n" {
 		t.Errorf("BuildCreateRelationTable failed, str:%s", str)
 		return
 	}
