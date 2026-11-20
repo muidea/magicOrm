@@ -673,8 +673,8 @@ func updateSliceStructField(val any, localField models.Field) (err *cd.Error) {
 		return
 	}
 
+	elemType := localField.GetType().Elem()
 	for _, objectValuePtr := range sliceObjectValuePtr.Values {
-		elemType := localField.GetType().Elem()
 		localSubVal, _ := elemType.Interface(nil)
 		localSubModel, localSubErr := local.GetValueModel(localSubVal)
 		if localSubErr != nil {
@@ -789,10 +789,11 @@ func UpdateSliceEntity(remoteSliceValuePtr *remote.SliceObjectValue, localSliceV
 		return
 	}
 
-	localSliceReflect.Set(reflect.MakeSlice(localSliceReflect.Type(), 0, 0))
+	localSliceReflect.Set(reflect.MakeSlice(localSliceReflect.Type(), 0, len(remoteSliceValuePtr.Values)))
 	localValuePtr := local.NewValue(localSliceReflect)
+	elemType := localTypePtr.Elem()
+	isPtrElem := elemType.IsPtrType()
 	for idx, val := range remoteSliceValuePtr.Values {
-		elemType := localTypePtr.Elem()
 		localItemVal, _ := elemType.Interface(nil)
 		localItemModel, localItemErr := local.GetValueModel(localItemVal)
 		if localItemErr != nil {
@@ -806,7 +807,7 @@ func UpdateSliceEntity(remoteSliceValuePtr *remote.SliceObjectValue, localSliceV
 			return
 		}
 
-		localRawVal := localItemModel.Interface(elemType.IsPtrType())
+		localRawVal := localItemModel.Interface(isPtrElem)
 		err = localValuePtr.Append(reflect.ValueOf(localRawVal))
 		if err != nil {
 			slog.Error("UpdateSliceEntity Append failed", "sliceType", remoteSliceValuePtr.Name, "index", idx, "error", err.Error())

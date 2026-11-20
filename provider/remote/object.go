@@ -324,6 +324,18 @@ func (s *Object) Interface(_ bool) (ret any) {
 }
 
 func (s *Object) Copy(viewSpec models.ViewDeclare) (ret models.Model) {
+	var uniqueConstraints []models.UniqueConstraint
+	if len(s.UniqueConstraints) > 0 {
+		uniqueConstraints = s.GetUniqueConstraints()
+	}
+	var indexes []models.Index
+	if len(s.Indexes) > 0 {
+		indexes = s.GetIndexes()
+	}
+	var privateFields map[string]struct{}
+	if len(s.privateReadFields) > 0 {
+		privateFields = maps.Clone(s.privateReadFields)
+	}
 	obj := &Object{
 		ID:                s.ID,
 		Name:              s.Name,
@@ -331,22 +343,22 @@ func (s *Object) Copy(viewSpec models.ViewDeclare) (ret models.Model) {
 		Icon:              s.Icon,
 		PkgPath:           s.PkgPath,
 		Description:       s.Description,
-		Fields:            make([]*Field, 0, len(s.Fields)),
-		UniqueConstraints: s.GetUniqueConstraints(),
-		Indexes:           s.GetIndexes(),
+		Fields:            make([]*Field, len(s.Fields)),
+		UniqueConstraints: uniqueConstraints,
+		Indexes:           indexes,
 
 		valueValidator:    s.valueValidator,
 		viewSpec:          viewSpec,
-		privateReadFields: maps.Clone(s.privateReadFields),
+		privateReadFields: privateFields,
 	}
-	for _, val := range s.Fields {
+	for idx, val := range s.Fields {
 		valPtr, valErr := val.copy(viewSpec)
 		if valErr != nil {
 			slog.Error("copy field failed, name:%s, err:%s", val.GetName(), valErr.Error())
 			panic(valErr)
 		}
 
-		obj.Fields = append(obj.Fields, valPtr)
+		obj.Fields[idx] = valPtr
 	}
 
 	ret = obj
@@ -488,10 +500,11 @@ func (s *ObjectValue) Copy() (ret *ObjectValue) {
 		ID:      s.ID,
 		Name:    s.Name,
 		PkgPath: s.PkgPath,
+		Fields:  make([]*FieldValue, len(s.Fields)),
 	}
 
 	for idx := 0; idx < len(s.Fields); idx++ {
-		ptr.Fields = append(ptr.Fields, s.Fields[idx].copy())
+		ptr.Fields[idx] = s.Fields[idx].copy()
 	}
 
 	ret = ptr

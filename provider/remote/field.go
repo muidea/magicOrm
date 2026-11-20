@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"log/slog"
 
@@ -18,25 +19,158 @@ func (s FieldValue) JSONValue() any {
 	return utils.BasicValueForJSON(s.Value)
 }
 
+func isSimpleJSONASCII(s string) bool {
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c < 0x20 || c >= 0x7f || c == '"' || c == '\\' || c == '<' || c == '>' || c == '&' {
+			return false
+		}
+	}
+	return true
+}
+
+func appendJSONString(dst []byte, s string) ([]byte, error) {
+	if isSimpleJSONASCII(s) {
+		dst = append(dst, '"')
+		dst = append(dst, s...)
+		return append(dst, '"'), nil
+	}
+	raw, err := json.Marshal(s)
+	if err != nil {
+		return nil, err
+	}
+	return append(dst, raw...), nil
+}
+
+func appendFieldValueJSON(dst []byte, val any) ([]byte, error) {
+	switch v := val.(type) {
+	case nil:
+		return append(dst, "null"...), nil
+	case string:
+		return appendJSONString(dst, v)
+	case bool:
+		return strconv.AppendBool(dst, v), nil
+	case int:
+		return strconv.AppendInt(dst, int64(v), 10), nil
+	case int64:
+		return strconv.AppendInt(dst, v, 10), nil
+	case int32:
+		return strconv.AppendInt(dst, int64(v), 10), nil
+	case int16:
+		return strconv.AppendInt(dst, int64(v), 10), nil
+	case int8:
+		return strconv.AppendInt(dst, int64(v), 10), nil
+	case uint:
+		return strconv.AppendUint(dst, uint64(v), 10), nil
+	case uint64:
+		return strconv.AppendUint(dst, v, 10), nil
+	case uint32:
+		return strconv.AppendUint(dst, uint64(v), 10), nil
+	case uint16:
+		return strconv.AppendUint(dst, uint64(v), 10), nil
+	case uint8:
+		return strconv.AppendUint(dst, uint64(v), 10), nil
+	case *string:
+		if v == nil {
+			return append(dst, "null"...), nil
+		}
+		return appendJSONString(dst, *v)
+	case *bool:
+		if v == nil {
+			return append(dst, "null"...), nil
+		}
+		return strconv.AppendBool(dst, *v), nil
+	case *int:
+		if v == nil {
+			return append(dst, "null"...), nil
+		}
+		return strconv.AppendInt(dst, int64(*v), 10), nil
+	case *int64:
+		if v == nil {
+			return append(dst, "null"...), nil
+		}
+		return strconv.AppendInt(dst, *v, 10), nil
+	default:
+		raw, err := json.Marshal(val)
+		if err != nil {
+			return nil, err
+		}
+		return append(dst, raw...), nil
+	}
+}
+
 func (s FieldValue) MarshalJSON() ([]byte, error) {
-	type wireFieldValue FieldValue
-	value := wireFieldValue(s)
-	value.Value = s.JSONValue()
-	return json.Marshal(value)
+	buf := make([]byte, 0, 64+len(s.Name))
+	buf = append(buf, `{"name":`...)
+	var err error
+	buf, err = appendJSONString(buf, s.Name)
+	if err != nil {
+		return nil, err
+	}
+	buf = append(buf, `,"value":`...)
+	buf, err = appendFieldValueJSON(buf, s.JSONValue())
+	if err != nil {
+		return nil, err
+	}
+	if s.Assigned {
+		buf = append(buf, `,"assigned":true}`...)
+	} else {
+		buf = append(buf, '}')
+	}
+	return buf, nil
 }
 
 // UnmarshalJSON keeps numeric tokens exact until the declared field type is
 // known. This also applies when FieldValue is nested in an HTTP request DTO.
 func (s *FieldValue) UnmarshalJSON(data []byte) error {
-	type wireFieldValue FieldValue
-	var value wireFieldValue
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.UseNumber()
-	if err := decoder.Decode(&value); err != nil {
+	var raw struct {
+		Name     string          `json:"name"`
+		Value    json.RawMessage `json:"value"`
+		Assigned bool            `json:"assigned,omitempty"`
+	}
+	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
-	*s = FieldValue(value)
+	val, err := decodeFieldRawValue(raw.Value)
+	if err != nil {
+		return err
+	}
+	*s = FieldValue{
+		Name:     raw.Name,
+		Value:    val,
+		Assigned: raw.Assigned,
+	}
 	return nil
+}
+
+func decodeFieldRawValue(raw []byte) (any, error) {
+	v := bytes.TrimSpace(raw)
+	if len(v) == 0 || bytes.Equal(v, []byte("null")) {
+		return nil, nil
+	}
+	if bytes.Equal(v, []byte("true")) {
+		return true, nil
+	}
+	if bytes.Equal(v, []byte("false")) {
+		return false, nil
+	}
+	if v[0] == '"' {
+		var str string
+		if err := json.Unmarshal(v, &str); err != nil {
+			return nil, err
+		}
+		return str, nil
+	}
+	if v[0] == '-' || (v[0] >= '0' && v[0] <= '9') {
+		return json.Number(string(v)), nil
+	}
+	var val any
+	decoder := json.NewDecoder(bytes.NewReader(v))
+	decoder.UseNumber()
+	if err := decoder.Decode(&val); err != nil {
+		return nil, err
+	}
+	return val, nil
 }
 
 func (s *FieldValue) String() string {

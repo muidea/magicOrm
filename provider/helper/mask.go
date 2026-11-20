@@ -3,11 +3,20 @@ package helper
 import (
 	"reflect"
 	"strings"
+	"sync"
 
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicOrm/models"
 	"github.com/muidea/magicOrm/provider/remote"
 )
+
+type viewMaskCacheKey struct {
+	entityType              reflect.Type
+	view                    models.ViewDeclare
+	includeUntaggedTopLevel bool
+}
+
+var viewMaskCache sync.Map // viewMaskCacheKey -> *remote.ObjectValue
 
 type maskNode struct {
 	children map[string]*maskNode
@@ -65,8 +74,17 @@ func buildViewMaskWithOptions(entity any, view models.ViewDeclare, options *view
 	}
 
 	entityType := reflect.TypeOf(entity)
+	includeUntagged := options != nil && options.IncludeUntaggedTopLevel
+	key := viewMaskCacheKey{entityType: entityType, view: view, includeUntaggedTopLevel: includeUntagged}
+	if cached, ok := viewMaskCache.Load(key); ok {
+		return cached.(*remote.ObjectValue).Copy(), nil
+	}
 	ret, err = buildObjectMaskByView(entityType, "", view, options, map[string]struct{}{})
-	return
+	if err != nil || ret == nil {
+		return
+	}
+	actual, _ := viewMaskCache.LoadOrStore(key, ret)
+	return actual.(*remote.ObjectValue).Copy(), nil
 }
 
 func trimObjectValue(value *remote.ObjectValue, node *maskNode) *remote.ObjectValue {

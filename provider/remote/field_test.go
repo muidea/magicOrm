@@ -1,7 +1,9 @@
 package remote
 
 import (
+	"encoding/json"
 	"errors"
+	"reflect"
 	"testing"
 
 	"github.com/muidea/magicOrm/models"
@@ -609,5 +611,55 @@ func TestFieldValueSetSupportsBasicCollectionOperand(t *testing.T) {
 	}
 	if !fieldVal.IsValid() || fieldVal.IsZero() {
 		t.Fatalf("FieldValue.Set(empty collection) validity mismatch, valid=%v zero=%v", fieldVal.IsValid(), fieldVal.IsZero())
+	}
+}
+
+func TestFieldValueJSONRoundTripAndProjection(t *testing.T) {
+	cases := []FieldValue{
+		{Name: "id", Value: int64(9223372036854775001), Assigned: true},
+		{Name: "count", Value: int(42)},
+		{Name: "label", Value: "plain-ascii"},
+		{Name: "html", Value: `<tag attr="x&y">\中文`},
+		{Name: "flag", Value: true, Assigned: true},
+		{Name: "empty", Value: nil},
+		{Name: "bytes", Value: []byte{1, 2, 255}, Assigned: true},
+		{Name: "nilBytes", Value: []byte(nil)},
+		{Name: "nested", Value: map[string]any{"n": json.Number("10"), "ok": true}},
+	}
+	encoded, err := json.Marshal(cases)
+	if err != nil {
+		t.Fatalf("Marshal failed: %v", err)
+	}
+	var decoded []FieldValue
+	if err := json.Unmarshal(encoded, &decoded); err != nil {
+		t.Fatalf("Unmarshal failed: %v", err)
+	}
+	if len(decoded) != len(cases) {
+		t.Fatalf("length mismatch: got %d want %d", len(decoded), len(cases))
+	}
+	if num, ok := decoded[0].Value.(json.Number); !ok || num.String() != "9223372036854775001" || !decoded[0].Assigned {
+		t.Fatalf("expected json.Number exact int64, got %T %#v assigned=%v", decoded[0].Value, decoded[0].Value, decoded[0].Assigned)
+	}
+	if decoded[2].Value != "plain-ascii" || decoded[2].Assigned {
+		t.Fatalf("unexpected plain string: %#v", decoded[2])
+	}
+	if decoded[3].Value != `<tag attr="x&y">\中文` {
+		t.Fatalf("unexpected html/utf8 string: %#v", decoded[3].Value)
+	}
+	if decoded[4].Value != true || !decoded[4].Assigned {
+		t.Fatalf("unexpected bool: %#v", decoded[4])
+	}
+	if decoded[5].Value != nil {
+		t.Fatalf("unexpected nil: %#v", decoded[5].Value)
+	}
+	if !reflect.DeepEqual(decoded[6].Value, []any{json.Number("1"), json.Number("2"), json.Number("255")}) {
+		t.Fatalf("unexpected bytes projection: %#v", decoded[6].Value)
+	}
+	if decoded[7].Value != nil {
+		t.Fatalf("unexpected nilBytes: %#v", decoded[7].Value)
+	}
+	nested, ok := decoded[8].Value.(map[string]any)
+	if !ok || nested["n"] != json.Number("10") || nested["ok"] != true {
+		t.Fatalf("unexpected nested object: %#v", decoded[8].Value)
 	}
 }
