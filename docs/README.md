@@ -41,7 +41,6 @@
 - [部署与监控接入](~/codespace/magicOrm/DEPLOYMENT_GUIDE.md)：显式数据库配置、资源生命周期、Schema 交付和实际监控 API。
 
 近期变更说明：
-- [release-note-2026-03-remote-update-query.md](~/codespace/magicOrm/docs/release-note-2026-03-remote-update-query.md)
 - [technical-note-remote-update-query.md](~/codespace/magicOrm/docs/technical-note-remote-update-query.md)
 
 ---
@@ -68,7 +67,6 @@
 | Go 类型会映射成什么 models 类型、数据库列类型 | [type-mapping.md](~/codespace/magicOrm/docs/type-mapping.md) |
 | `cd.Error` 的 code 和本项目里的错误约定 | [error-codes.md](~/codespace/magicOrm/docs/error-codes.md) |
 | 默认离线测试与显式隔离数据库测试如何执行 | [testing-guide.md](~/codespace/magicOrm/docs/testing-guide.md) |
-| 这轮 remote/update/query 改了什么，使用方需要关注什么 | [release-note-2026-03-remote-update-query.md](~/codespace/magicOrm/docs/release-note-2026-03-remote-update-query.md) |
 | 这轮 remote/update/query 为什么这么改，代码语义是什么 | [technical-note-remote-update-query.md](~/codespace/magicOrm/docs/technical-note-remote-update-query.md) |
 
 ---
@@ -89,7 +87,6 @@
 | [type-mapping.md](~/codespace/magicOrm/docs/type-mapping.md) | Go 类型、models 类型、数据库类型映射 |
 | [error-codes.md](~/codespace/magicOrm/docs/error-codes.md) | `magicCommon/def` 错误码与本项目使用约定 |
 | [testing-guide.md](~/codespace/magicOrm/docs/testing-guide.md) | 测试分层、数据库切换、推荐执行命令、常见失败含义 |
-| [release-note-2026-03-remote-update-query.md](~/codespace/magicOrm/docs/release-note-2026-03-remote-update-query.md) | 本轮 remote/update/query 变更结果、影响面与后续建议 |
 | [technical-note-remote-update-query.md](~/codespace/magicOrm/docs/technical-note-remote-update-query.md) | 本轮 remote/update/query 的实现背景、关键语义与稳定约定 |
 
 ---
