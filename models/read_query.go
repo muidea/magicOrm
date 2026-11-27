@@ -174,6 +174,10 @@ func ValidateReadQueryPlan(plan ReadQueryPlan) *cd.Error {
 			if e.Value.Kind == "null" {
 				return false
 			}
+		case "contains":
+			if e.Value.Kind != "string" {
+				return false
+			}
 		case "is-null", "not-null":
 			if e.Value.Kind != "null" {
 				return false

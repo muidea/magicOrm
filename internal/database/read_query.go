@@ -99,6 +99,13 @@ func buildReadQueryClause(model models.Model, filter models.Filter, p provider.P
 		if e.Value.Kind == "boolean" && e.Operator != "eq" && e.Operator != "ne" {
 			return "", invalid()
 		}
+		if e.Operator == "contains" {
+			text, ok := value.(string)
+			if e.Value.Kind != "string" || !ok {
+				return "", invalid()
+			}
+			value = "%" + strings.NewReplacer("!", "!!", "%", "!%", "_", "!_").Replace(text) + "%"
+		}
 		encoded, encodeErr := p.EncodeValue(value, f.GetType())
 		if encodeErr != nil {
 			return "", encodeErr
@@ -107,6 +114,9 @@ func buildReadQueryClause(model models.Model, filter models.Filter, p provider.P
 		placeholder := "?"
 		if dialect == "postgres" {
 			placeholder = fmt.Sprintf("$%d", offset+len(args))
+		}
+		if e.Operator == "contains" {
+			return name + " LIKE " + placeholder + " ESCAPE '!'", nil
 		}
 		op := map[string]string{"eq": "=", "ne": "<>", "lt": "<", "lte": "<=", "gt": ">", "gte": ">="}[e.Operator]
 		return name + " " + op + " " + placeholder, nil

@@ -56,3 +56,28 @@ func TestReadQueryPlanNodeBudget(t *testing.T) {
 		}
 	}
 }
+
+func TestReadQueryPlanContainsValidation(t *testing.T) {
+	valid := models.ReadQueryPlan{
+		APIVersion: models.ReadQueryPlanAPIVersion,
+		Where:      &models.QueryExpression{Kind: "compare", Field: "name", Operator: "contains", Value: &models.QueryScalar{Kind: "string", Text: "dev"}},
+	}
+	if err := models.ValidateReadQueryPlan(valid); err != nil {
+		t.Fatal(err)
+	}
+	for _, value := range []*models.QueryScalar{
+		{Kind: "integer", Number: "1"},
+		{Kind: "decimal", Number: "1.5"},
+		{Kind: "boolean", Boolean: true},
+		{Kind: "datetime", Text: "2026-01-01T00:00:00Z"},
+		{Kind: "null"},
+	} {
+		invalid := models.ReadQueryPlan{
+			APIVersion: models.ReadQueryPlanAPIVersion,
+			Where:      &models.QueryExpression{Kind: "compare", Field: "name", Operator: "contains", Value: value},
+		}
+		if err := models.ValidateReadQueryPlan(invalid); err == nil {
+			t.Fatalf("contains 应拒绝非字符串标量: %+v", value)
+		}
+	}
+}

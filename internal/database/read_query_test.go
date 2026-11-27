@@ -273,3 +273,46 @@ func TestReadQueryPlanRejectsInvalidAndKeepsLegacy(t *testing.T) {
 		}
 	}
 }
+
+func TestReadQueryPlanContainsCompilation(t *testing.T) {
+	for _, remoteModel := range []bool{false, true} {
+		p, model := readQueryModel(t, remoteModel)
+		for _, dialect := range []string{"mysql", "postgres"} {
+			t.Run(dialect+"/"+map[bool]string{false: "local", true: "remote"}[remoteModel], func(t *testing.T) {
+				base, err := p.GetModelFilter(model)
+				if err != nil {
+					t.Fatal(err)
+				}
+				e := queryCompare("name", "contains", "string", "100%_dev!tag")
+				plan := models.ReadQueryPlan{APIVersion: models.ReadQueryPlanAPIVersion, Where: &e}
+				filter, err := models.WithReadQueryPlan(base, plan)
+				if err != nil {
+					t.Fatal(err)
+				}
+				where, _, args, buildErr := database.BuildReadQueryClause(model, filter, p, dialect, 2)
+				if buildErr != nil {
+					t.Fatal(buildErr)
+				}
+				expectedWhere := "`name` LIKE ? ESCAPE '!'"
+				if dialect == "postgres" {
+					expectedWhere = `"name" LIKE $3 ESCAPE '!'`
+				}
+				if where != expectedWhere {
+					t.Fatalf("unexpected where clause: got %q want %q", where, expectedWhere)
+				}
+				if len(args) != 1 || args[0] != "%100!%!_dev!!tag%" {
+					t.Fatalf("unexpected encoded args: %+v", args)
+				}
+
+				bad := queryCompare("rank", "contains", "string", "12")
+				badFilter, err := models.WithReadQueryPlan(base, models.ReadQueryPlan{APIVersion: models.ReadQueryPlanAPIVersion, Where: &bad})
+				if err != nil {
+					t.Fatal(err)
+				}
+				if _, _, _, buildErr := database.BuildReadQueryClause(model, badFilter, p, dialect, 0); buildErr == nil {
+					t.Fatal("non-string field with contains must fail")
+				}
+			})
+		}
+	}
+}
